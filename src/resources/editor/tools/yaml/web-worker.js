@@ -19094,31 +19094,52 @@ try {
           },
           {
             id: "schema/number",
-            object: {
-              closed: true,
-              super: {
-                resolveRef: "schema/base"
+            anyOf: [
+              {
+                enum: [
+                  "number"
+                ]
               },
-              properties: {
-                number: {
-                  ref: "schema/schema"
+              {
+                object: {
+                  closed: true,
+                  super: {
+                    resolveRef: "schema/base"
+                  },
+                  required: [
+                    "number"
+                  ],
+                  properties: {
+                    number: {
+                      ref: "schema/schema"
+                    }
+                  }
                 }
               }
-            }
+            ]
           },
           {
             id: "schema/boolean",
-            object: {
-              closed: true,
-              super: {
-                resolveRef: "schema/base"
+            anyOf: [
+              {
+                enum: [
+                  "boolean"
+                ]
               },
-              properties: {
-                boolean: {
-                  ref: "schema/schema"
+              {
+                object: {
+                  closed: true,
+                  super: {
+                    resolveRef: "schema/base"
+                  },
+                  properties: {
+                    boolean: {
+                      ref: "schema/schema"
+                    }
+                  }
                 }
               }
-            }
+            ]
           },
           {
             id: "schema/resolve-ref",
@@ -19133,6 +19154,9 @@ try {
             id: "schema/ref",
             object: {
               closed: true,
+              required: [
+                "ref"
+              ],
               properties: {
                 ref: "string",
                 description: {
@@ -19145,6 +19169,9 @@ try {
             id: "schema/maybe-array-of",
             object: {
               closed: true,
+              required: [
+                "maybeArrayOf"
+              ],
               super: {
                 resolveRef: "schema/base"
               },
@@ -19162,6 +19189,9 @@ try {
               super: {
                 resolveRef: "schema/base"
               },
+              required: [
+                "arrayOf"
+              ],
               properties: {
                 arrayOf: {
                   anyOf: [
@@ -19194,6 +19224,9 @@ try {
               super: {
                 resolveRef: "schema/base"
               },
+              required: [
+                "allOf"
+              ],
               properties: {
                 allOf: {
                   anyOf: [
@@ -19228,6 +19261,9 @@ try {
               super: {
                 resolveRef: "schema/base"
               },
+              required: [
+                "anyOf"
+              ],
               properties: {
                 anyOf: {
                   anyOf: [
@@ -19262,6 +19298,9 @@ try {
               super: {
                 resolveRef: "schema/base"
               },
+              required: [
+                "record"
+              ],
               properties: {
                 record: {
                   anyOf: [
@@ -19304,6 +19343,9 @@ try {
               super: {
                 resolveRef: "schema/base"
               },
+              required: [
+                "object"
+              ],
               properties: {
                 object: {
                   object: {

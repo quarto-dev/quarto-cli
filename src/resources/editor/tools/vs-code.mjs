@@ -19093,31 +19093,52 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           id: "schema/number",
-          object: {
-            closed: true,
-            super: {
-              resolveRef: "schema/base"
+          anyOf: [
+            {
+              enum: [
+                "number"
+              ]
             },
-            properties: {
-              number: {
-                ref: "schema/schema"
+            {
+              object: {
+                closed: true,
+                super: {
+                  resolveRef: "schema/base"
+                },
+                required: [
+                  "number"
+                ],
+                properties: {
+                  number: {
+                    ref: "schema/schema"
+                  }
+                }
               }
             }
-          }
+          ]
         },
         {
           id: "schema/boolean",
-          object: {
-            closed: true,
-            super: {
-              resolveRef: "schema/base"
+          anyOf: [
+            {
+              enum: [
+                "boolean"
+              ]
             },
-            properties: {
-              boolean: {
-                ref: "schema/schema"
+            {
+              object: {
+                closed: true,
+                super: {
+                  resolveRef: "schema/base"
+                },
+                properties: {
+                  boolean: {
+                    ref: "schema/schema"
+                  }
+                }
               }
             }
-          }
+          ]
         },
         {
           id: "schema/resolve-ref",
@@ -19132,6 +19153,9 @@ var require_yaml_intelligence_resources = __commonJS({
           id: "schema/ref",
           object: {
             closed: true,
+            required: [
+              "ref"
+            ],
             properties: {
               ref: "string",
               description: {
@@ -19144,6 +19168,9 @@ var require_yaml_intelligence_resources = __commonJS({
           id: "schema/maybe-array-of",
           object: {
             closed: true,
+            required: [
+              "maybeArrayOf"
+            ],
             super: {
               resolveRef: "schema/base"
             },
@@ -19161,6 +19188,9 @@ var require_yaml_intelligence_resources = __commonJS({
             super: {
               resolveRef: "schema/base"
             },
+            required: [
+              "arrayOf"
+            ],
             properties: {
               arrayOf: {
                 anyOf: [
@@ -19193,6 +19223,9 @@ var require_yaml_intelligence_resources = __commonJS({
             super: {
               resolveRef: "schema/base"
             },
+            required: [
+              "allOf"
+            ],
             properties: {
               allOf: {
                 anyOf: [
@@ -19227,6 +19260,9 @@ var require_yaml_intelligence_resources = __commonJS({
             super: {
               resolveRef: "schema/base"
             },
+            required: [
+              "anyOf"
+            ],
             properties: {
               anyOf: {
                 anyOf: [
@@ -19261,6 +19297,9 @@ var require_yaml_intelligence_resources = __commonJS({
             super: {
               resolveRef: "schema/base"
             },
+            required: [
+              "record"
+            ],
             properties: {
               record: {
                 anyOf: [
@@ -19303,6 +19342,9 @@ var require_yaml_intelligence_resources = __commonJS({
             super: {
               resolveRef: "schema/base"
             },
+            required: [
+              "object"
+            ],
             properties: {
               object: {
                 object: {

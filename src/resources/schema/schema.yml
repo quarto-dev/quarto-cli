@@ -103,63 +103,45 @@
           string:
             ref: schema/schema
 
-# - id: schema/string
-#   anyOf:
-#     - enum: ["string", "path"]
-#     - object:
-#         closed: true
-#         super:
-#           resolveRef: schema/base
-#         required:
-#           - "pattern"
-#         properties:
-#           pattern: string
-#     - object:
-#         closed: true
-#         # super:
-#         #   resolveRef: schema/base
-#         required:
-#           - "path"
-#         properties:
-#           path:
-#             ref: schema/schema
-#     - object:
-#         closed: true
-#         # super:
-#         #   resolveRef: schema/base
-#         required:
-#           - "string"
-#         properties:
-#           string:
-#             ref: schema/schema
-
 - id: schema/number
-  object:
-    closed: true
-    super:
-      resolveRef: schema/base
-    properties:
-      number:
-        ref: schema/schema
+  anyOf:
+    - enum: ["number"]
+    - object:
+        closed: true
+        super:
+          resolveRef: schema/base
+        required:
+          - number
+        properties:
+          number:
+            ref: schema/schema
 
 - id: schema/boolean
-  object:
-    closed: true
-    super:
-      resolveRef: schema/base
-    properties:
-      boolean:
-        ref: schema/schema
+  anyOf:
+    - enum: ["boolean"]
+    - object:
+        closed: true
+        required:
+          - boolean
+        super:
+          resolveRef: schema/base
+        properties:
+          boolean:
+            ref: schema/schema
 
 - id: schema/resolve-ref
   object:
     closed: true
+    required:
+      - "resolveRef"
     properties:
       resolveRef: string
 
 - id: schema/ref
   object:
     closed: true
+    required:
+      - "ref"
     properties:
       ref: string
       description:
@@ -175,6 +157,8 @@
 - id: schema/maybe-array-of
   object:
     closed: true
+    required:
+      - maybeArrayOf
     super:
       resolveRef: schema/base
     properties:
@@ -186,6 +170,8 @@
     closed: true
     super:
       resolveRef: schema/base
+    required:
+      - "arrayOf"
     properties:
       arrayOf:
         anyOf:
@@ -204,6 +190,8 @@
     closed: true
     super:
       resolveRef: schema/base
+    required:
+      - "allOf"
     properties:
       allOf:
         anyOf:
@@ -222,6 +210,8 @@
     closed: true
     super:
       resolveRef: schema/base
+    required:
+      - "anyOf"
     properties:
       anyOf:
         anyOf:
@@ -240,6 +230,8 @@
     closed: true
     super:
       resolveRef: schema/base
+    required:
+      - "record"
     properties:
       record:
         anyOf:
@@ -262,6 +254,8 @@
     closed: true
     super:
       resolveRef: schema/base
+    required:
+      - "object"
     properties:
       object:
         object:
