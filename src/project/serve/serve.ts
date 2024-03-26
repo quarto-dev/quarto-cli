@@ -6,7 +6,13 @@
 
 import { info, warning } from "../../deno_ral/log.ts";
 import { existsSync } from "fs/mod.ts";
-import { basename, dirname, extname, join, relative } from "../../deno_ral/path.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  join,
+  relative,
+} from "../../deno_ral/path.ts";
 import * as colors from "fmt/colors.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -448,7 +454,7 @@ function externalPreviewServer(
   const server = runExternalPreviewServer({
     cmd,
     readyPattern,
-    env: serve.env,
+    env: serve.env as { [key: string]: string },
     cwd: projectOutputDir(project),
   });
 
