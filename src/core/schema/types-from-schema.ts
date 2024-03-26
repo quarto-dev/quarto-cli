@@ -21,6 +21,7 @@ import { parse } from "yaml/mod.ts";
 import { toCapitalizationCase } from "../lib/text.ts";
 import { capitalizeWord as capitalize } from "../text.ts";
 import { join } from "../../deno_ral/path.ts";
+import { schemaVisitor } from "./schema-visitor.ts";
 
 function typeNameFromSchemaName(schemaName: string) {
   return capitalize(toCapitalizationCase(schemaName.replaceAll("/", "-")));
@@ -215,6 +216,14 @@ export function schemaToType(schema: any): string {
       );
     }
     if (schema.object) {
+      if (schema.object.additionalProperties) {
+        return document(
+          "{ [key: string]: " +
+            schemaToType(schema.object.additionalProperties) +
+            " }",
+          schema.object,
+        );
+      }
       const mainType = (schema.object.properties === undefined)
         ? "JsonObject"
         : ("{" +
@@ -261,4 +270,33 @@ export async function generateSchemaTypes(resourcePath: string) {
   );
   Deno.writeTextFileSync(schemaSchemaSourcePath, strs.join("\n"));
   await fmtSource(schemaSchemaSourcePath);
+}
+
+export async function generateJsonSchemas(resourcePath: string) {
+  const definitionSchemas = parse(
+    Deno.readTextFileSync(join(resourcePath, "/schema/definitions.yml")),
+    // deno-lint-ignore no-explicit-any
+  ) as any;
+
+  const visitor = schemaVisitor<any>({
+    visitString: (_) => {
+      return "string";
+    },
+    visitObject: (_, inner) => {
+      return {
+        type: "object",
+        properties: inner.properties,
+        additionalProperties: inner.additionalProperties,
+      };
+    },
+    visit: (schema) => {
+      return "unknown";
+    },
+  });
+
+  for (const schema of definitionSchemas) {
+    console.log("---- ", schema.id);
+    console.log(JSON.stringify(visitor(schema), null, 2));
+    console.log("----\n");
+  }
 }

@@ -19000,7 +19000,8 @@ try {
             anyOf: [
               {
                 enum: [
-                  "null"
+                  "null",
+                  null
                 ]
               },
               {
@@ -19135,9 +19136,6 @@ try {
                     number: {
                       anyOf: [
                         {
-                          ref: "schema/schema"
-                        },
-                        {
                           ref: "schema/base"
                         }
                       ]
@@ -19167,9 +19165,6 @@ try {
                   properties: {
                     boolean: {
                       anyOf: [
-                        {
-                          ref: "schema/schema"
-                        },
                         {
                           ref: "schema/base"
                         }
@@ -19379,6 +19374,107 @@ try {
             }
           },
           {
+            id: "schema/explicit-object",
+            object: {
+              closed: true,
+              super: {
+                resolveRef: "schema/base"
+              },
+              required: [
+                "object"
+              ],
+              properties: {
+                object: {
+                  object: {
+                    super: {
+                      resolveRef: "schema/base"
+                    },
+                    closed: true,
+                    properties: {
+                      namingConvention: {
+                        anyOf: [
+                          {
+                            enum: [
+                              "ignore"
+                            ]
+                          },
+                          {
+                            arrayOf: {
+                              enum: [
+                                "camelCase",
+                                "camel-case",
+                                "camel_case",
+                                "capitalizationCase",
+                                "capitalization-case",
+                                "capitalization_case",
+                                "underscoreCase",
+                                "underscore-case",
+                                "underscore_case",
+                                "snakeCase",
+                                "snake-case",
+                                "snake_case",
+                                "dashCase",
+                                "dash-case",
+                                "dash_case",
+                                "kebabCase",
+                                "kebab-case",
+                                "kebab_case"
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      properties: {
+                        object: {
+                          additionalProperties: {
+                            ref: "schema/schema"
+                          }
+                        }
+                      },
+                      patternProperties: {
+                        object: {
+                          additionalProperties: {
+                            ref: "schema/schema"
+                          }
+                        }
+                      },
+                      propertyNames: {
+                        ref: "schema/schema"
+                      },
+                      additionalProperties: {
+                        ref: "schema/schema"
+                      },
+                      super: {
+                        maybeArrayOf: {
+                          ref: "schema/schema"
+                        }
+                      },
+                      required: {
+                        anyOf: [
+                          {
+                            enum: [
+                              "all"
+                            ]
+                          },
+                          {
+                            arrayOf: "string"
+                          }
+                        ]
+                      },
+                      closed: "boolean",
+                      description: {
+                        ref: "schema/description"
+                      },
+                      completions: {
+                        arrayOf: "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
             id: "schema/object",
             anyOf: [
               {
@@ -19387,104 +19483,7 @@ try {
                 ]
               },
               {
-                object: {
-                  closed: true,
-                  super: {
-                    resolveRef: "schema/base"
-                  },
-                  required: [
-                    "object"
-                  ],
-                  properties: {
-                    object: {
-                      object: {
-                        super: {
-                          resolveRef: "schema/base"
-                        },
-                        closed: true,
-                        properties: {
-                          namingConvention: {
-                            anyOf: [
-                              {
-                                enum: [
-                                  "ignore"
-                                ]
-                              },
-                              {
-                                arrayOf: {
-                                  enum: [
-                                    "camelCase",
-                                    "camel-case",
-                                    "camel_case",
-                                    "capitalizationCase",
-                                    "capitalization-case",
-                                    "capitalization_case",
-                                    "underscoreCase",
-                                    "underscore-case",
-                                    "underscore_case",
-                                    "snakeCase",
-                                    "snake-case",
-                                    "snake_case",
-                                    "dashCase",
-                                    "dash-case",
-                                    "dash_case",
-                                    "kebabCase",
-                                    "kebab-case",
-                                    "kebab_case"
-                                  ]
-                                }
-                              }
-                            ]
-                          },
-                          properties: {
-                            object: {
-                              additionalProperties: {
-                                ref: "schema/schema"
-                              }
-                            }
-                          },
-                          patternProperties: {
-                            object: {
-                              additionalProperties: {
-                                ref: "schema/schema"
-                              }
-                            }
-                          },
-                          propertyNames: {
-                            ref: "schema/schema"
-                          },
-                          additionalProperties: {
-                            ref: "schema/schema"
-                          },
-                          super: {
-                            maybeArrayOf: {
-                              ref: "schema/schema"
-                            }
-                          },
-                          required: {
-                            anyOf: [
-                              {
-                                enum: [
-                                  "all"
-                                ]
-                              },
-                              {
-                                arrayOf: "string"
-                              }
-                            ]
-                          },
-                          closed: "boolean",
-                          description: {
-                            ref: "schema/description"
-                          },
-                          completions: {
-                            arrayOf: "string"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
+                ref: "schema/explicit-object"
               }
             ]
           },
@@ -19535,7 +19534,6 @@ try {
               },
               {
                 enum: [
-                  null,
                   "any"
                 ]
               }

@@ -18999,7 +18999,8 @@ var require_yaml_intelligence_resources = __commonJS({
           anyOf: [
             {
               enum: [
-                "null"
+                "null",
+                null
               ]
             },
             {
@@ -19134,9 +19135,6 @@ var require_yaml_intelligence_resources = __commonJS({
                   number: {
                     anyOf: [
                       {
-                        ref: "schema/schema"
-                      },
-                      {
                         ref: "schema/base"
                       }
                     ]
@@ -19166,9 +19164,6 @@ var require_yaml_intelligence_resources = __commonJS({
                 properties: {
                   boolean: {
                     anyOf: [
-                      {
-                        ref: "schema/schema"
-                      },
                       {
                         ref: "schema/base"
                       }
@@ -19378,6 +19373,107 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "schema/explicit-object",
+          object: {
+            closed: true,
+            super: {
+              resolveRef: "schema/base"
+            },
+            required: [
+              "object"
+            ],
+            properties: {
+              object: {
+                object: {
+                  super: {
+                    resolveRef: "schema/base"
+                  },
+                  closed: true,
+                  properties: {
+                    namingConvention: {
+                      anyOf: [
+                        {
+                          enum: [
+                            "ignore"
+                          ]
+                        },
+                        {
+                          arrayOf: {
+                            enum: [
+                              "camelCase",
+                              "camel-case",
+                              "camel_case",
+                              "capitalizationCase",
+                              "capitalization-case",
+                              "capitalization_case",
+                              "underscoreCase",
+                              "underscore-case",
+                              "underscore_case",
+                              "snakeCase",
+                              "snake-case",
+                              "snake_case",
+                              "dashCase",
+                              "dash-case",
+                              "dash_case",
+                              "kebabCase",
+                              "kebab-case",
+                              "kebab_case"
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    properties: {
+                      object: {
+                        additionalProperties: {
+                          ref: "schema/schema"
+                        }
+                      }
+                    },
+                    patternProperties: {
+                      object: {
+                        additionalProperties: {
+                          ref: "schema/schema"
+                        }
+                      }
+                    },
+                    propertyNames: {
+                      ref: "schema/schema"
+                    },
+                    additionalProperties: {
+                      ref: "schema/schema"
+                    },
+                    super: {
+                      maybeArrayOf: {
+                        ref: "schema/schema"
+                      }
+                    },
+                    required: {
+                      anyOf: [
+                        {
+                          enum: [
+                            "all"
+                          ]
+                        },
+                        {
+                          arrayOf: "string"
+                        }
+                      ]
+                    },
+                    closed: "boolean",
+                    description: {
+                      ref: "schema/description"
+                    },
+                    completions: {
+                      arrayOf: "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
           id: "schema/object",
           anyOf: [
             {
@@ -19386,104 +19482,7 @@ var require_yaml_intelligence_resources = __commonJS({
               ]
             },
             {
-              object: {
-                closed: true,
-                super: {
-                  resolveRef: "schema/base"
-                },
-                required: [
-                  "object"
-                ],
-                properties: {
-                  object: {
-                    object: {
-                      super: {
-                        resolveRef: "schema/base"
-                      },
-                      closed: true,
-                      properties: {
-                        namingConvention: {
-                          anyOf: [
-                            {
-                              enum: [
-                                "ignore"
-                              ]
-                            },
-                            {
-                              arrayOf: {
-                                enum: [
-                                  "camelCase",
-                                  "camel-case",
-                                  "camel_case",
-                                  "capitalizationCase",
-                                  "capitalization-case",
-                                  "capitalization_case",
-                                  "underscoreCase",
-                                  "underscore-case",
-                                  "underscore_case",
-                                  "snakeCase",
-                                  "snake-case",
-                                  "snake_case",
-                                  "dashCase",
-                                  "dash-case",
-                                  "dash_case",
-                                  "kebabCase",
-                                  "kebab-case",
-                                  "kebab_case"
-                                ]
-                              }
-                            }
-                          ]
-                        },
-                        properties: {
-                          object: {
-                            additionalProperties: {
-                              ref: "schema/schema"
-                            }
-                          }
-                        },
-                        patternProperties: {
-                          object: {
-                            additionalProperties: {
-                              ref: "schema/schema"
-                            }
-                          }
-                        },
-                        propertyNames: {
-                          ref: "schema/schema"
-                        },
-                        additionalProperties: {
-                          ref: "schema/schema"
-                        },
-                        super: {
-                          maybeArrayOf: {
-                            ref: "schema/schema"
-                          }
-                        },
-                        required: {
-                          anyOf: [
-                            {
-                              enum: [
-                                "all"
-                              ]
-                            },
-                            {
-                              arrayOf: "string"
-                            }
-                          ]
-                        },
-                        closed: "boolean",
-                        description: {
-                          ref: "schema/description"
-                        },
-                        completions: {
-                          arrayOf: "string"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
+              ref: "schema/explicit-object"
             }
           ]
         },
@@ -19534,7 +19533,6 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             {
               enum: [
-                null,
                 "any"
               ]
             }

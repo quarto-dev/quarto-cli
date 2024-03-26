@@ -1260,6 +1260,18 @@ export type ManuscriptSchema = {
   >; /* Additional file resources to be copied to output directory */
 };
 
+export type Brand = {
+  color?: JsonObject;
+  font?: JsonObject;
+  format?: JsonObject;
+  logo?: { large?: string; medium?: string; small?: string };
+  meta?: { name?: string | { full?: string; short?: string } };
+  options?: JsonObject;
+  theme?: JsonObject;
+  typography?: JsonObject;
+  variable?: JsonObject;
+};
+
 export type ProjectConfig = {
   "execute-dir"?:
     | "file"

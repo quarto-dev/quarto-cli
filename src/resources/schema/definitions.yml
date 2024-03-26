@@ -2436,3 +2436,32 @@
           maybeArrayOf:
             schema: path
             description: "Files that specify the execution environment (e.g. renv.lock, requirements.text, etc...)"
+
+- id: brand
+  schema:
+    object:
+      closed: true
+      properties:
+        meta:
+          object:
+            properties:
+              name:
+                anyOf:
+                  - string
+                  - object:
+                      properties:
+                        full: string
+                        short: string
+        logo:
+          object:
+            properties:
+              small: string
+              medium: string
+              large: string
+        color: object
+        theme: object
+        options: object
+        font: object
+        typography: object
+        variable: object
+        format: object

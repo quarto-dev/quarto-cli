@@ -27,21 +27,21 @@ export type SchemaEnum = {
   enum: (SchemaScalar)[] | ({ values?: (SchemaScalar)[] } & SchemaBase);
 } & SchemaBase;
 
-export type SchemaNull = "null" | { null: SchemaBase };
+export type SchemaNull = ("null" | null) | { null: SchemaBase };
 
 export type SchemaExplicitSchema = { schema: SchemaSchema } & SchemaBase;
 
+export type SchemaExplicitPatternString = { pattern: string } & SchemaBase;
+
 export type SchemaString =
   | ("string" | "path")
-  | ({ pattern: string } & SchemaBase)
-  | ({ path: SchemaSchema } & SchemaBase)
-  | ({ string: SchemaSchema } & SchemaBase);
+  | SchemaExplicitPatternString
+  | ({ path: SchemaExplicitPatternString | SchemaBase } & SchemaBase)
+  | ({ string: SchemaExplicitPatternString | SchemaBase } & SchemaBase);
 
-export type SchemaNumber = "number" | ({ number: SchemaSchema } & SchemaBase);
+export type SchemaNumber = "number" | ({ number: SchemaBase } & SchemaBase);
 
-export type SchemaBoolean =
-  | "boolean"
-  | ({ boolean: SchemaSchema } & SchemaBase);
+export type SchemaBoolean = "boolean" | ({ boolean: SchemaBase } & SchemaBase);
 
 export type SchemaResolveRef = { resolveRef: string };
 
@@ -64,10 +64,12 @@ export type SchemaAnyOf = {
 } & SchemaBase;
 
 export type SchemaRecord = {
-  record: JsonObject | ({ properties: JsonObject } & SchemaBase);
+  record:
+    | { [key: string]: SchemaSchema }
+    | ({ properties: { [key: string]: SchemaSchema } } & SchemaBase);
 } & SchemaBase;
 
-export type SchemaObject = {
+export type SchemaExplicitObject = {
   object: {
     additionalProperties?: SchemaSchema;
     closed?: boolean;
@@ -95,13 +97,15 @@ export type SchemaObject = {
         | "kebab-case"
         | "kebab_case"
       ))[];
-    properties?: JsonObject;
-    patternProperties?: JsonObject;
+    properties?: { [key: string]: SchemaSchema };
+    patternProperties?: { [key: string]: SchemaSchema };
     propertyNames?: SchemaSchema;
     required?: "all" | (string)[];
     super?: MaybeArrayOf<SchemaSchema>;
   } & SchemaBase;
 } & SchemaBase;
+
+export type SchemaObject = "object" | SchemaExplicitObject;
 
 export type SchemaSchema =
   | SchemaEnum
@@ -118,15 +122,7 @@ export type SchemaSchema =
   | SchemaAllOf
   | SchemaRecord
   | SchemaObject
-  | (
-    | "number"
-    | "boolean"
-    | "path"
-    | "string"
-    | null
-    | "object"
-    | "any"
-  ) /* be a yaml schema */;
+  | "any" /* be a yaml schema */;
 
 export type SchemaSchemaField = {
   alias?: string;
