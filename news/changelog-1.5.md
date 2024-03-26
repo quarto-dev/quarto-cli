@@ -62,6 +62,10 @@ All changes included in 1.5:
 - ([#8919](https://github.com/quarto-dev/quarto-cli/issues/8919)): Ensure enough backticks in `quarto convert` from `.ipynb` to `.qmd` files.
 - ([#8998](https://github.com/quarto-dev/quarto-cli/issues/8998)): Interpret slide separation markers `---` correctly when creating the `.ipynb` intermediate notebook from a `.qmd` file.
 
+## Knitr
+
+- ([#7843](https://github.com/quarto-dev/quarto-cli/issues/7843)): fix an issue with Quarto figure specific css rules applying inside HTML widgets output.
+
 ## Website Listings
 
 - ([#8147](https://github.com/quarto-dev/quarto-cli/issues/8147)): Ensure that listings don't include the contents of the output directory
