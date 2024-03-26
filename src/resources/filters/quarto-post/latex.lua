@@ -243,7 +243,7 @@ function render_latex()
       FloatRefTarget = function(float)
         if float.attributes["ref-parent"] == nil then
           -- we're about to mess up here, force a [H] position
-          local ref = refType(float.identifier)
+          local ref = ref_type_from_float(float)
           if ref == nil then
             -- don't know what to do with this
             -- give up
@@ -340,7 +340,7 @@ function render_latex()
         traverse = "topdown",
         FloatRefTarget = function(float, float_node)
           if float.identifier ~= nil then
-            local ref = refType(float.identifier)
+            local ref = ref_type_from_float(float)
             if ref ~= nil then
               float.attributes[ref .. "-pos"] = "H"
               return float

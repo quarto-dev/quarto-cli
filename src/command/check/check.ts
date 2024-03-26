@@ -44,6 +44,7 @@ import { texLiveContext, tlVersion } from "../render/latexmk/texlive.ts";
 import { which } from "../../core/path.ts";
 import { dirname } from "../../deno_ral/path.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { typstBinaryPath } from "../../core/typst.ts";
 
 const kIndent = "      ";
 
@@ -126,6 +127,14 @@ async function checkVersions(_services: RenderServices) {
   } else {
     info(`      Deno version ${Deno.version.deno}: OK`);
   }
+
+  let typstVersion = lines(
+    (await execProcess({
+      cmd: [typstBinaryPath(), "--version"],
+      stdout: "piped"
+    })).stdout!,
+  )[0].split(' ')[1];
+  checkVersion(typstVersion, ">=0.10.0", "Typst");
 
   completeMessage("Checking versions of quarto dependencies......OK");
 }
