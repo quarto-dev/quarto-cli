@@ -6,7 +6,7 @@
 // $ ./package/dist/bin/tools/deno run --importmap=./src/dev_import_map.json --allow-all ./package/src/common/create-schema-types.ts ./src/resources
 
 export type MaybeArrayOf<T> = T | T[];
-export type JsonObject = { [key: string]: string };
+export type JsonObject = { [key: string]: unknown };
 
 export type SchemaScalar = number | boolean | string | null;
 
@@ -41,9 +41,9 @@ export type SchemaNumber = "number" | ({ number: SchemaSchema } & SchemaBase);
 
 export type SchemaBoolean =
   | "boolean"
-  | ({ boolean?: SchemaSchema } & SchemaBase);
+  | ({ boolean: SchemaSchema } & SchemaBase);
 
-export type SchemaResolveRef = { resolveRef?: string };
+export type SchemaResolveRef = { resolveRef: string };
 
 export type SchemaRef = { description?: SchemaDescription; ref: string };
 

@@ -42,7 +42,7 @@ export const generatedSrcMessage =
 // $ ./package/dist/bin/tools/deno run --importmap=./src/dev_import_map.json --allow-all ./package/src/common/create-schema-types.ts ./src/resources
 
 export type MaybeArrayOf<T> = (T | T[]);
-export type JsonObject = { [key: string]: string };
+export type JsonObject = { [key: string]: unknown };
 
 `;
 
