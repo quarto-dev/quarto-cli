@@ -110,11 +110,11 @@ end
 
 function docxAlign(align)
   if align == "left" then
-    return "start"
+    return "let"
   elseif align == "center" then
     return "center"
   elseif align == "right" then
-    return "end"
+    return "right"
   else
     return nil
   end
