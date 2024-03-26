@@ -875,7 +875,6 @@ end, function(float)
     end
   })
   if count == 1 then
-    print(float.content)
     img.identifier = float.identifier
     img.caption = quarto.utils.as_inlines(float.caption_long)
     return pandoc.Figure(
