@@ -1,0 +1,49 @@
+---
+format: 
+  html:
+    quality: 1
+  pdf:
+    quality: -1
+    comment: "left unless caption or any value of `fig-align` then center"
+  typst:
+    quality: 0
+    comment: "works only if there is no caption, otherwise center"
+  dashboard:
+    quality: -1
+    comment: "always left"
+  docx:
+    quality: -1
+    comment: "always left"
+  pptx:
+    quality: -1
+    comment: "centered or to side of text; caption causes figures to pile up instead of going to new slide"
+keep-typ: true
+---
+
+![](noncat.jpg){width="25%"}
+
+no `fig-align`, no caption
+
+![](noncat.jpg){width="25%" fig-align="default"}
+
+`fig-align` default, no caption
+
+![](noncat.jpg){width="25%" fig-align="left"}
+
+`fig-align` left, no caption
+
+![](noncat.jpg){width="25%" fig-align="center"}
+
+`fig-align` center, no caption
+
+![](noncat.jpg){width="25%" fig-align="right"}
+
+`fig-align` right, no caption
+
+![default `fig-align` with caption](noncat.jpg){width="25%"}
+
+![`fig-align` left](noncat.jpg){width="25%" fig-align="left"}
+
+![`fig-align` center](noncat.jpg){width="25%" fig-align="center"}
+
+![`fig-align` right](noncat.jpg){width="25%" fig-align="right"}

@@ -1,0 +1,104 @@
+---
+jupyter: python3
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: -1
+    comment: "left for no `fig-align` or default, center for other values of `fig-align`"
+  typst:
+    quality: -1
+    comment: "always left #8767; default fails typst compile"
+  dashboard:
+    quality: -1
+    comment: "always center"
+  docx:
+    quality: -1
+    comment: "always left"
+  pptx:
+    quality: -1
+    comment: "always center"  
+keep-typ: true
+
+---
+
+```{python}
+#| echo: false
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Data for plotting
+t = np.arange(0.0, 2.0, 0.01)
+s = 1 + np.sin(2 * np.pi * t)
+
+
+fig, ax = plt.subplots()
+fig.set_figwidth(2)
+ax.plot(t, s)
+
+ax.set(xlabel='time (s)', ylabel='voltage (mV)',
+       title='no fig-align')
+ax.grid()
+
+plt.show()
+```
+
+```{python}
+#| echo: false
+
+fig, ax = plt.subplots()
+fig.set_figwidth(2)
+ax.plot(t, s)
+
+ax.set(xlabel='time (s)', ylabel='voltage (mV)',
+       title='fig-align default')
+ax.grid()
+
+plt.show()
+```
+
+```{python}
+#| echo: false
+#| fig-align: left
+
+fig, ax = plt.subplots()
+fig.set_figwidth(2)
+ax.plot(t, s)
+
+ax.set(xlabel='time (s)', ylabel='voltage (mV)',
+       title='fig-align left')
+ax.grid()
+
+plt.show()
+```
+
+```{python}
+#| echo: false
+#| fig-align: center
+
+fig, ax = plt.subplots()
+fig.set_figwidth(2)
+ax.plot(t, s)
+
+ax.set(xlabel='time (s)', ylabel='voltage (mV)',
+       title='fig-align center')
+ax.grid()
+
+plt.show()
+```
+
+```{python}
+#| echo: false
+#| fig-align: right
+
+fig, ax = plt.subplots()
+fig.set_figwidth(2)
+ax.plot(t, s)
+
+ax.set(xlabel='time (s)', ylabel='voltage (mV)',
+       title='fig-align right')
+ax.grid()
+
+plt.show()
+```
