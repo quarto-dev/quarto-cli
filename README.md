@@ -28,6 +28,8 @@ cd quarto-cli
 ./configure.sh
 ```
 
+The `./configure.sh` script should add a symlink to `quarto` to your path. You can also run quarto by running `package/dist/bin/quarto`.
+
 To update to the latest development version, run `git pull` from the local repo directory:
 
 ```bash
