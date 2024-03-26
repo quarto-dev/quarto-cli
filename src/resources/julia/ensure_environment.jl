@@ -21,3 +21,6 @@ if manifest_matches_project_toml && manifest_has_correct_julia_version()
 else
   Pkg.update()
 end
+# not strictly necessary, but in case of precompilation errors this will
+# actually print them out explicitly
+Pkg.precompile() 
