@@ -35,6 +35,8 @@
     closed: true
     super:
       resolveRef: schema/base
+    required:
+      - enum
     properties:
       enum:
         anyOf:
@@ -50,17 +52,21 @@
                     ref: schema/scalar
 
 - id: schema/null
-  object:
-    closed: true
-    super:
-      resolveRef: schema/base
-    properties:
-      "null":
-        ref: schema/schema
+  anyOf:
+    - enum: ["null"]
+    - object:
+        closed: true
+        required:
+          - "null"
+        properties:
+          "null":
+            ref: schema/base
 
 - id: schema/explicit-schema
   object:
     closed: true
+    required:
+      - "schema"
     super:
       resolveRef: schema/base
     properties:
@@ -69,23 +75,63 @@
 
 - id: schema/string
   anyOf:
+    - enum: ["string", "path"]
     - object:
         closed: true
         super:
           resolveRef: schema/base
+        required:
+          - "pattern"
         properties:
           pattern: string
     - object:
         closed: true
         super:
           resolveRef: schema/base
+        required:
+          - "path"
+        properties:
+          path:
+            ref: schema/schema
+    - object:
+        closed: true
+        super:
+          resolveRef: schema/base
+        required:
+          - "string"
         properties:
           string:
             ref: schema/schema
-          path:
-            ref: schema/schema
-          pattern:
-            ref: schema/schema
+
+# - id: schema/string
+#   anyOf:
+#     - enum: ["string", "path"]
+#     - object:
+#         closed: true
+#         super:
+#           resolveRef: schema/base
+#         required:
+#           - "pattern"
+#         properties:
+#           pattern: string
+#     - object:
+#         closed: true
+#         # super:
+#         #   resolveRef: schema/base
+#         required:
+#           - "path"
+#         properties:
+#           path:
+#             ref: schema/schema
+#     - object:
+#         closed: true
+#         # super:
+#         #   resolveRef: schema/base
+#         required:
+#           - "string"
+#         properties:
+#           string:
+#             ref: schema/schema
 
 - id: schema/number
   object:
@@ -289,8 +335,7 @@
     - ref: schema/all-of
     - ref: schema/record
     - ref: schema/object
-    - enum:
-        ["number", "boolean", "path", "string", null, "null", "object", "any"]
+    - enum: ["number", "boolean", "path", "string", null, "object", "any"]
   description: "be a yaml schema"
 
 - id: schema/schema-field

@@ -18964,6 +18964,9 @@ try {
               super: {
                 resolveRef: "schema/base"
               },
+              required: [
+                "enum"
+              ],
               properties: {
                 enum: {
                   anyOf: [
@@ -18994,22 +18997,34 @@ try {
           },
           {
             id: "schema/null",
-            object: {
-              closed: true,
-              super: {
-                resolveRef: "schema/base"
+            anyOf: [
+              {
+                enum: [
+                  "null"
+                ]
               },
-              properties: {
-                null: {
-                  ref: "schema/schema"
+              {
+                object: {
+                  closed: true,
+                  required: [
+                    "null"
+                  ],
+                  properties: {
+                    null: {
+                      ref: "schema/base"
+                    }
+                  }
                 }
               }
-            }
+            ]
           },
           {
             id: "schema/explicit-schema",
             object: {
               closed: true,
+              required: [
+                "schema"
+              ],
               super: {
                 resolveRef: "schema/base"
               },
@@ -19024,11 +19039,20 @@ try {
             id: "schema/string",
             anyOf: [
               {
+                enum: [
+                  "string",
+                  "path"
+                ]
+              },
+              {
                 object: {
                   closed: true,
                   super: {
                     resolveRef: "schema/base"
                   },
+                  required: [
+                    "pattern"
+                  ],
                   properties: {
                     pattern: "string"
                   }
@@ -19040,14 +19064,27 @@ try {
                   super: {
                     resolveRef: "schema/base"
                   },
+                  required: [
+                    "path"
+                  ],
                   properties: {
-                    string: {
-                      ref: "schema/schema"
-                    },
                     path: {
                       ref: "schema/schema"
-                    },
-                    pattern: {
+                    }
+                  }
+                }
+              },
+              {
+                object: {
+                  closed: true,
+                  super: {
+                    resolveRef: "schema/base"
+                  },
+                  required: [
+                    "string"
+                  ],
+                  properties: {
+                    string: {
                       ref: "schema/schema"
                     }
                   }
@@ -19410,7 +19447,6 @@ try {
                   "path",
                   "string",
                   null,
-                  "null",
                   "object",
                   "any"
                 ]
@@ -21083,7 +21119,7 @@ try {
           "The subject term (defined by the schema).",
           {
             short: "Text describing the specialized type of this publication.",
-            long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.'
+            long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.'
           },
           "Text describing the format of this publication.",
           "Text describing the relation of this publication.",

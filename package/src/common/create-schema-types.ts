@@ -5,6 +5,10 @@
 *
 */
 
-import { generateTypesFromSchemas } from "../../../src/core/schema/types-from-schema.ts";
+import {
+  generateTypesFromSchemas, 
+  generateSchemaTypes
+} from "../../../src/core/schema/types-from-schema.ts";
 
 await generateTypesFromSchemas(Deno.args[0]);
+await generateSchemaTypes(Deno.args[0]);
