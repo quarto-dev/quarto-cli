@@ -6,7 +6,7 @@ A "Pandoc Pandoc", if you will.
 
 ## Header
 
-**bold** *italic* ~~strikethrough~~ `code` <u>underline</u> ^superscript^ ~subscript~
+**bold** *italic* ~~strikethrough~~ `code` ^superscript^ ~subscript~
 
 [A span]{}
 
