@@ -7,15 +7,15 @@
 import * as T from "../../resources/types/schema-schema-types.ts";
 
 type Maybe<Result> = Result | undefined;
-type ObjectResult<Result> = {
+export type ObjectResult<Result> = {
   properties?: { [key: string]: Maybe<Result> };
   patternProperties?: { [key: string]: Maybe<Result> };
   additionalProperties?: Maybe<Result>;
 };
-type RecordResult<Result> = {
+export type RecordResult<Result> = {
   properties?: { [key: string]: Maybe<Result> };
 };
-type SchemaVisitor<Result> = {
+export type SchemaVisitor<Result> = {
   visitEnum?: (schema: T.SchemaEnum) => Maybe<Result>;
   visitNull?: (schema: T.SchemaNull) => Maybe<Result>;
   visitString?: (schema: T.SchemaString) => Maybe<Result>;

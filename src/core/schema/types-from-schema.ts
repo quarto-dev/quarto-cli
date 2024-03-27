@@ -280,7 +280,13 @@ export async function generateJsonSchemas(resourcePath: string) {
 
   const visitor = schemaVisitor<any>({
     visitString: (_) => {
-      return "string";
+      return { type: "string" };
+    },
+    visitNumber: (_) => {
+      return { type: "number" };
+    },
+    visitNull: (_) => {
+      return { type: "null" };
     },
     visitObject: (_, inner) => {
       return {
@@ -289,8 +295,56 @@ export async function generateJsonSchemas(resourcePath: string) {
         additionalProperties: inner.additionalProperties,
       };
     },
+    visitAnyOf: (_, inner) => {
+      return {
+        "anyOf": inner,
+      };
+    },
+    visitEnum: (schema) => {
+      if (Array.isArray(schema.enum)) {
+        return {
+          enum: schema.enum,
+        };
+      } else {
+        return {
+          enum: schema.enum.values,
+        };
+      }
+    },
+    visitArrayOf: (_, inner) => {
+      return {
+        type: "array",
+        items: inner,
+      };
+    },
+    visitRecord: (_, inner) => {
+      return {
+        type: "object",
+        properties: inner.properties,
+        additionalProperties: false,
+        required: Object.keys(inner.properties ?? {}),
+      };
+    },
+    visitBoolean: (_) => {
+      return { type: "boolean" };
+    },
+    visitMaybeArrayOf: (_, inner) => {
+      return {
+        anyOf: [
+          inner,
+          { type: "array", items: inner },
+        ],
+      };
+    },
+    visitRef: (schema) => {
+      return {
+        $ref: `#/definitions/${schema.ref}`,
+      };
+    },
     visit: (schema) => {
-      return "unknown";
+      console.log("unknown schema");
+      console.log(schema);
+      throw new Error("Unknown schema type");
     },
   });
 
