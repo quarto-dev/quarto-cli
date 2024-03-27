@@ -1,0 +1,24 @@
+---
+format:
+  typst:
+    output-ext: typ
+keep-typ: true
+keep-md: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - "#align\\(center\\)\\[(\r\n?|\n)#box"
+        -
+          - "#block\\[(\r\n?|\n)#block\\[(\r\n?|\n)#align\\(center\\)\\["
+
+
+---
+
+```{r}
+#| echo: true
+#| fig-align: center
+
+plot(0:9)
+```
