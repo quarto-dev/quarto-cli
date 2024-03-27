@@ -68,6 +68,7 @@ import { revealMetadataFilter } from "./metadata.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { titleSlidePartial } from "./format-reveal-title.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
+import { pandocNativeStr } from "../../core/pandoc/codegen.ts";
 
 export function revealResolveFormat(format: Format) {
   format.metadata = revealMetadataFilter(format.metadata);
@@ -213,7 +214,7 @@ export function revealjsFormat() {
                 (script) => {
                   // escape to avoid pandoc markdown parsing from YAML default file
                   // https://github.com/quarto-dev/quarto-cli/issues/9117
-                  return `${'`Str "'}${script.path}${'"`'}{=pandoc-native}`;
+                  return pandocNativeStr(script.path);
                 },
               ),
             } as Metadata,
