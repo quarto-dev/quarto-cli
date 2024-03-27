@@ -2,19 +2,19 @@
 -- 
 -- Copyright (C) 2024 Posit Software, PBC
 
-local function node_type(node)
-  if is_custom_node(node) then
-    return node.attributes.__quarto_custom_type
-  end
-  local pt = pandoc.utils.type(node)
-  if pt == "Block" or pt == "Inline" then
-    return node.t
-  end
-  return pt
-end
-
 -- unlike Pandoc's walk, this will mutate the nodes in place!
 function scoped_walk(outer_node, filter)
+  local function node_type(node)
+    if is_custom_node(node) then
+      return node.attributes.__quarto_custom_type
+    end
+    local pt = pandoc.utils.type(node)
+    if pt == "Block" or pt == "Inline" then
+      return node.t
+    end
+    return pt
+  end
+
   local context = pandoc.List({})
   -- needs to be defined here to allow corecursion
   local inner
