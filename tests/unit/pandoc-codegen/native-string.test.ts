@@ -5,15 +5,16 @@
 *
 */
 
-import bounds from "binary-search-bounds";
-
 import { unitTest } from "../../test.ts";
-import { assert } from "testing/asserts.ts";
+import { assertEquals } from "testing/asserts.ts";
 import { pandocNativeStr } from "../../../src/core/pandoc/codegen.ts";
 
 // deno-lint-ignore require-await
 unitTest("native-string - basics", async () => {
-  assert(pandocNativeStr("hello").mappedString().value === '`Str "hello"`{=pandoc-native}');
-  assert(pandocNativeStr('"hello"').mappedString().value === '`Str "\\"hello\\""`{=pandoc-native}');
-  assert(pandocNativeStr('"hel`lo"').mappedString().value === '``Str "\\"hel`lo\\""``{=pandoc-native}');
+  assertEquals(pandocNativeStr("hello").mappedString().value, '`Str "hello"`{=pandoc-native}');
+  assertEquals(pandocNativeStr('"hello"').mappedString().value, '`Str "\\"hello\\""`{=pandoc-native}');
+  assertEquals(pandocNativeStr('"hel`lo"').mappedString().value, '``Str "\\"hel`lo\\""``{=pandoc-native}');
+  assertEquals(pandocNativeStr('"hello\nworld"').mappedString().value, '`Str "\\"hello\\nworld\\""`{=pandoc-native}');
+  assertEquals(pandocNativeStr('"hello\\\'world"').mappedString().value, '`Str "\\"hello\\\'world\\""`{=pandoc-native}');
+  console.log(pandocNativeStr('"hello\nworld"').mappedString().value);
 })
