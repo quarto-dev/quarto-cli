@@ -232,6 +232,23 @@ export function pandocBlock(delimiterCharacter: ":" | "`") {
   };
 }
 
+export function pandocNativeStr(content: string): PandocNode {
+  return {
+    ...basePandocNode,
+    emit: (ls: EitherString[]) => {
+      const maxBackticks = content.match(/`+/g)?.[0].length || 0;
+      const backticks = "`".repeat(maxBackticks + 1);
+      const escapedContent = content.replaceAll(
+        '"',
+        '\\"',
+      );
+      ls.push(
+        `${backticks}${'Str "'}${escapedContent}${'"'}${backticks}{=pandoc-native}`,
+      );
+    },
+  };
+}
+
 export const pandocDiv = pandocBlock(":");
 export const pandocCode = pandocBlock("`");
 export const pandocFigure = pandocHtmlBlock("figure");
