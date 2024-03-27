@@ -16,5 +16,4 @@ unitTest("native-string - basics", async () => {
   assertEquals(pandocNativeStr('"hel`lo"').mappedString().value, '``Str "\\"hel`lo\\""``{=pandoc-native}');
   assertEquals(pandocNativeStr('"hello\nworld"').mappedString().value, '`Str "\\"hello\\nworld\\""`{=pandoc-native}');
   assertEquals(pandocNativeStr('"hello\\\'world"').mappedString().value, '`Str "\\"hello\\\'world\\""`{=pandoc-native}');
-  console.log(pandocNativeStr('"hello\nworld"').mappedString().value);
 })
