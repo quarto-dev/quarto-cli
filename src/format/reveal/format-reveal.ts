@@ -211,7 +211,9 @@ export function revealjsFormat() {
               [kLinkCitations]: true,
               [kRevealJsScripts]: revealPluginData.pluginInit.scripts.map(
                 (script) => {
-                  return script.path;
+                  // escape to avoid pandoc markdown parsing from YAML default file
+                  // https://github.com/quarto-dev/quarto-cli/issues/9117
+                  return `${'`Str "'}${script.path}${'"`'}{=pandoc-native}`;
                 },
               ),
             } as Metadata,
