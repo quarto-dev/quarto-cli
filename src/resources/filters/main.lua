@@ -12,6 +12,7 @@ end
 
 import("./mainstateinit.lua")
 
+import("./ast/scopedwalk.lua")
 import("./ast/customnodes.lua")
 import("./ast/emulatedfilter.lua")
 import("./ast/parse.lua")

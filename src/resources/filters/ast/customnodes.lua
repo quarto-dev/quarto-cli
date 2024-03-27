@@ -530,6 +530,8 @@ _quarto.ast = {
     -- luacov: enable
   end,
 
+  scoped_walk = scoped_walk,
+
   walk = run_emulated_filter,
 
   walk_meta = walk_meta,
