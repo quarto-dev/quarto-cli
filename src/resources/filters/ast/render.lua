@@ -39,6 +39,7 @@ function render_extended_nodes()
       fatal("Internal Error: handler not found for custom node " .. node.t)
       -- luacov: enable
     end
+    local scaffold = _quarto.ast.scaffold_element
     if handler.renderers then
       for _, renderer in ipairs(handler.renderers) do
         if renderer.condition(node) then
