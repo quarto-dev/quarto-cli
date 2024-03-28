@@ -272,7 +272,7 @@ function render_latex()
     
     -- Pandoc emits longtable environments by default;
     -- longtable environments increment the _table_ counter (!!)
-    -- https://mirror2.sandyriver.net/pub/ctan/macros/latex/required/tools/longtable.pdf 
+    -- http://mirrors.ctan.org/macros/latex/required/tools/longtable.pdf 
     -- (page 13, definition of \LT@array)
     --
     -- This causes double counting in our table environments. Our solution
