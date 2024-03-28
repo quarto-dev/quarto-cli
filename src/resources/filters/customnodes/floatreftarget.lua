@@ -102,7 +102,6 @@ _quarto.ast.add_handler({
     tbl.attributes = pandoc.List(tbl.attributes)
     tbl.classes = pandoc.List(tbl.classes)
 
-    table_colwidth_cell(tbl) -- table colwidth forwarding
     return tbl
   end
 })
