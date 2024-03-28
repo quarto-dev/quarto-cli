@@ -157,15 +157,15 @@ end, function(thm)
 
   elseif _quarto.format.isTypstOutput() then
     ensure_typst_theorems(type)
-    -- el.content:insert(1, pandoc.RawInline("typst", "#" .. theorem_type.env .. "(\"" .. thm.name .. "\")["))
-    local callthm = pandoc.Para(pandoc.RawInline("typst", "#" .. theorem_type.env .. "("))
+    local preamble = pandoc.Plain({pandoc.RawInline("typst", "#" .. theorem_type.env .. "(")})
     if name and #name > 0 then
-      callthm.content:insert(pandoc.RawInline("typst", '"'))
-      tappend(callthm.content, name)
-      callthm.content:insert(pandoc.RawInline("typst", '"'))
+      preamble.content:insert(pandoc.RawInline("typst", '"'))
+      tappend(preamble.content, name)
+      preamble.content:insert(pandoc.RawInline("typst", '"'))
     end
-    callthm.content:insert(pandoc.RawInline("typst", ")["))
-    tappend(callthm.content, quarto.utils.as_inlines(el.content))
+    preamble.content:insert(pandoc.RawInline("typst", ")["))
+    local callthm = make_scaffold(pandoc.Div, preamble)
+    tappend(callthm.content, quarto.utils.as_blocks(el.content))
     callthm.content:insert(pandoc.RawInline("typst", "] <" .. el.attr.identifier .. ">"))
     return callthm
 
