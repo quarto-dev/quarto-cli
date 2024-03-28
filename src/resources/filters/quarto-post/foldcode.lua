@@ -76,7 +76,7 @@ function fold_code_and_lift_codeblocks()
           local folded_block, did_fold = render_folded_block(block)
           local need_to_lift = did_fold or block.classes:includes("code-annotation-code")
           if need_to_lift then
-            folded_block = make_scaffold(pandoc.Div, { folded_block } )
+            folded_block = _quarto.ast.make_scaffold(pandoc.Div, { folded_block } )
           end
           if block.classes:includes("code-annotation-code") then
             prev_annotated_code_block_scaffold = folded_block
