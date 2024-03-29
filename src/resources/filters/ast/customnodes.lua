@@ -77,35 +77,45 @@ function run_emulated_filter(doc, filter)
   end
 
   -- performance: if filter is empty, do nothing
+  local t = pandoc.utils.type(doc)
   if sz == 0 then
     return doc
-  elseif sz == 1 then
+  elseif t == "Pandoc" then
     local result
-    local t
-    if filter.Pandoc then
-      -- performance: if filter is only Pandoc, call that directly instead of walking.
-      result = filter.Pandoc(doc) or doc
-    elseif filter.Meta then
-      -- performance: if filter is only Meta, call that directly instead of walking.
-      t = pandoc.utils.type(doc)
-      if t == "Pandoc" then
+    if sz == 1 and (filter.Pandoc or filter.Meta) then
+      if filter.Pandoc then
+        -- performance: if filter is only Pandoc, call that directly instead of walking.
+        result = filter.Pandoc(doc) or doc
+      else
+        assert(filter.Meta)
+        -- performance: if filter is only Meta, call that directly instead of walking.
         local result_meta = filter.Meta(doc.meta) or doc.meta
         result = doc
         result.meta = result_meta
-      else
-        goto regular
       end
-    else
-      goto regular
+      if in_filter then
+        profiler.category = ""
+      end
+      return result
+    elseif sz == 2 and filter.Pandoc and filter.Meta then
+      -- performance: if filter is only Pandoc and Meta, call that directly instead of walking.
+      result = filter.Pandoc(doc) or doc
+      t = pandoc.utils.type(doc)
+      local result_meta = filter.Meta(doc.meta) or doc.meta
+      result = doc
+      result.meta = result_meta
+      if in_filter then
+        profiler.category = ""
+      end
+      return result
     end
-    if in_filter then
-      profiler.category = ""
-    end
-    return result
   end
 
-
-  ::regular::
+  -- performance/feature: if filter's `traverse` is "scoped", use
+  -- Quarto's scoped walk instead of the regular walk
+  if filter.traverse == "scoped" then
+    return _quarto.ast.scoped_walk(doc, filter)
+  end
 
   -- if user passed a table corresponding to the custom node instead 
   -- of the custom node, then first we will get the actual node
