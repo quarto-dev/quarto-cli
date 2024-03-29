@@ -106,7 +106,21 @@ end
 
 -- handle tbl-colwidth
 function table_colwidth()
-  return {
+  local div_colwidths = pandoc.List({})
+  local filter
+  filter = {
+    traverse = "topdown",
+
+    Div = function(div)
+      local v = div.attributes[kTblColwidths]
+      if not v then
+        return nil
+      end
+      div_colwidths:insert(v)
+      local result = _quarto.ast.walk(div, filter)
+      div_colwidths:remove()
+      return result, false
+    end,
    
     Table = function(tbl)
      
@@ -127,6 +141,10 @@ function table_colwidth()
       if tblColwidths == nil then
         tblColwidths = tbl.attr.attributes[kTblColwidths]
       end
+      -- check enclosing divs
+      if #div_colwidths > 0 then
+        tblColwidths = div_colwidths[#div_colwidths]
+      end
       tbl.attr.attributes[kTblColwidths] = nil
 
       -- if we found a quarto-postprocess attribute,
@@ -141,10 +159,11 @@ function table_colwidth()
       if colwidthValues ~= nil then
         local simpleTbl = pandoc.utils.to_simple_table(tbl)
         simpleTbl.widths = colwidthValues
-        return pandoc.utils.from_simple_table(simpleTbl)
+        return pandoc.utils.from_simple_table(simpleTbl), false
       end
     end
   }
+  return filter
 
 end
 

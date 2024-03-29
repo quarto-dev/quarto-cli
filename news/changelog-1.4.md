@@ -2,6 +2,7 @@
 
 - ([#8439](https://github.com/quarto-dev/quarto-cli/issues/8439)): ensure that lack of subject line is handled
 - ([#9076](https://github.com/quarto-dev/quarto-cli/issues/9076)): Fix rendering of code cells with `layout-ncol` and `column` settings in `html` format.
+- ([#9200](https://github.com/quarto-dev/quarto-cli/issues/9200)): Fix regression with `tbl-colwidths` outside of a cross-referenceable table element.
 
 ## Fixed in previous releases
 
