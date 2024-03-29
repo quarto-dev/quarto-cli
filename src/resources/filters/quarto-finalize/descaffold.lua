@@ -3,6 +3,12 @@
 
 function descaffold() 
   return {
+    -- necessary workaround for https://github.com/jgm/pandoc/issues/9613
+    Plain = function(plain)
+      if #plain.content == 0 then
+        return {}
+      end
+    end,
     Span = function(el) 
       if el.classes:includes("quarto-scaffold") then
         return el.content
