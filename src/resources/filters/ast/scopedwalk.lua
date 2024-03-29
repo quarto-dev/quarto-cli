@@ -326,7 +326,13 @@ function scoped_walk(outer_node, filter)
       result = process_inlines(node)
     elseif nt == "Pandoc" then
       result = process_pandoc(node)
+    elseif nt == "List" then
+      for i, v in ipairs(node) do
+        node[i] = inner(v)
+      end
     else
+      quarto.utils.dump(scope)
+      print(node)
       fail("unexpected node type: " .. nt)
     end
 
