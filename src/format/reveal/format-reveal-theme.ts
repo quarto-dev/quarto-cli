@@ -85,7 +85,7 @@ export async function revealTheme(
   const revealUrl = pathWithForwardSlashes(revealDir);
   // escape to avoid pandoc markdown parsing from YAML default file
   // https://github.com/quarto-dev/quarto-cli/issues/9117
-  metadata[kRevealJsUrl] = pandocNativeStr(revealUrl);
+  metadata[kRevealJsUrl] = pandocNativeStr(revealUrl).mappedString().value;
 
   // copy reveal dir
   const revealSrcDir = revealJsUrl ||

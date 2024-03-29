@@ -214,7 +214,7 @@ export function revealjsFormat() {
                 (script) => {
                   // escape to avoid pandoc markdown parsing from YAML default file
                   // https://github.com/quarto-dev/quarto-cli/issues/9117
-                  return pandocNativeStr(script.path);
+                  return pandocNativeStr(script.path).mappedString().value;
                 },
               ),
             } as Metadata,
