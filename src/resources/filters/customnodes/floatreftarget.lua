@@ -102,7 +102,6 @@ _quarto.ast.add_handler({
     tbl.attributes = pandoc.List(tbl.attributes)
     tbl.classes = pandoc.List(tbl.classes)
 
-    table_colwidth_cell(tbl) -- table colwidth forwarding
     return tbl
   end
 })
@@ -176,7 +175,7 @@ _quarto.ast.add_renderer("FloatRefTarget", function(_)
   return true
 end, function(float)
   warn("\nEmitting a placeholder FloatRefTarget\nOutput format " .. FORMAT .. " does not currently support FloatRefTarget nodes.")
-  return scaffold(float.content)
+  return _quarto.ast.scaffold_element(float.content)
 end)
 
 function is_unlabeled_float(float)
@@ -196,7 +195,7 @@ function decorate_caption_with_crossref(float)
     internal_error()
     -- luacov: enable
   end
-  local caption_content = float.caption_long.content or float.caption_long
+  local caption_content = (float.caption_long and float.caption_long.content) or float.caption_long or pandoc.Inlines({})
 
   if float.parent_id then
     if float.order == nil then
@@ -421,9 +420,9 @@ end, function(float)
       if #cites > 0 then
         local local_guid_id = global_table_guid_id
         local result = pandoc.Blocks({
-          make_scaffold(pandoc.Span, cites:map(function(cite)
+          _quarto.ast.make_scaffold(pandoc.Span, cites:map(function(cite)
             local_guid_id = local_guid_id + 1
-            return make_scaffold(pandoc.Span, pandoc.Inlines({
+            return _quarto.ast.make_scaffold(pandoc.Span, pandoc.Inlines({
               pandoc.RawInline("latex", "%quarto-define-uuid: " .. uuid .. "-" .. local_guid_id .. "-" .. uuid .. "\n"),
               cite,
               pandoc.RawInline("latex", "\n%quarto-end-define-uuid\n")
@@ -566,7 +565,7 @@ end, function(float)
       quarto.LatexBlockCommand({
         name = "centering",
         inside = true,
-        arg = scaffold(figure_content)
+        arg = _quarto.ast.scaffold_element(figure_content)
       })
     })
   elseif align == "right" then
