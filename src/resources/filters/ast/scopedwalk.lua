@@ -253,32 +253,9 @@ function scoped_walk(outer_node, filter)
       return node
     end
 
-    -- else
-      quarto.utils.dump(node)
-      fail("unexpected node type in handling content: " .. nt)
-    -- end
-
-    -- local ct = pandoc.utils.type(content)
-    -- if ct == "Blocks" then
-    --   process_blocks(content)
-    -- elseif ct == "Inlines" then
-    --   process_inlines(content)
-    -- elseif ct == "List" then
-    --   for i, c in ipairs(content) do
-    --     local cct = pandoc.utils.type(c)
-    --     if cct == "Blocks" then
-    --       process_blocks(content)
-    --     elseif cct == "Inlines" then
-    --       process_inlines(content)
-    --     else
-    --       quarto.utils.dump(content)
-    --       fail("unexpected node type in Block or Inline content: " .. cct)
-    --     end
-    --   end
-    --   fail("unexpected node type in Block or Inline content: " .. cct)
-    -- end
+    quarto.utils.dump(node)
+    fail("unexpected node type in handling content: " .. nt)
   end
-
   local function process_custom(node)
     local t = node.attributes.__quarto_custom_type
     local result, done = process_handler(filter[t] or filter.Custom, node)
@@ -296,6 +273,44 @@ function scoped_walk(outer_node, filter)
     process_content(node)
     return node
   end
+  local function process_meta(node)
+    local function inner_meta_walk(obj)
+      local ot = pandoc.utils.type(obj)
+      if ot == "Inlines" or ot == "MetaInlines" then
+        return process_inlines(obj)
+      end
+      if ot == "Blocks" or ot == "MetaBlocks" then
+        return process_blocks(obj)
+      end
+      if ot == "List" or ot == "MetaList" then
+        for i, v in ipairs(obj) do
+          obj[i] = inner_meta_walk(v)
+        end
+        return obj
+      end
+      if ot == "table" or ot == "MetaMap" then
+        for k, v in pairs(obj) do
+          obj[k] = inner_meta_walk(v)
+        end
+        return obj
+      end
+      return obj
+    end
+    local result, done = process_handler(filter.Meta, node)
+    if done then
+      return result
+    end
+    return inner_meta_walk(node)
+  end
+  local function process_pandoc(node)
+    local result, done = process_handler(filter.Pandoc, node)
+    if done then
+      return result
+    end
+    node.meta = process_meta(node.meta)
+    node.blocks = process_blocks(node.blocks)
+    return node
+  end
 
   inner = function(node)
     scope:insert(node)
@@ -309,6 +324,8 @@ function scoped_walk(outer_node, filter)
       result = process_blocks(node)
     elseif nt == "Inlines" then
       result = process_inlines(node)
+    elseif nt == "Pandoc" then
+      result = process_pandoc(node)
     else
       fail("unexpected node type: " .. nt)
     end
