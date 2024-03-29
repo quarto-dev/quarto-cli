@@ -20,6 +20,7 @@ All changes included in 1.5:
 ## RevealJS Format
 
 - ([#8382](https://github.com/quarto-dev/quarto-cli/issues/8382)): Strip whitespace from `div.columns` elements that might have been introduced by third-party processing.
+- ([#9117](https://github.com/quarto-dev/quarto-cli/issues/9117)): Fix an issue with input filename containing special characters.
 
 ## Docusaurus Format
 
