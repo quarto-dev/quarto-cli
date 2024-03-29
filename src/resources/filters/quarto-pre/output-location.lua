@@ -70,6 +70,7 @@ end
 function output_location()
   if _quarto.format.isRevealJsOutput() then
     return {
+      traverse = "mutable",
       Blocks = function(blocks)
         local newBlocks = pandoc.List()
         for _,block in pairs(blocks) do

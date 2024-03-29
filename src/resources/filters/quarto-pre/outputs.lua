@@ -4,6 +4,7 @@ function unroll_cell_outputs()
   -- the param("output-divs", true) check is now done in flags.lua
 
   return {
+    traverse = "mutable",
     -- unroll output divs for formats (like pptx) that don't support them
     Div = function(div)
 

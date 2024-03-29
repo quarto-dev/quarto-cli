@@ -113,7 +113,11 @@ function run_emulated_filter(doc, filter)
 
   -- performance/feature: if filter's `traverse` is "scoped", use
   -- Quarto's scoped walk instead of the regular walk
-  if filter.traverse == "scoped" then
+  -- Since scoped_walk does not generate a new document,
+  -- there can be good reasons to use it even with access to scopes
+  -- is not needed.
+  -- As a result, we allow "mutable" as a synonym for "scoped"
+  if filter.traverse == "scoped" or filter.traverse == "mutable" then
     return _quarto.ast.scoped_walk(doc, filter)
   end
 
