@@ -1,4 +1,5 @@
 import IJulia
+import Base64
 
 # The julia kernel has built in support for Revise.jl, so this is the 
 # recommended approach for long-running sessions:
@@ -62,8 +63,9 @@ end
   
 # Set run_path if specified
 try
-  run_path = raw"{run_path}"
+  run_path = "{run_path}"
   if !isempty(run_path)
+    run_path = String(Base64.base64decode(run_path))
     cd(run_path)
   end
 catch e
