@@ -31,6 +31,9 @@ export function documentTitleScssLayer(format: Format) {
   ) {
     return undefined;
   } else if (format.metadata[kTitleBlockStyle] === "manuscript") {
+    // TODO: Tweak style for manuscript
+    // This code path is here so that we can add manuscript-specific styles
+    // For now it is just identical to non-manuscript
     const titleBlockScss = formatResourcePath(
       "html",
       join("templates", "title-block.scss"),

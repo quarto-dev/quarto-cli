@@ -342,7 +342,6 @@ function shortcodeResultAsInlines(result, name, shortcode_tbl)
   if result == nil then
     warn("Shortcode '" .. name .. "' not found")
     local result = pandoc.Inlines({pandoc.RawInline(FORMAT, shortcode_tbl.unparsed_content)})
-    print("Result from here:", result)
     return result
   end
   local type = quarto.utils.type(result)
@@ -379,8 +378,6 @@ function shortcodeResultAsBlocks(result, name, shortcode_tbl)
     if name ~= 'include' then
       warn("Shortcode '" .. name .. "' not found")
     end
-    print(FORMAT)
-    print(shortcode_tbl.unparsed_content)
     return pandoc.Blocks({pandoc.RawBlock(FORMAT, shortcode_tbl.unparsed_content)})
   end
   local type = quarto.utils.type(result)

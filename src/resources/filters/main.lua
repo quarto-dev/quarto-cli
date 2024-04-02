@@ -12,6 +12,7 @@ end
 
 import("./mainstateinit.lua")
 
+import("./ast/scopedwalk.lua")
 import("./ast/customnodes.lua")
 import("./ast/emulatedfilter.lua")
 import("./ast/parse.lua")
@@ -148,6 +149,7 @@ import("./quarto-pre/panel-sidebar.lua")
 import("./quarto-pre/parsefiguredivs.lua")
 import("./quarto-pre/parseblockreftargets.lua")
 import("./quarto-pre/project-paths.lua")
+import("./quarto-pre/resolvescopedelements.lua")
 import("./quarto-pre/resourcefiles.lua")
 import("./quarto-pre/results.lua")
 import("./quarto-pre/shiny.lua")
@@ -281,6 +283,10 @@ local quarto_pre_filters = {
     filter = output_location()
   },
 
+  { name = "pre-scope-resolution",
+    filter = resolve_scoped_elements()
+  },
+
   { name = "pre-combined-figures-theorems-etc", filter = combineFilters({
     file_metadata(),
     index_book_file_targets(),
@@ -296,7 +302,7 @@ local quarto_pre_filters = {
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
     table_respecify_gt_css(),
-    table_colwidth(), 
+    -- table_colwidth(), 
     table_classes(),
     input_traits(),
     resolve_book_file_targets(),
@@ -308,9 +314,6 @@ local quarto_pre_filters = {
 }
 
 local quarto_post_filters = {
-  { name = "post-cell-cleanup", 
-    filter = cell_cleanup(),
-    flags = { "has_output_cells" } },
   { name = "post-combined-cites-bibliography", 
     filter = combineFilters({
       indexCites(),
@@ -384,6 +387,10 @@ local quarto_finalize_filters = {
   { name = "finalize-dependencies", filter = dependencies() },
   { name = "finalize-coalesce-raw", filters = coalesce_raw() },
   { name = "finalize-descaffold", filter = descaffold() },
+  { name = "finalize-cell-cleanup", 
+    filter = cell_cleanup(),
+    flags = { "has_output_cells" }
+  },
   { name = "finalize-wrapped-writer", filter = wrapped_writer() },
   { name = "finalize-typst-state", filter = setup_typst_state() }
 }
