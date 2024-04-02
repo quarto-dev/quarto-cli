@@ -419,6 +419,37 @@ async function getJuliaServerConnection(
   }
 }
 
+function firstSignificantLine(str: string, n: number): string {
+  const lines = str.split("\n");
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    // Check if the line is significant
+    if (!trimmedLine.startsWith("#|") && trimmedLine !== "") {
+      // Return line as is if its length is less than or equal to n
+      if (trimmedLine.length <= n) {
+        return trimmedLine;
+      } else {
+        // Return substring up to n characters with an ellipsis
+        return trimmedLine.substring(0, n - 1) + "…";
+      }
+    }
+  }
+
+  // Return empty string if no significant line found
+  return "";
+}
+
+// from cliffy, MIT licensed
+function getConsoleColumns(): number | null {
+  try {
+    // Catch error in none tty mode: Inappropriate ioctl for device (os error 25)
+    return Deno.consoleSize().columns ?? null;
+  } catch (_error) {
+    return null;
+  }
+}
+
 async function executeJulia(
   options: JuliaExecuteOptions,
 ): Promise<JupyterNotebook> {
@@ -440,7 +471,21 @@ async function executeJulia(
     "run",
     transportOptions.key,
     options,
+    (update: ProgressUpdate) => {
+      const n = update.nChunks.toString();
+      const i = update.chunkIndex.toString();
+      const i_padded = `${" ".repeat(n.length - i.length)}${i}`;
+      const ncols = getConsoleColumns() ?? 80;
+      const firstPart = `Running [${i_padded}/${n}] at line ${update.line}:  `;
+      const firstPartLength = firstPart.length;
+      const sigLine = firstSignificantLine(
+        update.source,
+        Math.max(0, ncols - firstPartLength),
+      );
+      info(`${firstPart}${sigLine}`);
+    },
   );
+
   if (options.oneShot) {
     await writeJuliaCommand(conn, "close", transportOptions.key, options);
   }
@@ -452,11 +497,20 @@ async function executeJulia(
   return response.notebook as JupyterNotebook;
 }
 
+interface ProgressUpdate {
+  type: "progress_update";
+  chunkIndex: number;
+  nChunks: number;
+  source: string;
+  line: number;
+}
+
 async function writeJuliaCommand(
   conn: Deno.Conn,
   command: "run" | "close" | "stop" | "isready" | "isopen",
   secret: string,
   options: JuliaExecuteOptions,
+  onProgressUpdate?: (update: ProgressUpdate) => void,
 ) {
   // send the options along with the "run" command
   const content = command === "run"
@@ -493,59 +547,82 @@ async function writeJuliaCommand(
 
   const messageBytes = new TextEncoder().encode(message);
 
-  // // don't send the message if it's big.
-  // // Instead, write it to a file and send the file path
-  // // This is disappointing, but something is deeply wrong with Deno.Conn:
-  // // https://github.com/quarto-dev/quarto-cli/issues/7737#issuecomment-1830665357
-  // if (messageBytes.length > 1024) {
-  //   const tempFile = Deno.makeTempFileSync();
-  //   Deno.writeFileSync(tempFile, messageBytes);
-  //   const msg = kernelCommand("file", secret, { file: tempFile }) + "\n";
-  //   messageBytes = new TextEncoder().encode(msg);
-  // }
-
   trace(options, `write command "${command}" to socket server`);
   const bytesWritten = await conn.write(messageBytes);
   if (bytesWritten !== messageBytes.length) {
     throw new Error("Internal Error");
   }
 
-  let response = "";
+  // a string of bytes received from the server could start with a
+  // partial message, contain multiple complete messages (separated by newlines) after that
+  // but they could also end in a partial one.
+  // so to read and process them all correctly, we read in a fixed number of bytes, if there's a newline, we process
+  // the string up to that part and save the rest for the next round.
+  let restOfPreviousResponse = "";
   while (true) {
-    const buffer = new Uint8Array(512);
-    const bytesRead = await conn.read(buffer);
-    if (bytesRead === null) {
-      break;
-    }
+    let response = restOfPreviousResponse;
+    const newlineAt = response.indexOf("\n");
+    // if we already have a newline, we don't need to read from conn
+    if (newlineAt !== -1) {
+      restOfPreviousResponse = response.substring(newlineAt + 1);
+      response = response.substring(0, newlineAt);
+    } // but if we don't have a newline, we read in more until we get one
+    else {
+      while (true) {
+        const buffer = new Uint8Array(512);
+        const bytesRead = await conn.read(buffer);
+        if (bytesRead === null) {
+          break;
+        }
 
-    if (bytesRead > 0) {
-      const payload = new TextDecoder().decode(
-        buffer.slice(0, bytesRead),
-      );
-      response += payload;
-      if (payload.includes("\n")) {
-        break;
+        if (bytesRead > 0) {
+          const payload = new TextDecoder().decode(
+            buffer.slice(0, bytesRead),
+          );
+          const payloadNewlineAt = payload.indexOf("\n");
+          if (payloadNewlineAt === -1) {
+            response += payload;
+            restOfPreviousResponse = "";
+          } else {
+            response += payload.substring(0, payloadNewlineAt);
+            restOfPreviousResponse = payload.substring(payloadNewlineAt + 1);
+            // when we have found a newline in a payload, we can stop reading in more data and continue
+            // with the response first
+            break;
+          }
+        }
       }
     }
-  }
-  trace(options, "received server response");
-  // one command should be sent, ended by a newline, currently just throwing away anything else because we don't
-  // expect multiple commmands
-  const json = response.split("\n")[0];
-  const data = JSON.parse(json);
+    trace(options, "received server response");
+    // one command should be sent, ended by a newline, currently just throwing away anything else because we don't
+    // expect multiple commmands at once
+    const json = response.split("\n")[0];
+    const data = JSON.parse(json);
 
-  const err = data.error;
-  if (err !== undefined) {
-    const juliaError = data.juliaError ?? "No julia error message available.";
-    error(
-      `Julia server returned error after receiving "${command}" command:\n` +
-        err,
-    );
-    error(juliaError);
-    throw new Error("Internal julia server error");
-  }
+    if (data.type === "progress_update") {
+      trace(
+        options,
+        "received progress update response, listening for further responses",
+      );
+      if (onProgressUpdate !== undefined) {
+        onProgressUpdate(data as ProgressUpdate);
+      }
+      continue; // wait for the next message
+    }
 
-  return data;
+    const err = data.error;
+    if (err !== undefined) {
+      const juliaError = data.juliaError ?? "No julia error message available.";
+      error(
+        `Julia server returned error after receiving "${command}" command:\n` +
+          err,
+      );
+      error(juliaError);
+      throw new Error("Internal julia server error");
+    }
+
+    return data;
+  }
 }
 
 function juliaRuntimeDir(): string {
