@@ -20,6 +20,7 @@ import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 import { normalizePath, pathWithForwardSlashes } from "../core/path.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import {
+  FileInclusion,
   FileInformation,
   kProjectOutputDir,
   kProjectType,
@@ -373,7 +374,7 @@ export async function projectResolveFullMarkdownForFile(
   try {
     const result = await expandIncludes(markdown, options, file);
     cache.fullMarkdown = result;
-    cache.includeMap = options.state?.include as Record<string, string>;
+    cache.includeMap = options.state?.include.includes as FileInclusion[];
     return result;
   } finally {
     temp.cleanup();
