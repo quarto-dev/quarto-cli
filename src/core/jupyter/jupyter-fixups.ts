@@ -13,6 +13,10 @@ import { lines } from "../lib/text.ts";
 import { markdownWithExtractedHeading } from "../pandoc/pandoc-partition.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
 import { JupyterNotebook, JupyterOutput } from "./types.ts";
+import {
+  jupyterCellSrcAsLines,
+  jupyterCellSrcAsStr,
+} from "./jupyter-shared.ts";
 
 export function fixupStreams(nb: JupyterNotebook): JupyterNotebook {
   for (const cell of nb.cells) {
@@ -155,7 +159,8 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
   let partitioned: { yaml: string; markdown: string } | undefined;
   const frontMatterCellIndex = nb.cells.findIndex((cell) => {
     if (cell.cell_type === "raw" || cell.cell_type === "markdown") {
-      partitioned = partitionYamlFrontMatter(cell.source.join("")) || undefined;
+      partitioned = partitionYamlFrontMatter(jupyterCellSrcAsStr(cell)) ||
+        undefined;
       if (partitioned) {
         cell.cell_type = "raw";
         return true;
@@ -179,7 +184,7 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
     if (cell.cell_type === "markdown") {
       const { lines, headingText, contentBeforeHeading } =
         markdownWithExtractedHeading(
-          nbLines(cell.source).join(""),
+          nbLines(jupyterCellSrcAsLines(cell)).join(""),
         );
       if (headingText && !contentBeforeHeading) {
         title = headingText;
