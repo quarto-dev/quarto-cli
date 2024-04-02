@@ -38,10 +38,14 @@ export const kProjectResources = "resources";
 
 export const kProjectWatchInputs = "watch-inputs";
 
-export interface FileInformation {
+export type FileInclusion = {
+  source: string;
+  target: string;
+};
+export type FileInformation = {
   fullMarkdown?: MappedString;
-  includeMap?: Record<string, string>;
-}
+  includeMap?: FileInclusion[];
+};
 
 export interface ProjectContext {
   dir: string;

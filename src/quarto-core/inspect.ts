@@ -22,7 +22,11 @@ import {
 } from "../command/render/resources.ts";
 import { kLocalDevelopment, quartoConfig } from "../core/quarto.ts";
 
-import { ProjectConfig, ProjectFiles } from "../project/types.ts";
+import {
+  FileInclusion,
+  ProjectConfig,
+  ProjectFiles,
+} from "../project/types.ts";
 import { cssFileResourceReferences } from "../core/css.ts";
 import { projectExcludeDirs } from "../project/project-shared.ts";
 import { normalizePath, safeExistsSync } from "../core/path.ts";
@@ -32,10 +36,9 @@ import { withRenderServices } from "../command/render/render-services.ts";
 import { notebookContext } from "../render/notebook/notebook-context.ts";
 import { RenderServices } from "../command/render/types.ts";
 import { singleFileProjectContext } from "../project/types/single-file/single-file.ts";
-import { debugPrint, getStack } from "../core/deno/debug.ts";
 
 export interface FileInspection {
-  includeMap: Record<string, string>;
+  includeMap: FileInclusion[];
 }
 
 export interface InspectedConfig {
@@ -94,7 +97,7 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
         const engine = await fileExecutionEngine(file, undefined, context);
         await context.resolveFullMarkdownForFile(engine, file);
         fileInformation[file] = {
-          includeMap: context.fileInformationCache.get(file)?.includeMap ?? {},
+          includeMap: context.fileInformationCache.get(file)?.includeMap ?? [],
         };
       }
       const config: InspectedProjectConfig = {
@@ -191,7 +194,7 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
         fileInformation: {
           [path]: {
             includeMap: context.fileInformationCache.get(path)?.includeMap ??
-              {},
+              [],
           },
         },
       };
