@@ -5,8 +5,7 @@ if (Deno.build.os !== "windows") {
     name: "https://github.com/quarto-dev/quarto-cli/issues/9133", 
     context: {
       setup: async () => {
-        console.log(Deno.cwd());
-        Deno.mkdir("smoke/issues/9133/oh'\"no", { recursive: true });
+        Deno.mkdirSync("smoke/issues/9133/oh'\"no", { recursive: true });
         Deno.copyFileSync("smoke/issues/9133/jl", "smoke/issues/9133/oh'\"no/jl.qmd");
         Deno.copyFileSync("smoke/issues/9133/py", "smoke/issues/9133/oh'\"no/py.qmd");
 
