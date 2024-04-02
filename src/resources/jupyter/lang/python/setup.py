@@ -4,6 +4,7 @@ import os
 import sys
 import types
 import json
+import base64
 
 # figure size/format
 fig_width = {fig_width}
@@ -183,8 +184,11 @@ for module in list(sys.modules.values()):
 print(json.dumps(kernel_deps))
 
 # set run_path if requested
-if r'{run_path}':
-  os.chdir(r'{run_path}')
+run_path = '{run_path}'
+if run_path:
+  # hex-decode the path
+  run_path = base64.b64decode(run_path.encode("utf-8")).decode("utf-8")
+  os.chdir(run_path)
 
 # reset state
 %reset

@@ -8,6 +8,7 @@ import sys
 import json
 import pprint
 import copy
+import base64
 
 from pathlib import Path
 
@@ -435,6 +436,8 @@ def nb_language_cell(name, kernelspec, resource_dir, allow_empty, **args):
    lang_dir = os.path.join(resource_dir, 'jupyter', 'lang',  kernelspec.language)
    if os.path.isdir(lang_dir):
       cell_file = glob.glob(os.path.join(lang_dir, name + '.*'))
+      # base64-encode the run_path given
+      args['run_path'] = base64.b64encode(args.get('run_path', '').encode('utf-8')).decode('utf-8')
       if len(cell_file) > 0:
          with open(cell_file[0], 'r') as file:
             source = file.read().format(**args)
