@@ -24,7 +24,12 @@ import {
   relative,
 } from "../deno_ral/path.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
-import { kSkipHidden, normalizePath, resolvePathGlobs } from "../core/path.ts";
+import {
+  kSkipHidden,
+  normalizePath,
+  resolvePathGlobs,
+  safeExistsSync,
+} from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
 import { projectType } from "../project/types/project-types.ts";
 import { mergeConfigs } from "../core/config.ts";
@@ -413,7 +418,9 @@ export async function readExtensions(
   organization?: string,
 ) {
   const extensions: Extension[] = [];
-  const extensionDirs = Deno.readDirSync(extensionsDirectory);
+  const extensionDirs = safeExistsSync(extensionsDirectory)
+    ? Deno.readDirSync(extensionsDirectory)
+    : [];
   for (const extensionDir of extensionDirs) {
     if (extensionDir.isDirectory) {
       const extFile = extensionFile(
