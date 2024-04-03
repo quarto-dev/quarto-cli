@@ -339,7 +339,7 @@ async function readAndCopyExtensions(
   const extensions = await readExtensions(extensionsDir);
   info(
     `    Found ${extensions.length} ${
-      extensions.length === 1 ? "extension" : "extensions"
+      extensions.length <= 1 ? "extension" : "extensions"
     }.`,
   );
 
@@ -385,15 +385,10 @@ export async function confirmInstallation(
 ) {
   const readExisting = async () => {
     try {
-      const existingExtensionsDir = join(installDir, kExtensionDir);
-      if (Deno.statSync(existingExtensionsDir).isDirectory) {
-        const existingExtensions = await readExtensions(
-          join(installDir, kExtensionDir),
-        );
-        return existingExtensions;
-      } else {
-        return [];
-      }
+      const existingExtensions = await readExtensions(
+        join(installDir, kExtensionDir),
+      );
+      return existingExtensions;
     } catch {
       return [];
     }

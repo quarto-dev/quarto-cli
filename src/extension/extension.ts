@@ -418,7 +418,8 @@ export async function readExtensions(
   organization?: string,
 ) {
   const extensions: Extension[] = [];
-  const extensionDirs = safeExistsSync(extensionsDirectory)
+  const extensionDirs = safeExistsSync(extensionsDirectory) &&
+      Deno.statSync(extensionsDirectory).isDirectory
     ? Deno.readDirSync(extensionsDirectory)
     : [];
   for (const extensionDir of extensionDirs) {
@@ -444,7 +445,7 @@ export async function readExtensions(
           join(extensionsDirectory, extensionDir.name),
           extensionDir.name,
         );
-        if (ownedExtensions) {
+        if (ownedExtensions.length > 0) {
           extensions.push(...ownedExtensions);
         }
       }
@@ -692,9 +693,9 @@ async function readExtension(
     contributes?.format as Metadata || {};
 
   // Read any embedded extension
-  const embeddedExtensions = existsSync(join(extensionDir, kExtensionDir))
-    ? await readExtensions(join(extensionDir, kExtensionDir))
-    : [];
+  const embeddedExtensions = await readExtensions(
+    join(extensionDir, kExtensionDir),
+  );
 
   // Resolve 'default' specially
   Object.keys(formats).forEach((key) => {
