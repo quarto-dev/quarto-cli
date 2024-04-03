@@ -43,8 +43,8 @@ export const quartoConfig = {
       return kLocalDevelopment;
     }
   },
-  dotenv: async (): Promise<Record<string, string>> => {
-    if (!dotenvConfig) {
+  dotenv: async (forceReload?: boolean): Promise<Record<string, string>> => {
+    if (forceReload || !dotenvConfig) {
       const options: ConfigOptions = {
         defaultsPath: join(quartoConfig.sharePath(), "env", "env.defaults"),
         // On dev mode only (QUARTO_DEBUG='true'), we load the .env file in root quarto-cli project
