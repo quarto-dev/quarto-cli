@@ -15,8 +15,6 @@ import { onActiveProfileChanged } from "../project/project-profile.ts";
 import { onDotenvChanged } from "../quarto-core/dotenv.ts";
 import { normalizePath } from "./path.ts";
 import { buildQuartoPreviewJs } from "./previewjs.ts";
-import { parse } from "flags/mod.ts";
-import { initializeLogger, logError, logOptions } from "./log.ts";
 
 export const kLocalDevelopment = "99.9.9";
 
@@ -49,12 +47,14 @@ export const quartoConfig = {
     if (!dotenvConfig) {
       const options: ConfigOptions = {
         defaultsPath: join(quartoConfig.sharePath(), "env", "env.defaults"),
+        // On dev mode only (QUARTO_DEBUG='true'), we load the .env file in root quarto-cli project
+        envPath: quartoConfig.isDebug()
+          ? join(quartoConfig.sharePath(), "..", "..", ".env")
+          : null,
+        // we don't want any `.env.example` o be loaded, especially one from working dir
+        // https://github.com/quarto-dev/quarto-cli/issues/9262
+        examplePath: null,
       };
-      if (quartoConfig.isDebug()) {
-        options.envPath = join(quartoConfig.sharePath(), "..", "..", ".env");
-      } else {
-        options.envPath = options.defaultsPath;
-      }
       dotenvConfig = await config(options);
     }
     return dotenvConfig;
