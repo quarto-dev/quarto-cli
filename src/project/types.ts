@@ -10,6 +10,7 @@ import { Format, FormatExtras } from "../config/types.ts";
 import { MappedString } from "../core/mapped-text.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { ExecutionEngine, ExecutionTarget } from "../execute/types.ts";
+import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import {
   NavigationItem as NavItem,
@@ -42,9 +43,11 @@ export type FileInclusion = {
   source: string;
   target: string;
 };
+
 export type FileInformation = {
   fullMarkdown?: MappedString;
   includeMap?: FileInclusion[];
+  codeCells?: InspectedMdCell[];
 };
 
 export interface ProjectContext {

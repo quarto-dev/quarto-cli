@@ -22,13 +22,11 @@ import {
 } from "../command/render/resources.ts";
 import { kLocalDevelopment, quartoConfig } from "../core/quarto.ts";
 
-import {
-  FileInclusion,
-  ProjectConfig,
-  ProjectFiles,
-} from "../project/types.ts";
 import { cssFileResourceReferences } from "../core/css.ts";
-import { projectExcludeDirs } from "../project/project-shared.ts";
+import {
+  projectExcludeDirs,
+  projectResolveCodeCellsForFile,
+} from "../project/project-shared.ts";
 import { normalizePath, safeExistsSync } from "../core/path.ts";
 import { kExtensionDir } from "../extension/constants.ts";
 import { extensionFilesFromDirs } from "../extension/extension.ts";
@@ -37,29 +35,12 @@ import { notebookContext } from "../render/notebook/notebook-context.ts";
 import { RenderServices } from "../command/render/types.ts";
 import { singleFileProjectContext } from "../project/types/single-file/single-file.ts";
 
-export interface FileInspection {
-  includeMap: FileInclusion[];
-}
-
-export interface InspectedConfig {
-  quarto: {
-    version: string;
-  };
-  engines: string[];
-  fileInformation: Record<string, FileInspection>;
-}
-
-export interface InspectedProjectConfig extends InspectedConfig {
-  dir: string;
-  config: ProjectConfig;
-  files: ProjectFiles;
-}
-
-export interface InspectedDocumentConfig extends InspectedConfig {
-  formats: Record<string, Format>;
-  resources: string[];
-  project?: InspectedProjectConfig;
-}
+import {
+  InspectedConfig,
+  InspectedDocumentConfig,
+  InspectedFile,
+  InspectedProjectConfig,
+} from "./inspect-types.ts";
 
 export function isProjectConfig(
   config: InspectedConfig,
@@ -92,12 +73,14 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
 
   const inspectedProjectConfig = async () => {
     if (context?.config) {
-      const fileInformation: Record<string, FileInspection> = {};
+      const fileInformation: Record<string, InspectedFile> = {};
       for (const file of context.files.input) {
         const engine = await fileExecutionEngine(file, undefined, context);
         await context.resolveFullMarkdownForFile(engine, file);
+        await projectResolveCodeCellsForFile(context, engine, file);
         fileInformation[file] = {
           includeMap: context.fileInformationCache.get(file)?.includeMap ?? [],
+          codeCells: context.fileInformationCache.get(file)?.codeCells ?? [],
         };
       }
       const config: InspectedProjectConfig = {
@@ -182,6 +165,8 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
       }
 
       await context.resolveFullMarkdownForFile(engine, path);
+      await projectResolveCodeCellsForFile(context, engine, path);
+      const fileInformation = context.fileInformationCache.get(path);
 
       // data to write
       const config: InspectedDocumentConfig = {
@@ -193,8 +178,8 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
         resources,
         fileInformation: {
           [path]: {
-            includeMap: context.fileInformationCache.get(path)?.includeMap ??
-              [],
+            includeMap: fileInformation?.includeMap ?? [],
+            codeCells: fileInformation?.codeCells ?? [],
           },
         },
       };
