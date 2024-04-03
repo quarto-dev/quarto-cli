@@ -278,6 +278,10 @@ local quarto_pre_filters = {
     filter = output_location()
   },
 
+  { name = "pre-table-colwidth",
+    filter = table_colwidth(), 
+  },
+
   { name = "pre-combined-figures-theorems-etc", filter = combineFilters({
     file_metadata(),
     index_book_file_targets(),
@@ -293,7 +297,6 @@ local quarto_pre_filters = {
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
     table_respecify_gt_css(),
-    table_colwidth(), 
     table_classes(),
     input_traits(),
     resolve_book_file_targets(),
