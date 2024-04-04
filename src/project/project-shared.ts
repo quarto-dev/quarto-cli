@@ -43,7 +43,7 @@ import { breakQuartoMd } from "../core/lib/break-quarto-md.ts";
 import { partitionCellOptionsText } from "../core/lib/partition-cell-options.ts";
 import { parse } from "yaml/mod.ts";
 import { mappedIndexToLineCol } from "../core/lib/mapped-text.ts";
-import { InternalError } from "../core/lib/error.ts";
+import { normalizeNewlines } from "../core/lib/text.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -386,7 +386,7 @@ export async function projectResolveCodeCellsForFile(
       result.push({
         start: lineLocator(0).line,
         end: lineLocator(cell.sourceVerbatim.value.length - 1).line,
-        source: cell.source.value,
+        source: normalizeNewlines(cell.source.value),
         language: cell.cell_type.language,
         metadata,
       });
