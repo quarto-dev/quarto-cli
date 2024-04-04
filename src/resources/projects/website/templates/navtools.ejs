@@ -32,7 +32,7 @@ const isWide = toolCount > 2; %>
           <li>
             <a class="dropdown-item <%- className %>-item" href="<%- item.href %>"<%= item.target ? ` target="${item.target}"` : "" %>>
             <% if (item.icon) { %> 
-              <i class="bi bi-<%- item.icon %> pe-1"></i>
+              <i class="bi <%- item.icon %> pe-1"></i>
             <% } %>
             <%- item.text %>
             </a>

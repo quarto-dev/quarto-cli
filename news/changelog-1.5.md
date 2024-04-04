@@ -45,6 +45,7 @@ All changes included in 1.5:
 
 - ([#8737](https://github.com/quarto-dev/quarto-cli/issues/8737)): Fix issue in `page-footer` when url are used in `href` for book's configuration.
 - ([#8814](https://github.com/quarto-dev/quarto-cli/issues/8814)): Fix issue with `bibliography` field using urls in book's configuration.
+- ([#9269](https://github.com/quarto-dev/quarto-cli/issues/9269)): Fix issue with icons in download dropdown for multiple book formats.
 
 ## OJS
 
