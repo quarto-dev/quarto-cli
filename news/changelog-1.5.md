@@ -53,6 +53,7 @@ All changes included in 1.5:
 
 ## Typst
 
+- Upgrade Typst to 0.11
 - ([#8539](https://github.com/quarto-dev/quarto-cli/issues/8539)): Support for Typst theorems and their ilk via [typst-theorems](https://github.com/sahasatvik/typst-theorems).
 
 - The Typst template specificies tables drawn without grid lines by default, in accordance with latest Pandoc.
