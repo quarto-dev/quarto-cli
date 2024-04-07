@@ -72,17 +72,33 @@ function parse_html_tables()
   -- with html entities, we take this route knowing the tradeoff.
 
   local function handle_raw_html_as_table(el)
+    local eltext
+    if(_quarto.format.isTypstOutput()) then
+      local jin = assert(io.open("juice-in.html", "w"))
+      local bootstrapf = assert(io.open("libs/bootstrap/bootstrap.min.css", "r"))
+      local bootstrapcss = assert(bootstrapf:read("a"))
+      jin:write('<style>\n')
+      jin:write(bootstrapcss)
+      jin:write('</style>\n')
+      jin:write(el.text)
+      jin:flush()
+      os.execute("juice juice-in.html juice-out.html")
+      local jout = assert(io.open("juice-out.html", "r"))
+      eltext = jout:read("a")
+    else
+      eltext = el.text
+    end
     local start = patterns.html_start_tag("table")
     local finish = patterns.html_end_tag("table")
 
     local blocks = pandoc.Blocks({})
 
     local cursor = 1
-    local len = string.len(el.text)
+    local len = string.len(eltext)
 
     while cursor < len do
       -- find the first table start tag
-      local i, j = string.find(el.text, start, cursor)
+      local i, j = string.find(eltext, start, cursor)
       if i == nil then
         -- no more tables
         break
@@ -93,8 +109,8 @@ function parse_html_tables()
       local cursor_2 = j + 1
       local nesting = 1
       while cursor_2 < len do
-        local k1, l1 = string.find(el.text, start, cursor_2)
-        local k2, l2 = string.find(el.text, finish, cursor_2)
+        local k1, l1 = string.find(eltext, start, cursor_2)
+        local k2, l2 = string.find(eltext, finish, cursor_2)
         if k1 == nil and k2 == nil then
           cursor = len
           break
@@ -107,7 +123,7 @@ function parse_html_tables()
           nesting = nesting - 1
           cursor_2 = l2 + 1
           if nesting == 0 then
-            local tableHtml = string.sub(el.text, i, l2)
+            local tableHtml = string.sub(eltext, i, l2)
             -- Pandoc's HTML-table -> AST-table processing does not faithfully respect
             -- `th` vs `td` elements. This causes some complex tables to be parsed incorrectly,
             -- and changes which elements are `th` and which are `td`.
@@ -142,7 +158,7 @@ function parse_html_tables()
             if found and not skip then
               flags.has_tables = true
               if cursor ~= i then
-                blocks:insert(pandoc.RawBlock(el.format, string.sub(el.text, cursor, i - 1)))
+                blocks:insert(pandoc.RawBlock(el.format, string.sub(eltext, cursor, i - 1)))
               end
               blocks:insert(tableDoc.blocks[1])
             end
@@ -156,7 +172,7 @@ function parse_html_tables()
       return nil
     end
     if cursor > 1 and cursor <= len then
-      blocks:insert(pandoc.RawBlock(el.format, string.sub(el.text, cursor)))
+      blocks:insert(pandoc.RawBlock(el.format, string.sub(eltext, cursor)))
     end
     return pandoc.Div(blocks)
   end
