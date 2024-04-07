@@ -87,6 +87,7 @@ import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
 import { shortUuid } from "../../core/uuid.ts";
 import { isServerShinyPython } from "../../core/render.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
+import { kTocIndent } from "../../config/constants.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -155,6 +156,10 @@ export async function filterParamsJson(
     options.executionEngine,
   );
 
+  const typstFilterParams = extractTypstFilterParams(
+    options.format,
+  );
+
   const params: Metadata = {
     ...includes,
     ...initFilterParams(dependenciesFile),
@@ -170,6 +175,7 @@ export async function filterParamsJson(
     ...notebookContextFilterParams(options),
     ...filterParams,
     ...customFormatParams,
+    ...typstFilterParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
     [kTimingFile]: pandocMetadataPath(timingFile),
     [kQuartoFilters]: filterSpec,
@@ -878,3 +884,9 @@ async function resolveFilterExtension(
   }
   return results.flat();
 }
+
+const extractTypstFilterParams = (format: Format) => {
+  return {
+    [kTocIndent]: format.metadata[kTocIndent],
+  };
+};
