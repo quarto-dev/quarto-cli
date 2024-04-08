@@ -48,6 +48,7 @@ function render_typst()
     {
       Meta = function(m)
         m["toc-depth"] = PANDOC_WRITER_OPTIONS["toc_depth"]
+        m["toc-indent"] = option("toc-indent")
         if m["number-depth"] then
           number_depth = tonumber(pandoc.utils.stringify(m["number-depth"]))
           print(number_depth)

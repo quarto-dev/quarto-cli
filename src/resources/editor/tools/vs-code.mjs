@@ -18250,6 +18250,16 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          name: "toc-indent",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          schema: "string",
+          description: 'The amount of indentation to use for each level of the table of contents.\nThe default is "1.5em".\n'
+        },
+        {
           name: "toc-depth",
           tags: {
             formats: [
@@ -21082,7 +21092,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The subject term (defined by the schema).",
         {
           short: "Text describing the specialized type of this publication.",
-          long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.'
+          long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.'
         },
         "Text describing the format of this publication.",
         "Text describing the relation of this publication.",
@@ -22705,7 +22715,8 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "The amount of indentation to use for each level of the table of\ncontents. The default is \u201C1.5em\u201D."
       ],
       "schema/external-schemas.yml": [
         {
@@ -22934,12 +22945,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 182264,
+        _internalId: 182266,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 182256,
+            _internalId: 182258,
             type: "enum",
             enum: [
               "png",
@@ -22955,7 +22966,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 182263,
+            _internalId: 182265,
             type: "anyOf",
             anyOf: [
               {
