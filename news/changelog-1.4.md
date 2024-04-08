@@ -1,23 +1,8 @@
 ## Fixed in this release
 
-- ([#8439](https://github.com/quarto-dev/quarto-cli/issues/8439)): ensure that lack of subject line is handled
-- ([#9076](https://github.com/quarto-dev/quarto-cli/issues/9076)): Fix rendering of code cells with `layout-ncol` and `column` settings in `html` format.
-- ([#9200](https://github.com/quarto-dev/quarto-cli/issues/9200)): Fix regression with `tbl-colwidths` outside of a cross-referenceable table element.
-
 ## Fixed in previous releases
 
-- ([#8749](https://github.com/quarto-dev/quarto-cli/issues/8749)): Fix bundle creation for publishing Quarto projects to Posit Connect using `quarto publish connect`.
-- ([#8785](https://github.com/quarto-dev/quarto-cli/issues/8785)): Fix issue with noncentered, non-referenceable subfigures in LaTeX format.
-- ([#8795](https://github.com/quarto-dev/quarto-cli/issues/8795)): Fix issue with select controls appearing in Dashboard toolbar.
-- ([#8798](https://github.com/quarto-dev/quarto-cli/issues/8798)): Fix issue with duplicate level 1 headings in rendered `ipynb` notebooks.
-- ([#8818](https://github.com/quarto-dev/quarto-cli/issues/8818)): Fix alignment of `right` items in Navbars.
-- ([#8852](https://github.com/quarto-dev/quarto-cli/issues/8852)): Do not strip `index.html` from external links.
-- ([#8854](https://github.com/quarto-dev/quarto-cli/issues/8854)): Don't allow margin footnotes to break `hover-citations`
-- ([#8858](https://github.com/quarto-dev/quarto-cli/issues/8858)): Fix issue rendering markdown in bread-crumbs
-- ([#8843](https://github.com/quarto-dev/quarto-cli/issues/8843)): Fix issue in books when some R code cells emits LaTeX dependencies to be included in the LaTeX preamble.
-- ([#8857](https://github.com/quarto-dev/quarto-cli/issues/8857)): Fix issue with `format: dashboard` using Plotly in Jupyter on Windows.
-- ([#8937](https://github.com/quarto-dev/quarto-cli/pull/8937)): Fix unix `quarto` launcher in the case of paths with spaces.
-
+- ([#8439](https://github.com/quarto-dev/quarto-cli/issues/8439)): ensure that lack of subject line is handled
 - ([#8417](https://github.com/quarto-dev/quarto-cli/issues/8417)): Maintain a single AST element in the output cell when parsing HTML from RawBlock
 - ([#8490](https://github.com/quarto-dev/quarto-cli/issues/8490)): Properly embed `qmd` cells even when they include an explicit `echo` declaration.
 - ([#8464](https://github.com/quarto-dev/quarto-cli/issues/8464)): Fix a regression where shortcodes were not being expanded recursively.
@@ -40,6 +25,19 @@
 - ([#8728](https://github.com/quarto-dev/quarto-cli/pull/8728)): Don't crash with empty floats in LaTeX format.
 - ([#8733](https://github.com/quarto-dev/quarto-cli/issues/8733)): Fix regression with image-align=right in LaTeX format.
 - ([#8741](https://github.com/quarto-dev/quarto-cli/issues/8741)): Fix issue where the MacOS installer would incorrectly report that Rosetta is required (it is not).
+- ([#8749](https://github.com/quarto-dev/quarto-cli/issues/8749)): Fix bundle creation for publishing Quarto projects to Posit Connect using `quarto publish connect`.
+- ([#8785](https://github.com/quarto-dev/quarto-cli/issues/8785)): Fix issue with noncentered, non-referenceable subfigures in LaTeX format.
+- ([#8795](https://github.com/quarto-dev/quarto-cli/issues/8795)): Fix issue with select controls appearing in Dashboard toolbar.
+- ([#8798](https://github.com/quarto-dev/quarto-cli/issues/8798)): Fix issue with duplicate level 1 headings in rendered `ipynb` notebooks.
+- ([#8818](https://github.com/quarto-dev/quarto-cli/issues/8818)): Fix alignment of `right` items in Navbars.
+- ([#8852](https://github.com/quarto-dev/quarto-cli/issues/8852)): Do not strip `index.html` from external links.
+- ([#8854](https://github.com/quarto-dev/quarto-cli/issues/8854)): Don't allow margin footnotes to break `hover-citations`
+- ([#8858](https://github.com/quarto-dev/quarto-cli/issues/8858)): Fix issue rendering markdown in bread-crumbs
+- ([#8843](https://github.com/quarto-dev/quarto-cli/issues/8843)): Fix issue in books when some R code cells emits LaTeX dependencies to be included in the LaTeX preamble.
+- ([#8857](https://github.com/quarto-dev/quarto-cli/issues/8857)): Fix issue with `format: dashboard` using Plotly in Jupyter on Windows.
+- ([#8937](https://github.com/quarto-dev/quarto-cli/pull/8937)): Fix unix `quarto` launcher in the case of paths with spaces.
+- ([#9076](https://github.com/quarto-dev/quarto-cli/issues/9076)): Fix rendering of code cells with `layout-ncol` and `column` settings in `html` format.
+- ([#9200](https://github.com/quarto-dev/quarto-cli/issues/9200)): Fix regression with `tbl-colwidths` outside of a cross-referenceable table element.
 
 ## Languages
 
