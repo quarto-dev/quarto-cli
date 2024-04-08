@@ -14,6 +14,7 @@ import {
 export type InspectedMdCell = {
   start: number;
   end: number;
+  file: string;
   source: string;
   language: string;
   metadata: Record<string, unknown>;

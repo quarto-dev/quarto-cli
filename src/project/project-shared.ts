@@ -39,11 +39,12 @@ import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { LanguageCellHandlerOptions } from "../core/handlers/types.ts";
 import { ExecutionEngine } from "../execute/types.ts";
 import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
-import { breakQuartoMd } from "../core/lib/break-quarto-md.ts";
+import { breakQuartoMd, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
 import { partitionCellOptionsText } from "../core/lib/partition-cell-options.ts";
 import { parse } from "yaml/mod.ts";
 import { mappedIndexToLineCol } from "../core/lib/mapped-text.ts";
 import { normalizeNewlines } from "../core/lib/text.ts";
+import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -368,30 +369,57 @@ export async function projectResolveCodeCellsForFile(
     markdown = await mdForFile(project, engine, file);
   }
 
-  const chunks = await breakQuartoMd(markdown);
   const result: InspectedMdCell[] = [];
-  for (const cell of chunks.cells) {
-    if (
-      typeof cell.cell_type !== "string" &&
-      cell.cell_type.language !== "_directive"
-    ) {
-      const cellOptions = partitionCellOptionsText(
-        cell.cell_type.language,
-        cell.sourceWithYaml ?? cell.source,
+  const fileStack: string[] = [];
+
+  const inner = async (file: string, cells: QuartoMdCell[]) => {
+    if (fileStack.includes(file)) {
+      throw new Error(
+        "Circular include detected:\n  " + fileStack.join(" ->\n  "),
       );
-      const metadata = cellOptions.yaml
-        ? parse(cellOptions.yaml.value) as Record<string, unknown>
-        : {};
-      const lineLocator = mappedIndexToLineCol(cell.sourceVerbatim);
-      result.push({
-        start: lineLocator(0).line,
-        end: lineLocator(cell.sourceVerbatim.value.length - 1).line,
-        source: normalizeNewlines(cell.source.value),
-        language: cell.cell_type.language,
-        metadata,
-      });
     }
-  }
+    fileStack.push(file);
+    for (const cell of cells) {
+      if (typeof cell.cell_type === "string") {
+        continue;
+      }
+      if (cell.cell_type.language === "_directive") {
+        const directiveCell = cell.cell_type as DirectiveCell;
+        if (directiveCell.name !== "include") {
+          continue;
+        }
+        const innerFile = join(project.dir, directiveCell.shortcode.params[0]);
+        await inner(
+          innerFile,
+          (await breakQuartoMd(
+            await mdForFile(project, engine, innerFile),
+          )).cells,
+        );
+      }
+      if (
+        cell.cell_type.language !== "_directive"
+      ) {
+        const cellOptions = partitionCellOptionsText(
+          cell.cell_type.language,
+          cell.sourceWithYaml ?? cell.source,
+        );
+        const metadata = cellOptions.yaml
+          ? parse(cellOptions.yaml.value) as Record<string, unknown>
+          : {};
+        const lineLocator = mappedIndexToLineCol(cell.sourceVerbatim);
+        result.push({
+          start: lineLocator(0).line,
+          end: lineLocator(cell.sourceVerbatim.value.length - 1).line,
+          file: file,
+          source: normalizeNewlines(cell.source.value),
+          language: cell.cell_type.language,
+          metadata,
+        });
+      }
+    }
+    fileStack.pop();
+  };
+  await inner(file, (await breakQuartoMd(markdown)).cells);
   cache.codeCells = result;
   return result;
 }
