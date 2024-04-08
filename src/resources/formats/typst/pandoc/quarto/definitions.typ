@@ -99,7 +99,6 @@
 }
 
 #show ref: it => locate(loc => {
-  let target = query(it.target, loc).first()
   let suppl = it.at("supplement", default: none)
   if suppl == none or suppl == auto {
     it
@@ -108,6 +107,7 @@
 
   let sup = it.supplement.text.matches(regex("^45127368-afa1-446a-820f-fc64c546b2c5%(.*)")).at(0, default: none)
   if sup != none {
+    let target = query(it.target, loc).first()
     let parent_id = sup.captures.first()
     let parent_figure = query(label(parent_id), loc).first()
     let parent_location = parent_figure.location()
