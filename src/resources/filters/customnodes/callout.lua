@@ -242,6 +242,9 @@ function decorate_callout_title_with_crossref(callout)
   if not is_valid_ref_type(refType(callout.attr.identifier)) then
     return callout
   end
+  if callout.title == nil then
+    callout.title = pandoc.Plain({})
+  end
   local title = callout.title.content
 
   -- unlabeled callouts do not get a title prefix
