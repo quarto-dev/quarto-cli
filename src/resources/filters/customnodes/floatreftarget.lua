@@ -149,6 +149,9 @@ local function get_node_from_float_and_type(float, type, filter_base)
   -- this explicit check appears necessary for the case where
   -- float.content is directly the node we want, and not a container that
   -- contains the node.
+  if float.content == nil then
+    return nil
+  end
   if float.content.t == type then
     return float.content
   else
@@ -765,7 +768,7 @@ function float_reftarget_render_html_figure(float)
   local found_image = pandoc.Div({})
   -- #7727: don't recurse into tables when searching for a figure from
   -- which to get attributes
-  if float.content.t ~= "Table" then
+  if float.content and float.content.t ~= "Table" then
     found_image = get_node_from_float_and_type(float, "Image", {
       Table = function(table)
         return nil, false
