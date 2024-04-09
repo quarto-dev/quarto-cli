@@ -39,6 +39,7 @@
           schema:
             arrayOf: string
             description: Environment variables to pass to the Julia worker process.
+  description: Configures the Julia engine.
 
 - name: knitr
   schema:
