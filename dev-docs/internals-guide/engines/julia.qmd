@@ -1,0 +1,8 @@
+---
+title: "Julia Engine"
+---
+
+This is a pure-Julia execution engine for users who want Julia cells but do not want to
+use Jupyter. It was merged in https://github.com/quarto-dev/quarto-cli/pull/8645/ and developed by 
+https://github.com/jkrumbiegel.
+
