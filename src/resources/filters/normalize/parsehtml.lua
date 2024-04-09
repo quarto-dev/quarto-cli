@@ -75,11 +75,7 @@ function parse_html_tables()
     local eltext
     if(_quarto.format.isTypstOutput()) then
       local jin = assert(io.open("juice-in.html", "w"))
-      local bootstrapf = assert(io.open("libs/bootstrap/bootstrap.min.css", "r"))
-      local bootstrapcss = assert(bootstrapf:read("a"))
-      jin:write('<style>\n')
-      jin:write(bootstrapcss)
-      jin:write('</style>\n')
+      jin:write('<script src="libs/bootstrap/bootstrap.min.css"></script>\n')
       jin:write(el.text)
       jin:flush()
       os.execute("juice juice-in.html juice-out.html")
