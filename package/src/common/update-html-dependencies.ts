@@ -936,7 +936,7 @@ async function updateBootstrapFromBslib(
             join(themeDir, "_bootswatch.scss")
           );
 
-          const patchedScss = patchTheme(theme, layer);
+          const patchedScss = patchTheme(theme, layer, bootswatchThemePatches);
 
           const themeOut = join(themesDir, `${theme}.scss`);
           Deno.writeTextFileSync(themeOut, patchedScss);
@@ -1187,7 +1187,7 @@ function mergedSassLayer(
   return merged.join("\n");
 }
 
-function patchTheme(themeName: string, themeContents: string) {
+function patchTheme(themeName: string, themeContents: string, themePatches: Record<string, ThemePatch[]> ) {
   const patches = themePatches[themeName];
   if (patches) {
     let patchedTheme = themeContents;
@@ -1211,7 +1211,7 @@ interface ThemePatch {
   to: string;
 }
 
-const themePatches: Record<string, ThemePatch[]> = {
+const bootswatchThemePatches: Record<string, ThemePatch[]> = {
   litera: [
     {
       from: ".navbar {\n  font-size: $font-size-sm;",
