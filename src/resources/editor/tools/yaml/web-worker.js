@@ -13280,6 +13280,27 @@ try {
             description: "Configures the Jupyter engine."
           },
           {
+            name: "julia",
+            schema: {
+              object: {
+                properties: {
+                  exeflags: {
+                    schema: {
+                      arrayOf: "string",
+                      description: "Arguments to pass to the Julia worker process."
+                    }
+                  },
+                  env: {
+                    schema: {
+                      arrayOf: "string",
+                      description: "Environment variables to pass to the Julia worker process."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
             name: "knitr",
             schema: {
               anyOf: [
@@ -22020,6 +22041,7 @@ try {
             short: "Include an automatically generated table of contents",
             long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
           },
+          "The amount of indentation to use for each level of the table of\ncontents. The default is \u201C1.5em\u201D.",
           "Specify the number of section levels to include in the table of\ncontents. The default is 3",
           {
             short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), <code>left-body</code>,\n<code>right-body</code>).",
@@ -22717,7 +22739,8 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "The amount of indentation to use for each level of the table of\ncontents. The default is \u201C1.5em\u201D."
+          "Arguments to pass to the Julia worker process.",
+          "Environment variables to pass to the Julia worker process."
         ],
         "schema/external-schemas.yml": [
           {
@@ -22946,12 +22969,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 182266,
+          _internalId: 182425,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 182258,
+              _internalId: 182417,
               type: "enum",
               enum: [
                 "png",
@@ -22967,7 +22990,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 182265,
+              _internalId: 182424,
               type: "anyOf",
               anyOf: [
                 {

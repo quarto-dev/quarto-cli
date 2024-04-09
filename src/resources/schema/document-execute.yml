@@ -27,6 +27,19 @@
                 required: all
   description: Configures the Jupyter engine.
 
+- name: julia
+  schema:
+    object:
+      properties:
+        exeflags:
+          schema:
+            arrayOf: string
+            description: Arguments to pass to the Julia worker process.
+        env:
+          schema:
+            arrayOf: string
+            description: Environment variables to pass to the Julia worker process.
+
 - name: knitr
   schema:
     anyOf:
