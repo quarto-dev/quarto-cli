@@ -104,6 +104,7 @@ async function publish(
 
   // get context
   const ghContext = await gitHubContextForPublish(options.input);
+  verifyContext(ghContext, "Hugging Face Spaces");
 
   if (
     !ghContext.originUrl!.match(/^https:\/\/.*:.*@huggingface.co\/spaces\//)
