@@ -1,0 +1,50 @@
+diff --git a/src/resources/formats/revealjs/themes/blood.scss b/src/resources/formats/revealjs/themes/blood.scss
+index fe4addaf4..28f7b9455 100644
+--- a/src/resources/formats/revealjs/themes/blood.scss
++++ b/src/resources/formats/revealjs/themes/blood.scss
+@@ -50,6 +50,9 @@ $link-color: $blood !default;
+ $selection-bg: $link-color !default;
+ $selection-color: #fff !default;
+ 
++// input panel
++$input-panel-bg: rgba(233, 236, 239, 0.2) !default;
++
+ /*-- scss:rules --*/
+ 
+ .reveal p {
+diff --git a/src/resources/formats/revealjs/themes/league.scss b/src/resources/formats/revealjs/themes/league.scss
+index 476b6c7da..3005e6c1e 100644
+--- a/src/resources/formats/revealjs/themes/league.scss
++++ b/src/resources/formats/revealjs/themes/league.scss
+@@ -36,6 +36,9 @@ $presentation-heading-text-transform: uppercase !default;
+ // Change text colors against light slide backgrounds
+ $light-bg-text-color: #222 !default;
+ 
++// input panel
++$input-panel-bg: rgba(233, 236, 239, 0.2) !default;
++
+ /*-- scss:mixins --*/
+ 
+ // Background generator
+diff --git a/src/resources/formats/revealjs/themes/moon.scss b/src/resources/formats/revealjs/themes/moon.scss
+index 0e0cc8ccb..21ca22fab 100644
+--- a/src/resources/formats/revealjs/themes/moon.scss
++++ b/src/resources/formats/revealjs/themes/moon.scss
+@@ -50,3 +50,6 @@ $presentation-heading-font: "League Gothic", sans-serif !default; // from settin
+ 
+ // Change text colors against light slide backgrounds
+ $light-bg-text-color: #222 !default;
++
++// input panel
++$input-panel-bg: rgba(233, 236, 239, 0.2) !default;
+diff --git a/src/resources/formats/revealjs/themes/night.scss b/src/resources/formats/revealjs/themes/night.scss
+index 34703523a..9d84bbf86 100644
+--- a/src/resources/formats/revealjs/themes/night.scss
++++ b/src/resources/formats/revealjs/themes/night.scss
+@@ -27,3 +27,6 @@ $selection-bg: #e7ad52 !default;
+ 
+ // Change text colors against light slide backgrounds
+ $light-bg-text-color: #222 !default;
++
++// input panel
++$input-panel-bg: rgba(233, 236, 239, 0.2) !default;

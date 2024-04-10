@@ -352,11 +352,14 @@ export async function updateHtmlDependencies(config: Configuration) {
     },
     true,
     false,
-    resolvePatches(
-      ["beige", "blood", "dracula", "league", "moon", "night", "serif", "simple", "sky", "solarized"].map(
+    resolvePatches([
+      // patche for each themes
+      ...["beige", "blood", "dracula", "league", "moon", "night", "serif", "simple", "sky", "solarized"].map(
         (theme) => `revealjs-theme-0001-${theme}.patch`
-      )
-    )
+      ),
+      // global patches
+      "revealjs-theme-0002-input-panel-bg.patch"
+    ])
   );
 
   // revealjs-chalkboard
