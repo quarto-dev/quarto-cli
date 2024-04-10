@@ -460,7 +460,7 @@ export async function updateHtmlDependencies(config: Configuration) {
     false, // not a commit
     false, // no v prefix,
     resolvePatches([
-      "0001-Patch-PdfExport-RevealJS-plugin-to-export-toggle-fun.patch",
+      "revealjs-plugin-0001-pdfexport-to-export-toggle-fun.patch",
     ])
   );
 
