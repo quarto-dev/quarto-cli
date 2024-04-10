@@ -312,7 +312,7 @@ export async function updateHtmlDependencies(config: Configuration) {
       copyTo(join(dir, `reveal.js-${version}`, "css"), cssDir, { overwrite: true, preserveTimestamps: true });
       info("Port native scss themes to quarto theme");
       const sourceThemes = join(cssDir, "theme", "source");
-      const portedThemes = join(dirname(revealJs), "themes")
+      const portedThemes = join(dirname(revealJs), "themes");
       for (const fileEntry of Deno.readDirSync(sourceThemes)) {
         if (fileEntry.isFile && extname(fileEntry.name) === ".scss") {
           // Ignore specific files that are aliased to custom quarto theme
@@ -1344,3 +1344,4 @@ revealjsThemePatches["sky"] = createRevealjsThemePatches(["mainFont", "mainColor
 revealjsThemePatches["solarized"] = createRevealjsThemePatches(["mainColor", "headingColor", "headingTextShadow", "backgroundColor", "linkColor", "linkColorHover", "selectionBackgroundColor"])
 revealjsThemePatches["white-contrast"] = createRevealjsThemePatches(["backgroundColor", "mainColor", "headingColor", "mainFontSize", "mainFont", "headingFont", "headingTextShadow",  "headingLetterSpacing", "headingTextTransform", "headingFontWeight", "linkColor", "linkColorHover", "selectionBackgroundColor", "heading1Size", "heading2Size", "heading3Size", "heading4Size"])
 revealjsThemePatches["white"] = createRevealjsThemePatches(["backgroundColor", "mainColor", "headingColor", "mainFontSize", "mainFont", "headingFont", "headingTextShadow",  "headingLetterSpacing", "headingTextTransform", "headingFontWeight", "linkColor", "linkColorHover", "selectionBackgroundColor", "heading1Size", "heading2Size", "heading3Size", "heading4Size"])
+revealjsThemePatches["settings"] = createRevealjsThemePatches(["backgroundColor", "mainFont", "mainFontSize", "mainColor", "blockMargin", "headingFont", "headingLineHeight", "headingLetterSpacing", "headingTextTransform", "headingTextShadow", "headingFontWeight", "heading1TextShadow", "heading1Size", "heading2Size", "heading3Size", "heading4Size", "codeFont", "linkColor", "linkColorHover", "selectionBackgroundColor", "selectionColor"])
