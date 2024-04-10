@@ -325,7 +325,7 @@ export async function updateHtmlDependencies(config: Configuration) {
           portRevealTheme(join(portedThemes, fileEntry.name));
         }
       }
-      // copy settings.scss and patch
+      // copy settings.scss and patch to help check correct addition of theme
       const templateDir = join(cssDir, "theme", "template");
       const templateDirNew = join(portedThemes, "template");
       ensureDirSync(templateDirNew);
