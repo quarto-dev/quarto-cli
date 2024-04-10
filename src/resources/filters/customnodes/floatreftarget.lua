@@ -336,6 +336,7 @@ end, function(float)
   else
     latex_caption = float.caption_long
   end
+  latex_caption = latex_caption or pandoc.Inlines({})
 
   if #latex_caption == 0 then
     local caption_setup = quarto.LatexInlineCommand({
