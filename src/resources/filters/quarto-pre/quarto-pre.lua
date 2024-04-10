@@ -121,6 +121,10 @@ local filterList = {
     filter = output_location()
   },
 
+  { name = "pre-scope-resolution",
+    filter = resolve_scoped_elements()
+  },
+
   { name = "pre-combined-figures-theorems-etc", filter = combineFilters({
     file_metadata(),
     index_book_file_targets(),
@@ -137,7 +141,7 @@ local filterList = {
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
     table_respecify_gt_css(),
-    table_colwidth(), 
+    -- table_colwidth(), 
     table_classes(),
     input_traits(),
     resolve_book_file_targets(),

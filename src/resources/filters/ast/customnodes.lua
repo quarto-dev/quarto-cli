@@ -9,17 +9,6 @@ local custom_node_data = pandoc.List({})
 local n_custom_nodes = 0
 local profiler = require('profiler')
 
-function scaffold(node)
-  local pt = pandoc.utils.type(node)
-  if pt == "Blocks" then
-    return pandoc.Div(node, {"", {"quarto-scaffold"}})
-  elseif pt == "Inlines" then
-    return pandoc.Span(node, {"", {"quarto-scaffold"}})
-  else
-    return node
-  end
-end
-
 function is_custom_node(node, name)
   if node.attributes and node.attributes.__quarto_custom == "true" then
     if name == nil or name == node.attributes.__quarto_custom_type then
@@ -529,6 +518,26 @@ _quarto.ast = {
     return nil
     -- luacov: enable
   end,
+
+  -- wrap an element with another element containing the quarto-scaffold class
+  -- so that it will be stripped out in the final output
+  scaffold_element = function(node)
+    local pt = pandoc.utils.type(node)
+    if pt == "Blocks" then
+      return pandoc.Div(node, {"", {"quarto-scaffold"}})
+    elseif pt == "Inlines" then
+      return pandoc.Span(node, {"", {"quarto-scaffold"}})
+    else
+      return node
+    end
+  end,
+
+  -- a slightly different version of scaffold_element; we should probably unify these
+  make_scaffold = function(ctor, node)
+    return ctor(node or {}, pandoc.Attr("", {"quarto-scaffold", "hidden"}, {}))
+  end,
+  
+  scoped_walk = scoped_walk,
 
   walk = run_emulated_filter,
 

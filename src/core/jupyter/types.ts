@@ -104,7 +104,7 @@ export interface JupyterCell {
   cell_type: "markdown" | "code" | "raw";
   execution_count?: null | number;
   metadata: JupyterCellMetadata;
-  source: string[];
+  source: string | string[];
   attachments?: Record<string, Record<string, string>>;
   outputs?: JupyterOutput[];
 }

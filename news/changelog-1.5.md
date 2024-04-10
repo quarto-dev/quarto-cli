@@ -20,10 +20,12 @@ All changes included in 1.5:
 ## RevealJS Format
 
 - ([#8382](https://github.com/quarto-dev/quarto-cli/issues/8382)): Strip whitespace from `div.columns` elements that might have been introduced by third-party processing.
+- ([#9117](https://github.com/quarto-dev/quarto-cli/issues/9117)): Fix an issue with input filename containing special characters.
 
 ## Docusaurus Format
 
 - ([#8919](https://github.com/quarto-dev/quarto-cli/issues/8919)): Ensure enough backticks in code cell declarations.
+- ([#9179](https://github.com/quarto-dev/quarto-cli/issues/9179)): Emit tables that Pandoc would write as HTML as RawBlock elements to ensure they are rendered correctly in Docusaurus.
 
 ## Website
 
@@ -44,6 +46,7 @@ All changes included in 1.5:
 
 - ([#8737](https://github.com/quarto-dev/quarto-cli/issues/8737)): Fix issue in `page-footer` when url are used in `href` for book's configuration.
 - ([#8814](https://github.com/quarto-dev/quarto-cli/issues/8814)): Fix issue with `bibliography` field using urls in book's configuration.
+- ([#9269](https://github.com/quarto-dev/quarto-cli/issues/9269)): Fix issue with icons in download dropdown for multiple book formats.
 
 ## OJS
 
@@ -52,8 +55,9 @@ All changes included in 1.5:
 ## Typst
 
 - ([#8539](https://github.com/quarto-dev/quarto-cli/issues/8539)): Support for Typst theorems and their ilk via [typst-theorems](https://github.com/sahasatvik/typst-theorems).
-
-- The Typst template specificies tables drawn without grid lines by default, in accordance with latest Pandoc.
+- ([#9293](https://github.com/quarto-dev/quarto-cli/pull/9293)): Add `toc-indent` to control indentation of entries in the table of contents.
+- Upgrade Typst to 0.11
+- Upgrade the Typst template to draw tables without grid lines by default, in accordance with latest Pandoc.
 
 ## Jupyter
 
@@ -63,6 +67,8 @@ All changes included in 1.5:
 - ([#8454](https://github.com/quarto-dev/quarto-cli/issues/8454)): Allow Jupyter engine to handle markdown files with mixed-case extensions.
 - ([#8919](https://github.com/quarto-dev/quarto-cli/issues/8919)): Ensure enough backticks in `quarto convert` from `.ipynb` to `.qmd` files.
 - ([#8998](https://github.com/quarto-dev/quarto-cli/issues/8998)): Interpret slide separation markers `---` correctly when creating the `.ipynb` intermediate notebook from a `.qmd` file.
+- ([#9133](https://github.com/quarto-dev/quarto-cli/issues/9133)): Fix issue with Jupyter engine when using paths containing special characters.
+- ([#9255](https://github.com/quarto-dev/quarto-cli/issues/9255)): Support cell source fields of type `string`.
 
 ## Website Listings
 
@@ -106,9 +112,14 @@ All changes included in 1.5:
 
 - ([#8614](https://github.com/quarto-dev/quarto-cli/issues/8614)): Don't improperly forward column classes onto grids.
 
+## Publishing
+
+- ([#9308](https://github.com/quarto-dev/quarto-cli/issues/9308)): Improved error message when trying to publish to Github pages with `quarto publish gh-pages`.
+
 ## `quarto inspect`
 
 - ([#8939](https://github.com/quarto-dev/quarto-cli/pull/8939)): `quarto inspect` now takes an additional optional parameter to specify the output file, and provides the graph of include dependencies for the inspection target.
+- ([#9264](https://github.com/quarto-dev/quarto-cli/pull/9264)): `quarto inspect` now provides information about the code cells in the inspection target.
 
 ## `quarto check`
 

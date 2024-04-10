@@ -29,6 +29,7 @@ import { mergeConfigs } from "../core/config.ts";
 import { ProjectContext } from "../project/types.ts";
 import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
 import { gitignoreEntries } from "../project/project-gitignore.ts";
+import { juliaEngine } from "./julia.ts";
 
 const kEngines: Map<string, ExecutionEngine> = new Map();
 
@@ -40,7 +41,9 @@ export function executionEngine(name: string) {
   return kEngines.get(name);
 }
 
-for (const engine of [knitrEngine, jupyterEngine, markdownEngine]) {
+for (
+  const engine of [knitrEngine, jupyterEngine, markdownEngine, juliaEngine]
+) {
   registerExecutionEngine(engine);
 }
 

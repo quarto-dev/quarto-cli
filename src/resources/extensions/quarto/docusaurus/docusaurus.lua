@@ -113,6 +113,15 @@ local function tabset(node)
   return tabs
 end
 
+local function Table(tbl)
+  local out = pandoc.write(pandoc.Pandoc({tbl}), FORMAT, PANDOC_WRITER_OPTIONS)
+  -- if the table was written in a way that looks like HTML, then wrap it in the right RawBlock way
+  if string.match(out, "^%s*%<table") then
+    local unwrapped = pandoc.RawBlock('html', out)
+    return RawBlock(unwrapped)
+  end
+end
+
 quarto._quarto.ast.add_renderer("Tabset", function()
   return quarto._quarto.format.isDocusaurusOutput()
 end, function(node)
@@ -178,6 +187,7 @@ return {
     RawBlock = RawBlock,
     DecoratedCodeBlock = DecoratedCodeBlock,
     CodeBlock = CodeBlock,
+    Table = Table,
   },
   {
     Pandoc = Pandoc,

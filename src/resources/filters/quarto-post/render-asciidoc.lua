@@ -60,7 +60,7 @@ function render_asciidoc()
       local admonitionPre
       local admonitionPost = "====\n\n" 
 
-      if el.title then
+      if #pandoc.utils.stringify(el.title) > 0 then
         -- A titled admonition
         local admonitionTitle = pandoc.write(pandoc.Pandoc({el.title}), "asciidoc")
         admonitionPre = "[" .. admonitionType .. "]\n." .. admonitionTitle .. "====\n"

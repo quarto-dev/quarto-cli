@@ -13824,6 +13824,28 @@ try {
             description: "Configures the Jupyter engine."
           },
           {
+            name: "julia",
+            schema: {
+              object: {
+                properties: {
+                  exeflags: {
+                    schema: {
+                      arrayOf: "string",
+                      description: "Arguments to pass to the Julia worker process."
+                    }
+                  },
+                  env: {
+                    schema: {
+                      arrayOf: "string",
+                      description: "Environment variables to pass to the Julia worker process."
+                    }
+                  }
+                }
+              }
+            },
+            description: "Configures the Julia engine."
+          },
+          {
             name: "knitr",
             schema: {
               anyOf: [
@@ -18795,6 +18817,16 @@ try {
             }
           },
           {
+            name: "toc-indent",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: "string",
+            description: 'The amount of indentation to use for each level of the table of contents.\nThe default is "1.5em".\n'
+          },
+          {
             name: "toc-depth",
             tags: {
               formats: [
@@ -19333,14 +19365,6 @@ try {
               object: {
                 closed: true,
                 properties: {
-                  brand: {
-                    anyOf: [
-                      "path",
-                      {
-                        ref: "brand"
-                      }
-                    ]
-                  },
                   title: {
                     schema: "string"
                   },
@@ -21362,65 +21386,6 @@ try {
           "Additional file resources to be copied to output directory",
           "Files that specify the execution environment (e.g.&nbsp;renv.lock,\nrequirements.text, etc\u2026)",
           "Files that specify the execution environment (e.g.&nbsp;renv.lock,\nrequirements.text, etc\u2026)",
-          "Metadata for a brand, including the brand name and important\nlinks.",
-          "The brand name.",
-          "The full, official or legal name of the company or brand.",
-          "The short, informal, or common name of the company or brand.",
-          "Important links for the brand, including social media links. If a\nsingle string, it is the brand\u2019s home page or website. Additional fields\nare allowed for internal use.",
-          "The brand\u2019s home page or website.",
-          "The brand\u2019s Mastodon URL.",
-          "The brand\u2019s GitHub URL.",
-          "The brand\u2019s LinkedIn URL.",
-          "The brand\u2019s Twitter URL.",
-          "The brand\u2019s Facebook URL.",
-          "Provide links to the brand\u2019s logo in various formats and sizes.",
-          "A link or path to the brand\u2019s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
-          "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
-          "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
-          "The brand\u2019s custom color palette and theme.",
-          "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
-          "The brand\u2019s theme colors. These are semantic or theme-oriented\ncolors.",
-          "The foreground color, used for text.",
-          "The background color, used for the page background.",
-          "The primary accent color, i.e.&nbsp;the main theme color. Typically used\nfor hyperlinks, active states, primary action buttons, etc.",
-          "The secondary accent color. Typically used for lighter text or\ndisabled states.",
-          "The tertiary accent color. Typically an even lighter color, used for\nhover states, accents, and wells.",
-          "The color used for positive or successful actions and\ninformation.",
-          "The color used for neutral or informational actions and\ninformation.",
-          "The color used for warning or cautionary actions and information.",
-          "The color used for errors, dangerous actions, or negative\ninformation.",
-          "A bright color, used as a high-contrast foreground color on dark\nelements or low-contrast background color on light elements.",
-          "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
-          "A color, which may be a named brand color.",
-          "A named brand color, taken either from <code>color.theme</code> or\n<code>color.palette</code> (in that order).",
-          "Typography definitions for the brand.",
-          "Font files and definitions for the brand.",
-          "The base font settings for the brand. These are used as the default\nfor all text.",
-          "The font settings for headings.",
-          "The font settings for monospace text. Color in this context refers to\ninline code.",
-          "The text properties used for emphasized (or emboldened) text.",
-          "The text properties used for hyperlinks.",
-          "Typographic options.",
-          "Typographic options without a font size.",
-          "Font files and definitions for the brand.",
-          "A font weight.",
-          "A font style.",
-          "A Google Font definition.",
-          "The font family name, which must match the name of the font on Google\nFonts.",
-          "The font weights to include.",
-          "The font style to include.",
-          "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
-          "A method for providing font files directly, either locally or from an\nonline location.",
-          "The font family name.",
-          "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
-          "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
-          "Additional format or output-specific options, used as a template for\nthese settings in those contexts.",
-          "Quarto format options.",
-          "Quarto <code>website</code> options.",
-          "Quarto <code>book</code> options.",
-          "Bootstrap theme settings, similar to\n<code>bslib::bs_theme()</code>.",
-          "Sass variables.",
-          "Settings specific to Shiny applications.",
           {
             short: "Unique label for code cell",
             long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -21849,6 +21814,8 @@ try {
           "The name to display in the UI.",
           "The name of the language the kernel implements.",
           "The name of the kernel.",
+          "Arguments to pass to the Julia worker process.",
+          "Environment variables to pass to the Julia worker process.",
           "Set Knitr options.",
           "Knit options.",
           "Knitr chunk options.",
@@ -22743,6 +22710,7 @@ try {
             short: "Include an automatically generated table of contents",
             long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
           },
+          "The amount of indentation to use for each level of the table of\ncontents. The default is \u201C1.5em\u201D.",
           "Specify the number of section levels to include in the table of\ncontents. The default is 3",
           {
             short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), <code>left-body</code>,\n<code>right-body</code>).",
@@ -23439,7 +23407,66 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Metadata for a brand, including the brand name and important\nlinks.",
+          "The brand name.",
+          "The full, official or legal name of the company or brand.",
+          "The short, informal, or common name of the company or brand.",
+          "Important links for the brand, including social media links. If a\nsingle string, it is the brand\u2019s home page or website. Additional fields\nare allowed for internal use.",
+          "The brand\u2019s home page or website.",
+          "The brand\u2019s Mastodon URL.",
+          "The brand\u2019s GitHub URL.",
+          "The brand\u2019s LinkedIn URL.",
+          "The brand\u2019s Twitter URL.",
+          "The brand\u2019s Facebook URL.",
+          "Provide links to the brand\u2019s logo in various formats and sizes.",
+          "A link or path to the brand\u2019s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
+          "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
+          "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
+          "The brand\u2019s custom color palette and theme.",
+          "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
+          "The brand\u2019s theme colors. These are semantic or theme-oriented\ncolors.",
+          "The foreground color, used for text.",
+          "The background color, used for the page background.",
+          "The primary accent color, i.e.&nbsp;the main theme color. Typically used\nfor hyperlinks, active states, primary action buttons, etc.",
+          "The secondary accent color. Typically used for lighter text or\ndisabled states.",
+          "The tertiary accent color. Typically an even lighter color, used for\nhover states, accents, and wells.",
+          "The color used for positive or successful actions and\ninformation.",
+          "The color used for neutral or informational actions and\ninformation.",
+          "The color used for warning or cautionary actions and information.",
+          "The color used for errors, dangerous actions, or negative\ninformation.",
+          "A bright color, used as a high-contrast foreground color on dark\nelements or low-contrast background color on light elements.",
+          "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
+          "A color, which may be a named brand color.",
+          "A named brand color, taken either from <code>color.theme</code> or\n<code>color.palette</code> (in that order).",
+          "Typography definitions for the brand.",
+          "Font files and definitions for the brand.",
+          "The base font settings for the brand. These are used as the default\nfor all text.",
+          "The font settings for headings.",
+          "The font settings for monospace text. Color in this context refers to\ninline code.",
+          "The text properties used for emphasized (or emboldened) text.",
+          "The text properties used for hyperlinks.",
+          "Typographic options.",
+          "Typographic options without a font size.",
+          "Font files and definitions for the brand.",
+          "A font weight.",
+          "A font style.",
+          "A Google Font definition.",
+          "The font family name, which must match the name of the font on Google\nFonts.",
+          "The font weights to include.",
+          "The font style to include.",
+          "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
+          "A method for providing font files directly, either locally or from an\nonline location.",
+          "The font family name.",
+          "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
+          "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
+          "Additional format or output-specific options, used as a template for\nthese settings in those contexts.",
+          "Quarto format options.",
+          "Quarto <code>website</code> options.",
+          "Quarto <code>book</code> options.",
+          "Bootstrap theme settings, similar to\n<code>bslib::bs_theme()</code>.",
+          "Sass variables.",
+          "Settings specific to Shiny applications."
         ],
         "schema/external-schemas.yml": [
           {
@@ -23668,12 +23695,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 183016,
+          _internalId: 184056,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 183008,
+              _internalId: 184048,
               type: "enum",
               enum: [
                 "png",
@@ -23689,7 +23716,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 183015,
+              _internalId: 184055,
               type: "anyOf",
               anyOf: [
                 {

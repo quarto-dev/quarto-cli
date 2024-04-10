@@ -6,6 +6,7 @@
 
 import {
   HandlerContextResults,
+  IncludeState,
   LanguageCellHandlerContext,
   LanguageCellHandlerOptions,
   LanguageHandler,
@@ -341,11 +342,13 @@ const processMarkdownIncludes = async (
     includeHandler.context.options.state = {};
   }
   if (!includeHandler.context.options.state.include) {
-    includeHandler.context.options.state.include = {};
+    includeHandler.context.options.state.include = {
+      includes: [],
+    };
   }
-  const includeState: Record<string, string> = includeHandler.context.options
+  const includeState = includeHandler.context.options
     .state
-    .include as Record<string, string>;
+    .include as IncludeState;
 
   // search for include shortcodes in the cell content
   for (let i = 0; i < newCells.length; ++i) {
@@ -361,7 +364,7 @@ const processMarkdownIncludes = async (
             throw new Error("Include directive needs filename as a parameter");
           }
           if (filename) {
-            includeState[filename] = param;
+            includeState.includes.push({ source: filename, target: param });
           }
           lines[j] = await standaloneInclude(includeHandler.context, param);
         }

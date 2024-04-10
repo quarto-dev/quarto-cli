@@ -169,6 +169,10 @@ import {
   resolveUserExpressions,
   userExpressionsFromCell,
 } from "./jupyter-inline.ts";
+import {
+  jupyterCellSrcAsLines,
+  jupyterCellSrcAsStr,
+} from "./jupyter-shared.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -349,7 +353,7 @@ export async function quartoMdToJupyter(
       }
       if (cell_type === "raw" && frontMatter) {
         // delete 'jupyter' metadata since we've already transferred it
-        const yaml = readYamlFromMarkdown(cell.source.join(""));
+        const yaml = readYamlFromMarkdown(jupyterCellSrcAsStr(cell));
         if (yaml.jupyter) {
           delete yaml.jupyter;
           // write the cell only if there is metadata to write
@@ -371,9 +375,12 @@ export async function quartoMdToJupyter(
         }
       } else if (cell_type === "code") {
         // see if there is embedded metadata we should forward into the cell metadata
+        const cellSrcLines = typeof cell.source === "string"
+          ? lines(cell.source)
+          : cell.source;
         const { yaml, source } = partitionCellOptions(
           kernelspec.language.toLowerCase(),
-          cell.source,
+          cellSrcLines,
         );
         if (yaml && !Array.isArray(yaml) && typeof yaml === "object") {
           // use label as id if necessary
@@ -412,7 +419,10 @@ export async function quartoMdToJupyter(
       }
 
       // if the source is empty then don't add it
-      cell.source = trimEmptyLines(cell.source);
+      const cellSrcLines = typeof cell.source === "string"
+        ? lines(cell.source)
+        : cell.source;
+      cell.source = trimEmptyLines(cellSrcLines);
       if (cell.source.length > 0) {
         nb.cells.push(cell);
       }
@@ -777,7 +787,9 @@ export async function jupyterToMarkdown(
           // If this is the front matter cell, don't wrap it in
           // a cell envelope, as it need to be remain discoverable
           if (frontMatter === undefined) {
-            frontMatter = partitionYamlFrontMatter(cell.source.join(""))?.yaml;
+            frontMatter = partitionYamlFrontMatter(
+              jupyterCellSrcAsStr(cell),
+            )?.yaml;
             if (frontMatter) {
               markdownOptions.preserveCellMetadata = false;
             }
@@ -858,7 +870,7 @@ export function jupyterCellWithOptions(
 ): JupyterCellWithOptions {
   const { yaml, optionsSource, source } = partitionCellOptions(
     language,
-    cell.source,
+    jupyterCellSrcAsLines(cell),
   );
 
   // read any options defined in cell metadata
@@ -1026,7 +1038,7 @@ export function mdFromRawCell(
 
   const mimeType = cell.metadata?.[kCellRawMimeType];
   if (mimeType) {
-    const rawOutput = mdRawOutput(mimeType, cell.source);
+    const rawOutput = mdRawOutput(mimeType, jupyterCellSrcAsLines(cell));
     if (rawOutput) {
       return rawCellEnvelope(cell.id, rawOutput);
     }
@@ -1402,7 +1414,7 @@ async function mdFromCodeCell(
   if (includeCode(cell, options) || options.preserveCodeCellYaml) {
     const fenced = echoFenced(cell, options);
     const ticks = "`".repeat(
-      Math.max(countTicks(cell.source) + 1, fenced ? 4 : 3),
+      Math.max(countTicks(jupyterCellSrcAsLines(cell)) + 1, fenced ? 4 : 3),
     );
 
     md.push(ticks + " {");

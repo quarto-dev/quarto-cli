@@ -128,7 +128,7 @@ function create_latex_caption(layout)
   end
   local caption_node, caption = quarto.LatexInlineCommand({
     name = caption_env,
-    arg = scaffold(cap_inlines),
+    arg = _quarto.ast.scaffold_element(cap_inlines),
   })
   if layout.caption_short ~= nil then
     caption.opt_arg = quarto.utils.as_inlines(layout.caption_short)

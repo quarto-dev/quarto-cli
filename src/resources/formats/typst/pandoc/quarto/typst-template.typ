@@ -16,6 +16,7 @@
   toc: false,
   toc_title: none,
   toc_depth: none,
+  toc_indent: 1.5em,
   doc,
 ) = {
   set page(
@@ -73,7 +74,8 @@
     block(above: 0em, below: 2em)[
     #outline(
       title: toc_title,
-      depth: toc_depth
+      depth: toc_depth,
+      indent: toc_indent
     );
     ]
   }

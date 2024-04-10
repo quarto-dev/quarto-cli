@@ -1,0 +1,20 @@
+---
+format: 
+  typst:
+    output-ext: typ
+_quarto:
+  tests:
+    typst:
+      ensureFileRegexMatches:
+        - ["- item 1"]
+        - []
+---
+
+::: {#thm-some}
+
+Some text:
+
+- item 1
+- item 2
+
+:::

@@ -112,6 +112,7 @@ async function publish(
 
   // get context
   const ghContext = await gitHubContextForPublish(options.input);
+  verifyContext(ghContext, "GitHub Pages");
 
   // create gh pages branch if there is none yet
   const createGhPagesBranch = !ghContext.ghPages;

@@ -442,7 +442,7 @@ jobs:
       - run: |
           tar -zxf quarto-${{needs.configure.outputs.version}}-macos.tar.gz
           echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
-      - run: tar -tzvf ${{needs.configure.outputs.version}}-macos.tar.gz | head
+      - run: tar -tzvf quarto-${{needs.configure.outputs.version}}-macos.tar.gz | head
       - run: ls -lR
       - run: echo $PATH
       - run: |
