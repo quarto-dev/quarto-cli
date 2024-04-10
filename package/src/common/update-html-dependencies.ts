@@ -315,6 +315,11 @@ export async function updateHtmlDependencies(config: Configuration) {
       const portedThemes = join(dirname(revealJs), "themes")
       for (const fileEntry of Deno.readDirSync(sourceThemes)) {
         if (fileEntry.isFile && extname(fileEntry.name) === ".scss") {
+          // Ignore specific files that are aliased to custom quarto theme
+          if (["white.scss", "black.scss", "white-contrast.scss", "black-contrast.scss"].includes(fileEntry.name)) {
+            info(`-> ignore ${fileEntry.name} - do not port to quarto.`);
+            continue;
+          }
           info(`-> porting ${fileEntry.name} to quarto theme.`);
           copyTo(join(sourceThemes, fileEntry.name), join(portedThemes, fileEntry.name), { overwrite: true, preserveTimestamps: true });
           portRevealTheme(join(portedThemes, fileEntry.name));
