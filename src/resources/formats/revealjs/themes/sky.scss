@@ -33,6 +33,10 @@ $overlayElementFgColor: 240, 240, 240 !default;
 // Change text colors against dark slide backgrounds
 $dark-bg-text-color: #fff !default;
 
+// code blocks
+$code-block-border-color: lighten($link-color, 30%) !default;
+$code-block-bg: transparent !default;
+
 /*-- scss:rules --*/
 
 // Fix links so they are not cut off
