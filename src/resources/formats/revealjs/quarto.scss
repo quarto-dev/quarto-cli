@@ -55,11 +55,15 @@ $presentation-title-slide-text-align: center !default;
 $reveal-slide-text-align: $presentation-slide-text-align !default;
 $reveal-title-slide-text-align: $presentation-title-slide-text-align !default;
 
+// Lists
+$presentation-list-bullet-color: $body-color !default;
+
 // code blocks
 $code-block-bg: $body-bg !default;
 $code-block-border-color: lighten($body-color, 60%) !default;
 $code-block-font-size: 0.55em !default;
 $code-block-height: 500px !default;
+$code-block-theme-dark-threshhold: 40% !default;
 
 // inline code
 $code-color: var(--quarto-hl-fu-color) !default;
@@ -103,9 +107,11 @@ $revealjs-h1-text-shadow: $presentation-h1-text-shadow !default;
 $revealjs-heading-font-weight: $presentation-heading-font-weight !default;
 $revealjs-block-margin: $presentation-block-margin !default;
 $revealjs-line-height: $presentation-line-height !default;
+$revealjs-list-bullet-color: $presentation-list-bullet-color !default;
 
 // ---- map to reveal scss variables ---
-
+// ---- This is based from the revealjs setting.scss
+// -- START setting.scss --
 // Background of the presentation
 $backgroundColor: $body-bg !default;
 
@@ -134,8 +140,7 @@ $heading3Size: $revealjs-h3-font-size !default;
 $heading4Size: $revealjs-h4-font-size !default;
 
 $codeFont: $font-family-monospace !default;
-
-$code-block-theme-dark-threshhold: 40% !default;
+$codeBackground: $code-block-bg !default;
 
 // Links and actions
 $linkColor: $link-color !default;
@@ -144,6 +149,13 @@ $linkColorHover: $link-color-hover !default;
 // Text selection
 $selectionBackgroundColor: $selection-bg !default;
 $selectionColor: $selection-color !default;
+
+// Colors used for UI elements that are overlaid on top of
+// the presentation
+$overlayElementBgColor: 240, 240, 240 !default;
+$overlayElementFgColor: 0, 0, 0 !default;
+
+// -- END setting.scss --
 
 /*-- scss:functions --*/
 
@@ -154,11 +166,15 @@ $selectionColor: $selection-color !default;
 
 /*-- scss:mixins --*/
 
+// -- START setting.scss --
+
 // Generates the presentation background, can be overridden
 // to return a background image or gradient
 @mixin bodyBackground() {
   background: $backgroundColor;
 }
+
+// -- END setting.scss --
 
 /*-- scss:rules --*/
 

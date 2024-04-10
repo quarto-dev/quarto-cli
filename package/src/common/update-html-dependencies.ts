@@ -6,7 +6,7 @@
 import { ensureDir, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
 import { info } from "../../../src/deno_ral/log.ts";
-import { dirname, extname, join } from "../../../src/deno_ral/path.ts";
+import { dirname, basename, extname, join } from "../../../src/deno_ral/path.ts";
 import { lines } from "../../../src/core/text.ts";
 import * as ld from "../../../src/core/lodash.ts";
 
@@ -228,8 +228,7 @@ export async function updateHtmlDependencies(config: Configuration) {
   const glightBoxVersion = Deno.env.get("GLIGHTBOX_JS");;
 
   info("Updating glightbox");
-  const basename = `glightbox-master`;
-  const fileName = `${basename}.zip`;
+  const fileName = `glightbox-master.zip`;
   const distUrl = `https://github.com/biati-digital/glightbox/releases/download/${glightBoxVersion}/${fileName}`;
   const zipFile = join(workingDir, fileName);
 
@@ -309,7 +308,18 @@ export async function updateHtmlDependencies(config: Configuration) {
       ensureDirSync(revealJs);
 
       info("Copying css/");
-      copyTo(join(dir, `reveal.js-${version}`, "css"), join(revealJs, "css"), { overwrite: true, preserveTimestamps: true });
+      const cssDir = join(revealJs, "css");
+      copyTo(join(dir, `reveal.js-${version}`, "css"), cssDir, { overwrite: true, preserveTimestamps: true });
+      info("Port native scss themes to quarto theme");
+      const sourceThemes = join(cssDir, "theme", "source");
+      const portedThemes = join(dirname(revealJs), "themes")
+      for (const fileEntry of Deno.readDirSync(sourceThemes)) {
+        if (extname(fileEntry.name) === ".scss") {
+          info(`-> porting ${fileEntry.name} to quarto theme.`);
+          copyTo(join(sourceThemes, fileEntry.name), join(portedThemes, fileEntry.name), { overwrite: true, preserveTimestamps: true });
+          portRevealTheme(join(portedThemes, fileEntry.name));
+        }
+      }
       info("Copying dist/");
       const dist = join(revealJs, "dist");
       copyTo(join(dir, `reveal.js-${version}`, "dist"), dist, { overwrite: true, preserveTimestamps: true });
@@ -562,8 +572,7 @@ async function updatePdfJs(config: Configuration, working: string) {
   const version = Deno.env.get("PDF_JS");
 
   info("Updating pdf.js...");
-  const basename = `pdfjs-${version}-legacy-dist`;
-  const fileName = `${basename}.zip`;
+  const fileName = `pdfjs-${version}-legacy-dist.zip`;
   const distUrl = `https://github.com/mozilla/pdf.js/releases/download/v${version}/${fileName}`;
   const zipFile = join(working, fileName);
 
@@ -1241,3 +1250,92 @@ const bootswatchThemePatches: Record<string, ThemePatch[]> = {
     },
   ],
 };
+
+function portRevealTheme(themeFile: string) {
+  const themeFileContent = Deno.readTextFileSync(themeFile);
+  const themeName = basename(themeFile, extname(themeFile));
+  const patchedScss = patchTheme(themeName, themeFileContent, revealjsThemePatches)
+  Deno.writeTextFileSync(themeFile, patchedScss);
+}
+
+// This maps the reveal.js theme variables to the Quarto theme variables
+// Revealjs variables can be seen in _settings.scss and this mapping needs to be used
+// to port the revealjs theme to a quarto theme so that users' layers can correctly override 
+// framework defaults. Quarto layer insure the mapping of those SASS variable. 
+//  - Framework revealjs main theme file uses the revealjs variables
+//  - each revealjs ported theme should use the quarto variables
+//  - _quarto.scss maps the quarto variables to the revealjs variables, 
+//    using generic $presentation-* variants for the $revealjs-* specific
+const sassVarsMap = {
+  // Background of the presentation
+  backgroundColor: "body-bg",
+  // Primary/body text
+  mainFont: "font-family-sans-serif",
+  mainFontSize: "presentation-font-size-root",
+  mainColor: "body-color",
+  // Vertical spacing between blocks of text
+  blockMargin: "presentation-block-margin",
+  // Headings
+  headingMargin: "0 0 $blockMargin 0",
+  headingFont: "presentation-heading-font",
+  headingColor: "presentation-heading-color",
+  headingLineHeight: "presentation-heading-line-height",
+  headingLetterSpacing: "presentation-heading-letter-spacing",
+  headingTextTransform: "presentation-heading-text-transform",
+  headingTextShadow: "presentation-heading-text-shadow",
+  heading1TextShadow: "presentation-h1-text-shadow",
+  headingFontWeight: "presentation-heading-font-weight",
+
+  heading1Size: "presentation-h1-font-size",
+  heading2Size: "presentation-h2-font-size",
+  heading3Size: "presentation-h3-font-size",
+  heading4Size: "presentation-h4-font-size",
+
+  codeFont: "font-family-monospace",
+  codeBackground: "code-bg",
+  inlineCodeColor: "code-color", // from dracula.scss
+
+  // Links and actions
+  linkColor: "link-color",
+  linkColorHover: "link-color-hover",
+
+  // Text selection
+  selectionBackgroundColor: "selection-bg",
+  selectionColor: "selection-color",
+
+  // Lists
+  listBulletColor: "presentation-list-bullet-color", // from dracula.scss
+};
+
+let revealjsThemePatches: Record<string, ThemePatch[]> = {}; // Initialize the variable
+
+const createRevealjsThemePatches = (keys: string[]): ThemePatch[] => {
+  const filteredVarsMap: Record<string, string> = keys.reduce((acc, key) => {
+    if (sassVarsMap[key]) {
+      acc[key] = sassVarsMap[key];
+    } else {
+      throw Error(`Variable ${key} not found in the sassVarsMap`);
+    }
+    return acc;
+  }, {});
+
+  return Object.entries(filteredVarsMap).map(([key, value]) => ({
+    from: key,
+    to: value,
+  }));
+}
+
+revealjsThemePatches["beige"] = createRevealjsThemePatches(["mainColor", "headingColor", "headingTextShadow", "backgroundColor", "linkColor","linkColorHover", "selectionBackgroundColor", "heading1TextShadow"])
+revealjsThemePatches["black-contrast"] = createRevealjsThemePatches(["backgroundColor", "mainColor", "headingColor", "mainFontSize", "mainFont", "headingFont", "headingTextShadow",  "headingLetterSpacing", "headingTextTransform", "headingFontWeight", "linkColor", "linkColorHover", "selectionBackgroundColor", "heading1Size", "heading2Size", "heading3Size", "heading4Size"])
+revealjsThemePatches["black"] = createRevealjsThemePatches(["backgroundColor", "mainColor", "headingColor", "mainFontSize", "mainFont", "headingFont", "headingTextShadow",  "headingLetterSpacing", "headingTextTransform", "headingFontWeight", "linkColor", "linkColorHover", "selectionBackgroundColor", "heading1Size", "heading2Size", "heading3Size", "heading4Size"])
+revealjsThemePatches["blood"] = createRevealjsThemePatches(["codeBackground", "backgroundColor", "mainFont", "mainColor", "headingFont", "headingTextShadow",  "heading1TextShadow", "linkColor", "linkColorHover", "selectionBackgroundColor", "selectionColor"])
+revealjsThemePatches["dracula"] = createRevealjsThemePatches(["mainColor", "headingColor", "headingTextShadow", "headingTextTransform", "backgroundColor", "linkColor","linkColorHover", "selectionBackgroundColor", "inlineCodeColor", "listBulletColor", "mainFont", "codeFont"])
+revealjsThemePatches["league"] = createRevealjsThemePatches(["headingTextShadow", "heading1TextShadow"])
+revealjsThemePatches["moon"] = createRevealjsThemePatches(["mainColor", "headingColor", "headingTextShadow", "backgroundColor", "linkColor", "linkColorHover", "selectionBackgroundColor"])
+revealjsThemePatches["night"] = createRevealjsThemePatches(["backgroundColor", "mainFont", "linkColor", "linkColorHover", "headingFont", "headingTextShadow", "headingLetterSpacing", "headingTextTransform", "selectionBackgroundColor"])
+revealjsThemePatches["serif"] = createRevealjsThemePatches(["mainFont", "mainColor", "headingFont", "headingColor", "headingTextShadow", "headingTextTransform", "backgroundColor", "linkColor", "linkColorHover", "selectionBackgroundColor"])
+revealjsThemePatches["simple"] = createRevealjsThemePatches(["mainFont", "mainColor", "headingFont", "headingColor", "headingTextShadow", "headingTextTransform", "backgroundColor", "linkColor", "linkColorHover", "selectionBackgroundColor"])
+revealjsThemePatches["sky"] = createRevealjsThemePatches(["mainFont", "mainColor", "headingFont", "headingColor", "headingLetterSpacing", "headingTextShadow", "backgroundColor", "linkColor", "linkColorHover", "selectionBackgroundColor"])
+revealjsThemePatches["solarized"] = createRevealjsThemePatches(["mainColor", "headingColor", "headingTextShadow", "backgroundColor", "linkColor", "linkColorHover", "selectionBackgroundColor"])
+revealjsThemePatches["white-contrast"] = createRevealjsThemePatches(["backgroundColor", "mainColor", "headingColor", "mainFontSize", "mainFont", "headingFont", "headingTextShadow",  "headingLetterSpacing", "headingTextTransform", "headingFontWeight", "linkColor", "linkColorHover", "selectionBackgroundColor", "heading1Size", "heading2Size", "heading3Size", "heading4Size"])
+revealjsThemePatches["white"] = createRevealjsThemePatches(["backgroundColor", "mainColor", "headingColor", "mainFontSize", "mainFont", "headingFont", "headingTextShadow",  "headingLetterSpacing", "headingTextTransform", "headingFontWeight", "linkColor", "linkColorHover", "selectionBackgroundColor", "heading1Size", "heading2Size", "heading3Size", "heading4Size"])
