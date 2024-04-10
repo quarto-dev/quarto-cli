@@ -325,6 +325,12 @@ export async function updateHtmlDependencies(config: Configuration) {
           portRevealTheme(join(portedThemes, fileEntry.name));
         }
       }
+      // copy settings.scss and patch
+      const templateDir = join(cssDir, "theme", "template");
+      const templateDirNew = join(portedThemes, "template");
+      ensureDirSync(templateDirNew);
+      copyTo(join(templateDir, "settings.scss"), join(templateDirNew, "settings.scss"), { overwrite: true, preserveTimestamps: true });
+      portRevealTheme(join(templateDirNew, "settings.scss"));
       info("Copying dist/");
       const dist = join(revealJs, "dist");
       copyTo(join(dir, `reveal.js-${version}`, "dist"), dist, { overwrite: true, preserveTimestamps: true });
@@ -345,7 +351,12 @@ export async function updateHtmlDependencies(config: Configuration) {
       return Promise.resolve();
     },
     true,
-    false
+    false,
+    resolvePatches(
+      ["beige", "blood", "dracula", "league", "moon", "night", "serif", "simple", "sky", "solarized"].map(
+        (theme) => `revealjs-theme-0001-${theme}.patch`
+      )
+    )
   );
 
   // revealjs-chalkboard
@@ -1281,7 +1292,7 @@ const sassVarsMap = {
   // Vertical spacing between blocks of text
   blockMargin: "presentation-block-margin",
   // Headings
-  headingMargin: "0 0 $blockMargin 0",
+  // headingMargin is set directly in quarto.scss
   headingFont: "presentation-heading-font",
   headingColor: "presentation-heading-color",
   headingLineHeight: "presentation-heading-line-height",
@@ -1344,4 +1355,4 @@ revealjsThemePatches["sky"] = createRevealjsThemePatches(["mainFont", "mainColor
 revealjsThemePatches["solarized"] = createRevealjsThemePatches(["mainColor", "headingColor", "headingTextShadow", "backgroundColor", "linkColor", "linkColorHover", "selectionBackgroundColor"])
 revealjsThemePatches["white-contrast"] = createRevealjsThemePatches(["backgroundColor", "mainColor", "headingColor", "mainFontSize", "mainFont", "headingFont", "headingTextShadow",  "headingLetterSpacing", "headingTextTransform", "headingFontWeight", "linkColor", "linkColorHover", "selectionBackgroundColor", "heading1Size", "heading2Size", "heading3Size", "heading4Size"])
 revealjsThemePatches["white"] = createRevealjsThemePatches(["backgroundColor", "mainColor", "headingColor", "mainFontSize", "mainFont", "headingFont", "headingTextShadow",  "headingLetterSpacing", "headingTextTransform", "headingFontWeight", "linkColor", "linkColorHover", "selectionBackgroundColor", "heading1Size", "heading2Size", "heading3Size", "heading4Size"])
-revealjsThemePatches["settings"] = createRevealjsThemePatches(["backgroundColor", "mainFont", "mainFontSize", "mainColor", "blockMargin", "headingFont", "headingLineHeight", "headingLetterSpacing", "headingTextTransform", "headingTextShadow", "headingFontWeight", "heading1TextShadow", "heading1Size", "heading2Size", "heading3Size", "heading4Size", "codeFont", "linkColor", "linkColorHover", "selectionBackgroundColor", "selectionColor"])
+revealjsThemePatches["settings"] = createRevealjsThemePatches(["backgroundColor", "mainFont", "mainFontSize", "mainColor", "blockMargin", "headingFont", "headingColor", "headingLineHeight", "headingLetterSpacing", "headingTextTransform", "headingTextShadow", "headingFontWeight", "heading1TextShadow", "heading1Size", "heading2Size", "heading3Size", "heading4Size", "codeFont", "linkColor", "linkColorHover", "selectionBackgroundColor", "selectionColor"])

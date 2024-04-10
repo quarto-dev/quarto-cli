@@ -1,0 +1,63 @@
+diff --git a/src/resources/formats/revealjs/themes/simple.scss b/src/resources/formats/revealjs/themes/simple.scss
+index f0472d7b9..3b1e3cbdc 100644
+--- a/src/resources/formats/revealjs/themes/simple.scss
++++ b/src/resources/formats/revealjs/themes/simple.scss
+@@ -4,40 +4,30 @@
+  *
+  * This theme is Copyright (C) 2012 Owen Versteeg, https://github.com/StereotypicalApps. It is MIT licensed.
+  * reveal.js is Copyright (C) 2011-2012 Hakim El Hattab, http://hakim.se
++ *
++ * Adapted for Quarto by Posit, PBC
++ * Copyright (C) 2024 Posit, PBC
+  */
+ 
+-
+-// Default mixins and settings -----------------
+-@import "../template/mixins";
+-@import "../template/settings";
+-// ---------------------------------------------
+-
+-
++/*-- scss:defaults --*/
+ 
+ // Include theme-specific fonts
+ @import url(https://fonts.googleapis.com/css?family=News+Cycle:400,700);
+ @import url(https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic);
+ 
++// Override theme settings
++$font-family-sans-serif: "Lato", sans-serif !default;
++$body-color: #000 !default;
++$presentation-heading-font: "News Cycle", sans-serif !default;
++$presentation-heading-color: #000 !default;
++$presentation-heading-text-shadow: none !default;
++$presentation-heading-text-transform: none !default;
++$body-bg: #fff !default;
++$link-color: #00008b !default;
++$selection-bg: rgba(0, 0, 0, 0.99) !default;
+ 
+-// Override theme settings (see ../template/settings.scss)
+-$font-family-sans-serif: 'Lato', sans-serif;
+-$body-color: #000;
+-$presentation-heading-font: 'News Cycle', Impact, sans-serif;
+-$presentation-heading-color: #000;
+-$presentation-heading-text-shadow: none;
+-$presentation-heading-text-transform: none;
+-$body-bg: #fff;
+-$link-color: #00008B;
+-$link-color-hover: lighten( $linkColor, 20% );
+-$selection-bg: rgba(0, 0, 0, 0.99);
+-
+-$overlayElementBgColor: 0, 0, 0;
+-$overlayElementFgColor: 240, 240, 240;
++$overlayElementBgColor: 0, 0, 0 !default;
++$overlayElementFgColor: 240, 240, 240 !default;
+ 
+ // Change text colors against dark slide backgrounds
+-@include dark-bg-text-color(#fff);
+-
+-
+-// Theme template ------------------------------
+-@import "../template/theme";
+-// ---------------------------------------------
+\ No newline at end of file
++$dark-bg-text-color: #fff !default;
