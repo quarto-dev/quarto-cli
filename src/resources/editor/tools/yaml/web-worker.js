@@ -19333,6 +19333,14 @@ try {
               object: {
                 closed: true,
                 properties: {
+                  brand: {
+                    anyOf: [
+                      "path",
+                      {
+                        ref: "brand"
+                      }
+                    ]
+                  },
                   title: {
                     schema: "string"
                   },
@@ -23660,12 +23668,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 183002,
+          _internalId: 183016,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 182994,
+              _internalId: 183008,
               type: "enum",
               enum: [
                 "png",
@@ -23681,7 +23689,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 183001,
+              _internalId: 183015,
               type: "anyOf",
               anyOf: [
                 {
