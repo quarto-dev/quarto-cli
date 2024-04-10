@@ -1,22 +1,41 @@
-/*-- scss:defaults --*/
+/**
+ * A simple theme for reveal.js presentations, similar
+ * to the default theme. The accent color is brown.
+ *
+ * This theme is Copyright (C) 2012-2013 Owen Versteeg, http://owenversteeg.com - it is MIT licensed.
+ */
 
-// fonts
-$font-family-sans-serif: "Palatino Linotype", "Book Antiqua", Palatino,
-  FreeSerif, serif !default;
 
-// colors
-$body-bg: #f0f1eb !default;
-$body-color: #000 !default;
-$link-color: #51483d !default;
-$selection-bg: #26351c;
+// Default mixins and settings -----------------
+@import "../template/mixins";
+@import "../template/settings";
+// ---------------------------------------------
 
-// headings
-$presentation-heading-font: "Palatino Linotype", "Book Antiqua", Palatino,
-  FreeSerif, serif !default;
-$presentation-heading-color: #383d3d !default;
 
-/*-- scss:rules --*/
+
+// Override theme settings (see ../template/settings.scss)
+$font-family-sans-serif: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+$body-color: #000;
+$presentation-heading-font: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+$presentation-heading-color: #383D3D;
+$presentation-heading-text-shadow: none;
+$presentation-heading-text-transform: none;
+$body-bg: #F0F1EB;
+$link-color: #51483D;
+$link-color-hover: lighten( $linkColor, 20% );
+$selection-bg: #26351C;
+
+$overlayElementBgColor: 0, 0, 0;
+$overlayElementFgColor: 240, 240, 240;
 
 .reveal a {
   line-height: 1.3em;
 }
+
+// Change text colors against dark slide backgrounds
+@include dark-bg-text-color(#fff);
+
+
+// Theme template ------------------------------
+@import "../template/theme";
+// ---------------------------------------------

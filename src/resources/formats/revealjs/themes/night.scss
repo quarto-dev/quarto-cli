@@ -1,21 +1,37 @@
-/*-- scss:defaults --*/
+/**
+ * Black theme for reveal.js.
+ *
+ * Copyright (C) 2011-2012 Hakim El Hattab, http://hakim.se
+ */
 
+
+// Default mixins and settings -----------------
+@import "../template/mixins";
+@import "../template/settings";
+// ---------------------------------------------
+
+
+// Include theme-specific fonts
 @import url(https://fonts.googleapis.com/css?family=Montserrat:700);
 @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700,400italic,700italic);
 
-// fonts
-$font-family-sans-serif: "Open Sans", sans-serif !default;
 
-// colors
-$body-bg: #111 !default;
-$body-color: #fff !default;
-$link-color: #e7ad52 !default;
-$selection-bg: #e7ad52 !default;
-$input-panel-bg: rgba(233, 236, 239, 0.2) !default;
+// Override theme settings (see ../template/settings.scss)
+$body-bg: #111;
 
-// headings
-$presentation-heading-font: "Montserrat", Impact, sans-serif;
+$font-family-sans-serif: 'Open Sans', sans-serif;
+$link-color: #e7ad52;
+$link-color-hover: lighten( $linkColor, 20% );
+$presentation-heading-font: 'Montserrat', Impact, sans-serif;
+$presentation-heading-text-shadow: none;
 $presentation-heading-letter-spacing: -0.03em;
+$presentation-heading-text-transform: none;
+$selection-bg: #e7ad52;
 
-// code blocks
-$code-block-border-color: rgba(233, 236, 239, 0.5) !default;
+// Change text colors against light slide backgrounds
+@include light-bg-text-color(#222);
+
+
+// Theme template ------------------------------
+@import "../template/theme";
+// ---------------------------------------------
