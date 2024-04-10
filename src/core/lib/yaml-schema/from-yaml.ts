@@ -508,6 +508,7 @@ export function convertFromYaml(yaml: any): ConcreteSchema {
       return fun(yaml);
     }
   }
+  console.log({ yaml });
   throw new InternalError(
     "Cannot convert object; this should have failed validation.",
   );
