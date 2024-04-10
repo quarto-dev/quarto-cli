@@ -358,7 +358,8 @@ export async function updateHtmlDependencies(config: Configuration) {
         (theme) => `revealjs-theme-0001-${theme}.patch`
       ),
       // global patches
-      "revealjs-theme-0002-input-panel-bg.patch"
+      "revealjs-theme-0002-input-panel-bg.patch",
+      "revealjs-theme-0003-code-block-fixup.patch"
     ])
   );
 
