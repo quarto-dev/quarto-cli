@@ -1,37 +1,52 @@
-/*-- scss:defaults --*/
+/**
+ * Sky theme for reveal.js.
+ *
+ * Copyright (C) 2011-2012 Hakim El Hattab, http://hakim.se
+ */
 
+
+// Default mixins and settings -----------------
+@import "../template/mixins";
+@import "../template/settings";
+// ---------------------------------------------
+
+
+
+// Include theme-specific fonts
 @import url(https://fonts.googleapis.com/css?family=Quicksand:400,700,400italic,700italic);
 @import url(https://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700);
 
-// fonts
-$font-family-sans-serif: "Open Sans", sans-serif !default;
 
-// colors
-$body-bg: #f7fbfc !default;
-$body-color: #333 !default;
-$link-color: #3b759e !default;
-$selection-bg: #134674 !default;
-
-// headings
-$presentation-heading-font: "Quicksand", sans-serif !default;
-$presentation-heading-text-transform: uppercase !default;
-$presentation-heading-font-weight: normal !default;
+// Override theme settings (see ../template/settings.scss)
+$font-family-sans-serif: 'Open Sans', sans-serif;
+$body-color: #333;
+$presentation-heading-font: 'Quicksand', sans-serif;
+$presentation-heading-color: #333;
 $presentation-heading-letter-spacing: -0.08em;
+$presentation-heading-text-shadow: none;
+$body-bg: #f7fbfc;
+$link-color: #3b759e;
+$link-color-hover: lighten( $linkColor, 20% );
+$selection-bg: #134674;
 
-// code blocks
-$code-block-border-color: lighten($link-color, 30%) !default;
-$code-block-bg: transparent !default;
-
-/*-- scss:mixins --*/
-
-// Background generator
-@mixin bodyBackground() {
-  @include radial-gradient(#add9e4, #f7fbfc);
-}
-
-/*-- scss:rules --*/
+$overlayElementBgColor: 0, 0, 0;
+$overlayElementFgColor: 240, 240, 240;
 
 // Fix links so they are not cut off
 .reveal a {
-  line-height: 1.3em;
+	line-height: 1.3em;
 }
+
+// Background generator
+@mixin bodyBackground() {
+	@include radial-gradient( #add9e4, #f7fbfc );
+}
+
+// Change text colors against dark slide backgrounds
+@include dark-bg-text-color(#fff);
+
+
+
+// Theme template ------------------------------
+@import "../template/theme";
+// ---------------------------------------------

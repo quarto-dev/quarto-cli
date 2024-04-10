@@ -1,0 +1,49 @@
+/**
+ * Black compact & high contrast reveal.js theme, with headers not in capitals.
+ *
+ * By Peter Kehl. Based on black.(s)css by Hakim El Hattab, http://hakim.se
+ *
+ * - Keep the source similar to black.css - for easy comparison.
+ * - $presentation-font-size-root controls code blocks, too (although under some ratio).
+ */
+
+
+// Default mixins and settings -----------------
+@import "../template/mixins";
+@import "../template/settings";
+// ---------------------------------------------
+
+
+// Include theme-specific fonts
+@import url(./fonts/source-sans-pro/source-sans-pro.css);
+
+
+// Override theme settings (see ../template/settings.scss)
+$body-bg: #000000;
+
+$body-color: #fff;
+$presentation-heading-color: #fff;
+
+$font-family-sans-serifSize: 42px;
+$mainFont: 'Source Sans Pro', Helvetica, sans-serif;
+$presentation-heading-font: 'Source Sans Pro', Helvetica, sans-serif;
+$presentation-heading-text-shadow: none;
+$presentation-heading-letter-spacing: normal;
+$presentation-heading-text-transform: uppercase;
+$presentation-heading-font-weight: 600;
+$link-color: #42affa;
+$link-color-hover: lighten( $linkColor, 15% );
+$selection-bg: lighten( $linkColor, 25% );
+
+$presentation-h1-font-size: 2.5em;
+$presentation-h2-font-size: 1.6em;
+$presentation-h3-font-size: 1.3em;
+$presentation-h4-font-size: 1.0em;
+
+// Change text colors against light slide backgrounds
+@include light-bg-text-color(#000);
+
+
+// Theme template ------------------------------
+@import "../template/theme";
+// ---------------------------------------------
