@@ -314,7 +314,7 @@ export async function updateHtmlDependencies(config: Configuration) {
       const sourceThemes = join(cssDir, "theme", "source");
       const portedThemes = join(dirname(revealJs), "themes")
       for (const fileEntry of Deno.readDirSync(sourceThemes)) {
-        if (extname(fileEntry.name) === ".scss") {
+        if (fileEntry.isFile && extname(fileEntry.name) === ".scss") {
           info(`-> porting ${fileEntry.name} to quarto theme.`);
           copyTo(join(sourceThemes, fileEntry.name), join(portedThemes, fileEntry.name), { overwrite: true, preserveTimestamps: true });
           portRevealTheme(join(portedThemes, fileEntry.name));
