@@ -228,22 +228,36 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
   return nb;
 }
 
+const fixupOutputs = (nb: JupyterNotebook): JupyterNotebook => {
+  for (const cell of nb.cells) {
+    for (const output of cell.outputs ?? []) {
+      if (typeof output.text === "string") {
+        output.text = [output.text];
+      }
+    }
+  }
+  return nb;
+};
+
 type JupyterFixup = (nb: JupyterNotebook) => JupyterNotebook;
 
 export const defaultFixups: JupyterFixup[] = [
   fixupBokehCells,
   fixupFrontMatter,
   fixupStreams,
+  fixupOutputs,
 ];
 
 export const minimalFixups: JupyterFixup[] = [
   fixupBokehCells,
   fixupStreams,
+  fixupOutputs,
 ];
 
 // books can't have the front matter fixup
 export const bookFixups: JupyterFixup[] = [
   fixupBokehCells,
+  fixupOutputs,
 ];
 
 export function fixupJupyterNotebook(
