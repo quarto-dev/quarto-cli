@@ -1,5 +1,7 @@
 ## Fixed in this release
 
+- ([#9335](https://github.com/quarto-dev/quarto-cli/issues/9335)): Fix bad escaping of escaped inline code cells inside code blocks.
+
 ## Fixed in previous releases
 
 - ([#8439](https://github.com/quarto-dev/quarto-cli/issues/8439)): ensure that lack of subject line is handled
