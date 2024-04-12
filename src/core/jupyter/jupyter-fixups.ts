@@ -242,9 +242,7 @@ export const minimalFixups: JupyterFixup[] = [
 ];
 
 // books can't have the front matter fixup
-export const bookFixups: JupyterFixup[] = [
-  fixupBokehCells,
-];
+export const bookFixups: JupyterFixup[] = minimalFixups;
 
 export function fixupJupyterNotebook(
   nb: JupyterNotebook,
