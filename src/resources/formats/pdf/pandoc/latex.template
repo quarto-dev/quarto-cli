@@ -312,7 +312,7 @@ $if(graphics)$
 \makeatother
 $endif$
 $if(svg)$
-\usepackage{svg}
+\usepackage[inkscapelatex=false]{svg}
 $endif$
 $if(strikeout)$
 $-- also used for underline
