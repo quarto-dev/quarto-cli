@@ -9,5 +9,7 @@ if length(ARGS) > 4
   error("Too many arguments")
 end
 
+env = copy(ENV)
+env["JULIA_LOAD_PATH"] = "@:@stdlib" # ignore the main env
 cmd = `$julia_bin --startup-file=no --project=$project $julia_file $transport_file`
-run(detach(cmd), wait = false)
+run(detach(setenv(cmd, env)), wait = false)

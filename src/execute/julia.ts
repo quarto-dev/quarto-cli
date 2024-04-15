@@ -239,7 +239,40 @@ async function startOrReuseJuliaServer(
       `Transport file ${transportFile} doesn't exist`,
     );
     info("Starting julia control server process. This might take a while...");
-    await ensureQuartoNotebookRunnerEnvironment(options);
+
+    let juliaProject = Deno.env.get("QUARTO_JULIA_PROJECT");
+
+    if (juliaProject === undefined) {
+      await ensureQuartoNotebookRunnerEnvironment(options);
+      juliaProject = juliaRuntimeDir();
+    } else {
+      trace(
+        options,
+        `Custom julia project set via QUARTO_JULIA_PROJECT="${juliaProject}". Checking if QuartoNotebookRunner can be loaded.`,
+      );
+      const qnrTestCommand = new Deno.Command(options.julia_cmd, {
+        args: [
+          "--startup-file=no",
+          `--project=${juliaProject}`,
+          "-e",
+          "using QuartoNotebookRunner",
+        ],
+        env: {
+          "JULIA_LOAD_PATH": "@:@stdlib", // ignore the main env
+        },
+      });
+      const qnrTestProc = qnrTestCommand.spawn();
+      const result = await qnrTestProc.output();
+      if (!result.success) {
+        throw Error(
+          `Executing \`using QuartoNotebookRunner\` failed with QUARTO_JULIA_PROJECT="${juliaProject}". Ensure that this project exists, has QuartoNotebookRunner installed and is instantiated correctly.`,
+        );
+      }
+      trace(
+        options,
+        `QuartoNotebookRunner could be loaded successfully.`,
+      );
+    }
 
     // We need to spawn the julia server in its own process that can outlive quarto.
     // Apparently, `run(detach(cmd))` in julia does not do that reliably on Windows,
@@ -260,7 +293,7 @@ async function startOrReuseJuliaServer(
             // string array argument list, each element but the last must have a "," element after
             "--startup-file=no",
             ",",
-            `--project=${juliaRuntimeDir()}`,
+            `--project=${juliaProject}`,
             ",",
             resourcePath("julia/quartonotebookrunner.jl"),
             ",",
@@ -269,6 +302,9 @@ async function startOrReuseJuliaServer(
             "-WindowStyle",
             "Hidden",
           ],
+          env: {
+            "JULIA_LOAD_PATH": "@:@stdlib", // ignore the main env
+          },
         },
       );
       trace(
@@ -285,7 +321,7 @@ async function startOrReuseJuliaServer(
           "--startup-file=no",
           resourcePath("julia/start_quartonotebookrunner_detached.jl"),
           options.julia_cmd,
-          juliaRuntimeDir(),
+          juliaProject,
           resourcePath("julia/quartonotebookrunner.jl"),
           transportFile,
         ],
