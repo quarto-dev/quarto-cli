@@ -74,17 +74,20 @@ function parse_html_tables()
   local function handle_raw_html_as_table(el)
     local eltext
     if(_quarto.format.isTypstOutput()) then
-      -- there is no io.popen with both read and write in standard Lua
-      local jin = assert(io.open("juice-in.html", "w"))
-      jin:write(el.text)
-      jin:flush()
-      local jout = io.popen("/Users/gordon/src/quarto-cli/package/dist/bin/tools/deno run /Users/gordon/src/quarto-cli/src/resources/scripts/juice.ts < juice-in.html", "r")
-      if jout then
-        eltext = jout:read("a")
-      else
-        quarto.log.error('failed to juice')
-        eltext = el.text
-      end
+      eltext = pandoc.system.with_temporary_directory('juice', function(tmpdir)
+        local juice_in = pandoc.path.join({tmpdir, "juice-in.html"})
+        local jin = assert(io.open(juice_in, "w"))
+        jin:write(el.text)
+        jin:flush()
+        local jout = io.popen("/Users/gordon/src/quarto-cli/package/dist/bin/tools/deno " ..
+          "run --allow-read /Users/gordon/src/quarto-cli/src/resources/scripts/juice.ts " .. juice_in, "r")
+        if jout then
+          return jout:read("a")
+        else
+          quarto.log.error('failed to juice')
+          return el.text
+        end
+      end)
     else
       eltext = el.text
     end

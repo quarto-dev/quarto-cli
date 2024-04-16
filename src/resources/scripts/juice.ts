@@ -1,8 +1,6 @@
-import { toArrayBuffer } from "https://deno.land/std/streams/mod.ts";
 import juice from "https://cdn.skypack.dev/juice";
 
-const input = new TextDecoder().decode(await toArrayBuffer(Deno.stdin.readable))
-
+const input = await Deno.readTextFile(Deno.args[0])
 console.log(juice(input));
 
 // not available in skypack version 
