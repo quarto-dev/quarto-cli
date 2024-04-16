@@ -378,7 +378,7 @@ local quarto_finalize_filters = {
   { name = "finalize-combined", filter =
     combineFilters({
       file_metadata(),
-      mediabag(),
+      mediabag_filter(),
       inject_vault_content_into_rawlatex(),
     })},
   { name = "finalize-bookCleanup", filter = bookCleanup() },
