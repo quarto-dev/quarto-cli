@@ -70,17 +70,21 @@ function parse_html_tables()
   -- This algorithm will be fooled by content that contains _text_ that looks like table tags.
   -- Since this problem can be ameliorated by asking users to escape their text content
   -- with html entities, we take this route knowing the tradeoff.
-
+ 
   local function handle_raw_html_as_table(el)
     local eltext
     if(_quarto.format.isTypstOutput()) then
+      -- there is no io.popen with both read and write in standard Lua
       local jin = assert(io.open("juice-in.html", "w"))
-      jin:write('<script src="libs/bootstrap/bootstrap.min.css"></script>\n')
       jin:write(el.text)
       jin:flush()
-      os.execute("juice juice-in.html juice-out.html")
-      local jout = assert(io.open("juice-out.html", "r"))
-      eltext = jout:read("a")
+      local jout = io.popen("/Users/gordon/src/quarto-cli/package/dist/bin/tools/deno run /Users/gordon/src/quarto-cli/tools/juice.ts < juice-in.html", "r")
+      if jout then
+        eltext = jout:read("a")
+      else
+        quarto.log.error('failed to juice')
+        eltext = el.text
+      end
     else
       eltext = el.text
     end
