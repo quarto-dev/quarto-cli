@@ -78,7 +78,7 @@ function parse_html_tables()
       local jin = assert(io.open("juice-in.html", "w"))
       jin:write(el.text)
       jin:flush()
-      local jout = io.popen("/Users/gordon/src/quarto-cli/package/dist/bin/tools/deno run /Users/gordon/src/quarto-cli/tools/juice.ts < juice-in.html", "r")
+      local jout = io.popen("/Users/gordon/src/quarto-cli/package/dist/bin/tools/deno run /Users/gordon/src/quarto-cli/src/resources/scripts/juice.ts < juice-in.html", "r")
       if jout then
         eltext = jout:read("a")
       else
