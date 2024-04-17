@@ -226,7 +226,8 @@ async function bookCrossrefIndexes(
     !!item.file
   );
   for (const renderFile of renderFiles) {
-    const file = renderFile.file!;
+    const file = relative(context.dir, renderFile.file!);
+    // const file = renderFile.file!;
     const index = await inputTargetIndex(context, file);
     if (index) {
       for (const formatName of Object.keys(index.formats)) {
