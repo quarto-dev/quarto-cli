@@ -19,13 +19,13 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - '#set text\(size: 6pt\); #table\('
+          - '\[#set text\(size: 0.8em\); B\]'
         - []
 ---
 
 ```{=html}
-<table style="font-size: 8px;">
-    <tr><td>A</td><td>B</td></tr>
+<table>
+    <tr><td>A</td><td style="font-size: 80%;">B</td></tr>
 </table>
 ```
 
