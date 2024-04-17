@@ -59,6 +59,14 @@ local function translate_size (fs, ratio)
   end
 end
 
+local function translate_font_size (fs, ratio)
+  if fs:find '%%$' then
+    local percent = tonumber(fs:match '(%d+)%%')
+    return tostring(percent / 100) .. 'em'
+  end
+  return translate_size(fs, ratio)
+end
+
 local function translate_vertical_align(va)
   if va == "top" then
     return "top"
@@ -115,6 +123,8 @@ local function annotate_cell (cell)
         cell.attributes['typst:fill'] = translate_color(v)
       elseif k == "color" then
         cell.attributes['typst:text:fill'] = translate_color(v)
+      elseif k == 'font-size' then
+        cell.attributes['typst:text:size'] = translate_font_size(v, TEXT_PIXELS_TO_POINTS)
       elseif k == 'vertical-align' then
         local a = translate_vertical_align(v)
         if a then table.insert(aligns, a) end
@@ -170,7 +180,7 @@ function render_typst_css_to_props()
             tab.attributes['typst:text:font'] = translate_string_list(v)
           end
           if k == 'font-size' then
-            tab.attributes['typst:text:size'] = translate_size(v, TEXT_PIXELS_TO_POINTS)
+            tab.attributes['typst:text:size'] = translate_font_size(v, TEXT_PIXELS_TO_POINTS)
           end
         end
       end
