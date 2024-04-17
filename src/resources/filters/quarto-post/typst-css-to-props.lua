@@ -49,6 +49,7 @@ end
 local function translate_size (fs, ratio)
   if not ratio then return fs end
   if fs:find 'px$' then
+    if fs == '1px' then return ratio .. 'pt' end
     local pixels = fs:match '(%d+)px'
     local points = math.floor(tonumber(pixels * ratio))
     return points .. 'pt'
@@ -143,6 +144,12 @@ local function annotate_cell (cell)
               borders[side]["thickness"] = thickness
             else
               table.insert(delsides, side)
+            end
+          elseif attr == "style" then
+            if v == 'none' then
+              table.insert(delsides, side)
+            elseif tcontains({'dotted', 'dashed'}, v) then
+              borders[side]['dash'] = quote(v)
             end
           elseif attr == "color" then
             borders[side]["paint"] = translate_color(v)
