@@ -3302,6 +3302,9 @@
       "id": "website-about",
       "object": {
         "closed": true,
+        "required": [
+          "template"
+        ],
         "properties": {
           "id": {
             "string": {
@@ -6269,7 +6272,8 @@
             }
           }
         }
-      }
+      },
+      "description": "Configures the Julia engine."
     },
     {
       "name": "knitr",
@@ -12477,6 +12481,7 @@
     "commonmark_x",
     "context",
     "csljson",
+    "djot",
     "docbook",
     "docbook4",
     "docbook5",
@@ -14118,6 +14123,8 @@
     "The name to display in the UI.",
     "The name of the language the kernel implements.",
     "The name of the kernel.",
+    "Arguments to pass to the Julia worker process.",
+    "Environment variables to pass to the Julia worker process.",
     "Set Knitr options.",
     "Knit options.",
     "Knitr chunk options.",
@@ -15709,9 +15716,7 @@
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "Manuscript configuration",
-    "internal-schema-hack",
-    "Arguments to pass to the Julia worker process.",
-    "Environment variables to pass to the Julia worker process."
+    "internal-schema-hack"
   ],
   "schema/external-schemas.yml": [
     {
@@ -15940,12 +15945,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 182425,
+    "_internalId": 183687,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 182417,
+        "_internalId": 183679,
         "type": "enum",
         "enum": [
           "png",
@@ -15961,7 +15966,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 182424,
+        "_internalId": 183686,
         "type": "anyOf",
         "anyOf": [
           {

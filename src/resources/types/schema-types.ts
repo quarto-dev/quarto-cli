@@ -763,7 +763,7 @@ and appended to the end of the page. */;
     string /* The path to the main image on the about page. If not specified,
 the `image` provided for the document itself will be used. */;
   links?: (NavigationItem)[];
-  template?:
+  template:
     | ("jolla" | "trestles" | "solana" | "marquee" | "broadside")
     | string; /* The template to use to layout this about page. Choose from:
 

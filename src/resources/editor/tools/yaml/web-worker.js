@@ -10331,6 +10331,9 @@ try {
             id: "website-about",
             object: {
               closed: true,
+              required: [
+                "template"
+              ],
               properties: {
                 id: {
                   string: {
@@ -13298,7 +13301,8 @@ try {
                   }
                 }
               }
-            }
+            },
+            description: "Configures the Julia engine."
           },
           {
             name: "knitr",
@@ -19506,6 +19510,7 @@ try {
           "commonmark_x",
           "context",
           "csljson",
+          "djot",
           "docbook",
           "docbook4",
           "docbook5",
@@ -21147,6 +21152,8 @@ try {
           "The name to display in the UI.",
           "The name of the language the kernel implements.",
           "The name of the kernel.",
+          "Arguments to pass to the Julia worker process.",
+          "Environment variables to pass to the Julia worker process.",
           "Set Knitr options.",
           "Knit options.",
           "Knitr chunk options.",
@@ -22738,9 +22745,7 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack",
-          "Arguments to pass to the Julia worker process.",
-          "Environment variables to pass to the Julia worker process."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -22969,12 +22974,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 182425,
+          _internalId: 183687,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 182417,
+              _internalId: 183679,
               type: "enum",
               enum: [
                 "png",
@@ -22990,7 +22995,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 182424,
+              _internalId: 183686,
               type: "anyOf",
               anyOf: [
                 {
