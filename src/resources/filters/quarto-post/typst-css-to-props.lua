@@ -10,6 +10,20 @@ local function translate_color (color)
   end
 end
 
+local function sortedPairs (t, f)
+  local a = {}
+  for n in pairs(t) do table.insert(a, n) end
+  table.sort(a, f)
+  local i = 0      -- iterator variable
+  local iter = function ()   -- iterator function
+      i = i + 1
+      if a[i] == nil then return nil
+      else return a[i], t[a[i]]
+      end
+  end
+  return iter
+end
+
 local function dequote(s)
   return s:gsub('^["\']', ''):gsub('["\']$', '')
 end
@@ -79,7 +93,7 @@ end
 
 local function to_typst_dict(tab)
   local entries = {}
-  for k, v in pairs(tab) do
+  for k, v in sortedPairs(tab) do
     if type(v) == "table" then
       v = to_typst_dict(v)
     end
