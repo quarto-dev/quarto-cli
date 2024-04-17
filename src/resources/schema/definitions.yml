@@ -1359,6 +1359,7 @@
 - id: website-about
   object:
     closed: true
+    required: [template]
     properties:
       id:
         string:
