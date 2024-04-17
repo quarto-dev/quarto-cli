@@ -1,6 +1,7 @@
 ## Fixed in this release
 
 - ([#9335](https://github.com/quarto-dev/quarto-cli/issues/9335)): Fix bad escaping of escaped inline code cells inside code blocks.
+- ([#9356](https://github.com/quarto-dev/quarto-cli/issues/9356)): Don't process column classes for figures inside the About divs.
 
 ## Fixed in previous releases
 
