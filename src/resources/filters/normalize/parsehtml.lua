@@ -75,14 +75,18 @@ function parse_html_tables()
     local eltext
     if(_quarto.format.isTypstOutput()) then
       eltext = pandoc.system.with_temporary_directory('juice', function(tmpdir)
-        local juice_in = pandoc.path.join({tmpdir, "juice-in.html"})
-        local jin = assert(io.open(juice_in, "w"))
+        local juice_in = pandoc.path.join({tmpdir, 'juice-in.html'})
+        local jin = assert(io.open(juice_in, 'w'))
         jin:write(el.text)
         jin:flush()
-        local jout = io.popen("/Users/gordon/src/quarto-cli/package/dist/bin/tools/deno " ..
-          "run --allow-read /Users/gordon/src/quarto-cli/src/resources/scripts/juice.ts " .. juice_in, "r")
+        local deno_path = os.getenv('QUARTO_DENO')
+        deno_path = deno_path or os.getenv('_') -- horrendous!
+        local quarto_root = os.getenv('QUARTO_ROOT')
+        local jout = io.popen(deno_path .. ' ' .. 'run --allow-read ' ..
+            pandoc.path.join({quarto_root, 'src', 'resources', 'scripts', 'juice.ts'}) .. ' ' ..
+            juice_in, 'r')
         if jout then
-          return jout:read("a")
+          return jout:read('a')
         else
           quarto.log.error('failed to juice')
           return el.text
