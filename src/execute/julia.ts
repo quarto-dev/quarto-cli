@@ -258,7 +258,10 @@ async function startOrReuseJuliaServer(
           "using QuartoNotebookRunner",
         ],
         env: {
-          "JULIA_LOAD_PATH": "@:@stdlib", // ignore the main env
+          // ignore the main env
+          "JULIA_LOAD_PATH": Deno.build.os === "windows"
+            ? "@;@stdlib"
+            : "@:@stdlib",
         },
       });
       const qnrTestProc = qnrTestCommand.spawn();
@@ -303,7 +306,7 @@ async function startOrReuseJuliaServer(
             "Hidden",
           ],
           env: {
-            "JULIA_LOAD_PATH": "@:@stdlib", // ignore the main env
+            "JULIA_LOAD_PATH": "@;@stdlib", // ignore the main env
           },
         },
       );
@@ -325,6 +328,9 @@ async function startOrReuseJuliaServer(
           resourcePath("julia/quartonotebookrunner.jl"),
           transportFile,
         ],
+        env: {
+          "JULIA_LOAD_PATH": "@:@stdlib", // ignore the main env
+        },
       });
       trace(
         options,
