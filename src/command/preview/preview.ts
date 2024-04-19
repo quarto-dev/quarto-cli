@@ -5,7 +5,13 @@
  */
 
 import { info, warning } from "../../deno_ral/log.ts";
-import { basename, dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+} from "../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -397,7 +403,9 @@ export function handleRenderResult(
     dirname(file),
   );
   if (!finalOutput) {
-    throw new Error("No output created by quarto render " + basename(file));
+    throw new Error(
+      "No output created by `quarto render " + basename(file) + "`",
+    );
   }
   info("Output created: " + finalOutput + "\n");
   return finalOutput;

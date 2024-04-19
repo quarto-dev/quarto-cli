@@ -1011,7 +1011,7 @@ function validateExtensionPath(
   const resolves = existsSync(join(dir, path));
   if (!resolves) {
     throw Error(
-      `Failed to resolve referenced ${type} ${path} - path does not exist.\nIf you are attempting to use another extension within this extension, please install the extension using the 'quarto install --embedded' command.`,
+      `Failed to resolve referenced ${type} ${path} - path does not exist.\nIf you are attempting to use another extension within this extension, please install the extension using the \`quarto install --embedded\` command.`,
     );
   }
   return resolves;

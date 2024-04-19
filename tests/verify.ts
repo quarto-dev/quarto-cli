@@ -117,11 +117,11 @@ export const printsJson = {
         try {
           json = JSON.parse(out.msg);
         } catch {
-          assert(false, "Error parsing JSON returned by quarto meta");
+          assert(false, "Error parsing JSON returned by Quarto meta");
         }
         assert(
           Object.keys(json).length > 0,
-          "JSON returned by quarto meta seems invalid",
+          "JSON returned by Quarto meta seems invalid",
         );
       },
     );

@@ -91,7 +91,7 @@ async function checkVersions(_services: RenderServices) {
     }
   };
 
-  completeMessage("Checking versions of quarto binary dependencies...");
+  completeMessage("Checking versions of Quarto binary dependencies...");
 
   let pandocVersion = lines(
     (await execProcess({
@@ -131,12 +131,12 @@ async function checkVersions(_services: RenderServices) {
   let typstVersion = lines(
     (await execProcess({
       cmd: [typstBinaryPath(), "--version"],
-      stdout: "piped"
+      stdout: "piped",
     })).stdout!,
-  )[0].split(' ')[1];
+  )[0].split(" ")[1];
   checkVersion(typstVersion, ">=0.10.0", "Typst");
 
-  completeMessage("Checking versions of quarto dependencies......OK");
+  completeMessage("Checking versions of Quarto dependencies......OK");
 }
 
 async function checkInstall(services: RenderServices) {

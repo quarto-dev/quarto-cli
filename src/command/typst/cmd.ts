@@ -14,7 +14,7 @@ export const typstCommand = new Command()
   .arguments("[...args]")
   .description(
     "Run the version of Typst embedded within Quarto.\n\n" +
-      "You can pass arbitrary command line arguments to quarto typst (they will\n" +
+      "You can pass arbitrary command line arguments to `quarto typst` (they will\n" +
       "be passed through unmodified to Typst)",
   )
   .example(

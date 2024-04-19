@@ -105,7 +105,7 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
     if (config) {
       return config;
     } else {
-      throw new Error(`${path} is not a quarto project.`);
+      throw new Error(`${path} is not a Quarto project.`);
     }
   } else {
     const project = await projectContext(path, nbContext) ||

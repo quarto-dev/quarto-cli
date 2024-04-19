@@ -537,7 +537,7 @@ export async function jupyterKernelspecFromMarkdown(
           `Jupyter kernel '${kernel}' not found. Known kernels: ${
             Array.from((await jupyterKernelspecs()).values())
               .map((kernel: JupyterKernelspec) => kernel.name).join(", ")
-          }. Run 'quarto check jupyter' with your python environment activated to check python version used.`,
+          }. Run \`quarto check jupyter\` with your python environment activated to check python version used.`,
         ),
       );
     }
@@ -558,7 +558,7 @@ export async function jupyterKernelspecFromMarkdown(
             `Jupyter kernel '${jupyter.kernel}' not found. Known kernels: ${
               Array.from((await jupyterKernelspecs()).values())
                 .map((kernel: JupyterKernelspec) => kernel.name).join(", ")
-            }. Run 'quarto check jupyter' with your python environment activated to check python version used.`,
+            }. Run \`quarto check jupyter\` with your python environment activated to check python version used.`,
           ),
         );
       }

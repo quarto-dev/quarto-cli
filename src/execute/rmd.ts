@@ -376,7 +376,7 @@ function filterAlwaysAllowHtml(s: string): string {
     ) !== -1
   ) {
     s = s
-      .replace("your rmarkdown file", "your quarto file")
+      .replace("your rmarkdown file", "your Quarto file")
       .replace("always_allow_html: true", "prefer-html: true");
   }
   return s;
