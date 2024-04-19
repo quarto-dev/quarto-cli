@@ -1,0 +1,24 @@
+---
+title: "gt - Test Pattern"
+format: typst
+keep-typ: true
+keep-md: true
+format-links: false
+filters:
+  - typst-annotate.lua
+---
+
+```{=typst}
+#set page(margin: 0.5cm)
+```
+
+```{r}
+
+library(dplyr)
+library(gt)
+
+exibble |>
+  gt() |>
+  data_color()
+
+```
