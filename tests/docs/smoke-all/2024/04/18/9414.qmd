@@ -1,0 +1,21 @@
+---
+title: hello
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - ['\\begin{figure}\n\n.*\n\n\\begin{figure}']
+---
+
+::: {#fig-1 layout=[1,2]}
+
+![Hanno](./hanno.png)
+
+![Surus](./surus.png)
+
+Elephants
+
+:::
+
+See @fig-1

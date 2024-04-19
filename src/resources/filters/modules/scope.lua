@@ -33,9 +33,10 @@ local function lookup_class(scope, class_name)
     else
       attr = scope[i].classes
     end
-    if classes:includes(class_name) then 
+    if classes and classes:includes(class_name) then 
       return true
     end
+    i = i - 1
   end
 end
 
