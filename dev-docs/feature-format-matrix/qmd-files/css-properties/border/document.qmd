@@ -6,7 +6,7 @@ format:
     quality: na
   typst:
     quality: 2
-    comment: "table cell only; border-{left,top,right,bottom}-{color,width} only"
+    comment: "table cell only; border-{left,top,right,bottom}-{color,style,width} only"
   dashboard:
     quality: 1
   docx:
