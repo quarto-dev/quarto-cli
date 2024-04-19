@@ -1610,7 +1610,13 @@ async function mdFromCodeCell(
       if (output.output_type === "stream") {
         const stream = output as JupyterOutputStream;
         if (asis && stream.name === "stdout") {
-          md.push(stream.text.join(""));
+          let text: string[] = [];
+          if (typeof stream.text === "string") {
+            text = [stream.text];
+          } else {
+            text = stream.text;
+          }
+          md.push(text.join(""));
         } else {
           md.push(mdOutputStream(stream));
         }
@@ -1750,21 +1756,28 @@ function isMarkdown(output: JupyterOutput, options: JupyterToMarkdownOptions) {
 }
 
 function mdOutputStream(output: JupyterOutputStream) {
+  let text: string[] = [];
+  if (typeof output.text === "string") {
+    text = [output.text];
+  } else {
+    text = output.text;
+  }
+
   // trim off warning source line for notebook
   if (output.name === "stderr") {
-    if (output.text[0]) {
-      const firstLine = output.text[0].replace(
+    if (text[0]) {
+      const firstLine = text[0].replace(
         /<ipython-input.*?>:\d+:\s+/,
         "",
       );
       return mdCodeOutput(
-        [firstLine, ...output.text.slice(1)].map(colors.stripColor),
+        [firstLine, ...text.slice(1)].map(colors.stripColor),
       );
     }
   }
 
   // normal default handling
-  return mdCodeOutput(output.text.map(colors.stripColor));
+  return mdCodeOutput(text.map(colors.stripColor));
 }
 
 async function mdOutputError(
