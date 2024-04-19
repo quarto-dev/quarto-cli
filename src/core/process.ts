@@ -36,7 +36,18 @@ export async function execProcess(
   mergeOutput?: "stderr>stdout" | "stdout>stderr",
   stderrFilter?: (output: string) => string,
   respectStreams?: boolean,
+  timeout?: number,
 ): Promise<ProcessResult> {
+  const withTimeout = <T>(promise: Promise<T>): Promise<T> => {
+    return timeout
+      ? Promise.race([
+        promise,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Process timed out")), timeout)
+        ),
+      ]) as Promise<T>
+      : promise;
+  };
   ensureCleanup();
   // define process
   try {
@@ -150,11 +161,11 @@ export async function execProcess(
           }),
         );
       }
-      await Promise.all(promises);
+      await withTimeout(Promise.all(promises));
     }
 
     // await result
-    const status = await process.status();
+    const status = await withTimeout(process.status());
 
     // close the process
     process.close();
