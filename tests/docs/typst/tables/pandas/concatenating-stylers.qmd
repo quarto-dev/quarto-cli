@@ -1,0 +1,18 @@
+---
+title: "Concatenating Stylers"
+format: typst
+keep-md: true
+format-links: false
+---
+
+```{python}
+import pandas as pd
+import numpy as np
+
+df = pd.DataFrame(np.random.randn(5, 5))
+
+summary_styler = df.agg(["sum", "mean"]).style \
+                   .format(precision=3) \
+                   .relabel_index(["Sum", "Average"])
+df.style.format(precision=1).concat(summary_styler)
+```
