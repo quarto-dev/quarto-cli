@@ -166,12 +166,12 @@ export interface JupyterOutput {
   metadata?: Record<string, unknown>;
   data?: Record<string, unknown>;
   name?: string;
-  text?: string[];
+  text?: string[] | string;
 }
 
 export interface JupyterOutputStream extends JupyterOutput {
   name: "stdout" | "stderr";
-  text: string[];
+  text: string[] | string;
 }
 
 export interface JupyterOutputDisplayData extends JupyterOutput {
