@@ -104,6 +104,7 @@ export const kFieldFileModified = "file-modified";
 export const kFieldDate = "date";
 export const kFieldImage = "image";
 export const kFieldImageAlt = "image-alt";
+export const kFieldImageLazyLoading = "image-lazy-loading";
 export const kFieldDescription = "description";
 export const kFieldReadingTime = "reading-time";
 export const kFieldWordCount = "word-count";
