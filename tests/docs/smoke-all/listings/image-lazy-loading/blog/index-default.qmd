@@ -1,0 +1,20 @@
+---
+listing:
+  type: default
+  contents: post-*.qmd
+  fields:
+    - title
+    - image
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "img[loading='lazy'][src='https://placeholder.co/100/100.png']"
+          - "img[src='https://placeholder.co/200/200.png']"
+          - "img[loading='lazy'][src='https://placeholder.co/300/300.png']"
+        -
+          - "img[loading='lazy'][src='https://placeholder.co/200/200.png']"
+---
+
+## Hello, here's some listings

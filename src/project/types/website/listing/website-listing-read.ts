@@ -62,6 +62,7 @@ import {
   kImageAlign,
   kImageAlt,
   kImageHeight,
+  kImageLazyLoading,
   kImagePlaceholder,
   kInclude,
   kListing,
@@ -117,6 +118,7 @@ import {
   isProjectDraft,
   projectDraftMode,
 } from "../website-utils.ts";
+import { kFieldImageLazyLoading } from "./website-listing-shared.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -1117,6 +1119,9 @@ async function listItemFromFile(
       : undefined;
 
     const imageAlt = documentMeta?.[kImageAlt] as string | undefined;
+    const imageLazyLoading = documentMeta?.[kImageLazyLoading] as
+      | boolean
+      | undefined;
 
     const date = documentMeta?.date
       ? parsePandocDate(resolveDate(input, documentMeta?.date) as string)
@@ -1170,6 +1175,7 @@ async function listItemFromFile(
       [kFieldCategories]: categories,
       [kFieldImage]: image,
       [kFieldImageAlt]: imageAlt,
+      [kFieldImageLazyLoading]: imageLazyLoading,
       [kFieldDescription]: description,
       [kFieldFileName]: filename,
       [kFieldFileModified]: filemodified,
