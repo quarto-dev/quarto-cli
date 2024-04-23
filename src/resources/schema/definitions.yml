@@ -2438,33 +2438,21 @@
             description: "Files that specify the execution environment (e.g. renv.lock, requirements.text, etc...)"
 
 - id: brand
+  description: Brand information, including colors, typography, and logos.
   schema:
     object:
       closed: true
       properties:
         meta:
-          object:
-            properties:
-              name:
-                anyOf:
-                  - string
-                  - object:
-                      properties:
-                        full: string
-                        short: string
+          ref: brand-meta
         logo:
-          object:
-            properties:
-              small: string
-              medium: string
-              large: string
-        color: object
-        theme: object
-        options: object
-        font: object
-        typography: object
-        variable: object
-        format: object
+          ref: brand-logo
+        color:
+          ref: brand-color
+        typography:
+          ref: brand-typography
+        template:
+          ref: brand-template
 
 - id: brand-meta
   description: >
@@ -2754,7 +2742,7 @@
                   default: [normal, italic]
                 display:
                   description: >
-                    The font display method, determines how a font face is font face is shown 
+                    The font display method, determines how a font face is font face is shown
                     depending on its download status and readiness for use.
                   enum: [auto, block, swap, fallback, optional]
                   default: swap
