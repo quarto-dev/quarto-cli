@@ -1261,15 +1261,11 @@ export type ManuscriptSchema = {
 };
 
 export type Brand = {
-  color?: JsonObject;
-  font?: JsonObject;
-  format?: JsonObject;
-  logo?: { large?: string; medium?: string; small?: string };
-  meta?: { name?: string | { full?: string; short?: string } };
-  options?: JsonObject;
-  theme?: JsonObject;
-  typography?: JsonObject;
-  variable?: JsonObject;
+  color?: BrandColor;
+  logo?: BrandLogo;
+  meta?: BrandMeta;
+  typography?: BrandTypography;
+  template?: BrandTemplate;
 };
 
 export type BrandMeta = {
@@ -1395,7 +1391,7 @@ export type BrandFontGoogle = {
       | "block"
       | "swap"
       | "fallback"
-      | "optional" /* The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use. */;
+      | "optional" /* The font display method, determines how a font face is font face is shown depending on its download status and readiness for use. */;
     family?: string;
     style?: MaybeArrayOf<BrandFontStyle> /* The font style to include. */;
     weight?: MaybeArrayOf<BrandFontWeight>; /* The font weights to include. */
