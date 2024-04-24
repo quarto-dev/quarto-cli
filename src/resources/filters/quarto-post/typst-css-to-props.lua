@@ -168,9 +168,11 @@ function render_typst_css_to_props()
       if next(aligns) ~= nil then
         cell.attributes['typst:align'] = table.concat(aligns, ' + ')
       end
-      if next(paddings) ~= nil then
-        cell.attributes['typst:inset'] = to_typst_dict(paddings)
-      end
+      -- inset seems either buggy or hard to get right, see
+      -- https://github.com/quarto-dev/quarto-cli/pull/9387#issuecomment-2076015962
+      -- if next(paddings) ~= nil then
+      --   cell.attributes['typst:inset'] = to_typst_dict(paddings)
+      -- end
       if next(borders) ~= nil then
         cell.attributes['typst:stroke'] = to_typst_dict(borders)
       end
