@@ -55,7 +55,7 @@ function render_typst_css_to_props()
     if fs:find 'px$' then
       if fs == '1px' then return ratio .. 'pt' end
       local pixels = fs:match '(%d+)px'
-      local points = math.floor(tonumber(pixels * ratio))
+      local points = tonumber(pixels * ratio)
       return points .. 'pt'
     elseif fs == '0' then
       return '0pt'
