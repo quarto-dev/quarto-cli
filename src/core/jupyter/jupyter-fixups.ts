@@ -23,32 +23,26 @@ export function fixupStreams(nb: JupyterNotebook): JupyterNotebook {
     if (cell.cell_type !== "code" || cell.outputs === undefined) {
       continue;
     }
-    let i = 0;
     if (cell.outputs.length === 0) {
       continue;
     }
+    const newOutputs: JupyterOutput[] = [cell.outputs[0]];
+    let i = 1;
     while (i < cell.outputs.length) {
+      const prevOutput: JupyterOutput = newOutputs[newOutputs.length - 1];
       const thisOutput: JupyterOutput = cell.outputs[i];
-      if (thisOutput.output_type === "stream") {
-        // collect all the stream outputs with the same name
-        const streams = cell.outputs.filter((output) =>
-          output.output_type === "stream" && output.name === thisOutput.name
-        );
-        // join them together
-        const joinedText = streams.map((output) => output.text ?? []).flat();
-        const newOutput: JupyterOutput = {
-          output_type: "stream",
-          name: thisOutput.name,
-          text: joinedText,
-        };
-        cell.outputs[i] = newOutput;
-        cell.outputs = cell.outputs.filter((output, j) =>
-          i === j ||
-          (output.output_type !== "stream" || output.name !== thisOutput.name)
-        );
+      if (
+        thisOutput.output_type === "stream" &&
+        prevOutput.output_type === "stream" &&
+        thisOutput.name === prevOutput.name
+      ) {
+        prevOutput.text = [...prevOutput.text ?? [], ...thisOutput.text ?? []];
+      } else {
+        newOutputs.push(thisOutput);
       }
       i++;
     }
+    cell.outputs = newOutputs;
   }
   return nb;
 }

@@ -280,4 +280,7 @@ function findProjectOutputDir(input: string) {
   if (type === "book") {
     return "_book";
   }
+  if (type === "website") {
+    return (yaml as any)?.project?.["output-dir"] || "_site";
+  }
 }

@@ -10330,6 +10330,9 @@ var require_yaml_intelligence_resources = __commonJS({
           id: "website-about",
           object: {
             closed: true,
+            required: [
+              "template"
+            ],
             properties: {
               id: {
                 string: {
@@ -10592,6 +10595,12 @@ var require_yaml_intelligence_resources = __commonJS({
               "image-placeholder": {
                 string: {
                   description: "The default image to use if an item in the listing doesn't have an image."
+                }
+              },
+              "image-lazy-loading": {
+                boolean: {
+                  description: "If false, images in the listing will be loaded immediately. If true, images will be loaded as they come into view.",
+                  default: true
                 }
               },
               "image-align": {
@@ -13297,7 +13306,8 @@ var require_yaml_intelligence_resources = __commonJS({
                 }
               }
             }
-          }
+          },
+          description: "Configures the Julia engine."
         },
         {
           name: "knitr",
@@ -18468,6 +18478,20 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "The alt text for preview image on this page."
+        },
+        {
+          name: "image-lazy-loading",
+          schema: "boolean",
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: {
+            short: "If true, the preview image will only load when it comes into view.",
+            long: 'Enables lazy loading for the preview image. If true, the preview image element \nwill have `loading="lazy"`, and will only load when it comes into view.\n\nIf false, the preview image will load immediately.\n'
+          },
+          default: true
         }
       ],
       "schema/extension.yml": [
@@ -19505,6 +19529,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "commonmark_x",
         "context",
         "csljson",
+        "djot",
         "docbook",
         "docbook4",
         "docbook5",
@@ -21146,6 +21171,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "The name to display in the UI.",
         "The name of the language the kernel implements.",
         "The name of the kernel.",
+        "Configures the Julia engine.",
+        "Arguments to pass to the Julia worker process.",
+        "Environment variables to pass to the Julia worker process.",
         "Set Knitr options.",
         "Knit options.",
         "Knitr chunk options.",
@@ -22738,8 +22766,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "Arguments to pass to the Julia worker process.",
-        "Environment variables to pass to the Julia worker process."
+        {
+          short: "If true, the preview image will only load when it comes into\nview.",
+          long: 'Enables lazy loading for the preview image. If true, the preview\nimage element will have <code>loading="lazy"</code>, and will only load\nwhen it comes into view.\nIf false, the preview image will load immediately.'
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -22968,12 +22998,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 182425,
+        _internalId: 186197,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 182417,
+            _internalId: 186189,
             type: "enum",
             enum: [
               "png",
@@ -22989,7 +23019,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 182424,
+            _internalId: 186196,
             type: "anyOf",
             anyOf: [
               {

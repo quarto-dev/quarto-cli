@@ -10331,6 +10331,9 @@ try {
             id: "website-about",
             object: {
               closed: true,
+              required: [
+                "template"
+              ],
               properties: {
                 id: {
                   string: {
@@ -10593,6 +10596,12 @@ try {
                 "image-placeholder": {
                   string: {
                     description: "The default image to use if an item in the listing doesn't have an image."
+                  }
+                },
+                "image-lazy-loading": {
+                  boolean: {
+                    description: "If false, images in the listing will be loaded immediately. If true, images will be loaded as they come into view.",
+                    default: true
                   }
                 },
                 "image-align": {
@@ -13298,7 +13307,8 @@ try {
                   }
                 }
               }
-            }
+            },
+            description: "Configures the Julia engine."
           },
           {
             name: "knitr",
@@ -18469,6 +18479,20 @@ try {
               ]
             },
             description: "The alt text for preview image on this page."
+          },
+          {
+            name: "image-lazy-loading",
+            schema: "boolean",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: {
+              short: "If true, the preview image will only load when it comes into view.",
+              long: 'Enables lazy loading for the preview image. If true, the preview image element \nwill have `loading="lazy"`, and will only load when it comes into view.\n\nIf false, the preview image will load immediately.\n'
+            },
+            default: true
           }
         ],
         "schema/extension.yml": [
@@ -19506,6 +19530,7 @@ try {
           "commonmark_x",
           "context",
           "csljson",
+          "djot",
           "docbook",
           "docbook4",
           "docbook5",
@@ -21147,6 +21172,9 @@ try {
           "The name to display in the UI.",
           "The name of the language the kernel implements.",
           "The name of the kernel.",
+          "Configures the Julia engine.",
+          "Arguments to pass to the Julia worker process.",
+          "Environment variables to pass to the Julia worker process.",
           "Set Knitr options.",
           "Knit options.",
           "Knitr chunk options.",
@@ -22739,8 +22767,10 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "Arguments to pass to the Julia worker process.",
-          "Environment variables to pass to the Julia worker process."
+          {
+            short: "If true, the preview image will only load when it comes into\nview.",
+            long: 'Enables lazy loading for the preview image. If true, the preview\nimage element will have <code>loading="lazy"</code>, and will only load\nwhen it comes into view.\nIf false, the preview image will load immediately.'
+          }
         ],
         "schema/external-schemas.yml": [
           {
@@ -22969,12 +22999,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 182425,
+          _internalId: 186197,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 182417,
+              _internalId: 186189,
               type: "enum",
               enum: [
                 "png",
@@ -22990,7 +23020,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 182424,
+              _internalId: 186196,
               type: "anyOf",
               anyOf: [
                 {

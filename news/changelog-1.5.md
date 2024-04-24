@@ -41,6 +41,7 @@ All changes included in 1.5:
 - ([#8830](https://github.com/quarto-dev/quarto-cli/issues/8830)): Add support for `tools-collapse` to control whether the tools collapse when the navbar does.
 - ([#8851](https://github.com/quarto-dev/quarto-cli/issues/8851)): Don't strip `index.html` from external paths.
 - ([#8977](https://github.com/quarto-dev/quarto-cli/issues/8977)): Don't decorate about links within external link icons.
+- ([#9356](https://github.com/quarto-dev/quarto-cli/issues/9356)): Don't process column classes for figures inside the About divs.
 
 ## Book
 
@@ -69,6 +70,7 @@ All changes included in 1.5:
 - ([#8998](https://github.com/quarto-dev/quarto-cli/issues/8998)): Interpret slide separation markers `---` correctly when creating the `.ipynb` intermediate notebook from a `.qmd` file.
 - ([#9133](https://github.com/quarto-dev/quarto-cli/issues/9133)): Fix issue with Jupyter engine when using paths containing special characters.
 - ([#9255](https://github.com/quarto-dev/quarto-cli/issues/9255)): Support cell source fields of type `string`.
+- ([#9422](https://github.com/quarto-dev/quarto-cli/issues/9422)): Improve the stream merging algorithm in output cells to avoid merging outputs that should not be merged.
 
 ## Website Listings
 
@@ -78,6 +80,7 @@ All changes included in 1.5:
 - ([#8715](https://github.com/quarto-dev/quarto-cli/issues/8715)): Listings should respect `image: false`
 - ([#8860](https://github.com/quarto-dev/quarto-cli/discussions/8860)): Don't show duplicate author names.
 - ([#9030](https://github.com/quarto-dev/quarto-cli/discussions/9030)): Warn (rather than error) when listing globs produce an empty listing (as this is permissable).
+- ([#9447](https://github.com/quarto-dev/quarto-cli/pull/9447)): Add support for the boolean `image-lazy-loading` option to enable lazy loading of images in listings (default: `true`).
 
 ## Manuscripts
 
@@ -152,6 +155,8 @@ All changes included in 1.5:
 - ([#9041](https://github.com/quarto-dev/quarto-cli/issues/9041)): When creating an automatic citation key, replace spaces with underscores in inferred keys.
 - ([#9059](https://github.com/quarto-dev/quarto-cli/issues/9059)): `quarto run` now properly works on Windows with Lua scripts.
 - ([#9282](https://github.com/quarto-dev/quarto-cli/issues/9282)): Fix name clash in Lua local declarations for `mediabag` in bundled releases.
+- ([#9394](https://github.com/quarto-dev/quarto-cli/issues/9394)): Make `template` a required field in the `about` schema.
+- ([#9426](https://github.com/quarto-dev/quarto-cli/issues/9426)): Update `crossref.lua` filter to avoid crashes and hangs in documents with custom AST nodes.
 - Add support for `{{< lipsum >}}` shortcode, which is useful for emitting placeholder text. Provide a specific number of paragraphs (`{{< lipsum 3 >}}`).
 - Resolve data URIs in Pandoc's mediabag when rendering documents.
 - Increase v8's max heap size by default, to avoid out-of-memory errors when rendering large documents (also cf. https://github.com/denoland/deno/issues/18935).
