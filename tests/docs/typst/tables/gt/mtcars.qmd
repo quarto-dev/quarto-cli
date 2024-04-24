@@ -1,9 +1,11 @@
 ---
 title: "gt - mtcars"
-format: typst
-keep-typ: true
-keep-md: true
-format-links: false
+format:
+  typst:
+    quality: 1
+  html:
+    quality: 1
+    format-links: false
 ---
 
 ```{=typst}

@@ -1,8 +1,11 @@
 ---
-title: "Concatenating Stylers"
-format: typst
-keep-md: true
-format-links: false
+title: "Pandas - Concatenating Stylers"
+format:
+  typst:
+    quality: 1
+  html:
+    quality: 1
+    format-links: false
 ---
 
 ```{python}
