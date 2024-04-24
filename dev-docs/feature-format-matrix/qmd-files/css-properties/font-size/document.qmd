@@ -19,7 +19,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - '#set text\(size: 6pt\); #table\('
+          - '#set text\(size: 6.0pt\); #table\('
         - []
 ---
 
