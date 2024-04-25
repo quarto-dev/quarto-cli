@@ -144,7 +144,12 @@ function lightbox()
     subFloatEl = _quarto.ast.walk(subFloatEl, {
       traverse = 'topdown',
       Image = function(imgEl)
-        local caption_content = subFloatEl.caption_long.content or subFloatEl.caption_long
+        local caption_content
+        if subFloatEl.caption_long then
+          caption_content = subFloatEl.caption_long.content or subFloatEl.caption_long
+        else
+          caption_content = pandoc.Inlines({})
+        end
         local caption = full_caption_prefix(parentFloat, subFloatEl)
         tappend(caption, caption_content)
         local subImgModified = processImg(imgEl, { automatic = true, caption = caption, gallery = gallery })
