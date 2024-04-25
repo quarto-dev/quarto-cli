@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { join } from "../../../deno_ral/path.ts";
+import { join, relative } from "../../../deno_ral/path.ts";
 
 import * as ld from "../../../core/lodash.ts";
 
@@ -324,7 +324,7 @@ export async function bookRenderItems(
       if (item.contents) {
         inputs.push({
           type: kBookItemPart,
-          file: item.href,
+          file: item.href && relative(project.dir, item.href),
           text: item.text,
           depth,
         });
@@ -351,7 +351,7 @@ export async function bookRenderItems(
             // add the input
             inputs.push({
               type,
-              file: item.href,
+              file: item.href && relative(project.dir, item.href),
               number,
               depth,
             });
