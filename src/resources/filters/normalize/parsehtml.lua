@@ -158,7 +158,7 @@ function parse_html_tables()
     if cursor > 1 and cursor <= len then
       blocks:insert(pandoc.RawBlock(el.format, string.sub(el.text, cursor)))
     end
-    return pandoc.Div(blocks)
+    return _quarto.ast.scaffold_element(blocks)
   end
 
   local filter
