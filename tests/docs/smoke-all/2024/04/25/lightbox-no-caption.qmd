@@ -1,0 +1,17 @@
+---
+title: "lightbox no caption"
+lightbox: true
+format:
+  html: {}
+  docx: {}
+---
+
+::: {#fig-multi layout-nrow=3}
+
+![](la-palma-map.png){#fig-a}
+
+![](la-palma-map.png){#fig-b}
+
+Captions (a) bala; (b) bala
+:::
+
