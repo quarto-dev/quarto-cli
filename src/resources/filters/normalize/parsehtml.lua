@@ -79,11 +79,9 @@ function parse_html_tables()
         local jin = assert(io.open(juice_in, 'w'))
         jin:write(el.text)
         jin:flush()
-        local deno_path = os.getenv('QUARTO_DENO')
-        deno_path = deno_path or os.getenv('_') -- horrendous!
-        local quarto_root = os.getenv('QUARTO_ROOT')
-        local jout = io.popen(deno_path .. ' ' .. 'run --allow-read ' ..
-            pandoc.path.join({quarto_root, 'src', 'resources', 'scripts', 'juice.ts'}) .. ' ' ..
+        local quarto_path = pandoc.path.join({os.getenv('QUARTO_BIN_PATH'), 'quarto'})
+        local jout = io.popen(quarto_path .. ' run ' ..
+            pandoc.path.join({os.getenv('QUARTO_SHARE_PATH'), 'scripts', 'juice.ts'}) .. ' ' ..
             juice_in, 'r')
         if jout then
           return jout:read('a')
