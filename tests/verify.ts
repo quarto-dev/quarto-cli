@@ -22,25 +22,55 @@ import { isWindows } from "../src/core/platform.ts";
 import { execProcess } from "../src/core/process.ts";
 import { canonicalizeSnapshot, checkSnapshot } from "./verify-snapshot.ts";
 
-export const withDocxContent = async <T>(file: string,
-  k: (xml: string) => Promise<T>) => {
-    const [_dir, stem] = dirAndStem(file);
-    const temp = await Deno.makeTempDir();
-    try {
-      // Move the docx to a temp dir and unzip it
-      const zipFile = join(temp, stem + ".zip");
-      await Deno.copyFile(file, zipFile);
-      await unzip(zipFile);
-  
-      // Open the core xml document and match the matches
-      const docXml = join(temp, "word", "document.xml");
-      const xml = await Deno.readTextFile(docXml);
-      const result = await k(xml);
-      return result;
-    } finally {
-      await Deno.remove(temp, { recursive: true });
-    }
-  };
+export const withDocxContent = async <T>(
+  file: string,
+  k: (xml: string) => Promise<T>
+) => {
+  const [_dir, stem] = dirAndStem(file);
+  const temp = await Deno.makeTempDir();
+  try {
+    // Move the docx to a temp dir and unzip it
+    const zipFile = join(temp, stem + ".zip");
+    await Deno.copyFile(file, zipFile);
+    await unzip(zipFile);
+
+    // Open the core xml document and match the matches
+    const docXml = join(temp, "word", "document.xml");
+    const xml = await Deno.readTextFile(docXml);
+    const result = await k(xml);
+    return result;
+  } finally {
+    await Deno.remove(temp, { recursive: true });
+  }
+};
+
+export const withPptxContent = async <T>(
+  file: string,
+  slideNumber: number,
+  k: (xml: string) => Promise<T>
+) => {
+  const [_dir, stem] = dirAndStem(file);
+  const temp = await Deno.makeTempDir();
+  try {
+    // Move the pptx to a temp dir and unzip it
+    const zipFile = join(temp, stem + ".zip");
+    await Deno.copyFile(file, zipFile);
+    await unzip(zipFile);
+
+    // Open the core xml document and match the matches
+    const slidePath = join(temp, "ppt", "slides");
+    const slideFile = join(slidePath, `slide${slideNumber}.xml`);
+    assert(
+      existsSync(slideFile),
+      `Slide number ${slideNumber} is not in the Pptx`,
+    );
+    const xml = await Deno.readTextFile(slideFile);
+    const result = await k(xml);
+    return result;
+  } finally {
+    await Deno.remove(temp, { recursive: true });
+  }
+};
 
 export const noErrors: Verify = {
   name: "No Errors",
@@ -432,6 +462,18 @@ export const verifyDocXDocument = (
   });
 };
 
+export const verifyPptxDocument = (
+  callback: (doc: string) => Promise<void>,
+  name?: string,
+): (file: string, slideNumber: number) => Verify => {
+  return (file: string, slideNumber: number) => ({
+    name: name ?? "Inspecting Pptx",
+    verify: async (_output: ExecuteOutput[]) => {
+      return await withPptxContent(file, slideNumber, callback);
+    },
+  });
+};
+
 const xmlChecker = (
   selectors: string[],
   noMatchSelectors?: string[],
@@ -491,6 +533,18 @@ export const ensureDocxXpath = (
     xmlChecker(selectors, noMatchSelectors),
     "Inspecting Docx for XPath selectors",
   )(file);
+};
+
+export const ensurePptxXpath = (
+  file: string,
+  slideNumber: number,
+  selectors: string[],
+  noMatchSelectors?: string[],
+): Verify => {
+  return verifyPptxDocument(
+    xmlChecker(selectors, noMatchSelectors),
+    "Inspecting Pptx for XPath selectors",
+  )(file, slideNumber);
 };
 
 export const ensureDocxRegexMatches = (
