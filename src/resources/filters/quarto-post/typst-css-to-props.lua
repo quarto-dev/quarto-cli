@@ -180,7 +180,7 @@ function render_typst_css_to_props()
   }
   
 
-  local function translate_color (color)
+  local function translate_color(color)
     if color:sub(1, 1) == '#' then
       return 'rgb("' .. color .. '")'
     elseif tcontains(typst_named_colors, color) then
@@ -188,13 +188,43 @@ function render_typst_css_to_props()
     end
     return css_named_colors[color]
   end
-
-  local function sortedPairs (t, f)
+  local function translate_opacity(opacity) 
+    if not opacity then
+      return nil
+    end
+    if opacity:find '%%$' then
+      opacity = tonumber(opacity:gsub('%%$', ''), 10) / 100
+    end
+    return math.floor(255.9999 * tonumber(opacity))
+  end
+  local function combine_color_opacity(color, opacity)
+    quarto.log.output('coo', color, opacity)
+    if opacity then
+      if not color then
+        return 'rgb(0, 0, 0, ' .. opacity .. ')'
+      else
+        quarto.log.output('a', color)
+        if not color:find '^rgb%(' then
+          color = css_named_colors[color]
+        end
+        quarto.log.output('b', color)
+        if color then
+          color = color:gsub('%)$', ', ' .. opacity .. ')')
+          quarto.log.output('c', color)
+          return color
+        end
+      end
+      return nil
+    else
+      return color
+    end
+  end
+  local function sortedPairs(t, f)
     local a = {}
     for n in pairs(t) do table.insert(a, n) end
     table.sort(a, f)
     local i = 0      -- iterator variable
-    local iter = function ()   -- iterator function
+    local iter = function()   -- iterator function
         i = i + 1
         if a[i] == nil then return nil
         else return a[i], t[a[i]]
@@ -216,7 +246,7 @@ function render_typst_css_to_props()
   TEXT_PIXELS_TO_POINTS = 0.75
   PADDING_PIXELS_TO_POINTS = 0.75
 
-  local function translate_string_list (sl)
+  local function translate_string_list(sl)
     local strings = {}
     for s in sl:gmatch('([^,]+)') do
       s = s:gsub('^%s+', '')
@@ -225,7 +255,7 @@ function render_typst_css_to_props()
     return '(' .. table.concat(strings, ', ') ..')'
   end
 
-  local function translate_size (fs, ratio)
+  local function translate_size(fs, ratio)
     if not ratio then return fs end
     if fs:find 'px$' then
       if fs == '1px' then return ratio .. 'pt' end
@@ -239,7 +269,7 @@ function render_typst_css_to_props()
     end
   end
 
-  local function translate_font_size (fs, ratio)
+  local function translate_font_size(fs, ratio)
     if fs:find '%%$' then
       local percent = tonumber(fs:match '(%d+)%%')
       return tostring(percent / 100) .. 'em'
@@ -261,7 +291,7 @@ function render_typst_css_to_props()
   -- does the table contain a value
   local function tcontains(t,value)
     if t and type(t)=="table" and value then
-      for _, v in ipairs (t) do
+      for _, v in ipairs(t) do
         if v == value then
           return true
         end
@@ -290,19 +320,23 @@ function render_typst_css_to_props()
     return '(' .. table.concat(entries, ', ') .. ')'
   end
 
-  local function annotate_cell (cell)
+  local function annotate_cell(cell)
     local style = cell.attributes['style']
     if style ~= nil then
       local paddings = {}
       local aligns = {}
       local borders = {}
       local delsides = {}
+      local color = nil
+      local opacity = nil
       for clause in style:gmatch('([^;]+)') do
         local k, v = to_kv(clause)
         if k == 'background-color' then
           cell.attributes['typst:fill'] = translate_color(v)
         elseif k == "color" then
-          cell.attributes['typst:text:fill'] = translate_color(v)
+          color = translate_color(v)
+        elseif k == "opacity" then
+          opacity = translate_opacity(v)
         elseif k == 'font-size' then
           cell.attributes['typst:text:size'] = translate_font_size(v, TEXT_PIXELS_TO_POINTS)
         elseif k == 'vertical-align' then
@@ -336,18 +370,21 @@ function render_typst_css_to_props()
           end
         end
       end
-      -- since sides override eachother, we need to delete 0 width sides
-      for _, dside in pairs(delsides) do
-        borders[dside] = nil
-      end
       if next(aligns) ~= nil then
         cell.attributes['typst:align'] = table.concat(aligns, ' + ')
+      end
+      if color or opacity then
+        cell.attributes['typst:text:fill'] = combine_color_opacity(color, opacity)
       end
       -- inset seems either buggy or hard to get right, see
       -- https://github.com/quarto-dev/quarto-cli/pull/9387#issuecomment-2076015962
       -- if next(paddings) ~= nil then
       --   cell.attributes['typst:inset'] = to_typst_dict(paddings)
       -- end
+      -- since sides override eachother, we need to delete 0 width sides
+      for _, dside in pairs(delsides) do
+        borders[dside] = nil
+      end
       if next(borders) ~= nil then
         cell.attributes['typst:stroke'] = to_typst_dict(borders)
       end
