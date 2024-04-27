@@ -67,7 +67,25 @@ $alert-border-width:            0 !default;
 
 $progress-height:               .5rem !default;
 
+// Quarto diagrams
 
+/* SCSS variables for mermaid diagrams
+
+   These are documented in quarto-cli/quarto-web:docs/authoring/_mermaid-theming.qmd
+
+   Make sure to update the docs if you change these. */
+   $mermaid-bg-color: #fff !default;
+   $mermaid-edge-color: lighten($secondary, 20%) !default;
+   $mermaid-node-fg-color: $body-color !default;
+   $mermaid-fg-color: $body-color !default;
+   $mermaid-fg-color--lighter: lighten($body-color, 10%) !default;
+   $mermaid-fg-color--lightest: lighten($body-color, 20%) !default;
+   $mermaid-font-family: sans-serif !default;
+   $mermaid-label-bg-color: #fff !default;
+   $mermaid-label-fg-color: $primary !default;
+   $mermaid-node-bg-color: rgba($primary, 0.1) !default;
+   $mermaid-node-fg-color: $primary !default;
+   
 
 /*-- scss:rules --*/
 

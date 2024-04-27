@@ -170,7 +170,25 @@ $list-group-action-active-bg:       $list-group-hover-bg !default;
 $breadcrumb-divider-color:          $text-muted !default;
 $breadcrumb-active-color:           $component-active-bg !default;
 
+// Quarto diagrams
 
+/* SCSS variables for mermaid diagrams
+
+   These are documented in quarto-cli/quarto-web:docs/authoring/_mermaid-theming.qmd
+
+   Make sure to update the docs if you change these. */
+   $mermaid-bg-color: #fff !default;
+   $mermaid-edge-color: $secondary !default;
+   $mermaid-node-fg-color: $body-color !default;
+   $mermaid-fg-color: $body-color !default;
+   $mermaid-fg-color--lighter: lighten($body-color, 10%) !default;
+   $mermaid-fg-color--lightest: lighten($body-color, 20%) !default;
+   $mermaid-font-family: sans-serif !default;
+   $mermaid-label-bg-color: $body-bg !default;
+   $mermaid-label-fg-color: lighten($primary, 20%) !default;
+   $mermaid-node-bg-color: rgba($primary, 0.1) !default;
+   $mermaid-node-fg-color: $primary !default;
+   
 
 /*-- scss:rules --*/
 

@@ -89,6 +89,25 @@ $list-group-active-color:           $white !default;
 $list-group-active-bg:              $list-group-bg !default;
 $list-group-disabled-color:         lighten($list-group-bg, 30%) !default;
 
+$mermaid-body-color: #000 !default;
+$mermaid-bg-color: #fff !default;
+
+/* SCSS variables for mermaid diagrams
+
+   These are documented in quarto-cli/quarto-web:docs/authoring/_mermaid-theming.qmd
+
+   Make sure to update the docs if you change these. */
+   $mermaid-bg-color: $mermaid-bg-color !default;
+   $mermaid-edge-color: darken($secondary, 10%) !default;
+   $mermaid-node-fg-color: $mermaid-body-color !default;
+   $mermaid-fg-color: $mermaid-body-color !default;
+   $mermaid-fg-color--lighter: lighten($mermaid-body-color, 10%) !default;
+   $mermaid-fg-color--lightest: lighten($mermaid-body-color, 20%) !default;
+   $mermaid-font-family: sans-serif !default;
+   $mermaid-label-bg-color: $mermaid-bg-color !default;
+   $mermaid-label-fg-color: darken($primary, 20%) !default;
+   $mermaid-node-bg-color: rgba($primary, 0.1) !default;
+   $mermaid-node-fg-color: $primary !default;
 
 
 /*-- scss:rules --*/
@@ -174,7 +193,7 @@ $list-group-disabled-color:         lighten($list-group-bg, 30%) !default;
 
 .nav-tabs {
   .nav-link,
-  .nav-link.active, {
+  .nav-link.active {
     border-width: 0 0 1px;
   }
 
