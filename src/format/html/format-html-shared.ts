@@ -229,6 +229,14 @@ export const quartoGlobalCssVariableRules = () => {
   /*! quarto-variables-end */
   `;
 };
+export const quartoBootstrapMermaidDefaults = () => {
+  const path = formatResourcePath(
+    "html",
+    join("bootstrap", "_bootstrap-mermaid-defaults.scss"),
+  );
+  return sassLayer(path);
+};
+
 export const quartoBootstrapCustomizationLayer = () => {
   const path = formatResourcePath(
     "html",

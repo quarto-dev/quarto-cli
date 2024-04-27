@@ -195,17 +195,17 @@ $pre-color:                         inherit !default;
    These are documented in quarto-cli/quarto-web:docs/authoring/_mermaid-theming.qmd
 
    Make sure to update the docs if you change these. */
-   $mermaid-bg-color: #fff !default;
-   $mermaid-edge-color: lighten($secondary, 20%) !default;
-   $mermaid-node-fg-color: $body-color !default;
-   $mermaid-fg-color: $body-color !default;
-   $mermaid-fg-color--lighter: lighten($body-color, 10%) !default;
-   $mermaid-fg-color--lightest: lighten($body-color, 20%) !default;
-   $mermaid-font-family: sans-serif !default;
-   $mermaid-label-bg-color: #000 !default;
-   $mermaid-label-fg-color: $primary !default;
-   $mermaid-node-bg-color: rgba($primary, 0.1) !default;
-   $mermaid-node-fg-color: $primary !default;
+   $mermaid-bg-color: #fff;
+   $mermaid-edge-color: lighten($secondary, 20%);
+   $mermaid-node-fg-color: $body-color;
+   $mermaid-fg-color: $body-color;
+   $mermaid-fg-color--lighter: lighten($body-color, 10%);
+   $mermaid-fg-color--lightest: lighten($body-color, 20%);
+   $mermaid-font-family: sans-serif;
+   $mermaid-label-bg-color: #000;
+   $mermaid-label-fg-color: $primary;
+   $mermaid-node-bg-color: rgba($primary, 0.1);
+   $mermaid-node-fg-color: $primary;
 
 
 
