@@ -101,6 +101,10 @@ All changes included in 1.5:
 
 - ([#8607](https://github.com/quarto-dev/quarto-cli/issues/8607)): Ensure we properly use the `description` attribute if it is present.
 
+## Mermaid diagrams
+
+- ([#9503](https://github.com/quarto-dev/quarto-cli/pull/9503)): Improve bootswatch themes to play well with Mermaid flowcharts.
+
 ## Filters
 
 - ([#8417](https://github.com/quarto-dev/quarto-cli/issues/8417)): Maintain a single AST element in the output cells when parsing HTML from RawBlock elements.
