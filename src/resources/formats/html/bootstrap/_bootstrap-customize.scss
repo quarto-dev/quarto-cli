@@ -18,3 +18,25 @@ $font-size-root: 17px !default;
 
 // Disable smooth scrolling
 $enable-smooth-scroll: false !default;
+
+$mermaid-body-color: #000 !default;
+$mermaid-body-bg: #fff !default;
+
+// Quarto diagrams
+
+/* SCSS variables for mermaid diagrams
+
+   These are documented in quarto-cli/quarto-web:docs/authoring/_mermaid-theming.qmd
+
+   Make sure to update the docs if you change these. */
+$mermaid-bg-color: #fff !default;
+$mermaid-edge-color: lighten($mermaid-body-color, 50%) !default;
+$mermaid-node-fg-color: $mermaid-body-color !default;
+$mermaid-fg-color: $mermaid-body-color !default;
+$mermaid-fg-color--lighter: lighten($mermaid-body-color, 10%) !default;
+$mermaid-fg-color--lightest: lighten($mermaid-body-color, 20%) !default;
+$mermaid-font-family: sans-serif !default;
+$mermaid-label-bg-color: $mermaid-body-bg !default;
+$mermaid-label-fg-color: $mermaid-body-color !default;
+$mermaid-node-bg-color: rgba($mermaid-body-color, 0.1) !default;
+$mermaid-node-fg-color: $mermaid-body-color !default;
