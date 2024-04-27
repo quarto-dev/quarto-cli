@@ -514,7 +514,8 @@ function parse_floatreftargets()
         local type = refType(identifier)
         local category = crossref.categories.by_ref_type[type]
         if category == nil then
-          warn("Figure with invalid crossref category: " .. identifier .. "\nWon't be able to cross-reference this figure.")
+          -- We've had too many reports of false positives for this, so we're disabling the warning
+          -- warn("Figure with invalid crossref category: " .. identifier .. "\nWon't be able to cross-reference this figure.")
           return nil
         end
         return quarto.FloatRefTarget({

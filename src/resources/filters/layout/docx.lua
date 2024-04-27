@@ -90,7 +90,7 @@ function docxDivCaption(captionEl, align)
   local caption = pandoc.Para({
     pandoc.RawInline("openxml", docxParaStyles(align))
   })
-  tappend(caption.content, captionEl.content)
+  tappend(caption.content, captionEl and captionEl.content or pandoc.Inlines({}))
   return caption
 end
 
