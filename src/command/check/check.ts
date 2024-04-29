@@ -131,9 +131,9 @@ async function checkVersions(_services: RenderServices) {
   let typstVersion = lines(
     (await execProcess({
       cmd: [typstBinaryPath(), "--version"],
-      stdout: "piped"
+      stdout: "piped",
     })).stdout!,
-  )[0].split(' ')[1];
+  )[0].split(" ")[1];
   checkVersion(typstVersion, ">=0.10.0", "Typst");
 
   completeMessage("Checking versions of quarto dependencies......OK");
@@ -144,13 +144,17 @@ async function checkInstall(services: RenderServices) {
   info(`      Version: ${quartoConfig.version()}`);
   if (quartoConfig.version() === "99.9.9") {
     // if they're running a dev version, we assume git is installed
+    // and QUARTO_ROOT is set to the root of the quarto-cli repo
     // print the output of git rev-parse HEAD
-    const gitHead = await execProcess({
-      cmd: ["git", "rev-parse", "HEAD"],
-      stdout: "piped",
-    });
-    if (gitHead.stdout) {
-      info(`      commit: ${gitHead.stdout.trim()}`);
+    if (Deno.env.get("QUARTO_ROOT")) {
+      const gitHead = await execProcess({
+        cmd: ["git", "-C", Deno.env.get("QUARTO_ROOT"), "rev-parse", "HEAD"],
+        stdout: "piped",
+        stderr: "piped", // to not show error if not in a git repo
+      });
+      if (gitHead.success && gitHead.stdout) {
+        info(`      commit: ${gitHead.stdout.trim()}`);
+      }
     }
   }
   info(`      Path: ${quartoConfig.binPath()}`);
