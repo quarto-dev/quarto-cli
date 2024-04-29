@@ -16,19 +16,26 @@ local function _main()
       end
     end
     -- needs to be array of pairs because order matters for typst
+    local n = #params
     for i, pair in ipairs(params) do
-      local k = pair[1]
-      local v = pair[2]
-      if v ~= nil then
-        result:insert(pandoc.RawInline("typst", k .. ": "))
-        add(v)
-        result:insert(pandoc.RawInline("typst", ", "))
+      if type(pair) == "table" then
+        local k = pair[1]
+        local v = pair[2]
+        if v ~= nil then
+          result:insert(pandoc.RawInline("typst", k .. ": "))
+          add(v)
+        else
+          add(k)
+        end
       else
-        add(k)
+        add(pair)
+      end
+      if i < n then
+        result:insert(pandoc.RawInline("typst", ", "))
       end
     end
     result:insert(pandoc.RawInline("typst", ")"))
-    return pandoc.Div(result)
+    return pandoc.Div(result, pandoc.Attr("", {"quarto-scaffold"}))
   end
   
   local function as_typst_content(content)
