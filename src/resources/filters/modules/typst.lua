@@ -35,7 +35,12 @@ local function _main()
       end
     end
     result:insert(pandoc.RawInline("typst", ")"))
-    return pandoc.Div(result, pandoc.Attr("", {"quarto-scaffold"}))
+
+    -- We emit slightly inefficient output here by not using `quarto-scaffold`.
+    -- The result from this div cannot be a quarto-scaffold because some typst template
+    -- functions assume they can get the element's children. pandoc.Div is converted to
+    -- a #block, and those are guaranteed to have children.
+    return pandoc.Div(result)
   end
   
   local function as_typst_content(content)
