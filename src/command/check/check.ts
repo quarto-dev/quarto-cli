@@ -42,7 +42,7 @@ import { dartCommand } from "../../core/dart-sass.ts";
 import { allTools } from "../../tools/tools.ts";
 import { texLiveContext, tlVersion } from "../render/latexmk/texlive.ts";
 import { which } from "../../core/path.ts";
-import { dirname, join } from "../../deno_ral/path.ts";
+import { dirname } from "../../deno_ral/path.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { typstBinaryPath } from "../../core/typst.ts";
 
@@ -146,19 +146,15 @@ async function checkInstall(services: RenderServices) {
     // if they're running a dev version, we assume git is installed
     // and QUARTO_ROOT is set to the root of the quarto-cli repo
     // print the output of git rev-parse HEAD
-    const gitHead = await execProcess({
-      cmd: [
-        "git",
-        "-C",
-        join(quartoConfig.sharePath(), "../.."),
-        "rev-parse",
-        "HEAD",
-      ],
-      stdout: "piped",
-      stderr: "piped", // to not show error if not in a git repo
-    });
-    if (gitHead.success && gitHead.stdout) {
-      info(`      commit: ${gitHead.stdout.trim()}`);
+    if (Deno.env.get("QUARTO_ROOT") !== undefined) {
+      const gitHead = await execProcess({
+        cmd: ["git", "-C", Deno.env.get("QUARTO_ROOT"), "rev-parse", "HEAD"],
+        stdout: "piped",
+        stderr: "piped", // to not show error if not in a git repo
+      });
+      if (gitHead.success && gitHead.stdout) {
+        info(`      commit: ${gitHead.stdout.trim()}`);
+      }
     }
   }
   info(`      Path: ${quartoConfig.binPath()}`);
