@@ -695,9 +695,9 @@ end, function(callout)
     title = pandoc.Plain(displayName(callout.type))
   end
 
-  local typst_callout = typst_function_call("callout", { 
-    { "body", as_typst_content(callout.content) },
-    { "title", as_typst_content(title) },
+  local typst_callout = _quarto.format.typst.function_call("callout", { 
+    { "body", _quarto.format.typst.as_typst_content(callout.content) },
+    { "title", _quarto.format.typst.as_typst_content(title) },
     { "background_color", pandoc.RawInline("typst", background_color) },
     { "icon_color", pandoc.RawInline("typst", icon_color) },
     { "icon", pandoc.RawInline("typst", "" .. icon .. "()")}

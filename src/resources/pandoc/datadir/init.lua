@@ -1920,6 +1920,7 @@ end
 
 -- The main exports of the quarto module
 quarto = {
+  format = format,
   doc = {
     add_html_dependency = function(htmlDependency)
    
