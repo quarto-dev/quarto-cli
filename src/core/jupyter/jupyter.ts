@@ -1265,7 +1265,7 @@ async function mdFromCodeCell(
     }
 
     // filter matplotlib intermediate vars
-    if (isDiscadableTextExecuteResult(output, haveImage)) {
+    if (isDiscardableTextExecuteResult(output, haveImage)) {
       return false;
     }
 
@@ -1699,7 +1699,7 @@ async function mdFromCodeCell(
   return md;
 }
 
-function isDiscadableTextExecuteResult(
+function isDiscardableTextExecuteResult(
   output: JupyterOutput,
   haveImage: boolean,
 ) {
@@ -1784,14 +1784,26 @@ async function mdOutputError(
   output: JupyterOutputError,
   options: JupyterToMarkdownOptions,
 ) {
-  if (!options.toHtml || !hasAnsiEscapeCodes(output.evalue)) {
-    return mdCodeOutput([output.ename + ": " + output.evalue]);
+  const traceback = output.traceback.join("\n");
+  if (
+    !options.toHtml ||
+    (!hasAnsiEscapeCodes(output.evalue) && !hasAnsiEscapeCodes(traceback))
+  ) {
+    if (output.traceback.length > 0) {
+      return mdCodeOutput([
+        output.ename + ": " + output.evalue + "\n" + traceback,
+      ]);
+    } else {
+      return mdCodeOutput([
+        output.ename + ": " + output.evalue,
+      ]);
+    }
   }
-  const html = await convertToHtmlSpans(output.evalue);
+  const tracebackHtml = await convertToHtmlSpans(traceback);
   return mdMarkdownOutput(
     [
       "\n::: {.ansi-escaped-output}\n```{=html}\n<pre>",
-      html,
+      tracebackHtml,
       "</pre>\n```\n:::\n",
     ],
   );
