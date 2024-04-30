@@ -179,14 +179,59 @@ function render_typst_css_to_props()
     'lime',
   }
   
+  local function parse_rgb(text)
+    quarto.log.output('pr', text)
+    local parms = text:match('rgba?%((.*)%)')
+    if not parms then return nil end
+    local foo, ncomma = parms:gsub(',', '')
+    quarto.log.output('pr p', parms, '/', foo, '/', ncomma)
+    local comps = {}
+    if ncomma then
+      if ncomma > 1 and ncomma < 4 then
+        local matches = parms:match('([%a.]+),%s*')
+        if not matches then return nil end
+        for comp in matches do
+          table.insert(comps, comp)
+        end
+      else
+        quarto.log.warning('rgb[a] should have 3-4 components', text)
+        return nil
+      end
+    end
+    return {
+      type = 'rgb',
+      value = comps
+    }
+  end
 
   local function translate_color(color)
     if color:sub(1, 1) == '#' then
-      return 'rgb("' .. color .. '")'
-    elseif tcontains(typst_named_colors, color) then
-      return color
+      local value = color:sub(2)
+      local short = value:len() < 5
+      local comps = {}
+      if short then
+        for c in value:gmatch '.' do
+          table.insert(comps, tonumber(c .. c, 16))
+        end
+      else
+        for cc in value:gmatch '..' do
+          table.insert(comps, tonumber(cc, 16))
+        end
+      end
+      return {
+        type = 'rgb',
+        value = comps,
+        rep = short and 'shorthex' or 'hex'
+      }
+    elseif color:find '^rgb%(' or color:find '^rgba%(' then
+      return parse_rgb(color)
+    elseif css_named_colors[color] then
+      return {
+        type = 'named',
+        value = color
+      }
     end
-    return css_named_colors[color]
+    return nil
   end
   local function translate_opacity(opacity) 
     if not opacity then
@@ -198,25 +243,46 @@ function render_typst_css_to_props()
     return math.floor(255.9999 * tonumber(opacity))
   end
   local function combine_color_opacity(color, opacity)
-    quarto.log.output('coo', color, opacity)
+    quarto.log.output('cco in', color, opacity)
     if opacity then
       if not color then
-        return 'rgb(0, 0, 0, ' .. opacity .. ')'
+        color = {
+          type = 'rgb',
+          value = {0, 0, 0, opacity}
+        }
       else
-        quarto.log.output('a', color)
-        if not color:find '^rgb%(' then
-          color = css_named_colors[color]
-        end
-        quarto.log.output('b', color)
-        if color then
-          color = color:gsub('%)$', ', ' .. opacity .. ')')
-          quarto.log.output('c', color)
-          return color
+        if color.type == 'named' then
+          color = parse_rgb(css_named_colors[color])
         end
       end
-      return nil
+      color.value[4] = (color.value[4] or 1) * opacity 
     else
-      return color
+      if color.type == 'named' then
+        if tcontains(typst_colors, color.value) then
+          return color.value
+        elseif css_named_colors[color.value] then
+          color = parse_rgb(css_named_colors[color.value])
+        else
+          return nil
+        end
+      end
+    end
+    quarto.log.output('cco out', color)
+    if not color.rep then
+      return 'rgb(' .. table.concat(color.value, ', ') .. ')'
+    else
+      local hexes = {}
+      if color.rep == 'shorthex' then
+        for comp in color.value do
+          -- take upper nibble
+          table.insert(hexes, string.format('%x', comp)[1])
+        end
+      elseif color.pre == 'hex' then
+        for comp in color.value do
+          table.insert(hexes, string.format('%x', comp))
+        end
+      end
+      return 'rgb("#' .. table.concat(hexes, '') .. '")'
     end
   end
   local function sortedPairs(t, f)
