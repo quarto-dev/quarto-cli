@@ -1909,11 +1909,14 @@ function mdImageOutput(
   const metadata = output.metadata[mimeType];
 
   // attributes (e.g. width/height/alt)
-  function metadataValue<T>(key: string, defaultValue: T) {
-    return metadata && metadata[key] ? metadata["key"] as T : defaultValue;
+  function metadataValue<T>(key: string, alt_key: string, defaultValue: T) {
+    if (metadata) {
+      return metadata[key] ? metadata[key] as T : metadata[alt_key] ? metadata[alt_key] as T : defaultValue;
+    }
+    return defaultValue;
   }
-  let width = metadataValue(kCellOutWidth, 0);
-  let height = metadataValue(kCellOutHeight, 0);
+  let width = metadataValue(kCellOutWidth, "width", 0);
+  let height = metadataValue(kCellOutHeight, "height", 0);
   const alt = caption || "";
 
   // calculate output file name
