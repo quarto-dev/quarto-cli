@@ -3,39 +3,11 @@
 --
 -- renders AST nodes to Typst
 
-function typst_function_call(name, params)
-  local result = pandoc.Blocks({})
-  result:insert(pandoc.RawInline("typst", "#" .. name .. "("))
-  local function add(v)
-    if type(v) == "userdata" or type(v) == "table" then
-      result:extend(quarto.utils.as_blocks(v) or {})
-    else
-      result:extend(quarto.utils.as_blocks({pandoc.utils.stringify(v)}) or {})
-    end
-  end
-  -- needs to be array of pairs because order matters for typst
-  for i, pair in ipairs(params) do
-    local k = pair[1]
-    local v = pair[2]
-    if v ~= nil then
-      result:insert(pandoc.RawInline("typst", k .. ": "))
-      add(v)
-      result:insert(pandoc.RawInline("typst", ", "))
-    else
-      add(k)
-    end
-  end
-  result:insert(pandoc.RawInline("typst", ")"))
-  return pandoc.Div(result)
-end
-
-function as_typst_content(content)
-  local result = pandoc.Blocks({})
-  result:insert(pandoc.RawInline("typst", "[\n"))
-  result:extend(quarto.utils.as_blocks(content) or {})
-  result:insert(pandoc.RawInline("typst", "]\n"))
-  return result
-end
+-- FIXME Ideally this would go directly on init.lua, but
+-- the module path set up doesn't appear to be working there.
+ 
+local typst = require("modules/typst")
+_quarto.format.typst = typst
 
 function render_typst()
   if not _quarto.format.isTypstOutput() then
@@ -94,8 +66,8 @@ function render_typst()
         if el.classes:includes("unlisted") then
           params:insert({"outlined", false})
         end
-        params:insert({as_typst_content(el.content)})
-        return typst_function_call("heading", params)
+        params:insert({_quarto.format.typst.as_typst_content(el.content)})
+        return _quarto.format.typst.function_call("heading", params)
       end,
     }
   }
