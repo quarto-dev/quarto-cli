@@ -1,0 +1,14 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.ansi-escaped-output pre span.ansi-red-fg"]
+---
+
+```{python}
+#| error: true
+import foo
+foo.foo()
+```
