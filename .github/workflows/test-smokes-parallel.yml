@@ -10,7 +10,9 @@ on:
         default: 10
         type: number
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - "v[1-9].[0-9]+" # run also on released version branch (for patch releases)
     paths-ignore:
       - "src/resources/language/**"
   push:
