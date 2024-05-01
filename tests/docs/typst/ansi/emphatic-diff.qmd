@@ -1,0 +1,8 @@
+---
+format: typst
+format-links: false
+---
+```{r}
+library(emphatic)
+hl_diff(mean, median, coerce = 'print', sep = " ")
+```
