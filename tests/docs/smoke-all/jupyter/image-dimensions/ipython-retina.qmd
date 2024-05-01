@@ -1,0 +1,15 @@
+---
+title: Display a Retina PNG Image using the IPython `display` method
+
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        # This is half the pixel width & height of the image
+        - ['img[width="450"][height="331"]']
+---
+
+```{python}
+from IPython.display import Image, display
+display(Image("images/websites-quarto.png", retina=True))
+```
