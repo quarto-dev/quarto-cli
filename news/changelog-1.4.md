@@ -1,9 +1,5 @@
 ## Fixed in this release
 
-- ([#9335](https://github.com/quarto-dev/quarto-cli/issues/9335)): Fix bad escaping of escaped inline code cells inside code blocks.
-- ([#9356](https://github.com/quarto-dev/quarto-cli/issues/9356)): Don't process column classes for figures inside the About divs.
-- ([#9535](https://github.com/quarto-dev/quarto-cli/issues/9535)): Fix `fig-alt` regression from previous 1.4 patch release.
-
 ## Fixed in previous releases
 
 - ([#8439](https://github.com/quarto-dev/quarto-cli/issues/8439)): ensure that lack of subject line is handled
@@ -42,6 +38,9 @@
 - ([#8937](https://github.com/quarto-dev/quarto-cli/pull/8937)): Fix unix `quarto` launcher in the case of paths with spaces.
 - ([#9076](https://github.com/quarto-dev/quarto-cli/issues/9076)): Fix rendering of code cells with `layout-ncol` and `column` settings in `html` format.
 - ([#9200](https://github.com/quarto-dev/quarto-cli/issues/9200)): Fix regression with `tbl-colwidths` outside of a cross-referenceable table element.
+- ([#9335](https://github.com/quarto-dev/quarto-cli/issues/9335)): Fix bad escaping of escaped inline code cells inside code blocks.
+- ([#9356](https://github.com/quarto-dev/quarto-cli/issues/9356)): Don't process column classes for figures inside the About divs.
+- ([#9535](https://github.com/quarto-dev/quarto-cli/issues/9535)): Fix `fig-alt` regression from previous 1.4 patch release.
 
 ## Languages
 
