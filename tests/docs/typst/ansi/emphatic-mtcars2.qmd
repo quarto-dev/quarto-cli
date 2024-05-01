@@ -1,0 +1,16 @@
+---
+format: typst
+format-links: false
+---
+```{r}
+library(emphatic)
+mtcars |>
+  head(15) |>
+  hl(
+    palette     = ggplot2::scale_colour_viridis_c(),
+    cols        = mpg,      # Where the colour scale is calculated
+    scale_apply = mpg:disp, # Where the colour scale is applied
+    show_legend = TRUE
+  ) |>
+  hl('hotpink', rows = hp == min(hp), cols = hp:carb)
+```

@@ -352,6 +352,29 @@ function render_typst_css_to_props()
         cell.attributes['typst:stroke'] = to_typst_dict(borders)
       end
     end
+    return cell
+  end 
+
+  function annotate_span(span)
+    span = annotate_cell(span) -- not really
+    local style = span.attributes['style']
+    local bkcolor = nil
+    if style ~= nil then
+      for clause in style:gmatch('([^;]+)') do
+        local k, v = to_kv(clause)
+        if k == 'background-color' then
+          bkcolor = translate_color(v)
+        end
+      end
+    end
+    if bkcolor then
+      return pandoc.Inlines({
+        pandoc.RawInline('typst', '#box(fill: ' .. bkcolor .. ', inset: (top: 1pt, bottom: 1pt))['),
+        span,
+        pandoc.RawInline('typst', ']')
+      })
+      end
+    return span
   end
 
   return {
@@ -383,6 +406,26 @@ function render_typst_css_to_props()
         end
       end
       return tab
+    end,
+    Div = function(div)
+      local divstyle = div.attributes['style']
+      if divstyle ~= nil then
+        quarto.log.output('even warmer')
+        for clause in divstyle:gmatch('([^;]+)') do
+          local k, v = to_kv(clause)
+          if k == 'font-family' then
+            quarto.log.output('burning up', translate_string_list(v))
+            div.attributes['typst:text:font'] = translate_string_list(v)
+          end
+          if k == 'font-size' then
+            div.attributes['typst:text:size'] = translate_font_size(v, TEXT_PIXELS_TO_POINTS)
+          end
+        end
+      end
+      return div
+    end,
+    Span = function(span)
+      return annotate_span(span)
     end
   }
 end

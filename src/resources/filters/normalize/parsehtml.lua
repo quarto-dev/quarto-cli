@@ -19,6 +19,30 @@ local function preprocess_table_text(src)
   return src
 end
 
+local function replace_spaces_not_in_tags(text)
+  local parts = {}
+  local intag = false
+  local lastchange = 1
+  for i = 1, #text do
+    local char = text:sub(i, i)
+    if not intag then
+      if char == '<' then
+        intag = true
+      elseif char == ' ' then
+        table.insert(parts, text:sub(lastchange, i-1))
+        table.insert(parts, '&nbsp;')
+        lastchange = i+1
+      end
+    else
+      if char == '>' then
+        intag = false
+      end
+    end
+  end
+  table.insert(parts, text:sub(lastchange))
+  return table.concat(parts, '')
+end
+
 function parse_html_tables()
   local function should_handle_raw_html_as_table(el)
     if not _quarto.format.isRawHtml(el) then
@@ -34,12 +58,14 @@ function parse_html_tables()
     -- then have pandoc parse the table into a proper AST table block
     -- we're already at a state of sin here, cf https://stackoverflow.com/a/1732454
     -- but this is important enough to do a little more work anyway
-    local pat = patterns.html_table
-    local i, j = string.find(el.text, pat)
-    if i == nil then
-      return nil
-    end
     return true
+    -- allowing processing on non-tables for the sake of demo
+    -- local pat = patterns.html_table
+    -- local i, j = string.find(el.text, pat)
+    -- if i == nil then
+    --   return nil
+    -- end
+    -- return true
   end
 
   -- attempt to parse HTML tables from this raw HTML block 
@@ -75,6 +101,7 @@ function parse_html_tables()
     local eltext
     if(_quarto.format.isTypstOutput()) then
       eltext = pandoc.system.with_temporary_directory('juice', function(tmpdir)
+        quarto.log.output('in the realm of theor.. uh', #el.text)
         local juice_in = pandoc.path.join({tmpdir, 'juice-in.html'})
         local jin = assert(io.open(juice_in, 'w'))
         jin:write(el.text)
@@ -93,10 +120,25 @@ function parse_html_tables()
     else
       eltext = el.text
     end
+
+    local blocks = pandoc.Blocks({})
+    if eltext:find('^%<pre%>') and eltext:find('</pre>%s*$') then
+      quarto.log.output('getting warmer')
+      local preContentHtml = eltext:match('<pre>(.*)</pre>')
+      preContentHtml = replace_spaces_not_in_tags(preContentHtml)
+      preContentHtml = preContentHtml:gsub('\n','<br/>')
+      if not preContentHtml then
+        quarto.log.output('no has pre')
+        return nil
+      end
+      local preDoc = pandoc.read(preContentHtml, "html+raw_html")
+      local block1 = preDoc.blocks[1]
+      -- quarto.log.output('parsed', block1)
+      blocks:insert(pandoc.Div(block1, pandoc.Attr("", {}, {style = 'font-family: Courier New; font-size: 8pt'})))
+    else
     local start = patterns.html_start_tag("table")
     local finish = patterns.html_end_tag("table")
 
-    local blocks = pandoc.Blocks({})
 
     local cursor = 1
     local len = string.len(eltext)
@@ -178,6 +220,7 @@ function parse_html_tables()
     end
     if cursor > 1 and cursor <= len then
       blocks:insert(pandoc.RawBlock(el.format, string.sub(eltext, cursor)))
+    end
     end
     return pandoc.Div(blocks)
   end
