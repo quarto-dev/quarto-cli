@@ -25,6 +25,30 @@ $presentation-h1-text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb,
   0 20px 20px rgba(0, 0, 0, 0.15);
 $presentation-heading-text-transform: uppercase !default;
 
+// Quarto diagrams
+
+$mermaid-body-color: #000;
+$mermaid-bg-color: $body-bg;
+$primary: $body-color;
+$secondary: $link-color;
+
+/* SCSS variables for mermaid diagrams
+
+   These are documented in quarto-cli/quarto-web:docs/authoring/_mermaid-theming.qmd
+
+   Make sure to update the docs if you change these. */
+   $mermaid-bg-color: $mermaid-bg-color;
+   $mermaid-edge-color: darken($secondary, 10%);
+   $mermaid-node-fg-color: $mermaid-body-color;
+   $mermaid-fg-color: $mermaid-body-color;
+   $mermaid-fg-color--lighter: lighten($mermaid-body-color, 10%);
+   $mermaid-fg-color--lightest: lighten($mermaid-body-color, 20%);
+   $mermaid-font-family: sans-serif;
+   $mermaid-label-bg-color: $mermaid-bg-color;
+   $mermaid-label-fg-color: $primary;
+   $mermaid-node-bg-color: rgba($primary, 0.1);
+   $mermaid-node-fg-color: $primary;
+
 /*-- scss:rules --*/
 
 .reveal p {
