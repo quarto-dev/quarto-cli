@@ -1,0 +1,10 @@
+---
+format: typst
+format-links: false
+---
+```{r}
+library(emphatic)
+mtcars |>
+  head(15) |>
+  hl(c('red', 'white', 'blue'))
+```
