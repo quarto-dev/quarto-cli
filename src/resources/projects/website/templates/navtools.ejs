@@ -26,7 +26,7 @@ const isWide = toolCount > 2; %>
     <% toolDropdownId = 'quarto-navigation-tool-dropdown-' + toolCount %>
     <% toolCount = toolCount + 1 %>
     <div class="dropdown">
-      <a href="<%- tool.href %>" title="<%- tool.text %>" id="<%- toolDropdownId %>" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" aria-label="<%- tool['aria-label'] || tool.text %>"<%= tool.target ? ` target="${tool.target}"` : "" %>><i class="bi bi-<%- tool.icon %>"></i></a>
+      <a href="<%- tool.href %>" title="<%- tool.text %>" id="<%- toolDropdownId %>" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label="<%- tool['aria-label'] || tool.text %>"<%= tool.target ? ` target="${tool.target}"` : "" %>><i class="bi bi-<%- tool.icon %>"></i></a>
       <ul class="dropdown-menu<%- dropDownAlignClz %>" aria-labelledby="<%- toolDropdownId %>">
         <% tool.menu.forEach(item => { %> 
           <li>
