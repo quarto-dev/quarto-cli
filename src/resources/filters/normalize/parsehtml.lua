@@ -125,7 +125,7 @@ function parse_html_tables()
       quarto.log.output('getting warmer')
       local preContentHtml = eltext:match('<pre>(.*)</pre>')
       preContentHtml = replace_spaces_not_in_tags(preContentHtml)
-      preContentHtml = preContentHtml:gsub('\n','<br/>')
+      preContentHtml = preContentHtml:gsub('\n','<br />')
       if not preContentHtml then
         quarto.log.output('no has pre')
         return nil
