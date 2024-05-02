@@ -571,8 +571,23 @@ export function createChangeHandler(
         ? "/" + kPdfJsInitialPath
         : "";
 
+      // https://github.com/quarto-dev/quarto-cli/issues/9547
+      const removeUrlFragment = (file: string) => {
+        const url = new URL(file);
+        // remove #...
+        url.hash = "";
+
+        // remove ?...
+        // this one is a little weird, because if there's a question mark but no
+        // query string, the search property will be an empty string.
+        // however, if we set it to an empty string, the question mark will be
+        // removed, even if the search property remains an empty string after the fact.
+        url.search = ""; 
+
+        return url.toString();
+      }
       watches.push({
-        files: reloadFiles.filter(reloadFileFilter),
+        files: reloadFiles.filter(reloadFileFilter).map(removeUrlFragment),
         handler: ld.debounce(async () => {
           await renderQueue.enqueue(async () => {
             await reloader.reloadClients(reloadTarget);
