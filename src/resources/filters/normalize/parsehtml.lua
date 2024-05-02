@@ -101,7 +101,6 @@ function parse_html_tables()
     local eltext
     if(_quarto.format.isTypstOutput()) then
       eltext = pandoc.system.with_temporary_directory('juice', function(tmpdir)
-        quarto.log.output('in the realm of theor.. uh', #el.text)
         local juice_in = pandoc.path.join({tmpdir, 'juice-in.html'})
         local jin = assert(io.open(juice_in, 'w'))
         jin:write(el.text)

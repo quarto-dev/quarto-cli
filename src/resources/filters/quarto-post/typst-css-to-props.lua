@@ -410,11 +410,9 @@ function render_typst_css_to_props()
     Div = function(div)
       local divstyle = div.attributes['style']
       if divstyle ~= nil then
-        quarto.log.output('even warmer')
         for clause in divstyle:gmatch('([^;]+)') do
           local k, v = to_kv(clause)
           if k == 'font-family' then
-            quarto.log.output('burning up', translate_string_list(v))
             div.attributes['typst:text:font'] = translate_string_list(v)
           end
           if k == 'font-size' then
