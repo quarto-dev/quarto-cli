@@ -5,7 +5,13 @@
  */
 
 import { info, warning } from "../../deno_ral/log.ts";
-import { basename, dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+} from "../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -572,20 +578,10 @@ export function createChangeHandler(
         : "";
 
       // https://github.com/quarto-dev/quarto-cli/issues/9547
-      const removeUrlFragment = (file: string) => {
-        const url = new URL(file);
-        // remove #...
-        url.hash = "";
-
-        // remove ?...
-        // this one is a little weird, because if there's a question mark but no
-        // query string, the search property will be an empty string.
-        // however, if we set it to an empty string, the question mark will be
-        // removed, even if the search property remains an empty string after the fact.
-        url.search = ""; 
-
-        return url.toString();
-      }
+      // ... this fix means we'll never be able to support files
+      // fix question marks or octothorpes in their names
+      const removeUrlFragment = (file: string) =>
+        file.replace(/#.*$/, "").replace(/\?.*$/, "");
       watches.push({
         files: reloadFiles.filter(reloadFileFilter).map(removeUrlFragment),
         handler: ld.debounce(async () => {
