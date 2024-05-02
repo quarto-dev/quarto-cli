@@ -55,7 +55,7 @@ export const publishCommand =
         " - Posit Connect (connect)\n" +
         " - Posit Cloud (posit-cloud)\n" +
         " - Netlify (netlify)\n" +
-        " - Confluence (confluence)\n\n" +
+        " - Confluence (confluence)\n" +
         " - Hugging Face Spaces (huggingface)\n\n" +
         "Accounts are configured interactively during publishing.\n" +
         "Manage/remove accounts with: quarto publish accounts",
