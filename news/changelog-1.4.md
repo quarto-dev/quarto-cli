@@ -1,5 +1,7 @@
 ## Fixed in this release
 
+- ([#9550](https://github.com/quarto-dev/quarto-cli/issues/9550)): Don't crash when subcaptions are incorrectly specified with `fig-subcap: true` but no embedded subcaptions.
+
 ## Fixed in previous releases
 
 - ([#8439](https://github.com/quarto-dev/quarto-cli/issues/8439)): ensure that lack of subject line is handled
