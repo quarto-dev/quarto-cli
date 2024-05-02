@@ -369,7 +369,7 @@ function render_typst_css_to_props()
     end
     if bkcolor then
       return pandoc.Inlines({
-        pandoc.RawInline('typst', '#box(fill: ' .. bkcolor .. ', inset: (top: 1pt, bottom: 1pt))['),
+        pandoc.RawInline('typst', '#highlight(fill: ' .. bkcolor .. ')['),
         span,
         pandoc.RawInline('typst', ']')
       })
