@@ -43,6 +43,7 @@ import {
   isIpynbOutput,
   isLatexOutput,
   isMarkdownOutput,
+  isRevealjsOutput,
   isTypstOutput,
 } from "../../config/format.ts";
 import {
@@ -122,6 +123,7 @@ import {
   kSelfContained,
   kSyntaxDefinitions,
   kTemplate,
+  kTheme,
   kTitle,
   kTitlePrefix,
   kTocLocation,
@@ -986,6 +988,12 @@ export async function runPandoc(
       // don't do if they've overridden the value in a format
       const formats = engineMetadata[kMetadataFormat] as Metadata;
       if (ld.isObject(formats) && metadataGetDeep(formats, key).length > 0) {
+        continue;
+      }
+
+      // don't process some format specific metadata that may have been processed already
+      // - theme is handled specifically already for revealjs with a metadata override and should not be overridden by user input
+      if (key === kTheme && isRevealjsOutput(options.format.pandoc)) {
         continue;
       }
       // perform the override
