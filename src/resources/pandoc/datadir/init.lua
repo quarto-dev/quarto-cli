@@ -2094,7 +2094,11 @@ quarto = {
   base64 = base64,
   log = logging,
   version = version(),
-  cli_path = cli_path()
+  -- map to quartoConfig information on TS side
+  config = {
+    cli_path = function() return cli_path() end,
+    version = function() return version() end
+  }
 }
 
 -- alias old names for backwards compatibility

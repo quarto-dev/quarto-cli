@@ -142,7 +142,7 @@ All changes included in 1.5:
 
 ## Lua filters
 
-- ([#9572](https://github.com/quarto-dev/quarto-cli/issues/9572)): New Quarto Lua API: `quarto.cli_path` now returns the path to the Quarto CLI executable of the installation running the Lua script in quarto context.
+- ([#9572](https://github.com/quarto-dev/quarto-cli/issues/9572)): Add `quarto.config.cli_path()` in Quarto LUA to return the path to the Quarto CLI executable of the installation running the Lua script in quarto context.
 
 ## Other Fixes and Improvements
 
