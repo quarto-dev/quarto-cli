@@ -106,6 +106,8 @@ const kActiveFilters = "active-filters";
 
 const kQuartoVersion = "quarto-version";
 
+const kQuartoCliPath = "quarto-cli-path";
+
 const kQuartoSource = "quarto-source";
 
 const kHasResourcePath = "has-resource-path";
@@ -649,6 +651,9 @@ async function quartoFilterParams(
 
   // version
   params[kQuartoVersion] = quartoConfig.version();
+
+  // cli path
+  params[kQuartoCliPath] = quartoConfig.cliPath();
 
   // code-annotations
   params[kCodeAnnotations] = format.metadata[kCodeAnnotations];

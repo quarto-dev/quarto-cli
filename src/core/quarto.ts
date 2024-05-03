@@ -13,7 +13,7 @@ import { getenv } from "./env.ts";
 import { exitWithCleanup } from "./cleanup.ts";
 import { onActiveProfileChanged } from "../project/project-profile.ts";
 import { onDotenvChanged } from "../quarto-core/dotenv.ts";
-import { normalizePath } from "./path.ts";
+import { normalizePath, safeExistsSync } from "./path.ts";
 import { buildQuartoPreviewJs } from "./previewjs.ts";
 
 export const kLocalDevelopment = "99.9.9";
@@ -42,6 +42,20 @@ export const quartoConfig = {
     } else {
       return kLocalDevelopment;
     }
+  },
+  cliPath: () => {
+    // full path to quarto, quarto.cmd or quarto.exe depending on OS
+    const binPath = quartoConfig.binPath();
+    if (Deno.build.os !== "windows") {
+      return join(binPath, "quarto");
+    }
+    // WINDOWS
+    const cliPath = join(binPath, "quarto.exe");
+    if (safeExistsSync(cliPath)) {
+      return cliPath;
+    }
+    // we are in dev mode were only quarto.cmd is available
+    return join(binPath, "quarto.cmd");
   },
   dotenv: async (forceReload?: boolean): Promise<Record<string, string>> => {
     if (forceReload || !dotenvConfig) {
