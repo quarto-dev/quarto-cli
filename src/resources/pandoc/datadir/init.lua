@@ -1826,10 +1826,6 @@ local function version()
    end
 end
 
-local function cli_path()
-   return param('quarto-cli-path', nil)
-end
-
 local function projectProfiles()
    return param('quarto_profile', {})
 end
@@ -2096,7 +2092,7 @@ quarto = {
   version = version(),
   -- map to quartoConfig information on TS side
   config = {
-    cli_path = function() return cli_path() end,
+    cli_path = function() return param('quarto-cli-path', nil) end,
     version = function() return version() end
   }
 }
