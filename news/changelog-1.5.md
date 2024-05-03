@@ -167,6 +167,7 @@ All changes included in 1.5:
 - ([#9394](https://github.com/quarto-dev/quarto-cli/issues/9394)): Make `template` a required field in the `about` schema.
 - ([#9426](https://github.com/quarto-dev/quarto-cli/issues/9426)): Update `crossref.lua` filter to avoid crashes and hangs in documents with custom AST nodes.
 - ([#9492](https://github.com/quarto-dev/quarto-cli/issues/9492)): Improve performance of `quarto preview` when serving resource files of the following formats: HTML, PDF, DOCX, and plaintext.
+- ([#9496](https://github.com/quarto-dev/quarto-cli/issues/9496)): Improve parsing error message from `js-yaml` when `key:value` is used together with `key: value` in the same YAML block.
 - ([#9527](https://github.com/quarto-dev/quarto-cli/pull/9527)): Add `quarto.format` and `quarto.format.typst` to Quarto's public Lua filter API.
 - ([#9550](https://github.com/quarto-dev/quarto-cli/issues/9550)): Don't crash when subcaptions are incorrectly specified with `fig-subcap: true` but no embedded subcaptions.
 - Add support for `{{< lipsum >}}` shortcode, which is useful for emitting placeholder text. Provide a specific number of paragraphs (`{{< lipsum 3 >}}`).
