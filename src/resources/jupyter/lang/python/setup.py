@@ -21,7 +21,7 @@ try:
   import matplotlib.pyplot as plt
   plt.rcParams['figure.figsize'] = (fig_width, fig_height)
   plt.rcParams['figure.dpi'] = fig_dpi
-  plt.rcParams['savefig.dpi'] = fig_dpi
+  plt.rcParams['savefig.dpi'] = "figure"
   from IPython.display import set_matplotlib_formats
   set_matplotlib_formats(fig_format)
 except Exception:

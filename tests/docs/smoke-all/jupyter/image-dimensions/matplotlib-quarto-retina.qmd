@@ -1,0 +1,35 @@
+---
+title: Display a Retina (set by quarto) PNG Image
+format:
+   html:
+      # Only fig-format is required for retina output. It is explicit here,
+      # but it is the quarto default.
+      fig-format: retina
+      fig-dpi: 100
+      fig-width: 6
+      fig-height: 4
+
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        # This is the 600 x 400 cropped because bbox_inches="tight"
+        - ['img[width="537"][height="373"]']
+---
+
+```{python}
+import matplotlib.pyplot as plt
+import numpy as np
+
+fig, ax = plt.subplots()
+
+x = np.linspace(0, 4*np.pi, 100)
+y1 = np.sin(x)
+y2 = np.cos(x)
+
+ax.set_title("Sine and Cosine")
+ax.plot(x, y1)
+ax.plot(x, y2)
+ax.legend(['Sine', 'Cosine'])
+```
+
