@@ -1826,6 +1826,10 @@ local function version()
    end
 end
 
+local function cli_path()
+   return param('quarto-cli-path', nil)
+end
+
 local function projectProfiles()
    return param('quarto_profile', {})
 end
@@ -2089,7 +2093,8 @@ quarto = {
   json = json,
   base64 = base64,
   log = logging,
-  version = version()
+  version = version(),
+  cli_path = cli_path()
 }
 
 -- alias old names for backwards compatibility

@@ -140,6 +140,10 @@ All changes included in 1.5:
 
 - Quarto now supports raw block and raw inline elements of types `pandoc-native` and `pandoc-json`, and will use Pandoc's `native` and `json` reader to convert these elements to Pandoc's AST. This is useful in situations where emitting Markdown is not sufficient or convient enough to express the desired structure of a document.
 
+## Lua filters
+
+- ([#9572](https://github.com/quarto-dev/quarto-cli/issues/9572)): New Quarto Lua API: `quarto.cli_path` now returns the path to the Quarto CLI executable of the installation running the Lua script in quarto context.
+
 ## Other Fixes and Improvements
 
 - ([#8119](https://github.com/quarto-dev/quarto-cli/issues/8119)): More intelligently detect when ejs templates are modified during development, improving quality of life during preview.
