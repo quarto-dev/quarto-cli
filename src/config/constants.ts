@@ -750,6 +750,8 @@ export const kCellColumn = "column";
 export const kCellOutWidth = "out-width";
 export const kCellOutHeight = "out-height";
 export const kCellMdIndent = "md-indent";
+export const kCellWidth = "width";
+export const kCellHeight = "height";
 
 export const kCellColab = "colab";
 export const kCellColabType = "colab_type";
