@@ -447,14 +447,18 @@ export function synthesizeCitationUrl(
   offset?: string,
 ) {
   const siteMeta = metadata[kWebsite] as Metadata | undefined;
-  const baseUrl = siteMeta?.[kSiteUrl] as string;
+  let baseUrl = siteMeta?.[kSiteUrl] as string;
+  baseUrl = baseUrl.replace(/\/$/, "");
 
   if (baseUrl && outputFile && offset) {
     const rootDir = normalizePath(join(dirname(input), offset));
     if (outputFile === "index.html") {
-      return `${baseUrl}/${
-        pathWithForwardSlashes(relative(rootDir, dirname(input)))
-      }`;
+      const part = pathWithForwardSlashes(relative(rootDir, dirname(input)));
+      if (part.length === 0) {
+        return `${baseUrl}/`;
+      } else {
+        return `${baseUrl}/${part}/`;
+      }
     } else {
       const relativePath = relative(
         rootDir,
