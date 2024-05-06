@@ -465,11 +465,7 @@ export function synthesizeCitationUrl(
         join(dirname(input), basename(outputFile)),
       );
       const part = pathWithForwardSlashes(relativePath);
-      if (part.length === 0) {
-        return `${baseUrl}/`;
-      } else {
-        return `${baseUrl}/${part}/`;
-      }
+      return `${baseUrl}/${part}`;
     }
   } else {
     // The url is unknown
