@@ -20,6 +20,7 @@ function columns()
         noteHasColumns()
         tprepend(el.content, {latexBeginSidenote(false)})
         tappend(el.content, {latexEndSidenote(el, false)})
+        removeColumnClasses(el)
         return el
       else 
         -- convert the aside class to a column-margin class
@@ -29,6 +30,7 @@ function columns()
             return attr ~= "aside"
           end)
           tappend(el.classes, {'column-margin', 'margin-aside'})
+          removeColumnClasses(el)
           return el
         end
       end
