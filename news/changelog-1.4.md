@@ -1,6 +1,7 @@
 ## Fixed in this release
 
 - ([#9550](https://github.com/quarto-dev/quarto-cli/issues/9550)): Don't crash when subcaptions are incorrectly specified with `fig-subcap: true` but no embedded subcaptions.
+- ([#9593](https://github.com/quarto-dev/quarto-cli/issues/9593)): Fix regression with `column-margin` when used in spans in a paragraph.
 
 ## Fixed in previous releases
 
