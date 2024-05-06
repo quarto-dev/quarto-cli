@@ -75,7 +75,7 @@ All changes included in 1.5:
 - ([#9255](https://github.com/quarto-dev/quarto-cli/issues/9255)): Support cell source fields of type `string`.
 - ([#9422](https://github.com/quarto-dev/quarto-cli/issues/9422)): Improve the stream merging algorithm in output cells to avoid merging outputs that should not be merged.
 - ([#9536](https://github.com/quarto-dev/quarto-cli/issues/9536)): Provide traceback when available in Jupyter error outputs.
-- ([#9470](https://github.com/quarto-dev/quarto-cli/issues/9470)): Fix images rendered by the Jupyter engine to be displayed with the same dimensions as those in  notebooks.
+- ([#9470](https://github.com/quarto-dev/quarto-cli/issues/9470)): Fix images rendered by the Jupyter engine to be displayed with the same dimensions as those in notebooks.
 
 ## Website Listings
 
@@ -176,3 +176,4 @@ All changes included in 1.5:
 - When running `quarto check` from a development build (from a git repository), show the git commit hash in addition to the version string.
 - Upgrade Deno to 1.41.0
 - `quarto install tinytex` will now try to set the default CTAN repository to the nearest mirror resolved from https://mirror.ctan.org.
+- `quarto render --to native` now works without triggering rmarkdown error about non HTML output when HTML dependencies are present in the knitr engine cell results.
