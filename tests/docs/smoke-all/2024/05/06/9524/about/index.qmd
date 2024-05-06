@@ -3,7 +3,7 @@ title: "About"
 _quarto:
   tests:
     html:
-      ensureHtmlElements:
+      ensureFileRegexMatches:
         - ['<link rel="canonical" href="https://index.html.com/about/">']
 ---
 
