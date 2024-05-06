@@ -10,8 +10,7 @@ function columns()
 
     Div = function(el)  
       -- for any top level divs, render then
-      renderDivColumn(el)
-      return el      
+      return renderDivColumn(el) or el
     end,
 
     Span = function(el)
@@ -102,6 +101,7 @@ function renderDivColumn(el)
 
     -- see if there are any column classes
     local columnClasses = resolveColumnClasses(el)
+    local columnAttributes = resolve_column_attributes(el)
     if #columnClasses > 0 then
       noteHasColumns() 
       
@@ -170,7 +170,7 @@ function renderDivColumn(el)
             if custom ~= nil then  
               floatRefTarget = true
               removeColumnClasses(el)
-              addColumnClasses(columnClasses, custom)
+              add_column_classes_and_attributes(columnClasses, columnAttributes, custom)
             end
           end 
         end
@@ -180,7 +180,6 @@ function renderDivColumn(el)
         end
       else
 
-        
         -- this is not a code cell so process it
         if el.attr ~= nil then
           if hasTableRef(el) then
@@ -188,18 +187,45 @@ function renderDivColumn(el)
           elseif hasFigureRef(el) then
             latexWrapEnvironment(el, latexFigureEnv(el), false)
           else
-            -- Look in the div to see if it contains a figure
-            local figure = nil
-            for j=1,#el.content do
-              local contentEl = el.content[j]
-              if figure == nil then
-                figure = discoverFigure(contentEl, false)
-              end
+            -- this is likely a generic div with a column class
+            -- two cases: either there are floats inside or not
+            -- if there are floats, then we need to break those out
+            -- into "individually-wrapped" divs
+            local floatRefTargets = el.content:filter(function(contentEl)
+              return is_custom_node(contentEl, "FloatRefTarget")
+            end)
+            local nonFloatContent = el.content:filter(function(contentEl)
+              return not is_custom_node(contentEl, "FloatRefTarget")
+            end)
+            if #floatRefTargets ~= 0 and #nonFloatContent ~= 0 then
+              warn("Mixed content in a div with column classes. Margin placement will not work as expected. Consider moving the floatref targets to their own divs and using the `offset` attribute.")
             end
-            if figure ~= nil then
-              applyFigureColumns(columnClasses, figure)
-            else
+            if #floatRefTargets > 0 and #nonFloatContent == 0 then
+              warn("FloatRefTarget elements should not be the only content in a div with column classes. This will not render as expected. Consider moving the floatref targets to their own divs and using the `offset` attribute.")
+            end
+            if #floatRefTargets == 0 then
               processOtherContent(el)
+            else
+              local result = pandoc.Blocks({})
+              for i, contentEl in ipairs(el.content) do
+                if is_custom_node(contentEl, "FloatRefTarget") then
+                  -- forward the columns class from the output div
+                  -- onto the float ref target, which prevents
+                  -- the general purpose `sidenote` processing from capturing this
+                  -- element (since floats know how to deal with margin positioning)
+                  local custom = _quarto.ast.resolve_custom_data(contentEl)
+                  if custom ~= nil then  
+                    removeColumnClasses(el)
+                    add_column_classes_and_attributes(columnClasses, columnAttributes, custom)
+                    result:insert(contentEl)
+                  end
+                else
+                  local inner_div = pandoc.Div({contentEl}, pandoc.Attr("", columnClasses))
+                  processOtherContent(inner_div)
+                  result:insert(inner_div)
+                end
+              end
+              return result
             end
           end
         end
@@ -231,7 +257,7 @@ end
 function applyFigureColumns(columnClasses, figure)
   -- just ensure the classes are - they will be resolved
   -- when the latex figure is rendered
-  addColumnClasses(columnClasses, figure)
+  add_column_classes_and_attributes(columnClasses, columnAttributes, figure)
 
   -- ensure that extended figures will render this
   forceExtendedFigure(figure)  
@@ -270,6 +296,16 @@ function resolveColumnClasses(el)
   return el.classes:filter(isColumnClass)
 end
 
+function resolve_column_attributes(el)
+  local result = pandoc.List({})
+  for i, kv in ipairs(el.attributes) do
+    if is_column_attribute(kv[1]) then
+      result:insert(kv)
+    end
+  end
+  return result
+end
+
 function columnToClass(column)
   if column ~= nil then
     return 'column-' .. column[1].text
@@ -280,21 +316,33 @@ end
 
 function removeColumnClasses(el)
   if el.classes then
-    for i, clz in ipairs(el.classes) do 
-      if isColumnClass(clz) then
-        el.classes:remove(i)
-      end
-    end  
+    el.classes = el.classes:filter(notColumnClass)
   end
 end
 
-function addColumnClasses(classes, toEl) 
+function remove_column_attributes(el)
+  if el.attributes then
+    for k, v in pairs(el.attributes) do
+      if is_column_attribute(k) then
+        el.attributes[k] = nil
+      end
+    end
+  end
+end
+
+function add_column_classes_and_attributes(classes, attributes, toEl) 
   removeColumnClasses(toEl)
+  remove_column_attributes(toEl)
   for i, clz in ipairs(classes) do 
     if isColumnClass(clz) then
       toEl.classes:insert(clz)
     end
-  end  
+  end
+  for i, kv in ipairs(attributes) do
+    if is_column_attribute(kv[1]) then
+      toEl.attributes[kv[1]] = kv[2]
+    end
+  end
 end
 
 function removeCaptionClasses(el)
@@ -331,4 +379,8 @@ function isColumnClass(clz)
   else
     return clz:match('^column%-')
   end
+end
+
+function is_column_attribute(key)
+  return key == 'offset'
 end
