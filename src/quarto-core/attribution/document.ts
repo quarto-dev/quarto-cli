@@ -448,9 +448,9 @@ export function synthesizeCitationUrl(
 ) {
   const siteMeta = metadata[kWebsite] as Metadata | undefined;
   let baseUrl = siteMeta?.[kSiteUrl] as string;
-  baseUrl = baseUrl.replace(/\/$/, "");
 
   if (baseUrl && outputFile && offset) {
+    baseUrl = baseUrl.replace(/\/$/, "");
     const rootDir = normalizePath(join(dirname(input), offset));
     if (outputFile === "index.html") {
       const part = pathWithForwardSlashes(relative(rootDir, dirname(input)));
