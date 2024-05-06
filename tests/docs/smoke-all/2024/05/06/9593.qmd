@@ -1,0 +1,16 @@
+---
+title: "A Quarto Page Layout Example"
+subtitle: "Inspired by Tufte Handout, Using Quarto"
+date: today
+format: latex
+reference-location: margin
+citation-location: margin
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - ["begin{footnotesize}.*begin{footnotesize}"]
+---
+
+[This is a span that has the class `column-margin` which places it in the margin without the sidenote mark.]{.column-margin} If you'd like to place ancillary information in the margin without the sidenote mark (the superscript number), you can use apply the `column-margin` class to the element.
