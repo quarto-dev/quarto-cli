@@ -86,6 +86,7 @@ import {
   kCellFigScap,
   kCellFigSubCap,
   kCellFormat,
+  kCellHeight,
   kCellId,
   kCellLabel,
   kCellLanguage,
@@ -101,6 +102,7 @@ import {
   kCellSlideshow,
   kCellSlideshowSlideType,
   kCellTblColumn,
+  kCellWidth,
   kCodeFold,
   kCodeLineNumbers,
   kCodeOverflow,
@@ -1909,11 +1911,14 @@ function mdImageOutput(
   const metadata = output.metadata[mimeType];
 
   // attributes (e.g. width/height/alt)
-  function metadataValue<T>(key: string, defaultValue: T) {
-    return metadata && metadata[key] ? metadata["key"] as T : defaultValue;
+  function metadataValue<T>(key: string, defaultValue?: T) {
+    if (metadata) {
+      return metadata[key] ? metadata[key] as T : defaultValue;
+    }
+    return defaultValue;
   }
-  let width = metadataValue(kCellOutWidth, 0);
-  let height = metadataValue(kCellOutHeight, 0);
+  let width = metadataValue(kCellOutWidth) ?? metadataValue(kCellWidth, 0);
+  let height = metadataValue(kCellOutHeight) ?? metadataValue(kCellHeight, 0);
   const alt = caption || "";
 
   // calculate output file name

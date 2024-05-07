@@ -20178,6 +20178,7 @@ try {
             long: "The maximum length (in characters) of the description displayed in\nthe listing. Defaults to 175."
           },
           "The default image to use if an item in the listing doesn\u2019t have an\nimage.",
+          "If false, images in the listing will be loaded immediately. If true,\nimages will be loaded as they come into view.",
           "In <code>default</code> type listings, whether to place the image on\nthe right or left side of the post content (<code>left</code> or\n<code>right</code>).",
           {
             short: "The height of the image being displayed.",
@@ -22097,680 +22098,680 @@ try {
           "The height of the preview image for this document.",
           "The width of the preview image for this document.",
           "The alt text for preview image on this page.",
-          "Project configuration.",
-          "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
-          "Files to render (defaults to all files)",
-          {
-            short: "Working directory for computations",
-            long: "Control the working directory for computations."
-          },
-          "Output directory",
-          "HTML library (JS/CSS/etc.) directory",
-          "Additional file resources to be copied to output directory",
-          "Additional file resources to be copied to output directory",
-          "Options for <code>quarto preview</code>",
-          "Scripts to run as a pre-render step",
-          "Scripts to run as a post-render step",
-          "Array of paths used to detect the project type within a directory",
-          "Website configuration.",
-          "Book configuration.",
-          "Book title",
-          "Description metadata for HTML version of book",
-          "The path to the favicon for this website",
-          "Base URL for published website",
-          "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
-          "Base URL for website source code repository",
-          "The value of the target attribute for repo links",
-          "The value of the rel attribute for repo links",
-          "Subdirectory of repository containing website",
-          "Branch of website source code (defaults to <code>main</code>)",
-          "URL to use for the \u2018report an issue\u2019 repository action.",
-          {
-            short: "Links to source repository actions",
-            long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
-          },
-          {
-            short: "Links to source repository actions",
-            long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
-          },
-          "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
-          "Enable Google Analytics for this website",
-          "The Google tracking Id or measurement Id of this website.",
-          {
-            short: "Storage options for Google Analytics data",
-            long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
-          },
-          {
-            short: "Anonymize the user ip address.",
-            long: 'Anonymize the user ip address. For more about this feature, see <a href="https://support.google.com/analytics/answer/2763052?hl=en">IP\nAnonymization (or IP masking) in Google Analytics</a>.'
-          },
-          {
-            short: "The version number of Google Analytics to use.",
-            long: "The version number of Google Analytics to use."
-          },
-          "Provides an announcement displayed at the top of the page.",
-          "The content of the announcement",
-          "Whether this announcement may be dismissed by the user.",
-          "The icon to display in the annoucement",
-          "The position of the announcement.",
-          "The type of announcement. Affects the appearance of the\nannouncement.",
-          {
-            short: "Request cookie consent before enabling scripts that set cookies",
-            long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
-          },
-          {
-            short: "The type of consent that should be requested",
-            long: "The type of consent that should be requested, using one of these two\nvalues:"
-          },
-          {
-            short: "The style of the consent banner that is displayed",
-            long: "The style of the consent banner that is displayed:"
-          },
-          "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
-          "The url to the website\u2019s cookie or privacy policy.",
-          {
-            short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
-            long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
-          },
-          {
-            short: "The text to display for the cookie preferences link in the website\nfooter.",
-            long: ""
-          },
-          "Provide full text search for website",
-          "Location for search widget (<code>navbar</code> or\n<code>sidebar</code>)",
-          "Type of search UI (<code>overlay</code> or <code>textbox</code>)",
-          "Number of matches to display (defaults to 20)",
-          "Matches after which to collapse additional results",
-          "Provide button for copying search link",
-          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
-          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
-          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
-          "Use external Algolia search index",
-          "The name of the index to use when performing a search",
-          "The unique ID used by Algolia to identify your application",
-          "The Search-Only API key to use to connect to Algolia",
-          "Enable tracking of Algolia analytics events",
-          "Enable the display of the Algolia logo in the search results\nfooter.",
-          "Field that contains the URL of index entries",
-          "Field that contains the title of index entries",
-          "Field that contains the text of index entries",
-          "Field that contains the section of index entries",
-          "Additional parameters to pass when executing a search",
-          "Top navigation options",
-          "The navbar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed to the left of the\ntitle.",
-          "Alternate text for the logo image.",
-          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
-          "The navbar\u2019s background color (named or hex color).",
-          "The navbar\u2019s foreground color (named or hex color).",
-          "Include a search box in the navbar.",
-          "Always show the navbar (keeping it pinned).",
-          "Collapse the navbar into a menu when the display becomes narrow.",
-          "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
-          "List of items for the left side of the navbar.",
-          "List of items for the right side of the navbar.",
-          "The position of the collapsed navbar toggle when in responsive\nmode",
-          "Collapse tools into the navbar menu when the display becomes\nnarrow.",
-          "Side navigation options",
-          "The identifier for this sidebar.",
-          "The sidebar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed in the sidebar.",
-          "Alternate text for the logo image.",
-          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
-          "Include a search control in the sidebar.",
-          "List of sidebar tools",
-          "List of items for the sidebar",
-          "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
-          "The sidebar\u2019s background color (named or hex color).",
-          "The sidebar\u2019s foreground color (named or hex color).",
-          "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
-          "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
-          "The depth at which the sidebar contents should be collapsed by\ndefault.",
-          "When collapsed, pin the collapsed sidebar to the top of the page.",
-          "Markdown to place above sidebar content (text or file path)",
-          "Markdown to place below sidebar content (text or file path)",
-          "The identifier for this sidebar.",
-          "The sidebar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed in the sidebar.",
-          "Alternate text for the logo image.",
-          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
-          "Include a search control in the sidebar.",
-          "List of sidebar tools",
-          "List of items for the sidebar",
-          "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
-          "The sidebar\u2019s background color (named or hex color).",
-          "The sidebar\u2019s foreground color (named or hex color).",
-          "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
-          "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
-          "The depth at which the sidebar contents should be collapsed by\ndefault.",
-          "When collapsed, pin the collapsed sidebar to the top of the page.",
-          "Markdown to place above sidebar content (text or file path)",
-          "Markdown to place below sidebar content (text or file path)",
-          "Markdown to insert at the beginning of each page\u2019s body (below the\ntitle and author block).",
-          "Markdown to insert below each page\u2019s body.",
-          "Markdown to place above margin content (text or file path)",
-          "Markdown to place below margin content (text or file path)",
-          "Provide next and previous article links in footer",
-          "Provide a \u2018back to top\u2019 navigation button",
-          "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
-          "Shared page footer",
-          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
-          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
-          "Publish open graph metadata",
-          "Publish twitter card metadata",
-          "A list of other links to appear below the TOC.",
-          "A list of code links to appear with this document.",
-          "A list of input documents that should be treated as drafts",
-          {
-            short: "How to handle drafts that are encountered.",
-            long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
-          },
-          "Book subtitle",
-          "Author or authors of the book",
-          "Author or authors of the book",
-          "Book publication date",
-          "Format string for dates in the book",
-          "Book abstract",
-          "Book part and chapter files",
-          "Book appendix files",
-          "Book references file",
-          "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
-          "Cover image (used in HTML and ePub formats)",
-          "Alternative text for cover image (used in HTML format)",
-          "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
-          "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
-          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
-          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
-          "Custom tools for navbar or sidebar",
-          "The Digital Object Identifier for this book.",
-          "A url to the abstract for this item.",
-          "Date the item has been accessed.",
-          {
-            short: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
-            long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead"
-          },
-          "Archive storing the item",
-          "Collection the item is part of within an archive.",
-          "Storage location within an archive (e.g.&nbsp;a box and folder\nnumber).",
-          "Geographic location of the archive.",
-          "Issuing or judicial authority (e.g.&nbsp;\u201CUSPTO\u201D for a patent, \u201CFairfax\nCircuit Court\u201D for a legal case).",
-          {
-            short: "Date the item was initially available",
-            long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing)."
-          },
-          "Call number (to locate the item in a library).",
-          "The person leading the session containing a presentation (e.g.&nbsp;the\norganizer of the <code>container-title</code> of a\n<code>speech</code>).",
-          "Chapter number (e.g.&nbsp;chapter number in a book; track number on an\nalbum).",
-          {
-            short: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
-            long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead"
-          },
-          {
-            short: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
-            long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead"
-          },
-          "Index (starting at 1) of the cited reference in the bibliography\n(generated by the CSL processor).",
-          "Editor of the collection holding the item (e.g.&nbsp;the series editor for\na book).",
-          "Number identifying the collection holding the item (e.g.&nbsp;the series\nnumber for a book)",
-          "Title of the collection holding the item (e.g.&nbsp;the series title for a\nbook; the lecture series title for a presentation).",
-          "Person compiling or selecting material for an item from the works of\nvarious persons or bodies (e.g.&nbsp;for an anthology).",
-          "Composer (e.g.&nbsp;of a musical score).",
-          "Author of the container holding the item (e.g.&nbsp;the book author for a\nbook chapter).",
-          {
-            short: "Title of the container holding the item.",
-            long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)"
-          },
-          "Short/abbreviated form of container-title;",
-          "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
-          "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
-          "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
-          "Director (e.g.&nbsp;of a film).",
-          "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
-          "(Container) edition holding the item (e.g.&nbsp;\u201C3\u201D when citing a chapter\nin the third edition of a book).",
-          "The editor of the item.",
-          "Managing editor (\u201CDirecteur de la Publication\u201D in French).",
-          {
-            short: "Combined editor and translator of a work.",
-            long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data."
-          },
-          "Date the event related to an item took place.",
-          "Name of the event related to the item (e.g.&nbsp;the conference name when\nciting a conference paper; the meeting where presentation was made).",
-          "Geographic location of the event related to the item\n(e.g.&nbsp;\u201CAmsterdam, The Netherlands\u201D).",
-          "Executive producer of the item (e.g.&nbsp;of a television series).",
-          {
-            short: "Number of a preceding note containing the first reference to the\nitem.",
-            long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document"
-          },
-          "A url to the full text for this item.",
-          {
-            short: "Type, class, or subtype of the item",
-            long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
-          },
-          "Guest (e.g.&nbsp;on a TV show or podcast).",
-          "Host of the item (e.g.&nbsp;of a TV show or podcast).",
-          "A value which uniquely identifies this item.",
-          "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
-          "Interviewer (e.g.&nbsp;of an interview).",
-          "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
-          "International Standard Serial Number.",
-          {
-            short: "Issue number of the item or container holding the item",
-            long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any."
-          },
-          "Date the item was issued/published.",
-          "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
-          "Keyword(s) or tag(s) attached to the item.",
-          {
-            short: "The language of the item (used only for citation of the item).",
-            long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
-          },
-          {
-            short: "The license information applicable to an item.",
-            long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)"
-          },
-          {
-            short: "A cite-specific pinpointer within the item.",
-            long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list)."
-          },
-          "Description of the item\u2019s format or medium (e.g.&nbsp;\u201CCD\u201D, \u201CDVD\u201D,\n\u201CAlbum\u201D, etc.)",
-          "Narrator (e.g.&nbsp;of an audio book).",
-          "Descriptive text or notes about an item (e.g.&nbsp;in an annotated\nbibliography).",
-          "Number identifying the item (e.g.&nbsp;a report number).",
-          "Total number of pages of the cited item.",
-          "Total number of volumes, used when citing multi-volume books and\nsuch.",
-          "Organizer of an event (e.g.&nbsp;organizer of a workshop or\nconference).",
-          {
-            short: "The original creator of a work.",
-            long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)"
-          },
-          "Issue date of the original version.",
-          "Original publisher, for items that have been republished by a\ndifferent publisher.",
-          "Geographic location of the original publisher (e.g.&nbsp;\u201CLondon,\nUK\u201D).",
-          "Title of the original version (e.g.&nbsp;\u201C\u0412\u043E\u0439\u043D\u0430 \u0438 \u043C\u0438\u0440\u201D, the untranslated\nRussian title of \u201CWar and Peace\u201D).",
-          "Range of pages the item (e.g.&nbsp;a journal article) covers in a\ncontainer (e.g.&nbsp;a journal issue).",
-          "First page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
-          "Last page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
-          {
-            short: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
-            long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any."
-          },
-          "Title of the specific part of an item being cited.",
-          "A url to the pdf for this item.",
-          "Performer of an item (e.g.&nbsp;an actor appearing in a film; a muscian\nperforming a piece of music).",
-          "PubMed Central reference number.",
-          "PubMed reference number.",
-          "Printing number of the item or container holding the item.",
-          "Producer (e.g.&nbsp;of a television or radio broadcast).",
-          "A public url for this item.",
-          "The publisher of the item.",
-          "The geographic location of the publisher.",
-          "Recipient (e.g.&nbsp;of a letter).",
-          "Author of the item reviewed by the current item.",
-          "Type of the item being reviewed by the current item (e.g.&nbsp;book,\nfilm).",
-          "Title of the item reviewed by the current item.",
-          "Scale of e.g.&nbsp;a map or model.",
-          "Writer of a script or screenplay (e.g.&nbsp;of a film).",
-          "Section of the item or container holding the item (e.g.&nbsp;\u201C\xA72.0.1\u201D for\na law; \u201Cpolitics\u201D for a newspaper article).",
-          "Creator of a series (e.g.&nbsp;of a television series).",
-          "Source from whence the item originates (e.g.&nbsp;a library catalog or\ndatabase).",
-          "Publication status of the item (e.g.&nbsp;\u201Cforthcoming\u201D; \u201Cin press\u201D;\n\u201Cadvance online publication\u201D; \u201Cretracted\u201D)",
-          "Date the item (e.g.&nbsp;a manuscript) was submitted for publication.",
-          "Supplement number of the item or container holding the item (e.g.&nbsp;for\nsecondary legal items that are regularly updated between editions).",
-          "Short/abbreviated form of<code>title</code>.",
-          "Translator",
-          'The <a href="https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types">type</a>\nof the item.',
-          "Uniform Resource Locator\n(e.g.&nbsp;\u201Chttps://aem.asm.org/cgi/content/full/74/9/2766\u201D)",
-          "Version of the item (e.g.&nbsp;\u201C2.0.9\u201D for a software program).",
-          {
-            short: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
-            long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany."
-          },
-          {
-            short: "Title of the volume of the item or container holding the item.",
-            long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
-          },
-          "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "Manuscript configuration",
-          "internal-schema-hack",
-          "Project configuration.",
-          "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
-          "Files to render (defaults to all files)",
-          {
-            short: "Working directory for computations",
-            long: "Control the working directory for computations."
-          },
-          "Output directory",
-          "HTML library (JS/CSS/etc.) directory",
-          "Additional file resources to be copied to output directory",
-          "Additional file resources to be copied to output directory",
-          "Options for <code>quarto preview</code>",
-          "Scripts to run as a pre-render step",
-          "Scripts to run as a post-render step",
-          "Array of paths used to detect the project type within a directory",
-          "Website configuration.",
-          "Book configuration.",
-          "Book title",
-          "Description metadata for HTML version of book",
-          "The path to the favicon for this website",
-          "Base URL for published website",
-          "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
-          "Base URL for website source code repository",
-          "The value of the target attribute for repo links",
-          "The value of the rel attribute for repo links",
-          "Subdirectory of repository containing website",
-          "Branch of website source code (defaults to <code>main</code>)",
-          "URL to use for the \u2018report an issue\u2019 repository action.",
-          {
-            short: "Links to source repository actions",
-            long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
-          },
-          {
-            short: "Links to source repository actions",
-            long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
-          },
-          "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
-          "Enable Google Analytics for this website",
-          "The Google tracking Id or measurement Id of this website.",
-          {
-            short: "Storage options for Google Analytics data",
-            long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
-          },
-          {
-            short: "Anonymize the user ip address.",
-            long: 'Anonymize the user ip address. For more about this feature, see <a href="https://support.google.com/analytics/answer/2763052?hl=en">IP\nAnonymization (or IP masking) in Google Analytics</a>.'
-          },
-          {
-            short: "The version number of Google Analytics to use.",
-            long: "The version number of Google Analytics to use."
-          },
-          "Provides an announcement displayed at the top of the page.",
-          "The content of the announcement",
-          "Whether this announcement may be dismissed by the user.",
-          "The icon to display in the annoucement",
-          "The position of the announcement.",
-          "The type of announcement. Affects the appearance of the\nannouncement.",
-          {
-            short: "Request cookie consent before enabling scripts that set cookies",
-            long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
-          },
-          {
-            short: "The type of consent that should be requested",
-            long: "The type of consent that should be requested, using one of these two\nvalues:"
-          },
-          {
-            short: "The style of the consent banner that is displayed",
-            long: "The style of the consent banner that is displayed:"
-          },
-          "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
-          "The url to the website\u2019s cookie or privacy policy.",
-          {
-            short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
-            long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
-          },
-          {
-            short: "The text to display for the cookie preferences link in the website\nfooter.",
-            long: ""
-          },
-          "Provide full text search for website",
-          "Location for search widget (<code>navbar</code> or\n<code>sidebar</code>)",
-          "Type of search UI (<code>overlay</code> or <code>textbox</code>)",
-          "Number of matches to display (defaults to 20)",
-          "Matches after which to collapse additional results",
-          "Provide button for copying search link",
-          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
-          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
-          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
-          "Use external Algolia search index",
-          "The name of the index to use when performing a search",
-          "The unique ID used by Algolia to identify your application",
-          "The Search-Only API key to use to connect to Algolia",
-          "Enable tracking of Algolia analytics events",
-          "Enable the display of the Algolia logo in the search results\nfooter.",
-          "Field that contains the URL of index entries",
-          "Field that contains the title of index entries",
-          "Field that contains the text of index entries",
-          "Field that contains the section of index entries",
-          "Additional parameters to pass when executing a search",
-          "Top navigation options",
-          "The navbar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed to the left of the\ntitle.",
-          "Alternate text for the logo image.",
-          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
-          "The navbar\u2019s background color (named or hex color).",
-          "The navbar\u2019s foreground color (named or hex color).",
-          "Include a search box in the navbar.",
-          "Always show the navbar (keeping it pinned).",
-          "Collapse the navbar into a menu when the display becomes narrow.",
-          "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
-          "List of items for the left side of the navbar.",
-          "List of items for the right side of the navbar.",
-          "The position of the collapsed navbar toggle when in responsive\nmode",
-          "Collapse tools into the navbar menu when the display becomes\nnarrow.",
-          "Side navigation options",
-          "The identifier for this sidebar.",
-          "The sidebar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed in the sidebar.",
-          "Alternate text for the logo image.",
-          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
-          "Include a search control in the sidebar.",
-          "List of sidebar tools",
-          "List of items for the sidebar",
-          "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
-          "The sidebar\u2019s background color (named or hex color).",
-          "The sidebar\u2019s foreground color (named or hex color).",
-          "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
-          "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
-          "The depth at which the sidebar contents should be collapsed by\ndefault.",
-          "When collapsed, pin the collapsed sidebar to the top of the page.",
-          "Markdown to place above sidebar content (text or file path)",
-          "Markdown to place below sidebar content (text or file path)",
-          "The identifier for this sidebar.",
-          "The sidebar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed in the sidebar.",
-          "Alternate text for the logo image.",
-          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
-          "Include a search control in the sidebar.",
-          "List of sidebar tools",
-          "List of items for the sidebar",
-          "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
-          "The sidebar\u2019s background color (named or hex color).",
-          "The sidebar\u2019s foreground color (named or hex color).",
-          "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
-          "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
-          "The depth at which the sidebar contents should be collapsed by\ndefault.",
-          "When collapsed, pin the collapsed sidebar to the top of the page.",
-          "Markdown to place above sidebar content (text or file path)",
-          "Markdown to place below sidebar content (text or file path)",
-          "Markdown to insert at the beginning of each page\u2019s body (below the\ntitle and author block).",
-          "Markdown to insert below each page\u2019s body.",
-          "Markdown to place above margin content (text or file path)",
-          "Markdown to place below margin content (text or file path)",
-          "Provide next and previous article links in footer",
-          "Provide a \u2018back to top\u2019 navigation button",
-          "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
-          "Shared page footer",
-          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
-          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
-          "Publish open graph metadata",
-          "Publish twitter card metadata",
-          "A list of other links to appear below the TOC.",
-          "A list of code links to appear with this document.",
-          "A list of input documents that should be treated as drafts",
-          {
-            short: "How to handle drafts that are encountered.",
-            long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
-          },
-          "Book subtitle",
-          "Author or authors of the book",
-          "Author or authors of the book",
-          "Book publication date",
-          "Format string for dates in the book",
-          "Book abstract",
-          "Book part and chapter files",
-          "Book appendix files",
-          "Book references file",
-          "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
-          "Cover image (used in HTML and ePub formats)",
-          "Alternative text for cover image (used in HTML format)",
-          "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
-          "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
-          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
-          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
-          "Custom tools for navbar or sidebar",
-          "The Digital Object Identifier for this book.",
-          "A url to the abstract for this item.",
-          "Date the item has been accessed.",
-          {
-            short: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
-            long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead"
-          },
-          "Archive storing the item",
-          "Collection the item is part of within an archive.",
-          "Storage location within an archive (e.g.&nbsp;a box and folder\nnumber).",
-          "Geographic location of the archive.",
-          "Issuing or judicial authority (e.g.&nbsp;\u201CUSPTO\u201D for a patent, \u201CFairfax\nCircuit Court\u201D for a legal case).",
-          {
-            short: "Date the item was initially available",
-            long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing)."
-          },
-          "Call number (to locate the item in a library).",
-          "The person leading the session containing a presentation (e.g.&nbsp;the\norganizer of the <code>container-title</code> of a\n<code>speech</code>).",
-          "Chapter number (e.g.&nbsp;chapter number in a book; track number on an\nalbum).",
-          {
-            short: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
-            long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead"
-          },
-          {
-            short: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
-            long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead"
-          },
-          "Index (starting at 1) of the cited reference in the bibliography\n(generated by the CSL processor).",
-          "Editor of the collection holding the item (e.g.&nbsp;the series editor for\na book).",
-          "Number identifying the collection holding the item (e.g.&nbsp;the series\nnumber for a book)",
-          "Title of the collection holding the item (e.g.&nbsp;the series title for a\nbook; the lecture series title for a presentation).",
-          "Person compiling or selecting material for an item from the works of\nvarious persons or bodies (e.g.&nbsp;for an anthology).",
-          "Composer (e.g.&nbsp;of a musical score).",
-          "Author of the container holding the item (e.g.&nbsp;the book author for a\nbook chapter).",
-          {
-            short: "Title of the container holding the item.",
-            long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)"
-          },
-          "Short/abbreviated form of container-title;",
-          "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
-          "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
-          "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
-          "Director (e.g.&nbsp;of a film).",
-          "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
-          "(Container) edition holding the item (e.g.&nbsp;\u201C3\u201D when citing a chapter\nin the third edition of a book).",
-          "The editor of the item.",
-          "Managing editor (\u201CDirecteur de la Publication\u201D in French).",
-          {
-            short: "Combined editor and translator of a work.",
-            long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data."
-          },
-          "Date the event related to an item took place.",
-          "Name of the event related to the item (e.g.&nbsp;the conference name when\nciting a conference paper; the meeting where presentation was made).",
-          "Geographic location of the event related to the item\n(e.g.&nbsp;\u201CAmsterdam, The Netherlands\u201D).",
-          "Executive producer of the item (e.g.&nbsp;of a television series).",
-          {
-            short: "Number of a preceding note containing the first reference to the\nitem.",
-            long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document"
-          },
-          "A url to the full text for this item.",
-          {
-            short: "Type, class, or subtype of the item",
-            long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
-          },
-          "Guest (e.g.&nbsp;on a TV show or podcast).",
-          "Host of the item (e.g.&nbsp;of a TV show or podcast).",
-          "A value which uniquely identifies this item.",
-          "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
-          "Interviewer (e.g.&nbsp;of an interview).",
-          "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
-          "International Standard Serial Number.",
-          {
-            short: "Issue number of the item or container holding the item",
-            long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any."
-          },
-          "Date the item was issued/published.",
-          "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
-          "Keyword(s) or tag(s) attached to the item.",
-          {
-            short: "The language of the item (used only for citation of the item).",
-            long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
-          },
-          {
-            short: "The license information applicable to an item.",
-            long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)"
-          },
-          {
-            short: "A cite-specific pinpointer within the item.",
-            long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list)."
-          },
-          "Description of the item\u2019s format or medium (e.g.&nbsp;\u201CCD\u201D, \u201CDVD\u201D,\n\u201CAlbum\u201D, etc.)",
-          "Narrator (e.g.&nbsp;of an audio book).",
-          "Descriptive text or notes about an item (e.g.&nbsp;in an annotated\nbibliography).",
-          "Number identifying the item (e.g.&nbsp;a report number).",
-          "Total number of pages of the cited item.",
-          "Total number of volumes, used when citing multi-volume books and\nsuch.",
-          "Organizer of an event (e.g.&nbsp;organizer of a workshop or\nconference).",
-          {
-            short: "The original creator of a work.",
-            long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)"
-          },
-          "Issue date of the original version.",
-          "Original publisher, for items that have been republished by a\ndifferent publisher.",
-          "Geographic location of the original publisher (e.g.&nbsp;\u201CLondon,\nUK\u201D).",
-          "Title of the original version (e.g.&nbsp;\u201C\u0412\u043E\u0439\u043D\u0430 \u0438 \u043C\u0438\u0440\u201D, the untranslated\nRussian title of \u201CWar and Peace\u201D).",
-          "Range of pages the item (e.g.&nbsp;a journal article) covers in a\ncontainer (e.g.&nbsp;a journal issue).",
-          "First page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
-          "Last page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
-          {
-            short: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
-            long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any."
-          },
-          "Title of the specific part of an item being cited.",
-          "A url to the pdf for this item.",
-          "Performer of an item (e.g.&nbsp;an actor appearing in a film; a muscian\nperforming a piece of music).",
-          "PubMed Central reference number.",
-          "PubMed reference number.",
-          "Printing number of the item or container holding the item.",
-          "Producer (e.g.&nbsp;of a television or radio broadcast).",
-          "A public url for this item.",
-          "The publisher of the item.",
-          "The geographic location of the publisher.",
-          "Recipient (e.g.&nbsp;of a letter).",
-          "Author of the item reviewed by the current item.",
-          "Type of the item being reviewed by the current item (e.g.&nbsp;book,\nfilm).",
-          "Title of the item reviewed by the current item.",
-          "Scale of e.g.&nbsp;a map or model.",
-          "Writer of a script or screenplay (e.g.&nbsp;of a film).",
-          "Section of the item or container holding the item (e.g.&nbsp;\u201C\xA72.0.1\u201D for\na law; \u201Cpolitics\u201D for a newspaper article).",
-          "Creator of a series (e.g.&nbsp;of a television series).",
-          "Source from whence the item originates (e.g.&nbsp;a library catalog or\ndatabase).",
-          "Publication status of the item (e.g.&nbsp;\u201Cforthcoming\u201D; \u201Cin press\u201D;\n\u201Cadvance online publication\u201D; \u201Cretracted\u201D)",
-          "Date the item (e.g.&nbsp;a manuscript) was submitted for publication.",
-          "Supplement number of the item or container holding the item (e.g.&nbsp;for\nsecondary legal items that are regularly updated between editions).",
-          "Short/abbreviated form of<code>title</code>.",
-          "Translator",
-          'The <a href="https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types">type</a>\nof the item.',
-          "Uniform Resource Locator\n(e.g.&nbsp;\u201Chttps://aem.asm.org/cgi/content/full/74/9/2766\u201D)",
-          "Version of the item (e.g.&nbsp;\u201C2.0.9\u201D for a software program).",
-          {
-            short: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
-            long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany."
-          },
-          {
-            short: "Title of the volume of the item or container holding the item.",
-            long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
-          },
-          "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "Manuscript configuration",
-          "internal-schema-hack",
           {
             short: "If true, the preview image will only load when it comes into\nview.",
             long: 'Enables lazy loading for the preview image. If true, the preview\nimage element will have <code>loading="lazy"</code>, and will only load\nwhen it comes into view.\nIf false, the preview image will load immediately.'
-          }
+          },
+          "Project configuration.",
+          "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
+          "Files to render (defaults to all files)",
+          {
+            short: "Working directory for computations",
+            long: "Control the working directory for computations."
+          },
+          "Output directory",
+          "HTML library (JS/CSS/etc.) directory",
+          "Additional file resources to be copied to output directory",
+          "Additional file resources to be copied to output directory",
+          "Options for <code>quarto preview</code>",
+          "Scripts to run as a pre-render step",
+          "Scripts to run as a post-render step",
+          "Array of paths used to detect the project type within a directory",
+          "Website configuration.",
+          "Book configuration.",
+          "Book title",
+          "Description metadata for HTML version of book",
+          "The path to the favicon for this website",
+          "Base URL for published website",
+          "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
+          "Base URL for website source code repository",
+          "The value of the target attribute for repo links",
+          "The value of the rel attribute for repo links",
+          "Subdirectory of repository containing website",
+          "Branch of website source code (defaults to <code>main</code>)",
+          "URL to use for the \u2018report an issue\u2019 repository action.",
+          {
+            short: "Links to source repository actions",
+            long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          },
+          {
+            short: "Links to source repository actions",
+            long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          },
+          "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+          "Enable Google Analytics for this website",
+          "The Google tracking Id or measurement Id of this website.",
+          {
+            short: "Storage options for Google Analytics data",
+            long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
+          },
+          {
+            short: "Anonymize the user ip address.",
+            long: 'Anonymize the user ip address. For more about this feature, see <a href="https://support.google.com/analytics/answer/2763052?hl=en">IP\nAnonymization (or IP masking) in Google Analytics</a>.'
+          },
+          {
+            short: "The version number of Google Analytics to use.",
+            long: "The version number of Google Analytics to use."
+          },
+          "Provides an announcement displayed at the top of the page.",
+          "The content of the announcement",
+          "Whether this announcement may be dismissed by the user.",
+          "The icon to display in the annoucement",
+          "The position of the announcement.",
+          "The type of announcement. Affects the appearance of the\nannouncement.",
+          {
+            short: "Request cookie consent before enabling scripts that set cookies",
+            long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
+          },
+          {
+            short: "The type of consent that should be requested",
+            long: "The type of consent that should be requested, using one of these two\nvalues:"
+          },
+          {
+            short: "The style of the consent banner that is displayed",
+            long: "The style of the consent banner that is displayed:"
+          },
+          "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
+          "The url to the website\u2019s cookie or privacy policy.",
+          {
+            short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+            long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+          },
+          {
+            short: "The text to display for the cookie preferences link in the website\nfooter.",
+            long: ""
+          },
+          "Provide full text search for website",
+          "Location for search widget (<code>navbar</code> or\n<code>sidebar</code>)",
+          "Type of search UI (<code>overlay</code> or <code>textbox</code>)",
+          "Number of matches to display (defaults to 20)",
+          "Matches after which to collapse additional results",
+          "Provide button for copying search link",
+          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
+          "Use external Algolia search index",
+          "The name of the index to use when performing a search",
+          "The unique ID used by Algolia to identify your application",
+          "The Search-Only API key to use to connect to Algolia",
+          "Enable tracking of Algolia analytics events",
+          "Enable the display of the Algolia logo in the search results\nfooter.",
+          "Field that contains the URL of index entries",
+          "Field that contains the title of index entries",
+          "Field that contains the text of index entries",
+          "Field that contains the section of index entries",
+          "Additional parameters to pass when executing a search",
+          "Top navigation options",
+          "The navbar title. Uses the project title if none is specified.",
+          "Path to a logo image that will be displayed to the left of the\ntitle.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
+          "The navbar\u2019s background color (named or hex color).",
+          "The navbar\u2019s foreground color (named or hex color).",
+          "Include a search box in the navbar.",
+          "Always show the navbar (keeping it pinned).",
+          "Collapse the navbar into a menu when the display becomes narrow.",
+          "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
+          "List of items for the left side of the navbar.",
+          "List of items for the right side of the navbar.",
+          "The position of the collapsed navbar toggle when in responsive\nmode",
+          "Collapse tools into the navbar menu when the display becomes\nnarrow.",
+          "Side navigation options",
+          "The identifier for this sidebar.",
+          "The sidebar title. Uses the project title if none is specified.",
+          "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
+          "Include a search control in the sidebar.",
+          "List of sidebar tools",
+          "List of items for the sidebar",
+          "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
+          "The sidebar\u2019s background color (named or hex color).",
+          "The sidebar\u2019s foreground color (named or hex color).",
+          "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
+          "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
+          "The depth at which the sidebar contents should be collapsed by\ndefault.",
+          "When collapsed, pin the collapsed sidebar to the top of the page.",
+          "Markdown to place above sidebar content (text or file path)",
+          "Markdown to place below sidebar content (text or file path)",
+          "The identifier for this sidebar.",
+          "The sidebar title. Uses the project title if none is specified.",
+          "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
+          "Include a search control in the sidebar.",
+          "List of sidebar tools",
+          "List of items for the sidebar",
+          "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
+          "The sidebar\u2019s background color (named or hex color).",
+          "The sidebar\u2019s foreground color (named or hex color).",
+          "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
+          "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
+          "The depth at which the sidebar contents should be collapsed by\ndefault.",
+          "When collapsed, pin the collapsed sidebar to the top of the page.",
+          "Markdown to place above sidebar content (text or file path)",
+          "Markdown to place below sidebar content (text or file path)",
+          "Markdown to insert at the beginning of each page\u2019s body (below the\ntitle and author block).",
+          "Markdown to insert below each page\u2019s body.",
+          "Markdown to place above margin content (text or file path)",
+          "Markdown to place below margin content (text or file path)",
+          "Provide next and previous article links in footer",
+          "Provide a \u2018back to top\u2019 navigation button",
+          "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
+          "Shared page footer",
+          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
+          "Publish open graph metadata",
+          "Publish twitter card metadata",
+          "A list of other links to appear below the TOC.",
+          "A list of code links to appear with this document.",
+          "A list of input documents that should be treated as drafts",
+          {
+            short: "How to handle drafts that are encountered.",
+            long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
+          },
+          "Book subtitle",
+          "Author or authors of the book",
+          "Author or authors of the book",
+          "Book publication date",
+          "Format string for dates in the book",
+          "Book abstract",
+          "Book part and chapter files",
+          "Book appendix files",
+          "Book references file",
+          "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+          "Cover image (used in HTML and ePub formats)",
+          "Alternative text for cover image (used in HTML format)",
+          "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
+          "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
+          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
+          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
+          "Custom tools for navbar or sidebar",
+          "The Digital Object Identifier for this book.",
+          "A url to the abstract for this item.",
+          "Date the item has been accessed.",
+          {
+            short: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
+            long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead"
+          },
+          "Archive storing the item",
+          "Collection the item is part of within an archive.",
+          "Storage location within an archive (e.g.&nbsp;a box and folder\nnumber).",
+          "Geographic location of the archive.",
+          "Issuing or judicial authority (e.g.&nbsp;\u201CUSPTO\u201D for a patent, \u201CFairfax\nCircuit Court\u201D for a legal case).",
+          {
+            short: "Date the item was initially available",
+            long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing)."
+          },
+          "Call number (to locate the item in a library).",
+          "The person leading the session containing a presentation (e.g.&nbsp;the\norganizer of the <code>container-title</code> of a\n<code>speech</code>).",
+          "Chapter number (e.g.&nbsp;chapter number in a book; track number on an\nalbum).",
+          {
+            short: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
+            long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead"
+          },
+          {
+            short: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
+            long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead"
+          },
+          "Index (starting at 1) of the cited reference in the bibliography\n(generated by the CSL processor).",
+          "Editor of the collection holding the item (e.g.&nbsp;the series editor for\na book).",
+          "Number identifying the collection holding the item (e.g.&nbsp;the series\nnumber for a book)",
+          "Title of the collection holding the item (e.g.&nbsp;the series title for a\nbook; the lecture series title for a presentation).",
+          "Person compiling or selecting material for an item from the works of\nvarious persons or bodies (e.g.&nbsp;for an anthology).",
+          "Composer (e.g.&nbsp;of a musical score).",
+          "Author of the container holding the item (e.g.&nbsp;the book author for a\nbook chapter).",
+          {
+            short: "Title of the container holding the item.",
+            long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)"
+          },
+          "Short/abbreviated form of container-title;",
+          "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
+          "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
+          "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
+          "Director (e.g.&nbsp;of a film).",
+          "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
+          "(Container) edition holding the item (e.g.&nbsp;\u201C3\u201D when citing a chapter\nin the third edition of a book).",
+          "The editor of the item.",
+          "Managing editor (\u201CDirecteur de la Publication\u201D in French).",
+          {
+            short: "Combined editor and translator of a work.",
+            long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data."
+          },
+          "Date the event related to an item took place.",
+          "Name of the event related to the item (e.g.&nbsp;the conference name when\nciting a conference paper; the meeting where presentation was made).",
+          "Geographic location of the event related to the item\n(e.g.&nbsp;\u201CAmsterdam, The Netherlands\u201D).",
+          "Executive producer of the item (e.g.&nbsp;of a television series).",
+          {
+            short: "Number of a preceding note containing the first reference to the\nitem.",
+            long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document"
+          },
+          "A url to the full text for this item.",
+          {
+            short: "Type, class, or subtype of the item",
+            long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
+          },
+          "Guest (e.g.&nbsp;on a TV show or podcast).",
+          "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+          "A value which uniquely identifies this item.",
+          "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
+          "Interviewer (e.g.&nbsp;of an interview).",
+          "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
+          "International Standard Serial Number.",
+          {
+            short: "Issue number of the item or container holding the item",
+            long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any."
+          },
+          "Date the item was issued/published.",
+          "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
+          "Keyword(s) or tag(s) attached to the item.",
+          {
+            short: "The language of the item (used only for citation of the item).",
+            long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
+          },
+          {
+            short: "The license information applicable to an item.",
+            long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)"
+          },
+          {
+            short: "A cite-specific pinpointer within the item.",
+            long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list)."
+          },
+          "Description of the item\u2019s format or medium (e.g.&nbsp;\u201CCD\u201D, \u201CDVD\u201D,\n\u201CAlbum\u201D, etc.)",
+          "Narrator (e.g.&nbsp;of an audio book).",
+          "Descriptive text or notes about an item (e.g.&nbsp;in an annotated\nbibliography).",
+          "Number identifying the item (e.g.&nbsp;a report number).",
+          "Total number of pages of the cited item.",
+          "Total number of volumes, used when citing multi-volume books and\nsuch.",
+          "Organizer of an event (e.g.&nbsp;organizer of a workshop or\nconference).",
+          {
+            short: "The original creator of a work.",
+            long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)"
+          },
+          "Issue date of the original version.",
+          "Original publisher, for items that have been republished by a\ndifferent publisher.",
+          "Geographic location of the original publisher (e.g.&nbsp;\u201CLondon,\nUK\u201D).",
+          "Title of the original version (e.g.&nbsp;\u201C\u0412\u043E\u0439\u043D\u0430 \u0438 \u043C\u0438\u0440\u201D, the untranslated\nRussian title of \u201CWar and Peace\u201D).",
+          "Range of pages the item (e.g.&nbsp;a journal article) covers in a\ncontainer (e.g.&nbsp;a journal issue).",
+          "First page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
+          "Last page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
+          {
+            short: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
+            long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any."
+          },
+          "Title of the specific part of an item being cited.",
+          "A url to the pdf for this item.",
+          "Performer of an item (e.g.&nbsp;an actor appearing in a film; a muscian\nperforming a piece of music).",
+          "PubMed Central reference number.",
+          "PubMed reference number.",
+          "Printing number of the item or container holding the item.",
+          "Producer (e.g.&nbsp;of a television or radio broadcast).",
+          "A public url for this item.",
+          "The publisher of the item.",
+          "The geographic location of the publisher.",
+          "Recipient (e.g.&nbsp;of a letter).",
+          "Author of the item reviewed by the current item.",
+          "Type of the item being reviewed by the current item (e.g.&nbsp;book,\nfilm).",
+          "Title of the item reviewed by the current item.",
+          "Scale of e.g.&nbsp;a map or model.",
+          "Writer of a script or screenplay (e.g.&nbsp;of a film).",
+          "Section of the item or container holding the item (e.g.&nbsp;\u201C\xA72.0.1\u201D for\na law; \u201Cpolitics\u201D for a newspaper article).",
+          "Creator of a series (e.g.&nbsp;of a television series).",
+          "Source from whence the item originates (e.g.&nbsp;a library catalog or\ndatabase).",
+          "Publication status of the item (e.g.&nbsp;\u201Cforthcoming\u201D; \u201Cin press\u201D;\n\u201Cadvance online publication\u201D; \u201Cretracted\u201D)",
+          "Date the item (e.g.&nbsp;a manuscript) was submitted for publication.",
+          "Supplement number of the item or container holding the item (e.g.&nbsp;for\nsecondary legal items that are regularly updated between editions).",
+          "Short/abbreviated form of<code>title</code>.",
+          "Translator",
+          'The <a href="https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types">type</a>\nof the item.',
+          "Uniform Resource Locator\n(e.g.&nbsp;\u201Chttps://aem.asm.org/cgi/content/full/74/9/2766\u201D)",
+          "Version of the item (e.g.&nbsp;\u201C2.0.9\u201D for a software program).",
+          {
+            short: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
+            long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany."
+          },
+          {
+            short: "Title of the volume of the item or container holding the item.",
+            long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
+          },
+          "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
+          "Manuscript configuration",
+          "internal-schema-hack",
+          "Project configuration.",
+          "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
+          "Files to render (defaults to all files)",
+          {
+            short: "Working directory for computations",
+            long: "Control the working directory for computations."
+          },
+          "Output directory",
+          "HTML library (JS/CSS/etc.) directory",
+          "Additional file resources to be copied to output directory",
+          "Additional file resources to be copied to output directory",
+          "Options for <code>quarto preview</code>",
+          "Scripts to run as a pre-render step",
+          "Scripts to run as a post-render step",
+          "Array of paths used to detect the project type within a directory",
+          "Website configuration.",
+          "Book configuration.",
+          "Book title",
+          "Description metadata for HTML version of book",
+          "The path to the favicon for this website",
+          "Base URL for published website",
+          "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
+          "Base URL for website source code repository",
+          "The value of the target attribute for repo links",
+          "The value of the rel attribute for repo links",
+          "Subdirectory of repository containing website",
+          "Branch of website source code (defaults to <code>main</code>)",
+          "URL to use for the \u2018report an issue\u2019 repository action.",
+          {
+            short: "Links to source repository actions",
+            long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          },
+          {
+            short: "Links to source repository actions",
+            long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          },
+          "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+          "Enable Google Analytics for this website",
+          "The Google tracking Id or measurement Id of this website.",
+          {
+            short: "Storage options for Google Analytics data",
+            long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
+          },
+          {
+            short: "Anonymize the user ip address.",
+            long: 'Anonymize the user ip address. For more about this feature, see <a href="https://support.google.com/analytics/answer/2763052?hl=en">IP\nAnonymization (or IP masking) in Google Analytics</a>.'
+          },
+          {
+            short: "The version number of Google Analytics to use.",
+            long: "The version number of Google Analytics to use."
+          },
+          "Provides an announcement displayed at the top of the page.",
+          "The content of the announcement",
+          "Whether this announcement may be dismissed by the user.",
+          "The icon to display in the annoucement",
+          "The position of the announcement.",
+          "The type of announcement. Affects the appearance of the\nannouncement.",
+          {
+            short: "Request cookie consent before enabling scripts that set cookies",
+            long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
+          },
+          {
+            short: "The type of consent that should be requested",
+            long: "The type of consent that should be requested, using one of these two\nvalues:"
+          },
+          {
+            short: "The style of the consent banner that is displayed",
+            long: "The style of the consent banner that is displayed:"
+          },
+          "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
+          "The url to the website\u2019s cookie or privacy policy.",
+          {
+            short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+            long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+          },
+          {
+            short: "The text to display for the cookie preferences link in the website\nfooter.",
+            long: ""
+          },
+          "Provide full text search for website",
+          "Location for search widget (<code>navbar</code> or\n<code>sidebar</code>)",
+          "Type of search UI (<code>overlay</code> or <code>textbox</code>)",
+          "Number of matches to display (defaults to 20)",
+          "Matches after which to collapse additional results",
+          "Provide button for copying search link",
+          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
+          "Use external Algolia search index",
+          "The name of the index to use when performing a search",
+          "The unique ID used by Algolia to identify your application",
+          "The Search-Only API key to use to connect to Algolia",
+          "Enable tracking of Algolia analytics events",
+          "Enable the display of the Algolia logo in the search results\nfooter.",
+          "Field that contains the URL of index entries",
+          "Field that contains the title of index entries",
+          "Field that contains the text of index entries",
+          "Field that contains the section of index entries",
+          "Additional parameters to pass when executing a search",
+          "Top navigation options",
+          "The navbar title. Uses the project title if none is specified.",
+          "Path to a logo image that will be displayed to the left of the\ntitle.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
+          "The navbar\u2019s background color (named or hex color).",
+          "The navbar\u2019s foreground color (named or hex color).",
+          "Include a search box in the navbar.",
+          "Always show the navbar (keeping it pinned).",
+          "Collapse the navbar into a menu when the display becomes narrow.",
+          "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
+          "List of items for the left side of the navbar.",
+          "List of items for the right side of the navbar.",
+          "The position of the collapsed navbar toggle when in responsive\nmode",
+          "Collapse tools into the navbar menu when the display becomes\nnarrow.",
+          "Side navigation options",
+          "The identifier for this sidebar.",
+          "The sidebar title. Uses the project title if none is specified.",
+          "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
+          "Include a search control in the sidebar.",
+          "List of sidebar tools",
+          "List of items for the sidebar",
+          "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
+          "The sidebar\u2019s background color (named or hex color).",
+          "The sidebar\u2019s foreground color (named or hex color).",
+          "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
+          "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
+          "The depth at which the sidebar contents should be collapsed by\ndefault.",
+          "When collapsed, pin the collapsed sidebar to the top of the page.",
+          "Markdown to place above sidebar content (text or file path)",
+          "Markdown to place below sidebar content (text or file path)",
+          "The identifier for this sidebar.",
+          "The sidebar title. Uses the project title if none is specified.",
+          "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
+          "Include a search control in the sidebar.",
+          "List of sidebar tools",
+          "List of items for the sidebar",
+          "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
+          "The sidebar\u2019s background color (named or hex color).",
+          "The sidebar\u2019s foreground color (named or hex color).",
+          "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
+          "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
+          "The depth at which the sidebar contents should be collapsed by\ndefault.",
+          "When collapsed, pin the collapsed sidebar to the top of the page.",
+          "Markdown to place above sidebar content (text or file path)",
+          "Markdown to place below sidebar content (text or file path)",
+          "Markdown to insert at the beginning of each page\u2019s body (below the\ntitle and author block).",
+          "Markdown to insert below each page\u2019s body.",
+          "Markdown to place above margin content (text or file path)",
+          "Markdown to place below margin content (text or file path)",
+          "Provide next and previous article links in footer",
+          "Provide a \u2018back to top\u2019 navigation button",
+          "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
+          "Shared page footer",
+          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
+          "Publish open graph metadata",
+          "Publish twitter card metadata",
+          "A list of other links to appear below the TOC.",
+          "A list of code links to appear with this document.",
+          "A list of input documents that should be treated as drafts",
+          {
+            short: "How to handle drafts that are encountered.",
+            long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
+          },
+          "Book subtitle",
+          "Author or authors of the book",
+          "Author or authors of the book",
+          "Book publication date",
+          "Format string for dates in the book",
+          "Book abstract",
+          "Book part and chapter files",
+          "Book appendix files",
+          "Book references file",
+          "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+          "Cover image (used in HTML and ePub formats)",
+          "Alternative text for cover image (used in HTML format)",
+          "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
+          "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
+          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
+          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
+          "Custom tools for navbar or sidebar",
+          "The Digital Object Identifier for this book.",
+          "A url to the abstract for this item.",
+          "Date the item has been accessed.",
+          {
+            short: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
+            long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead"
+          },
+          "Archive storing the item",
+          "Collection the item is part of within an archive.",
+          "Storage location within an archive (e.g.&nbsp;a box and folder\nnumber).",
+          "Geographic location of the archive.",
+          "Issuing or judicial authority (e.g.&nbsp;\u201CUSPTO\u201D for a patent, \u201CFairfax\nCircuit Court\u201D for a legal case).",
+          {
+            short: "Date the item was initially available",
+            long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing)."
+          },
+          "Call number (to locate the item in a library).",
+          "The person leading the session containing a presentation (e.g.&nbsp;the\norganizer of the <code>container-title</code> of a\n<code>speech</code>).",
+          "Chapter number (e.g.&nbsp;chapter number in a book; track number on an\nalbum).",
+          {
+            short: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
+            long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead"
+          },
+          {
+            short: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
+            long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead"
+          },
+          "Index (starting at 1) of the cited reference in the bibliography\n(generated by the CSL processor).",
+          "Editor of the collection holding the item (e.g.&nbsp;the series editor for\na book).",
+          "Number identifying the collection holding the item (e.g.&nbsp;the series\nnumber for a book)",
+          "Title of the collection holding the item (e.g.&nbsp;the series title for a\nbook; the lecture series title for a presentation).",
+          "Person compiling or selecting material for an item from the works of\nvarious persons or bodies (e.g.&nbsp;for an anthology).",
+          "Composer (e.g.&nbsp;of a musical score).",
+          "Author of the container holding the item (e.g.&nbsp;the book author for a\nbook chapter).",
+          {
+            short: "Title of the container holding the item.",
+            long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)"
+          },
+          "Short/abbreviated form of container-title;",
+          "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
+          "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
+          "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
+          "Director (e.g.&nbsp;of a film).",
+          "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
+          "(Container) edition holding the item (e.g.&nbsp;\u201C3\u201D when citing a chapter\nin the third edition of a book).",
+          "The editor of the item.",
+          "Managing editor (\u201CDirecteur de la Publication\u201D in French).",
+          {
+            short: "Combined editor and translator of a work.",
+            long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data."
+          },
+          "Date the event related to an item took place.",
+          "Name of the event related to the item (e.g.&nbsp;the conference name when\nciting a conference paper; the meeting where presentation was made).",
+          "Geographic location of the event related to the item\n(e.g.&nbsp;\u201CAmsterdam, The Netherlands\u201D).",
+          "Executive producer of the item (e.g.&nbsp;of a television series).",
+          {
+            short: "Number of a preceding note containing the first reference to the\nitem.",
+            long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document"
+          },
+          "A url to the full text for this item.",
+          {
+            short: "Type, class, or subtype of the item",
+            long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
+          },
+          "Guest (e.g.&nbsp;on a TV show or podcast).",
+          "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+          "A value which uniquely identifies this item.",
+          "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
+          "Interviewer (e.g.&nbsp;of an interview).",
+          "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
+          "International Standard Serial Number.",
+          {
+            short: "Issue number of the item or container holding the item",
+            long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any."
+          },
+          "Date the item was issued/published.",
+          "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
+          "Keyword(s) or tag(s) attached to the item.",
+          {
+            short: "The language of the item (used only for citation of the item).",
+            long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
+          },
+          {
+            short: "The license information applicable to an item.",
+            long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)"
+          },
+          {
+            short: "A cite-specific pinpointer within the item.",
+            long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list)."
+          },
+          "Description of the item\u2019s format or medium (e.g.&nbsp;\u201CCD\u201D, \u201CDVD\u201D,\n\u201CAlbum\u201D, etc.)",
+          "Narrator (e.g.&nbsp;of an audio book).",
+          "Descriptive text or notes about an item (e.g.&nbsp;in an annotated\nbibliography).",
+          "Number identifying the item (e.g.&nbsp;a report number).",
+          "Total number of pages of the cited item.",
+          "Total number of volumes, used when citing multi-volume books and\nsuch.",
+          "Organizer of an event (e.g.&nbsp;organizer of a workshop or\nconference).",
+          {
+            short: "The original creator of a work.",
+            long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)"
+          },
+          "Issue date of the original version.",
+          "Original publisher, for items that have been republished by a\ndifferent publisher.",
+          "Geographic location of the original publisher (e.g.&nbsp;\u201CLondon,\nUK\u201D).",
+          "Title of the original version (e.g.&nbsp;\u201C\u0412\u043E\u0439\u043D\u0430 \u0438 \u043C\u0438\u0440\u201D, the untranslated\nRussian title of \u201CWar and Peace\u201D).",
+          "Range of pages the item (e.g.&nbsp;a journal article) covers in a\ncontainer (e.g.&nbsp;a journal issue).",
+          "First page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
+          "Last page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
+          {
+            short: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
+            long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any."
+          },
+          "Title of the specific part of an item being cited.",
+          "A url to the pdf for this item.",
+          "Performer of an item (e.g.&nbsp;an actor appearing in a film; a muscian\nperforming a piece of music).",
+          "PubMed Central reference number.",
+          "PubMed reference number.",
+          "Printing number of the item or container holding the item.",
+          "Producer (e.g.&nbsp;of a television or radio broadcast).",
+          "A public url for this item.",
+          "The publisher of the item.",
+          "The geographic location of the publisher.",
+          "Recipient (e.g.&nbsp;of a letter).",
+          "Author of the item reviewed by the current item.",
+          "Type of the item being reviewed by the current item (e.g.&nbsp;book,\nfilm).",
+          "Title of the item reviewed by the current item.",
+          "Scale of e.g.&nbsp;a map or model.",
+          "Writer of a script or screenplay (e.g.&nbsp;of a film).",
+          "Section of the item or container holding the item (e.g.&nbsp;\u201C\xA72.0.1\u201D for\na law; \u201Cpolitics\u201D for a newspaper article).",
+          "Creator of a series (e.g.&nbsp;of a television series).",
+          "Source from whence the item originates (e.g.&nbsp;a library catalog or\ndatabase).",
+          "Publication status of the item (e.g.&nbsp;\u201Cforthcoming\u201D; \u201Cin press\u201D;\n\u201Cadvance online publication\u201D; \u201Cretracted\u201D)",
+          "Date the item (e.g.&nbsp;a manuscript) was submitted for publication.",
+          "Supplement number of the item or container holding the item (e.g.&nbsp;for\nsecondary legal items that are regularly updated between editions).",
+          "Short/abbreviated form of<code>title</code>.",
+          "Translator",
+          'The <a href="https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types">type</a>\nof the item.',
+          "Uniform Resource Locator\n(e.g.&nbsp;\u201Chttps://aem.asm.org/cgi/content/full/74/9/2766\u201D)",
+          "Version of the item (e.g.&nbsp;\u201C2.0.9\u201D for a software program).",
+          {
+            short: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
+            long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany."
+          },
+          {
+            short: "Title of the volume of the item or container holding the item.",
+            long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
+          },
+          "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
+          "Manuscript configuration",
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -22999,12 +23000,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 186197,
+          _internalId: 186345,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 186189,
+              _internalId: 186337,
               type: "enum",
               enum: [
                 "png",
@@ -23020,7 +23021,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 186196,
+              _internalId: 186344,
               type: "anyOf",
               anyOf: [
                 {
@@ -29604,30 +29605,56 @@ ${reindented}
     try {
       return buildJsYamlAnnotation(mappedSource2);
     } catch (e) {
+      if (e.name === "YAMLError") {
+        e.name = "YAML Parsing";
+      }
       const m = e.stack.split("\n")[0].match(/^.+ \((\d+):(\d+)\)$/);
       if (m) {
-        const f = lineColToIndex(mappedSource2.value);
-        const location = { line: Number(m[1]) - 1, column: Number(m[2] - 1) };
-        const offset = f(location);
-        const { originalString } = mappedSource2.map(offset, true);
-        const filename = originalString.fileName;
-        const f2 = mappedIndexToLineCol(mappedSource2);
-        const { line, column } = f2(offset);
-        const sourceContext = createSourceContext(mappedSource2, {
-          start: offset,
-          end: offset + 1
-        });
-        e.stack = `${e.reason} (${filename}, ${line + 1}:${column + 1})
+        const m1 = mappedSource2.value.match(/([^\s]+):([^\s]+)/);
+        if (m1 && e.reason.match(/a multiline key may not be an implicit key/)) {
+          e.name = "YAML Parse Error";
+          e.reason = "block has incorrect key formatting";
+          const { originalString } = mappedSource2.map(m1.index, true);
+          const filename = originalString.fileName;
+          const map2 = mappedSource2.map(m1.index);
+          const { line, column } = indexToLineCol(map2.originalString.value)(
+            map2.index
+          );
+          const sourceContext = createSourceContext(mappedSource2, {
+            start: m1.index + 1,
+            end: m1.index + m1[0].length
+          });
+          e.stack = `${e.reason} (${filename}, ${line + 1}:${column + 1})
 ${sourceContext}`;
-        e.message = e.stack;
-        if (mappedLines(mappedSource2)[location.line].value.indexOf("!expr") !== -1 && e.reason.match(/bad indentation of a mapping entry/)) {
+          e.message = e.stack;
           e.message = `${e.message}
 ${tidyverseInfo(
-            "YAML tags like !expr must be followed by YAML strings."
-          )}
-${tidyverseInfo(
-            "Is it possible you need to quote the value you passed to !expr ?"
+            "Is it possible you missed a space after a colon in the key-value mapping?"
           )}`;
+        } else {
+          const f = lineColToIndex(mappedSource2.value);
+          const location = { line: Number(m[1]) - 1, column: Number(m[2] - 1) };
+          const offset = f(location);
+          const { originalString } = mappedSource2.map(offset, true);
+          const filename = originalString.fileName;
+          const f2 = mappedIndexToLineCol(mappedSource2);
+          const { line, column } = f2(offset);
+          const sourceContext = createSourceContext(mappedSource2, {
+            start: offset,
+            end: offset + 1
+          });
+          e.stack = `${e.reason} (${filename}, ${line + 1}:${column + 1})
+${sourceContext}`;
+          e.message = e.stack;
+          if (mappedLines(mappedSource2)[location.line].value.indexOf("!expr") !== -1 && e.reason.match(/bad indentation of a mapping entry/)) {
+            e.message = `${e.message}
+${tidyverseInfo(
+              "YAML tags like !expr must be followed by YAML strings."
+            )}
+${tidyverseInfo(
+              "Is it possible you need to quote the value you passed to !expr ?"
+            )}`;
+          }
         }
         e.stack = "";
       }

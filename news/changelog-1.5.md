@@ -10,6 +10,7 @@ All changes included in 1.5:
 - ([#9076](https://github.com/quarto-dev/quarto-cli/issues/9076)): Fix issue with `layout-ncol` and `column` settings in executable code cells.
 - ([#9125](https://github.com/quarto-dev/quarto-cli/issues/9125)): Fix issue in browser console with TOC selection when the document is using ids for headers with specific characters (e.g russian language headers).
 - ([#9539](https://github.com/quarto-dev/quarto-cli/issues/9539)): Improve SCSS of title blocks to avoid overwide columns in grid layout.
+- Improve accessibility `role` for `aria-expandable` elements by ensuring their role supports the `aria-expanded` attribute.
 
 ## PDF Format
 
@@ -17,11 +18,13 @@ All changes included in 1.5:
 - ([#8684](https://github.com/quarto-dev/quarto-cli/issues/8684)): Improve detection and automatic installation of locale specific hyphenation files.
 - ([#8711](https://github.com/quarto-dev/quarto-cli/issues/8711)): Enforce rendering of tables as `tabular` environments when custom float environments are present.
 - ([#8841](https://github.com/quarto-dev/quarto-cli/issues/8841)): Do not parse LaTeX table when crossref label doesn't start with `tbl-`.
+- ([#9582](https://github.com/quarto-dev/quarto-cli/issues/9582)): Forward column classes and attributes correctly to floats inside divs with column classes.
 
 ## RevealJS Format
 
 - ([#8382](https://github.com/quarto-dev/quarto-cli/issues/8382)): Strip whitespace from `div.columns` elements that might have been introduced by third-party processing.
 - ([#9117](https://github.com/quarto-dev/quarto-cli/issues/9117)): Fix an issue with input filename containing special characters.
+- ([#9548](https://github.com/quarto-dev/quarto-cli/issues/9548)): Providing `theme` at top level when `format: revealjs` is now probably inserting the right css in the resulting html.
 
 ## Docusaurus Format
 
@@ -73,6 +76,7 @@ All changes included in 1.5:
 - ([#9255](https://github.com/quarto-dev/quarto-cli/issues/9255)): Support cell source fields of type `string`.
 - ([#9422](https://github.com/quarto-dev/quarto-cli/issues/9422)): Improve the stream merging algorithm in output cells to avoid merging outputs that should not be merged.
 - ([#9536](https://github.com/quarto-dev/quarto-cli/issues/9536)): Provide traceback when available in Jupyter error outputs.
+- ([#9470](https://github.com/quarto-dev/quarto-cli/issues/9470)): Fix images rendered by the Jupyter engine to be displayed with the same dimensions as those in notebooks.
 
 ## Website Listings
 
@@ -138,6 +142,10 @@ All changes included in 1.5:
 
 - Quarto now supports raw block and raw inline elements of types `pandoc-native` and `pandoc-json`, and will use Pandoc's `native` and `json` reader to convert these elements to Pandoc's AST. This is useful in situations where emitting Markdown is not sufficient or convient enough to express the desired structure of a document.
 
+## Lua filters
+
+- ([#9572](https://github.com/quarto-dev/quarto-cli/issues/9572)): Add `quarto.config.cli_path()` in Quarto LUA to return the path to the Quarto CLI executable of the installation running the Lua script in quarto context.
+
 ## Other Fixes and Improvements
 
 - ([#8119](https://github.com/quarto-dev/quarto-cli/issues/8119)): More intelligently detect when ejs templates are modified during development, improving quality of life during preview.
@@ -159,12 +167,16 @@ All changes included in 1.5:
 - ([#9282](https://github.com/quarto-dev/quarto-cli/issues/9282)): Fix name clash in Lua local declarations for `mediabag` in bundled releases.
 - ([#9394](https://github.com/quarto-dev/quarto-cli/issues/9394)): Make `template` a required field in the `about` schema.
 - ([#9426](https://github.com/quarto-dev/quarto-cli/issues/9426)): Update `crossref.lua` filter to avoid crashes and hangs in documents with custom AST nodes.
+- ([#9460](https://github.com/quarto-dev/quarto-cli/pulls/9460)): `$valuebox-bg-{color}` Sass variables, e.g. `$valuebox-bg-primary`, can now be set directly for custom value box background colors.
 - ([#9492](https://github.com/quarto-dev/quarto-cli/issues/9492)): Improve performance of `quarto preview` when serving resource files of the following formats: HTML, PDF, DOCX, and plaintext.
+- ([#9496](https://github.com/quarto-dev/quarto-cli/issues/9496)): Improve parsing error message from `js-yaml` when `key:value` is used together with `key: value` in the same YAML block.
 - ([#9527](https://github.com/quarto-dev/quarto-cli/pull/9527)): Add `quarto.format` and `quarto.format.typst` to Quarto's public Lua filter API.
 - ([#9547](https://github.com/quarto-dev/quarto-cli/issues/9547)): Fix issue with `quarto preview` and resources found in URLs with hash and search fragments.
+- ([#9550](https://github.com/quarto-dev/quarto-cli/issues/9550)): Don't crash when subcaptions are incorrectly specified with `fig-subcap: true` but no embedded subcaptions.
 - Add support for `{{< lipsum >}}` shortcode, which is useful for emitting placeholder text. Provide a specific number of paragraphs (`{{< lipsum 3 >}}`).
 - Resolve data URIs in Pandoc's mediabag when rendering documents.
 - Increase v8's max heap size by default, to avoid out-of-memory errors when rendering large documents (also cf. https://github.com/denoland/deno/issues/18935).
 - When running `quarto check` from a development build (from a git repository), show the git commit hash in addition to the version string.
 - Upgrade Deno to 1.41.0
 - `quarto install tinytex` will now try to set the default CTAN repository to the nearest mirror resolved from https://mirror.ctan.org.
+- `quarto render --to native` now works without triggering rmarkdown error about non HTML output when HTML dependencies are present in the knitr engine cell results.

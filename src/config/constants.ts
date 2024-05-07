@@ -629,7 +629,7 @@ export const kCapBottom = "bottom";
 // Pandoc Input Traits
 export const kPositionedRefs = "positioned-refs";
 
-// https://pandoc.org/MANUAL.html#default-files
+// https://pandoc.org/MANUAL.html#defaults-files
 // note: we are keeping some things out of 'defaults' b/ca
 // they are known to be valid in metadata. this includes:
 //    "csl",
@@ -750,6 +750,8 @@ export const kCellColumn = "column";
 export const kCellOutWidth = "out-width";
 export const kCellOutHeight = "out-height";
 export const kCellMdIndent = "md-indent";
+export const kCellWidth = "width";
+export const kCellHeight = "height";
 
 export const kCellColab = "colab";
 export const kCellColabType = "colab_type";

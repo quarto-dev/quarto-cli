@@ -2089,7 +2089,12 @@ quarto = {
   json = json,
   base64 = base64,
   log = logging,
-  version = version()
+  version = version(),
+  -- map to quartoConfig information on TS side
+  config = {
+    cli_path = function() return param('quarto-cli-path', nil) end,
+    version = function() return version() end
+  }
 }
 
 -- alias old names for backwards compatibility
