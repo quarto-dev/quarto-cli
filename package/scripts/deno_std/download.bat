@@ -6,4 +6,4 @@ if NOT DEFINED QUARTO_DENO (
 )
 
 set DENO_DIR=%~dp0\..\..\..\src\resources\deno_std\cache
-%QUARTO_DENO% cache --unstable --lock %~dp0\..\..\..\src\resources\deno_std\deno_std.lock %~dp0\deno_std.ts
+%QUARTO_DENO% cache --unstable-ffi --lock %~dp0\..\..\..\src\resources\deno_std\deno_std.lock %~dp0\deno_std.ts

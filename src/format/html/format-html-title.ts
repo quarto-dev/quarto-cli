@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, isAbsolute, join } from "path/mod.ts";
+import { dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 import { kDateFormat, kTocLocation } from "../../config/constants.ts";
 import { Format, Metadata, PandocFlags } from "../../config/types.ts";
 import { Document } from "../../core/deno-dom.ts";
@@ -31,6 +31,9 @@ export function documentTitleScssLayer(format: Format) {
   ) {
     return undefined;
   } else if (format.metadata[kTitleBlockStyle] === "manuscript") {
+    // TODO: Tweak style for manuscript
+    // This code path is here so that we can add manuscript-specific styles
+    // For now it is just identical to non-manuscript
     const titleBlockScss = formatResourcePath(
       "html",
       join("templates", "title-block.scss"),
@@ -201,13 +204,19 @@ export function processDocumentTitle(
     if (isBannerImage(input, banner)) {
       resources.push(banner as string);
     }
+
+    // Decorate the header
+    const quartoHeaderEl = doc.getElementById("quarto-header");
+    if (quartoHeaderEl) {
+      quartoHeaderEl.classList.add("quarto-banner");
+    }
   }
 
   return resources;
 }
 
 function isBannerImage(input: string, banner: unknown) {
-  if (typeof (banner) === "string") {
+  if (typeof banner === "string") {
     let path;
 
     if (isAbsolute(banner)) {

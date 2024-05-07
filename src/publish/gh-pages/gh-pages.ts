@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { info } from "log/mod.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { info } from "../../deno_ral/log.ts";
+import { dirname, join, relative } from "../../deno_ral/path.ts";
 import { copy } from "fs/mod.ts";
 import * as colors from "fmt/colors.ts";
 
@@ -20,17 +20,19 @@ import {
   PublishFiles,
   PublishProvider,
 } from "../provider-types.ts";
-import { anonymousAccount } from "../provider.ts";
 import { PublishOptions, PublishRecord } from "../types.ts";
 import { shortUuid } from "../../core/uuid.ts";
 import { sleep } from "../../core/wait.ts";
 import { joinUrl } from "../../core/url.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { renderForPublish } from "../common/publish.ts";
-import { websiteBaseurl } from "../../project/types/website/website-config.ts";
 import { RenderFlags } from "../../command/render/types.ts";
-import SemVer from "semver/mod.ts";
-import { gitHubContext } from "../../core/github.ts";
+import { gitCmds, gitVersion } from "../../core/git.ts";
+import {
+  anonymousAccount,
+  gitHubContextForPublish,
+  verifyContext,
+} from "../common/git.ts";
 
 export const kGhpages = "gh-pages";
 const kGhpagesDescription = "GitHub Pages";
@@ -56,20 +58,7 @@ function accountTokens() {
 
 async function authorizeToken(options: PublishOptions) {
   const ghContext = await gitHubContextForPublish(options.input);
-
-  if (!ghContext.git) {
-    throwUnableToPublish("git does not appear to be installed on this system");
-  }
-
-  // validate we are in a git repo
-  if (!ghContext.repo) {
-    throwUnableToPublish("the target directory is not a git repository");
-  }
-
-  // validate that we have an origin
-  if (!ghContext.originUrl) {
-    throwUnableToPublish("the git repository does not have a remote origin");
-  }
+  verifyContext(ghContext, "GitHub Pages");
 
   // good to go!
   return Promise.resolve(anonymousAccount());
@@ -95,28 +84,6 @@ function resolveTarget(
   target: PublishRecord,
 ): Promise<PublishRecord | undefined> {
   return Promise.resolve(target);
-}
-
-async function gitVersion(): Promise<SemVer> {
-  const result = await execProcess(
-    {
-      cmd: ["git", "--version"],
-      stdout: "piped",
-    },
-  );
-  if (!result.success) {
-    throw new Error(
-      "Unable to determine git version. Please check that git is installed and available on your PATH.",
-    );
-  }
-  const match = result.stdout?.match(/git version (\d+\.\d+\.\d+)/);
-  if (match) {
-    return new SemVer(match[1]);
-  } else {
-    throw new Error(
-      `Unable to determine git version from string ${result.stdout}`,
-    );
-  }
 }
 
 async function publish(
@@ -145,6 +112,7 @@ async function publish(
 
   // get context
   const ghContext = await gitHubContextForPublish(options.input);
+  verifyContext(ghContext, "GitHub Pages");
 
   // create gh pages branch if there is none yet
   const createGhPagesBranch = !ghContext.ghPages;
@@ -395,39 +363,4 @@ async function gitCreateGhPages(dir: string) {
     ["commit", "--allow-empty", "-m", `Initializing gh-pages branch`],
     ["push", "origin", `HEAD:gh-pages`],
   ]);
-}
-
-async function gitCmds(dir: string, cmds: Array<string[]>) {
-  for (const cmd of cmds) {
-    if (
-      !(await execProcess({
-        cmd: ["git", ...cmd],
-        cwd: dir,
-      })).success
-    ) {
-      throw new Error();
-    }
-  }
-}
-
-// validate we have git
-const throwUnableToPublish = (reason: string) => {
-  throw new Error(
-    `Unable to publish to GitHub Pages (${reason})`,
-  );
-};
-
-async function gitHubContextForPublish(input: string | ProjectContext) {
-  // Create the base context
-  const dir = typeof (input) === "string" ? dirname(input) : input.dir;
-  const context = await gitHubContext(dir);
-
-  // always prefer configured website URL
-  if (typeof (input) !== "string") {
-    const configSiteUrl = websiteBaseurl(input?.config);
-    if (configSiteUrl) {
-      context.siteUrl = configSiteUrl;
-    }
-  }
-  return context;
 }

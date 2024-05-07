@@ -119,3 +119,15 @@ end, function(float)
   return result
 end)
 
+function render_hugo_fixups()
+  if not _quarto.format.isHugoMarkdownOutput() then
+    return {}
+  end
+  return {
+    Div = function(div)
+      if div.identifier:match("ojs%-cell%-") then
+        return pandoc.RawBlock("markdown", '<div id="' .. div.identifier .. '"></div>')
+      end
+    end
+  }
+end

@@ -1,9 +1,8 @@
 /*
-* pandoc-dependencies.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * pandoc-dependencies.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { DependencyFile, FormatDependency } from "../../config/types.ts";
 import { appendTextFile } from "../../core/file.ts";
@@ -51,7 +50,7 @@ export interface UsePackageDependency {
   };
 }
 
-export function appendDependencies(
+export async function appendDependencies(
   dependenciesFile: string,
   dependencies: Array<
     | HtmlFormatDependency
@@ -69,7 +68,7 @@ export function appendDependencies(
     );
   }
   if (dependencyLines.length > 0) {
-    appendTextFile(
+    await appendTextFile(
       dependenciesFile,
       `${dependencyLines.join("\n")}\n`,
     );

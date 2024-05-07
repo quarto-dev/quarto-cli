@@ -1,0 +1,39 @@
+---
+format: 
+  docusaurus-md:
+    quality: 1
+  html:
+    quality: 1
+    comment: the copy button is displaced
+  dashboard: 
+    quality: 1
+  markdown:
+    quality: 1
+  pdf:
+    quality: 1
+  typst:
+    quality: 0
+    comment: We're sending the standard markdown output through typst, maybe a better rendering is possible
+  revealjs:
+    quality: 1
+    comment: the copy button is _not_ displaced, unlike in HTML
+  beamer:
+    quality: 1
+  ipynb:
+    quality: 1
+    comment: We're sending the standard markdown output, unclear if better rendering is possible
+code-annotations: true
+code-line-numbers: true
+---
+
+```r
+library(tidyverse)
+library(palmerpenguins)
+penguins |>                                      # <1>
+  mutate(                                        # <2>
+    bill_ratio = bill_depth_mm / bill_length_mm, # <2>
+    bill_area  = bill_depth_mm * bill_length_mm  # <2>
+  )                                              # <2>
+```
+1. Take `penguins`, and then,
+2. add new columns for the bill ratio and bill area.

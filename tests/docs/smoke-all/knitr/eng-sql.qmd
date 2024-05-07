@@ -1,0 +1,22 @@
+---
+title: cell output display wrapping for sql engine
+engine: knitr
+format: html
+filters:
+  - at: pre-quarto
+    path: check-output-display.lua
+---
+
+```{r}
+#| echo: false
+library(DBI)
+con <- dbConnect(RSQLite::SQLite(), ":memory:")
+dbWriteTable(con, "mtcars", mtcars)
+```
+
+```{sql}
+#| column: margin
+#| connection: con
+
+select cyl from mtcars limit 5
+```

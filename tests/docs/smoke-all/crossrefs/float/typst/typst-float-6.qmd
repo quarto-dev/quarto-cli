@@ -10,7 +10,7 @@ _quarto:
           - "<fig-simple>"
           - "@fig-simple"
           - "A simple figure"
-          - "#image\\(\"img/surus.jpg\"\\)"
+          - "#.*image\\(\"img/surus.jpg\"\\)"
         - []
 ---
 

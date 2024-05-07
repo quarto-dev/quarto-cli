@@ -1,0 +1,4 @@
+keybind:
+  palette: '{{< kbd linux=Ctrl-Shift-P mac=Cmd-Shift-P win=Ctrl-Shift-P >}}'
+  test: "hi"
+  git: '{{< kbd linux=Ctrl-Alt-M mac=Ctrl-Option-M win=Ctrl-Alt-M >}} or with the Palette ({{< var keybind.palette >}}, then type "commit")'

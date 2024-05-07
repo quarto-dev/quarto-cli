@@ -23,8 +23,8 @@ else
     DENOFILES=deno-x86_64-unknown-linux-gnu.zip
     DENO_DIR=x86_64
   elif [[ $NIXARCH == "aarch64" ]]; then
-    DENOURL=https://github.com/LukeChannings/deno-arm64/releases/download
-    DENOFILES=deno-linux-arm64.zip
+    DENOURL=https://github.com/denoland/deno/releases/download
+    DENOFILES=deno-aarch64-unknown-linux-gnu.zip
     DENO_DIR=aarch64
   else
     echo "configure script failed: unrecognized architecture " ${NIXARCH}

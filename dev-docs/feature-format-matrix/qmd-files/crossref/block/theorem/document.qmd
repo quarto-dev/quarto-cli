@@ -1,0 +1,34 @@
+---
+format:
+  html:
+    quality: 2
+  pdf:
+    quality: 2
+  typst:
+    quality: 2
+  dashboard:
+    quality: 1
+  markdown:
+    quality: 2
+  docx:
+    quality: 1
+  pptx:
+    quality: 1
+  ipynb:
+    quality: 0
+    comment: "Renders as HTML prefixed with # on empty line"
+
+---
+
+::: {#thm-line}
+
+## Line
+
+The equation of any straight line, called a linear equation, can be written as:
+
+$$
+y = mx + b
+$$
+:::
+
+See @thm-line.

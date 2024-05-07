@@ -5,7 +5,7 @@ _quarto:
     html:
       ensureHtmlElements:
         - 
-          - "div#lst-customers figure.quarto-float-lst figcaption.listing"
+          - "div#lst-customers figure.quarto-float-lst figcaption.quarto-float-lst"
           - "a[href='#lst-customers'].quarto-xref"
         - []
 ---

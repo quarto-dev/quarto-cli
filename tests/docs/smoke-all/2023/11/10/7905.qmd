@@ -1,0 +1,17 @@
+---
+title: "7905"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - 
+          - "svg\\+xml" # can't use ensureHtmlElements because svg is not part of the HTML DOM
+           # so we instead ensure that pandoc didn't transform svg into data-uri-encoded image
+---
+
+```{=html}
+<table>
+<tr><td><svg width="300" height="300"></svg></td></tr>
+</table>
+```

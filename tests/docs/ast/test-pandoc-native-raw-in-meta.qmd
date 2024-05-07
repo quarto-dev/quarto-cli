@@ -1,0 +1,13 @@
+---
+format: html
+key-good: "`Str \"path-to-directory-with--two-dashes/file\"`{=pandoc-native}"
+key-bad: path-to-directory-with--two-dashes/file
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["--"]
+        - ["–"]
+---
+
+Hello {{< meta key-good >}}. (This would fail with `{{{< meta key-bad >}}}`)

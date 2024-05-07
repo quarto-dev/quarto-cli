@@ -33,7 +33,7 @@ function normalize_filter()
   return {
     Meta = function(meta)
       -- normalizes the author/affiliation metadata
-      local normalized = authors.processAuthorMeta(meta)
+      local normalized = authors.processAuthorMeta(meta) or meta
 
       -- normalizes the citation metadata
       normalized = processCitationMeta(normalized)

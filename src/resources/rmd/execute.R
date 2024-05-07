@@ -55,6 +55,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   knitr::knit_engines$set(ojs = function(options) {
     knitr:::one_string(c(
       "```{ojs}",
+      options$yaml.code,
       options$code,
       "```"
     ))
@@ -112,7 +113,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     # This truly awful hack ensures that rmarkdown doesn't tell us we're
     # producing HTML widgets when targeting a non-html format (doing this
     # is triggered by the "prefer-html" options)
-    if (is_html_prefered(format)) {
+    if (is_html_prefered(format) || is_pandoc_to_format(format, c("native"))) {
       render_env <- parent.env(parent.frame())
       render_env$front_matter$always_allow_html <- TRUE
     }
@@ -319,10 +320,13 @@ knitr_options <- function(format, resourceDir, handledLanguages) {
   # set the dingbats option for the pdf device if required
   if (opts_chunk$dev == 'pdf') {
     opts_chunk$dev.args <- list(pdf = list(useDingbats = FALSE))
-    crop <- rmarkdown:::find_program("pdfcrop") != '' && tools::find_gs_cmd() != ''
-    if (crop) {
-      knit_hooks$crop = knitr::hook_pdfcrop
-      opts_chunk$crop = TRUE
+    if (has_crop_tools(FALSE)) {
+      knit_hooks$crop <- function(before, options, envir) {
+        if (isTRUE(options$crop)) {
+          knitr::hook_pdfcrop(before, options, envir)
+        }
+      }
+      opts_chunk$crop <- TRUE
     }
   }
 
@@ -570,7 +574,11 @@ is_pandoc_html_format <- function(format) {
 
 # check if pandoc$to is latex output
 is_pandoc_latex_output <- function(format) {
-  knitr:::is_latex_output() || is_pandoc_to_format(format, "pdf")
+  is_pandoc_to_format(format, c("latex", "beamer", "pdf"))
+}
+
+is_pandoc_ipynb_output <- function(format) {
+  is_pandoc_to_format(format, c("ipynb"))
 }
 
 # check if pandoc$to is among markdown outputs
@@ -589,9 +597,16 @@ is_pandoc_markdown_output <- function(format) {
   is_pandoc_to_format(format, markdown_formats)
 }
 
-# `prefer-html: true` can be set in markdown format that supports HTML outputs
+# should be equivalent of TS function: 
+# isHtmlCompatible() in src/config/format.ts
 is_html_prefered <- function(format) {
-  is_pandoc_markdown_output(format) && isTRUE(format$render$`prefer-html`)
+  # `prefer-html: true` can be set in markdown format that supports HTML outputs
+  (
+    is_pandoc_markdown_output(format) &&
+    isTRUE(format$render$`prefer-html`)
+  ) ||
+  # this could happen when using embed shortcode which convert to ipynb output format.
+  is_pandoc_ipynb_output(format)
 }
 
 is_dashboard_output <- function(format) {
@@ -683,4 +698,25 @@ apply_responsive_patch <- function(format) {
   if (is.null(x)) y else x
 }
 
-
+# from rmarkdown 
+# https://github.com/rstudio/rmarkdown/blob/0951a2fea7e317f77d27969c25f3194ead38805e/R/util.R#L318-L331
+has_crop_tools <- function(warn = TRUE) {
+  if (packageVersion("knitr") >= "1.44") {
+    return(knitr:::has_crop_tools(warn))
+  }
+  # for older version we do inline the function from rmarkdown
+  # but it does not have the knitr improvment for windows 
+  # https://github.com/yihui/knitr/issues/2246
+  tools <- c(
+    pdfcrop = unname(rmarkdown:::find_program("pdfcrop")),
+    ghostscript = unname(tools::find_gs_cmd())
+  )
+  missing <- tools[tools == ""]
+  if (length(missing) == 0) return(TRUE)
+  x <- paste0(names(missing), collapse = ", ")
+  if (warn) warning(
+    sprintf("\nTool(s) not installed or not in PATH: %s", x),
+    "\n-> As a result, figure cropping will be disabled."
+  )
+  FALSE
+}

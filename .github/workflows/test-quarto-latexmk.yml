@@ -22,7 +22,7 @@ jobs:
           - { os: ubuntu-latest }
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -42,9 +42,9 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           cd package/src
-          ./quarto-bld compile-quarto-latexmk --target x86_64-apple-darwin --name tinitex
+          ./quarto-bld compile-quarto-latexmk --target aarch64-apple-darwin --name tinitex
           ls -R ../dist/bin
-          ../dist/bin/tinitex/x86_64-apple-darwin/tinitex --help
+          ../dist/bin/tinitex/aarch64-apple-darwin/tinitex --help
 
       - name: Test Linux
         if: runner.os == 'Linux'
@@ -55,7 +55,7 @@ jobs:
           ../dist/bin/tinitex/x86_64-unknown-linux-gnu/tinitex --help
 
       - name: Upload binary
-        uses: actions/upload-artifact@main
+        uses: actions/upload-artifact@v3
         with:
           name: tinitex
           path: |

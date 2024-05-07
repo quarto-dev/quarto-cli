@@ -23,8 +23,6 @@ local kOrientationColumns = "columns"
 
 local kOptionClasses = "classes"
 
-
-
 local function isRowContainer(el)
   return el.classes ~= nil and el.classes:includes(kRowsClass)
 end
@@ -66,6 +64,9 @@ local function readOptions(el)
     return not kLayoutClz:includes(class)
   end)
   options[kOptionClasses] = classes
+  
+  -- validate the layout options
+  validateLayout(options)
 
   return options;
 end
@@ -81,8 +82,6 @@ local function makeOptions(scrolling)
 end
 
 local function makeColumnContainer(content, options)
-  validateLayout(options)
-
 
   -- forward the options onto attributes
   local attributes = {}
@@ -103,9 +102,6 @@ local function makeColumnContainer(content, options)
 end
 
 local function makeRowContainer(content, options) 
-  
-  -- rows can't have width
-  validateLayout(options)
 
   -- forward attributes along
   local attributes = {}
@@ -140,9 +136,13 @@ end
 
 local function setOrientation(o) 
   currentOrientation = o
+  return currentOrientation
 end
 
 local function orientContents(contents, toOrientation, options)
+  if toOrientation == nil then
+    fatal("You must specify an orientation when orienting contents")
+  end
   if toOrientation == kOrientationColumns then
     currentOrientation = toOrientation
     return makeColumnContainer(contents, options)

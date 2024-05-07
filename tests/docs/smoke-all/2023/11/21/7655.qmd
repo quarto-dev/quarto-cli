@@ -1,0 +1,24 @@
+---
+title: "Untitled"
+format: pdf
+---
+
+```{r}
+#| label: tbl-t-quantile
+#| tbl-cap: The Student $t$ Distribution
+#| echo: false
+
+vec_prob <- c(
+  0.75, 0.80, 0.90, 0.95,
+  0.975, 0.99, 0.995, 0.999
+)
+vec_df <- 1:10
+
+tmp <- mapply(FUN = qt,
+  p = vec_prob,
+  MoreArgs = list(df = vec_df), SIMPLIFY = TRUE
+)
+row.names(tmp) <- vec_df
+knitr::kable(tmp, row.names = TRUE, col.names = vec_prob, digits = 4)
+```
+

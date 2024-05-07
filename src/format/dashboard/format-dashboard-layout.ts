@@ -8,13 +8,15 @@ import { Document, Element } from "../../core/deno-dom.ts";
 import { isValueBox } from "./format-dashboard-valuebox.ts";
 import { asCssSize } from "../../core/css.ts";
 import {
+  kCardClass,
   kDashboardGridSkip,
   kDontMutateTags,
-  kLayoutAttr,
+  kFillAttr,
   kLayoutFill,
   kLayoutFlow,
   Layout,
 } from "./format-dashboard-shared.ts";
+import { isFlowCard } from "./format-dashboard-card.ts";
 
 // Container type classes
 const kRowsClass = "rows";
@@ -54,6 +56,9 @@ const kNeverFillClasses = [
   "h4",
   "h5",
   "h6",
+  "input-panel",
+  "toolbar",
+  "flow",
 ];
 
 // Configuration for skipping elements when applying container classes
@@ -86,6 +91,8 @@ const kFillContainerElements: FillDescriptor = {
     "bslib-page-fill",
   ],
 };
+
+const kFillDontRecurseInsideClasses = ["sidebar", "toolbar"];
 
 // Process row Elements (computing the grid heights for the
 // row and applying bslib style classes)
@@ -187,10 +194,8 @@ function computeColumnLayouts(colEl: Element) {
 function computeRowLayouts(rowEl: Element) {
   // Capture the parent's fill setting. This will be used
   // to cascade to the child, when needed
-  const parentLayoutRaw = rowEl.getAttribute(kLayoutAttr);
-  const parentLayout = parentLayoutRaw !== null
-    ? asLayout(parentLayoutRaw)
-    : null;
+  const parentFillRaw = rowEl.getAttribute(kFillAttr);
+  const parentLayout = parentFillRaw !== null ? asLayout(parentFillRaw) : null;
 
   // Build a set of layouts for this row by looking at the children of
   // the row
@@ -208,11 +213,11 @@ function computeRowLayouts(rowEl: Element) {
       layouts.push(explicitHeight);
     } else {
       // The child height isn't explicitly set, figure out the layout
-      const layout = childEl.getAttribute(kLayoutAttr);
-      if (layout !== null) {
+      const fill = childEl.getAttribute(kFillAttr);
+      if (fill !== null) {
         // That child has either an explicitly set `fill` or `flow` layout
         // attribute, so just use that explicit value
-        layouts.push(asLayout(layout));
+        layouts.push(asLayout(fill));
       } else {
         // This is `auto` mode - no explicit size information is
         // being provided, so we need to figure out what size
@@ -232,10 +237,13 @@ function computeRowLayouts(rowEl: Element) {
           // based upon its own contents
           const layout = rowLayoutForColumn(childEl, parentLayout);
           layouts.push(layout);
+        } else if (childEl.classList.contains(kCardClass)) {
+          const isFlow = isFlowCard(childEl);
+          layouts.push(isFlow ? kLayoutFlow : kLayoutFill);
         } else {
-          // This isn't a row or column, if possible, just use
-          // the parent layout. Otherwise, just make it fill
           if (parentLayout !== null) {
+            // This isn't a row or column, if possible, just use
+            // the parent layout. Otherwise, just make it fill
             layouts.push(parentLayout);
           } else {
             // Just make a fill
@@ -307,21 +315,34 @@ function computeFillFr(layouts: Layout[]) {
 }
 
 // Coerce the layout to value valid
-function asLayout(layout: string): Layout {
-  if (layout === kLayoutFill) {
+function asLayout(fill: string): Layout {
+  if (fill !== "false") {
     return kLayoutFill;
   } else {
     return kLayoutFlow;
   }
 }
 
+type FlowLayoutDetector = (el: Element) => boolean;
+
+const kFlowLayoutDetectors: FlowLayoutDetector[] = [
+  isValueBox,
+  isFlowCard,
+];
+
+function suggestsFlowLayout(el: Element) {
+  return kFlowLayoutDetectors.some((detector) => {
+    return detector(el);
+  });
+}
+
 // Suggest a layout for an element
 function suggestLayout(el: Element) {
-  const explicitLayout = el.getAttribute(kLayoutAttr);
-  if (explicitLayout !== null) {
-    return explicitLayout;
+  const explicitFill = el.getAttribute(kFillAttr);
+  if (explicitFill !== null) {
+    return explicitFill !== "false" ? kLayoutFill : kLayoutFlow;
   } else {
-    if (isValueBox(el)) {
+    if (suggestsFlowLayout(el)) {
       return kLayoutFlow;
     } else {
       return kLayoutFill;
@@ -346,7 +367,13 @@ export const recursiveApplyFillClasses = (el: Element) => {
   applyFillItemClasses(el);
   applyFillContainerClasses(el);
   for (const childEl of el.children) {
-    recursiveApplyFillClasses(childEl);
+    const recurse = !kFillDontRecurseInsideClasses.some((cls) => {
+      return el.classList.contains(cls);
+    });
+
+    if (recurse) {
+      recursiveApplyFillClasses(childEl);
+    }
   }
 };
 

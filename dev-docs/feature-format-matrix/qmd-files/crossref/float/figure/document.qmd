@@ -1,0 +1,30 @@
+---
+format:
+  docusaurus-md: {}
+  docx: {}
+  html: {}
+  markdown: {}
+  pdf: {}
+---
+
+## Crossreferenceable "Figure"s
+
+Images with a caption and a label can be referenced using the `@ref` syntax, as @fig-1 shows.
+
+![This is the caption for the figure.](./figure.png){#fig-1}
+
+Figures can contain arbitrary content instead of an image. In that case, use the div syntax:
+
+::: {#fig-2}
+
+::: {}
+
+This div is the content of the figure.
+
+:::
+
+This is the caption for the figure containing a div.
+
+:::
+
+See @fig-2.

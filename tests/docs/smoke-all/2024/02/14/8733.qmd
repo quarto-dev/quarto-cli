@@ -1,0 +1,14 @@
+---
+title: "Quarto Testfile"
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - ["\\\\hfill\\\\includegraphics"]
+        - []
+---
+
+# Test alignment to the right
+
+![dummy image](test_image_r.jpg){#fig-logor fig-align="right"  width=4in}

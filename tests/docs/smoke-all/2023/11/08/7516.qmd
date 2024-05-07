@@ -1,0 +1,36 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - ".quarto-figure-left>figure>div"
+          - ".quarto-figure-center>figure>p"
+          - ".quarto-figure-right>figure>p"
+---
+
+```{r}
+#| fig-align: right
+library(ggplot2)
+ggplot(mtcars, aes(x = cyl, y = mpg)) +
+    geom_point()
+```
+
+
+```{r}
+#| fig-align: center
+library(ggplot2)
+ggplot(mtcars, aes(x = cyl, y = mpg)) +
+    geom_point()
+```
+
+
+```{r}
+#| label: fig-1
+#| fig-align: left
+#| fig-cap: Hello this works.
+library(ggplot2)
+ggplot(mtcars, aes(x = cyl, y = mpg)) +
+    geom_point()
+```

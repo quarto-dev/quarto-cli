@@ -14,6 +14,7 @@ end
 
 import("../mainstateinit.lua")
 
+import("../ast/scopedwalk.lua")
 import("../ast/customnodes.lua")
 import("../ast/emulatedfilter.lua")
 import("../ast/parse.lua")
@@ -97,6 +98,7 @@ import("../quarto-pre/panel-input.lua")
 import("../quarto-pre/panel-layout.lua")
 import("../quarto-pre/panel-sidebar.lua")
 import("../quarto-pre/parsefiguredivs.lua")
+import("../quarto-pre/parseblockreftargets.lua")
 import("../quarto-pre/project-paths.lua")
 import("../quarto-pre/resourcefiles.lua")
 import("../quarto-pre/results.lua")
@@ -117,6 +119,7 @@ import("../customnodes/decoratedcodeblock.lua")
 import("../customnodes/callout.lua")
 import("../customnodes/panel-tabset.lua")
 import("../customnodes/floatreftarget.lua")
+import("../customnodes/proof.lua")
 import("../customnodes/theorem.lua")
 import("../customnodes/panellayout.lua")
 
@@ -153,33 +156,8 @@ local quarto_normalize_filters = {
   end, normalize_filter()) },
 
   { name = "normalize-capture-reader-state", filter = normalize_capture_reader_state() },
-
-  { name = "pre-table-merge-raw-html", 
-    filter = table_merge_raw_html()
-  },
-
-  -- { name = "pre-content-hidden-meta",
-  --   filter = content_hidden_meta() },
-
-  -- 2023-04-11: We want to combine combine-1 and combine-2, but parse_md_in_html_rawblocks
-  -- can't be combined with parse_html_tables. combineFilters
-  -- doesn't inspect the contents of the results in the inner loop in case
-  -- the result is "spread" into a Blocks or Inlines.
-  
-  { name = "normalize-combined-1", filter = combineFilters({
-      parse_html_tables(),
-      parse_extended_nodes(),
-      code_filename(),
-    })
-  },
-  { 
-    name = "normalize-combine-2", 
-    filter = combineFilters({
-      parse_md_in_html_rawblocks(),
-      parse_reftargets(),
-    }),
-  },
 }
+tappend(quarto_normalize_filters, quarto_ast_pipeline())
 
 local quarto_pre_filters = {
   -- quarto-pre

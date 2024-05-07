@@ -9,7 +9,7 @@ import { execProcess } from "../../../core/process.ts";
 import { lines } from "../../../core/text.ts";
 import { requireQuoting, safeWindowsExec } from "../../../core/windows.ts";
 import { hasTinyTex, tinyTexBinDir } from "../../../tools/impl/tinytex-info.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../deno_ral/path.ts";
 import { logProgress } from "../../../core/log.ts";
 
 export interface TexLiveContext {

@@ -11,9 +11,9 @@ _quarto:
     hugo-md:
       ensureFileRegexMatches:
         - 
-          - "Figure&nbsp;1— Elephant"
-          - "See T.&nbsp;1."
-          - "See F.&nbsp;1."
+          - "Figure 1— Elephant" # NB there's a non-breaking space here
+          - "See T\\. 1\\." # NB same as above
+          - "See F\\. 1" # NB same as above
         -
           - "<a href=\"#tbl-letters\" class=\"quarto-xref\">" # ref-hyperlink: false
 ---

@@ -1,0 +1,11 @@
+---
+title: nb to embed
+---
+
+```{python}
+#| label: fig-1
+#| fig-cap: >
+#|  Overview of the distributions of residuals
+from matplotlib.pyplot import plot
+plot([1,2,3])
+```

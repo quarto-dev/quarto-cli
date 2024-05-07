@@ -1,0 +1,23 @@
+---
+title: Flow
+format: dashboard
+---
+
+
+:::{.card}
+
+:::{.card-body .flow}
+
+This is just some markdown what up
+
+:::
+
+:::{.card-body}
+
+```{r}
+plot(cars)
+```
+
+:::
+
+:::

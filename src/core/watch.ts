@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { error } from "log/mod.ts";
+import { error } from "../deno_ral/log.ts";
 
 import { sleep } from "./async.ts";
 

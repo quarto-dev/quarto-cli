@@ -11,19 +11,6 @@
     );
     return result.toString();
   }
-  var Deno2;
-  try {
-    Deno2 = globalThis.Deno;
-  } catch (_e) {
-  }
-  var noColor = typeof (Deno2 && Deno2.noColor) === "boolean" ? Deno2.noColor : true;
-  var ANSI_PATTERN = new RegExp(
-    [
-      "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
-      "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))"
-    ].join("|"),
-    "g"
-  );
   var InternalError = class extends Error {
     constructor(message, printName = true, printStack = true) {
       super(message);

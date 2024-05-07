@@ -1,0 +1,53 @@
+```{=html}
+<script type="text/javascript" src="dist/js/tabulator.min.js"></script>
+```
+```{python}
+#| tags: [parameters]
+detailed = False
+```
+```{python}
+#| echo: false
+from create_table import compute_trie, compute_quality_summary, render_features_formats_data
+trie = compute_trie(detailed)
+quality_summary = compute_quality_summary(trie)
+```
+```{python}
+#| echo: false
+#| output: asis
+print(render_features_formats_data(trie))
+```
+
+```{=html}
+<div id="features-formats-table"></div>
+
+<script>
+var table = new Tabulator("#features-formats-table", {
+ 	// height:205, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+  data: tableData,
+  dataTree: true,
+ 	layout:"fitColumns", //fit columns to width of table (optional)
+    columns:[
+        {title:"Feature", field: "feature", formatter: "html"},
+        // When you update this, also update the constant in index.qmd!
+        // (Thanks, I hate it)
+        {title:"HTML", field: "html", formatter: "html"},
+        {title:"Dashboard", field: "dashboard", formatter: "html"},
+        {title:"Markdown", field: "markdown", formatter: "html"},
+        {title:"PDF", field: "pdf", formatter: "html"},
+        {title:"Typst", field: "typst", formatter: "html"},
+        {title:"Docx", field: "docx", formatter: "html"},
+        {title:"Docusaurus", field: "docusaurus-md", formatter: "html"},
+        {title:"RevealJS", field: "revealjs", formatter: "html"},
+        {title:"Pptx", field: "pptx", formatter: "html"},
+        {title:"Beamer", field: "beamer", formatter: "html"},
+        {title:"Ipynb", field: "ipynb", formatter: "html"},
+    ],
+});
+</script>
+```
+
+::: {style="visibility: hidden"}
+
+This forces font-awesome to load: {{< fa link >}}
+
+:::

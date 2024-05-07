@@ -29,4 +29,4 @@
                 description: A class name to apply to the lightbox to allow css targeting. This will replace the lightbox class with your custom class name.
   tags:
     formats: [$html-doc]
-  description: Enable or disable lightbox treatment for images in this document.
+  description: Enable or disable lightbox treatment for images in this document. See [Lightbox Figures](https://quarto.org/docs/output-formats/html-lightbox-figures.html) for more details.

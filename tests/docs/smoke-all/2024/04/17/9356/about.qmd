@@ -1,0 +1,20 @@
+---
+title: "Home"
+comments: false
+about: 
+  id: about-pec
+  template: solana
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.quarto-about-solana.column-body"]
+---
+
+::: {#about-pec}
+
+![a pic](https://quarto.org/quarto.png)
+
+Some text here.
+
+:::

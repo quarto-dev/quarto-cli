@@ -25,7 +25,7 @@
     formats: [$html-files, $pdf-all]
   schema:
     enum: [top, bottom, margin]
-  default: inline
+  default: bottom
   description: "Where to place figure and table captions (`top`, `bottom`, or `margin`)"
 
 - name: fig-cap-location
@@ -34,7 +34,7 @@
     formats: [$html-files, $pdf-all]
   schema:
     enum: [top, bottom, margin]
-  default: inline
+  default: bottom
   description: "Where to place figure captions (`top`, `bottom`, or `margin`)"
 
 - name: tbl-cap-location
@@ -43,5 +43,5 @@
     formats: [$html-files, $pdf-all]
   schema:
     enum: [top, bottom, margin]
-  default: inline
+  default: top
   description: "Where to place table captions (`top`, `bottom`, or `margin`)"

@@ -1,6 +1,6 @@
 -- dashboard.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
-
+local utils = require 'modules/dashboard/utils'
 local layout = require 'modules/dashboard/layout'
 local card = require 'modules/dashboard/card'
 local valuebox = require 'modules/dashboard/valuebox'
@@ -8,6 +8,9 @@ local sidebar = require 'modules/dashboard/sidebar'
 local page = require 'modules/dashboard/page'
 local document = require 'modules/dashboard/document'
 local tabset = require 'modules/dashboard/tabset'
+local card_toolbar = require 'modules/dashboard/card-toolbar'
+local card_sidebar = require 'modules/dashboard/card-sidebar'
+local toolbar = require 'modules/dashboard/toolbar'
 
 
 local function isLayoutContainer(el)
@@ -16,14 +19,48 @@ local function isLayoutContainer(el)
   elseif valuebox.isValueBox(el) then
     return true
   elseif layout.isRowOrColumnContainer(el) then
-    return true
+    return true  
   elseif sidebar.isSidebar(el) then
+    return true
+  elseif toolbar.isToolbar(el) then
     return true
   elseif tabset.isTabset(el) then
     return true
+  elseif card_toolbar.isCardToolbar(el) then
+    return true
+  elseif card_sidebar.isCardSidebar(el) then
+    return true;
   end
   return false
 end
+
+function escapeLeafNodeContents(blocks) 
+
+  local baseHeadingLevel = 10000
+  if contents ~= nil then
+    _quarto.ast.walk(blocks, {
+      Header = function(el)
+        baseHeadingLevel = math.min(el.level, baseHeadingLevel)
+      end
+    })
+  end
+  local headingOffset = math.max(math.min(4 - baseHeadingLevel, 10000), 0)
+
+  return _quarto.ast.walk(blocks, {
+      Header = function(header)
+        local level = math.min(header.level + headingOffset, 6)
+        local headerClz = "h" .. level;
+        return pandoc.Div(header.content, pandoc.Attr("", {headerClz}))    
+      end,    
+      Div = function(div)
+        -- pop any contents out of cards
+        if card.isCard(div) then
+          return card.cardBodyContents(div)
+        end
+      end
+  })
+end
+
 
 
 local function organizer(contents, ignoreClasses) 
@@ -48,7 +85,7 @@ local function organizer(contents, ignoreClasses)
       local cardOptions = card.readOptions(looseContentEls[1])
       
       -- For loose content, mark this as a flow layout
-      cardOptions[card.optionKeys.layout] = card.optionValues.flow
+      cardOptions[card.optionKeys.fill] = false
 
       local looseCard = card.makeCard(looseContentEls, {}, cardOptions)
       if looseCard ~= nil then
@@ -76,16 +113,32 @@ local function organizer(contents, ignoreClasses)
   }
 end
 
+function suggestOrientation(el)
+  if sidebar.hasChildSidebar(el) then
+    return layout.orientations.columns
+  elseif toolbar.hasChildToolbar(el) then
+    return layout.orientations.rows
+  else
+    return nil
+  end
+end
+
 
 return {
   layout = layout,
   card = card,
   valuebox = valuebox,
   sidebar = sidebar,
+  toolbar = toolbar,
   page = page,
   tabset = tabset,
+  card_sidebar = card_sidebar,
+  card_toolbar = card_toolbar,
   document = document,
   layoutContainer = {
     organizer = organizer
-  }
+  },
+  escapeLeafNodeContents = escapeLeafNodeContents,
+  suggestOrientation = suggestOrientation,
+  utils = utils
 }

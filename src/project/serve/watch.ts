@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { join, relative } from "path/mod.ts";
+import { join, relative } from "../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -25,7 +25,7 @@ import { projectContext } from "../../project/project-context.ts";
 
 import { ProjectWatcher, ServeOptions } from "./types.ts";
 import { httpDevServer } from "../../core/http-devserver.ts";
-import { RenderFlags } from "../../command/render/types.ts";
+import { RenderOptions } from "../../command/render/types.ts";
 import { renderProject } from "../../command/render/project.ts";
 import { render } from "../../command/render/render-shared.ts";
 import { renderServices } from "../../command/render/render-services.ts";
@@ -37,6 +37,11 @@ import { ServeRenderManager } from "./render.ts";
 import { existsSync1 } from "../../core/file.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
 import { extensionFilesFromDirs } from "../../extension/extension.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import {
+  kDraftMode,
+  kDraftModeVisible,
+} from "../types/website/website-constants.ts";
 
 interface WatchChanges {
   config: boolean;
@@ -48,17 +53,30 @@ export function watchProject(
   project: ProjectContext,
   extensionDirs: string[],
   resourceFiles: string[],
-  flags: RenderFlags,
+  renderOptions: RenderOptions,
   pandocArgs: string[],
   options: ServeOptions,
   renderingOnReload: boolean,
   renderManager: ServeRenderManager,
   stopServer: VoidFunction,
 ): Promise<ProjectWatcher> {
+  const nbContext = notebookContext();
+  const flags = renderOptions.flags;
   // helper to refresh project config
   const refreshProjectConfig = async () => {
-    project = (await projectContext(project.dir, flags, false))!;
+    project =
+      (await projectContext(project.dir, nbContext, renderOptions, false))!;
   };
+
+  // See if we're in draft mode
+  if (project.config) {
+    // If this is a website
+    if (project.config.website) {
+      // Switch
+      (project.config.website as Record<string, unknown>)[kDraftMode] =
+        kDraftModeVisible;
+    }
+  }
 
   // proj dir
   const projDir = normalizePath(project.dir);
@@ -134,7 +152,7 @@ export function watchProject(
           );
           if (inputs.length) {
             // render
-            const services = renderServices();
+            const services = renderServices(nbContext);
             try {
               const result = await renderManager.submitRender(() => {
                 if (inputs.length > 1) {
@@ -245,7 +263,7 @@ export function watchProject(
   // (ensures that we wait for bulk file copying to complete
   // before triggering the reload)
   const reloadClients = ld.debounce(async (changes: WatchChanges) => {
-    const services = renderServices();
+    const services = renderServices(nbContext);
     try {
       // fully render project if we aren't already rendering on reload (e.g. for pdf)
       if (!changes.output && !renderingOnReload) {

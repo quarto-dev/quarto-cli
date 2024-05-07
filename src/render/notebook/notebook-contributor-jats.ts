@@ -28,14 +28,14 @@ import { dirAndStem } from "../../core/path.ts";
 import {
   kJatsSubarticle,
   kLintXml,
-  subarticleTemplatePath,
 } from "../../format/jats/format-jats-types.ts";
+import { subarticleTemplatePath } from "../../format/jats/format-jats-paths.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { NotebookContributor, NotebookMetadata } from "./notebook-types.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
 
 export const jatsContributor: NotebookContributor = {
@@ -92,8 +92,8 @@ async function renderJats(
   format: Format,
   subArticleToken: string,
   services: RenderServices,
-  _notebookMetadata?: NotebookMetadata,
-  project?: ProjectContext,
+  _notebookMetadata: NotebookMetadata | undefined,
+  project: ProjectContext,
 ): Promise<RenderedFile> {
   const to = format.render[kVariant]?.includes("+element_citations")
     ? "jats+element_citations"
@@ -111,7 +111,6 @@ async function renderJats(
           [kJatsSubarticleId]: subArticleToken,
           [kOutputFile]: outputFile(nbPath),
           [kTemplate]: subarticleTemplatePath,
-          [kNotebookPreserveCells]: true,
           [kNotebookPreserveCells]: true,
         },
         quiet: false,

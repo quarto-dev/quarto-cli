@@ -9,17 +9,6 @@ local custom_node_data = pandoc.List({})
 local n_custom_nodes = 0
 local profiler = require('profiler')
 
-function scaffold(node)
-  local pt = pandoc.utils.type(node)
-  if pt == "Blocks" then
-    return pandoc.Div(node, {"", {"quarto-scaffold"}})
-  elseif pt == "Inlines" then
-    return pandoc.Span(node, {"", {"quarto-scaffold"}})
-  else
-    return node
-  end
-end
-
 function is_custom_node(node, name)
   if node.attributes and node.attributes.__quarto_custom == "true" then
     if name == nil or name == node.attributes.__quarto_custom_type then
@@ -79,6 +68,7 @@ function run_emulated_filter(doc, filter)
         return node
       else
         -- luacov: disable
+        quarto.utils.dump(node)
         internal_error()
         -- luacov: enable
       end
@@ -183,6 +173,9 @@ function run_emulated_filter(doc, filter)
     if node.attributes.__quarto_custom_scaffold == "true" then
       return nil
     end
+    if node.identifier == _quarto.ast.vault._uuid then
+      return nil
+    end
     if filter.Div ~= nil then
       return filter.Div(node)
     end
@@ -256,7 +249,72 @@ function create_emulated_node(t, tbl, context, forwarder)
   return result, custom_node_data[id]
 end
 
+-- walk_meta walks a Pandoc Meta object, applying the filter to each node
+-- and recursing on lists and objects. It mutates the meta object in place
+-- and returns it.
+--
+-- It performs slightly more work than a regular walk filter because of the
+-- ambiguity around single-element lists and objects.
+function walk_meta(meta, filter)
+  local skip = {
+    ["nil"] = true,
+    number = true,
+    boolean = true,
+    string = true,
+    ["function"] = true,
+  }
+  local iterate = {
+    Meta = true,
+    List = true,
+  }
+  local function walk(obj)
+    local t = type(obj)
+    if skip[t] then
+      return obj
+    end
+    local pt = quarto.utils.type(obj)
+    if iterate[pt] then
+      for k, v in pairs(obj) do
+        obj[k] = walk(v)
+      end
+    else
+      return _quarto.ast.walk(obj, filter)
+    end
+    return obj
+  end
+  return walk(meta)
+end
+
 _quarto.ast = {
+  vault = {
+    _uuid = "3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9",
+
+    _added = {},
+    _removed = {},
+    add = function(id, contents)
+      _quarto.ast.vault._added[id] = contents
+    end,
+    remove = function(id)
+      _quarto.ast.vault._removed[id] = true
+    end,
+    locate = function(doc)
+      if doc == nil then
+        doc = _quarto.ast._current_doc
+      end
+      -- attempt a fast lookup first
+      if #doc.blocks > 0 and doc.blocks[#doc.blocks].identifier == _quarto.ast.vault._uuid then
+        return doc.blocks[#doc.blocks]
+      else
+        -- otherwise search for it
+        for _, block in ipairs(doc.blocks) do
+          if block.identifier == _quarto.ast.vault._uuid then
+            return block
+          end
+        end
+      end
+      return nil
+    end,  
+  },
   custom_node_data = custom_node_data,
   create_custom_node_scaffold = create_custom_node_scaffold,
 
@@ -426,6 +484,12 @@ _quarto.ast = {
   end,
 
   add_renderer = function(name, condition, renderer)
+    if renderer == nil then
+      -- luacov: disable
+      fatal("Internal Error in add_renderer: renderer for " .. name .. " is nil")
+      -- luacov: enable
+    end
+
     local handler = _quarto.ast.resolve_handler(name)
     if handler == nil then
       -- luacov: disable
@@ -455,7 +519,29 @@ _quarto.ast = {
     -- luacov: enable
   end,
 
+  -- wrap an element with another element containing the quarto-scaffold class
+  -- so that it will be stripped out in the final output
+  scaffold_element = function(node)
+    local pt = pandoc.utils.type(node)
+    if pt == "Blocks" then
+      return pandoc.Div(node, {"", {"quarto-scaffold"}})
+    elseif pt == "Inlines" then
+      return pandoc.Span(node, {"", {"quarto-scaffold"}})
+    else
+      return node
+    end
+  end,
+
+  -- a slightly different version of scaffold_element; we should probably unify these
+  make_scaffold = function(ctor, node)
+    return ctor(node or {}, pandoc.Attr("", {"quarto-scaffold", "hidden"}, {}))
+  end,
+  
+  scoped_walk = scoped_walk,
+
   walk = run_emulated_filter,
+
+  walk_meta = walk_meta,
 
   writer_walk = function(doc, filter)
     local old_custom_walk = filter.Custom

@@ -1,5 +1,6 @@
 -- card.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
+local utils = require "modules/dashboard/utils"
 
 -- Card classes
 local kCardClass = "card"
@@ -29,10 +30,10 @@ local kWidth = "width"
 local kMinHeight = "min-height"
 local kMaxHeight = "max-height"
 local kTitle = "title"
-local kLayout = "layout"
+local kFill = "fill"
 
 -- Card explicit attributes
-local kCardAttributes = pandoc.List({kTitle, kPadding, kHeight, kWidth, kMinHeight, kMaxHeight, kExpandable})
+local kCardAttributes = pandoc.List({kTitle, kPadding, kHeight, kWidth, kMinHeight, kMaxHeight, kExpandable, kFill})
 
 -- Card Body Explicit Attributes
 local kCardBodyAttributes = pandoc.List({kTitle, kHeight, kMinHeight, kMaxHeight})
@@ -71,20 +72,20 @@ local function hasCardDecoration(el)
 end
 
 local function isCard(el) 
-  return (el.t == "Div") and hasCardDecoration(el)
+  return is_regular_node(el, "Div") and hasCardDecoration(el)
 end
 
 local function isCardBody(el) 
-  return el.t == "Div" and el.classes ~= nil and el.classes:find_if(function(class) 
+  return is_regular_node(el, "Div") and el.classes ~= nil and el.classes:find_if(function(class) 
     return kCardBodyClz:includes(class)
   end) 
 end
 local function isCardFooter(el)
-  return el.t == "BlockQuote" or (el.t == "Div" and el.classes:includes(kCardFooterClass))
+  return el.t == "BlockQuote" or (is_regular_node(el, "Div") and el.classes:includes(kCardFooterClass))
 end
 
 local function isCardHeader(el)
-  return el.t == "Div" and el.classes ~= nil and el.classes:find_if(function(class) 
+  return is_regular_node(el, "Div") and el.classes ~= nil and el.classes:find_if(function(class) 
     return kCardHeaderClz:includes(class)
   end) 
 end
@@ -100,7 +101,7 @@ local function hasRealLookingContent(contents)
       hasReal = true
     end
   end
-  return hasReal
+  return hasReal or #contents == 0
 end
 
 local function isLiteralCard(el)
@@ -133,9 +134,9 @@ local function readOptions(el)
     end
 
     if el.classes:includes(kFlowClass) then
-      options[kLayout] = kFlowClass
+      options[kFill] = false
     elseif el.classes:includes(kFillClass) then
-      options[kLayout] = kFillClass
+      options[kFill] = true
     end
   end
 
@@ -179,6 +180,7 @@ end
 local function resolveCardBodies(contents)
   local bodyContentEls = pandoc.List()
   local footerContentEls = pandoc.List()
+  local headerContentEls = pandoc.List()
 
   local collectedBodyEls = pandoc.List() 
   local function flushCollectedBodyContentEls()
@@ -249,7 +251,7 @@ local function resolveCardBodies(contents)
       end
       
 
-      local cardBodyEls, cardFooterEls = resolveCardBodies(cardContentEls)
+      local cardBodyEls, cardHeaderEls, cardFooterEls = resolveCardBodies(cardContentEls)
       if title ~= nil and next(cardBodyEls) ~= nil then
         cardBodyEls[1].attributes['data-title'] = title
       end
@@ -260,6 +262,10 @@ local function resolveCardBodies(contents)
 
       if cardFooterEls ~= nil then
         footerContentEls:extend(cardFooterEls)
+      end
+
+      if cardHeaderEls ~= nil then
+        headerContentEls:extend(cardHeaderEls)
       end
 
     elseif isCardBody(v) then
@@ -282,13 +288,15 @@ local function resolveCardBodies(contents)
 
     elseif isCardFooter(v) then
       footerContentEls:extend(v.content)
+    elseif isCardHeader(v) then
+      headerContentEls:extend(v.content)
     else
       collectBodyContentEl(v, headingOffset)
     end    
   end
   flushCollectedBodyContentEls()
   
-  return bodyContentEls, footerContentEls
+  return bodyContentEls, headerContentEls, footerContentEls
 end
 
 -- title: string
@@ -300,7 +308,6 @@ end
 --   .card-body[max-height, min-height]
 local function makeCard(contents, classes, options)  
 
-
   -- Inspect the loose content and don't make cards out of things that don't look cardish
   local hasRealContent = hasRealLookingContent(contents)
   if not hasRealContent then
@@ -310,16 +317,23 @@ local function makeCard(contents, classes, options)
   -- compute the card contents
   local cardContents = pandoc.List({})
 
+  -- compute the card body(ies)
+  local cardBodyEls, cardHeaderEls, cardFooterEls = resolveCardBodies(contents)
+
   -- the card header
   local cardHeader = resolveCardHeader(options)
-  
+  if cardHeaderEls ~= nil and #cardHeaderEls > 0 then
+    if cardHeader ~= nil then
+      cardHeader.content:extend(cardHeaderEls)
+    else
+      cardHeader = pandoc.Div(cardHeaderEls, pandoc.Attr("", {kCardHeaderClass}))
+    end
+  end
   if cardHeader ~= nil then
     cardContents:insert(cardHeader)  
   end
 
-  -- compute the card body(ies)
-  local cardBodyEls, cardFooterEls = resolveCardBodies(contents)
-
+  -- the body
   cardContents:extend(cardBodyEls)
 
   -- compute any card footers
@@ -343,21 +357,64 @@ local function makeCard(contents, classes, options)
   
   local cardEl = pandoc.Div(cardContents, pandoc.Attr("", clz, attributes))
   return cardEl
+end
 
+function addToHeader(card, content, title)
+  local cardHeader = utils.findChildDiv(card, isCardHeader)
+  if cardHeader then
+    if title ~= nil then
+      cardHeader.content:insert(1, pandoc.Plain(title))
+    end
+    cardHeader.content:insert(content)
+  else
+    local headerContent = pandoc.List({content})
+    if title ~= nil then
+      headerContent:insert(1, pandoc.Plain(title))
+    end
+    
+    local newHeader = pandoc.Div(headerContent, pandoc.Attr("", {kCardHeaderClass}))
+    card.content:insert(1, newHeader)
+  end
+end
+
+function addToFooter(card, content)
+  local cardFooter = utils.findChildDiv(card, isCardFooter)
+  if cardFooter then
+    cardFooter.content:insert(content)
+  else
+    local newFooter = pandoc.Div(content, pandoc.Attr("", {kCardFooterClass}))
+    card.content:insert(newFooter)
+  end
+end
+
+function addSidebar(card, content)
+  card.content:insert(1, content)
+end
+
+function cardBodyContents(card) 
+  local bodyEls = pandoc.List({})
+  for _i, v in ipairs(card.content) do
+    if isCardBody(v) then
+      bodyEls:extend(v.content)
+    end
+  end
+  return bodyEls
 end
 
 return {
   isCard = isCard,
   isCardBody = isCardBody,
   isCardFooter = isCardFooter,
+  cardBodyContents = cardBodyContents,
   isLiteralCard = isLiteralCard,
   readOptions = readOptions,
   makeCard = makeCard,
+  addSidebar = addSidebar,
+  addToFooter = addToFooter,
+  addToHeader = addToHeader,
   hasCardDecoration = hasCardDecoration,
   optionKeys = {
-    layout = kLayout
-  },
-  optionValues = {
-    flow = kFlowClass
+    fill = kFill,
+    expandable = kExpandable
   }
 }

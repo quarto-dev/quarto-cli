@@ -1,17 +1,16 @@
 /*
-* zip.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
-import { dirname } from "path/mod.ts";
+ * zip.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
+import { dirname } from "../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 import { isWindows } from "./platform.ts";
 import { execProcess } from "./process.ts";
 import { safeWindowsExec } from "./windows.ts";
 
-export function unzip(file: string) {
-  const dir = dirname(file);
+export function unzip(file: string, dir?: string) {
+  if (!dir) dir = dirname(file);
 
   if (file.endsWith("zip")) {
     // It's a zip file

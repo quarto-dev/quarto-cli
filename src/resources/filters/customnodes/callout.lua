@@ -119,7 +119,7 @@ function docx_callout_and_table_fixup()
     Blocks = function(blocks)
       local lastWasCallout = false
       local lastWasTableOrFigure = false
-      local newBlocks = pandoc.List()
+      local newBlocks = pandoc.Blocks({})
       for i,el in ipairs(blocks) do 
         -- determine what this block is
         local isCallout = is_custom_node(el, "Callout")
@@ -242,6 +242,9 @@ function decorate_callout_title_with_crossref(callout)
   if not is_valid_ref_type(refType(callout.attr.identifier)) then
     return callout
   end
+  if callout.title == nil then
+    callout.title = pandoc.Plain({})
+  end
   local title = callout.title.content
 
   -- unlabeled callouts do not get a title prefix
@@ -276,18 +279,20 @@ function calloutDiv(node)
     title = quarto.utils.as_inlines(pandoc.Plain(displayName(node.type)))
   end
 
-  local identifier = node.attr.identifier
-  if identifier ~= "" then
-    node.attr.identifier = ""
-    -- inject an anchor so callouts can be linked to
-    local attr = pandoc.Attr(identifier, {}, {})
-    local anchor = pandoc.Link({}, "", "", attr)
-    title:insert(1, anchor)
-  end
-
   -- Make an outer card div and transfer classes and id
   local calloutDiv = pandoc.Div({})
   calloutDiv.attr = node.attr:clone()
+
+  local identifier = node.attr.identifier
+  if identifier ~= "" then
+    node.attr.identifier = ""
+    calloutDiv.attr.identifier = identifier
+    -- inject an anchor so callouts can be linked to
+    -- local attr = pandoc.Attr(identifier, {}, {})
+    -- local anchor = pandoc.Link({}, "", "", attr)
+    -- title:insert(1, anchor)
+  end
+
   div.attr.classes = pandoc.List() 
   div.attr.classes:insert("callout-body-container")
 
@@ -585,7 +590,7 @@ local callout_attrs = {
     color = kColorUnknown,
     background_color = kColorUnknown,
     latex_color = "quarto-callout-color",
-    latex_color_frame = "quarto-callout-color-frame",
+    latex_frame_color = "quarto-callout-color-frame",
     fa_icon = nil,
     fa_icon_typst = nil
   }
@@ -659,29 +664,6 @@ end, function(callout)
   return pandoc.BlockQuote(result)
 end)
 
-local function typst_function_call(name, params)
-  local result = pandoc.Blocks({})
-  result:insert(pandoc.RawInline("typst", "#" .. name .. "("))
-  -- needs to be array of pairs because order matters for typst
-  for i, pair in ipairs(params) do
-    local k = pair[1]
-    local v = pair[2]
-    result:insert(pandoc.RawInline("typst", k .. ": "))
-    result:extend(quarto.utils.as_blocks(v) or {})
-    result:insert(pandoc.RawInline("typst", ", "))
-  end
-  result:insert(pandoc.RawInline("typst", ")"))
-  return pandoc.Div(result)
-end
-
-local function as_typst_content(content)
-  local result = pandoc.Blocks({})
-  result:insert(pandoc.RawInline("typst", "[\n"))
-  result:extend(quarto.utils.as_blocks(content) or {})
-  result:insert(pandoc.RawInline("typst", "]\n"))
-  return result
-end
-
 local included_font_awesome = false
 local function ensure_typst_font_awesome()
   if included_font_awesome then
@@ -713,9 +695,9 @@ end, function(callout)
     title = pandoc.Plain(displayName(callout.type))
   end
 
-  local typst_callout = typst_function_call("callout", { 
-    { "body", as_typst_content(callout.content) },
-    { "title", as_typst_content(title) },
+  local typst_callout = _quarto.format.typst.function_call("callout", { 
+    { "body", _quarto.format.typst.as_typst_content(callout.content) },
+    { "title", _quarto.format.typst.as_typst_content(title) },
     { "background_color", pandoc.RawInline("typst", background_color) },
     { "icon_color", pandoc.RawInline("typst", icon_color) },
     { "icon", pandoc.RawInline("typst", "" .. icon .. "()")}

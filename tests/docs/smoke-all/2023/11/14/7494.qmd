@@ -1,0 +1,17 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - "This is my figure"
+        - []
+---
+
+::: {#fig-1 layout="[-15,70,-15]"}
+
+::: {.figure-content}
+This is my figure!
+:::
+
+:::

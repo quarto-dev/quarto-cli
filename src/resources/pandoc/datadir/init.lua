@@ -1920,6 +1920,7 @@ end
 
 -- The main exports of the quarto module
 quarto = {
+  format = format,
   doc = {
     add_html_dependency = function(htmlDependency)
    
@@ -2062,7 +2063,8 @@ quarto = {
     end,
 
     output_file = outputFile(),
-    input_file = inputFile()
+    input_file = inputFile(),
+    crossref = {}
   },
   project = {
    directory = projectDirectory(),
@@ -2087,7 +2089,12 @@ quarto = {
   json = json,
   base64 = base64,
   log = logging,
-  version = version()
+  version = version(),
+  -- map to quartoConfig information on TS side
+  config = {
+    cli_path = function() return param('quarto-cli-path', nil) end,
+    version = function() return version() end
+  }
 }
 
 -- alias old names for backwards compatibility

@@ -1,0 +1,11 @@
+---
+title: "Reproducible Quarto Document"
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.quarto-figure figure.figure"]
+---
+
+[![A placeholder image](https://placehold.co/600x400.png)](https://placehold.co)

@@ -1,0 +1,15 @@
+---
+format: pdf
+a_meta_key: a_value
+---
+
+![A caption](./foo.jpg){#fig-1}
+
+
+```{=latex}
+% QGZpZy0x is "@fig-1" in base-64 encoding
+% U29tZSBfbWFya2Rvd25fIGhlcmUu is "{{< meta a_meta_key >}} Some _markdown_ here." in base-64 encoding
+\begin{tabular}{cc}
+\QuartoMarkdownBase64{QGZpZy0x} & \QuartoMarkdownBase64{e3s8IG1ldGEgYV9tZXRhX2tleSA+fX0gU29tZSBfbWFya2Rvd25fIGhlcmUu} \\
+\end{tabular}
+```

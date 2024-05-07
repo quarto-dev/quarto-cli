@@ -1,11 +1,10 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { basename } from "path/mod.ts";
+import { basename } from "../../deno_ral/path.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
@@ -34,6 +33,7 @@ export const createProjectCommand = new Command()
   .name("create-project")
   .description("Create a project for rendering multiple documents")
   .arguments("[dir:string]")
+  .hidden()
   .option(
     "--title <title:string>",
     "Project title",

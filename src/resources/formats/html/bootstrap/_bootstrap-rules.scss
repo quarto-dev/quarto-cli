@@ -260,11 +260,12 @@ body,
 .page-columns.column-page > * {
   grid-column: page-start / page-end;
 }
-
+.page-columns.column-page-left .page-columns.page-full > *,
 .page-columns.column-page-left > * {
   grid-column: page-start / body-content-end;
 }
 
+.page-columns.column-page-right .page-columns.page-full > *,
 .page-columns.column-page-right > * {
   grid-column: body-content-start / page-end;
 }
@@ -336,49 +337,49 @@ body.docked {
 .page-columns .column-body-outset {
   grid-column: body-start-outset / body-end-outset;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-body-outset-left {
   grid-column: body-start-outset / body-content-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-body-outset-right {
   grid-column: body-content-start / body-end-outset;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-page {
   grid-column: page-start / page-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-page-inset {
   grid-column: page-start-inset / page-end-inset;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-page-inset-left {
   grid-column: page-start-inset / body-content-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-page-inset-right {
   grid-column: body-content-start / page-end-inset;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   figcaption {
     @include column-spanning-element();
   }
@@ -387,14 +388,14 @@ body.docked {
 .page-columns .column-page-left {
   grid-column: page-start / body-content-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-page-right {
   grid-column: body-content-start / page-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   figcaption {
     @include column-spanning-element();
   }
@@ -425,42 +426,42 @@ body.docked {
 .page-columns .column-screen-inset {
   grid-column: screen-start-inset / screen-end-inset;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-screen-inset-left {
   grid-column: screen-start-inset / body-content-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-screen-inset-right {
   grid-column: body-content-start / screen-end-inset;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-screen {
   grid-column: screen-start / screen-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-screen-left {
   grid-column: screen-start / body-content-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-screen-right {
   grid-column: body-content-start / screen-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
@@ -469,23 +470,23 @@ body.docked {
   padding: 1em;
   background: $light;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   margin-bottom: 1em;
 }
 
 .zindex-content {
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
 }
 
 .zindex-modal {
   z-index: $zindex-modal;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
 }
 
 .zindex-over-content {
   z-index: #{$zindex-dropdown - 1};
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
 }
 
 img.img-fluid.column-screen,
@@ -548,7 +549,7 @@ img.img-fluid.column-screen-right {
     .column-margin {
       grid-column: body-content-start / body-content-end !important;
       z-index: $zindex-pagelayout;
-      transform: translate3d(0, 0, 0);
+      opacity: 0.999;
     }
     .no-row-height {
       height: initial;
@@ -564,7 +565,7 @@ img.img-fluid.column-screen-right {
   .column-margin {
     grid-column: body-content-start / body-content-end !important;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
   }
   .no-row-height {
     height: initial;
@@ -684,7 +685,7 @@ mark {
 .figure-caption,
 .subfigure-caption,
 .table-caption,
-figcaption.quarto-float-caption,
+figcaption,
 caption {
   font-size: 0.9rem;
   @include body-secondary;
@@ -930,6 +931,12 @@ pre {
     background-color: $mono-background-color;
     padding: 0.2em;
   }
+}
+
+p pre code:not(.sourceCode),
+li pre code:not(.sourceCode),
+pre code:not(.sourceCode) {
+  background-color: initial;
 }
 
 // Default padding if background is set
@@ -1318,16 +1325,6 @@ kbd,
   margin-bottom: 0;
 }
 
-.table a {
-  word-break: break-word;
-}
-
-.table > thead {
-  border-top-width: 1px;
-  border-top-color: $table-border-color;
-  border-bottom: 1px solid $table-group-separator-color;
-}
-
 @if $code-block-border-left {
   // Align source code and callout text (not border) with main body text when there is room
   @include media-breakpoint-up(lg) {
@@ -1416,12 +1413,12 @@ kbd,
   padding-right: 0.5em;
 }
 
-.callout.callout-style-default div.callout-body {
+.callout.callout-style-default .callout-body {
   padding-left: 0.5em;
   padding-right: 0.5em;
 }
 
-.callout.callout-style-default div.callout-body > :first-child {
+.callout.callout-style-default .callout-body > :first-child {
   padding-top: 0.5rem;
   margin-top: 0;
 }
@@ -1722,6 +1719,12 @@ div.callout.callout-style-default > .callout-header {
   padding-bottom: 10px;
 }
 
+.sidebar-menu-container {
+  @include media-breakpoint-down(md) {
+    padding-bottom: 5em;
+  }
+}
+
 .quarto-sidebar-toggle:not(.expanded) .quarto-sidebar-toggle-contents {
   padding-top: 0px !important;
   padding-bottom: 0px;
@@ -1774,6 +1777,10 @@ nav[role="doc-toc"].slow > * {
   .footnotes ol li > p:last-of-type,
   .quarto-appendix-contents > p:last-of-type {
     margin-bottom: 0;
+  }
+
+  .footnotes ol {
+    margin-left: 0.5em;
   }
 
   .quarto-appendix-secondary-label {
@@ -1849,7 +1856,7 @@ body.nav-sidebar {
   @include media-breakpoint-down(lg) {
     .quarto-title-banner {
       margin-bottom: 0;
-      padding-bottom: 0;
+      padding-bottom: 1em;
     }
     #title-block-header {
       margin-block-end: 0;
@@ -1999,6 +2006,11 @@ code.sourceCode .code-annotation-anchor {
 
 code.sourceCode button.code-annotation-anchor {
   padding: 2px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
 }
 
 code.sourceCode a.code-annotation-anchor {
@@ -2015,42 +2027,42 @@ code.sourceCode a.code-annotation-anchor {
   .page-columns .column-screen-inset {
     grid-column: page-start-inset / page-end-inset;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
     @include column-spanning-element();
   }
 
   .page-columns .column-screen-inset-left {
     grid-column: page-start-inset / body-content-end;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
     @include column-spanning-element();
   }
 
   .page-columns .column-screen-inset-right {
     grid-column: body-content-start / page-end-inset;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
     @include column-spanning-element();
   }
 
   .page-columns .column-screen {
     grid-column: page-start / page-end;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
     @include column-spanning-element();
   }
 
   .page-columns .column-screen-left {
     grid-column: page-start / body-content-end;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
     @include column-spanning-element();
   }
 
   .page-columns .column-screen-right {
     grid-column: body-content-start / page-end;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
     @include column-spanning-element();
   }
 
@@ -2059,7 +2071,7 @@ code.sourceCode a.code-annotation-anchor {
     padding: 1em;
     background: $light;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
     margin-bottom: 1em;
   }
 }
@@ -2069,353 +2081,58 @@ code.sourceCode a.code-annotation-anchor {
 }
 
 .table {
-  // we don't want border tops on thead unless there are captions on top
+  // Tables get a light top and bottom border (whether or not they have a head
+  // and independent of caption position)
+  border-top: $table-border-width solid $table-group-separator-color-lighter;
+  border-bottom: $table-border-width solid $table-group-separator-color-lighter;
+
+  // The heading gets a heavier line to differentiate it
   > thead {
     border-top-width: 0;
+    border-bottom: 1px solid $table-group-separator-color;
   }
 
-  > :not(caption) > *:not(:last-child) > * {
-    border-bottom-color: $table-group-separator-color-lighter;
-    border-bottom-style: solid;
-    border-bottom-width: $table-border-width;
+  // Allow breaking inside tables
+  a {
+    word-break: break-word;
   }
 
-  // bootstrap uses 2*$table-border-width,
-  // we like thinner borders
-  > :not(:first-child) {
-    border-top: $table-border-width solid $table-group-separator-color;
-    border-bottom-width: $table-border-width;
-    border-bottom-style: solid;
-    border-bottom-color: inherit;
-  }
-}
-
-.table tbody {
-  border-bottom-color: $table-group-separator-color;
-}
-
-// Dashboards
-.quarto-dashboard {
-  @include media-breakpoint-up(sm) {
-    height: 100%;
-  }
-
-  &.dashboard-fill {
-    display: flex;
-    flex-direction: column;
-  }
-
-  #quarto-appendix {
-    display: none;
-  }
-
-  .dashboard-page:not(.dashboard-sidebar-container) {
-    padding: 0.7em;
-  }
-
-  .navbar {
-    padding: 0;
-
-    &.slim {
-      .navbar-brand-container,
-      .navbar-nav {
-        .nav-link {
-          padding: 0.7em;
-        }
-      }
-    }
-
-    .navbar-toggler {
-      order: 10;
-    }
-
-    .navbar-nav {
-      .nav-link {
-        padding: 0.5em;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        .nav-link-text {
-          white-space: nowrap;
-        }
-      }
-      & .active {
-        background-color: theme-dim($navbar-bg, 8%);
-      }
-    }
-
-    .navbar-brand-container {
-      padding: 0.5em;
-      display: flex;
-      flex-direction: row;
-      margin-right: 2em;
-      align-items: center;
-      @include media-breakpoint-down(md) {
-        margin-right: auto;
-      }
-    }
-
-    .navbar-collapse {
-      @include media-breakpoint-up(md) {
-        order: 8;
-      }
-      @include media-breakpoint-down(md) {
-        order: 1000;
-        padding-bottom: 0.5em;
-      }
-      align-self: stretch;
-      .navbar-nav {
-        align-self: stretch;
-      }
-    }
-
-    .navbar-title {
-      font-size: 1.25em;
-      line-height: 1.1em;
-      display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      align-items: baseline;
-      .navbar-title-text {
-        margin-right: 0.4em;
-      }
-      a {
-        text-decoration: none;
-        color: inherit;
-      }
-    }
-
-    .navbar-author {
-      font-size: 0.9rem;
-    }
-
-    .navbar-logo {
-      max-height: 48px;
-      min-height: 30px;
-      object-fit: cover;
-      margin-right: 1em;
-    }
-
-    .quarto-dashboard-links {
-      order: 9;
-      padding-right: 1em;
-    }
-    .quarto-dashboard-link-text {
-      margin-left: 0.25em;
-    }
-
-    .quarto-dashboard-link {
-      padding-right: 0em;
-      padding-left: 0.7em;
-      text-decoration: none;
-      color: $navbar-fg;
-    }
-  }
-
-  .page-layout-custom .tab-content {
-    padding: 0;
-    border: none;
-  }
-
-  .card-header,
-  .card-footer {
-    p:last-child {
-      margin-bottom: 0;
-    }
-  }
-
-  .card-body > .h4:first-child {
-    margin-top: 0;
-  }
-
-  .card-footer {
-    color: $text-muted;
-    font-size: 0.9em;
-    text-align: center;
+  // This disables new styling taken from boostrap that overrides
+  // table level styling
+  // See https://github.com/quarto-dev/quarto-cli/issues/7566
+  > :not(caption) > * > * {
+    background-color: unset;
+    color: unset;
   }
 }
 
-.quarto-dashboard-img-contain {
-  height: 100%;
-  width: 100%;
-  object-fit: contain;
+// Special Cross Talk Handling
+#quarto-document-content {
+  .crosstalk-input .checkbox input[type="checkbox"],
+  .crosstalk-input .checkbox-inline input[type="checkbox"] {
+    position: unset;
+    margin-top: unset;
+    margin-left: unset;
+  }
+
+  .row {
+    margin-left: unset;
+    margin-right: unset;
+  }
 }
 
-.quarto-dashboard {
-  // Mobile sizes convert into 'scrolling' layouts
-  @include media-breakpoint-down(sm) {
-    .bslib-grid {
-      grid-template-rows: minmax(1em, max-content) !important;
-    }
-    .sidebar-content {
-      height: inherit;
-    }
-    .page-layout-custom {
-      min-height: 100vh;
-    }
-  }
+.quarto-xref {
+  white-space: nowrap;
+}
 
-  &.dashboard-sidebar > .page-layout-custom {
-    padding: 0;
-    > .bslib-sidebar-layout {
-      > .sidebar {
-        padding-left: 1em;
-        padding-right: 1em;
-      }
-    }
-  }
+#quarto-draft-alert {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  padding: 0.3em;
+  text-align: center;
+  font-size: 0.9em;
 
-  .bslib-sidebar-layout {
-    > div.main {
-      padding: 0.7em;
-    }
-
-    button.collapse-toggle {
-      margin-top: 0.3em;
-    }
-  }
-
-  .callout {
-    margin-bottom: 0;
-    margin-top: 0;
-  }
-
-  .html-fill-container figure {
-    overflow: hidden;
-  }
-
-  bslib-tooltip {
-    .rounded-pill {
-      .svg {
-        fill: $body-color;
-      }
-      border: solid $text-muted 1px;
-    }
-  }
-
-  .tabset .dashboard-card-no-title .nav-tabs {
-    margin-left: 0;
-    margin-right: auto;
-  }
-
-  .tabset .tab-content {
-    border: none;
-  }
-
-  .tabset .card-header {
-    .nav-link[role="tab"] {
-      margin-top: -6px;
-      padding-top: 6px;
-      padding-bottom: 6px;
-    }
-  }
-
-  .card.valuebox,
-  .card.bslib-value-box {
-    min-height: 6rem;
-    .card-body {
-      padding: 0;
-    }
-  }
-
-  .bslib-value-box {
-    .value-box-value {
-      font-size: clamp(0.1em, 15cqw, 5em);
-    }
-
-    .value-box-showcase .bi {
-      font-size: clamp(0.1em, max(18cqw, 5.2cqh), 5em);
-
-      text-align: center;
-      height: 1em;
-    }
-
-    .value-box-showcase .bi::before {
-      vertical-align: 1em;
-    }
-
-    .value-box-area {
-      margin-top: auto;
-      margin-bottom: auto;
-    }
-  }
-
-  .card figure.quarto-float {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .dashboard-scrolling {
-    padding: 1em;
-  }
-
-  .full-height {
-    height: 100%;
-  }
-
-  .showcase-bottom {
-    .value-box-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      grid-template-rows: 1fr auto;
-      grid-template-areas: "top" "bottom";
-
-      .value-box-showcase {
-        grid-area: bottom;
-        padding: 0;
-        margin: 0;
-        i.bi {
-          font-size: 4rem;
-        }
-      }
-      .value-box-area {
-        grid-area: top;
-      }
-    }
-  }
-
-  .tab-content {
-    margin-bottom: 0;
-  }
-
-  .bslib-sidebar-layout .collapse-toggle {
-    top: 0;
-  }
-
-  .bslib-sidebar-layout:not(.sidebar-collapsed) .collapse-toggle {
-    right: 2px;
-  }
-
-  .bslib-sidebar-layout.sidebar-collapsed:not(.transitioning) .collapse-toggle {
-    left: 2px;
-  }
-
-  .card {
-    .shiny-input-container {
-      padding-bottom: 0.5em;
-      margin-bottom: 0.5em;
-      width: inherit;
-    }
-  }
-
-  .sidebar {
-    .card-body {
-      margin-bottom: 2em;
-    }
-
-    .shiny-input-container {
-      margin-bottom: 1em;
-    }
-
-    .shiny-options-group {
-      margin-top: 0;
-    }
-    .control-label {
-      margin-bottom: 0.3em;
-    }
-  }
-  .card .card-body .quarto-layout-row {
-    align-items: stretch;
+  i {
+    margin-right: 0.3em;
   }
 }

@@ -26,6 +26,10 @@ import { partitionCellOptions } from "../../core/lib/partition-cell-options.ts";
 import { Metadata } from "../../config/types.ts";
 import { jupyterKernelspec } from "../../core/jupyter/kernels.ts";
 import { fixupFrontMatter } from "../../core/jupyter/jupyter-fixups.ts";
+import {
+  jupyterCellSrcAsLines,
+  jupyterCellSrcAsStr,
+} from "../../core/jupyter/jupyter-shared.ts";
 
 export async function markdownToJupyterNotebook(
   file: string,
@@ -67,7 +71,9 @@ export async function jupyterNotebookToMarkdown(
         case "raw":
           // see if this is the front matter
           if (frontMatter === undefined) {
-            frontMatter = partitionYamlFrontMatter(cell.source.join(""))?.yaml;
+            frontMatter = partitionYamlFrontMatter(
+              jupyterCellSrcAsStr(cell),
+            )?.yaml;
             if (!frontMatter) {
               md.push(...mdFromRawCell(cellWithOptions));
             }
@@ -144,11 +150,24 @@ async function mdFromCodeCell(
     return [];
   }
 
+  // determine the largest number of backticks in the cell
+
+  const maxBackticks = Math.max(
+    ...jupyterCellSrcAsLines(cell).map((line) =>
+      line.match(/^`+/g)?.[0].length || 0
+    ),
+    2,
+  );
+  const backticks = "`".repeat(maxBackticks + 1);
+
   // begin code cell
-  const md: string[] = ["```{" + language + "}\n"];
+  const md: string[] = [backticks + "{" + language + "}\n"];
 
   // partition
-  const { yaml, source } = await partitionCellOptions(language, cell.source);
+  const { yaml, source } = await partitionCellOptions(
+    language,
+    jupyterCellSrcAsLines(cell),
+  );
   const options = yaml ? yaml as JupyterCellOptions : {};
 
   if (!includeIds) {
@@ -215,7 +234,7 @@ async function mdFromCodeCell(
   md.push(...mdEnsureTrailingNewline(source));
 
   // end code cell
-  md.push("```\n");
+  md.push(backticks + "\n");
 
   return md;
 }

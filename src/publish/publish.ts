@@ -15,7 +15,7 @@ import {
   isAbsolute,
   join,
   relative,
-} from "path/mod.ts";
+} from "../deno_ral/path.ts";
 
 import {
   InputMetadata,
@@ -46,6 +46,7 @@ import { RenderResultFile } from "../command/render/types.ts";
 import { isHtmlContent, isPdfContent } from "../core/mime.ts";
 import { RenderFlags } from "../command/render/types.ts";
 import { normalizePath } from "../core/path.ts";
+import { notebookContext } from "../render/notebook/notebook-context.ts";
 
 export const kSiteContent = "site";
 export const kDocumentContent = "document";
@@ -65,7 +66,7 @@ export async function publishSite(
 
     if (options.render) {
       renderProgress("Rendering for publish:\n");
-      const services = renderServices();
+      const services = renderServices(notebookContext());
       try {
         const result = await render(project.dir, {
           services,
@@ -161,7 +162,7 @@ export async function publishDocument(
     const files: string[] = [];
     if (options.render) {
       renderProgress("Rendering for publish:\n");
-      const services = renderServices();
+      const services = renderServices(notebookContext());
       try {
         const result = await render(document, {
           services,
@@ -244,8 +245,22 @@ export async function publishDocument(
           }
           files.push(...resultFile.resourceFiles.map(asRelative));
         }
+
+        // If there is an output dir, we need to resolve this into a base dir
+        // that roots in the output directory. So use the project path +
+        // the folder from the base dir + the output dir
+        let finalBaseDir = baseDir;
+        if (result.outputDir && result.context) {
+          const relBasePath = relative(result.context.dir, baseDir);
+          finalBaseDir = join(
+            result.context.dir,
+            result.outputDir,
+            relBasePath,
+          );
+        }
+
         return normalizePublishFiles({
-          baseDir: result.outputDir ? join(baseDir, result.outputDir) : baseDir,
+          baseDir: finalBaseDir,
           rootFile: rootFile!,
           files,
         });

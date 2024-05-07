@@ -4,7 +4,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 
 import { render } from "../render/render-shared.ts";
 import { renderServices } from "../render/render-services.ts";
@@ -27,7 +27,11 @@ import {
   rInstallationMessage,
 } from "../../core/knitr.ts";
 import { quartoConfig } from "../../core/quarto.ts";
-import { readCodePage } from "../../core/windows.ts";
+import {
+  cacheCodePage,
+  clearCodePageCache,
+  readCodePage,
+} from "../../core/windows.ts";
 import { RenderServices } from "../render/types.ts";
 import { jupyterKernelspecForLanguage } from "../../core/jupyter/kernels.ts";
 import { execProcess } from "../../core/process.ts";
@@ -38,14 +42,16 @@ import { dartCommand } from "../../core/dart-sass.ts";
 import { allTools } from "../../tools/tools.ts";
 import { texLiveContext, tlVersion } from "../render/latexmk/texlive.ts";
 import { which } from "../../core/path.ts";
-import { dirname } from "path/mod.ts";
+import { dirname } from "../../deno_ral/path.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { typstBinaryPath } from "../../core/typst.ts";
 
 const kIndent = "      ";
 
 export type Target = "install" | "jupyter" | "knitr" | "versions" | "all";
 
 export async function check(target: Target): Promise<void> {
-  const services = renderServices();
+  const services = renderServices(notebookContext());
   try {
     info(`Quarto ${quartoConfig.version()}`);
     if (target === "versions" || target === "all") {
@@ -66,7 +72,7 @@ export async function check(target: Target): Promise<void> {
 }
 
 async function checkVersions(_services: RenderServices) {
-  const checkVersion = (
+  const checkVersion = async (
     version: string | undefined,
     constraint: string,
     name: string,
@@ -122,17 +128,53 @@ async function checkVersions(_services: RenderServices) {
     info(`      Deno version ${Deno.version.deno}: OK`);
   }
 
+  let typstVersion = lines(
+    (await execProcess({
+      cmd: [typstBinaryPath(), "--version"],
+      stdout: "piped"
+    })).stdout!,
+  )[0].split(' ')[1];
+  checkVersion(typstVersion, ">=0.10.0", "Typst");
+
   completeMessage("Checking versions of quarto dependencies......OK");
 }
 
 async function checkInstall(services: RenderServices) {
   completeMessage("Checking Quarto installation......OK");
   info(`      Version: ${quartoConfig.version()}`);
+  if (quartoConfig.version() === "99.9.9") {
+    // if they're running a dev version, we assume git is installed
+    // print the output of git rev-parse HEAD
+    const gitHead = await execProcess({
+      cmd: ["git", "rev-parse", "HEAD"],
+      stdout: "piped",
+    });
+    if (gitHead.stdout) {
+      info(`      commit: ${gitHead.stdout.trim()}`);
+    }
+  }
   info(`      Path: ${quartoConfig.binPath()}`);
   if (Deno.build.os === "windows") {
     try {
       const codePage = readCodePage();
-      info(`      CodePage: ${codePage || "unknown"}`);
+      clearCodePageCache();
+      await cacheCodePage();
+      const codePage2 = readCodePage();
+
+      info(`      CodePage: ${codePage2 || "unknown"}`);
+      if (codePage && codePage !== codePage2) {
+        info(
+          `      NOTE: Code page updated from ${codePage} to ${codePage2}. Previous rendering may have been affected.`,
+        );
+      }
+      // if non-standard code page, check for non-ascii characters in path
+      // deno-lint-ignore no-control-regex
+      const nonAscii = /[^\x00-\x7F]+/;
+      if (nonAscii.test(quartoConfig.binPath())) {
+        info(
+          `      ERROR: Non-ASCII characters in Quarto path causes rendering problems.`,
+        );
+      }
     } catch {
       info(`      CodePage: Unable to read code page`);
     }
@@ -299,7 +341,7 @@ async function checkKnitrInstallation(services: RenderServices) {
     completeMessage(kMessage + "OK");
     info(knitrCapabilitiesMessage(caps, kIndent));
     info("");
-    if (caps.packages.rmarkdown && caps.packages.knitrVersOk) {
+    if (caps.packages.rmarkdownVersOk && caps.packages.knitrVersOk) {
       const kKnitrMessage = "Checking Knitr engine render......";
       await withSpinner({
         message: kKnitrMessage,
@@ -308,15 +350,26 @@ async function checkKnitrInstallation(services: RenderServices) {
         await checkKnitrRender(services);
       });
     } else {
-      info(
-        knitrInstallationMessage(
-          kIndent,
-          caps.packages.knitr && !caps.packages.knitrVersOk
-            ? "knitr"
-            : "rmarkdown",
-          !!caps.packages.knitr && !caps.packages.knitrVersOk,
-        ),
-      );
+      // show install message if not available
+      // or update message if not up to date
+      if (!!!caps.packages.knitr || !caps.packages.knitrVersOk) {
+        info(
+          knitrInstallationMessage(
+            kIndent,
+            "knitr",
+            !!caps.packages.knitr && !caps.packages.knitrVersOk,
+          ),
+        );
+      }
+      if (!!!caps.packages.rmarkdown || !caps.packages.rmarkdownVersOk) {
+        info(
+          knitrInstallationMessage(
+            kIndent,
+            "rmarkdown",
+            !!caps.packages.rmarkdown && !caps.packages.rmarkdownVersOk,
+          ),
+        );
+      }
       info("");
     }
   } else if (rBin === undefined) {

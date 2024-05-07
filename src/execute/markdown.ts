@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { extname } from "path/mod.ts";
+import { extname } from "../deno_ral/path.ts";
 
 import { readYamlFromMarkdown } from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
@@ -40,6 +40,9 @@ export const markdownEngine: ExecutionEngine = {
   },
   claimsLanguage: (_language: string) => {
     return false;
+  },
+  markdownForFile(file: string): Promise<MappedString> {
+    return Promise.resolve(mappedStringFromFile(file));
   },
 
   target: (file: string, _quiet?: boolean, markdown?: MappedString) => {

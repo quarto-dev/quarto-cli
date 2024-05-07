@@ -1,0 +1,26 @@
+---
+format:
+  docusaurus-md:
+    quality: NA
+  typst:
+    toc: true
+    toc-indent: 2.5em
+    quality: 1
+  docx:
+    quality: NA
+  html:
+    quality: NA
+  markdown:
+    quality: NA
+  pdf:
+    quality: NA
+---
+
+## Section
+
+A section
+
+### Subsection
+
+A subsection
+

@@ -15,16 +15,17 @@ import {
   kIpynbShellInteractivity,
   kPlotlyConnected,
   kTemplate,
+  kTheme,
   kWarning,
 } from "../../config/constants.ts";
 import {
-  DependencyFile,
   DependencyHtmlFile,
   Format,
   FormatExtras,
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
+  Metadata,
 } from "../../config/types.ts";
 import { PandocFlags } from "../../config/types.ts";
 import { mergeConfigs } from "../../core/config.ts";
@@ -33,17 +34,14 @@ import { InternalError } from "../../core/lib/error.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
-import {
-  kBootstrapDependencyName,
-  kPageLayout,
-  kPageLayoutCustom,
-} from "../html/format-html-shared.ts";
+import { kPageLayout, kPageLayoutCustom } from "../html/format-html-shared.ts";
 import { htmlFormat } from "../html/format-html.ts";
 
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 import {
   DashboardMeta,
   dashboardMeta,
+  dashboardScssLayer,
   kDashboard,
   kDontMutateTags,
 } from "./format-dashboard-shared.ts";
@@ -57,8 +55,12 @@ import {
 import { processSidebars } from "./format-dashboard-sidebar.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { processPages } from "./format-dashboard-page.ts";
-import { sassLayer } from "../../core/sass.ts";
 import { processNavButtons } from "./format-dashboard-navbutton.ts";
+import { processNavigation } from "./format-dashboard-website.ts";
+import { projectIsWebsite } from "../../project/project-shared.ts";
+import { processShinyComponents } from "./format-dashboard-shiny.ts";
+import { processToolbars } from "./format-dashboard-toolbar.ts";
+import { processDatatables } from "./format-dashboard-tables.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -76,13 +78,6 @@ export function dashboardFormat() {
       },
       metadata: {
         [kPageLayout]: kPageLayoutCustom,
-        [kTemplatePartials]: formatResourcePath(
-          "dashboard",
-          "title-block.html",
-        ),
-      },
-      pandoc: {
-        [kTemplate]: formatResourcePath("dashboard", "template.html"),
       },
     },
   );
@@ -103,6 +98,20 @@ export function dashboardFormat() {
         // Read the dashboard metadata
         const dashboard = await dashboardMeta(format);
 
+        const isWebsiteProject = projectIsWebsite(project);
+
+        // Forward the theme along (from either the html format
+        // or from the dashboard format)
+        // TODO: There must be a beter way to do this
+        if (isWebsiteProject) {
+          const formats: Record<string, Metadata> = format.metadata
+            .format as Record<string, Metadata>;
+          const htmlFormat = formats["html"];
+          if (htmlFormat && htmlFormat[kTheme]) {
+            format.metadata[kTheme] = htmlFormat[kTheme];
+          }
+        }
+
         const extras: FormatExtras = await baseHtmlFormat.formatExtras(
           input,
           markdown,
@@ -114,11 +123,31 @@ export function dashboardFormat() {
           project,
           quiet,
         );
+
         extras.html = extras.html || {};
         extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] ||
           [];
         extras.html[kHtmlPostprocessors].push(
           dashboardHtmlPostProcessor(dashboard),
+        );
+
+        extras.metadata = extras.metadata || {};
+        extras.metadata[kTemplatePartials] = [
+          "title-block.html",
+          "_nav-container.html",
+        ].map(
+          (file) => {
+            return formatResourcePath(
+              "dashboard",
+              file,
+            );
+          },
+        );
+
+        extras.pandoc = extras.pandoc || {};
+        extras.pandoc[kTemplate] = formatResourcePath(
+          "dashboard",
+          "template.html",
         );
 
         extras[kFilterParams] = extras[kFilterParams] || {};
@@ -127,8 +156,14 @@ export function dashboardFormat() {
           scrolling: dashboard.scrolling,
         };
 
+        if (!isWebsiteProject) {
+          // If this is a website project, it will inject the scss for dashboards
+          extras.html[kSassBundles] = extras.html[kSassBundles] || [];
+          extras.html[kSassBundles].unshift(dashboardScssLayer());
+        }
+
         const scripts: DependencyHtmlFile[] = [];
-        const stylesheets: DependencyFile[] = [];
+        const stylesheets: DependencyHtmlFile[] = [];
 
         // Add the js script which we can use in dashboard to make client side
         // adjustments
@@ -137,22 +172,55 @@ export function dashboardFormat() {
           path: formatResourcePath("dashboard", "quarto-dashboard.js"),
         });
 
-        // Inject a quarto dashboard scss file into the bootstrap scss layer
-        const dashboardScss = formatResourcePath(
-          "dashboard",
-          "quarto-dashboard.scss",
-        );
-        const dashboardLayer = sassLayer(dashboardScss);
-        const dashboardScssDependency = {
-          dependency: kBootstrapDependencyName,
-          key: dashboardScss,
-          quarto: {
-            name: "quarto-search.css",
-            ...dashboardLayer,
+        // Add the sticky headers script
+        scripts.push({
+          name: "stickythead.js",
+          path: formatResourcePath("dashboard", join("js", "stickythead.js")),
+        });
+
+        // Add the DT scripts and CSS
+        // Note that the `tables` processing may remove this if no connected / matching DT tables
+        // are detected
+        scripts.push({
+          name: "datatables.min.js",
+          path: formatResourcePath(
+            "dashboard",
+            join("js", "dt", "datatables.min.js"),
+          ),
+          attribs: {
+            kDTTableSentinel: "true",
           },
-        };
-        extras.html[kSassBundles] = extras.html[kSassBundles] || [];
-        extras.html[kSassBundles].push(dashboardScssDependency);
+        });
+        stylesheets.push({
+          name: "datatables.min.css",
+          path: formatResourcePath(
+            "dashboard",
+            join("js", "dt", "datatables.min.css"),
+          ),
+          attribs: {
+            kDTTableSentinel: "true",
+          },
+        });
+        scripts.push({
+          name: "pdfmake.min.js",
+          path: formatResourcePath(
+            "dashboard",
+            join("js", "dt", "pdfmake.min.js"),
+          ),
+          attribs: {
+            kDTTableSentinel: "true",
+          },
+        });
+        scripts.push({
+          name: "vfs_fonts.js",
+          path: formatResourcePath(
+            "dashboard",
+            join("js", "dt", "vfs_fonts.js"),
+          ),
+          attribs: {
+            kDTTableSentinel: "true",
+          },
+        });
 
         const componentDir = join(
           "bslib",
@@ -272,8 +340,27 @@ function dashboardHtmlPostProcessor(
       }
     }
 
+    // Helper for forwarding supporting and resources
+    const addResults = (
+      res: {
+        resources: string[];
+        supporting: string[];
+      } | undefined,
+    ) => {
+      if (res) {
+        result.resources.push(...res.resources);
+        result.supporting.push(...res.supporting);
+      }
+    };
+
+    // Process Data Tables
+    addResults(processDatatables(doc));
+
+    // Process navigation
+    processNavigation(doc);
+
     // Process pages that may be present in the document
-    processPages(doc);
+    processPages(doc, dashboardMeta);
 
     // Process Navbar buttons
     processNavButtons(doc, dashboardMeta);
@@ -293,11 +380,16 @@ function dashboardHtmlPostProcessor(
     // Process sidedars
     processSidebars(doc);
 
+    // Process toolbars
+    processToolbars(doc);
+
     // Process tables
     processTables(doc);
 
-    // Process fill images to include proper fill behavior
+    // Process Shiny Specific Components
+    processShinyComponents(doc);
 
+    // Process fill images to include proper fill behavior
     const imgFillSelectors = [
       "div.cell-output-display > div.quarto-figure > .quarto-float img",
       "div.cell-output-display > img",

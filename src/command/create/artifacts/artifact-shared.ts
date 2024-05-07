@@ -1,9 +1,8 @@
 /*
-* artifact-shared.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * artifact-shared.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { capitalizeTitle } from "../../../core/text.ts";
 import { quartoConfig } from "../../../core/quarto.ts";
@@ -11,29 +10,12 @@ import { execProcess } from "../../../core/process.ts";
 import { gfmAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 
 import { coerce } from "semver/mod.ts";
-import { info } from "log/mod.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { info } from "../../../deno_ral/log.ts";
+import { basename, dirname, join, relative } from "../../../deno_ral/path.ts";
 import { ensureDirSync, walkSync } from "fs/mod.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { safeExistsSync } from "../../../core/path.ts";
-
-export interface CreateDirective {
-  displayType: string;
-  name: string;
-  directory: string;
-  template: string;
-  options: Record<string, unknown>;
-}
-
-export interface CreateDirectiveData extends Record<string, string> {
-  name: string;
-  filesafename: string;
-  classname: string;
-  title: string;
-  author: string;
-  version: string;
-  quartoversion: string;
-}
+import { CreateDirective, CreateDirectiveData } from "../cmd-types.ts";
 
 // File paths that include this string will get fixed up
 // and the value from the ejs data will be substituted

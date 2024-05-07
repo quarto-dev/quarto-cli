@@ -1,0 +1,3 @@
+website:
+  drafts:
+    - posts/draft-post/index.qmdquarto render docs/websites/drafts --profile draftsquarto render docs/websites/drafts/index.qmd --profile drafts,drafts-visible

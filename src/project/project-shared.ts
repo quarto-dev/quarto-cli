@@ -5,7 +5,13 @@
  */
 
 import { existsSync } from "fs/exists.ts";
-import { dirname, isAbsolute, join, relative, SEP_PATTERN } from "path/mod.ts";
+import {
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+  SEP_PATTERN,
+} from "../deno_ral/path.ts";
 import { kHtmlMathMethod } from "../config/constants.ts";
 import { Format, Metadata } from "../config/types.ts";
 import { mergeConfigs } from "../core/config.ts";
@@ -13,9 +19,9 @@ import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 
 import { normalizePath, pathWithForwardSlashes } from "../core/path.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
-import { engineIgnoreGlobs } from "../execute/engine.ts";
-import { gitignoreEntries } from "./project-gitignore.ts";
 import {
+  FileInclusion,
+  FileInformation,
   kProjectOutputDir,
   kProjectType,
   ProjectConfig,
@@ -26,6 +32,19 @@ import { ProjectType } from "./types/types.ts";
 import { kWebsite } from "./types/website/website-constants.ts";
 import { existsSync1 } from "../core/file.ts";
 import { kManuscriptType } from "./types/manuscript/manuscript-types.ts";
+import { expandIncludes } from "../core/handlers/base.ts";
+import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
+import { createTempContext } from "../core/temp.ts";
+import { RenderContext, RenderFlags } from "../command/render/types.ts";
+import { LanguageCellHandlerOptions } from "../core/handlers/types.ts";
+import { ExecutionEngine } from "../execute/types.ts";
+import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
+import { breakQuartoMd, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
+import { partitionCellOptionsText } from "../core/lib/partition-cell-options.ts";
+import { parse } from "yaml/mod.ts";
+import { mappedIndexToLineCol } from "../core/lib/mapped-text.ts";
+import { normalizeNewlines } from "../core/lib/text.ts";
+import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -34,12 +53,6 @@ export function projectExcludeDirs(context: ProjectContext): string[] {
   } else {
     return [];
   }
-}
-
-export function projectIgnoreGlobs(dir: string) {
-  return engineIgnoreGlobs().concat(
-    gitignoreEntries(dir).map((ignore) => `**/${ignore}**`),
-  );
 }
 
 export function projectFormatOutputDir(
@@ -67,10 +80,10 @@ export function projectOutputDir(context: ProjectContext): string {
   } else {
     outputDir = context.dir;
   }
-  if (existsSync(outputDir)) {
-    return normalizePath(outputDir);
+  if (existsSync(outputDir!)) {
+    return normalizePath(outputDir!);
   } else {
-    return outputDir;
+    return outputDir!;
   }
 }
 
@@ -235,7 +248,7 @@ export function deleteProjectMetadata(metadata: Metadata) {
   );
   if (projType.metadataFields) {
     for (const field of projType.metadataFields().concat("project")) {
-      if (typeof (field) === "string") {
+      if (typeof field === "string") {
         delete metadata[field];
       } else {
         for (const key of Object.keys(metadata)) {
@@ -253,11 +266,11 @@ export function deleteProjectMetadata(metadata: Metadata) {
 
 export function normalizeFormatYaml(yamlFormat: unknown) {
   if (yamlFormat) {
-    if (typeof (yamlFormat) === "string") {
+    if (typeof yamlFormat === "string") {
       yamlFormat = {
         [yamlFormat]: {},
       };
-    } else if (typeof (yamlFormat) === "object") {
+    } else if (typeof yamlFormat === "object") {
       const formats = Object.keys(yamlFormat);
       for (const format of formats) {
         if (
@@ -301,7 +314,7 @@ export async function directoryMetadataForInputFile(
       // There is a metadata file, read it and merge it
       // Note that we need to convert paths that are relative
       // to the metadata file to be relative to input
-      const errMsg = "Directory metadata validation failed.";
+      const errMsg = "Directory metadata validation failed for " + file + ".";
       const yaml = ((await readAndValidateYamlFromFile(
         file,
         frontMatterSchema,
@@ -327,3 +340,138 @@ export async function directoryMetadataForInputFile(
 
   return config;
 }
+
+const mdForFile = async (
+  project: ProjectContext,
+  engine: ExecutionEngine | undefined,
+  file: string,
+): Promise<MappedString> => {
+  if (engine) {
+    return await engine.markdownForFile(file);
+  } else {
+    // Last resort, just read the file
+    return Promise.resolve(mappedStringFromFile(file));
+  }
+};
+
+export async function projectResolveCodeCellsForFile(
+  project: ProjectContext,
+  engine: ExecutionEngine | undefined,
+  file: string,
+  markdown?: MappedString,
+  force?: boolean,
+): Promise<InspectedMdCell[]> {
+  const cache = ensureFileInformationCache(project, file);
+  if (!force && cache.codeCells) {
+    return cache.codeCells || [];
+  }
+  if (!markdown) {
+    markdown = await mdForFile(project, engine, file);
+  }
+
+  const result: InspectedMdCell[] = [];
+  const fileStack: string[] = [];
+
+  const inner = async (file: string, cells: QuartoMdCell[]) => {
+    if (fileStack.includes(file)) {
+      throw new Error(
+        "Circular include detected:\n  " + fileStack.join(" ->\n  "),
+      );
+    }
+    fileStack.push(file);
+    for (const cell of cells) {
+      if (typeof cell.cell_type === "string") {
+        continue;
+      }
+      if (cell.cell_type.language === "_directive") {
+        const directiveCell = cell.cell_type as DirectiveCell;
+        if (directiveCell.name !== "include") {
+          continue;
+        }
+        const innerFile = join(project.dir, directiveCell.shortcode.params[0]);
+        await inner(
+          innerFile,
+          (await breakQuartoMd(
+            await mdForFile(project, engine, innerFile),
+          )).cells,
+        );
+      }
+      if (
+        cell.cell_type.language !== "_directive"
+      ) {
+        const cellOptions = partitionCellOptionsText(
+          cell.cell_type.language,
+          cell.sourceWithYaml ?? cell.source,
+        );
+        const metadata = cellOptions.yaml
+          ? parse(cellOptions.yaml.value) as Record<string, unknown>
+          : {};
+        const lineLocator = mappedIndexToLineCol(cell.sourceVerbatim);
+        result.push({
+          start: lineLocator(0).line,
+          end: lineLocator(cell.sourceVerbatim.value.length - 1).line,
+          file: file,
+          source: normalizeNewlines(cell.source.value),
+          language: cell.cell_type.language,
+          metadata,
+        });
+      }
+    }
+    fileStack.pop();
+  };
+  await inner(file, (await breakQuartoMd(markdown)).cells);
+  cache.codeCells = result;
+  return result;
+}
+
+export async function projectResolveFullMarkdownForFile(
+  project: ProjectContext,
+  engine: ExecutionEngine | undefined,
+  file: string,
+  markdown?: MappedString,
+  force?: boolean,
+): Promise<MappedString> {
+  const cache = ensureFileInformationCache(project, file);
+  if (!force && cache.fullMarkdown) {
+    return cache.fullMarkdown;
+  }
+
+  const temp = createTempContext();
+
+  if (!markdown) {
+    markdown = await mdForFile(project, engine, file);
+  }
+
+  const options: LanguageCellHandlerOptions = {
+    name: "",
+    temp,
+    stage: "pre-engine",
+    format: undefined as unknown as Format,
+    markdown,
+    context: {
+      project,
+      target: {
+        source: file,
+      },
+    } as unknown as RenderContext,
+    flags: {} as RenderFlags,
+  };
+  try {
+    const result = await expandIncludes(markdown, options, file);
+    cache.fullMarkdown = result;
+    cache.includeMap = options.state?.include.includes as FileInclusion[];
+    return result;
+  } finally {
+    temp.cleanup();
+  }
+}
+
+const ensureFileInformationCache = (project: ProjectContext, file: string) => {
+  if (!project.fileInformationCache) {
+    project.fileInformationCache = new Map();
+  }
+  if (!project.fileInformationCache.has(file)) {
+    project.fileInformationCache.set(file, {} as FileInformation);
+  }
+  return project.fileInformationCache.get(file)!;
+};

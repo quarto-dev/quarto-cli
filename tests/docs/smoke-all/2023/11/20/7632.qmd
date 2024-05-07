@@ -1,0 +1,23 @@
+---
+title: AsciiDoc Citation Test
+bibliography: references.bib
+_quarto:
+  tests:
+    asciidoc:
+      ensureFileRegexMatches:
+        - []
+        - ["@wickham2015"]
+---
+
+## Introduction
+
+Foo [@knuth1984].
+
+::: {.callout-important}
+Bar [@wickham2015].
+:::
+
+## References {.unnumbered}
+
+::: {#refs}
+:::

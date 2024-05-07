@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, join } from "path/mod.ts";
-import { copy } from "streams/copy.ts";
+import { dirname, join } from "../../deno_ral/path.ts";
+import { copy } from "io/copy.ts";
 import { ensureDirSync } from "fs/mod.ts";
 
 import { Tar } from "archive/tar.ts";
@@ -13,6 +13,7 @@ import { Tar } from "archive/tar.ts";
 import { PublishFiles } from "../provider-types.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { md5HashBytes } from "../../core/hash.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 
 interface ManifestMetadata {
   appmode: string;
@@ -97,7 +98,9 @@ export async function createBundle(
   const tarFiles = [...files.files, "manifest.json"];
 
   for (const tarFile of tarFiles) {
-    await tar.append(tarFile, { filePath: join(stageDir, tarFile) });
+    await tar.append(pathWithForwardSlashes(tarFile), {
+      filePath: join(stageDir, tarFile),
+    });
   }
 
   // write to temp file

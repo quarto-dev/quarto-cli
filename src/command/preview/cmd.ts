@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, extname, join, relative } from "path/mod.ts";
+import { dirname, extname, join, relative } from "../../deno_ral/path.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -44,13 +44,15 @@ import { renderServices } from "../render/render-services.ts";
 import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
 import { normalizePath } from "../../core/path.ts";
 import { kCliffyImplicitCwd } from "../../config/constants.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../../deno_ral/log.ts";
 import { renderFormats } from "../render/render-contexts.ts";
 import { Format } from "../../config/types.ts";
 import { isServerShiny, isServerShinyPython } from "../../core/render.ts";
 import { previewShiny } from "./preview-shiny.ts";
 import { serve } from "../serve/serve.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -273,15 +275,29 @@ export const previewCommand = new Command()
     let projectTarget: string | ProjectContext = file;
     if (Deno.statSync(file).isFile) {
       // get project and preview format
-      const project = await projectContext(dirname(file));
-      const formats = await renderFormats(file, undefined, project);
+      const nbContext = notebookContext();
+      const project = (await projectContext(dirname(file), nbContext)) ||
+        singleFileProjectContext(file, nbContext);
+      const formats = await (async () => {
+        const services = renderServices(nbContext);
+        try {
+          return await renderFormats(
+            file!,
+            services,
+            undefined,
+            project,
+          );
+        } finally {
+          services.cleanup();
+        }
+      })();
       const format = await previewFormat(file, flags.to, formats, project);
 
       // see if this is server: shiny document and if it is then forward to previewShiny
       if (isHtmlOutput(parseFormatString(format).baseFormat)) {
         const renderFormat = formats[format] as Format | undefined;
         if (renderFormat && isServerShiny(renderFormat)) {
-          const engine = fileExecutionEngine(file, flags);
+          const engine = await fileExecutionEngine(file, flags, project);
           setPreviewFormat(format, flags, args);
           if (isServerShinyPython(renderFormat, engine?.name)) {
             const result = await previewShiny({
@@ -336,7 +352,7 @@ export const previewCommand = new Command()
             projectPreviewServe(project)
           ) {
             setPreviewFormat(format, flags, args);
-            const services = renderServices();
+            const services = renderServices(notebookContext());
             try {
               const renderResult = await renderProject(project, {
                 services,
@@ -349,7 +365,7 @@ export const previewCommand = new Command()
               if (renderResult.error) {
                 throw renderResult.error;
               }
-              handleRenderResult(file, renderResult, project);
+              handleRenderResult(file, renderResult);
               if (projectPreviewServe(project) && renderResult.baseDir) {
                 touchPath = join(
                   renderResult.baseDir,
@@ -375,7 +391,11 @@ export const previewCommand = new Command()
     // see if we are serving a project or a file
     if (Deno.statSync(file).isDirectory) {
       // project preview
-      await serveProject(projectTarget, flags, args, {
+      const renderOptions = {
+        services: renderServices(notebookContext()),
+        flags,
+      };
+      await serveProject(projectTarget, renderOptions, args, {
         port: options.port,
         host: options.host,
         browser: (options.browser === false || options.browse === false)

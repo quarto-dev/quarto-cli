@@ -331,7 +331,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       "fenced.echo", "chunk.echo", "lang", "out.width.px", "out.height.px",
       "indent", "class.source", "class.output", "class.message",
       "class.warning", "class.error", "attr.source", "attr.output",
-      "attr.message", "attr.warning", "attr.error", "connection"
+      "attr.message", "attr.warning", "attr.error", "connection", "hash"
     )
     known_opts <- c(knitr_default_opts, quarto_knitr_opts, quarto_opts, other_opts)
     unknown_opts <- setdiff(names(options), known_opts)
@@ -672,6 +672,7 @@ knitr_plot_hook <- function(format) {
       
       # result = "asis" specific
       if (identical(options[["results"]], "asis")) return(md)
+      
       # enclose in output div 
       output_div(md, NULL, classes)
     }
@@ -954,7 +955,9 @@ engine_comment_chars <- function(engine) {
     asy = "//",
     haskell = "--",
     dot = "//",
-    apl = "\u235D"
+    apl = "\u235D",
+    ocaml = c("(*", "*)"),
+    rust = "//"
   )
   comment_chars[[engine]] %||% "#"
 }
