@@ -129,7 +129,7 @@ export const knitrEngine: ExecutionEngine = {
         markdown: resolveInlineExecute(options.target.markdown.value),
       },
       options.tempDir,
-      options.projectDir,
+      options.project?.isSingleFile ? undefined : options.projectDir,
       options.quiet,
       // fixup .rmarkdown file references
       (output) => {
