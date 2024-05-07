@@ -163,3 +163,4 @@ All changes included in 1.5:
 - When running `quarto check` from a development build (from a git repository), show the git commit hash in addition to the version string.
 - Upgrade Deno to 1.41.0
 - `quarto install tinytex` will now try to set the default CTAN repository to the nearest mirror resolved from https://mirror.ctan.org.
+- ([#9460](https://github.com/quarto-dev/quarto-cli/pulls/9460)): `$valuebox-bg-{color}` Sass variables, e.g. `$valuebox-bg-primary`, can now be set directly for custom value box background colors.
