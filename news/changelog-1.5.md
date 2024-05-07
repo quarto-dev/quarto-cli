@@ -127,6 +127,7 @@ All changes included in 1.5:
 
 ## `quarto inspect`
 
+- ([#8451](https://github.com/quarto-dev/quarto-cli/issues/8451)): `quarto inspect` now validates documents and will throw an error if the document is invalid.
 - ([#8939](https://github.com/quarto-dev/quarto-cli/pull/8939)): `quarto inspect` now takes an additional optional parameter to specify the output file, and provides the graph of include dependencies for the inspection target.
 - ([#9264](https://github.com/quarto-dev/quarto-cli/pull/9264)): `quarto inspect` now provides information about the code cells in the inspection target.
 
