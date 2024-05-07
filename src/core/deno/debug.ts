@@ -7,6 +7,7 @@
  */
 
 import * as colors from "colors";
+import { warn } from "log/mod.ts";
 
 type StackEntry = {
   pos: string;
@@ -46,6 +47,11 @@ export const getStackAsArray = (
   const m = rawStack[rawStack.length - 1].match(
     /^.*at async (.*)src\/quarto.ts:\d+:\d+$/,
   );
+  if (!m) {
+    warn(
+      "Could not find quarto.ts in stack trace, is QUARTO_DENO_EXTRA_OPTIONS with a sufficiently-large stack size set?",
+    );
+  }
   if (m && (typeof format !== "undefined") && (format !== "raw")) {
     const pathPrefix = m[1];
     // first, trim all the path prefixes
@@ -77,6 +83,19 @@ export const getStackAsArray = (
           name: `${m2[1] ?? ""}${m2[2]}`,
           line: m2[4],
           col: m2[5],
+        };
+      }
+      // links to deno's core?
+      // FIXME these will generate bad links in vscode
+      const m3 = s.match(
+        /^.*at (async )?(.*) \(ext:(core\/.+):(\d+):(\d+)*\)$/,
+      );
+      if (m3) {
+        return {
+          pos: m3[3],
+          name: `${m3[1] ?? ""}${m3[2]}`,
+          line: m3[4],
+          col: m3[5],
         };
       }
       throw new Error(`Unexpected stack entry: ${s}`);
