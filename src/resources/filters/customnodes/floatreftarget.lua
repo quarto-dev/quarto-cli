@@ -1010,4 +1010,32 @@ end, function(float)
   }
 end)
 
+_quarto.ast.add_renderer("FloatRefTarget", function(_)
+  return _quarto.format.is_github_markdown_output()
+end, function(float)
+  decorate_caption_with_crossref(float)
+
+  local caption_location = cap_location(float)
+
+  local open_block = pandoc.RawBlock("markdown", "<div id=\"" .. float.identifier .. "\">\n")
+  local close_block = pandoc.RawBlock("markdown", "\n</div>")
+
+  if caption_location == "top" then
+    return pandoc.Blocks({
+      open_block,
+      float.caption_long,
+      float.content,
+      close_block
+    })
+  else
+    return pandoc.Blocks({
+      open_block,
+      float.content,
+      pandoc.RawBlock("markdown", "\n"),
+      float.caption_long,
+      close_block
+    })
+  end
+end)
+
 global_table_guid_id = 0

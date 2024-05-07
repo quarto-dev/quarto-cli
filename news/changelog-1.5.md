@@ -31,6 +31,10 @@ All changes included in 1.5:
 - ([#8919](https://github.com/quarto-dev/quarto-cli/issues/8919)): Ensure enough backticks in code cell declarations.
 - ([#9179](https://github.com/quarto-dev/quarto-cli/issues/9179)): Emit tables that Pandoc would write as HTML as RawBlock elements to ensure they are rendered correctly in Docusaurus.
 
+## GFM Format
+
+- ([#9507](https://github.com/quarto-dev/quarto-cli/issues/9507)): Add support for rendering `FloatRefTarget` elements in `gfm` format.
+
 ## Website
 
 - ([#6779](https://github.com/quarto-dev/quarto-cli/issues/6779)): Add support for `logo-href` and `logo-alt` in `sidebar` (books and websites)
