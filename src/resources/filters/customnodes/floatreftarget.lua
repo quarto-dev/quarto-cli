@@ -783,12 +783,11 @@ function float_reftarget_render_html_figure(float)
     pandoc.Attr("", {}, figure_attrs.figureAttr))
   if float.type == "Listing" then
     div.attr.classes:insert("listing")
-  elseif float.type == "Figure" then
-    -- apply standalone figure css
-    div.attr.classes:insert("quarto-figure")
-    div.attr.classes:insert("quarto-figure-" .. figure_attrs.align)
   end
   div.attr.classes:insert("quarto-float")
+
+  div.attr.classes:insert("quarto-figure")
+  div.attr.classes:insert("quarto-figure-" .. figure_attrs.align)
 
   -- also forward any column or caption classes
   local currentClasses = found_image.attr.classes
