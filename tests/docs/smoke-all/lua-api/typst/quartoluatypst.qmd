@@ -1,0 +1,13 @@
+---
+format: 
+  typst:
+    include-before-body: 
+      text: >
+        #let add(x, y) = x + y
+filters:
+  - quartoluatypst.lua
+---
+
+::: {#find-me}
+
+:::

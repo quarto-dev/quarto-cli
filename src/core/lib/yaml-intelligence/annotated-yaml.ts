@@ -4,7 +4,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { lineColToIndex } from "../text.ts";
+import { indexToLineCol, lineColToIndex } from "../text.ts";
 import { AnnotatedParse, JSONValue } from "../yaml-schema/types.ts";
 
 import {
@@ -109,41 +109,75 @@ export function readAnnotatedYamlFromMappedString(
   try {
     return buildJsYamlAnnotation(mappedSource);
   } catch (e) {
+    if (e.name === "YAMLError") {
+      e.name = "YAML Parsing";
+    }
     // FIXME we should convert this to a TidyverseError
     // for now, we just use the util functions.
     const m = e.stack.split("\n")[0].match(/^.+ \((\d+):(\d+)\)$/);
     if (m) {
-      const f = lineColToIndex(mappedSource.value);
-      const location = { line: Number(m[1]) - 1, column: Number(m[2] - 1) };
-      const offset = f(location);
-      const { originalString } = mappedSource.map(offset, true)!;
-      const filename = originalString.fileName!;
-      const f2 = mappedIndexToLineCol(mappedSource);
-      const { line, column } = f2(offset);
-      const sourceContext = createSourceContext(mappedSource, {
-        start: offset,
-        end: offset + 1,
-      });
-      e.stack = `${e.reason} (${filename}, ${line + 1}:${
-        column + 1
-      })\n${sourceContext}`;
-      e.message = e.stack;
+      // this error is bad enough for users that we
+      // need to actively overwrite the parser's error message
+      // https://github.com/quarto-dev/quarto-cli/issues/9496
+      const m1 = mappedSource.value.match(/([^\s]+):([^\s]+)/);
       if (
-        mappedLines(mappedSource)[location.line].value.indexOf("!expr") !==
-          -1 &&
-        e.reason.match(/bad indentation of a mapping entry/)
+        m1 &&
+        e.reason.match(/a multiline key may not be an implicit key/)
       ) {
+        e.name = "YAML Parse Error";
+        e.reason = "block has incorrect key formatting";
+        const { originalString } = mappedSource.map(m1.index!, true)!;
+        const filename = originalString.fileName!;
+        const map = mappedSource.map(m1.index!)!;
+        const { line, column } = indexToLineCol(map.originalString.value)(
+          map.index,
+        );
+
+        const sourceContext = createSourceContext(mappedSource, {
+          start: m1.index! + 1,
+          end: m1.index! + m1[0].length,
+        });
+        e.stack = `${e.reason} (${filename}, ${line + 1}:${
+          column + 1
+        })\n${sourceContext}`;
+        e.message = e.stack;
         e.message = `${e.message}\n${
           tidyverseInfo(
-            "YAML tags like !expr must be followed by YAML strings.",
-          )
-        }\n${
-          tidyverseInfo(
-            "Is it possible you need to quote the value you passed to !expr ?",
+            "Is it possible you missed a space after a colon in the key-value mapping?",
           )
         }`;
+      } else {
+        const f = lineColToIndex(mappedSource.value);
+        const location = { line: Number(m[1]) - 1, column: Number(m[2] - 1) };
+        const offset = f(location);
+        const { originalString } = mappedSource.map(offset, true)!;
+        const filename = originalString.fileName!;
+        const f2 = mappedIndexToLineCol(mappedSource);
+        const { line, column } = f2(offset);
+        const sourceContext = createSourceContext(mappedSource, {
+          start: offset,
+          end: offset + 1,
+        });
+        e.stack = `${e.reason} (${filename}, ${line + 1}:${
+          column + 1
+        })\n${sourceContext}`;
+        e.message = e.stack;
+        if (
+          mappedLines(mappedSource)[location.line].value.indexOf("!expr") !==
+            -1 &&
+          e.reason.match(/bad indentation of a mapping entry/)
+        ) {
+          e.message = `${e.message}\n${
+            tidyverseInfo(
+              "YAML tags like !expr must be followed by YAML strings.",
+            )
+          }\n${
+            tidyverseInfo(
+              "Is it possible you need to quote the value you passed to !expr ?",
+            )
+          }`;
+        }
       }
-
       e.stack = "";
     }
     throw e;

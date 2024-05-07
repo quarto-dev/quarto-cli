@@ -514,7 +514,8 @@ function parse_floatreftargets()
         local type = refType(identifier)
         local category = crossref.categories.by_ref_type[type]
         if category == nil then
-          warn("Figure with invalid crossref category: " .. identifier .. "\nWon't be able to cross-reference this figure.")
+          -- We've had too many reports of false positives for this, so we're disabling the warning
+          -- warn("Figure with invalid crossref category: " .. identifier .. "\nWon't be able to cross-reference this figure.")
           return nil
         end
         return quarto.FloatRefTarget({
@@ -707,15 +708,26 @@ function forward_cell_subcaps()
       end
       local subcaps = quarto.json.decode(v)
       local index = 1
+      local nsubcaps
+      if type(subcaps) == "table" then
+        nsubcaps = #subcaps
+      end
       div.content = _quarto.ast.walk(div.content, {
         Div = function(subdiv)
-          if index > #subcaps or not subdiv.classes:includes("cell-output-display") then
+          if type(nsubcaps) == "number" and index > nsubcaps or not subdiv.classes:includes("cell-output-display") then
             return nil
+          end
+          local function get_subcap()
+            if type(subcaps) ~= "table" then
+              return pandoc.Str("")
+            else
+              return pandoc.Str(subcaps[index] or "")
+            end
           end
           -- now we attempt to insert subcaptions where it makes sense for them to be inserted
           subdiv.content = _quarto.ast.walk(subdiv.content, {
             Table = function(pandoc_table)
-              pandoc_table.caption.long = quarto.utils.as_blocks(pandoc.Str(subcaps[index]))
+              pandoc_table.caption.long = quarto.utils.as_blocks(get_subcap())
               pandoc_table.identifier = div.identifier .. "-" .. tostring(index)
               index = index + 1
               return pandoc_table
@@ -723,7 +735,7 @@ function forward_cell_subcaps()
             Para = function(maybe_float)
               local fig = discoverFigure(maybe_float, false) or discoverLinkedFigure(maybe_float, false)
               if fig ~= nil then
-                fig.caption = quarto.utils.as_inlines(pandoc.Str(subcaps[index]))
+                fig.caption = quarto.utils.as_inlines(get_subcap())
                 fig.identifier = div.identifier .. "-" .. tostring(index)
                 index = index + 1
                 return maybe_float
