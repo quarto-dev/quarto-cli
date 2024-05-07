@@ -57,12 +57,12 @@ end)
 _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isConfluenceOutput()
 end, function(layout)
-  decorate_caption_with_crossref(layout.float)
-
   if layout.float == nil then
-    fail_and_ask_for_bug_report("Confluence format can't render layouts without floats")
-    return nil
+    error("Confluence format can't render layouts without floats. Will skip this layout element.")
+    return {}
   end
+
+  decorate_caption_with_crossref(layout.float)
 
   -- empty options by default
   if not options then
