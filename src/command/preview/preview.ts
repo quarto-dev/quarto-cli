@@ -5,7 +5,13 @@
  */
 
 import { info, warning } from "../../deno_ral/log.ts";
-import { basename, dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+} from "../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -571,8 +577,13 @@ export function createChangeHandler(
         ? "/" + kPdfJsInitialPath
         : "";
 
+      // https://github.com/quarto-dev/quarto-cli/issues/9547
+      // ... this fix means we'll never be able to support files
+      // fix question marks or octothorpes in their names
+      const removeUrlFragment = (file: string) =>
+        file.replace(/#.*$/, "").replace(/\?.*$/, "");
       watches.push({
-        files: reloadFiles.filter(reloadFileFilter),
+        files: reloadFiles.filter(reloadFileFilter).map(removeUrlFragment),
         handler: ld.debounce(async () => {
           await renderQueue.enqueue(async () => {
             await reloader.reloadClients(reloadTarget);
