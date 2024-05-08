@@ -457,9 +457,15 @@ function bootstrapHtmlPostprocessor(
       if (th.parentNode?.parentNode) {
         const table = th.parentNode.parentNode as Element;
         table.removeAttribute("style");
+        // see https://github.com/quarto-dev/quarto-cli/issues/6945
+        // for a why we want to check for 'plain' here
         addTableClasses(
           table,
-          !!findParent(table, (el) => el.classList.contains("cell")),
+          !!findParent(
+            table,
+            (el) =>
+              el.classList.contains("cell") && !el.classList.contains("plain"),
+          ),
         );
       }
     }

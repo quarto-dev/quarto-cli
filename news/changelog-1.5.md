@@ -153,6 +153,7 @@ All changes included in 1.5:
 
 ## Other Fixes and Improvements
 
+- ([#6945](https://github.com/quarto-dev/quarto-cli/issues/6945)): Allow `classes: plain` to disable the default treatment of computataional tables in code cells.
 - ([#8119](https://github.com/quarto-dev/quarto-cli/issues/8119)): More intelligently detect when ejs templates are modified during development, improving quality of life during preview.
 - ([#8177](https://github.com/quarto-dev/quarto-cli/issues/8177)): Use an explicit path to `sysctl` when detecting MacOS architecture. (author: @kevinushey)
 - ([#8274](https://github.com/quarto-dev/quarto-cli/issues/8274)): set `LUA_CPATH` to '' if unset, avoiding accidentally loading incompatible system-wide libraries.
