@@ -1,0 +1,21 @@
+---
+title: gt no-stripe hack
+engine: knitr
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.cell.plain"]
+        - ["table.table-sm"]
+---
+
+```{r}
+#| classes: plain
+tibble::tribble(
+  ~fruit,   ~price,
+  "apple",  2.05,
+  "pear",   1.37,
+  "orange", 3.09
+) |> 
+  gt::gt()
+```
