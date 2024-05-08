@@ -60,6 +60,7 @@ All changes included in 1.5:
 ## OJS
 
 - ([#8327](https://github.com/quarto-dev/quarto-cli/issues/8327)): Issue error messages on console so they're visible in the case of hidden OJS cells.
+- ([#8372](https://github.com/quarto-dev/quarto-cli/issues/8372)): Fix issue with OJS cells not being properly hidden in Hugo output when `output: false`.
 
 ## Typst
 
