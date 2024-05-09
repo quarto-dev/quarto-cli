@@ -61,7 +61,9 @@ _quarto:
         -
           - "\\<div id=\"tbl-1\"\\>"
           - "\\<div id=\"tbl-2\"\\>"
-          - "\\| Default \\| Left \\| Right \\| Center \\|" # search for md table header
+          - "text-align: left.*Left"
+          - "text-align: right.*Right"
+          - "text-align: center.*Center"
           - "\\!\\[\\]\\(.*media.*table\\.jpg\\)"
 ---
 
