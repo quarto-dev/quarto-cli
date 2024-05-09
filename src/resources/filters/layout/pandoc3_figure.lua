@@ -57,7 +57,11 @@ function render_pandoc3_figure()
         image.classes:insert(v)
       end
     end
-    return htmlImageFigure(image)
+    local result = htmlImageFigure(image)
+    -- preserve the figure identifier in the case of non-FloatRefTarget Figure nodes
+    -- https://github.com/quarto-dev/quarto-cli/issues/9631
+    result.identifier = figure.identifier
+    return result
   end
 
   if _quarto.format.isHtmlOutput() then
