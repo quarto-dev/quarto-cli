@@ -221,7 +221,7 @@ async function publish(
       /^https:\/\/(.+?)\.github\.io\/$/,
     );
     if (defaultSiteMatch) {
-      if (createGhPagesBranch) {
+      if (createGhPagesBranchRemote) {
         notifyGhPagesBranch = true;
       } else {
         try {
@@ -237,7 +237,7 @@ async function publish(
   }
 
   // if this is an update then warn that updates may require a browser refresh
-  if (!createGhPagesBranch && !notifyGhPagesBranch) {
+  if (!createGhPagesBranchRemote && !notifyGhPagesBranch) {
     info(colors.yellow(
       "NOTE: GitHub Pages sites use caching so you might need to click the refresh\n" +
         "button within your web browser to see changes after deployment.\n",
