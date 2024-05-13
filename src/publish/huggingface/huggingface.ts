@@ -70,7 +70,7 @@ async function publishRecord(
   input: string | ProjectContext,
 ): Promise<PublishRecord | undefined> {
   const ghContext = await gitHubContextForPublish(input);
-  if (ghContext.ghPages) {
+  if (ghContext.ghPagesRemote) {
     return {
       id: kHuggingFace,
       url: ghContext.siteUrl || ghContext.originUrl,
