@@ -76,7 +76,9 @@ export function projectFormatOutputDir(
 export function projectOutputDir(context: ProjectContext): string {
   let outputDir = context.config?.project[kProjectOutputDir];
   if (outputDir) {
-    outputDir = join(context.dir, outputDir);
+    if (!isAbsolute(outputDir)) {
+      outputDir = join(context.dir, outputDir);
+    }
   } else {
     outputDir = context.dir;
   }
