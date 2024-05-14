@@ -1,6 +1,6 @@
 return {
   -- returns a placeholder data URI image of the specified size
-  ['placeholder'] = function(args, kwargs, meta)
+  ['placeholder'] = function(args, kwargs, _meta, _rawargs, context)
     local width = args[1] or "100"
     local height = args[2] or width
     local size_str = tostring(width) .. " x " .. tostring(height)
@@ -20,6 +20,10 @@ return {
       result = "data:" .. mt .. ";base64," .. quarto.base64.encode(contents)
     end
 
-    return pandoc.Image({}, result)
+    if context == "text" then
+      return result
+    else
+      return pandoc.Image({}, result)
+    end
   end
 }

@@ -24,3 +24,8 @@ A placeholder that is not converted to PNG:
 
 {{< placeholder 400 200 format=svg >}}
 
+This is a placeholder that's expanded to a URL because it's inside an image src:
+
+![Another placeholder.]({{< placeholder 400 400 format=svg >}}){#fig-placeholder-test-2}
+
+See @fig-placeholder-test-2.
