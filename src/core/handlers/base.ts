@@ -352,6 +352,11 @@ const processMarkdownIncludes = async (
 
   // search for include shortcodes in the cell content
   for (let i = 0; i < newCells.length; ++i) {
+    if (
+      newCells[i].value.search(/\s*```\s*{\s*shortcodes\s*=\s*false\s*}/) !== -1
+    ) {
+      continue;
+    }
     const lines = mappedLines(newCells[i], true);
     let foundShortcodes = false;
     for (let j = 0; j < lines.length; ++j) {
