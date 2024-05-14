@@ -28,6 +28,7 @@ import {
   fileExists,
   noErrors,
   noErrorsOrWarnings,
+  ensurePptxXpath,
 } from "../verify.ts";
 import { readYaml, readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { outputForInput } from "../utils.ts";
@@ -98,6 +99,7 @@ function resolveTestSpecs(
     ensureOdtXpath,
     ensureJatsXpath,
     ensurePptxRegexMatches,
+    ensurePptxXpath,
     ensureSnapshotMatches
   };
 

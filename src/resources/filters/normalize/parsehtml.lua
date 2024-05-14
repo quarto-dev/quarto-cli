@@ -126,7 +126,7 @@ function parse_html_tables()
               blocks:insert(result)
             end
           end
-          return pandoc.Div(blocks)
+          return make_scaffold(pandoc.Div, blocks)
         end
       end
       return el
