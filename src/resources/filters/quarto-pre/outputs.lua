@@ -16,6 +16,7 @@ function unroll_cell_outputs()
   end
 
   return {
+    traverse = "mutable",
     -- unroll output divs for formats (like pptx) that don't support them
     Div = function(div)
 

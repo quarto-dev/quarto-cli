@@ -229,7 +229,41 @@ function shortcodes_filter()
   })
   local filter
 
-  local block_handler = function(node)
+  local block_handler
+  local inline_handler
+  local code_handler
+
+  local function process(doc)
+    -- first walk them in block context
+    doc = _quarto.ast.walk(doc, {
+      Para = block_handler,
+      Plain = block_handler,
+      Code = code_handler,
+      RawBlock = code_handler,
+      CodeBlock = code_handler,
+    })
+
+    doc = _quarto.ast.walk(doc, {
+      Shortcode = inline_handler,
+      RawInline = code_handler,
+      Image = function(el)
+        el.src = shortcode_lpeg.wrap_lpeg_match(code_shortcode, el.src)
+        return el
+      end,
+      Link = function(el)
+        el.target = shortcode_lpeg.wrap_lpeg_match(code_shortcode, el.target)
+        return el
+      end,
+      Span = function(el)
+        if el.classes:includes("quarto-shortcode__-escaped") then
+          return pandoc.Str(el.attributes["data-value"])
+        end
+      end,
+    })
+    return doc
+  end
+
+  block_handler = function(node)
     if (node.t == "Para" or node.t == "Plain") and #node.content == 1 then
       node = node.content[1]
     end
@@ -238,17 +272,17 @@ function shortcodes_filter()
       return nil
     end
     local result, struct = handle_shortcode(custom_data, node)
-    return _quarto.ast.walk(shortcodeResultAsBlocks(result, struct.name, custom_data), filter)
+    return process(shortcodeResultAsBlocks(result, struct.name, custom_data))
   end
 
-  local inline_handler = function(custom_data, node)
+  inline_handler = function(custom_data, node)
     local result, struct = handle_shortcode(custom_data, node)
     local r1 = shortcodeResultAsInlines(result, struct.name, custom_data)
-    local r2 = _quarto.ast.walk(r1, filter)
+    local r2 = process(r1)
     return r2
   end
 
-  local code_handler = function(el)
+  code_handler = function(el)
     -- don't process shortcodes in code output from engines
     -- (anything in an engine processed code block was actually
     --  proccessed by the engine, so should be printed as is)
@@ -266,35 +300,7 @@ function shortcodes_filter()
   end
 
   filter = {
-    Pandoc = function(doc)
-      -- first walk them in block context
-      doc = _quarto.ast.walk(doc, {
-        Para = block_handler,
-        Plain = block_handler,
-        Code = code_handler,
-        RawBlock = code_handler,
-        CodeBlock = code_handler,
-      })
-
-      doc = _quarto.ast.walk(doc, {
-        Shortcode = inline_handler,
-        RawInline = code_handler,
-        Image = function(el)
-          el.src = shortcode_lpeg.wrap_lpeg_match(code_shortcode, el.src)
-          return el
-        end,
-        Link = function(el)
-          el.target = shortcode_lpeg.wrap_lpeg_match(code_shortcode, el.target)
-          return el
-        end,
-        Span = function(el)
-          if el.classes:includes("quarto-shortcode__-escaped") then
-            return pandoc.Str(el.attributes["data-value"])
-          end
-        end,
-       })
-      return doc
-    end
+    Pandoc = process
   }
   return filter
 end
