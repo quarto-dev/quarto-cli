@@ -205,7 +205,7 @@ function shortcodes_filter()
   local code_shortcode = shortcode_lpeg.make_shortcode_parser({
     escaped = function(s) return "{{<" .. s .. ">}}" end,
     string = function(s) return { value = s } end,
-    keyvalue = function(r, k, v) 
+    keyvalue = function(k, r, v) 
       return { name = k, value = v } 
     end,
     shortcode = function(open, space, lst, close)

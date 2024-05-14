@@ -109,6 +109,7 @@ All changes included in 1.5:
 - ([#9011](https://github.com/quarto-dev/quarto-cli/issues/9011)): `embed` shortcode now renders the embedded document without error when it is using knitr engine and have some outputs with HTML dependencies.
 - ([#9635](https://github.com/quarto-dev/quarto-cli/issues/9635)): Respect `{shortcodes=false}` when resolving `include` shortcodes.
 - ([#9664](https://github.com/quarto-dev/quarto-cli/pull/9664)): Add `placeholder` shortcode to produce placeholder images.
+- ([#9665](https://github.com/quarto-dev/quarto-cli/issues/9665)): Fix issue with key-value arguments of shortcode handlers in code contexts.
 
 ## Lightbox Images
 
@@ -144,7 +145,7 @@ All changes included in 1.5:
 
 ## `quarto typst`
 
-- ([#9106])(#https://github.com/quarto-dev/quarto-cli/issues/9106)): Do not allow `quarto typst update`.
+- ([#9106])(https://github.com/quarto-dev/quarto-cli/issues/9106)): Do not allow `quarto typst update`.
 
 ## Quarto's input format
 
