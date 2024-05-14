@@ -1,6 +1,6 @@
 ---
 title: Parsed HTML table in PPTX
-format: pptx
+keep-typ: true
 _quarto:
   tests:
     pptx: 
@@ -8,9 +8,13 @@ _quarto:
         - 2
         - ['//a:tbl']
         - []
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['<test-table>[\s]*#figure\(']
+        - ['<test-table>[\s]*#block\[[\s]*#figure\(']
 ---
 
-# Test table
+# Test table {#test-table}
 
 ```{=html}
 <table>
@@ -32,4 +36,3 @@ _quarto:
 </tbody>
 </table>
 ```
-
