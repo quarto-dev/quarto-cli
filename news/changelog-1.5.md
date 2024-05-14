@@ -108,6 +108,7 @@ All changes included in 1.5:
 - ([#8316](https://github.com/quarto-dev/quarto-cli/issues/8316)): Add fallback value for the `env` shortcode.
 - ([#9011](https://github.com/quarto-dev/quarto-cli/issues/9011)): `embed` shortcode now renders the embedded document without error when it is using knitr engine and have some outputs with HTML dependencies.
 - ([#9635](https://github.com/quarto-dev/quarto-cli/issues/9635)): Respect `{shortcodes=false}` when resolving `include` shortcodes.
+- ([#9665](https://github.com/quarto-dev/quarto-cli/issues/9665)): Fix issue with key-value arguments of shortcode handlers in code contexts.
 
 ## Lightbox Images
 
