@@ -45,8 +45,10 @@ export async function checkRBinary() {
     const result = await execProcess({
       cmd: [rBin, "--version"],
       stdout: "piped",
+      stderr: "piped",
     });
-    if (result.success && result.stdout) {
+    // Before R4.2.3, the output version information is printed to stderr
+    if (result.success && (result.stdout || /R scripting front-end version/.test(result.stderr ?? ''))) {
       debug(`\n++R found at ${rBin} is working.`);
       return rBin;
     } else {
