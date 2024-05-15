@@ -6,6 +6,6 @@ format: typst
 
 Text.
 
-![](xkcd.png){#fig-xkcd}
+![](surus.jpg){#fig-xkcd}
 
 Text.
