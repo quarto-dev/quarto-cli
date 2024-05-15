@@ -21,6 +21,8 @@ end
 
 local html_table_tag_name = "[Tt][Aa][Bb][Ll][Ee]"
 local html_table = tag(html_table_tag_name)
+local html_pre_tag_name = "[Pp][Rr][Ee]"
+local html_pre_tag = tag(html_pre_tag_name)
 local html_table_caption = tag("[Cc][Aa][Pp][Tt][Ii][Oo][Nn]")
 local html_paged_table = "<script data[-]pagedtable[-]source type=\"application/json\">"
 local html_gt_table = "<table class=\"gt_table\">"
@@ -57,6 +59,7 @@ return {
   html_disable_table_processing_comment = "%<%!%-%-%| +quarto%-html%-table%-processing *: +none *%-%-%>",
 
   html_table = html_table,
+  html_pre_tag = html_pre_tag,
   shortcode = shortcode,
   tag = tag,
   latex_label = latex_label,

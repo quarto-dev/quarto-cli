@@ -1,0 +1,32 @@
+---
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: na
+  typst:
+    quality: 2
+    comment: "td, span only"
+  dashboard:
+    quality: 1
+  docx:
+    quality: na
+  pptx:
+    quality: na
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # note css fuchsia #f012be is not the same as css fuchsia #ff00ff
+          - '\[#set text\(fill: fuchsia\); B\]'
+        - []
+---
+
+```{=html}
+<table>
+    <tr><td>A</td><td style="color: fuchsia;">B</td></tr>
+</table>
+```
+

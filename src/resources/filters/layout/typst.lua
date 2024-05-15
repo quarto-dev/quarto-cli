@@ -11,7 +11,7 @@ function make_typst_figure(tbl)
   local identifier = tbl.identifier
   local separator = tbl.separator
 
-  if #caption.content == 0 and tbl.separator == nil then
+  if (not caption or #caption.content == 0) and tbl.separator == nil then
     separator = ""
   end
 
@@ -24,7 +24,7 @@ function make_typst_figure(tbl)
     pandoc.RawInline("typst", separator and ("separator: \"" .. separator .. "\", ") or ""),
     pandoc.RawInline("typst", "position: " .. caption_location .. ", "),
     pandoc.RawInline("typst", "["),
-    caption,
+    caption or pandoc.Inlines({}),
     -- apparently typst doesn't allow separate prefix and name
     pandoc.RawInline("typst", "]), "),
     pandoc.RawInline("typst", "kind: \"" .. kind .. "\", "),

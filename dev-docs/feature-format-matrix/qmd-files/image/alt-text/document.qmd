@@ -9,7 +9,7 @@ _quarto:
   tests:
     html: &html_like_tests
       ensureHtmlElements:
-        - ['div#case1 img[alt="Alt"]', 
+        - ['div#case1 img[alt="Alt"]',
            'img#case2[alt="Alt"]',
            'div#fig-case3 img[alt="Alt"]',
            'div#fig-case4 img[alt="Alt"]',
@@ -23,23 +23,23 @@ _quarto:
 
 With caption, becomes a pandoc.Figure, but not a float:
 
-![Caption](https://placeholder.co/400/400){#case1 fig-alt="Alt"}
+![Caption]({{< placeholder 400 >}}){#case1 fig-alt="Alt"}
 
 Without caption, it's simply an image:
 
-![](https://placeholder.co/400/400){#case2 fig-alt="Alt"}
+![]({{< placeholder 400 >}}){#case2 fig-alt="Alt"}
 
 In crossreferenceable figures, with and without captions:
 
-![Caption](https://placeholder.co/400/400){#fig-case3 fig-alt="Alt"}
+![Caption]({{< placeholder 400 >}}){#fig-case3 fig-alt="Alt"}
 
-![](https://placeholder.co/400/400){#fig-case4 fig-alt="Alt"}
+![]({{< placeholder 400 >}}){#fig-case4 fig-alt="Alt"}
 
 In crossreferenceable non-figure floats, with and without captions:
 
-![Caption](https://placeholder.co/400/400){#tbl-case5 fig-alt="Alt"}
+![Caption]({{< placeholder 400 >}}){#tbl-case5 fig-alt="Alt"}
 
-![](https://placeholder.co/400/400){#tbl-case6 fig-alt="Alt"}
+![]({{< placeholder 400 >}}){#tbl-case6 fig-alt="Alt"}
 
 
 
