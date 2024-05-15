@@ -781,6 +781,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   window.addEventListener(
     "resize",
     throttle(() => {
+      if (tocEl) {
+        updateActiveLink();
+        walk(tocEl, 0);
+      }
       if (!isReaderMode()) {
         hideOverlappedSidebars();
       }
