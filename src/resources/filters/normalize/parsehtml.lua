@@ -19,7 +19,50 @@ local function preprocess_table_text(src)
   return src
 end
 
+local function replace_spaces_not_in_tags(text)
+  local parts = {}
+  local intag = false
+  local lastchange = 1
+  for i = 1, #text do
+    local char = text:sub(i, i)
+    if not intag then
+      if char == '<' then
+        intag = true
+      elseif char == ' ' then
+        table.insert(parts, text:sub(lastchange, i-1))
+        table.insert(parts, '&nbsp;')
+        lastchange = i+1
+      end
+    else
+      if char == '>' then
+        intag = false
+      end
+    end
+  end
+  table.insert(parts, text:sub(lastchange))
+  return table.concat(parts, '')
+end
+
 function parse_html_tables()
+  local function juice(htmltext)
+    return pandoc.system.with_temporary_directory('juice', function(tmpdir)
+      local juice_in = pandoc.path.join({tmpdir, 'juice-in.html'})
+      local jin = assert(io.open(juice_in, 'w'))
+      jin:write(htmltext)
+      jin:flush()
+      local quarto_path = pandoc.path.join({os.getenv('QUARTO_BIN_PATH'), 'quarto'})
+      local jout = io.popen(quarto_path .. ' run ' ..
+          pandoc.path.join({os.getenv('QUARTO_SHARE_PATH'), 'scripts', 'juice.ts'}) .. ' ' ..
+          juice_in, 'r')
+      if jout then
+        return jout:read('a')
+      else
+        quarto.log.error('failed to juice')
+        return htmltext
+      end
+    end)
+  end
+
   local function should_handle_raw_html_as_table(el)
     if not _quarto.format.isRawHtml(el) then
       return nil
@@ -70,19 +113,26 @@ function parse_html_tables()
   -- This algorithm will be fooled by content that contains _text_ that looks like table tags.
   -- Since this problem can be ameliorated by asking users to escape their text content
   -- with html entities, we take this route knowing the tradeoff.
-
+ 
   local function handle_raw_html_as_table(el)
+    local eltext
+    if(_quarto.format.isTypstOutput()) then
+      eltext = juice(el.text)
+    else
+      eltext = el.text
+    end
+
+    local blocks = pandoc.Blocks({})
     local start = patterns.html_start_tag("table")
     local finish = patterns.html_end_tag("table")
 
-    local blocks = pandoc.Blocks({})
 
     local cursor = 1
-    local len = string.len(el.text)
+    local len = string.len(eltext)
 
     while cursor < len do
       -- find the first table start tag
-      local i, j = string.find(el.text, start, cursor)
+      local i, j = string.find(eltext, start, cursor)
       if i == nil then
         -- no more tables
         break
@@ -93,8 +143,8 @@ function parse_html_tables()
       local cursor_2 = j + 1
       local nesting = 1
       while cursor_2 < len do
-        local k1, l1 = string.find(el.text, start, cursor_2)
-        local k2, l2 = string.find(el.text, finish, cursor_2)
+        local k1, l1 = string.find(eltext, start, cursor_2)
+        local k2, l2 = string.find(eltext, finish, cursor_2)
         if k1 == nil and k2 == nil then
           cursor = len
           break
@@ -107,7 +157,7 @@ function parse_html_tables()
           nesting = nesting - 1
           cursor_2 = l2 + 1
           if nesting == 0 then
-            local tableHtml = string.sub(el.text, i, l2)
+            local tableHtml = string.sub(eltext, i, l2)
             -- Pandoc's HTML-table -> AST-table processing does not faithfully respect
             -- `th` vs `td` elements. This causes some complex tables to be parsed incorrectly,
             -- and changes which elements are `th` and which are `td`.
@@ -142,7 +192,7 @@ function parse_html_tables()
             if found and not skip then
               flags.has_tables = true
               if cursor ~= i then
-                blocks:insert(pandoc.RawBlock(el.format, string.sub(el.text, cursor, i - 1)))
+                blocks:insert(pandoc.RawBlock(el.format, string.sub(eltext, cursor, i - 1)))
               end
               blocks:insert(tableDoc.blocks[1])
             end
@@ -156,8 +206,43 @@ function parse_html_tables()
       return nil
     end
     if cursor > 1 and cursor <= len then
-      blocks:insert(pandoc.RawBlock(el.format, string.sub(el.text, cursor)))
+      blocks:insert(pandoc.RawBlock(el.format, string.sub(eltext, cursor)))
     end
+    return _quarto.ast.scaffold_element(blocks)
+  end
+
+  local function should_handle_raw_html_as_pre_tag(pre_tag)
+    if not _quarto.format.isRawHtml(pre_tag) then
+      return nil
+    end
+    local pat = patterns.html_pre_tag
+    local i, j = string.find(pre_tag.text, pat)
+    if i == nil then
+      return nil
+    end
+    return true
+  end
+
+  local function handle_raw_html_as_pre_tag(pre_tag)
+    local eltext
+    if(_quarto.format.isTypstOutput()) then
+      eltext = juice(pre_tag.text)
+    else
+      eltext = pre_tag.text
+    end
+
+    local preContentHtml = eltext:match('<pre[^>]*>(.*)</pre>')
+    if not preContentHtml then
+      quarto.log.error('no pre', eltext:sub(1,1700))
+      return nil
+    end
+    preContentHtml = replace_spaces_not_in_tags(preContentHtml)
+    preContentHtml = preContentHtml:gsub('\n','<br />')
+    local preDoc = pandoc.read(preContentHtml, "html+raw_html")
+    local block1 = preDoc.blocks[1]
+    local blocks = pandoc.Blocks({
+      pandoc.Div(block1, pandoc.Attr("", {}, {style = 'font-family: Inconsolata, Roboto Mono, Courier New;'}))
+    })
     return _quarto.ast.scaffold_element(blocks)
   end
 
@@ -165,6 +250,10 @@ function parse_html_tables()
   if param(constants.kHtmlTableProcessing) == "none" then
     return {}
   end
+  if param(constants.kHtmlPreTagProcessing) == "none" then
+    return {}
+  end
+
   filter = {
     traverse = "topdown",
     Div = function(div)
@@ -182,78 +271,21 @@ function parse_html_tables()
           end
         end
       end
+      if div.attributes[constants.kHtmlPreTagProcessing] then
+        local htmlPreTagProcessing = div.attributes[constants.kHtmlPreTagProcessing]
+        if htmlPreTagProcessing == "parse" then
+          local pre_tag = quarto.utils.match('Div/[1]/RawBlock')(div)
+          if pre_tag and should_handle_raw_html_as_pre_tag(pre_tag) then
+            return handle_raw_html_as_pre_tag(pre_tag), false
+          end
+        end
+      end
     end,
     RawBlock = function(el)
       if not should_handle_raw_html_as_table(el) then
         return nil
       end
       return handle_raw_html_as_table(el)
-      -- local before_table = string.sub(el.text, 1, i - 1)
-      -- local after_table = string.sub(el.text, j + 1)
-      -- local tableHtml = tableBegin .. "\n" .. tableBody .. "\n" .. tableEnd
-      -- -- Pandoc's HTML-table -> AST-table processing does not faithfully respect
-      -- -- `th` vs `td` elements. This causes some complex tables to be parsed incorrectly,
-      -- -- and changes which elements are `th` and which are `td`.
-      -- --
-      -- -- For quarto, this change is not acceptable because `td` and `th` have
-      -- -- accessibility impacts (see https://github.com/rstudio/gt/issues/678 for a concrete
-      -- -- request from a screen-reader user).
-      -- --
-      -- -- To preserve td and th, we replace `th` elements in the input with 
-      -- -- `td data-quarto-table-cell-role="th"`. 
-      -- -- 
-      -- -- Then, in our HTML postprocessor,
-      -- -- we replace th elements with td (since pandoc chooses to set some of its table
-      -- -- elements as th, even if the original table requested not to), and replace those 
-      -- -- annotated td elements with th elements.
-
-      -- tableHtml = preprocess_table_text(tableHtml)
-      -- -- process html with raw_html so that contents that are not parseable
-      -- -- by Pandoc end up as rawblock elements
-      -- local tableDoc = pandoc.read(tableHtml, "html+raw_html")
-      -- local skip = false
-      -- local found = false
-      -- _quarto.ast.walk(tableDoc, {
-      --   Table = function(table)
-      --     found = true
-      --     if table.attributes[constants.kDisableProcessing] == "true" then
-      --       skip = true
-      --     end
-      --   end,
-      -- })
-      -- if not found then
-      --   warn("Unable to parse table from raw html block: skipping.")
-      --   return nil
-      -- end
-      -- if skip then
-      --   return nil
-      -- end
-      -- flags.has_tables = true
-      -- local blocks = pandoc.Blocks({})
-      -- if before_table ~= "" then
-      --   -- this clause is presently redundant, but if we ever
-      --   -- parse more than one type of element, then we'll
-      --   -- need it. We keep it here for symmetry with
-      --   -- the after_table clause.
-      --   local block = pandoc.RawBlock(el.format, before_table)
-      --   local result = _quarto.ast.walk(block, filter)
-      --   if type(result) == "table" then
-      --     blocks:extend(result)
-      --   else
-      --     blocks:insert(result)
-      --   end
-      -- end
-      -- blocks:extend(tableDoc.blocks)
-      -- if after_table ~= "" then
-      --   local block = pandoc.RawBlock(el.format, after_table)
-      --   local result = _quarto.ast.walk(block, filter)
-      --   if type(result) == "table" then
-      --     blocks:extend(result)
-      --   else
-      --     blocks:insert(result)
-      --   end
-      -- end
-      -- return pandoc.Div(blocks)
     end
   }
   return filter
