@@ -2,9 +2,9 @@
 -- Copyright (C) 2023 Posit Software, PBC
 
 function make_typst_figure(tbl)
-  local content = tbl.content
+  local content = tbl.content or pandoc.Div({})
   local caption_location = tbl.caption_location
-  local caption = tbl.caption
+  local caption = tbl.caption or pandoc.Div({})
   local kind = tbl.kind
   local supplement = tbl.supplement
   local numbering = tbl.numbering
