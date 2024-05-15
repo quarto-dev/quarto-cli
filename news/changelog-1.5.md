@@ -11,6 +11,7 @@ All changes included in 1.5:
 - ([#9125](https://github.com/quarto-dev/quarto-cli/issues/9125)): Fix issue in browser console with TOC selection when the document is using ids for headers with specific characters (e.g russian language headers).
 - ([#9539](https://github.com/quarto-dev/quarto-cli/issues/9539)): Improve SCSS of title blocks to avoid overwide columns in grid layout.
 - Improve accessibility `role` for `aria-expandable` elements by ensuring their role supports the `aria-expanded` attribute.
+- ([#3178](https://github.com/quarto-dev/quarto-cli/issues/3178)): TOC now correctly expands when web page has no content to scroll to.
 
 ## PDF Format
 

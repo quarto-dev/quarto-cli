@@ -134,8 +134,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       window.innerHeight + window.pageYOffset >=
       window.document.body.offsetHeight
     ) {
+      // This is the no-scroll case where last section should be the active one
       sectionIndex = 0;
     } else {
+      // This finds the last section visible on screen that should be made active
       sectionIndex = [...sections].reverse().findIndex((section) => {
         if (section) {
           return window.pageYOffset >= section.offsetTop - sectionMargin;
@@ -739,6 +741,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     // Process the collapse state if this is an UL
     if (el.tagName === "UL") {
       if (tocOpenDepth === -1 && depth > 1) {
+        // toc-expand: false
         el.classList.add("collapse");
       } else if (
         depth <= tocOpenDepth ||
@@ -757,10 +760,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   };
 
   // walk the TOC and expand / collapse any items that should be shown
-
   if (tocEl) {
-    walk(tocEl, 0);
     updateActiveLink();
+    walk(tocEl, 0);
   }
 
   // Throttle the scroll event and walk peridiocally
@@ -779,6 +781,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   window.addEventListener(
     "resize",
     throttle(() => {
+      if (tocEl) {
+        updateActiveLink();
+        walk(tocEl, 0);
+      }
       if (!isReaderMode()) {
         hideOverlappedSidebars();
       }
