@@ -600,14 +600,14 @@ async function writeJuliaCommand(
   // but they could also end in a partial one.
   // so to read and process them all correctly, we read in a fixed number of bytes, if there's a newline, we process
   // the string up to that part and save the rest for the next round.
-  let restOfPreviousResponse = "";
+  let restOfPreviousResponse = new Uint8Array();
   while (true) {
-    let response = restOfPreviousResponse;
-    const newlineAt = response.indexOf("\n");
+    let respArray = restOfPreviousResponse;
+    const newlineAt = respArray.indexOf(10);
     // if we already have a newline, we don't need to read from conn
     if (newlineAt !== -1) {
-      restOfPreviousResponse = response.substring(newlineAt + 1);
-      response = response.substring(0, newlineAt);
+      restOfPreviousResponse = respArray.slice(newlineAt + 1);
+      respArray = respArray.slice(0, newlineAt);
     } // but if we don't have a newline, we read in more until we get one
     else {
       while (true) {
@@ -618,16 +618,14 @@ async function writeJuliaCommand(
         }
 
         if (bytesRead > 0) {
-          const payload = new TextDecoder().decode(
-            buffer.slice(0, bytesRead),
-          );
-          const payloadNewlineAt = payload.indexOf("\n");
+          const payload = buffer.slice(0, bytesRead);
+          const payloadNewlineAt = payload.indexOf(10);
           if (payloadNewlineAt === -1) {
-            response += payload;
-            restOfPreviousResponse = "";
+            respArray = new Uint8Array([...respArray, ...payload])
+            restOfPreviousResponse = new Uint8Array();
           } else {
-            response += payload.substring(0, payloadNewlineAt);
-            restOfPreviousResponse = payload.substring(payloadNewlineAt + 1);
+            respArray = new Uint8Array([...respArray, ...payload.slice(0, payloadNewlineAt)]);
+            restOfPreviousResponse = payload.slice(payloadNewlineAt + 1);
             // when we have found a newline in a payload, we can stop reading in more data and continue
             // with the response first
             break;
@@ -635,6 +633,7 @@ async function writeJuliaCommand(
         }
       }
     }
+    const response = new TextDecoder().decode(respArray);
     trace(options, "received server response");
     // one command should be sent, ended by a newline, currently just throwing away anything else because we don't
     // expect multiple commmands at once
