@@ -90,6 +90,7 @@ import("./quarto-finalize/meta-cleanup.lua")
 import("./quarto-finalize/coalesceraw.lua")
 import("./quarto-finalize/descaffold.lua")
 import("./quarto-finalize/typst.lua")
+import("./quarto-finalize/pptx.lua")
 
 import("./normalize/flags.lua")
 import("./normalize/normalize.lua")
@@ -394,7 +395,8 @@ local quarto_finalize_filters = {
     flags = { "has_output_cells" }
   },
   { name = "finalize-wrapped-writer", filter = wrapped_writer() },
-  { name = "finalize-typst-state", filter = setup_typst_state() }
+  { name = "finalize-typst-state", filter = setup_typst_state() },
+  { name = "finalize-pptx-raw-cleanup", filter = pptx_raw_cleanup() }
 }
 
 local quarto_layout_filters = {
