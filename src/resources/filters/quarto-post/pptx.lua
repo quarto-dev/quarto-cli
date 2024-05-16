@@ -1,4 +1,4 @@
-function pptx_raw_cleanup() 
+function render_pptx_fixups() 
   if not _quarto.format.isPowerPointOutput() then
     return {}
   end

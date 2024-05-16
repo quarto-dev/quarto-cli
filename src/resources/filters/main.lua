@@ -82,6 +82,7 @@ import("./quarto-post/code.lua")
 import("./quarto-post/html.lua")
 import("./quarto-post/dashboard.lua")
 import("./quarto-post/email.lua")
+import("./quarto-post/pptx.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -90,7 +91,6 @@ import("./quarto-finalize/meta-cleanup.lua")
 import("./quarto-finalize/coalesceraw.lua")
 import("./quarto-finalize/descaffold.lua")
 import("./quarto-finalize/typst.lua")
-import("./quarto-finalize/pptx.lua")
 
 import("./normalize/flags.lua")
 import("./normalize/normalize.lua")
@@ -374,6 +374,7 @@ local quarto_post_filters = {
   { name = "post-render-gfm-fixups", filter = render_gfm_fixups() },
   { name = "post-render-hugo-fixups", filter = render_hugo_fixups() },
   { name = "post-render-email", filters = render_email() },
+  { name = "post-render-pptx-fixups", filter = render_pptx_fixups() }
 }
 
 local quarto_finalize_filters = {
@@ -396,7 +397,6 @@ local quarto_finalize_filters = {
   },
   { name = "finalize-wrapped-writer", filter = wrapped_writer() },
   { name = "finalize-typst-state", filter = setup_typst_state() },
-  { name = "finalize-pptx-raw-cleanup", filter = pptx_raw_cleanup() }
 }
 
 local quarto_layout_filters = {
