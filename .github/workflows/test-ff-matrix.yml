@@ -124,12 +124,12 @@ jobs:
         uses: browser-actions/setup-chrome@latest
 
       - name: Setup Julia
-        uses: julia-actions/setup-julia@v1
+        uses: julia-actions/setup-julia@v2
         with:
           version: "1.10"
 
       - name: Cache Julia Packages
-        uses: julia-actions/cache@v1
+        uses: julia-actions/cache@v2
 
       - name: Restore Julia Packages
         working-directory: tests
