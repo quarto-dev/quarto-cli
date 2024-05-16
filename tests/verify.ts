@@ -49,7 +49,8 @@ export const withPptxContent = async <T>(
   slideNumber: number,
   rels: boolean,
   // takes the parsed XML and the XML file path
-  k: (xml: string, xmlFile: string) => Promise<T>
+  k: (xml: string, xmlFile: string) => Promise<T>,
+  isSlideMax: boolean = false,
 ) => {
   const [_dir, stem] = dirAndStem(file);
   const temp = await Deno.makeTempDir();
@@ -66,9 +67,17 @@ export const withPptxContent = async <T>(
       existsSync(slideFile),
       `Slide number ${slideNumber} is not in the Pptx`,
     );
-    const xml = await Deno.readTextFile(slideFile);
-    const result = await k(xml, slideFile);
-    return result;
+    if (isSlideMax) {
+      assert(
+        !existsSync(join(slidePath, `slide${slideNumber + 1}.xml`)),
+        `Pptx has more than ${slideNumber} slides.`,
+      );
+      return Promise.resolve();
+    } else {
+      const xml = await Deno.readTextFile(slideFile);
+      const result = await k(xml, slideFile);
+      return result;
+    }
   } finally {
     await Deno.remove(temp, { recursive: true });
   }
@@ -467,11 +476,11 @@ export const verifyDocXDocument = (
 export const verifyPptxDocument = (
   callback: (doc: string, docFile: string) => Promise<void>,
   name?: string,
-): (file: string, slideNumber: number, rels?: boolean) => Verify => {
-  return (file: string, slideNumber: number, rels: boolean = false) => ({
+): (file: string, slideNumber: number, rels?: boolean, isSlideMax?: boolean) => Verify => {
+  return (file: string, slideNumber: number, rels: boolean = false, isSlideMax: boolean = false) => ({
     name: name ?? "Inspecting Pptx",
     verify: async (_output: ExecuteOutput[]) => {
-      return await withPptxContent(file, slideNumber, rels, callback);
+      return await withPptxContent(file, slideNumber, rels, callback, isSlideMax);
     },
   });
 };
@@ -594,6 +603,17 @@ export const ensurePptxLayout = (
     pptxLayoutChecker(layoutName),
     `Inspecting Pptx for slide ${slideNumber} having layout ${layoutName}.`,
   )(file, slideNumber, true);
+};
+
+export const ensurePptxMaxSlides = (
+  file: string,
+  slideNumberMax: number,
+): Verify => {
+  return verifyPptxDocument(
+    // callback won't be used here
+    () => Promise.resolve(),
+    `Checking Pptx for maximum ${slideNumberMax} slides`,
+  )(file, slideNumberMax, true);
 };
 
 export const ensureDocxRegexMatches = (

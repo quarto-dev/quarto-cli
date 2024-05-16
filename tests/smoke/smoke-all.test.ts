@@ -30,6 +30,7 @@ import {
   noErrorsOrWarnings,
   ensurePptxXpath,
   ensurePptxLayout,
+  ensurePptxMaxSlides,
 } from "../verify.ts";
 import { readYaml, readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { outputForInput } from "../utils.ts";
@@ -102,6 +103,7 @@ function resolveTestSpecs(
     ensurePptxRegexMatches,
     ensurePptxXpath,
     ensurePptxLayout,
+    ensurePptxMaxSlides,
     ensureSnapshotMatches
   };
 
