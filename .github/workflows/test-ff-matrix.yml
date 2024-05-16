@@ -150,6 +150,17 @@ jobs:
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 
+      # The Check Chromium step appears necessary to avoid a crash/hang when rendering PDFs
+      # https://github.com/quarto-dev/quarto-actions/issues/45#issuecomment-1562599451
+      # Same fix as in quarto-actions/quarto-render
+      # chromium is installed in the ubuntu runners in GHA, so no need to install it
+      - name: "Check Chromium"
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          echo $(which chromium-browser)
+          $(which chromium-browser) --headless https://www.chromestatus.com
+        shell: bash
+
       - name: Run all Smoke Tests Windows
         if: ${{ runner.os == 'Windows' && format('{0}', inputs.buckets) == '' && matrix.time-test == false }}
         env:
