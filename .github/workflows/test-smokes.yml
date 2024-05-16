@@ -65,7 +65,7 @@ jobs:
       - name: Install node (for Playwright, MECA)
         uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
 
       - name: Install node dependencies
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
