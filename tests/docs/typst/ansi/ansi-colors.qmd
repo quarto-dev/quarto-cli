@@ -1,0 +1,35 @@
+---
+format:
+  typst:
+    quality: 1
+  html:
+    quality: 1
+    format-links: false
+---
+
+```{python}
+from ansi2html import Ansi2HTMLConverter
+from IPython.core.display import display, Markdown
+
+conv = Ansi2HTMLConverter()
+line = ''
+lines = []
+for i in range(256):
+    if (i == 8) or (i >=16 and i%6 == 4):
+        lines.append(line)
+        line = ''
+    line += f'\x1b[38;5;{i}m{i:>3} '
+lines.append(line)
+# the center 216 is a 6x6x6 cube
+# pack it in two columns of three 6x6 squares
+lines2 = [lines[0], lines[1]]
+for i in range(0, 6, 2):
+    for j in range(6):
+        lines2.append(lines[i*6 + j + 2] + lines[i*6 + 6 + j + 2])
+lines2.append(lines[38] + lines[39])
+lines2.append(lines[40] + lines[41])
+display(Markdown(
+  '::: {html-pre-tag-processing="parse"}\n\n```{=html}\n'
+  + conv.convert('\n'.join(lines2)) +
+  '\n```\n:::\n'))
+```
