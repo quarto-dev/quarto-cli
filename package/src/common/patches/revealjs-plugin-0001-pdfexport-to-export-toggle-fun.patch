@@ -1,27 +1,14 @@
-From cdf668f9b164dca04eece54c88eaed4541211335 Mon Sep 17 00:00:00 2001
-From: Christophe Dervieux <christophe.dervieux@gmail.com>
-Date: Tue, 7 Mar 2023 16:12:53 +0100
-Subject: [PATCH] Patch PdfExport RevealJS plugin to export toggle function
-
-This will enable toggling PDF export mode using API
----
- src/resources/formats/revealjs/plugins/pdfexport/pdfexport.js | 3 +++
- 1 file changed, 3 insertions(+)
-
 diff --git a/src/resources/formats/revealjs/plugins/pdfexport/pdfexport.js b/src/resources/formats/revealjs/plugins/pdfexport/pdfexport.js
 index c399fa9de..bf9104c8e 100644
 --- a/src/resources/formats/revealjs/plugins/pdfexport/pdfexport.js
 +++ b/src/resources/formats/revealjs/plugins/pdfexport/pdfexport.js
-@@ -101,6 +101,9 @@ var PdfExport = ( function( _Reveal ){
+@@ -100,6 +100,9 @@ var PdfExport = ( function( _Reveal ){
+ 		Plugin.init = function( _Reveal ){
  			Reveal = _Reveal;
  			install();
- 		};
++		};
 +		Plugin.togglePdfExport = function () {
 +      togglePdfExport();
-+    };
+     };
  	}
  
- 	return Plugin;
--- 
-2.39.2.windows.1
-
