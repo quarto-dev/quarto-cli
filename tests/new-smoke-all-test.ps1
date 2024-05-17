@@ -45,10 +45,22 @@ _quarto:
       ensureDocxRegexMatches:
         - []
         - []
+      ensureDocxXPath:
+        - []
+        - []
     pptx:
       ensurePptxRegexMatches:
         - []
         - []
+      ensurePptxXPath:
+      - 
+        - 2
+        - []
+        - []
+      ensurePptxLayout:
+        - 
+          - 2
+          - "Title and Content"
     asciidoc: default
 ---
 "@

@@ -7,6 +7,13 @@ on:
     paths-ignore:
       - "src/resources/language/**"
 
+concurrency:
+  # Use github.run_id on main branch
+  # Use github.event.pull_request.number on pull requests, so it's unique per pull request
+  # Use github.ref on other branches, so it's unique per branch
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.run_id || github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   run-smokes:
     name: Run feature-format matrix on (${{ matrix.os }})
@@ -149,6 +156,17 @@ jobs:
 
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
+
+      # The Check Chromium step appears necessary to avoid a crash/hang when rendering PDFs
+      # https://github.com/quarto-dev/quarto-actions/issues/45#issuecomment-1562599451
+      # Same fix as in quarto-actions/quarto-render
+      # chromium is installed in the ubuntu runners in GHA, so no need to install it
+      - name: "Check Chromium"
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          echo $(which chromium-browser)
+          $(which chromium-browser) --headless https://www.chromestatus.com
+        shell: bash
 
       - name: Run all Smoke Tests Windows
         if: ${{ runner.os == 'Windows' && format('{0}', inputs.buckets) == '' && matrix.time-test == false }}
