@@ -146,9 +146,10 @@ async function checkInstall(services: RenderServices) {
     // if they're running a dev version, we assume git is installed
     // and QUARTO_ROOT is set to the root of the quarto-cli repo
     // print the output of git rev-parse HEAD
-    if (Deno.env.get("QUARTO_ROOT") !== undefined) {
+    const quartoRoot = Deno.env.get("QUARTO_ROOT");
+    if (quartoRoot) {
       const gitHead = await execProcess({
-        cmd: ["git", "-C", Deno.env.get("QUARTO_ROOT"), "rev-parse", "HEAD"],
+        cmd: ["git", "-C", quartoRoot, "rev-parse", "HEAD"],
         stdout: "piped",
         stderr: "piped", // to not show error if not in a git repo
       });
