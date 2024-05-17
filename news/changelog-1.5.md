@@ -187,6 +187,7 @@ All changes included in 1.5:
 - ([#9547](https://github.com/quarto-dev/quarto-cli/issues/9547)): Fix issue with `quarto preview` and resources found in URLs with hash and search fragments.
 - ([#9550](https://github.com/quarto-dev/quarto-cli/issues/9550)): Don't crash when subcaptions are incorrectly specified with `fig-subcap: true` but no embedded subcaptions.
 - ([#9652](https://github.com/quarto-dev/quarto-cli/pull/9652)): Allow `--output-dir` to refer to absolute paths in `quarto render`.
+- ([#9701](https://github.com/quarto-dev/quarto-cli/issues/9701)): Fix issue with callouts with non-empty titles that have no string content.
 - Add support for `{{< lipsum >}}` shortcode, which is useful for emitting placeholder text. Provide a specific number of paragraphs (`{{< lipsum 3 >}}`).
 - Resolve data URIs in Pandoc's mediabag when rendering documents.
 - Increase v8's max heap size by default, to avoid out-of-memory errors when rendering large documents (also cf. https://github.com/denoland/deno/issues/18935).
