@@ -14,7 +14,7 @@ end
 
 import("../mainstateinit.lua")
 
-import("./modules/import_all.lua")
+import("../modules/import_all.lua")
 
 import("../ast/scopedwalk.lua")
 import("../ast/customnodes.lua")
