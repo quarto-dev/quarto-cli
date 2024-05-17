@@ -43,7 +43,7 @@ jobs:
           windows-path-include-rtools: false
 
       - name: Install node (for Playwright, MECA)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 16
 
@@ -75,12 +75,13 @@ jobs:
         shell: Rscript {0}
 
       - name: Cache R packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.RENV_PATHS_ROOT }}
           key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-${{ hashFiles('tests/renv.lock') }}
           restore-keys: |
             ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-
+          save-always: true
 
       - name: Install missing system deps
         if: runner.os == 'Linux'
@@ -131,12 +132,12 @@ jobs:
         uses: browser-actions/setup-chrome@latest
 
       - name: Setup Julia
-        uses: julia-actions/setup-julia@v1
+        uses: julia-actions/setup-julia@v2
         with:
           version: "1.10"
 
       - name: Cache Julia Packages
-        uses: julia-actions/cache@v1
+        uses: julia-actions/cache@v2
 
       - name: Restore Julia Packages
         working-directory: tests
