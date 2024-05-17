@@ -4,6 +4,7 @@
 - ([#9593](https://github.com/quarto-dev/quarto-cli/issues/9593)): Fix regression with `column-margin` when used in spans in a paragraph.
 - ([#9602](https://github.com/quarto-dev/quarto-cli/issues/9602)): Fix regression with parsed HTML tables not being correcty included in various format like pptx and typst.
 - ([#8258](https://github.com/quarto-dev/quarto-cli/issues/8258)): Quarto now works again with R 4.1.3 and previous versions.
+- ([#9704](https://github.com/quarto-dev/quarto-cli/issues/9704)): Fix regression with PDF export feature in Revealjs - it now works again like in 1.3.
 
 ## Fixed in previous releases
 
