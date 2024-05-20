@@ -137,11 +137,11 @@ local callout_attrs = {
 
   __other = {
     color = constants.kColorUnknown,
-    background_color = constants.kColorUnknown,
+    background_color = constants.kBackgroundColorUnknown,
     latex_color = "quarto-callout-color",
     latex_frame_color = "quarto-callout-color-frame",
-    fa_icon = nil,
-    fa_icon_typst = nil
+    fa_icon = "faInfo",
+    fa_icon_typst = "fa-info"
   }
 }
 
