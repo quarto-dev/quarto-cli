@@ -974,40 +974,47 @@ end, function(float)
     return float.content
     -- luacov: enable
   end
-  local kind
-  local supplement = ""
-  local numbering = ""
-  local content = float.content
-
-  if float.parent_id then
-    kind = "quarto-subfloat-" .. ref
-    numbering = "(a)"
-  else
-    kind = "quarto-float-" .. ref
-    numbering = "1"
-    supplement = info.name
-  end
-
+  local kind = "quarto-float-" .. ref
+  local supplement = info.name
+  -- FIXME: custom numbering doesn't work yet
+  -- local numbering = ""
+  -- if float.parent_id then
+  --   numbering = "(a)"
+  -- else
+  --   numbering = "1"
+  -- end
+  local content = quarto.utils.as_blocks(float.content or {})
   local caption_location = cap_location(float)
 
-  -- FIXME: custom numbering doesn't work yet
-  
   if (ref == "lst") then
     -- FIXME: 
     -- Listings shouldn't emit centered blocks. 
     -- We don't know how to disable that right now using #show rules for #figures in template.
-    content = { pandoc.RawBlock("typst", "#set align(left)"), content }
+    content:insert(1, pandoc.RawBlock("typst", "#set align(left)"))
   end
 
-  return make_typst_figure {
-    content = content,
-    caption_location = caption_location,
-    caption = float.caption_long,
-    kind = kind,
-    supplement = supplement,
-    numbering = numbering,
-    identifier = float.identifier
-  }
+  if float.has_subfloats then
+    return _quarto.format.typst.function_call("quarto_super", {
+      {"kind", kind},
+      {"caption", float.caption_long},
+      {"label", pandoc.RawInline("typst", "<" .. float.identifier .. ">")},
+      {"position", pandoc.RawInline("typst", caption_location)},
+      {"supplement", supplement},
+      {"subrefnumbering", "1a"},
+      {"subcapnumbering", "(a)"},
+      content
+    }, false)
+  else
+    return make_typst_figure {
+      content = content,
+      caption_location = caption_location,
+      caption = float.caption_long,
+      kind = kind,
+      supplement = supplement,
+      numbering = numbering,
+      identifier = float.identifier
+    }
+  end
 end)
 
 _quarto.ast.add_renderer("FloatRefTarget", function(_)
