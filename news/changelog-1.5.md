@@ -74,6 +74,7 @@ All changes included in 1.5:
 - ([#9293](https://github.com/quarto-dev/quarto-cli/pull/9293)): Add `toc-indent` to control indentation of entries in the table of contents.
 - ([#9671](https://github.com/quarto-dev/quarto-cli/issues/9671)): Reimplement `typst` subfloats to fix subfloat counters.
 - ([#9694](https://github.com/quarto-dev/quarto-cli/issues/9694)): Fix default callout (`::: callout ... ::: `) in Typst.
+- ([#9722](https://github.com/quarto-dev/quarto-cli/issues/9722)): Resolve data URI images in Typst.
 - Upgrade Typst to 0.11
 - Upgrade the Typst template to draw tables without grid lines by default, in accordance with latest Pandoc.
 
