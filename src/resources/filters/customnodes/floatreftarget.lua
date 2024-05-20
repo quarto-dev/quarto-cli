@@ -783,6 +783,11 @@ function float_reftarget_render_html_figure(float)
     pandoc.Attr("", {}, figure_attrs.figureAttr))
   if float.type == "Listing" then
     div.attr.classes:insert("listing")
+    -- in the special case of listings, we likely have text content
+    -- including annotations, which require left alignment
+    -- we hard-code this here.
+    -- https://github.com/quarto-dev/quarto-cli/issues/9724
+    figure_attrs.align = "left"
   end
   div.attr.classes:insert("quarto-float")
 
