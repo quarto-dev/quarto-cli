@@ -61,6 +61,54 @@
 
 }
 
+// Subfloats
+// This is a technique that we adapted from https://github.com/tingerrr/subpar/
+#let quartosubfloatcounter = counter("quartosubfloatcounter")
+
+#let quarto_super(
+  kind: str,
+  caption: none,
+  label: none,
+  supplement: str,
+  position: none,
+  subrefnumbering: "1a",
+  subcapnumbering: "(a)",
+  body,
+) = {
+  context {
+    let figcounter = counter(figure.where(kind: kind))
+    let n-super = figcounter.get().first() + 1
+    set figure.caption(position: position)
+    [#figure(
+      kind: kind,
+      supplement: supplement,
+      caption: caption,
+      {
+        show figure.where(kind: kind): set figure(numbering: _ => numbering(subrefnumbering, n-super, quartosubfloatcounter.get().first() + 1))
+        show figure.where(kind: kind): set figure.caption(position: position)
+
+        show figure: it => {
+          let num = numbering(subcapnumbering, n-super, quartosubfloatcounter.get().first() + 1)
+          show figure.caption: it => {
+            num.slice(2) // I don't understand why the numbering contains output that it really shouldn't, but this fixes it shrug?
+            [ ]
+            it.body
+          }
+
+          quartosubfloatcounter.step()
+          it
+          counter(figure.where(kind: it.kind)).update(n => n - 1)
+        }
+
+        quartosubfloatcounter.update(0)
+        body
+      }
+    )#label]
+  }
+}
+
+// callout rendering
+// this is a figure show rule because callouts are crossreferenceable
 #show figure: it => {
   if type(it.kind) != "string" {
     return it
@@ -97,35 +145,6 @@
     new_title_block +
     old_callout.body.children.at(1))
 }
-
-#show ref: it => locate(loc => {
-  let suppl = it.at("supplement", default: none)
-  if suppl == none or suppl == auto {
-    it
-    return
-  }
-
-  let sup = it.supplement.text.matches(regex("^45127368-afa1-446a-820f-fc64c546b2c5%(.*)")).at(0, default: none)
-  if sup != none {
-    let target = query(it.target, loc).first()
-    let parent_id = sup.captures.first()
-    let parent_figure = query(label(parent_id), loc).first()
-    let parent_location = parent_figure.location()
-
-    let counters = numbering(
-      parent_figure.at("numbering"), 
-      ..parent_figure.at("counter").at(parent_location))
-      
-    let subcounter = numbering(
-      target.at("numbering"),
-      ..target.at("counter").at(target.location()))
-    
-    // NOTE there's a nonbreaking space in the block below
-    link(target.location(), [#parent_figure.at("supplement") #counters#subcounter])
-  } else {
-    it
-  }
-})
 
 // 2023-10-09: #fa-icon("fa-info") is not working, so we'll eval "#fa-info()" instead
 #let callout(body: [], title: "Callout", background_color: rgb("#dddddd"), icon: none, icon_color: black) = {

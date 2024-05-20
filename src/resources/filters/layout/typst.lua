@@ -95,41 +95,53 @@ end, function(layout)
     return float.content
     -- luacov: enable
   end
+  local supplement = info.name
 
   -- typst output currently only supports a single grid
   -- as output, so no rows of varying columns, etc.
   local n_cols = layout.attributes[kLayoutNcol] or "1"
-
-  local typst_figure_content = pandoc.Div({})
-  typst_figure_content.content:insert(pandoc.RawInline("typst", "#grid(columns: " .. n_cols .. ", gutter: 2em,\n"))
-  local is_first = true
-  _quarto.ast.walk(layout.float.content, {
-    FloatRefTarget = function(_, float_obj)
-      if is_first then
-        is_first = false
-      else
-        typst_figure_content.content:insert(pandoc.RawInline("typst", ",\n"))
-      end
-      typst_figure_content.content:insert(pandoc.RawInline("typst", "  ["))
-      typst_figure_content.content:insert(float_obj)
-      typst_figure_content.content:insert(pandoc.RawInline("typst", "]"))
-      return nil
-    end
-  })
-  typst_figure_content.content:insert(pandoc.RawInline("typst", ")\n"))
   local result = pandoc.Blocks({})
   if layout.preamble then
-    result:insert(layout.preamble)
+    if pandoc.utils.type(layout.preamble) == "Blocks" then
+      result:extend(layout.preamble)
+    else
+      result:insert(layout.preamble)
+    end
   end
   local caption_location = cap_location(layout.float)
 
-  return make_typst_figure {
-    content = typst_figure_content,
-    caption_location = caption_location,
-    caption = layout.float.caption_long,
-    kind = kind,
-    supplement = info.prefix,
-    numbering = info.numbering,
-    identifier = layout.float.identifier
-  }
+  local cells = pandoc.Blocks({})
+  cells:insert(pandoc.RawInline("typst", "#grid(columns: " .. n_cols .. ", gutter: 2em,\n"))
+  layout.rows.content:map(function(row)
+    -- print(row)
+    return row.content:map(function(cell)
+      cells:insert(pandoc.RawInline("typst", "  ["))
+      cells:insert(cell)
+      cells:insert(pandoc.RawInline("typst", "],\n"))
+    end)
+  end)
+  cells:insert(pandoc.RawInline("typst", ")\n"))
+  if layout.float.has_subfloats then
+    result:insert(_quarto.format.typst.function_call("quarto_super", {
+      {"kind", kind},
+      {"caption", layout.float.caption_long},
+      {"label", pandoc.RawInline("typst", "<" .. layout.float.identifier .. ">")},
+      {"position", pandoc.RawInline("typst", caption_location)},
+      {"supplement", supplement},
+      {"subrefnumbering", "1a"},
+      {"subcapnumbering", "(a)"},
+      cells
+    }, false))
+  else
+    result:insert(make_typst_figure {
+      content = cells,
+      caption_location = caption_location,
+      caption = layout.float.caption_long,
+      kind = kind,
+      supplement = info.prefix,
+      numbering = info.numbering,
+      identifier = layout.float.identifier
+    })
+  end
+  return result
 end)
