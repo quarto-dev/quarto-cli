@@ -72,6 +72,7 @@ All changes included in 1.5:
 - ([#9619](https://github.com/quarto-dev/quarto-cli/pull/9619)): Typst CSS - for a small set of elements and properties, Quarto will translate the CSS property to a Typst property. This is especially useful for processed HTML tables and `<pre>`s.
 - ([#8539](https://github.com/quarto-dev/quarto-cli/issues/8539)): Support for Typst theorems and their ilk via [typst-theorems](https://github.com/sahasatvik/typst-theorems).
 - ([#9293](https://github.com/quarto-dev/quarto-cli/pull/9293)): Add `toc-indent` to control indentation of entries in the table of contents.
+- ([#9694](https://github.com/quarto-dev/quarto-cli/issues/9694)): Fix default callout (`::: callout ... ::: `) in Typst.
 - Upgrade Typst to 0.11
 - Upgrade the Typst template to draw tables without grid lines by default, in accordance with latest Pandoc.
 
