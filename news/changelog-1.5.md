@@ -12,6 +12,7 @@ All changes included in 1.5:
 - ([#9539](https://github.com/quarto-dev/quarto-cli/issues/9539)): Improve SCSS of title blocks to avoid overwide columns in grid layout.
 - Improve accessibility `role` for `aria-expandable` elements by ensuring their role supports the `aria-expanded` attribute.
 - ([#3178](https://github.com/quarto-dev/quarto-cli/issues/3178)): TOC now correctly expands when web page has no content to scroll to.
+- ([#9734](https://github.com/quarto-dev/quarto-cli/issues/9734)): Fix issue with unlabeled tables and `tbl-cap-location` information.
 
 ## PDF Format
 
