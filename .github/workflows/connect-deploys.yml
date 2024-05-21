@@ -1,0 +1,53 @@
+name: Connect deploy tests
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for running the tests"
+        required: false
+        type: string
+        default: ""
+  schedule:
+    - cron: "0 5 * * *"
+
+jobs:
+  test-deploys:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Set Path
+        shell: bash
+        run: |
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: Configure Quarto
+        uses: ./.github/workflows/actions/quarto-dev
+
+      - name: Install node (for Playwright, MECA)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+        working-directory: ./tests/integration/playwright
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Python dependencies
+        run: pip install rsconnect
+
+      - name: Run the tests
+        env:
+          DEPLOY_CONNECT_SERVER_URL: "https://rsc.radixu.com/"
+          DEPLOY_CONNECT_SERVER_API_KEY: "${{ secrets.DEPLOY_CONNECT_SERVER_API_KEY }}"
+        run:  |
+          npx playwright test
+        working-directory: ./tests/integration/playwright/connect-integration-tests
+          
