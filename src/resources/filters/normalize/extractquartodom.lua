@@ -72,6 +72,12 @@ function extract_latex_quartomarkdown_commands()
           return nil
         end
         local text = el.text
+        -- provide an early exit if the text does not contain the pattern
+        -- because Lua's pattern matching apparently takes a long time
+        -- to fail: https://github.com/quarto-dev/quarto-cli/issues/9729
+        if text:match("\\QuartoMarkdownBase64{") == nil then
+          return nil
+        end
         local pattern = "(.*)(\\QuartoMarkdownBase64{)([^}]*)(})(.*)"
         local pre, _, content, _, post = text:match(pattern)
         if pre == nil then
@@ -103,11 +109,16 @@ function inject_vault_content_into_rawlatex()
         return nil
         -- luacov: enable
       end
+      local text = el.text
+      -- provide an early exit if the text does not contain the pattern
+      -- because Lua's pattern matching apparently takes a long time
+      -- to fail: https://github.com/quarto-dev/quarto-cli/issues/9729
+      if el.text:match("3ab579b5%-63b4%-445d%-bc1d%-85bf6c4c04de") == nil then
+        return nil
+      end
   
       local pattern = "(.*)(3ab579b5%-63b4%-445d%-bc1d%-85bf6c4c04de%-[0-9]+)(.*)"
-      local text = el.text
       local pre, content_id, post = text:match(pattern)
-
 
       while pre do
         local found = false
