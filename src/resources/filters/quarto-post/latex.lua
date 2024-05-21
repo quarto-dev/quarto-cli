@@ -436,10 +436,11 @@ function render_latex_fixups()
   return {
     RawBlock = function(raw)
       if _quarto.format.isRawLatex(raw) then
-        if (raw.text:match(_quarto.patterns.latexLongtablePattern) and
-            not raw.text:match(_quarto.patterns.latexCaptionPattern)) then
+        local long_table_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexLongtablePattern)
+        local caption_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexCaptionPattern)
+        if long_table_match(raw.text) and caption_match(raw.text) then
           raw.text = raw.text:gsub(
-            _quarto.patterns.latexLongtablePattern, "\\begin{longtable*}%2\\end{longtable*}", 1)
+            _quarto.modules.patterns.combine_patterns(_quarto.patterns.latexLongtablePattern), "\\begin{longtable*}%2\\end{longtable*}", 1)
           return raw
         end
       end

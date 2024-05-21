@@ -444,12 +444,16 @@ end, function(float)
     local made_fix = false
     local function fix_raw(is_star_env)
       local function set_raw(el)
-        if _quarto.format.isRawLatex(el) and el.text:match(_quarto.patterns.latexLongtablePattern) then
+        if _quarto.format.isRawLatex(el) and _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexLongtablePattern)(el.text) then
           made_fix = true
           local raw = el
           -- special case for longtable floats in LaTeX
-          local extended_pattern = "(.-)" .. _quarto.patterns.latexLongtablePattern .. "(.*)"
-          local longtable_preamble, longtable_begin, longtable_content, longtable_end, longtable_postamble = raw.text:match(extended_pattern)
+          local extended_pattern = {".-"}
+          for _, pattern in ipairs(_quarto.patterns.latexLongtablePattern) do
+            table.insert(extended_pattern, pattern)
+          end
+          table.insert(extended_pattern, ".*")
+          local longtable_preamble, longtable_begin, longtable_content, longtable_end, longtable_postamble = _quarto.modules.patterns.match_all_in_table(extended_pattern)(raw.text)
           if longtable_preamble == nil or longtable_begin == nil or longtable_content == nil or longtable_end == nil or longtable_postamble == nil then
             warn("Could not parse longtable parameters. This could happen because the longtable parameters\n" ..
             "are not well-formed or because of a bug in quarto. Please consider filing a bug report at\n" ..

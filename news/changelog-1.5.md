@@ -20,6 +20,7 @@ All changes included in 1.5:
 - ([#8711](https://github.com/quarto-dev/quarto-cli/issues/8711)): Enforce rendering of tables as `tabular` environments when custom float environments are present.
 - ([#8841](https://github.com/quarto-dev/quarto-cli/issues/8841)): Do not parse LaTeX table when crossref label doesn't start with `tbl-`.
 - ([#9582](https://github.com/quarto-dev/quarto-cli/issues/9582)): Forward column classes and attributes correctly to floats inside divs with column classes.
+- ([#9729](https://github.com/quarto-dev/quarto-cli/issues/9729)): Fix performance issue with Lua pattern matching and multiple capture groups.
 
 ## RevealJS Format
 
