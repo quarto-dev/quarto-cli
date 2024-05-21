@@ -118,9 +118,13 @@ function cap_location(obj)
     -- ref-parents
     ref = refType(obj.identifier) or refType(obj.attributes["ref-parent"] or "")
   end
-  -- last resort, pretend we're a figure
   if ref == nil or crossref.categories.by_ref_type[ref] == nil then
-    ref = "fig"
+    if obj.t == "Table" then
+      ref = "tbl"
+    else
+      -- last resort, pretend we're a figure
+      ref = "fig"
+    end
   end
   local qualified_key = ref .. '-cap-location'
   local result = (
