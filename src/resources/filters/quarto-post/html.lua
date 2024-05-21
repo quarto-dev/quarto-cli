@@ -22,6 +22,13 @@ function render_html_fixups()
   end
 
   return {
+    Table = function(tbl)
+      -- this requires bootstrap CSS
+      if quarto.doc.crossref.cap_location(tbl) == "top" then
+        tbl.classes:insert("caption-top")
+        return tbl
+      end
+    end,
     Figure = function(fig)
       if #fig.content ~= 1 then
         return nil
