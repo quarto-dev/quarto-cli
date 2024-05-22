@@ -98,8 +98,17 @@ SET "DENO_TLS_CA_STORE=system,mozilla"
 SET "DENO_NO_UPDATE_CHECK=1"
 SET "QUARTO_DENO_OPTIONS=--unstable-ffi --no-config --cached-only --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi"
 
+REM --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
+IF DEFINED QUARTO_DENO_V8_OPTIONS (
+  SET "QUARTO_DENO_V8_OPTIONS=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192,!QUARTO_DENO_V8_OPTIONS!"
+) ELSE (
+  SET "QUARTO_DENO_V8_OPTIONS=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192"
+)
+
 IF NOT DEFINED QUARTO_DENO_EXTRA_OPTIONS (
-		set "QUARTO_DENO_EXTRA_OPTIONS=--v8-flags=--max-old-space-size=8192,--max-heap-size=8192"
+  SET "QUARTO_DENO_EXTRA_OPTIONS=--v8-flags=!QUARTO_DENO_V8_OPTIONS!"
+) ELSE (
+  SET "QUARTO_DENO_EXTRA_OPTIONS=--v8-flags=!QUARTO_DENO_V8_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS!"
 )
 
 !QUARTO_DENO! !QUARTO_ACTION! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! !QUARTO_IMPORT_MAP_ARG! !QUARTO_TARGET! %*

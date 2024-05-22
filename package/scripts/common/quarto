@@ -169,8 +169,17 @@ export DENO_NO_UPDATE_CHECK=1
 # Be sure to include any already defined QUARTO_DENO_OPTIONS
 QUARTO_DENO_OPTIONS="--unstable-ffi --no-config ${QUARTO_CACHE_OPTIONS} --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi ${QUARTO_DENO_OPTIONS}"
 
+# --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
+if [ "$QUARTO_DENO_V8_OPTIONS" != "" ]; then
+  QUARTO_DENO_V8_OPTIONS="--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192,${QUARTO_DENO_V8_OPTIONS}"
+else
+  QUARTO_DENO_V8_OPTIONS="--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192"
+fi
+
 if [ "$QUARTO_DENO_EXTRA_OPTIONS" == "" ]; then
-  QUARTO_DENO_EXTRA_OPTIONS="--v8-flags=--max-old-space-size=8192,--max-heap-size=8192"
+  QUARTO_DENO_EXTRA_OPTIONS="--v8-flags=${QUARTO_DENO_V8_OPTIONS}"
+else
+  QUARTO_DENO_EXTRA_OPTIONS="--v8-flags=${QUARTO_DENO_V8_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS}"
 fi
 
 if [ "$QUARTO_TS_PROFILE" != "" ]; then
