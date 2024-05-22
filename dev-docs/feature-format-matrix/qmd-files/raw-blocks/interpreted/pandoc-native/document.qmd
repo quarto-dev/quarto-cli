@@ -23,9 +23,9 @@ format:
 _quarto:
   tests:
     html:
-      ensureFileRegexMatches:
+      ensureHtmlElements:
         -
-          - '<table class="table">'
+          - 'table.table'
         - []
     typst:
       ensureTypstFileRegexMatches:
