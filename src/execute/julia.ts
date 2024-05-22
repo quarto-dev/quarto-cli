@@ -603,15 +603,19 @@ async function writeJuliaCommand(
   let restOfPreviousResponse = new Uint8Array(512);
   let restLength = 0; // number of valid bytes in restOfPreviousResponse
   while (true) {
-    const respArray : Uint8Array[] = [];
+    const respArray: Uint8Array[] = [];
     let respLength = 0;
     let response = "";
     const newlineAt = restOfPreviousResponse.indexOf(10);
     // if we already have a newline, we don't need to read from conn
-    if (newlineAt !== -1 && newlineAt < restLength ) {
-      response = new TextDecoder().decode(restOfPreviousResponse.slice(0, newlineAt));
-      restOfPreviousResponse.set(restOfPreviousResponse.slice(newlineAt + 1, restLength));
-      restLength -= newlineAt+1;
+    if (newlineAt !== -1 && newlineAt < restLength) {
+      response = new TextDecoder().decode(
+        restOfPreviousResponse.slice(0, newlineAt),
+      );
+      restOfPreviousResponse.set(
+        restOfPreviousResponse.slice(newlineAt + 1, restLength),
+      );
+      restLength -= newlineAt + 1;
     } // but if we don't have a newline, we read in more until we get one
     else {
       respArray.push(restOfPreviousResponse.slice(0, respLength));
@@ -631,17 +635,19 @@ async function writeJuliaCommand(
           } else {
             respArray.push(buffer.slice(0, bufferNewlineAt));
             respLength += bufferNewlineAt;
-            restOfPreviousResponse.set(buffer.slice(bufferNewlineAt + 1, bytesRead));
-            restLength = bytesRead - bufferNewlineAt - 1
+            restOfPreviousResponse.set(
+              buffer.slice(bufferNewlineAt + 1, bytesRead),
+            );
+            restLength = bytesRead - bufferNewlineAt - 1;
             // when we have found a newline in a payload, we can stop reading in more data and continue
             // with the response first
 
             let respBuffer = new Uint8Array(respLength);
             let offset = 0;
-            respArray.forEach(item => {
-              respBuffer.set(item, offset); 
+            respArray.forEach((item) => {
+              respBuffer.set(item, offset);
               offset += item.length;
-            })
+            });
             response = new TextDecoder().decode(respBuffer);
             break;
           }
