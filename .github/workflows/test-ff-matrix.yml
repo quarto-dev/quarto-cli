@@ -2,6 +2,11 @@
 name: Feature-Format Tests
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "news/**"
+      - "src/resources/language/**"
   pull_request:
     branches: [main]
     paths-ignore:
