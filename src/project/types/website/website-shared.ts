@@ -342,20 +342,21 @@ export const navigation: Navigation = {
 };
 
 export function sidebarForHref(href: string, format: Format) {
+  const sidebars = ld.cloneDeep(navigation.sidebars);
   // if there is a single sidebar then it applies to all hrefs
   // (unless it has an id, in which restrict it)
   if (
-    navigation.sidebars.length === 1 && navigation.sidebars[0].id === undefined
+    sidebars.length === 1 && sidebars[0].id === undefined
   ) {
-    return navigation.sidebars[0];
+    return sidebars[0];
   } else {
-    const explicitSidebar = navigation.sidebars.find((sidebar) => {
+    const explicitSidebar = sidebars.find((sidebar) => {
       return sidebar.id === format.metadata[kSiteSidebar];
     });
     if (explicitSidebar) {
       return explicitSidebar;
     } else {
-      const containingSidebar = navigation.sidebars.find((sidebar) => {
+      const containingSidebar = sidebars.find((sidebar) => {
         return containsHref(href, sidebar.contents);
       });
       if (containingSidebar) {
