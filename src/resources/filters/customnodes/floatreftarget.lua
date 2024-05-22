@@ -118,9 +118,13 @@ function cap_location(obj)
     -- ref-parents
     ref = refType(obj.identifier) or refType(obj.attributes["ref-parent"] or "")
   end
-  -- last resort, pretend we're a figure
   if ref == nil or crossref.categories.by_ref_type[ref] == nil then
-    ref = "fig"
+    if obj.t == "Table" then
+      ref = "tbl"
+    else
+      -- last resort, pretend we're a figure
+      ref = "fig"
+    end
   end
   local qualified_key = ref .. '-cap-location'
   local result = (
@@ -444,12 +448,16 @@ end, function(float)
     local made_fix = false
     local function fix_raw(is_star_env)
       local function set_raw(el)
-        if _quarto.format.isRawLatex(el) and el.text:match(_quarto.patterns.latexLongtablePattern) then
+        if _quarto.format.isRawLatex(el) and _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexLongtablePattern)(el.text) then
           made_fix = true
           local raw = el
           -- special case for longtable floats in LaTeX
-          local extended_pattern = "(.-)" .. _quarto.patterns.latexLongtablePattern .. "(.*)"
-          local longtable_preamble, longtable_begin, longtable_content, longtable_end, longtable_postamble = raw.text:match(extended_pattern)
+          local extended_pattern = {".-"}
+          for _, pattern in ipairs(_quarto.patterns.latexLongtablePattern) do
+            table.insert(extended_pattern, pattern)
+          end
+          table.insert(extended_pattern, ".*")
+          local longtable_preamble, longtable_begin, longtable_content, longtable_end, longtable_postamble = _quarto.modules.patterns.match_all_in_table(extended_pattern)(raw.text)
           if longtable_preamble == nil or longtable_begin == nil or longtable_content == nil or longtable_end == nil or longtable_postamble == nil then
             warn("Could not parse longtable parameters. This could happen because the longtable parameters\n" ..
             "are not well-formed or because of a bug in quarto. Please consider filing a bug report at\n" ..
@@ -783,6 +791,11 @@ function float_reftarget_render_html_figure(float)
     pandoc.Attr("", {}, figure_attrs.figureAttr))
   if float.type == "Listing" then
     div.attr.classes:insert("listing")
+    -- in the special case of listings, we likely have text content
+    -- including annotations, which require left alignment
+    -- we hard-code this here.
+    -- https://github.com/quarto-dev/quarto-cli/issues/9724
+    figure_attrs.align = "left"
   end
   div.attr.classes:insert("quarto-float")
 
@@ -974,40 +987,47 @@ end, function(float)
     return float.content
     -- luacov: enable
   end
-  local kind
-  local supplement = ""
-  local numbering = ""
-  local content = float.content
-
-  if float.parent_id then
-    kind = "quarto-subfloat-" .. ref
-    numbering = "(a)"
-  else
-    kind = "quarto-float-" .. ref
-    numbering = "1"
-    supplement = info.name
-  end
-
+  local kind = "quarto-float-" .. ref
+  local supplement = info.name
+  -- FIXME: custom numbering doesn't work yet
+  -- local numbering = ""
+  -- if float.parent_id then
+  --   numbering = "(a)"
+  -- else
+  --   numbering = "1"
+  -- end
+  local content = quarto.utils.as_blocks(float.content or {})
   local caption_location = cap_location(float)
 
-  -- FIXME: custom numbering doesn't work yet
-  
   if (ref == "lst") then
     -- FIXME: 
     -- Listings shouldn't emit centered blocks. 
     -- We don't know how to disable that right now using #show rules for #figures in template.
-    content = { pandoc.RawBlock("typst", "#set align(left)"), content }
+    content:insert(1, pandoc.RawBlock("typst", "#set align(left)"))
   end
 
-  return make_typst_figure {
-    content = content,
-    caption_location = caption_location,
-    caption = float.caption_long,
-    kind = kind,
-    supplement = supplement,
-    numbering = numbering,
-    identifier = float.identifier
-  }
+  if float.has_subfloats then
+    return _quarto.format.typst.function_call("quarto_super", {
+      {"kind", kind},
+      {"caption", float.caption_long},
+      {"label", pandoc.RawInline("typst", "<" .. float.identifier .. ">")},
+      {"position", pandoc.RawInline("typst", caption_location)},
+      {"supplement", supplement},
+      {"subrefnumbering", "1a"},
+      {"subcapnumbering", "(a)"},
+      content
+    }, false)
+  else
+    return make_typst_figure {
+      content = content,
+      caption_location = caption_location,
+      caption = float.caption_long,
+      kind = kind,
+      supplement = supplement,
+      numbering = numbering,
+      identifier = float.identifier
+    }
+  end
 end)
 
 _quarto.ast.add_renderer("FloatRefTarget", function(_)

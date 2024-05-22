@@ -29,6 +29,8 @@ import {
   noErrors,
   noErrorsOrWarnings,
   ensurePptxXpath,
+  ensurePptxLayout,
+  ensurePptxMaxSlides,
 } from "../verify.ts";
 import { readYaml, readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { outputForInput } from "../utils.ts";
@@ -100,6 +102,8 @@ function resolveTestSpecs(
     ensureJatsXpath,
     ensurePptxRegexMatches,
     ensurePptxXpath,
+    ensurePptxLayout,
+    ensurePptxMaxSlides,
     ensureSnapshotMatches
   };
 
@@ -133,6 +137,15 @@ function resolveTestSpecs(
                   fileExists(join(outputFile.supportPath, file)),
                 );
               }
+            }
+          } else if (["ensurePptxLayout", "ensurePptxXpath"].includes(key)) {
+            if (Array.isArray(value) && Array.isArray(value[0])) {
+              // several slides to check
+              value.forEach((slide: any) => {
+                verifyFns.push(verifyMap[key](outputFile.outputPath, ...slide));
+              });
+            } else {
+              verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
             }
           } else if (verifyMap[key]) {
             if (typeof value === "object") {

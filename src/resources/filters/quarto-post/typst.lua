@@ -29,6 +29,20 @@ function render_typst()
       end
     },
     {
+      FloatRefTarget = function(float)
+        if float.content.t == "Table" then
+          -- this needs the fix from https://github.com/jgm/pandoc/pulls/9778
+          float.content.classes:insert("typst-no-figure")
+        else
+          float.content = _quarto.ast.walk(float.content, {
+            Table = function(tbl)
+              tbl.classes:insert("typst-no-figure")
+              return tbl
+            end
+          })
+        end
+        return float
+      end,
       Div = function(div)
         if div.classes:includes("block") then
           div.classes = div.classes:filter(function(c) return c ~= "block" end)
@@ -89,6 +103,8 @@ function render_typst_fixups()
   return {
     traverse = "topdown",
     Image = function(image)
+      image = _quarto.modules.mediabag.resolve_image_from_url(image) or image
+
       -- if the width or height are "ratio" or "relative", in typst parlance,
       -- then we currently need to hide it from Pandoc 3.1.9 until
       -- https://github.com/jgm/pandoc/issues/9104 is properly fixed
@@ -107,6 +123,8 @@ function render_typst_fixups()
         local escaped_src = image.src:gsub("\\", "\\\\"):gsub("\"", "\\\"")
         return pandoc.RawInline("typst", "#box(" .. attr_str .. "image(\"" .. escaped_src .. "\"))")
       end
+
+      return image
     end,
     Div = function(div)
       local cod = quarto.utils.match(".cell/:child/.cell-output-display")(div)

@@ -7,7 +7,7 @@
 import { existsSync, walkSync} from "fs/mod.ts";
 import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts.ts";
-import { join, relative } from "../src/deno_ral/path.ts";
+import { basename, dirname, join, relative, resolve } from "../src/deno_ral/path.ts";
 import { parseXmlDocument } from "slimdom";
 import xpath from "fontoxpath";
 import * as ld from "../src/core/lodash.ts";
@@ -47,7 +47,10 @@ export const withDocxContent = async <T>(
 export const withPptxContent = async <T>(
   file: string,
   slideNumber: number,
-  k: (xml: string) => Promise<T>
+  rels: boolean,
+  // takes the parsed XML and the XML file path
+  k: (xml: string, xmlFile: string) => Promise<T>,
+  isSlideMax: boolean = false,
 ) => {
   const [_dir, stem] = dirAndStem(file);
   const temp = await Deno.makeTempDir();
@@ -59,14 +62,22 @@ export const withPptxContent = async <T>(
 
     // Open the core xml document and match the matches
     const slidePath = join(temp, "ppt", "slides");
-    const slideFile = join(slidePath, `slide${slideNumber}.xml`);
+    let slideFile = join(slidePath, rels ? join("_rels", `slide${slideNumber}.xml.rels`) : `slide${slideNumber}.xml`);
     assert(
       existsSync(slideFile),
       `Slide number ${slideNumber} is not in the Pptx`,
     );
-    const xml = await Deno.readTextFile(slideFile);
-    const result = await k(xml);
-    return result;
+    if (isSlideMax) {
+      assert(
+        !existsSync(join(slidePath, `slide${slideNumber + 1}.xml`)),
+        `Pptx has more than ${slideNumber} slides.`,
+      );
+      return Promise.resolve();
+    } else {
+      const xml = await Deno.readTextFile(slideFile);
+      const result = await k(xml, slideFile);
+      return result;
+    }
   } finally {
     await Deno.remove(temp, { recursive: true });
   }
@@ -463,13 +474,13 @@ export const verifyDocXDocument = (
 };
 
 export const verifyPptxDocument = (
-  callback: (doc: string) => Promise<void>,
+  callback: (doc: string, docFile: string) => Promise<void>,
   name?: string,
-): (file: string, slideNumber: number) => Verify => {
-  return (file: string, slideNumber: number) => ({
+): (file: string, slideNumber: number, rels?: boolean, isSlideMax?: boolean) => Verify => {
+  return (file: string, slideNumber: number, rels: boolean = false, isSlideMax: boolean = false) => ({
     name: name ?? "Inspecting Pptx",
     verify: async (_output: ExecuteOutput[]) => {
-      return await withPptxContent(file, slideNumber, callback);
+      return await withPptxContent(file, slideNumber, rels, callback, isSlideMax);
     },
   });
 };
@@ -498,6 +509,42 @@ const xmlChecker = (
         `Illegal XPath selector ${falseSelector} returned non-empty array. Failing document follows:\n\n${xmlText}}`,
       );
     }
+    return Promise.resolve();
+  };
+};
+
+const pptxLayoutChecker = (layoutName: string): (xmlText: string, xmlFile: string) => Promise<void> => {
+  return async (xmlText: string, xmlFile: string) => {
+    // Parse the XML from slide#.xml.rels
+    const xmlDoc = parseXmlDocument(xmlText);
+
+    // Select the Relationship element with the correct Type attribute
+    const relationshipSelector = "/Relationships/Relationship[substring(@Type, string-length(@Type) - string-length('relationships/slideLayout') + 1) = 'relationships/slideLayout']/@Target";
+    const slideLayoutFile = xpath.evaluateXPathToString(relationshipSelector, xmlDoc);
+
+    assert(
+      slideLayoutFile,
+      `Required XPath selector ${relationshipSelector} returned empty string. Failing document ${basename(xmlFile)} follows:\n\n${xmlText}}`,
+    );
+
+    // Construct the full path to the slide layout file
+    // slideLayoutFile is a relative path from the slide xm document, that the `_rels` equivalent was about
+    const layoutFilePath = resolve(dirname(dirname(xmlFile)), slideLayoutFile);
+
+    // Now we need to check the slide layout file
+    const layoutXml = Deno.readTextFileSync(layoutFilePath);
+
+    // Parse the XML from slideLayout#.xml
+    const layoutDoc = parseXmlDocument(layoutXml);
+
+    // Select the p:cSld element with the correct name attribute
+    const layoutSelector = '//p:cSld/@name';
+    const layout = xpath.evaluateXPathToString(layoutSelector, layoutDoc);
+    assert(
+      layout === layoutName,
+      `Slides is not using "${layoutName}" layout - Current value: "${layout}". Failing document ${basename(layoutFilePath)} follows:\n\n${layoutXml}}`,
+    );
+
     return Promise.resolve();
   };
 };
@@ -543,8 +590,30 @@ export const ensurePptxXpath = (
 ): Verify => {
   return verifyPptxDocument(
     xmlChecker(selectors, noMatchSelectors),
-    "Inspecting Pptx for XPath selectors",
+    `Inspecting Pptx for XPath selectors on slide ${slideNumber}`,
   )(file, slideNumber);
+};
+
+export const ensurePptxLayout = (
+  file: string,
+  slideNumber: number,
+  layoutName: string,
+): Verify => {
+  return verifyPptxDocument(
+    pptxLayoutChecker(layoutName),
+    `Inspecting Pptx for slide ${slideNumber} having layout ${layoutName}.`,
+  )(file, slideNumber, true);
+};
+
+export const ensurePptxMaxSlides = (
+  file: string,
+  slideNumberMax: number,
+): Verify => {
+  return verifyPptxDocument(
+    // callback won't be used here
+    () => Promise.resolve(),
+    `Checking Pptx for maximum ${slideNumberMax} slides`,
+  )(file, slideNumberMax, true);
 };
 
 export const ensureDocxRegexMatches = (

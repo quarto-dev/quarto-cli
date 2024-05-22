@@ -12,6 +12,8 @@ end
 
 import("./mainstateinit.lua")
 
+import("./modules/import_all.lua")
+
 import("./ast/scopedwalk.lua")
 import("./ast/customnodes.lua")
 import("./ast/emulatedfilter.lua")
@@ -82,6 +84,7 @@ import("./quarto-post/code.lua")
 import("./quarto-post/html.lua")
 import("./quarto-post/dashboard.lua")
 import("./quarto-post/email.lua")
+import("./quarto-post/pptx.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -373,6 +376,7 @@ local quarto_post_filters = {
   { name = "post-render-gfm-fixups", filter = render_gfm_fixups() },
   { name = "post-render-hugo-fixups", filter = render_hugo_fixups() },
   { name = "post-render-email", filters = render_email() },
+  { name = "post-render-pptx-fixups", filter = render_pptx_fixups() }
 }
 
 local quarto_finalize_filters = {
@@ -394,7 +398,7 @@ local quarto_finalize_filters = {
     flags = { "has_output_cells" }
   },
   { name = "finalize-wrapped-writer", filter = wrapped_writer() },
-  { name = "finalize-typst-state", filter = setup_typst_state() }
+  { name = "finalize-typst-state", filter = setup_typst_state() },
 }
 
 local quarto_layout_filters = {

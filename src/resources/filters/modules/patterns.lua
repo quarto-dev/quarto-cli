@@ -42,6 +42,29 @@ local latex_tabular = "(\\begin{tabular}.*\\end{tabular})"
 local latex_table = "(\\begin{table})(.*)(\\end{table})"
 local latex_table_star = "(\\begin{table%*})(.*)(\\end{table%*})"
 
+local function combine_patterns(pattern_table)
+  local combined_pattern = {}
+  for i, v in ipairs(pattern_table) do
+    table.insert(combined_pattern, "(" .. v .. ")")
+  end
+  return table.concat(combined_pattern)
+end
+
+-- see https://github.com/quarto-dev/quarto-cli/issues/9729#issuecomment-2122907870
+-- for why this is necessary.
+local function match_all_in_table(pattern_table)
+  local function inner(text)
+    for i, v in ipairs(pattern_table) do
+      if text:match(v) == nil then
+        return nil
+      end
+    end
+    -- return the combined matches for the combined pattern
+    return text:match(combine_patterns(pattern_table))
+  end
+  return inner
+end
+
 return {
   attr_identifier = attr_identifier,
   engine_escape = engine_escape,
@@ -68,4 +91,7 @@ return {
   latex_tabular = latex_tabular,
   latex_table = latex_table,
   latex_table_star = latex_table_star,
+
+  match_all_in_table = match_all_in_table,
+  combine_patterns = combine_patterns
 }

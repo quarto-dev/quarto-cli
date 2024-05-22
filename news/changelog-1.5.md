@@ -12,6 +12,7 @@ All changes included in 1.5:
 - ([#9539](https://github.com/quarto-dev/quarto-cli/issues/9539)): Improve SCSS of title blocks to avoid overwide columns in grid layout.
 - Improve accessibility `role` for `aria-expandable` elements by ensuring their role supports the `aria-expanded` attribute.
 - ([#3178](https://github.com/quarto-dev/quarto-cli/issues/3178)): TOC now correctly expands when web page has no content to scroll to.
+- ([#9734](https://github.com/quarto-dev/quarto-cli/issues/9734)): Fix issue with unlabeled tables and `tbl-cap-location` information.
 
 ## PDF Format
 
@@ -20,6 +21,7 @@ All changes included in 1.5:
 - ([#8711](https://github.com/quarto-dev/quarto-cli/issues/8711)): Enforce rendering of tables as `tabular` environments when custom float environments are present.
 - ([#8841](https://github.com/quarto-dev/quarto-cli/issues/8841)): Do not parse LaTeX table when crossref label doesn't start with `tbl-`.
 - ([#9582](https://github.com/quarto-dev/quarto-cli/issues/9582)): Forward column classes and attributes correctly to floats inside divs with column classes.
+- ([#9729](https://github.com/quarto-dev/quarto-cli/issues/9729)): Fix performance issue with Lua pattern matching and multiple capture groups.
 
 ## RevealJS Format
 
@@ -35,6 +37,10 @@ All changes included in 1.5:
 ## GFM Format
 
 - ([#9507](https://github.com/quarto-dev/quarto-cli/issues/9507)): Add support for rendering `FloatRefTarget` elements in `gfm` format.
+
+## Powerpoint Format
+
+- ([#9680](https://github.com/quarto-dev/quarto-cli/issues/9680), [#9681](https://github.com/quarto-dev/quarto-cli/issues/9681)): Fix issues with HTML tables parsed by Quarto when converting to powerpoint presentations.
 
 ## Website
 
@@ -65,9 +71,12 @@ All changes included in 1.5:
 
 ## Typst
 
-- ([#9619](https://github.com/quarto-dev/quarto-cli/pull/9619)): Typst CSS - for a small set of elements and properties, Quarto will translate the CSS property to a Typst property. This is especially useful for processed HTML tables and `<pre>`s.
 - ([#8539](https://github.com/quarto-dev/quarto-cli/issues/8539)): Support for Typst theorems and their ilk via [typst-theorems](https://github.com/sahasatvik/typst-theorems).
+- ([#9619](https://github.com/quarto-dev/quarto-cli/pull/9619)): Typst CSS - for a small set of elements and properties, Quarto will translate the CSS property to a Typst property. This is especially useful for processed HTML tables and `<pre>`s.
 - ([#9293](https://github.com/quarto-dev/quarto-cli/pull/9293)): Add `toc-indent` to control indentation of entries in the table of contents.
+- ([#9671](https://github.com/quarto-dev/quarto-cli/issues/9671)): Reimplement `typst` subfloats to fix subfloat counters.
+- ([#9694](https://github.com/quarto-dev/quarto-cli/issues/9694)): Fix default callout (`::: callout ... ::: `) in Typst.
+- ([#9722](https://github.com/quarto-dev/quarto-cli/issues/9722)): Resolve data URI images in Typst.
 - Upgrade Typst to 0.11
 - Upgrade the Typst template to draw tables without grid lines by default, in accordance with latest Pandoc.
 
@@ -157,6 +166,7 @@ All changes included in 1.5:
 ## Lua filters
 
 - ([#9572](https://github.com/quarto-dev/quarto-cli/issues/9572)): Add `quarto.config.cli_path()` in Quarto LUA to return the path to the Quarto CLI executable of the installation running the Lua script in quarto context.
+- ([#9691](https://github.com/quarto-dev/quarto-cli/issues/9691)): Provide default Attr object to `quarto.Tabset` constructor.
 
 ## Other Fixes and Improvements
 
@@ -187,6 +197,9 @@ All changes included in 1.5:
 - ([#9547](https://github.com/quarto-dev/quarto-cli/issues/9547)): Fix issue with `quarto preview` and resources found in URLs with hash and search fragments.
 - ([#9550](https://github.com/quarto-dev/quarto-cli/issues/9550)): Don't crash when subcaptions are incorrectly specified with `fig-subcap: true` but no embedded subcaptions.
 - ([#9652](https://github.com/quarto-dev/quarto-cli/pull/9652)): Allow `--output-dir` to refer to absolute paths in `quarto render`.
+- ([#9701](https://github.com/quarto-dev/quarto-cli/issues/9701)): Fix issue with callouts with non-empty titles that have no string content.
+- ([#9724](https://github.com/quarto-dev/quarto-cli/issues/9724)): Force-align text in floats of type `Listing` to the left.
+- ([#9727](https://github.com/quarto-dev/quarto-cli/issues/9727)): `lightbox`: do not overwrite `window.onload` events.
 - Add support for `{{< lipsum >}}` shortcode, which is useful for emitting placeholder text. Provide a specific number of paragraphs (`{{< lipsum 3 >}}`).
 - Resolve data URIs in Pandoc's mediabag when rendering documents.
 - Increase v8's max heap size by default, to avoid out-of-memory errors when rendering large documents (also cf. https://github.com/denoland/deno/issues/18935).
