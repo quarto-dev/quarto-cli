@@ -342,7 +342,7 @@ export const navigation: Navigation = {
 };
 
 export function sidebarForHref(href: string, format: Format) {
-  const sidebars = ld.cloneDeep(navigation.sidebars);
+  const sidebars = ld.cloneDeep(navigation.sidebars) as Sidebar[];
   // if there is a single sidebar then it applies to all hrefs
   // (unless it has an id, in which restrict it)
   if (
