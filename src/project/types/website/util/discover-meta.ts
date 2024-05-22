@@ -21,9 +21,9 @@ const kPreviewClassPattern =
 const kMdNamedImagePattern =
   `!\\[[^\\]]*\\]\\(${kNamedFilePattern}(?:\\".*\\")?\\)(?:\\{[^\\|]*\.*[\\s\\}]+)?`;
 
-const kNamedFileRegex = RegExp(kNamedFilePattern);
-const kMdPreviewClassRegex = RegExp(kPreviewClassPattern);
-const kMdNamedImageRegex = RegExp(kMdNamedImagePattern);
+const kNamedFileRegex = RegExp(kNamedFilePattern, "l");
+const kMdPreviewClassRegex = RegExp(kPreviewClassPattern, "l");
+const kMdNamedImageRegex = RegExp(kMdNamedImagePattern, "l");
 const kMarkdownImg = /!\[[^\]]*\]\((.*?)(?:\".*\")?\)(?:\{(?:[^\|]*)\})?/;
 
 export function findDescription(doc: Document): string | undefined {
