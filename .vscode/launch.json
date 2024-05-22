@@ -17,7 +17,8 @@
         "--unstable-ffi",
         "--importmap=${workspaceFolder}/src/import_map.json",
         "--inspect-brk",
-        "--allow-all"
+        "--allow-all",
+        "--v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192"
       ],
       "env": {
         "QUARTO_BIN_PATH": "${workspaceFolder}/package/dist/bin",
@@ -43,7 +44,8 @@
         "--allow-all",
         "--check",
         "--importmap=${workspaceFolder}/src/import_map.json",
-        "--inspect-brk"
+        "--inspect-brk",
+        "--v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192"
       ],
       "env": {
         "QUARTO_ROOT": "${workspaceFolder}",
