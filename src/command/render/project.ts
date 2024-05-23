@@ -28,6 +28,7 @@ import {
   kProjectType,
   ProjectContext,
 } from "../../project/types.ts";
+import { kQuartoScratch } from "../../project/project-scratch.ts";
 
 import { projectType } from "../../project/types/project-types.ts";
 import { copyResourceFile } from "../../project/project-resources.ts";
@@ -804,6 +805,20 @@ export async function renderProject(
       projectRenderConfig.behavior.incremental,
     );
   }
+
+  // in addition to the cleanup above, if forceClean is set, we need to clean up the project scratch dir
+  // entirely. See options.forceClean in render-shared.ts
+  // .quarto is really a fiction created because of `--output-dir` being set on non-project
+  // renders
+  //
+  // cf https://github.com/quarto-dev/quarto-cli/issues/9745#issuecomment-2125951545
+  if (projectRenderConfig.options.forceClean) {
+    const scratchDir = join(projDir, kQuartoScratch);
+    if (existsSync(scratchDir)) {
+      Deno.removeSync(scratchDir, { recursive: true });
+    }
+  }
+
   return projResults;
 }
 
