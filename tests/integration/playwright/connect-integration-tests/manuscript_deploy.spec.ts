@@ -3,7 +3,7 @@ import { deployQuartoDocument, renderQuartoDocument } from "./utils";
 
 test("Verify deploying Quarto manuscript to Connect works as expected", async ({ page }) => {
     const title = "quarto-manuscript-test";
-    const quartoDocPath = "/Users/karangathani/Documents/GitHub/quarto-cli/tests/docs/playwright/connect-deploy-tests/connect-manuscript/";
+    const quartoDocPath = __dirname + "/../../../../tests/docs/playwright/connect-deploy-tests/connect-manuscript/";
 
     const renderDoc = await renderQuartoDocument(quartoDocPath);
     const url = await deployQuartoDocument(title, quartoDocPath);
