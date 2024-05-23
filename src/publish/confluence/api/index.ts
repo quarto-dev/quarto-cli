@@ -94,7 +94,7 @@ export class ConfluenceClient {
     const CQL_CONTEXT =
       "%7B%22contentStatuses%22%3A%5B%22archived%22%2C%20%22current%22%2C%20%22draft%22%5D%7D"; //{"contentStatuses":["archived", "current", "draft"]}
 
-    cql = `${cql}&spaces=${space.key}&cqlcontext=${CQL_CONTEXT}`;
+    cql = `${cql}%20and%20space=${space.key}&cqlcontext=${CQL_CONTEXT}`;
 
     const result = await this.get<ContentArray>(`content/search?cql=${cql}`);
     return result?.results ?? [];
