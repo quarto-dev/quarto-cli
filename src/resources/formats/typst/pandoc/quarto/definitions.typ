@@ -162,9 +162,12 @@
         fill: background_color, 
         width: 100%, 
         inset: 8pt)[#text(icon_color, weight: 900)[#icon] #title]) +
-      block(
-        inset: 1pt, 
-        width: 100%, 
-        block(fill: white, width: 100%, inset: 8pt, body)))
+      if(body != []){
+        block(
+          inset: 1pt, 
+          width: 100%, 
+          block(fill: white, width: 100%, inset: 8pt, body))
+      }
+    )
 }
 
