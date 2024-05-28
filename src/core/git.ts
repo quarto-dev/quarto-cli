@@ -64,3 +64,21 @@ export async function lsFiles(
 
   return Promise.resolve(undefined);
 }
+
+export async function gitBranchExists(
+  branch: string,
+  cwd?: string,
+): Promise<boolean | undefined> {
+  if (await which("git")) {
+    const result = await execProcess({
+      cmd: ["git", "show-ref", "--verify", "--quiet", `refs/heads/${branch}`],
+      cwd,
+      stdout: "piped",
+      stderr: "piped",
+    });
+
+    return result.code === 0;
+  }
+
+  return Promise.resolve(undefined);
+}
