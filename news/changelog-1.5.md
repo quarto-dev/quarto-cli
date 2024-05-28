@@ -144,6 +144,7 @@ All changes included in 1.5:
 ## Publishing
 
 - ([#9308](https://github.com/quarto-dev/quarto-cli/issues/9308)): Improved error message when trying to publish to Github pages with `quarto publish gh-pages`.
+- ([#9585](https://github.com/quarto-dev/quarto-cli/issues/9585)): Improved `quarto publish gh-pages` workflow when existing gh-pages branch is present or problem with the remote repository.
 
 ## `quarto inspect`
 
