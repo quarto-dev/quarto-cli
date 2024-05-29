@@ -1930,11 +1930,15 @@ function mdImageOutput(
     ? (data as string[]).join("")
     : data as string;
 
-  // base64 decode if it's not encoded svg
-  // when used in embed context, Pandoc will generate ipynb with base64 encoded svg data
-  // https://github.com/quarto-dev/quarto-cli/issues/9793
   const outputFile = join(options.assets.base_dir, imageFile);
-  if (mimeType !== kImageSvg || !imageText.trimStart().startsWith("<svg")) {
+  if (
+    // base64 decode if it's not svg
+    mimeType !== kImageSvg ||
+    // or if it is encoded svg; this could happen when used in embed context,
+    // as Pandoc will generate ipynb with base64 encoded svg data
+    // https://github.com/quarto-dev/quarto-cli/issues/9793
+    !/<svg/.test(imageText)
+  ) {
     const imageData = base64decode(imageText);
 
     // if we are in retina mode, then derive width and height from the image
