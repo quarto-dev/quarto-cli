@@ -40,7 +40,7 @@ if (build) {
   });
   const process = buildCommand.spawn();
   const status = await process.status;
-  if (!status) {
+  if (!status.success) {
     console.error("Error building quarto-preview.js");
     Deno.exit(1);
   }

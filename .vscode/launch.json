@@ -63,6 +63,7 @@
     {
       "name": "Run quarto preview js build",
       "request": "launch",
+      "console": "integratedTerminal",
       "type": "node",
       "program": "build.ts",
       "args": ["--force"],

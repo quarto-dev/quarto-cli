@@ -65,6 +65,10 @@ if "%QUARTO_VENDOR_BINARIES%" == "true" (
 PUSHD !QUARTO_PACKAGE_PATH!\src
 ECHO Configuring Quarto from !cd!
 CALL quarto-bld.cmd configure --log-level info
+IF ERRORLEVEL 1 (
+  ECHO Unable to configure Quarto from !cd!
+  @REM exit 1
+)
 echo Configuration done
 
 POPD
