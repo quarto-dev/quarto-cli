@@ -59,6 +59,21 @@
       "windows": {
         "runtimeExecutable": "${workspaceFolder}\\package\\dist\\bin\\tools\\x86_64\\deno.exe"
       }
+    },
+    {
+      "name": "Run quarto preview js build",
+      "request": "launch",
+      "type": "node",
+      "program": "build.ts",
+      "args": ["--force"],
+      "cwd": "${workspaceFolder}/src/webui/quarto-preview/",
+      "runtimeExecutable": "${workspaceFolder}/package/dist/bin/tools/deno",
+      "runtimeArgs": ["run", "-A", "--inspect-brk"],
+      "env": {},
+      "attachSimplePort": 9229,
+      "windows": {
+        "runtimeExecutable": "${workspaceFolder}\\package\\dist\\bin\\tools\\x86_64\\deno.exe"
+      }
     }
   ]
 }
