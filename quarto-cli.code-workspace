@@ -5,6 +5,7 @@
     }
   ],
   "settings": {
+    "debug.javascript.unmapMissingSources": true,
     "deno.importMap": "./src/dev_import_map.json",
     "deno.path": "./package/dist/bin/tools/deno",
     "quarto.path": "./package/dist/bin/quarto",
