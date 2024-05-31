@@ -618,7 +618,8 @@ async function writeJuliaCommand(
       restLength -= newlineAt + 1;
     } // but if we don't have a newline, we read in more until we get one
     else {
-      respArray.push(restOfPreviousResponse.slice(0, respLength));
+      respArray.push(restOfPreviousResponse.slice(0, restLength));
+      respLength += restLength;
       while (true) {
         const buffer = new Uint8Array(512);
         const bytesRead = await conn.read(buffer);
