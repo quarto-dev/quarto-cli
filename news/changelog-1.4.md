@@ -6,6 +6,7 @@
 - ([#8258](https://github.com/quarto-dev/quarto-cli/issues/8258)): Quarto now works again with R 4.1.3 and previous versions.
 - ([#9704](https://github.com/quarto-dev/quarto-cli/issues/9704)): Fix regression with PDF export feature in Revealjs - it now works again like in 1.3.
 - ([#9734](https://github.com/quarto-dev/quarto-cli/issues/9734)): Fix issue with unlabeled tables and `tbl-cap-location` information.
+- ([#9574](https://github.com/quarto-dev/quarto-cli/issues/9574)): Fix `quarto preview` on Windows, which was broken in previous 1.4 releases.
 
 ## Fixed in previous releases
 
