@@ -313,6 +313,43 @@ export const ensureTypstFileRegexMatches = (
   };
 };
 
+export const ensurePdfRegexMatches = (
+  file: string,
+  matchesUntyped: (string | RegExp)[],
+  noMatchesUntyped?: (string | RegExp)[],
+): Verify => {
+  const matches = matchesUntyped.map(asRegexp);
+  const noMatches = noMatchesUntyped?.map(asRegexp);
+  return {
+    name: `Inspecting ${file} for Regex matches`,
+    verify: async (_output: ExecuteOutput[]) => {
+      const cmd = new Deno.Command("pdftotext", {
+        args: [file, "-"],
+        stdout: "piped",
+      })
+      const output = await cmd.output();
+      assert(output.success, `Failed to extract text from ${file}.`)
+      const text = new TextDecoder().decode(output.stdout);
+
+      matches.forEach((regex) => {
+        assert(
+          regex.test(text),
+          `Required match ${String(regex)} is missing from file ${file}.`,
+        );
+      });
+
+      if (noMatches) {
+        noMatches.forEach((regex) => {
+          assert(
+            !regex.test(text),
+            `Illegal match ${String(regex)} was found in file ${file}.`,
+          );
+        });
+      }
+    },
+  };
+}
+
 export const ensureHtmlElements = (
   file: string,
   selectors: string[],
