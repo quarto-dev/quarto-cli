@@ -14,16 +14,18 @@ local function _main()
       elseif type(v) == "string" then
         result:insert(pandoc.RawInline("typst", "\"" .. v .. "\""))
       elseif v.t == "RawInline" or v.t == "RawBlock" then
-        result:insert(v)
+        if v.format == "typst" then
+          result:insert(v)
+        else
+          fail("typst function call with non-typst raw block")
+        end
       elseif type(v) == "userdata" or type(v) == "table" then
-        result:insert(pandoc.RawInline("typst", "["))
         result:extend(quarto.utils.as_blocks(v) or {})
-        result:insert(pandoc.RawInline("typst", "]"))
       else
         result:extend(quarto.utils.as_blocks({pandoc.utils.stringify(v)}) or {})
       end
     end
-    -- needs to be array of pairs because order matters for typst
+    -- params needs to be array of pairs because order matters for typst
     local n = #params
     for i, pair in ipairs(params) do
       if pandoc.utils.type(pair) == "table" then
