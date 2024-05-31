@@ -5,6 +5,7 @@
     "sumneko.lua",
     "quarto.quarto",
     "julialang.language-julia",
-    "ms-python.black-formatter"
+    "ms-python.black-formatter",
+    "ms-python.pylint"
   ]
 }
