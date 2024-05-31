@@ -12,6 +12,12 @@
   "[ejs]": {
     "editor.formatOnSave": false
   },
+  "[julia]": {
+    "editor.formatOnSave": false,
+    "editor.wordBasedSuggestions": "off",
+    "editor.defaultFormatter": "julialang.language-julia",
+    "editor.wordSeparators": "`~#$%^&*()-=+[{]}\\|;:'\",.<>/?"
+  },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "editor.tabSize": 2,

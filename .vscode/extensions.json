@@ -2,6 +2,7 @@
   "recommendations": [
     "denoland.vscode-deno",
     "esbenp.prettier-vscode",
-    "sumneko.lua"
+    "sumneko.lua",
+    "julialang.language-julia",
   ]
 }
