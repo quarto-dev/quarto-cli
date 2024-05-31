@@ -115,7 +115,7 @@ function cap_location(float_or_layout)
     ref = refType(float_or_layout.attributes["ref-parent"] or "")
   end
   if ref == nil or crossref.categories.by_ref_type[ref] == nil then
-    if obj.t == "Table" then
+    if float_or_layout.t == "Table" then
       ref = "tbl"
     else
       -- last resort, pretend we're a figure
