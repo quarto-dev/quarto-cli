@@ -4,5 +4,6 @@
     "esbenp.prettier-vscode",
     "sumneko.lua",
     "julialang.language-julia",
+    "ms-python.black-formatter"
   ]
 }

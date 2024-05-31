@@ -18,6 +18,14 @@
     "editor.defaultFormatter": "julialang.language-julia",
     "editor.wordSeparators": "`~#$%^&*()-=+[{]}\\|;:'\",.<>/?"
   },
+  "[python]": {
+    "diffEditor.ignoreTrimWhitespace": false,
+    "gitlens.codeLens.symbolScopes": ["!Module"],
+    "editor.formatOnSave": false,
+    "editor.formatOnType": false,
+    "editor.wordBasedSuggestions": "off",
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
