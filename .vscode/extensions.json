@@ -3,6 +3,7 @@
     "denoland.vscode-deno",
     "esbenp.prettier-vscode",
     "sumneko.lua",
+    "quarto.quarto",
     "julialang.language-julia",
     "ms-python.black-formatter"
   ]
