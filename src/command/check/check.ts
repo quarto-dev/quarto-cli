@@ -131,9 +131,9 @@ async function checkVersions(_services: RenderServices) {
   let typstVersion = lines(
     (await execProcess({
       cmd: [typstBinaryPath(), "--version"],
-      stdout: "piped"
+      stdout: "piped",
     })).stdout!,
-  )[0].split(' ')[1];
+  )[0].split(" ")[1];
   checkVersion(typstVersion, ">=0.10.0", "Typst");
 
   completeMessage("Checking versions of quarto dependencies......OK");
@@ -141,19 +141,24 @@ async function checkVersions(_services: RenderServices) {
 
 async function checkInstall(services: RenderServices) {
   completeMessage("Checking Quarto installation......OK");
-  info(`      Version: ${quartoConfig.version()}`);
+  info(`${kIndent}Version: ${quartoConfig.version()}`);
   if (quartoConfig.version() === "99.9.9") {
     // if they're running a dev version, we assume git is installed
+    // and QUARTO_ROOT is set to the root of the quarto-cli repo
     // print the output of git rev-parse HEAD
-    const gitHead = await execProcess({
-      cmd: ["git", "rev-parse", "HEAD"],
-      stdout: "piped",
-    });
-    if (gitHead.stdout) {
-      info(`      commit: ${gitHead.stdout.trim()}`);
+    const quartoRoot = Deno.env.get("QUARTO_ROOT");
+    if (quartoRoot) {
+      const gitHead = await execProcess({
+        cmd: ["git", "-C", quartoRoot, "rev-parse", "HEAD"],
+        stdout: "piped",
+        stderr: "piped", // to not show error if not in a git repo
+      });
+      if (gitHead.success && gitHead.stdout) {
+        info(`${kIndent}commit: ${gitHead.stdout.trim()}`);
+      }
     }
   }
-  info(`      Path: ${quartoConfig.binPath()}`);
+  info(`${kIndent}Path: ${quartoConfig.binPath()}`);
   if (Deno.build.os === "windows") {
     try {
       const codePage = readCodePage();
@@ -161,10 +166,10 @@ async function checkInstall(services: RenderServices) {
       await cacheCodePage();
       const codePage2 = readCodePage();
 
-      info(`      CodePage: ${codePage2 || "unknown"}`);
+      info(`${kIndent}CodePage: ${codePage2 || "unknown"}`);
       if (codePage && codePage !== codePage2) {
         info(
-          `      NOTE: Code page updated from ${codePage} to ${codePage2}. Previous rendering may have been affected.`,
+          `${kIndent}NOTE: Code page updated from ${codePage} to ${codePage2}. Previous rendering may have been affected.`,
         );
       }
       // if non-standard code page, check for non-ascii characters in path
@@ -172,11 +177,11 @@ async function checkInstall(services: RenderServices) {
       const nonAscii = /[^\x00-\x7F]+/;
       if (nonAscii.test(quartoConfig.binPath())) {
         info(
-          `      ERROR: Non-ASCII characters in Quarto path causes rendering problems.`,
+          `${kIndent}ERROR: Non-ASCII characters in Quarto path causes rendering problems.`,
         );
       }
     } catch {
-      info(`      CodePage: Unable to read code page`);
+      info(`${kIndent}CodePage: Unable to read code page`);
     }
   }
 
@@ -191,10 +196,10 @@ async function checkInstall(services: RenderServices) {
 
     for (const tool of tools.installed) {
       const version = await tool.installedVersion() || "(external install)";
-      toolsOutput.push(`      ${tool.name}: ${version}`);
+      toolsOutput.push(`${kIndent}${tool.name}: ${version}`);
     }
     for (const tool of tools.notInstalled) {
-      toolsOutput.push(`      ${tool.name}: (not installed)`);
+      toolsOutput.push(`${kIndent}${tool.name}: (not installed)`);
     }
   });
   toolsOutput.forEach((out) => info(out));
@@ -213,19 +218,19 @@ async function checkInstall(services: RenderServices) {
       if (tlContext.usingGlobal) {
         const tlMgrPath = await which("tlmgr");
 
-        latexOutput.push(`      Using: Installation From Path`);
+        latexOutput.push(`${kIndent}Using: Installation From Path`);
         if (tlMgrPath) {
-          latexOutput.push(`      Path: ${dirname(tlMgrPath)}`);
+          latexOutput.push(`${kIndent}Path: ${dirname(tlMgrPath)}`);
         }
       } else {
-        latexOutput.push(`      Using: TinyTex`);
+        latexOutput.push(`${kIndent}Using: TinyTex`);
         if (tlContext.binDir) {
-          latexOutput.push(`      Path: ${tlContext.binDir}`);
+          latexOutput.push(`${kIndent}Path: ${tlContext.binDir}`);
         }
       }
-      latexOutput.push(`      Version: ${version}`);
+      latexOutput.push(`${kIndent}Version: ${version}`);
     } else {
-      latexOutput.push(`      Tex:  (not detected)`);
+      latexOutput.push(`${kIndent}Tex:  (not detected)`);
     }
   });
   latexOutput.forEach((out) => info(out));

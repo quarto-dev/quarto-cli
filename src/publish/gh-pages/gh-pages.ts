@@ -27,7 +27,7 @@ import { joinUrl } from "../../core/url.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { renderForPublish } from "../common/publish.ts";
 import { RenderFlags } from "../../command/render/types.ts";
-import { gitCmds, gitVersion } from "../../core/git.ts";
+import { gitBranchExists, gitCmds, gitVersion } from "../../core/git.ts";
 import {
   anonymousAccount,
   gitHubContextForPublish,
@@ -71,7 +71,7 @@ async function publishRecord(
   input: string | ProjectContext,
 ): Promise<PublishRecord | undefined> {
   const ghContext = await gitHubContextForPublish(input);
-  if (ghContext.ghPages) {
+  if (ghContext.ghPagesRemote) {
     return {
       id: "gh-pages",
       url: ghContext.siteUrl || ghContext.originUrl,
@@ -114,17 +114,27 @@ async function publish(
   const ghContext = await gitHubContextForPublish(options.input);
   verifyContext(ghContext, "GitHub Pages");
 
-  // create gh pages branch if there is none yet
-  const createGhPagesBranch = !ghContext.ghPages;
-  if (createGhPagesBranch) {
+  // create gh pages branch on remote and local if there is none yet
+  const createGhPagesBranchRemote = !ghContext.ghPagesRemote;
+  const createGhPagesBranchLocal = !ghContext.ghPagesLocal;
+  if (createGhPagesBranchRemote) {
     // confirm
-    const confirmed = await Confirm.prompt({
+    let confirmed = await Confirm.prompt({
       indent: "",
       message: `Publish site to ${
         ghContext.siteUrl || ghContext.originUrl
       } using gh-pages?`,
       default: true,
     });
+    if (confirmed && !createGhPagesBranchLocal) {
+      confirmed = await Confirm.prompt({
+        indent: "",
+        message:
+          `A local gh-pages branch already exists. Should it be pushed to remote 'origin'?`,
+        default: true,
+      });
+    }
+
     if (!confirmed) {
       throw new Error();
     }
@@ -135,9 +145,29 @@ async function publish(
     }
     const oldBranch = await gitCurrentBranch(input);
     try {
-      await gitCreateGhPages(input);
+      // Create and push if necessary, or just push local branch
+      if (createGhPagesBranchLocal) {
+        await gitCreateGhPages(input);
+      } else {
+        await gitPushGhPages(input);
+      }
+    } catch {
+      // Something failed so clean up, i.e
+      // if we created the branch then delete it.
+      // Example of failure: Auth error on push (https://github.com/quarto-dev/quarto-cli/issues/9585)
+      if (createGhPagesBranchLocal && await gitBranchExists("gh-pages")) {
+        await gitCmds(input, [
+          ["checkout", oldBranch],
+          ["branch", "-D", "gh-pages"],
+        ]);
+      }
+      throw new Error(
+        "Publishing to gh-pages with `quarto publish gh-pages` failed.",
+      );
     } finally {
-      await gitCmds(input, [["checkout", oldBranch]]);
+      if (await gitCurrentBranch(input) !== oldBranch) {
+        await gitCmds(input, [["checkout", oldBranch]]);
+      }
       if (stash) {
         await gitStashApply(input);
       }
@@ -191,7 +221,7 @@ async function publish(
       /^https:\/\/(.+?)\.github\.io\/$/,
     );
     if (defaultSiteMatch) {
-      if (createGhPagesBranch) {
+      if (createGhPagesBranchRemote) {
         notifyGhPagesBranch = true;
       } else {
         try {
@@ -207,7 +237,7 @@ async function publish(
   }
 
   // if this is an update then warn that updates may require a browser refresh
-  if (!createGhPagesBranch && !notifyGhPagesBranch) {
+  if (!createGhPagesBranchRemote && !notifyGhPagesBranch) {
     info(colors.yellow(
       "NOTE: GitHub Pages sites use caching so you might need to click the refresh\n" +
         "button within your web browser to see changes after deployment.\n",
@@ -360,7 +390,14 @@ async function gitCreateGhPages(dir: string) {
   await gitCmds(dir, [
     ["checkout", "--orphan", "gh-pages"],
     ["rm", "-rf", "--quiet", "."],
-    ["commit", "--allow-empty", "-m", `Initializing gh-pages branch`],
-    ["push", "origin", `HEAD:gh-pages`],
+    ["commit", "--allow-empty", "-m", "Initializing gh-pages branch"],
   ]);
+  await gitPushGhPages(dir);
+}
+
+async function gitPushGhPages(dir: string) {
+  if (await gitCurrentBranch(dir) !== "gh-pages") {
+    await gitCmds(dir, [["checkout", "gh-pages"]]);
+  }
+  await gitCmds(dir, [["push", "origin", "HEAD:gh-pages"]]);
 }
