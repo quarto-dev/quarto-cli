@@ -1009,13 +1009,13 @@ end, function(float)
   if float.has_subfloats then
     return _quarto.format.typst.function_call("quarto_super", {
       {"kind", kind},
-      {"caption", float.caption_long},
+      {"caption", _quarto.modules.typst.as_typst_content(float.caption_long)},
       {"label", pandoc.RawInline("typst", "<" .. float.identifier .. ">")},
       {"position", pandoc.RawInline("typst", caption_location)},
       {"supplement", supplement},
       {"subrefnumbering", "1a"},
       {"subcapnumbering", "(a)"},
-      content
+      _quarto.modules.typst.as_typst_content(content)
     }, false)
   else
     return make_typst_figure {

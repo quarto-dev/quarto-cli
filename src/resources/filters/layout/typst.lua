@@ -124,13 +124,13 @@ end, function(layout)
   if layout.float.has_subfloats then
     result:insert(_quarto.format.typst.function_call("quarto_super", {
       {"kind", kind},
-      {"caption", layout.float.caption_long},
+      {"caption", _quarto.format.typst.as_typst_content(layout.float.caption_long)},
       {"label", pandoc.RawInline("typst", "<" .. layout.float.identifier .. ">")},
       {"position", pandoc.RawInline("typst", caption_location)},
       {"supplement", supplement},
       {"subrefnumbering", "1a"},
       {"subcapnumbering", "(a)"},
-      cells
+      _quarto.format.typst.as_typst_content(cells)
     }, false))
   else
     result:insert(make_typst_figure {
