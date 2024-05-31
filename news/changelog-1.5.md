@@ -78,6 +78,7 @@ All changes included in 1.5:
 - ([#9671](https://github.com/quarto-dev/quarto-cli/issues/9671)): Reimplement `typst` subfloats to fix subfloat counters.
 - ([#9694](https://github.com/quarto-dev/quarto-cli/issues/9694)): Fix default callout (`::: callout ... ::: `) in Typst.
 - ([#9722](https://github.com/quarto-dev/quarto-cli/issues/9722)): Resolve data URI images in Typst.
+- ([#9555](https://github.com/quarto-dev/quarto-cli/issues/9555)): Text elements in Typst are internationalized.
 - Upgrade Typst to 0.11
 - Upgrade the Typst template to draw tables without grid lines by default, in accordance with latest Pandoc.
 
