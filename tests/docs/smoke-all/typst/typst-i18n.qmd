@@ -1,0 +1,45 @@
+---
+title: "Typst internationalization"
+lang: es
+abstract: Escribo algo.
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+      - ['Resumen', 'Nota', 'Conjetura']
+      - []
+      ensurePdfRegexMatches:
+      - ['Figura 1', 'Figura 2', 'Figura 3']
+      - ['Figura 4']
+---
+
+![Marcador]({{< placeholder 300 >}}){#fig-marcador}
+
+![Marcador desconocido]({{< placeholder 300 >}})
+
+::: {#fig-panel layout-ncol=2}
+
+![Marcador]({{< placeholder 200 >}}){#fig-layout-a}
+
+![Marcador]({{< placeholder 200 >}}){#fig-layout-b}
+
+Panels
+
+:::
+
+::: {.callout-note}
+
+Información
+
+:::
+
+::: {#cnj-redondo}
+
+# Redondo
+
+El mundo es redondo.
+
+:::

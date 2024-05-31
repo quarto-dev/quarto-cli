@@ -95,7 +95,7 @@ end, function(layout)
     return float.content
     -- luacov: enable
   end
-  local supplement = info.name
+  local supplement = titleString(ref, info.name)
 
   -- typst output currently only supports a single grid
   -- as output, so no rows of varying columns, etc.

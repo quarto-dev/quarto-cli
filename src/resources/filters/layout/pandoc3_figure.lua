@@ -161,7 +161,7 @@ function render_pandoc3_figure()
           caption = figure.caption.long[1],
           kind = "quarto-float-fig",
           caption_location = crossref.categories.by_ref_type["fig"].caption_location,
-          supplement = "Figure",
+          supplement = titleString('fig', 'Figure'),
         })
       end
     }

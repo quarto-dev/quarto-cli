@@ -100,7 +100,7 @@ local function ensure_typst_theorems(reftype)
     letted_typst_theorem[reftype] = true
     local theorem_type = theorem_types[reftype]
     quarto.doc.include_text("in-header", "#let " .. theorem_type.env .. " = thmbox(\"" ..
-     theorem_type.env .. "\", \"" .. theorem_type.title .. "\")")
+     theorem_type.env .. "\", \"" .. titleString(reftype, theorem_type.title) .. "\")")
   end
 end
 
