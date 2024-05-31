@@ -110,6 +110,7 @@ jobs:
           sudo apt-get install -y libcurl4-openssl-dev
           sudo apt-get install -y libxml2-utils
           sudo apt-get install -y libharfbuzz-dev libfribidi-dev
+          sudo apt-get install -y poppler-utils
 
       - name: Restore R packages
         working-directory: tests
