@@ -12,6 +12,10 @@
   "[ejs]": {
     "editor.formatOnSave": false
   },
+  "[lua]": {
+    "editor.defaultFormatter": "sumneko.lua",
+    "editor.formatOnSave": false
+  },
   "[julia]": {
     "editor.formatOnSave": false,
     "editor.wordBasedSuggestions": "off",
