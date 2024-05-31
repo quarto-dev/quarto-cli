@@ -78,3 +78,11 @@ else
   echo "Setting up npm testing environment"
   npm install -g meca
 fi
+
+# Get npm in place
+echo ">>>> Do you have pdftotext installed (from poppler) ?"
+pdftotext_exists=$(command -v pdftotext)
+if [ -z $pdftotext_exists ]
+then
+  echo "No pdftotext found - Some tests will require it, so you may want to install it."
+fi
