@@ -1,0 +1,22 @@
+---
+title: Callouts
+format:
+  html: 
+    quality: 2
+---
+
+::: {.callout-note collapse="true"}
+
+## A small note
+
+You should note that this is a note.
+
+:::
+
+::: {.callout-note collapse="false"}
+
+## A small note
+
+You should note that this is a note.
+
+:::

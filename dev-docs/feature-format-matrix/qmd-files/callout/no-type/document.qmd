@@ -1,0 +1,14 @@
+---
+title: Callout with no type
+format:
+  html: 
+    quality: 1
+---
+
+::: {.callout}
+
+## Title
+
+{{< lipsum 1 >}}
+
+:::
