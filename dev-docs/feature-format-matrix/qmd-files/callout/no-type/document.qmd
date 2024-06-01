@@ -2,7 +2,15 @@
 title: Callout with no type
 format:
   html: 
-    quality: 1
+    quality: 2
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - "div.callout.callout-none"
+          - "div.callout.callout-style-simple"
+          - "div.callout.no-icon"
 ---
 
 ::: {.callout}
