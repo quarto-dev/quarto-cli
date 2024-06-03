@@ -33,7 +33,7 @@ verify.push(ensureHtmlElements(htmlOutput, [
   // 3. Testing that empty div is used when no image is present
   "div#listing-reports span.listing-image div.listing-item-img-placeholder",
   // 4. Testing that `.preview-image` is correctly taken
-  "div#listing-other-reports .quarto-post div.thumbnail img[src$='app-store-business-model-lite\\\\2\.png']",
+  'div#listing-other-reports .quarto-post div.thumbnail img[src$="2\.png"]',
 ]));
 
 testQuartoCmd(
