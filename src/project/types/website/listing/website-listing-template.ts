@@ -435,11 +435,13 @@ export function reshapeListing(
     return `<img ${lazyAttr}${srcAttr}="${src}" ${classAttr} ${styleAttr} ${altAttr}>`;
   };
   utilities.imgPlaceholder = (
+    listingId: string,
     itemNumber: number,
     itemPath: string,
   ) => {
     const pageSize = listing[kPageSize];
     return imagePlaceholder(
+      listingId,
       itemPath,
       itemNumber > pageSize,
       listing[kImageHeight] as string,
