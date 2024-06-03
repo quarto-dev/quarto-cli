@@ -30,6 +30,17 @@ Panels
 
 :::
 
+::: {#fig-panel2 layout-ncol=2}
+
+![Marcador]({{< placeholder 200 >}})
+
+![Marcador]({{< placeholder 200 >}})
+
+Panels
+
+:::
+
+
 ::: {.callout-note}
 
 Información
