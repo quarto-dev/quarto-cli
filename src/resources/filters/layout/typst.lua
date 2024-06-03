@@ -138,7 +138,7 @@ end, function(layout)
       caption_location = caption_location,
       caption = layout.float.caption_long,
       kind = kind,
-      supplement = info.prefix,
+      supplement = titleString(ref, info.prefix),
       numbering = info.numbering,
       identifier = layout.float.identifier
     }
