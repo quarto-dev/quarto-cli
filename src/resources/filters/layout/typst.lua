@@ -133,7 +133,7 @@ end, function(layout)
       _quarto.format.typst.as_typst_content(cells)
     }, false))
   else
-    return make_typst_figure {
+    result:extend(make_typst_figure {
       content = cells,
       caption_location = caption_location,
       caption = layout.float.caption_long,
@@ -141,7 +141,7 @@ end, function(layout)
       supplement = titleString(ref, info.prefix),
       numbering = info.numbering,
       identifier = layout.float.identifier
-    }
+    })
   end
   return result
 end)
