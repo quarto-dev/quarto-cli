@@ -160,7 +160,7 @@ All changes included in 1.5:
 
 ## `quarto typst`
 
-- ([#9106])(https://github.com/quarto-dev/quarto-cli/issues/9106)): Do not allow `quarto typst update`.
+- ([#9106](https://github.com/quarto-dev/quarto-cli/issues/9106)): Do not allow `quarto typst update`.
 
 ## Quarto's input format
 
