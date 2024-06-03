@@ -28,10 +28,11 @@ verify.push(ensureHtmlElements(htmlOutput, [
   "div#listing-other-reports .quarto-listing-default",
   "div#listing-notes .quarto-grid-item",
   // 2. Testing image-placeholder is correctly chosen
-  "div#listing-reports span.listing-image img[src^='lab-report.png']",
   "div#listing-other-reports .quarto-post div.thumbnail img[src^='other-report.png']",
   "div#listing-notes .quarto-grid-item .card-img-top img[src^='meeting-notes.png']",
-  // 3. Testing that `.preview-image` is correctly taken
+  // 3. Testing that empty div is used when no image is present
+  "div#listing-reports span.listing-image div.listing-item-img-placeholder",
+  // 4. Testing that `.preview-image` is correctly taken
   "div#listing-other-reports .quarto-post div.thumbnail img[src$='app-store-business-model-lite\\\\2\.png']",
 ]));
 

@@ -4,7 +4,6 @@ listing:
   - id: reports
     contents: "lab-reports"
     type: table
-    image-placeholder: lab-report.png
     fields: [image, date, title, author, reading-time]
   - id: notes
     type: grid
@@ -18,7 +17,6 @@ listing:
 resources: 
   - meeting-notes.png
   - other-report.png
-  - lab-report.png
 ---
 
 ## Reports
