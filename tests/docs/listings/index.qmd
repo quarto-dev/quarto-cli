@@ -4,14 +4,31 @@ listing:
   - id: reports
     contents: "lab-reports"
     type: table
+    image-placeholder: lab-report.png
+    fields: [image, date, title, author, reading-time]
   - id: notes
-    contents: "meeting-notes"
     type: grid
+    contents: "meeting-notes"
+    image-placeholder: meeting-notes.png
+  - id: other-reports
+    contents: "other-reports"
+    type: default
+    image-placeholder: other-report.png
+## TODO: Theses images should be found to be copied
+resources: 
+  - meeting-notes.png
+  - other-report.png
+  - lab-report.png
 ---
 
 ## Reports
 
 :::{#reports}
+:::
+
+## Other Reports
+
+:::{#other-reports}
 :::
 
 ## Notes

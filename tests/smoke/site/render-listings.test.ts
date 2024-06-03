@@ -19,9 +19,20 @@ const htmlOutput = join(
 
 const verify: Verify[] = [];
 verify.push(fileExists(htmlOutput));
+// 1. Testing listing type
+
+
 verify.push(ensureHtmlElements(htmlOutput, [
-  "div#listing-notes .quarto-grid-item",
+  // 1. Testing listing type
   "div#listing-reports table.quarto-listing-table",
+  "div#listing-other-reports .quarto-listing-default",
+  "div#listing-notes .quarto-grid-item",
+  // 2. Testing image-placeholder is correctly chosen
+  "div#listing-reports span.listing-image img[src^='lab-report.png']",
+  "div#listing-other-reports .quarto-post div.thumbnail img[src^='other-report.png']",
+  "div#listing-notes .quarto-grid-item .card-img-top img[src^='meeting-notes.png']",
+  // 3. Testing that `.preview-image` is correctly taken
+  "div#listing-other-reports .quarto-post div.thumbnail img[src$='app-store-business-model-lite\\\\2\.png']",
 ]));
 
 testQuartoCmd(
