@@ -318,6 +318,10 @@ local quarto_pre_filters = {
 }
 
 local quarto_post_filters = {
+  { name = "post-cell-cleanup", 
+    filter = cell_cleanup(),
+    flags = { "has_output_cells" }
+  },
   { name = "post-combined-cites-bibliography", 
     filter = combineFilters({
       indexCites(),
@@ -393,10 +397,6 @@ local quarto_finalize_filters = {
   { name = "finalize-dependencies", filter = dependencies() },
   { name = "finalize-coalesce-raw", filters = coalesce_raw() },
   { name = "finalize-descaffold", filter = descaffold() },
-  { name = "finalize-cell-cleanup", 
-    filter = cell_cleanup(),
-    flags = { "has_output_cells" }
-  },
   { name = "finalize-wrapped-writer", filter = wrapped_writer() },
   { name = "finalize-typst-state", filter = setup_typst_state() },
 }
