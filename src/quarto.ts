@@ -22,6 +22,8 @@ import { quartoConfig } from "./core/quarto.ts";
 import { execProcess } from "./core/process.ts";
 import { pandocBinaryPath } from "./core/resources.ts";
 import { appendProfileArg, setProfileFromArg } from "./quarto-core/profile.ts";
+import { logError } from "./core/log.ts";
+import { CommandError } from "cliffy/command/_errors.ts";
 
 import {
   devConfigsEqual,
@@ -153,7 +155,15 @@ export async function quarto(
     }
   }
 
-  await promise;
+  try {
+    await promise;
+  } catch (e) {
+    if (e instanceof CommandError) {
+      logError(e, false);
+    } else {
+      throw e;
+    }
+  }
 }
 
 if (import.meta.main) {

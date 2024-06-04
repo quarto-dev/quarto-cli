@@ -44,7 +44,7 @@ export class ErrorEx extends Error {
   public readonly printStack: boolean;
 }
 
-export function asErrorEx(e: unknown) {
+export function asErrorEx(e: unknown, defaultShowStack = true) {
   if (e instanceof ErrorEx) {
     return e;
   } else if (e instanceof Error) {
@@ -52,7 +52,7 @@ export function asErrorEx(e: unknown) {
     // so that the stack trace survives
 
     (e as any).printName = e.name !== "Error";
-    (e as any).printStack = !!e.message;
+    (e as any).printStack = defaultShowStack && !!e.message;
     return e as ErrorEx;
   } else {
     return new ErrorEx("Error", String(e), false, true);
