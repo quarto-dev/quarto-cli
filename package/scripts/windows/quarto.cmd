@@ -34,7 +34,10 @@ IF EXIST "!QUARTO_TS_PATH!" (
 		SET "QUARTO_TARGET=!QUARTO_TS_PATH!"
 	)
 
-	SET QUARTO_DEBUG=true
+	IF NOT DEFINED QUARTO_DEBUG (
+		SET QUARTO_DEBUG=true 
+	)
+
 	:: Normalize path to remove ../.. stuff
 	for %%i in ("!SCRIPT_PATH!..\config\deno-version") do SET "DENO_VERSION_FILE=%%~fi"
 

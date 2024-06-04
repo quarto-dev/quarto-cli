@@ -60,7 +60,9 @@ if [ -f "$DEV_PATH" ]; then
   fi
   export QUARTO_BIN_PATH=$SCRIPT_PATH
   export QUARTO_SHARE_PATH="${QUARTO_SHARE_PATH=$QUARTO_SRC_PATH/resources/}"
-  export QUARTO_DEBUG=true
+  if [ -z ${QUARTO_DEBUG+x} ]; then
+    export QUARTO_DEBUG=true
+  fi
   QUARTO_CACHE_OPTIONS="--cached-only"
 
   # Check for deno update
