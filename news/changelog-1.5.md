@@ -78,6 +78,7 @@ All changes included in 1.5:
 - ([#9671](https://github.com/quarto-dev/quarto-cli/issues/9671)): Reimplement `typst` subfloats to fix subfloat counters.
 - ([#9694](https://github.com/quarto-dev/quarto-cli/issues/9694)): Fix default callout (`::: callout ... ::: `) in Typst.
 - ([#9722](https://github.com/quarto-dev/quarto-cli/issues/9722)): Resolve data URI images in Typst.
+- ([#9555](https://github.com/quarto-dev/quarto-cli/issues/9555)): Text elements in Typst are internationalized.
 - Upgrade Typst to 0.11
 - Upgrade the Typst template to draw tables without grid lines by default, in accordance with latest Pandoc.
 
@@ -134,6 +135,7 @@ All changes included in 1.5:
 - ([#8417](https://github.com/quarto-dev/quarto-cli/issues/8417)): Maintain a single AST element in the output cells when parsing HTML from RawBlock elements.
 - ([#8582](https://github.com/quarto-dev/quarto-cli/issues/8582)): Improve the algorithm for extracting table elements from HTML RawBlock elements.
 - ([#8770](https://github.com/quarto-dev/quarto-cli/issues/8770)): Handle inconsistently-defined float types and identifier names more robustly in HTML tables.
+- ([#9862](https://github.com/quarto-dev/quarto-cli/issues/9862)): Fix crash with labeled tables in cells with `eval: false` and `echo: false`.
 
 ## Engines
 
@@ -160,7 +162,7 @@ All changes included in 1.5:
 
 ## `quarto typst`
 
-- ([#9106])(https://github.com/quarto-dev/quarto-cli/issues/9106)): Do not allow `quarto typst update`.
+- ([#9106](https://github.com/quarto-dev/quarto-cli/issues/9106)): Do not allow `quarto typst update`.
 
 ## Quarto's input format
 

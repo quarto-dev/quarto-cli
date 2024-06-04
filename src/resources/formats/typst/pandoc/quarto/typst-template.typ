@@ -61,7 +61,7 @@
 
   if abstract != none {
     block(inset: 2em)[
-    #text(weight: "semibold")[Abstract] #h(1em) #abstract
+    #text(weight: "semibold")[$labels.abstract$] #h(1em) #abstract
     ]
   }
 

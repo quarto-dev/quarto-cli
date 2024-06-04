@@ -2,15 +2,19 @@
 name: Feature-Format Tests
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths-ignore:
-      - "news/**"
-      - "src/resources/language/**"
-  pull_request:
-    branches: [main]
-    paths-ignore:
-      - "src/resources/language/**"
+  schedule:
+    # run daily at 1am UTC
+    - cron: "0 1 * * *"
+  # Deactivating run on commits for now
+  ## push:
+  ##   branches: [main]
+  ##   paths-ignore:
+  ##     - "news/**"
+  ##     - "src/resources/language/**"
+  ## pull_request:
+  ##   branches: [main]
+  ##   paths-ignore:
+  ##     - "src/resources/language/**"
 
 concurrency:
   # Use github.run_id on main branch
