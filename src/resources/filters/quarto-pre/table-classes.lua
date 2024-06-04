@@ -62,6 +62,9 @@ function table_classes()
       if kind ~= "tbl" then
         return nil
       end
+      if float.content == nil then
+        return nil
+      end
 
       if (float.caption_long == nil or 
           float.caption_long.content == nil or 
