@@ -11,7 +11,6 @@ import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { testQuartoCmd } from "../../test.ts";
 import { fileExists, noErrors, printsMessage } from "../../verify.ts";
 import { assert } from "testing/asserts.ts";
-import { exists } from "https://deno.land/std@0.93.0/fs/exists.ts";
 import { safeRemoveIfExists } from "../../../src/core/path.ts";
 
 const renderDir = docs("project/prepost/mutate-render-list");

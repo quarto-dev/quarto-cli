@@ -776,7 +776,7 @@ async function readExtension(
     },
   );
   const project = (contributes?.project || {}) as Record<string, unknown>;
-  // resolve project pre-render scripts to their full path
+  // resolve project pre- and post-render scripts to their full path
   if (
     project.project &&
     (project.project as Record<string, unknown>)["pre-render"]
