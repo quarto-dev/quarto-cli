@@ -339,7 +339,7 @@ async function readAndCopyExtensions(
   const extensions = await readExtensions(extensionsDir);
   info(
     `    Found ${extensions.length} ${
-      extensions.length <= 1 ? "extension" : "extensions"
+      extensions.length === 1 ? "extension" : "extensions"
     }.`,
   );
 

@@ -445,7 +445,7 @@ export async function readExtensions(
           join(extensionsDirectory, extensionDir.name),
           extensionDir.name,
         );
-        if (ownedExtensions.length > 0) {
+        if (ownedExtensions) {
           extensions.push(...ownedExtensions);
         }
       }
