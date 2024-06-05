@@ -519,6 +519,11 @@ export function inputExtensionDirs(input?: string, projectDir?: string) {
     if (dir) {
       extensionDirectories.push(dir);
     }
+  } else if (projectDir) {
+    const dir = extensionsDirPath(projectDir);
+    if (dir) {
+      extensionDirectories.push(dir);
+    }
   }
   return extensionDirectories;
 }
@@ -771,6 +776,23 @@ async function readExtension(
     },
   );
   const project = (contributes?.project || {}) as Record<string, unknown>;
+  // resolve project pre- and post-render scripts to their full path
+  if (
+    project.project &&
+    (project.project as Record<string, unknown>)["pre-render"]
+  ) {
+    const preRender =
+      (project.project as Record<string, unknown>)["pre-render"] as string[];
+    const resolved = resolvePathGlobs(
+      extensionDir,
+      preRender as string[],
+      [],
+    );
+    if (resolved.include.length > 0) {
+      (project.project as Record<string, unknown>)["pre-render"] = resolved
+        .include;
+    }
+  }
   const revealJSPlugins = ((contributes?.[kRevealJSPlugins] || []) as Array<
     string | RevealPluginBundle | RevealPlugin
   >).map((plugin) => {
