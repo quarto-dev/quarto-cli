@@ -172,6 +172,7 @@ All changes included in 1.5:
 
 - ([#9572](https://github.com/quarto-dev/quarto-cli/issues/9572)): Add `quarto.config.cli_path()` in Quarto LUA to return the path to the Quarto CLI executable of the installation running the Lua script in quarto context.
 - ([#9691](https://github.com/quarto-dev/quarto-cli/issues/9691)): Provide default Attr object to `quarto.Tabset` constructor.
+- ([#9696](https://github.com/quarto-dev/quarto-cli/issues/9696)): Don't use `.hidden` in `data-qmd` scaffolds.
 
 ## Other Fixes and Improvements
 
