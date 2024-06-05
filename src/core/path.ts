@@ -50,7 +50,7 @@ export function safeRemoveSync(
   try {
     Deno.removeSync(file, options);
   } catch (e) {
-    if (existsSync(file) || !(e instanceof Deno.errors.NotFound)) {
+    if (existsSync(file)) {
       throw e;
     }
   }
