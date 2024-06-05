@@ -1,0 +1,328 @@
+/*-- scss:defaults --*/
+
+$theme: "macchiato" !default;
+
+//
+// Macchiato colors
+//
+// MIT License
+
+// Copyright (c) 2021 Catppuccin
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+// 
+
+
+$rosewater: #f4dbd6;
+$flamingo: #f0c6c6;
+$pink: #f5bde6;
+$mauve: #c6a0f6;
+$red: #ed8796;
+$maroon: #ee99a0;
+$peach: #f5a97f;
+$yellow: #eed49f;
+$green: #a6da95;
+$teal: #8bd5ca;
+$sky: #91d7e3;
+$sapphire: #7dc4e4;
+$blue: #8aadf4;
+$lavender: #b7bdf8;
+$text: #cad3f5;
+$subtext1: #b8c0e0;
+$subtext0: #a5adcb;
+$overlay2: #939ab7;
+$overlay1: #8087a2;
+$overlay0: #6e738d;
+$surface2: #5b6078;
+$surface1: #494d64;
+$surface0: #363a4f;
+$base: #24273a;
+$mantle: #1e2030;
+$crust: #181926;
+
+//
+// Color system
+//
+
+$white:    $text !default;
+$gray-100: $subtext1 !default;
+$gray-200: $subtext0 !default;
+$gray-300: $overlay2 !default;
+$gray-400: $overlay1 !default;
+$gray-500: $overlay0 !default;
+$gray-600: $surface2 !default;
+$gray-700: $surface1 !default;
+$gray-800: $surface0 !default;
+$gray-900: $mantle !default;
+$black:    $crust !default;
+
+$blue:    $blue !default;
+$indigo:  $lavender !default;
+$purple:  $mauve !default;
+$pink:    $pink !default;
+$red:     $red !default;
+$orange:  $maroon !default;
+$yellow:  $yellow !default;
+$green:   $green !default;
+$teal:    $teal !default;
+$cyan:    $sky !default;
+
+// Body
+
+$body-bg:                   $gray-900 !default;
+$body-color:                $white !default;
+@function body-mix($weight) {
+    @return mix($body-bg, $body-color, $weight);
+}
+
+$primary:       $blue !default;
+$secondary:     body-mix(85%) !default;
+$success:       $green !default;
+$info:          $cyan !default;
+$warning:       $yellow !default;
+$danger:        $red !default;
+// This is inconsistent with Bootstrap semantics. That is, $dark
+// should actually be a light color in a dark mode setting, :shrug:
+// https://github.com/thomaspark/bootswatch/issues/989
+$light:         body-mix(65%) !default;
+$dark:          body-mix(95%) !default;
+
+$min-contrast-ratio:   1.9 !default;
+
+// Links
+
+$link-color:                $success !default;
+
+// Fonts
+
+// stylelint-disable-next-line value-keyword-case
+$font-family-sans-serif:      Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !default;
+$h1-font-size:                3rem !default;
+$h2-font-size:                2.5rem !default;
+$h3-font-size:                2rem !default;
+$text-muted:                  body-mix(75%) !default;
+
+// Tables
+
+$table-border-color:          body-mix(85%) !default;
+
+$table-bg-scale:              0% !default;
+
+// Forms
+
+$input-bg:                          $body-color !default;
+$input-color:                       body-mix(95%) !default;
+$input-border-color:                $body-bg !default;
+$input-group-addon-color:           body-mix(65%) !default;
+$input-group-addon-bg:              body-mix(85%) !default;
+$input-placeholder-color:           body-mix(75%) !default;
+
+$form-check-input-bg:                     $body-color !default;
+$form-check-input-border:                 none !default;
+
+$form-select-disabled-color:        body-mix(75%) !default;
+
+$form-file-button-color:          $input-group-addon-color !default;
+$form-file-button-bg:             $input-group-addon-bg !default;
+$form-file-button-hover-bg:       darken($form-file-button-bg, 5%) !default;
+
+// Dropdowns
+
+$dropdown-bg:                       $body-bg !default;
+$dropdown-border-color:             body-mix(85%) !default;
+$dropdown-divider-bg:               body-mix(85%) !default;
+$dropdown-link-color:               $body-color !default;
+$dropdown-link-hover-color:         $body-color !default;
+$dropdown-link-hover-bg:            $primary !default;
+
+// Navs
+
+$nav-link-padding-x:                2rem !default;
+$nav-link-disabled-color:           body-mix(65%) !default;
+$nav-tabs-border-color:             body-mix(85%) !default;
+$nav-tabs-link-hover-border-color:  $nav-tabs-border-color $nav-tabs-border-color transparent !default;
+$nav-tabs-link-active-color:        $body-color !default;
+$nav-tabs-link-active-border-color: $nav-tabs-border-color $nav-tabs-border-color transparent !default;
+
+// Navbar
+
+$navbar-padding-y:                  1rem !default;
+$navbar-dark-color:                rgba($body-color, .6) !default;
+$navbar-dark-hover-color:          $body-color !default;
+$navbar-light-color:                rgba($body-bg, .7) !default;
+$navbar-light-hover-color:          $body-bg !default;
+$navbar-light-active-color:         $body-bg !default;
+$navbar-light-toggler-border-color: rgba($body-bg, .1) !default;
+
+// Pagination
+
+$pagination-color:                  $body-color !default;
+$pagination-bg:                     $success !default;
+$pagination-border-width:           0 !default;
+$pagination-border-color:           transparent !default;
+$pagination-hover-color:            $body-color !default;
+$pagination-hover-bg:               lighten($success, 10%) !default;
+$pagination-hover-border-color:     transparent !default;
+$pagination-active-bg:              $pagination-hover-bg !default;
+$pagination-active-border-color:    transparent !default;
+$pagination-disabled-color:         $body-color !default;
+$pagination-disabled-bg:            darken($success, 15%) !default;
+$pagination-disabled-border-color:  transparent !default;
+
+// Cards
+
+$card-cap-bg:                       body-mix(85%) !default;
+$card-bg:                           body-mix(95%) !default;
+
+// Popovers
+
+$popover-bg:                        body-mix(95%) !default;
+$popover-header-bg:                 body-mix(85%) !default;
+
+// Toasts
+
+$toast-background-color:            body-mix(85%) !default;
+$toast-header-background-color:     body-mix(95%) !default;
+
+// Modals
+
+$modal-content-bg:                  body-mix(95%) !default;
+$modal-content-border-color:        body-mix(85%) !default;
+$modal-header-border-color:         body-mix(85%) !default;
+
+// Progress bars
+
+$progress-bg:                       body-mix(85%) !default;
+
+// List group
+
+$list-group-color:                  $body-color !default;
+$list-group-bg:                     body-mix(95%) !default;
+$list-group-border-color:           body-mix(85%) !default;
+$list-group-hover-bg:               body-mix(85%) !default;
+$list-group-action-hover-color:     $list-group-color !default;
+$list-group-action-active-bg:       $body-bg !default;
+
+// Breadcrumbs
+
+$breadcrumb-padding-y:              .375rem !default;
+$breadcrumb-padding-x:              .75rem !default;
+$breadcrumb-bg:                     body-mix(85%) !default;
+$breadcrumb-border-radius:          .25rem !default;
+
+// Close
+
+$btn-close-color:            $body-color !default;
+$btn-close-opacity:          .4 !default;
+$btn-close-hover-opacity:    1 !default;
+
+// Code
+
+$pre-color:                         inherit !default;
+
+
+
+/*-- scss:rules --*/
+
+
+// Variables
+
+$web-font-path: "https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&display=swap" !default;
+@if $web-font-path {
+  @import url($web-font-path);
+}
+
+// Typography
+
+.blockquote {
+  &-footer {
+    color: body-mix(75%);
+  }
+}
+
+// Forms
+
+@include color-mode(dark) {
+  .input-group-text {
+    // color: $body-color;
+  }
+}
+
+.form-floating {
+  > label,
+  > .form-control:focus ~ label,
+  > .form-control:not(:placeholder-shown) ~ label {
+    color: $input-placeholder-color;
+  }
+}
+
+// Navs
+
+.nav-tabs,
+.nav-pills {
+  .nav-link,
+  .nav-link.active,
+  .nav-link.active:focus,
+  .nav-link.active:hover,
+  .nav-item.open .nav-link,
+  .nav-item.open .nav-link:focus,
+  .nav-item.open .nav-link:hover {
+    color: $body-color;
+  }
+}
+
+.breadcrumb a {
+  color: $body-color;
+}
+
+.pagination {
+  a:hover {
+    text-decoration: none;
+  }
+}
+
+// Indicators
+
+.alert {
+  color: $body-color;
+  border: none;
+
+  a,
+  .alert-link {
+    color: $body-color;
+    text-decoration: underline;
+  }
+
+  @each $color, $value in $theme-colors {
+    &-#{$color} {
+      @if $enable-gradients {
+        background: $value linear-gradient(180deg, mix($body-color, $value, 15%), $value) repeat-x;
+      } @else {
+        background-color: $value;
+      }
+    }
+  }
+}
+
+.tooltip {
+  --bs-tooltip-bg: var(--bs-tertiary-bg);
+  --bs-tooltip-color: var(--bs-emphasis-color);
+}
+
+
