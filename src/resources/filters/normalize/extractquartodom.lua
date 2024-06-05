@@ -14,16 +14,16 @@ function parse_md_in_html_rawblocks()
   return {
     Div = function(div)
       if div.attributes.qmd ~= nil or div.attributes["qmd-base64"] ~= nil then
-        return _quarto.ast.make_scaffold(pandoc.Div, process_quarto_markdown_input_element(div))
+        return _quarto.ast.scaffold_element(process_quarto_markdown_input_element(div))
       end
     end,
     Span = function(span)
       if span.attributes.qmd ~= nil or span.attributes["qmd-base64"] ~= nil then
         local inlines = quarto.utils.as_inlines(process_quarto_markdown_input_element(span))
         if #inlines < 1 then
-          return _quarto.ast.make_scaffold(pandoc.Span, {})
+          return _quarto.ast.scaffold_element(pandoc.Inlines({}))
         end
-        return _quarto.ast.make_scaffold(pandoc.Span, inlines)
+        return _quarto.ast.scaffold_element(inlines)
       end
     end,
     RawBlock = function(raw)
