@@ -215,11 +215,59 @@ const computeProjectRenderConfig = async (
   };
 };
 
+const getProjectRenderScripts = async (
+  context: ProjectContext,
+  pOptions: RenderOptions,
+) => {
+  const extensions = await pOptions.services.extension.extensions(
+    undefined,
+    context.config,
+    context.isSingleFile ? undefined : context.dir,
+    { builtIn: false },
+  );
+  const preRenderScripts: string[] = [],
+    postRenderScripts: string[] = [];
+  if (context.config?.project?.[kProjectPreRender]) {
+    preRenderScripts.push(
+      ...asArray(context.config?.project?.[kProjectPreRender]!),
+    );
+  }
+  if (context.config?.project?.[kProjectPostRender]) {
+    postRenderScripts.push(
+      ...asArray(context.config?.project?.[kProjectPostRender]!),
+    );
+  }
+  extensions.forEach((extension) => {
+    if (extension.contributes.project?.project) {
+      const project = extension.contributes.project.project as Record<
+        string,
+        unknown
+      >;
+      if (project[kProjectPreRender]) {
+        preRenderScripts.push(
+          ...asArray(project[kProjectPreRender] as string | string[]),
+        );
+      }
+      if (project[kProjectPostRender]) {
+        postRenderScripts.push(
+          ...asArray(project[kProjectPostRender] as string | string[]),
+        );
+      }
+    }
+  });
+  return { preRenderScripts, postRenderScripts };
+};
+
 export async function renderProject(
   context: ProjectContext,
   pOptions: RenderOptions,
   pFiles?: string[],
 ): Promise<RenderResult> {
+  const { preRenderScripts, postRenderScripts } = await getProjectRenderScripts(
+    context,
+    pOptions,
+  );
+
   // lookup the project type
   const projType = projectType(context.config?.project?.[kProjectType]);
 
@@ -276,10 +324,10 @@ export async function renderProject(
   };
 
   // run pre-render step if we are rendering all files
-  if (context.config?.project?.[kProjectPreRender]) {
+  if (preRenderScripts.length) {
     await runPreRender(
       projDir,
-      asArray(context.config?.project?.[kProjectPreRender]!),
+      preRenderScripts,
       progress,
       !!projectRenderConfig.options.flags?.quiet,
       {
@@ -764,10 +812,10 @@ export async function renderProject(
     }
 
     // run post-render if this isn't incremental
-    if (context.config?.project?.[kProjectPostRender]) {
+    if (postRenderScripts.length) {
       await runPostRender(
         projDir,
-        asArray(context.config?.project?.[kProjectPostRender]!),
+        postRenderScripts,
         progress,
         !!projectRenderConfig.options.flags?.quiet,
         {
