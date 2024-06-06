@@ -1,0 +1,31 @@
+---
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: na
+  typst:
+    quality: 2
+    comment: "table and table cell only"
+  dashboard:
+    quality: 1
+  docx:
+    quality: na
+  pptx:
+    quality: na
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'align\(center\)\[#set text\(size: 6pt\); #table\('
+        - []
+---
+
+```{=html}
+<table style="font-size: 8px;">
+    <tr><td>A</td><td>B</td></tr>
+</table>
+```
+

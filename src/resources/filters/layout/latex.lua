@@ -81,7 +81,7 @@ function latexPanelEnv(layout)
   
   -- defaults
   local env = latexFigureEnv(layout)
-  local pos = attribute(layout.float or { attributes = {} }, kFigPos)
+  local pos = attribute(layout.float or { attributes = layout.attributes or {} }, kFigPos)
   
   return env, pos
 end
@@ -99,7 +99,10 @@ function latexJoinParas(content)
   return blocks
 end
 
-function latexCaptionEnv(el) 
+function latexCaptionEnv(el)
+  if el.attributes['quarto-caption-env'] then
+    return el.attributes['quarto-caption-env']
+  end 
   if el.classes:includes(kSideCaptionClass) then
     return kSideCaptionEnv
   else
@@ -125,7 +128,7 @@ function create_latex_caption(layout)
   end
   local caption_node, caption = quarto.LatexInlineCommand({
     name = caption_env,
-    arg = scaffold(cap_inlines),
+    arg = _quarto.ast.scaffold_element(cap_inlines),
   })
   if layout.caption_short ~= nil then
     caption.opt_arg = quarto.utils.as_inlines(layout.caption_short)
@@ -510,7 +513,12 @@ function latexFigurePosition(el, env)
   if env == kMarginFigureEnv then
     return attribute(el, kOffset, nil)
   else
-    local prefix = refType(el.identifier) or "fig"
+    local prefix
+    if el.t == "FloatRefTarget" then
+      prefix = ref_type_from_float(el)
+    else
+      prefix = refType(el.identifier) or "fig"
+    end
     return attribute(el, prefix .. "-pos", nil)
   end
 end
@@ -618,7 +626,9 @@ function latexImageFigure(image)
     
     -- get align
     local align = figAlignAttribute(image)
-   
+    if align ~= nil then
+      image.attributes[kFigAlign] = nil
+    end
     -- insert the figure without the caption
     local figureContent = { pandoc.Para({
       pandoc.RawInline("latex", latexBeginAlign(align)),
@@ -668,14 +678,6 @@ function renderLatexFigure(el, render)
   -- return the figure
   return figure
   
-end
-
-function latexCaptionEnv(el) 
-  if el.classes:includes(kSideCaptionClass) then
-    return kSideCaptionEnv
-  else
-    return 'caption'
-  end
 end
 
 function insertLatexCaption(divEl, content, captionInlines) 

@@ -1,0 +1,17 @@
+---
+title: Table caption location
+tbl-cap-location: top
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["table.caption-top"]
+---
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| A    | B    | C    |
+| E    | F    | G    |
+
+: A non-labelled table with a caption

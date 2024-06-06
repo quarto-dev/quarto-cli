@@ -1,9 +1,8 @@
 /*
-* markdown.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * markdown.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { PandocAttr, PartitionedMarkdown } from "./types.ts";
 
 import { lines } from "../text.ts";
@@ -19,7 +18,7 @@ export function firstHeadingFromMarkdown(markdown: string): string | undefined {
   return partitioned.headingText;
 }
 
-const kPandocTitleRegex = /^\#{1,}\s(.*)\s\{(.*)\}$/;
+const kPandocTitleRegex = /^\#{1,}\s(?:(.*)\s)?\{(.*)\}$/;
 const kRemoveHeadingRegex = /^#{1,}\s*/;
 
 export function parsePandocTitle(title: string) {
@@ -77,6 +76,7 @@ export function markdownWithExtractedHeading(markdown: string) {
   const mdLines: string[] = [];
   let headingText: string | undefined;
   let headingAttr: PandocAttr | undefined;
+  let contentBeforeHeading = false;
 
   for (const line of lines(markdown)) {
     if (!headingText) {
@@ -84,11 +84,13 @@ export function markdownWithExtractedHeading(markdown: string) {
         const parsedHeading = parsePandocTitle(line);
         headingText = parsedHeading.heading;
         headingAttr = parsedHeading.attr;
+        contentBeforeHeading = mdLines.length !== 0;
       } else if (line.match(/^=+\s*$/) || line.match(/^-+\s*$/)) {
         const prevLine = mdLines[mdLines.length - 1];
         if (prevLine) {
           headingText = prevLine;
           mdLines.splice(mdLines.length - 1);
+          contentBeforeHeading = mdLines.length !== 0;
         } else {
           mdLines.push(line);
         }
@@ -104,5 +106,6 @@ export function markdownWithExtractedHeading(markdown: string) {
     lines: mdLines,
     headingText,
     headingAttr,
+    contentBeforeHeading,
   };
 }

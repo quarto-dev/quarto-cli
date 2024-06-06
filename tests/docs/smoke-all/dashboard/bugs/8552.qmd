@@ -1,0 +1,17 @@
+---
+title: "Untitled"
+format: dashboard
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - <code>\[1\] 0\.6</code>
+        - [] 
+---
+
+```{r}
+0.6
+2 + 2
+```
+

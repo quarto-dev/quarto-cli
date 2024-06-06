@@ -10,7 +10,7 @@ import { execProcess } from "./process.ts";
 import { rBinaryPath, resourcePath } from "./resources.ts";
 import { readYamlFromString } from "./yaml.ts";
 import { coerce, satisfies } from "semver/mod.ts";
-import { debug } from "log/mod.ts";
+import { debug } from "../deno_ral/log.ts";
 
 export interface KnitrCapabilities {
   versionMajor: number;
@@ -25,12 +25,17 @@ export interface KnitrRequiredPackages {
   knitr: string | null;
   knitrVersOk?: boolean;
   rmarkdown: string | null;
+  rmarkdownVersOk?: boolean;
 }
 
 const pkgVersRequirement = {
   knitr: {
     type: ">=",
     version: "1.30",
+  },
+  rmarkdown: {
+    type: ">=",
+    version: "2.3",
   },
 };
 
@@ -40,8 +45,10 @@ export async function checkRBinary() {
     const result = await execProcess({
       cmd: [rBin, "--version"],
       stdout: "piped",
+      stderr: "piped",
     });
-    if (result.success && result.stdout) {
+    // Before R4.2.3, the output version information is printed to stderr
+    if (result.success && (result.stdout || /R scripting front-end version/.test(result.stderr ?? ''))) {
       debug(`\n++R found at ${rBin} is working.`);
       return rBin;
     } else {
@@ -83,6 +90,15 @@ export async function knitrCapabilities(rBin: string | undefined) {
           Object.values(pkgVersRequirement["knitr"]).join(" "),
         )
         : false;
+      const rmarkdownVersion = caps.packages.rmarkdown
+        ? coerce(caps.packages.rmarkdown)
+        : undefined;
+      caps.packages.rmarkdownVersOk = rmarkdownVersion
+        ? satisfies(
+          rmarkdownVersion,
+          Object.values(pkgVersRequirement["rmarkdown"]).join(" "),
+        )
+        : false;
       return caps;
     } else {
       debug("\n++ Problem with results of knitr capabilities check.");
@@ -121,6 +137,11 @@ export function knitrCapabilitiesMessage(caps: KnitrCapabilities, indent = "") {
     );
   }
   lines.push(`rmarkdown: ${caps.packages.rmarkdown || "(None)"}`);
+  if (caps.packages.rmarkdown && !caps.packages.rmarkdownVersOk) {
+    lines.push(
+      `NOTE: rmarkdown version ${caps.packages.rmarkdown} is too old. Please upgrade to ${pkgVersRequirement.rmarkdown.version} or later.`,
+    );
+  }
   return lines.map((line: string) => `${indent}${line}`).join("\n");
 }
 

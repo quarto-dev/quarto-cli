@@ -66,7 +66,7 @@
 
       An informative registry of specialized EPUB Publication 
       types for use with this element is maintained in the 
-      [TypesRegistry](https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry), 
+      [TypesRegistry](https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry), 
       but Authors may use any text string as a value.
 
 - name: format

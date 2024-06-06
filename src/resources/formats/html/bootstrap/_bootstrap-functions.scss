@@ -97,6 +97,7 @@
           if(variable-exists(light), $light, $gray-500),
           $default
         ),
+      link-color: #2761e3,
       valuebox-bg-primary: #5397e9,
       valuebox-bg-info: #9954bbb3,
       valuebox-bg-success: #3aa716,

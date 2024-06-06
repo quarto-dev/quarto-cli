@@ -7175,6 +7175,147 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Detect cache dependencies automatically via usage of global variables"
         }
       ],
+      "schema/cell-card.yml": [
+        {
+          name: "title",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "string",
+          description: {
+            short: "Title displayed in dashboard card header"
+          }
+        },
+        {
+          name: "padding",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
+          description: {
+            short: "Padding around dashboard card content (default `8px`)"
+          }
+        },
+        {
+          name: "expandable",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "boolean",
+          default: true,
+          description: {
+            short: "Make dashboard card content expandable (default: `true`)"
+          }
+        },
+        {
+          name: "width",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
+          description: {
+            short: "Percentage or absolute pixel width for dashboard card (defaults to evenly spaced across row)"
+          }
+        },
+        {
+          name: "height",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
+          description: {
+            short: "Percentage or absolute pixel height for dashboard card (defaults to evenly spaced across column)"
+          }
+        },
+        {
+          name: "context",
+          tags: {
+            formats: [
+              "dashboard"
+            ],
+            engine: [
+              "jupyter"
+            ]
+          },
+          schema: "string",
+          description: {
+            short: "Context to execute cell within."
+          }
+        },
+        {
+          name: "content",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            enum: [
+              "valuebox",
+              "sidebar",
+              "toolbar",
+              "card-sidebar",
+              "card-toolbar"
+            ]
+          },
+          description: {
+            short: "The type of dashboard element being produced by this code cell."
+          }
+        },
+        {
+          name: "color",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "string",
+              {
+                enum: [
+                  "primary",
+                  "secondary",
+                  "success",
+                  "info",
+                  "warning",
+                  "danger",
+                  "light",
+                  "dark"
+                ]
+              }
+            ]
+          },
+          description: {
+            short: "For code cells that produce a valuebox, the color of the valuebox.s"
+          }
+        }
+      ],
       "schema/cell-codeoutput.yml": [
         {
           name: "eval",
@@ -7864,7 +8005,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "margin"
             ]
           },
-          default: "inline",
+          default: "bottom",
           description: "Where to place figure and table captions (`top`, `bottom`, or `margin`)"
         },
         {
@@ -7886,7 +8027,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "margin"
             ]
           },
-          default: "inline",
+          default: "bottom",
           description: "Where to place figure captions (`top`, `bottom`, or `margin`)"
         },
         {
@@ -7908,7 +8049,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "margin"
             ]
           },
-          default: "inline",
+          default: "top",
           description: "Where to place table captions (`top`, `bottom`, or `margin`)"
         }
       ],
@@ -7945,6 +8086,10 @@ var require_yaml_intelligence_resources = __commonJS({
             engine: [
               "knitr",
               "jupyter"
+            ],
+            formats: [
+              "$pdf-all",
+              "$html-all"
             ]
           },
           schema: {
@@ -8315,7 +8460,6 @@ var require_yaml_intelligence_resources = __commonJS({
             "screen",
             "screen-left",
             "screen-right",
-            "screen-rightcolumn",
             "screen-inset",
             "screen-inset-shaded",
             "screen-inset-left",
@@ -8413,6 +8557,29 @@ var require_yaml_intelligence_resources = __commonJS({
                 }
               }
             }
+          }
+        },
+        {
+          id: "giscus-themes",
+          enum: {
+            values: [
+              "light",
+              "light_high_contrast",
+              "light_protanopia",
+              "light_tritanopia",
+              "dark",
+              "dark_high_contrast",
+              "dark_protanopia",
+              "dark_tritanopia",
+              "dark_dimmed",
+              "transparent_dark",
+              "cobalt",
+              "purple_dark",
+              "noborder_light",
+              "noborder_dark",
+              "noborder_gray",
+              "preferred_color_scheme"
+            ]
           }
         },
         {
@@ -8554,37 +8721,38 @@ var require_yaml_intelligence_resources = __commonJS({
                           anyOf: [
                             "string",
                             {
-                              enum: [
-                                "light",
-                                "light_high_contrast",
-                                "light_protanopia",
-                                "dark",
-                                "dark_high_contrast",
-                                "dark_protanopia",
-                                "dark_dimmed",
-                                "transparent_dark",
-                                "preferred_color_scheme"
-                              ]
+                              ref: "giscus-themes"
                             },
                             {
                               object: {
                                 closed: true,
                                 properties: {
                                   light: {
-                                    string: {
-                                      description: "The light theme name."
-                                    }
+                                    anyOf: [
+                                      "string",
+                                      {
+                                        ref: "giscus-themes"
+                                      }
+                                    ],
+                                    description: "The light theme name."
                                   },
                                   dark: {
-                                    string: {
-                                      description: "The dark theme name."
-                                    }
+                                    anyOf: [
+                                      "string",
+                                      {
+                                        ref: "giscus-themes"
+                                      }
+                                    ],
+                                    description: "The dark theme name."
                                   }
                                 }
                               }
                             }
                           ],
-                          description: "The giscus theme to use when displaying comments."
+                          description: {
+                            short: "The giscus theme to use when displaying comments.",
+                            long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      light: light # giscus theme used for light website theme\n      dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
+                          }
                         },
                         language: {
                           string: {
@@ -8604,6 +8772,11 @@ var require_yaml_intelligence_resources = __commonJS({
                         object: {
                           closed: true,
                           properties: {
+                            "client-url": {
+                              string: {
+                                description: "Override the default hypothesis client url with a custom client url."
+                              }
+                            },
                             openSidebar: {
                               boolean: {
                                 default: false,
@@ -9141,6 +9314,16 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Base URL for website source code repository"
                 }
               },
+              "repo-link-target": {
+                string: {
+                  description: "The value of the target attribute for repo links"
+                }
+              },
+              "repo-link-rel": {
+                string: {
+                  description: "The value of the rel attribute for repo links"
+                }
+              },
               "repo-subdir": {
                 string: {
                   description: "Subdirectory of repository containing website"
@@ -9217,6 +9400,54 @@ var require_yaml_intelligence_resources = __commonJS({
                   }
                 ],
                 description: "Enable Google Analytics for this website"
+              },
+              announcement: {
+                anyOf: [
+                  "string",
+                  {
+                    object: {
+                      properties: {
+                        content: {
+                          schema: "string",
+                          description: "The content of the announcement"
+                        },
+                        dismissable: {
+                          schema: "boolean",
+                          description: "Whether this announcement may be dismissed by the user."
+                        },
+                        icon: {
+                          schema: "string",
+                          description: "The icon to display in the annoucement"
+                        },
+                        position: {
+                          schema: {
+                            enum: [
+                              "above-navbar",
+                              "below-navbar"
+                            ]
+                          },
+                          description: "The position of the announcement."
+                        },
+                        type: {
+                          schema: {
+                            enum: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
+                            ]
+                          },
+                          description: "The type of announcement. Affects the appearance of the announcement."
+                        }
+                      }
+                    }
+                  }
+                ],
+                description: "Provides an announcement displayed at the top of the page."
               },
               "cookie-consent": {
                 anyOf: [
@@ -9507,6 +9738,22 @@ var require_yaml_intelligence_resources = __commonJS({
                             ref: "navigation-item"
                           },
                           description: "List of items for the right side of the navbar."
+                        },
+                        "toggle-position": {
+                          schema: {
+                            enum: [
+                              "left",
+                              "right"
+                            ]
+                          },
+                          description: "The position of the collapsed navbar toggle when in responsive mode",
+                          default: "left"
+                        },
+                        "tools-collapse": {
+                          boolean: {
+                            description: "Collapse tools into the navbar menu when the display becomes narrow.",
+                            default: false
+                          }
                         }
                       }
                     }
@@ -9536,6 +9783,16 @@ var require_yaml_intelligence_resources = __commonJS({
                           logo: {
                             path: {
                               description: "Path to a logo image that will be displayed in the sidebar."
+                            }
+                          },
+                          "logo-alt": {
+                            string: {
+                              description: "Alternate text for the logo image."
+                            }
+                          },
+                          "logo-href": {
+                            string: {
+                              description: "Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html)."
                             }
                           },
                           search: {
@@ -9683,6 +9940,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Default site thumbnail image for `twitter` /`open-graph`\n"
                 }
               },
+              "image-alt": {
+                path: {
+                  description: "Default site thumbnail image alt text for `twitter` /`open-graph`\n"
+                }
+              },
               comments: {
                 schema: {
                   ref: "comments"
@@ -9731,7 +9993,26 @@ var require_yaml_intelligence_resources = __commonJS({
                     "$html-doc"
                   ]
                 },
-                description: "A list of codes links to appear with this document."
+                description: "A list of code links to appear with this document."
+              },
+              drafts: {
+                schema: {
+                  maybeArrayOf: "path"
+                },
+                description: "A list of input documents that should be treated as drafts"
+              },
+              "draft-mode": {
+                schema: {
+                  enum: [
+                    "visible",
+                    "unlinked",
+                    "gone"
+                  ]
+                },
+                description: {
+                  short: "How to handle drafts that are encountered.",
+                  long: "How to handle drafts that are encountered.\n\n`visible` - the draft will visible and fully available\n`unlinked` - the draft will be rendered, but will not appear in navigation, search, or listings.\n`gone` - the draft will have no content and will not be linked to (default).\n"
+                }
               }
             }
           }
@@ -10009,6 +10290,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "search-more-match-text": "string",
               "search-more-matches-text": "string",
               "search-clear-button-title": "string",
+              "search-text-placeholder": "string",
               "search-detached-cancel-button-title": "string",
               "search-submit-button-title": "string",
               "crossref-fig-title": "string",
@@ -10048,6 +10330,9 @@ var require_yaml_intelligence_resources = __commonJS({
           id: "website-about",
           object: {
             closed: true,
+            required: [
+              "template"
+            ],
             properties: {
               id: {
                 string: {
@@ -10081,6 +10366,16 @@ var require_yaml_intelligence_resources = __commonJS({
                     short: "The path to the main image on the about page.",
                     long: "The path to the main image on the about page. If not specified, \nthe `image` provided for the document itself will be used.\n"
                   }
+                }
+              },
+              "image-alt": {
+                path: {
+                  description: "The alt text for the main image on the about page."
+                }
+              },
+              "image-title": {
+                path: {
+                  description: "The title for the main image on the about page."
                 }
               },
               "image-width": {
@@ -10119,7 +10414,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 string: {
                   description: {
                     short: "The id of this listing.",
-                    long: "The id of this listing. When the listing is rendered, it will \nplace the contents into a `div` with this id. If no such `div` is defined on the \npage, a `div` with this id will be created and appended to the end of the page.\n\nIn no `id` is provided for a listing, Quarto will synthesize one when rendering the page.\n"
+                    long: "The id of this listing. When the listing is rendered, it will \nplace the contents into a `div` with this id. If no such `div` is defined on the \npage, a `div` with this id will be created and appended to the end of the page.\n\nIf no `id` is provided for a listing, Quarto will synthesize one when rendering the page.\n"
                   }
                 }
               },
@@ -10223,11 +10518,12 @@ var require_yaml_intelligence_resources = __commonJS({
                         type: {
                           enum: [
                             "full",
-                            "partial"
+                            "partial",
+                            "metadata"
                           ],
                           description: {
                             short: "Whether to include full or partial content in the feed.",
-                            long: "Whether to include full or partial content in the feed.\n\n- `full` (default): Include the complete content of the document in the feed.\n- `partial`: Include only the first paragraph of the document in the feed.\n"
+                            long: "Whether to include full or partial content in the feed.\n\n- `full` (default): Include the complete content of the document in the feed.\n- `partial`: Include only the first paragraph of the document in the feed.\n- `metadata`: Use only the title, description, and other document metadata in the feed.\n"
                           }
                         },
                         title: {
@@ -10299,6 +10595,12 @@ var require_yaml_intelligence_resources = __commonJS({
               "image-placeholder": {
                 string: {
                   description: "The default image to use if an item in the listing doesn't have an image."
+                }
+              },
+              "image-lazy-loading": {
+                boolean: {
+                  description: "If false, images in the listing will be loaded immediately. If true, images will be loaded as they come into view.",
+                  default: true
                 }
               },
               "image-align": {
@@ -10438,6 +10740,27 @@ var require_yaml_intelligence_resources = __commonJS({
             "string",
             {
               maybeArrayOf: "number"
+            },
+            {
+              object: {
+                properties: {
+                  year: {
+                    number: {
+                      description: "The year"
+                    }
+                  },
+                  month: {
+                    number: {
+                      description: "The month"
+                    }
+                  },
+                  day: {
+                    number: {
+                      description: "The day"
+                    }
+                  }
+                }
+              }
             }
           ]
         },
@@ -11098,6 +11421,13 @@ var require_yaml_intelligence_resources = __commonJS({
                 string: {
                   description: "The primary title of the item."
                 }
+              },
+              id: {
+                anyOf: [
+                  "string",
+                  "number"
+                ],
+                description: 'Citation identifier for the item (e.g. "item1"). Will be autogenerated if not provided.'
               }
             }
           }
@@ -12112,9 +12442,8 @@ var require_yaml_intelligence_resources = __commonJS({
                           closed: true,
                           required: [
                             "kind",
-                            "prefix",
-                            "name",
-                            "ref-type"
+                            "reference-prefix",
+                            "key"
                           ],
                           properties: {
                             kind: {
@@ -12123,14 +12452,14 @@ var require_yaml_intelligence_resources = __commonJS({
                               ],
                               description: 'The kind of cross reference (currently only "float" is supported).'
                             },
-                            prefix: {
+                            "reference-prefix": {
                               string: {
-                                description: "The prefix used in rendered citations when referencing this type."
+                                description: "The prefix used in rendered references when referencing this type."
                               }
                             },
-                            name: {
+                            "caption-prefix": {
                               string: {
-                                description: "The prefix used in captions when referencing this type."
+                                description: "The prefix used in rendered captions when referencing this type. If omitted, the field `reference-prefix` is used."
                               }
                             },
                             "space-before-numbering": {
@@ -12139,9 +12468,9 @@ var require_yaml_intelligence_resources = __commonJS({
                                 description: "If false, use no space between crossref prefixes and numbering."
                               }
                             },
-                            "ref-type": {
+                            key: {
                               string: {
-                                description: 'The prefix string used in references ("dia-", etc.) when referencing this type.'
+                                description: 'The key used to prefix reference labels of this type, such as "fig", "tbl", "lst", etc.'
                               }
                             },
                             "latex-env": {
@@ -12156,8 +12485,17 @@ var require_yaml_intelligence_resources = __commonJS({
                             },
                             "latex-list-of-description": {
                               string: {
-                                description: 'The description of the crossreferenceable object to be used in the title of the "list of" command. If unspecified, the field `name` is used.'
+                                description: 'The description of the crossreferenceable object to be used in the title of the "list of" command. If omitted, the field `reference-prefix` is used.'
                               }
+                            },
+                            "caption-location": {
+                              enum: [
+                                "top",
+                                "bottom",
+                                "margin"
+                              ],
+                              default: "bottom",
+                              description: "The location of the caption relative to the crossreferenceable content."
                             }
                           }
                         }
@@ -12408,6 +12746,84 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Enables a hover popup for cross references that shows the item being referenced."
         }
       ],
+      "schema/document-dashboard.yml": [
+        {
+          name: "logo",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "path",
+          description: "Logo image (placed on the left side of the navigation bar)"
+        },
+        {
+          name: "orientation",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            enum: [
+              "rows",
+              "columns"
+            ]
+          },
+          description: "Default orientation for dashboard content (default `rows`)"
+        },
+        {
+          name: "scrolling",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "boolean",
+          default: false,
+          description: "Use scrolling rather than fill layout (default: `false`)"
+        },
+        {
+          name: "expandable",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "boolean",
+          default: true,
+          description: "Make card content expandable (default: `true`)"
+        },
+        {
+          name: "nav-buttons",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            maybeArrayOf: {
+              anyOf: [
+                "string",
+                {
+                  object: {
+                    properties: {
+                      text: "string",
+                      href: "string",
+                      icon: "string",
+                      rel: "string",
+                      target: "string",
+                      title: "string",
+                      "aria-label": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          description: "Links to display on the dashboard navigation bar"
+        }
+      ],
       "schema/document-editor.yml": [
         {
           name: "editor",
@@ -12627,7 +13043,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           description: {
             short: "Text describing the specialized type of this publication.",
-            long: "Text describing the specialized type of this publication.\n\nAn informative registry of specialized EPUB Publication \ntypes for use with this element is maintained in the \n[TypesRegistry](https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry), \nbut Authors may use any text string as a value.\n"
+            long: "Text describing the specialized type of this publication.\n\nAn informative registry of specialized EPUB Publication \ntypes for use with this element is maintained in the \n[TypesRegistry](https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry), \nbut Authors may use any text string as a value.\n"
           }
         },
         {
@@ -12870,6 +13286,28 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "Configures the Jupyter engine."
+        },
+        {
+          name: "julia",
+          schema: {
+            object: {
+              properties: {
+                exeflags: {
+                  schema: {
+                    arrayOf: "string",
+                    description: "Arguments to pass to the Julia worker process."
+                  }
+                },
+                env: {
+                  schema: {
+                    arrayOf: "string",
+                    description: "Environment variables to pass to the Julia worker process."
+                  }
+                }
+              }
+            }
+          },
+          description: "Configures the Julia engine."
         },
         {
           name: "knitr",
@@ -13267,6 +13705,21 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "The math font options for use with `xelatex` or `lualatex`.",
             long: "The math font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
+          }
+        },
+        {
+          name: "font-paths",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Adds additional directories to search for fonts when compiling with Typst.",
+            long: "Locally, Typst uses installed system fonts. In addition, some custom path \ncan be specified to add directories that should be scanned for fonts.\nSetting this configuration will take precedence over any path set in TYPST_FONT_PATHS environment variable.\n"
           }
         },
         {
@@ -14702,6 +15155,76 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "The base url for Slideous presentations."
         }
       ],
+      "schema/document-lightbox.yml": [
+        {
+          name: "lightbox",
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                enum: [
+                  "auto"
+                ]
+              },
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    match: {
+                      schema: {
+                        enum: [
+                          "auto"
+                        ]
+                      },
+                      description: {
+                        short: "Set this to `auto` if you'd like any image to be given lightbox treatment.",
+                        long: "Set this to `auto` if you'd like any image to be given lightbox treatment. If you omit this, only images with the class `lightbox` will be given the lightbox treatment.\n"
+                      }
+                    },
+                    effect: {
+                      schema: {
+                        enum: [
+                          "fade",
+                          "zoom",
+                          "none"
+                        ]
+                      },
+                      description: "The effect that should be used when opening and closing the lightbox. One of `fade`, `zoom`, `none`. Defaults to `zoom`."
+                    },
+                    "desc-position": {
+                      schema: {
+                        enum: [
+                          "top",
+                          "bottom",
+                          "left",
+                          "right"
+                        ]
+                      },
+                      description: "The position of the title and description when displaying a lightbox. One of `top`, `bottom`, `left`, `right`. Defaults to `bottom`."
+                    },
+                    loop: {
+                      boolean: {
+                        description: "Whether galleries should 'loop' to first image in the gallery if the user continues past the last image of the gallery. Boolean that defaults to `true`."
+                      }
+                    },
+                    "css-class": {
+                      string: {
+                        description: "A class name to apply to the lightbox to allow css targeting. This will replace the lightbox class with your custom class name."
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: "Enable or disable lightbox treatment for images in this document. See [Lightbox Figures](https://quarto.org/docs/output-formats/html-lightbox-figures.html) for more details."
+        }
+      ],
       "schema/document-links.yml": [
         {
           name: "link-external-icon",
@@ -14758,18 +15281,48 @@ var require_yaml_intelligence_resources = __commonJS({
                         properties: {
                           text: {
                             string: {
-                              description: "The title for this alternative link."
+                              description: "The title for the link."
                             }
                           },
                           href: {
                             string: {
-                              description: "The href for tihs alternative link."
+                              description: "The href for the link."
+                            }
+                          },
+                          icon: {
+                            string: {
+                              description: "The icon for the link."
                             }
                           }
                         },
                         required: [
-                          "title",
+                          "text",
                           "href"
+                        ]
+                      }
+                    },
+                    {
+                      object: {
+                        properties: {
+                          format: {
+                            string: {
+                              description: "The format that this link represents."
+                            }
+                          },
+                          text: {
+                            string: {
+                              description: "The title for this link."
+                            }
+                          },
+                          icon: {
+                            string: {
+                              description: "The icon for this link."
+                            }
+                          }
+                        },
+                        required: [
+                          "text",
+                          "format"
                         ]
                       }
                     }
@@ -14920,6 +15473,24 @@ var require_yaml_intelligence_resources = __commonJS({
             }
           },
           description: "Options for controlling the display and behavior of Notebook previews."
+        },
+        {
+          name: "canonical-url",
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "boolean",
+              "string"
+            ]
+          },
+          description: {
+            short: "Include a canonical link tag in website pages",
+            long: "Include a canonical link tag in website pages. You may pass either `true` to \nautomatically generate a canonical link, or pass a canonical url that you'd like\nto have placed in the `href` attribute of the tag.\n\nCanonical links can only be generated for websites with a known `site-url`.\n"
+          }
         }
       ],
       "schema/document-listing.yml": [
@@ -15350,6 +15921,16 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Theme name, theme scss file, or a mix of both."
         },
         {
+          name: "body-classes",
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          schema: "string",
+          description: "Classes to apply to the body of the document.\n"
+        },
+        {
           name: "minimal",
           schema: "boolean",
           default: false,
@@ -15508,24 +16089,24 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           schema: {
-            string: {
-              completions: [
-                "pdflatex",
-                "lualatex",
-                "xelatex",
-                "latexmk",
-                "tectonic",
-                "wkhtmltopdf",
-                "weasyprint",
-                "prince",
-                "context",
-                "pdfroff"
-              ]
-            }
+            enum: [
+              "pdflatex",
+              "lualatex",
+              "xelatex",
+              "latexmk",
+              "tectonic",
+              "wkhtmltopdf",
+              "weasyprint",
+              "pagedjs-cli",
+              "prince",
+              "context",
+              "pdfroff",
+              "typst"
+            ]
           },
           description: {
             short: "Use the specified engine when producing PDF output.",
-            long: "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n"
+            long: "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`, `pagedjs-cli`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n- `typst`: `typst`\n"
           }
         },
         {
@@ -15544,11 +16125,28 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          name: "pdf-engine-opts",
+          tags: {
+            formats: [
+              "$pdf-all",
+              "ms",
+              "context"
+            ]
+          },
+          schema: {
+            arrayOf: "string"
+          },
+          description: {
+            short: "Pass multiple command-line arguments to the `pdf-engine`.",
+            long: "Use the given strings passed as a array as command-line arguments to the pdf-engine.\nThis is an alternative to `pdf-engine-opt` for passing multiple options.\n"
+          }
+        },
+        {
           name: "beamerarticle",
           schema: "boolean",
           tags: {
             formats: [
-              "beamer"
+              "pdf"
             ]
           },
           description: "Whether to produce a Beamer article from this presentation."
@@ -15721,17 +16319,6 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           default: "atx",
           description: "Specify whether to use `atx` (`#`-prefixed) or\n`setext` (underlined) headings for level 1 and 2\nheadings (`atx` or `setext`).\n"
-        },
-        {
-          name: "keep-yaml",
-          tags: {
-            formats: [
-              "$markdown-all"
-            ]
-          },
-          schema: "boolean",
-          default: false,
-          description: "Preserve the original YAML front matter in rendered markdown"
         },
         {
           name: "ipynb-output",
@@ -15998,7 +16585,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Places footnote references or superscripted numerical citations after following punctuation.",
-            long: "If true (the default for note styles), Quarto (via Pandoc) will put footnote references or superscripted numerical citations after \nfollowing punctuation. For example, if the source contains blah blah [@jones99]., the result will look like blah blah.[^1], with \nthe note moved after the period and the space collapsed. \n\nIf false, the space will still be collapsed, but the footnote will not be moved after the punctuation. The option may also be used \nin numerical styles that use superscripts for citation numbers (but for these styles the default is not to move the citation).\n"
+            long: "If true (the default for note styles), Quarto (via Pandoc) will put footnote references or superscripted numerical citations after \nfollowing punctuation. For example, if the source contains `blah blah [@jones99]`., the result will look like `blah blah.[^1]`, with \nthe note moved after the period and the space collapsed. \n\nIf false, the space will still be collapsed, but the footnote will not be moved after the punctuation. The option may also be used \nin numerical styles that use superscripts for citation numbers (but for these styles the default is not to move the citation).\n"
           }
         }
       ],
@@ -16075,6 +16662,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           schema: "boolean",
           default: false,
+          hidden: true,
           description: {
             short: "Produce a standalone HTML file with no external dependencies",
             long: "Produce a standalone HTML file with no external dependencies. Note that\nthis option has been deprecated in favor of `embed-resources`.\n"
@@ -16163,6 +16751,18 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Specify which nodes should be run interactively (displaying output from expressions)\n"
         },
         {
+          name: "plotly-connected",
+          schema: "boolean",
+          default: false,
+          tags: {
+            contexts: [
+              "document-execute"
+            ],
+            engine: "jupyter"
+          },
+          description: 'If true, use the "notebook_connected" plotly renderer, which downloads\nits dependencies from a CDN and requires an internet connection to view.\n'
+        },
+        {
           name: "keep-typ",
           tags: {
             formats: [
@@ -16236,6 +16836,17 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "If `none`, do not process tables in HTML input."
+        },
+        {
+          name: "use-rsvg-convert",
+          schema: "boolean",
+          default: true,
+          tags: {
+            formats: [
+              "$pdf-all"
+            ]
+          },
+          description: "If `true`, attempt to use `rsvg-convert` to convert SVG images to PDF."
         }
       ],
       "schema/document-reveal-content.yml": [
@@ -16484,6 +17095,17 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "boolean",
           default: false,
           description: "Disables the default reveal.js slide layout (scaling and centering)\n"
+        },
+        {
+          name: "code-block-height",
+          tags: {
+            formats: [
+              "revealjs"
+            ]
+          },
+          schema: "string",
+          default: "500px",
+          description: "Sets the maximum height for source code blocks that appear in the presentation.\n"
         }
       ],
       "schema/document-reveal-media.yml": [
@@ -16956,7 +17578,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "number",
           description: {
             short: "Slides that are too tall to fit within a single page will expand onto multiple pages",
-            long: '"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option"\n'
+            long: "Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option.\n"
           }
         },
         {
@@ -17659,6 +18281,16 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          name: "toc-indent",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          schema: "string",
+          description: 'The amount of indentation to use for each level of the table of contents.\nThe default is "1.5em".\n'
+        },
+        {
           name: "toc-depth",
           tags: {
             formats: [
@@ -17689,8 +18321,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: {
-            short: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
-            long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`right` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+            short: "Location for table of contents (`body`, `left`, `right` (default), `left-body`, `right-body`).\n",
+            long: "Location for table of contents:\n\n- `body`: Show the Table of Contents in the center body of the document. \n- `left`: Show the Table of Contents in left margin of the document.\n- `right`(default): Show the Table of Contents in right margin of the document.\n- `left-body`: Show two Tables of Contents in both the center body and the left margin of the document.\n- `right-body`: Show two Tables of Contents in both the center body and the right margin of the document.\n"
           }
         },
         {
@@ -17801,7 +18433,12 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "image",
-          schema: "path",
+          schema: {
+            anyOf: [
+              "path",
+              "boolean"
+            ]
+          },
           tags: {
             formats: [
               "$html-doc"
@@ -17841,6 +18478,20 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "The alt text for preview image on this page."
+        },
+        {
+          name: "image-lazy-loading",
+          schema: "boolean",
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: {
+            short: "If true, the preview image will only load when it comes into view.",
+            long: 'Enables lazy loading for the preview image. If true, the preview image element \nwill have `loading="lazy"`, and will only load when it comes into view.\n\nIf false, the preview image will load immediately.\n'
+          },
+          default: true
         }
       ],
       "schema/extension.yml": [
@@ -18124,6 +18775,9 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           figures: {
             title: "Figures"
+          },
+          lightbox: {
+            title: "Lightbox Figures"
           },
           tables: {
             title: "Tables"
@@ -18875,6 +19529,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "commonmark_x",
         "context",
         "csljson",
+        "djot",
         "docbook",
         "docbook4",
         "docbook5",
@@ -18979,10 +19634,14 @@ var require_yaml_intelligence_resources = __commonJS({
         "Display reactions for the discussion\u2019s main post before the\ncomments.",
         "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
         "Place the comment input box above or below the comments.",
-        "The giscus theme to use when displaying comments.",
+        {
+          short: "The giscus theme to use when displaying comments.",
+          long: "The giscus theme to use when displaying comments. Light and dark\nthemes are supported. If a single theme is provided by name, it will be\nused as light and dark theme. To use different themes, use\n<code>light</code> and <code>dark</code> key:"
+        },
         "The light theme name.",
         "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
+        "Override the default hypothesis client url with a custom client\nurl.",
         "Controls whether the sidebar opens automatically on startup.",
         "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
         "Controls the overall look of the sidebar (<code>classic</code> or\n<code>clean</code>)",
@@ -19102,6 +19761,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Base URL for published website",
         "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
         "Base URL for website source code repository",
+        "The value of the target attribute for repo links",
+        "The value of the rel attribute for repo links",
         "Subdirectory of repository containing website",
         "Branch of website source code (defaults to <code>main</code>)",
         "URL to use for the \u2018report an issue\u2019 repository action.",
@@ -19128,6 +19789,12 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        "Provides an announcement displayed at the top of the page.",
+        "The content of the announcement",
+        "Whether this announcement may be dismissed by the user.",
+        "The icon to display in the annoucement",
+        "The position of the announcement.",
+        "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -19183,10 +19850,14 @@ var require_yaml_intelligence_resources = __commonJS({
         "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
+        "The position of the collapsed navbar toggle when in responsive\nmode",
+        "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
         "Path to a logo image that will be displayed in the sidebar.",
+        "Alternate text for the logo image.",
+        "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
         "List of sidebar tools",
         "List of items for the sidebar",
@@ -19202,6 +19873,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
         "Path to a logo image that will be displayed in the sidebar.",
+        "Alternate text for the logo image.",
+        "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
         "List of sidebar tools",
         "List of items for the sidebar",
@@ -19223,16 +19896,24 @@ var require_yaml_intelligence_resources = __commonJS({
         "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+        "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
-        "A list of codes links to appear with this document.",
+        "A list of code links to appear with this document.",
+        "A list of input documents that should be treated as drafts",
+        {
+          short: "How to handle drafts that are encountered.",
+          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
+        },
         "Book title",
         "Description metadata for HTML version of book",
         "The path to the favicon for this website",
         "Base URL for published website",
         "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
         "Base URL for website source code repository",
+        "The value of the target attribute for repo links",
+        "The value of the rel attribute for repo links",
         "Subdirectory of repository containing website",
         "Branch of website source code (defaults to <code>main</code>)",
         "URL to use for the \u2018report an issue\u2019 repository action.",
@@ -19259,6 +19940,12 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        "Provides an announcement displayed at the top of the page.",
+        "The content of the announcement",
+        "Whether this announcement may be dismissed by the user.",
+        "The icon to display in the annoucement",
+        "The position of the announcement.",
+        "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -19314,10 +20001,14 @@ var require_yaml_intelligence_resources = __commonJS({
         "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
+        "The position of the collapsed navbar toggle when in responsive\nmode",
+        "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
         "Path to a logo image that will be displayed in the sidebar.",
+        "Alternate text for the logo image.",
+        "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
         "List of sidebar tools",
         "List of items for the sidebar",
@@ -19333,6 +20024,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
         "Path to a logo image that will be displayed in the sidebar.",
+        "Alternate text for the logo image.",
+        "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
         "List of sidebar tools",
         "List of items for the sidebar",
@@ -19354,10 +20047,16 @@ var require_yaml_intelligence_resources = __commonJS({
         "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+        "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
-        "A list of codes links to appear with this document.",
+        "A list of code links to appear with this document.",
+        "A list of input documents that should be treated as drafts",
+        {
+          short: "How to handle drafts that are encountered.",
+          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
+        },
         "Book subtitle",
         "Author or authors of the book",
         "Author or authors of the book",
@@ -19407,6 +20106,8 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The path to the main image on the about page.",
           long: "The path to the main image on the about page. If not specified, the\n<code>image</code> provided for the document itself will be used."
         },
+        "The alt text for the main image on the about page.",
+        "The title for the main image on the about page.",
         {
           short: "A valid CSS width for the about page image.",
           long: "A valid CSS width for the about page image."
@@ -19417,7 +20118,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "The id of this listing.",
-          long: "The id of this listing. When the listing is rendered, it will place\nthe contents into a <code>div</code> with this id. If no such\n<code>div</code> is defined on the page, a <code>div</code> with this id\nwill be created and appended to the end of the page.\nIn no <code>id</code> is provided for a listing, Quarto will\nsynthesize one when rendering the page."
+          long: "The id of this listing. When the listing is rendered, it will place\nthe contents into a <code>div</code> with this id. If no such\n<code>div</code> is defined on the page, a <code>div</code> with this id\nwill be created and appended to the end of the page.\nIf no <code>id</code> is provided for a listing, Quarto will\nsynthesize one when rendering the page."
         },
         {
           short: "The type of listing to create.",
@@ -19476,6 +20177,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "The maximum length (in characters) of the description displayed in\nthe listing. Defaults to 175."
         },
         "The default image to use if an item in the listing doesn\u2019t have an\nimage.",
+        "If false, images in the listing will be loaded immediately. If true,\nimages will be loaded as they come into view.",
         "In <code>default</code> type listings, whether to place the image on\nthe right or left side of the post content (<code>left</code> or\n<code>right</code>).",
         {
           short: "The height of the image being displayed.",
@@ -19528,6 +20230,9 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Items with matching field values will be included in the listing.",
         "Items with matching field values will be excluded from the\nlisting.",
+        "The year",
+        "The month",
+        "The day",
         "The family name.",
         "The given name.",
         "The family name.",
@@ -19744,7 +20449,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Guest (e.g.&nbsp;on a TV show or podcast).",
         "Host of the item (e.g.&nbsp;of a TV show or podcast).",
-        "A value which uniquely identifies this item.",
+        "Citation identifier for the item (e.g.&nbsp;\u201Citem1\u201D). Will be\nautogenerated if not provided.",
         "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
         "Interviewer (e.g.&nbsp;of an interview).",
         "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -19899,7 +20604,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Guest (e.g.&nbsp;on a TV show or podcast).",
         "Host of the item (e.g.&nbsp;of a TV show or podcast).",
-        "A value which uniquely identifies this item.",
+        "Citation identifier for the item (e.g.&nbsp;\u201Citem1\u201D). Will be\nautogenerated if not provided.",
         "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
         "Interviewer (e.g.&nbsp;of an interview).",
         "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -20071,6 +20776,38 @@ var require_yaml_intelligence_resources = __commonJS({
         "Prevent comment changes from invalidating the cache for a chunk",
         "Explicitly specify cache dependencies for this chunk (one or more\nchunk labels)",
         "Detect cache dependencies automatically via usage of global\nvariables",
+        {
+          short: "Title displayed in dashboard card header",
+          long: ""
+        },
+        {
+          short: "Padding around dashboard card content (default <code>8px</code>)",
+          long: ""
+        },
+        {
+          short: "Make dashboard card content expandable (default:\n<code>true</code>)",
+          long: ""
+        },
+        {
+          short: "Percentage or absolute pixel width for dashboard card (defaults to\nevenly spaced across row)",
+          long: ""
+        },
+        {
+          short: "Percentage or absolute pixel height for dashboard card (defaults to\nevenly spaced across column)",
+          long: ""
+        },
+        {
+          short: "Context to execute cell within.",
+          long: ""
+        },
+        {
+          short: "The type of dashboard element being produced by this code cell.",
+          long: ""
+        },
+        {
+          short: "For code cells that produce a valuebox, the color of the\nvaluebox.s",
+          long: ""
+        },
         {
           short: "Evaluate code cells (if <code>false</code> just echos the code into\noutput).",
           long: "Evaluate code cells (if <code>false</code> just echos the code into\noutput)."
@@ -20318,13 +21055,14 @@ var require_yaml_intelligence_resources = __commonJS({
         "Configuration for crossref labels and prefixes.",
         "A custom cross reference type.",
         "The kind of cross reference (currently only \u201Cfloat\u201D is\nsupported).",
-        "The prefix used in rendered citations when referencing this type.",
-        "The prefix used in captions when referencing this type.",
+        "The prefix used in rendered references when referencing this\ntype.",
+        "The prefix used in rendered captions when referencing this type. If\nomitted, the field <code>reference-prefix</code> is used.",
         "If false, use no space between crossref prefixes and numbering.",
-        "The prefix string used in references (\u201Cdia-\u201D, etc.) when referencing\nthis type.",
+        "The key used to prefix reference labels of this type, such as \u201Cfig\u201D,\n\u201Ctbl\u201D, \u201Clst\u201D, etc.",
         "In LaTeX output, the name of the custom environment to be used.",
         "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom \u201Clist of\u201D command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
-        "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If unspecified, the field\n<code>name</code> is used.",
+        "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If omitted, the field\n<code>reference-prefix</code> is used.",
+        "The location of the caption relative to the crossreferenceable\ncontent.",
         "Use top level sections (H1) in this document as chapters.",
         "The delimiter used between the prefix and the caption.",
         "The title prefix used for figure captions.",
@@ -20374,6 +21112,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "The title used for appendix.",
         "The delimiter beween appendix number and title.",
         "Enables a hover popup for cross references that shows the item being\nreferenced.",
+        "Logo image (placed on the left side of the navigation bar)",
+        "Default orientation for dashboard content (default\n<code>rows</code>)",
+        "Use scrolling rather than fill layout (default:\n<code>false</code>)",
+        "Make card content expandable (default: <code>true</code>)",
+        "Links to display on the dashboard navigation bar",
         "Visual editor configuration",
         "Default editing mode for document",
         "Markdown writing options for visual editor",
@@ -20396,7 +21139,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The subject term (defined by the schema).",
         {
           short: "Text describing the specialized type of this publication.",
-          long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.'
+          long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.'
         },
         "Text describing the format of this publication.",
         "Text describing the relation of this publication.",
@@ -20429,6 +21172,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "The name to display in the UI.",
         "The name of the language the kernel implements.",
         "The name of the kernel.",
+        "Configures the Julia engine.",
+        "Arguments to pass to the Julia worker process.",
+        "Environment variables to pass to the Julia worker process.",
         "Set Knitr options.",
         "Knit options.",
         "Knitr chunk options.",
@@ -20521,6 +21267,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "The math font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
           long: 'The math font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
+        },
+        {
+          short: "Adds additional directories to search for fonts when compiling with\nTypst.",
+          long: "Locally, Typst uses installed system fonts. In addition, some custom\npath can be specified to add directories that should be scanned for\nfonts. Setting this configuration will take precedence over any path set\nin TYPST_FONT_PATHS environment variable."
         },
         {
           short: "The CJK font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
@@ -20851,6 +21601,15 @@ var require_yaml_intelligence_resources = __commonJS({
         "The base url for s5 presentations.",
         "The base url for Slidy presentations.",
         "The base url for Slideous presentations.",
+        'Enable or disable lightbox treatment for images in this document. See\n<a href="https://quarto.org/docs/output-formats/html-lightbox-figures.html">Lightbox\nFigures</a> for more details.',
+        {
+          short: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment.",
+          long: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment. If you omit this, only images with the class\n<code>lightbox</code> will be given the lightbox treatment."
+        },
+        "The effect that should be used when opening and closing the lightbox.\nOne of <code>fade</code>, <code>zoom</code>, <code>none</code>. Defaults\nto <code>zoom</code>.",
+        "The position of the title and description when displaying a lightbox.\nOne of <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code>. Defaults to <code>bottom</code>.",
+        "Whether galleries should \u2018loop\u2019 to first image in the gallery if the\nuser continues past the last image of the gallery. Boolean that defaults\nto <code>true</code>.",
+        "A class name to apply to the lightbox to allow css targeting. This\nwill replace the lightbox class with your custom class name.",
         "Show a special icon next to links that leave the current site.",
         "Open external links in a new browser window or tab (rather than\nnavigating the current tab).",
         {
@@ -20861,10 +21620,18 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
           long: "Controls whether links to other rendered formats are displayed in\nHTML output.\nPass <code>false</code> to disable the display of format lengths or\npass a list of format names for which you\u2019d like links to be shown."
         },
-        "The title for this alternative link.",
-        "The href for tihs alternative link.",
-        "The title for this alternative link.",
-        "The href for tihs alternative link.",
+        "The title for the link.",
+        "The href for the link.",
+        "The icon for the link.",
+        "The format that this link represents.",
+        "The title for this link.",
+        "The icon for this link.",
+        "The title for the link.",
+        "The href for the link.",
+        "The icon for the link.",
+        "The format that this link represents.",
+        "The title for this link.",
+        "The icon for this link.",
         {
           short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
           long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
@@ -20879,6 +21646,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "The style of document to render. Setting this to\n<code>notebook</code> will create additional notebook style\naffordances.",
         "Options for controlling the display and behavior of Notebook\npreviews.",
         "Whether to show a back button in the notebook preview.",
+        {
+          short: "Include a canonical link tag in website pages",
+          long: "Include a canonical link tag in website pages. You may pass either\n<code>true</code> to automatically generate a canonical link, or pass a\ncanonical url that you\u2019d like to have placed in the <code>href</code>\nattribute of the tag.\nCanonical links can only be generated for websites with a known\n<code>site-url</code>."
+        },
         "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
         "Mermaid diagram options",
         "The mermaid built-in theme to use.",
@@ -20941,6 +21712,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name, theme scss file, or a mix of both.",
         "The dark theme name, theme scss file, or a mix of both.",
         "The dark theme name, theme scss file, or a mix of both.",
+        "Classes to apply to the body of the document.",
         "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
         "Enables inclusion of Pandoc default CSS for this document.",
         "One or more CSS style sheets.",
@@ -20968,6 +21740,10 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Use the given string as a command-line argument to the\n<code>pdf-engine</code>.",
           long: "Use the given string as a command-line argument to the pdf-engine.\nFor example, to use a persistent directory foo for latexmk\u2019s auxiliary\nfiles, use <code>pdf-engine-opt: -outdir=foo</code>. Note that no check\nfor duplicate options is done."
         },
+        {
+          short: "Pass multiple command-line arguments to the\n<code>pdf-engine</code>.",
+          long: "Use the given strings passed as a array as command-line arguments to\nthe pdf-engine. This is an alternative to <code>pdf-engine-opt</code>\nfor passing multiple options."
+        },
         "Whether to produce a Beamer article from this presentation.",
         "Add an extra Beamer option using <code>\\setbeameroption{}</code>.",
         "The aspect ratio for this presentation.",
@@ -20983,7 +21759,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "The section number in man pages.",
         "Enable and disable extensions for markdown output (e.g.&nbsp;\u201C+emoji\u201D)",
         "Specify whether to use <code>atx</code> (<code>#</code>-prefixed) or\n<code>setext</code> (underlined) headings for level 1 and 2 headings\n(<code>atx</code> or <code>setext</code>).",
-        "Preserve the original YAML front matter in rendered markdown",
         {
           short: "Determines which ipynb cell output formats are rendered\n(<code>none</code>, <code>all</code>, or <code>best</code>).",
           long: "Determines which ipynb cell output formats are rendered."
@@ -21034,7 +21809,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Places footnote references or superscripted numerical citations after\nfollowing punctuation.",
-          long: 'If true (the default for note styles), Quarto (via Pandoc) will put\nfootnote references or superscripted numerical citations after following\npunctuation. For example, if the source contains blah blah <span class="citation" data-cites="jones99">[@jones99]</span>., the result\nwill look like blah blah.[^1], with the note moved after the period and\nthe space collapsed.\nIf false, the space will still be collapsed, but the footnote will\nnot be moved after the punctuation. The option may also be used in\nnumerical styles that use superscripts for citation numbers (but for\nthese styles the default is not to move the citation).'
+          long: "If true (the default for note styles), Quarto (via Pandoc) will put\nfootnote references or superscripted numerical citations after following\npunctuation. For example, if the source contains\n<code>blah blah [@jones99]</code>., the result will look like\n<code>blah blah.[^1]</code>, with the note moved after the period and\nthe space collapsed.\nIf false, the space will still be collapsed, but the footnote will\nnot be moved after the punctuation. The option may also be used in\nnumerical styles that use superscripts for citation numbers (but for\nthese styles the default is not to move the citation)."
         },
         {
           short: "Format to read from",
@@ -21067,6 +21842,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Keep the notebook file generated from executing code.",
         "Filters to pre-process ipynb files before rendering to markdown",
         "Specify which nodes should be run interactively (displaying output\nfrom expressions)",
+        "If true, use the \u201Cnotebook_connected\u201D plotly renderer, which\ndownloads its dependencies from a CDN and requires an internet\nconnection to view.",
         "Keep the intermediate typst file used during render.",
         "Keep the intermediate tex file used during render.",
         {
@@ -21087,6 +21863,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa. (Technically, the correct\nterm would be ppi: pixels per inch.) The default is <code>96</code>.\nWhen images contain information about dpi internally, the encoded value\nis used instead of the default specified by this option."
         },
         "If <code>none</code>, do not process tables in HTML input.",
+        "If <code>true</code>, attempt to use <code>rsvg-convert</code> to\nconvert SVG images to PDF.",
         "Logo image (placed in bottom right corner of slides)",
         {
           short: "Footer to include on all slides",
@@ -21126,6 +21903,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Bounds for largest possible scale to apply to content",
         "Vertical centering of slides",
         "Disables the default reveal.js slide layout (scaling and\ncentering)",
+        "Sets the maximum height for source code blocks that appear in the\npresentation.",
         {
           short: "Open links in an iframe preview overlay (<code>true</code>,\n<code>false</code>, or <code>auto</code>)",
           long: "Open links in an iframe preview overlay."
@@ -21175,7 +21953,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Play a subtle sound when changing slides",
         {
           short: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
-          long: "\u201CSlides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option\u201D"
+          long: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages. You can limit how many pages a slide may expand to using\nthis option."
         },
         "Prints each fragment on a separate slide",
         {
@@ -21291,10 +22069,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Include an automatically generated table of contents",
           long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
         },
+        "The amount of indentation to use for each level of the table of\ncontents. The default is \u201C1.5em\u201D.",
         "Specify the number of section levels to include in the table of\ncontents. The default is 3",
         {
-          short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).",
-          long: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>right</code> - Show the Table of Contents in\nright margin of the document. <code>left-body</code> - Show two Tables\nof Contents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
+          short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), <code>left-body</code>,\n<code>right-body</code>).",
+          long: "Location for table of contents:"
         },
         "The title used for the table of contents.",
         "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
@@ -21318,6 +22097,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "The height of the preview image for this document.",
         "The width of the preview image for this document.",
         "The alt text for preview image on this page.",
+        {
+          short: "If true, the preview image will only load when it comes into\nview.",
+          long: 'Enables lazy loading for the preview image. If true, the preview\nimage element will have <code>loading="lazy"</code>, and will only load\nwhen it comes into view.\nIf false, the preview image will load immediately.'
+        },
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -21341,6 +22124,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Base URL for published website",
         "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
         "Base URL for website source code repository",
+        "The value of the target attribute for repo links",
+        "The value of the rel attribute for repo links",
         "Subdirectory of repository containing website",
         "Branch of website source code (defaults to <code>main</code>)",
         "URL to use for the \u2018report an issue\u2019 repository action.",
@@ -21367,6 +22152,12 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        "Provides an announcement displayed at the top of the page.",
+        "The content of the announcement",
+        "Whether this announcement may be dismissed by the user.",
+        "The icon to display in the annoucement",
+        "The position of the announcement.",
+        "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -21422,10 +22213,14 @@ var require_yaml_intelligence_resources = __commonJS({
         "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
+        "The position of the collapsed navbar toggle when in responsive\nmode",
+        "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
         "Path to a logo image that will be displayed in the sidebar.",
+        "Alternate text for the logo image.",
+        "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
         "List of sidebar tools",
         "List of items for the sidebar",
@@ -21441,6 +22236,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
         "Path to a logo image that will be displayed in the sidebar.",
+        "Alternate text for the logo image.",
+        "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
         "List of sidebar tools",
         "List of items for the sidebar",
@@ -21462,10 +22259,16 @@ var require_yaml_intelligence_resources = __commonJS({
         "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+        "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
-        "A list of codes links to appear with this document.",
+        "A list of code links to appear with this document.",
+        "A list of input documents that should be treated as drafts",
+        {
+          short: "How to handle drafts that are encountered.",
+          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
+        },
         "Book subtitle",
         "Author or authors of the book",
         "Author or authors of the book",
@@ -21633,45 +22436,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "Enable or disable lightbox treatment for images in this document.",
-        {
-          short: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment.",
-          long: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment. If you omit this, only images with the class\n<code>lightbox</code> will be given the lightbox treatment."
-        },
-        "The effect that should be used when opening and closing the lightbox.\nOne of <code>fade</code>, <code>zoom</code>, <code>none</code>. Defaults\nto <code>zoom</code>.",
-        "The position of the title and description when displaying a lightbox.\nOne of <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code>. Defaults to <code>bottom</code>.",
-        "Whether galleries should \u2018loop\u2019 to first image in the gallery if the\nuser continues past the last image of the gallery. Boolean that defaults\nto <code>true</code>.",
-        "A class name to apply to the lightbox to allow css targeting. This\nwill replace the lightbox class with your custom class name.",
-        "Logo image (placed on the left side of the navigation bar)",
-        "Default orientation for dashboard content (default\n<code>rows</code>)",
-        "Use scrolling rather than fill layout (default:\n<code>false</code>)",
-        "Make card content expandable (default: <code>true</code>)",
-        "Links to display on the dashboard navigation bar",
-        "Title displayed in card header",
-        {
-          short: "Title displayed in dashboard card header",
-          long: ""
-        },
-        {
-          short: "Padding around dashboard card content (default <code>8px</code>)",
-          long: ""
-        },
-        {
-          short: "Make dashboard card content expandable (default:\n<code>true</code>)",
-          long: ""
-        },
-        {
-          short: "Percentage or absolute pixel width for dashboard card (defaults to\nevenly spaced across row)",
-          long: ""
-        },
-        {
-          short: "Percentage or absolute pixel height for dashboard card (defaults to\nevenly spaced across column)",
-          long: ""
-        },
-        {
-          short: "Context to execute cell within.",
-          long: ""
-        },
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -21695,6 +22459,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Base URL for published website",
         "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
         "Base URL for website source code repository",
+        "The value of the target attribute for repo links",
+        "The value of the rel attribute for repo links",
         "Subdirectory of repository containing website",
         "Branch of website source code (defaults to <code>main</code>)",
         "URL to use for the \u2018report an issue\u2019 repository action.",
@@ -21721,6 +22487,12 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        "Provides an announcement displayed at the top of the page.",
+        "The content of the announcement",
+        "Whether this announcement may be dismissed by the user.",
+        "The icon to display in the annoucement",
+        "The position of the announcement.",
+        "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -21776,10 +22548,14 @@ var require_yaml_intelligence_resources = __commonJS({
         "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
+        "The position of the collapsed navbar toggle when in responsive\nmode",
+        "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
         "Path to a logo image that will be displayed in the sidebar.",
+        "Alternate text for the logo image.",
+        "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
         "List of sidebar tools",
         "List of items for the sidebar",
@@ -21795,6 +22571,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
         "Path to a logo image that will be displayed in the sidebar.",
+        "Alternate text for the logo image.",
+        "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
         "List of sidebar tools",
         "List of items for the sidebar",
@@ -21816,10 +22594,16 @@ var require_yaml_intelligence_resources = __commonJS({
         "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+        "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
-        "A list of codes links to appear with this document.",
+        "A list of code links to appear with this document.",
+        "A list of input documents that should be treated as drafts",
+        {
+          short: "How to handle drafts that are encountered.",
+          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
+        },
         "Book subtitle",
         "Author or authors of the book",
         "Author or authors of the book",
@@ -22207,15 +22991,20 @@ var require_yaml_intelligence_resources = __commonJS({
         dot: "//",
         ojs: "//",
         apl: "\u235D",
+        ocaml: [
+          "(*",
+          "*)"
+        ],
+        rust: "//",
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 178127,
+        _internalId: 186345,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 178119,
+            _internalId: 186337,
             type: "enum",
             enum: [
               "png",
@@ -22231,7 +23020,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 178126,
+            _internalId: 186344,
             type: "anyOf",
             anyOf: [
               {
@@ -22271,260 +23060,7 @@ var require_yaml_intelligence_resources = __commonJS({
           "case-detection": true
         },
         $id: "handlers/mermaid"
-      },
-      "schema/document-lightbox.yml": [
-        {
-          name: "lightbox",
-          schema: {
-            anyOf: [
-              "boolean",
-              {
-                enum: [
-                  "auto"
-                ]
-              },
-              {
-                object: {
-                  closed: true,
-                  properties: {
-                    match: {
-                      schema: {
-                        enum: [
-                          "auto"
-                        ]
-                      },
-                      description: {
-                        short: "Set this to `auto` if you'd like any image to be given lightbox treatment.",
-                        long: "Set this to `auto` if you'd like any image to be given lightbox treatment. If you omit this, only images with the class `lightbox` will be given the lightbox treatment.\n"
-                      }
-                    },
-                    effect: {
-                      schema: {
-                        enum: [
-                          "fade",
-                          "zoom",
-                          "none"
-                        ]
-                      },
-                      description: "The effect that should be used when opening and closing the lightbox. One of `fade`, `zoom`, `none`. Defaults to `zoom`."
-                    },
-                    "desc-position": {
-                      schema: {
-                        enum: [
-                          "top",
-                          "bottom",
-                          "left",
-                          "right"
-                        ]
-                      },
-                      description: "The position of the title and description when displaying a lightbox. One of `top`, `bottom`, `left`, `right`. Defaults to `bottom`."
-                    },
-                    loop: {
-                      boolean: {
-                        description: "Whether galleries should 'loop' to first image in the gallery if the user continues past the last image of the gallery. Boolean that defaults to `true`."
-                      }
-                    },
-                    "css-class": {
-                      string: {
-                        description: "A class name to apply to the lightbox to allow css targeting. This will replace the lightbox class with your custom class name."
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          },
-          tags: {
-            formats: [
-              "$html-doc"
-            ]
-          },
-          description: "Enable or disable lightbox treatment for images in this document."
-        }
-      ],
-      "schema/document-dashboard.yml": [
-        {
-          name: "logo",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: "path",
-          description: "Logo image (placed on the left side of the navigation bar)"
-        },
-        {
-          name: "orientation",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: {
-            enum: [
-              "rows",
-              "columns"
-            ]
-          },
-          description: "Default orientation for dashboard content (default `rows`)"
-        },
-        {
-          name: "scrolling",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: "boolean",
-          default: false,
-          description: "Use scrolling rather than fill layout (default: `false`)"
-        },
-        {
-          name: "expandable",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: "boolean",
-          default: true,
-          description: "Make card content expandable (default: `true`)"
-        },
-        {
-          name: "nav-buttons",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: {
-            maybeArrayOf: {
-              anyOf: [
-                "string",
-                {
-                  object: {
-                    properties: {
-                      text: "string",
-                      href: "string",
-                      icon: "string",
-                      rel: "string",
-                      target: "string",
-                      title: "string",
-                      "aria-label": "string"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          description: "Links to display on the dashboard navigation bar"
-        }
-      ],
-      "schema/cell-dashboard.yml": [
-        {
-          name: "title",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: "string",
-          description: "Title displayed in card header"
-        }
-      ],
-      "schema/cell-card.yml": [
-        {
-          name: "title",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: "string",
-          description: {
-            short: "Title displayed in dashboard card header"
-          }
-        },
-        {
-          name: "padding",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: {
-            anyOf: [
-              "string",
-              "number"
-            ]
-          },
-          description: {
-            short: "Padding around dashboard card content (default `8px`)"
-          }
-        },
-        {
-          name: "expandable",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: "boolean",
-          default: true,
-          description: {
-            short: "Make dashboard card content expandable (default: `true`)"
-          }
-        },
-        {
-          name: "width",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: {
-            anyOf: [
-              "string",
-              "number"
-            ]
-          },
-          description: {
-            short: "Percentage or absolute pixel width for dashboard card (defaults to evenly spaced across row)"
-          }
-        },
-        {
-          name: "height",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: {
-            anyOf: [
-              "string",
-              "number"
-            ]
-          },
-          description: {
-            short: "Percentage or absolute pixel height for dashboard card (defaults to evenly spaced across column)"
-          }
-        },
-        {
-          name: "context",
-          tags: {
-            formats: [
-              "dashboard"
-            ],
-            engine: [
-              "jupyter"
-            ]
-          },
-          schema: "string",
-          description: {
-            short: "Context to execute cell within."
-          }
-        }
-      ]
+      }
     };
   }
 });
@@ -22564,186 +23100,6 @@ function glb(array, value, compare) {
     }
   }
   return left;
-}
-
-// ../ranged-text.ts
-function matchAll(str2, regex) {
-  let match;
-  regex = new RegExp(regex);
-  const result = [];
-  while ((match = regex.exec(str2)) != null) {
-    result.push(match);
-  }
-  return result;
-}
-function rangedLines(text, includeNewLines = false) {
-  const regex = /\r?\n/g;
-  const result = [];
-  let startOffset = 0;
-  if (!includeNewLines) {
-    for (const r of matchAll(text, regex)) {
-      result.push({
-        substring: text.substring(startOffset, r.index),
-        range: {
-          start: startOffset,
-          end: r.index
-        }
-      });
-      startOffset = r.index + r[0].length;
-    }
-    result.push({
-      substring: text.substring(startOffset, text.length),
-      range: {
-        start: startOffset,
-        end: text.length
-      }
-    });
-    return result;
-  } else {
-    const matches = matchAll(text, regex);
-    let prevOffset = 0;
-    for (const r of matches) {
-      const stringEnd = r.index + r[0].length;
-      result.push({
-        substring: text.substring(prevOffset, stringEnd),
-        range: {
-          start: prevOffset,
-          end: stringEnd
-        }
-      });
-      prevOffset = stringEnd;
-    }
-    result.push({
-      substring: text.substring(prevOffset, text.length),
-      range: {
-        start: prevOffset,
-        end: text.length
-      }
-    });
-    return result;
-  }
-}
-
-// ../mapped-text.ts
-function mappedSubstring(source, start, end) {
-  if (typeof source === "string") {
-    source = asMappedString(source);
-  }
-  const value = source.value.substring(start, end);
-  const mappedSource2 = source;
-  return {
-    value,
-    map: (index, closest) => {
-      if (closest) {
-        index = Math.max(0, Math.min(value.length, index - 1));
-      }
-      if (index === 0 && index === value.length) {
-        return mappedSource2.map(index + start, closest);
-      }
-      if (index < 0 || index >= value.length) {
-        return void 0;
-      }
-      return mappedSource2.map(index + start, closest);
-    }
-  };
-}
-function mappedString(source, pieces, fileName) {
-  if (typeof source === "string") {
-    source = asMappedString(source, fileName);
-  }
-  const mappedPieces = pieces.map((piece) => {
-    if (typeof piece === "string") {
-      return asMappedString(piece);
-    } else if (piece.value !== void 0) {
-      return piece;
-    } else {
-      const { start, end } = piece;
-      return mappedSubstring(source, start, end);
-    }
-  });
-  return mappedConcat(mappedPieces);
-}
-function asMappedString(str2, fileName) {
-  if (typeof str2 === "string") {
-    return {
-      value: str2,
-      fileName,
-      map: function(index, closest) {
-        if (closest) {
-          index = Math.min(str2.length - 1, Math.max(0, index));
-        }
-        if (index < 0 || index >= str2.length) {
-          return void 0;
-        }
-        return {
-          index,
-          originalString: this
-        };
-      }
-    };
-  } else if (fileName !== void 0) {
-    throw new InternalError(
-      "can't change the fileName of an existing MappedString"
-    );
-  } else {
-    return str2;
-  }
-}
-function mappedConcat(strings) {
-  if (strings.length === 0) {
-    return {
-      value: "",
-      map: (_index, _closest) => void 0
-    };
-  }
-  if (strings.every((s) => typeof s === "string")) {
-    return asMappedString(strings.join(""));
-  }
-  const mappedStrings = strings.map((s) => {
-    if (typeof s === "string") {
-      return asMappedString(s);
-    } else
-      return s;
-  });
-  let currentOffset = 0;
-  const offsets = [0];
-  for (const s of mappedStrings) {
-    currentOffset += s.value.length;
-    offsets.push(currentOffset);
-  }
-  const value = mappedStrings.map((s) => s.value).join("");
-  return {
-    value,
-    map: (offset, closest) => {
-      if (closest) {
-        offset = Math.max(0, Math.min(offset, value.length - 1));
-      }
-      if (offset === 0 && offset == value.length && mappedStrings.length) {
-        return mappedStrings[0].map(0, closest);
-      }
-      if (offset < 0 || offset >= value.length) {
-        return void 0;
-      }
-      const ix = glb(offsets, offset);
-      const v = mappedStrings[ix];
-      return v.map(offset - offsets[ix]);
-    }
-  };
-}
-function mappedIndexToLineCol(eitherText) {
-  const text = asMappedString(eitherText);
-  return function(offset) {
-    const mapResult = text.map(offset, true);
-    if (mapResult === void 0) {
-      throw new InternalError("bad offset in mappedIndexRowCol");
-    }
-    const { index, originalString } = mapResult;
-    return indexToLineCol(originalString.value)(index);
-  };
-}
-function mappedLines(str2, keepNewLines = false) {
-  const lines2 = rangedLines(str2.value, keepNewLines);
-  return lines2.map((v) => mappedString(str2, [v.range]));
 }
 
 // ../error.ts
@@ -22866,7 +23222,7 @@ function locationString(loc) {
 function lines(text) {
   return text.split(/\r?\n/);
 }
-function* matchAll2(text, regexp) {
+function* matchAll(text, regexp) {
   if (!regexp.global) {
     throw new Error("matchAll requires global regexps");
   }
@@ -22877,7 +23233,7 @@ function* matchAll2(text, regexp) {
 }
 function* lineOffsets(text) {
   yield 0;
-  for (const match of matchAll2(text, /\r?\n/g)) {
+  for (const match of matchAll(text, /\r?\n/g)) {
     yield match.index + match[0].length;
   }
 }
@@ -23050,6 +23406,187 @@ function toCapitalizationCase(str2) {
     /_(.)/g,
     (_match, p1) => p1.toLocaleUpperCase()
   );
+}
+
+// ../ranged-text.ts
+function matchAll2(str2, regex) {
+  let match;
+  regex = new RegExp(regex);
+  const result = [];
+  while ((match = regex.exec(str2)) != null) {
+    result.push(match);
+  }
+  return result;
+}
+function rangedLines(text, includeNewLines = false) {
+  const regex = /\r?\n/g;
+  const result = [];
+  let startOffset = 0;
+  if (!includeNewLines) {
+    for (const r of matchAll2(text, regex)) {
+      result.push({
+        substring: text.substring(startOffset, r.index),
+        range: {
+          start: startOffset,
+          end: r.index
+        }
+      });
+      startOffset = r.index + r[0].length;
+    }
+    result.push({
+      substring: text.substring(startOffset, text.length),
+      range: {
+        start: startOffset,
+        end: text.length
+      }
+    });
+    return result;
+  } else {
+    const matches = matchAll2(text, regex);
+    let prevOffset = 0;
+    for (const r of matches) {
+      const stringEnd = r.index + r[0].length;
+      result.push({
+        substring: text.substring(prevOffset, stringEnd),
+        range: {
+          start: prevOffset,
+          end: stringEnd
+        }
+      });
+      prevOffset = stringEnd;
+    }
+    result.push({
+      substring: text.substring(prevOffset, text.length),
+      range: {
+        start: prevOffset,
+        end: text.length
+      }
+    });
+    return result;
+  }
+}
+
+// ../mapped-text.ts
+function mappedSubstring(source, start, end) {
+  if (typeof source === "string") {
+    source = asMappedString(source);
+  }
+  const value = source.value.substring(start, end);
+  const mappedSource2 = source;
+  return {
+    value,
+    fileName: mappedSource2.fileName,
+    map: (index, closest) => {
+      if (closest) {
+        index = Math.max(0, Math.min(value.length, index - 1));
+      }
+      if (index === 0 && index === value.length) {
+        return mappedSource2.map(index + start, closest);
+      }
+      if (index < 0 || index >= value.length) {
+        return void 0;
+      }
+      return mappedSource2.map(index + start, closest);
+    }
+  };
+}
+function mappedString(source, pieces, fileName) {
+  if (typeof source === "string") {
+    source = asMappedString(source, fileName);
+  }
+  const mappedPieces = pieces.map((piece) => {
+    if (typeof piece === "string") {
+      return asMappedString(piece);
+    } else if (piece.value !== void 0) {
+      return piece;
+    } else {
+      const { start, end } = piece;
+      return mappedSubstring(source, start, end);
+    }
+  });
+  return mappedConcat(mappedPieces);
+}
+function asMappedString(str2, fileName) {
+  if (typeof str2 === "string") {
+    return {
+      value: str2,
+      fileName,
+      map: function(index, closest) {
+        if (closest) {
+          index = Math.min(str2.length - 1, Math.max(0, index));
+        }
+        if (index < 0 || index >= str2.length) {
+          return void 0;
+        }
+        return {
+          index,
+          originalString: this
+        };
+      }
+    };
+  } else if (fileName !== void 0) {
+    throw new InternalError(
+      "can't change the fileName of an existing MappedString"
+    );
+  } else {
+    return str2;
+  }
+}
+function mappedConcat(strings) {
+  if (strings.length === 0) {
+    return {
+      value: "",
+      map: (_index, _closest) => void 0
+    };
+  }
+  if (strings.every((s) => typeof s === "string")) {
+    return asMappedString(strings.join(""));
+  }
+  const mappedStrings = strings.map((s) => {
+    if (typeof s === "string") {
+      return asMappedString(s);
+    } else
+      return s;
+  });
+  let currentOffset = 0;
+  const offsets = [0];
+  for (const s of mappedStrings) {
+    currentOffset += s.value.length;
+    offsets.push(currentOffset);
+  }
+  const value = mappedStrings.map((s) => s.value).join("");
+  return {
+    value,
+    map: (offset, closest) => {
+      if (closest) {
+        offset = Math.max(0, Math.min(offset, value.length - 1));
+      }
+      if (offset === 0 && offset == value.length && mappedStrings.length) {
+        return mappedStrings[0].map(0, closest);
+      }
+      if (offset < 0 || offset >= value.length) {
+        return void 0;
+      }
+      const ix = glb(offsets, offset);
+      const v = mappedStrings[ix];
+      return v.map(offset - offsets[ix]);
+    }
+  };
+}
+function mappedIndexToLineCol(eitherText) {
+  const text = asMappedString(eitherText);
+  return function(offset) {
+    const mapResult = text.map(offset, true);
+    if (mapResult === void 0) {
+      throw new InternalError("bad offset in mappedIndexRowCol");
+    }
+    const { index, originalString } = mapResult;
+    return indexToLineCol(originalString.value)(index);
+  };
+}
+function mappedLines(str2, keepNewLines = false) {
+  const lines2 = rangedLines(str2.value, keepNewLines);
+  return lines2.map((v) => mappedString(str2, [v.range]));
 }
 
 // parsing.ts
@@ -26075,7 +26612,7 @@ function schemaCall(s, d, other) {
   if (other) {
     return other(s);
   }
-  throw new InternalError(`Dispatch failed for type ${st}`);
+  throw new Error(`Internal Error: Dispatch failed for type ${st}`);
 }
 function schemaDocString(d) {
   if (typeof d === "string") {
@@ -29054,30 +29591,56 @@ function readAnnotatedYamlFromMappedString(mappedSource2, lenient = false) {
   try {
     return buildJsYamlAnnotation(mappedSource2);
   } catch (e) {
+    if (e.name === "YAMLError") {
+      e.name = "YAML Parsing";
+    }
     const m = e.stack.split("\n")[0].match(/^.+ \((\d+):(\d+)\)$/);
     if (m) {
-      const f = lineColToIndex(mappedSource2.value);
-      const location = { line: Number(m[1]) - 1, column: Number(m[2] - 1) };
-      const offset = f(location);
-      const { originalString } = mappedSource2.map(offset, true);
-      const filename = originalString.fileName;
-      const f2 = mappedIndexToLineCol(mappedSource2);
-      const { line, column } = f2(offset);
-      const sourceContext = createSourceContext(mappedSource2, {
-        start: offset,
-        end: offset + 1
-      });
-      e.stack = `${e.reason} (${filename}, ${line + 1}:${column + 1})
+      const m1 = mappedSource2.value.match(/([^\s]+):([^\s]+)/);
+      if (m1 && e.reason.match(/a multiline key may not be an implicit key/)) {
+        e.name = "YAML Parse Error";
+        e.reason = "block has incorrect key formatting";
+        const { originalString } = mappedSource2.map(m1.index, true);
+        const filename = originalString.fileName;
+        const map2 = mappedSource2.map(m1.index);
+        const { line, column } = indexToLineCol(map2.originalString.value)(
+          map2.index
+        );
+        const sourceContext = createSourceContext(mappedSource2, {
+          start: m1.index + 1,
+          end: m1.index + m1[0].length
+        });
+        e.stack = `${e.reason} (${filename}, ${line + 1}:${column + 1})
 ${sourceContext}`;
-      e.message = e.stack;
-      if (mappedLines(mappedSource2)[location.line].value.indexOf("!expr") !== -1 && e.reason.match(/bad indentation of a mapping entry/)) {
+        e.message = e.stack;
         e.message = `${e.message}
 ${tidyverseInfo(
-          "YAML tags like !expr must be followed by YAML strings."
-        )}
-${tidyverseInfo(
-          "Is it possible you need to quote the value you passed to !expr ?"
+          "Is it possible you missed a space after a colon in the key-value mapping?"
         )}`;
+      } else {
+        const f = lineColToIndex(mappedSource2.value);
+        const location = { line: Number(m[1]) - 1, column: Number(m[2] - 1) };
+        const offset = f(location);
+        const { originalString } = mappedSource2.map(offset, true);
+        const filename = originalString.fileName;
+        const f2 = mappedIndexToLineCol(mappedSource2);
+        const { line, column } = f2(offset);
+        const sourceContext = createSourceContext(mappedSource2, {
+          start: offset,
+          end: offset + 1
+        });
+        e.stack = `${e.reason} (${filename}, ${line + 1}:${column + 1})
+${sourceContext}`;
+        e.message = e.stack;
+        if (mappedLines(mappedSource2)[location.line].value.indexOf("!expr") !== -1 && e.reason.match(/bad indentation of a mapping entry/)) {
+          e.message = `${e.message}
+${tidyverseInfo(
+            "YAML tags like !expr must be followed by YAML strings."
+          )}
+${tidyverseInfo(
+            "Is it possible you need to quote the value you passed to !expr ?"
+          )}`;
+        }
       }
       e.stack = "";
     }
@@ -31638,17 +32201,31 @@ var kLangCommentChars = {
   haskell: "--",
   dot: "//",
   ojs: "//",
-  apl: "\u235D"
+  apl: "\u235D",
+  ocaml: ["(*", "*)"],
+  rust: "//"
 };
 function escapeRegExp(str2) {
   return str2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 // ../parse-shortcode.ts
-function isBlockShortcode(content) {
+var InvalidShortcodeError = class extends Error {
+  constructor(msg) {
+    super(msg);
+  }
+};
+function isBlockShortcode(content, lenient) {
   const m = content.match(/^\s*{{< (?!\/\*)(.+?)(?<!\*\/) >}}\s*$/);
   if (m) {
-    return parseShortcode(m[1]);
+    try {
+      return parseShortcode(m[1]);
+    } catch (_e) {
+      if (lenient) {
+        return false;
+      }
+      throw _e;
+    }
   }
 }
 function parseShortcodeCapture(capture) {
@@ -31698,14 +32275,14 @@ function parseShortcodeCapture(capture) {
       paramStr = paramStr.slice(paramMatch[0].length).trim();
       continue;
     }
-    throw new Error("invalid shortcode: " + capture);
+    throw new InvalidShortcodeError("invalid shortcode: " + capture);
   }
   return { name, params, namedParams, rawParams };
 }
 function parseShortcode(shortCodeCapture) {
   const result = parseShortcodeCapture(shortCodeCapture);
   if (!result) {
-    throw new Error("invalid shortcode: " + shortCodeCapture);
+    throw new InvalidShortcodeError("invalid shortcode: " + shortCodeCapture);
   }
   return result;
 }
@@ -31715,6 +32292,7 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
   if (typeof src === "string") {
     src = asMappedString(src);
   }
+  const fileName = src.fileName;
   const nb = {
     cells: []
   };
@@ -31736,7 +32314,11 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
       for (const line of lineBuffer) {
         mappedChunks.push(line.range);
       }
-      const source = mappedString(src, mappedChunks);
+      const source = mappedString(
+        src,
+        mappedChunks,
+        fileName
+      );
       const makeCellType = () => {
         if (cell_type === "code") {
           return { language };
@@ -31788,11 +32370,11 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
           codeStartRange.range,
           ...mappedChunks,
           codeEndRange.range
-        ]);
+        ], fileName);
         cell.options = yaml;
         cell.sourceStartLine = sourceStartLine;
       } else if (cell_type === "directive") {
-        cell.source = mappedString(src, mappedChunks.slice(1, -1));
+        cell.source = mappedString(src, mappedChunks.slice(1, -1), fileName);
       }
       if (mdTrimEmptyLines(lines(cell.sourceVerbatim.value)).length > 0 || cell.options !== void 0) {
         nb.cells.push(cell);
@@ -31815,7 +32397,7 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
   const srcLines = rangedLines(src.value, true);
   for (let i = 0; i < srcLines.length; ++i) {
     const line = srcLines[i];
-    const directiveMatch = isBlockShortcode(line.substring);
+    const directiveMatch = isBlockShortcode(line.substring, true);
     if (isYamlDelimiter(line.substring, i, !inYaml) && !inCodeCell && !inCode) {
       if (inYaml) {
         lineBuffer.push(line);
@@ -32969,7 +33551,7 @@ async function automationFromGoodParseScript(kind, context) {
     if (codeLines.length < 2) {
       return noIntelligence(kind);
     }
-    const m = codeLines[0].substring.match(/.*{([a-z]+)}/);
+    const m = codeLines[0].substring.match(/.*{([a-z]+)\s*.*}/);
     if (!m) {
       return noIntelligence(kind);
     }

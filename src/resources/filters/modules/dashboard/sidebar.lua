@@ -17,6 +17,10 @@ local kSidebarWidthOutAttr = "data-width"
 local kSidebarWidthAttr = "width"
 local kSidebarWidthAttrs = pandoc.List({kSidebarWidthAttr, kSidebarWidthOutAttr})
 
+local kSidebarPositionAttr = "position"
+local kSidebarPositionStart = "left"
+local kSidebarPositionEnd = "right"
+
 local function isSidebar(el) 
   return el.classes ~= nil and el.classes:includes(kSidebarClass)
 end 
@@ -28,6 +32,10 @@ local function readOptions(el)
       options[kSidebarWidthAttr] = el.attributes[v]
     end
   end
+
+  if el.attributes[kSidebarPositionAttr] ~= nil then
+    options[kSidebarPositionAttr] = el.attributes[kSidebarPositionAttr];
+  end
   return options
 end
 
@@ -35,6 +43,10 @@ local function sidebarAttr(options)
   local sidebarAttrs = {}
   if options[kSidebarWidthAttr] ~= nil then 
     sidebarAttrs[kSidebarWidthOutAttr] = options[kSidebarWidthAttr]
+  end
+
+  if options[kSidebarPositionAttr] ~= nil then
+    sidebarAttrs[kSidebarPositionAttr] = options[kSidebarPositionAttr]
   end
   return sidebarAttrs
 end
@@ -46,8 +58,8 @@ local function makeSidebar(sidebarEls, contentEls, options)
   local sidebarContentsFiltered = pandoc.List({})
   for i,v in ipairs(sidebarEls) do
     if card.isCard(v) then
-      -- TODO: really do a better job of de-composing the card
-      sidebarContentsFiltered:insert(v.content[1])
+      local cardContents = card.cardBodyContents(v)
+      sidebarContentsFiltered:extend(cardContents)
     else
       sidebarContentsFiltered:insert(v)
     end
@@ -68,26 +80,41 @@ local function pageSidebarPlaceholder(contents, options)
   return sidebarContainer
 end
 
-function maybeUseSidebarOrientation(el)
-  -- force the global orientation to columns if there is a sidebar present
+function sidebarInContents(content)
   local hasSidebar = false
-  _quarto.ast.walk(el, {
-    Header = function(header)
-      if header.level == 1 and isSidebar(header) then
+  for i, v in ipairs(content) do
+    if v.t == "Header" then
+      if v.level == 1 and isSidebar(v) then
         hasSidebar = true
+        break
       end
-    end,
-    Div = function(div)
-      if isSidebar(div) then
+    elseif is_regular_node(v, "Div")  then
+      
+      if isSidebar(v) then
         hasSidebar = true
+        break
       end
     end
-  })
-  if hasSidebar then
-    return layout.orientations.columns
-  else
-    return nil
   end
+  return hasSidebar
+end
+
+function hasChildSidebar(el)
+
+  -- force the global orientation to columns if there is a sidebar present
+  local hasSidebar = false
+  local elType = pandoc.utils.type(el)
+  if elType == "Pandoc" then
+    hasSidebar = sidebarInContents(el.blocks)
+  else
+    hasSidebar = sidebarInContents(el.content)
+  end
+
+  return hasSidebar
+end
+
+function setPositionEnd(options)
+  options[kSidebarPositionAttr] = kSidebarPositionEnd
 end
 
 
@@ -96,7 +123,8 @@ return {
   readOptions = readOptions,
   makeSidebar = makeSidebar,
   pageSidebarPlaceholder = pageSidebarPlaceholder,
-  maybeUseSidebarOrientation = maybeUseSidebarOrientation
+  hasChildSidebar = hasChildSidebar,
+  setPositionEnd = setPositionEnd
 }
 
 

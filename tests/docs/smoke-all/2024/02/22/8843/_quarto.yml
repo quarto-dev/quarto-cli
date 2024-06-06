@@ -1,0 +1,13 @@
+project:
+  type: book
+
+book:
+  title: "Latex-deps"
+  author: "Norah Jones"
+  date: "22/02/2024"
+  chapters:
+    - index.qmd
+
+format: pdf
+
+

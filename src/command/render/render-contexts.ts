@@ -1,7 +1,7 @@
 /*
- * render-info.ts
+ * render-contexts.ts
  *
- * Copyright (C) 2022 Posit Software, PBC
+ * Copyright (C) 2021-2023 Posit Software, PBC
  */
 
 import { Format, FormatExecute, Metadata } from "../../config/types.ts";
@@ -10,9 +10,10 @@ import {
   RenderFile,
   RenderFlags,
   RenderOptions,
+  RenderServices,
 } from "./types.ts";
 
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../../deno_ral/path.ts";
 
 import * as ld from "../../core/lodash.ts";
 import { projectType } from "../../project/types/project-types.ts";
@@ -60,11 +61,11 @@ import {
 import { defaultWriterFormat } from "../../format/formats.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
-import { projectMetadataForInputFile } from "../../project/project-context.ts";
 import {
   deleteProjectMetadata,
   directoryMetadataForInputFile,
   projectTypeIsWebsite,
+  toInputRelativePaths,
 } from "../../project/project-shared.ts";
 import {
   kProjectLibDir,
@@ -75,10 +76,7 @@ import { isHtmlDashboardOutput, isHtmlOutput } from "../../config/format.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { warnOnce } from "../../core/log.ts";
 import { dirAndStem } from "../../core/path.ts";
-import {
-  fileEngineClaimReason,
-  fileExecutionEngineAndTarget,
-} from "../../execute/engine.ts";
+import { fileExecutionEngineAndTarget } from "../../execute/engine.ts";
 import { removePandocTo } from "./flags.ts";
 import { filesDirLibDir } from "./render-paths.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
@@ -90,7 +88,7 @@ import {
   parseFormatString,
 } from "../../core/pandoc/pandoc-formats.ts";
 import { ExtensionContext } from "../../extension/types.ts";
-import { renderServices } from "./render-services.ts";
+import { NotebookContext } from "../../render/notebook/notebook-types.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
@@ -208,8 +206,10 @@ export async function renderContexts(
   file: RenderFile,
   options: RenderOptions,
   forExecute: boolean,
-  project?: ProjectContext,
+  notebookContext: NotebookContext,
+  project: ProjectContext,
   cloneOptions: boolean = true,
+  enforceProjectFormats: boolean = true,
 ): Promise<Record<string, RenderContext>> {
   if (cloneOptions) {
     // clone options (b/c we will modify them)
@@ -222,14 +222,19 @@ export async function renderContexts(
   const { engine, target } = await fileExecutionEngineAndTarget(
     file.path,
     options.flags,
-    undefined,
     project,
   );
 
-  const engineClaimReason = fileEngineClaimReason(file.path);
-
   // resolve render target
-  const formats = await resolveFormats(file, target, engine, options, project);
+  const formats = await resolveFormats(
+    file,
+    target,
+    engine,
+    options,
+    notebookContext,
+    project,
+    enforceProjectFormats,
+  );
 
   // remove --to (it's been resolved into contexts)
   options = removePandocTo(options);
@@ -289,19 +294,6 @@ export async function renderContexts(
       if (results) {
         context.target.preEngineExecuteResults = results;
       }
-
-      if (engineClaimReason === "markdown") {
-        // since the content decided the engine, and the content now changed,
-        // we need to re-evaluate the engine and target based on new content.
-        const { engine, target } = await fileExecutionEngineAndTarget(
-          file.path,
-          options.flags,
-          markdown,
-          project,
-        );
-        context.engine = engine;
-        context.target = target;
-      }
     }
 
     // if this isn't for execute then cleanup context
@@ -314,39 +306,36 @@ export async function renderContexts(
 
 export async function renderFormats(
   file: string,
+  services: RenderServices,
   to = "all",
-  project?: ProjectContext,
+  project: ProjectContext,
 ): Promise<Record<string, Format>> {
-  const services = renderServices();
-  try {
-    const contexts = await renderContexts(
-      { path: file },
-      { services, flags: { to } },
-      false,
-      project,
-    );
-    const formats: Record<string, Format> = {};
-    Object.keys(contexts).forEach((formatName) => {
-      // get the format
-      const context = contexts[formatName];
-      const format = context.format;
-      // remove other formats
-      delete format.metadata.format;
-      // remove project level metadata
-      deleteProjectMetadata(format.metadata);
-      // resolve output-file
-      if (!format.pandoc[kOutputFile]) {
-        const [_dir, stem] = dirAndStem(file);
-        format.pandoc[kOutputFile] = `${stem}.${format.render[kOutputExt]}`;
-      }
-      // provide engine
-      format.execute[kEngine] = context.engine.name;
-      formats[formatName] = format;
-    });
-    return formats;
-  } finally {
-    services.cleanup();
-  }
+  const contexts = await renderContexts(
+    { path: file },
+    { services, flags: { to } },
+    false,
+    services.notebook,
+    project,
+  );
+  const formats: Record<string, Format> = {};
+  Object.keys(contexts).forEach((formatName) => {
+    // get the format
+    const context = contexts[formatName];
+    const format = context.format;
+    // remove other formats
+    delete format.metadata.format;
+    // remove project level metadata
+    deleteProjectMetadata(format.metadata);
+    // resolve output-file
+    if (!format.pandoc[kOutputFile]) {
+      const [_dir, stem] = dirAndStem(file);
+      format.pandoc[kOutputFile] = `${stem}.${format.render[kOutputExt]}`;
+    }
+    // provide engine
+    format.execute[kEngine] = context.engine.name;
+    formats[formatName] = format;
+  });
+  return formats;
 }
 
 function mergeQuartoConfigs(
@@ -379,7 +368,7 @@ function mergeQuartoConfigs(
   // formats need to always be objects
   const fixupFormat = (config: Record<string, unknown>) => {
     const format = config[kMetadataFormat];
-    if (typeof (format) === "string") {
+    if (typeof format === "string") {
       config.format = { [format]: {} };
     } else if (format instanceof Object) {
       Object.keys(format).forEach((key) => {
@@ -404,7 +393,9 @@ async function resolveFormats(
   target: ExecutionTarget,
   engine: ExecutionEngine,
   options: RenderOptions,
+  _notebookContext: NotebookContext,
   project?: ProjectContext,
+  enforceProjectFormats: boolean = true,
 ): Promise<Record<string, { format: Format; active: boolean }>> {
   // input level metadata
   const inputMetadata = target.metadata;
@@ -418,12 +409,12 @@ async function resolveFormats(
     : {};
 
   // project level metadata
-  const projMetadata = await projectMetadataForInputFile(
-    target.input,
-    options.flags,
-    project,
-  );
-
+  const projMetadata = project === undefined
+    ? ({} as Metadata)
+    : await projectMetadataForInputFile(
+      target.input,
+      project,
+    );
   // determine formats (treat dir format keys as part of 'input' format keys)
   let formats: string[] = [];
   const projFormatKeys = formatKeys(projMetadata);
@@ -516,9 +507,28 @@ async function resolveFormats(
       formatHasBootstrap(projFormat) && projectTypeIsWebsite(projType)
     ) {
       if (formatHasBootstrap(inputFormat)) {
+        if (
+          inputFormat.metadata[kTheme] !== undefined &&
+          !ld.isEqual(inputFormat.metadata[kTheme], projFormat.metadata[kTheme])
+        ) {
+          warnOnce(
+            `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
+          );
+        }
         delete inputFormat.metadata[kTheme];
       }
       if (formatHasBootstrap(directoryFormat)) {
+        if (
+          directoryFormat.metadata[kTheme] !== undefined &&
+          !ld.isEqual(
+            directoryFormat.metadata[kTheme],
+            projFormat.metadata[kTheme],
+          )
+        ) {
+          warnOnce(
+            `The file ${file.path} contains a theme provided by a metadata file. This theme metadata is being ignored. Website projects do not support per directory themes since all pages within a website share the website's theme.`,
+          );
+        }
         delete directoryFormat.metadata[kTheme];
       }
     }
@@ -599,14 +609,16 @@ async function resolveFormats(
   }
 
   // filter on formats supported by this project
-  for (const formatName of Object.keys(mergedFormats)) {
-    const format: Format = mergedFormats[formatName];
-    if (projType.isSupportedFormat) {
-      if (!projType.isSupportedFormat(format)) {
-        delete mergedFormats[formatName];
-        warnOnce(
-          `The ${formatName} format is not supported by ${projType.type} projects`,
-        );
+  if (enforceProjectFormats) {
+    for (const formatName of Object.keys(mergedFormats)) {
+      const format: Format = mergedFormats[formatName];
+      if (projType.isSupportedFormat) {
+        if (!projType.isSupportedFormat(format)) {
+          delete mergedFormats[formatName];
+          warnOnce(
+            `The ${formatName} format is not supported by ${projType.type} projects`,
+          );
+        }
       }
     }
   }
@@ -706,4 +718,26 @@ const readExtensionFormat = async (
 
 function hasIpynbFilters(execute: FormatExecute) {
   return execute[kIpynbFilters] && execute[kIpynbFilters]?.length;
+}
+
+export async function projectMetadataForInputFile(
+  input: string,
+  project: ProjectContext,
+): Promise<Metadata> {
+  // don't mutate caller
+  project = ld.cloneDeep(project) as ProjectContext;
+
+  if (project.dir && project.config) {
+    // If there is directory and configuration information
+    // process paths
+    return toInputRelativePaths(
+      projectType(project.config?.project?.[kProjectType]),
+      project.dir,
+      dirname(input),
+      project.config,
+    ) as Metadata;
+  } else {
+    // Just return the config or empty metadata
+    return project.config || {};
+  }
 }

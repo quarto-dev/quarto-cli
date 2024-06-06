@@ -126,8 +126,7 @@ end
 
 local function readqmd(txt, opts)
   txt, tags = escape_invalid_tags(txt)
-  txt = md_shortcode.md_shortcode:match(txt)
-
+  txt = md_shortcode.parse_md_shortcode(txt)
   local flavor = {
     format = "markdown",
     extensions = {},
@@ -150,16 +149,26 @@ local function readqmd(txt, opts)
 
   local unshortcode_text = function (c)
     if c.text:match("data%-is%-shortcode%=%\"1%\"") then
-      c.text = md_shortcode.unshortcode:match(c.text)
+      c.text = md_shortcode.unparse_md_shortcode(c.text)
     end
     return c
+  end
+
+  local function filter_attrs(el)
+    for k,v in pairs(el.attributes) do
+      if type(v) == "string" and v:match("data%-is%-shortcode%=%\"1%\"") then
+        local new_v = md_shortcode.unparse_md_shortcode(v)
+        el.attributes[k] = new_v
+      end
+    end
+    return el
   end
 
   local doc = pandoc.read(txt or "", flavor, opts):walk {
     CodeBlock = function (cb)
       cb.classes = cb.classes:map(restore_invalid_tags)
       if cb.text:match("data%-is%-shortcode%=%\"1%\"") then
-        cb.text = md_shortcode.unshortcode:match(cb.text)
+        cb.text = md_shortcode.unparse_md_shortcode(cb.text)
       end
       cb.text = unescape_invalid_tags(cb.text, tags)
       return cb
@@ -167,15 +176,20 @@ local function readqmd(txt, opts)
     Code = unshortcode_text,
     RawInline = unshortcode_text,
     RawBlock = unshortcode_text,
+    Header = filter_attrs,
+    Span = filter_attrs,
+    Div = filter_attrs,
     Link = function (l)
+      l = filter_attrs(l)
       if l.target:match("data%-is%-shortcode%=%%221%%22") then
-        l.target = md_shortcode.unshortcode:match(urldecode(l.target))
+        l.target = md_shortcode.unparse_md_shortcode(urldecode(l.target))
         return l
       end
     end,
     Image = function (i)
+      i = filter_attrs(i)
       if i.src:match("data%-is%-shortcode%=%%221%%22") then
-        i.src = md_shortcode.unshortcode:match(urldecode(i.src))
+        i.src = md_shortcode.unparse_md_shortcode(urldecode(i.src))
         return i
       end
     end,

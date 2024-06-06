@@ -2,27 +2,29 @@
 -- Copyright (C) 2023 Posit Software, PBC
 
 function make_typst_figure(tbl)
-  local content = tbl.content
+  local content = tbl.content or pandoc.Div({})
   local caption_location = tbl.caption_location
-  local caption = tbl.caption
+  local caption = tbl.caption or pandoc.Div({})
   local kind = tbl.kind
   local supplement = tbl.supplement
   local numbering = tbl.numbering
   local identifier = tbl.identifier
   local separator = tbl.separator
 
-  if #caption.content == 0 and tbl.separator == nil then
+  if (not caption or #caption.content == 0) and tbl.separator == nil then
     separator = ""
   end
 
-  return pandoc.Blocks({
-    pandoc.RawInline("typst", "#figure(["),
-    content,
+  local result =  pandoc.Blocks({
+    pandoc.RawInline("typst", "#figure([")
+  })
+  result:extend(quarto.utils.as_blocks(content))
+  result:extend({
     pandoc.RawInline("typst", "], caption: figure.caption("),
     pandoc.RawInline("typst", separator and ("separator: \"" .. separator .. "\", ") or ""),
     pandoc.RawInline("typst", "position: " .. caption_location .. ", "),
     pandoc.RawInline("typst", "["),
-    caption,
+    caption or pandoc.Inlines({}),
     -- apparently typst doesn't allow separate prefix and name
     pandoc.RawInline("typst", "]), "),
     pandoc.RawInline("typst", "kind: \"" .. kind .. "\", "),
@@ -32,6 +34,7 @@ function make_typst_figure(tbl)
     pandoc.RawInline("typst", identifier and ("<" .. identifier .. ">") or ""),
     pandoc.RawInline("typst", "\n\n")
   })
+  return result
 end
 
 local function render_floatless_typst_layout(panel)
@@ -55,6 +58,19 @@ local function render_floatless_typst_layout(panel)
     result:insert(pandoc.RawBlock("typst", col_spec_str))
     for j, col in ipairs(row) do
       result:insert(pandoc.RawBlock("typst", "  rect(stroke: none, width: 100%)["))
+      -- #7718: if content is a single image with no attributes,
+      --   we need to set the width to 100% to avoid Pandoc from
+      --   specifying a width in pixels, which overrides the
+      --   column's relative constraint.
+      local image = quarto.utils.match("[1]/Para/[1]/{Image}")(col.content)
+
+      -- we also need to check for Pandoc Figure AST nodes because these
+      -- still linger in our AST (captioned unidentified figures...)
+      image = image or quarto.utils.match("[1]/Figure/[1]/Plain/[1]/{Image}")(col.content)
+
+      if image and #image[1].attributes == 0 then
+        image[1].attributes["width"] = "100%"
+      end
       result:extend(col.content)
       result:insert(pandoc.RawBlock("typst", "],"))
     end
@@ -70,7 +86,7 @@ end, function(layout)
     return render_floatless_typst_layout(layout)
   end
 
-  local ref = refType(layout.float.identifier)
+  local ref = ref_type_from_float(layout.float)
   local kind = "quarto-float-" .. ref
   local info = crossref.categories.by_ref_type[ref]
   if info == nil then
@@ -79,52 +95,53 @@ end, function(layout)
     return float.content
     -- luacov: enable
   end
+  local supplement = titleString(ref, info.name)
 
   -- typst output currently only supports a single grid
   -- as output, so no rows of varying columns, etc.
   local n_cols = layout.attributes[kLayoutNcol] or "1"
-
-  local typst_figure_content = pandoc.Div({})
-  typst_figure_content.content:insert(pandoc.RawInline("typst", "#grid(columns: " .. n_cols .. ", gutter: 2em,\n"))
-  local is_first = true
-  _quarto.ast.walk(layout.float.content, {
-    FloatRefTarget = function(_, float_obj)
-      if is_first then
-        is_first = false
-      else
-        typst_figure_content.content:insert(pandoc.RawInline("typst", ",\n"))
-      end
-      typst_figure_content.content:insert(pandoc.RawInline("typst", "  ["))
-      typst_figure_content.content:insert(float_obj)
-      typst_figure_content.content:insert(pandoc.RawInline("typst", "]"))
-      return nil
-    end
-  })
-  typst_figure_content.content:insert(pandoc.RawInline("typst", ")\n"))
   local result = pandoc.Blocks({})
   if layout.preamble then
-    result:insert(layout.preamble)
+    if pandoc.utils.type(layout.preamble) == "Blocks" then
+      result:extend(layout.preamble)
+    else
+      result:insert(layout.preamble)
+    end
   end
   local caption_location = cap_location(layout.float)
 
-  return make_typst_figure {
-    content = typst_figure_content,
-    caption_location = caption_location,
-    caption = layout.float.caption_long,
-    kind = kind,
-    supplement = info.prefix,
-    numbering = info.numbering,
-    identifier = layout.float.identifier
-  }
-  -- result:extend({
-  --   pandoc.RawInline("typst", "\n\n#figure(["),
-  --   typst_figure_content,
-  --   pandoc.RawInline("typst", "], caption: ["),
-  --   layout.float.caption_long,
-  --   -- apparently typst doesn't allow separate prefix and name
-  --   pandoc.RawInline("typst", "], kind: \"" .. kind .. "\", supplement: \"" .. info.prefix .. "\""),
-  --   pandoc.RawInline("typst", ", caption-pos: " .. caption_location),
-  --   pandoc.RawInline("typst", ")<" .. layout.float.identifier .. ">\n\n")
-  -- })
-  -- return result
+  local cells = pandoc.Blocks({})
+  cells:insert(pandoc.RawInline("typst", "#grid(columns: " .. n_cols .. ", gutter: 2em,\n"))
+  layout.rows.content:map(function(row)
+    -- print(row)
+    return row.content:map(function(cell)
+      cells:insert(pandoc.RawInline("typst", "  ["))
+      cells:insert(cell)
+      cells:insert(pandoc.RawInline("typst", "],\n"))
+    end)
+  end)
+  cells:insert(pandoc.RawInline("typst", ")\n"))
+  if layout.float.has_subfloats then
+    result:insert(_quarto.format.typst.function_call("quarto_super", {
+      {"kind", kind},
+      {"caption", _quarto.format.typst.as_typst_content(layout.float.caption_long)},
+      {"label", pandoc.RawInline("typst", "<" .. layout.float.identifier .. ">")},
+      {"position", pandoc.RawInline("typst", caption_location)},
+      {"supplement", supplement},
+      {"subrefnumbering", "1a"},
+      {"subcapnumbering", "(a)"},
+      _quarto.format.typst.as_typst_content(cells)
+    }, false))
+  else
+    result:extend(make_typst_figure {
+      content = cells,
+      caption_location = caption_location,
+      caption = layout.float.caption_long,
+      kind = kind,
+      supplement = titleString(ref, info.prefix),
+      numbering = info.numbering,
+      identifier = layout.float.identifier
+    })
+  end
+  return result
 end)

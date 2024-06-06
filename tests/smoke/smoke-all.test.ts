@@ -20,19 +20,25 @@ import {
   ensureDocxXpath,
   ensureFileRegexMatches,
   ensureHtmlElements,
+  ensurePdfRegexMatches,
   ensureJatsXpath,
   ensureOdtXpath,
   ensurePptxRegexMatches,
   ensureTypstFileRegexMatches,
+  ensureSnapshotMatches,
   fileExists,
   noErrors,
   noErrorsOrWarnings,
+  ensurePptxXpath,
+  ensurePptxLayout,
+  ensurePptxMaxSlides,
 } from "../verify.ts";
 import { readYaml, readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { outputForInput } from "../utils.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
 import { existsSync, WalkEntry } from "fs/mod.ts";
+import { quarto } from "../../src/quarto.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -95,7 +101,12 @@ function resolveTestSpecs(
     ensureDocxXpath,
     ensureOdtXpath,
     ensureJatsXpath,
+    ensurePdfRegexMatches,
     ensurePptxRegexMatches,
+    ensurePptxXpath,
+    ensurePptxLayout,
+    ensurePptxMaxSlides,
+    ensureSnapshotMatches
   };
 
   for (const [format, testObj] of Object.entries(specs)) {
@@ -129,8 +140,21 @@ function resolveTestSpecs(
                 );
               }
             }
+          } else if (["ensurePptxLayout", "ensurePptxXpath"].includes(key)) {
+            if (Array.isArray(value) && Array.isArray(value[0])) {
+              // several slides to check
+              value.forEach((slide: any) => {
+                verifyFns.push(verifyMap[key](outputFile.outputPath, ...slide));
+              });
+            } else {
+              verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
+            }
           } else if (verifyMap[key]) {
-            verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
+            if (typeof value === "object") {
+              verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
+            } else {
+              verifyFns.push(verifyMap[key](outputFile.outputPath, value));
+            }
           }
         }
       }
@@ -162,16 +186,19 @@ await initYamlIntelligenceResourcesFromFilesystem();
 // be silently ignored.)
 const files: WalkEntry[] = [];
 if (Deno.args.length === 0) {
-  files.push(...expandGlobSync("docs/smoke-all/**/*.{md,qmd,ipynb}"));
+  // ignore file starting with `_`
+  files.push(...[...expandGlobSync("docs/smoke-all/**/*.{md,qmd,ipynb}")].filter((entry) => /^[^_]/.test(basename(entry.path))));
 } else {
   for (const arg of Deno.args) {
     files.push(...expandGlobSync(arg));
   }
 }
 
+const renderedProjects: Set<string> = new Set();
+
 for (const { path: fileName } of files) {
   const input = relative(Deno.cwd(), fileName);
-
+  
   const metadata = input.endsWith("md") // qmd or md
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
@@ -187,6 +214,18 @@ for (const { path: fileName } of files) {
     }
     for (const format of formats) {
       testSpecs.push({ format: format, verifyFns: [noErrorsOrWarnings] });
+    }
+  }
+
+  // FIXME this will leave the project in a dirty state
+  // tests run asynchronously so we can't clean up until all tests are done
+  // and I don't know of a way to wait for that
+
+  if ((metadata["_quarto"] as any)?.["render-project"]) {
+    const projectPath = findProjectDir(input);
+    if (projectPath && !renderedProjects.has(projectPath)) {
+      await quarto(["render", projectPath]);
+      renderedProjects.add(projectPath);
     }
   }
 
@@ -220,11 +259,9 @@ for (const { path: fileName } of files) {
   }
 }
 
-function findProjectOutputDir(input: string) {
-  // See if there is a project and grab it's type
+function findProjectDir(input: string): string | undefined {
   let dir = dirname(input);
-  let projectOutDir = undefined;
-  while (dir !== "" && dir !== "." && projectOutDir === undefined) {
+  while (dir !== "" && dir !== ".") {
     const filename = ["_quarto.yml", "_quarto.yaml"].find((file) => {
       const yamlPath = join(dir, file);
       if (existsSync(yamlPath)) {
@@ -232,26 +269,35 @@ function findProjectOutputDir(input: string) {
       }
     });
     if (filename) {
-      const yaml = readYaml(join(dir, filename));
-      let type = undefined;
-      try {
-        // deno-lint-ignore no-explicit-any
-        type = ((yaml as any).project as any).type;
-      } catch (error) {
-        throw new Error("Failed to read quarto project YAML", error);
-      }
-
-      switch (type) {
-        case "book":
-          projectOutDir = "_book";
-          break;
-        default:
-        case undefined:
-          break;
-      }
+      return dir;
     }
 
-    dir = dirname(dir);
+    const newDir = dirname(dir); // stops at the root for both Windows and Posix
+    if (newDir === dir) {
+      return;
+    }
+    dir = newDir;
   }
-  return projectOutDir;
+}
+
+function findProjectOutputDir(input: string) {
+  const dir = findProjectDir(input);
+  if (!dir) {
+    return;
+  }
+  const yaml = readYaml(join(dir, "_quarto.yml"));
+  let type = undefined;
+  try {
+    // deno-lint-ignore no-explicit-any
+    type = ((yaml as any).project as any).type;
+  } catch (error) {
+    throw new Error("Failed to read quarto project YAML", error);
+  }
+
+  if (type === "book") {
+    return "_book";
+  }
+  if (type === "website") {
+    return (yaml as any)?.project?.["output-dir"] || "_site";
+  }
 }

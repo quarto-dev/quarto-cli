@@ -5,7 +5,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../../../../deno_ral/path.ts";
 import {
   DOMParser,
   Element,
@@ -73,6 +73,9 @@ export const kImageAlign = "image-align";
 // Alt text for the item's image
 export const kImageAlt = "image-alt";
 
+// Lazy loading for the item's image. If unset, the default is true.
+export const kImageLazyLoading = "image-lazy-loading";
+
 // The placeholder image for the item
 export const kImagePlaceholder = "image-placeholder";
 
@@ -101,6 +104,7 @@ export const kFieldFileModified = "file-modified";
 export const kFieldDate = "date";
 export const kFieldImage = "image";
 export const kFieldImageAlt = "image-alt";
+export const kFieldImageLazyLoading = "image-lazy-loading";
 export const kFieldDescription = "description";
 export const kFieldReadingTime = "reading-time";
 export const kFieldWordCount = "word-count";
@@ -141,7 +145,7 @@ export type CategoryStyle =
 export interface ListingFeedOptions {
   [kTitle]?: string;
   [kItems]?: number;
-  [kType]: "summary" | "full";
+  [kType]: "partial" | "full" | "metadata";
   [kDescription]?: string;
   [kFieldCategories]?: string | string[];
   [kImage]?: string;
@@ -211,6 +215,7 @@ export interface ListingItem extends Record<string, unknown> {
   date?: Date;
   image?: string;
   [kImageAlt]?: string;
+  [kImageLazyLoading]?: boolean;
   path?: string;
   filename?: string;
   [kFieldFileModified]?: Date;
@@ -219,6 +224,7 @@ export interface ListingItem extends Record<string, unknown> {
 
 export interface RenderedContents {
   title: string | undefined;
+  description: string | undefined;
   firstPara: string | undefined;
   fullContents: string | undefined;
   previewImage: PreviewImage | undefined;
@@ -321,6 +327,16 @@ export function readRenderedContents(
   const titleText = titleEl?.querySelector("h1.title")?.innerText;
   if (titleEl) {
     titleEl.remove();
+  }
+
+  // Read the explicit description, if present
+  let description = "";
+  const descEl = doc.querySelector("meta[name='description']");
+  if (descEl) {
+    const descAttrVal = descEl.getAttribute("content");
+    if (descAttrVal !== null) {
+      description = descAttrVal;
+    }
   }
 
   // Remove any navigation elements from the content region
@@ -573,6 +589,7 @@ export function readRenderedContents(
 
   return {
     title: titleText,
+    description,
     fullContents,
     firstPara,
     previewImage: computePreviewImage(),

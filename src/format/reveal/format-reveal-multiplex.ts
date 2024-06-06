@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 import { isSelfContainedOutput } from "../../command/render/render-info.ts";
 import { kResourcePath } from "../../config/constants.ts";
 

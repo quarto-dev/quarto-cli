@@ -41,14 +41,33 @@ _quarto:
       noErrors: default
       fileExists: 
         supportPath: mediabag/lter_penguins.png
+    typst:
+      ensureFileRegexMatches:
+        - []
+        - []
+      ensureTypstFileRegexMatches:
+        - []
+        - []
     docx:
       ensureDocxRegexMatches:
+        - []
+        - []
+      ensureDocxXPath:
         - []
         - []
     pptx:
       ensurePptxRegexMatches:
         - []
         - []
+      ensurePptxXPath:
+      - 
+        - 2
+        - []
+        - []
+      ensurePptxLayout:
+        - 
+          - 2
+          - "Title and Content"
     asciidoc: default
 ---
 "@

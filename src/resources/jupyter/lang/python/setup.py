@@ -4,23 +4,24 @@ import os
 import sys
 import types
 import json
+import base64
 
 # figure size/format
-fig_width = {0}
-fig_height = {1}
-fig_format = '{2}'
-fig_dpi = {3}
-interactivity = '{5}'
-is_shiny = {6}
-is_dashboard = {7}
-plotly_connected = {8}
+fig_width = {fig_width}
+fig_height = {fig_height}
+fig_format = '{fig_format}'
+fig_dpi = {fig_dpi}
+interactivity = '{interactivity}'
+is_shiny = {is_shiny}
+is_dashboard = {is_dashboard}
+plotly_connected = {plotly_connected}
 
 # matplotlib defaults / format
 try:
   import matplotlib.pyplot as plt
   plt.rcParams['figure.figsize'] = (fig_width, fig_height)
   plt.rcParams['figure.dpi'] = fig_dpi
-  plt.rcParams['savefig.dpi'] = fig_dpi
+  plt.rcParams['savefig.dpi'] = "figure"
   from IPython.display import set_matplotlib_formats
   set_matplotlib_formats(fig_format)
 except Exception:
@@ -42,11 +43,107 @@ except Exception:
 if is_dashboard:
   try:
     from itables import options
-    options.dom = "ifrt"
+    options.dom = 'fiBrtlp'
     options.maxBytes = 1024 * 1024
     options.language = dict(info = "Showing _TOTAL_ entries")
     options.classes = "display nowrap compact"
     options.paging = False
+    options.searching = True
+    options.ordering = True
+    options.info = True
+    options.lengthChange = False
+    options.autoWidth = False
+    options.responsive = True
+    options.keys = True
+    options.buttons = []
+  except Exception:
+    pass
+  
+  try:
+    import altair as alt
+    # By default, dashboards will have container sized
+    # vega visualizations which allows them to flow reasonably
+    theme_sentinel = '_quarto-dashboard-internal'
+    def make_theme(name):
+        nonTheme = alt.themes._plugins[name]    
+        def patch_theme(*args, **kwargs):
+            existingTheme = nonTheme()
+            if 'height' not in existingTheme:
+              existingTheme['height'] = 'container'
+            if 'width' not in existingTheme:
+              existingTheme['width'] = 'container'
+
+            if 'config' not in existingTheme:
+              existingTheme['config'] = dict()
+            
+            # Configure the default font sizes
+            title_font_size = 15
+            header_font_size = 13
+            axis_font_size = 12
+            legend_font_size = 12
+            mark_font_size = 12
+            tooltip = False
+
+            config = existingTheme['config']
+
+            # The Axis
+            if 'axis' not in config:
+              config['axis'] = dict()
+            axis = config['axis']
+            if 'labelFontSize' not in axis:
+              axis['labelFontSize'] = axis_font_size
+            if 'titleFontSize' not in axis:
+              axis['titleFontSize'] = axis_font_size  
+
+            # The legend
+            if 'legend' not in config:
+              config['legend'] = dict()
+            legend = config['legend']
+            if 'labelFontSize' not in legend:
+              legend['labelFontSize'] = legend_font_size
+            if 'titleFontSize' not in legend:
+              legend['titleFontSize'] = legend_font_size  
+
+            # The header
+            if 'header' not in config:
+              config['header'] = dict()
+            header = config['header']
+            if 'labelFontSize' not in header:
+              header['labelFontSize'] = header_font_size
+            if 'titleFontSize' not in header:
+              header['titleFontSize'] = header_font_size    
+
+            # Title
+            if 'title' not in config:
+              config['title'] = dict()
+            title = config['title']
+            if 'fontSize' not in title:
+              title['fontSize'] = title_font_size
+
+            # Marks
+            if 'mark' not in config:
+              config['mark'] = dict()
+            mark = config['mark']
+            if 'fontSize' not in mark:
+              mark['fontSize'] = mark_font_size
+
+            # Mark tooltips
+            if tooltip and 'tooltip' not in mark:
+              mark['tooltip'] = dict(content="encoding")
+
+            return existingTheme
+            
+        return patch_theme
+
+    # We can only do this once per session
+    if theme_sentinel not in alt.themes.names():
+      for name in alt.themes.names():
+        alt.themes.register(name, make_theme(name))
+      
+      # register a sentinel theme so we only do this once
+      alt.themes.register(theme_sentinel, make_theme('default'))
+      alt.themes.enable('default')
+
   except Exception:
     pass
 
@@ -87,16 +184,19 @@ for module in list(sys.modules.values()):
 print(json.dumps(kernel_deps))
 
 # set run_path if requested
-if r'{4}':
-  os.chdir(r'{4}')
+run_path = '{run_path}'
+if run_path:
+  # hex-decode the path
+  run_path = base64.b64decode(run_path.encode("utf-8")).decode("utf-8")
+  os.chdir(run_path)
 
 # reset state
 %reset
 
 # shiny
-# Checking for shiny by using {6} directly because we're after the %reset. We don't want
+# Checking for shiny by using {is_shiny} directly because we're after the %reset. We don't want
 # to set a variable that stays in global scope.
-if {6}:
+if {is_shiny}:
   try:
     import htmltools as _htmltools
     import ast as _ast
@@ -170,3 +270,4 @@ def ojs_define(**kwargs):
   v = dict(contents=list(dict(name=key, value=convert(value)) for (key, value) in kwargs.items()))
   display(HTML('<script type="ojs-define">' + json.dumps(v) + '</script>'), metadata=dict(ojs_define = True))
 globals()["ojs_define"] = ojs_define
+# globals()["__spec__"] = None

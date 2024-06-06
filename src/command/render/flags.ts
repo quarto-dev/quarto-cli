@@ -1,7 +1,7 @@
 /*
  * flags.ts
  *
- * Copyright (C) 2020-2023 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 import { existsSync } from "fs/mod.ts";
 
@@ -29,7 +29,7 @@ import { RenderFlags, RenderOptions } from "./types.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import { isAbsolute, SEP_PATTERN } from "path/mod.ts";
+import { isAbsolute, SEP_PATTERN } from "../../deno_ral/path.ts";
 import { normalizePath } from "../../core/path.ts";
 import { removeFlags } from "../../core/flags.ts";
 
@@ -41,6 +41,14 @@ export async function parseRenderFlags(args: string[]) {
   const argsStack = [...args];
   let arg = argsStack.shift();
   while (arg !== undefined) {
+    // we need to handle equals signs here,
+    // because of the way pandoc handles optional arguments
+    // see #7868 and #7908.
+    const equalSignIndex = arg.indexOf("=");
+    if (arg.startsWith("--") && equalSignIndex > 0) {
+      argsStack.unshift(arg.slice(equalSignIndex + 1));
+      arg = arg.slice(0, equalSignIndex);
+    }
     switch (arg) {
       case "-t":
       case "--to":

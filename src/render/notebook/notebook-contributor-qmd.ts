@@ -32,12 +32,12 @@ import {
 
 import * as ld from "../../core/lodash.ts";
 
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
 import { ipynbTitleTemplatePath } from "../../format/ipynb/format-ipynb.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../../deno_ral/path.ts";
 
 export const qmdNotebookContributor: NotebookContributor = {
   resolve: resolveOutputNotebook,
@@ -115,8 +115,8 @@ async function renderOutputNotebook(
   _format: Format,
   _subArticleToken: string,
   services: RenderServices,
-  _notebookMetadata?: NotebookMetadata,
-  _project?: ProjectContext,
+  _notebookMetadata: NotebookMetadata | undefined,
+  project: ProjectContext,
 ): Promise<RenderedFile> {
   const rendered = await renderFile(
     { path: nbPath, formats: ["ipynb"] },
@@ -137,7 +137,8 @@ async function renderOutputNotebook(
       quietPandoc: true,
     },
     services,
-    //project,
+    project,
+    false, // Don't enforce project constraints on format since this is an intermediary rendering
   );
 
   // An error occurred rendering this subarticle

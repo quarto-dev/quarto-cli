@@ -5,14 +5,16 @@
  */
 
 import * as ld from "../../core/lodash.ts";
-import { dirname, join, relative, resolve } from "path/mod.ts";
-import { warning } from "log/mod.ts";
+import { dirname, join, relative, resolve } from "../../deno_ral/path.ts";
+import { warning } from "../../deno_ral/log.ts";
 
 import { parseModule } from "observablehq/parser";
+import { escape } from "../../core/lodash.ts";
 
 import { Format, kDependencies } from "../../config/types.ts";
 import { MappedExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import {
+  kCodeSummary,
   kEmbedResources,
   kIncludeAfterBody,
   kIncludeInHeader,
@@ -81,13 +83,15 @@ import { getDivAttributes } from "../../core/handlers/base.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { executeInlineCodeHandlerMapped } from "../../core/execute-inline.ts";
 
+import { encodeBase64 } from "encoding/base64.ts";
+
 export interface OjsCompileOptions {
   source: string;
   format: Format;
   markdown: MappedString;
   libDir: string;
   temp: TempContext;
-  project?: ProjectContext;
+  project: ProjectContext;
   ojsBlockLineNumbers: number[];
 }
 
@@ -149,7 +153,7 @@ export async function ojsCompile(
     return { markdown: markdown };
   }
 
-  const projDir = project?.dir;
+  const projDir = project.isSingleFile ? undefined : project.dir;
   const selfContained = options.format.pandoc?.[kSelfContained] ??
     options.format.pandoc?.[kEmbedResources] ?? false;
   const isHtmlMarkdown = isMarkdownOutput(options.format, [
@@ -295,7 +299,7 @@ export async function ojsCompile(
         );
         ojsParseError(err, cellSrc);
 
-        const preDiv = pandocBlock("````")({
+        const preDiv = pandocCode({
           classes: ["numberLines", "java"],
           attrs: [
             `startFrom="${cellStartingLoc - 1}"`,
@@ -501,6 +505,12 @@ export async function ojsCompile(
         srcAttrs.push(`${kCodeFold}="${cell.options?.[kCodeFold]}"`);
       }
 
+      if (cell.options?.[kCodeSummary]) {
+        srcAttrs.push(
+          `${kCodeSummary}="${escape(cell.options?.[kCodeSummary])}"`,
+        );
+      }
+
       if (cell.options?.[kCodeLineNumbers]) {
         srcAttrs.push(
           `${kCodeLineNumbers}="${cell.options?.[kCodeLineNumbers]}"`,
@@ -533,7 +543,7 @@ export async function ojsCompile(
           `startFrom="${cellStartingLoc - 1}"`,
           `source-offset="${cell.sourceOffset}"`,
         );
-        const srcDiv = pandocBlock("````")({
+        const srcDiv = pandocCode({
           classes: ourClasses,
           attrs: ourAttrs,
         });
@@ -816,7 +826,7 @@ export async function ojsCompile(
   // script to append
   const afterBody = [
     `<script type="ojs-module-contents">`,
-    JSON.stringify({ contents: moduleContents }),
+    encodeBase64(JSON.stringify({ contents: moduleContents })),
     `</script>`,
     `<script type="module">`,
     ...scriptContents,

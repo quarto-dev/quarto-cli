@@ -5,16 +5,14 @@ keep-tex: true
 crossref:
   custom:
     - kind: float
-      prefix: Diagram
-      name: Diagram
-      ref-type: dia
+      key: dia
+      reference-prefix: Diagram
       latex-env: diagram
       latex-list-of-file-extension: lod
     - kind: float
-      prefix: Table S
+      key: supptbl
+      reference-prefix: Table S
       space-before-numbering: false
-      name: Table S
-      ref-type: supptbl
       latex-env: supptbl
       latex-list-of-file-extension: lost
       latex-list-of-description: Supplementary Table

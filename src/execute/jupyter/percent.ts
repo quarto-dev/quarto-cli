@@ -4,7 +4,7 @@
  * Copyright (C) 2020-202 Posit Software, PBC
  */
 
-import { extname } from "path/mod.ts";
+import { extname } from "../../deno_ral/path.ts";
 
 import { lines } from "../../core/text.ts";
 import { trimEmptyLines } from "../../core/lib/text.ts";

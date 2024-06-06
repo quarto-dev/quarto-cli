@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../deno_ral/path.ts";
 
 import * as ld from "../core/lodash.ts";
 
@@ -22,31 +22,28 @@ import {
 } from "../command/render/resources.ts";
 import { kLocalDevelopment, quartoConfig } from "../core/quarto.ts";
 
-import { ProjectConfig, ProjectFiles } from "../project/types.ts";
 import { cssFileResourceReferences } from "../core/css.ts";
-import { projectExcludeDirs } from "../project/project-shared.ts";
+import {
+  projectExcludeDirs,
+  projectResolveCodeCellsForFile,
+} from "../project/project-shared.ts";
 import { normalizePath, safeExistsSync } from "../core/path.ts";
 import { kExtensionDir } from "../extension/constants.ts";
 import { extensionFilesFromDirs } from "../extension/extension.ts";
+import { withRenderServices } from "../command/render/render-services.ts";
+import { notebookContext } from "../render/notebook/notebook-context.ts";
+import { RenderServices } from "../command/render/types.ts";
+import { singleFileProjectContext } from "../project/types/single-file/single-file.ts";
 
-export interface InspectedConfig {
-  quarto: {
-    version: string;
-  };
-  engines: string[];
-}
-
-export interface InspectedProjectConfig extends InspectedConfig {
-  dir: string;
-  config: ProjectConfig;
-  files: ProjectFiles;
-}
-
-export interface InspectedDocumentConfig extends InspectedConfig {
-  formats: Record<string, Format>;
-  resources: string[];
-  project?: InspectedProjectConfig;
-}
+import {
+  InspectedConfig,
+  InspectedDocumentConfig,
+  InspectedFile,
+  InspectedProjectConfig,
+} from "./inspect-types.ts";
+import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
+import { validateDocumentFromSource } from "../core/schema/validate-document.ts";
+import { error } from "../deno_ral/log.ts";
 
 export function isProjectConfig(
   config: InspectedConfig,
@@ -73,11 +70,33 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
     version = "99.9.9";
   }
 
+  const nbContext = notebookContext();
   // get project context (if any)
-  const context = await projectContext(path);
+  const context = await projectContext(path, nbContext);
 
-  const inspectedProjectConfig = () => {
+  const inspectedProjectConfig = async () => {
     if (context?.config) {
+      const fileInformation: Record<string, InspectedFile> = {};
+      for (const file of context.files.input) {
+        const engine = await fileExecutionEngine(file, undefined, context);
+        const src = await context.resolveFullMarkdownForFile(engine, file);
+        if (engine) {
+          const errors = await validateDocumentFromSource(
+            src,
+            engine.name,
+            error,
+          );
+          if (errors.length) {
+            throw new Error(`${path} is not a valid Quarto input document`);
+          }
+        }
+
+        await projectResolveCodeCellsForFile(context, engine, file);
+        fileInformation[file] = {
+          includeMap: context.fileInformationCache.get(file)?.includeMap ?? [],
+          codeCells: context.fileInformationCache.get(file)?.codeCells ?? [],
+        };
+      }
       const config: InspectedProjectConfig = {
         quarto: {
           version,
@@ -86,6 +105,7 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
         engines: context.engines,
         config: context.config,
         files: context.files,
+        fileInformation,
       };
       return config;
     } else {
@@ -95,21 +115,39 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
 
   const stat = Deno.statSync(path);
   if (stat.isDirectory) {
-    const config = inspectedProjectConfig();
+    const config = await inspectedProjectConfig();
     if (config) {
       return config;
     } else {
-      throw new Error(`${path} is not a quarto project.`);
+      throw new Error(`${path} is not a Quarto project.`);
     }
   } else {
-    const engine = fileExecutionEngine(path);
+    const project = await projectContext(path, nbContext) ||
+      singleFileProjectContext(path, nbContext);
+    const engine = await fileExecutionEngine(path, undefined, project);
     if (engine) {
       // partition markdown
       const partitioned = await engine.partitionedMarkdown(path);
 
       // get formats
-      const context = await projectContext(path);
-      const formats = await renderFormats(path, "all", context);
+      const context = (await projectContext(path, nbContext)) ||
+        singleFileProjectContext(path, nbContext);
+      const src = await context.resolveFullMarkdownForFile(engine, path);
+      if (engine) {
+        const errors = await validateDocumentFromSource(
+          src,
+          engine.name,
+          error,
+        );
+        if (errors.length) {
+          throw new Error(`${path} is not a valid Quarto input document`);
+        }
+      }
+      const formats = await withRenderServices(
+        nbContext,
+        (services: RenderServices) =>
+          renderFormats(path!, services, "all", context),
+      );
 
       // accumulate resources from formats then resolve them
       const resourceConfig: string[] = Object.values(formats).reduce(
@@ -151,6 +189,10 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
         );
       }
 
+      await context.resolveFullMarkdownForFile(engine, path);
+      await projectResolveCodeCellsForFile(context, engine, path);
+      const fileInformation = context.fileInformationCache.get(path);
+
       // data to write
       const config: InspectedDocumentConfig = {
         quarto: {
@@ -159,11 +201,17 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
         engines: [engine.name],
         formats,
         resources,
+        fileInformation: {
+          [path]: {
+            includeMap: fileInformation?.includeMap ?? [],
+            codeCells: fileInformation?.codeCells ?? [],
+          },
+        },
       };
 
       // if there is a project then add it
       if (context?.config) {
-        config.project = inspectedProjectConfig();
+        config.project = await inspectedProjectConfig();
       }
       return config;
     } else {

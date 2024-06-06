@@ -1,0 +1,3 @@
+- `QUARTO_PROJECT_ROOT` points to the root of the project, or the directory of the file is not in project mode
+- `QUARTO_DOCUMENT_PATH` points to the directory of the document being rendered
+- `QUARTO_PROFILE` is set to profile used, e.g `QUARTO_PROFILE=advanced,production` for `quarto render --profile advanced,production`

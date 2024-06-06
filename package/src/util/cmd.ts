@@ -5,7 +5,7 @@
 *
 */
 
-import { debug, error, info } from "log/mod.ts";
+import { debug, error, info } from "../../../src/deno_ral/log.ts";
 
 export interface CmdResult {
   status: Deno.ProcessStatus;

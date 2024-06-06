@@ -6,6 +6,7 @@
 
 import {
   HandlerContextResults,
+  IncludeState,
   LanguageCellHandlerContext,
   LanguageCellHandlerOptions,
   LanguageHandler,
@@ -27,7 +28,12 @@ import {
   optionCommentPatternFromLanguage,
 } from "../lib/partition-cell-options.ts";
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
-import { pandocBlock, pandocList, pandocRawStr } from "../pandoc/codegen.ts";
+import {
+  pandocCode,
+  pandocDiv,
+  pandocList,
+  pandocRawStr,
+} from "../pandoc/codegen.ts";
 
 import {
   kCapLoc,
@@ -61,13 +67,25 @@ import {
   kTblCapLoc,
 } from "../../config/constants.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
-import { basename, dirname, join, relative, resolve } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  join,
+  relative,
+  resolve,
+} from "../../deno_ral/path.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { mappedStringFromFile } from "../mapped-text.ts";
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { withCriClient } from "../cri/cri.ts";
 import { normalizePath } from "../path.ts";
+import {
+  InvalidShortcodeError,
+  isBlockShortcode,
+} from "../lib/parse-shortcode.ts";
+import { standaloneInclude } from "./include-standalone.ts";
+import { LocalizedError } from "../lib/located-error.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
 
@@ -205,7 +223,9 @@ function makeHandlerContext(
     },
     resolvePath(path: string): string {
       const sourceDir = dirname(options.context.target.source);
-      const rootDir = options.context.project?.dir || sourceDir;
+      const rootDir = options.context.project.isSingleFile
+        ? sourceDir
+        : options.context.project.dir;
       if (path.startsWith("/")) {
         // it's a root-relative path
         return resolve(rootDir, `.${path}`);
@@ -309,6 +329,89 @@ export function install(handler: LanguageHandler) {
   if (handler.comment !== undefined) {
     addLanguageComment(language, handler.comment);
   }
+}
+
+const processMarkdownIncludes = async (
+  newCells: MappedString[],
+  options: LanguageCellHandlerOptions,
+  filename?: string,
+) => {
+  const includeHandler = makeHandlerContext(options);
+
+  if (!includeHandler.context.options.state) {
+    includeHandler.context.options.state = {};
+  }
+  if (!includeHandler.context.options.state.include) {
+    includeHandler.context.options.state.include = {
+      includes: [],
+    };
+  }
+  const includeState = includeHandler.context.options
+    .state
+    .include as IncludeState;
+
+  // search for include shortcodes in the cell content
+  for (let i = 0; i < newCells.length; ++i) {
+    if (
+      newCells[i].value.search(/\s*```\s*{\s*shortcodes\s*=\s*false\s*}/) !== -1
+    ) {
+      continue;
+    }
+    const lines = mappedLines(newCells[i], true);
+    let foundShortcodes = false;
+    for (let j = 0; j < lines.length; ++j) {
+      try {
+        const shortcode = isBlockShortcode(lines[j].value);
+        if (shortcode && shortcode.name === "include") {
+          foundShortcodes = true;
+          const param = shortcode.params[0];
+          if (!param) {
+            throw new Error("Include directive needs filename as a parameter");
+          }
+          if (filename) {
+            includeState.includes.push({ source: filename, target: param });
+          }
+          lines[j] = await standaloneInclude(includeHandler.context, param);
+        }
+      } catch (e) {
+        if (e instanceof InvalidShortcodeError) {
+          const mapResult = newCells[i].map(newCells[i].value.indexOf("{"));
+          throw new LocalizedError(
+            "Invalid Shortcode",
+            e.message,
+            mapResult!.originalString,
+            mapResult!.index,
+          );
+        } else {
+          throw e;
+        }
+      }
+    }
+    if (foundShortcodes) {
+      newCells[i] = mappedConcat(lines);
+    }
+  }
+};
+
+export async function expandIncludes(
+  markdown: MappedString,
+  options: LanguageCellHandlerOptions,
+  filename: string,
+): Promise<MappedString> {
+  const mdCells = (await breakQuartoMd(markdown, false)).cells;
+  if (mdCells.length === 0) {
+    return markdown;
+  }
+  const newCells: MappedString[] = [];
+  for (let i = 0; i < mdCells.length; ++i) {
+    const cell = mdCells[i];
+    newCells.push(
+      i === 0 ? cell.sourceVerbatim : mappedConcat(["\n", cell.sourceVerbatim]),
+    );
+  }
+
+  await processMarkdownIncludes(newCells, options, filename);
+  return mappedJoin(newCells, "");
 }
 
 export async function handleLanguageCells(
@@ -438,6 +541,11 @@ export async function handleLanguageCells(
       }
     }
   }
+
+  // now handle the markdown content. This is necessary specifically for
+  // include shortcodes that can still be hiding inside of code blocks
+  await processMarkdownIncludes(newCells, options);
+
   return {
     markdown: mappedJoin(newCells, ""),
     results,
@@ -537,6 +645,9 @@ export const baseHandler: LanguageHandler = {
     }
     const inputLines = contentLines.slice(inputIndex);
     const { classes, attrs } = getDivAttributes({
+      ...({
+        [kFigAlign]: handlerContext.options.format.render[kFigAlign],
+      }),
       ...(extraCellOptions || {}),
       ...cell.options,
     }, skipOptions);
@@ -551,12 +662,9 @@ export const baseHandler: LanguageHandler = {
 
     const unrolledOutput = isPowerpointOutput && !hasLayoutAttributes;
 
-    const t3 = pandocBlock("```");
-    const t4 = pandocBlock("````");
-
     const cellBlock = unrolledOutput
       ? pandocList({ skipFirstLineBreak: true })
-      : pandocBlock(":::")({
+      : pandocDiv({
         classes: ["cell", ...classes],
         attrs,
       });
@@ -589,7 +697,7 @@ export const baseHandler: LanguageHandler = {
 
     switch (options.echo) {
       case true: {
-        const cellInput = t3({
+        const cellInput = pandocCode({
           classes: cellInputClasses,
           attrs: cellInputAttrs,
         });
@@ -598,11 +706,11 @@ export const baseHandler: LanguageHandler = {
         break;
       }
       case "fenced": {
-        const cellInput = t4({
+        const cellInput = pandocCode({
           classes: ["markdown", ...cellInputClasses.slice(1)], // replace the language class with markdown
           attrs: cellInputAttrs,
         });
-        const cellFence = t3({
+        const cellFence = pandocCode({
           language: this.languageName,
           skipFirstLineBreak: true,
         });
@@ -617,7 +725,7 @@ export const baseHandler: LanguageHandler = {
       }
     }
 
-    const divBlock = pandocBlock(":::");
+    const divBlock = pandocDiv;
 
     // PandocNodes ignore self-pushes (n.push(n))
     // this makes it much easier to write the logic around "unrolled blocks"
@@ -629,11 +737,9 @@ export const baseHandler: LanguageHandler = {
 
     cellBlock.push(cellOutputDiv);
 
-    let figureLikeOptions: Record<string, string> = {};
+    const figureLikeOptions: Record<string, unknown> = {};
     if (typeof cell.options?.label === "string") {
-      figureLikeOptions = {
-        id: cell.options?.label,
-      };
+      figureLikeOptions.id = cell.options?.label;
     }
     const figureLike = unrolledOutput ? cellBlock : divBlock(figureLikeOptions);
     const cellOutput = unrolledOutput ? cellBlock : divBlock();
@@ -645,9 +751,26 @@ export const baseHandler: LanguageHandler = {
       cellOutput.push(pandocRawStr(content));
     }
     if (cell.options?.[kCellFigCap]) {
+      // this is a hack to get around that if we have a figure caption but no label,
+      // nothing in our pipeline will recognize the caption and emit
+      // a figcaption element.
+      //
+      // necessary for https://github.com/quarto-dev/quarto-cli/issues/4376
+      let capOpen = "", capClose = "";
+      if (cell.options?.label === undefined) {
+        capOpen = "`<figcaption>`{=html} ";
+        capClose = "`</figcaption>`{=html} ";
+      }
+
       figureLike.push(
-        pandocRawStr(`\n\n${cell.options[kCellFigCap] as string}`),
+        pandocRawStr(
+          `\n\n${capOpen}${cell.options[kCellFigCap] as string}${capClose}`,
+        ),
       );
+    }
+    if (cell.options?.label === undefined) {
+      figureLike.unshift(pandocRawStr("`<figure class=''>`{=html}\n"));
+      figureLike.push(pandocRawStr("`</figure>`{=html}\n"));
     }
 
     return cellBlock.mappedString();
@@ -702,6 +825,9 @@ export function getDivAttributes(
   for (const [key, value] of Object.entries(options || {})) {
     if (!keysToNotSerialize.has(key)) {
       const t = typeof value;
+      if (t === "undefined") {
+        continue;
+      }
       if (t === "object") {
         attrs.push(`${key}="${JSON.stringify(value)}"`);
       } else if (t === "string") {
@@ -711,7 +837,9 @@ export function getDivAttributes(
       } else if (t === "boolean") {
         attrs.push(`${key}=${value}`);
       } else {
-        throw new Error(`Can't serialize yaml metadata value of type ${t}`);
+        throw new Error(
+          `Can't serialize yaml metadata value of type ${t}, key ${key}`,
+        );
       }
     }
   }

@@ -5,7 +5,7 @@
 *
 */
 
-import { basename, dirname, extname, join } from "path/mod.ts";
+import { basename, dirname, extname, join } from "../src/deno_ral/path.ts";
 import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
 import { kMetadataFormat, kOutputExt } from "../src/config/constants.ts";
 
@@ -36,6 +36,9 @@ export function outputForInput(
   if (to === "confluence-publish") {
     ext = "xml";
   }
+  if (to === "docusaurus-md") {
+    ext = "mdx";
+  }
 
   
   const formatDesc = parseFormatString(to);
@@ -51,7 +54,7 @@ export function outputForInput(
     outputExt = ext 
   } else {
     outputExt = baseFormat || "html";
-    if (baseFormat === "latex" || baseFormat == "context") {
+    if (baseFormat === "latex" || baseFormat == "context" || baseFormat == "beamer") {
       outputExt = "tex";
     }
     if (baseFormat === "revealjs") {
@@ -76,6 +79,9 @@ export function outputForInput(
       outputExt = "pdf";
     }
     if (baseFormat === "dashboard") {
+      outputExt = "html";
+    }
+    if (baseFormat === "email") {
       outputExt = "html";
     }
   }

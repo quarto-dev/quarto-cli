@@ -5,9 +5,8 @@
 *
 */
 
-import { toFileUrl } from "path/mod.ts";
+import { toFileUrl, join } from "../../deno_ral/path.ts";
 import { resourcePath } from "../resources.ts";
-import { join } from "path/mod.ts";
 import { initTreeSitter } from "./deno-init-tree-sitter.ts";
 import { initYamlIntelligence } from "../lib/yaml-intelligence/yaml-intelligence.ts";
 

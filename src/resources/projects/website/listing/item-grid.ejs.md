@@ -46,7 +46,7 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 <% if (item.image) { %>
 
 <p class="card-img-top">
-<%= listing.utilities.img(itemNumber, item.image, "thumbnail-image card-img", item['image-alt']) %>
+<%= listing.utilities.img(itemNumber, item.image, "thumbnail-image card-img", item['image-alt'], item['image-lazy-loading'] ?? listing['image-lazy-loading']) %>
 </p>
 <% } else { %>
 <%= listing.utilities.imgPlaceholder(itemNumber, item.outputHref) %>

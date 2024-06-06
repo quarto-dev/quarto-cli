@@ -1,0 +1,28 @@
+---
+format: html
+htmllink: "https://www.example.com"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "h2[data-background-iframe='https://www.example.com']"
+          - "a[data-attr='https://www.example.com']"
+          - "span#foo[data-attr='https://www.example.com']"
+          - "div#div-1[data-attr='https://www.example.com']"
+        - []
+---
+
+## Slide Title {background-iframe='{{< meta htmllink >}}'}
+
+[A link]({{< meta htmllink >}}){attr='{{< meta htmllink >}}'}.
+
+![An image]({{< placeholder >}}){attr='{{< meta htmllink >}}'}
+
+[A span]{#foo attr='{{< meta htmllink >}}'}.
+
+::: {#div-1 attr='{{< meta htmllink >}}'}
+
+A div.
+
+:::

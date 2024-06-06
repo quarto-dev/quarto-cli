@@ -126,7 +126,7 @@
     short: Places footnote references or superscripted numerical citations after following punctuation.
     long: |
       If true (the default for note styles), Quarto (via Pandoc) will put footnote references or superscripted numerical citations after 
-      following punctuation. For example, if the source contains blah blah [@jones99]., the result will look like blah blah.[^1], with 
+      following punctuation. For example, if the source contains `blah blah [@jones99]`., the result will look like `blah blah.[^1]`, with 
       the note moved after the period and the space collapsed. 
 
       If false, the space will still be collapsed, but the footnote will not be moved after the punctuation. The option may also be used 

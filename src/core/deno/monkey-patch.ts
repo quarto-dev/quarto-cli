@@ -4,7 +4,7 @@
  * Copyright (C) 2022-2023 Posit Software, PBC
  */
 
-import { debug } from "log/mod.ts";
+import { debug } from "../../deno_ral/log.ts";
 import { normalizePath } from "../path.ts";
 
 // Window UNC paths can be mishandled by realPathSync

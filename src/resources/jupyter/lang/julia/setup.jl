@@ -1,4 +1,5 @@
 import IJulia
+import Base64
 
 # The julia kernel has built in support for Revise.jl, so this is the 
 # recommended approach for long-running sessions:
@@ -10,10 +11,10 @@ import IJulia
 # clear console history
 IJulia.clear_history()
 
-fig_width = {0}
-fig_height = {1}
-fig_format = :{2}
-fig_dpi = {3}
+fig_width = {fig_width}
+fig_height = {fig_height}
+fig_format = :{fig_format}
+fig_dpi = {fig_dpi}
 
 # no retina format type, use svg for high quality type/marks
 if fig_format == :retina
@@ -46,8 +47,15 @@ end
 # Initialize CairoMakie with default fig width/height
 try
   import CairoMakie
-  
-  CairoMakie.activate!(type = string(fig_format))
+
+  # CairoMakie's display() in PDF format opens an interactive window
+  # instead of saving to the ipynb file, so we don't do that.
+  # https://github.com/quarto-dev/quarto-cli/issues/7548
+  if fig_format == :pdf
+    CairoMakie.activate!(type = "png")
+  else
+    CairoMakie.activate!(type = string(fig_format))
+  end
   CairoMakie.update_theme!(resolution=(fig_width, fig_height))
 catch e
     # @warn "CairoMakie init" exception=(e, catch_backtrace())
@@ -55,8 +63,9 @@ end
   
 # Set run_path if specified
 try
-  run_path = raw"{4}"
+  run_path = "{run_path}"
   if !isempty(run_path)
+    run_path = String(Base64.base64decode(run_path))
     cd(run_path)
   end
 catch e

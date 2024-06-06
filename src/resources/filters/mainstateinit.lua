@@ -19,7 +19,7 @@ quarto_global_state = {
 }
 
 crossref = {
-  usingTheorems = false,
+  using_theorems = false,
   startAppendix = nil,
 
   -- initialize autolabels table
@@ -32,7 +32,7 @@ crossref = {
   categories = {
     all = {
       {
-        default_caption_location = "bottom",
+        caption_location = "bottom",
         kind = "float",
         name = "Figure",
         prefix = "Figure",
@@ -40,7 +40,7 @@ crossref = {
         ref_type = "fig",
       },
       {
-        default_caption_location = "top",
+        caption_location = "top",
         kind = "float",
         name = "Table",
         prefix = "Table",
@@ -48,7 +48,7 @@ crossref = {
         ref_type = "tbl",
       },
       {
-        default_caption_location = "top",
+        caption_location = "top",
         kind = "float",
         name = "Listing",
         prefix = "Listing",
@@ -87,10 +87,29 @@ crossref = {
         prefix = "Important",
         ref_type = "imp", -- this will look weird but we decided to do it for consistency with the original callout types
       },
+
+      -- proof envs
+      {
+        kind = "Block",
+        name = "Proof",
+        prefix = "Proof",
+        ref_type = "prf",
+      },
+      {
+        kind = "Block",
+        name = "Remark",
+        prefix = "Remark",
+        ref_type = "rem",
+      },
+      {
+        kind = "Block",
+        name = "Solution",
+        prefix = "Solution",
+        ref_type = "sol",
+      },
     }
     
-    -- eventually we'll have other block kinds here
-    -- with theorem and proof envs
+    -- eventually we'll have other block kinds here, specifically theorem envs
 
     -- eventually we'll have inline kinds here
     -- with equation refs

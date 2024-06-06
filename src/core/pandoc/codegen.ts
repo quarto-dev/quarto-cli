@@ -1,11 +1,10 @@
 /*
-* codegen.ts
-*
-* A minimal API to build pandoc markdown text.
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * codegen.ts
+ *
+ * A minimal API to build pandoc markdown text.
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 /* We should really be using Pandoc's AST here
  */
@@ -21,6 +20,7 @@ export interface PandocNode {
   emit: (s: EitherString[]) => void;
   mappedString: () => MappedString;
   push: (n: PandocNode) => void;
+  unshift: (n: PandocNode) => void;
 }
 
 const basePandocNode = {
@@ -33,6 +33,9 @@ const basePandocNode = {
     return mappedConcat(ls);
   },
   push: () => {
+    throw new Error("unimplemented");
+  },
+  unshift: () => {
     throw new Error("unimplemented");
   },
 };
@@ -84,6 +87,11 @@ export function pandocHtmlBlock(elementName: string) {
           contents!.push(s);
         }
       },
+      unshift: function (s: PandocNode) {
+        if (this !== s) {
+          contents!.unshift(s);
+        }
+      },
       emit: function (ls: EitherString[]) {
         ls.push(`\n<${elementName} ${attrString()}>`);
         if (elementName !== "pre") {
@@ -115,6 +123,11 @@ export function pandocList(opts: {
         contents!.push(s);
       }
     },
+    unshift: function (s: PandocNode) {
+      if (this !== s) {
+        contents!.unshift(s);
+      }
+    },
     emit: function (ls: EitherString[]) {
       const lb = skipFirstLineBreak ? "" : "\n";
       ls.push(`${lb}\n`);
@@ -129,7 +142,7 @@ export function pandocList(opts: {
   };
 }
 
-export function pandocBlock(delimiter: string) {
+export function pandocBlock(delimiterCharacter: ":" | "`") {
   return function (
     opts?: {
       language?: string;
@@ -178,22 +191,67 @@ export function pandocBlock(delimiter: string) {
           contents!.push(s);
         }
       },
+      unshift: function (s: PandocNode) {
+        if (this !== s) {
+          contents!.unshift(s);
+        }
+      },
       emit: function (ls: EitherString[]) {
+        const innerLs: EitherString[] = [];
         const lb = skipFirstLineBreak ? "" : "\n";
-        ls.push(`${lb}${delimiter}${attrString()}\n`);
+
         for (const entry of contents!) {
-          entry.emit(ls);
+          entry.emit(innerLs);
         }
-        if (!asMappedString(ls[ls.length - 1] || "\n").value.endsWith("\n")) {
-          ls.push(`\n`);
+        if (
+          !asMappedString(innerLs[innerLs.length - 1] || "\n").value.endsWith(
+            "\n",
+          )
+        ) {
+          innerLs.push(`\n`);
         }
+
+        // now find the longest streak of delimiter characters in the innerLs
+        const longestStreak = Math.max(...innerLs.map((eitherS) => {
+          const s = asMappedString(eitherS).value;
+          return s.match(new RegExp(`${delimiterCharacter}+`, "g"))?.[0]
+            ?.length || 0;
+        }));
+        const delimiter = delimiterCharacter.repeat(
+          Math.max(3, longestStreak + 1),
+        );
+        ls.push(`${lb}${delimiter}${attrString()}\n`);
+
+        // FIXME this will incur a runtime of eventually O(n * m) where n is the number of lines and m is the depth of
+        // the PandocNode tree.
+        ls.push(...innerLs);
+
         ls.push(`${delimiter}\n`);
       },
     };
   };
 }
 
-export const pandocDiv = pandocBlock(":::");
-export const pandocCode = pandocBlock("```");
+export function pandocNativeStr(content: string): PandocNode {
+  return {
+    ...basePandocNode,
+    emit: (ls: EitherString[]) => {
+      const maxBackticks = content.match(/`+/g)?.[0].length || 0;
+      const backticks = "`".repeat(maxBackticks + 1);
+      const escapedContent = content
+        .replaceAll(
+          '"',
+          '\\"',
+        )
+        .replaceAll("\n", "\\n");
+      ls.push(
+        `${backticks}${'Str "'}${escapedContent}${'"'}${backticks}{=pandoc-native}`,
+      );
+    },
+  };
+}
+
+export const pandocDiv = pandocBlock(":");
+export const pandocCode = pandocBlock("`");
 export const pandocFigure = pandocHtmlBlock("figure");
 export const pandocFigCaption = pandocHtmlBlock("figcaption");

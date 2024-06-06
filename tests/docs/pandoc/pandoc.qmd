@@ -1,0 +1,103 @@
+---
+title: A Pandoc document with every possible element
+---
+
+A "Pandoc Pandoc", if you will.
+
+## Header
+
+**bold** *italic* ~~strikethrough~~ `code` ^superscript^ ~subscript~
+
+[A span]{}
+
+::: {}
+
+A div
+
+:::
+
+- A bulleted list
+- Another item
+
+A linebreak\
+to another line.
+
+> A BlockQuote of text.
+
+"Quoted" text.
+
+A math literal: $e = mc^2$.
+
+Display math:
+
+[A link](https://example.com)
+
+An image:
+
+![](http://placeholder.co/400/400)
+
+A table:
+
+| foo | bar | baz | bah |
+|----:|:---:|:----|-----|
+|  1  |  2  |  3  |  4  |
+
+A codeblock:
+
+```python
+print("Hi")
+```
+
+A definition list:
+
+Term 1
+
+:   Definition 1
+
+Term 2
+
+:   Definition 2
+
+![A figure (because of a caption)](https://placeholder.co/400/400)
+
+A horizontal rule:
+
+---
+
+A line block:
+
+| The limerick packs laughs anatomical
+| In space that is quite economical.
+|    But the good ones I've seen
+|    So seldom are clean
+| And the clean ones so seldom are comical
+
+An ordered list:
+
+1. One
+2. Two
+
+A paragraph.
+
+A raw block:
+
+```{=a-nonexisting-format}
+Some stuff that will be ignored by every writer
+```
+
+A raw inline: `Some stuff that will be ignored by every writer`{=a-non-existing-format}
+
+A footnote reference[^1].
+
+[^1]: Here is the footnote.
+
+## TODO
+
+- Cite
+
+For now, we use Quarto's pandoc-native trick to get those:
+
+- `Underline [Str "underlined"]`{=pandoc-native}
+- `SmallCaps [Str "smallcaps"]`{=pandoc-native}
+- A softbreak here `SoftBreak`{=pandoc-native} and the rest
+- Cite: `Cite [Citation {citationId = "citation-1", citationPrefix=[], citationSuffix=[], citationMode = NormalCitation, citationNoteNum=0,citationHash=0}] []`{=pandoc-native}

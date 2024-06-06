@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, dirname, join } from "path/mod.ts";
+import { basename, dirname, join } from "../../deno_ral/path.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -35,7 +35,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { insecureHash } from "../../core/hash.ts";
 
-export function writeDependencies(
+export async function writeDependencies(
   dependenciesFile: string,
   extras: FormatExtras,
 ) {
@@ -48,7 +48,7 @@ export function writeDependencies(
         };
       });
 
-    appendDependencies(dependenciesFile, dependencies);
+    await appendDependencies(dependenciesFile, dependencies);
   }
 }
 

@@ -59,7 +59,7 @@ export interface RenderContext {
   engine: ExecutionEngine;
   format: Format;
   libDir: string;
-  project?: ProjectContext;
+  project: ProjectContext;
   active: boolean;
 }
 

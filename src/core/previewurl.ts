@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
-import { info } from "log/mod.ts";
+import { info } from "../deno_ral/log.ts";
 import * as colors from "fmt/colors.ts";
 
 import {

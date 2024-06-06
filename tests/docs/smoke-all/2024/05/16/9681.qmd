@@ -1,0 +1,35 @@
+---
+title: No blank slides after HTML tables processed
+format: pptx
+_quarto:
+  tests:
+    pptx:
+      ensurePptxMaxSlides:
+        - 2
+---
+
+## Newlines in raw block are kept as HTML rawblock 
+
+`````{=html}
+<table>
+ <thead>
+  <tr>
+   <th style="text-align:right;"> Sepal.Length </th>
+   <th style="text-align:right;"> Sepal.Width </th>
+   <th style="text-align:right;"> Petal.Length </th>
+   <th style="text-align:right;"> Petal.Width </th>
+   <th style="text-align:left;"> Species </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:right;"> 5.1 </td>
+   <td style="text-align:right;"> 3.5 </td>
+   <td style="text-align:right;"> 1.4 </td>
+   <td style="text-align:right;"> 0.2 </td>
+   <td style="text-align:left;"> setosa </td>
+  </tr>
+</tbody>
+</table>
+
+`````

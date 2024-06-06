@@ -6,7 +6,7 @@
 
 import { existsSync, walkSync } from "fs/mod.ts";
 import { expandGlobSync } from "../core/deno/expand-glob.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../deno_ral/log.ts";
 import { coerce, Range, satisfies } from "semver/mod.ts";
 
 import {
@@ -14,11 +14,22 @@ import {
   ProjectConfig,
   ProjectContext,
 } from "../project/types.ts";
-import { isSubdir } from "fs/_util.ts";
+import { isSubdir } from "fs/_is_subdir.ts";
 
-import { dirname, isAbsolute, join, normalize, relative } from "path/mod.ts";
+import {
+  dirname,
+  isAbsolute,
+  join,
+  normalize,
+  relative,
+} from "../deno_ral/path.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
-import { kSkipHidden, normalizePath, resolvePathGlobs } from "../core/path.ts";
+import {
+  kSkipHidden,
+  normalizePath,
+  resolvePathGlobs,
+  safeExistsSync,
+} from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
 import { projectType } from "../project/types/project-types.ts";
 import { mergeConfigs } from "../core/config.ts";
@@ -48,7 +59,7 @@ import {
 import { cloneDeep } from "../core/lodash.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { getExtensionConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
-import { projectIgnoreGlobs } from "../project/project-shared.ts";
+import { projectIgnoreGlobs } from "../execute/engine.ts";
 import { ProjectType } from "../project/types/types.ts";
 import { copyResourceFile } from "../project/project-resources.ts";
 import {
@@ -59,6 +70,7 @@ import {
 import { resourcePath } from "../core/resources.ts";
 import { warnOnce } from "../core/log.ts";
 import { existsSync1 } from "../core/file.ts";
+import { kFormatResources } from "../config/constants.ts";
 
 // This is where we maintain a list of extensions that have been promoted
 // to 'built-in' status. If we see these extensions, we will filter them
@@ -139,7 +151,10 @@ export function createExtensionContext(): ExtensionContext {
 // _extensions/confluence/logo.png
 // will be copied and resolved to:
 // site_lib/quarto-contrib/quarto-project/confluence/logo.png
-export function projectExtensionPathResolver(libDir: string) {
+export function projectExtensionPathResolver(
+  libDir: string,
+  projectDir: string,
+) {
   return (href: string, projectOffset: string) => {
     const projectRelativeHref = relative(projectOffset, href);
 
@@ -149,7 +164,11 @@ export function projectExtensionPathResolver(libDir: string) {
         `${libDir}/quarto-contrib/quarto-project/`,
       );
 
-      copyResourceFile(".", projectRelativeHref, projectTargetHref);
+      copyResourceFile(
+        projectDir,
+        join(projectDir, projectRelativeHref),
+        join(projectDir, projectTargetHref),
+      );
       return join(projectOffset, projectTargetHref);
     }
 
@@ -399,7 +418,10 @@ export async function readExtensions(
   organization?: string,
 ) {
   const extensions: Extension[] = [];
-  const extensionDirs = Deno.readDirSync(extensionsDirectory);
+  const extensionDirs = safeExistsSync(extensionsDirectory) &&
+      Deno.statSync(extensionsDirectory).isDirectory
+    ? Deno.readDirSync(extensionsDirectory)
+    : [];
   for (const extensionDir of extensionDirs) {
     if (extensionDir.isDirectory) {
       const extFile = extensionFile(
@@ -505,6 +527,11 @@ export function inputExtensionDirs(input?: string, projectDir?: string) {
     if (dir) {
       extensionDirectories.push(dir);
     }
+  } else if (projectDir) {
+    const dir = extensionsDirPath(projectDir);
+    if (dir) {
+      extensionDirectories.push(dir);
+    }
   }
   return extensionDirectories;
 }
@@ -603,7 +630,7 @@ function validateExtension(extension: Extension) {
     if (contrib) {
       if (Array.isArray(contrib)) {
         contribCount = contribCount + contrib.length;
-      } else if (typeof (contrib) === "object") {
+      } else if (typeof contrib === "object") {
         contribCount = contribCount + Object.keys(contrib).length;
       }
     }
@@ -671,9 +698,9 @@ async function readExtension(
     contributes?.format as Metadata || {};
 
   // Read any embedded extension
-  const embeddedExtensions = existsSync(join(extensionDir, kExtensionDir))
-    ? await readExtensions(join(extensionDir, kExtensionDir))
-    : [];
+  const embeddedExtensions = await readExtensions(
+    join(extensionDir, kExtensionDir),
+  );
 
   // Resolve 'default' specially
   Object.keys(formats).forEach((key) => {
@@ -693,6 +720,20 @@ async function readExtension(
     );
 
     const formatMeta = formats[key] as Metadata;
+
+    if (formatMeta[kFormatResources]) {
+      // Resolve any globs in format resources
+      const resolved = resolvePathGlobs(
+        extensionDir,
+        formatMeta[kFormatResources] as string[],
+        [],
+      );
+      if (resolved.include.length > 0) {
+        formatMeta[kFormatResources] = resolved.include.map((include) => {
+          return relative(extensionDir, include);
+        });
+      }
+    }
 
     // If this is a custom writer, set the writer for the format
     // using the full path to the lua file
@@ -743,6 +784,23 @@ async function readExtension(
     },
   );
   const project = (contributes?.project || {}) as Record<string, unknown>;
+  // resolve project pre- and post-render scripts to their full path
+  if (
+    project.project &&
+    (project.project as Record<string, unknown>)["pre-render"]
+  ) {
+    const preRender =
+      (project.project as Record<string, unknown>)["pre-render"] as string[];
+    const resolved = resolvePathGlobs(
+      extensionDir,
+      preRender as string[],
+      [],
+    );
+    if (resolved.include.length > 0) {
+      (project.project as Record<string, unknown>)["pre-render"] = resolved
+        .include;
+    }
+  }
   const revealJSPlugins = ((contributes?.[kRevealJSPlugins] || []) as Array<
     string | RevealPluginBundle | RevealPlugin
   >).map((plugin) => {
@@ -774,7 +832,7 @@ function resolveRevealJSPlugin(
   dir: string,
   plugin: string | RevealPluginBundle | RevealPlugin,
 ) {
-  if (typeof (plugin) === "string") {
+  if (typeof plugin === "string") {
     // First attempt to load this plugin from an embedded extension
     const extensionId = toExtensionId(plugin);
     const extensions = findExtensions(
@@ -811,7 +869,7 @@ function resolveRevealPlugin(
   plugin: string | RevealPluginBundle | RevealPluginInline,
 ): string | RevealPluginBundle | RevealPlugin {
   // Filters are expected to be absolute
-  if (typeof (plugin) === "string") {
+  if (typeof plugin === "string") {
     return join(extensionDir, plugin);
   } else if (isPluginRaw(plugin)) {
     return resolveRevealPluginInline(plugin, extensionDir);
@@ -843,7 +901,7 @@ function resolveRevealPluginInline(
       ? plugin.script
       : [plugin.script];
     resolvedPlugin.script = pluginArr.map((plug) => {
-      if (typeof (plug) === "string") {
+      if (typeof plug === "string") {
         return {
           path: plug,
         } as RevealPluginScript;
@@ -911,7 +969,13 @@ function resolveFilter(
   dir: string,
   filter: QuartoFilter,
 ) {
-  if (typeof (filter) === "string") {
+  if (typeof filter === "string") {
+    // First check for the sentinel quarto filter, and allow that through
+    // if it is present
+    if (filter === "quarto") {
+      return filter;
+    }
+
     // First attempt to load this shortcode from an embedded extension
     const extensionId = toExtensionId(filter);
     const extensions = findExtensions(
@@ -940,7 +1004,7 @@ function resolveFilterPath(
   filter: QuartoFilter,
 ): QuartoFilter {
   // Filters are expected to be absolute
-  if (typeof (filter) === "string") {
+  if (typeof filter === "string") {
     if (isAbsolute(filter)) {
       return filter;
     } else {

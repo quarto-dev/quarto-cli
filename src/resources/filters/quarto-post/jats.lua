@@ -3,12 +3,6 @@
 local normalizeAuthors = require 'modules/authors'
 local normalizeLicense = require 'modules/license'
 
-local constants = require("modules/constants")
-
-local function isCell(el) 
-  return el.classes:includes("cell") 
-end
-
 local function jatsMeta(meta) 
   -- inspect the meta and set flags that will aide the rendering of
   -- the JATS template by providing some synthesize properties
@@ -30,15 +24,15 @@ local function jatsMeta(meta)
     local hasLicense = meta[normalizeLicense.constants.license] ~= nil
     local hasPermissions = hasCopyright or hasLicense
 
-    if meta[constants.kQuartoInternal] == nil then
-      meta[constants.kQuartoInternal] = {}
+    if meta[_quarto.modules.constants.kQuartoInternal] == nil then
+      meta[_quarto.modules.constants.kQuartoInternal] = {}
     end
-    meta[constants.kQuartoInternal][constants.kHasAuthorNotes] = hasNotes;
-    meta[constants.kQuartoInternal][constants.kHasPermissions] = hasPermissions;
+    meta[_quarto.modules.constants.kQuartoInternal][_quarto.modules.constants.kHasAuthorNotes] = hasNotes;
+    meta[_quarto.modules.constants.kQuartoInternal][_quarto.modules.constants.kHasPermissions] = hasPermissions;
 
     -- normalize keywords into tags if they're present and tags aren't
-    if meta[constants.kTags] == nil and meta[constants.kKeywords] ~= nil and meta[constants.kKeywords].t == "Table" then
-      meta[constants.kKeywords] = meta[constants.kTags]
+    if meta[_quarto.modules.constants.kTags] == nil and meta[_quarto.modules.constants.kKeywords] ~= nil and meta[_quarto.modules.constants.kKeywords].t == "Table" then
+      meta[_quarto.modules.constants.kKeywords] = meta[_quarto.modules.constants.kTags]
     end
 
     return meta
@@ -64,7 +58,7 @@ function unrollDiv(div, fnSkip)
 end
 
 function jatsCallout(node)
-  local contents = resolveCalloutContents(node, true)
+  local contents = _quarto.modules.callouts.resolveCalloutContents(node, true)
 
   local boxedStart = '<boxed-text>'
   if node.id and node.id ~= "" then
@@ -107,15 +101,7 @@ end
 function jatsSubarticle() 
 
   if _quarto.format.isJatsOutput() then
-
-    local isCodeCell = function(el) 
-      return not el.classes:includes('markdown')
-    end
-
-    local isCodeCellOutput = function(el)
-      return el.classes:includes("cell-output")
-    end
-
+   
     local ensureValidIdentifier = function(identifier) 
       -- Identifiers may not start with a digit, so add a prefix
       -- if necessary to ensure that they're valid
@@ -160,8 +146,8 @@ function jatsSubarticle()
       Div = function(div)
 
         -- this is a notebook cell, handle it
-        if isCell(div) then
-          if isCodeCell(div) then
+        if _quarto.modules.classpredicates.isCell(div) then
+          if _quarto.modules.classpredicates.isCodeCell(div) then
 
               -- if this is an executable notebook cell, walk the contents and add identifiers
               -- to the outputs
@@ -177,7 +163,7 @@ function jatsSubarticle()
               local outputEls = pandoc.List()
               local otherEls = pandoc.List()
               for i, v in ipairs(div.content) do
-                if is_regular_node(v, "Div") and isCodeCellOutput(v) then
+                if is_regular_node(v, "Div") and _quarto.modules.classpredicates.isCodeCellOutput(v) then
                   outputEls:extend({v})
                 else
                   otherEls:extend({v})
@@ -191,26 +177,26 @@ function jatsSubarticle()
               local count = 0
               div = _quarto.ast.walk(div, {
                 Div = function(childEl)
-                  if (isCodeCellOutput(childEl)) then
+                  if (_quarto.modules.classpredicates.isCodeCellOutput(childEl)) then
                     childEl.identifier = parentId .. '-output-' .. count
                     count = count + 1
-                    return renderCellOutput(childEl, constants.kNoteBookOutput)
+                    return renderCellOutput(childEl, _quarto.modules.constants.kNoteBookOutput)
                   end
                 end
               })
 
             -- render the cell
-            return renderCell(div, constants.kNoteBookCode)
+            return renderCell(div, _quarto.modules.constants.kNoteBookCode)
           else
             if #div.content == 0 then
               -- eat empty markdown cells
               return {}
             else
               -- the is a valid markdown cell, let it through              
-              return renderCell(div, constants.kNoteBookContent)
+              return renderCell(div, _quarto.modules.constants.kNoteBookContent)
             end
           end
-        elseif isCodeCellOutput(div) then
+        elseif _quarto.modules.classpredicates.isCodeCellOutput(div) then
           -- do nothing
         else
           -- Forward the identifier from a table div onto the table itself and 
@@ -222,7 +208,7 @@ function jatsSubarticle()
           else
             -- otherwise, if this is a div, we can unroll its contents
             return unrollDiv(div, function(el) 
-              return isCodeCellOutput(el) or isCell(el)
+              return _quarto.modules.classpredicates.isCodeCellOutput(el) or _quarto.modules.classpredicates.isCell(el)
             end)
           end 
 

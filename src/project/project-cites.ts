@@ -6,7 +6,7 @@
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
-import { join } from "path/mod.ts";
+import { join } from "../deno_ral/path.ts";
 import { PandocOptions } from "../command/render/types.ts";
 import { FormatPandoc } from "../config/types.ts";
 import { projectIsBook } from "./project-shared.ts";

@@ -4,12 +4,12 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "../../deno_ral/path.ts";
 import { satisfies } from "semver/mod.ts";
 
 import { existsSync } from "fs/mod.ts";
 
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -109,8 +109,8 @@ import {
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import { runExternalPreviewServer } from "../../preview/preview-server.ts";
 import { onCleanup } from "../../core/cleanup.ts";
-import { basename } from "https://deno.land/std@0.185.0/path/win32.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
+import { assert } from "testing/asserts.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -154,29 +154,36 @@ export const jupyterEngine: ExecutionEngine = {
     return false;
   },
 
+  markdownForFile(file: string): Promise<MappedString> {
+    if (isJupyterNotebook(file)) {
+      const nbJSON = Deno.readTextFileSync(file);
+      const nb = JSON.parse(nbJSON) as JupyterNotebook;
+      return Promise.resolve(asMappedString(markdownFromNotebookJSON(nb)));
+    } else if (isJupyterPercentScript(file)) {
+      return Promise.resolve(
+        asMappedString(markdownFromJupyterPercentScript(file)),
+      );
+    } else {
+      return Promise.resolve(mappedStringFromFile(file));
+    }
+  },
+
   target: async (
     file: string,
     _quiet?: boolean,
     markdown?: MappedString,
     project?: ProjectContext,
   ): Promise<ExecutionTarget | undefined> => {
+    assert(markdown);
     // at some point we'll resolve a full notebook/kernelspec
     let nb: JupyterNotebook | undefined;
+    if (isJupyterNotebook(file)) {
+      const nbJSON = Deno.readTextFileSync(file);
+      nb = JSON.parse(nbJSON) as JupyterNotebook;
+    }
 
     // cache check for percent script
     const isPercentScript = isJupyterPercentScript(file);
-
-    if (markdown === undefined) {
-      if (isJupyterNotebook(file)) {
-        const nbJSON = Deno.readTextFileSync(file);
-        nb = JSON.parse(nbJSON) as JupyterNotebook;
-        markdown = asMappedString(markdownFromNotebookJSON(nb));
-      } else if (isPercentScript) {
-        markdown = asMappedString(markdownFromJupyterPercentScript(file));
-      } else {
-        markdown = asMappedString(mappedStringFromFile(file));
-      }
-    }
 
     // get the metadata
     const metadata = readYamlFromMarkdown(markdown.value);
@@ -185,11 +192,17 @@ export const jupyterEngine: ExecutionEngine = {
     if (isQmdFile(file) || isPercentScript) {
       // write a transient notebook
       const [fileDir, fileStem] = dirAndStem(file);
-      const notebook = join(fileDir, fileStem + ".ipynb");
+      // See #4802
+      // I don't love using an extension other than .ipynb for this file,
+      // but doing something like .quarto.ipynb would require a lot
+      // of additional changes to our file handling code (without changes,
+      // our output files would be called $FILE.quarto.html, which
+      // is not what we want). So for now, we'll use .quarto_ipynb
+      const notebook = join(fileDir, fileStem + ".quarto_ipynb");
       const target = {
         source: file,
         input: notebook,
-        markdown,
+        markdown: markdown!,
         metadata,
         data: { transient: true, kernelspec: {} },
       };
@@ -200,7 +213,7 @@ export const jupyterEngine: ExecutionEngine = {
       return {
         source: file,
         input: file,
-        markdown,
+        markdown: markdown!,
         metadata,
         data: { transient: false, kernelspec: nb?.metadata.kernelspec },
       };
@@ -601,7 +614,7 @@ async function ensureYamlKernelspec(
 ) {
   const markdown = target.markdown.value;
   const yamlJupyter = readYamlFromMarkdown(markdown)?.jupyter;
-  if (yamlJupyter && typeof (yamlJupyter) !== "boolean") {
+  if (yamlJupyter && typeof yamlJupyter !== "boolean") {
     const [yamlKernelspec, _] = await jupyterKernelspecFromMarkdown(markdown);
     if (yamlKernelspec.name !== kernelspec.name) {
       const nb = jupyterFromJSON(Deno.readTextFileSync(target.source));

@@ -1705,32 +1705,32 @@ local function resolveServiceWorkers(serviceworkers)
    else
      return nil
    end
- end
+end
 
 
-local latexTableWithOptionsPattern = "(\\begin{table}%[[^%]]+%])(.*)(\\end{table})"
-local latexTablePattern = "(\\begin{table})(.*)(\\end{table})"
-local latexLongtablePatternwWithPosAndAlign = "(\\begin{longtable}%[[^%]]+%]{[^\n]*})(.*)(\\end{longtable})"
-local latexLongtablePatternWithPos = "(\\begin{longtable}%[[^%]]+%])(.*)(\\end{longtable})"
-local latexLongtablePatternWithAlign = "(\\begin{longtable}{[^\n]*})(.*)(\\end{longtable})"
-local latexLongtablePattern = "(\\begin{longtable})(.*)(\\end{longtable})"
-local latexTabularPatternWithPosAndAlign = "(\\begin{tabular}%[[^%]]+%]{[^\n]*})(.*)(\\end{tabular})"
-local latexTabularPatternWithPos = "(\\begin{tabular}%[[^%]]+%])(.*)(\\end{tabular})"
-local latexTabularPatternWithAlign = "(\\begin{tabular}{[^\n]*})(.*)(\\end{tabular})"
-local latexTabularPattern = "(\\begin{tabular})(.*)(\\end{tabular})"
-local latexCaptionPattern =  "(\\caption{)(.-)(}[^\n]*\n)"
+local latexTableWithOptionsPattern_table = { "\\begin{table}%[[^%]]+%]", ".*", "\\end{table}" }
+local latexTablePattern_table = { "\\begin{table}", ".*", "\\end{table}" }
+local latexLongtablePatternWithPosAndAlign_table = { "\\begin{longtable}%[[^%]]+%]{[^\n]*}", ".*", "\\end{longtable}" }
+local latexLongtablePatternWithPos_table = { "\\begin{longtable}%[[^%]]+%]", ".*", "\\end{longtable}" }
+local latexLongtablePatternWithAlign_table = { "\\begin{longtable}{[^\n]*}", ".*", "\\end{longtable}" }
+local latexLongtablePattern_table = { "\\begin{longtable}", ".*", "\\end{longtable}" }
+local latexTabularPatternWithPosAndAlign_table = { "\\begin{tabular}%[[^%]]+%]{[^\n]*}", ".*", "\\end{tabular}" }
+local latexTabularPatternWithPos_table = { "\\begin{tabular}%[[^%]]+%]", ".*", "\\end{tabular}" }
+local latexTabularPatternWithAlign_table = { "\\begin{tabular}{[^\n]*}", ".*", "\\end{tabular}" }
+local latexTabularPattern_table = { "\\begin{tabular}", ".*", "\\end{tabular}" }
+local latexCaptionPattern_table = { "\\caption{", ".-", "}[^\n]*\n" }
 
 local latexTablePatterns = pandoc.List({
-  latexTableWithOptionsPattern,
-  latexTablePattern,
-  latexLongtablePatternwWithPosAndAlign,
-  latexLongtablePatternWithPos,
-  latexLongtablePatternWithAlign,
-  latexLongtablePattern,
-  latexTabularPatternWithPosAndAlign,
-  latexTabularPatternWithPos,
-  latexTabularPatternWithAlign,
-  latexTabularPattern,
+  latexTableWithOptionsPattern_table,
+  latexTablePattern_table,
+  latexLongtablePatternWithPosAndAlign_table,
+  latexLongtablePatternWithPos_table,
+  latexLongtablePatternWithAlign_table,
+  latexLongtablePattern_table,
+  latexTabularPatternWithPosAndAlign_table,
+  latexTabularPatternWithPos_table,
+  latexTabularPatternWithAlign_table,
+  latexTabularPattern_table,
 })
 
 -- global quarto params
@@ -1876,11 +1876,11 @@ _quarto = {
    processDependencies = processDependencies,
    format = format,
    patterns = {
-      latexTabularPattern = latexTabularPattern,
-      latexTablePattern = latexTablePattern,
-      latexLongtablePattern = latexLongtablePattern,
+      latexTabularPattern = latexTabularPattern_table,
+      latexTablePattern = latexTablePattern_table,
+      latexLongtablePattern = latexLongtablePattern_table,
       latexTablePatterns = latexTablePatterns,
-      latexCaptionPattern = latexCaptionPattern
+      latexCaptionPattern = latexCaptionPattern_table
    },
    utils = utils,
    withScriptFile = function(file, callback)
@@ -1920,6 +1920,7 @@ end
 
 -- The main exports of the quarto module
 quarto = {
+  format = format,
   doc = {
     add_html_dependency = function(htmlDependency)
    
@@ -2062,7 +2063,8 @@ quarto = {
     end,
 
     output_file = outputFile(),
-    input_file = inputFile()
+    input_file = inputFile(),
+    crossref = {}
   },
   project = {
    directory = projectDirectory(),
@@ -2087,7 +2089,12 @@ quarto = {
   json = json,
   base64 = base64,
   log = logging,
-  version = version()
+  version = version(),
+  -- map to quartoConfig information on TS side
+  config = {
+    cli_path = function() return param('quarto-cli-path', nil) end,
+    version = function() return version() end
+  }
 }
 
 -- alias old names for backwards compatibility

@@ -25,6 +25,7 @@ section-title-citation: "Citation"
 
 appendix-attribution-cite-as: "For attribution, please cite this work as:"
 appendix-attribution-bibtex: "BibTeX citation:"
+appendix-view-license: "View License"
 
 title-block-author-single: "Author"
 title-block-author-plural: "Authors"
@@ -48,6 +49,9 @@ code-tools-hide-all-code: "Hide All Code"
 code-tools-view-source: "View Source"
 code-tools-source-code: "Source Code"
 
+tools-share: "Share"
+tools-download: "Download"
+
 code-line: "Line"
 code-lines: "Lines"
 
@@ -67,6 +71,7 @@ search-hide-matches-text: "Hide additional matches"
 search-more-match-text: "more match in this document"
 search-more-matches-text: "more matches in this document"
 search-clear-button-title: "Clear"
+search-text-placeholder: ""
 search-detached-cancel-button-title: "Cancel"
 search-submit-button-title: "Submit"
 search-label: "Search"
@@ -120,3 +125,6 @@ listing-page-minutes-compact: "{0} min"
 listing-page-category-all: "All"
 listing-page-no-matches: "No matching items"
 listing-page-words: "{0} words"
+listing-page-filter: "Filter"
+
+draft: "Draft"

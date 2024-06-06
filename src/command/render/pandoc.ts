@@ -4,14 +4,14 @@
  * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
-import { basename, dirname, isAbsolute, join } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 
 import { existsSync, expandGlobSync } from "fs/mod.ts";
 
 import { stringify } from "yaml/mod.ts";
-import { encode as base64Encode } from "encoding/base64.ts";
+import { encodeBase64 } from "encoding/base64.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -43,6 +43,7 @@ import {
   isIpynbOutput,
   isLatexOutput,
   isMarkdownOutput,
+  isRevealjsOutput,
   isTypstOutput,
 } from "../../config/format.ts";
 import {
@@ -103,6 +104,7 @@ import {
   kInstitute,
   kInstitutes,
   kKeepSource,
+  kLatexAutoMk,
   kLinkColor,
   kMath,
   kMetadataFormat,
@@ -121,6 +123,7 @@ import {
   kSelfContained,
   kSyntaxDefinitions,
   kTemplate,
+  kTheme,
   kTitle,
   kTitlePrefix,
   kTocLocation,
@@ -154,6 +157,7 @@ import {
   cleanTemplatePartialMetadata,
   kTemplatePartials,
   readPartials,
+  resolveTemplatePartialPaths,
   stageTemplate,
 } from "./template.ts";
 import {
@@ -162,7 +166,7 @@ import {
   parseFormatString,
   splitPandocFormatString,
 } from "../../core/pandoc/pandoc-formats.ts";
-import { parseAuthor } from "../../core/author.ts";
+import { cslNameToString, parseAuthor } from "../../core/author.ts";
 import { logLevel } from "../../core/log.ts";
 
 import { cacheCodePage, clearCodePageCache } from "../../core/windows.ts";
@@ -196,6 +200,7 @@ import {
   createMarkdownPipeline,
   MarkdownPipelineHandler,
 } from "../../core/markdown-pipeline.ts";
+import { getEnv } from "../../../package/src/util/utils.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -209,6 +214,39 @@ export async function runPandoc(
   const afterPandocHooks: (() => unknown)[] = [];
   const pandocEnv: { [key: string]: string } = {
     ...(options.flags?.env || {}),
+  };
+
+  const setupPandocEnv = () => {
+    pandocEnv["QUARTO_FILTER_PARAMS"] = encodeBase64(paramsJson);
+
+    const traceFilters = pandocMetadata?.["_quarto"]?.["trace-filters"] ||
+      Deno.env.get("QUARTO_TRACE_FILTERS");
+
+    if (traceFilters) {
+      // in case we are running multiple pandoc processes
+      // we need to make sure we capture all of the trace files
+      let traceCountSuffix = "";
+      if (traceCount > 0) {
+        traceCountSuffix = `-${traceCount}`;
+      }
+      ++traceCount;
+      if (traceFilters === true) {
+        pandocEnv["QUARTO_TRACE_FILTERS"] = "quarto-filter-trace.json" +
+          traceCountSuffix;
+      } else {
+        pandocEnv["QUARTO_TRACE_FILTERS"] = traceFilters + traceCountSuffix;
+      }
+    }
+
+    // https://github.com/quarto-dev/quarto-cli/issues/8274
+    // do not use the default LUA_CPATH, as it will cause pandoc to
+    // load the system lua libraries, which may not be compatible with
+    // the lua version we are using
+    if (Deno.env.get("QUARTO_LUA_CPATH") !== undefined) {
+      pandocEnv["LUA_CPATH"] = getEnv("QUARTO_LUA_CPATH");
+    } else {
+      pandocEnv["LUA_CPATH"] = "";
+    }
   };
 
   // compute cwd for render
@@ -347,7 +385,6 @@ export async function runPandoc(
   ) {
     const projectExtras = options.project?.formatExtras
       ? (await options.project.formatExtras(
-        options.project,
         options.source,
         options.flags || {},
         options.format,
@@ -518,6 +555,12 @@ export async function runPandoc(
 
     // merge metadata
     if (extras.metadata || extras.metadataOverride) {
+      // before we merge metadata, ensure that partials are proper paths
+      resolveTemplatePartialPaths(
+        options.format.metadata,
+        cwd,
+        options.project,
+      );
       options.format.metadata = {
         ...mergeConfigs(
           extras.metadata || {},
@@ -543,9 +586,16 @@ export async function runPandoc(
           ? [documentNotebooks]
           : [];
 
+        // Only add notebooks that aren't already present
+        const uniqExtraNotebooks = extras[kNotebooks].filter((nb) => {
+          return !userNotebooks.find((userNb) => {
+            return userNb.notebook === nb.notebook;
+          });
+        });
+
         options.format.render[kNotebookView] = [
-          ...extras[kNotebooks],
           ...userNotebooks,
+          ...uniqExtraNotebooks,
         ];
       }
     }
@@ -723,7 +773,7 @@ export async function runPandoc(
 
     // make the filter paths windows safe
     allDefaults.filters = allDefaults.filters.map((filter) => {
-      if (typeof (filter) === "string") {
+      if (typeof filter === "string") {
         return pandocMetadataPath(filter);
       } else {
         return {
@@ -942,6 +992,12 @@ export async function runPandoc(
       if (ld.isObject(formats) && metadataGetDeep(formats, key).length > 0) {
         continue;
       }
+
+      // don't process some format specific metadata that may have been processed already
+      // - theme is handled specifically already for revealjs with a metadata override and should not be overridden by user input
+      if (key === kTheme && isRevealjsOutput(options.format.pandoc)) {
+        continue;
+      }
       // perform the override
       pandocMetadata[key] = engineMetadata[key];
     }
@@ -990,7 +1046,9 @@ export async function runPandoc(
   if (authorsRaw) {
     const authors = parseAuthor(pandocMetadata[kAuthor], true);
     if (authors) {
-      pandocMetadata[kAuthor] = authors.map((author) => author.name);
+      pandocMetadata[kAuthor] = authors.map((author) =>
+        cslNameToString(author.name)
+      );
       pandocMetadata[kAuthors] = Array.isArray(authorsRaw)
         ? authorsRaw
         : [authorsRaw];
@@ -1075,6 +1133,7 @@ export async function runPandoc(
   delete pandocPassedMetadata.format;
   delete pandocPassedMetadata.project;
   delete pandocPassedMetadata.website;
+  delete pandocPassedMetadata.about;
   if (pandocPassedMetadata._quarto) {
     // these shouldn't be visible because they are emitted on markdown output
     // and it breaks ensureFileRegexMatches
@@ -1108,28 +1167,7 @@ export async function runPandoc(
   // workaround for our wonky Lua timing routines
   const luaEpoch = await getLuaTiming();
 
-  pandocEnv["QUARTO_FILTER_PARAMS"] = base64Encode(paramsJson);
-
-  const traceFilters = pandocMetadata?.["_quarto"]?.["trace-filters"] ||
-    Deno.env.get("QUARTO_TRACE_FILTERS");
-
-  if (traceFilters) {
-    beforePandocHooks.push(() => {
-      // in case we are running multiple pandoc processes
-      // we need to make sure we capture all of the trace files
-      let traceCountSuffix = "";
-      if (traceCount > 0) {
-        traceCountSuffix = `-${traceCount}`;
-      }
-      ++traceCount;
-      if (traceFilters === true) {
-        pandocEnv["QUARTO_TRACE_FILTERS"] = "quarto-filter-trace.json" +
-          traceCountSuffix;
-      } else {
-        pandocEnv["QUARTO_TRACE_FILTERS"] = traceFilters + traceCountSuffix;
-      }
-    });
-  }
+  setupPandocEnv();
 
   // run beforePandoc hooks
   for (const hook of beforePandocHooks) {
@@ -1251,7 +1289,7 @@ async function resolveExtras(
   }
 
   // resolve format resources
-  writeFormatResources(
+  await writeFormatResources(
     inputDir,
     dependenciesFile,
     format.render[kFormatResources],
@@ -1263,7 +1301,7 @@ async function resolveExtras(
     extras = await resolveSassBundles(
       inputDir,
       extras,
-      format.pandoc,
+      format,
       temp,
       formatExtras.html?.[kSassBundles],
       projectExtras.html?.[kSassBundles],
@@ -1271,7 +1309,7 @@ async function resolveExtras(
     );
 
     // resolve dependencies
-    writeDependencies(dependenciesFile, extras);
+    await writeDependencies(dependenciesFile, extras);
 
     const htmlDependenciesPostProcesor = (
       doc: Document,
@@ -1305,11 +1343,19 @@ async function resolveExtras(
   }
 
   // Process format resources
-  const resourceDependenciesPostProcessor = async (_output: string) => {
-    return await processFormatResources(inputDir, dependenciesFile);
-  };
-  extras.postprocessors = extras.postprocessors || [];
-  extras.postprocessors.push(resourceDependenciesPostProcessor);
+
+  // If we're generating the PDF, we can move the format resources once the pandoc
+  // render has completed.
+  if (format.render[kLatexAutoMk] === false) {
+    // Process the format resouces right here on the spot
+    await processFormatResources(inputDir, dependenciesFile);
+  } else {
+    const resourceDependenciesPostProcessor = async (_output: string) => {
+      return await processFormatResources(inputDir, dependenciesFile);
+    };
+    extras.postprocessors = extras.postprocessors || [];
+    extras.postprocessors.push(resourceDependenciesPostProcessor);
+  }
 
   // Resolve the highlighting theme (if any)
   extras = resolveTextHighlightStyle(

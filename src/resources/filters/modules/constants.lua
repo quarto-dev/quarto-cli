@@ -67,6 +67,7 @@ local kIncludeInHeader = "include-in-header"
 local kCopyright = "copyright"
 local kLicense = "license"
 local kHtmlTableProcessing = "html-table-processing"
+local kHtmlPreTagProcessing = "html-pre-tag-processing"
 
 -- for a given language, the comment character(s)
 local kLangCommentChars = {
@@ -122,8 +123,37 @@ local kLangCommentChars = {
   elm = { "#" },
   vhdl = { "--"},
   html = { "<!--", "-->"},
-  markdown = {"<!--", "-->"}
+  markdown = {"<!--", "-->"},
+  gap = { "#" },
+  dockerfile = { "#" },
+  ocaml = { "(*", "*)"},
+  rust = { "// "}
 }
+local kDefaultCodeAnnotationComment =  {"#"}
+
+-- These colors are used as background colors with an opacity of 0.75
+local kColorUnknown = "909090"
+local kColorNote = "0758E5"
+local kColorImportant = "CC1914"
+local kColorWarning = "EB9113"
+local kColorTip = "00A047"
+local kColorCaution = "FC5300"
+
+-- these colors are used with no-opacity
+local kColorUnknownFrame = "acacac"
+local kColorNoteFrame = "4582ec"
+local kColorImportantFrame = "d9534f"
+local kColorWarningFrame = "f0ad4e"
+local kColorTipFrame = "02b875"
+local kColorCautionFrame = "fd7e14"
+
+local kBackgroundColorUnknown = "e6e6e6"
+local kBackgroundColorNote = "dae6fb"
+local kBackgroundColorImportant = "f7dddc"
+local kBackgroundColorWarning = "fcefdc"
+local kBackgroundColorTip = "ccf1e3"
+local kBackgroundColorCaution = "ffe5d0"
+
 
 return {
   kCitation = kCitation,
@@ -191,5 +221,26 @@ return {
   kLicense = kLicense,
 
   kLangCommentChars = kLangCommentChars,
-  kHtmlTableProcessing = kHtmlTableProcessing
+  kDefaultCodeAnnotationComment = kDefaultCodeAnnotationComment,
+  kHtmlTableProcessing = kHtmlTableProcessing,
+  kHtmlPreTagProcessing = kHtmlPreTagProcessing,
+
+  kColorUnknown = kColorUnknown,
+  kColorNote = kColorNote,
+  kColorImportant = kColorImportant,
+  kColorWarning = kColorWarning,
+  kColorTip = kColorTip,
+  kColorCaution = kColorCaution,
+  kColorUnknownFrame = kColorUnknownFrame,
+  kColorNoteFrame = kColorNoteFrame,
+  kColorImportantFrame = kColorImportantFrame,
+  kColorWarningFrame = kColorWarningFrame,
+  kColorTipFrame = kColorTipFrame,
+  kColorCautionFrame = kColorCautionFrame,
+  kBackgroundColorUnknown = kBackgroundColorUnknown,
+  kBackgroundColorNote = kBackgroundColorNote,
+  kBackgroundColorImportant = kBackgroundColorImportant,
+  kBackgroundColorWarning = kBackgroundColorWarning,
+  kBackgroundColorTip = kBackgroundColorTip,
+  kBackgroundColorCaution = kBackgroundColorCaution,
 }

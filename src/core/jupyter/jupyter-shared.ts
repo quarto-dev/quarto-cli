@@ -1,10 +1,9 @@
 /*
-* jupyter-shared.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
-import { join } from "path/mod.ts";
+ * jupyter-shared.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
+import { join } from "../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as colors from "fmt/colors.ts";
@@ -13,8 +12,21 @@ import { pathWithForwardSlashes } from "../path.ts";
 
 import { pythonExecForCaps } from "./exec.ts";
 import { jupyterKernelspecs } from "./kernels.ts";
-import { JupyterCapabilities, JupyterKernelspec } from "./types.ts";
+import {
+  JupyterCapabilities,
+  JupyterCell,
+  JupyterKernelspec,
+} from "./types.ts";
 import { isEnvDir } from "./capabilities.ts";
+import { lines } from "../lib/text.ts";
+
+export const jupyterCellSrcAsStr = (cell: JupyterCell) => {
+  return typeof cell.source === "string" ? cell.source : cell.source.join("");
+};
+
+export const jupyterCellSrcAsLines = (cell: JupyterCell) => {
+  return typeof cell.source === "string" ? lines(cell.source) : cell.source;
+};
 
 export async function jupyterCapabilitiesMessage(
   caps: JupyterCapabilities,
@@ -60,22 +72,31 @@ export function jupyterUnactivatedEnvMessage(
   for (const path of Deno.readDirSync(Deno.cwd())) {
     if (path.isDirectory) {
       const targetPath = join(Deno.cwd(), path.name);
-      if (isEnvDir(targetPath)) {
-        try {
-          if (
-            !pathWithForwardSlashes(caps.executable).startsWith(
-              pathWithForwardSlashes(targetPath),
-            )
-          ) {
-            return indent + "There is an unactivated Python environment in " +
-              colors.bold(path.name) + ". Did you forget to activate it?";
+      // We may encounter a directory for which we
+      // don't have permissions. If that happens, just ignore it
+      try {
+        if (isEnvDir(targetPath)) {
+          try {
+            if (
+              !pathWithForwardSlashes(caps.executable).startsWith(
+                pathWithForwardSlashes(targetPath),
+              )
+            ) {
+              return indent + "There is an unactivated Python environment in " +
+                colors.bold(path.name) + ". Did you forget to activate it?";
+            }
+          } catch {
+            return undefined;
           }
-        } catch {
-          return undefined;
+        }
+      } catch (err) {
+        if (!(err instanceof Deno.errors.NotFound)) {
+          throw err;
         }
       }
     }
   }
+
   // perhaps they haven't yet restored from requirements.txt or environment.yaml
   const kRequirementsTxt = "requirements.txt";
   const kEnvironmentYaml = "environment.yml";

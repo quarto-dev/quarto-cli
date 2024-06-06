@@ -45,6 +45,7 @@ function parseOption(name, options, def)
     if value == nil then
       value = readOption(options, key, nil)
     else
+      key = tonumber(key) or key
       value = value[key]
     end
 

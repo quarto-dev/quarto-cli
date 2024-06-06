@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, join, normalize, relative } from "path/mod.ts";
+import { dirname, join, normalize, relative } from "../../deno_ral/path.ts";
 import { ensureDirSync } from "fs/mod.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
@@ -20,7 +20,7 @@ import { OutputRecipe } from "./types.ts";
 import { pdfEngine } from "../../config/pdf.ts";
 import { execProcess } from "../../core/process.ts";
 import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
-import { normalizeOutputPath } from "./output.ts";
+import { normalizeOutputPath } from "./output-shared.ts";
 
 export interface PdfGenerator {
   generate: (

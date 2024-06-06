@@ -1,0 +1,23 @@
+project:
+  type: book
+
+book:
+  title: "Issue-8514"
+  author: "Norah Jones"
+  date: "2/1/2024"
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - summary.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt
+
+
+

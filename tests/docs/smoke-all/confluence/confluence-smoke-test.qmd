@@ -568,7 +568,7 @@ While the examples above illustrate laying out figures, it's important to note t
 -   Item X
 -   Item Y
 -   Item Z
-    :::
+:::
 
 Note that headings are automatically combined with the block that follows them, so this markdown has a total of 2 columns to lay out. Here's an example of a paragraph next to a bullet list (without headings):
 

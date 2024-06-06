@@ -13,7 +13,7 @@ import {
 } from "./artifact-shared.ts";
 
 import { Input } from "cliffy/prompt/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../deno_ral/path.ts";
 
 import { safeExistsSync } from "../../../core/path.ts";
 import { resourcePath } from "../../../core/resources.ts";

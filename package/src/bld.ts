@@ -27,6 +27,8 @@ import {
   checkBinaryDependencies,
 } from "./common/archive-binary-dependencies.ts";
 import { updatePandoc } from "./common/update-pandoc.ts";
+import { validateBundle } from "./common/validate-bundle.ts";
+import { makeInstallerExternal } from "./ext/installer.ts";
 
 // Core command dispatch
 export async function quartoBld(args: string[]) {
@@ -88,6 +90,11 @@ function getCommands() {
       .description("Prepares the distribution directory for packaging."),
   );
   commands.push(
+    packageCommand(validateBundle)
+      .name("validate-bundle")
+      .description("Validate a JS bundle built using prepare-dist")
+  );
+  commands.push(
     packageCommand(makeInstallerMac)
       .name("make-installer-mac")
       .description("Builds Mac OS installer"),
@@ -101,6 +108,11 @@ function getCommands() {
     packageCommand(makeInstallerWindows)
       .name("make-installer-win")
       .description("Builds Windows installer"),
+  );
+  commands.push(
+    packageCommand(makeInstallerExternal)
+      .name("make-installer-dir")
+      .description("Copies Quarto-only files, omitting dependencies, to specified location (for use in third party packaging)"),
   );
   commands.push(
     compileQuartoLatexmkCommand(),

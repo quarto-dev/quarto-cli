@@ -1,0 +1,28 @@
+---
+format: 
+  docusaurus-md: 
+    quality: na
+  pdf:
+    quality: 1
+  html:
+    quality: na
+  dashboard:
+    quality: na
+  typst:
+    quality: na
+  revealjs:
+    quality: na
+  
+---
+
+`\LaTeX`{=latex} is a software system for typesetting documents!
+
+```{=latex}
+
+\begin{align*}
+  f(x) &= x^2\\
+  g(x) &= \frac{1}{x}\\
+  F(x) &= \int^a_b \frac{1}{3}x^3
+\end{align*}
+
+```

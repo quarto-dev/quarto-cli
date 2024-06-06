@@ -1,0 +1,25 @@
+---
+format: docusaurus-md
+code-annotations: true
+code-line-numbers: true
+---
+
+
+
+
+
+```r showLineNumbers
+library(tidyverse)
+library(palmerpenguins)
+penguins |>
+  mutate(
+    bill_ratio = bill_depth_mm / bill_length_mm,
+    bill_area  = bill_depth_mm * bill_length_mm
+  )
+```
+
+Line 3  
+Take `penguins`, and then,
+
+Lines 4-7  
+add new columns for the bill ratio and bill area.

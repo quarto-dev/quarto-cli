@@ -7,7 +7,7 @@
 
 import { unitTest } from "../test.ts";
 import { assert } from "testing/asserts.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../src/deno_ral/path.ts";
 import {
   dirAndStem,
   removeIfEmptyDir,

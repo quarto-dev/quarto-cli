@@ -1,0 +1,11 @@
+---
+format: dashboard
+---
+
+# Page 2
+
+```{r}
+plot(cars)
+```
+
+# Page 3

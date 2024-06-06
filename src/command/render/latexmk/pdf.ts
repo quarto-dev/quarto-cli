@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, join } from "../../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { PdfEngine } from "../../../config/types.ts";
@@ -24,7 +24,7 @@ import {
   kMissingFontLog,
   needsRecompilation,
 } from "./parse-error.ts";
-import { error, info, warning } from "log/mod.ts";
+import { error, info, warning } from "../../../deno_ral/log.ts";
 import { logProgress } from "../../../core/log.ts";
 
 export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {

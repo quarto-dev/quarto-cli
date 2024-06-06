@@ -11,8 +11,8 @@ import {
   isAbsolute,
   join,
   relative,
-} from "path/mod.ts";
-import { ensureDirSync, EOL, existsSync, format } from "fs/mod.ts";
+} from "../../deno_ral/path.ts";
+import { ensureDirSync, EOL, existsSync, format, LF } from "fs/mod.ts";
 
 import { cloneDeep } from "../../core/lodash.ts";
 
@@ -37,8 +37,7 @@ import { ExecuteResult } from "../../execute/types.ts";
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
 import { copyMinimal, copyTo } from "../../core/copy.ts";
-import { warning } from "log/mod.ts";
-import { isWindows } from "../../core/platform.ts";
+import { warning } from "../../deno_ral/log.ts";
 
 export const kProjectFreezeDir = "_freeze";
 export const kOldFreezeExecuteResults = "execute";
@@ -58,7 +57,7 @@ export function freezeExecuteResult(
       if (result.includes[name]) {
         result.includes[name] = result.includes[name]!.map((file) =>
           // Storing file content using LF line ending
-          format(Deno.readTextFileSync(file), EOL.LF)
+          format(Deno.readTextFileSync(file), LF)
         );
       }
     }
@@ -142,7 +141,7 @@ export function defrostExecuteResult(
             result.includes[name] = result.includes[name]!.map((content) => {
               const includeFile = temp.createFile();
               // Restoring content in file using the OS line ending character
-              content = format(content, isWindows() ? EOL.CRLF : EOL.LF);
+              content = format(content, EOL);
               Deno.writeTextFileSync(includeFile, content);
               return includeFile;
             });
@@ -305,7 +304,7 @@ export function removeFreezeResults(filesDir: string) {
 function freezeInputHash(input: string) {
   // Calculate the hash on a content with LF line ending to avoid
   // different hash on different OS (#3599)
-  return md5Hash(format(Deno.readTextFileSync(input), EOL.LF));
+  return md5Hash(format(Deno.readTextFileSync(input), LF));
 }
 
 // don't use _files suffix in freezer

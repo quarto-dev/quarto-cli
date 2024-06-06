@@ -188,18 +188,18 @@ function ojs()
         if uid > 0 then
           local div = pandoc.Div({}, pandoc.Attr("", {"ojs-auto-generated", "hidden"}, {}))
           div.content:insert(pandoc.RawBlock("html", "<script type='ojs-module-contents'>"))
-          div.content:insert(pandoc.RawBlock("html", '{"contents":['))
+          local contents = pandoc.List({})
+          contents:insert('{"contents":[')
           for i, v in ipairs(cells) do
             if i > 1 then
-              div.content:insert(",")
+              contents:insert(",")
             end
-            div.content:insert(
-              pandoc.RawBlock(
-                "html",
+            contents:insert(
                 ('  {"methodName":"interpret","inline":"true","source":"htl.html`<span>${' ..
-                 escape_quotes(v.src) .. '}</span>`", "cellName":"' .. v.id .. '"}')))
+                 escape_quotes(v.src) .. '}</span>`", "cellName":"' .. v.id .. '"}'))
           end
-          div.content:insert(pandoc.RawBlock("html", ']}'))
+          contents:insert(']}')
+          div.content:insert(pandoc.RawBlock("html", quarto.base64.encode(table.concat(contents, ""))))
           div.content:insert(pandoc.RawBlock("html", "</script>"))
           doc.blocks:insert(div)
         end

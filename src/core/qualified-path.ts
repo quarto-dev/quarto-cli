@@ -6,7 +6,7 @@
  * Copyright (C) 2022 Posit Software, PBC
  */
 
-import { join, relative, resolve } from "path/mod.ts";
+import { join, relative, resolve } from "../deno_ral/path.ts";
 import { UnreachableError } from "./lib/error.ts";
 
 export class InvalidPathError extends Error {

@@ -1,0 +1,19 @@
+# The Title
+
+
+# The Heading
+
+<div id="tbl-pets_rating">
+
+| Pet type | Rating |
+|----------|--------|
+| Dog      | 4/5    |
+| Cat      | 4/5    |
+| Horse    | 3/5    |
+| Ant      | 5/5    |
+
+Table 1: Rating of pets
+
+</div>
+
+See <a href="#tbl-pets_rating" class="quarto-xref">Table 1</a>.

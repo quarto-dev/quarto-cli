@@ -1,16 +1,7 @@
 /*
  * viewer.ts
  *
- * Copyright (C) 2022 by Posit Software, PBC
- *
- * Unless you have received this program directly from Posit Software pursuant
- * to the terms of a commercial license agreement with Posit Software, then
- * this program is licensed to you under the terms of version 3 of the
- * GNU Affero General Public License. This program is distributed WITHOUT
- * ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING THOSE OF NON-INFRINGEMENT,
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Please refer to the
- * AGPL (http://www.gnu.org/licenses/agpl-3.0.txt) for more details.
- *
+ * Copyright (C) 2023 Posit Software, PBC
  */
 
 declare global {
@@ -20,36 +11,52 @@ declare global {
     }
   }
 }
-export function handleViewerMessages() {
 
+export function handleViewerMessages(inputFile: string | null) {
   if (window.parent.postMessage) {
     // wait for message providing confirmation we are in a devhost
     window.addEventListener("message", function (event) {
       if (event.data.type === "devhost-init") {
         window.quartoDevhost = {
-          openInputFile: function (line: number, column: number, highlight: boolean) {
+          openInputFile: function (
+            line: number,
+            column: number,
+            highlight: boolean,
+          ) {
+            if (inputFile === null) {
+              console.warn(
+                "Missing inputFile when atempting to open input file.",
+              );
+              return;
+            }
+
             window.parent.postMessage({
               type: "openfile",
-              file: "<%- inputFile %>",
+              file: inputFile,
               line: line,
               column: column,
-              highlight: highlight
+              highlight: highlight,
             }, event.origin);
-          }
+          },
         };
-
       } else if (event.data.type === "goback") {
-        window.history.back()
+        window.history.back();
       } else if (event.data.type === "goforward") {
-        window.history.forward()
+        window.history.forward();
       }
     }, true);
 
-    // notify host of navigation (e.g. for 'pop out' command)
-    window.parent.postMessage({
-      type: "navigate",
-      href: window.location.href,
-      file: "<%- inputFile %>"
-    }, "*");
+    if (inputFile === null) {
+      console.warn(
+        "Missing inputFile when atempting to post message.",
+      );
+    } else {
+      // notify host of navigation (e.g. for 'pop out' command)
+      window.parent.postMessage({
+        type: "navigate",
+        href: window.location.href,
+        file: inputFile,
+      }, "*");
+    }
   }
 }

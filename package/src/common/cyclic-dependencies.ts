@@ -4,12 +4,12 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { basename, isAbsolute, join } from "path/mod.ts";
+import { basename, isAbsolute, join } from "../../../src/deno_ral/path.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 import { runCmd } from "../util/cmd.ts";
 import { Configuration, readConfiguration } from "./config.ts";
-import { error, info } from "log/mod.ts";
+import { error, info } from "../../../src/deno_ral/log.ts";
 import { progressBar } from "../../../src/core/console.ts";
 import { md5Hash } from "../../../src/core/hash.ts";
 

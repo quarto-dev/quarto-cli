@@ -1,6 +1,6 @@
-import { info } from "log/mod.ts";
-import { join } from "path/mod.ts";
-import { decode as base64decode } from "encoding/base64.ts";
+import { info } from "../../../src/deno_ral/log.ts";
+import { join } from "../../../src/deno_ral/path.ts";
+import { decodeBase64 as base64decode } from "../../../src/deno_ral/encoding.ts";
 
 import { runCmd } from "../util/cmd.ts";
 

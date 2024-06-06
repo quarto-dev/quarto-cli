@@ -1,0 +1,16 @@
+---
+title: "Hi There!"
+listing:
+  contents: posts
+  sort: "date desc"
+  type: default
+  categories: true
+  sort-ui: false
+  filter-ui: false
+page-layout: full
+title-block-banner: true
+---
+
+
+This is a link directly to the [upcoming post](posts/draft-post/index.qmd){#draft-doc-link}.
+

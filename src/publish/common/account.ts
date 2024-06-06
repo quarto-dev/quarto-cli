@@ -6,8 +6,8 @@
 */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
-import { info } from "log/mod.ts";
+import { join } from "../../deno_ral/path.ts";
+import { info } from "../../deno_ral/log.ts";
 import * as colors from "fmt/colors.ts";
 import { isServerSession, isWindows } from "../../core/platform.ts";
 import { openUrl } from "../../core/shell.ts";

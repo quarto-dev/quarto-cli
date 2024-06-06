@@ -1,21 +1,17 @@
+/*
+ * github.ts
+ *
+ * Copyright (C) 2021-2023 Posit Software, PBC
+ */
+
 import { which } from "./path.ts";
 import { execProcess } from "./process.ts";
 
-import { join } from "path/mod.ts";
+import { join } from "../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 import { isHttpUrl } from "./url.ts";
-
-export type GitHubContext = {
-  git: boolean;
-  repo: boolean;
-  originUrl?: string;
-  repoUrl?: string;
-  ghPages?: boolean;
-  siteUrl?: string;
-  browse?: boolean;
-  organization?: string;
-  repository?: string;
-};
+import { GitHubContext } from "./github-types.ts";
+import { gitBranchExists } from "./git.ts";
 
 export async function gitHubContext(dir: string) {
   // establish dir
@@ -48,7 +44,7 @@ export async function gitHubContext(dir: string) {
         context.originUrl = result.stdout?.trim();
 
         // check for a gh-pages branch
-        context.ghPages = (await execProcess({
+        const ghPagesRemote = await execProcess({
           cmd: [
             "git",
             "ls-remote",
@@ -59,7 +55,22 @@ export async function gitHubContext(dir: string) {
           ],
           stdout: "piped",
           stderr: "piped",
-        })).success;
+        });
+
+        context.ghPagesRemote = ghPagesRemote.success;
+        if (!ghPagesRemote.success) {
+          // when no gh-pages branch on remote, check local to avoid creation error
+          // as if local branch exists, we don't want to create a new one
+          // https://git-scm.com/docs/git-ls-remote#Documentation/git-ls-remote.txt---exit-code
+          if (ghPagesRemote.code === 2) {
+            context.ghPagesLocal = await gitBranchExists("gh-pages");
+          } else {
+            // if we go there, this means something is not right with the remote origin
+            throw new Error(
+              `There is an error while retrieving information from remote 'origin'.\n Git error: ${ghPagesRemote.stderr}. \n Git status code: ${ghPagesRemote.code}.`,
+            );
+          }
+        }
 
         // determine siteUrl
         context.siteUrl = siteUrl(

@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { error, info, warning } from "log/mod.ts";
+import { error, info, warning } from "../deno_ral/log.ts";
 import { existsSync } from "fs/exists.ts";
-import { basename, extname } from "path/mod.ts";
+import { basename, extname } from "../deno_ral/path.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -37,9 +37,15 @@ import {
 } from "./types.ts";
 import { postProcessRestorePreservedHtml } from "./engine-shared.ts";
 import { mappedStringFromFile } from "../core/mapped-text.ts";
-import { mappedIndexToLineCol, MappedString } from "../core/lib/mapped-text.ts";
+import {
+  asMappedString,
+  mappedIndexToLineCol,
+  MappedString,
+} from "../core/lib/mapped-text.ts";
 import { lineColToIndex } from "../core/lib/text.ts";
 import { executeInlineCodeHandler } from "../core/execute-inline.ts";
+import { globalTempContext } from "../core/temp.ts";
+import { ProjectContext } from "../project/types.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
@@ -58,18 +64,34 @@ export const knitrEngine: ExecutionEngine = {
 
   validExtensions: () => kRmdExtensions.concat(kRmdExtensions),
 
-  claimsFile: (_file: string, ext: string) => {
-    return kRmdExtensions.includes(ext.toLowerCase());
+  claimsFile: (file: string, ext: string) => {
+    return kRmdExtensions.includes(ext.toLowerCase()) ||
+      isKnitrSpinScript(file);
   },
 
   claimsLanguage: (language: string) => {
     return language.toLowerCase() === "r";
   },
 
-  target: (file: string, _quiet?: boolean, markdown?: MappedString) => {
-    if (markdown === undefined) {
-      markdown = mappedStringFromFile(file);
+  async markdownForFile(file: string): Promise<MappedString> {
+    const isSpin = isKnitrSpinScript(file);
+    if (isSpin) {
+      return asMappedString(await markdownFromKnitrSpinScript(file));
     }
+    return mappedStringFromFile(file);
+  },
+
+  target: async (
+    file: string,
+    _quiet: boolean | undefined,
+    markdown: MappedString | undefined,
+    project: ProjectContext,
+  ): Promise<ExecutionTarget | undefined> => {
+    markdown = await project.resolveFullMarkdownForFile(
+      knitrEngine,
+      file,
+      markdown,
+    );
     let metadata;
     try {
       metadata = readYamlFromMarkdown(markdown.value);
@@ -86,8 +108,12 @@ export const knitrEngine: ExecutionEngine = {
     return Promise.resolve(target);
   },
 
-  partitionedMarkdown: (file: string) => {
-    return Promise.resolve(partitionMarkdown(Deno.readTextFileSync(file)));
+  partitionedMarkdown: async (file: string) => {
+    if (isKnitrSpinScript(file)) {
+      return partitionMarkdown(await markdownFromKnitrSpinScript(file));
+    } else {
+      return partitionMarkdown(Deno.readTextFileSync(file));
+    }
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
@@ -103,7 +129,7 @@ export const knitrEngine: ExecutionEngine = {
         markdown: resolveInlineExecute(options.target.markdown.value),
       },
       options.tempDir,
-      options.projectDir,
+      options.project?.isSingleFile ? undefined : options.projectDir,
       options.quiet,
       // fixup .rmarkdown file references
       (output) => {
@@ -313,21 +339,30 @@ async function printCallRDiagnostics() {
     } else {
       if (
         !caps?.packages.rmarkdown || !caps?.packages.knitr ||
-        !caps?.packages.knitrVersOk
+        !caps?.packages.knitrVersOk || !caps?.packages.rmarkdownVersOk
       ) {
-        info("");
         info("R installation:");
         info(knitrCapabilitiesMessage(caps, "  "));
-        info("");
-        info(
-          knitrInstallationMessage(
-            "",
-            caps.packages.knitr && !caps?.packages.knitrVersOk
-              ? "knitr"
-              : "rmarkdown",
-            !!caps.packages.knitr && !caps.packages.knitrVersOk,
-          ),
-        );
+        if (!!!caps?.packages.knitr || !caps?.packages.knitrVersOk) {
+          info("");
+          info(
+            knitrInstallationMessage(
+              "",
+              "knitr",
+              !!caps.packages.knitr && !caps.packages.knitrVersOk,
+            ),
+          );
+        }
+        if (!!!caps?.packages.rmarkdown || !caps?.packages.rmarkdownVersOk) {
+          info("");
+          info(
+            knitrInstallationMessage(
+              "",
+              "rmarkdown",
+              !!caps?.packages.rmarkdown && !caps?.packages.rmarkdownVersOk,
+            ),
+          );
+        }
         info("");
       }
     }
@@ -352,4 +387,36 @@ function resolveInlineExecute(code: string) {
     "r",
     (expr) => `${"`"}r .QuartoInlineRender(${expr})${"`"}`,
   )(code);
+}
+
+export function isKnitrSpinScript(file: string) {
+  const ext = extname(file).toLowerCase();
+  if (ext == ".r") {
+    const text = Deno.readTextFileSync(file);
+    // Consider a .R script that can be spinned if it contains a YAML header inside a special `#'` comment
+    return /^\s*#'\s*---[\s\S]+?\s*#'\s*---/.test(text);
+  } else {
+    return false;
+  }
+}
+
+export async function markdownFromKnitrSpinScript(file: string) {
+  // run spin to get .qmd and get markdown from .qmd
+
+  // TODO: implement a caching system because spin is slow and it seems we call this twice for each run
+  // 1. First as part of the target() call
+  // 2. Second as part of renderProject() call to get `partitioned` information to get `resourcesFrom` with `resourceFilesFromRenderedFile()`
+
+  // we need a temp dir for `CallR` to work but we don't have access to usual options.tempDir.
+  const tempDir = globalTempContext().createDir();
+
+  const result = await callR<string>(
+    "spin",
+    { input: file },
+    tempDir,
+    undefined,
+    true,
+  );
+
+  return result;
 }
