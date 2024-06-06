@@ -284,7 +284,14 @@ function shortcodes_filter()
         RawBlock = code_handler,
         CodeBlock = code_handler,
         Header = attr_handler,
-        Div = attr_handler,
+        Div = function(el)
+          if el.classes:includes("quarto-shortcode__-escaped") then
+            return pandoc.Plain(pandoc.Str(el.attributes["data-value"]))
+          else
+            el = attr_handler(el)
+            return el
+          end
+        end,
       })
 
       doc = _quarto.ast.walk(doc, {
@@ -301,11 +308,12 @@ function shortcodes_filter()
           return el
         end,
         Span = function(el)
-          el = attr_handler(el)
           if el.classes:includes("quarto-shortcode__-escaped") then
             return pandoc.Str(el.attributes["data-value"])
+          else
+            el = attr_handler(el)
+            return el
           end
-          return el
         end,
        })
       return doc
