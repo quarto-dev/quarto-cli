@@ -58,3 +58,28 @@ testQuartoCmd(
     }
   }
 )
+
+const starterFolder = "starterFolder";
+const starterWorkingDir = join(tempDir, starterFolder);
+ensureDirSync(starterWorkingDir);
+testQuartoCmd(
+  "use",
+  ["template", "quarto-examples/website-template", "--no-prompt"],
+  [noErrorsOrWarnings, fileExists("_quarto.yml"), fileExists("index.qmd")],
+  {
+    setup: () => {
+      return Promise.resolve();
+    },
+    cwd: () => {
+      return starterWorkingDir;
+    },
+    teardown: () => {
+      try {
+       Deno.removeSync(starterWorkingDir, {recursive: true});
+      } catch {
+        
+      }
+       return Promise.resolve();
+    }
+  }
+)
