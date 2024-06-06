@@ -285,6 +285,9 @@ function shortcodes_filter()
         CodeBlock = code_handler,
         Header = attr_handler,
         Div = function(el)
+          if el.classes:includes("quarto-markdown-envelope-contents") then
+            return nil
+          end
           if el.classes:includes("quarto-shortcode__-escaped") then
             return pandoc.Plain(pandoc.Str(el.attributes["data-value"]))
           else
@@ -308,6 +311,9 @@ function shortcodes_filter()
           return el
         end,
         Span = function(el)
+          if el.classes:includes("quarto-markdown-envelope-contents") then
+            return nil
+          end
           if el.classes:includes("quarto-shortcode__-escaped") then
             return pandoc.Str(el.attributes["data-value"])
           else
