@@ -265,6 +265,15 @@ function shortcodes_filter()
     return el
   end
 
+  local attr_handler = function(el)
+    for k,v in pairs(el.attributes) do
+      if type(v) == "string" then
+        el.attributes[k] = shortcode_lpeg.wrap_lpeg_match(code_shortcode, v)
+      end
+    end
+    return el
+  end
+
   filter = {
     Pandoc = function(doc)
       -- first walk them in block context
@@ -274,22 +283,42 @@ function shortcodes_filter()
         Code = code_handler,
         RawBlock = code_handler,
         CodeBlock = code_handler,
+        Header = attr_handler,
+        Div = function(el)
+          if el.classes:includes("quarto-markdown-envelope-contents") then
+            return nil
+          end
+          if el.classes:includes("quarto-shortcode__-escaped") then
+            return pandoc.Plain(pandoc.Str(el.attributes["data-value"]))
+          else
+            el = attr_handler(el)
+            return el
+          end
+        end,
       })
 
       doc = _quarto.ast.walk(doc, {
         Shortcode = inline_handler,
         RawInline = code_handler,
         Image = function(el)
+          el = attr_handler(el)
           el.src = shortcode_lpeg.wrap_lpeg_match(code_shortcode, el.src)
           return el
         end,
         Link = function(el)
+          el = attr_handler(el)
           el.target = shortcode_lpeg.wrap_lpeg_match(code_shortcode, el.target)
           return el
         end,
         Span = function(el)
+          if el.classes:includes("quarto-markdown-envelope-contents") then
+            return nil
+          end
           if el.classes:includes("quarto-shortcode__-escaped") then
             return pandoc.Str(el.attributes["data-value"])
+          else
+            el = attr_handler(el)
+            return el
           end
         end,
        })
