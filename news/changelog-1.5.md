@@ -126,6 +126,7 @@ All changes included in 1.5:
 - ([#9664](https://github.com/quarto-dev/quarto-cli/pull/9664)): Add `placeholder` shortcode to produce placeholder images.
 - ([#9665](https://github.com/quarto-dev/quarto-cli/issues/9665)): Fix issue with key-value arguments of shortcode handlers in code contexts.
 - ([#9793](https://github.com/quarto-dev/quarto-cli/issues/9793)): `embed` shortcode now correctly retrieve svg image from embdedded cell.
+- ([#9903](https://github.com/quarto-dev/quarto-cli/issues/9903)): Allow shortcode resolution inside element attributes (currently headers, divs, spans, images, links). Currently, this requires attributes to be specified with single quotes, see issue for details.
 
 ## Lightbox Images
 
