@@ -114,7 +114,7 @@ function resolveTestSpecs(
   for (const [format, testObj] of Object.entries(specs)) {
     let checkWarnings = true;
     const verifyFns: Verify[] = [];
-    if (testObj) {
+    if (testObj && typeof testObj === "object") {
       for (
         // deno-lint-ignore no-explicit-any
         const [key, value] of Object.entries(testObj as Record<string, any>)
