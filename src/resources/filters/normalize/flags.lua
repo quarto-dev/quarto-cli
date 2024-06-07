@@ -15,8 +15,14 @@ function compute_flags()
   local table_pattern = patterns.html_table
   local table_tag_pattern = patterns.html_table_tag_name
   local gt_table_pattern = patterns.html_gt_table
-  local html_table_caption_pattern = patterns.html_table_caption
-  local latex_caption_pattern = "(\\caption{)(.*)" .. refLabelPattern("tbl") .. "([^}]*})"
+  local function find_shortcode_in_attributes(el)
+    for k, v in pairs(el.attributes) do
+      if type(v) == "string" and v:find("%{%{%<") then
+        return true
+      end
+    end
+    return false
+  end
 
   return {
     Meta = function(el)
@@ -28,6 +34,9 @@ function compute_flags()
       end
     end,
     Header = function(el)
+      if find_shortcode_in_attributes(el) then
+        flags.has_shortcodes = true
+      end
       crossref.maxHeading = math.min(crossref.maxHeading, el.level)
     end,
 
@@ -70,6 +79,9 @@ function compute_flags()
         
     end,
     Div = function(node)
+      if find_shortcode_in_attributes(node) then
+        flags.has_shortcodes = true
+      end
       local type = refType(node.attr.identifier)
       if theorem_types[type] ~= nil or proof_type(node) ~= nil then
         flags.has_theorem_refs = true
@@ -128,7 +140,7 @@ function compute_flags()
       end
     end,
     Image = function(node)
-      if node.src:find("%{%{%<") then
+      if find_shortcode_in_attributes(node) or node.src:find("%{%{%<") then
         flags.has_shortcodes = true
       end
 
@@ -141,11 +153,17 @@ function compute_flags()
       flags.has_shortcodes = true
     end,
     Link = function(node)
+      if find_shortcode_in_attributes(node) then
+        flags.has_shortcodes = true
+      end
       if node.target:find("%{%{%<") then
         flags.has_shortcodes = true
       end
     end,
     Span = function(node)
+      if find_shortcode_in_attributes(node) then
+        flags.has_shortcodes = true
+      end
       if node.attr.classes:find("content-hidden") or node.attr.classes:find("content-visible") then
         flags.has_conditional_content = true
       end
