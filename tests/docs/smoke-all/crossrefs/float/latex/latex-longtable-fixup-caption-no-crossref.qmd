@@ -1,13 +1,13 @@
 ---
-format: latex
+format: pdf
+keep-tex: true
 title: "Long Table kable fixups etc"
 _quarto:
   tests:
-    latex:
-      ensureFileRegexMatches:
+    pdf:
+      ensureLatexFileRegexMatches:
         - ['\\begin\{longtable\}']
         - []
-    pdf: null
 ---
 
 ## Raw longtable table with no crossref and caption from kable function

@@ -32,6 +32,7 @@ import {
   ensurePptxXpath,
   ensurePptxLayout,
   ensurePptxMaxSlides,
+  ensureLatexFileRegexMatches,
 } from "../verify.ts";
 import { readYaml, readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { outputForInput } from "../utils.ts";
@@ -96,6 +97,7 @@ function resolveTestSpecs(
   const verifyMap: Record<string, any> = {
     ensureHtmlElements,
     ensureFileRegexMatches,
+    ensureLatexFileRegexMatches,
     ensureTypstFileRegexMatches,
     ensureDocxRegexMatches,
     ensureDocxXpath,
