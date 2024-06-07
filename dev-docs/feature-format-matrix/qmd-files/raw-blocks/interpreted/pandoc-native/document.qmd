@@ -10,7 +10,7 @@ format:
   dashboard:
     quality: 1
   typst:
-    output-ext: typ
+    keep-typ: true
     quality: 2
   revealjs:
     quality: 1
