@@ -10,7 +10,7 @@ crossref:
 _quarto:
   tests:
     jats:
-      ensureJatsXPath:
+      ensureJatsXpath:
         - []
         - 
           - "//xref[@rid=\"tbl-letters\"]"
