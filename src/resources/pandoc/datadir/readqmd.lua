@@ -185,6 +185,7 @@ local function readqmd(txt, opts)
         l.target = md_shortcode.unparse_md_shortcode(urldecode(l.target))
         return l
       end
+      return l
     end,
     Image = function (i)
       i = filter_attrs(i)
@@ -192,6 +193,7 @@ local function readqmd(txt, opts)
         i.src = md_shortcode.unparse_md_shortcode(urldecode(i.src))
         return i
       end
+      return i
     end,
   }
   return doc
