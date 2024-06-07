@@ -6,8 +6,9 @@ engine: jupyter
 _quarto:
   tests:
     revealjs:
-      - []
-      - ["python"]
+      ensureFileRegexMatches:
+        - []
+        - ["python"]
 ---
 
 - Turn off alarm
