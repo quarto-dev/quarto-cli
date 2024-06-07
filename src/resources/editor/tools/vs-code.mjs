@@ -9417,7 +9417,10 @@ var require_yaml_intelligence_resources = __commonJS({
                         },
                         icon: {
                           schema: "string",
-                          description: "The icon to display in the annoucement"
+                          description: {
+                            short: "The icon to display in the announcement",
+                            long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`) for the announcement.\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                          }
                         },
                         position: {
                           schema: {
@@ -9426,7 +9429,10 @@ var require_yaml_intelligence_resources = __commonJS({
                               "below-navbar"
                             ]
                           },
-                          description: "The position of the announcement."
+                          description: {
+                            short: "The position of the announcement.",
+                            long: "The position of the announcement. One of `above-navbar` (default) or `below-navbar`.\n"
+                          }
                         },
                         type: {
                           schema: {
@@ -9441,7 +9447,10 @@ var require_yaml_intelligence_resources = __commonJS({
                               "dark"
                             ]
                           },
-                          description: "The type of announcement. Affects the appearance of the announcement."
+                          description: {
+                            short: "The type of announcement. Affects the appearance of the announcement.",
+                            long: "The type of announcement. One of `primary`, `secondary`, `success`, `danger`, `warning`,\n  `info`, `light` or `dark`. Affects the appearance of the announcement.\n"
+                          }
                         }
                       }
                     }
@@ -19792,9 +19801,18 @@ var require_yaml_intelligence_resources = __commonJS({
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
-        "The icon to display in the annoucement",
-        "The position of the announcement.",
-        "The type of announcement. Affects the appearance of the\nannouncement.",
+        {
+          short: "The icon to display in the announcement",
+          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+        },
+        {
+          short: "The position of the announcement.",
+          long: "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+        },
+        {
+          short: "The type of announcement. Affects the appearance of the\nannouncement.",
+          long: "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
+        },
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -19943,9 +19961,18 @@ var require_yaml_intelligence_resources = __commonJS({
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
-        "The icon to display in the annoucement",
-        "The position of the announcement.",
-        "The type of announcement. Affects the appearance of the\nannouncement.",
+        {
+          short: "The icon to display in the announcement",
+          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+        },
+        {
+          short: "The position of the announcement.",
+          long: "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+        },
+        {
+          short: "The type of announcement. Affects the appearance of the\nannouncement.",
+          long: "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
+        },
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -22155,9 +22182,18 @@ var require_yaml_intelligence_resources = __commonJS({
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
-        "The icon to display in the annoucement",
-        "The position of the announcement.",
-        "The type of announcement. Affects the appearance of the\nannouncement.",
+        {
+          short: "The icon to display in the announcement",
+          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+        },
+        {
+          short: "The position of the announcement.",
+          long: "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+        },
+        {
+          short: "The type of announcement. Affects the appearance of the\nannouncement.",
+          long: "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
+        },
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -22490,9 +22526,18 @@ var require_yaml_intelligence_resources = __commonJS({
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
-        "The icon to display in the annoucement",
-        "The position of the announcement.",
-        "The type of announcement. Affects the appearance of the\nannouncement.",
+        {
+          short: "The icon to display in the announcement",
+          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+        },
+        {
+          short: "The position of the announcement.",
+          long: "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+        },
+        {
+          short: "The type of announcement. Affects the appearance of the\nannouncement.",
+          long: "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
+        },
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
