@@ -15987,6 +15987,17 @@ try {
             description: "Enables hover over a section title to see an anchor link."
           },
           {
+            name: "tabsets",
+            schema: "boolean",
+            default: true,
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Enables tabsets to present content."
+          },
+          {
             name: "smooth-scroll",
             schema: "boolean",
             default: false,
@@ -22816,7 +22827,8 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Enables tabsets to present content."
         ],
         "schema/external-schemas.yml": [
           {
@@ -23045,12 +23057,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 186345,
+          _internalId: 186347,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 186337,
+              _internalId: 186339,
               type: "enum",
               enum: [
                 "png",
@@ -23066,7 +23078,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 186344,
+              _internalId: 186346,
               type: "anyOf",
               anyOf: [
                 {
