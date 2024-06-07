@@ -168,7 +168,7 @@ function resolveTestSpecs(
               verifyFns.push(verifyMap[key](outputFile.outputPath, value));
             }
           } else {
-            throw new Error(`Unknown verify function used: ${key} in file ${input}`) ;
+            throw new Error(`Unknown verify function used: ${key} in file ${input} for format ${format}`) ;
           }
         }
       }
