@@ -155,11 +155,11 @@ function resolveTestSpecs(
             // FIXME: We should find another way that having this requirement of keep-* in the metadata
             if (key === "ensureTypstFileRegexMatches") {
               if (!metadata.format?.typst?.['keep-typ'] && !metadata['keep-typ']) {
-                throw new Error("Using ensureTypstFileRegexMatches requires setting `keep-typ: true`");
+                throw new Error(`Using ensureTypstFileRegexMatches requires setting 'keep-typ: true' in file ${input}`);
               }
             } else if (key === "ensureLatexFileRegexMatches") {
               if (!metadata.format?.pdf?.['keep-tex'] && !metadata['keep-tex']) {
-                throw new Error("Using ensureLatexFileRegexMatches requires setting `keep-tex: true`");
+                throw new Error(`Using ensureLatexFileRegexMatches requires setting 'keep-tex: true' in file ${input}`);
               }
             }
             if (typeof value === "object") {
@@ -168,7 +168,7 @@ function resolveTestSpecs(
               verifyFns.push(verifyMap[key](outputFile.outputPath, value));
             }
           } else {
-            throw new Error("Unknown verify function used: " + key);
+            throw new Error(`Unknown verify function used: ${key} in file ${input}`) ;
           }
         }
       }
