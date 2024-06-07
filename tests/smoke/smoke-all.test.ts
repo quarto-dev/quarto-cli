@@ -154,11 +154,11 @@ function resolveTestSpecs(
           } else if (verifyMap[key]) {
             // FIXME: We should find another way that having this requirement of keep-* in the metadata
             if (key === "ensureTypstFileRegexMatches") {
-              if (!metadata.format?.['keep-typ'] && !metadata['keep-typ']) {
+              if (!metadata.format?.typst?.['keep-typ'] && !metadata['keep-typ']) {
                 throw new Error("Using ensureTypstFileRegexMatches requires setting `keep-typ: true`");
               }
             } else if (key === "ensureLatexFileRegexMatches") {
-              if (!metadata.format?.['keep-tex'] && !metadata['keep-tex']) {
+              if (!metadata.format?.pdf?.['keep-tex'] && !metadata['keep-tex']) {
                 throw new Error("Using ensureLatexFileRegexMatches requires setting `keep-tex: true`");
               }
             }
