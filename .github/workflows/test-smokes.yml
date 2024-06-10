@@ -13,6 +13,11 @@ on:
         required: false
         type: boolean
         default: false
+      extra-r-packages:
+        description: "extra R package to install for the runs (like a dev version of one of the deps) - comma separated, passed to renv::install"
+        required: false
+        type: string
+        default: ""
   workflow_dispatch:
     inputs:
       buckets:
@@ -25,12 +30,17 @@ on:
         required: false
         type: boolean
         default: false
+      extra-r-packages:
+        description: "extra R package to install for the runs (like a dev version of one of the deps) - comma separated, passed to renv::install"
+        required: false
+        type: string
+        default: ""
   schedule:
     - cron: "0 6 * * *"
 
 jobs:
   run-smokes:
-    name: Run smoke (${{ matrix.os }})${{ matrix.time-test && ' with timed file' || ''}}
+    name: Run smoke (${{ matrix.os }})${{ matrix.time-test && ' with timed file' || ''}}${{ inputs.extra-r-packages && ' - with some extra R packages'|| ''}}
     strategy:
       fail-fast: false
       matrix:
@@ -101,7 +111,7 @@ jobs:
           key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-${{ hashFiles('tests/renv.lock') }}
           restore-keys: |
             ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-
-          save-always: true
+          save-always: ${{ inputs.extra-r-packages == '' }} # don't save cache if we have extra R packages
 
       - name: Install missing system deps
         if: runner.os == 'Linux'
@@ -121,6 +131,10 @@ jobs:
           # Use r-universe to avoid github api calls
           try(install.packages('knitr', repos = 'https://yihui.r-universe.dev'))
           try(install.packages('rmarkdown', repos = 'https://rstudio.r-universe.dev'))
+          if ('${{ inputs.extra-r-packages }}' != '') {
+            cat(sprintf("::notice::Running with the following extra R packages for pak: %s\n", "${{ inputs.extra-r-packages }}"))
+            renv::install(strsplit("${{ inputs.extra-r-packages }}", split = ",")[[1]])
+          }
         shell: Rscript {0}
         env:
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
