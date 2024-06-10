@@ -1,0 +1,19 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["img[height='450']"]
+---
+
+::: {layout-ncol="3"}
+
+![](./unimportant.png){width=450 height=450}
+
+![](./unimportant.png)
+
+![](./unimportant.png)
+
+:::

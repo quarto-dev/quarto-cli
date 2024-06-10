@@ -126,6 +126,12 @@ function partition_cells(float)
 
       if subfloat ~= nil and subfloat.t == "FloatRefTarget" then
         transfer_float_image_width_to_cell(subfloat, cell_div)
+      else
+        local fig = figureImageFromLayoutCell(cell_div)
+        if fig then
+          -- transfer width to cell
+          transferImageWidthToCell(fig, cell_div)
+        end
       end
       
       -- if we have a heading then insert it
