@@ -1,0 +1,27 @@
+---
+format: typst
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+        - ['Table']
+        - ['Figure']
+---
+
+::: {#tbl-1}
+
+```{=typst}
+  #align(center)[#table(
+    columns: 3,
+    align: (left,right,right,),
+    table.header([], [mpg], [cyl],),
+    table.hline(),
+    [Mazda RX4], [21], [6],
+    [Mazda RX4 Wag], [21], [6],
+  )]
+```
+
+This is a caption.
+
+:::

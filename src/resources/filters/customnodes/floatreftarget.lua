@@ -968,7 +968,7 @@ end, function(float)
     -- luacov: enable
   end
   local kind = "quarto-float-" .. ref
-  local supplement = titleString('fig', info.name)
+  local supplement = titleString(ref, info.name)
   -- FIXME: custom numbering doesn't work yet
   -- local numbering = ""
   -- if float.parent_id then
@@ -1004,7 +1004,7 @@ end, function(float)
       caption = float.caption_long,
       kind = kind,
       supplement = supplement,
-      numbering = numbering,
+      -- numbering = numbering,
       identifier = float.identifier
     }
   end
