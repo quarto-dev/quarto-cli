@@ -217,3 +217,4 @@ All changes included in 1.5:
 - Upgrade Deno to 1.41.0
 - `quarto install tinytex` will now try to set the default CTAN repository to the nearest mirror resolved from https://mirror.ctan.org.
 - `quarto render --to native` now works without triggering rmarkdown error about non HTML output when HTML dependencies are present in the knitr engine cell results.
+- Missing `tabsets` configuration for HTML documents has now been added in the YAML schema for validation and autocompletion. This boolean value controls the inclusion of tabsets in the document (e.g when `minimal: true` is set).
