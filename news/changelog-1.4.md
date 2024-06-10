@@ -1,12 +1,6 @@
 ## Fixed in this release
 
-- ([#9550](https://github.com/quarto-dev/quarto-cli/issues/9550)): Don't crash when subcaptions are incorrectly specified with `fig-subcap: true` but no embedded subcaptions.
-- ([#9593](https://github.com/quarto-dev/quarto-cli/issues/9593)): Fix regression with `column-margin` when used in spans in a paragraph.
-- ([#9602](https://github.com/quarto-dev/quarto-cli/issues/9602)): Fix regression with parsed HTML tables not being correcty included in various format like pptx and typst.
-- ([#8258](https://github.com/quarto-dev/quarto-cli/issues/8258)): Quarto now works again with R 4.1.3 and previous versions.
-- ([#9704](https://github.com/quarto-dev/quarto-cli/issues/9704)): Fix regression with PDF export feature in Revealjs - it now works again like in 1.3.
-- ([#9734](https://github.com/quarto-dev/quarto-cli/issues/9734)): Fix issue with unlabeled tables and `tbl-cap-location` information.
-- ([#9574](https://github.com/quarto-dev/quarto-cli/issues/9574)): Fix `quarto preview` on Windows, which was broken in previous 1.4 releases.
+- ([#9927](https://github.com/quarto-dev/quarto-cli/issues/9927)): Fix a regression with explicitly sized images in layouts.
 
 ## Fixed in previous releases
 
@@ -49,6 +43,12 @@
 - ([#9335](https://github.com/quarto-dev/quarto-cli/issues/9335)): Fix bad escaping of escaped inline code cells inside code blocks.
 - ([#9356](https://github.com/quarto-dev/quarto-cli/issues/9356)): Don't process column classes for figures inside the About divs.
 - ([#9535](https://github.com/quarto-dev/quarto-cli/issues/9535)): Fix `fig-alt` regression from previous 1.4 patch release.
+- ([#9550](https://github.com/quarto-dev/quarto-cli/issues/9550)): Don't crash when subcaptions are incorrectly specified with `fig-subcap: true` but no embedded subcaptions.
+- ([#9593](https://github.com/quarto-dev/quarto-cli/issues/9593)): Fix regression with `column-margin` when used in spans in a paragraph.
+- ([#9602](https://github.com/quarto-dev/quarto-cli/issues/9602)): Fix regression with parsed HTML tables not being correcty included in various format like pptx and typst.
+- ([#8258](https://github.com/quarto-dev/quarto-cli/issues/8258)): Quarto now works again with R 4.1.3 and previous versions.
+- ([#9704](https://github.com/quarto-dev/quarto-cli/issues/9704)): Fix regression with PDF export feature in Revealjs - it now works again like in 1.3.
+- ([#9734](https://github.com/quarto-dev/quarto-cli/issues/9734)): Fix issue with unlabeled tables and `tbl-cap-location` information.
 
 ## Languages
 
