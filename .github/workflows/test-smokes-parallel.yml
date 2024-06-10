@@ -9,6 +9,11 @@ on:
         required: true
         default: 10
         type: number
+      extra-r-packages:
+        description: "extra R package to install for the tests runs (like a dev version of one of the deps) - comma separated, passed to renv::install"
+        required: false
+        type: string
+        default: ""
   pull_request:
     branches:
       - main
@@ -82,3 +87,4 @@ jobs:
     uses: ./.github/workflows/test-smokes.yml
     with:
       buckets: ${{ matrix.buckets.files }}
+      extra-r-packages: ${{ inputs.extra-r-packages }}
