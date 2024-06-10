@@ -2,16 +2,17 @@ All changes included in 1.5:
 
 ## HTML Format
 
+- ([#3178](https://github.com/quarto-dev/quarto-cli/issues/3178)): TOC now correctly expands when web page has no content to scroll to.
 - ([#6992](https://github.com/quarto-dev/quarto-cli/issues/6992)): Properly render custom license URLs in HTML page appendix,
 - ([#8118](https://github.com/quarto-dev/quarto-cli/issues/8118)): Add support for `body-classes` to add classes to the document body.
 - ([#8311](https://github.com/quarto-dev/quarto-cli/issues/8311)): Correct z-order for margins with no contents
 - ([#8862](https://github.com/quarto-dev/quarto-cli/issues/8862)): Properly deal with an `aside` within a definition list.
+- ([#8863](https://github.com/quarto-dev/quarto-cli/issues/8863)): Properly wrap `monospace` text in definition lists.
 - ([#8990](https://github.com/quarto-dev/quarto-cli/issues/8990)): Copy button now works for embedded code source in modal window when optin-in `code-tools` feature.
 - ([#9076](https://github.com/quarto-dev/quarto-cli/issues/9076)): Fix issue with `layout-ncol` and `column` settings in executable code cells.
 - ([#9125](https://github.com/quarto-dev/quarto-cli/issues/9125)): Fix issue in browser console with TOC selection when the document is using ids for headers with specific characters (e.g russian language headers).
 - ([#9539](https://github.com/quarto-dev/quarto-cli/issues/9539)): Improve SCSS of title blocks to avoid overwide columns in grid layout.
 - Improve accessibility `role` for `aria-expandable` elements by ensuring their role supports the `aria-expanded` attribute.
-- ([#3178](https://github.com/quarto-dev/quarto-cli/issues/3178)): TOC now correctly expands when web page has no content to scroll to.
 - ([#9734](https://github.com/quarto-dev/quarto-cli/issues/9734)): Fix issue with unlabeled tables and `tbl-cap-location` information.
 
 ## PDF Format
