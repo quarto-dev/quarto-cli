@@ -289,6 +289,19 @@ function render_latex()
             return nil, false
           end,
         })
+      elseif float.type == "Listing" then
+        float.content = _quarto.ast.walk(float.content, {
+          traverse = "topdown",
+          -- A Listing float with a decoratedcodeblock inside it needs
+          -- to be deconstructed
+          DecoratedCodeBlock = function(block)
+            if block.filename ~= nil then
+              float.caption_long.content:insert(1, pandoc.Space())
+              float.caption_long.content:insert(1, pandoc.Code(block.filename))
+            end
+            return block.code_block
+          end
+        })
       end
       float.content = _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
         PanelLayout = function(panel)

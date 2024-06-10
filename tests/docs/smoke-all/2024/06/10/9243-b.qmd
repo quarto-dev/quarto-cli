@@ -1,0 +1,43 @@
+---
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - ["Shaded", "foo.py", "bar.py"]
+        - ["tcolorbox"]
+---
+
+::: {#lst-1 filename="foo.py"}
+
+```{.python}
+print("Hello, World!")
+```
+
+A caption.
+
+:::
+
+::: {#lst-2}
+
+```{.python filename="bar.py"}
+print("Hello, World!")
+```
+
+Another caption.
+
+:::
+
+
+::: {#lst-3}
+
+```{.python}
+print("Hello, World!")
+```
+
+A caption.
+
+:::
+
+
+See @lst-1, @lst-2, @lst-3.
