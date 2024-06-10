@@ -32,6 +32,7 @@ import {
   ensurePptxXpath,
   ensurePptxLayout,
   ensurePptxMaxSlides,
+  ensureLatexFileRegexMatches,
 } from "../verify.ts";
 import { readYaml, readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { outputForInput } from "../utils.ts";
@@ -96,6 +97,7 @@ function resolveTestSpecs(
   const verifyMap: Record<string, any> = {
     ensureHtmlElements,
     ensureFileRegexMatches,
+    ensureLatexFileRegexMatches,
     ensureTypstFileRegexMatches,
     ensureDocxRegexMatches,
     ensureDocxXpath,
@@ -112,7 +114,7 @@ function resolveTestSpecs(
   for (const [format, testObj] of Object.entries(specs)) {
     let checkWarnings = true;
     const verifyFns: Verify[] = [];
-    if (testObj) {
+    if (testObj && typeof testObj === "object") {
       for (
         // deno-lint-ignore no-explicit-any
         const [key, value] of Object.entries(testObj as Record<string, any>)
@@ -150,11 +152,23 @@ function resolveTestSpecs(
               verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
             }
           } else if (verifyMap[key]) {
+            // FIXME: We should find another way that having this requirement of keep-* in the metadata
+            if (key === "ensureTypstFileRegexMatches") {
+              if (!metadata.format?.typst?.['keep-typ'] && !metadata['keep-typ']) {
+                throw new Error(`Using ensureTypstFileRegexMatches requires setting 'keep-typ: true' in file ${input}`);
+              }
+            } else if (key === "ensureLatexFileRegexMatches") {
+              if (!metadata.format?.pdf?.['keep-tex'] && !metadata['keep-tex']) {
+                throw new Error(`Using ensureLatexFileRegexMatches requires setting 'keep-tex: true' in file ${input}`);
+              }
+            }
             if (typeof value === "object") {
               verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
             } else {
               verifyFns.push(verifyMap[key](outputFile.outputPath, value));
             }
+          } else {
+            throw new Error(`Unknown verify function used: ${key} in file ${input} for format ${format}`) ;
           }
         }
       }

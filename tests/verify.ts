@@ -276,80 +276,6 @@ export const directoryEmptyButFor = (
   };
 };
 
-// FIXME: do this properly without resorting on file having keep-typ
-export const ensureTypstFileRegexMatches = (
-  file: string,
-  matchesUntyped: (string | RegExp)[],
-  noMatchesUntyped?: (string | RegExp)[],
-): Verify => {
-  const matches = matchesUntyped.map(asRegexp);
-  const noMatches = noMatchesUntyped?.map(asRegexp);
-  return {
-    name: `Inspecting ${file} for Regex matches`,
-    verify: async (_output: ExecuteOutput[]) => {
-      const keptTyp = file.replace(".pdf", ".typ");
-      const typ = await Deno.readTextFile(keptTyp);
-
-      try {
-        matches.forEach((regex) => {
-          assert(
-            regex.test(typ),
-            `Required match ${String(regex)} is missing from file ${keptTyp}.`,
-          );
-        });
-
-        if (noMatches) {
-          noMatches.forEach((regex) => {
-            assert(
-              !regex.test(typ),
-              `Illegal match ${String(regex)} was found in file ${keptTyp}.`,
-            );
-          });
-        }
-      } finally {
-        await Deno.remove(keptTyp);
-      }
-    },
-  };
-};
-
-export const ensurePdfRegexMatches = (
-  file: string,
-  matchesUntyped: (string | RegExp)[],
-  noMatchesUntyped?: (string | RegExp)[],
-): Verify => {
-  const matches = matchesUntyped.map(asRegexp);
-  const noMatches = noMatchesUntyped?.map(asRegexp);
-  return {
-    name: `Inspecting ${file} for Regex matches`,
-    verify: async (_output: ExecuteOutput[]) => {
-      const cmd = new Deno.Command("pdftotext", {
-        args: [file, "-"],
-        stdout: "piped",
-      })
-      const output = await cmd.output();
-      assert(output.success, `Failed to extract text from ${file}.`)
-      const text = new TextDecoder().decode(output.stdout);
-
-      matches.forEach((regex) => {
-        assert(
-          regex.test(text),
-          `Required match ${String(regex)} is missing from file ${file}.`,
-        );
-      });
-
-      if (noMatches) {
-        noMatches.forEach((regex) => {
-          assert(
-            !regex.test(text),
-            `Illegal match ${String(regex)} was found in file ${file}.`,
-          );
-        });
-      }
-    },
-  };
-}
-
 export const ensureHtmlElements = (
   file: string,
   selectors: string[],
@@ -436,27 +362,119 @@ export const ensureSnapshotMatches = (
   };
 }
 
+const regexChecker = async function(file: string, matches: RegExp[], noMatches: RegExp[] | undefined) {
+  const content = await Deno.readTextFile(file);
+  matches.forEach((regex) => {
+    assert(
+      regex.test(content),
+      `Required match ${String(regex)} is missing from file ${file}.`,
+    );
+  });
+
+  if (noMatches) {
+    noMatches.forEach((regex) => {
+      assert(
+        !regex.test(content),
+        `Illegal match ${String(regex)} was found in file ${file}.`,
+      );
+    });
+  }
+}
+
+export const verifyFileRegexMatches = (
+  callback: (file: string, matches: RegExp[], noMatches: RegExp[] | undefined) => Promise<void>,
+  name?: string,
+): (file: string, matchesUntyped: (string | RegExp)[], noMatchesUntyped?: (string | RegExp)[]) => Verify => {
+  return (file: string, matchesUntyped: (string | RegExp)[], noMatchesUntyped?: (string | RegExp)[]) => {
+    // Use mutliline flag for regexes so that ^ and $ can be used
+    const asRegexp = (m: string | RegExp) => {
+      if (typeof m === "string") {
+        return new RegExp(m, "m");
+      } else {
+        return m;
+      }
+    };
+    const matches = matchesUntyped.map(asRegexp);
+    const noMatches = noMatchesUntyped?.map(asRegexp);
+    return {
+      name: name ?? `Inspecting ${file} for Regex matches`,
+      verify: async (_output: ExecuteOutput[]) => {
+        const tex = await Deno.readTextFile(file);
+        await callback(file, matches, noMatches);
+      }
+    };
+  }
+}
+
+// Use this function to Regex match text in the output file
 export const ensureFileRegexMatches = (
   file: string,
   matchesUntyped: (string | RegExp)[],
   noMatchesUntyped?: (string | RegExp)[],
 ): Verify => {
-  const asRegexp = (m: string | RegExp) => {
-    if (typeof m === "string") {
-      return new RegExp(m, "m");
-    } else {
-      return m;
+  return(verifyFileRegexMatches(regexChecker)(file, matchesUntyped, noMatchesUntyped));
+};
+
+// Use this function to Regex match text in the intermediate kept file
+// FIXME: do this properly without resorting on file having keep-*
+export const verifyKeepFileRegexMatches = (
+  toExt: string,
+  keepExt: string,
+): (file: string, matchesUntyped: (string | RegExp)[], noMatchesUntyped?: (string | RegExp)[]) => Verify => {
+  return (file: string, matchesUntyped: (string | RegExp)[], noMatchesUntyped?: (string | RegExp)[]) => {
+    const keptFile = file.replace(`.${toExt}`, `.${keepExt}`);
+    const keptFileChecker = async (file: string, matches: RegExp[], noMatches: RegExp[] | undefined) => {
+      try {
+        await regexChecker(file, matches, noMatches);
+      } finally {
+        await Deno.remove(file);
+      }
     }
-  };
+    return verifyFileRegexMatches(keptFileChecker, `Inspecting intermediate ${keptFile} for Regex matches`)(keptFile, matchesUntyped, noMatchesUntyped);
+  }
+};
+
+// FIXME: do this properly without resorting on file having keep-typ
+export const ensureTypstFileRegexMatches = (
+  file: string,
+  matchesUntyped: (string | RegExp)[],
+  noMatchesUntyped?: (string | RegExp)[],
+): Verify => {
+  return(verifyKeepFileRegexMatches("pdf", "typ")(file, matchesUntyped, noMatchesUntyped));
+};
+
+// FIXME: do this properly without resorting on file having keep-typ
+export const ensureLatexFileRegexMatches = (
+  file: string,
+  matchesUntyped: (string | RegExp)[],
+  noMatchesUntyped?: (string | RegExp)[],
+): Verify => {
+  return(verifyKeepFileRegexMatches("pdf", "tex")(file, matchesUntyped, noMatchesUntyped));
+};
+
+// Use this function to Regex match text in a rendered PDF file
+// This requires pdftotext to be available on PATH
+export const ensurePdfRegexMatches = (
+  file: string,
+  matchesUntyped: (string | RegExp)[],
+  noMatchesUntyped?: (string | RegExp)[],
+): Verify => {
   const matches = matchesUntyped.map(asRegexp);
   const noMatches = noMatchesUntyped?.map(asRegexp);
   return {
     name: `Inspecting ${file} for Regex matches`,
     verify: async (_output: ExecuteOutput[]) => {
-      const tex = await Deno.readTextFile(file);
+      const cmd = new Deno.Command("pdftotext", {
+        args: [file, "-"],
+        stdout: "piped",
+      })
+      const output = await cmd.output();
+      assert(output.success, `Failed to extract text from ${file}.`)
+      const text = new TextDecoder().decode(output.stdout);
+
       matches.forEach((regex) => {
         assert(
-          regex.test(tex),
+          regex.test(text),
           `Required match ${String(regex)} is missing from file ${file}.`,
         );
       });
@@ -464,14 +482,14 @@ export const ensureFileRegexMatches = (
       if (noMatches) {
         noMatches.forEach((regex) => {
           assert(
-            !regex.test(tex),
+            !regex.test(text),
             `Illegal match ${String(regex)} was found in file ${file}.`,
           );
         });
       }
     },
   };
-};
+}
 
 export const verifyJatsDocument = (
   callback: (doc: string) => Promise<void>,
