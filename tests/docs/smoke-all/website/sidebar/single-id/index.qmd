@@ -1,0 +1,11 @@
+---
+title: "Test-sidebar"
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        - []
+        - ['nav#quarto-sidebar']
+---
+
+I am the index page and I should have no sidebar

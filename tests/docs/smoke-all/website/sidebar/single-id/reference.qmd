@@ -1,0 +1,11 @@
+---
+title: reference
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        - ['nav#quarto-sidebar']
+        - []
+---
+
+I am the reference page and I should have a sidebar
