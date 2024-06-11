@@ -827,7 +827,7 @@ export function verifyPath(path: string) {
 
 export function verifyNoPath(path: string) {
   const pathExists = existsSync(path);
-  assert(!pathExists, `Unexpected directory: ${path}`);
+  assert(!pathExists, `Unexpected path: ${path}`);
 }
 
 export const ensureHtmlSelectorSatisfies = (
