@@ -57,6 +57,7 @@ All changes included in 1.5:
 - ([#8851](https://github.com/quarto-dev/quarto-cli/issues/8851)): Don't strip `index.html` from external paths.
 - ([#8977](https://github.com/quarto-dev/quarto-cli/issues/8977)): Don't decorate about links within external link icons.
 - ([#9356](https://github.com/quarto-dev/quarto-cli/issues/9356)): Don't process column classes for figures inside the About divs.
+- ([#9741](https://github.com/quarto-dev/quarto-cli/issues/9741)): Sidebar is correctly shown globally when title is used in the `sidebar` configuration.
 - ([#9781](https://github.com/quarto-dev/quarto-cli/issues/9781)): Correctly hide elements from click event in collapsed margin sidebar.
 
 ## Book
