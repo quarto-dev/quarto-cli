@@ -238,8 +238,8 @@ const getProjectRenderScripts = async (
     );
   }
   extensions.forEach((extension) => {
-    if (extension.contributes.project?.project) {
-      const project = extension.contributes.project.project as Record<
+    if (extension.contributes.metadata?.project) {
+      const project = extension.contributes.metadata.project as Record<
         string,
         unknown
       >;

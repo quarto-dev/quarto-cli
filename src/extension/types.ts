@@ -33,6 +33,7 @@ export interface Extension extends Record<string, unknown> {
   quartoVersion?: Range;
   path: string;
   contributes: {
+    metadata?: Metadata;
     project?: Record<string, unknown>;
     shortcodes?: string[];
     filters?: QuartoFilter[];

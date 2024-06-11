@@ -3,7 +3,7 @@ author: cscheid
 version: 1.0.0
 quarto-required: ">=1.2.0"
 contributes:
-  project:
+  metadata:
     project:
       pre-render:
         - pre-render.ts
