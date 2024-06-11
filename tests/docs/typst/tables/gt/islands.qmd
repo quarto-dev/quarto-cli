@@ -9,6 +9,7 @@ format:
 ---
 
 ```{r}
+#| classes: plain
 library(gt)
 library(dplyr)
 

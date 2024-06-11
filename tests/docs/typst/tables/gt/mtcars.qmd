@@ -19,7 +19,6 @@ format:
 
 
 ```{r}
-
 library(dplyr)
 library(gt)
 
@@ -38,6 +37,7 @@ order_countries <- c("Germany", "Italy", "United States", "Japan")
 
 
 ```{r}
+#| classes: plain
 # Reorder the table rows by our specific ordering of groups
 tab <-
   gtcars_8 |>
