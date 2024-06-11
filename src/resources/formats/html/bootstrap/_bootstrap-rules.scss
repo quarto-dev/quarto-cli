@@ -1381,6 +1381,8 @@ kbd,
 .callout.callout-style-simple .callout-body {
   font-size: 0.9rem;
   font-weight: 400;
+  margin-bottom: -0.4em;
+  margin-top: 0.5em;
 }
 
 .callout.callout-style-default .callout-body {
@@ -1397,6 +1399,15 @@ kbd,
   margin-bottom: -0.2em;
 }
 
+.callout.callout-empty-content > .callout-header {
+  margin-bottom: 0em;
+  border-bottom-right-radius: add($border-radius, -1px);
+}
+
+.callout > .callout-header.collapsed {
+  border-bottom-right-radius: add($border-radius, -1px);
+}
+
 .callout.callout-style-simple > div.callout-header {
   border-bottom: none;
   font-size: 0.9rem;
@@ -1411,6 +1422,7 @@ kbd,
   font-size: 0.9rem;
   padding-left: 0.5em;
   padding-right: 0.5em;
+  border-top-right-radius: add($border-radius, -1px);
 }
 
 .callout.callout-style-default .callout-body {

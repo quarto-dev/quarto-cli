@@ -40,6 +40,7 @@ function _callout_main()
     -- the first heading is the title
     local div = pandoc.Div({})
     local c = quarto.utils.as_blocks(node.content)
+    local has_content = #c > 0
     if pandoc.utils.type(c) == "Blocks" then
       div.content:extend(c)
     else
@@ -100,6 +101,10 @@ function _callout_main()
     local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='callout-icon" .. noicon .. "'></i>")});       
     local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
 
+    if not has_content then
+      calloutDiv.attr.classes:insert("callout-empty-content")
+    end
+
     -- show a titled callout
     if title ~= nil and (pandoc.utils.type(title) == "string" or next(title) ~= nil) then
 
@@ -123,6 +128,7 @@ function _callout_main()
         local expandedAttrVal = "true"
         if collapse == "true" or collapse == true then
           expandedAttrVal = "false"
+          headerDiv.attr.classes:insert("collapsed")
         end
 
         -- create the collapse button
