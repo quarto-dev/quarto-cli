@@ -23,7 +23,8 @@ export type Contributes =
   | "filters"
   | "formats"
   | "project"
-  | "revealjs-plugins";
+  | "revealjs-plugins"
+  | "metadata";
 
 export interface Extension extends Record<string, unknown> {
   id: ExtensionId;
@@ -76,7 +77,8 @@ export interface ExtensionContext {
       | "filters"
       | "formats"
       | "project"
-      | "revealjs-plugins",
+      | "revealjs-plugins"
+      | "metadata",
     config?: ProjectConfig,
     projectDir?: string,
     options?: ExtensionOptions,

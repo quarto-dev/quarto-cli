@@ -347,6 +347,8 @@ function findExtensions(
       return true;
     } else if (contributes === "project" && ext.contributes.project) {
       return true;
+    } else if (contributes === "metadata" && ext.contributes.metadata) {
+      return true;
     } else if (
       contributes === kRevealJSPlugins && ext.contributes[kRevealJSPlugins]
     ) {
