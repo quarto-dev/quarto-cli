@@ -9,8 +9,7 @@ import { docs } from "../../utils.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { testQuartoCmd } from "../../test.ts";
-import { fileExists, noErrors, printsMessage } from "../../verify.ts";
-import { assert } from "testing/asserts.ts";
+import { fileExists, noErrors, printsMessage, verifyNoPath } from "../../verify.ts";
 import { safeRemoveIfExists } from "../../../src/core/path.ts";
 
 const renderDir = docs("project/prepost/mutate-render-list");
@@ -68,7 +67,7 @@ testQuartoCmd(
     name: "i-exist.txt exists",
     verify: async () => {
       const path = join(docs("project/prepost/extension"), "i-exist.txt");
-      assert(fileExists(path));
+      verifyNoPath(path);
     }
   }],
   {
