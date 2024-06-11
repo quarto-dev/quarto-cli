@@ -275,7 +275,9 @@ for (const { path: fileName } of files) {
 
 function findProjectDir(input: string): string | undefined {
   let dir = dirname(input);
-  while (dir !== "" && dir !== ".") {
+  // This is used for smoke-all tests and should stop there 
+  // to avoid side effect of _quarto.yml outside of Quarto tests folders
+  while (dir !== "" && dir !== "." && /smoke-all$/.test(dir)) {
     const filename = ["_quarto.yml", "_quarto.yaml"].find((file) => {
       const yamlPath = join(dir, file);
       if (existsSync(yamlPath)) {
