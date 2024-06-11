@@ -1,0 +1,14 @@
+---
+title: "Sidebar-title"
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        - 
+          - 'nav.navbar li.nav-item a.nav-link span.menu-text'
+          - 'nav#quarto-sidebar li.sidebar-item a[href*="quarto.org"].sidebar-link'
+        - []
+
+---
+
+This test is based on issue https://github.com/quarto-dev/quarto-cli/issues/9242
