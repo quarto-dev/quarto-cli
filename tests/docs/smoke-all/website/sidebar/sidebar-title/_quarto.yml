@@ -1,0 +1,21 @@
+project:
+  type: website
+
+website:
+  title: "Test"
+
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+
+  sidebar:
+    title: "Contents"
+    contents:
+      - section: About
+        contents:
+          - href: about.qmd
+            text: About
+
+format:
+  html: default

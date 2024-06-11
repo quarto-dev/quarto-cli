@@ -1,0 +1,14 @@
+---
+title: "About page"
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        - 
+          - 'nav.navbar li.nav-item a.nav-link'
+          - 'nav#quarto-sidebar li.sidebar-item a.sidebar-link span.menu-text'
+          - 'nav#quarto-sidebar li.sidebar-item ul.sidebar-section'
+        - []
+---
+
+This is an about page that should also have a sidebar
