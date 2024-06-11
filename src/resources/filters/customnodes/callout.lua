@@ -2,8 +2,6 @@
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
 function _callout_main()
-  local calloutidx = 1
-
   local function calloutType(div)
     for _, class in ipairs(div.attr.classes) do
       if _quarto.modules.classpredicates.isCallout(class) then 
@@ -32,146 +30,6 @@ function _callout_main()
       end
     end
   end
-
-  -- an HTML callout div
-  local function calloutDiv(node)
-    node = _quarto.modules.callouts.decorate_callout_title_with_crossref(node)
-
-    -- the first heading is the title
-    local div = pandoc.Div({})
-    local c = quarto.utils.as_blocks(node.content)
-    if pandoc.utils.type(c) == "Blocks" then
-      div.content:extend(c)
-    else
-      div.content:insert(c)
-    end
-    local title = quarto.utils.as_inlines(node.title)
-    local callout_type = node.type
-    local calloutAppearance = node.appearance
-    local icon = node.icon
-    local collapse = node.collapse
-    local found = false
-
-    _quarto.ast.walk(title, {
-      RawInline = function(_)
-        found = true
-      end,
-      RawBlock = function(_)
-        found = true
-      end
-    })
-
-    if calloutAppearance == _quarto.modules.constants.kCalloutAppearanceDefault and pandoc.utils.stringify(title) == "" and not found then
-      title = quarto.utils.as_inlines(pandoc.Plain(_quarto.modules.callouts.displayName(node.type)))
-    end
-
-    -- Make an outer card div and transfer classes and id
-    local calloutDiv = pandoc.Div({})
-    calloutDiv.attr = node.attr:clone()
-
-    local identifier = node.attr.identifier
-    if identifier ~= "" then
-      node.attr.identifier = ""
-      calloutDiv.attr.identifier = identifier
-      -- inject an anchor so callouts can be linked to
-      -- local attr = pandoc.Attr(identifier, {}, {})
-      -- local anchor = pandoc.Link({}, "", "", attr)
-      -- title:insert(1, anchor)
-    end
-
-    div.attr.classes = pandoc.List() 
-    div.attr.classes:insert("callout-body-container")
-
-    -- add card attribute
-    calloutDiv.attr.classes:insert("callout")
-    calloutDiv.attr.classes:insert("callout-style-" .. calloutAppearance)
-    if node.type ~= nil then
-      calloutDiv.attr.classes:insert("callout-" .. node.type)
-    end
-
-    -- the image placeholder
-    local noicon = ""
-
-    -- Check to see whether this is a recognized type
-    if icon == false or not _quarto.modules.callouts.isBuiltInType(callout_type) or type == nil then
-      noicon = " no-icon"
-      calloutDiv.attr.classes:insert("no-icon")
-    end
-    local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='callout-icon" .. noicon .. "'></i>")});       
-    local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
-
-    -- show a titled callout
-    if title ~= nil and (pandoc.utils.type(title) == "string" or next(title) ~= nil) then
-
-      -- mark the callout as being titleed
-      calloutDiv.attr.classes:insert("callout-titled")
-
-      -- create a unique id for the callout
-      local calloutid = "callout-" .. calloutidx
-      calloutidx = calloutidx + 1
-
-      -- create the header to contain the title
-      -- title should expand to fill its space
-      local titleDiv = pandoc.Div(pandoc.Plain(title), pandoc.Attr("", {"callout-title-container", "flex-fill"}))
-      local headerDiv = pandoc.Div({imgDiv, titleDiv}, pandoc.Attr("", {"callout-header", "d-flex", "align-content-center"}))
-      local bodyDiv = div
-      bodyDiv.attr.classes:insert("callout-body")
-
-      if collapse ~= nil then 
-
-        -- collapse default value     
-        local expandedAttrVal = "true"
-        if collapse == "true" or collapse == true then
-          expandedAttrVal = "false"
-        end
-
-        -- create the collapse button
-        local btnClasses = "callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"
-        local btnIcon = "<i class='callout-toggle'></i>"
-        local toggleButton = pandoc.RawInline("html", "<div class='" .. btnClasses .. "'>" .. btnIcon .. "</div>")
-        headerDiv.content:insert(pandoc.Plain(toggleButton));
-
-        -- configure the header div for collapse
-        local bsTargetClz = calloutid .. "-contents"
-        headerDiv.attr.attributes["bs-toggle"] = "collapse"
-        headerDiv.attr.attributes["bs-target"] = "." .. bsTargetClz
-        headerDiv.attr.attributes["aria-controls"] = calloutid
-        headerDiv.attr.attributes["aria-expanded"] = expandedAttrVal
-        headerDiv.attr.attributes["aria-label"] = 'Toggle callout'
-
-        -- configure the body div for collapse
-        local collapseDiv = pandoc.Div({})
-        collapseDiv.attr.identifier = calloutid
-        collapseDiv.attr.classes:insert(bsTargetClz)
-        collapseDiv.attr.classes:insert("callout-collapse")
-        collapseDiv.attr.classes:insert("collapse")
-        if expandedAttrVal == "true" then
-          collapseDiv.attr.classes:insert("show")
-        end
-
-        -- add the current body to the collapse div and use the collapse div instead
-        collapseDiv.content:insert(bodyDiv)
-        bodyDiv = collapseDiv
-      end
-
-      -- add the header and body to the div
-      calloutDiv.content:insert(headerDiv)
-      calloutDiv.content:insert(bodyDiv)
-    else 
-      -- show an untitleed callout
-    
-      -- create a card body
-      local containerDiv = pandoc.Div({imgDiv, div}, pandoc.Attr("", {"callout-body"}))
-      containerDiv.attr.classes:insert("d-flex")
-
-      -- add the container to the callout card
-      calloutDiv.content:insert(containerDiv)
-    end
-    
-    return calloutDiv
-  end
-
-
 
   _quarto.ast.add_handler({
     -- use either string or array of strings
@@ -276,7 +134,7 @@ function _callout_main()
 
   _quarto.ast.add_renderer("Callout", function(_)
     return _quarto.format.isHtmlOutput() and hasBootstrap()
-  end, calloutDiv)
+  end, _quarto.modules.callouts.render_to_bootstrap_div)
   
   _quarto.ast.add_renderer("Callout", function(_) 
     return _quarto.format.isEpubOutput() or _quarto.format.isRevealJsOutput()
