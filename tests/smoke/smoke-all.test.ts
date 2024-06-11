@@ -40,6 +40,7 @@ import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts"
 import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
 import { existsSync, WalkEntry } from "fs/mod.ts";
 import { quarto } from "../../src/quarto.ts";
+import { safeExistsSync, safeRemoveSync } from "../../src/core/path.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -208,7 +209,13 @@ if (Deno.args.length === 0) {
   }
 }
 
+// To store project path we render before testing file testSpecs
 const renderedProjects: Set<string> = new Set();
+// To store information of all the project we render so that we can cleanup after testing
+const testedProjects: Set<string> = new Set();
+
+// Create an array to hold all the promises for the tests of files
+let testFilesPromises = [];
 
 for (const { path: fileName } of files) {
   const input = relative(Deno.cwd(), fileName);
@@ -216,7 +223,8 @@ for (const { path: fileName } of files) {
   const metadata = input.endsWith("md") // qmd or md
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
-  const testSpecs = [];
+
+  const testSpecs: QuartoInlineTestSpec[] = [];
 
   if (hasTestSpecs(metadata)) {
     testSpecs.push(...resolveTestSpecs(input, metadata));
@@ -231,53 +239,100 @@ for (const { path: fileName } of files) {
     }
   }
 
-  // FIXME this will leave the project in a dirty state
-  // tests run asynchronously so we can't clean up until all tests are done
-  // and I don't know of a way to wait for that
+  // Get project path for this input and store it if this is a project (used for cleaning)
+  const projectPath = findProjectDir(input);
+  if (projectPath) testedProjects.add(projectPath);
 
-  if ((metadata["_quarto"] as any)?.["render-project"]) {
-    const projectPath = findProjectDir(input);
-    if (projectPath && !renderedProjects.has(projectPath)) {
+  // Render project before testing individual document if required
+  if (
+    (metadata["_quarto"] as any)?.["render-project"] && 
+    projectPath && 
+    !renderedProjects.has(projectPath)
+  ) {
       await quarto(["render", projectPath]);
       renderedProjects.add(projectPath);
     }
-  }
 
-  for (const testSpec of testSpecs) {
-    const {
-      format,
-      verifyFns,
-      //deno-lint-ignore no-explicit-any
-    } = testSpec as any;
-    if (format === "editor-support-crossref") {
-      const tempFile = Deno.makeTempFileSync();
-      testQuartoCmd("editor-support", ["crossref", "--input", input, "--output", tempFile], verifyFns, {
-        teardown: () => {
-          Deno.removeSync(tempFile);
-          return Promise.resolve();
-        }
-      }, `quarto editor-support crossref < ${input}`);
-    } else {
-      testQuartoCmd("render", [input, "--to", format], verifyFns, {
-        prereq: async () => {
-          setInitializer(fullInit);
-          await initState();
-          return Promise.resolve(true);
-        },
-        teardown: () => {
-          cleanoutput(input, format, undefined, metadata);
-          return Promise.resolve();
-        },
-      });
+  testFilesPromises.push(new Promise<void>(async (resolve, reject) => {
+    try {
+
+      // Create an array to hold all the promises for the testSpecs
+      let testSpecPromises = [];
+      
+      for (const testSpec of testSpecs) {
+        const {
+          format,
+          verifyFns,
+          //deno-lint-ignore no-explicit-any
+        } = testSpec as any;
+        testSpecPromises.push(new Promise<void>((testSpecResolve, testSpecReject) => {
+          try {
+            if (format === "editor-support-crossref") {
+              const tempFile = Deno.makeTempFileSync();
+              testQuartoCmd("editor-support", ["crossref", "--input", input, "--output", tempFile], verifyFns, {
+                teardown: () => {
+                  Deno.removeSync(tempFile);
+                  testSpecResolve(); // Resolve the promise for the testSpec
+                  return Promise.resolve();
+                }
+              }, `quarto editor-support crossref < ${input}`);
+            } else {
+              testQuartoCmd("render", [input, "--to", format], verifyFns, {
+                prereq: async () => {
+                  setInitializer(fullInit);
+                  await initState();
+                  return Promise.resolve(true);
+                },
+                teardown: () => {
+                  cleanoutput(input, format, undefined, metadata);
+                  testSpecResolve(); // Resolve the promise for the testSpec
+                  return Promise.resolve();
+                },
+              });
+            }
+          } catch (error) {
+            testSpecReject(error);
+          }
+        }));
+          
+      }
+
+      // Wait for all the promises to resolve
+      await Promise.all(testSpecPromises);
+
+      // Resolve the promise for the file
+      resolve();
+
+    } catch (error) {
+      reject(error);
+    }
+  }));
+}
+
+// Wait for all the promises to resolve
+// Meaning all the files have been tested and we can clean
+Promise.all(testFilesPromises).then(() => {
+  // Clean up any projects that were tested
+  for (const project of testedProjects) {
+    // Clean project output directory
+    const projectOutDir = join(project, findProjectOutputDir(undefined, project));
+    if (safeExistsSync(projectOutDir)) {
+      safeRemoveSync(projectOutDir, { recursive: true });
+    }
+    // Clean hidden .quarto directory
+    const hiddenQuarto = join(project, ".quarto");
+    if (safeExistsSync(hiddenQuarto)) {
+      safeRemoveSync(hiddenQuarto, { recursive: true });
     }
   }
-}
+}).catch((_error) => {});
+
 
 function findProjectDir(input: string): string | undefined {
   let dir = dirname(input);
   // This is used for smoke-all tests and should stop there 
   // to avoid side effect of _quarto.yml outside of Quarto tests folders
-  while (dir !== "" && dir !== "." && /smoke-all$/.test(dir)) {
+  while (dir !== "" && dir !== "." && !/smoke-all$/.test(dir)) {
     const filename = ["_quarto.yml", "_quarto.yaml"].find((file) => {
       const yamlPath = join(dir, file);
       if (existsSync(yamlPath)) {
@@ -296,8 +351,11 @@ function findProjectDir(input: string): string | undefined {
   }
 }
 
-function findProjectOutputDir(input: string) {
-  const dir = findProjectDir(input);
+function findProjectOutputDir(input?: string, dir?: string) {
+  if (dir === undefined && input === undefined) {
+    throw new Error("Either input or dir must be provided");
+  }
+  dir = dir ?? findProjectDir(input!);
   if (!dir) {
     return;
   }
