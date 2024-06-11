@@ -15,6 +15,8 @@ import {
   noSupportingFiles,
   outputCreated,
 } from "../../verify.ts";
+import { safeRemoveSync } from "../../../src/core/path.ts";
+import { safeExistsSync } from "../../../src/core/path.ts";
 
 export function testSimpleIsolatedRender(
   file: string,
@@ -82,11 +84,11 @@ export function cleanoutput(
   metadata?: Record<string, any>,
 ) {
   const out = outputForInput(input, to, projectOutDir, metadata);
-  if (existsSync(out.outputPath)) {
-    Deno.removeSync(out.outputPath);
+  if (safeExistsSync(out.outputPath)) {
+    safeRemoveSync(out.outputPath);
   }
-  if (existsSync(out.supportPath)) {
-    Deno.removeSync(out.supportPath, { recursive: true });
+  if (safeExistsSync(out.supportPath)) {
+    safeRemoveSync(out.supportPath, { recursive: true });
   }
 }
 
