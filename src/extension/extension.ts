@@ -830,7 +830,7 @@ async function readExtension(
       shortcodes,
       filters,
       formats,
-      project,
+      project: project ?? {},
       [kRevealJSPlugins]: revealJSPlugins,
     },
   };
