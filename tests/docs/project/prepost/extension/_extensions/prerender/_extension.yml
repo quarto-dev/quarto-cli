@@ -7,5 +7,5 @@ contributes:
     project:
       pre-render:
         - pre-render.ts
-
-  
+      post-render:
+        - post-render.ts

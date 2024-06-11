@@ -785,20 +785,22 @@ async function readExtension(
   );
   const project = (contributes?.project || {}) as Record<string, unknown>;
   // resolve project pre- and post-render scripts to their full path
-  if (
-    project.project &&
-    (project.project as Record<string, unknown>)["pre-render"]
-  ) {
-    const preRender =
-      (project.project as Record<string, unknown>)["pre-render"] as string[];
-    const resolved = resolvePathGlobs(
-      extensionDir,
-      preRender as string[],
-      [],
-    );
-    if (resolved.include.length > 0) {
-      (project.project as Record<string, unknown>)["pre-render"] = resolved
-        .include;
+  for (const key of ["pre-render", "post-render"]) {
+    if (
+      project.project &&
+      (project.project as Record<string, unknown>)[key]
+    ) {
+      const t = (project.project as Record<string, unknown>)[key];
+      const value = (Array.isArray(t) ? t : [t]) as string[];
+      const resolved = resolvePathGlobs(
+        extensionDir,
+        value as string[],
+        [],
+      );
+      if (resolved.include.length > 0) {
+        (project.project as Record<string, unknown>)[key] = resolved
+          .include;
+      }
     }
   }
   const revealJSPlugins = ((contributes?.[kRevealJSPlugins] || []) as Array<
