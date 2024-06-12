@@ -7,6 +7,7 @@
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
 import { info, warning } from "../../deno_ral/log.ts";
+import { mergeProjectMetadata } from "../../config/metadata.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -72,6 +73,8 @@ import { Format } from "../../config/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { projectContextForDirectory } from "../../project/project-context.ts";
 import { ProjectType } from "../../project/types/types.ts";
+import { ProjectConfig as ProjectConfig_Project } from "../../resources/types/schema-types.ts";
+import { Extension } from "../../extension/types.ts";
 
 const noMutationValidations = (
   projType: ProjectType,
@@ -217,14 +220,7 @@ const computeProjectRenderConfig = async (
 
 const getProjectRenderScripts = async (
   context: ProjectContext,
-  pOptions: RenderOptions,
 ) => {
-  const extensions = await pOptions.services.extension.extensions(
-    undefined,
-    context.config,
-    context.isSingleFile ? undefined : context.dir,
-    { builtIn: false },
-  );
   const preRenderScripts: string[] = [],
     postRenderScripts: string[] = [];
   if (context.config?.project?.[kProjectPreRender]) {
@@ -237,25 +233,30 @@ const getProjectRenderScripts = async (
       ...asArray(context.config?.project?.[kProjectPostRender]!),
     );
   }
-  extensions.forEach((extension) => {
-    if (extension.contributes.project?.project) {
-      const project = extension.contributes.project.project as Record<
-        string,
-        unknown
-      >;
-      if (project[kProjectPreRender]) {
-        preRenderScripts.push(
-          ...asArray(project[kProjectPreRender] as string | string[]),
-        );
-      }
-      if (project[kProjectPostRender]) {
-        postRenderScripts.push(
-          ...asArray(project[kProjectPostRender] as string | string[]),
-        );
-      }
-    }
-  });
   return { preRenderScripts, postRenderScripts };
+};
+
+const mergeExtensionMetadata = async (
+  context: ProjectContext,
+  pOptions: RenderOptions,
+) => {
+  // this will mutate context.config.project to merge
+  // in any project metadata from extensions
+  if (context.config) {
+    const extensions = await pOptions.services.extension.extensions(
+      undefined,
+      context.config,
+      context.isSingleFile ? undefined : context.dir,
+      { builtIn: false },
+    );
+    const projectMetadata = extensions.map((extension) =>
+      extension.contributes.metadata?.project
+    ).filter((project) => project) as ProjectConfig_Project[];
+    context.config.project = mergeProjectMetadata(
+      context.config.project,
+      ...projectMetadata,
+    );
+  }
 };
 
 export async function renderProject(
@@ -263,9 +264,9 @@ export async function renderProject(
   pOptions: RenderOptions,
   pFiles?: string[],
 ): Promise<RenderResult> {
+  mergeExtensionMetadata(context, pOptions);
   const { preRenderScripts, postRenderScripts } = await getProjectRenderScripts(
     context,
-    pOptions,
   );
 
   // lookup the project type

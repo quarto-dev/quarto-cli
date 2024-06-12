@@ -347,6 +347,8 @@ function findExtensions(
       return true;
     } else if (contributes === "project" && ext.contributes.project) {
       return true;
+    } else if (contributes === "metadata" && ext.contributes.metadata) {
+      return true;
     } else if (
       contributes === kRevealJSPlugins && ext.contributes[kRevealJSPlugins]
     ) {
@@ -625,6 +627,7 @@ function validateExtension(extension: Extension) {
     extension.contributes.formats,
     extension.contributes.project,
     extension.contributes[kRevealJSPlugins],
+    extension.contributes.metadata,
   ];
   contribs.forEach((contrib) => {
     if (contrib) {
@@ -783,22 +786,31 @@ async function readExtension(
       return resolveFilterPath(extensionDir, filter);
     },
   );
-  const project = (contributes?.project || {}) as Record<string, unknown>;
-  // resolve project pre- and post-render scripts to their full path
-  if (
-    project.project &&
-    (project.project as Record<string, unknown>)["pre-render"]
-  ) {
-    const preRender =
-      (project.project as Record<string, unknown>)["pre-render"] as string[];
-    const resolved = resolvePathGlobs(
-      extensionDir,
-      preRender as string[],
-      [],
-    );
-    if (resolved.include.length > 0) {
-      (project.project as Record<string, unknown>)["pre-render"] = resolved
-        .include;
+  const project = contributes?.project as Record<string, unknown> | undefined;
+  const metadata = contributes?.metadata as Record<string, unknown> | undefined;
+
+  // resolve metadata/project pre- and post-render scripts to their full path
+  for (const key of ["pre-render", "post-render"]) {
+    for (const object of [metadata, project]) {
+      if (!object?.project || typeof object.project !== "object") {
+        continue;
+      }
+      // object.project is truthy and typeof object.project is object
+      // so we can safely cast object.project to Record<string, unknown>
+      // the TypeScript checker doesn't appear to recognize this
+      const t = (object.project as Record<string, unknown>)[key];
+      if (t) {
+        const value = (Array.isArray(t) ? t : [t]) as string[];
+        const resolved = resolvePathGlobs(
+          extensionDir,
+          value as string[],
+          [],
+        );
+        if (resolved.include.length > 0) {
+          (object.project as Record<string, unknown>)[key] = resolved
+            .include;
+        }
+      }
     }
   }
   const revealJSPlugins = ((contributes?.[kRevealJSPlugins] || []) as Array<
@@ -816,10 +828,11 @@ async function readExtension(
     id: extensionId,
     path: extensionDir,
     contributes: {
+      metadata,
       shortcodes,
       filters,
       formats,
-      project,
+      project: project ?? {},
       [kRevealJSPlugins]: revealJSPlugins,
     },
   };
