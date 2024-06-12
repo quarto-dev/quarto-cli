@@ -121,7 +121,7 @@ All changes included in 1.5:
 
 - ([#8385](https://github.com/quarto-dev/quarto-cli/issues/8385)): Properly copy project resources when extensions are installed at project level.
 - ([#8547](https://github.com/quarto-dev/quarto-cli/issues/8547)): Support installing extensions from github branch with forward slash in the name.
-- ([#9889](https://github.com/quarto-dev/quarto-cli/issues/9889)): Support `pre-render` and `post-render` script lists in `project` contributions from extensions.
+- ([#9948](https://github.com/quarto-dev/quarto-cli/issues/9948)): New extension type: `metadata`. Example use case: support `pre-render` and `post-render` script lists in `project` metadata.
 
 ## Shortcodes
 
