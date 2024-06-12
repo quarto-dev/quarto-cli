@@ -34,8 +34,8 @@ import {
   ensurePptxMaxSlides,
   ensureLatexFileRegexMatches,
 } from "../verify.ts";
-import { readYaml, readYamlFromMarkdown } from "../../src/core/yaml.ts";
-import { findProjectDir, outputForInput } from "../utils.ts";
+import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
+import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
 import { WalkEntry } from "fs/mod.ts";
@@ -125,7 +125,7 @@ function resolveTestSpecs(
           verifyFns.push(noErrors);
         } else {
           // See if there is a project and grab it's type
-          const projectOutDir = findProjectOutputDir(input);
+          const projectOutDir = findProjectOutputDir(findSmokeAllProjectDir(input));
           const outputFile = outputForInput(input, format, projectOutDir, metadata);
           if (key === "fileExists") {
             for (
@@ -240,7 +240,7 @@ for (const { path: fileName } of files) {
   }
 
   // Get project path for this input and store it if this is a project (used for cleaning)
-  const projectPath = findProjectDir(input, /smoke-all$/);
+  const projectPath = findSmokeAllProjectDir(input);
   if (projectPath) testedProjects.add(projectPath);
 
   // Render project before testing individual document if required
@@ -315,7 +315,7 @@ Promise.all(testFilesPromises).then(() => {
   // Clean up any projects that were tested
   for (const project of testedProjects) {
     // Clean project output directory
-    const projectOutDir = join(project, findProjectOutputDir(undefined, project));
+    const projectOutDir = join(project, findProjectOutputDir(project));
     if (safeExistsSync(projectOutDir)) {
       safeRemoveSync(projectOutDir, { recursive: true });
     }
@@ -327,28 +327,6 @@ Promise.all(testFilesPromises).then(() => {
   }
 }).catch((_error) => {});
 
-
-function findProjectOutputDir(input?: string, dir?: string) {
-  if (dir === undefined && input === undefined) {
-    throw new Error("Either input or dir must be provided");
-  }
-  dir = dir ?? findProjectDir(input!, /smoke-all$/);
-  if (!dir) {
-    return;
-  }
-  const yaml = readYaml(join(dir, "_quarto.yml"));
-  let type = undefined;
-  try {
-    // deno-lint-ignore no-explicit-any
-    type = ((yaml as any).project as any).type;
-  } catch (error) {
-    throw new Error("Failed to read quarto project YAML", error);
-  }
-
-  if (type === "book") {
-    return "_book";
-  }
-  if (type === "website") {
-    return (yaml as any)?.project?.["output-dir"] || "_site";
-  }
+function findSmokeAllProjectDir(input: string) {
+  return findProjectDir(input, /smoke-all$/);
 }
