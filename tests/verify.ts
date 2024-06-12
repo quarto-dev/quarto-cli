@@ -282,14 +282,14 @@ export const ensureHtmlElements = (
   noMatchSelectors?: string[],
 ): Verify => {
   return {
-    name: "Inspecting HTML for Selectors",
+    name: `Inspecting HTML for Selectors in ${file}`,
     verify: async (_output: ExecuteOutput[]) => {
       const htmlInput = await Deno.readTextFile(file);
       const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
       selectors.forEach((sel) => {
         assert(
           doc.querySelector(sel) !== null,
-          `Required DOM Element ${sel} is missing.`,
+          `Required DOM Element ${sel} is missing in ${file}.`,
         );
       });
 
@@ -297,7 +297,7 @@ export const ensureHtmlElements = (
         noMatchSelectors.forEach((sel) => {
           assert(
             doc.querySelector(sel) === null,
-            `Illegal DOM Element ${sel} is present.`,
+            `Illegal DOM Element ${sel} is present in ${file}.`,
           );
         });
       }
