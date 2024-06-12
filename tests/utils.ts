@@ -53,7 +53,6 @@ export function findProjectOutputDir(projectdir: string | undefined) {
   } catch (error) {
     throw new Error("Failed to read quarto project YAML", error);
   }
-
   if (type === "book") {
     return "_book";
   }
@@ -63,6 +62,10 @@ export function findProjectOutputDir(projectdir: string | undefined) {
   if (type === "manuscript") {
     return (yaml as any)?.project?.["output-dir"] || "_manuscript";
   }
+  if (type === "default") {
+    return (yaml as any)?.project?.["output-dir"];
+  }
+  return (yaml as any)?.project?.["output-dir"];
 }
 
 // Gets output that should be created for this input file and target format
