@@ -60,6 +60,9 @@ export function findProjectOutputDir(projectdir: string | undefined) {
   if (type === "website") {
     return (yaml as any)?.project?.["output-dir"] || "_site";
   }
+  if (type === "manuscript") {
+    return (yaml as any)?.project?.["output-dir"] || "_manuscript";
+  }
 }
 
 // Gets output that should be created for this input file and target format
