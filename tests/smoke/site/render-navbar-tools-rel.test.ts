@@ -3,17 +3,17 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { docs, siteOutputForInput } from "../../utils.ts";
+import { docs, projectOutputForInput } from "../../utils.ts";
 import { ensureFileRegexMatches } from "../../verify.ts";
 import { testSite } from "./site.ts";
 
 testSite(
   docs("websites/issue-5756/index.qmd"),
-  docs("websites/issue-5756/index.qmd"),
+  docs("websites/issue-5756"),
   [],
   [],
   ensureFileRegexMatches(
-    siteOutputForInput(docs("websites/issue-5756/index.qmd"))
+    projectOutputForInput(docs("websites/issue-5756/index.qmd"))
       .outputPath,
     ['rel="me"'],
     [],

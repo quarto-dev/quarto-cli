@@ -34,11 +34,11 @@ import {
   ensurePptxMaxSlides,
   ensureLatexFileRegexMatches,
 } from "../verify.ts";
-import { readYaml, readYamlFromMarkdown } from "../../src/core/yaml.ts";
-import { outputForInput } from "../utils.ts";
+import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
+import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
-import { existsSync, WalkEntry } from "fs/mod.ts";
+import { WalkEntry } from "fs/mod.ts";
 import { quarto } from "../../src/quarto.ts";
 import { safeExistsSync, safeRemoveSync } from "../../src/core/path.ts";
 
@@ -125,8 +125,9 @@ function resolveTestSpecs(
           verifyFns.push(noErrors);
         } else {
           // See if there is a project and grab it's type
-          const projectOutDir = findProjectOutputDir(input);
-          const outputFile = outputForInput(input, format, projectOutDir, metadata);
+          const projectPath = findSmokeAllProjectDir(input)
+          const projectOutDir = findProjectOutputDir(projectPath);
+          const outputFile = outputForInput(input, format, projectOutDir, projectPath, metadata);
           if (key === "fileExists") {
             for (
               const [path, file] of Object.entries(
@@ -240,7 +241,7 @@ for (const { path: fileName } of files) {
   }
 
   // Get project path for this input and store it if this is a project (used for cleaning)
-  const projectPath = findProjectDir(input);
+  const projectPath = findSmokeAllProjectDir(input);
   if (projectPath) testedProjects.add(projectPath);
 
   // Render project before testing individual document if required
@@ -284,7 +285,7 @@ for (const { path: fileName } of files) {
                   return Promise.resolve(true);
                 },
                 teardown: () => {
-                  cleanoutput(input, format, undefined, metadata);
+                  cleanoutput(input, format, undefined, undefined, metadata);
                   testSpecResolve(); // Resolve the promise for the testSpec
                   return Promise.resolve();
                 },
@@ -315,7 +316,7 @@ Promise.all(testFilesPromises).then(() => {
   // Clean up any projects that were tested
   for (const project of testedProjects) {
     // Clean project output directory
-    const projectOutDir = join(project, findProjectOutputDir(undefined, project));
+    const projectOutDir = join(project, findProjectOutputDir(project));
     if (safeExistsSync(projectOutDir)) {
       safeRemoveSync(projectOutDir, { recursive: true });
     }
@@ -327,51 +328,6 @@ Promise.all(testFilesPromises).then(() => {
   }
 }).catch((_error) => {});
 
-
-function findProjectDir(input: string): string | undefined {
-  let dir = dirname(input);
-  // This is used for smoke-all tests and should stop there 
-  // to avoid side effect of _quarto.yml outside of Quarto tests folders
-  while (dir !== "" && dir !== "." && !/smoke-all$/.test(dir)) {
-    const filename = ["_quarto.yml", "_quarto.yaml"].find((file) => {
-      const yamlPath = join(dir, file);
-      if (existsSync(yamlPath)) {
-        return true;
-      }
-    });
-    if (filename) {
-      return dir;
-    }
-
-    const newDir = dirname(dir); // stops at the root for both Windows and Posix
-    if (newDir === dir) {
-      return;
-    }
-    dir = newDir;
-  }
-}
-
-function findProjectOutputDir(input?: string, dir?: string) {
-  if (dir === undefined && input === undefined) {
-    throw new Error("Either input or dir must be provided");
-  }
-  dir = dir ?? findProjectDir(input!);
-  if (!dir) {
-    return;
-  }
-  const yaml = readYaml(join(dir, "_quarto.yml"));
-  let type = undefined;
-  try {
-    // deno-lint-ignore no-explicit-any
-    type = ((yaml as any).project as any).type;
-  } catch (error) {
-    throw new Error("Failed to read quarto project YAML", error);
-  }
-
-  if (type === "book") {
-    return "_book";
-  }
-  if (type === "website") {
-    return (yaml as any)?.project?.["output-dir"] || "_site";
-  }
+function findSmokeAllProjectDir(input: string) {
+  return findProjectDir(input, /smoke-all$/);
 }
