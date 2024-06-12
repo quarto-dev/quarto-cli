@@ -13,6 +13,8 @@ local function _main()
         result:insert(pandoc.RawInline("typst", tostring(v)))
       elseif type(v) == "string" then
         result:insert(pandoc.RawInline("typst", "\"" .. v .. "\""))
+      elseif type(v) == "boolean" then
+        result:insert(pandoc.RawInline("typst", v and "true" or "false"))
       elseif v.t == "RawInline" or v.t == "RawBlock" then
         if v.format == "typst" then
           result:insert(v)

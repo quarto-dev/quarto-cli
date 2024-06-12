@@ -75,7 +75,7 @@ function render_typst()
           {"level", el.level},
         })
         if el.classes:includes("unnumbered") then
-          params:insert({"numbering", "none"})
+          params:insert({"numbering", pandoc.RawInline("typst", "none")})
         end
         if el.classes:includes("unlisted") then
           params:insert({"outlined", false})
