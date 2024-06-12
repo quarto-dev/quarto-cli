@@ -8,11 +8,36 @@
 import { basename, dirname, extname, join } from "../src/deno_ral/path.ts";
 import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
 import { kMetadataFormat, kOutputExt } from "../src/config/constants.ts";
+import { safeExistsSync } from "../src/core/path.ts";
 
 // caller is responsible for cleanup!
 export function inTempDirectory(fn: (dir: string) => unknown): unknown {
   const dir = Deno.makeTempDirSync();
   return fn(dir);
+}
+
+// Find a _quarto.yaml file in the directory hierarchy of the input file
+export function findProjectDir(input: string, until?: RegExp | undefined): string | undefined {
+  let dir = dirname(input);
+  // This is used for smoke-all tests and should stop there 
+  // to avoid side effect of _quarto.yml outside of Quarto tests folders
+  while (dir !== "" && dir !== "." && (until ? !until.test(dir) : true)) {
+    const filename = ["_quarto.yml", "_quarto.yaml"].find((file) => {
+      const yamlPath = join(dir, file);
+      if (safeExistsSync(yamlPath)) {
+        return true;
+      }
+    });
+    if (filename) {
+      return dir;
+    }
+
+    const newDir = dirname(dir); // stops at the root for both Windows and Posix
+    if (newDir === dir) {
+      return;
+    }
+    dir = newDir;
+  }
 }
 
 // Gets output that should be created for this input file and target format

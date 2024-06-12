@@ -35,10 +35,10 @@ import {
   ensureLatexFileRegexMatches,
 } from "../verify.ts";
 import { readYaml, readYamlFromMarkdown } from "../../src/core/yaml.ts";
-import { outputForInput } from "../utils.ts";
+import { findProjectDir, outputForInput } from "../utils.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
-import { existsSync, WalkEntry } from "fs/mod.ts";
+import { WalkEntry } from "fs/mod.ts";
 import { quarto } from "../../src/quarto.ts";
 import { safeExistsSync, safeRemoveSync } from "../../src/core/path.ts";
 
@@ -240,7 +240,7 @@ for (const { path: fileName } of files) {
   }
 
   // Get project path for this input and store it if this is a project (used for cleaning)
-  const projectPath = findProjectDir(input);
+  const projectPath = findProjectDir(input, /smoke-all$/);
   if (projectPath) testedProjects.add(projectPath);
 
   // Render project before testing individual document if required
@@ -328,34 +328,11 @@ Promise.all(testFilesPromises).then(() => {
 }).catch((_error) => {});
 
 
-function findProjectDir(input: string): string | undefined {
-  let dir = dirname(input);
-  // This is used for smoke-all tests and should stop there 
-  // to avoid side effect of _quarto.yml outside of Quarto tests folders
-  while (dir !== "" && dir !== "." && !/smoke-all$/.test(dir)) {
-    const filename = ["_quarto.yml", "_quarto.yaml"].find((file) => {
-      const yamlPath = join(dir, file);
-      if (existsSync(yamlPath)) {
-        return true;
-      }
-    });
-    if (filename) {
-      return dir;
-    }
-
-    const newDir = dirname(dir); // stops at the root for both Windows and Posix
-    if (newDir === dir) {
-      return;
-    }
-    dir = newDir;
-  }
-}
-
 function findProjectOutputDir(input?: string, dir?: string) {
   if (dir === undefined && input === undefined) {
     throw new Error("Either input or dir must be provided");
   }
-  dir = dir ?? findProjectDir(input!);
+  dir = dir ?? findProjectDir(input!, /smoke-all$/);
   if (!dir) {
     return;
   }
