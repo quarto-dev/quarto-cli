@@ -351,13 +351,16 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
       content:insert(pandoc.Para(caption))
       cellOutput = true
     elseif isFigure then
-      local caption = refCaptionFromDiv(cell).content
-      markupLatexCaption(cell, caption)
-      content:insert(pandoc.RawBlock("latex", "\\raisebox{-\\height}{"))
-      tappend(content, tslice(cell.content, 1, #cell.content-1))
-      content:insert(pandoc.RawBlock("latex", "}"))
-      content:insert(pandoc.Para(caption)) 
-      cellOutput = true
+      local caption_el = refCaptionFromDiv(cell)
+      if caption_el ~= nil then
+        local caption = caption_el.content
+        markupLatexCaption(cell, caption)
+        content:insert(pandoc.RawBlock("latex", "\\raisebox{-\\height}{"))
+        tappend(content, tslice(cell.content, 1, #cell.content-1))
+        content:insert(pandoc.RawBlock("latex", "}"))
+        content:insert(pandoc.Para(caption)) 
+        cellOutput = true
+      end
     end
   end
   
