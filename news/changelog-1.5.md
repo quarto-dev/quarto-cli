@@ -84,6 +84,7 @@ All changes included in 1.5:
 - ([#9722](https://github.com/quarto-dev/quarto-cli/issues/9722)): Resolve data URI images in Typst.
 - ([#9555](https://github.com/quarto-dev/quarto-cli/issues/9555)): Text elements in Typst are internationalized.
 - ([#9887](https://github.com/quarto-dev/quarto-cli/issues/9887)): Use correct supplement for div floats in Typst.
+- ([#9972](https://github.com/quarto-dev/quarto-cli/issues/9972)): Fix crashes with unnumbered sections.
 - Upgrade Typst to 0.11
 - Upgrade the Typst template to draw tables without grid lines by default, in accordance with latest Pandoc.
 
