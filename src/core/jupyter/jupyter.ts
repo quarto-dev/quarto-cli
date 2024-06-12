@@ -1326,7 +1326,12 @@ async function mdFromCodeCell(
   }
 
   // resolve caption (main vs. sub)
-  const { cellCaption, outputCaptions } = resolveCaptions(cell);
+  let { cellCaption, outputCaptions } = resolveCaptions(cell);
+
+  // https://github.com/quarto-dev/quarto-cli/issues/5413
+  outputCaptions = outputCaptions.map((caption) =>
+    caption.trim().replaceAll("\n", " ")
+  );
 
   // cell_type classes
   divMd.push(`.cell `);

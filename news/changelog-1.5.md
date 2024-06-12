@@ -104,6 +104,7 @@ All changes included in 1.5:
 - ([#9422](https://github.com/quarto-dev/quarto-cli/issues/9422)): Improve the stream merging algorithm in output cells to avoid merging outputs that should not be merged.
 - ([#9536](https://github.com/quarto-dev/quarto-cli/issues/9536)): Provide traceback when available in Jupyter error outputs.
 - ([#9470](https://github.com/quarto-dev/quarto-cli/issues/9470)): Fix images rendered by the Jupyter engine to be displayed with the same dimensions as those in notebooks.
+- ([#5413](https://github.com/quarto-dev/quarto-cli/issues/5413)): Fix issue with Jupyter engine cells and images with captions containing newlines.
 
 ## Website Listings
 
