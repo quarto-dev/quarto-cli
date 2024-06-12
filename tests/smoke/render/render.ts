@@ -80,10 +80,11 @@ export function cleanoutput(
   input: string, 
   to: string, 
   projectOutDir?: string,
+  projectRoot?: string,
   // deno-lint-ignore no-explicit-any
   metadata?: Record<string, any>,
 ) {
-  const out = outputForInput(input, to, projectOutDir, metadata);
+  const out = outputForInput(input, to, projectOutDir, projectRoot, metadata);
   if (safeExistsSync(out.outputPath)) {
     safeRemoveSync(out.outputPath);
   }

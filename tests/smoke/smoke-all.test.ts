@@ -125,8 +125,9 @@ function resolveTestSpecs(
           verifyFns.push(noErrors);
         } else {
           // See if there is a project and grab it's type
-          const projectOutDir = findProjectOutputDir(findSmokeAllProjectDir(input));
-          const outputFile = outputForInput(input, format, projectOutDir, metadata);
+          const projectPath = findSmokeAllProjectDir(input)
+          const projectOutDir = findProjectOutputDir(projectPath);
+          const outputFile = outputForInput(input, format, projectOutDir, projectPath, metadata);
           if (key === "fileExists") {
             for (
               const [path, file] of Object.entries(
@@ -284,7 +285,7 @@ for (const { path: fileName } of files) {
                   return Promise.resolve(true);
                 },
                 teardown: () => {
-                  cleanoutput(input, format, undefined, metadata);
+                  cleanoutput(input, format, undefined, undefined, metadata);
                   testSpecResolve(); // Resolve the promise for the testSpec
                   return Promise.resolve();
                 },

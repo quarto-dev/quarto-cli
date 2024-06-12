@@ -5,7 +5,7 @@
 *
 */
 
-import { basename, dirname, extname, join } from "../src/deno_ral/path.ts";
+import { basename, dirname, extname, join, relative } from "../src/deno_ral/path.ts";
 import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
 import { kMetadataFormat, kOutputExt } from "../src/config/constants.ts";
 import { safeExistsSync } from "../src/core/path.ts";
@@ -73,11 +73,14 @@ export function outputForInput(
   input: string,
   to: string,
   projectOutDir?: string,
+  projectRoot?: string,
   // deno-lint-ignore no-explicit-any
   metadata?: Record<string, any>,
 ) {
   // TODO: Consider improving this (e.g. for cases like Beamer, or typst)
-  const dir = dirname(input);
+  projectRoot = projectRoot ?? findProjectDir(input);
+  projectOutDir = projectOutDir ?? findProjectOutputDir(projectRoot);
+  const dir = projectRoot ? relative(projectRoot, dirname(input)) : dirname(input);
   let stem = basename(input, extname(input));
   let ext = metadata?.[kMetadataFormat]?.[to]?.[kOutputExt];
 
@@ -139,11 +142,11 @@ export function outputForInput(
     }
   }
 
-  const outputPath = projectOutDir
-    ? join(dir, projectOutDir, `${stem}.${outputExt}`)
-    : join(dir, `${stem}.${outputExt}`);
-  const supportPath = projectOutDir
-    ? join(dir, projectOutDir, `${stem}_files`)
+  const outputPath: string = projectRoot && projectOutDir
+      ? join(projectRoot, projectOutDir, dir, `${stem}.${outputExt}`)
+      : join(dir, `${stem}.${outputExt}`);
+  const supportPath: string = projectRoot && projectOutDir
+    ? join(projectRoot, projectOutDir, dir, `${stem}_files`)
     : join(dir, `${stem}_files`);
 
   return {
@@ -152,8 +155,13 @@ export function outputForInput(
   };
 }
 
-export function siteOutputForInput(input: string) {
-  const dir = join(dirname(input), "_site");
+export function projectOutputForInput(input: string) {
+  const projectDir = findProjectDir(input);
+  const projectOutDir = findProjectOutputDir(projectDir);
+  if (!projectDir) {
+    throw new Error("No project directory found");
+  }
+  const dir = join(projectDir, projectOutDir, relative(projectDir, dirname(input)));
   const stem = basename(input, extname(input));
 
   const outputPath = join(dir, `${stem}.html`);
