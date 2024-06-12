@@ -288,11 +288,6 @@ export async function websiteNavigationExtras(
   const href = target?.outputHref || inputFileHref(inputRelative);
   const sidebar = sidebarForHref(href, format);
 
-  // if the sidebar has a title and no id generate the id
-  if (sidebar && sidebar.title && !sidebar.id) {
-    sidebar.id = asHtmlId(sidebar.title);
-  }
-
   // Forward the draft mode, if present
   const draftMode = projectDraftMode(project);
 
@@ -1007,6 +1002,11 @@ async function sidebarsEjsData(project: ProjectContext, sidebars: Sidebar[]) {
 
 async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   sidebar = ld.cloneDeep(sidebar);
+
+  // if the sidebar has a title and no id generate the id
+  if (sidebar.title && !sidebar.id) {
+    sidebar.id = asHtmlId(sidebar.title);
+  }
 
   // ensure title and search are present
   sidebar.title = sidebarTitle(sidebar, project) as string | undefined;
