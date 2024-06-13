@@ -63,6 +63,7 @@ All changes included in 1.5:
 - ([#8977](https://github.com/quarto-dev/quarto-cli/issues/8977)): Don't decorate about links within external link icons.
 - ([#8986](https://github.com/quarto-dev/quarto-cli/issues/8986)): Search: only build subfuse index when it's safe to do so.
 - ([#9356](https://github.com/quarto-dev/quarto-cli/issues/9356)): Don't process column classes for figures inside the About divs.
+- ([#9524](https://github.com/quarto-dev/quarto-cli/issues/9524)): Fix canonical URL generation for website pages.
 - ([#9781](https://github.com/quarto-dev/quarto-cli/issues/9781)): Correctly hide elements from click event in collapsed margin sidebar.
 - Sidebar navigation item now correctly supports `rel` attribute.
 - `target` attribute for sidebar navigation items is now correctly inserted with HTML escapes.
