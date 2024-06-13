@@ -68,10 +68,10 @@ export function testRender(
     {
       ...context,
       setup: async () => {
-        assert(safeExistsSync(input), `Input file ${input} does not exist. Test could not be ran.`);
         if (context?.setup) {
           await context?.setup();
         }
+        assert(safeExistsSync(input), `Input file ${input} does not exist. Test could not be ran.`);
       },
       teardown: async () => {
         if (context?.teardown) {
