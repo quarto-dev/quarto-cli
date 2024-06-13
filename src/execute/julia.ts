@@ -41,6 +41,10 @@ import { sleep } from "../core/async.ts";
 import { JupyterNotebook } from "../core/jupyter/types.ts";
 import { existsSync } from "fs/mod.ts";
 import { encodeBase64 } from "encoding/base64.ts";
+import {
+  executeResultEngineDependencies,
+  executeResultIncludes,
+} from "./jupyter/jupyter.ts";
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
   julia_cmd: string;
@@ -183,6 +187,20 @@ export const juliaEngine: ExecutionEngine = {
       },
     );
 
+    // return dependencies as either includes or raw dependencies
+    let includes: PandocIncludes | undefined;
+    let engineDependencies: Record<string, Array<unknown>> | undefined;
+    if (options.dependencies) {
+      includes = executeResultIncludes(options.tempDir, result.dependencies);
+    } else {
+      const dependencies = executeResultEngineDependencies(result.dependencies);
+      if (dependencies) {
+        engineDependencies = {
+          [kJuliaEngine]: dependencies,
+        };
+      }
+    }
+
     // Create markdown from the result
     const outputs = result.cellOutputs.map((output) => output.markdown);
     if (result.notebookOutputs) {
@@ -202,8 +220,8 @@ export const juliaEngine: ExecutionEngine = {
       supporting: [join(assets.base_dir, assets.supporting_dir)],
       filters: [],
       pandoc: result.pandoc,
-      // includes,
-      // engineDependencies,
+      includes,
+      engineDependencies,
       preserve: result.htmlPreserve,
       postProcess: result.htmlPreserve &&
         (Object.keys(result.htmlPreserve).length > 0),
