@@ -15,5 +15,3 @@ website:
 format:
   html:
     canonical-url: true
-    theme: cosmo
-    toc: true
