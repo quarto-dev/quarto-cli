@@ -3,8 +3,9 @@ title: "Quarto 9524"
 _quarto:
   tests:
     html:
-      ensureFileRegexMatches:
-        - ['<link rel="canonical" href="https://index.html.com/">']
+      ensureHtmlElements:
+        - ['link[rel="canonical"][href="https://index.html.com/"]']
+        - []
 ---
 
 This is a Quarto website.
