@@ -8752,7 +8752,7 @@ try {
                             ],
                             description: {
                               short: "The giscus theme to use when displaying comments.",
-                              long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      light: light # giscus theme used for light website theme\n      dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
+                              long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
                             }
                           },
                           language: {
@@ -21756,6 +21756,7 @@ try {
           "Enables inclusion of Pandoc default CSS for this document.",
           "One or more CSS style sheets.",
           "Enables hover over a section title to see an anchor link.",
+          "Enables tabsets to present content.",
           "Enables smooth scrolling within the page.",
           {
             short: "Method use to render math in HTML output",
@@ -22827,8 +22828,7 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack",
-          "Enables tabsets to present content."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -23057,12 +23057,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 186347,
+          _internalId: 186493,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 186339,
+              _internalId: 186485,
               type: "enum",
               enum: [
                 "png",
@@ -23078,7 +23078,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 186346,
+              _internalId: 186492,
               type: "anyOf",
               anyOf: [
                 {
