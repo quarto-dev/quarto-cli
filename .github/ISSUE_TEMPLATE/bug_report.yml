@@ -84,7 +84,9 @@ body:
         ```bash
         quarto check
         ```
-  
+      validations:
+        required: true
+
   - type: markdown
     attributes:
       value: "_Thanks for submitting this bug report!_"
