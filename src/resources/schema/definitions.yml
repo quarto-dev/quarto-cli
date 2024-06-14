@@ -315,8 +315,9 @@
                       website:
                         comments:
                           giscus:
-                            light: light # giscus theme used for light website theme
-                            dark: dark_dimmed # giscus theme used for dark website theme
+                            theme:
+                              light: light # giscus theme used for light website theme
+                              dark: dark_dimmed # giscus theme used for dark website theme
                       ```
                 language:
                   string:
@@ -750,7 +751,7 @@
                   description: "Whether this announcement may be dismissed by the user."
                 icon:
                   schema: string
-                  description: 
+                  description:
                     short: "The icon to display in the announcement"
                     long: |
                       Name of bootstrap icon (e.g. `github`, `twitter`, `share`) for the announcement.
@@ -758,7 +759,7 @@
                 position:
                   schema:
                     enum: ["above-navbar", "below-navbar"]
-                  description: 
+                  description:
                     short: "The position of the announcement."
                     long: |
                       The position of the announcement. One of `above-navbar` (default) or `below-navbar`.
@@ -775,7 +776,7 @@
                         light,
                         dark,
                       ]
-                  description: 
+                  description:
                     short: "The type of announcement. Affects the appearance of the announcement."
                     long: |
                       The type of announcement. One of `primary`, `secondary`, `success`, `danger`, `warning`,

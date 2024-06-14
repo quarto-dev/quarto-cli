@@ -155,8 +155,9 @@ the discussions feature must be enabled. */;
 website:
   comments:
     giscus:
-      light: light # giscus theme used for light website theme
-      dark: dark_dimmed # giscus theme used for dark website theme
+      theme:
+        light: light # giscus theme used for light website theme
+        dark: dark_dimmed # giscus theme used for dark website theme
 ``` */
   };
   hypothesis?: boolean | {

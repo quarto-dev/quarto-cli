@@ -228,3 +228,4 @@ All changes included in 1.5:
 - `quarto install tinytex` will now try to set the default CTAN repository to the nearest mirror resolved from https://mirror.ctan.org.
 - `quarto render --to native` now works without triggering rmarkdown error about non HTML output when HTML dependencies are present in the knitr engine cell results.
 - Missing `tabsets` configuration for HTML documents has now been added in the YAML schema for validation and autocompletion. This boolean value controls the inclusion of tabsets in the document (e.g when `minimal: true` is set).
+- ([#10003](https://github.com/quarto-dev/quarto-cli/issues/10003)): fix Giscus light/dark theme YAML example in schema where `theme` is missing.
