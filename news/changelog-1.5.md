@@ -8,7 +8,7 @@ All changes included in 1.5:
 - ([#8311](https://github.com/quarto-dev/quarto-cli/issues/8311)): Correct z-order for margins with no contents
 - ([#8862](https://github.com/quarto-dev/quarto-cli/issues/8862)): Properly deal with an `aside` within a definition list.
 - ([#8863](https://github.com/quarto-dev/quarto-cli/issues/8863)): Properly wrap `monospace` text in definition lists.
-- ([#8990](https://github.com/quarto-dev/quarto-cli/issues/8990)): Copy button now works for embedded code source in modal window when opt-in in `code-tools` feature.
+- ([#8990](https://github.com/quarto-dev/quarto-cli/issues/8990)): The copy button now works for the embedded code source in modal window when opting in to `code-tools` feature.
 - ([#9076](https://github.com/quarto-dev/quarto-cli/issues/9076)): Fix issue with `layout-ncol` and `column` settings in executable code cells.
 - ([#9125](https://github.com/quarto-dev/quarto-cli/issues/9125)): Fix issue in browser console with TOC selection when the document is using ids for headers with specific characters (e.g russian language headers).
 - ([#9539](https://github.com/quarto-dev/quarto-cli/issues/9539)): Improve SCSS of title blocks to avoid overwide columns in grid layout.
