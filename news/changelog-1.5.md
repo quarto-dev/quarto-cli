@@ -8,7 +8,7 @@ All changes included in 1.5:
 - ([#8311](https://github.com/quarto-dev/quarto-cli/issues/8311)): Correct z-order for margins with no contents
 - ([#8862](https://github.com/quarto-dev/quarto-cli/issues/8862)): Properly deal with an `aside` within a definition list.
 - ([#8863](https://github.com/quarto-dev/quarto-cli/issues/8863)): Properly wrap `monospace` text in definition lists.
-- ([#8990](https://github.com/quarto-dev/quarto-cli/issues/8990)): Copy button now works for embedded code source in modal window when optin-in `code-tools` feature.
+- ([#8990](https://github.com/quarto-dev/quarto-cli/issues/8990)): Copy button now works for embedded code source in modal window when opt-in in `code-tools` feature.
 - ([#9076](https://github.com/quarto-dev/quarto-cli/issues/9076)): Fix issue with `layout-ncol` and `column` settings in executable code cells.
 - ([#9125](https://github.com/quarto-dev/quarto-cli/issues/9125)): Fix issue in browser console with TOC selection when the document is using ids for headers with specific characters (e.g russian language headers).
 - ([#9539](https://github.com/quarto-dev/quarto-cli/issues/9539)): Improve SCSS of title blocks to avoid overwide columns in grid layout.
@@ -85,7 +85,7 @@ All changes included in 1.5:
 - ([#9619](https://github.com/quarto-dev/quarto-cli/pull/9619)): Typst CSS - for a small set of elements and properties, Quarto will translate the CSS property to a Typst property. This is especially useful for processed HTML tables and `<pre>`s.
 - ([#9293](https://github.com/quarto-dev/quarto-cli/pull/9293)): Add `toc-indent` to control indentation of entries in the table of contents.
 - ([#9671](https://github.com/quarto-dev/quarto-cli/issues/9671)): Reimplement `typst` subfloats to fix subfloat counters.
-- ([#9694](https://github.com/quarto-dev/quarto-cli/issues/9694)): Fix default callout (`::: callout ... ::: `) in Typst.
+- ([#9694](https://github.com/quarto-dev/quarto-cli/issues/9694)): Fix default callout (`::: callout ... :::`) in Typst.
 - ([#9722](https://github.com/quarto-dev/quarto-cli/issues/9722)): Resolve data URI images in Typst.
 - ([#9555](https://github.com/quarto-dev/quarto-cli/issues/9555)): Text elements in Typst are internationalized.
 - ([#9887](https://github.com/quarto-dev/quarto-cli/issues/9887)): Use correct supplement for div floats in Typst.
@@ -97,7 +97,7 @@ All changes included in 1.5:
 
 - ([#4802](https://github.com/quarto-dev/quarto-cli/issues/4802)): Change name of temporary input notebook to avoid accidental overwriting.
 - ([#8433](https://github.com/quarto-dev/quarto-cli/issues/8433)): Escape jupyter widget states that contain `</script>` so they can be embedded in HTML documents.
-- When searching for kernelspecs that match `python`, prefer one one that matches an active Python venv.
+- When searching for kernelspecs that match `python`, prefer one one that matches an active Python `venv`.
 - ([#8454](https://github.com/quarto-dev/quarto-cli/issues/8454)): Allow Jupyter engine to handle markdown files with mixed-case extensions.
 - ([#8919](https://github.com/quarto-dev/quarto-cli/issues/8919)): Ensure enough backticks in `quarto convert` from `.ipynb` to `.qmd` files.
 - ([#8998](https://github.com/quarto-dev/quarto-cli/issues/8998)): Interpret slide separation markers `---` correctly when creating the `.ipynb` intermediate notebook from a `.qmd` file.
@@ -137,7 +137,7 @@ All changes included in 1.5:
 - ([#9635](https://github.com/quarto-dev/quarto-cli/issues/9635)): Respect `{shortcodes=false}` when resolving `include` shortcodes.
 - ([#9664](https://github.com/quarto-dev/quarto-cli/pull/9664)): Add `placeholder` shortcode to produce placeholder images.
 - ([#9665](https://github.com/quarto-dev/quarto-cli/issues/9665)): Fix issue with key-value arguments of shortcode handlers in code contexts.
-- ([#9793](https://github.com/quarto-dev/quarto-cli/issues/9793)): `embed` shortcode now correctly retrieve svg image from embdedded cell.
+- ([#9793](https://github.com/quarto-dev/quarto-cli/issues/9793)): `embed` shortcode now correctly retrieve svg image from embedded cell.
 - ([#9903](https://github.com/quarto-dev/quarto-cli/issues/9903)): Allow shortcode resolution inside element attributes (currently headers, divs, spans, images, links). Currently, this requires attributes to be specified with single quotes, see issue for details.
 
 ## Lightbox Images
@@ -180,7 +180,7 @@ All changes included in 1.5:
 
 ## Quarto's input format
 
-- Quarto now supports raw block and raw inline elements of types `pandoc-native` and `pandoc-json`, and will use Pandoc's `native` and `json` reader to convert these elements to Pandoc's AST. This is useful in situations where emitting Markdown is not sufficient or convient enough to express the desired structure of a document.
+- Quarto now supports raw block and raw inline elements of types `pandoc-native` and `pandoc-json`, and will use Pandoc's `native` and `json` reader to convert these elements to Pandoc's AST. This is useful in situations where emitting Markdown is not sufficient or convenient enough to express the desired structure of a document.
 
 ## Lua filters
 
@@ -190,16 +190,16 @@ All changes included in 1.5:
 
 ## Other Fixes and Improvements
 
-- ([#6945](https://github.com/quarto-dev/quarto-cli/issues/6945)): Allow `classes: plain` to disable the default treatment of computataional tables in code cells.
+- ([#6945](https://github.com/quarto-dev/quarto-cli/issues/6945)): Allow `classes: plain` to disable the default treatment of computational tables in code cells.
 - ([#8119](https://github.com/quarto-dev/quarto-cli/issues/8119)): More intelligently detect when ejs templates are modified during development, improving quality of life during preview.
 - ([#8177](https://github.com/quarto-dev/quarto-cli/issues/8177)): Use an explicit path to `sysctl` when detecting MacOS architecture. (author: @kevinushey)
 - ([#8274](https://github.com/quarto-dev/quarto-cli/issues/8274)): set `LUA_CPATH` to '' if unset, avoiding accidentally loading incompatible system-wide libraries.
 - ([#8401](https://github.com/quarto-dev/quarto-cli/issues/8401)): Ensure that files created with `quarto create <project_name>` have lowercase filenames.
 - ([#8438](https://github.com/quarto-dev/quarto-cli/issues/8438)): Ensure that sub commands properly support logging control flags (e.g. `--quiet`, etc).
-- ([#8422](https://github.com/quarto-dev/quarto-cli/issues/8422)): Improve dashboard validation and sauto-completion support for external tools
-- ([#8486](https://github.com/quarto-dev/quarto-cli/issues/8486)): Improve arrow theme differentation of Keywords and Control Flow elements
+- ([#8422](https://github.com/quarto-dev/quarto-cli/issues/8422)): Improve dashboard validation and auto-completion support for external tools
+- ([#8486](https://github.com/quarto-dev/quarto-cli/issues/8486)): Improve arrow theme differentiation of Keywords and Control Flow elements
 - ([#8524](https://github.com/quarto-dev/quarto-cli/issues/8524)): Improve detection of R environment which configuring Binder using 'quarto use'. Check for lock files, pre and post render scripts that use R.
-- ([#8540](https://github.com/quarto-dev/quarto-cli/issues/8540)): Allow title to be specifed separately when creating a project
+- ([#8540](https://github.com/quarto-dev/quarto-cli/issues/8540)): Allow title to be specified separately when creating a project
 - ([#8652](https://github.com/quarto-dev/quarto-cli/issues/8652)): Make code cell detection in IDE tooling consistent across editor modes.
 - ([#8779](https://github.com/quarto-dev/quarto-cli/issues/8779)): Resolve shortcode includes before engine and target determination.
 - ([#8873](https://github.com/quarto-dev/quarto-cli/issues/8873)): Don't overwrite supporting files when creating a project.
@@ -229,3 +229,4 @@ All changes included in 1.5:
 - `quarto render --to native` now works without triggering rmarkdown error about non HTML output when HTML dependencies are present in the knitr engine cell results.
 - Missing `tabsets` configuration for HTML documents has now been added in the YAML schema for validation and autocompletion. This boolean value controls the inclusion of tabsets in the document (e.g when `minimal: true` is set).
 - ([#10003](https://github.com/quarto-dev/quarto-cli/issues/10003)): fix Giscus light/dark theme YAML example in schema where `theme` is missing.
+- style(cosmo): The `valuebox-bg-info` and `valuebox-bg-danger` colors have been adjusted to have consistent opacity, _i.e._, no opacity as the other value box background.
