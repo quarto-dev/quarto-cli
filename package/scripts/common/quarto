@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Determine the path to this script (we'll use this to figure out relative positions of other files)
 SOURCE="${BASH_SOURCE[0]}"
