@@ -706,7 +706,7 @@ interface JupyterTargetData {
   kernelspec: JupyterKernelspec;
 }
 
-function executeResultIncludes(
+export function executeResultIncludes(
   tempDir: string,
   widgetDependencies?: JupyterWidgetDependencies,
 ): PandocIncludes | undefined {
@@ -728,7 +728,7 @@ function executeResultIncludes(
   }
 }
 
-function executeResultEngineDependencies(
+export function executeResultEngineDependencies(
   widgetDependencies?: JupyterWidgetDependencies,
 ): Array<unknown> | undefined {
   if (widgetDependencies) {
