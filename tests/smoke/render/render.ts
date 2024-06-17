@@ -17,6 +17,7 @@ import {
 } from "../../verify.ts";
 import { safeRemoveSync } from "../../../src/core/path.ts";
 import { safeExistsSync } from "../../../src/core/path.ts";
+import { assert } from "../../../src/vendor/deno.land/std@0.217.0/assert/assert.ts";
 
 export function testSimpleIsolatedRender(
   file: string,
@@ -66,6 +67,12 @@ export function testRender(
     verify,
     {
       ...context,
+      setup: async () => {
+        if (context?.setup) {
+          await context?.setup();
+        }
+        assert(safeExistsSync(input), `Input file ${input} does not exist. Test could not be ran.`);
+      },
       teardown: async () => {
         if (context?.teardown) {
           await context?.teardown();

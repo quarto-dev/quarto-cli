@@ -128,6 +128,7 @@ All changes included in 1.5:
 
 - ([#8385](https://github.com/quarto-dev/quarto-cli/issues/8385)): Properly copy project resources when extensions are installed at project level.
 - ([#8547](https://github.com/quarto-dev/quarto-cli/issues/8547)): Support installing extensions from github branch with forward slash in the name.
+- ([#9918](https://github.com/quarto-dev/quarto-cli/issues/9918)): `format-resources` can use explicit [Quarto glob syntax](https://quarto.org/docs/reference/globs.html), e.g. `format-resources: dir/**/*` to copy all files in `dir` and its subdirectories to input root, but use `format-resources: dir` to copy `dir` and its contents to input root.
 - ([#9948](https://github.com/quarto-dev/quarto-cli/issues/9948)): New extension type: `metadata`. Example use case: support `pre-render` and `post-render` script lists in `project` metadata.
 
 ## Shortcodes

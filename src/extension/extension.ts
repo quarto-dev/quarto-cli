@@ -730,6 +730,7 @@ async function readExtension(
         extensionDir,
         formatMeta[kFormatResources] as string[],
         [],
+        { mode: "strict" },
       );
       if (resolved.include.length > 0) {
         formatMeta[kFormatResources] = resolved.include.map((include) => {

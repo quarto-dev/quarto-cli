@@ -180,6 +180,16 @@ export const fileExists = (file: string): Verify => {
   };
 };
 
+export const pathDoNotExists = (path: string): Verify => {
+  return {
+    name: `path ${path} exists`,
+    verify: (_output: ExecuteOutput[]) => {
+      verifyNoPath(path);
+      return Promise.resolve();
+    },
+  };
+};
+
 export const directoryContainsOnlyAllowedPaths = (dir: string, paths: string[]): Verify => {
   return {
     name: `Ensure only has ${paths.length} paths in folder`,
