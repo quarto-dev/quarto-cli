@@ -323,150 +323,160 @@ export function completeListingItems(
       // Read the listing page
       let fileContents = Deno.readTextFileSync(outputFile.file);
 
-      const listings = Array.isArray(outputFile.format.metadata[kListing])
-        ? outputFile.format.metadata[kListing]
-        : [outputFile.format.metadata[kListing]];
+      // Get listings from the file
+      const listings = readDehydratedListings(
+        outputFile.file,
+        outputFile.format,
+      );
 
+      // See if there is a default image for each listing
+      const listingDefaultImage: {
+        [key: string]: string | undefined;
+      } = {};
       listings.forEach((listing) => {
-        if (typeof listing === "object") {
-          debug(`[listing] Processing listing`);
-          const listingMetadata = listing as Metadata;
-          // See if there is a default image
-          const listingDefaultImage = listingMetadata !== undefined &&
-              listingMetadata[kImagePlaceholder] !== undefined
-            ? listingMetadata[kImagePlaceholder] as string
+        debug(`[listing] Processing listing ${listing.id}`);
+
+        listingDefaultImage[`${listing.id}`] =
+          listing[kImagePlaceholder] !== undefined
+            ? listing[kImagePlaceholder] as string
             : undefined;
+      });
 
-          // Use a regex to identify any placeholders
-          const regex = descriptionPlaceholderRegex;
-          regex.lastIndex = 0;
-          let match = regex.exec(fileContents);
-          while (match) {
-            debug(`[listing] Processing description match`);
-            // For each placeholder, get its target href, then read the contents of that
-            // file and inject the contents.
-            const maxDescLength = parseInt(match[1]);
-            const relativePath = match[2];
-            const absolutePath = join(projectOutputDir(context), relativePath);
-            const placeholder = descriptionPlaceholder(
-              relativePath,
-              maxDescLength,
-            );
-            if (existsSync(absolutePath)) {
-              // Truncate the description if need be
-              const options = maxDescLength > 0
-                ? { "max-length": maxDescLength }
-                : {};
-              const contents = contentReader(absolutePath, options);
+      // Use a regex to identify any placeholders
+      const regex = descriptionPlaceholderRegex;
+      regex.lastIndex = 0;
+      let match = regex.exec(fileContents);
+      while (match) {
+        debug(`[listing] Processing description match`);
+        // For each placeholder, get its target href, then read the contents of that
+        // file and inject the contents.
+        const maxDescLength = parseInt(match[1]);
+        const relativePath = match[2];
+        const absolutePath = join(projectOutputDir(context), relativePath);
+        const placeholder = descriptionPlaceholder(
+          relativePath,
+          maxDescLength,
+        );
+        if (existsSync(absolutePath)) {
+          // Truncate the description if need be
+          const options = maxDescLength > 0
+            ? { "max-length": maxDescLength }
+            : {};
+          const contents = contentReader(absolutePath, options);
 
-              fileContents = fileContents.replace(
-                placeholder,
-                contents.firstPara || "",
-              );
-            } else {
-              fileContents = fileContents.replace(
-                placeholder,
-                "",
-              );
-              warning(
-                `Unable to read listing item description from ${relativePath}`,
-              );
-            }
-            match = regex.exec(fileContents);
-          }
-          regex.lastIndex = 0;
+          fileContents = fileContents.replace(
+            placeholder,
+            contents.firstPara || "",
+          );
+        } else {
+          fileContents = fileContents.replace(
+            placeholder,
+            "",
+          );
+          warning(
+            `Unable to read listing item description from ${relativePath}`,
+          );
+        }
+        match = regex.exec(fileContents);
+      }
+      regex.lastIndex = 0;
 
-          // Use a regex to find image placeholders
-          // Placeholders are there to permit images to be appear in the
-          // rendered content (e.g. plots from computations) and for those
-          // to be used. If an image can't be found this way, a placeholder
-          // div will be returned instead.
-          const imgRegex = imagePlaceholderRegex;
-          imgRegex.lastIndex = 0;
-          let imgMatch = imgRegex.exec(fileContents);
-          while (imgMatch) {
-            debug(`[listing] Processing image match`);
-            const progressive = imgMatch[1] === "true";
-            const imgHeight = imgMatch[2];
-            const docRelativePath = imgMatch[3];
-            const docAbsPath = join(projectOutputDir(context), docRelativePath);
-            const imgPlaceholder = imagePlaceholder(
-              docRelativePath,
+      // Use a regex to find image placeholders
+      // Placeholders are there to permit images to be appear in the
+      // rendered content (e.g. plots from computations) and for those
+      // to be used. If an image can't be found this way, a placeholder
+      // div will be returned instead.
+      const imgRegex = imagePlaceholderRegex;
+      imgRegex.lastIndex = 0;
+      let imgMatch = imgRegex.exec(fileContents);
+      while (imgMatch) {
+        debug(`[listing] Processing image match`);
+        const progressive = imgMatch[1] === "true";
+        const imgHeight = imgMatch[2];
+        const listingId = imgMatch[3];
+        const docRelativePath = imgMatch[4];
+        const docAbsPath = join(projectOutputDir(context), docRelativePath);
+        const imgPlaceholder = imagePlaceholder(
+          listingId,
+          docRelativePath,
+          progressive,
+          imgHeight,
+        );
+        debug(`[listing] ${docAbsPath}`);
+        debug(`[listing] ${imgPlaceholder}`);
+
+        if (existsSync(docAbsPath)) {
+          debug(`[listing] exists: ${docAbsPath}`);
+          const contents = contentReader(docAbsPath, {
+            remove: { links: true },
+          });
+
+          if (contents.previewImage) {
+            debug(`[listing] previewImage: ${docAbsPath}`);
+            const resolveUrl = (path: string) => {
+              if (isHttpUrl(path)) {
+                return path;
+              } else {
+                const imgAbsPath = isAbsolute(path)
+                  ? path
+                  : join(dirname(docAbsPath), path);
+                const imgRelPath = relative(
+                  dirname(outputFile.file),
+                  imgAbsPath,
+                );
+                return imgRelPath;
+              }
+            };
+
+            const imgHtml = imageSrc(
+              {
+                ...contents.previewImage,
+                src: resolveUrl(contents.previewImage.src),
+              },
               progressive,
               imgHeight,
             );
-            debug(`[listing] ${docAbsPath}`);
-            debug(`[listing] ${imgPlaceholder}`);
 
-            if (existsSync(docAbsPath)) {
-              debug(`[listing] exists: ${docAbsPath}`);
-              const contents = contentReader(docAbsPath, {
-                remove: { links: true },
-              });
-
-              if (contents.previewImage) {
-                debug(`[listing] previewImage: ${docAbsPath}`);
-                const resolveUrl = (path: string) => {
-                  if (isHttpUrl(path)) {
-                    return path;
-                  } else {
-                    const imgAbsPath = isAbsolute(path)
-                      ? path
-                      : join(dirname(docAbsPath), path);
-                    const imgRelPath = relative(
-                      dirname(outputFile.file),
-                      imgAbsPath,
-                    );
-                    return imgRelPath;
-                  }
-                };
-
-                const imgHtml = imageSrc(
-                  {
-                    ...contents.previewImage,
-                    src: resolveUrl(contents.previewImage.src),
-                  },
-                  progressive,
-                  imgHeight,
-                );
-
-                debug(`[listing] replacing: ${docAbsPath}`);
-                fileContents = fileContents.replace(
-                  imgPlaceholder,
-                  imgHtml,
-                );
-              } else if (listingDefaultImage) {
-                debug(`[listing] using default image: ${docAbsPath}`);
-                const imagePreview: PreviewImage = {
-                  src: listingDefaultImage,
-                };
-                fileContents = fileContents.replace(
-                  imgPlaceholder,
-                  imageSrc(imagePreview, progressive, imgHeight),
-                );
-              } else {
-                debug(`[listing] using empty div: ${docAbsPath}`);
-                fileContents = fileContents.replace(
-                  imgPlaceholder,
-                  emptyDiv(imgHeight),
-                );
-              }
-            } else {
-              debug(`[listing] does not exist: ${docAbsPath}`);
-              fileContents = fileContents.replace(
-                imgPlaceholder,
-                emptyDiv(imgHeight),
-              );
-              warning(
-                `Unable to read listing preview image from ${docRelativePath}`,
-              );
-            }
-
-            imgMatch = imgRegex.exec(fileContents);
+            debug(`[listing] replacing: ${docAbsPath}`);
+            fileContents = fileContents.replace(
+              imgPlaceholder,
+              imgHtml,
+            );
+          } else if (
+            // Use the default image if any
+            listingDefaultImage[listingId] !== undefined
+          ) {
+            debug(`[listing] using default image for ${docAbsPath}`);
+            debug(`[listing] from listing id ${listingId}`);
+            debug(`[listing] image used is ${listingDefaultImage[listingId]}`);
+            const imagePreview: PreviewImage = {
+              src: listingDefaultImage[listingId]!,
+            };
+            fileContents = fileContents.replace(
+              imgPlaceholder,
+              imageSrc(imagePreview, progressive, imgHeight),
+            );
+          } else {
+            debug(`[listing] using empty div: ${docAbsPath}`);
+            fileContents = fileContents.replace(
+              imgPlaceholder,
+              emptyDiv(imgHeight),
+            );
           }
-          imgRegex.lastIndex = 0;
+        } else {
+          debug(`[listing] does not exist: ${docAbsPath}`);
+          fileContents = fileContents.replace(
+            imgPlaceholder,
+            emptyDiv(imgHeight),
+          );
+          warning(
+            `Unable to read listing preview image from ${docRelativePath}`,
+          );
         }
-      });
+
+        imgMatch = imgRegex.exec(fileContents);
+      }
+      imgRegex.lastIndex = 0;
 
       Deno.writeTextFileSync(
         outputFile.file,
@@ -487,6 +497,7 @@ function descriptionPlaceholder(file?: string, maxLength?: number): string {
 }
 
 export function imagePlaceholder(
+  id: string,
   file: string,
   progressive: boolean,
   height?: string,
@@ -494,7 +505,7 @@ export function imagePlaceholder(
   return file
     ? `<!-- img(9CEB782EFEE6)[progressive=${
       progressive ? "true" : "false"
-    }, height=${height ? height : ""}]:${file} -->`
+    }, height=${height ? height : ""}]:${id}:${file} -->`
     : "";
 }
 
@@ -506,7 +517,7 @@ const descriptionPlaceholderRegex =
   /<!-- desc\(5A0113B34292\)\[max\=(.*)\]:(.*) -->/;
 
 const imagePlaceholderRegex =
-  /<!-- img\(9CEB782EFEE6\)\[progressive\=(.*), height\=(.*)\]:(.*) -->/;
+  /<!-- img\(9CEB782EFEE6\)\[progressive\=(.*), height\=(.*)\]:(.*):(.*) -->/;
 
 function hydrateListing(
   format: Format,

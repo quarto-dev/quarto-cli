@@ -1,0 +1,24 @@
+---
+title: A Closer Look at App Store Category Growth
+date: 12/5/2008
+categories:
+  - iPhone
+  - News
+---
+
+\
+Taking a closer look at the growth rate of various categories confirms what everyone already knows- games are the high growth area of the App Store. There are a couple of interesting things that can be learned from the category trends, however.
+
+The below is a look at the most common application categories and their growth rate.
+
+![](1.png){fig-align="center"}
+
+1\) Although the Utilities category was initially a high growth category, it's growth is actually relatively flat. Entertainment applications have surpassed Utilities as the second most common type of application on the store.
+
+2\) The Education category is growing incredibly rapidly, taking fourth place in November. If it continues to grow at its current rate, it will soon be the third most common category of application in the store.
+
+The below is a look at the least common categories and their growth rates. Healthcare & Fitness is the big winner here...
+
+![](2.png){fig-align="center"}
+
+### 
