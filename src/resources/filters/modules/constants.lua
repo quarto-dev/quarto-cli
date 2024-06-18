@@ -68,6 +68,7 @@ local kCopyright = "copyright"
 local kLicense = "license"
 local kHtmlTableProcessing = "html-table-processing"
 local kHtmlPreTagProcessing = "html-pre-tag-processing"
+local kCssPropertyProcessing = "css-property-processing"
 
 -- for a given language, the comment character(s)
 local kLangCommentChars = {
@@ -224,6 +225,7 @@ return {
   kDefaultCodeAnnotationComment = kDefaultCodeAnnotationComment,
   kHtmlTableProcessing = kHtmlTableProcessing,
   kHtmlPreTagProcessing = kHtmlPreTagProcessing,
+  kCssPropertyProcessing = kCssPropertyProcessing,
 
   kColorUnknown = kColorUnknown,
   kColorNote = kColorNote,

@@ -1,5 +1,8 @@
+local constants = require("modules/constants")
+
 function render_typst_css_to_props()
-  if not _quarto.format.isTypstOutput() then
+  if not _quarto.format.isTypstOutput() or
+    param(constants.kCssPropertyProcessing, 'translate') ~= 'translate' then
     return {}
   end
 

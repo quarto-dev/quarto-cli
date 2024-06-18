@@ -15,6 +15,7 @@ import {
   kCodeFold,
   kCodeLineNumbers,
   kCodeSummary,
+  kCssPropertyProcessing,
   kEnableCrossRef,
   kFigAlign,
   kFigEnv,
@@ -893,5 +894,6 @@ async function resolveFilterExtension(
 const extractTypstFilterParams = (format: Format) => {
   return {
     [kTocIndent]: format.metadata[kTocIndent],
+    [kCssPropertyProcessing]: format.metadata[kCssPropertyProcessing],
   };
 };

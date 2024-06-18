@@ -16859,6 +16859,20 @@ try {
             description: "If `none`, do not process tables in HTML input."
           },
           {
+            name: "css-property-processing",
+            schema: {
+              enum: [
+                "none",
+                "translate"
+              ]
+            },
+            default: "translate",
+            description: {
+              short: "CSS property translation",
+              long: "If `translate`, translate CSS properties into output format properties. If `none`, do not process css properties."
+            }
+          },
+          {
             name: "use-rsvg-convert",
             schema: "boolean",
             default: true,
@@ -22828,7 +22842,11 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          {
+            short: "CSS property translation",
+            long: "If <code>translate</code>, translate CSS properties into output\nformat properties. If <code>none</code>, do not process css\nproperties."
+          }
         ],
         "schema/external-schemas.yml": [
           {
@@ -23057,12 +23075,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 186493,
+          _internalId: 186496,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 186485,
+              _internalId: 186488,
               type: "enum",
               enum: [
                 "png",
@@ -23078,7 +23096,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 186492,
+              _internalId: 186495,
               type: "anyOf",
               anyOf: [
                 {

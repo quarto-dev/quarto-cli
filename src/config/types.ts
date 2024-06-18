@@ -56,6 +56,7 @@ import {
   kCrossrefTblTitle,
   kCrossrefThmTitle,
   kCss,
+  kCssPropertyProcessing,
   kDfPrint,
   kDisplayName,
   kDownloadUrl,
@@ -485,6 +486,7 @@ export interface FormatRender {
   [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
   [kHtmlTableProcessing]?: "none";
+  [kCssPropertyProcessing]?: "none" | "translate";
   [kUseRsvgConvert]?: boolean;
   [kValidateYaml]?: boolean;
   [kCanonicalUrl]?: boolean | string;
