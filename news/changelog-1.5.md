@@ -118,6 +118,7 @@ All changes included in 1.5:
 - ([#8860](https://github.com/quarto-dev/quarto-cli/discussions/8860)): Don't show duplicate author names.
 - ([#9030](https://github.com/quarto-dev/quarto-cli/discussions/9030)): Warn (rather than error) when listing globs produce an empty listing (as this is permissable).
 - ([#9447](https://github.com/quarto-dev/quarto-cli/pull/9447)): Add support for the boolean `image-lazy-loading` option to enable lazy loading of images in listings (default: `true`).
+- ([#9845](https://github.com/quarto-dev/quarto-cli/issues/9845)): `image-placeholder` now correctly works when multiple listings are used.
 
 ## Manuscripts
 
