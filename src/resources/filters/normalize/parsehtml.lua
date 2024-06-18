@@ -247,17 +247,19 @@ function parse_html_tables()
   end
 
   local filter
+  local disable_html_table_processing = false
+  local disable_html_pre_tag_processing = false
   if param(constants.kHtmlTableProcessing) == "none" then
-    return {}
+    disable_html_table_processing = true
   end
   if param(constants.kHtmlPreTagProcessing) == "none" then
-    return {}
+    disable_html_pre_tag_processing = true
   end
 
   filter = {
     traverse = "topdown",
     Div = function(div)
-      if div.attributes[constants.kHtmlTableProcessing] then
+      if div.attributes[constants.kHtmlTableProcessing] and not disable_html_table_processing then
         -- catch and remove attributes
         local htmlTableProcessing = div.attributes[constants.kHtmlTableProcessing]
         div.attributes[constants.kHtmlTableProcessing] = nil
@@ -271,7 +273,7 @@ function parse_html_tables()
           end
         end
       end
-      if div.attributes[constants.kHtmlPreTagProcessing] then
+      if div.attributes[constants.kHtmlPreTagProcessing] and not disable_html_pre_tag_processing then
         local htmlPreTagProcessing = div.attributes[constants.kHtmlPreTagProcessing]
         if htmlPreTagProcessing == "parse" then
           local pre_tag = quarto.utils.match('Div/[1]/RawBlock')(div)
@@ -282,7 +284,7 @@ function parse_html_tables()
       end
     end,
     RawBlock = function(el)
-      if not should_handle_raw_html_as_table(el) then
+      if not should_handle_raw_html_as_table(el) or disable_html_table_processing then
         return nil
       end
       return handle_raw_html_as_table(el)

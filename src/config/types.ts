@@ -92,6 +92,7 @@ import {
   kGladtex,
   kHighlightStyle,
   kHtmlMathMethod,
+  kHtmlPreTagProcessing,
   kHtmlTableProcessing,
   kInclude,
   kIncludeAfterBody,
@@ -486,6 +487,7 @@ export interface FormatRender {
   [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
   [kHtmlTableProcessing]?: "none";
+  [kHtmlPreTagProcessing]?: "none";
   [kCssPropertyProcessing]?: "none" | "translate";
   [kUseRsvgConvert]?: boolean;
   [kValidateYaml]?: boolean;
