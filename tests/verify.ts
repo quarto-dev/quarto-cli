@@ -134,12 +134,15 @@ export const noErrorsOrWarnings: Verify = {
 };
 
 export const printsMessage = (
-  level: "DEBUG" | "INFO" | "WARNING" | "ERROR",
-  regex: RegExp,
+  level: "DEBUG" | "INFO" | "WARN" | "ERROR",
+  regex: RegExp | string,
 ): Verify => {
   return {
     name: `${level} matches ${String(regex)}`,
     verify: (outputs: ExecuteOutput[]) => {
+      if (typeof regex === "string") {
+        regex = new RegExp(regex);
+      }
       const printedMessage = outputs.some((output) => {
         return output.levelName === level && output.msg.match(regex);
       });

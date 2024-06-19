@@ -33,6 +33,7 @@ import {
   ensurePptxLayout,
   ensurePptxMaxSlides,
   ensureLatexFileRegexMatches,
+  printsMessage,
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
@@ -109,7 +110,8 @@ function resolveTestSpecs(
     ensurePptxXpath,
     ensurePptxLayout,
     ensurePptxMaxSlides,
-    ensureSnapshotMatches
+    ensureSnapshotMatches,
+    printsMessage
   };
 
   for (const [format, testObj] of Object.entries(specs)) {
@@ -153,6 +155,8 @@ function resolveTestSpecs(
             } else {
               verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
             }
+          } else if (key === "printsMessage") {
+            verifyFns.push(verifyMap[key](...value));
           } else if (verifyMap[key]) {
             // FIXME: We should find another way that having this requirement of keep-* in the metadata
             if (key === "ensureTypstFileRegexMatches") {
