@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Use this script to drive `git bisect run` to find the commit that introduced a behavior:
 #
