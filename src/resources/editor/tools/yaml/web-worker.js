@@ -16859,6 +16859,16 @@ try {
             description: "If `none`, do not process tables in HTML input."
           },
           {
+            name: "html-pre-tag-processing",
+            schema: {
+              enum: [
+                "none",
+                "parse"
+              ]
+            },
+            description: "If `none`, ignore any divs with `html-pre-tag-processing=parse` enabled."
+          },
+          {
             name: "css-property-processing",
             schema: {
               enum: [
@@ -21917,6 +21927,11 @@ try {
             long: "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa. (Technically, the correct\nterm would be ppi: pixels per inch.) The default is <code>96</code>.\nWhen images contain information about dpi internally, the encoded value\nis used instead of the default specified by this option."
           },
           "If <code>none</code>, do not process tables in HTML input.",
+          "If <code>none</code>, ignore any divs with\n<code>html-pre-tag-processing=parse</code> enabled.",
+          {
+            short: "CSS property translation",
+            long: "If <code>translate</code>, translate CSS properties into output\nformat properties. If <code>none</code>, do not process css\nproperties."
+          },
           "If <code>true</code>, attempt to use <code>rsvg-convert</code> to\nconvert SVG images to PDF.",
           "Logo image (placed in bottom right corner of slides)",
           {
@@ -22842,11 +22857,7 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack",
-          {
-            short: "CSS property translation",
-            long: "If <code>translate</code>, translate CSS properties into output\nformat properties. If <code>none</code>, do not process css\nproperties."
-          }
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -23075,12 +23086,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 186496,
+          _internalId: 187067,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 186488,
+              _internalId: 187059,
               type: "enum",
               enum: [
                 "png",
@@ -23096,7 +23107,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 186495,
+              _internalId: 187066,
               type: "anyOf",
               anyOf: [
                 {
