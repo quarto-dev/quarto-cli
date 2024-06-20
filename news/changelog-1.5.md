@@ -41,6 +41,7 @@ All changes included in 1.5:
 
 ## GFM Format
 
+- ([#8283](https://github.com/quarto-dev/quarto-cli/issues/8283)): Maths are rendered using Mathjax in the HTML preview of a `format: gfm` document.
 - ([#9507](https://github.com/quarto-dev/quarto-cli/issues/9507)): Add support for rendering `FloatRefTarget` elements in `gfm` format.
 
 ## Powerpoint Format
