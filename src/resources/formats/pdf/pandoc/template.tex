@@ -319,6 +319,7 @@ $if(pagestyle)$
 \pagestyle{$pagestyle$}
 $endif$
 $pandoc.tex()$
+
 $if(lang)$
 \ifLuaTeX
 \usepackage[bidi=basic]{babel}
@@ -416,6 +417,7 @@ $endif$
   pdfcreator={LaTeX via pandoc}}
 
 $before-title.tex()$
+
 $title.tex()$
 
 \begin{document}
@@ -426,6 +428,7 @@ $include-before$
 
 $endfor$
 $toc.tex()$
+
 $if(linestretch)$
 \setstretch{$linestretch$}
 $endif$
@@ -446,4 +449,5 @@ $include-after$
 
 $endfor$
 $after-body.tex()$
+
 \end{document}
