@@ -27,6 +27,7 @@ body:
         ---
 
         You can share a Quarto document using the following syntax, _i.e._, using more backticks than you have in your document (usually four ` ```` `).
+        For example with Quarto CLI >=1.5:
 
         `````md
         ````qmd
