@@ -48,6 +48,10 @@ All changes included in 1.5:
 
 - ([#9680](https://github.com/quarto-dev/quarto-cli/issues/9680), [#9681](https://github.com/quarto-dev/quarto-cli/issues/9681)): Fix issues with HTML tables parsed by Quarto when converting to powerpoint presentations.
 
+## Interactive Document
+
+- ([#9208](https://github.com/quarto-dev/quarto-cli/issues/9208)): `code-link` is ignored in `engine: knitr` interactive documents with `server: shiny`. This is because of a limitation from R package **downlit** when processing shiny pre-rendered document.
+
 ## Website
 
 - ([#6779](https://github.com/quarto-dev/quarto-cli/issues/6779)): Add support for `logo-href` and `logo-alt` in `sidebar` (books and websites)
