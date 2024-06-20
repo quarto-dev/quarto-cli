@@ -215,6 +215,19 @@
     enum: [none]
   description: If `none`, do not process tables in HTML input.
 
+- name: html-pre-tag-processing
+  schema:
+    enum: [none, parse]
+  description: If `none`, ignore any divs with `html-pre-tag-processing=parse` enabled.
+
+- name: css-property-processing
+  schema:
+    enum: [none, translate]
+  default: translate
+  description:
+    short: CSS property translation
+    long: If `translate`, translate CSS properties into output format properties. If `none`, do not process css properties.
+
 - name: use-rsvg-convert
   schema: boolean
   default: true

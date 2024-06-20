@@ -97,6 +97,8 @@ All changes included in 1.5:
 - ([#9555](https://github.com/quarto-dev/quarto-cli/issues/9555)): Text elements in Typst are internationalized.
 - ([#9887](https://github.com/quarto-dev/quarto-cli/issues/9887)): Use correct supplement for div floats in Typst.
 - ([#9972](https://github.com/quarto-dev/quarto-cli/issues/9972)): Fix crashes with unnumbered sections.
+- ([#9885](https://github.com/quarto-dev/quarto-cli/issues/9885)): Turn off Typst CSS with `css-property-parsing: none`, default `translate`.
+- ([#10055](https://github.com/quarto-dev/quarto-cli/pull/10055)): Enable `html-pre-tag-processing` with a fenced div, disable it in metadata with `none`.
 - ([#10075](https://github.com/quarto-dev/quarto-cli/pull/10075)): Bring `quarto create` templates for Typst up-to-date with the format.
 - Upgrade Typst to 0.11
 - Upgrade the Typst template to draw tables without grid lines by default, in accordance with latest Pandoc.

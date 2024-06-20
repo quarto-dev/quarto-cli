@@ -1,0 +1,19 @@
+---
+format:
+  typst:
+    css-property-processing: none
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['\[B\]']
+        - ['rgb\(255, 0, 255\)']
+---
+
+```{=html}
+<table>
+    <tr><td>A</td><td style="color: magenta;">B</td></tr>
+</table>
+```
+
