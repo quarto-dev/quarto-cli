@@ -26,8 +26,7 @@ body:
 
         ---
 
-        Finally, try to describe the best you can what you want to achieve or what is your issue, especially by providing a complete self-contained reproducible example (consider reading our ["Bug Reports" guide](https://quarto.org/bug-reports.html)).
-        This will help us to understand your question and answer it.
+        You can share a Quarto document using the following syntax, _i.e._, using more backticks than you have in your document (usually four ` ```` `).
 
         `````md
         ````qmd
