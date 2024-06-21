@@ -121,7 +121,18 @@ end, function(layout)
     end)
   end)
   cells:insert(pandoc.RawInline("typst", ")\n"))
-  if layout.float.has_subfloats then
+  local has_subfloats = layout.float.has_subfloats
+  -- check for id-less figures that weren't made FloatRefTarget
+  if not has_subfloats then
+    _quarto.ast.walk(layout.float.content, {
+      Figure = function(figure)
+        if figure.id == nil or figure.id == "" then
+          has_subfloats = true
+        end
+      end
+    })
+  end
+  if has_subfloats then
     result:insert(_quarto.format.typst.function_call("quarto_super", {
       {"kind", kind},
       {"caption", _quarto.format.typst.as_typst_content(layout.float.caption_long)},

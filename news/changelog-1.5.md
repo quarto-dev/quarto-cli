@@ -100,6 +100,7 @@ All changes included in 1.5:
 - ([#9887](https://github.com/quarto-dev/quarto-cli/issues/9887)): Use correct supplement for div floats in Typst.
 - ([#9972](https://github.com/quarto-dev/quarto-cli/issues/9972)): Fix crashes with unnumbered sections.
 - ([#8797](https://github.com/quarto-dev/quarto-cli/issues/8797), [10086](https://github.com/quarto-dev/quarto-cli/issues/10086)): Tables should be centered in cell output.
+- ([#9857](https://github.com/quarto-dev/quarto-cli/issues/9857)): `id`-less figures inside another figure should be treated the same as `FloatRefTarget` and get lettered
 - ([#9885](https://github.com/quarto-dev/quarto-cli/issues/9885)): Turn off Typst CSS with `css-property-parsing: none`, default `translate`.
 - ([#10055](https://github.com/quarto-dev/quarto-cli/pull/10055)): Enable `html-pre-tag-processing` with a fenced div, disable it in metadata with `none`.
 - ([#10075](https://github.com/quarto-dev/quarto-cli/pull/10075)): Bring `quarto create` templates for Typst up-to-date with the format.
