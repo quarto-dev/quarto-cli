@@ -127,7 +127,10 @@ function render_typst_fixups()
       return image
     end,
     Div = function(div)
-      local cod = quarto.utils.match(".cell/:child/.cell-output-display")(div)
+      -- is the div a .cell which contains .cell-output-display as child or grandchild?
+      local cod = quarto.utils.match(".cell/:child/Div/:child/.cell-output-display")(div)
+        or
+        quarto.utils.match(".cell/:child/.cell-output-display")(div)
       if cod then
           div.classes:extend({'quarto-scaffold'})
           cod.classes:extend({'quarto-scaffold'})
