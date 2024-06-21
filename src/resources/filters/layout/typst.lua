@@ -122,13 +122,11 @@ end, function(layout)
   end)
   cells:insert(pandoc.RawInline("typst", ")\n"))
   local has_subfloats = layout.float.has_subfloats
-  -- check for id-less figures that weren't made FloatRefTarget
+  -- count any remaining figures (with no / bad ids) as floats
   if not has_subfloats then
     _quarto.ast.walk(layout.float.content, {
       Figure = function(figure)
-        if figure.id == nil or figure.id == "" then
-          has_subfloats = true
-        end
+        has_subfloats = true
       end
     })
   end
