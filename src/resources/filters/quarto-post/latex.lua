@@ -309,12 +309,25 @@ function render_latex()
         return nil
       end
       img.attributes[kFigAlign] = nil
-      -- \\centering doesn't work consistently here...
-      return pandoc.Inlines({
-        pandoc.RawInline('latex', '\\begin{center}\n'),
-        img,
-        pandoc.RawInline('latex', '\n\\end{center}\n')
-      })
+
+      if align == "left" then
+        return pandoc.Inlines({
+          img,
+          pandoc.RawInline('latex', '\\hfill\n'),
+        })
+      elseif align == "right" then
+        return pandoc.Inlines({
+          pandoc.RawInline('latex', '\\hfill\n'),
+          img,
+        })
+      else
+        -- \\centering doesn't work consistently here...
+        return pandoc.Inlines({
+          pandoc.RawInline('latex', '\\begin{center}\n'),
+          img,
+          pandoc.RawInline('latex', '\n\\end{center}\n')
+        })
+      end
     end,
     Callout = function(node)
       -- read and clear attributes
