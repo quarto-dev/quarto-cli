@@ -26,6 +26,7 @@ All changes included in 1.5:
 - ([#9729](https://github.com/quarto-dev/quarto-cli/issues/9729)): Fix performance issue with Lua pattern matching and multiple capture groups.
 - ([#9892](https://github.com/quarto-dev/quarto-cli/issues/9892)): Add more line breaks after Pandoc template partial inclusions cf. [#7273](https://github.com/quarto-dev/quarto-cli/issues/7293) to avoid partials themselves requiring additional linebreaks.
 - ([#9944](https://github.com/quarto-dev/quarto-cli/issues/9944)): Fix issue with `lst-` crossrefs, `filename` attributes, and syntax highlighting.
+- ([#10091](https://github.com/quarto-dev/quarto-cli/issues/10091)): Fix regression with `fig-align` attributes in captionless images.
 
 ## RevealJS Format
 
