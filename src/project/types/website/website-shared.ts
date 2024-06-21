@@ -99,7 +99,7 @@ export function computePageTitle(
     if (titlePrefix === title) {
       return title as string;
     } else if (title !== undefined) {
-      return titlePrefix + " - " + title;
+      return title + " – " + titlePrefix;
     } else {
       return titlePrefix + "";
     }
