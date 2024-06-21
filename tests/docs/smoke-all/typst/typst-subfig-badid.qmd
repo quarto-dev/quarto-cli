@@ -16,9 +16,9 @@ _quarto:
 
 ::: {#fig-panel2 layout-ncol=2}
 
-![Placeholder]({{< placeholder 200 >}})
+![Placeholder]({{< placeholder 200 >}}){#foo}
 
-![Placeholder]({{< placeholder 200 >}})
+![Placeholder]({{< placeholder 200 >}}){#bar}
 
 Panels
 
