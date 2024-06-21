@@ -282,7 +282,6 @@ local function def_columns()
               return attr ~= "aside"
             end)
             tappend(el.classes, {'column-margin', 'margin-aside'})
-            removeColumnClasses(el)
             return el
           end
         end
