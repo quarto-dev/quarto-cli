@@ -72,6 +72,7 @@ All changes included in 1.5:
 - ([#9356](https://github.com/quarto-dev/quarto-cli/issues/9356)): Don't process column classes for figures inside the About divs.
 - ([#9524](https://github.com/quarto-dev/quarto-cli/issues/9524)): Fix canonical URL generation for website pages.
 - ([#9781](https://github.com/quarto-dev/quarto-cli/issues/9781)): Correctly hide elements from click event in collapsed margin sidebar.
+- ([#8987](https://github.com/quarto-dev/quarto-cli/issues/8987)): Fix issue with shortcode expansion in website titles.
 - Sidebar navigation item now correctly supports `rel` attribute.
 - `target` attribute for sidebar navigation items is now correctly inserted with HTML escapes.
 
