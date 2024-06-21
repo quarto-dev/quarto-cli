@@ -1,6 +1,7 @@
 ## Fixed in this release
 
 - ([#9927](https://github.com/quarto-dev/quarto-cli/issues/9927)): Fix a regression with explicitly sized images in layouts.
+- ([#10091](https://github.com/quarto-dev/quarto-cli/issues/10091)): Fix a regression with `fig-align` attributes in captionless images in PDF format.
 
 ## Fixed in previous releases
 
