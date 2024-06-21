@@ -264,7 +264,7 @@ export async function renderProject(
   pOptions: RenderOptions,
   pFiles?: string[],
 ): Promise<RenderResult> {
-  mergeExtensionMetadata(context, pOptions);
+  await mergeExtensionMetadata(context, pOptions);
   const { preRenderScripts, postRenderScripts } = await getProjectRenderScripts(
     context,
   );
