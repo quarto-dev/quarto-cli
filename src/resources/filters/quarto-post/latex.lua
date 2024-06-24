@@ -183,7 +183,7 @@ function render_latex()
     return pandoc.RawBlock("latex", "% quarto-tables-in-margin-AB1927C9:end")
   end
   
-  function handle_table_columns(table) 
+  function handle_table_columns(table)
     local useMargin = table.classes:find_if(isStarEnv)
     if useMargin then
       return {
@@ -221,8 +221,31 @@ function render_latex()
       noteHasColumns()
       local is_block = pandoc.utils.type(el) == "Block"
       el.content = strip(el.content, "column-margin")
-      tprepend(el.content, {latexBeginSidenote(is_block)})
-      tappend(el.content, {latexEndSidenote(el, is_block)})
+      local found_table = false
+      local found_something_else = false
+      local function tag_something_else()
+        found_something_else = true
+      end
+      el = _quarto.ast.walk(el, {
+        traverse = "topdown",
+        Block = found_something_else,
+        Inline = found_something_else,
+        Table = function(t)
+          local result = handle_table_columns(t)
+          found_table = true
+          return result,false
+        end
+      }) or pandoc.Div({}) -- unnecessary, but the type checker doesn't know
+
+      if found_table and found_something_else then
+        warn("Cannot mix tables and other content in a column-margin environment. Results may be unpredictable.")
+      end
+      if not found_table then
+        -- marginnote doesn't work well with margintable
+        -- so we only add marginnote if there's no table
+        tprepend(el.content, {latexBeginSidenote(is_block)})
+        tappend(el.content, {latexEndSidenote(el, is_block)})
+      end
       return el, false
     else
       local f = el.classes:find_if(isStarEnv)
