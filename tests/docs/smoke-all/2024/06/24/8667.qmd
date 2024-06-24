@@ -1,0 +1,9 @@
+---
+format: pptx
+---
+
+## Slide Title
+
+The text "Figure Caption" is not shown in Powerpoint output.
+
+![Figure Caption](./assets/existing-image.jpg){#fig-figure}

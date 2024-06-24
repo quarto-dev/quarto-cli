@@ -1050,4 +1050,21 @@ end, function(float)
   end
 end)
 
+_quarto.ast.add_renderer("FloatRefTarget", function(_)
+  return _quarto.format.is_powerpoint_output()
+end, function(float)
+  if float.content == nil then
+    warn("Can't render float without content")
+    return pandoc.Null()
+  end
+  local im = quarto.utils.match("Plain/[1]/Image")(float.content)
+  if im == nil then
+    warn("PowerPoint output for FloatRefTargets require a single image as content")
+    return pandoc.Null()
+  end
+  decorate_caption_with_crossref(float)
+  im.caption = quarto.utils.as_inlines(float.caption_long)
+  return pandoc.Para({im})
+end)
+
 global_table_guid_id = 0
