@@ -160,7 +160,6 @@ function renderDivColumn(el)
               el.classes = el.classes:filter(function(clz) 
                 return not isStarEnv(clz)
               end)
-              print(el)
             end
           elseif is_custom_node(contentEl, "FloatRefTarget") then
             -- forward the columns class from the output div
