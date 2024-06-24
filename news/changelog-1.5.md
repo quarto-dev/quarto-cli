@@ -27,6 +27,7 @@ All changes included in 1.5:
 - ([#9892](https://github.com/quarto-dev/quarto-cli/issues/9892)): Add more line breaks after Pandoc template partial inclusions cf. [#7273](https://github.com/quarto-dev/quarto-cli/issues/7293) to avoid partials themselves requiring additional linebreaks.
 - ([#9944](https://github.com/quarto-dev/quarto-cli/issues/9944)): Fix issue with `lst-` crossrefs, `filename` attributes, and syntax highlighting.
 - ([#10091](https://github.com/quarto-dev/quarto-cli/issues/10091)): Fix regression with `fig-align` attributes in captionless images.
+- ([#10112](https://github.com/quarto-dev/quarto-cli/issues/10112)): Fix regression with `column: margin` in code cells that emit tables.
 
 ## RevealJS Format
 
