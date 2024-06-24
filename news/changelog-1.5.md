@@ -49,6 +49,7 @@ All changes included in 1.5:
 
 ## Powerpoint Format
 
+- ([#8667](https://github.com/quarto-dev/quarto-cli/issues/8667)): Fix regression with `FloatRefTarget` nodes in PPTX output.
 - ([#9680](https://github.com/quarto-dev/quarto-cli/issues/9680), [#9681](https://github.com/quarto-dev/quarto-cli/issues/9681)): Fix issues with HTML tables parsed by Quarto when converting to powerpoint presentations.
 
 ## Interactive Document
