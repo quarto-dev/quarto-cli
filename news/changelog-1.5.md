@@ -124,6 +124,7 @@ All changes included in 1.5:
 - ([#9536](https://github.com/quarto-dev/quarto-cli/issues/9536)): Provide traceback when available in Jupyter error outputs.
 - ([#9470](https://github.com/quarto-dev/quarto-cli/issues/9470)): Fix images rendered by the Jupyter engine to be displayed with the same dimensions as those in notebooks.
 - ([#5413](https://github.com/quarto-dev/quarto-cli/issues/5413)): Fix issue with Jupyter engine cells and images with captions containing newlines.
+- ([#9896](https://github.com/quarto-dev/quarto-cli/issues/9896)): Fix an issue with executing notebook with no kernelspec metadata yet.
 
 ## Website Listings
 
