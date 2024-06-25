@@ -41,7 +41,7 @@ export const getStackAsArray = (
   // to our expectations of quarto.ts being the entry point.
   // This will only happen in dev builds and when
   //
-  // export QUARTO_DENO_EXTRA_OPTIONS=--v8-flags=--stack-trace-limit=LARGE_ENOUGH_NUMBER
+  // export QUARTO_DENO_V8_OPTIONS=--stack-trace-limit=100
   //
   // is set.
   const m = rawStack[rawStack.length - 1].match(
@@ -49,7 +49,7 @@ export const getStackAsArray = (
   );
   if (!m) {
     warn(
-      "Could not find quarto.ts in stack trace, is QUARTO_DENO_EXTRA_OPTIONS with a sufficiently-large stack size set?",
+      "Could not find quarto.ts in stack trace, is QUARTO_DENO_V8_OPTIONS set with a sufficiently-large stack size?",
     );
   }
   if (m && (typeof format !== "undefined") && (format !== "raw")) {
