@@ -1,5 +1,6 @@
 {
   "imports": {
-    "https://deno.land/std/": "https://deno.land/std@0.217.0/"
+    "https://deno.land/std/": "https://deno.land/std@0.217.0/",
+    "https://cdn.skypack.dev/juice": "https://cdn.skypack.dev/juice@10.0.0"
   }
 }

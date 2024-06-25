@@ -1,0 +1,28 @@
+---
+title: Display a Regular (set by MPL) PNG Image
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['img.img-fluid.figure-img']
+---
+
+```{python}
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib_inline.backend_inline import set_matplotlib_formats
+
+# Change the default "retina" set by quarto
+set_matplotlib_formats("png")
+
+fig, ax = plt.subplots()
+
+x = np.linspace(0, 4*np.pi, 100)
+y1 = np.sin(x)
+y2 = np.cos(x)
+
+ax.set_title("Sine and Cosine")
+ax.plot(x, y1)
+ax.plot(x, y2)
+ax.legend(['Sine', 'Cosine'])
+```

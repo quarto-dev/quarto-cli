@@ -36,6 +36,24 @@ function hasRefParent(el)
   return el.attributes[kRefParent] ~= nil
 end
 
+--[[
+Return the ref type ("tbl", "fig", etc) for a given FloatRefTarget custom AST element.
+]]
+---@param float table # the FloatRefTarget element
+---@return string # ref type for the given float
+function ref_type_from_float(float)
+  local category = crossref.categories.by_name[float.type]
+  if category == nil then
+    fail("unknown float type '" .. float.type .. "'");
+    return ""
+  end
+  local result = refType(float.identifier)
+  if result ~= nil and result ~= category.ref_type then
+    warn("ref type '" .. result .. "' does not match category ref type '" .. category.ref_type .. "'");
+  end
+  return category.ref_type
+end
+
 function refType(id)
   local match = string.match(id, "^(%a+)%-")
   if match then

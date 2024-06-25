@@ -155,8 +155,9 @@ the discussions feature must be enabled. */;
 website:
   comments:
     giscus:
-      light: light # giscus theme used for light website theme
-      dark: dark_dimmed # giscus theme used for dark website theme
+      theme:
+        light: light # giscus theme used for light website theme
+        dark: dark_dimmed # giscus theme used for dark website theme
 ``` */
   };
   hypothesis?: boolean | {
@@ -763,7 +764,7 @@ and appended to the end of the page. */;
     string /* The path to the main image on the about page. If not specified,
 the `image` provided for the document itself will be used. */;
   links?: (NavigationItem)[];
-  template?:
+  template:
     | ("jolla" | "trestles" | "solana" | "marquee" | "broadside")
     | string; /* The template to use to layout this about page. Choose from:
 
@@ -797,6 +798,8 @@ Learn more about supported date formatting values [here](https://deno.land/std@0
 Defaults to 175. */;
   "image-placeholder"?:
     string /* The default image to use if an item in the listing doesn't have an image. */;
+  "image-lazy-loading"?:
+    boolean /* If false, images in the listing will be loaded immediately. If true, images will be loaded as they come into view. */;
   "image-align"?:
     | "left"
     | "right" /* In `default` type listings, whether to place the image on the right or left side of the post content (`left` or `right`). */;

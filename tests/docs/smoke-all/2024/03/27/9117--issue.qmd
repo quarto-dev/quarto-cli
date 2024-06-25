@@ -1,0 +1,11 @@
+---
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - ['*[src ^= "9117--issue_files/"', '*[href ^= "9117--issue_files/"']
+        - ['*[src ^= "9117–issue_files/"', '*[href ^= "9117–issue_files/"']
+---
+
+a little test

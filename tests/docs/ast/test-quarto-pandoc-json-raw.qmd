@@ -1,0 +1,13 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["--"]
+        - ["–"]
+---
+
+(The JSON syntax is decidedly more verbose and not as nice, and really intended to be used by machine-generated markdown.)
+
+Here is a string that shouldn't be escaped: `{"pandoc-api-version":[1,23,1],"meta":{},"blocks":[{"t":"Plain","c":[{"t":"Str","c":"do--not--escape--this"}]}]}`{=pandoc-json}.

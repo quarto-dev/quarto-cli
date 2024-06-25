@@ -1,0 +1,26 @@
+---
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: 0
+  typst:
+    quality: 2
+  dashboard:
+    quality: -1
+  docx:
+    quality: 0
+  pptx:
+    quality: -1
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - "#align\\(right\\)\\[(\r\n?|\n)#box"
+        -
+          - "#block\\[(\r\n?|\n)#align\\(right\\)\\["
+---
+
+![](100.png){fig-align="right"}

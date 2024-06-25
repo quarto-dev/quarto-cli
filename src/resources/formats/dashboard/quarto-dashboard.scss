@@ -342,48 +342,56 @@ $dashboard-card-toolbar-top-margin: 6px !default;
 /*-- scss:rules --*/
 
 // Value Boxes
-$valuebox-bg-primary: $primary !default;
-$valuebox-bg-secondary: $secondary !default;
-$valuebox-bg-success: $success !default;
-$valuebox-bg-info: $info !default;
-$valuebox-bg-warning: $warning !default;
-$valuebox-bg-danger: $danger !default;
-$valuebox-bg-light: $light !default;
-$valuebox-bg-dark: $dark !default;
+$valuebox-bg-primary: theme-override-value(
+  $theme-name,
+  "valuebox-bg-primary",
+  $primary
+) !default;
+$valuebox-bg-secondary: theme-override-value(
+  $theme-name,
+  "valuebox-bg-secondary",
+  $secondary
+) !default;
+$valuebox-bg-success: theme-override-value(
+  $theme-name,
+  "valuebox-bg-success",
+  $success
+) !default;
+$valuebox-bg-info: theme-override-value(
+  $theme-name,
+  "valuebox-bg-info",
+  $info
+) !default;
+$valuebox-bg-warning: theme-override-value(
+  $theme-name,
+  "valuebox-bg-warning",
+  $warning
+) !default;
+$valuebox-bg-danger: theme-override-value(
+  $theme-name,
+  "valuebox-bg-danger",
+  $danger
+) !default;
+$valuebox-bg-light: theme-override-value(
+  $theme-name,
+  "valuebox-bg-light",
+  $light
+) !default;
+$valuebox-bg-dark: theme-override-value(
+  $theme-name,
+  "valuebox-bg-dark",
+  $dark
+) !default;
 
 $valuebox-colors: (
-  "primary":
-    theme-override-value(
-      $theme-name,
-      "valuebox-bg-primary",
-      $valuebox-bg-primary
-    ),
-  "secondary":
-    theme-override-value(
-      $theme-name,
-      "valuebox-bg-secondary",
-      $valuebox-bg-secondary
-    ),
-  "success":
-    theme-override-value(
-      $theme-name,
-      "valuebox-bg-success",
-      $valuebox-bg-success
-    ),
-  "info":
-    theme-override-value($theme-name, "valuebox-bg-info", $valuebox-bg-info),
-  "warning":
-    theme-override-value(
-      $theme-name,
-      "valuebox-bg-warning",
-      $valuebox-bg-warning
-    ),
-  "danger":
-    theme-override-value($theme-name, "valuebox-bg-danger", $valuebox-bg-danger),
-  "light":
-    theme-override-value($theme-name, "valuebox-bg-light", $valuebox-bg-light),
-  "dark":
-    theme-override-value($theme-name, "valuebox-bg-dark", $valuebox-bg-dark),
+  "primary": $valuebox-bg-primary,
+  "secondary": $valuebox-bg-secondary,
+  "success": $valuebox-bg-success,
+  "info": $valuebox-bg-info,
+  "warning": $valuebox-bg-warning,
+  "danger": $valuebox-bg-danger,
+  "light": $valuebox-bg-light,
+  "dark": $valuebox-bg-dark,
 );
 
 // Dashboards
@@ -1015,4 +1023,37 @@ $valuebox-colors: (
 
 .dashboard-data-table {
   margin-top: -1px;
+}
+
+/*-- ojs --*/
+
+div.value-box-area span.observablehq--number {
+  /* the calculation below is pretty horrible, but it's our best effort to match
+     the font sizes of these two different ways of rendering a number in a value-box:
+
+```{ojs}
+//| content: valuebox
+//| title: "Articles per day"
+//| icon: pencil
+//| color: primary
+12
+```
+
+```{python}
+#| content: valuebox
+#| title: "Articles per day"
+#| icon: pencil
+#| color: primary
+dict(
+  value = 12
+)
+```
+
+  See https://github.com/quarto-dev/quarto-cli/issues/8823
+
+     */
+  font-size: calc(clamp(0.1em, 15cqw, 5em) * 1.25);
+  line-height: 1.2;
+  color: inherit;
+  font-family: var(--bs-body-font-family);
 }

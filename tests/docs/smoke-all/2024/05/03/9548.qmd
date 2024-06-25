@@ -1,0 +1,15 @@
+---
+title: theme at top level
+format: revealjs
+theme: beige
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - ['head > link[rel="stylesheet"][href$="quarto.css"]']
+        - ['head > link[rel="stylesheet"][href$="beige.css"]']
+---
+
+# Revealjs theme handling
+
+User provided theme should be used to build a `quarto.css` using SASS and the `theme: beige` should internally by overridden to `theme: quarto` so that the later is added in Pandoc's template

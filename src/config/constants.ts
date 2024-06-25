@@ -136,6 +136,8 @@ export const kPreviewModeRaw = "raw";
 export const kFontPaths = "font-paths";
 
 export const kHtmlTableProcessing = "html-table-processing";
+export const kHtmlPreTagProcessing = "html-pre-tag-processing";
+export const kCssPropertyProcessing = "css-property-processing";
 export const kUseRsvgConvert = "use-rsvg-convert";
 export const kValidateYaml = "validate-yaml";
 
@@ -536,6 +538,7 @@ export const kReferenceDoc = "reference-doc";
 export const kHtmlMathMethod = "html-math-method";
 export const kToc = "toc";
 export const kTocDepth = "toc-depth";
+export const kTocIndent = "toc-indent";
 export const kTableOfContents = "table-of-contents";
 export const kSectionDivs = "section-divs";
 export const kEPubCoverImage = "epub-cover-image";
@@ -628,7 +631,7 @@ export const kCapBottom = "bottom";
 // Pandoc Input Traits
 export const kPositionedRefs = "positioned-refs";
 
-// https://pandoc.org/MANUAL.html#default-files
+// https://pandoc.org/MANUAL.html#defaults-files
 // note: we are keeping some things out of 'defaults' b/ca
 // they are known to be valid in metadata. this includes:
 //    "csl",
@@ -749,6 +752,8 @@ export const kCellColumn = "column";
 export const kCellOutWidth = "out-width";
 export const kCellOutHeight = "out-height";
 export const kCellMdIndent = "md-indent";
+export const kCellWidth = "width";
+export const kCellHeight = "height";
 
 export const kCellColab = "colab";
 export const kCellColabType = "colab_type";

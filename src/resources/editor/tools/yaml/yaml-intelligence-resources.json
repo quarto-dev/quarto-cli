@@ -1723,7 +1723,7 @@
                       ],
                       "description": {
                         "short": "The giscus theme to use when displaying comments.",
-                        "long": "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      light: light # giscus theme used for light website theme\n      dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
+                        "long": "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
                       }
                     },
                     "language": {
@@ -2389,7 +2389,10 @@
                     },
                     "icon": {
                       "schema": "string",
-                      "description": "The icon to display in the annoucement"
+                      "description": {
+                        "short": "The icon to display in the announcement",
+                        "long": "Name of bootstrap icon (e.g. `github`, `twitter`, `share`) for the announcement.\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                      }
                     },
                     "position": {
                       "schema": {
@@ -2398,7 +2401,10 @@
                           "below-navbar"
                         ]
                       },
-                      "description": "The position of the announcement."
+                      "description": {
+                        "short": "The position of the announcement.",
+                        "long": "The position of the announcement. One of `above-navbar` (default) or `below-navbar`.\n"
+                      }
                     },
                     "type": {
                       "schema": {
@@ -2413,7 +2419,10 @@
                           "dark"
                         ]
                       },
-                      "description": "The type of announcement. Affects the appearance of the announcement."
+                      "description": {
+                        "short": "The type of announcement. Affects the appearance of the announcement.",
+                        "long": "The type of announcement. One of `primary`, `secondary`, `success`, `danger`, `warning`,\n  `info`, `light` or `dark`. Affects the appearance of the announcement.\n"
+                      }
                     }
                   }
                 }
@@ -3302,6 +3311,9 @@
       "id": "website-about",
       "object": {
         "closed": true,
+        "required": [
+          "template"
+        ],
         "properties": {
           "id": {
             "string": {
@@ -3564,6 +3576,12 @@
           "image-placeholder": {
             "string": {
               "description": "The default image to use if an item in the listing doesn't have an image."
+            }
+          },
+          "image-lazy-loading": {
+            "boolean": {
+              "description": "If false, images in the listing will be loaded immediately. If true, images will be loaded as they come into view.",
+              "default": true
             }
           },
           "image-align": {
@@ -6006,7 +6024,7 @@
       "schema": "string",
       "description": {
         "short": "Text describing the specialized type of this publication.",
-        "long": "Text describing the specialized type of this publication.\n\nAn informative registry of specialized EPUB Publication \ntypes for use with this element is maintained in the \n[TypesRegistry](https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry), \nbut Authors may use any text string as a value.\n"
+        "long": "Text describing the specialized type of this publication.\n\nAn informative registry of specialized EPUB Publication \ntypes for use with this element is maintained in the \n[TypesRegistry](https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry), \nbut Authors may use any text string as a value.\n"
       }
     },
     {
@@ -6249,6 +6267,28 @@
         ]
       },
       "description": "Configures the Jupyter engine."
+    },
+    {
+      "name": "julia",
+      "schema": {
+        "object": {
+          "properties": {
+            "exeflags": {
+              "schema": {
+                "arrayOf": "string",
+                "description": "Arguments to pass to the Julia worker process."
+              }
+            },
+            "env": {
+              "schema": {
+                "arrayOf": "string",
+                "description": "Environment variables to pass to the Julia worker process."
+              }
+            }
+          }
+        }
+      },
+      "description": "Configures the Julia engine."
     },
     {
       "name": "knitr",
@@ -8918,6 +8958,17 @@
       "description": "Enables hover over a section title to see an anchor link."
     },
     {
+      "name": "tabsets",
+      "schema": "boolean",
+      "default": true,
+      "tags": {
+        "formats": [
+          "$html-doc"
+        ]
+      },
+      "description": "Enables tabsets to present content."
+    },
+    {
       "name": "smooth-scroll",
       "schema": "boolean",
       "default": false,
@@ -9777,6 +9828,30 @@
         ]
       },
       "description": "If `none`, do not process tables in HTML input."
+    },
+    {
+      "name": "html-pre-tag-processing",
+      "schema": {
+        "enum": [
+          "none",
+          "parse"
+        ]
+      },
+      "description": "If `none`, ignore any divs with `html-pre-tag-processing=parse` enabled."
+    },
+    {
+      "name": "css-property-processing",
+      "schema": {
+        "enum": [
+          "none",
+          "translate"
+        ]
+      },
+      "default": "translate",
+      "description": {
+        "short": "CSS property translation",
+        "long": "If `translate`, translate CSS properties into output format properties. If `none`, do not process css properties."
+      }
     },
     {
       "name": "use-rsvg-convert",
@@ -11222,6 +11297,16 @@
       }
     },
     {
+      "name": "toc-indent",
+      "tags": {
+        "formats": [
+          "typst"
+        ]
+      },
+      "schema": "string",
+      "description": "The amount of indentation to use for each level of the table of contents.\nThe default is \"1.5em\".\n"
+    },
+    {
       "name": "toc-depth",
       "tags": {
         "formats": [
@@ -11409,6 +11494,20 @@
         ]
       },
       "description": "The alt text for preview image on this page."
+    },
+    {
+      "name": "image-lazy-loading",
+      "schema": "boolean",
+      "tags": {
+        "formats": [
+          "$html-doc"
+        ]
+      },
+      "description": {
+        "short": "If true, the preview image will only load when it comes into view.",
+        "long": "Enables lazy loading for the preview image. If true, the preview image element \nwill have `loading=\"lazy\"`, and will only load when it comes into view.\n\nIf false, the preview image will load immediately.\n"
+      },
+      "default": true
     }
   ],
   "schema/extension.yml": [
@@ -12446,6 +12545,7 @@
     "commonmark_x",
     "context",
     "csljson",
+    "djot",
     "docbook",
     "docbook4",
     "docbook5",
@@ -12708,9 +12808,18 @@
     "Provides an announcement displayed at the top of the page.",
     "The content of the announcement",
     "Whether this announcement may be dismissed by the user.",
-    "The icon to display in the annoucement",
-    "The position of the announcement.",
-    "The type of announcement. Affects the appearance of the\nannouncement.",
+    {
+      "short": "The icon to display in the announcement",
+      "long": "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href=\"https://icons.getbootstrap.com/\" class=\"uri\">https://icons.getbootstrap.com/</a> for a list of available\nicons"
+    },
+    {
+      "short": "The position of the announcement.",
+      "long": "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+    },
+    {
+      "short": "The type of announcement. Affects the appearance of the\nannouncement.",
+      "long": "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
+    },
     {
       "short": "Request cookie consent before enabling scripts that set cookies",
       "long": "Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href=\"https://www.cookieconsent.com/\">Cookie Consent</a>.\nThe user’s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href=\"https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent\">Custom\nScripts and Cookie Consent</a>."
@@ -12859,9 +12968,18 @@
     "Provides an announcement displayed at the top of the page.",
     "The content of the announcement",
     "Whether this announcement may be dismissed by the user.",
-    "The icon to display in the annoucement",
-    "The position of the announcement.",
-    "The type of announcement. Affects the appearance of the\nannouncement.",
+    {
+      "short": "The icon to display in the announcement",
+      "long": "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href=\"https://icons.getbootstrap.com/\" class=\"uri\">https://icons.getbootstrap.com/</a> for a list of available\nicons"
+    },
+    {
+      "short": "The position of the announcement.",
+      "long": "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+    },
+    {
+      "short": "The type of announcement. Affects the appearance of the\nannouncement.",
+      "long": "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
+    },
     {
       "short": "Request cookie consent before enabling scripts that set cookies",
       "long": "Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href=\"https://www.cookieconsent.com/\">Cookie Consent</a>.\nThe user’s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href=\"https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent\">Custom\nScripts and Cookie Consent</a>."
@@ -13093,6 +13211,7 @@
       "long": "The maximum length (in characters) of the description displayed in\nthe listing. Defaults to 175."
     },
     "The default image to use if an item in the listing doesn’t have an\nimage.",
+    "If false, images in the listing will be loaded immediately. If true,\nimages will be loaded as they come into view.",
     "In <code>default</code> type listings, whether to place the image on\nthe right or left side of the post content (<code>left</code> or\n<code>right</code>).",
     {
       "short": "The height of the image being displayed.",
@@ -14054,7 +14173,7 @@
     "The subject term (defined by the schema).",
     {
       "short": "Text describing the specialized type of this publication.",
-      "long": "Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href=\"https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry\">TypesRegistry</a>,\nbut Authors may use any text string as a value."
+      "long": "Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href=\"https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry\">TypesRegistry</a>,\nbut Authors may use any text string as a value."
     },
     "Text describing the format of this publication.",
     "Text describing the relation of this publication.",
@@ -14087,6 +14206,9 @@
     "The name to display in the UI.",
     "The name of the language the kernel implements.",
     "The name of the kernel.",
+    "Configures the Julia engine.",
+    "Arguments to pass to the Julia worker process.",
+    "Environment variables to pass to the Julia worker process.",
     "Set Knitr options.",
     "Knit options.",
     "Knitr chunk options.",
@@ -14629,6 +14751,7 @@
     "Enables inclusion of Pandoc default CSS for this document.",
     "One or more CSS style sheets.",
     "Enables hover over a section title to see an anchor link.",
+    "Enables tabsets to present content.",
     "Enables smooth scrolling within the page.",
     {
       "short": "Method use to render math in HTML output",
@@ -14775,6 +14898,11 @@
       "long": "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa. (Technically, the correct\nterm would be ppi: pixels per inch.) The default is <code>96</code>.\nWhen images contain information about dpi internally, the encoded value\nis used instead of the default specified by this option."
     },
     "If <code>none</code>, do not process tables in HTML input.",
+    "If <code>none</code>, ignore any divs with\n<code>html-pre-tag-processing=parse</code> enabled.",
+    {
+      "short": "CSS property translation",
+      "long": "If <code>translate</code>, translate CSS properties into output\nformat properties. If <code>none</code>, do not process css\nproperties."
+    },
     "If <code>true</code>, attempt to use <code>rsvg-convert</code> to\nconvert SVG images to PDF.",
     "Logo image (placed in bottom right corner of slides)",
     {
@@ -14981,6 +15109,7 @@
       "short": "Include an automatically generated table of contents",
       "long": "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
     },
+    "The amount of indentation to use for each level of the table of\ncontents. The default is “1.5em”.",
     "Specify the number of section levels to include in the table of\ncontents. The default is 3",
     {
       "short": "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), <code>left-body</code>,\n<code>right-body</code>).",
@@ -15008,6 +15137,10 @@
     "The height of the preview image for this document.",
     "The width of the preview image for this document.",
     "The alt text for preview image on this page.",
+    {
+      "short": "If true, the preview image will only load when it comes into\nview.",
+      "long": "Enables lazy loading for the preview image. If true, the preview\nimage element will have <code>loading=\"lazy\"</code>, and will only load\nwhen it comes into view.\nIf false, the preview image will load immediately."
+    },
     "Project configuration.",
     "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
     "Files to render (defaults to all files)",
@@ -15062,9 +15195,18 @@
     "Provides an announcement displayed at the top of the page.",
     "The content of the announcement",
     "Whether this announcement may be dismissed by the user.",
-    "The icon to display in the annoucement",
-    "The position of the announcement.",
-    "The type of announcement. Affects the appearance of the\nannouncement.",
+    {
+      "short": "The icon to display in the announcement",
+      "long": "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href=\"https://icons.getbootstrap.com/\" class=\"uri\">https://icons.getbootstrap.com/</a> for a list of available\nicons"
+    },
+    {
+      "short": "The position of the announcement.",
+      "long": "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+    },
+    {
+      "short": "The type of announcement. Affects the appearance of the\nannouncement.",
+      "long": "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
+    },
     {
       "short": "Request cookie consent before enabling scripts that set cookies",
       "long": "Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href=\"https://www.cookieconsent.com/\">Cookie Consent</a>.\nThe user’s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href=\"https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent\">Custom\nScripts and Cookie Consent</a>."
@@ -15397,9 +15539,18 @@
     "Provides an announcement displayed at the top of the page.",
     "The content of the announcement",
     "Whether this announcement may be dismissed by the user.",
-    "The icon to display in the annoucement",
-    "The position of the announcement.",
-    "The type of announcement. Affects the appearance of the\nannouncement.",
+    {
+      "short": "The icon to display in the announcement",
+      "long": "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href=\"https://icons.getbootstrap.com/\" class=\"uri\">https://icons.getbootstrap.com/</a> for a list of available\nicons"
+    },
+    {
+      "short": "The position of the announcement.",
+      "long": "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+    },
+    {
+      "short": "The type of announcement. Affects the appearance of the\nannouncement.",
+      "long": "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
+    },
     {
       "short": "Request cookie consent before enabling scripts that set cookies",
       "long": "Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href=\"https://www.cookieconsent.com/\">Cookie Consent</a>.\nThe user’s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href=\"https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent\">Custom\nScripts and Cookie Consent</a>."
@@ -15906,12 +16057,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 182259,
+    "_internalId": 187067,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 182251,
+        "_internalId": 187059,
         "type": "enum",
         "enum": [
           "png",
@@ -15927,7 +16078,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 182258,
+        "_internalId": 187066,
         "type": "anyOf",
         "anyOf": [
           {

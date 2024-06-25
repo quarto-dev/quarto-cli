@@ -1,0 +1,11 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["--"]
+        - ["–"]
+---
+
+Here is a string that shouldn't be escaped: `Str "do--not--escape--this"`{=pandoc-native}.

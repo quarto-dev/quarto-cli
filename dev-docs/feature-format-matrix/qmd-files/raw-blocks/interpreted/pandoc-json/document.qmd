@@ -1,0 +1,40 @@
+---
+format:
+  docusaurus-md: 
+    quality: 1
+  pdf:
+    quality: 2
+  html:
+    quality: 2
+  dashboard:
+    quality: 1
+  typst:
+    quality: 2
+    comment: "Typst itself interprets the -- as –"
+    keep-typ: true
+  revealjs:
+    quality: 1
+  docx:
+    quality: 1
+  pptx:
+    quality: 1
+
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["--"]
+        - ["–"]
+    typst:
+      ensureTypstFileRegexMatches:
+        - ["--"]
+        - ["–"]
+    latex:
+      ensureFileRegexMatches:
+        - ['do-\\/-not-\\/-escape-\\/-this'] # it is escaped but correct
+        - ["–"]
+---
+
+(The JSON syntax is decidedly more verbose and not as nice, and really intended to be used by machine-generated markdown.)
+
+Here is a string that shouldn't be escaped: `{"pandoc-api-version":[1,23,1],"meta":{},"blocks":[{"t":"Plain","c":[{"t":"Str","c":"do--not--escape--this"}]}]}`{=pandoc-json}.

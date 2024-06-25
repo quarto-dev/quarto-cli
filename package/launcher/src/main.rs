@@ -93,11 +93,15 @@ fn main() {
         String::from("--allow-ffi"),      
     ];
 
+    // # --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
+    if let Ok(v8_options) = env::var("QUARTO_DENO_V8_OPTIONS") {
+        deno_options.push(format!("{}{}", String::from("--v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192,"), String::from(v8_options)));
+    } else {
+        deno_options.push(String::from("--v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192"));
+    }
     // If there are extra args, include those
     if let Ok(extra_options) = env::var("QUARTO_DENO_EXTRA_OPTIONS") {
         deno_options.push(extra_options);
-    } else {
-        deno_options.push(String::from("--v8-flags=--max-old-space-size=8192,--max-heap-size=8192"));
     };
 
     // run deno

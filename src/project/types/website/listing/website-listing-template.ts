@@ -95,7 +95,7 @@ export function templateMarkdownHandler(
             // For file modified specifically, include the time portion
             const includeTime = field === kFieldFileModified;
 
-            const date = typeof (dateRaw) === "string"
+            const date = typeof dateRaw === "string"
               ? parsePandocDate(dateRaw as string)
               : dateRaw as Date;
             if (date) {
@@ -422,6 +422,7 @@ export function reshapeListing(
     src: string,
     classes: string,
     alt?: string,
+    lazy?: boolean,
   ) => {
     const pageSize = listing[kPageSize];
     const classAttr = classes ? `class="${classes}"` : "";
@@ -430,15 +431,17 @@ export function reshapeListing(
       : "";
     const altAttr = alt ? `alt="${encodeAttributeValue(alt)}"` : "";
     const srcAttr = itemNumber > pageSize ? "data-src" : "src";
-
-    return `<img ${srcAttr}="${src}" ${classAttr} ${styleAttr} ${altAttr}>`;
+    const lazyAttr = lazy === false ? "" : "loading='lazy' ";
+    return `<img ${lazyAttr}${srcAttr}="${src}" ${classAttr} ${styleAttr} ${altAttr}>`;
   };
   utilities.imgPlaceholder = (
+    listingId: string,
     itemNumber: number,
     itemPath: string,
   ) => {
     const pageSize = listing[kPageSize];
     return imagePlaceholder(
+      listingId,
       itemPath,
       itemNumber > pageSize,
       listing[kImageHeight] as string,

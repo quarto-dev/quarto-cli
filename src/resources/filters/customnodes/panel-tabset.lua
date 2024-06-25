@@ -124,7 +124,7 @@ _quarto.ast.add_handler({
     local custom_data = {
       __quarto_custom_node = node,
       level = params.level or 2,
-      attr = params.attr or pandoc.Attr(),
+      attr = params.attr or pandoc.Attr("", {"panel-tabset"}),
     }
 
     local function make_tab_metaobject(custom_data, index)

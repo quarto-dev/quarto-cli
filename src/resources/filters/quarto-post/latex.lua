@@ -3,8 +3,6 @@
 --
 -- renders AST nodes to LaTeX
 
-local constants = require("modules/constants")
-
 local callout_counters = {}
 
 local function ensure_callout_counter(ref)
@@ -32,10 +30,10 @@ function latexCalloutBoxDefault(title, callout_type, icon, callout)
   local borderWidth = '.15mm'
   local borderRadius = '.35mm'
   local leftPad = '2mm'
-  local color = latexColorForType(callout_type)
-  local frameColor = latexFrameColorForType(callout_type)
+  local color = _quarto.modules.callouts.latexColorForType(callout_type)
+  local frameColor = _quarto.modules.callouts.latexFrameColorForType(callout_type)
 
-  local iconForType = iconForType(callout_type)
+  local iconForType = _quarto.modules.callouts.iconForType(callout_type)
 
   local calloutContents = pandoc.List({});
 
@@ -101,8 +99,8 @@ function latexCalloutBoxSimple(title, type, icon, callout)
   local borderWidth = '.15mm'
   local borderRadius = '.35mm'
   local leftPad = '2mm'
-  local color = latexColorForType(type)
-  local colorFrame = latexFrameColorForType(type)
+  local color = _quarto.modules.callouts.latexColorForType(type)
+  local colorFrame = _quarto.modules.callouts.latexFrameColorForType(type)
 
   if title == nil then
     title = ""
@@ -145,7 +143,7 @@ function latexCalloutBoxSimple(title, type, icon, callout)
   local endInlines = { pandoc.RawInline('latex', '\n\\end{tcolorbox}') }
 
   -- generate the icon and use a minipage to position it
-  local iconForCat = iconForType(type)
+  local iconForCat = _quarto.modules.callouts.iconForType(type)
   if icon ~= false and iconForCat ~= nil then
     local iconName = '\\' .. iconForCat
     local iconColSize = '5.5mm'
@@ -185,7 +183,7 @@ function render_latex()
     return pandoc.RawBlock("latex", "% quarto-tables-in-margin-AB1927C9:end")
   end
   
-  function handle_table_columns(table) 
+  function handle_table_columns(table)
     local useMargin = table.classes:find_if(isStarEnv)
     if useMargin then
       return {
@@ -223,8 +221,31 @@ function render_latex()
       noteHasColumns()
       local is_block = pandoc.utils.type(el) == "Block"
       el.content = strip(el.content, "column-margin")
-      tprepend(el.content, {latexBeginSidenote(is_block)})
-      tappend(el.content, {latexEndSidenote(el, is_block)})
+      local found_table = false
+      local found_something_else = false
+      local function tag_something_else()
+        found_something_else = true
+      end
+      el = _quarto.ast.walk(el, {
+        traverse = "topdown",
+        Block = found_something_else,
+        Inline = found_something_else,
+        Table = function(t)
+          local result = handle_table_columns(t)
+          found_table = true
+          return result,false
+        end
+      }) or pandoc.Div({}) -- unnecessary, but the type checker doesn't know
+
+      if found_table and found_something_else then
+        warn("Cannot mix tables and other content in a column-margin environment. Results may be unpredictable.")
+      end
+      if not found_table then
+        -- marginnote doesn't work well with margintable
+        -- so we only add marginnote if there's no table
+        tprepend(el.content, {latexBeginSidenote(is_block)})
+        tappend(el.content, {latexEndSidenote(el, is_block)})
+      end
       return el, false
     else
       local f = el.classes:find_if(isStarEnv)
@@ -243,7 +264,7 @@ function render_latex()
       FloatRefTarget = function(float)
         if float.attributes["ref-parent"] == nil then
           -- we're about to mess up here, force a [H] position
-          local ref = refType(float.identifier)
+          local ref = ref_type_from_float(float)
           if ref == nil then
             -- don't know what to do with this
             -- give up
@@ -272,7 +293,7 @@ function render_latex()
     
     -- Pandoc emits longtable environments by default;
     -- longtable environments increment the _table_ counter (!!)
-    -- https://mirror2.sandyriver.net/pub/ctan/macros/latex/required/tools/longtable.pdf 
+    -- http://mirrors.ctan.org/macros/latex/required/tools/longtable.pdf 
     -- (page 13, definition of \LT@array)
     --
     -- This causes double counting in our table environments. Our solution
@@ -290,6 +311,19 @@ function render_latex()
           FloatRefTarget = function(float)
             return nil, false
           end,
+        })
+      elseif float.type == "Listing" then
+        float.content = _quarto.ast.walk(float.content, {
+          traverse = "topdown",
+          -- A Listing float with a decoratedcodeblock inside it needs
+          -- to be deconstructed
+          DecoratedCodeBlock = function(block)
+            if block.filename ~= nil then
+              float.caption_long.content:insert(1, pandoc.Space())
+              float.caption_long.content:insert(1, pandoc.Code(block.filename))
+            end
+            return block.code_block
+          end
         })
       end
       float.content = _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
@@ -309,12 +343,25 @@ function render_latex()
         return nil
       end
       img.attributes[kFigAlign] = nil
-      -- \\centering doesn't work consistently here...
-      return pandoc.Inlines({
-        pandoc.RawInline('latex', '\\begin{center}\n'),
-        img,
-        pandoc.RawInline('latex', '\n\\end{center}\n')
-      })
+
+      if align == "left" then
+        return pandoc.Inlines({
+          img,
+          pandoc.RawInline('latex', '\\hfill\n'),
+        })
+      elseif align == "right" then
+        return pandoc.Inlines({
+          pandoc.RawInline('latex', '\\hfill\n'),
+          img,
+        })
+      else
+        -- \\centering doesn't work consistently here...
+        return pandoc.Inlines({
+          pandoc.RawInline('latex', '\\begin{center}\n'),
+          img,
+          pandoc.RawInline('latex', '\n\\end{center}\n')
+        })
+      end
     end,
     Callout = function(node)
       -- read and clear attributes
@@ -340,7 +387,7 @@ function render_latex()
         traverse = "topdown",
         FloatRefTarget = function(float, float_node)
           if float.identifier ~= nil then
-            local ref = refType(float.identifier)
+            local ref = ref_type_from_float(float)
             if ref ~= nil then
               float.attributes[ref .. "-pos"] = "H"
               return float
@@ -360,9 +407,9 @@ function render_latex()
     
       -- generate the callout box
       local callout
-      if calloutAppearance == constants.kCalloutAppearanceDefault then
+      if calloutAppearance == _quarto.modules.constants.kCalloutAppearanceDefault then
         if title == nil then
-          title = displayName(type)
+          title = _quarto.modules.callouts.displayName(type)
         else
           title = pandoc.write(pandoc.Pandoc(title), 'latex')
         end
@@ -438,10 +485,11 @@ function render_latex_fixups()
   return {
     RawBlock = function(raw)
       if _quarto.format.isRawLatex(raw) then
-        if (raw.text:match(_quarto.patterns.latexLongtablePattern) and
-            not raw.text:match(_quarto.patterns.latexCaptionPattern)) then
+        local long_table_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexLongtablePattern)
+        local caption_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexCaptionPattern)
+        if long_table_match(raw.text) and not caption_match(raw.text) then
           raw.text = raw.text:gsub(
-            _quarto.patterns.latexLongtablePattern, "\\begin{longtable*}%2\\end{longtable*}", 1)
+            _quarto.modules.patterns.combine_patterns(_quarto.patterns.latexLongtablePattern), "\\begin{longtable*}%2\\end{longtable*}", 1)
           return raw
         end
       end

@@ -24,7 +24,12 @@ import {
   relative,
 } from "../deno_ral/path.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
-import { kSkipHidden, normalizePath, resolvePathGlobs } from "../core/path.ts";
+import {
+  kSkipHidden,
+  normalizePath,
+  resolvePathGlobs,
+  safeExistsSync,
+} from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
 import { projectType } from "../project/types/project-types.ts";
 import { mergeConfigs } from "../core/config.ts";
@@ -342,6 +347,8 @@ function findExtensions(
       return true;
     } else if (contributes === "project" && ext.contributes.project) {
       return true;
+    } else if (contributes === "metadata" && ext.contributes.metadata) {
+      return true;
     } else if (
       contributes === kRevealJSPlugins && ext.contributes[kRevealJSPlugins]
     ) {
@@ -413,7 +420,10 @@ export async function readExtensions(
   organization?: string,
 ) {
   const extensions: Extension[] = [];
-  const extensionDirs = Deno.readDirSync(extensionsDirectory);
+  const extensionDirs = safeExistsSync(extensionsDirectory) &&
+      Deno.statSync(extensionsDirectory).isDirectory
+    ? Deno.readDirSync(extensionsDirectory)
+    : [];
   for (const extensionDir of extensionDirs) {
     if (extensionDir.isDirectory) {
       const extFile = extensionFile(
@@ -519,6 +529,11 @@ export function inputExtensionDirs(input?: string, projectDir?: string) {
     if (dir) {
       extensionDirectories.push(dir);
     }
+  } else if (projectDir) {
+    const dir = extensionsDirPath(projectDir);
+    if (dir) {
+      extensionDirectories.push(dir);
+    }
   }
   return extensionDirectories;
 }
@@ -612,6 +627,7 @@ function validateExtension(extension: Extension) {
     extension.contributes.formats,
     extension.contributes.project,
     extension.contributes[kRevealJSPlugins],
+    extension.contributes.metadata,
   ];
   contribs.forEach((contrib) => {
     if (contrib) {
@@ -685,9 +701,9 @@ async function readExtension(
     contributes?.format as Metadata || {};
 
   // Read any embedded extension
-  const embeddedExtensions = existsSync(join(extensionDir, kExtensionDir))
-    ? await readExtensions(join(extensionDir, kExtensionDir))
-    : [];
+  const embeddedExtensions = await readExtensions(
+    join(extensionDir, kExtensionDir),
+  );
 
   // Resolve 'default' specially
   Object.keys(formats).forEach((key) => {
@@ -714,6 +730,7 @@ async function readExtension(
         extensionDir,
         formatMeta[kFormatResources] as string[],
         [],
+        { mode: "strict" },
       );
       if (resolved.include.length > 0) {
         formatMeta[kFormatResources] = resolved.include.map((include) => {
@@ -770,7 +787,33 @@ async function readExtension(
       return resolveFilterPath(extensionDir, filter);
     },
   );
-  const project = (contributes?.project || {}) as Record<string, unknown>;
+  const project = contributes?.project as Record<string, unknown> | undefined;
+  const metadata = contributes?.metadata as Record<string, unknown> | undefined;
+
+  // resolve metadata/project pre- and post-render scripts to their full path
+  for (const key of ["pre-render", "post-render"]) {
+    for (const object of [metadata, project]) {
+      if (!object?.project || typeof object.project !== "object") {
+        continue;
+      }
+      // object.project is truthy and typeof object.project is object
+      // so we can safely cast object.project to Record<string, unknown>
+      // the TypeScript checker doesn't appear to recognize this
+      const t = (object.project as Record<string, unknown>)[key];
+      if (t) {
+        const value = (Array.isArray(t) ? t : [t]) as string[];
+        const resolved = resolvePathGlobs(
+          extensionDir,
+          value as string[],
+          [],
+        );
+        if (resolved.include.length > 0) {
+          (object.project as Record<string, unknown>)[key] = resolved
+            .include;
+        }
+      }
+    }
+  }
   const revealJSPlugins = ((contributes?.[kRevealJSPlugins] || []) as Array<
     string | RevealPluginBundle | RevealPlugin
   >).map((plugin) => {
@@ -786,10 +829,11 @@ async function readExtension(
     id: extensionId,
     path: extensionDir,
     contributes: {
+      metadata,
       shortcodes,
       filters,
       formats,
-      project,
+      project: project ?? {},
       [kRevealJSPlugins]: revealJSPlugins,
     },
   };

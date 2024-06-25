@@ -113,7 +113,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     # This truly awful hack ensures that rmarkdown doesn't tell us we're
     # producing HTML widgets when targeting a non-html format (doing this
     # is triggered by the "prefer-html" options)
-    if (is_html_prefered(format)) {
+    if (is_html_prefered(format) || is_pandoc_to_format(format, c("native"))) {
       render_env <- parent.env(parent.frame())
       render_env$front_matter$always_allow_html <- TRUE
     }

@@ -233,7 +233,7 @@ export async function renderExecute(
   popTiming();
 
   // write the freeze file if we are in a project
-  if (context.project && canFreeze) {
+  if (context.project && !context.project.isSingleFile && canFreeze) {
     // write the freezer file
     const freezeFile = freezeExecuteResult(
       context.target.source,

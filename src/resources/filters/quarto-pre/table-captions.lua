@@ -26,11 +26,14 @@ function table_captions()
                 el = _quarto.ast.walk(el, {
                   RawBlock = function(raw)
                     if _quarto.format.isRawLatex(raw) then
-                      if raw.text:match(_quarto.patterns.latexTabularPattern) and not raw.text:match(_quarto.patterns.latexTablePattern) then
-                        raw.text = raw.text:gsub(_quarto.patterns.latexTabularPattern, 
-                                                "\\begin{table}\n\\centering\n%1%2%3\n\\end{table}\n",
-                                                1)
-                        return raw                       
+                      local tabular_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexTabularPattern)
+                      local table_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexTablePattern)
+                      if tabular_match(raw.text) and not table_match(raw.text) then
+                        raw.text = raw.text:gsub(
+                          _quarto.modules.patterns.combine_patterns(_quarto.patterns.latexTabularPattern),
+                          "\\begin{table}\n\\centering\n%1%2%3\n\\end{table}\n",
+                          1)
+                        return raw
                       end
                     end
                   end
@@ -169,8 +172,10 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           idx = idx + 1
         elseif hasRawLatexTable(raw) then
           for i,pattern in ipairs(_quarto.patterns.latexTablePatterns) do
-            if raw.text:match(pattern) then
-              raw.text = applyLatexTableCaption(raw.text, tblCaptions[idx], tblLabels[idx], pattern)
+            local match_fun = _quarto.modules.patterns.match_all_in_table(pattern)
+            if match_fun(raw.text) then
+              local combined_pattern = _quarto.modules.patterns.combine_patterns(pattern)
+              raw.text = applyLatexTableCaption(raw.text, tblCaptions[idx], tblLabels[idx], combined_pattern)
               break
             end
           end
@@ -198,20 +203,22 @@ end
 
 function applyLatexTableCaption(latex, tblCaption, tblLabel, tablePattern)
   local latexCaptionPattern = _quarto.patterns.latexCaptionPattern
+  local latex_caption_match = _quarto.modules.patterns.match_all_in_table(latexCaptionPattern)
   -- insert caption if there is none
-  local beginCaption, caption = latex:match(latexCaptionPattern)
+  local beginCaption, caption = latex_caption_match(latex)
   if not beginCaption then
     latex = latex:gsub(tablePattern, "%1" .. "\n\\caption{ }\\tabularnewline\n" .. "%2%3", 1)
   end
   -- apply table caption and label
-  local beginCaption, captionText, endCaption = latex:match(latexCaptionPattern)
+  local beginCaption, captionText, endCaption = latex_caption_match(latex)
   if #tblCaption > 0 then
     captionText = stringEscape(tblCaption, "latex")
   end
   if #tblLabel > 0 then
     captionText = captionText .. " {#" .. tblLabel .. "}"
   end
-  latex = latex:gsub(latexCaptionPattern, "%1" .. captionText:gsub("%%", "%%%%") .. "%3", 1)
+  assert(captionText)
+  latex = latex:gsub(_quarto.modules.patterns.combine_patterns(latexCaptionPattern), "%1" .. captionText:gsub("%%", "%%%%") .. "%3", 1)
   return latex
 end
 

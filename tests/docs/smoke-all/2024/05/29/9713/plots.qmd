@@ -1,0 +1,10 @@
+---
+title: "Plots"
+fig-format: svg
+---
+
+```{r}
+#| label: plot
+plot(1:10)
+```
+

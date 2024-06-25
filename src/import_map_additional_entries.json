@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "https://deno.land/std@0.196.0/encoding/": "./vendor/deno-land/std@0-196-0/encoding/",
+    "https://deno.land/std@0.196.0/path/": "./vendor/deno-land/std@0-196-0/path/"
+  }
+}

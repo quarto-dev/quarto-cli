@@ -1,0 +1,13 @@
+---
+title: "Issue-8987"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["– 1.2.3"]
+        - []
+---
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.

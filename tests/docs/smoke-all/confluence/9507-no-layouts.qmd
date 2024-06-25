@@ -1,0 +1,18 @@
+---
+format: confluence-publish
+validate-yaml: false
+title: Test
+author: Test
+---
+
+## Test 2 columns
+
+::: {layout-ncol=2}
+
+Text 1
+
+Text 2
+
+Text 3
+
+:::

@@ -16,6 +16,7 @@ import { readYamlFromMarkdown } from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
 import { kCodeLink } from "../config/constants.ts";
+import { isServerShiny } from "../core/render.ts";
 
 import {
   checkRBinary,
@@ -129,7 +130,7 @@ export const knitrEngine: ExecutionEngine = {
         markdown: resolveInlineExecute(options.target.markdown.value),
       },
       options.tempDir,
-      options.projectDir,
+      options.project?.isSingleFile ? undefined : options.projectDir,
       options.quiet,
       // fixup .rmarkdown file references
       (output) => {
@@ -179,6 +180,15 @@ export const knitrEngine: ExecutionEngine = {
 
     // see if we can code link
     if (options.format.render?.[kCodeLink]) {
+      // When using shiny document, code-link proceesing is not supported
+      // https://github.com/quarto-dev/quarto-cli/issues/9208
+      if (isServerShiny(options.format)) {
+        warning(
+          `'code-link' option will be ignored as it is not supported for 'server: shiny' due to 'downlit' R package limitation (https://github.com/quarto-dev/quarto-cli/issues/9208).`,
+        );
+        return Promise.resolve();
+      }
+      // Current knitr engine postprocess is all about applying downlit processing to the HTML output
       await callR<void>(
         "postprocess",
         {

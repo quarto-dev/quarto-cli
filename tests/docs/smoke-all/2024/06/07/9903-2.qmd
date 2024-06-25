@@ -1,0 +1,12 @@
+---
+format: html
+htmllink: https://www.example.com
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "span#span-1[data-key='https://www.example.com']"
+---
+
+[A span]{#span-1 key='{{< meta htmllink >}}'}

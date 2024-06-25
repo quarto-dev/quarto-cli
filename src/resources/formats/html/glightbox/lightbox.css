@@ -5,6 +5,10 @@ body:not(.glightbox-mobile) div.gslide-description .gslide-desc {
   background-color: var(--quarto-body-bg);
 }
 
+body:not(.glightbox-mobile) div.gslide-media {
+  background-color: var(--quarto-body-bg);
+}
+
 .goverlay {
   background: rgba(0, 0, 0, 0.7);
 }

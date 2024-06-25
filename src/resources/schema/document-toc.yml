@@ -17,6 +17,14 @@
       be at the end of the document, use the option
       `pdf-engine-opt: --no-toc-relocation`.
 
+- name: toc-indent
+  tags:
+    formats: ["typst"]
+  schema: string
+  description: |
+    The amount of indentation to use for each level of the table of contents.
+    The default is "1.5em".
+
 - name: toc-depth
   tags:
     formats: ["!man", "!$docbook-all", "!$jats-all", "!beamer"]
