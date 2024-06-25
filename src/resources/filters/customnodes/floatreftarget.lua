@@ -991,6 +991,12 @@ end, function(float)
   local content = quarto.utils.as_blocks(float.content or {})
   local caption_location = cap_location(float)
 
+  if (caption_location == "margin") then
+    -- warn this is not supported and default to bottom
+    warn("Typst does not support placing caption in margin. Defaulting to bottom for '" .. float.identifier .. "'.")
+    caption_location = "bottom"
+  end
+
   if (ref == "lst") then
     -- FIXME: 
     -- Listings shouldn't emit centered blocks. 
