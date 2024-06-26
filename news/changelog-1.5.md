@@ -171,6 +171,7 @@ All changes included in 1.5:
 - ([#8582](https://github.com/quarto-dev/quarto-cli/issues/8582)): Improve the algorithm for extracting table elements from HTML RawBlock elements.
 - ([#8770](https://github.com/quarto-dev/quarto-cli/issues/8770)): Handle inconsistently-defined float types and identifier names more robustly in HTML tables.
 - ([#9862](https://github.com/quarto-dev/quarto-cli/issues/9862)): Fix crash with labeled tables in cells with `eval: false` and `echo: false`.
+- ([#10100](https://github.com/quarto-dev/quarto-cli/issues/10100)): Fix crash with empty div containing the `filename` attribute.
 
 ## Engines
 
