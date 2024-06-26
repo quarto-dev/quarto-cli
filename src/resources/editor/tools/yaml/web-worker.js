@@ -16860,6 +16860,11 @@ try {
           },
           {
             name: "html-pre-tag-processing",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
             schema: {
               enum: [
                 "none",
@@ -16870,6 +16875,11 @@ try {
           },
           {
             name: "css-property-processing",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
             schema: {
               enum: [
                 "none",

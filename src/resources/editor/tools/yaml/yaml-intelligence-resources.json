@@ -9831,6 +9831,11 @@
     },
     {
       "name": "html-pre-tag-processing",
+      "tags": {
+        "formats": [
+          "typst"
+        ]
+      },
       "schema": {
         "enum": [
           "none",
@@ -9841,6 +9846,11 @@
     },
     {
       "name": "css-property-processing",
+      "tags": {
+        "formats": [
+          "typst"
+        ]
+      },
       "schema": {
         "enum": [
           "none",

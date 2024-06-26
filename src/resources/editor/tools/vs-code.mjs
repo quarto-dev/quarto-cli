@@ -16859,6 +16859,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "html-pre-tag-processing",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
           schema: {
             enum: [
               "none",
@@ -16869,6 +16874,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "css-property-processing",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
           schema: {
             enum: [
               "none",
