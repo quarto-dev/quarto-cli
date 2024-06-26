@@ -16654,12 +16654,6 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Include the specified files as partials accessible to the template for the generated content.\n"
         },
         {
-          name: "standalone",
-          schema: "boolean",
-          default: true,
-          description: "Produce output with an appropriate header and footer (e.g. a standalone HTML, LaTeX, TEI, or RTF file, not a fragment)\n"
-        },
-        {
           name: "embed-resources",
           tags: {
             formats: [
@@ -22131,11 +22125,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Include an automatically generated table of contents",
-          long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
+          long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output\ndocument.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
         },
         {
           short: "Include an automatically generated table of contents",
-          long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
+          long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output\ndocument.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
         },
         "The amount of indentation to use for each level of the table of\ncontents. The default is \u201C1.5em\u201D.",
         "Specify the number of section levels to include in the table of\ncontents. The default is 3",
@@ -23085,12 +23079,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 187067,
+        _internalId: 187065,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 187059,
+            _internalId: 187057,
             type: "enum",
             enum: [
               "png",
@@ -23106,7 +23100,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 187066,
+            _internalId: 187064,
             type: "anyOf",
             anyOf: [
               {
