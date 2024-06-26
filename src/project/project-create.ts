@@ -45,7 +45,6 @@ export interface ProjectCreateOptions {
 export async function projectCreate(options: ProjectCreateOptions) {
   // read and validate options
   options = await readOptions(options);
-
   // computed options
   const engine = executionEngine(options.engine);
   if (!engine) {
@@ -236,7 +235,7 @@ function projectMarkdownFile(
   }
 
   // write file and return it's name
-  name = (name + engine.defaultExt).toLocaleLowerCase();
+  name = name + engine.defaultExt;
 
   const ensureSubDir = (dir: string, name: string, subdirectory?: string) => {
     if (subdirectory) {
