@@ -51,14 +51,21 @@ function parse_html_tables()
       jin:write(htmltext)
       jin:flush()
       local quarto_path = pandoc.path.join({os.getenv('QUARTO_BIN_PATH'), 'quarto'})
-      local jout = io.popen(quarto_path .. ' run ' ..
+      local jout, jerr = io.popen(quarto_path .. ' run ' ..
           pandoc.path.join({os.getenv('QUARTO_SHARE_PATH'), 'scripts', 'juice.ts'}) .. ' ' ..
           juice_in, 'r')
-      if jout then
-        return jout:read('a')
-      else
-        quarto.log.error('failed to juice')
+      if not jout then
+        quarto.log.error('Running juice failed with message: ' .. (jerr or "Unknown error"))
         return htmltext
+      end
+      local content = jout:read('a')
+      local success, _, exitCode = jout:close()
+      -- Check the exit status
+      if not success then
+        quarto.log.error("Running juice failed with exit code: " .. (exitCode or "unknown exit code"))
+        return htmltext
+      else
+        return content
       end
     end)
   end
