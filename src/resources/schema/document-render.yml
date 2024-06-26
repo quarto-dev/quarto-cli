@@ -216,11 +216,15 @@
   description: If `none`, do not process tables in HTML input.
 
 - name: html-pre-tag-processing
+  tags:
+    formats: [typst]
   schema:
     enum: [none, parse]
   description: If `none`, ignore any divs with `html-pre-tag-processing=parse` enabled.
 
 - name: css-property-processing
+  tags:
+    formats: [typst]
   schema:
     enum: [none, translate]
   default: translate
