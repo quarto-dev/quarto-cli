@@ -1,5 +1,6 @@
 ## Fixed in this release
 
+- ([#8969](https://github.com/quarto-dev/quarto-cli/issues/8969)): Replace `polyfill.io` with `cdnjs.cloudflare.com` in MathJax usage in HTML formats.
 - ([#9927](https://github.com/quarto-dev/quarto-cli/issues/9927)): Fix a regression with explicitly sized images in layouts.
 - ([#10091](https://github.com/quarto-dev/quarto-cli/issues/10091)): Fix a regression with `fig-align` attributes in captionless images in PDF format.
 
