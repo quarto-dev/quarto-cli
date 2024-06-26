@@ -106,6 +106,7 @@ All changes included in 1.5:
 - ([#9885](https://github.com/quarto-dev/quarto-cli/issues/9885)): Turn off Typst CSS with `css-property-parsing: none`, default `translate`.
 - ([#10055](https://github.com/quarto-dev/quarto-cli/pull/10055)): Enable `html-pre-tag-processing` with a fenced div, disable it in metadata with `none`.
 - ([#10075](https://github.com/quarto-dev/quarto-cli/pull/10075)): Bring `quarto create` templates for Typst up-to-date with the format.
+- ([#10123](https://github.com/quarto-dev/quarto-cli/issues/10123)): Warn when unsupported caption location is used, and default to `bottom`.
 - Upgrade Typst to 0.11.1
 - Upgrade the Typst template to draw tables without grid lines by default, in accordance with latest Pandoc.
 
