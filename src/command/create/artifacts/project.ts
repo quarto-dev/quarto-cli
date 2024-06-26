@@ -202,7 +202,7 @@ async function createArtifact(
   quiet?: boolean,
 ) {
   const dir = createDirective.directory;
-  const projectTitle = capitalizeTitle(createDirective.name);
+  const projectTitle = createDirective.name;
   const directiveType = createDirective.template;
 
   // Parse the project type and template
