@@ -6,6 +6,10 @@ format:
   html:
     quality: 1
     format-links: false
+references:
+  - type: website
+    id: pandas-user-guide
+    url: https://pandas.pydata.org/pandas-docs/version/2.2.2/user_guide/style.html#Acting-on-the-Index-and-Column-Headers
 ---
 
 ```{python}

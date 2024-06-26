@@ -6,6 +6,10 @@ format:
   html:
     quality: 1
     format-links: false
+references:
+  - type: website
+    id: great-tables
+    url: https://posit-dev.github.io/great-tables/examples/
 ---
 
 ```{python}

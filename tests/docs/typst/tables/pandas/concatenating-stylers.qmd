@@ -1,11 +1,15 @@
 ---
-title: "Pandas - Concatenating Stylers"
+title: "Pandas - Concatenating Data Frames"
 format:
   typst:
     quality: 1
   html:
     quality: 1
     format-links: false
+references:
+  - type: website
+    id: pandas-user-guide
+    url: https://pandas.pydata.org/pandas-docs/version/2.2.2/user_guide/style.html#Concatenating-DataFrame-Outputs
 ---
 
 ```{python}

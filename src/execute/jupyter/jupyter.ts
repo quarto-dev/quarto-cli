@@ -616,7 +616,7 @@ async function ensureYamlKernelspec(
   const yamlJupyter = readYamlFromMarkdown(markdown)?.jupyter;
   if (yamlJupyter && typeof yamlJupyter !== "boolean") {
     const [yamlKernelspec, _] = await jupyterKernelspecFromMarkdown(markdown);
-    if (yamlKernelspec.name !== kernelspec.name) {
+    if (yamlKernelspec.name !== kernelspec?.name) {
       const nb = jupyterFromJSON(Deno.readTextFileSync(target.source));
       nb.metadata.kernelspec = yamlKernelspec;
       Deno.writeTextFileSync(target.source, JSON.stringify(nb, null, 2));
