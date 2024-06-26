@@ -6,7 +6,10 @@ format:
   html:
     quality: 1
     format-links: false
-example-source: https://themockup.blog/static/resources/gt-cookbook.html#multiple-colors
+references:
+  - type: website
+    id: gt-cookbook
+    url: https://themockup.blog/static/resources/gt-cookbook.html#multiple-colors
 ---
 
 ```{=typst}
