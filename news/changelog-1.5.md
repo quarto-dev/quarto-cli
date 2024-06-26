@@ -242,6 +242,7 @@ All changes included in 1.5:
 - ([#9724](https://github.com/quarto-dev/quarto-cli/issues/9724)): Force-align text in floats of type `Listing` to the left.
 - ([#9727](https://github.com/quarto-dev/quarto-cli/issues/9727)): `lightbox`: do not overwrite `window.onload` events.
 - ([#9792](https://github.com/quarto-dev/quarto-cli/issues/9798)): Fix a 1.5 regression where `freeze` would be accidentally triggered in single-file renders.
+- ([#10003](https://github.com/quarto-dev/quarto-cli/issues/10003)): fix Giscus light/dark theme YAML example in schema where `theme` is missing.
 - Add support for `{{< lipsum >}}` shortcode, which is useful for emitting placeholder text. Provide a specific number of paragraphs (`{{< lipsum 3 >}}`).
 - Resolve data URIs in Pandoc's mediabag when rendering documents.
 - Increase v8's max heap size by default, to avoid out-of-memory errors when rendering large documents (also cf. https://github.com/denoland/deno/issues/18935).
@@ -250,4 +251,7 @@ All changes included in 1.5:
 - `quarto install tinytex` will now try to set the default CTAN repository to the nearest mirror resolved from https://mirror.ctan.org.
 - `quarto render --to native` now works without triggering rmarkdown error about non HTML output when HTML dependencies are present in the knitr engine cell results.
 - Missing `tabsets` configuration for HTML documents has now been added in the YAML schema for validation and autocompletion. This boolean value controls the inclusion of tabsets in the document (e.g when `minimal: true` is set).
-- ([#10003](https://github.com/quarto-dev/quarto-cli/issues/10003)): fix Giscus light/dark theme YAML example in schema where `theme` is missing.
+
+## Languages
+
+- ([#10141](https://github.com/quarto-dev/quarto-cli/issues/10141)): Swiss German translation for Quarto UI text (credit: @rastrau)
