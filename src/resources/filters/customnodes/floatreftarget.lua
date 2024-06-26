@@ -993,7 +993,7 @@ end, function(float)
 
   if (caption_location ~= "top" or caption_location ~= "bottom") then
     -- warn this is not supported and default to bottom
-    warn("Typst does not support placing caption in margin. Defaulting to bottom for '" .. float.identifier .. "'.")
+    warn("Typst does not support this caption location: " .. caption_location .. ". Defaulting to bottom for '" .. float.identifier .. "'.")
     caption_location = "bottom"
   end
 
