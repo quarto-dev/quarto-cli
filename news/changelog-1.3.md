@@ -1,9 +1,10 @@
 ## Fixed In This Release
 
-- Fix incorrect preview behavior when reloading edited pages from listings (e.g. blog posts). Fixes ([#6026](https://github.com/quarto-dev/quarto-cli/issues/6026)) 
+- Replace `polyfill.io` with `cdnjs.cloudflare.com` in HTML templates
 
 ## Fixed In Previous Releases
 
+- Fix incorrect preview behavior when reloading edited pages from listings (e.g. blog posts). Fixes ([#6026](https://github.com/quarto-dev/quarto-cli/issues/6026))
 - Fix issue that prevented Quarto from properly reporting crossreferenceable figures to IDEs (note that Quarto 1.3.427 contained an attempted fix for this issue which did not work properly. This release contains a functional fix.)
 - Fix incorrect behavior when previewing `--to all`
 - Fix missing handling of `rel="..."` values in the navbar's tools template ([#5756](https://github.com/quarto-dev/quarto-cli/issues/5756))
