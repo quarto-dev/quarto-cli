@@ -127,7 +127,7 @@ function resolveTestSpecs(
           verifyFns.push(noErrors);
         } else {
           // See if there is a project and grab it's type
-          const projectPath = findSmokeAllProjectDir(input)
+          const projectPath = findRootTestsProjectDir(input)
           const projectOutDir = findProjectOutputDir(projectPath);
           const outputFile = outputForInput(input, format, projectOutDir, projectPath, metadata);
           if (key === "fileExists") {
@@ -245,7 +245,7 @@ for (const { path: fileName } of files) {
   }
 
   // Get project path for this input and store it if this is a project (used for cleaning)
-  const projectPath = findSmokeAllProjectDir(input);
+  const projectPath = findRootTestsProjectDir(input);
   if (projectPath) testedProjects.add(projectPath);
 
   // Render project before testing individual document if required
@@ -332,6 +332,11 @@ Promise.all(testFilesPromises).then(() => {
   }
 }).catch((_error) => {});
 
-function findSmokeAllProjectDir(input: string) {
-  return findProjectDir(input, /smoke-all$/);
+function findRootTestsProjectDir(input: string) {
+  const smokeAllRootDir = 'smoke-all$'
+  const ffMatrixRootDir = 'feature-format-matrix[/]qmd-files$'
+
+  const RootTestsRegex = new RegExp(`${smokeAllRootDir}|${ffMatrixRootDir}`);
+  
+  return findProjectDir(input, RootTestsRegex);
 }
