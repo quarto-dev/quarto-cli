@@ -160,7 +160,6 @@ else
   export DENO_DOM_PLUGIN=$QUARTO_BIN_PATH/tools/${ARCH_DIR}/deno_dom/libplugin.so
 fi
 
-
 if [ "$QUARTO_DENO" == "" ]; then
   DENO_ARCH_DIR=$ARCH_DIR
   export QUARTO_DENO="${SCRIPT_PATH}/tools/${DENO_ARCH_DIR}/deno"
