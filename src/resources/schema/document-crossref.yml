@@ -11,7 +11,7 @@
             custom:
               arrayOf:
                 object:
-                  description: A custom cross reference type. See [Custom](#custom) for more details.
+                  description: A custom cross reference type. See [Custom](https://quarto.org/docs/reference/metadata/crossref.html#custom) for more details.
                   closed: true
                   required: ["kind", "reference-prefix", "key"]
                   properties:
