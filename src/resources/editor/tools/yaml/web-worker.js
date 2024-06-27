@@ -12433,7 +12433,10 @@ try {
         "schema/document-crossref.yml": [
           {
             name: "crossref",
-            description: "Configuration for crossref labels and prefixes.",
+            description: {
+              short: "Configuration for cross-reference labels and prefixes.",
+              long: "Configuration for cross-reference labels and prefixes. See [Cross-Reference Options](https://quarto.org/docs/reference/metadata/crossref.html) for more details."
+            },
             schema: {
               anyOf: [
                 {
@@ -12448,7 +12451,7 @@ try {
                       custom: {
                         arrayOf: {
                           object: {
-                            description: "A custom cross reference type.",
+                            description: "A custom cross reference type. See [Custom](https://quarto.org/docs/reference/metadata/crossref.html#custom) for more details.",
                             closed: true,
                             required: [
                               "kind",
@@ -18841,7 +18844,7 @@ try {
               title: "Footnotes"
             },
             crossref: {
-              title: "Crossrefs"
+              title: "Cross-References"
             },
             citation: {
               title: "Citation"
