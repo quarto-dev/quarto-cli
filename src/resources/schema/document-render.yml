@@ -31,12 +31,6 @@
   description: |
     Include the specified files as partials accessible to the template for the generated content.
 
-- name: standalone
-  schema: boolean
-  default: true
-  description: |
-    Produce output with an appropriate header and footer (e.g. a standalone HTML, LaTeX, TEI, or RTF file, not a fragment)
-
 - name: embed-resources
   tags:
     formats: [$html-files]
