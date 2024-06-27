@@ -27,6 +27,8 @@ import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
   kBodyFooter,
   kBodyHeader,
+  kDraftMode,
+  kDrafts,
   kImage,
   kMarginFooter,
   kMarginHeader,
@@ -43,7 +45,7 @@ import {
 } from "./website-constants.ts";
 import { ensureTrailingSlash } from "../../../core/path.ts";
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../deno_ral/path.ts";
 
 type WebsiteConfigKey =
   | "title"
@@ -53,6 +55,8 @@ type WebsiteConfigKey =
   | "site-url"
   | "site-path"
   | "repo-url"
+  | "repo-link-target"
+  | "repo-link-rel"
   | "repo-subdir"
   | "repo-branch"
   | "repo-actions"
@@ -71,7 +75,10 @@ type WebsiteConfigKey =
   | "comments"
   | "other-links"
   | "code-links"
-  | "reader-mode";
+  | "reader-mode"
+  | "announcement"
+  | "draft-mode"
+  | "drafts";
 
 export function websiteConfigBoolean(
   name: WebsiteConfigKey,
@@ -328,10 +335,11 @@ export function formatsPreferHtml(formats: Record<string, unknown>) {
 // provide a project context that elevates html to the default
 // format for documents (unless they explicitly declare another format)
 export function websiteProjectConfig(
-  projectDir: string,
+  project: ProjectContext,
   config: ProjectConfig,
   flags?: RenderFlags,
 ): Promise<ProjectConfig> {
+  const projectDir = project.dir;
   config = ld.cloneDeep(config);
   const format = config[kMetadataFormat] as
     | string
@@ -429,6 +437,16 @@ export function websiteProjectConfig(
     (config[kCodeLinks] === undefined)
   ) {
     config[kCodeLinks] = websiteConfigUnknown(kCodeLinks, config);
+  }
+
+  // Move drafts, draft-mode
+  const draftMode = websiteConfigString(kDraftMode, config);
+  if (draftMode) {
+    config[kDraftMode] = draftMode;
+  }
+  const drafts = websiteConfigArray(kDrafts, config);
+  if (drafts) {
+    config[kDrafts] = drafts;
   }
 
   return Promise.resolve(config);

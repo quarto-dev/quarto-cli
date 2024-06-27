@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, extname, join } from "path/mod.ts";
+import { basename, extname, join } from "../../deno_ral/path.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 import { texSafeFilename } from "../../core/tex.ts";
@@ -241,6 +241,7 @@ function createPdfFormat(
           "pandoc",
           "tables",
           "tightlist",
+          "before-title",
           "title",
           "toc",
         ];
@@ -318,6 +319,8 @@ function pdfLatexPostProcessor(
     const lineProcessors: LineProcessor[] = [
       sidecaptionLineProcessor(),
       calloutFloatHoldLineProcessor(),
+      tableColumnMarginLineProcessor(),
+      guidsProcessor(),
     ];
 
     if (format.pandoc[kCiteMethod] === "biblatex") {
@@ -600,6 +603,99 @@ const processElementCaptionFootnotes = (latexFigure: string) => {
     // No caption means just let it go
     return latexFigure;
   }
+};
+
+const kMatchLongTableSize = /^(.*)p{\(\\columnwidth - (\d+\\tabcolsep\).*$)/;
+
+const kStartLongTable = /^\\begin{longtable}/;
+const kEndLongTable = /^\\end{longtable}/;
+
+const guidsProcessor = () => {
+  let state: "looking-for-definition-start" | "looking-for-definition-end" =
+    "looking-for-definition-start";
+  const guidDefinitions: [string, string][] = [];
+  let guidBeingProcessed: string | undefined;
+  let guidContents: string[] = [];
+  return (line: string): string | undefined => {
+    switch (state) {
+      case "looking-for-definition-start": {
+        if (line.startsWith("%quarto-define-uuid: ")) {
+          state = "looking-for-definition-end";
+          line = line.replace(/^%quarto-define-uuid:\s*/, "");
+          guidBeingProcessed = line.trim();
+          return undefined;
+        }
+        for (const [key, value] of guidDefinitions) {
+          line = line.replaceAll(key, value);
+        }
+        return line;
+      }
+      case "looking-for-definition-end": {
+        if (line === "%quarto-end-define-uuid") {
+          state = "looking-for-definition-start";
+          if (guidBeingProcessed === undefined) {
+            throw new Error("guidBeingProcessed is undefined");
+          }
+          guidDefinitions.push([
+            guidBeingProcessed,
+            guidContents.join("").trim(),
+          ]);
+          guidContents = [];
+          guidBeingProcessed = undefined;
+          return undefined;
+        } else {
+          guidContents.push(line);
+          return undefined;
+        }
+      }
+    }
+  };
+};
+
+const tableColumnMarginLineProcessor = () => {
+  let state: "looking-for-boundaries" | "looking-for-tables" | "processing" =
+    "looking-for-boundaries";
+  return (line: string): string | undefined => {
+    switch (state) {
+      case "looking-for-boundaries": {
+        if (line === "% quarto-tables-in-margin-AB1927C9:begin") {
+          state = "looking-for-tables";
+          return undefined;
+        }
+        return line;
+      }
+      case "looking-for-tables": {
+        if (line.match(kStartLongTable)) {
+          state = "processing";
+          return line;
+        } else if (line === "% quarto-tables-in-margin-AB1927C9:end") {
+          state = "looking-for-boundaries";
+          return undefined;
+        }
+        return line;
+      }
+      case "processing": {
+        if (line.match(kEndLongTable)) {
+          state = "looking-for-tables";
+          return line;
+        } else {
+          const match = line.match(kMatchLongTableSize);
+          if (match) {
+            return `${
+              match[1]
+            }p{(\\marginparwidth + \\marginparsep + \\columnwidth - ${
+              match[2]
+            }`;
+          } else {
+            return line;
+          }
+        }
+      }
+      default: {
+        return line;
+      }
+    }
+  };
 };
 
 const captionFootnoteLineProcessor = () => {
@@ -1035,7 +1131,7 @@ const placePandocBibliographyEntries = (
 };
 
 const kCodeAnnotationRegex =
-  /(.*)\\CommentTok\{(.*?)[^\s]+? \\textless\{\}(\d+)\\textgreater\{\}.*\}$/gm;
+  /(.*)\\CommentTok\{(.*?)[^\s]+? +\\textless\{\}(\d+)\\textgreater\{\}.*\}$/gm;
 const kCodePlainAnnotationRegex = /(.*)% \((\d+)\)$/g;
 const codeAnnotationPostProcessor = () => {
   let lastAnnotation: string | undefined;

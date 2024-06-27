@@ -78,6 +78,7 @@ export interface JupyterKernelspec {
   name: string;
   language: string;
   display_name: string;
+  path?: string;
 }
 
 export interface JupyterAssets {
@@ -103,7 +104,7 @@ export interface JupyterCell {
   cell_type: "markdown" | "code" | "raw";
   execution_count?: null | number;
   metadata: JupyterCellMetadata;
-  source: string[];
+  source: string | string[];
   attachments?: Record<string, Record<string, string>>;
   outputs?: JupyterOutput[];
 }
@@ -165,12 +166,12 @@ export interface JupyterOutput {
   metadata?: Record<string, unknown>;
   data?: Record<string, unknown>;
   name?: string;
-  text?: string[];
+  text?: string[] | string;
 }
 
 export interface JupyterOutputStream extends JupyterOutput {
   name: "stdout" | "stderr";
-  text: string[];
+  text: string[] | string;
 }
 
 export interface JupyterOutputDisplayData extends JupyterOutput {

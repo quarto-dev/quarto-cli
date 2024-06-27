@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { warning } from "log/mod.ts";
+import { warning } from "../../deno_ral/log.ts";
 import { kTitle } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { Document, Element } from "../../core/deno-dom.ts";

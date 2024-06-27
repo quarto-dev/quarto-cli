@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
-import { warning } from "log/mod.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { warning } from "../../../deno_ral/log.ts";
+import { dirname, join, relative } from "../../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 import {
@@ -37,7 +37,7 @@ import { WebsiteProjectOutputFile } from "../website/website.ts";
 import { inputTargetIndex } from "../../project-index.ts";
 import { bookConfigRenderItems } from "./book-config.ts";
 import { isMultiFileBookFormat } from "./book-shared.ts";
-import { Format, FormatLanguage } from "../../../config/types.ts";
+import { Format } from "../../../config/types.ts";
 
 export async function bookCrossrefsPostRender(
   context: ProjectContext,
@@ -298,7 +298,7 @@ function formatCrossref(
     return crossref.join("");
   }
 
-  if (format.pandoc["number-sections"] === false) {
+  if (format.pandoc["number-sections"] === false && type === "sec") {
     return entry.caption || entry.key;
   }
 
@@ -310,7 +310,7 @@ function formatCrossref(
         ? language[kCrossrefApxPrefix]
         : language[kCrossrefChPrefix]
       : language[kCrossrefSecPrefix];
-    const crossref = prefix + "&nbsp;" + refNumber;
+    const crossref = prefix + " " + refNumber;
     return crossref;
   } else {
     return refNumber;

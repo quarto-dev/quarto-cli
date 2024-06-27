@@ -42,6 +42,7 @@ import { openUrl } from "../../core/shell.ts";
 import { publishDocument, publishSite } from "../../publish/publish.ts";
 import { handleUnauthorized } from "../../publish/account.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 
 export const publishCommand =
   // deno-lint-ignore no-explicit-any
@@ -52,8 +53,10 @@ export const publishCommand =
         " - Quarto Pub (quarto-pub)\n" +
         " - GitHub Pages (gh-pages)\n" +
         " - Posit Connect (connect)\n" +
+        " - Posit Cloud (posit-cloud)\n" +
         " - Netlify (netlify)\n" +
-        " - Confluence (confluence)\n\n" +
+        " - Confluence (confluence)\n" +
+        " - Hugging Face Spaces (huggingface)\n\n" +
         "Accounts are configured interactively during publishing.\n" +
         "Manage/remove accounts with: quarto publish accounts",
     )
@@ -91,6 +94,10 @@ export const publishCommand =
       "quarto publish document.qmd",
     )
     .example(
+      "Publish project to Hugging Face Spaces",
+      "quarto publish huggingface",
+    )
+    .example(
       "Publish project to Netlify",
       "quarto publish netlify",
     )
@@ -109,6 +116,10 @@ export const publishCommand =
     .example(
       "Publish with explicit credentials",
       "quarto publish connect --server example.com --token 01A24233E294",
+    )
+    .example(
+      "Publish project to Posit Cloud",
+      "quarto publish posit-cloud",
     )
     .example(
       "Publish without confirmation prompt",
@@ -162,7 +173,7 @@ async function publishAction(
   await initYamlIntelligence();
 
   // coalesce options
-  const publishOptions = await createPublishOptions(options, path);
+  const publishOptions = await createPublishOptions(options, provider, path);
 
   // helper to publish (w/ account confirmation)
   const doPublish = async (
@@ -301,6 +312,7 @@ async function publish(
 
 async function createPublishOptions(
   options: PublishCommandOptions,
+  provider?: PublishProvider,
   path?: string,
 ): Promise<PublishOptions> {
   const nbContext = notebookContext();
@@ -314,28 +326,32 @@ async function createPublishOptions(
   // determine publish input
   let input: ProjectContext | string | undefined;
 
-  // check for directory (either website or single-file project)
-  const project = await projectContext(path, nbContext);
-  if (Deno.statSync(path).isDirectory) {
-    if (project) {
-      if (projectIsWebsite(project)) {
-        input = project;
-      } else if (
-        projectIsManuscript(project) && project.files.input.length > 0
-      ) {
-        input = project;
-      } else if (project.files.input.length === 1) {
-        input = project.files.input[0];
+  if (provider && provider.resolveProjectPath) {
+    const resolvedPath = provider.resolveProjectPath(path);
+    try {
+      if (Deno.statSync(resolvedPath).isDirectory) {
+        path = resolvedPath;
       }
-    } else {
-      const inputFiles = projectInputFiles(path);
-      if (inputFiles.files.length === 1) {
-        input = inputFiles.files[0];
-      }
+    } catch (_e) {
+      // ignore
     }
-    if (!input) {
+  }
+
+  // check for directory (either website or single-file project)
+  const project = (await projectContext(path, nbContext)) ||
+    singleFileProjectContext(path, nbContext);
+  if (Deno.statSync(path).isDirectory) {
+    if (projectIsWebsite(project)) {
+      input = project;
+    } else if (
+      projectIsManuscript(project) && project.files.input.length > 0
+    ) {
+      input = project;
+    } else if (project.files.input.length === 1) {
+      input = project.files.input[0];
+    } else {
       throw new Error(
-        `The specified path (${path}) is not a website or book project so cannot be published.`,
+        `The specified path (${path}) is not a website, manuscript or book project so cannot be published.`,
       );
     }
   } // single file path

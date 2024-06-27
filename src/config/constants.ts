@@ -108,6 +108,7 @@ export const kPreserveYaml = "preserve-yaml";
 export const kPreferHtml = "prefer-html";
 export const kSelfContainedMath = "self-contained-math";
 export const kBiblioConfig = "biblio-config";
+export const kBodyClasses = "body-classes";
 
 export const kLatexAutoMk = "latex-auto-mk";
 export const kLatexAutoInstall = "latex-auto-install";
@@ -135,6 +136,9 @@ export const kPreviewModeRaw = "raw";
 export const kFontPaths = "font-paths";
 
 export const kHtmlTableProcessing = "html-table-processing";
+export const kHtmlPreTagProcessing = "html-pre-tag-processing";
+export const kCssPropertyProcessing = "css-property-processing";
+export const kUseRsvgConvert = "use-rsvg-convert";
 export const kValidateYaml = "validate-yaml";
 
 export const kIdentifierDefaultsKeys = [
@@ -225,6 +229,7 @@ export const kRenderDefaultsKeys = [
   kHtmlTableProcessing,
   kValidateYaml,
   kCanonicalUrl,
+  kBodyClasses,
 ];
 
 // language fields
@@ -251,6 +256,7 @@ export const kSectionTitleCopyright = "section-title-copyright";
 export const kSectionTitleCitation = "section-title-citation";
 export const kAppendixAttributionBibTex = "appendix-attribution-bibtex";
 export const kAppendixAttributionCiteAs = "appendix-attribution-cite-as";
+export const kAppendixViewLicense = "appendix-view-license";
 export const kTitleBlockAuthorSingle = "title-block-author-single";
 export const kTitleBlockAuthorPlural = "title-block-author-plural";
 export const kTitleBlockAffiliationSingle = "title-block-affiliation-single";
@@ -268,6 +274,8 @@ export const kCodeToolsViewSource = "code-tools-view-source";
 export const kCodeToolsSourceCode = "code-tools-source-code";
 export const kSearchNoResultsText = "search-no-results-text";
 export const kSearchLabel = "search-label";
+export const kToolsShare = "tools-share";
+export const kToolsDownload = "tools-download";
 
 export const kToggleSection = "toggle-section";
 export const kToggleSidebar = "toggle-sidebar";
@@ -324,6 +332,7 @@ export const kEnvironmentProofTitle = "environment-proof-title";
 export const kEnvironmentRemarkTitle = "environment-remark-title";
 export const kEnvironmentSolutionTitle = "environment-solution-title";
 export const kListingPageOrderBy = "listing-page-order-by";
+export const kListingPageFilter = "listing-page-filter";
 export const kListingPageOrderByDefault = "listing-page-order-by-default";
 export const kListingPageOrderByDateAsc = "listing-page-order-by-date-asc";
 export const kListingPageOrderByDateDesc = "listing-page-order-by-date-desc";
@@ -349,6 +358,7 @@ export const kNotebookPreviewDownloadSrc = "notebook-preview-download-src";
 export const kNotebookPreviewBack = "notebook-preview-back";
 export const kArticleNotebookLabel = "article-notebook-label";
 export const kManuscriptMecaBundle = "manuscript-meca-bundle";
+export const kDraftLabel = "draft";
 
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
@@ -374,6 +384,7 @@ export const kLanguageDefaultsKeys = [
   kSectionTitleCitation,
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
+  kAppendixViewLicense,
   kTitleBlockAuthorSingle,
   kTitleBlockPublished,
   kTitleBlockModified,
@@ -386,6 +397,8 @@ export const kLanguageDefaultsKeys = [
   kCodeToolsHideAllCode,
   kCodeToolsViewSource,
   kCodeToolsSourceCode,
+  kToolsShare,
+  kToolsDownload,
   kSearchNoResultsText,
   kSearchLabel,
   kToggleDarkMode,
@@ -440,6 +453,7 @@ export const kLanguageDefaultsKeys = [
   kEnvironmentProofTitle,
   kEnvironmentRemarkTitle,
   kEnvironmentSolutionTitle,
+  kListingPageFilter,
   kListingPageOrderBy,
   kListingPageOrderByDefault,
   kListingPageOrderByDateAsc,
@@ -471,6 +485,7 @@ export const kLanguageDefaultsKeys = [
   kNotebookPreviewDownloadSrc,
   kNotebookPreviewBack,
   kArticleNotebookLabel,
+  kDraftLabel,
   kManuscriptMecaBundle,
 ];
 
@@ -523,6 +538,7 @@ export const kReferenceDoc = "reference-doc";
 export const kHtmlMathMethod = "html-math-method";
 export const kToc = "toc";
 export const kTocDepth = "toc-depth";
+export const kTocIndent = "toc-indent";
 export const kTableOfContents = "table-of-contents";
 export const kSectionDivs = "section-divs";
 export const kEPubCoverImage = "epub-cover-image";
@@ -615,7 +631,7 @@ export const kCapBottom = "bottom";
 // Pandoc Input Traits
 export const kPositionedRefs = "positioned-refs";
 
-// https://pandoc.org/MANUAL.html#default-files
+// https://pandoc.org/MANUAL.html#defaults-files
 // note: we are keeping some things out of 'defaults' b/ca
 // they are known to be valid in metadata. this includes:
 //    "csl",
@@ -736,6 +752,8 @@ export const kCellColumn = "column";
 export const kCellOutWidth = "out-width";
 export const kCellOutHeight = "out-height";
 export const kCellMdIndent = "md-indent";
+export const kCellWidth = "width";
+export const kCellHeight = "height";
 
 export const kCellColab = "colab";
 export const kCellColabType = "colab_type";

@@ -4,14 +4,14 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, isAbsolute, join, relative, SEP } from "path/mod.ts";
-import { globToRegExp } from "https://deno.land/std@0.204.0/path/glob.ts";
+import { dirname, isAbsolute, join, relative, SEP } from "../deno_ral/path.ts";
+import { globToRegExp } from "path/glob_to_regexp.ts";
 
 import { existsSync, walkSync } from "fs/mod.ts";
 import * as ld from "../core/lodash.ts";
 
 import { ProjectType } from "./types/types.ts";
-import { Metadata } from "../config/types.ts";
+import { Format, Metadata, PandocFlags } from "../config/types.ts";
 import {
   kProjectLibDir,
   kProjectOutputDir,
@@ -55,9 +55,10 @@ import {
   engineIgnoreDirs,
   executionEngineIntermediateFiles,
   fileExecutionEngine,
+  fileExecutionEngineAndTarget,
   projectIgnoreGlobs,
 } from "../execute/engine.ts";
-import { kMarkdownEngine } from "../execute/types.ts";
+import { ExecutionEngine, kMarkdownEngine } from "../execute/types.ts";
 
 import { projectResourceFiles } from "./project-resources.ts";
 
@@ -65,9 +66,10 @@ import {
   ignoreFieldsForProjectType,
   normalizeFormatYaml,
   projectConfigFile,
+  projectResolveFullMarkdownForFile,
   projectVarsFile,
 } from "./project-shared.ts";
-import { RenderFlags } from "../command/render/types.ts";
+import { RenderOptions, RenderServices } from "../command/render/types.ts";
 import { kWebsite } from "./types/website/website-constants.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
@@ -84,24 +86,27 @@ import { ConcreteSchema } from "../core/lib/yaml-schema/types.ts";
 import { ExtensionContext } from "../extension/types.ts";
 import { asArray } from "../core/array.ts";
 import { renderFormats } from "../command/render/render-contexts.ts";
-import { debug } from "log/mod.ts";
+import { debug } from "../deno_ral/log.ts";
 import { computeProjectEnvironment } from "./project-environment.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
+import { MappedString } from "../core/mapped-text.ts";
 
 export async function projectContext(
   path: string,
   notebookContext: NotebookContext,
-  flags?: RenderFlags,
+  renderOptions?: RenderOptions,
   force = false,
 ): Promise<ProjectContext | undefined> {
+  const flags = renderOptions?.flags;
   let dir = normalizePath(
     Deno.statSync(path).isDirectory ? path : dirname(path),
   );
   const originalDir = dir;
 
-  // create a shared extension context
-  const extensionContext = createExtensionContext();
+  // create an extension context if one doesn't exist
+  const extensionContext = renderOptions?.services.extension ||
+    createExtensionContext();
 
   // first pass uses the config file resolve
   const configSchema = await getProjectConfigSchema();
@@ -144,10 +149,19 @@ export async function projectContext(
           projectConfig,
           dir,
         );
+
+        // resolve includes
+        const configSchema = await getProjectConfigSchema();
+        const includedMeta = await includedMetadata(
+          dir,
+          projectConfig,
+          configSchema,
+        );
+        const metadata = includedMeta.metadata;
+        projectConfig = mergeProjectMetadata(projectConfig, metadata);
       }
 
       // collect then merge configuration profiles
-      const configSchema = await getProjectConfigSchema();
       const result = await initializeProfileConfig(
         dir,
         projectConfig,
@@ -239,58 +253,133 @@ export async function projectContext(
           );
         }
 
+        const result: ProjectContext = {
+          resolveFullMarkdownForFile: (
+            engine: ExecutionEngine | undefined,
+            file: string,
+            markdown?: MappedString,
+            force?: boolean,
+          ) => {
+            return projectResolveFullMarkdownForFile(
+              result,
+              engine,
+              file,
+              markdown,
+              force,
+            );
+          },
+          dir,
+          engines: [],
+          fileInformationCache: new Map(),
+          files: {
+            input: [],
+          },
+          config: projectConfig,
+          // this is a relatively ugly hack to avoid a circular import chain
+          // that causes a deno bundler bug;
+          renderFormats,
+          environment: () => environment(result),
+          notebookContext,
+          fileExecutionEngineAndTarget: (
+            file: string,
+          ) => {
+            return fileExecutionEngineAndTarget(
+              file,
+              flags,
+              result,
+            );
+          },
+          isSingleFile: false,
+        };
+
         // see if the project [kProjectType] wants to filter the project config
         if (type.config) {
-          projectConfig = await type.config(
-            dir,
+          result.config = await type.config(
+            result,
             projectConfig,
             flags,
           );
         }
-        const { files, engines } = projectInputFiles(dir, projectConfig);
-
+        const { files, engines } = await projectInputFiles(
+          result,
+          projectConfig,
+        );
         // if we are attemping to get the projectConext for a file and the
-        // file isn't in list of input files then return undefined
+        // file isn't in list of input files then return a single-file project
         const fullPath = normalizePath(path);
         if (Deno.statSync(fullPath).isFile && !files.includes(fullPath)) {
           return undefined;
         }
 
         debug(`projectContext: Found Quarto project in ${dir}`);
-        return {
-          dir,
-          engines,
-          files: {
-            input: files,
-            resources: projectResourceFiles(dir, projectConfig),
-            config: configFiles,
-            configResources: projectConfigResources(dir, projectConfig, type),
-          },
-          config: projectConfig,
-          formatExtras: type.formatExtras,
-          // this is a relatively ugly hack to avoid a circular import chain
-          // that causes a deno bundler bug;
-          renderFormats,
-          environment,
-          notebookContext,
+
+        if (type.formatExtras) {
+          result.formatExtras = async (
+            source: string,
+            flags: PandocFlags,
+            format: Format,
+            services: RenderServices,
+          ) => type.formatExtras!(result, source, flags, format, services);
+        }
+        result.engines = engines;
+        result.files = {
+          input: files,
+          resources: projectResourceFiles(dir, projectConfig),
+          config: configFiles,
+          configResources: projectConfigResources(dir, projectConfig, type),
         };
+
+        return result;
       } else {
-        const { files, engines } = projectInputFiles(dir);
         debug(`projectContext: Found Quarto project in ${dir}`);
-        return {
+        const result: ProjectContext = {
+          resolveFullMarkdownForFile: (
+            engine: ExecutionEngine | undefined,
+            file: string,
+            markdown?: MappedString,
+            force?: boolean,
+          ) => {
+            return projectResolveFullMarkdownForFile(
+              result,
+              engine,
+              file,
+              markdown,
+              force,
+            );
+          },
           dir,
-          engines,
           config: projectConfig,
+          engines: [],
+          fileInformationCache: new Map(),
           files: {
-            input: files,
-            resources: projectResourceFiles(dir, projectConfig),
-            config: configFiles,
-            configResources: projectConfigResources(dir, projectConfig),
+            input: [],
           },
           renderFormats,
-          environment,
+          environment: () => environment(result),
+          fileExecutionEngineAndTarget: (
+            file: string,
+          ) => {
+            return fileExecutionEngineAndTarget(
+              file,
+              flags,
+              result,
+            );
+          },
           notebookContext,
+          isSingleFile: false,
         };
+        const { files, engines } = await projectInputFiles(
+          result,
+          projectConfig,
+        );
+        result.engines = engines;
+        result.files = {
+          input: files,
+          resources: projectResourceFiles(dir, projectConfig),
+          config: configFiles,
+          configResources: projectConfigResources(dir, projectConfig),
+        };
+        return result;
       }
     } else {
       const nextDir = dirname(dir);
@@ -301,6 +390,20 @@ export async function projectContext(
           configResolvers.shift();
         } else if (force) {
           const context: ProjectContext = {
+            resolveFullMarkdownForFile: (
+              engine: ExecutionEngine | undefined,
+              file: string,
+              markdown?: MappedString,
+              force?: boolean,
+            ) => {
+              return projectResolveFullMarkdownForFile(
+                context,
+                engine,
+                file,
+                markdown,
+                force,
+              );
+            },
             dir: originalDir,
             engines: [],
             config: {
@@ -308,22 +411,32 @@ export async function projectContext(
                 [kProjectOutputDir]: flags?.outputDir,
               },
             },
+            fileInformationCache: new Map(),
             files: {
               input: [],
             },
             renderFormats,
-            environment,
+            environment: () => environment(context),
             notebookContext,
+            fileExecutionEngineAndTarget: (
+              file: string,
+            ) => {
+              return fileExecutionEngineAndTarget(
+                file,
+                flags,
+                context,
+              );
+            },
+            isSingleFile: false,
           };
           if (Deno.statSync(path).isDirectory) {
-            const { files, engines } = projectInputFiles(originalDir);
+            const { files, engines } = await projectInputFiles(context);
             context.engines = engines;
             context.files.input = files;
           } else {
             const input = normalizePath(path);
-            context.engines = [
-              fileExecutionEngine(input)?.name || kMarkdownEngine,
-            ];
+            const engine = await fileExecutionEngine(input, undefined, context);
+            context.engines = [engine?.name ?? kMarkdownEngine];
             context.files.input = [input];
           }
           debug(`projectContext: Found Quarto project in ${originalDir}`);
@@ -543,9 +656,9 @@ async function resolveLanguageTranslations(
 export function projectContextForDirectory(
   path: string,
   notebookContext: NotebookContext,
-  flags?: RenderFlags,
+  renderOptions?: RenderOptions,
 ): Promise<ProjectContext> {
-  return projectContext(path, notebookContext, flags, true) as Promise<
+  return projectContext(path, notebookContext, renderOptions, true) as Promise<
     ProjectContext
   >;
 }
@@ -583,10 +696,11 @@ function projectHiddenIgnoreGlob(dir: string) {
     .concat(["**/README.?([Rrq])md"]); // README
 }
 
-export function projectInputFiles(
-  dir: string,
+export async function projectInputFiles(
+  project: ProjectContext,
   metadata?: ProjectConfig,
-): { files: string[]; engines: string[] } {
+): Promise<{ files: string[]; engines: string[] }> {
+  const { dir } = project;
   const files: string[] = [];
   const engines: string[] = [];
   const intermediateFiles: string[] = [];
@@ -601,7 +715,7 @@ export function projectInputFiles(
     globToRegExp(glob, { extended: true, globstar: true })
   );
 
-  const addFile = (file: string) => {
+  const addFile = async (file: string) => {
     if (
       // no output dir to worry about
       !outputDir ||
@@ -615,7 +729,7 @@ export function projectInputFiles(
         ensureTrailingSlash(dir),
       )
     ) {
-      const engine = fileExecutionEngine(file);
+      const engine = await fileExecutionEngine(file, undefined, project);
       if (engine) {
         if (!engines.includes(engine.name)) {
           engines.push(engine.name);
@@ -632,7 +746,7 @@ export function projectInputFiles(
     }
   };
 
-  const addDir = (dir: string) => {
+  const addDir = async (dir: string) => {
     // ignore selected other globs
 
     for (
@@ -654,46 +768,30 @@ export function projectInputFiles(
     ) {
       const pathRelative = pathWithForwardSlashes(relative(dir, walk.path));
       if (!projectIgnores.some((regex) => regex.test(pathRelative))) {
-        addFile(walk.path);
+        await addFile(walk.path);
       }
     }
   };
 
-  /*  const renderFiles = metadata?.project[kProjectRender];
+  const renderFiles = metadata?.project[kProjectRender];
   if (renderFiles) {
     const exclude = projIgnoreGlobs.concat(outputDir ? [outputDir] : []);
     const resolved = resolvePathGlobs(dir, renderFiles, exclude, {
       mode: "auto",
     });
-    (ld.difference(resolved.include, resolved.exclude) as string[])
-      .forEach((file) => {
-        if (Deno.statSync(file).isDirectory) {
-          addDir(file);
-        } else {
-          addFile(file);
-        }
-      });
+    await Promise.all(
+      (ld.difference(resolved.include, resolved.exclude) as string[])
+        .map((file) => {
+          if (Deno.statSync(file).isDirectory) {
+            return addDir(file);
+          } else {
+            return addFile(file);
+          }
+        }),
+    );
   } else {
-    addDir(dir);
-  }*/
-
-  const renderFiles = metadata?.project[kProjectRender] ?? [];
-  // this triggers when renderFiles is empty as well, which is what we want
-  if (renderFiles.every((file) => file.startsWith("!"))) {
-    renderFiles.unshift(".");
+    await addDir(dir);
   }
-  const exclude = projIgnoreGlobs.concat(outputDir ? [outputDir] : []);
-  const resolved = resolvePathGlobs(dir, renderFiles, exclude, {
-    mode: "auto",
-  });
-  (ld.difference(resolved.include, resolved.exclude) as string[])
-    .forEach((file) => {
-      if (Deno.statSync(file).isDirectory) {
-        addDir(file);
-      } else {
-        addFile(file);
-      }
-    });
 
   const inputFiles = ld.difference(
     ld.uniq(files),

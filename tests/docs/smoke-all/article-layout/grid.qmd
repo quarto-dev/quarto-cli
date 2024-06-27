@@ -1,0 +1,49 @@
+---
+title: Bug 8614
+format:
+  html:
+    page-layout: article
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - [".column-page > div.grid"]
+        - [".grid.page-columns"]
+---
+
+
+The below two computational chunks are expected to produce a table and a plot side-by-side, by using `::: {.grid}` with `::: {.g-col-6}` underneath `::: {column-page}`.
+
+::::: {.column-page}
+
+::::: {.grid}
+
+::: {.g-col-6}
+
+```{r}
+#| label: tbl-iris
+
+"there was a table here...but it was unnecessary for the reprex."
+
+```
+:::
+
+::: {.g-col-6}
+
+```{r}
+#| label: fig-plot
+#| fig-cap: "my caption"
+#| fig-cap-location: bottom
+#| out-width: "30%"
+#| echo: true
+
+data(iris)
+hist(iris$Sepal.Length)
+
+
+```
+:::
+
+:::::
+
+:::::

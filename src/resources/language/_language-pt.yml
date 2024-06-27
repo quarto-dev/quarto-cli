@@ -25,6 +25,7 @@ section-title-citation: "Citação"
 
 appendix-attribution-bibtex: "BibTeX"
 appendix-attribution-cite-as: "Por favor, cite este trabalho como:"
+appendix-view-license: "Ver Licença"
 
 title-block-author-single: "Autor"
 title-block-author-plural: "Autores"
@@ -121,3 +122,6 @@ listing-page-category-all: "Tudo"
 listing-page-no-matches: "Nenhum item correspondente"
 listing-page-field-wordcount: "Contagem de Palavras"
 listing-page-words: "{0} palavras"
+listing-page-filter: "Filtro"
+
+draft: "Rascunho"

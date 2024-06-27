@@ -21,6 +21,7 @@ export const kQmdExtensions = [".qmd"];
 export const kMarkdownEngine = "markdown";
 export const kKnitrEngine = "knitr";
 export const kJupyterEngine = "jupyter";
+export const kJuliaEngine = "julia";
 
 export interface ExecutionEngine {
   name: string;
@@ -30,11 +31,12 @@ export interface ExecutionEngine {
   validExtensions: () => string[];
   claimsFile: (file: string, ext: string) => boolean;
   claimsLanguage: (language: string) => boolean;
+  markdownForFile(file: string): Promise<MappedString>;
   target: (
     file: string,
-    quiet?: boolean,
-    markdown?: MappedString,
-    project?: ProjectContext,
+    quiet: boolean | undefined,
+    markdown: MappedString | undefined,
+    project: ProjectContext,
   ) => Promise<ExecutionTarget | undefined>;
   partitionedMarkdown: (
     file: string,
@@ -80,12 +82,12 @@ export interface ExecuteOptions {
   dependencies: boolean;
   projectDir?: string;
   libDir?: string;
-  cwd?: string;
+  cwd: string;
   params?: { [key: string]: unknown };
   quiet?: boolean;
   previewServer?: boolean;
   handledLanguages: string[]; // list of languages handled by cell language handlers, after the execution engine
-  projectType?: string;
+  project?: ProjectContext;
 }
 
 // result of execution

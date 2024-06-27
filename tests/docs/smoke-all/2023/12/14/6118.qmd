@@ -1,0 +1,14 @@
+---
+title: "Captions"
+format: gfm
+_quarto:
+  tests:
+    gfm:
+      ensureFileRegexMatches:
+        - []
+        - ["<figure>"]
+---
+
+![Caption](elephant.png)
+
+[![Caption](elephant.png)](https://quarto.org)

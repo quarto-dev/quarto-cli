@@ -1,0 +1,18 @@
+[
+  {
+    "listing": "/blog/index.html",
+    "items": [
+      "/blog/post-1.html",
+      "/blog/post-2.html",
+      "/blog/post-3.html"
+    ]
+  },
+  {
+    "listing": "/blog/index-eager.html",
+    "items": [
+      "/blog/post-1.html",
+      "/blog/post-2.html",
+      "/blog/post-3.html"
+    ]
+  }
+]

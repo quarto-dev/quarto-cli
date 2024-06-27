@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as colors from "fmt/colors.ts";
@@ -12,8 +12,21 @@ import { pathWithForwardSlashes } from "../path.ts";
 
 import { pythonExecForCaps } from "./exec.ts";
 import { jupyterKernelspecs } from "./kernels.ts";
-import { JupyterCapabilities, JupyterKernelspec } from "./types.ts";
+import {
+  JupyterCapabilities,
+  JupyterCell,
+  JupyterKernelspec,
+} from "./types.ts";
 import { isEnvDir } from "./capabilities.ts";
+import { lines } from "../lib/text.ts";
+
+export const jupyterCellSrcAsStr = (cell: JupyterCell) => {
+  return typeof cell.source === "string" ? cell.source : cell.source.join("");
+};
+
+export const jupyterCellSrcAsLines = (cell: JupyterCell) => {
+  return typeof cell.source === "string" ? lines(cell.source) : cell.source;
+};
 
 export async function jupyterCapabilitiesMessage(
   caps: JupyterCapabilities,

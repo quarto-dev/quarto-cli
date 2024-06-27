@@ -51,6 +51,7 @@ function refreshStickyHeaders() {
     const iTable = cellOutputNode.querySelector(".itables table");
     if (iTable) {
       stickyThead.apply([iTable], { scrollableArea: cellOutputNode });
+      cellOutputNode.classList.add("dashboard-data-table");
     }
   }
 }

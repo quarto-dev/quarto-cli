@@ -6,7 +6,7 @@
 */
 
 import { docs, fileLoader, inTempDirectory } from "../../utils.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 import { ensureHtmlElements, ensureHtmlSelectorSatisfies, fileExists } from "../../verify.ts";
 import { testRender } from "./render.ts";
 

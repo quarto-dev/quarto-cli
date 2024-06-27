@@ -1,0 +1,26 @@
+---
+title: Email Test Document
+author: Charles Teague
+format: email
+---
+
+The report content. Anything that is here is not part of the email message.
+
+::: {.email}
+
+::: {.subject}
+The subject line.
+:::
+
+::: {.email-text}
+An optional text-only version of the email message..
+:::
+
+The HTML email content. Here you can add code cells, produce images, and write accompanying text.
+This content is not seen when viewing the rendered document on Connect (it's only
+seen when sending an email from the Connect document page). Emails from Connect
+can be sent manually, and they can also be scheduled.
+
+:::
+
+Any additional report content not part of the email message.

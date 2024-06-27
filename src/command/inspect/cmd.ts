@@ -1,9 +1,8 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { Command } from "cliffy/command/mod.ts";
 
@@ -16,11 +15,11 @@ import { inspectConfig } from "../../quarto-core/inspect.ts";
 
 export const inspectCommand = new Command()
   .name("inspect")
-  .arguments("[path:string]")
+  .arguments("[path] [output]")
   .description(
     "Inspect a Quarto project or input path.\n\nInspecting a project returns its config and engines.\n" +
       "Inspecting an input path return its formats, engine, and dependent resources.\n\n" +
-      "Emits results of inspection as JSON to stdout.",
+      "Emits results of inspection as JSON to output (or stdout if not provided).",
   )
   .hidden()
   .example(
@@ -35,21 +34,35 @@ export const inspectCommand = new Command()
     "Inspect input path",
     "quarto inspect document.md",
   )
-  // deno-lint-ignore no-explicit-any
-  .action(async (_options: any, path: string | undefined) => {
-    // one-time initialization of yaml validation modules
-    setInitializer(initYamlIntelligenceResourcesFromFilesystem);
-    await initState();
+  .example(
+    "Inspect input path and write to file",
+    "quarto inspect document.md output.json",
+  )
+  .action(
+    async (
+      // deno-lint-ignore no-explicit-any
+      _options: any,
+      path?: string,
+      output?: string,
+    ) => {
+      // one-time initialization of yaml validation modules
+      setInitializer(initYamlIntelligenceResourcesFromFilesystem);
+      await initState();
 
-    path = path || Deno.cwd();
+      path = path || Deno.cwd();
 
-    // get the config
-    const config = await inspectConfig(path);
+      // get the config
+      const config = await inspectConfig(path);
 
-    // write using the requisite format
-    const output = JSON.stringify(config, undefined, 2);
+      // write using the requisite format
+      const outputJson = JSON.stringify(config, undefined, 2);
 
-    Deno.stdout.writeSync(
-      new TextEncoder().encode(output + "\n"),
-    );
-  });
+      if (!output) {
+        Deno.stdout.writeSync(
+          new TextEncoder().encode(outputJson + "\n"),
+        );
+      } else {
+        Deno.writeTextFileSync(output, outputJson + "\n");
+      }
+    },
+  );

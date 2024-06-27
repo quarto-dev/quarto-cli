@@ -25,6 +25,7 @@ section-title-citation: "Kutipan"
 
 appendix-attribution-cite-as: "Untuk atribusi, mohon kutip karya ini sebagai:"
 appendix-attribution-bibtex: "Kutipan BibTeX:"
+appendix-view-license: "Lihat Lisensi"
 
 title-block-author-single: "Penulis"
 title-block-author-plural: "Penulis"
@@ -121,3 +122,6 @@ listing-page-category-all: "Semua"
 listing-page-no-matches: "Tidak ada yang cocok"
 listing-page-field-wordcount: "Hitung Kata"
 listing-page-words: "{0} kata"
+listing-page-filter: "Filter"
+
+draft: "Draf"

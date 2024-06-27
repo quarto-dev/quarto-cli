@@ -13,14 +13,8 @@ import {
 } from "cliffy/command/mod.ts";
 
 import { commands } from "./command/command.ts";
-import {
-  appendLogOptions,
-  cleanupLogger,
-  initializeLogger,
-  logError,
-  logOptions,
-} from "./core/log.ts";
-import { debug } from "log/mod.ts";
+import { appendLogOptions } from "./core/log.ts";
+import { debug, error } from "./deno_ral/log.ts";
 
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { removeFlags } from "./core/flags.ts";
@@ -28,6 +22,8 @@ import { quartoConfig } from "./core/quarto.ts";
 import { execProcess } from "./core/process.ts";
 import { pandocBinaryPath } from "./core/resources.ts";
 import { appendProfileArg, setProfileFromArg } from "./quarto-core/profile.ts";
+import { logError } from "./core/log.ts";
+import { CommandError } from "cliffy/command/_errors.ts";
 
 import {
   devConfigsEqual,
@@ -36,9 +32,8 @@ import {
   reconfigureQuarto,
 } from "./core/devconfig.ts";
 import { typstBinaryPath } from "./core/typst.ts";
-import { exitWithCleanup, onCleanup } from "./core/cleanup.ts";
+import { onCleanup } from "./core/cleanup.ts";
 
-import { parse } from "flags/mod.ts";
 import { runScript } from "./command/run/run.ts";
 
 // ensures run handlers are registered
@@ -54,6 +49,7 @@ import "./project/types/register.ts";
 import "./format/imports.ts";
 
 import { kCliffyImplicitCwd } from "./config/constants.ts";
+import { mainRunner } from "./core/main.ts";
 
 export async function quarto(
   args: string[],
@@ -81,6 +77,13 @@ export async function quarto(
 
   // passthrough to typst
   if (args[0] === "typst") {
+    if (args[1] === "update") {
+      error(
+        "The 'typst update' command is not supported.\n" +
+          "Please install the latest version of Quarto from http://quarto.org to get the latest supported typst features.",
+      );
+      Deno.exit(1);
+    }
     const result = await execProcess({
       cmd: [typstBinaryPath(), ...args.slice(1)],
       env,
@@ -152,28 +155,19 @@ export async function quarto(
     }
   }
 
-  await promise;
+  try {
+    await promise;
+  } catch (e) {
+    if (e instanceof CommandError) {
+      logError(e, false);
+    } else {
+      throw e;
+    }
+  }
 }
 
 if (import.meta.main) {
-  // we'd like to do this:
-  //
-  // await mainRunner(() => quarto(Deno.args, appendLogOptions));
-  //
-  // but it presently causes the bundler to generate bad JS.
-  try {
-    // install termination signal handlers
-    if (Deno.build.os !== "windows") {
-      Deno.addSignalListener("SIGINT", abend);
-      Deno.addSignalListener("SIGTERM", abend);
-    }
-
-    // parse args
-    const args = parse(Deno.args);
-
-    // initialize logger
-    await initializeLogger(logOptions(args));
-
+  await mainRunner(async (args) => {
     // initialize profile (remove from args)
     let quartoArgs = [...Deno.args];
     if (setProfileFromArg(args)) {
@@ -187,26 +181,5 @@ if (import.meta.main) {
       cmd = appendLogOptions(cmd);
       return appendProfileArg(cmd);
     });
-
-    await cleanupLogger();
-
-    // if profiling, wait for 10 seconds before quitting
-    if (Deno.env.get("QUARTO_TS_PROFILE") !== undefined) {
-      console.log("Program finished. Turn off the Chrome profiler now!");
-      console.log("Waiting for 10 seconds ...");
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-    }
-
-    // exit
-    exitWithCleanup(0);
-  } catch (e) {
-    if (e) {
-      logError(e);
-    }
-    abend();
-  }
-}
-
-function abend() {
-  exitWithCleanup(1);
+  });
 }

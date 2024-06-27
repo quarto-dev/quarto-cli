@@ -5,7 +5,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { debug, warning } from "log/mod.ts";
+import { debug, warning } from "../../../../deno_ral/log.ts";
 import {
   basename,
   dirname,
@@ -13,8 +13,8 @@ import {
   isAbsolute,
   join,
   relative,
-} from "path/mod.ts";
-import { cloneDeep, orderBy } from "../../../../core/lodash.ts";
+} from "../../../../deno_ral/path.ts";
+import { cloneDeep, orderBy, uniq } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { Format, Metadata } from "../../../../config/types.ts";
@@ -62,6 +62,7 @@ import {
   kImageAlign,
   kImageAlt,
   kImageHeight,
+  kImageLazyLoading,
   kImagePlaceholder,
   kInclude,
   kListing,
@@ -107,11 +108,17 @@ import {
   projectOutputDir,
 } from "../../../project-shared.ts";
 import { mergeConfigs } from "../../../../core/config.ts";
-import { globToRegExp } from "https://deno.land/std@0.204.0/path/glob.ts";
+import { globToRegExp } from "path/glob_to_regexp.ts";
 import { cslNames } from "../../../../core/csl.ts";
 import { isHttpUrl } from "../../../../core/url.ts";
 import { InternalError } from "../../../../core/lib/error.ts";
 import { isHtmlOutput } from "../../../../config/format.ts";
+import {
+  isDraftVisible,
+  isProjectDraft,
+  projectDraftMode,
+} from "../website-utils.ts";
+import { kFieldImageLazyLoading } from "./website-listing-shared.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -316,150 +323,160 @@ export function completeListingItems(
       // Read the listing page
       let fileContents = Deno.readTextFileSync(outputFile.file);
 
-      const listings = Array.isArray(outputFile.format.metadata[kListing])
-        ? outputFile.format.metadata[kListing]
-        : [outputFile.format.metadata[kListing]];
+      // Get listings from the file
+      const listings = readDehydratedListings(
+        outputFile.file,
+        outputFile.format,
+      );
 
+      // See if there is a default image for each listing
+      const listingDefaultImage: {
+        [key: string]: string | undefined;
+      } = {};
       listings.forEach((listing) => {
-        if (typeof listing === "object") {
-          debug(`[listing] Processing listing`);
-          const listingMetadata = listing as Metadata;
-          // See if there is a default image
-          const listingDefaultImage = listingMetadata !== undefined &&
-              listingMetadata[kImagePlaceholder] !== undefined
-            ? listingMetadata[kImagePlaceholder] as string
+        debug(`[listing] Processing listing ${listing.id}`);
+
+        listingDefaultImage[`${listing.id}`] =
+          listing[kImagePlaceholder] !== undefined
+            ? listing[kImagePlaceholder] as string
             : undefined;
+      });
 
-          // Use a regex to identify any placeholders
-          const regex = descriptionPlaceholderRegex;
-          regex.lastIndex = 0;
-          let match = regex.exec(fileContents);
-          while (match) {
-            debug(`[listing] Processing description match`);
-            // For each placeholder, get its target href, then read the contents of that
-            // file and inject the contents.
-            const maxDescLength = parseInt(match[1]);
-            const relativePath = match[2];
-            const absolutePath = join(projectOutputDir(context), relativePath);
-            const placeholder = descriptionPlaceholder(
-              relativePath,
-              maxDescLength,
-            );
-            if (existsSync(absolutePath)) {
-              // Truncate the description if need be
-              const options = maxDescLength > 0
-                ? { "max-length": maxDescLength }
-                : {};
-              const contents = contentReader(absolutePath, options);
+      // Use a regex to identify any placeholders
+      const regex = descriptionPlaceholderRegex;
+      regex.lastIndex = 0;
+      let match = regex.exec(fileContents);
+      while (match) {
+        debug(`[listing] Processing description match`);
+        // For each placeholder, get its target href, then read the contents of that
+        // file and inject the contents.
+        const maxDescLength = parseInt(match[1]);
+        const relativePath = match[2];
+        const absolutePath = join(projectOutputDir(context), relativePath);
+        const placeholder = descriptionPlaceholder(
+          relativePath,
+          maxDescLength,
+        );
+        if (existsSync(absolutePath)) {
+          // Truncate the description if need be
+          const options = maxDescLength > 0
+            ? { "max-length": maxDescLength }
+            : {};
+          const contents = contentReader(absolutePath, options);
 
-              fileContents = fileContents.replace(
-                placeholder,
-                contents.firstPara || "",
-              );
-            } else {
-              fileContents = fileContents.replace(
-                placeholder,
-                "",
-              );
-              warning(
-                `Unable to read listing item description from ${relativePath}`,
-              );
-            }
-            match = regex.exec(fileContents);
-          }
-          regex.lastIndex = 0;
+          fileContents = fileContents.replace(
+            placeholder,
+            contents.firstPara || "",
+          );
+        } else {
+          fileContents = fileContents.replace(
+            placeholder,
+            "",
+          );
+          warning(
+            `Unable to read listing item description from ${relativePath}`,
+          );
+        }
+        match = regex.exec(fileContents);
+      }
+      regex.lastIndex = 0;
 
-          // Use a regex to find image placeholders
-          // Placeholders are there to permit images to be appear in the
-          // rendered content (e.g. plots from computations) and for those
-          // to be used. If an image can't be found this way, a placeholder
-          // div will be returned instead.
-          const imgRegex = imagePlaceholderRegex;
-          imgRegex.lastIndex = 0;
-          let imgMatch = imgRegex.exec(fileContents);
-          while (imgMatch) {
-            debug(`[listing] Processing image match`);
-            const progressive = imgMatch[1] === "true";
-            const imgHeight = imgMatch[2];
-            const docRelativePath = imgMatch[3];
-            const docAbsPath = join(projectOutputDir(context), docRelativePath);
-            const imgPlaceholder = imagePlaceholder(
-              docRelativePath,
+      // Use a regex to find image placeholders
+      // Placeholders are there to permit images to be appear in the
+      // rendered content (e.g. plots from computations) and for those
+      // to be used. If an image can't be found this way, a placeholder
+      // div will be returned instead.
+      const imgRegex = imagePlaceholderRegex;
+      imgRegex.lastIndex = 0;
+      let imgMatch = imgRegex.exec(fileContents);
+      while (imgMatch) {
+        debug(`[listing] Processing image match`);
+        const progressive = imgMatch[1] === "true";
+        const imgHeight = imgMatch[2];
+        const listingId = imgMatch[3];
+        const docRelativePath = imgMatch[4];
+        const docAbsPath = join(projectOutputDir(context), docRelativePath);
+        const imgPlaceholder = imagePlaceholder(
+          listingId,
+          docRelativePath,
+          progressive,
+          imgHeight,
+        );
+        debug(`[listing] ${docAbsPath}`);
+        debug(`[listing] ${imgPlaceholder}`);
+
+        if (existsSync(docAbsPath)) {
+          debug(`[listing] exists: ${docAbsPath}`);
+          const contents = contentReader(docAbsPath, {
+            remove: { links: true },
+          });
+
+          if (contents.previewImage) {
+            debug(`[listing] previewImage: ${docAbsPath}`);
+            const resolveUrl = (path: string) => {
+              if (isHttpUrl(path)) {
+                return path;
+              } else {
+                const imgAbsPath = isAbsolute(path)
+                  ? path
+                  : join(dirname(docAbsPath), path);
+                const imgRelPath = relative(
+                  dirname(outputFile.file),
+                  imgAbsPath,
+                );
+                return imgRelPath;
+              }
+            };
+
+            const imgHtml = imageSrc(
+              {
+                ...contents.previewImage,
+                src: resolveUrl(contents.previewImage.src),
+              },
               progressive,
               imgHeight,
             );
-            debug(`[listing] ${docAbsPath}`);
-            debug(`[listing] ${imgPlaceholder}`);
 
-            if (existsSync(docAbsPath)) {
-              debug(`[listing] exists: ${docAbsPath}`);
-              const contents = contentReader(docAbsPath, {
-                remove: { links: true },
-              });
-
-              if (contents.previewImage) {
-                debug(`[listing] previewImage: ${docAbsPath}`);
-                const resolveUrl = (path: string) => {
-                  if (isHttpUrl(path)) {
-                    return path;
-                  } else {
-                    const imgAbsPath = isAbsolute(path)
-                      ? path
-                      : join(dirname(docAbsPath), path);
-                    const imgRelPath = relative(
-                      dirname(outputFile.file),
-                      imgAbsPath,
-                    );
-                    return imgRelPath;
-                  }
-                };
-
-                const imgHtml = imageSrc(
-                  {
-                    ...contents.previewImage,
-                    src: resolveUrl(contents.previewImage.src),
-                  },
-                  progressive,
-                  imgHeight,
-                );
-
-                debug(`[listing] replacing: ${docAbsPath}`);
-                fileContents = fileContents.replace(
-                  imgPlaceholder,
-                  imgHtml,
-                );
-              } else if (listingDefaultImage) {
-                debug(`[listing] using default image: ${docAbsPath}`);
-                const imagePreview: PreviewImage = {
-                  src: listingDefaultImage,
-                };
-                fileContents = fileContents.replace(
-                  imgPlaceholder,
-                  imageSrc(imagePreview, progressive, imgHeight),
-                );
-              } else {
-                debug(`[listing] using empty div: ${docAbsPath}`);
-                fileContents = fileContents.replace(
-                  imgPlaceholder,
-                  emptyDiv(imgHeight),
-                );
-              }
-            } else {
-              debug(`[listing] does not exist: ${docAbsPath}`);
-              fileContents = fileContents.replace(
-                imgPlaceholder,
-                emptyDiv(imgHeight),
-              );
-              warning(
-                `Unable to read listing preview image from ${docRelativePath}`,
-              );
-            }
-
-            imgMatch = imgRegex.exec(fileContents);
+            debug(`[listing] replacing: ${docAbsPath}`);
+            fileContents = fileContents.replace(
+              imgPlaceholder,
+              imgHtml,
+            );
+          } else if (
+            // Use the default image if any
+            listingDefaultImage[listingId] !== undefined
+          ) {
+            debug(`[listing] using default image for ${docAbsPath}`);
+            debug(`[listing] from listing id ${listingId}`);
+            debug(`[listing] image used is ${listingDefaultImage[listingId]}`);
+            const imagePreview: PreviewImage = {
+              src: listingDefaultImage[listingId]!,
+            };
+            fileContents = fileContents.replace(
+              imgPlaceholder,
+              imageSrc(imagePreview, progressive, imgHeight),
+            );
+          } else {
+            debug(`[listing] using empty div: ${docAbsPath}`);
+            fileContents = fileContents.replace(
+              imgPlaceholder,
+              emptyDiv(imgHeight),
+            );
           }
-          imgRegex.lastIndex = 0;
+        } else {
+          debug(`[listing] does not exist: ${docAbsPath}`);
+          fileContents = fileContents.replace(
+            imgPlaceholder,
+            emptyDiv(imgHeight),
+          );
+          warning(
+            `Unable to read listing preview image from ${docRelativePath}`,
+          );
         }
-      });
+
+        imgMatch = imgRegex.exec(fileContents);
+      }
+      imgRegex.lastIndex = 0;
 
       Deno.writeTextFileSync(
         outputFile.file,
@@ -480,6 +497,7 @@ function descriptionPlaceholder(file?: string, maxLength?: number): string {
 }
 
 export function imagePlaceholder(
+  id: string,
   file: string,
   progressive: boolean,
   height?: string,
@@ -487,7 +505,7 @@ export function imagePlaceholder(
   return file
     ? `<!-- img(9CEB782EFEE6)[progressive=${
       progressive ? "true" : "false"
-    }, height=${height ? height : ""}]:${file} -->`
+    }, height=${height ? height : ""}]:${id}:${file} -->`
     : "";
 }
 
@@ -499,7 +517,7 @@ const descriptionPlaceholderRegex =
   /<!-- desc\(5A0113B34292\)\[max\=(.*)\]:(.*) -->/;
 
 const imagePlaceholderRegex =
-  /<!-- img\(9CEB782EFEE6\)\[progressive\=(.*), height\=(.*)\]:(.*) -->/;
+  /<!-- img\(9CEB782EFEE6\)\[progressive\=(.*), height\=(.*)\]:(.*):(.*) -->/;
 
 function hydrateListing(
   format: Format,
@@ -594,8 +612,8 @@ function hydrateListing(
 
   const listingHydrated: Listing = cloneDeep({
     fields: hydratedFields,
-    [kFieldDisplayNames]: {},
-    [kFieldTypes]: kDefaultFieldTypes,
+    [kFieldDisplayNames]: {}, // default values are merged later
+    [kFieldTypes]: {}, // default values are merged later
     [kFieldLinks]: defaultLinks,
     [kFieldSort]: defaultSort,
     [kFieldFilter]: hydratedFields,
@@ -660,7 +678,7 @@ function hydrateListing(
 
   // Merge column types
   listingHydrated[kFieldTypes] = {
-    ...listingHydrated[kFieldTypes],
+    ...kDefaultFieldTypes,
     ...listing[kFieldTypes] as Record<string, ColumnType>,
   };
 
@@ -720,6 +738,12 @@ async function readContents(
       return expanded.glob;
     });
 
+    // push a glob excluding the project output directory
+    const outDir = project.config?.project["output-dir"];
+    if (outDir) {
+      finalGlobs.push(`!/${outDir}/**`);
+    }
+
     // Convert a bare directory path into a consumer
     // of everything in the directory
     if (hasInputs || hasDefaultGlob) {
@@ -767,7 +791,7 @@ async function readContents(
     });
     if (readFiles.length === 0) {
       const projRelativePath = relative(project.dir, source);
-      throw new Error(
+      warning(
         `The listing in '${projRelativePath}' using the following contents:\n- ${
           contentGlobs.join("\n- ")
         }\ndoesn't match any files or folders.`,
@@ -782,17 +806,20 @@ async function readContents(
           const items = yaml as Array<unknown>;
           for (const yamlItem of items) {
             if (typeof yamlItem === "object") {
-              const { item, source } = await listItemFromMeta(
+              const result = await listItemFromMeta(
                 yamlItem as Metadata,
                 project,
                 listing,
                 dirname(file),
               );
-              validateItem(listing, item, (field: string) => {
-                return `An item from the file '${file}' is missing the required field '${field}'.`;
-              });
-              listingItemSources.add(source);
-              listingItems.push(item);
+              if (result) {
+                const { item, source } = result;
+                validateItem(listing, item, (field: string) => {
+                  return `An item from the file '${file}' is missing the required field '${field}'.`;
+                });
+                listingItemSources.add(source);
+                listingItems.push(item);
+              }
             } else {
               throw new Error(
                 `Unexpected listing contents in file ${file}. The array may only contain listing items, not paths or other types of data.`,
@@ -800,17 +827,20 @@ async function readContents(
             }
           }
         } else if (typeof yaml === "object") {
-          const { item, source } = await listItemFromMeta(
+          const result = await listItemFromMeta(
             yaml as Metadata,
             project,
             listing,
             dirname(file),
           );
-          validateItem(listing, item, (field: string) => {
-            return `The item defined in file '${file}' is missing the required field '${field}'.`;
-          });
-          listingItemSources.add(source);
-          listingItems.push(item);
+          if (result) {
+            const { item, source } = result;
+            validateItem(listing, item, (field: string) => {
+              return `The item defined in file '${file}' is missing the required field '${field}'.`;
+            });
+            listingItemSources.add(source);
+            listingItems.push(item);
+          }
         } else {
           throw new Error(
             `Unexpected listing contents in file ${file}. The file should contain only one more listing items.`,
@@ -841,17 +871,20 @@ async function readContents(
   // Process any metadata that appears in contents
   if (contentMetadatas.length > 0) {
     for (const content of contentMetadatas) {
-      const { item, source: itemSource } = await listItemFromMeta(
+      const result = await listItemFromMeta(
         content,
         project,
         listing,
         dirname(source),
       );
-      validateItem(listing, item, (field: string) => {
-        return `An item in the listing '${listing.id}' is missing the required field '${field}'.`;
-      });
-      listingItemSources.add(itemSource);
-      listingItems.push(item);
+      if (result) {
+        const { item, source: itemSource } = result;
+        validateItem(listing, item, (field: string) => {
+          return `An item in the listing '${listing.id}' is missing the required field '${field}'.`;
+        });
+        listingItemSources.add(itemSource);
+        listingItems.push(item);
+      }
     }
   }
 
@@ -964,7 +997,7 @@ async function listItemFromMeta(
   project: ProjectContext,
   listing: ListingDehydrated,
   baseDir: string,
-): Promise<{ item: ListingItem; source: ListingItemSource }> {
+): Promise<{ item: ListingItem; source: ListingItemSource } | undefined> {
   let listingItem: ListingItem = cloneDeep(meta);
   let source = ListingItemSource.metadata;
 
@@ -984,14 +1017,24 @@ async function listItemFromMeta(
 
       const fileListing = await listItemFromFile(inputPath, project, listing);
       if (fileListing === undefined) {
-        warning(
-          `Draft document ${meta.path} found in a custom listing: item will not have computed metadata.`,
-        );
+        // Since a draft document was found in this listing,
+        // go ahead and exclude it. This is acceptable because the draft
+        // list should be independent of YAML / front matter since
+        // we don't way users to have to coordinate their front matter with
+        // document draft status.
+        return undefined;
       } else {
         listingItem = {
           ...(fileListing.item || {}),
           ...listingItem,
         };
+        // If the file itself provides a path (e.g. it is an input with an
+        // output path), that should be used rather than the path in the metadata
+        // which was literally just used to get the path to the file that
+        // we're now reading.
+        if (fileListing.item.path) {
+          listingItem.path = fileListing.item.path;
+        }
         source = ListingItemSource.metadataDocument;
       }
     }
@@ -1030,11 +1073,11 @@ async function listItemFromFile(
   const projectRelativePath = relative(project.dir, input);
   const target = await inputTargetIndex(
     project,
-    projectRelativePath,
+    pathWithForwardSlashes(projectRelativePath),
   );
   const inputTarget = await resolveInputTarget(
     project,
-    projectRelativePath,
+    pathWithForwardSlashes(projectRelativePath),
     false,
   );
 
@@ -1049,7 +1092,12 @@ async function listItemFromFile(
     docRawMetadata,
   ) as Metadata;
 
-  if (documentMeta?.draft) {
+  // Consult the website project draft list directly here
+  // since this is occuring before the input index
+  // is populated.
+  const projectDraft = isProjectDraft(projectRelativePath, project);
+  const draftMode = projectDraftMode(project);
+  if (!isDraftVisible(draftMode) && (documentMeta?.draft || projectDraft)) {
     // This is a draft, don't include it in the listing
     return undefined;
   } else {
@@ -1074,14 +1122,17 @@ async function listItemFromFile(
       documentMeta?.abstract as string ||
       descriptionPlaceholder(inputTarget?.outputHref, maxDescLength);
 
-    const imageRaw = documentMeta?.image as string;
-    const image = imageRaw !== undefined
+    const imageRaw = documentMeta?.image as string | boolean;
+    const image = imageRaw !== undefined && typeof imageRaw === "string"
       ? pathWithForwardSlashes(
         listingItemHref(imageRaw, dirname(projectRelativePath)),
       )
       : undefined;
 
     const imageAlt = documentMeta?.[kImageAlt] as string | undefined;
+    const imageLazyLoading = documentMeta?.[kImageLazyLoading] as
+      | boolean
+      | undefined;
 
     const date = documentMeta?.date
       ? parsePandocDate(resolveDate(input, documentMeta?.date) as string)
@@ -1101,8 +1152,10 @@ async function listItemFromFile(
       );
     }
     const author = structuredAuthors
-      ? structuredAuthors.map((auth) =>
-        auth.literal || `${auth.given} ${auth.family}`
+      ? uniq(
+        structuredAuthors.map((auth) =>
+          auth.literal || `${auth.given} ${auth.family}`
+        ),
       )
       : [];
 
@@ -1133,6 +1186,7 @@ async function listItemFromFile(
       [kFieldCategories]: categories,
       [kFieldImage]: image,
       [kFieldImageAlt]: imageAlt,
+      [kFieldImageLazyLoading]: imageLazyLoading,
       [kFieldDescription]: description,
       [kFieldFileName]: filename,
       [kFieldFileModified]: filemodified,

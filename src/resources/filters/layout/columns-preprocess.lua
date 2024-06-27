@@ -4,11 +4,23 @@
 function columns_preprocess() 
   return {
     FloatRefTarget = function(float)
+      if float.parent_id ~= nil then
+        return nil
+      end
       local location = cap_location(float)
       if location == 'margin' then
         float.classes:insert('margin-caption')
         noteHasColumns()
         return float
+      end
+    end,
+
+    Figure = function(figure)
+      local location = cap_location(figure)
+      if location == 'margin' then
+        figure.classes:insert('margin-caption')
+        noteHasColumns()
+        return figure
       end
     end,
 
@@ -102,6 +114,10 @@ function resolveColumnClassesForCodeCell(el)
               elseif figOrTableEl.t == 'Table' then
                 -- the figOrTableEl is a table, just apply the classes to the div around it
                 applyClasses(tblClasses, tblCaptionClasses, el, childEl, childEl, 'tbl')
+                forwarded = true
+              elseif figOrTableEl.t == "Figure" then
+                -- the figOrTableEl is a table, just apply the classes to the div around it
+                applyClasses(figClasses, figCaptionClasses, el, childEl, figOrTableEl, 'fig')
                 forwarded = true
               end
             end
@@ -243,7 +259,7 @@ function columnOption(key)
   if value == nil or #value < 1 then
     return {}
   else
-    return {'column-' .. inlinesToString(value[1])}
+    return {'column-' .. inlinesToString(quarto.utils.as_inlines(value[1]))}
   end
 end
 

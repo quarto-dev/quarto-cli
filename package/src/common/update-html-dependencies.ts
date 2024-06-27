@@ -5,17 +5,20 @@
  */
 import { ensureDir, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
-import { info } from "log/mod.ts";
-import { dirname, extname, join } from "path/mod.ts";
+import { info } from "../../../src/deno_ral/log.ts";
+import { dirname, extname, join } from "../../../src/deno_ral/path.ts";
 import { lines } from "../../../src/core/text.ts";
+import * as ld from "../../../src/core/lodash.ts";
+
 import { runCmd } from "../util/cmd.ts";
 import { applyGitPatches, Repo, withRepo } from "../util/git.ts";
 
-import { download, unzip } from "../util/utils.ts";
+import { download } from "../util/utils.ts";
 import { Configuration } from "./config.ts";
 import { visitLines } from "../../../src/core/file.ts";
 import { copyMinimal } from "../../../src/core/copy.ts";
 import { kSourceMappingRegexes } from "../../../src/config/constants.ts";
+import { unzip } from "../../../src/core/zip.ts";
 
 export async function updateHtmlDependencies(config: Configuration) {
   info("Updating Bootstrap with version info:");
@@ -180,6 +183,14 @@ export async function updateHtmlDependencies(config: Configuration) {
         join(dir, `list.js-${version}`, "dist", "list.min.js"),
         listJs
       );
+
+      // Omit regular expression escaping
+      // (Fixes https://github.com/quarto-dev/quarto-cli/issues/8435)
+      const contents = Deno.readTextFileSync(listJs);
+      const removeContent = /e=\(e=t\.utils\.toString\(e\)\.toLowerCase\(\)\)\.replace\(.*?\),/g
+      const cleaned = contents.replaceAll(removeContent, "");
+      Deno.writeTextFileSync(listJs, cleaned);
+
       return Promise.resolve();
     }
   );

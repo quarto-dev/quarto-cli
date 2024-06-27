@@ -7267,6 +7267,54 @@ try {
             description: {
               short: "Context to execute cell within."
             }
+          },
+          {
+            name: "content",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: {
+              enum: [
+                "valuebox",
+                "sidebar",
+                "toolbar",
+                "card-sidebar",
+                "card-toolbar"
+              ]
+            },
+            description: {
+              short: "The type of dashboard element being produced by this code cell."
+            }
+          },
+          {
+            name: "color",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "string",
+                {
+                  enum: [
+                    "primary",
+                    "secondary",
+                    "success",
+                    "info",
+                    "warning",
+                    "danger",
+                    "light",
+                    "dark"
+                  ]
+                }
+              ]
+            },
+            description: {
+              short: "For code cells that produce a valuebox, the color of the valuebox.s"
+            }
           }
         ],
         "schema/cell-codeoutput.yml": [
@@ -8039,6 +8087,10 @@ try {
               engine: [
                 "knitr",
                 "jupyter"
+              ],
+              formats: [
+                "$pdf-all",
+                "$html-all"
               ]
             },
             schema: {
@@ -8409,7 +8461,6 @@ try {
               "screen",
               "screen-left",
               "screen-right",
-              "screen-rightcolumn",
               "screen-inset",
               "screen-inset-shaded",
               "screen-inset-left",
@@ -8507,6 +8558,29 @@ try {
                   }
                 }
               }
+            }
+          },
+          {
+            id: "giscus-themes",
+            enum: {
+              values: [
+                "light",
+                "light_high_contrast",
+                "light_protanopia",
+                "light_tritanopia",
+                "dark",
+                "dark_high_contrast",
+                "dark_protanopia",
+                "dark_tritanopia",
+                "dark_dimmed",
+                "transparent_dark",
+                "cobalt",
+                "purple_dark",
+                "noborder_light",
+                "noborder_dark",
+                "noborder_gray",
+                "preferred_color_scheme"
+              ]
             }
           },
           {
@@ -8648,37 +8722,38 @@ try {
                             anyOf: [
                               "string",
                               {
-                                enum: [
-                                  "light",
-                                  "light_high_contrast",
-                                  "light_protanopia",
-                                  "dark",
-                                  "dark_high_contrast",
-                                  "dark_protanopia",
-                                  "dark_dimmed",
-                                  "transparent_dark",
-                                  "preferred_color_scheme"
-                                ]
+                                ref: "giscus-themes"
                               },
                               {
                                 object: {
                                   closed: true,
                                   properties: {
                                     light: {
-                                      string: {
-                                        description: "The light theme name."
-                                      }
+                                      anyOf: [
+                                        "string",
+                                        {
+                                          ref: "giscus-themes"
+                                        }
+                                      ],
+                                      description: "The light theme name."
                                     },
                                     dark: {
-                                      string: {
-                                        description: "The dark theme name."
-                                      }
+                                      anyOf: [
+                                        "string",
+                                        {
+                                          ref: "giscus-themes"
+                                        }
+                                      ],
+                                      description: "The dark theme name."
                                     }
                                   }
                                 }
                               }
                             ],
-                            description: "The giscus theme to use when displaying comments."
+                            description: {
+                              short: "The giscus theme to use when displaying comments.",
+                              long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
+                            }
                           },
                           language: {
                             string: {
@@ -9240,6 +9315,16 @@ try {
                     description: "Base URL for website source code repository"
                   }
                 },
+                "repo-link-target": {
+                  string: {
+                    description: "The value of the target attribute for repo links"
+                  }
+                },
+                "repo-link-rel": {
+                  string: {
+                    description: "The value of the rel attribute for repo links"
+                  }
+                },
                 "repo-subdir": {
                   string: {
                     description: "Subdirectory of repository containing website"
@@ -9316,6 +9401,63 @@ try {
                     }
                   ],
                   description: "Enable Google Analytics for this website"
+                },
+                announcement: {
+                  anyOf: [
+                    "string",
+                    {
+                      object: {
+                        properties: {
+                          content: {
+                            schema: "string",
+                            description: "The content of the announcement"
+                          },
+                          dismissable: {
+                            schema: "boolean",
+                            description: "Whether this announcement may be dismissed by the user."
+                          },
+                          icon: {
+                            schema: "string",
+                            description: {
+                              short: "The icon to display in the announcement",
+                              long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`) for the announcement.\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                            }
+                          },
+                          position: {
+                            schema: {
+                              enum: [
+                                "above-navbar",
+                                "below-navbar"
+                              ]
+                            },
+                            description: {
+                              short: "The position of the announcement.",
+                              long: "The position of the announcement. One of `above-navbar` (default) or `below-navbar`.\n"
+                            }
+                          },
+                          type: {
+                            schema: {
+                              enum: [
+                                "primary",
+                                "secondary",
+                                "success",
+                                "danger",
+                                "warning",
+                                "info",
+                                "light",
+                                "dark"
+                              ]
+                            },
+                            description: {
+                              short: "The type of announcement. Affects the appearance of the announcement.",
+                              long: "The type of announcement. One of `primary`, `secondary`, `success`, `danger`, `warning`,\n  `info`, `light` or `dark`. Affects the appearance of the announcement.\n"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  description: "Provides an announcement displayed at the top of the page."
                 },
                 "cookie-consent": {
                   anyOf: [
@@ -9606,6 +9748,22 @@ try {
                               ref: "navigation-item"
                             },
                             description: "List of items for the right side of the navbar."
+                          },
+                          "toggle-position": {
+                            schema: {
+                              enum: [
+                                "left",
+                                "right"
+                              ]
+                            },
+                            description: "The position of the collapsed navbar toggle when in responsive mode",
+                            default: "left"
+                          },
+                          "tools-collapse": {
+                            boolean: {
+                              description: "Collapse tools into the navbar menu when the display becomes narrow.",
+                              default: false
+                            }
                           }
                         }
                       }
@@ -9635,6 +9793,16 @@ try {
                             logo: {
                               path: {
                                 description: "Path to a logo image that will be displayed in the sidebar."
+                              }
+                            },
+                            "logo-alt": {
+                              string: {
+                                description: "Alternate text for the logo image."
+                              }
+                            },
+                            "logo-href": {
+                              string: {
+                                description: "Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html)."
                               }
                             },
                             search: {
@@ -9782,6 +9950,11 @@ try {
                     description: "Default site thumbnail image for `twitter` /`open-graph`\n"
                   }
                 },
+                "image-alt": {
+                  path: {
+                    description: "Default site thumbnail image alt text for `twitter` /`open-graph`\n"
+                  }
+                },
                 comments: {
                   schema: {
                     ref: "comments"
@@ -9830,7 +10003,26 @@ try {
                       "$html-doc"
                     ]
                   },
-                  description: "A list of codes links to appear with this document."
+                  description: "A list of code links to appear with this document."
+                },
+                drafts: {
+                  schema: {
+                    maybeArrayOf: "path"
+                  },
+                  description: "A list of input documents that should be treated as drafts"
+                },
+                "draft-mode": {
+                  schema: {
+                    enum: [
+                      "visible",
+                      "unlinked",
+                      "gone"
+                    ]
+                  },
+                  description: {
+                    short: "How to handle drafts that are encountered.",
+                    long: "How to handle drafts that are encountered.\n\n`visible` - the draft will visible and fully available\n`unlinked` - the draft will be rendered, but will not appear in navigation, search, or listings.\n`gone` - the draft will have no content and will not be linked to (default).\n"
+                  }
                 }
               }
             }
@@ -10148,6 +10340,9 @@ try {
             id: "website-about",
             object: {
               closed: true,
+              required: [
+                "template"
+              ],
               properties: {
                 id: {
                   string: {
@@ -10181,6 +10376,16 @@ try {
                       short: "The path to the main image on the about page.",
                       long: "The path to the main image on the about page. If not specified, \nthe `image` provided for the document itself will be used.\n"
                     }
+                  }
+                },
+                "image-alt": {
+                  path: {
+                    description: "The alt text for the main image on the about page."
+                  }
+                },
+                "image-title": {
+                  path: {
+                    description: "The title for the main image on the about page."
                   }
                 },
                 "image-width": {
@@ -10219,7 +10424,7 @@ try {
                   string: {
                     description: {
                       short: "The id of this listing.",
-                      long: "The id of this listing. When the listing is rendered, it will \nplace the contents into a `div` with this id. If no such `div` is defined on the \npage, a `div` with this id will be created and appended to the end of the page.\n\nIn no `id` is provided for a listing, Quarto will synthesize one when rendering the page.\n"
+                      long: "The id of this listing. When the listing is rendered, it will \nplace the contents into a `div` with this id. If no such `div` is defined on the \npage, a `div` with this id will be created and appended to the end of the page.\n\nIf no `id` is provided for a listing, Quarto will synthesize one when rendering the page.\n"
                     }
                   }
                 },
@@ -10400,6 +10605,12 @@ try {
                 "image-placeholder": {
                   string: {
                     description: "The default image to use if an item in the listing doesn't have an image."
+                  }
+                },
+                "image-lazy-loading": {
+                  boolean: {
+                    description: "If false, images in the listing will be loaded immediately. If true, images will be loaded as they come into view.",
+                    default: true
                   }
                 },
                 "image-align": {
@@ -11220,6 +11431,13 @@ try {
                   string: {
                     description: "The primary title of the item."
                   }
+                },
+                id: {
+                  anyOf: [
+                    "string",
+                    "number"
+                  ],
+                  description: 'Citation identifier for the item (e.g. "item1"). Will be autogenerated if not provided.'
                 }
               }
             }
@@ -12835,7 +13053,7 @@ try {
             schema: "string",
             description: {
               short: "Text describing the specialized type of this publication.",
-              long: "Text describing the specialized type of this publication.\n\nAn informative registry of specialized EPUB Publication \ntypes for use with this element is maintained in the \n[TypesRegistry](https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry), \nbut Authors may use any text string as a value.\n"
+              long: "Text describing the specialized type of this publication.\n\nAn informative registry of specialized EPUB Publication \ntypes for use with this element is maintained in the \n[TypesRegistry](https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry), \nbut Authors may use any text string as a value.\n"
             }
           },
           {
@@ -13078,6 +13296,28 @@ try {
               ]
             },
             description: "Configures the Jupyter engine."
+          },
+          {
+            name: "julia",
+            schema: {
+              object: {
+                properties: {
+                  exeflags: {
+                    schema: {
+                      arrayOf: "string",
+                      description: "Arguments to pass to the Julia worker process."
+                    }
+                  },
+                  env: {
+                    schema: {
+                      arrayOf: "string",
+                      description: "Environment variables to pass to the Julia worker process."
+                    }
+                  }
+                }
+              }
+            },
+            description: "Configures the Julia engine."
           },
           {
             name: "knitr",
@@ -14992,7 +15232,7 @@ try {
                 "$html-doc"
               ]
             },
-            description: "Enable or disable lightbox treatment for images in this document."
+            description: "Enable or disable lightbox treatment for images in this document. See [Lightbox Figures](https://quarto.org/docs/output-formats/html-lightbox-figures.html) for more details."
           }
         ],
         "schema/document-links.yml": [
@@ -15691,6 +15931,16 @@ try {
             description: "Theme name, theme scss file, or a mix of both."
           },
           {
+            name: "body-classes",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: "string",
+            description: "Classes to apply to the body of the document.\n"
+          },
+          {
             name: "minimal",
             schema: "boolean",
             default: false,
@@ -15735,6 +15985,17 @@ try {
               ]
             },
             description: "Enables hover over a section title to see an anchor link."
+          },
+          {
+            name: "tabsets",
+            schema: "boolean",
+            default: true,
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Enables tabsets to present content."
           },
           {
             name: "smooth-scroll",
@@ -15857,14 +16118,16 @@ try {
                 "tectonic",
                 "wkhtmltopdf",
                 "weasyprint",
+                "pagedjs-cli",
                 "prince",
                 "context",
-                "pdfroff"
+                "pdfroff",
+                "typst"
               ]
             },
             description: {
               short: "Use the specified engine when producing PDF output.",
-              long: "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n"
+              long: "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`, `pagedjs-cli`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n- `typst`: `typst`\n"
             }
           },
           {
@@ -15880,6 +16143,23 @@ try {
             description: {
               short: "Use the given string as a command-line argument to the `pdf-engine`.",
               long: "Use the given string as a command-line argument to the pdf-engine.\nFor example, to use a persistent directory foo for latexmk\u2019s auxiliary\nfiles, use `pdf-engine-opt: -outdir=foo`. Note that no check for \nduplicate options is done.\n"
+            }
+          },
+          {
+            name: "pdf-engine-opts",
+            tags: {
+              formats: [
+                "$pdf-all",
+                "ms",
+                "context"
+              ]
+            },
+            schema: {
+              arrayOf: "string"
+            },
+            description: {
+              short: "Pass multiple command-line arguments to the `pdf-engine`.",
+              long: "Use the given strings passed as a array as command-line arguments to the pdf-engine.\nThis is an alternative to `pdf-engine-opt` for passing multiple options.\n"
             }
           },
           {
@@ -16060,17 +16340,6 @@ try {
             },
             default: "atx",
             description: "Specify whether to use `atx` (`#`-prefixed) or\n`setext` (underlined) headings for level 1 and 2\nheadings (`atx` or `setext`).\n"
-          },
-          {
-            name: "keep-yaml",
-            tags: {
-              formats: [
-                "$markdown-all"
-              ]
-            },
-            schema: "boolean",
-            default: false,
-            description: "Preserve the original YAML front matter in rendered markdown"
           },
           {
             name: "ipynb-output",
@@ -16337,7 +16606,7 @@ try {
             },
             description: {
               short: "Places footnote references or superscripted numerical citations after following punctuation.",
-              long: "If true (the default for note styles), Quarto (via Pandoc) will put footnote references or superscripted numerical citations after \nfollowing punctuation. For example, if the source contains blah blah [@jones99]., the result will look like blah blah.[^1], with \nthe note moved after the period and the space collapsed. \n\nIf false, the space will still be collapsed, but the footnote will not be moved after the punctuation. The option may also be used \nin numerical styles that use superscripts for citation numbers (but for these styles the default is not to move the citation).\n"
+              long: "If true (the default for note styles), Quarto (via Pandoc) will put footnote references or superscripted numerical citations after \nfollowing punctuation. For example, if the source contains `blah blah [@jones99]`., the result will look like `blah blah.[^1]`, with \nthe note moved after the period and the space collapsed. \n\nIf false, the space will still be collapsed, but the footnote will not be moved after the punctuation. The option may also be used \nin numerical styles that use superscripts for citation numbers (but for these styles the default is not to move the citation).\n"
             }
           }
         ],
@@ -16384,12 +16653,6 @@ try {
               maybeArrayOf: "path"
             },
             description: "Include the specified files as partials accessible to the template for the generated content.\n"
-          },
-          {
-            name: "standalone",
-            schema: "boolean",
-            default: true,
-            description: "Produce output with an appropriate header and footer (e.g. a standalone HTML, LaTeX, TEI, or RTF file, not a fragment)\n"
           },
           {
             name: "embed-resources",
@@ -16503,6 +16766,18 @@ try {
             description: "Specify which nodes should be run interactively (displaying output from expressions)\n"
           },
           {
+            name: "plotly-connected",
+            schema: "boolean",
+            default: false,
+            tags: {
+              contexts: [
+                "document-execute"
+              ],
+              engine: "jupyter"
+            },
+            description: 'If true, use the "notebook_connected" plotly renderer, which downloads\nits dependencies from a CDN and requires an internet connection to view.\n'
+          },
+          {
             name: "keep-typ",
             tags: {
               formats: [
@@ -16576,6 +16851,51 @@ try {
               ]
             },
             description: "If `none`, do not process tables in HTML input."
+          },
+          {
+            name: "html-pre-tag-processing",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: {
+              enum: [
+                "none",
+                "parse"
+              ]
+            },
+            description: "If `none`, ignore any divs with `html-pre-tag-processing=parse` enabled."
+          },
+          {
+            name: "css-property-processing",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: {
+              enum: [
+                "none",
+                "translate"
+              ]
+            },
+            default: "translate",
+            description: {
+              short: "CSS property translation",
+              long: "If `translate`, translate CSS properties into output format properties. If `none`, do not process css properties."
+            }
+          },
+          {
+            name: "use-rsvg-convert",
+            schema: "boolean",
+            default: true,
+            tags: {
+              formats: [
+                "$pdf-all"
+              ]
+            },
+            description: "If `true`, attempt to use `rsvg-convert` to convert SVG images to PDF."
           }
         ],
         "schema/document-reveal-content.yml": [
@@ -17307,7 +17627,7 @@ try {
             schema: "number",
             description: {
               short: "Slides that are too tall to fit within a single page will expand onto multiple pages",
-              long: '"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option"\n'
+              long: "Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option.\n"
             }
           },
           {
@@ -18006,8 +18326,18 @@ try {
             schema: "boolean",
             description: {
               short: "Include an automatically generated table of contents",
-              long: "Include an automatically generated table of contents (or, in\nthe case of `latex`, `context`, `docx`, `odt`,\n`opendocument`, `rst`, or `ms`, an instruction to create\none) in the output document. This option has no effect\nif `standalone` is `false`.\n\nNote that if you are producing a PDF via `ms`, the table\nof contents will appear at the beginning of the\ndocument, before the title.  If you would prefer it to\nbe at the end of the document, use the option\n`pdf-engine-opt: --no-toc-relocation`.\n"
+              long: "Include an automatically generated table of contents (or, in\nthe case of `latex`, `context`, `docx`, `odt`,\n`opendocument`, `rst`, or `ms`, an instruction to create\none) in the output document.\n\nNote that if you are producing a PDF via `ms`, the table\nof contents will appear at the beginning of the\ndocument, before the title.  If you would prefer it to\nbe at the end of the document, use the option\n`pdf-engine-opt: --no-toc-relocation`.\n"
             }
+          },
+          {
+            name: "toc-indent",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: "string",
+            description: 'The amount of indentation to use for each level of the table of contents.\nThe default is "1.5em".\n'
           },
           {
             name: "toc-depth",
@@ -18040,8 +18370,8 @@ try {
               ]
             },
             description: {
-              short: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
-              long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`right` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+              short: "Location for table of contents (`body`, `left`, `right` (default), `left-body`, `right-body`).\n",
+              long: "Location for table of contents:\n\n- `body`: Show the Table of Contents in the center body of the document. \n- `left`: Show the Table of Contents in left margin of the document.\n- `right`(default): Show the Table of Contents in right margin of the document.\n- `left-body`: Show two Tables of Contents in both the center body and the left margin of the document.\n- `right-body`: Show two Tables of Contents in both the center body and the right margin of the document.\n"
             }
           },
           {
@@ -18197,6 +18527,20 @@ try {
               ]
             },
             description: "The alt text for preview image on this page."
+          },
+          {
+            name: "image-lazy-loading",
+            schema: "boolean",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: {
+              short: "If true, the preview image will only load when it comes into view.",
+              long: 'Enables lazy loading for the preview image. If true, the preview image element \nwill have `loading="lazy"`, and will only load when it comes into view.\n\nIf false, the preview image will load immediately.\n'
+            },
+            default: true
           }
         ],
         "schema/extension.yml": [
@@ -18480,6 +18824,9 @@ try {
             },
             figures: {
               title: "Figures"
+            },
+            lightbox: {
+              title: "Lightbox Figures"
             },
             tables: {
               title: "Tables"
@@ -19231,6 +19578,7 @@ try {
           "commonmark_x",
           "context",
           "csljson",
+          "djot",
           "docbook",
           "docbook4",
           "docbook5",
@@ -19335,7 +19683,10 @@ try {
           "Display reactions for the discussion\u2019s main post before the\ncomments.",
           "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
           "Place the comment input box above or below the comments.",
-          "The giscus theme to use when displaying comments.",
+          {
+            short: "The giscus theme to use when displaying comments.",
+            long: "The giscus theme to use when displaying comments. Light and dark\nthemes are supported. If a single theme is provided by name, it will be\nused as light and dark theme. To use different themes, use\n<code>light</code> and <code>dark</code> key:"
+          },
           "The light theme name.",
           "The dark theme name.",
           "The language that should be used when displaying the commenting\ninterface.",
@@ -19459,6 +19810,8 @@ try {
           "Base URL for published website",
           "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
           "Base URL for website source code repository",
+          "The value of the target attribute for repo links",
+          "The value of the rel attribute for repo links",
           "Subdirectory of repository containing website",
           "Branch of website source code (defaults to <code>main</code>)",
           "URL to use for the \u2018report an issue\u2019 repository action.",
@@ -19484,6 +19837,21 @@ try {
           {
             short: "The version number of Google Analytics to use.",
             long: "The version number of Google Analytics to use."
+          },
+          "Provides an announcement displayed at the top of the page.",
+          "The content of the announcement",
+          "Whether this announcement may be dismissed by the user.",
+          {
+            short: "The icon to display in the announcement",
+            long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+          },
+          {
+            short: "The position of the announcement.",
+            long: "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+          },
+          {
+            short: "The type of announcement. Affects the appearance of the\nannouncement.",
+            long: "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
           },
           {
             short: "Request cookie consent before enabling scripts that set cookies",
@@ -19540,10 +19908,14 @@ try {
           "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
           "List of items for the left side of the navbar.",
           "List of items for the right side of the navbar.",
+          "The position of the collapsed navbar toggle when in responsive\nmode",
+          "Collapse tools into the navbar menu when the display becomes\nnarrow.",
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -19559,6 +19931,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -19580,16 +19954,24 @@ try {
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
-          "A list of codes links to appear with this document.",
+          "A list of code links to appear with this document.",
+          "A list of input documents that should be treated as drafts",
+          {
+            short: "How to handle drafts that are encountered.",
+            long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
+          },
           "Book title",
           "Description metadata for HTML version of book",
           "The path to the favicon for this website",
           "Base URL for published website",
           "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
           "Base URL for website source code repository",
+          "The value of the target attribute for repo links",
+          "The value of the rel attribute for repo links",
           "Subdirectory of repository containing website",
           "Branch of website source code (defaults to <code>main</code>)",
           "URL to use for the \u2018report an issue\u2019 repository action.",
@@ -19615,6 +19997,21 @@ try {
           {
             short: "The version number of Google Analytics to use.",
             long: "The version number of Google Analytics to use."
+          },
+          "Provides an announcement displayed at the top of the page.",
+          "The content of the announcement",
+          "Whether this announcement may be dismissed by the user.",
+          {
+            short: "The icon to display in the announcement",
+            long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+          },
+          {
+            short: "The position of the announcement.",
+            long: "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+          },
+          {
+            short: "The type of announcement. Affects the appearance of the\nannouncement.",
+            long: "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
           },
           {
             short: "Request cookie consent before enabling scripts that set cookies",
@@ -19671,10 +20068,14 @@ try {
           "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
           "List of items for the left side of the navbar.",
           "List of items for the right side of the navbar.",
+          "The position of the collapsed navbar toggle when in responsive\nmode",
+          "Collapse tools into the navbar menu when the display becomes\nnarrow.",
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -19690,6 +20091,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -19711,10 +20114,16 @@ try {
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
-          "A list of codes links to appear with this document.",
+          "A list of code links to appear with this document.",
+          "A list of input documents that should be treated as drafts",
+          {
+            short: "How to handle drafts that are encountered.",
+            long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
+          },
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -19764,6 +20173,8 @@ try {
             short: "The path to the main image on the about page.",
             long: "The path to the main image on the about page. If not specified, the\n<code>image</code> provided for the document itself will be used."
           },
+          "The alt text for the main image on the about page.",
+          "The title for the main image on the about page.",
           {
             short: "A valid CSS width for the about page image.",
             long: "A valid CSS width for the about page image."
@@ -19774,7 +20185,7 @@ try {
           },
           {
             short: "The id of this listing.",
-            long: "The id of this listing. When the listing is rendered, it will place\nthe contents into a <code>div</code> with this id. If no such\n<code>div</code> is defined on the page, a <code>div</code> with this id\nwill be created and appended to the end of the page.\nIn no <code>id</code> is provided for a listing, Quarto will\nsynthesize one when rendering the page."
+            long: "The id of this listing. When the listing is rendered, it will place\nthe contents into a <code>div</code> with this id. If no such\n<code>div</code> is defined on the page, a <code>div</code> with this id\nwill be created and appended to the end of the page.\nIf no <code>id</code> is provided for a listing, Quarto will\nsynthesize one when rendering the page."
           },
           {
             short: "The type of listing to create.",
@@ -19833,6 +20244,7 @@ try {
             long: "The maximum length (in characters) of the description displayed in\nthe listing. Defaults to 175."
           },
           "The default image to use if an item in the listing doesn\u2019t have an\nimage.",
+          "If false, images in the listing will be loaded immediately. If true,\nimages will be loaded as they come into view.",
           "In <code>default</code> type listings, whether to place the image on\nthe right or left side of the post content (<code>left</code> or\n<code>right</code>).",
           {
             short: "The height of the image being displayed.",
@@ -20104,7 +20516,7 @@ try {
           },
           "Guest (e.g.&nbsp;on a TV show or podcast).",
           "Host of the item (e.g.&nbsp;of a TV show or podcast).",
-          "A value which uniquely identifies this item.",
+          "Citation identifier for the item (e.g.&nbsp;\u201Citem1\u201D). Will be\nautogenerated if not provided.",
           "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
           "Interviewer (e.g.&nbsp;of an interview).",
           "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -20259,7 +20671,7 @@ try {
           },
           "Guest (e.g.&nbsp;on a TV show or podcast).",
           "Host of the item (e.g.&nbsp;of a TV show or podcast).",
-          "A value which uniquely identifies this item.",
+          "Citation identifier for the item (e.g.&nbsp;\u201Citem1\u201D). Will be\nautogenerated if not provided.",
           "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
           "Interviewer (e.g.&nbsp;of an interview).",
           "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -20453,6 +20865,14 @@ try {
           },
           {
             short: "Context to execute cell within.",
+            long: ""
+          },
+          {
+            short: "The type of dashboard element being produced by this code cell.",
+            long: ""
+          },
+          {
+            short: "For code cells that produce a valuebox, the color of the\nvaluebox.s",
             long: ""
           },
           {
@@ -20705,7 +21125,7 @@ try {
           "The prefix used in rendered references when referencing this\ntype.",
           "The prefix used in rendered captions when referencing this type. If\nomitted, the field <code>reference-prefix</code> is used.",
           "If false, use no space between crossref prefixes and numbering.",
-          "The prefix string used in references (\u201Cdia-\u201D, etc.) when referencing\nthis type.",
+          "The key used to prefix reference labels of this type, such as \u201Cfig\u201D,\n\u201Ctbl\u201D, \u201Clst\u201D, etc.",
           "In LaTeX output, the name of the custom environment to be used.",
           "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom \u201Clist of\u201D command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
           "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If omitted, the field\n<code>reference-prefix</code> is used.",
@@ -20786,7 +21206,7 @@ try {
           "The subject term (defined by the schema).",
           {
             short: "Text describing the specialized type of this publication.",
-            long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.'
+            long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.'
           },
           "Text describing the format of this publication.",
           "Text describing the relation of this publication.",
@@ -20819,6 +21239,9 @@ try {
           "The name to display in the UI.",
           "The name of the language the kernel implements.",
           "The name of the kernel.",
+          "Configures the Julia engine.",
+          "Arguments to pass to the Julia worker process.",
+          "Environment variables to pass to the Julia worker process.",
           "Set Knitr options.",
           "Knit options.",
           "Knitr chunk options.",
@@ -21245,7 +21668,7 @@ try {
           "The base url for s5 presentations.",
           "The base url for Slidy presentations.",
           "The base url for Slideous presentations.",
-          "Enable or disable lightbox treatment for images in this document.",
+          'Enable or disable lightbox treatment for images in this document. See\n<a href="https://quarto.org/docs/output-formats/html-lightbox-figures.html">Lightbox\nFigures</a> for more details.',
           {
             short: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment.",
             long: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment. If you omit this, only images with the class\n<code>lightbox</code> will be given the lightbox treatment."
@@ -21356,10 +21779,12 @@ try {
           "The light theme name, theme scss file, or a mix of both.",
           "The dark theme name, theme scss file, or a mix of both.",
           "The dark theme name, theme scss file, or a mix of both.",
+          "Classes to apply to the body of the document.",
           "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
           "Enables inclusion of Pandoc default CSS for this document.",
           "One or more CSS style sheets.",
           "Enables hover over a section title to see an anchor link.",
+          "Enables tabsets to present content.",
           "Enables smooth scrolling within the page.",
           {
             short: "Method use to render math in HTML output",
@@ -21383,6 +21808,10 @@ try {
             short: "Use the given string as a command-line argument to the\n<code>pdf-engine</code>.",
             long: "Use the given string as a command-line argument to the pdf-engine.\nFor example, to use a persistent directory foo for latexmk\u2019s auxiliary\nfiles, use <code>pdf-engine-opt: -outdir=foo</code>. Note that no check\nfor duplicate options is done."
           },
+          {
+            short: "Pass multiple command-line arguments to the\n<code>pdf-engine</code>.",
+            long: "Use the given strings passed as a array as command-line arguments to\nthe pdf-engine. This is an alternative to <code>pdf-engine-opt</code>\nfor passing multiple options."
+          },
           "Whether to produce a Beamer article from this presentation.",
           "Add an extra Beamer option using <code>\\setbeameroption{}</code>.",
           "The aspect ratio for this presentation.",
@@ -21398,7 +21827,6 @@ try {
           "The section number in man pages.",
           "Enable and disable extensions for markdown output (e.g.&nbsp;\u201C+emoji\u201D)",
           "Specify whether to use <code>atx</code> (<code>#</code>-prefixed) or\n<code>setext</code> (underlined) headings for level 1 and 2 headings\n(<code>atx</code> or <code>setext</code>).",
-          "Preserve the original YAML front matter in rendered markdown",
           {
             short: "Determines which ipynb cell output formats are rendered\n(<code>none</code>, <code>all</code>, or <code>best</code>).",
             long: "Determines which ipynb cell output formats are rendered."
@@ -21449,7 +21877,7 @@ try {
           },
           {
             short: "Places footnote references or superscripted numerical citations after\nfollowing punctuation.",
-            long: 'If true (the default for note styles), Quarto (via Pandoc) will put\nfootnote references or superscripted numerical citations after following\npunctuation. For example, if the source contains blah blah <span class="citation" data-cites="jones99">[@jones99]</span>., the result\nwill look like blah blah.[^1], with the note moved after the period and\nthe space collapsed.\nIf false, the space will still be collapsed, but the footnote will\nnot be moved after the punctuation. The option may also be used in\nnumerical styles that use superscripts for citation numbers (but for\nthese styles the default is not to move the citation).'
+            long: "If true (the default for note styles), Quarto (via Pandoc) will put\nfootnote references or superscripted numerical citations after following\npunctuation. For example, if the source contains\n<code>blah blah [@jones99]</code>., the result will look like\n<code>blah blah.[^1]</code>, with the note moved after the period and\nthe space collapsed.\nIf false, the space will still be collapsed, but the footnote will\nnot be moved after the punctuation. The option may also be used in\nnumerical styles that use superscripts for citation numbers (but for\nthese styles the default is not to move the citation)."
           },
           {
             short: "Format to read from",
@@ -21482,6 +21910,7 @@ try {
           "Keep the notebook file generated from executing code.",
           "Filters to pre-process ipynb files before rendering to markdown",
           "Specify which nodes should be run interactively (displaying output\nfrom expressions)",
+          "If true, use the \u201Cnotebook_connected\u201D plotly renderer, which\ndownloads its dependencies from a CDN and requires an internet\nconnection to view.",
           "Keep the intermediate typst file used during render.",
           "Keep the intermediate tex file used during render.",
           {
@@ -21502,6 +21931,12 @@ try {
             long: "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa. (Technically, the correct\nterm would be ppi: pixels per inch.) The default is <code>96</code>.\nWhen images contain information about dpi internally, the encoded value\nis used instead of the default specified by this option."
           },
           "If <code>none</code>, do not process tables in HTML input.",
+          "If <code>none</code>, ignore any divs with\n<code>html-pre-tag-processing=parse</code> enabled.",
+          {
+            short: "CSS property translation",
+            long: "If <code>translate</code>, translate CSS properties into output\nformat properties. If <code>none</code>, do not process css\nproperties."
+          },
+          "If <code>true</code>, attempt to use <code>rsvg-convert</code> to\nconvert SVG images to PDF.",
           "Logo image (placed in bottom right corner of slides)",
           {
             short: "Footer to include on all slides",
@@ -21591,7 +22026,7 @@ try {
           "Play a subtle sound when changing slides",
           {
             short: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
-            long: "\u201CSlides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option\u201D"
+            long: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages. You can limit how many pages a slide may expand to using\nthis option."
           },
           "Prints each fragment on a separate slide",
           {
@@ -21701,16 +22136,17 @@ try {
           },
           {
             short: "Include an automatically generated table of contents",
-            long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
+            long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output\ndocument.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
           },
           {
             short: "Include an automatically generated table of contents",
-            long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
+            long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output\ndocument.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
           },
+          "The amount of indentation to use for each level of the table of\ncontents. The default is \u201C1.5em\u201D.",
           "Specify the number of section levels to include in the table of\ncontents. The default is 3",
           {
-            short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).",
-            long: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>right</code> - Show the Table of Contents in\nright margin of the document. <code>left-body</code> - Show two Tables\nof Contents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
+            short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), <code>left-body</code>,\n<code>right-body</code>).",
+            long: "Location for table of contents:"
           },
           "The title used for the table of contents.",
           "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
@@ -21734,6 +22170,10 @@ try {
           "The height of the preview image for this document.",
           "The width of the preview image for this document.",
           "The alt text for preview image on this page.",
+          {
+            short: "If true, the preview image will only load when it comes into\nview.",
+            long: 'Enables lazy loading for the preview image. If true, the preview\nimage element will have <code>loading="lazy"</code>, and will only load\nwhen it comes into view.\nIf false, the preview image will load immediately.'
+          },
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -21757,6 +22197,8 @@ try {
           "Base URL for published website",
           "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
           "Base URL for website source code repository",
+          "The value of the target attribute for repo links",
+          "The value of the rel attribute for repo links",
           "Subdirectory of repository containing website",
           "Branch of website source code (defaults to <code>main</code>)",
           "URL to use for the \u2018report an issue\u2019 repository action.",
@@ -21782,6 +22224,21 @@ try {
           {
             short: "The version number of Google Analytics to use.",
             long: "The version number of Google Analytics to use."
+          },
+          "Provides an announcement displayed at the top of the page.",
+          "The content of the announcement",
+          "Whether this announcement may be dismissed by the user.",
+          {
+            short: "The icon to display in the announcement",
+            long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+          },
+          {
+            short: "The position of the announcement.",
+            long: "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+          },
+          {
+            short: "The type of announcement. Affects the appearance of the\nannouncement.",
+            long: "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
           },
           {
             short: "Request cookie consent before enabling scripts that set cookies",
@@ -21838,10 +22295,14 @@ try {
           "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
           "List of items for the left side of the navbar.",
           "List of items for the right side of the navbar.",
+          "The position of the collapsed navbar toggle when in responsive\nmode",
+          "Collapse tools into the navbar menu when the display becomes\nnarrow.",
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -21857,6 +22318,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -21878,10 +22341,16 @@ try {
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
-          "A list of codes links to appear with this document.",
+          "A list of code links to appear with this document.",
+          "A list of input documents that should be treated as drafts",
+          {
+            short: "How to handle drafts that are encountered.",
+            long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
+          },
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -22072,6 +22541,8 @@ try {
           "Base URL for published website",
           "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
           "Base URL for website source code repository",
+          "The value of the target attribute for repo links",
+          "The value of the rel attribute for repo links",
           "Subdirectory of repository containing website",
           "Branch of website source code (defaults to <code>main</code>)",
           "URL to use for the \u2018report an issue\u2019 repository action.",
@@ -22097,6 +22568,21 @@ try {
           {
             short: "The version number of Google Analytics to use.",
             long: "The version number of Google Analytics to use."
+          },
+          "Provides an announcement displayed at the top of the page.",
+          "The content of the announcement",
+          "Whether this announcement may be dismissed by the user.",
+          {
+            short: "The icon to display in the announcement",
+            long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+          },
+          {
+            short: "The position of the announcement.",
+            long: "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+          },
+          {
+            short: "The type of announcement. Affects the appearance of the\nannouncement.",
+            long: "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
           },
           {
             short: "Request cookie consent before enabling scripts that set cookies",
@@ -22153,10 +22639,14 @@ try {
           "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
           "List of items for the left side of the navbar.",
           "List of items for the right side of the navbar.",
+          "The position of the collapsed navbar toggle when in responsive\nmode",
+          "Collapse tools into the navbar menu when the display becomes\nnarrow.",
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -22172,6 +22662,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -22193,10 +22685,16 @@ try {
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
-          "A list of codes links to appear with this document.",
+          "A list of code links to appear with this document.",
+          "A list of input documents that should be treated as drafts",
+          {
+            short: "How to handle drafts that are encountered.",
+            long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
+          },
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -22584,15 +23082,20 @@ try {
           dot: "//",
           ojs: "//",
           apl: "\u235D",
+          ocaml: [
+            "(*",
+            "*)"
+          ],
+          rust: "//",
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 180641,
+          _internalId: 187065,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 180633,
+              _internalId: 187057,
               type: "enum",
               enum: [
                 "png",
@@ -22608,7 +23111,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 180640,
+              _internalId: 187064,
               type: "anyOf",
               anyOf: [
                 {
@@ -23076,6 +23579,7 @@ ${heading}`;
     const mappedSource2 = source;
     return {
       value,
+      fileName: mappedSource2.fileName,
       map: (index, closest) => {
         if (closest) {
           index = Math.max(0, Math.min(value.length, index - 1));
@@ -29191,30 +29695,56 @@ ${reindented}
     try {
       return buildJsYamlAnnotation(mappedSource2);
     } catch (e) {
+      if (e.name === "YAMLError") {
+        e.name = "YAML Parsing";
+      }
       const m = e.stack.split("\n")[0].match(/^.+ \((\d+):(\d+)\)$/);
       if (m) {
-        const f = lineColToIndex(mappedSource2.value);
-        const location = { line: Number(m[1]) - 1, column: Number(m[2] - 1) };
-        const offset = f(location);
-        const { originalString } = mappedSource2.map(offset, true);
-        const filename = originalString.fileName;
-        const f2 = mappedIndexToLineCol(mappedSource2);
-        const { line, column } = f2(offset);
-        const sourceContext = createSourceContext(mappedSource2, {
-          start: offset,
-          end: offset + 1
-        });
-        e.stack = `${e.reason} (${filename}, ${line + 1}:${column + 1})
+        const m1 = mappedSource2.value.match(/([^\s]+):([^\s]+)/);
+        if (m1 && e.reason.match(/a multiline key may not be an implicit key/)) {
+          e.name = "YAML Parse Error";
+          e.reason = "block has incorrect key formatting";
+          const { originalString } = mappedSource2.map(m1.index, true);
+          const filename = originalString.fileName;
+          const map2 = mappedSource2.map(m1.index);
+          const { line, column } = indexToLineCol(map2.originalString.value)(
+            map2.index
+          );
+          const sourceContext = createSourceContext(mappedSource2, {
+            start: m1.index + 1,
+            end: m1.index + m1[0].length
+          });
+          e.stack = `${e.reason} (${filename}, ${line + 1}:${column + 1})
 ${sourceContext}`;
-        e.message = e.stack;
-        if (mappedLines(mappedSource2)[location.line].value.indexOf("!expr") !== -1 && e.reason.match(/bad indentation of a mapping entry/)) {
+          e.message = e.stack;
           e.message = `${e.message}
 ${tidyverseInfo(
-            "YAML tags like !expr must be followed by YAML strings."
-          )}
-${tidyverseInfo(
-            "Is it possible you need to quote the value you passed to !expr ?"
+            "Is it possible you missed a space after a colon in the key-value mapping?"
           )}`;
+        } else {
+          const f = lineColToIndex(mappedSource2.value);
+          const location = { line: Number(m[1]) - 1, column: Number(m[2] - 1) };
+          const offset = f(location);
+          const { originalString } = mappedSource2.map(offset, true);
+          const filename = originalString.fileName;
+          const f2 = mappedIndexToLineCol(mappedSource2);
+          const { line, column } = f2(offset);
+          const sourceContext = createSourceContext(mappedSource2, {
+            start: offset,
+            end: offset + 1
+          });
+          e.stack = `${e.reason} (${filename}, ${line + 1}:${column + 1})
+${sourceContext}`;
+          e.message = e.stack;
+          if (mappedLines(mappedSource2)[location.line].value.indexOf("!expr") !== -1 && e.reason.match(/bad indentation of a mapping entry/)) {
+            e.message = `${e.message}
+${tidyverseInfo(
+              "YAML tags like !expr must be followed by YAML strings."
+            )}
+${tidyverseInfo(
+              "Is it possible you need to quote the value you passed to !expr ?"
+            )}`;
+          }
         }
         e.stack = "";
       }
@@ -31775,17 +32305,31 @@ ${tidyverseInfo(
     haskell: "--",
     dot: "//",
     ojs: "//",
-    apl: "\u235D"
+    apl: "\u235D",
+    ocaml: ["(*", "*)"],
+    rust: "//"
   };
   function escapeRegExp(str2) {
     return str2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
   // ../parse-shortcode.ts
-  function isBlockShortcode(content) {
+  var InvalidShortcodeError = class extends Error {
+    constructor(msg) {
+      super(msg);
+    }
+  };
+  function isBlockShortcode(content, lenient) {
     const m = content.match(/^\s*{{< (?!\/\*)(.+?)(?<!\*\/) >}}\s*$/);
     if (m) {
-      return parseShortcode(m[1]);
+      try {
+        return parseShortcode(m[1]);
+      } catch (_e) {
+        if (lenient) {
+          return false;
+        }
+        throw _e;
+      }
     }
   }
   function parseShortcodeCapture(capture) {
@@ -31835,14 +32379,14 @@ ${tidyverseInfo(
         paramStr = paramStr.slice(paramMatch[0].length).trim();
         continue;
       }
-      throw new Error("invalid shortcode: " + capture);
+      throw new InvalidShortcodeError("invalid shortcode: " + capture);
     }
     return { name, params, namedParams, rawParams };
   }
   function parseShortcode(shortCodeCapture) {
     const result = parseShortcodeCapture(shortCodeCapture);
     if (!result) {
-      throw new Error("invalid shortcode: " + shortCodeCapture);
+      throw new InvalidShortcodeError("invalid shortcode: " + shortCodeCapture);
     }
     return result;
   }
@@ -31852,6 +32396,7 @@ ${tidyverseInfo(
     if (typeof src === "string") {
       src = asMappedString(src);
     }
+    const fileName = src.fileName;
     const nb = {
       cells: []
     };
@@ -31873,7 +32418,11 @@ ${tidyverseInfo(
         for (const line of lineBuffer) {
           mappedChunks.push(line.range);
         }
-        const source = mappedString(src, mappedChunks);
+        const source = mappedString(
+          src,
+          mappedChunks,
+          fileName
+        );
         const makeCellType = () => {
           if (cell_type === "code") {
             return { language };
@@ -31925,11 +32474,11 @@ ${tidyverseInfo(
             codeStartRange.range,
             ...mappedChunks,
             codeEndRange.range
-          ]);
+          ], fileName);
           cell.options = yaml;
           cell.sourceStartLine = sourceStartLine;
         } else if (cell_type === "directive") {
-          cell.source = mappedString(src, mappedChunks.slice(1, -1));
+          cell.source = mappedString(src, mappedChunks.slice(1, -1), fileName);
         }
         if (mdTrimEmptyLines(lines(cell.sourceVerbatim.value)).length > 0 || cell.options !== void 0) {
           nb.cells.push(cell);
@@ -31952,7 +32501,7 @@ ${tidyverseInfo(
     const srcLines = rangedLines(src.value, true);
     for (let i = 0; i < srcLines.length; ++i) {
       const line = srcLines[i];
-      const directiveMatch = isBlockShortcode(line.substring);
+      const directiveMatch = isBlockShortcode(line.substring, true);
       if (isYamlDelimiter(line.substring, i, !inYaml) && !inCodeCell && !inCode) {
         if (inYaml) {
           lineBuffer.push(line);
@@ -32946,7 +33495,7 @@ ${tidyverseInfo(
       if (codeLines.length < 2) {
         return noIntelligence(kind);
       }
-      const m = codeLines[0].substring.match(/.*{([a-z]+)}/);
+      const m = codeLines[0].substring.match(/.*{([a-z]+)\s*.*}/);
       if (!m) {
         return noIntelligence(kind);
       }

@@ -5,7 +5,7 @@
  */
 
 import { existsSync, expandGlobSync } from "fs/mod.ts";
-import { extname, join } from "path/mod.ts";
+import { extname, join } from "../deno_ral/path.ts";
 
 import {
   kLang,

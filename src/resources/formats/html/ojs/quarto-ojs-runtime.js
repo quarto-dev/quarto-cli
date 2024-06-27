@@ -1,4 +1,4 @@
-// quarto-ojs-runtime v0.0.18 Copyright 2023 undefined
+// quarto-ojs-runtime v0.0.18 Copyright 2024 undefined
 var EOL = {},
     EOF = {},
     QUOTE = 34,
@@ -5428,6 +5428,7 @@ class QuartoInspector extends Inspector {
     this._cellAst = cellAst;
   }
   rejected(error) {
+    console.error(`Error evaluating OJS cell\n${this._cellAst.input}\n${String(error)}`);
     return super.rejected(error);
   }
 }
@@ -5504,8 +5505,8 @@ function extendObservableStdlib(lib) {
 }
 
 class ShinyInspector extends QuartoInspector {
-  constructor(node) {
-    super(node);
+  constructor(node, cellAst) {
+    super(node, cellAst);
   }
   fulfilled(value, name) {
     if (shinyInputVars.has(name) && window.Shiny) {
@@ -19517,7 +19518,7 @@ function createOjsModuleFromHTMLSrc(text) {
   const doc = parser.parseFromString(text, "text/html");
   const staticDefns = [];
   for (const el of doc.querySelectorAll('script[type="ojs-define"]')) {
-    staticDefns.push(base64ToStr(el.text));
+    staticDefns.push(el.text);
   }
   const ojsSource = [];
   for (

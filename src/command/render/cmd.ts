@@ -4,10 +4,10 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, relative } from "path/mod.ts";
+import { dirname, relative } from "../../deno_ral/path.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 import { Command } from "cliffy/command/mod.ts";
-import { debug, info, warning } from "log/mod.ts";
+import { debug, info, warning } from "../../deno_ral/log.ts";
 
 import { fixupPandocArgs, kStdOut, parseRenderFlags } from "./flags.ts";
 
@@ -182,11 +182,46 @@ export const renderCommand = new Command()
       args = args.slice(firstPandocArg);
     }
 
+    // found by
+    // $ pandoc --help | grep '\[='
+    // cf https://github.com/jgm/pandoc/issues/8013#issuecomment-1094162866
+
+    const pandocArgsWithOptionalValues = [
+      "--file-scope",
+      "--sandbox",
+      "--standalone",
+      "--ascii",
+      "--toc",
+      "--preserve-tabs",
+      "--self-contained",
+      "--embed-resources",
+      "--no-check-certificate",
+      "--strip-comments",
+      "--reference-links",
+      "--list-tables",
+      "--listings",
+      "--incremental",
+      "--section-divs",
+      "--html-q-tags",
+      "--epub-title-page",
+      "--webtex",
+      "--mathjax",
+      "--katex",
+      "--trace",
+      "--dump-args",
+      "--ignore-args",
+      "--fail-if-warnings",
+      "--list-extensions",
+    ];
+
     // normalize args (to deal with args like --foo=bar)
     const normalizedArgs = [];
     for (const arg of args) {
       const equalSignIndex = arg.indexOf("=");
-      if (equalSignIndex > 0 && arg.startsWith("-")) {
+      if (
+        equalSignIndex > 0 && arg.startsWith("-") &&
+        !pandocArgsWithOptionalValues.includes(arg.slice(0, equalSignIndex))
+      ) {
         // Split the arg at the first equal sign
         normalizedArgs.push(arg.slice(0, equalSignIndex));
         normalizedArgs.push(arg.slice(equalSignIndex + 1));

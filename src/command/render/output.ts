@@ -12,11 +12,13 @@ import {
   join,
   relative,
   SEP_PATTERN,
-} from "path/mod.ts";
+} from "../../deno_ral/path.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { partitionYamlFrontMatter } from "../../core/yaml.ts";
+
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml/mod.ts";
 
 import {
   kOutputExt,
@@ -158,10 +160,20 @@ export function outputRecipe(
           const outputMd = partitionYamlFrontMatter(
             Deno.readTextFileSync(outputFile),
           );
+          // remove _quarto metadata
+          //
+          // this is required to avoid tests breaking due to the
+          // _quarto regexp tests finding themselves in the output
+          const yaml = parseYaml(
+            inputMd.yaml.replace(/^---+\n/m, "").replace(/\n---+\n*$/m, "\n"),
+          ) as Record<string, unknown>;
+          delete yaml._quarto;
+          const yamlString = `---\n${stringifyYaml(yaml)}---\n`;
+
           const markdown = outputMd?.markdown || output;
           Deno.writeTextFileSync(
             outputFile,
-            inputMd.yaml + "\n\n" + markdown,
+            yamlString + "\n\n" + markdown,
           );
         }
       });

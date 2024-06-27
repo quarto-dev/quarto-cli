@@ -1,0 +1,11 @@
+---
+title: "No Caption Figure Test"
+author: Jane Doe
+format: typst
+---
+
+Text.
+
+![](surus.jpg){#fig-xkcd}
+
+Text.

@@ -6,7 +6,7 @@
 
 import { readRegistryKey } from "./windows.ts";
 import { which } from "./path.ts";
-import { error, info } from "log/mod.ts";
+import { error, info } from "../deno_ral/log.ts";
 import { existsSync } from "fs/mod.ts";
 import { UnreachableError } from "./lib/error.ts";
 import { quartoDataDir } from "./appdirs.ts";
@@ -264,7 +264,7 @@ export async function getBrowserExecutablePath() {
   if (executablePath === undefined) {
     error("Chrome not found");
     info(
-      "\nNo Chrome or Chromium installation was detected.\n\nPlease run 'quarto tools install chromium' to install Chromium.\n",
+      "\nNo Chrome or Chromium installation was detected.\n\nPlease run 'quarto install chromium' to install Chromium.\n",
     );
     throw new Error();
   }

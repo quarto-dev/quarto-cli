@@ -74,6 +74,8 @@ document:
 
   figures:
     title: "Figures"
+  lightbox:
+    title: "Lightbox Figures"
   tables:
     title: "Tables"
   links:

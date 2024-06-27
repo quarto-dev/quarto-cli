@@ -7,8 +7,12 @@ body:
     attributes:
       value: |
         Welcome to the quarto GitHub repository!
-
         We are always happy to hear feedback from our users.
+
+        This is the repository for the command-line program `quarto`:
+        
+        - If you're reporting an issue with the VS Code extension, please visit https://github.com/quarto-dev/quarto
+        - If you're reporting an issue inside RStudio, please visit https://github.com/rstudio/rstudio
 
         Quarto is under active development!
         If convenient, we'd appreciate if you could check that the issue persists on the [latest pre-release](https://github.com/quarto-dev/quarto-cli/releases).
@@ -80,7 +84,9 @@ body:
         ```bash
         quarto check
         ```
-  
+    validations:
+      required: true
+
   - type: markdown
     attributes:
       value: "_Thanks for submitting this bug report!_"

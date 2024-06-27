@@ -1,0 +1,67 @@
+---
+title: "reprex_new_standalone"
+bibliography: "grateful-refs.bib"
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - ["85b77c8a-261c-4f58-9b04-f21c67e0a758"]
+---
+
+
+::: {.cell}
+
+```{.r .cell-code}
+library(grateful)
+library(knitr)
+library(yaml)
+cites <- cite_packages(
+  output = "table",
+  out.dir = ".",
+  cite.tidyverse = TRUE,
+  pkgs = "All",
+  include.RStudio = TRUE,
+  dependencies = FALSE
+)
+```
+
+::: {.cell-output .cell-output-stderr}
+
+```
+Loading required namespace: rstudioapi
+```
+
+
+:::
+:::
+
+
+::: {#fig-PackageVersions}
+
+
+::: {.cell}
+
+```{.r .cell-code}
+knitr::kable(cites)
+```
+
+::: {.cell-output-display}
+
+
+|Package   |Version |Citation                                       |
+|:---------|:-------|:----------------------------------------------|
+|base      |4.3.2   |@base                                          |
+|knitr     |1.45    |@knitr2014; @knitr2015; @knitr2023             |
+|rmarkdown |2.25    |@rmarkdown2018; @rmarkdown2020; @rmarkdown2023 |
+|yaml      |2.3.7   |@yaml                                          |
+
+
+:::
+:::
+
+
+A caption for a figure (but in fact it is a table).
+
+:::

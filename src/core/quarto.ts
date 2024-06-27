@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 import { existsSync } from "fs/exists.ts";
-import { extname, join } from "path/mod.ts";
-import { info } from "log/mod.ts";
+import { extname, join } from "../deno_ral/path.ts";
+import { info } from "../deno_ral/log.ts";
 import * as colors from "fmt/colors.ts";
 import { load as config, LoadOptions as ConfigOptions } from "dotenv/mod.ts";
 
@@ -13,7 +13,7 @@ import { getenv } from "./env.ts";
 import { exitWithCleanup } from "./cleanup.ts";
 import { onActiveProfileChanged } from "../project/project-profile.ts";
 import { onDotenvChanged } from "../quarto-core/dotenv.ts";
-import { normalizePath } from "./path.ts";
+import { normalizePath, safeExistsSync } from "./path.ts";
 import { buildQuartoPreviewJs } from "./previewjs.ts";
 
 export const kLocalDevelopment = "99.9.9";
@@ -43,16 +43,32 @@ export const quartoConfig = {
       return kLocalDevelopment;
     }
   },
-  dotenv: async (): Promise<Record<string, string>> => {
-    if (!dotenvConfig) {
+  cliPath: () => {
+    // full path to quarto, quarto.cmd or quarto.exe depending on OS
+    const binPath = quartoConfig.binPath();
+    if (Deno.build.os !== "windows") {
+      return join(binPath, "quarto");
+    }
+    // WINDOWS
+    const cliPath = join(binPath, "quarto.exe");
+    if (safeExistsSync(cliPath)) {
+      return cliPath;
+    }
+    // we are in dev mode were only quarto.cmd is available
+    return join(binPath, "quarto.cmd");
+  },
+  dotenv: async (forceReload?: boolean): Promise<Record<string, string>> => {
+    if (forceReload || !dotenvConfig) {
       const options: ConfigOptions = {
         defaultsPath: join(quartoConfig.sharePath(), "env", "env.defaults"),
+        // On dev mode only (QUARTO_DEBUG='true'), we load the .env file in root quarto-cli project
+        envPath: quartoConfig.isDebug()
+          ? join(quartoConfig.sharePath(), "..", "..", ".env")
+          : null,
+        // we don't want any `.env.example` o be loaded, especially one from working dir
+        // https://github.com/quarto-dev/quarto-cli/issues/9262
+        examplePath: null,
       };
-      if (quartoConfig.isDebug()) {
-        options.envPath = join(quartoConfig.sharePath(), "..", "..", ".env");
-      } else {
-        options.envPath = options.defaultsPath;
-      }
       dotenvConfig = await config(options);
     }
     return dotenvConfig;

@@ -7,7 +7,7 @@
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "../deno_ral/path.ts";
 
 import { projectContext } from "../project/project-context.ts";
 import { TempContext } from "../core/temp-types.ts";
@@ -18,7 +18,7 @@ import { kExtensionDir } from "./constants.ts";
 import { withSpinner } from "../core/console.ts";
 import { downloadWithProgress } from "../core/download.ts";
 import { createExtensionContext, readExtensions } from "./extension.ts";
-import { info } from "log/mod.ts";
+import { info } from "../deno_ral/log.ts";
 import { ExtensionSource, extensionSource } from "./extension-host.ts";
 import { safeExistsSync } from "../core/path.ts";
 import { InternalError } from "../core/lib/error.ts";
@@ -70,7 +70,7 @@ export async function installExtension(
     const confirmed = await confirmInstallation(
       stagedExtensions,
       installDir,
-      allowPrompt,
+      { allowPrompt },
     );
 
     if (confirmed) {
@@ -270,35 +270,38 @@ async function unzipAndStage(
   const findExtensionDir = () => {
     if (source.targetSubdir) {
       // If the source provides a subdirectory, just use that
-      return join(archiveDir, source.targetSubdir);
-    } else {
-      // Otherwise, we should inspect the directory either:
-      // - use the directory itself it has an _extensions dir
-      // - use a subdirectory if there is a single subdirectory and it has an
-      // _extensions dir
-      if (safeExistsSync(join(archiveDir, kExtensionDir))) {
-        return archiveDir;
-      } else {
-        const dirEntries = Deno.readDirSync(archiveDir);
-        let count = 0;
-        let name;
-        for (const dirEntry of dirEntries) {
-          // ignore any files
-          if (dirEntry.isDirectory) {
-            name = dirEntry.name;
-            count++;
-          }
-        }
+      const subDirPath = join(archiveDir, source.targetSubdir);
+      if (existsSync(subDirPath)) {
+        return subDirPath;
+      }
+    }
 
-        if (count === 1 && name && name !== kExtensionDir) {
-          if (safeExistsSync(join(archiveDir, name, kExtensionDir))) {
-            return join(archiveDir, name);
-          } else {
-            return archiveDir;
-          }
+    // Otherwise, we should inspect the directory either:
+    // - use the directory itself it has an _extensions dir
+    // - use a subdirectory if there is a single subdirectory and it has an
+    // _extensions dir
+    if (safeExistsSync(join(archiveDir, kExtensionDir))) {
+      return archiveDir;
+    } else {
+      const dirEntries = Deno.readDirSync(archiveDir);
+      let count = 0;
+      let name;
+      for (const dirEntry of dirEntries) {
+        // ignore any files
+        if (dirEntry.isDirectory) {
+          name = dirEntry.name;
+          count++;
+        }
+      }
+
+      if (count === 1 && name && name !== kExtensionDir) {
+        if (safeExistsSync(join(archiveDir, name, kExtensionDir))) {
+          return join(archiveDir, name);
         } else {
           return archiveDir;
         }
+      } else {
+        return archiveDir;
       }
     }
   };
@@ -368,23 +371,24 @@ async function validateExtension(path: string) {
   return extensions;
 }
 
+export interface ConfirmationOptions {
+  allowPrompt: boolean;
+  throw?: boolean;
+  message?: string;
+}
+
 // Confirm that the user would like to proceed with the installation
-async function confirmInstallation(
+export async function confirmInstallation(
   extensions: Extension[],
   installDir: string,
-  allowPrompt: boolean,
+  options: ConfirmationOptions,
 ) {
   const readExisting = async () => {
     try {
-      const existingExtensionsDir = join(installDir, kExtensionDir);
-      if (Deno.statSync(existingExtensionsDir).isDirectory) {
-        const existingExtensions = await readExtensions(
-          join(installDir, kExtensionDir),
-        );
-        return existingExtensions;
-      } else {
-        return [];
-      }
+      const existingExtensions = await readExtensions(
+        join(installDir, kExtensionDir),
+      );
+      return existingExtensions;
     } catch {
       return [];
     }
@@ -404,6 +408,15 @@ async function confirmInstallation(
         existing.id.organization === extension.id.organization;
     });
   };
+  if (existingExtensions.length > 0 && !options.allowPrompt && options.throw) {
+    throw new Error(
+      `There are extensions installed which would be overwritten. Aborting installation.\n${
+        existingExtensions.map((ext) => {
+          return ext.title;
+        }).join("\n - ")
+      }`,
+    );
+  }
 
   const typeStr = (to: Extension) => {
     const contributes = to.contributes;
@@ -520,11 +533,16 @@ async function confirmInstallation(
   if (extensionRows.length > 0) {
     const table = new Table(...extensionRows);
     info(
-      `\nThe following changes will be made:\n${table.toString()}`,
+      `\n${
+        options.message || "The following changes will be made:"
+      }\n${table.toString()}`,
     );
     const question = "Would you like to continue";
-    return !allowPrompt ||
-      await Confirm.prompt({ message: question, default: true });
+    return !options.allowPrompt ||
+      await Confirm.prompt({
+        message: question,
+        default: true,
+      });
   } else {
     info(`\nNo changes required - extensions already installed.`);
     return true;
@@ -532,7 +550,7 @@ async function confirmInstallation(
 }
 
 // Copy the extension files into place
-async function completeInstallation(
+export async function completeInstallation(
   downloadDir: string,
   installDir: string,
 ) {

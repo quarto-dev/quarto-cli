@@ -1,0 +1,16 @@
+---
+format: 
+  pdf:
+    geometry:
+      - showframe
+    keep-tex: true
+keep-tex: true
+---
+
+```{r}
+#| label: tbl-cars
+#| tbl-cap: "Cars"
+#| column: screen
+
+knitr::kable(head(cars))
+```

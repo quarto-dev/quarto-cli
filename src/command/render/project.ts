@@ -5,8 +5,9 @@
  */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { info, warning } from "log/mod.ts";
+import { dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
+import { info, warning } from "../../deno_ral/log.ts";
+import { mergeProjectMetadata } from "../../config/metadata.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -28,6 +29,7 @@ import {
   kProjectType,
   ProjectContext,
 } from "../../project/types.ts";
+import { kQuartoScratch } from "../../project/project-scratch.ts";
 
 import { projectType } from "../../project/types/project-types.ts";
 import { copyResourceFile } from "../../project/project-resources.ts";
@@ -66,29 +68,76 @@ import {
 } from "../../project/project-shared.ts";
 import { asArray } from "../../core/array.ts";
 import { normalizePath } from "../../core/path.ts";
-import { isSubdir } from "fs/_util.ts";
+import { isSubdir } from "fs/_is_subdir.ts";
 import { Format } from "../../config/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
+import { projectContextForDirectory } from "../../project/project-context.ts";
+import { ProjectType } from "../../project/types/types.ts";
+import { ProjectConfig as ProjectConfig_Project } from "../../resources/types/schema-types.ts";
+import { Extension } from "../../extension/types.ts";
 
-export async function renderProject(
-  context: ProjectContext,
-  options: RenderOptions,
-  files?: string[],
-): Promise<RenderResult> {
-  // lookup the project type
-  const projType = projectType(context.config?.project?.[kProjectType]);
+const noMutationValidations = (
+  projType: ProjectType,
+  projOutputDir: string,
+  projDir: string,
+) => {
+  return [{
+    val: projType,
+    newVal: (context: ProjectContext) => {
+      return projectType(context.config?.project?.[kProjectType]);
+    },
+    msg: "The project type may not be mutated by the pre-render script",
+  }, {
+    val: projOutputDir,
+    newVal: (context: ProjectContext) => {
+      return projectOutputDir(context);
+    },
+    msg: "The project output-dir may not be mutated by the pre-render script",
+  }, {
+    val: projDir,
+    newVal: (context: ProjectContext) => {
+      return normalizePath(context.dir);
+    },
+    msg: "The project dir may not be mutated by the pre-render script",
+  }];
+};
 
-  const projOutputDir = projectOutputDir(context);
+interface ProjectInputs {
+  projType: ProjectType;
+  projOutputDir: string;
+  projDir: string;
+  context: ProjectContext;
+  files: string[] | undefined;
+  options: RenderOptions;
+}
 
-  // get real path to the project
-  const projDir = normalizePath(context.dir);
+interface ProjectRenderConfig {
+  behavior: {
+    incremental: boolean;
+    renderAll: boolean;
+  };
+  alwaysExecuteFiles: string[] | undefined;
+  filesToRender: RenderFile[];
+  options: RenderOptions;
+  supplements: {
+    files: RenderFile[];
+    onRenderComplete?: (
+      project: ProjectContext,
+      files: string[],
+      incremental: boolean,
+    ) => Promise<void>;
+  };
+}
 
+const computeProjectRenderConfig = async (
+  inputs: ProjectInputs,
+): Promise<ProjectRenderConfig> => {
   // is this an incremental render?
-  const incremental = !!files;
+  const incremental = !!inputs.files;
 
   // force execution for any incremental files (unless options.useFreezer is set)
-  let alwaysExecuteFiles = incremental && !options.useFreezer
-    ? ld.cloneDeep(files) as string[]
+  let alwaysExecuteFiles = incremental && !inputs.options.useFreezer
+    ? ld.cloneDeep(inputs.files) as string[]
     : undefined;
 
   // file normaliation
@@ -102,12 +151,12 @@ export async function renderProject(
     });
   };
 
-  if (files) {
+  if (inputs.files) {
     if (alwaysExecuteFiles) {
       alwaysExecuteFiles = normalizeFiles(alwaysExecuteFiles);
-      files = normalizeFiles(files);
-    } else if (options.useFreezer) {
-      files = normalizeFiles(files);
+      inputs.files = normalizeFiles(inputs.files);
+    } else if (inputs.options.useFreezer) {
+      inputs.files = normalizeFiles(inputs.files);
     }
   }
 
@@ -116,24 +165,25 @@ export async function renderProject(
   // for projects that produce self-contained output from a
   // collection of input files)
   if (
-    files && alwaysExecuteFiles &&
-    projType.incrementalRenderAll &&
-    await projType.incrementalRenderAll(context, options, files)
+    inputs.files && alwaysExecuteFiles &&
+    inputs.projType.incrementalRenderAll &&
+    await inputs.projType.incrementalRenderAll(
+      inputs.context,
+      inputs.options,
+      inputs.files,
+    )
   ) {
-    files = context.files.input;
-    options = { ...options, useFreezer: true };
+    inputs.files = inputs.context.files.input;
+    inputs.options = { ...inputs.options, useFreezer: true };
   }
 
   // some standard pre and post render script env vars
-  const renderAll = !files || (files.length === context.files.input.length);
-  const prePostEnv = {
-    "QUARTO_PROJECT_OUTPUT_DIR": projOutputDir,
-    ...(renderAll ? { QUARTO_PROJECT_RENDER_ALL: "1" } : {}),
-  };
+  const renderAll = !inputs.files ||
+    (inputs.files.length === inputs.context.files.input.length);
 
   // default for files if not specified
-  files = files || context.files.input;
-  const filesToRender: RenderFile[] = files.map((file) => {
+  inputs.files = inputs.files || inputs.context.files.input;
+  const filesToRender: RenderFile[] = inputs.files.map((file) => {
     return { path: file };
   });
 
@@ -143,9 +193,9 @@ export async function renderProject(
   // We don't add supplemental files when this is a dev server reload
   // to improve render performance
   const projectSupplement = (filesToRender: RenderFile[]) => {
-    if (projType.supplementRender && !options.devServerReload) {
-      return projType.supplementRender(
-        context,
+    if (inputs.projType.supplementRender && !inputs.options.devServerReload) {
+      return inputs.projType.supplementRender(
+        inputs.context,
         filesToRender,
         incremental,
       );
@@ -156,25 +206,99 @@ export async function renderProject(
   const supplements = projectSupplement(filesToRender);
   filesToRender.push(...supplements.files);
 
-  // projResults to return
-  const projResults: RenderResult = {
-    context,
-    baseDir: projDir,
-    outputDir: relative(projDir, projOutputDir),
-    files: [],
+  return {
+    alwaysExecuteFiles,
+    filesToRender,
+    options: inputs.options,
+    supplements,
+    behavior: {
+      renderAll,
+      incremental,
+    },
   };
+};
+
+const getProjectRenderScripts = async (
+  context: ProjectContext,
+) => {
+  const preRenderScripts: string[] = [],
+    postRenderScripts: string[] = [];
+  if (context.config?.project?.[kProjectPreRender]) {
+    preRenderScripts.push(
+      ...asArray(context.config?.project?.[kProjectPreRender]!),
+    );
+  }
+  if (context.config?.project?.[kProjectPostRender]) {
+    postRenderScripts.push(
+      ...asArray(context.config?.project?.[kProjectPostRender]!),
+    );
+  }
+  return { preRenderScripts, postRenderScripts };
+};
+
+const mergeExtensionMetadata = async (
+  context: ProjectContext,
+  pOptions: RenderOptions,
+) => {
+  // this will mutate context.config.project to merge
+  // in any project metadata from extensions
+  if (context.config) {
+    const extensions = await pOptions.services.extension.extensions(
+      undefined,
+      context.config,
+      context.isSingleFile ? undefined : context.dir,
+      { builtIn: false },
+    );
+    const projectMetadata = extensions.map((extension) =>
+      extension.contributes.metadata?.project
+    ).filter((project) => project) as ProjectConfig_Project[];
+    context.config.project = mergeProjectMetadata(
+      context.config.project,
+      ...projectMetadata,
+    );
+  }
+};
+
+export async function renderProject(
+  context: ProjectContext,
+  pOptions: RenderOptions,
+  pFiles?: string[],
+): Promise<RenderResult> {
+  await mergeExtensionMetadata(context, pOptions);
+  const { preRenderScripts, postRenderScripts } = await getProjectRenderScripts(
+    context,
+  );
+
+  // lookup the project type
+  const projType = projectType(context.config?.project?.[kProjectType]);
+
+  const projOutputDir = projectOutputDir(context);
+
+  // get real path to the project
+  const projDir = normalizePath(context.dir);
+
+  let projectRenderConfig = await computeProjectRenderConfig({
+    context,
+    projType,
+    projOutputDir,
+    projDir,
+    options: pOptions,
+    files: pFiles,
+  });
 
   // ensure we have the requisite entries in .gitignore
   await ensureGitignore(context.dir);
 
   // determine whether pre and post render steps should show progress
-  const progress = !!options.progress || (filesToRender.length > 1);
+  const progress = !!projectRenderConfig.options.progress ||
+    (projectRenderConfig.filesToRender.length > 1);
 
   // if there is an output dir then remove it if clean is specified
   if (
-    renderAll && hasProjectOutputDir(context) &&
-    (options.forceClean ||
-      (options.flags?.clean == true) && (projType.cleanOutputDir === true))
+    projectRenderConfig.behavior.renderAll && hasProjectOutputDir(context) &&
+    (projectRenderConfig.options.forceClean ||
+      (projectRenderConfig.options.flags?.clean == true) &&
+        (projType.cleanOutputDir === true))
   ) {
     // ouptut dir
     const realProjectDir = normalizePath(context.dir);
@@ -191,21 +315,58 @@ export async function renderProject(
     clearProjectIndex(realProjectDir);
   }
 
+  // Create the environment that needs to be made available to the
+  // pre/post render scripts.
+  const prePostEnv = {
+    "QUARTO_PROJECT_OUTPUT_DIR": projOutputDir,
+    ...(projectRenderConfig.behavior.renderAll
+      ? { QUARTO_PROJECT_RENDER_ALL: "1" }
+      : {}),
+  };
+
   // run pre-render step if we are rendering all files
-  if (context.config?.project?.[kProjectPreRender]) {
+  if (preRenderScripts.length) {
     await runPreRender(
       projDir,
-      asArray(context.config?.project?.[kProjectPreRender]!),
+      preRenderScripts,
       progress,
-      !!options.flags?.quiet,
+      !!projectRenderConfig.options.flags?.quiet,
       {
         ...prePostEnv,
-        QUARTO_PROJECT_INPUT_FILES: filesToRender
+        QUARTO_PROJECT_INPUT_FILES: projectRenderConfig.filesToRender
           .map((fileToRender) => fileToRender.path)
           .map((file) => relative(projDir, file))
           .join("\n"),
       },
     );
+
+    // re-initialize project context
+    context = await projectContextForDirectory(
+      context.dir,
+      context.notebookContext,
+      projectRenderConfig.options,
+    );
+
+    // Validate that certain project properties haven't been mutated
+    noMutationValidations(projType, projOutputDir, projDir).some(
+      (validation) => {
+        if (!ld.isEqual(validation.newVal(context), validation.val)) {
+          throw new Error(
+            `Pre-render script resulted in a project change that is now allowed.\n${validation.msg}`,
+          );
+        }
+      },
+    );
+
+    // Recompute the project render list (filesToRender)
+    projectRenderConfig = await computeProjectRenderConfig({
+      context,
+      projType,
+      projOutputDir,
+      projDir,
+      options: pOptions,
+      files: pFiles,
+    });
   }
 
   // lookup the project type and call preRender
@@ -215,11 +376,14 @@ export async function renderProject(
 
   // set execute dir if requested
   const executeDir = context.config?.project?.[kProjectExecuteDir];
-  if (options.flags?.executeDir === undefined && executeDir === "project") {
-    options = {
-      ...options,
+  if (
+    projectRenderConfig.options.flags?.executeDir === undefined &&
+    executeDir === "project"
+  ) {
+    projectRenderConfig.options = {
+      ...projectRenderConfig.options,
       flags: {
-        ...options.flags,
+        ...projectRenderConfig.options.flags,
         executeDir: projDir,
       },
     };
@@ -230,11 +394,20 @@ export async function renderProject(
   // kernels in memory). we use 3 rather than 1 because w/ blogs
   // and listings there may be addtional files added to the render list
   if (
-    filesToRender.length > 3 && options.flags &&
-    options.flags.executeDaemon === undefined
+    projectRenderConfig.filesToRender.length > 3 &&
+    projectRenderConfig.options.flags &&
+    projectRenderConfig.options.flags.executeDaemon === undefined
   ) {
-    options.flags.executeDaemon = 0;
+    projectRenderConfig.options.flags.executeDaemon = 0;
   }
+
+  // projResults to return
+  const projResults: RenderResult = {
+    context,
+    baseDir: projDir,
+    outputDir: relative(projDir, projOutputDir),
+    files: [],
+  };
 
   // determine the output dir
   const outputDir = projResults.outputDir;
@@ -250,7 +423,7 @@ export async function renderProject(
   const resourcesFrom = async (file: RenderedFile) => {
     // resource files
     const partitioned = await partitionedMarkdownForInput(
-      projDir,
+      context,
       file.input,
     );
     const excludeDirs = context ? projectExcludeDirs(context) : [];
@@ -266,12 +439,12 @@ export async function renderProject(
 
   // render the files
   const fileResults = await renderFiles(
-    filesToRender,
-    options,
+    projectRenderConfig.filesToRender,
+    projectRenderConfig.options,
     context.notebookContext,
-    alwaysExecuteFiles,
+    projectRenderConfig.alwaysExecuteFiles,
     projType?.pandocRenderer
-      ? projType.pandocRenderer(options, context)
+      ? projType.pandocRenderer(projectRenderConfig.options, context)
       : undefined,
     context,
   );
@@ -444,7 +617,8 @@ export async function renderProject(
         // if this is an incremental render or we are uzing the freezer, then
         // copy lib dirs incrementally (don't replace the whole directory).
         // otherwise, replace the whole thing so we get a clean start
-        const libsIncremental = !!(incremental || options.useFreezer);
+        const libsIncremental = !!(projectRenderConfig.behavior.incremental ||
+          projectRenderConfig.options.useFreezer);
 
         // determine format lib dirs (for pruning)
         const formatLibDirs = projType.formatLibDirs
@@ -598,7 +772,11 @@ export async function renderProject(
     // engine post-render
     for (const file of projResults.files) {
       const path = join(context.dir, file.input);
-      const engine = fileExecutionEngine(path, options.flags);
+      const engine = await fileExecutionEngine(
+        path,
+        projectRenderConfig.options.flags,
+        context,
+      );
       if (engine?.postRender) {
         await engine.postRender(file, projResults.context);
       }
@@ -628,19 +806,19 @@ export async function renderProject(
     if (projType.postRender) {
       await projType.postRender(
         context,
-        incremental,
+        projectRenderConfig.behavior.incremental,
         outputFiles,
         moveOutputResult,
       );
     }
 
     // run post-render if this isn't incremental
-    if (context.config?.project?.[kProjectPostRender]) {
+    if (postRenderScripts.length) {
       await runPostRender(
         projDir,
-        asArray(context.config?.project?.[kProjectPostRender]!),
+        postRenderScripts,
         progress,
-        !!options.flags?.quiet,
+        !!projectRenderConfig.options.flags?.quiet,
         {
           ...prePostEnv,
           QUARTO_PROJECT_OUTPUT_FILES: outputFiles
@@ -653,6 +831,7 @@ export async function renderProject(
 
   // Mark any rendered files as supplemental if that
   // is how they got into the render list
+  const supplements = projectRenderConfig.supplements;
   projResults.files.forEach((file) => {
     if (
       supplements.files.find((supFile) => {
@@ -672,9 +851,23 @@ export async function renderProject(
     await supplements.onRenderComplete(
       context,
       nonSupplementalFiles,
-      incremental,
+      projectRenderConfig.behavior.incremental,
     );
   }
+
+  // in addition to the cleanup above, if forceClean is set, we need to clean up the project scratch dir
+  // entirely. See options.forceClean in render-shared.ts
+  // .quarto is really a fiction created because of `--output-dir` being set on non-project
+  // renders
+  //
+  // cf https://github.com/quarto-dev/quarto-cli/issues/9745#issuecomment-2125951545
+  if (projectRenderConfig.options.forceClean) {
+    const scratchDir = join(projDir, kQuartoScratch);
+    if (existsSync(scratchDir)) {
+      Deno.removeSync(scratchDir, { recursive: true });
+    }
+  }
+
   return projResults;
 }
 

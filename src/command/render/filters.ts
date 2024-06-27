@@ -15,6 +15,7 @@ import {
   kCodeFold,
   kCodeLineNumbers,
   kCodeSummary,
+  kCssPropertyProcessing,
   kEnableCrossRef,
   kFigAlign,
   kFigEnv,
@@ -23,6 +24,7 @@ import {
   kFormatIdentifier,
   kHeaderIncludes,
   kHtmlMathMethod,
+  kHtmlPreTagProcessing,
   kHtmlTableProcessing,
   kIncludeAfter,
   kIncludeAfterBody,
@@ -48,11 +50,11 @@ import {
   kTblColwidths,
   kTocTitleDocument,
   kUnrollMarkdownCells,
+  kUseRsvgConvert,
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
 import {
   Format,
-  FormatLanguage,
   FormatPandoc,
   isFilterEntryPoint,
   QuartoFilter,
@@ -80,13 +82,14 @@ import { quartoConfig } from "../../core/quarto.ts";
 import { metadataNormalizationFilterActive } from "./normalize.ts";
 import { kCodeAnnotations } from "../../format/html/format-html-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { relative } from "path/mod.ts";
+import { relative } from "../../deno_ral/path.ts";
 import { citeIndexFilterParams } from "../../project/project-cites.ts";
-import { debug } from "log/mod.ts";
+import { debug } from "../../deno_ral/log.ts";
 import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
 import { shortUuid } from "../../core/uuid.ts";
 import { isServerShinyPython } from "../../core/render.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
+import { kTocIndent } from "../../config/constants.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -104,6 +107,8 @@ const kHasBootstrap = "has-bootstrap";
 const kActiveFilters = "active-filters";
 
 const kQuartoVersion = "quarto-version";
+
+const kQuartoCliPath = "quarto-cli-path";
 
 const kQuartoSource = "quarto-source";
 
@@ -155,6 +160,10 @@ export async function filterParamsJson(
     options.executionEngine,
   );
 
+  const typstFilterParams = extractTypstFilterParams(
+    options.format,
+  );
+
   const params: Metadata = {
     ...includes,
     ...initFilterParams(dependenciesFile),
@@ -170,6 +179,7 @@ export async function filterParamsJson(
     ...notebookContextFilterParams(options),
     ...filterParams,
     ...customFormatParams,
+    ...typstFilterParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
     [kTimingFile]: pandocMetadataPath(timingFile),
     [kQuartoFilters]: filterSpec,
@@ -566,6 +576,11 @@ async function quartoFilterParams(
   if (htmlTableProcessing) {
     params[kHtmlTableProcessing] = htmlTableProcessing;
   }
+  const useRsvgConvert = format.render[kUseRsvgConvert];
+  if (useRsvgConvert !== undefined) {
+    params[kUseRsvgConvert] = useRsvgConvert;
+  }
+
   const tblColwidths = format.render[kTblColwidths];
   if (tblColwidths !== undefined) {
     params[kTblColwidths] = tblColwidths;
@@ -638,6 +653,9 @@ async function quartoFilterParams(
 
   // version
   params[kQuartoVersion] = quartoConfig.version();
+
+  // cli path
+  params[kQuartoCliPath] = quartoConfig.cliPath();
 
   // code-annotations
   params[kCodeAnnotations] = format.metadata[kCodeAnnotations];
@@ -824,9 +842,13 @@ async function resolveFilterExtension(
     // into the filters provided by the extension
     if (
       filter !== kQuartoFilterMarker && filter !== kQuartoCiteProcMarker &&
-      typeof filter === "string" &&
-      !existsSync(filter)
+      typeof filter === "string"
     ) {
+      // The filter string points to an executable file which exists
+      if (existsSync(filter) && !Deno.statSync(filter).isDirectory) {
+        return filter;
+      }
+
       const extensions = await options.services.extension?.find(
         filter,
         options.source,
@@ -869,3 +891,11 @@ async function resolveFilterExtension(
   }
   return results.flat();
 }
+
+const extractTypstFilterParams = (format: Format) => {
+  return {
+    [kTocIndent]: format.metadata[kTocIndent],
+    [kCssPropertyProcessing]: format.metadata[kCssPropertyProcessing],
+    [kHtmlPreTagProcessing]: format.metadata[kHtmlPreTagProcessing],
+  };
+};

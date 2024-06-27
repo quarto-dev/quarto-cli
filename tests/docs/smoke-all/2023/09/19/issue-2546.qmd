@@ -5,7 +5,6 @@ _quarto:
     latex:
       ensureFileRegexMatches:
         - 
-          - "\\\\captionsetup\\{labelsep=none\\}"
           - "\\\\caption\\{\\\\label\\{fig-chapter-2\\}One with a caption\\}"
         - []
     html:

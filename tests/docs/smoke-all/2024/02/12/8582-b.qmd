@@ -1,0 +1,19 @@
+---
+title: hello
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["table#quarto-bug"]
+        - []
+---
+
+### A
+
+```{=html}
+<div>
+  <table id='quarto-bug' data-quarto-disable-processing="true"><tr><td>Hello</td></tr></table>
+</div>
+```
+
+1

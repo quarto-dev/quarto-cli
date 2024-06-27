@@ -13,6 +13,11 @@ on:
         required: false
         type: boolean
         default: false
+      extra-r-packages:
+        description: "extra R package to install for the runs (like a dev version of one of the deps) - comma separated, passed to renv::install"
+        required: false
+        type: string
+        default: ""
   workflow_dispatch:
     inputs:
       buckets:
@@ -25,12 +30,17 @@ on:
         required: false
         type: boolean
         default: false
+      extra-r-packages:
+        description: "extra R package to install for the runs (like a dev version of one of the deps) - comma separated, passed to renv::install"
+        required: false
+        type: string
+        default: ""
   schedule:
     - cron: "0 6 * * *"
 
 jobs:
   run-smokes:
-    name: Run smoke (${{ matrix.os }})${{ matrix.time-test && ' with timed file' || ''}}
+    name: Run smoke (${{ matrix.os }})${{ matrix.time-test && ' with timed file' || ''}}${{ inputs.extra-r-packages && ' - with some extra R packages'|| ''}}
     strategy:
       fail-fast: false
       matrix:
@@ -44,7 +54,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Fix temp dir to use runner one (windows)
         if: runner.os == 'Windows'
@@ -57,13 +67,15 @@ jobs:
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
-          r-version: "4.2.2"
+          r-version: "4.3.2"
           use-public-rspm: true
+          # required to avoid rtools bin in path
+          windows-path-include-rtools: false
 
       - name: Install node (for Playwright, MECA)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
 
       - name: Install node dependencies
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
@@ -93,12 +105,13 @@ jobs:
         shell: Rscript {0}
 
       - name: Cache R packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.RENV_PATHS_ROOT }}
           key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-${{ hashFiles('tests/renv.lock') }}
           restore-keys: |
             ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-
+          save-always: ${{ inputs.extra-r-packages == '' }} # don't save cache if we have extra R packages
 
       - name: Install missing system deps
         if: runner.os == 'Linux'
@@ -107,24 +120,29 @@ jobs:
           sudo apt-get install -y libcurl4-openssl-dev
           sudo apt-get install -y libxml2-utils
           sudo apt-get install -y libharfbuzz-dev libfribidi-dev
+          sudo apt-get install -y poppler-utils
 
       - name: Restore R packages
         working-directory: tests
         run: |
           if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
           renv::restore()
-          # Install dev versions for our testing 
+          # Install dev versions for our testing
           # Use r-universe to avoid github api calls
           try(install.packages('knitr', repos = 'https://yihui.r-universe.dev'))
           try(install.packages('rmarkdown', repos = 'https://rstudio.r-universe.dev'))
+          if ('${{ inputs.extra-r-packages }}' != '') {
+            cat(sprintf("::notice::Running with the following extra R packages for pak: %s\n", "${{ inputs.extra-r-packages }}"))
+            renv::install(strsplit("${{ inputs.extra-r-packages }}", split = ",")[[1]])
+          }
         shell: Rscript {0}
         env:
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pipenv"
           cache-dependency-path: "./tests/Pipfile.lock"
 
@@ -149,15 +167,12 @@ jobs:
         uses: browser-actions/setup-chrome@latest
 
       - name: Setup Julia
-        uses: julia-actions/setup-julia@v1
+        uses: julia-actions/setup-julia@v2
         with:
-          version: 1.9.3
+          version: "1.10"
 
       - name: Cache Julia Packages
-        uses: julia-actions/cache@v1
-        with:
-          cache-name: version-1
-          cache-registries: true
+        uses: julia-actions/cache@v2
 
       - name: Restore Julia Packages
         working-directory: tests
@@ -165,7 +180,7 @@ jobs:
         run: |
           # Setup IJulia with the jupyter from the Python environment
           # https://julialang.github.io/IJulia.jl/stable/manual/installation/
-          export JUPYTER=$(find $(dirname $(pipenv run which jupyter))/ -type f -name "jupyter.exe" -o -name "jupyter")        
+          export JUPYTER=$(find $(dirname $(pipenv run which jupyter))/ -type f -name "jupyter.exe" -o -name "jupyter")
           pipenv run julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
           echo "Julia Jupyter:"
           julia --project=. -e "import IJulia;println(IJulia.JUPYTER);println(IJulia.find_jupyter_subcommand(\"notebook\"))"
@@ -174,6 +189,9 @@ jobs:
         if: ${{ matrix.time-test == true }}
         run: |
           echo "QUARTO_TEST_TIMING=timing-for-ci.txt" >> "$GITHUB_ENV"
+
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
 
       - name: Run all Smoke Tests Windows
         if: ${{ runner.os == 'Windows' && format('{0}', inputs.buckets) == '' && matrix.time-test == false }}
@@ -198,6 +216,7 @@ jobs:
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          QUARTO_LOG_LEVEL: DEBUG
         run: |
           haserror=0
           readarray -t my_array < <(echo '${{ inputs.buckets }}' | jq -rc '.[]')
@@ -240,7 +259,7 @@ jobs:
       - name: Create Pull Request for new tests timing
         if: matrix.time-test
         id: cpr
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           add-paths: tests/timing-for-ci.txt

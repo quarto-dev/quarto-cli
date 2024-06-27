@@ -25,6 +25,7 @@ section-title-citation: "Цитата"
 
 appendix-attribution-bibtex: "BibTeX"
 appendix-attribution-cite-as: "Пожалуйста, цитируйте эту работу как:"
+appendix-view-license: "Просмотреть Лицензию"
 
 title-block-author-single: "Автор"
 title-block-author-plural: "Авторы"
@@ -121,3 +122,6 @@ listing-page-category-all: "Все"
 listing-page-no-matches: "Нет подходящих элементов"
 listing-page-field-wordcount: "Подсчет слов"
 listing-page-words: "{0} слов"
+listing-page-filter: "Фильтр"
+
+draft: "Черновик"

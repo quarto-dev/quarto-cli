@@ -6,7 +6,7 @@
 */
 
 import { expandPath, safeExistsSync } from "../../core/path.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 import { getenv } from "../../core/env.ts";
 
 import { existsSync } from "fs/mod.ts";

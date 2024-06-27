@@ -3,6 +3,43 @@
 
 local patterns = require("modules/patterns")
 
+local attributes_to_not_merge = pandoc.List({
+  "width", "height"
+})
+
+-- Narrow fix for #8000
+local classes_to_not_merge = pandoc.List({
+  "border"
+})
+
+function handle_subfloatreftargets()
+  -- #7045: pull fig-pos and fig-env attributes from subfloat to parent
+  return {
+    FloatRefTarget = function(float)
+      local pulled_attrs = {}
+      local attrs_to_pull = {
+        "fig-pos",
+        "fig-env",
+      }
+      local result = _quarto.ast.walk(float, {
+        FloatRefTarget = function(subfloat)
+          for _, attr in ipairs(attrs_to_pull) do
+            if subfloat.attributes[attr] then
+              pulled_attrs[attr] = subfloat.attributes[attr]
+              subfloat.attributes[attr] = nil
+            end
+          end
+          return subfloat
+        end,
+      }) or pandoc.Div({}) -- won't happen but the lua analyzer doesn't know that
+      for k, v in pairs(pulled_attrs) do
+        float.attributes[k] = v
+      end
+      return float
+    end
+  }
+end
+
 local function process_div_caption_classes(div)
   -- knitr forwards "cap-location: top" as `.caption-top`...
   -- and in that case we don't know if it's a fig- or a tbl- :facepalm:
@@ -126,33 +163,8 @@ local function kable_raw_latex_fixups(content, identifier)
   return matches, content
 end
 
-function parse_reftargets()
+function parse_floatreftargets()
   
-  local function parse_theorem_div(div)
-    if has_theorem_ref(div) then
-      local el = div
-      -- capture then remove name
-      local name = markdownToInlines(el.attr.attributes["name"])
-      if not name or #name == 0 then
-        name = resolveHeadingCaption(el)
-      end
-      el.attr.attributes["name"] = nil 
-      local identifier = el.attr.identifier
-      -- remove identifier to avoid infinite recursion
-      el.attr.identifier = ""
-      return quarto.Theorem {
-        identifier = identifier,
-        name = name,
-        div = div
-      }, false
-    end
-    -- local types = theorem_types
-    -- local type = refType(el.attr.identifier)
-    -- local theorem_type = types[type]
-    -- if theorem_type then
-    -- end
-  end
-
   local function parse_float_div(div)
     process_div_caption_classes(div)
     local ref = refType(div.identifier)
@@ -235,8 +247,22 @@ function parse_reftargets()
       -- if the div contains a single image, then we simply use the image as
       -- the content
       content = content[1].content[1]
-      attr = merge_attrs(attr, content.attr)
-      attr.identifier = div.identifier -- never override the identifier
+
+      -- don't merge classes because they often have CSS consequences 
+      -- but merge attributes because they're needed to correctly resolve
+      -- behavior such as fig-pos="h", etc
+      -- See #8000.
+      -- We also exclude attributes we know to not be relevant to the div
+      for k, v in pairs(content.attr.attributes) do
+        if not attributes_to_not_merge:includes(k) then
+          attr.attributes[k] = v
+        end
+      end
+      for _, v in ipairs(content.attr.classes) do
+        if not classes_to_not_merge:includes(v) then
+          attr.classes:insert(v)
+        end
+      end
     end
 
     local skip_outer_reftarget = false
@@ -256,13 +282,20 @@ function parse_reftargets()
       if #layout_classes then
         attr.classes = attr.classes:filter(
           function(c) return not layout_classes:includes(c) end)
+        div.classes = div.classes:filter(
+          function(c) return not layout_classes:includes(c) end)
         -- if the div is a cell, then all layout attributes need to be
         -- forwarded to the cell .cell-output-display content divs
         content = _quarto.ast.walk(content, {
           Div = function(div)
             if div.classes:includes("cell-output-display") then
               div.classes:extend(layout_classes)
-              return div
+              return _quarto.ast.walk(div, {
+                Table = function(tbl)
+                  tbl.classes:insert("do-not-create-environment")
+                  return tbl
+                end
+              })
             end
           end
         })  
@@ -343,9 +376,20 @@ function parse_reftargets()
       local fig_attr = fig.attr
       local new_content = _quarto.ast.walk(fig.content[1], {
         Image = function(image)
-          -- forward attributes and classes from the image to the float
-          fig_attr = merge_attrs(fig_attr, image.attr)
-          -- strip redundant image caption
+          -- don't merge classes because they often have CSS consequences 
+          -- but merge attributes because they're needed to correctly resolve
+          -- behavior such as fig-pos="h", etc
+          -- See #8000.
+          for k, v in pairs(image.attributes) do
+            if not attributes_to_not_merge:includes(k) then
+              fig_attr.attributes[k] = v
+            end
+          end    
+          for _, v in ipairs(image.classes) do
+            if not classes_to_not_merge:includes(v) then
+              fig_attr.classes:insert(v)
+            end
+          end
           image.caption = {}
           return image
         end
@@ -420,8 +464,6 @@ function parse_reftargets()
         return parse_float_div(div)
       elseif isTableDiv(div) then
         return parse_float_div(div)
-      elseif is_theorem_div(div) then
-        return parse_theorem_div(div)
       end
 
       if div.classes:includes("cell") then
@@ -472,12 +514,13 @@ function parse_reftargets()
         local type = refType(identifier)
         local category = crossref.categories.by_ref_type[type]
         if category == nil then
-          warn("Figure with invalid crossref category: " .. identifier .. "\nWon't be able to cross-reference this figure.")
+          -- We've had too many reports of false positives for this, so we're disabling the warning
+          -- warn("Figure with invalid crossref category: " .. identifier .. "\nWon't be able to cross-reference this figure.")
           return nil
         end
         return quarto.FloatRefTarget({
           identifier = identifier,
-          classes = img.classes,
+          classes = {}, 
           attributes = as_plain_table(img.attributes),
           type = category.name,
           content = img,
@@ -614,7 +657,9 @@ function parse_reftargets()
       -- knitr can emit a label that starts with "tab:"
       -- we don't handle those as floats
       local ref = refType(identifier)
-      if ref == nil then
+      -- https://github.com/quarto-dev/quarto-cli/issues/8841#issuecomment-1959667121
+      if ref ~= "tbl" then
+        warn("Raw LaTeX table found with non-tbl label: " .. identifier .. "\nWon't be able to cross-reference this table using Quarto's native crossref system.")
         return nil
       end
 
@@ -663,15 +708,26 @@ function forward_cell_subcaps()
       end
       local subcaps = quarto.json.decode(v)
       local index = 1
+      local nsubcaps
+      if type(subcaps) == "table" then
+        nsubcaps = #subcaps
+      end
       div.content = _quarto.ast.walk(div.content, {
         Div = function(subdiv)
-          if index > #subcaps or not subdiv.classes:includes("cell-output-display") then
+          if type(nsubcaps) == "number" and index > nsubcaps or not subdiv.classes:includes("cell-output-display") then
             return nil
+          end
+          local function get_subcap()
+            if type(subcaps) ~= "table" then
+              return pandoc.Str("")
+            else
+              return pandoc.Str(subcaps[index] or "")
+            end
           end
           -- now we attempt to insert subcaptions where it makes sense for them to be inserted
           subdiv.content = _quarto.ast.walk(subdiv.content, {
             Table = function(pandoc_table)
-              pandoc_table.caption.long = quarto.utils.as_blocks(pandoc.Str(subcaps[index]))
+              pandoc_table.caption.long = quarto.utils.as_blocks(get_subcap())
               pandoc_table.identifier = div.identifier .. "-" .. tostring(index)
               index = index + 1
               return pandoc_table
@@ -679,7 +735,7 @@ function forward_cell_subcaps()
             Para = function(maybe_float)
               local fig = discoverFigure(maybe_float, false) or discoverLinkedFigure(maybe_float, false)
               if fig ~= nil then
-                fig.caption = quarto.utils.as_inlines(pandoc.Str(subcaps[index]))
+                fig.caption = quarto.utils.as_inlines(get_subcap())
                 fig.identifier = div.identifier .. "-" .. tostring(index)
                 index = index + 1
                 return maybe_float

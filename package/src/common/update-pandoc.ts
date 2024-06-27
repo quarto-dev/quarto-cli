@@ -5,9 +5,9 @@
 *
 */
 import { Command } from "cliffy/command/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 import { ensureDirSync } from "fs/mod.ts";
-import { info } from "log/mod.ts";
+import { info } from "../../../src/deno_ral/log.ts";
 
 import {
   Configuration,

@@ -1,0 +1,51 @@
+---
+title: "test"
+format: latex
+---
+
+:::: {#tbl-test layout-ncol="2"}
+
+::: {#tbl-test1}
+
+```{=html}
+<table>
+  <thead>
+    <tr>
+      <th>test</th>
+      <th>test</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>test</td>
+      <td>test</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+:::
+
+::: {#tbl-test2}
+
+```{=html}
+<table>
+  <thead>
+    <tr>
+      <th>test</th>
+      <th>test</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>test</td>
+      <td>test</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+:::
+
+Test
+::::

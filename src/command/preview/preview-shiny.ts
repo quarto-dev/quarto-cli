@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 
-import { dirname, extname, isAbsolute, join, joinGlobs } from "path/mod.ts";
+import { dirname, extname, isAbsolute, join } from "../../deno_ral/path.ts";
 
 import { RunOptions } from "../../execute/types.ts";
 import { ProjectContext } from "../../project/types.ts";

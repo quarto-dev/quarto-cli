@@ -27,7 +27,6 @@ end, function(panel_layout)
       cell_div.attr.attributes["width"] = nil
       local justify = flexAlign(align)
       cell_div_style = cell_div_style .. "justify-content: " .. justify .. ";"
-      cell_div_style = cell_div_style .. "text-align: " .. align .. ";"
       cell_div.attr.attributes["style"] = cell_div_style
       
       local has_table = false
@@ -83,7 +82,12 @@ end, function(panel_layout)
     })
     decorate_caption_with_crossref(float_tbl)
     rendered_panel = float_reftarget_render_html_figure(float_tbl)
-    rendered_panel.attr = pandoc.Attr(panel_layout.identifier, {"quarto-layout-panel"})
+    local panel_attr = pandoc.Attr(panel_layout.identifier, {"quarto-layout-panel"})
+    -- https://github.com/quarto-dev/quarto-cli/issues/1173
+    if rendered_panel.classes:includes("margin-caption") then
+      panel_attr.classes:insert("margin-caption")
+    end
+    rendered_panel.attr = panel_attr
   else
     rendered_panel = panel
     rendered_panel.attr = pandoc.Attr(
@@ -152,10 +156,20 @@ end
 function renderHtmlFigure(el, render)
 
   -- capture relevant figure attributes then strip them
-  local align = figAlignAttribute(el)
-  local keys = tkeys(el.attr.attributes)
-  for _,k in pairs(keys) do
-    if isFigAttribute(k) then
+  local align = figAlignAttributeDefault(el, nil)
+  if align == nil then
+    local img = quarto.utils.match("[1]/Para/[1]/Image")(el) or quarto.utils.match("[1]/Para/[1]/Link/[1]/Image")(el)
+    if img then
+      align = figAlignAttribute(img)
+    else
+      -- fallback to center default
+      align = figAlignAttribute(el)
+    end
+  end
+
+  for _, k in pairs(tkeys(el.attr.attributes)) do
+    -- can't strip fig-alt here
+    if isFigAttribute(k) and k ~= kFigAlt then
       el.attr.attributes[k] = nil
     end
   end
@@ -167,7 +181,13 @@ function renderHtmlFigure(el, render)
   end
 
   -- create figure div
-  local figureDiv = pandoc.Div({}, pandoc.Attr(el.identifier, el.classes, figureAttr))
+  local figureDiv = pandoc.Div({}, pandoc.Attr(el.identifier, {}, figureAttr))
+  figureDiv.classes = el.classes:filter(function(str) 
+    if str:match("quarto%-figure.*") then
+      return true
+    end
+    return false
+  end)
 
   -- remove identifier (it is now on the div)
   el.identifier = ""

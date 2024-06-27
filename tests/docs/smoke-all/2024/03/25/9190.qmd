@@ -1,0 +1,11 @@
+---
+title: "Alt text"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['img[alt="Alt"]']
+        - []
+---
+
+![Caption](https://placeholder.co/400/400){fig-alt="Alt"}

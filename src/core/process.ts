@@ -6,7 +6,7 @@
 
 import { MuxAsyncIterator, pooledMap } from "async/mod.ts";
 import { iterateReader } from "streams/mod.ts";
-import { info } from "log/mod.ts";
+import { debug, info } from "../deno_ral/log.ts";
 import { onCleanup } from "./cleanup.ts";
 import { ProcessResult } from "./process-types.ts";
 
@@ -36,13 +36,25 @@ export async function execProcess(
   mergeOutput?: "stderr>stdout" | "stdout>stderr",
   stderrFilter?: (output: string) => string,
   respectStreams?: boolean,
+  timeout?: number,
 ): Promise<ProcessResult> {
+  const withTimeout = <T>(promise: Promise<T>): Promise<T> => {
+    return timeout
+      ? Promise.race([
+        promise,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Process timed out")), timeout)
+        ),
+      ]) as Promise<T>
+      : promise;
+  };
   ensureCleanup();
   // define process
   try {
     // If the caller asked for stdout/stderr to be directed to the rid of an open
     // file, just allow that to happen. Otherwise, specify piped and we will implement
     // the proper behavior for inherit, etc....
+    debug(`[execProcess] ${options.cmd.join(" ")}`);
     const process = Deno.run({
       ...options,
       stdin: stdin !== undefined ? "piped" : options.stdin,
@@ -149,16 +161,18 @@ export async function execProcess(
           }),
         );
       }
-      await Promise.all(promises);
+      await withTimeout(Promise.all(promises));
     }
 
     // await result
-    const status = await process.status();
+    const status = await withTimeout(process.status());
 
     // close the process
     process.close();
 
     processList.delete(thisProcessId);
+
+    debug(`[execProcess] Success: ${status.success}, code: ${status.code}`);
 
     return {
       success: status.success,

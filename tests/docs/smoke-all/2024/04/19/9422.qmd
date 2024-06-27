@@ -1,0 +1,47 @@
+---
+title: "Generate Plots within Sub-Sections"
+format:
+  html:
+    echo: false
+#     embed-resources: true
+engine: jupyter
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["section#scatter img"]
+---
+
+```{python}
+#| label: setup
+import matplotlib.pyplot as plt
+```
+
+```{python}
+#| label: define-data
+
+data = {'apple': 10, 'orange': 15, 'lemon': 5, 'lime': 20}
+names = list(data.keys())
+values = list(data.values())
+```
+
+## Plots and Subsections
+
+```{python}
+#| output: asis
+
+print("\n### Bar\n")
+
+plt.bar(names, values)
+plt.show(block=False)
+
+print("\n### Scatter\n")
+
+plt.scatter(names, values)
+plt.show(block=False)
+
+print("\n### Line\n")
+
+plt.plot(names, values)
+plt.show(block=False)
+```

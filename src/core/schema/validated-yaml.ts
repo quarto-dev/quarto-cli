@@ -1,16 +1,15 @@
 /*
-* validated-yaml.ts
-*
-* helper functions for reading and validating YAML
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * validated-yaml.ts
+ *
+ * helper functions for reading and validating YAML
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/exists.ts";
 import { asMappedString } from "../mapped-text.ts";
 import { Schema } from "../lib/yaml-schema/types.ts";
-import { relative } from "path/mod.ts";
+import { relative } from "../../deno_ral/path.ts";
 
 import {
   readAndValidateYamlFromMappedString,

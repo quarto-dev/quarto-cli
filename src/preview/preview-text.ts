@@ -20,7 +20,7 @@ import {
   textHighlightThemePath,
 } from "../core/resources.ts";
 
-import { basename, extname, join } from "path/mod.ts";
+import { basename, extname, join } from "../deno_ral/path.ts";
 
 export const jatsStaticResources = () => {
   return [
@@ -240,6 +240,8 @@ async function gfmPreview(file: string, request: Request) {
       cmd.push("--highlight-style");
       cmd.push(highlightPath);
     }
+    // Github renders math with MathJax now, so our preview mode does the same
+    cmd.push("--mathjax");
     const result = await execProcess(
       { cmd, stdout: "piped", stderr: "piped" },
       Deno.readTextFileSync(file),

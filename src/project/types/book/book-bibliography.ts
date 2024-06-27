@@ -4,12 +4,12 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { dirname, isAbsolute, join, relative } from "../../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../../core/lodash.ts";
 import { stringify } from "yaml/mod.ts";
-import { error } from "log/mod.ts";
+import { error } from "../../../deno_ral/log.ts";
 
 import {
   Document,
@@ -40,6 +40,7 @@ import { WebsiteProjectOutputFile } from "../website/website.ts";
 import { bookMultiFileHtmlOutputs } from "./book-extension.ts";
 import { ProjectOutputFile } from "../types.ts";
 import { projectType } from "../project-types.ts";
+import { isAbsoluteRef } from "../../../core/http.ts";
 
 export async function bookBibliography(
   outputFiles: ProjectOutputFile[],
@@ -76,7 +77,11 @@ export async function bookBibliography(
     const firstFileDir = dirname(inputfile.file);
     bibliographyPaths.push(
       ...bibliography.map((file) =>
-        isAbsolute(file) ? file : join(firstFileDir, file)
+        // we don't want to process already absolute path or url
+        // (Pandoc supports fetching bibliography from the web)
+        isAbsolute(file) || isAbsoluteRef(file)
+          ? file
+          : join(firstFileDir, file)
       ),
     );
 

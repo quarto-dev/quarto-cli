@@ -4,7 +4,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { kTheme } from "../../config/constants.ts";
@@ -37,6 +37,7 @@ import { copyMinimal, copyTo } from "../../core/copy.ts";
 import { titleSlideScss } from "./format-reveal-title.ts";
 import { asCssFont, asCssNumber } from "../../core/css.ts";
 import { cssHasDarkModeSentinel } from "../../core/pandoc/css.ts";
+import { pandocNativeStr } from "../../core/pandoc/codegen.ts";
 
 export const kRevealLightThemes = [
   "white",
@@ -82,7 +83,9 @@ export async function revealTheme(
 
   // compute reveal url
   const revealUrl = pathWithForwardSlashes(revealDir);
-  metadata[kRevealJsUrl] = revealUrl;
+  // escape to avoid pandoc markdown parsing from YAML default file
+  // https://github.com/quarto-dev/quarto-cli/issues/9117
+  metadata[kRevealJsUrl] = pandocNativeStr(revealUrl).mappedString().value;
 
   // copy reveal dir
   const revealSrcDir = revealJsUrl ||

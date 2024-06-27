@@ -1,0 +1,72 @@
+---
+keep-tex: true
+format: pdf
+---
+
+::: {.column-margin #fig-example-image}
+![](https://placehold.co/600x400.png)
+
+Example of an Image 1
+:::
+
+Making space for the second margin figure...
+
+Making space for the second margin figure...
+
+Making space for the second margin figure...
+
+Making space for the second margin figure...
+
+Making space for the second margin figure...
+
+Making space for the second margin figure...
+
+::: {.column-margin}
+![Example of an Image 2](https://placehold.co/600x400.png){#fig-example-image-2}
+
+![Example of an Image 3](https://placehold.co/600x400.png){#fig-example-image-3}
+:::
+
+
+Making space for the second margin figure...
+
+Making space for the second margin figure...
+
+Making space for the second margin figure...
+
+Making space for the second margin figure...
+
+Making space for the second margin figure...
+
+Making space for the second margin figure...
+
+
+::: {.column-margin}
+Some text here.
+
+More text here.
+
+And yet more text here.
+:::
+
+Making space for the second margin figure...
+
+Making space for the second margin figure...
+
+Making space for the second margin figure...
+
+Making space for the second margin figure...
+
+Making space for the second margin figure...
+
+Making space for the second margin figure...
+
+
+::: {.column-margin}
+![Example of an Image 2](https://placehold.co/600x400.png){#fig-example-image-2}
+
+Hard case now, mixed use.
+
+![Example of an Image 3](https://placehold.co/600x400.png){#fig-example-image-3}
+:::
+

@@ -1,0 +1,31 @@
+---
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: na
+  typst:
+    quality: 2
+    comment: "td only"
+  dashboard:
+    quality: 1
+  docx:
+    quality: na
+  pptx:
+    quality: na
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'table\.cell\(stroke: \(bottom: \(thickness: 6pt\), left: \(thickness: 3pt\), right: \(thickness: 3pt\), top: \(thickness: 6pt\)\)\)\[A\]'
+        - []
+---
+
+```{=html}
+<table>
+    <tr><td style="border-width: 6pt 3pt">A</td><td>B</td></tr>
+</table>
+```
+

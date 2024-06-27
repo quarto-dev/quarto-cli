@@ -80,7 +80,9 @@ function partition_cells(float)
 
   local function is_preamble_block(el)
     return (el.t == "CodeBlock" and el.attr.classes:includes("cell-code")) or
-           (is_regular_node(el, "Div") and el.attr.classes:includes("cell-output-stderr"))
+           (is_regular_node(el, "Div") and 
+            (el.attr.classes:includes("cell-output-stderr") or
+             el.attr.classes:includes("cell-annotation")))
   end
 
   local function handle_preamble_codeblock(block)
@@ -124,6 +126,12 @@ function partition_cells(float)
 
       if subfloat ~= nil and subfloat.t == "FloatRefTarget" then
         transfer_float_image_width_to_cell(subfloat, cell_div)
+      else
+        local fig = figureImageFromLayoutCell(cell_div)
+        if fig then
+          -- transfer width to cell
+          transferImageWidthToCell(fig, cell_div)
+        end
       end
       
       -- if we have a heading then insert it

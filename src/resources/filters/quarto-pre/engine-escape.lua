@@ -24,6 +24,9 @@ function engine_escape()
         end
         return "```" .. engine 
       end)
+
+      -- handles escaped inline code cells within a code block
+      el.text = el.text:gsub("(\n?[^`\n]+`+)" .. patterns.engine_escape, "%1%2")
       return el
     end,
 

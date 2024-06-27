@@ -1,0 +1,55 @@
+---
+title: Callouts
+format:
+  docusaurus-md:
+    quality: 1
+  html: 
+    quality: 2
+  dashboard:
+    quality: 0
+    comment: "Bug: Callout icons show on a separate line from the title."
+  markdown:
+    quality: 0
+    comment: "Should we be emitting that `<div>`? What output are we even targeting here?"
+  gfm:
+    quality: 1
+    comment: "Custom titles are not supported in GFM yet, we simply output a new heading."
+  pdf:
+    quality: 1
+  typst:
+    quality: 1
+  docx:
+    quality: 1
+  revealjs:
+    quality: 2
+  beamer:
+    quality: 1
+  ipynb:
+    quality: 0
+    comment: "Ipynb callouts are emitted as plain markdown callouts. Is that what we want?"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "div.callout.callout-note"
+          - "div.callout.callout-note div.callout-header div.callout-title-container"
+          - "div.callout.callout-note div.callout-body p"
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - [":::note\\[A small note\\]"]
+---
+
+::: {.callout-note}
+
+## A small note
+
+You should note that this is a note.
+
+:::
+
+::: {.callout-warning}
+
+A callout does not need a title.
+
+:::

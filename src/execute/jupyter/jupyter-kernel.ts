@@ -5,8 +5,8 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
-import { error, info, warning } from "log/mod.ts";
+import { join } from "../../deno_ral/path.ts";
+import { error, info, warning } from "../../deno_ral/log.ts";
 
 import { sleep } from "../../core/async.ts";
 import { quartoDataDir, quartoRuntimeDir } from "../../core/appdirs.ts";

@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { debug } from "log/mod.ts";
-import { join } from "path/mod.ts";
+import { debug } from "../deno_ral/log.ts";
+import { join } from "../deno_ral/path.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { normalizePath, removeIfExists, safeRemoveIfExists } from "./path.ts";
 import { TempContext } from "./temp-types.ts";

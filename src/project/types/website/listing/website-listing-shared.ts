@@ -5,7 +5,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../../../../deno_ral/path.ts";
 import {
   DOMParser,
   Element,
@@ -73,6 +73,9 @@ export const kImageAlign = "image-align";
 // Alt text for the item's image
 export const kImageAlt = "image-alt";
 
+// Lazy loading for the item's image. If unset, the default is true.
+export const kImageLazyLoading = "image-lazy-loading";
+
 // The placeholder image for the item
 export const kImagePlaceholder = "image-placeholder";
 
@@ -101,6 +104,7 @@ export const kFieldFileModified = "file-modified";
 export const kFieldDate = "date";
 export const kFieldImage = "image";
 export const kFieldImageAlt = "image-alt";
+export const kFieldImageLazyLoading = "image-lazy-loading";
 export const kFieldDescription = "description";
 export const kFieldReadingTime = "reading-time";
 export const kFieldWordCount = "word-count";
@@ -211,6 +215,7 @@ export interface ListingItem extends Record<string, unknown> {
   date?: Date;
   image?: string;
   [kImageAlt]?: string;
+  [kImageLazyLoading]?: boolean;
   path?: string;
   filename?: string;
   [kFieldFileModified]?: Date;

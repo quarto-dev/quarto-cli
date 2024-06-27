@@ -25,6 +25,7 @@ section-title-citation: "Zitat"
 
 appendix-attribution-bibtex: "Mit BibTeX zitieren:"
 appendix-attribution-cite-as: "Bitte zitieren Sie diese Arbeit als:"
+appendix-view-license: "Lizenz Anzeigen"
 
 title-block-author-single: "Autor:in"
 title-block-author-plural: "Autor:innen"
@@ -121,3 +122,6 @@ listing-page-category-all: "alle"
 listing-page-no-matches: "Keine Treffer"
 listing-page-field-wordcount: "Wortanzahl"
 listing-page-words: "{0} Wörter"
+listing-page-filter: "Filter"
+
+draft: "Entwurf"

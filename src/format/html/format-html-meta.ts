@@ -136,16 +136,21 @@ function googleScholarMeta(
 
   if (csl.issued) {
     const edtfIssued = cslDateToEDTFDate(csl.issued);
-    write("citation_publication_date", edtfIssued);
-    write("citation_cover_date", edtfIssued);
+    if (edtfIssued) {
+      write("citation_publication_date", edtfIssued);
+      write("citation_cover_date", edtfIssued);
+    }
     const parts = csl.issued["date-parts"];
-    if (parts) {
+    if (parts && parts.length > 0) {
       write("citation_year", parts[0][0]);
     }
   }
 
   if (csl["available-date"]) {
-    write("citation_online_date", cslDateToEDTFDate(csl["available-date"]));
+    const edtfAvailable = cslDateToEDTFDate(csl["available-date"]);
+    if (edtfAvailable) {
+      write("citation_online_date", edtfAvailable);
+    }
   }
 
   if (csl.URL) {

@@ -12,6 +12,9 @@ end
 
 import("./mainstateinit.lua")
 
+import("./modules/import_all.lua")
+
+import("./ast/scopedwalk.lua")
 import("./ast/customnodes.lua")
 import("./ast/emulatedfilter.lua")
 import("./ast/parse.lua")
@@ -62,9 +65,11 @@ import("./quarto-post/delink.lua")
 import("./quarto-post/docx.lua")
 import("./quarto-post/fig-cleanup.lua")
 import("./quarto-post/foldcode.lua")
+import("./quarto-post/gfm.lua")
 import("./quarto-post/ipynb.lua")
 import("./quarto-post/latex.lua")
 import("./quarto-post/typst.lua")
+import("./quarto-post/typst-css-to-props.lua")
 import("./quarto-post/latexdiv.lua")
 import("./quarto-post/meta.lua")
 import("./quarto-post/ojs.lua")
@@ -79,6 +84,7 @@ import("./quarto-post/code.lua")
 import("./quarto-post/html.lua")
 import("./quarto-post/dashboard.lua")
 import("./quarto-post/email.lua")
+import("./quarto-post/pptx.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -95,6 +101,7 @@ import("./normalize/extractquartodom.lua")
 import("./normalize/astpipeline.lua")
 import("./normalize/capturereaderstate.lua")
 import("./normalize/fixupdatauri.lua")
+import("./normalize/draft.lua")
 
 import("./layout/meta.lua")
 import("./layout/width.lua")
@@ -144,7 +151,9 @@ import("./quarto-pre/panel-input.lua")
 import("./quarto-pre/panel-layout.lua")
 import("./quarto-pre/panel-sidebar.lua")
 import("./quarto-pre/parsefiguredivs.lua")
+import("./quarto-pre/parseblockreftargets.lua")
 import("./quarto-pre/project-paths.lua")
+import("./quarto-pre/resolvescopedelements.lua")
 import("./quarto-pre/resourcefiles.lua")
 import("./quarto-pre/results.lua")
 import("./quarto-pre/shiny.lua")
@@ -173,6 +182,7 @@ import("./customnodes/callout.lua")
 import("./customnodes/panel-tabset.lua")
 import("./customnodes/floatreftarget.lua")
 import("./customnodes/theorem.lua")
+import("./customnodes/proof.lua")
 
 import("./layout/confluence.lua")
 import("./layout/ipynb.lua")
@@ -219,6 +229,9 @@ local quarto_init_filters = {
 -- our custom AST infrastructure (FloatRefTarget specifically).
 
 local quarto_normalize_filters = {
+  { name = "normalize-draft", 
+    filter = normalize_draft() },
+
   { name = "normalize", filter = filterIf(function()
     if quarto_global_state.active_filters == nil then
       return false
@@ -249,13 +262,12 @@ local quarto_pre_filters = {
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
 
-  { name = "pre-hidden", 
-    filter = hidden(), 
-    flags = { "has_hidden" } },
-
-  { name = "pre-content-hidden", 
-    filter = content_hidden(),
-    flags = { "has_conditional_content" } },
+  { name = "pre-combined-hidden",
+    filter = combineFilters({
+      hidden(),
+      content_hidden()
+    }),
+    flags = { "has_hidden", "has_conditional_content" } },
 
   { name = "pre-table-captions", 
     filter = table_captions(),
@@ -275,6 +287,10 @@ local quarto_pre_filters = {
     filter = output_location()
   },
 
+  { name = "pre-scope-resolution",
+    filter = resolve_scoped_elements()
+  },
+
   { name = "pre-combined-figures-theorems-etc", filter = combineFilters({
     file_metadata(),
     index_book_file_targets(),
@@ -290,7 +306,7 @@ local quarto_pre_filters = {
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
     table_respecify_gt_css(),
-    table_colwidth(), 
+    -- table_colwidth(), 
     table_classes(),
     input_traits(),
     resolve_book_file_targets(),
@@ -304,10 +320,14 @@ local quarto_pre_filters = {
 local quarto_post_filters = {
   { name = "post-cell-cleanup", 
     filter = cell_cleanup(),
-    flags = { "has_output_cells" } },
-  { name = "post-cites", filter = indexCites() },
-  { name = "post-fold-code-and-lift-codeblocks-from-floats", filter = fold_code_and_lift_codeblocks() },
-  { name = "post-bibliography", filter = bibliography() },
+    flags = { "has_output_cells" }
+  },
+  { name = "post-combined-cites-bibliography", 
+    filter = combineFilters({
+      indexCites(),
+      bibliography()
+    })
+  },
   { name = "post-ipynb", filters = ipynb()},
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
@@ -337,10 +357,13 @@ local quarto_post_filters = {
   -- format-specific rendering
   { name = "post-render-asciidoc", filter = render_asciidoc() },
   { name = "post-render-latex", filter = render_latex() },
-  { name = "post-render-typst", filter = render_typst() },
+  { name = "post-render-typst", filters = render_typst() },
   { name = "post-render-dashboard", filters = render_dashboard() },
 
   { name = "post-ojs", filter = ojs() },
+
+  { name = "post-render-pandoc3-figure", filter = render_pandoc3_figure(),
+    flags = { "has_pandoc3_figure" } },
 
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
@@ -353,9 +376,11 @@ local quarto_post_filters = {
   { name = "post-render-html-fixups", filter = render_html_fixups() },
   { name = "post-render-ipynb-fixups", filter = render_ipynb_fixups() },
   { name = "post-render-typst-fixups", filter = render_typst_fixups() },
-  { name = "post-render-pandoc3-figure", filter = render_pandoc3_figure(),
-    flags = { "has_pandoc3_figure" } },
-  { name = "post-render-email", filter = render_email() },
+  { name = "post-render-typst-css-to-props", filter = render_typst_css_to_props() },
+  { name = "post-render-gfm-fixups", filter = render_gfm_fixups() },
+  { name = "post-render-hugo-fixups", filter = render_hugo_fixups() },
+  { name = "post-render-email", filters = render_email() },
+  { name = "post-render-pptx-fixups", filter = render_pptx_fixups() }
 }
 
 local quarto_finalize_filters = {
@@ -363,7 +388,7 @@ local quarto_finalize_filters = {
   { name = "finalize-combined", filter =
     combineFilters({
       file_metadata(),
-      mediabag(),
+      mediabag_filter(),
       inject_vault_content_into_rawlatex(),
     })},
   { name = "finalize-bookCleanup", filter = bookCleanup() },
@@ -373,7 +398,7 @@ local quarto_finalize_filters = {
   { name = "finalize-coalesce-raw", filters = coalesce_raw() },
   { name = "finalize-descaffold", filter = descaffold() },
   { name = "finalize-wrapped-writer", filter = wrapped_writer() },
-  { name = "finalize-typst-state", filter = setup_typst_state() }
+  { name = "finalize-typst-state", filter = setup_typst_state() },
 }
 
 local quarto_layout_filters = {
@@ -385,6 +410,7 @@ local quarto_layout_filters = {
   { name = "layout-cites-preprocess", filter = cites_preprocess() },
   { name = "layout-cites", filter = cites() },
   { name = "layout-panels", filter = layout_panels() },
+  { name = "post-fold-code-and-lift-codeblocks-from-floats", filter = fold_code_and_lift_codeblocks() },
 }
 
 local quarto_crossref_filters = {

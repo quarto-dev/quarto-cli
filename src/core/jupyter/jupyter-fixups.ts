@@ -5,7 +5,7 @@
  */
 
 import { stringify } from "yaml/mod.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../../deno_ral/log.ts";
 
 import { kTitle } from "../../config/constants.ts";
 import { Metadata } from "../../config/types.ts";
@@ -13,38 +13,36 @@ import { lines } from "../lib/text.ts";
 import { markdownWithExtractedHeading } from "../pandoc/pandoc-partition.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
 import { JupyterNotebook, JupyterOutput } from "./types.ts";
+import {
+  jupyterCellSrcAsLines,
+  jupyterCellSrcAsStr,
+} from "./jupyter-shared.ts";
 
 export function fixupStreams(nb: JupyterNotebook): JupyterNotebook {
   for (const cell of nb.cells) {
     if (cell.cell_type !== "code" || cell.outputs === undefined) {
       continue;
     }
-    let i = 0;
     if (cell.outputs.length === 0) {
       continue;
     }
+    const newOutputs: JupyterOutput[] = [cell.outputs[0]];
+    let i = 1;
     while (i < cell.outputs.length) {
+      const prevOutput: JupyterOutput = newOutputs[newOutputs.length - 1];
       const thisOutput: JupyterOutput = cell.outputs[i];
-      if (thisOutput.output_type === "stream") {
-        // collect all the stream outputs with the same name
-        const streams = cell.outputs.filter((output) =>
-          output.output_type === "stream" && output.name === thisOutput.name
-        );
-        // join them together
-        const joinedText = streams.map((output) => output.text ?? []).flat();
-        const newOutput: JupyterOutput = {
-          output_type: "stream",
-          name: thisOutput.name,
-          text: joinedText,
-        };
-        cell.outputs[i] = newOutput;
-        cell.outputs = cell.outputs.filter((output, j) =>
-          i === j ||
-          (output.output_type !== "stream" || output.name !== thisOutput.name)
-        );
+      if (
+        thisOutput.output_type === "stream" &&
+        prevOutput.output_type === "stream" &&
+        thisOutput.name === prevOutput.name
+      ) {
+        prevOutput.text = [...prevOutput.text ?? [], ...thisOutput.text ?? []];
+      } else {
+        newOutputs.push(thisOutput);
       }
       i++;
     }
+    cell.outputs = newOutputs;
   }
   return nb;
 }
@@ -155,7 +153,8 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
   let partitioned: { yaml: string; markdown: string } | undefined;
   const frontMatterCellIndex = nb.cells.findIndex((cell) => {
     if (cell.cell_type === "raw" || cell.cell_type === "markdown") {
-      partitioned = partitionYamlFrontMatter(cell.source.join("")) || undefined;
+      partitioned = partitionYamlFrontMatter(jupyterCellSrcAsStr(cell)) ||
+        undefined;
       if (partitioned) {
         cell.cell_type = "raw";
         return true;
@@ -171,19 +170,25 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
     return nb;
   }
 
-  // snip the title out of the markdown
+  // Check the first non-front matter (or front matter cell)
+  // for a heading that could be snipped out
   let title: string | undefined;
+  let currentCellIdx = 0;
   for (const cell of nb.cells) {
     if (cell.cell_type === "markdown") {
-      const { lines, headingText } = markdownWithExtractedHeading(
-        nbLines(cell.source).join(""),
-      );
-      if (headingText) {
+      const { lines, headingText, contentBeforeHeading } =
+        markdownWithExtractedHeading(
+          nbLines(jupyterCellSrcAsLines(cell)).join(""),
+        );
+      if (headingText && !contentBeforeHeading) {
         title = headingText;
         cell.source = nbLines(lines);
         break;
+      } else if (currentCellIdx !== frontMatterCellIndex) {
+        break;
       }
     }
+    currentCellIdx++;
   }
 
   // if there is no title then we are done (the doc will have no title)
@@ -219,35 +224,33 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
 
 type JupyterFixup = (nb: JupyterNotebook) => JupyterNotebook;
 
-const defaultFixups: ((
-  nb: JupyterNotebook,
-) => JupyterNotebook)[] = [
+export const defaultFixups: JupyterFixup[] = [
   fixupBokehCells,
   fixupFrontMatter,
   fixupStreams,
 ];
 
-const minimalFixups: ((
-  nb: JupyterNotebook,
-) => JupyterNotebook)[] = [
+export const minimalFixups: JupyterFixup[] = [
   fixupBokehCells,
   fixupStreams,
 ];
 
 // books can't have the front matter fixup
-export const bookFixups: JupyterFixup[] = [
-  fixupBokehCells,
-];
+export const bookFixups: JupyterFixup[] = minimalFixups;
 
 export function fixupJupyterNotebook(
   nb: JupyterNotebook,
-  nbFixups: "minimal" | "default",
-  explicitFixups?: JupyterFixup[],
+  fixups: JupyterFixup[] | "minimal" | "default",
 ): JupyterNotebook {
-  const fixups = explicitFixups || nbFixups === "minimal"
-    ? minimalFixups
-    : defaultFixups;
-  for (const fixup of fixups) {
+  let nbFixups: JupyterFixup[] | undefined;
+  if (fixups === "minimal") {
+    nbFixups = minimalFixups;
+  } else if (fixups === "default") {
+    nbFixups = defaultFixups;
+  } else {
+    nbFixups = fixups;
+  }
+  for (const fixup of nbFixups) {
     nb = fixup(nb);
   }
   return nb;

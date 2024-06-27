@@ -5,7 +5,7 @@
 *
 */
 import { stringify } from "yaml/mod.ts";
-import { dirname, join } from "path/mod.ts";
+import { dirname, join } from "../../../src/deno_ral/path.ts";
 import { assert } from "testing/asserts.ts";
 
 import { Metadata } from "../../../src/config/types.ts";

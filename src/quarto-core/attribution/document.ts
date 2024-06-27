@@ -4,7 +4,13 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+} from "../../deno_ral/path.ts";
 import {
   kAbstract,
   kAuthor,
@@ -32,7 +38,6 @@ import {
   kSiteUrl,
   kWebsite,
 } from "../../project/types/website/website-constants.ts";
-import { basename } from "path/mod.ts";
 import { resolveAndFormatDate } from "../../core/date.ts";
 
 const kDOI = "DOI";
@@ -442,14 +447,18 @@ export function synthesizeCitationUrl(
   offset?: string,
 ) {
   const siteMeta = metadata[kWebsite] as Metadata | undefined;
-  const baseUrl = siteMeta?.[kSiteUrl] as string;
+  let baseUrl = siteMeta?.[kSiteUrl] as string;
 
   if (baseUrl && outputFile && offset) {
+    baseUrl = baseUrl.replace(/\/$/, "");
     const rootDir = normalizePath(join(dirname(input), offset));
     if (outputFile === "index.html") {
-      return `${baseUrl}/${
-        pathWithForwardSlashes(relative(rootDir, dirname(input)))
-      }`;
+      const part = pathWithForwardSlashes(relative(rootDir, dirname(input)));
+      if (part.length === 0) {
+        return `${baseUrl}/`;
+      } else {
+        return `${baseUrl}/${part}/`;
+      }
     } else {
       const relativePath = relative(
         rootDir,

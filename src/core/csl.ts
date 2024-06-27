@@ -154,7 +154,9 @@ export function suggestId(author: CSLName[], date?: CSLDate) {
   }
 
   // Create a deduplicated string against the existing entries
-  let suggestedId = `${citeIdLeading.toLowerCase()}${datePart}`;
+  let suggestedId = `${
+    citeIdLeading.replaceAll(/\s+/g, "_").toLowerCase()
+  }${datePart}`;
   if (suggestedId.length === 0) {
     suggestedId = "untitled";
   }
@@ -165,7 +167,7 @@ export function suggestId(author: CSLName[], date?: CSLDate) {
 // See https://www.loc.gov/standards/datetime/
 // Currently omits time component so this isn't truly level 0
 export function cslDateToEDTFDate(date: CSLDate) {
-  if (date["date-parts"]) {
+  if (date["date-parts"] && date["date-parts"].length > 0) {
     const paddedParts = date["date-parts"][0].map((part) => {
       const partStr = part?.toString();
       if (partStr?.length === 1) {

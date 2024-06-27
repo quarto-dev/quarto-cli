@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../deno_ral/path.ts";
 
 import * as ld from "../../../core/lodash.ts";
 
@@ -22,7 +22,12 @@ import {
 } from "../../../execute/engine.ts";
 import { defaultWriterFormat } from "../../../format/formats.ts";
 
-import { Navbar, SidebarItem, SidebarTool } from "../../types.ts";
+import {
+  Navbar,
+  ProjectContext,
+  SidebarItem,
+  SidebarTool,
+} from "../../types.ts";
 
 import {
   normalizeSidebarItem,
@@ -49,6 +54,8 @@ import {
   kSiteReaderMode,
   kSiteRepoActions,
   kSiteRepoBranch,
+  kSiteRepoLinkRel,
+  kSiteRepoLinkTarget,
   kSiteRepoSubdir,
   kSiteRepoUrl,
   kSiteSidebar,
@@ -78,7 +85,11 @@ import {
   websiteProjectConfig,
 } from "../website/website-config.ts";
 
-import { kSidebarLogo } from "../website/website-navigation.ts";
+import {
+  kSidebarLogo,
+  kSidebarLogoAlt,
+  kSidebarLogoHref,
+} from "../website/website-navigation.ts";
 
 import {
   bookConfig,
@@ -90,10 +101,13 @@ import {
 } from "./book-shared.ts";
 import {
   kCodeLinks,
+  kCodeToolsSourceCode,
   kLanguageDefaults,
   kOtherLinks,
   kOutputExt,
   kSectionTitleAppendices,
+  kToolsDownload,
+  kToolsShare,
 } from "../../../config/constants.ts";
 
 import {
@@ -110,12 +124,14 @@ import {
 } from "../../../resources/types/schema-types.ts";
 import { projectType } from "../project-types.ts";
 import { BookRenderItem, BookRenderItemType } from "./book-types.ts";
+import { isAbsoluteRef } from "../../../core/http.ts";
 
 export async function bookProjectConfig(
-  projectDir: string,
+  project: ProjectContext,
   config: ProjectConfig,
   flags?: RenderFlags,
 ) {
+  const projectDir = project.dir;
   // ensure we have a site
   const site = (config[kWebsite] || {}) as Record<string, unknown>;
   config[kWebsite] = site;
@@ -128,6 +144,8 @@ export async function bookProjectConfig(
     site[kSiteUrl] = book[kSiteUrl];
     site[kSitePath] = book[kSitePath];
     site[kSiteRepoUrl] = book[kSiteRepoUrl];
+    site[kSiteRepoLinkTarget] = book[kSiteRepoLinkTarget];
+    site[kSiteRepoLinkRel] = book[kSiteRepoLinkRel];
     site[kSiteRepoSubdir] = book[kSiteRepoSubdir];
     site[kSiteRepoBranch] = book[kSiteRepoBranch];
     site[kSiteRepoActions] = book[kSiteRepoActions];
@@ -169,6 +187,10 @@ export async function bookProjectConfig(
   const siteSidebar = site[kSiteSidebar] as Metadata;
   siteSidebar[kSiteTitle] = siteSidebar[kSiteTitle] || book?.[kSiteTitle];
   siteSidebar[kSidebarLogo] = siteSidebar[kSidebarLogo] || book?.[kSidebarLogo];
+  siteSidebar[kSidebarLogoHref] = siteSidebar[kSidebarLogoHref] ||
+    book?.[kSidebarLogoHref];
+  siteSidebar[kSidebarLogoAlt] = siteSidebar[kSidebarLogoAlt] ||
+    book?.[kSidebarLogoAlt];
   siteSidebar[kContents] = [];
   const bookContents = bookConfig(kBookChapters, config);
 
@@ -203,13 +225,13 @@ export async function bookProjectConfig(
     const repoUrl = siteRepoUrl(site);
     const icon = repoUrlIcon(repoUrl);
     tools.push({
-      text: "Source Code",
+      text: language[kCodeToolsSourceCode] || "Source Code",
       icon,
       href: repoUrl,
     });
   }
-  tools.push(...(downloadTools(projectDir, config) || []));
-  tools.push(...(sharingTools(config) || []));
+  tools.push(...(downloadTools(projectDir, config, language) || []));
+  tools.push(...(sharingTools(config, language) || []));
 
   if (site[kSiteNavbar]) {
     (site[kSiteNavbar] as Navbar)[kBookTools] = tools;
@@ -220,7 +242,7 @@ export async function bookProjectConfig(
 
   // save our own render list (which has more fine grained info about parts,
   // appendices, numbering, etc.) and popuplate the main config render list
-  const renderItems = await bookRenderItems(projectDir, language, config);
+  const renderItems = await bookRenderItems(project, language, config);
   book[kBookRender] = renderItems;
   config.project[kProjectRender] = renderItems
     .filter((target) => !!target.file)
@@ -234,7 +256,7 @@ export async function bookProjectConfig(
       for (const item of region) {
         if (typeof item !== "string") {
           const navItem = item as NavigationItemObject;
-          if (navItem.href) {
+          if (navItem.href && !isAbsoluteRef(navItem.href)) {
             footerFiles.push(navItem.href);
           }
         }
@@ -255,7 +277,7 @@ export async function bookProjectConfig(
   }
 
   // return config (inherit website config behavior)
-  return await websiteProjectConfig(projectDir, config);
+  return await websiteProjectConfig(project, config);
 }
 
 function siteRepoUrl(site: Metadata) {
@@ -278,10 +300,11 @@ export function bookConfigRenderItems(
   ) as BookRenderItem[];
 }
 export async function bookRenderItems(
-  projectDir: string,
+  project: ProjectContext,
   language: FormatLanguage,
   config?: ProjectConfig,
 ): Promise<BookRenderItem[]> {
+  const projectDir = project.dir;
   if (!config) {
     return [];
   }
@@ -309,14 +332,18 @@ export async function bookRenderItems(
       } else if (item.href) {
         const itemPath = join(projectDir, item.href);
         if (safeExistsSync(itemPath)) {
-          const engine = fileExecutionEngine(itemPath);
+          const engine = await fileExecutionEngine(
+            itemPath,
+            undefined,
+            project,
+          );
           if (engine) {
             // for chapters, check if we are numbered
             let number: number | undefined;
 
             if (
               type === kBookItemChapter &&
-              await inputIsNumbered(projectDir, item.href)
+              await inputIsNumbered(project, item.href)
             ) {
               number = nextNumber++;
             }
@@ -427,6 +454,7 @@ function chapterToSidebarItem(chapter: BookChapterItem) {
 function downloadTools(
   projectDir: string,
   config: ProjectConfig,
+  language: FormatLanguage,
 ): SidebarTool[] | undefined {
   // Filter the user actions to the set that are single file books
   const downloadActions = websiteConfigActions(kBookDownloads, kBook, config);
@@ -452,7 +480,7 @@ function downloadTools(
     if (downloadItem) {
       return {
         icon: downloadItem.icon,
-        text: `Download ${downloadItem.name}`,
+        text: `${language[kToolsDownload] || "Download"} ${downloadItem.name}`,
         href: pathWithForwardSlashes(join(
           "/",
           outputDir,
@@ -482,7 +510,7 @@ function downloadTools(
   } else {
     return [{
       icon: "download",
-      text: "Download",
+      text: language[kToolsDownload] || "Download",
       menu: downloads,
     }];
   }
@@ -490,6 +518,7 @@ function downloadTools(
 
 function sharingTools(
   projectConfig: ProjectConfig,
+  language: FormatLanguage,
 ): SidebarTool[] | undefined {
   const sharingActions = websiteConfigActions("sharing", kBook, projectConfig);
 
@@ -516,7 +545,7 @@ function sharingTools(
   } else {
     // If there are more than one items, make a menu
     return [{
-      text: "Share",
+      text: language[kToolsShare] || "Share",
       icon: kShareIcon,
       menu: sidebarTools,
     }];
@@ -543,10 +572,10 @@ const kSharingUrls: Record<string, SidebarTool> = {
 };
 
 async function inputIsNumbered(
-  projectDir: string,
+  project: ProjectContext,
   input: string,
 ) {
-  const partitioned = await partitionedMarkdownForInput(projectDir, input);
+  const partitioned = await partitionedMarkdownForInput(project, input);
   if (partitioned) {
     return isNumberedChapter(partitioned);
   } else {

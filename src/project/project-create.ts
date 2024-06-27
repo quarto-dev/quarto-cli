@@ -1,14 +1,13 @@
 /*
-* project-create.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * project-create.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import * as ld from "../core/lodash.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { basename, dirname, join } from "path/mod.ts";
-import { info } from "log/mod.ts";
+import { basename, dirname, join } from "../deno_ral/path.ts";
+import { info } from "../deno_ral/log.ts";
 
 import { jupyterKernelspec } from "../core/jupyter/kernels.ts";
 import {
@@ -46,7 +45,6 @@ export interface ProjectCreateOptions {
 export async function projectCreate(options: ProjectCreateOptions) {
   // read and validate options
   options = await readOptions(options);
-
   // computed options
   const engine = executionEngine(options.engine);
   if (!engine) {
@@ -129,7 +127,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
       let src;
       let dest;
       let displayName;
-      if (typeof (supporting) === "string") {
+      if (typeof supporting === "string") {
         src = join(projCreate.resourceDir, supporting);
         dest = join(options.dir, supporting);
         displayName = supporting;
@@ -138,11 +136,12 @@ export async function projectCreate(options: ProjectCreateOptions) {
         dest = join(options.dir, supporting.to);
         displayName = supporting.to;
       }
-
-      ensureDirSync(dirname(dest));
-      copyTo(src, dest);
-      if (!options.quiet) {
-        info("- Created " + displayName, { indent: 2 });
+      if (!existsSync(dest)) {
+        ensureDirSync(dirname(dest));
+        copyTo(src, dest);
+        if (!options.quiet) {
+          info("- Created " + displayName, { indent: 2 });
+        }
       }
     }
   }

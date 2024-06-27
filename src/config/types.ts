@@ -8,9 +8,11 @@ import { Document } from "../core/deno-dom.ts";
 import {
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
+  kAppendixViewLicense,
   kArticleNotebookLabel,
   kBackToTop,
   kBaseFormat,
+  kBodyClasses,
   kCache,
   kCalloutCautionCaption,
   kCalloutImportantCaption,
@@ -54,9 +56,11 @@ import {
   kCrossrefTblTitle,
   kCrossrefThmTitle,
   kCss,
+  kCssPropertyProcessing,
   kDfPrint,
   kDisplayName,
   kDownloadUrl,
+  kDraftLabel,
   kEcho,
   kEmbedResources,
   kEngine,
@@ -88,6 +92,7 @@ import {
   kGladtex,
   kHighlightStyle,
   kHtmlMathMethod,
+  kHtmlPreTagProcessing,
   kHtmlTableProcessing,
   kInclude,
   kIncludeAfterBody,
@@ -131,6 +136,7 @@ import {
   kListingPageFieldSubtitle,
   kListingPageFieldTitle,
   kListingPageFieldWordCount,
+  kListingPageFilter,
   kListingPageMinutesCompact,
   kListingPageNoMatches,
   kListingPageOrderBy,
@@ -225,7 +231,10 @@ import {
   kToggleReaderMode,
   kToggleSection,
   kToggleSidebar,
+  kToolsDownload,
+  kToolsShare,
   kTopLevelDivision,
+  kUseRsvgConvert,
   kValidateYaml,
   kVariables,
   kVariant,
@@ -340,6 +349,7 @@ export interface NotebookPreviewDescriptor {
   url?: string;
   title?: string;
   [kDownloadUrl]?: string;
+  order?: number;
 }
 
 export interface FormatExtras {
@@ -477,8 +487,12 @@ export interface FormatRender {
   [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
   [kHtmlTableProcessing]?: "none";
+  [kHtmlPreTagProcessing]?: "none";
+  [kCssPropertyProcessing]?: "none" | "translate";
+  [kUseRsvgConvert]?: boolean;
   [kValidateYaml]?: boolean;
   [kCanonicalUrl]?: boolean | string;
+  [kBodyClasses]?: string;
 }
 
 export interface FormatExecute {
@@ -629,6 +643,7 @@ export interface FormatLanguage {
   [kSectionTitleReferences]?: string;
   [kSectionTitleAppendices]?: string;
   [kSectionTitleReuse]?: string;
+  [kAppendixViewLicense]?: string;
   [kSectionTitleCopyright]?: string;
   [kCodeSummary]?: string;
   [kCodeLine]?: string;
@@ -638,6 +653,8 @@ export interface FormatLanguage {
   [kCodeToolsHideAllCode]?: string;
   [kCodeToolsViewSource]?: string;
   [kCodeToolsSourceCode]?: string;
+  [kToolsDownload]?: string;
+  [kToolsShare]?: string;
   [kRepoActionLinksEdit]?: string;
   [kRepoActionLinksSource]?: string;
   [kRepoActionLinksIssue]?: string;
@@ -678,6 +695,7 @@ export interface FormatLanguage {
   [kEnvironmentRemarkTitle]?: string;
   [kEnvironmentSolutionTitle]?: string;
   [kListingPageOrderBy]?: string;
+  [kListingPageFilter]?: string;
   [kListingPageOrderByDateAsc]?: string;
   [kListingPageOrderByDefault]?: string;
   [kListingPageOrderByDateDesc]?: string;
@@ -701,6 +719,7 @@ export interface FormatLanguage {
   [kNotebookPreviewDownloadSrc]?: string;
   [kNotebookPreviewBack]?: string;
   [kArticleNotebookLabel]?: string;
+  [kDraftLabel]?: string;
   [kManuscriptMecaBundle]?: string;
 
   // langauge variations e.g. eg, fr, etc.

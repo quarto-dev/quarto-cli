@@ -8,7 +8,7 @@ import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/u
 import { createTempContext } from "../../core/temp.ts";
 import { installExtension } from "../../extension/install.ts";
 
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 import {
   loadTools,
   selectTool,

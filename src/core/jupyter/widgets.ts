@@ -123,12 +123,25 @@ export function includesForJupyterWidgetDependencies(
 
   // write jupyter widget state after body if it exists
   const afterBody: string[] = [];
+
   if (haveJupyterWidgets && widgetsState) {
-    afterBody.push(`<script type=${kApplicationJupyterWidgetState}>`);
-    afterBody.push(
-      JSON.stringify(widgetsState),
-    );
-    afterBody.push("</script>");
+    const stateStr = JSON.stringify(widgetsState);
+    // https://github.com/quarto-dev/quarto-cli/issues/8433
+    if (stateStr.includes("</script>")) {
+      afterBody.push(`<script>
+      (() => {
+        const scriptTag = document.createElement("script");
+        const base64State = "${btoa(encodeURIComponent(stateStr))}";
+        scriptTag.type = "${kApplicationJupyterWidgetState}";
+        scriptTag.textContent = decodeURIComponent(atob(base64State));
+        document.body.appendChild(scriptTag);
+      })();
+      </script>`);
+    } else {
+      afterBody.push(`<script type=${kApplicationJupyterWidgetState}>`);
+      afterBody.push(JSON.stringify(widgetsState));
+      afterBody.push("</script>");
+    }
   }
 
   // create pandoc includes for our head and afterBody

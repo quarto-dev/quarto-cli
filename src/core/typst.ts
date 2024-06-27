@@ -4,8 +4,8 @@
  * Copyright (C) 2022 Posit Software, PBC
  */
 
-import { error, info } from "log/mod.ts";
-import { basename } from "path/mod.ts";
+import { error, info } from "../deno_ral/log.ts";
+import { basename } from "../deno_ral/path.ts";
 import * as colors from "fmt/colors.ts";
 
 import { satisfies } from "semver/mod.ts";

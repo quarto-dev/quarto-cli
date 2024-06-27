@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, dirname, join } from "path/mod.ts";
+import { basename, dirname, join } from "../../deno_ral/path.ts";
 
 import * as ld from "../../core/lodash.ts";
 

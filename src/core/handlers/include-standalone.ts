@@ -4,7 +4,7 @@
  * Copyright (C) 2023 Posit Software, PBC
  */
 
-import { LanguageCellHandlerContext } from "./types.ts";
+import { IncludeState, LanguageCellHandlerContext } from "./types.ts";
 
 import {
   asMappedString,
@@ -25,6 +25,15 @@ export const standaloneInclude = async (
   const retrievedFiles: string[] = [source];
 
   const textFragments: EitherString[] = [];
+  if (!handlerContext.options.state) {
+    handlerContext.options.state = {};
+  }
+  if (!handlerContext.options.state.include) {
+    handlerContext.options.state.include = {
+      includes: [],
+    };
+  }
+  const includeState = handlerContext.options.state.include as IncludeState;
 
   const retrieveInclude = async (filename: string) => {
     const path = handlerContext.resolvePath(filename);
@@ -70,6 +79,7 @@ export const standaloneInclude = async (
           throw new Error("Include directive needs file parameter");
         }
 
+        includeState.includes.push({ source: filename, target: params[0] });
         await retrieveInclude(params[0]);
       }
     }

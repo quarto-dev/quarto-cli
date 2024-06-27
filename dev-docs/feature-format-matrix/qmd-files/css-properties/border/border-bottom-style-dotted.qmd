@@ -1,0 +1,31 @@
+---
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: na
+  typst:
+    quality: 2
+    comment: "table cell only; border-{left,top,right,bottom}-{color,style,width} only"
+  dashboard:
+    quality: 1
+  docx:
+    quality: na
+  pptx:
+    quality: na
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'table\.cell\(stroke: \(bottom: \(dash: "dotted", thickness: 0.75pt\)\)\)\[A\]'
+        - []
+---
+
+```{=html}
+<table>
+    <tr><td style="border-bottom-width: 1px; border-bottom-style: dotted">A</td><td>B</td></tr>
+</table>
+```
+

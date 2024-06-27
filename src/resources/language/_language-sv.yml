@@ -25,6 +25,7 @@ section-title-citation: "Citat"
 
 appendix-attribution-cite-as: "Hänvisa till detta arbete som:"
 appendix-attribution-bibtex: "BibTeX hänvisning:"
+appendix-view-license: "Visa Licens"
 
 title-block-author-single: "Författare"
 title-block-author-plural: "Författare"
@@ -121,3 +122,6 @@ listing-page-category-all: "Allt"
 listing-page-no-matches: "Inget resultat"
 listing-page-field-wordcount: "Ordmätning"
 listing-page-words: "{0} ord"
+listing-page-filter: "Filter"
+
+draft: "Utkast"

@@ -228,6 +228,10 @@ function float_title_prefix(float, withDelimiter)
     fail("unknown float type '" .. float.type .. "'")
     return
   end
+  if float.order == nil then
+    warn("field 'order' is missing from float. Cannot determine title prefix for crossref.")
+    return {}
+  end
   
   return titlePrefix(category.ref_type, category.name, float.order, withDelimiter)
 end

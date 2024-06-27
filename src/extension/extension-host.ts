@@ -185,7 +185,7 @@ const kGithubExtensionSource: ExtensionHostSource = {
   ],
 };
 const kGithubExtensionNameRegex =
-  /^([a-zA-Z0-9-_\.]*?)\/([a-zA-Z0-9-_\.]*?)(?:\/(.*?)\/?)?(?:@([a-zA-Z0-9-_\.]*))?$/;
+  /^([a-zA-Z0-9-_\.]*?)\/([a-zA-Z0-9-_\.]*?)(?:\/(.*?)\/?)?(?:@([a-zA-Z0-9-_\.\/]*))?$/;
 
 const kGithubArchiveUrlSource: ExtensionHostSource = {
   parse: (name: string) => {

@@ -62,3 +62,16 @@
   tags:
     formats: [$html-doc]
   description: The alt text for preview image on this page.
+
+- name: image-lazy-loading
+  schema: boolean
+  tags:
+    formats: [$html-doc]
+  description:
+    short: If true, the preview image will only load when it comes into view.
+    long: |
+      Enables lazy loading for the preview image. If true, the preview image element 
+      will have `loading="lazy"`, and will only load when it comes into view.
+
+      If false, the preview image will load immediately.
+  default: true

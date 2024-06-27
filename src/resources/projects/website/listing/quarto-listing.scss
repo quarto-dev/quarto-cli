@@ -595,7 +595,6 @@ div.quarto-post {
 
   .body {
     flex-basis: 45%;
-    width: 45%;
     flex-grow: 1;
     flex-shrink: 0;
 
@@ -613,6 +612,10 @@ div.quarto-post {
 
     .description {
       font-size: 0.9em;
+    }
+
+    pre code {
+      white-space: pre-wrap;
     }
   }
 

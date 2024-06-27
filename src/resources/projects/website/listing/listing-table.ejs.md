@@ -55,9 +55,9 @@ let value = readField(item, field);
 
 if (field === "image") {
 if (item.image) {
-value = listing.utilities.img(itemNumber, item[field], "", item['image-alt']);
+value = listing.utilities.img(itemNumber, item[field], "", item['image-alt'], item['image-lazy-loading'] ?? listing['image-lazy-loading']);
 } else {
-value = listing.utilities.imgPlaceholder(itemNumber, item.outputHref);
+value = listing.utilities.imgPlaceholder(listing.id, itemNumber, item.outputHref);
 }
 }
 return listing.utilities.outputLink(item, field, value, `listing-${field}`);

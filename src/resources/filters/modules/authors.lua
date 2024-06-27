@@ -1,5 +1,5 @@
--- meta.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- authors.lua
+-- Copyright (C) 2020-2024 Posit Software, PBC
 
 -- read and replace the authors field
 -- without reshaped data that has been 
@@ -1041,7 +1041,6 @@ local function processAuthorMeta(meta)
     -- if the YAML is being preserved, this should just no-op and leave
     -- things as they were
     local formatId = param("format-identifier", {})
-    quarto.log.output(formatId)
     if formatId['target-format'] == "markdown" then
       -- Don't normalize plain markdown as this preserves
       -- YAML front matter by default

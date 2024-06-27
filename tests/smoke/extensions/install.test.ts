@@ -1,5 +1,5 @@
 import { noErrorsOrWarnings } from "../../verify.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 import { ExecuteOutput, testQuartoCmd, Verify } from "../../test.ts";
 import { assert } from "testing/asserts.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
@@ -64,6 +64,7 @@ const extUrls = [
   "quarto-ext/lightbox",
   "quarto-ext/lightbox@cool",
   "quarto-ext/lightbox@v0.1.4",
+  "quarto-ext/lightbox@test/use-in-quarto-cli",
   "https://github.com/quarto-ext/lightbox/archive/refs/tags/v0.1.4.tar.gz",
   "https://github.com/quarto-ext/lightbox/archive/refs/heads/main.tar.gz",
   "https://github.com/quarto-ext/lightbox/archive/refs/heads/cool.tar.gz",

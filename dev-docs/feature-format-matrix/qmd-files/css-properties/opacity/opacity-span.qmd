@@ -1,0 +1,27 @@
+---
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: na
+  typst:
+    quality: 2
+    comment: "td and span only"
+  dashboard:
+    quality: 1
+  docx:
+    quality: na
+  pptx:
+    quality: na
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '\[dis\]#text\(fill: rgb\(0, 0, 0, 30%\)\)\[appe\]#text\(fill: rgb\(0, 0, 0, 20%\)\)'
+        - []
+---
+This text [is progressively]{style="opacity: 50%"} [dis]{style="opacity: 40%"}[appe]{style="opacity: 30%"}[ar]{style="opacity: 20%"}[in]{style="opacity: 10%"}[g.]{style="opacity: 0%"}
+
+Note [that there is [no opacity *filter* in Typst, [so we just apply it to the alpha of the text color. [So nesting [opacities do not [accumulate in Typst.]{style="opacity: 50%"}]{style="opacity: 50%"}]{style="opacity: 50%"}]{style="opacity: 50%"}]{style="opacity: 50%"}]{style="opacity: 50%"}

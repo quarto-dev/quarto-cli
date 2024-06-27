@@ -6,7 +6,7 @@
 */
 
 import { ensureDirSync } from "fs/mod.ts";
-import { dirname, join } from "path/mod.ts";
+import { dirname, join } from "../../../../deno_ral/path.ts";
 
 import { projectScratchPath } from "../../../project-scratch.ts";
 import { ProjectContext } from "../../../types.ts";

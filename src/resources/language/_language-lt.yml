@@ -25,6 +25,7 @@ section-title-citation: "Citavimas"
 
 appendix-attribution-cite-as: "Prašome šį darbą cituoti kaip:"
 appendix-attribution-bibtex: "BibTeX citavimas:"
+appendix-view-license: "Peržiūrėti Licenciją"
 
 title-block-author-single: "Autorius"
 title-block-author-plural: "Autoriai"
@@ -121,3 +122,6 @@ listing-page-category-all: "Viskas"
 listing-page-no-matches: "Atitinkančių elementų nerasta"
 listing-page-field-wordcount: "Žodžių Skaičius"
 listing-page-words: "{0} žodžiai"
+listing-page-filter: "Filtras"
+
+draft: "Juodraštis"

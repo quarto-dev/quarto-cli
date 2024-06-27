@@ -56,7 +56,7 @@ function process_equations(blockEl)
         elseif _quarto.format.isTypstOutput() then
           local is_block = eq.mathtype == "DisplayMath" and "true" or "false"
           targetInlines:insert(pandoc.RawInline("typst", 
-            "#math.equation(block: " .. is_block .. ", numbering: \"(" .. inlinesToString(numberOption("eq", order)) .. ")\", " ..
+            "#math.equation(block: " .. is_block .. ", numbering: \"(1)\", " ..
             "[ "))
           targetInlines:insert(eq)
           targetInlines:insert(pandoc.RawInline("typst", " ])<" .. label .. ">"))

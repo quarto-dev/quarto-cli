@@ -1,0 +1,13 @@
+---
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - ["Shaded"]
+        - ["tcolorbox"]
+---
+
+```{#lst-1 .python lst-cap="A caption"}
+print("Hello, World!")
+```

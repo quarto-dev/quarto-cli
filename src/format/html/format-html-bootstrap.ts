@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { Document, Element } from "../../core/deno-dom.ts";
-import { join } from "path/mod.ts";
+import { Document, Element, NodeList } from "../../core/deno-dom.ts";
+import { join } from "../../deno_ral/path.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
 import { formatResourcePath } from "../../core/resources.ts";
@@ -83,7 +83,7 @@ import { isHtmlOutput } from "../../config/format.ts";
 import { emplaceNotebookPreviews } from "./format-html-notebook.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { AlternateLink, otherFormatLinks } from "./format-html-links.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../../deno_ral/log.ts";
 import { binderUrl } from "../../core/container.ts";
 import { codeSpacesUrl } from "../../core/container.ts";
 
@@ -112,13 +112,13 @@ export function bootstrapFormatDependency() {
   };
 }
 
-export function boostrapExtras(
+export function bootstrapExtras(
   input: string,
   flags: PandocFlags,
   format: Format,
   services: RenderServices,
-  offset?: string,
-  project?: ProjectContext,
+  offset: string | undefined,
+  project: ProjectContext,
   quiet?: boolean,
 ): FormatExtras {
   const toc = hasTableOfContents(flags, format);
@@ -219,18 +219,66 @@ export function boostrapExtras(
 
 // Find any elements that are using fancy layouts (columns)
 const getColumnLayoutElements = (doc: Document) => {
-  return doc.querySelectorAll(
-    '[class^="column-"], [class*=" column-"], aside:not(.footnotes):not(.sidebar), [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]',
-  );
+  return doc.querySelectorAll(kColumnSelector);
 };
+
+const removeColumnClasses = (el: Element) => {
+  for (const cls of allColumnClz) {
+    el.classList.remove(cls);
+  }
+};
+
+const removeNestedColumnLayouts = (doc: Document) => {
+  const columnNodes = doc.querySelectorAll(kColumnSelector);
+  columnNodes.forEach((columnNode) => {
+    const columnEl = columnNode as Element;
+
+    // Process nested column layouts
+    if (isInColumnLayout(columnEl, doc, nonScreenColumnClz)) {
+      removeColumnClasses(columnEl);
+    }
+  });
+};
+
+const cleanNonsensicalMarginCaps = (doc: Document) => {
+  const marginCapNodes = doc.querySelectorAll(".margin-caption,.margin-ref");
+  marginCapNodes.forEach((capNode) => {
+    const capEl = capNode as Element;
+    if (isInColumnLayout(capEl, doc, removeMarginClz)) {
+      capEl.classList.remove("margin-caption");
+      capEl.classList.remove("margin-ref");
+    }
+  });
+};
+
+const isInColumnLayout = (
+  el: Element,
+  doc: Document,
+  clzList: string[],
+): boolean => {
+  const parent = el.parentElement;
+  if (!parent) {
+    return false;
+  }
+
+  for (const cls of parent.classList) {
+    if (clzList.includes(cls)) {
+      return true;
+    }
+  }
+  return isInColumnLayout(parent, doc, clzList);
+};
+
+const kColumnSelector =
+  '[class^="column-"], [class*=" column-"], aside:not(.footnotes):not(.sidebar), [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]';
 
 function bootstrapHtmlPostprocessor(
   input: string,
   format: Format,
   flags: PandocFlags,
   services: RenderServices,
-  offset?: string,
-  project?: ProjectContext,
+  offset: string | undefined,
+  project: ProjectContext,
   quiet?: boolean,
 ): HtmlPostProcessor {
   return async (
@@ -409,9 +457,15 @@ function bootstrapHtmlPostprocessor(
       if (th.parentNode?.parentNode) {
         const table = th.parentNode.parentNode as Element;
         table.removeAttribute("style");
+        // see https://github.com/quarto-dev/quarto-cli/issues/6945
+        // for a why we want to check for 'plain' here
         addTableClasses(
           table,
-          !!findParent(table, (el) => el.classList.contains("cell")),
+          !!findParent(
+            table,
+            (el) =>
+              el.classList.contains("cell") && !el.classList.contains("plain"),
+          ),
         );
       }
     }
@@ -623,7 +677,7 @@ async function processOtherLinks(
     context: ProjectContext,
   ): Promise<OtherLink | undefined> => {
     if (link === "repo") {
-      const env = await context.environment(context);
+      const env = await context.environment();
       if (env.github.repoUrl) {
         return {
           icon: "github",
@@ -637,7 +691,7 @@ async function processOtherLinks(
         );
       }
     } else if (link === "devcontainer") {
-      const env = await context.environment(context);
+      const env = await context.environment();
       if (
         env.github.organization && env.github.repository && env.github.repoUrl
       ) {
@@ -655,7 +709,7 @@ async function processOtherLinks(
         );
       }
     } else if (link === "binder") {
-      const env = await context.environment(context);
+      const env = await context.environment();
       if (env.github.organization && env.github.repository) {
         const containerUrl = binderUrl(
           env.github.organization,
@@ -1010,8 +1064,11 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
     // then lower the z-order so everything else can get on top
     // of the sidebar
     const isFullLayout = format.metadata[kPageLayout] === "full";
-    if (!hasMarginContent && isFullLayout && !hasRightContent) {
-      const marginSidebarEl = doc.getElementById("quarto-margin-sidebar");
+    const marginSidebarEl = doc.getElementById("quarto-margin-sidebar");
+    if (
+      (!hasMarginContent && isFullLayout && !hasRightContent) ||
+      marginSidebarEl?.childElementCount === 0
+    ) {
       marginSidebarEl?.classList.add("zindex-bottom");
     }
     return Promise.resolve();
@@ -1023,6 +1080,13 @@ function processColumnElements(
   format: Format,
   flags: PandocFlags,
 ) {
+  // Clean nested columns - the outer layout will win
+  removeNestedColumnLayouts(doc);
+
+  // Remove any margin captions that don't make sense (since the right
+  // margin is occluded by the element with the caption)
+  cleanNonsensicalMarginCaps(doc);
+
   // Margin and column elements are only functional in article based layouts
   if (!formatHasArticleLayout(format)) {
     return {
@@ -1101,7 +1165,10 @@ function processColumnElements(
         // Add the grid system. Children of the grid system
         // are placed into the body-content column by default
         // (CSS implements this)
-        if (!el.classList.contains("page-columns")) {
+        if (
+          !el.classList.contains("quarto-layout-row") &&
+          !el.classList.contains("page-columns")
+        ) {
           el.classList.add("page-columns");
         }
 
@@ -1155,7 +1222,8 @@ const processMarginNodes = (
 const findQuartoFigure = (el: Element): Element | undefined => {
   if (
     el.classList.contains("quarto-figure") ||
-    el.classList.contains("quarto-layout-panel")
+    el.classList.contains("quarto-layout-panel") ||
+    el.classList.contains("quarto-float")
   ) {
     return el;
   } else if (el.parentElement) {
@@ -1276,10 +1344,15 @@ const processMarginCaptions = (doc: Document) => {
       const isLayoutPanel = captionContainer.classList.contains(
         "quarto-layout-panel",
       );
-      if (isLayoutPanel) {
-        processLayoutPanelMarginCaption(captionContainer);
-      } else {
-        processFigureMarginCaption(captionContainer, doc);
+
+      // has explicitly set cap location
+      const explicitCapLoc = captionContainer.getAttribute("data-cap-location");
+      if (explicitCapLoc == null || explicitCapLoc == "margin") {
+        if (isLayoutPanel) {
+          processLayoutPanelMarginCaption(captionContainer);
+        } else {
+          processFigureMarginCaption(captionContainer, doc);
+        }
       }
     } else {
       // Deal with table margin captions
@@ -1392,6 +1465,15 @@ const figCapInCalloutMarginProcessor: MarginNodeProcessor = {
   },
 };
 
+const kPreviewFigColumnForwarding = [".grid"];
+
+const isInsideAbout = (el: Element) =>
+  !!findParent(
+    el,
+    (parent) =>
+      Array.from(parent.classList).some((x) => x.startsWith("quarto-about-")),
+  );
+
 const processFigureOutputs = (doc: Document) => {
   // For any non-margin figures, we want to actually place the figure itself
   // into the column, and leave the caption as is, if possible
@@ -1414,15 +1496,33 @@ const processFigureOutputs = (doc: Document) => {
     // See if this is a code cell with a single figure output
     const columnEl = columnNode as Element;
 
+    // See if there are any classes which should prohibit forwarding
+    // the column information
+    if (
+      kPreviewFigColumnForwarding.some((sel) => {
+        return columnEl.querySelector(sel) !== null;
+      })
+    ) {
+      // There are matching ignore selectors, just skip
+      // this column
+      continue;
+    }
+
     // If there is a single figure, then forward the column class onto that
     const figures = columnEl.querySelectorAll("figure img.figure-img");
-    if (figures && figures.length === 1) {
+
+    if (
+      figures && figures.length === 1 && !isInsideAbout(figures[0] as Element)
+    ) {
       moveColumnClasses(columnEl, figures[0] as Element);
     } else {
       const layoutFigures = columnEl.querySelectorAll(
         ".quarto-layout-panel > figure.figure .quarto-layout-row",
       );
-      if (layoutFigures && layoutFigures.length === 1) {
+      if (
+        layoutFigures && layoutFigures.length === 1 &&
+        !isInsideAbout(layoutFigures[0] as Element)
+      ) {
         moveColumnClasses(columnEl, layoutFigures[0] as Element);
       }
     }
@@ -1490,7 +1590,32 @@ const simpleMarginProcessor: MarginNodeProcessor = {
   },
   process(el: Element, doc: Document) {
     el.classList.remove("column-margin");
-    addContentToMarginContainerForEl(el, el, doc);
+
+    const kPopMarginElOutOfTags = ["DD"];
+
+    // Specially deal with DD
+    if (
+      el.parentElement &&
+      kPopMarginElOutOfTags.includes(el.parentElement?.tagName)
+    ) {
+      const parentElement = el.parentElement;
+      // This is in a tag which itself can't be a container
+      // pop it out
+      // make a container which is next to the parent and
+      // place that in the margin
+      // For examples of this, see:
+      // https://github.com/quarto-dev/quarto-cli/issues/8862
+      const marginContainer = doc.createElement("DIV");
+      el.remove();
+      marginContainer.appendChild(el);
+      parentElement.parentElement?.insertBefore(
+        marginContainer,
+        parentElement.nextSibling,
+      );
+      addContentToMarginContainerForEl(marginContainer, marginContainer, doc);
+    } else {
+      addContentToMarginContainerForEl(el, el, doc);
+    }
   },
 };
 
@@ -1506,6 +1631,7 @@ const footnoteMarginProcessor: MarginNodeProcessor = {
         // First try to grab a the citation or footnote.
         const refId = target.slice(1);
         const refContentsEl = doc.getElementById(refId);
+
         if (refContentsEl) {
           // Find and remove the backlink
           const backLinkEl = refContentsEl.querySelector(".footnote-back");
@@ -1553,11 +1679,25 @@ const footnoteMarginProcessor: MarginNodeProcessor = {
             );
           }
           const validParent = findValidParentEl(el);
-          addContentToMarginContainerForEl(
-            validParent || el,
-            refContentsEl,
-            doc,
-          );
+
+          if (refContentsEl.tagName === "LI") {
+            // Ensure that there is a list to place this footnote within
+            const containerEl = doc.createElement("DIV");
+            containerEl.id = refContentsEl.id;
+            containerEl.append(...refContentsEl.childNodes);
+
+            addContentToMarginContainerForEl(
+              validParent || el,
+              containerEl,
+              doc,
+            );
+          } else {
+            addContentToMarginContainerForEl(
+              validParent || el,
+              refContentsEl,
+              doc,
+            );
+          }
         }
       }
     }
@@ -1675,20 +1815,6 @@ const marginContainerForEl = (el: Element, doc: Document) => {
     return el.previousElementSibling;
   }
 
-  // Check for a list or table
-  const list = findOutermostParentElOfType(el, ["OL", "UL", "TABLE"]);
-  if (list) {
-    if (list.nextElementSibling && isContainer(list.nextElementSibling)) {
-      return list.nextElementSibling;
-    } else {
-      const container = createMarginContainer(doc);
-      if (list.parentNode) {
-        list.parentNode.insertBefore(container, list.nextElementSibling);
-      }
-      return container;
-    }
-  }
-
   // Find the callout parent and create a container for the callout there
   // Walks up the parent stack until a callout element is found
   const findCalloutEl = (el: Element): Element | undefined => {
@@ -1710,9 +1836,23 @@ const marginContainerForEl = (el: Element, doc: Document) => {
     return container;
   }
 
+  // Check for a list or table
+  const list = findOutermostParentElOfType(el, ["OL", "UL", "TABLE"]);
+  if (list) {
+    if (list.nextElementSibling && isContainer(list.nextElementSibling)) {
+      return list.nextElementSibling;
+    } else {
+      const container = createMarginContainer(doc);
+      if (list.parentNode) {
+        list.parentNode.insertBefore(container, list.nextElementSibling);
+      }
+      return container;
+    }
+  }
+
   // Deal with a paragraph
   const parentEl = el.parentElement;
-  const cantContainBlockTags = ["P"];
+  const cantContainBlockTags = ["P", "BLOCKQUOTE"];
   if (parentEl && cantContainBlockTags.includes(parentEl.tagName)) {
     // See if this para has a parent div with a container
     if (
@@ -1746,6 +1886,17 @@ const addContentToMarginContainerForEl = (
   const container = marginContainerForEl(el, doc);
   if (container) {
     container.appendChild(content);
+  }
+};
+
+const addNodesToMarginContainerForEl = (
+  el: Element,
+  nodes: NodeList,
+  doc: Document,
+) => {
+  const container = marginContainerForEl(el, doc);
+  if (container) {
+    container.append(...nodes);
   }
 };
 
@@ -1835,6 +1986,57 @@ const rightOccludeClz = [
   "column-screen-right",
   "margin-caption",
   "margin-ref",
+];
+
+const allColumnClz = [
+  "column-body-outset",
+  "column-body-outset-left",
+  "column-body-outset-right",
+  "column-page-inset",
+  "column-page-inset-left",
+  "column-page-inset-right",
+  "column-page",
+  "column-page-left",
+  "column-page-right",
+  "column-screen-inset",
+  "column-screen-inset-left",
+  "column-screen-inset-right",
+  "column-screen",
+  "column-screen-left",
+  "column-screen-right",
+  "column-margin",
+];
+
+const removeMarginClz = [
+  "column-body-outset",
+  "column-body-outset-right",
+  "column-page-inset",
+  "column-page-inset-right",
+  "column-page",
+  "column-page-right",
+  "column-screen-inset",
+  "column-screen-inset-right",
+  "column-screen",
+  "column-screen-right",
+  "column-margin",
+];
+
+const nonScreenColumnClz = [
+  "column-body-outset",
+  "column-body-outset-left",
+  "column-body-outset-right",
+  "column-page-inset",
+  "column-page-inset-left",
+  "column-page-inset-right",
+  "column-page",
+  "column-page-left",
+  "column-page-right",
+  "column-screen-inset",
+  "column-screen-inset-left",
+  "column-screen-inset-right",
+  "column-screen-left",
+  "column-screen-right",
+  "column-margin",
 ];
 
 const getColumnClasses = (doc: Document) => {

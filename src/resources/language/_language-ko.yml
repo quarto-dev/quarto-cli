@@ -25,6 +25,7 @@ section-title-citation: "인용"
 
 appendix-attribution-cite-as: "인용방법"
 appendix-attribution-bibtex: "BibTeX 인용:"
+appendix-view-license: "라이센스 보기"
 
 title-block-author-single: "저자"
 title-block-author-plural: "저자"
@@ -120,3 +121,6 @@ listing-page-category-all: "전체"
 listing-page-no-matches: "일치 없음"
 listing-page-field-wordcount: "단어 수"
 listing-page-words: "{0} 단어"
+listing-page-filter: "필터"
+
+draft: "초안"

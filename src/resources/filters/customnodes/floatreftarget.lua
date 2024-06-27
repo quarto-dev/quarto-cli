@@ -2,6 +2,7 @@
 -- Copyright (C) 2023 Posit Software, PBC
 
 local drop_class = require("modules/filters").drop_class
+local patterns = require("modules/patterns")
 
 local function split_longtable_start(content_str)
   -- we use a hack here to split the content into params and actual content
@@ -101,33 +102,41 @@ _quarto.ast.add_handler({
     tbl.attributes = pandoc.List(tbl.attributes)
     tbl.classes = pandoc.List(tbl.classes)
 
-    table_colwidth_cell(tbl) -- table colwidth forwarding
     return tbl
   end
 })
 
-function cap_location(float_or_layout)
-  local ref = refType(float_or_layout.identifier)
-  -- layouts might not have good identifiers, but they might have
-  -- ref-parents
-  if ref == nil then
-    ref = refType(float_or_layout.attributes["ref-parent"] or "")
+function cap_location(obj)
+  local ref
+  local is_float = obj.t == "FloatRefTarget"
+  
+  if is_float then
+    ref = ref_type_from_float(obj)
+  else
+    -- this is either a layout or a Pandoc Figure
+    -- layouts might not have good identifiers, but they might have
+    -- ref-parents
+    ref = refType(obj.identifier) or refType(obj.attributes["ref-parent"] or "")
   end
-  -- last resort, pretend we're a figure
-  if ref == nil then
-    ref = "fig"
+  if ref == nil or crossref.categories.by_ref_type[ref] == nil then
+    if obj.t == "Table" then
+      ref = "tbl"
+    else
+      -- last resort, pretend we're a figure
+      ref = "fig"
+    end
   end
   local qualified_key = ref .. '-cap-location'
   local result = (
-    float_or_layout.attributes[qualified_key] or
-    float_or_layout.attributes['cap-location'] or
+    obj.attributes[qualified_key] or
+    obj.attributes['cap-location'] or
     option_as_string(qualified_key) or
     option_as_string('cap-location') or
     crossref.categories.by_ref_type[ref].caption_location)
 
   if result ~= "margin" and result ~= "top" and result ~= "bottom" then
     -- luacov: disable
-    error("Invalid caption location for float: " .. float_or_layout.identifier .. 
+    error("Invalid caption location for float: " .. obj.identifier .. 
       " requested " .. result .. 
       ".\nOnly 'top', 'bottom', and 'margin' are supported. Assuming 'bottom'.")
     result = "bottom"
@@ -137,10 +146,16 @@ function cap_location(float_or_layout)
   return result
 end
 
+-- we need to expose this function for use in the docusaurus renderer
+quarto.doc.crossref.cap_location = cap_location
+
 local function get_node_from_float_and_type(float, type, filter_base)
   -- this explicit check appears necessary for the case where
   -- float.content is directly the node we want, and not a container that
   -- contains the node.
+  if float.content == nil then
+    return nil
+  end
   if float.content.t == type then
     return float.content
   else
@@ -167,7 +182,7 @@ _quarto.ast.add_renderer("FloatRefTarget", function(_)
   return true
 end, function(float)
   warn("\nEmitting a placeholder FloatRefTarget\nOutput format " .. FORMAT .. " does not currently support FloatRefTarget nodes.")
-  return scaffold(float.content)
+  return _quarto.ast.scaffold_element(float.content)
 end)
 
 function is_unlabeled_float(float)
@@ -187,7 +202,7 @@ function decorate_caption_with_crossref(float)
     internal_error()
     -- luacov: enable
   end
-  local caption_content = float.caption_long.content or float.caption_long
+  local caption_content = (float.caption_long and float.caption_long.content) or float.caption_long or pandoc.Inlines({})
 
   if float.parent_id then
     if float.order == nil then
@@ -207,6 +222,11 @@ function decorate_caption_with_crossref(float)
   end
   return float
 end
+
+-- we need to expose this function for use in the docusaurus renderer,
+-- which is technically an extension that doesn't have access to the
+-- internal filters namespace
+quarto.doc.crossref.decorate_caption_with_crossref = decorate_caption_with_crossref
 
 function full_caption_prefix(float, subfloat)
   if not param("enable-crossref", true) then
@@ -280,10 +300,15 @@ _quarto.ast.add_renderer("FloatRefTarget", function(_)
 end, function(float)
   local figEnv = latexFigureEnv(float)
   local figPos = latexFigurePosition(float, figEnv)
-  local float_type = refType(float.identifier)
+  local float_type = ref_type_from_float(float)
 
   local capLoc = cap_location(float)
   local caption_cmd_name = latexCaptionEnv(float)
+
+  if float.content == nil then
+    warn("FloatRefTarget with no content: " .. float.identifier)
+    return pandoc.Div({})
+  end
 
   if float.parent_id then
     if caption_cmd_name == kSideCaptionEnv then
@@ -302,6 +327,18 @@ end, function(float)
     float.content.caption.long = float.caption_long
     float.content.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
     return float.content
+  elseif float_type == "lst" then
+    local handle_code_block = function(codeblock)
+      codeblock.attr = merge_attrs(codeblock.attr, pandoc.Attr("", float.classes or {}, float.attributes or {}))
+      return codeblock
+    end
+    if float.content.t == "CodeBlock" then
+      float.content = handle_code_block(float.content)
+    else
+      float.content = _quarto.ast.walk(float.content, {
+        CodeBlock = handle_code_block
+      })
+    end
   end
 
   local fig_scap = attribute(float, kFigScap, nil)
@@ -315,25 +352,11 @@ end, function(float)
   else
     latex_caption = float.caption_long
   end
-
-  if #latex_caption == 0 then
-    local caption_setup = quarto.LatexInlineCommand({
-      name = "captionsetup",
-      arg = "labelsep=none"
-    })
-    local pt = pandoc.utils.type(float.content)
-    if pt == "Block" then
-      float.content.content:insert(1, caption_setup)
-    elseif pt == "Blocks" then
-      float.content:insert(1, caption_setup)
-    else
-      internal_error()
-    end
-  end
+  latex_caption = latex_caption or pandoc.Inlines({})
 
   local label_cmd = quarto.LatexInlineCommand({
     name = "label",
-    arg = pandoc.Str(float.identifier)
+    arg = pandoc.RawInline("latex", float.identifier)
   })
   latex_caption:insert(1, label_cmd)
   local latex_caption_content = latex_caption
@@ -362,68 +385,167 @@ end, function(float)
   -- we need Pandoc to render its table ahead of time in order to
   -- do the longtable fixups below
   float.content = _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
+    traverse = "topdown",
+    Div = function(div)
+      if div.classes:find_if(isStarEnv) then
+        return _quarto.ast.walk(div, {
+          Table = function(tbl)
+            if float.type == "Table" then
+              figEnv = "table*"
+            else
+              figEnv = "figure*"
+            end
+            local result = latexTabular(tbl)
+            return result
+          end
+        }), false
+      end
+    end,
     Table = function(tbl)
-      return pandoc.RawBlock("latex", pandoc.write(pandoc.Pandoc({tbl}), "latex"))
+      local cites = pandoc.List({})
+      local guid_id = global_table_guid_id
+      local uuid = "85b77c8a-261c-4f58-9b04-f21c67e0a758"
+      tbl = _quarto.ast.walk(tbl, {
+        Cite = function(cite)
+          cites:insert(cite)
+          guid_id = guid_id + 1
+          -- this uuid is created a little strangely here
+          -- to ensure that no generated uuid will be a prefix of another,
+          -- which would cause our regex replacement to pick up the wrong
+          -- uuid
+          return pandoc.Str(uuid .. "-" .. guid_id .. "-" .. uuid)
+        end
+      })
+      local raw_output = pandoc.RawBlock("latex", pandoc.write(pandoc.Pandoc({tbl}), "latex"))
+      if #cites > 0 then
+        local local_guid_id = global_table_guid_id
+        local result = pandoc.Blocks({
+          _quarto.ast.make_scaffold(pandoc.Span, cites:map(function(cite)
+            local_guid_id = local_guid_id + 1
+            return _quarto.ast.make_scaffold(pandoc.Span, pandoc.Inlines({
+              pandoc.RawInline("latex", "%quarto-define-uuid: " .. uuid .. "-" .. local_guid_id .. "-" .. uuid .. "\n"),
+              cite,
+              pandoc.RawInline("latex", "\n%quarto-end-define-uuid\n")
+            }))
+          end)), raw_output})
+        global_table_guid_id = global_table_guid_id + #cites
+        return result
+      else
+        return raw_output
+      end
     end
   })
 
   if float_type == "tbl" then
-    local raw
+    local made_fix = false
+    local function fix_raw(is_star_env)
+      local function set_raw(el)
+        if _quarto.format.isRawLatex(el) and _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexLongtablePattern)(el.text) then
+          made_fix = true
+          local raw = el
+          -- special case for longtable floats in LaTeX
+          local extended_pattern = {".-"}
+          for _, pattern in ipairs(_quarto.patterns.latexLongtablePattern) do
+            table.insert(extended_pattern, pattern)
+          end
+          table.insert(extended_pattern, ".*")
+          local longtable_preamble, longtable_begin, longtable_content, longtable_end, longtable_postamble = _quarto.modules.patterns.match_all_in_table(extended_pattern)(raw.text)
+          if longtable_preamble == nil or longtable_begin == nil or longtable_content == nil or longtable_end == nil or longtable_postamble == nil then
+            warn("Could not parse longtable parameters. This could happen because the longtable parameters\n" ..
+            "are not well-formed or because of a bug in quarto. Please consider filing a bug report at\n" ..
+            "https://github.com/quarto-dev/quarto-cli/issues/, and make sure to include the document that\n" ..
+            "triggered this error.")
+            return {}
+          end
+          -- split the content into params and actual content
+          -- params are everything in the first line of longtable_content
+          -- actual content is everything else
+          local start, content = split_longtable_start(longtable_begin .. longtable_content)
+          if start == nil or content == nil then
+            warn("Could not parse longtable parameters. This could happen because the longtable parameters\n" ..
+            "are not well-formed or because of a bug in quarto. Please consider filing a bug report at\n" ..
+            "https://github.com/quarto-dev/quarto-cli/issues/, and make sure to include the document that\n" ..
+            "triggered this error.")
+            return {}
+          end
+          local cap_loc = cap_location(float)
+          if float.parent_id then
+            -- need to fixup subtables because longtables don't support subcaptions,
+            -- and longtable captions increment the wrong counter
+            -- we try our best here
+
+            fatal("longtables are not supported in subtables.\n" ..
+              "This is not a Quarto bug - the LaTeX longtable environment doesn't support subcaptions.\n")
+            return {}
+          end
+          if is_star_env then
+            -- content: table payload
+            -- start: \\begin{longtable}... command
+            -- longtable_preamble: everything that came before the \\begin{longtable} command
+            -- longtable_postamble: everything that came after the \\end{longtable} command
+            local result = pandoc.Blocks({
+              pandoc.RawBlock("latex", longtable_preamble),
+              pandoc.RawBlock("latex", "\\begin{table*}"),
+              -- caption here if cap_loc == "top"
+              pandoc.RawBlock("latex", start .. "\n" .. content .. "\n\\end{longtable}"),
+              -- caption here if cap_loc ~= "top"
+              pandoc.RawBlock("latex", "\\end{table*}"),
+              pandoc.RawBlock("latex", longtable_postamble),
+            })
+            if cap_loc == "top" then
+              result:insert(3, latex_caption)
+              -- gets around the padding that longtable* adds
+              result:insert(4, pandoc.RawBlock("latex", "\\vspace{-1em}"))
+            else
+              result:insert(4, latex_caption)
+            end
+            return result
+          else
+            local result = pandoc.Blocks({latex_caption, pandoc.RawInline("latex", "\\tabularnewline")})
+            -- if cap_loc is top, insert content on bottom
+            if cap_loc == "top" then
+              result:insert(pandoc.RawBlock("latex", content))        
+            else
+              result:insert(1, pandoc.RawBlock("latex", content))
+            end
+            result:insert(1, pandoc.RawBlock("latex", start))
+            result:insert(1, pandoc.RawBlock("latex", longtable_preamble))
+            result:insert(pandoc.RawBlock("latex", "\\end{longtable}"))
+            result:insert(pandoc.RawBlock("latex", longtable_postamble))
+            return result
+          end
+        end
+      end
+      return set_raw
+    end
     -- have to call as_blocks() again here because assigning to float.content
     -- goes through our AST metaclasses which coalesce a singleton list to a single AST element
-    _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
-      RawBlock = function(el)
-        if _quarto.format.isRawLatex(el) and el.text:match(_quarto.patterns.latexLongtablePattern) then
-          raw = el
+    local fixed_up_content = _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
+      traverse = "topdown",
+      Div = function(div)
+        if div.classes:find_if(isStarEnv) then
+          return _quarto.ast.walk(div, {
+            RawBlock = fix_raw(true)
+          }), false
         end
-      end
+      end,
+      RawBlock = fix_raw(false)
     })
-    -- special case for singleton longtable floats
-    if raw then
-      local extended_pattern = "(.-)" .. _quarto.patterns.latexLongtablePattern .. "(.*)"
-      local longtable_preamble, longtable_begin, longtable_content, longtable_end, longtable_postamble = raw.text:match(extended_pattern)
-      if longtable_preamble == nil or longtable_begin == nil or longtable_content == nil or longtable_end == nil or longtable_postamble == nil then
-        warn("Could not parse longtable parameters. This could happen because the longtable parameters\n" ..
-        "are not well-formed or because of a bug in quarto. Please consider filing a bug report at\n" ..
-        "https://github.com/quarto-dev/quarto-cli/issues/, and make sure to include the document that\n" ..
-        "triggered this error.")
-        return {}
-      end
-      -- split the content into params and actual content
-      -- params are everything in the first line of longtable_content
-      -- actual content is everything else
-      local start, content = split_longtable_start(longtable_begin .. longtable_content)
-      if start == nil or content == nil then
-        warn("Could not parse longtable parameters. This could happen because the longtable parameters\n" ..
-        "are not well-formed or because of a bug in quarto. Please consider filing a bug report at\n" ..
-        "https://github.com/quarto-dev/quarto-cli/issues/, and make sure to include the document that\n" ..
-        "triggered this error.")
-        return {}
-      end
-      local cap_loc = cap_location(float)
-      if float.parent_id then
-        -- need to fixup subtables because longtables don't support subcaptions,
-        -- and longtable captions increment the wrong counter
-        -- we try our best here
+    if made_fix then
+      return fixed_up_content
+    end
+  end
 
-        fatal("longtables are not supported in subtables.\n" ..
-          "This is not a Quarto bug - the LaTeX longtable environment doesn't support subcaptions.\n")
-        return {}
-      else
-        local result = pandoc.Blocks({latex_caption, pandoc.RawInline("latex", "\\tabularnewline")})
-        -- if cap_loc is top, insert content on bottom
-        if cap_loc == "top" then
-          result:insert(pandoc.RawBlock("latex", content))        
-        else
-          result:insert(1, pandoc.RawBlock("latex", content))
-        end
-        result:insert(1, pandoc.RawBlock("latex", start))
-        result:insert(1, pandoc.RawBlock("latex", longtable_preamble))
-        result:insert(pandoc.RawBlock("latex", "\\end{longtable}"))
-        result:insert(pandoc.RawBlock("latex", longtable_postamble))
-        return result
-      end
-    end 
+  -- As an additional complication, we need to handle the case where the
+  -- content is a table* environment, by stripping the environment raw code
+  -- and recreating it below.
+  -- See #7937
+  if _quarto.format.isRawLatex(float.content) then
+    local _b, _e, _beginenv, inner_content, _endenv = float.content.text:find(patterns.latex_table_star)
+    if _b ~= nil then 
+      figEnv = "table*"
+      float.content.text = inner_content
+    end
   end
 
   local figure_content
@@ -447,13 +569,19 @@ end, function(float)
       quarto.LatexBlockCommand({
         name = "centering",
         inside = true,
-        arg = scaffold(figure_content)
+        arg = _quarto.ast.scaffold_element(figure_content)
       })
     })
   elseif align == "right" then
-    figure_content:insert(1, quarto.LatexInlineCommand({
-      name = "hfill",
-    }))
+    local plain = quarto.utils.match("[1]/{Plain}")(figure_content)
+    if plain then
+      local cmd = quarto.LatexInlineCommand({
+        name = "hfill",
+      })
+      plain[1].content:insert(1, cmd)
+    else
+      warn("Could not find a Plain node in figure content of " .. float.identifier .. " to right-align.")
+    end
   end -- otherwise, do nothing
   -- figure_content:insert(1, pandoc.RawInline("latex", latexBeginAlign(align)))
   -- figure_content:insert(pandoc.RawInline("latex", latexEndAlign(align)))
@@ -461,7 +589,7 @@ end, function(float)
   if latex_caption then
     if caption_cmd_name == kSideCaptionEnv then
       if #figure_content > 1 then
-        figure_content:insert(2, latex_caption) -- FIXME why is this 2 and not 1?
+        figure_content:insert(1, latex_caption) -- Since this is a side caption, insert it physically above the figure to improve typsetting
       else
         figure_content:insert(latex_caption)
       end
@@ -583,7 +711,7 @@ local function create_figcaption(float)
   if float.caption_long == nil or pandoc.utils.stringify(float.caption_long) == "" then
     cap = pandoc.Blocks({})
   end
-  local ref_type = refType(float.identifier)
+  local ref_type = ref_type_from_float(float)
   local caption_location = cap_location(float)
 
   -- use a uuid to ensure that the figcaption ids won't conflict with real
@@ -641,7 +769,7 @@ function float_reftarget_render_html_figure(float)
   local found_image = pandoc.Div({})
   -- #7727: don't recurse into tables when searching for a figure from
   -- which to get attributes
-  if float.content.t ~= "Table" then
+  if float.content and float.content.t ~= "Table" then
     found_image = get_node_from_float_and_type(float, "Image", {
       Table = function(table)
         return nil, false
@@ -655,11 +783,16 @@ function float_reftarget_render_html_figure(float)
     pandoc.Attr("", {}, figure_attrs.figureAttr))
   if float.type == "Listing" then
     div.attr.classes:insert("listing")
-  elseif float.type == "Figure" then
-    -- apply standalone figure css
-    div.attr.classes:insert("quarto-figure")
-    div.attr.classes:insert("quarto-figure-" .. figure_attrs.align)
+    -- in the special case of listings, we likely have text content
+    -- including annotations, which require left alignment
+    -- we hard-code this here.
+    -- https://github.com/quarto-dev/quarto-cli/issues/9724
+    figure_attrs.align = "left"
   end
+  div.attr.classes:insert("quarto-float")
+
+  div.attr.classes:insert("quarto-figure")
+  div.attr.classes:insert("quarto-figure-" .. figure_attrs.align)
 
   -- also forward any column or caption classes
   local currentClasses = found_image.attr.classes
@@ -669,7 +802,7 @@ function float_reftarget_render_html_figure(float)
     end
   end
 
-  local ref = refType(float.identifier)
+  local ref = ref_type_from_float(float)
   local figure_class
   if float.parent_id then
     figure_class = "quarto-subfloat-" .. ref
@@ -720,14 +853,64 @@ end, function(float)
       float.identifier)
   end
 
-  float.caption_long.content:insert(1, pandoc.RawInline("asciidoc", ". "))
-  float.caption_long.content:insert(pandoc.RawInline("asciidoc", "\n[[" .. float.identifier .. "]]\n===="))
-  return pandoc.Div({
-    float.caption_long,
-    -- pandoc.RawBlock("asciidoc", "[[" .. float.identifier .. "]]\n====\n"),
-    float.content,
-    pandoc.RawBlock("asciidoc", "====\n\n")
+  if float.type == "Table" and float.content.t == "Table" then
+    -- special-case the situation where the figure is Table and the content is Table
+    --
+    -- just return the table itself with the caption inside the table
+    float.content.caption.long = float.caption_long
+    float.content.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
+    return pandoc.Blocks({
+      pandoc.RawBlock("asciidoc", "[[" .. float.identifier .. "]]\n"),
+      float.content
+    })
+  end
+
+  -- if this is a "linked figure Div", render it as such.
+  local link = quarto.utils.match("Plain/[1]/{Link}/[1]/{Image}")(float.content)
+  if link then
+    link[2].identifier = float.identifier
+    local caption = quarto.utils.as_inlines(float.caption_long)
+    table.insert(caption, 1, pandoc.RawInline("asciidoc", "."))
+    table.insert(caption, pandoc.RawInline("asciidoc", "\n[[" .. float.identifier .. "]]\n"))
+    table.insert(caption, link[1])
+    return caption
+  end
+
+  -- if the float consists of exactly one image,
+  -- render it as a pandoc Figure node.
+  local count = 0
+  local img
+  _quarto.ast.walk(float.content, {
+    Image = function(node)
+      count = count + 1
+      img = node
+    end
   })
+  if count == 1 then
+    img.identifier = float.identifier
+    img.caption = quarto.utils.as_inlines(float.caption_long)
+    return pandoc.Figure(
+      {img},
+      {float.caption_long},
+      float.identifier)
+  end
+
+  -- Fallthrough case, render into a div.
+  float.caption_long.content:insert(1, pandoc.RawInline("asciidoc", "."))
+  float.caption_long.content:insert(pandoc.RawInline("asciidoc", "\n[[" .. float.identifier .. "]]\n===="))
+
+  if pandoc.utils.type(float.content) == "Blocks" then
+    float.content:insert(1, float.caption_long)
+    float.content:insert(pandoc.RawBlock("asciidoc", "====\n"))
+    return float.content
+  else
+    return pandoc.Blocks({
+      float.caption_long,
+      -- pandoc.RawBlock("asciidoc", "[[" .. float.identifier .. "]]\n====\n"),
+      float.content,
+      pandoc.RawBlock("asciidoc", "====\n\n")
+    })
+  end
 
 end)
 
@@ -740,7 +923,7 @@ end, function(float)
   end
   decorate_caption_with_crossref(float)
   return pandoc.Figure(
-    {float.content},
+    quarto.utils.as_blocks(float.content),
     {float.caption_long},
     float.identifier
   )
@@ -788,7 +971,7 @@ end)
 _quarto.ast.add_renderer("FloatRefTarget", function(_)
   return _quarto.format.isTypstOutput()
 end, function(float)
-  local ref = refType(float.identifier)
+  local ref = ref_type_from_float(float)
   local info = crossref.categories.by_ref_type[ref]
   if info == nil then
     -- luacov: disable
@@ -796,31 +979,98 @@ end, function(float)
     return float.content
     -- luacov: enable
   end
-  local kind
-  local supplement = ""
-  local numbering = ""
+  local kind = "quarto-float-" .. ref
+  local supplement = titleString(ref, info.name)
+  -- FIXME: custom numbering doesn't work yet
+  -- local numbering = ""
+  -- if float.parent_id then
+  --   numbering = "(a)"
+  -- else
+  --   numbering = "1"
+  -- end
+  local content = quarto.utils.as_blocks(float.content or {})
+  local caption_location = cap_location(float)
 
-  if float.parent_id then
-    kind = "quarto-subfloat-" .. ref
-    numbering = "(a)"
-  else
-    kind = "quarto-float-" .. ref
-    numbering = "1"
-    supplement = info.name
+  if (caption_location ~= "top" and caption_location ~= "bottom") then
+    -- warn this is not supported and default to bottom
+    warn("Typst does not support this caption location: " .. caption_location .. ". Defaulting to bottom for '" .. float.identifier .. "'.")
+    caption_location = "bottom"
   end
+
+  if (ref == "lst") then
+    -- FIXME: 
+    -- Listings shouldn't emit centered blocks. 
+    -- We don't know how to disable that right now using #show rules for #figures in template.
+    content:insert(1, pandoc.RawBlock("typst", "#set align(left)"))
+  end
+
+  if float.has_subfloats then
+    return _quarto.format.typst.function_call("quarto_super", {
+      {"kind", kind},
+      {"caption", _quarto.modules.typst.as_typst_content(float.caption_long)},
+      {"label", pandoc.RawInline("typst", "<" .. float.identifier .. ">")},
+      {"position", pandoc.RawInline("typst", caption_location)},
+      {"supplement", supplement},
+      {"subrefnumbering", "1a"},
+      {"subcapnumbering", "(a)"},
+      _quarto.modules.typst.as_typst_content(content)
+    }, false)
+  else
+    return make_typst_figure {
+      content = content,
+      caption_location = caption_location,
+      caption = float.caption_long,
+      kind = kind,
+      supplement = supplement,
+      -- numbering = numbering,
+      identifier = float.identifier
+    }
+  end
+end)
+
+_quarto.ast.add_renderer("FloatRefTarget", function(_)
+  return _quarto.format.is_github_markdown_output()
+end, function(float)
+  decorate_caption_with_crossref(float)
 
   local caption_location = cap_location(float)
 
-  -- FIXME: Listings shouldn't emit centered blocks. I don't know how to disable that right now.
-  -- FIXME: custom numbering doesn't work yet
+  local open_block = pandoc.RawBlock("markdown", "<div id=\"" .. float.identifier .. "\">\n")
+  local close_block = pandoc.RawBlock("markdown", "\n</div>")
 
-  return make_typst_figure {
-    content = float.content,
-    caption_location = caption_location,
-    caption = float.caption_long,
-    kind = kind,
-    supplement = supplement,
-    numbering = numbering,
-    identifier = float.identifier
-  }
+  if caption_location == "top" then
+    return pandoc.Blocks({
+      open_block,
+      float.caption_long,
+      float.content,
+      close_block
+    })
+  else
+    return pandoc.Blocks({
+      open_block,
+      float.content,
+      pandoc.RawBlock("markdown", "\n"),
+      float.caption_long,
+      close_block
+    })
+  end
 end)
+
+_quarto.ast.add_renderer("FloatRefTarget", function(_)
+  return _quarto.format.is_powerpoint_output()
+end, function(float)
+  if float.content == nil then
+    warn("Can't render float without content")
+    return pandoc.Null()
+  end
+  local im = quarto.utils.match("Plain/[1]/Image")(float.content)
+  if im == nil then
+    warn("PowerPoint output for FloatRefTargets require a single image as content")
+    return pandoc.Null()
+  end
+  decorate_caption_with_crossref(float)
+  im.caption = quarto.utils.as_inlines(float.caption_long)
+  return pandoc.Para({im})
+end)
+
+global_table_guid_id = 0

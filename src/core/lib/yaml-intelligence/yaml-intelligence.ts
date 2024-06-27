@@ -979,7 +979,7 @@ async function automationFromGoodParseScript(
       // we're missing one of them at least: skip.
       return noIntelligence(kind);
     }
-    const m = codeLines[0].substring.match(/.*{([a-z]+)}/);
+    const m = codeLines[0].substring.match(/.*{([a-z]+)\s*.*}/);
     if (!m) {
       // couldn't recognize language in script, return no intelligence
       return noIntelligence(kind);

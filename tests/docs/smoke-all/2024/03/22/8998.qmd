@@ -1,0 +1,26 @@
+---
+title: "Habits"
+author: "John Doe"
+format: revealjs
+engine: jupyter
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        - []
+        - ["python"]
+---
+
+- Turn off alarm
+- Get out of bed
+- `{python} 1` 
+
+---
+
+- Get in bed
+- Count sheep
+- `{python} 2`
+
+---
+
+Last slide to recreate the issue

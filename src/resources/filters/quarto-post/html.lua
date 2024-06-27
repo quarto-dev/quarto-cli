@@ -22,12 +22,19 @@ function render_html_fixups()
   end
 
   return {
+    Table = function(tbl)
+      -- this requires bootstrap CSS
+      if quarto.doc.crossref.cap_location(tbl) == "top" then
+        tbl.classes:insert("caption-top")
+        return tbl
+      end
+    end,
     Figure = function(fig)
       if #fig.content ~= 1 then
         return nil
       end
       local img = quarto.utils.match("Figure/[1]/Plain/[1]/Image")(fig) or quarto.utils.match("Figure/[1]/Plain/[1]/Link/[1]/Image")(fig)
-      if img == false then
+      if not img then
         return nil
       end
       if not needs_forward_align(img) then
@@ -58,7 +65,7 @@ function render_html_fixups()
         return nil
       end
       local img = quarto.utils.match("Para/[1]/Image")(para) or quarto.utils.match("Para/[1]/Link/[1]/Image")(para)
-      if img == false then
+      if not img then
         return nil
       end
       if not needs_forward_align(img) then

@@ -38,12 +38,12 @@ import {
 } from "../../execute/engine.ts";
 import { annotateOjsLineNumbers } from "../../execute/ojs/annotate-source.ts";
 import { ojsExecuteResult } from "../../execute/ojs/compile.ts";
-import { ExecuteResult, MappedExecuteResult } from "../../execute/types.ts";
 import {
-  kProjectLibDir,
-  kProjectType,
-  ProjectContext,
-} from "../../project/types.ts";
+  ExecuteOptions,
+  ExecuteResult,
+  MappedExecuteResult,
+} from "../../execute/types.ts";
+import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { outputRecipe } from "./output.ts";
 
 import { renderPandoc } from "./render.ts";
@@ -62,9 +62,9 @@ import {
   RenderFlags,
   RenderOptions,
 } from "./types.ts";
-import { error, info } from "log/mod.ts";
+import { error, info } from "../../deno_ral/log.ts";
 import * as ld from "../../core/lodash.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "../../deno_ral/path.ts";
 import { Format } from "../../config/types.ts";
 import {
   figuresDir,
@@ -113,6 +113,7 @@ import {
   projectOutputDir,
 } from "../../project/project-shared.ts";
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
+import { setExecuteEnvironment } from "../../execute/environment.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -163,7 +164,7 @@ export async function renderExecute(
     (context.format.execute[kExecuteEnabled] !== false);
 
   // use previous frozen results if they are available
-  if (context.project && !alwaysExecute) {
+  if (context.project && !context.project.isSingleFile && !alwaysExecute) {
     // check if we are using the freezer
 
     const thaw = canFreeze &&
@@ -210,8 +211,8 @@ export async function renderExecute(
   const figsDir = join(filesDir, figuresDir(context.format.pandoc.to));
 
   pushTiming("render-execute");
-  // execute computations
-  const executeResult = await context.engine.execute({
+
+  const executeOptions: ExecuteOptions = {
     target: context.target,
     resourceDir: resourcePath(),
     tempDir: context.options.services.temp.createDir(),
@@ -224,12 +225,15 @@ export async function renderExecute(
     quiet: flags.quiet,
     previewServer: context.options.previewServer,
     handledLanguages: languages(),
-    projectType: context.project?.config?.project?.[kProjectType],
-  });
+    project: context.project,
+  };
+  // execute computations
+  setExecuteEnvironment(executeOptions);
+  const executeResult = await context.engine.execute(executeOptions);
   popTiming();
 
   // write the freeze file if we are in a project
-  if (context.project && canFreeze) {
+  if (context.project && !context.project.isSingleFile && canFreeze) {
     // write the freezer file
     const freezeFile = freezeExecuteResult(
       context.target.source,
@@ -280,9 +284,9 @@ export async function renderFiles(
   files: RenderFile[],
   options: RenderOptions,
   notebookContext: NotebookContext,
-  alwaysExecuteFiles?: string[],
-  pandocRenderer?: PandocRenderer,
-  project?: ProjectContext,
+  alwaysExecuteFiles: string[] | undefined,
+  pandocRenderer: PandocRenderer | undefined,
+  project: ProjectContext,
 ): Promise<RenderFilesResult> {
   // provide default renderer
   pandocRenderer = pandocRenderer || defaultPandocRenderer(options, project);
@@ -360,7 +364,8 @@ export async function renderFile(
   file: RenderFile,
   options: RenderOptions,
   services: RenderServices,
-  project?: ProjectContext,
+  project: ProjectContext,
+  enforceProjectFormats: boolean = true,
 ): Promise<RenderFilesResult> {
   // provide default renderer
   const pandocRenderer = defaultPandocRenderer(options, project);
@@ -386,6 +391,7 @@ export async function renderFile(
         [],
         pandocQuiet,
         services.notebook,
+        enforceProjectFormats,
       );
     } finally {
       fileLifetime.cleanup();
@@ -410,13 +416,14 @@ async function renderFileInternal(
   lifetime: Lifetime,
   file: RenderFile,
   options: RenderOptions,
-  project: ProjectContext | undefined,
+  project: ProjectContext,
   pandocRenderer: PandocRenderer,
   files: RenderFile[],
   tempContext: TempContext,
   alwaysExecuteFiles: string[] | undefined,
   pandocQuiet: boolean,
   notebookContext: NotebookContext,
+  enforceProjectFormats: boolean = true,
 ) {
   const outputs: Array<RenderedFormat> = [];
   let contexts: Record<string, RenderContext> | undefined;
@@ -428,6 +435,7 @@ async function renderFileInternal(
       notebookContext,
       project,
       false,
+      enforceProjectFormats,
     );
 
     // Allow renderers to filter the contexts
@@ -444,6 +452,7 @@ async function renderFileInternal(
     const { engine, target } = await fileExecutionEngineAndTarget(
       file.path,
       options.flags,
+      project,
     );
     const validationResult = await validateDocumentFromSource(
       target.markdown,
@@ -683,7 +692,7 @@ async function renderFileInternal(
 // default pandoc renderer immediately renders each execute result
 function defaultPandocRenderer(
   _options: RenderOptions,
-  _project?: ProjectContext,
+  _project: ProjectContext,
 ): PandocRenderer {
   const renderCompletions: PandocRenderCompletion[] = [];
   const renderedFiles: RenderedFile[] = [];

@@ -1,0 +1,12 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["#case1"]
+---
+
+![Caption](https://placeholder.co/400/400){#case1}
+
+![Caption](https://placeholder.co/400/400){#fig-1}

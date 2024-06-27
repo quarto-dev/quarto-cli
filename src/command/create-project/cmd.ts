@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename } from "path/mod.ts";
+import { basename } from "../../deno_ral/path.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 

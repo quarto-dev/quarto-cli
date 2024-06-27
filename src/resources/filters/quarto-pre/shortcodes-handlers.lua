@@ -102,9 +102,12 @@ function handlerForShortcode(shortCode)
   return handlers[shortCode.name]
 end
 
-local function read_arg(args)
-  local arg = args[1]
+local function read_arg(args, n)
+  local arg = args[n or 1]
   local varName
+  if arg == nil then
+    return nil
+  end
   if type(arg) ~= "string" then
     varName = inlinesToString(arg)
   else
@@ -118,9 +121,10 @@ function handleEnv(args)
   if #args > 0 then
     -- the args are the var name
     local varName = read_arg(args)
+    local defaultValue = read_arg(args, 2)
 
     -- read the environment variable
-    local envValue = os.getenv(varName)
+    local envValue = os.getenv(varName) or defaultValue
     if envValue ~= nil then
       return { pandoc.Str(envValue) }  
     else 

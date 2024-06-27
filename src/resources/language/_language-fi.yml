@@ -25,6 +25,7 @@ section-title-citation: "Viittaus"
 
 appendix-attribution-cite-as: "Viitatkaa tähän teokseen seuraavasti:"
 appendix-attribution-bibtex: "BibTeX-viittaus:"
+appendix-view-license: "Näytä Lisenssi"
 
 title-block-author-single: "Tekijä"
 title-block-author-plural: "Tekijät"
@@ -121,3 +122,6 @@ listing-page-category-all: "Kaikki"
 listing-page-no-matches: "Ei hakutuloksia"
 listing-page-field-wordcount: "Sanamäärä"
 listing-page-words: "{0} sanaa"
+listing-page-filter: "Suodatin"
+
+draft: "Luonnos"
