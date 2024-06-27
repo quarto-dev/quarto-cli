@@ -1,11 +1,12 @@
 ## Fixed in this release
 
-- ([#8969](https://github.com/quarto-dev/quarto-cli/issues/8969)): Replace `polyfill.io` with `cdnjs.cloudflare.com` in MathJax usage in HTML formats.
-- ([#9927](https://github.com/quarto-dev/quarto-cli/issues/9927)): Fix a regression with explicitly sized images in layouts.
-- ([#10091](https://github.com/quarto-dev/quarto-cli/issues/10091)): Fix a regression with `fig-align` attributes in captionless images in PDF format.
+- Update Pandoc to 3.1.12.3 to remove exposure to `polyfill.io` in Pandoc's built-in templates.
 
 ## Fixed in previous releases
 
+- ([#8969](https://github.com/quarto-dev/quarto-cli/issues/8969)): Replace `polyfill.io` with `cdnjs.cloudflare.com` in MathJax usage in HTML formats.
+- ([#9927](https://github.com/quarto-dev/quarto-cli/issues/9927)): Fix a regression with explicitly sized images in layouts.
+- ([#10091](https://github.com/quarto-dev/quarto-cli/issues/10091)): Fix a regression with `fig-align` attributes in captionless images in PDF format.
 - ([#8439](https://github.com/quarto-dev/quarto-cli/issues/8439)): ensure that lack of subject line is handled
 - ([#8417](https://github.com/quarto-dev/quarto-cli/issues/8417)): Maintain a single AST element in the output cell when parsing HTML from RawBlock
 - ([#8490](https://github.com/quarto-dev/quarto-cli/issues/8490)): Properly embed `qmd` cells even when they include an explicit `echo` declaration.
