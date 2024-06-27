@@ -1,0 +1,13 @@
+---
+title: test
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["img[alt='']", "img#second[alt='']"]
+        - []
+---
+
+![]({{< placeholder >}}){width=45 alt=""}
+
+![](foo.png){#second width=45 alt=""}
