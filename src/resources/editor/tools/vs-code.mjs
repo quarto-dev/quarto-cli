@@ -12450,7 +12450,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     custom: {
                       arrayOf: {
                         object: {
-                          description: "A custom cross reference type.",
+                          description: "A custom cross reference type. See [Custom](https://quarto.org/docs/reference/metadata/crossref.html#custom) for more details.",
                           closed: true,
                           required: [
                             "kind",
@@ -18843,7 +18843,7 @@ var require_yaml_intelligence_resources = __commonJS({
             title: "Footnotes"
           },
           crossref: {
-            title: "Crossrefs"
+            title: "Cross-References"
           },
           citation: {
             title: "Citation"

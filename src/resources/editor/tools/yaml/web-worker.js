@@ -12451,7 +12451,7 @@ try {
                       custom: {
                         arrayOf: {
                           object: {
-                            description: "A custom cross reference type.",
+                            description: "A custom cross reference type. See [Custom](https://quarto.org/docs/reference/metadata/crossref.html#custom) for more details.",
                             closed: true,
                             required: [
                               "kind",
@@ -18844,7 +18844,7 @@ try {
               title: "Footnotes"
             },
             crossref: {
-              title: "Crossrefs"
+              title: "Cross-References"
             },
             citation: {
               title: "Citation"
