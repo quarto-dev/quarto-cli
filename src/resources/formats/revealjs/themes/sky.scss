@@ -22,6 +22,29 @@ $presentation-heading-letter-spacing: -0.08em;
 $code-block-border-color: lighten($link-color, 30%) !default;
 $code-block-bg: transparent !default;
 
+// Quarto diagrams
+
+$mermaid-body-color: #000;
+$mermaid-bg-color: $body-bg;
+$primary: $body-color;
+$secondary: $link-color;
+
+/* SCSS variables for mermaid diagrams
+
+   These are documented in quarto-cli/quarto-web:docs/authoring/_mermaid-theming.qmd
+
+   Make sure to update the docs if you change these. */
+   $mermaid-bg-color: $mermaid-bg-color;
+   $mermaid-edge-color: darken($secondary, 10%);
+   $mermaid-node-fg-color: $mermaid-body-color;
+   $mermaid-fg-color: $mermaid-body-color;
+   $mermaid-fg-color--lighter: lighten($mermaid-body-color, 10%);
+   $mermaid-fg-color--lightest: lighten($mermaid-body-color, 20%);
+   $mermaid-label-bg-color: mix($primary, #add9e4, 10%);
+   $mermaid-label-fg-color: $primary;
+   $mermaid-node-bg-color: rgba($primary, 0.1);
+   $mermaid-node-fg-color: $primary;
+
 /*-- scss:mixins --*/
 
 // Background generator
