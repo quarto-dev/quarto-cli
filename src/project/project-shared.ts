@@ -390,7 +390,11 @@ export async function projectResolveCodeCellsForFile(
         if (directiveCell.name !== "include") {
           continue;
         }
-        const innerFile = join(project.dir, directiveCell.shortcode.params[0]);
+        const arg = directiveCell.shortcode.params[0];
+        const paths = arg.startsWith("/")
+          ? [project.dir, arg]
+          : [project.dir, relative(project.dir, dirname(file)), arg];
+        const innerFile = join(...paths);
         await inner(
           innerFile,
           (await breakQuartoMd(
