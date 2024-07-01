@@ -10,7 +10,7 @@ body:
         We are always happy to hear feedback from our users.
 
         This is the repository for the command-line program `quarto`:
-        
+
         - If you're reporting an issue with the VS Code extension, please visit https://github.com/quarto-dev/quarto
         - If you're reporting an issue inside RStudio, please visit https://github.com/rstudio/rstudio
 
@@ -23,6 +23,37 @@ body:
         If you want to ask for help, please use the [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a).
 
         Thank you for using Quarto!
+
+        ---
+
+        You can share a Quarto document using the following syntax, _i.e._, using more backticks than you have in your document (usually four ` ```` `).
+        For example with Quarto CLI >=1.5:
+
+        `````md
+        ````qmd
+        ---
+        title: "Reproducible Quarto Document"
+        format: html
+        engine: jupyter
+        ---
+
+        This is a reproducible Quarto document using `format: html`.
+        It is written in Markdown and contains embedded Python code.
+        When you run the code, it will produce a message.
+
+        ```{python}
+        print("Hello, world!")
+        ```
+
+        ![An image]({{< placeholder 600 400 >}}){#fig-placeholder}
+
+        {{< lipsum 1 >}}
+
+        A reference to @fig-placeholder.
+
+        The end.
+        ````
+        `````
 
   - type: textarea
     attributes:
@@ -39,22 +70,31 @@ body:
       placeholder: |
         You can share a Quarto document using the following syntax, _i.e._, using more backticks than you have in your document (usually four ` ```` `).
 
+        `````md
         ````qmd
         ---
         title: "Reproducible Quarto Document"
         format: html
+        engine: jupyter
         ---
 
         This is a reproducible Quarto document using `format: html`.
-        It is written in Markdown and contains embedded R code.
-        When you run the code, it will produce a plot.
+        It is written in Markdown and contains embedded Python code.
+        When you run the code, it will produce a message.
 
-        ```{r}
-        plot(cars)
+        ```{python}
+        print("Hello, world!")
         ```
+
+        ![An image]({{< placeholder 600 400 >}}){#fig-placeholder}
+
+        {{< lipsum 1 >}}
+
+        A reference to @fig-placeholder.
 
         The end.
         ````
+        `````
 
   - type: textarea
     attributes:
