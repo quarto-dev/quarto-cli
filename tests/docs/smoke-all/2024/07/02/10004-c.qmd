@@ -1,0 +1,18 @@
+---
+title: "Hello, Quarto"
+format:
+  html:
+    code-fold: true
+    code-summary: "this is the summary, {{< meta key >}}"
+key: value
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["summary, value"]
+        - []
+---
+
+```{r}
+1 + 2
+```
