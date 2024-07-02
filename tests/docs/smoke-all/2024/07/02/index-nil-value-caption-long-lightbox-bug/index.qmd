@@ -1,0 +1,15 @@
+---
+title: "index-nil-value-caption-long-lightbox-bug"
+---
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+
+Here's a royalty-free image of a cat:
+
+![Royalty-free image of a cat](https://cdn.pixabay.com/photo/2023/05/02/14/15/british-shorthair-7965411_1280.jpg){.lightbox}
+
+Here's a scanpy scatter plot:
+
+{{< embed notebook.ipynb#fig-scatter-plot echo=true >}}

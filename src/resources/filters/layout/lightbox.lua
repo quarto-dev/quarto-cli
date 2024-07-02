@@ -139,17 +139,20 @@ function lightbox()
     return resolvedFigEl;
   end
 
+  local function get_caption_content(floatEl)
+    if floatEl.caption_long then
+      return floatEl.caption_long.content or floatEl.caption_long
+    else
+      return pandoc.Inlines({})
+    end
+  end
+
   local function processSubFloat(subFloatEl, gallery, parentFloat) 
     local subFloatModified = false
     subFloatEl = _quarto.ast.walk(subFloatEl, {
       traverse = 'topdown',
       Image = function(imgEl)
-        local caption_content
-        if subFloatEl.caption_long then
-          caption_content = subFloatEl.caption_long.content or subFloatEl.caption_long
-        else
-          caption_content = pandoc.Inlines({})
-        end
+        local caption_content = get_caption_content(subFloatEl)
         local caption = full_caption_prefix(parentFloat, subFloatEl)
         tappend(caption, caption_content)
         local subImgModified = processImg(imgEl, { automatic = true, caption = caption, gallery = gallery })
@@ -263,7 +266,7 @@ function lightbox()
           floatEl = _quarto.ast.walk(floatEl, {
             traverse = 'topdown',
             Image = function(imgEl)
-              local caption_content = floatEl.caption_long.content or floatEl.caption_long
+              local caption_content = get_caption_content(floatEl)
               local caption = full_caption_prefix(floatEl)
               tappend(caption, caption_content)
               local modifiedImg = processImg(imgEl, { automatic = true, caption = caption })
