@@ -6,7 +6,7 @@ All changes included in 1.6:
 
 ## Lua filters
 
-- ([#10004](https://github.com/quarto-dev/quarto-cli/issues/10004)): Resolve callout titles through `quarto_ast_pipeline()` to ensure (eg) shortcodes are properly processed.
+- ([#10004](https://github.com/quarto-dev/quarto-cli/issues/10004)): Resolve callout titles, theorem names, and `code-summary` content through `quarto_ast_pipeline()` and `process_shortcodes()`.
 
 ## Other Fixes and Improvements
 
