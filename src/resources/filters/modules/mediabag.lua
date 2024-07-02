@@ -55,8 +55,28 @@ local function fetch_and_store_image(src)
   return filename
 end
 
+local function resolve_image_from_url(image)
+  if resolved_url_cache[image.src] then
+    image.src = resolved_url_cache[image.src]
+    return image
+  end 
+  local relativePath = image.src:match("https?://[%w%$%-%_%.%+%!%*%'%(%)%:%%]+/(.+)") or
+    image.src:match("data:image/.+;base64,(.+)")
+  if not (relativePath or param("has-resource-path", false)) then
+    return nil
+  end
+
+  local filename = fetch_and_store_image(image.src)
+  if filename == nil then
+    return nil
+  end
+  image.src = filename
+  return image
+end
+
 return {
   resolved_url_cache = resolved_url_cache,
   with_mediabag_contents = with_mediabag_contents,
-  fetch_and_store_image = fetch_and_store_image
+  fetch_and_store_image = fetch_and_store_image,
+  resolve_image_from_url = resolve_image_from_url
 }

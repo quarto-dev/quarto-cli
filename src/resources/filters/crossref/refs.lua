@@ -87,16 +87,7 @@ function resolveRefs()
             elseif _quarto.format.isAsciiDocOutput() then
               ref = pandoc.List({pandoc.RawInline('asciidoc', '<<' .. label .. '>>')})
             elseif _quarto.format.isTypstOutput() then
-              -- if we're referencing a subfloat,
-              -- we need to package the parent_id information in the
-              -- supplement as well, so that we can provide
-              -- better numbering in the typst renderer
-              local subfloat_info = crossref.subfloats[label]
-              if subfloat_info == nil then
-                ref = pandoc.List({pandoc.RawInline('typst', '@' .. label)})
-              else
-                ref = pandoc.List({pandoc.RawInline('typst', '@' .. label .. '[45127368-afa1-446a-820f-fc64c546b2c5%' .. subfloat_info.parent_id .. ']')})
-              end
+              ref = pandoc.List({pandoc.RawInline('typst', '@' .. label)})
             else
               if not resolve then
                 local refClasses = pandoc.List({"quarto-unresolved-ref"})

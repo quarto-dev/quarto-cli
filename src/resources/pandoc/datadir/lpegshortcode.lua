@@ -194,7 +194,7 @@ md_shortcode = make_shortcode_parser({
   keyvalue = md_keyvalue_param,
   shortcode = md_shortcode,
 
-  ignore_pattern = lpeg.P("{.hidden render-id=\"") * (lpeg.P(1) - lpeg.P("\"}"))^1 * lpeg.P("\"}")
+  ignore_pattern = lpeg.P("{.hidden .quarto-markdown-envelope-contents render-id=\"") * (lpeg.P(1) - lpeg.P("\"}"))^1 * lpeg.P("\"}")
 })
 
 local escaped_string = into_string(

@@ -1,9 +1,8 @@
 /*
-* jupyter-filters.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * jupyter-filters.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/exists.ts";
 import { basename, dirname, isAbsolute, join } from "../../deno_ral/path.ts";
@@ -19,6 +18,7 @@ import {
 } from "./filtered-notebook-cache.ts";
 import { fixupFrontMatter } from "./jupyter-fixups.ts";
 import { JupyterNotebook } from "./types.ts";
+import { jupyterCellSrcAsStr } from "./jupyter-shared.ts";
 
 export async function markdownFromNotebookFile(file: string, format?: Format) {
   // read file with any filters
@@ -36,7 +36,7 @@ export function markdownFromNotebookJSON(nb: JupyterNotebook) {
 
   const markdown = nb.cells.reduce((md, cell) => {
     if (["markdown", "raw"].includes(cell.cell_type)) {
-      return md + "\n" + cell.source.join("") + "\n";
+      return md + "\n" + jupyterCellSrcAsStr(cell) + "\n";
     } else {
       return md;
     }

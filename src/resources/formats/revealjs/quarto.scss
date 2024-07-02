@@ -239,6 +239,12 @@ div.reveal div.slides section.quarto-title-block {
   font-size: $code-block-font-size;
 }
 
+// Inside code-file-name div, we want to use the same background color as decorated codeblock header
+// https://github.com/quarto-dev/quarto-cli/issues/9560
+.reveal .code-with-filename .code-with-filename-file pre {
+  background-color: unset;
+}
+
 .reveal code {
   color: $code-color;
   background-color: $code-bg;

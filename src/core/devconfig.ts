@@ -82,7 +82,7 @@ export function readInstalledDevConfig(): DevConfig | null {
 
 export function readSourceDevConfig(): DevConfig {
   const rootDir = Deno.env.get("QUARTO_ROOT") ||
-    join(quartoConfig.sharePath(), "../../src");
+    join(quartoConfig.sharePath(), "../..");
   const configurationScript = join(
     rootDir,
     "configuration",

@@ -385,15 +385,10 @@ export async function confirmInstallation(
 ) {
   const readExisting = async () => {
     try {
-      const existingExtensionsDir = join(installDir, kExtensionDir);
-      if (Deno.statSync(existingExtensionsDir).isDirectory) {
-        const existingExtensions = await readExtensions(
-          join(installDir, kExtensionDir),
-        );
-        return existingExtensions;
-      } else {
-        return [];
-      }
+      const existingExtensions = await readExtensions(
+        join(installDir, kExtensionDir),
+      );
+      return existingExtensions;
     } catch {
       return [];
     }

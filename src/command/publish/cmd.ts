@@ -53,8 +53,10 @@ export const publishCommand =
         " - Quarto Pub (quarto-pub)\n" +
         " - GitHub Pages (gh-pages)\n" +
         " - Posit Connect (connect)\n" +
+        " - Posit Cloud (posit-cloud)\n" +
         " - Netlify (netlify)\n" +
-        " - Confluence (confluence)\n\n" +
+        " - Confluence (confluence)\n" +
+        " - Hugging Face Spaces (huggingface)\n\n" +
         "Accounts are configured interactively during publishing.\n" +
         "Manage/remove accounts with: quarto publish accounts",
     )
@@ -114,6 +116,10 @@ export const publishCommand =
     .example(
       "Publish with explicit credentials",
       "quarto publish connect --server example.com --token 01A24233E294",
+    )
+    .example(
+      "Publish project to Posit Cloud",
+      "quarto publish posit-cloud",
     )
     .example(
       "Publish without confirmation prompt",

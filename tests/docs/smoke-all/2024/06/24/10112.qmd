@@ -1,0 +1,9 @@
+---
+title: "Table in margin"
+format: pdf
+---
+
+```{r}
+#| column: margin
+knitr::kable(head(mtcars[,1:2], 5))
+```

@@ -64,26 +64,26 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
       <button type="button" class="quarto-btn-toggle btn"
-      data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" 
+      data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" 
       aria-controls="quarto-sidebar" aria-expanded="false" aria-label="<%- nav.language['toggle-sidebar'] %>"
       onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
       <% if (nav.showBreadCrumbs) { %>
         <h1 class="quarto-secondary-nav-title no-breadcrumbs"></h1>
-        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" 
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" role="link"
         aria-controls="quarto-sidebar" aria-expanded="false" aria-label="<%- nav.language['toggle-sidebar'] %>"
         onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <% } else { %>
-        <a class="flex-grow-1 no-decor" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" 
+        <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" role="link"
         aria-controls="quarto-sidebar" aria-expanded="false" aria-label="<%- nav.language['toggle-sidebar'] %>"
         onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
           <h1 class="quarto-secondary-nav-title"></h1>
         </a>     
       <% }  %>
       <% if (nav.sidebar && nav.sidebar.search) { %>
-      <button type="button" class="btn quarto-search-button" aria-label="<%- nav.language['search'] %>" onclick="window.quartoOpenSearch();">
+      <button type="button" class="btn quarto-search-button" aria-label="<%- nav.language['search-label'] %>" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
       <% } %>

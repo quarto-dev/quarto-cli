@@ -15,6 +15,7 @@ import {
   kCodeFold,
   kCodeLineNumbers,
   kCodeSummary,
+  kCssPropertyProcessing,
   kEnableCrossRef,
   kFigAlign,
   kFigEnv,
@@ -23,6 +24,7 @@ import {
   kFormatIdentifier,
   kHeaderIncludes,
   kHtmlMathMethod,
+  kHtmlPreTagProcessing,
   kHtmlTableProcessing,
   kIncludeAfter,
   kIncludeAfterBody,
@@ -87,6 +89,7 @@ import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
 import { shortUuid } from "../../core/uuid.ts";
 import { isServerShinyPython } from "../../core/render.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
+import { kTocIndent } from "../../config/constants.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -104,6 +107,8 @@ const kHasBootstrap = "has-bootstrap";
 const kActiveFilters = "active-filters";
 
 const kQuartoVersion = "quarto-version";
+
+const kQuartoCliPath = "quarto-cli-path";
 
 const kQuartoSource = "quarto-source";
 
@@ -155,6 +160,10 @@ export async function filterParamsJson(
     options.executionEngine,
   );
 
+  const typstFilterParams = extractTypstFilterParams(
+    options.format,
+  );
+
   const params: Metadata = {
     ...includes,
     ...initFilterParams(dependenciesFile),
@@ -170,6 +179,7 @@ export async function filterParamsJson(
     ...notebookContextFilterParams(options),
     ...filterParams,
     ...customFormatParams,
+    ...typstFilterParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
     [kTimingFile]: pandocMetadataPath(timingFile),
     [kQuartoFilters]: filterSpec,
@@ -644,6 +654,9 @@ async function quartoFilterParams(
   // version
   params[kQuartoVersion] = quartoConfig.version();
 
+  // cli path
+  params[kQuartoCliPath] = quartoConfig.cliPath();
+
   // code-annotations
   params[kCodeAnnotations] = format.metadata[kCodeAnnotations];
 
@@ -878,3 +891,11 @@ async function resolveFilterExtension(
   }
   return results.flat();
 }
+
+const extractTypstFilterParams = (format: Format) => {
+  return {
+    [kTocIndent]: format.metadata[kTocIndent],
+    [kCssPropertyProcessing]: format.metadata[kCssPropertyProcessing],
+    [kHtmlPreTagProcessing]: format.metadata[kHtmlPreTagProcessing],
+  };
+};

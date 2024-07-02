@@ -1,0 +1,21 @@
+---
+title: issue-5413
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["figcaption.quarto-float-fig"]
+        - []
+---
+
+```{python}
+#| label: fig-1
+#| fig-cap: |
+#|   This is a caption for my figure.
+#|   It is long, so I put it onto two lines
+import numpy as np
+import matplotlib.pyplot as plt
+plt.plot(np.arange(10))
+```
+
+See @fig-1.

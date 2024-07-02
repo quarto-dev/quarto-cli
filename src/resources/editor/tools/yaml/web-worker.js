@@ -8752,7 +8752,7 @@ try {
                             ],
                             description: {
                               short: "The giscus theme to use when displaying comments.",
-                              long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      light: light # giscus theme used for light website theme\n      dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
+                              long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
                             }
                           },
                           language: {
@@ -9418,7 +9418,10 @@ try {
                           },
                           icon: {
                             schema: "string",
-                            description: "The icon to display in the annoucement"
+                            description: {
+                              short: "The icon to display in the announcement",
+                              long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`) for the announcement.\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                            }
                           },
                           position: {
                             schema: {
@@ -9427,7 +9430,10 @@ try {
                                 "below-navbar"
                               ]
                             },
-                            description: "The position of the announcement."
+                            description: {
+                              short: "The position of the announcement.",
+                              long: "The position of the announcement. One of `above-navbar` (default) or `below-navbar`.\n"
+                            }
                           },
                           type: {
                             schema: {
@@ -9442,7 +9448,10 @@ try {
                                 "dark"
                               ]
                             },
-                            description: "The type of announcement. Affects the appearance of the announcement."
+                            description: {
+                              short: "The type of announcement. Affects the appearance of the announcement.",
+                              long: "The type of announcement. One of `primary`, `secondary`, `success`, `danger`, `warning`,\n  `info`, `light` or `dark`. Affects the appearance of the announcement.\n"
+                            }
                           }
                         }
                       }
@@ -10331,6 +10340,9 @@ try {
             id: "website-about",
             object: {
               closed: true,
+              required: [
+                "template"
+              ],
               properties: {
                 id: {
                   string: {
@@ -10593,6 +10605,12 @@ try {
                 "image-placeholder": {
                   string: {
                     description: "The default image to use if an item in the listing doesn't have an image."
+                  }
+                },
+                "image-lazy-loading": {
+                  boolean: {
+                    description: "If false, images in the listing will be loaded immediately. If true, images will be loaded as they come into view.",
+                    default: true
                   }
                 },
                 "image-align": {
@@ -12415,7 +12433,10 @@ try {
         "schema/document-crossref.yml": [
           {
             name: "crossref",
-            description: "Configuration for crossref labels and prefixes.",
+            description: {
+              short: "Configuration for cross-reference labels and prefixes.",
+              long: "Configuration for cross-reference labels and prefixes. See [Cross-Reference Options](https://quarto.org/docs/reference/metadata/crossref.html) for more details."
+            },
             schema: {
               anyOf: [
                 {
@@ -12430,7 +12451,7 @@ try {
                       custom: {
                         arrayOf: {
                           object: {
-                            description: "A custom cross reference type.",
+                            description: "A custom cross reference type. See [Custom](https://quarto.org/docs/reference/metadata/crossref.html#custom) for more details.",
                             closed: true,
                             required: [
                               "kind",
@@ -13035,7 +13056,7 @@ try {
             schema: "string",
             description: {
               short: "Text describing the specialized type of this publication.",
-              long: "Text describing the specialized type of this publication.\n\nAn informative registry of specialized EPUB Publication \ntypes for use with this element is maintained in the \n[TypesRegistry](https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry), \nbut Authors may use any text string as a value.\n"
+              long: "Text describing the specialized type of this publication.\n\nAn informative registry of specialized EPUB Publication \ntypes for use with this element is maintained in the \n[TypesRegistry](https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry), \nbut Authors may use any text string as a value.\n"
             }
           },
           {
@@ -13278,6 +13299,28 @@ try {
               ]
             },
             description: "Configures the Jupyter engine."
+          },
+          {
+            name: "julia",
+            schema: {
+              object: {
+                properties: {
+                  exeflags: {
+                    schema: {
+                      arrayOf: "string",
+                      description: "Arguments to pass to the Julia worker process."
+                    }
+                  },
+                  env: {
+                    schema: {
+                      arrayOf: "string",
+                      description: "Environment variables to pass to the Julia worker process."
+                    }
+                  }
+                }
+              }
+            },
+            description: "Configures the Julia engine."
           },
           {
             name: "knitr",
@@ -15947,6 +15990,17 @@ try {
             description: "Enables hover over a section title to see an anchor link."
           },
           {
+            name: "tabsets",
+            schema: "boolean",
+            default: true,
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Enables tabsets to present content."
+          },
+          {
             name: "smooth-scroll",
             schema: "boolean",
             default: false,
@@ -16604,12 +16658,6 @@ try {
             description: "Include the specified files as partials accessible to the template for the generated content.\n"
           },
           {
-            name: "standalone",
-            schema: "boolean",
-            default: true,
-            description: "Produce output with an appropriate header and footer (e.g. a standalone HTML, LaTeX, TEI, or RTF file, not a fragment)\n"
-          },
-          {
             name: "embed-resources",
             tags: {
               formats: [
@@ -16806,6 +16854,40 @@ try {
               ]
             },
             description: "If `none`, do not process tables in HTML input."
+          },
+          {
+            name: "html-pre-tag-processing",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: {
+              enum: [
+                "none",
+                "parse"
+              ]
+            },
+            description: "If `none`, ignore any divs with `html-pre-tag-processing=parse` enabled."
+          },
+          {
+            name: "css-property-processing",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: {
+              enum: [
+                "none",
+                "translate"
+              ]
+            },
+            default: "translate",
+            description: {
+              short: "CSS property translation",
+              long: "If `translate`, translate CSS properties into output format properties. If `none`, do not process css properties."
+            }
           },
           {
             name: "use-rsvg-convert",
@@ -18247,8 +18329,18 @@ try {
             schema: "boolean",
             description: {
               short: "Include an automatically generated table of contents",
-              long: "Include an automatically generated table of contents (or, in\nthe case of `latex`, `context`, `docx`, `odt`,\n`opendocument`, `rst`, or `ms`, an instruction to create\none) in the output document. This option has no effect\nif `standalone` is `false`.\n\nNote that if you are producing a PDF via `ms`, the table\nof contents will appear at the beginning of the\ndocument, before the title.  If you would prefer it to\nbe at the end of the document, use the option\n`pdf-engine-opt: --no-toc-relocation`.\n"
+              long: "Include an automatically generated table of contents (or, in\nthe case of `latex`, `context`, `docx`, `odt`,\n`opendocument`, `rst`, or `ms`, an instruction to create\none) in the output document.\n\nNote that if you are producing a PDF via `ms`, the table\nof contents will appear at the beginning of the\ndocument, before the title.  If you would prefer it to\nbe at the end of the document, use the option\n`pdf-engine-opt: --no-toc-relocation`.\n"
             }
+          },
+          {
+            name: "toc-indent",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: "string",
+            description: 'The amount of indentation to use for each level of the table of contents.\nThe default is "1.5em".\n'
           },
           {
             name: "toc-depth",
@@ -18438,6 +18530,20 @@ try {
               ]
             },
             description: "The alt text for preview image on this page."
+          },
+          {
+            name: "image-lazy-loading",
+            schema: "boolean",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: {
+              short: "If true, the preview image will only load when it comes into view.",
+              long: 'Enables lazy loading for the preview image. If true, the preview image element \nwill have `loading="lazy"`, and will only load when it comes into view.\n\nIf false, the preview image will load immediately.\n'
+            },
+            default: true
           }
         ],
         "schema/extension.yml": [
@@ -18738,7 +18844,7 @@ try {
               title: "Footnotes"
             },
             crossref: {
-              title: "Crossrefs"
+              title: "Cross-References"
             },
             citation: {
               title: "Citation"
@@ -19475,6 +19581,7 @@ try {
           "commonmark_x",
           "context",
           "csljson",
+          "djot",
           "docbook",
           "docbook4",
           "docbook5",
@@ -19737,9 +19844,18 @@ try {
           "Provides an announcement displayed at the top of the page.",
           "The content of the announcement",
           "Whether this announcement may be dismissed by the user.",
-          "The icon to display in the annoucement",
-          "The position of the announcement.",
-          "The type of announcement. Affects the appearance of the\nannouncement.",
+          {
+            short: "The icon to display in the announcement",
+            long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+          },
+          {
+            short: "The position of the announcement.",
+            long: "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+          },
+          {
+            short: "The type of announcement. Affects the appearance of the\nannouncement.",
+            long: "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
+          },
           {
             short: "Request cookie consent before enabling scripts that set cookies",
             long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -19888,9 +20004,18 @@ try {
           "Provides an announcement displayed at the top of the page.",
           "The content of the announcement",
           "Whether this announcement may be dismissed by the user.",
-          "The icon to display in the annoucement",
-          "The position of the announcement.",
-          "The type of announcement. Affects the appearance of the\nannouncement.",
+          {
+            short: "The icon to display in the announcement",
+            long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+          },
+          {
+            short: "The position of the announcement.",
+            long: "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+          },
+          {
+            short: "The type of announcement. Affects the appearance of the\nannouncement.",
+            long: "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
+          },
           {
             short: "Request cookie consent before enabling scripts that set cookies",
             long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -20122,6 +20247,7 @@ try {
             long: "The maximum length (in characters) of the description displayed in\nthe listing. Defaults to 175."
           },
           "The default image to use if an item in the listing doesn\u2019t have an\nimage.",
+          "If false, images in the listing will be loaded immediately. If true,\nimages will be loaded as they come into view.",
           "In <code>default</code> type listings, whether to place the image on\nthe right or left side of the post content (<code>left</code> or\n<code>right</code>).",
           {
             short: "The height of the image being displayed.",
@@ -21083,7 +21209,7 @@ try {
           "The subject term (defined by the schema).",
           {
             short: "Text describing the specialized type of this publication.",
-            long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.'
+            long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.'
           },
           "Text describing the format of this publication.",
           "Text describing the relation of this publication.",
@@ -21116,6 +21242,9 @@ try {
           "The name to display in the UI.",
           "The name of the language the kernel implements.",
           "The name of the kernel.",
+          "Configures the Julia engine.",
+          "Arguments to pass to the Julia worker process.",
+          "Environment variables to pass to the Julia worker process.",
           "Set Knitr options.",
           "Knit options.",
           "Knitr chunk options.",
@@ -21658,6 +21787,7 @@ try {
           "Enables inclusion of Pandoc default CSS for this document.",
           "One or more CSS style sheets.",
           "Enables hover over a section title to see an anchor link.",
+          "Enables tabsets to present content.",
           "Enables smooth scrolling within the page.",
           {
             short: "Method use to render math in HTML output",
@@ -21804,6 +21934,11 @@ try {
             long: "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa. (Technically, the correct\nterm would be ppi: pixels per inch.) The default is <code>96</code>.\nWhen images contain information about dpi internally, the encoded value\nis used instead of the default specified by this option."
           },
           "If <code>none</code>, do not process tables in HTML input.",
+          "If <code>none</code>, ignore any divs with\n<code>html-pre-tag-processing=parse</code> enabled.",
+          {
+            short: "CSS property translation",
+            long: "If <code>translate</code>, translate CSS properties into output\nformat properties. If <code>none</code>, do not process css\nproperties."
+          },
           "If <code>true</code>, attempt to use <code>rsvg-convert</code> to\nconvert SVG images to PDF.",
           "Logo image (placed in bottom right corner of slides)",
           {
@@ -22004,12 +22139,13 @@ try {
           },
           {
             short: "Include an automatically generated table of contents",
-            long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
+            long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output\ndocument.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
           },
           {
             short: "Include an automatically generated table of contents",
-            long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
+            long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output\ndocument.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
           },
+          "The amount of indentation to use for each level of the table of\ncontents. The default is \u201C1.5em\u201D.",
           "Specify the number of section levels to include in the table of\ncontents. The default is 3",
           {
             short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), <code>left-body</code>,\n<code>right-body</code>).",
@@ -22037,6 +22173,10 @@ try {
           "The height of the preview image for this document.",
           "The width of the preview image for this document.",
           "The alt text for preview image on this page.",
+          {
+            short: "If true, the preview image will only load when it comes into\nview.",
+            long: 'Enables lazy loading for the preview image. If true, the preview\nimage element will have <code>loading="lazy"</code>, and will only load\nwhen it comes into view.\nIf false, the preview image will load immediately.'
+          },
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -22091,9 +22231,18 @@ try {
           "Provides an announcement displayed at the top of the page.",
           "The content of the announcement",
           "Whether this announcement may be dismissed by the user.",
-          "The icon to display in the annoucement",
-          "The position of the announcement.",
-          "The type of announcement. Affects the appearance of the\nannouncement.",
+          {
+            short: "The icon to display in the announcement",
+            long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+          },
+          {
+            short: "The position of the announcement.",
+            long: "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+          },
+          {
+            short: "The type of announcement. Affects the appearance of the\nannouncement.",
+            long: "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
+          },
           {
             short: "Request cookie consent before enabling scripts that set cookies",
             long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -22426,9 +22575,18 @@ try {
           "Provides an announcement displayed at the top of the page.",
           "The content of the announcement",
           "Whether this announcement may be dismissed by the user.",
-          "The icon to display in the annoucement",
-          "The position of the announcement.",
-          "The type of announcement. Affects the appearance of the\nannouncement.",
+          {
+            short: "The icon to display in the announcement",
+            long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) for the announcement. See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+          },
+          {
+            short: "The position of the announcement.",
+            long: "The position of the announcement. One of <code>above-navbar</code>\n(default) or <code>below-navbar</code>."
+          },
+          {
+            short: "The type of announcement. Affects the appearance of the\nannouncement.",
+            long: "The type of announcement. One of <code>primary</code>,\n<code>secondary</code>, <code>success</code>, <code>danger</code>,\n<code>warning</code>, <code>info</code>, <code>light</code> or\n<code>dark</code>. Affects the appearance of the announcement."
+          },
           {
             short: "Request cookie consent before enabling scripts that set cookies",
             long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -22935,12 +23093,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 182259,
+          _internalId: 187065,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 182251,
+              _internalId: 187057,
               type: "enum",
               enum: [
                 "png",
@@ -22956,7 +23114,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 182258,
+              _internalId: 187064,
               type: "anyOf",
               anyOf: [
                 {
@@ -29540,30 +29698,56 @@ ${reindented}
     try {
       return buildJsYamlAnnotation(mappedSource2);
     } catch (e) {
+      if (e.name === "YAMLError") {
+        e.name = "YAML Parsing";
+      }
       const m = e.stack.split("\n")[0].match(/^.+ \((\d+):(\d+)\)$/);
       if (m) {
-        const f = lineColToIndex(mappedSource2.value);
-        const location = { line: Number(m[1]) - 1, column: Number(m[2] - 1) };
-        const offset = f(location);
-        const { originalString } = mappedSource2.map(offset, true);
-        const filename = originalString.fileName;
-        const f2 = mappedIndexToLineCol(mappedSource2);
-        const { line, column } = f2(offset);
-        const sourceContext = createSourceContext(mappedSource2, {
-          start: offset,
-          end: offset + 1
-        });
-        e.stack = `${e.reason} (${filename}, ${line + 1}:${column + 1})
+        const m1 = mappedSource2.value.match(/([^\s]+):([^\s]+)/);
+        if (m1 && e.reason.match(/a multiline key may not be an implicit key/)) {
+          e.name = "YAML Parse Error";
+          e.reason = "block has incorrect key formatting";
+          const { originalString } = mappedSource2.map(m1.index, true);
+          const filename = originalString.fileName;
+          const map2 = mappedSource2.map(m1.index);
+          const { line, column } = indexToLineCol(map2.originalString.value)(
+            map2.index
+          );
+          const sourceContext = createSourceContext(mappedSource2, {
+            start: m1.index + 1,
+            end: m1.index + m1[0].length
+          });
+          e.stack = `${e.reason} (${filename}, ${line + 1}:${column + 1})
 ${sourceContext}`;
-        e.message = e.stack;
-        if (mappedLines(mappedSource2)[location.line].value.indexOf("!expr") !== -1 && e.reason.match(/bad indentation of a mapping entry/)) {
+          e.message = e.stack;
           e.message = `${e.message}
 ${tidyverseInfo(
-            "YAML tags like !expr must be followed by YAML strings."
-          )}
-${tidyverseInfo(
-            "Is it possible you need to quote the value you passed to !expr ?"
+            "Is it possible you missed a space after a colon in the key-value mapping?"
           )}`;
+        } else {
+          const f = lineColToIndex(mappedSource2.value);
+          const location = { line: Number(m[1]) - 1, column: Number(m[2] - 1) };
+          const offset = f(location);
+          const { originalString } = mappedSource2.map(offset, true);
+          const filename = originalString.fileName;
+          const f2 = mappedIndexToLineCol(mappedSource2);
+          const { line, column } = f2(offset);
+          const sourceContext = createSourceContext(mappedSource2, {
+            start: offset,
+            end: offset + 1
+          });
+          e.stack = `${e.reason} (${filename}, ${line + 1}:${column + 1})
+${sourceContext}`;
+          e.message = e.stack;
+          if (mappedLines(mappedSource2)[location.line].value.indexOf("!expr") !== -1 && e.reason.match(/bad indentation of a mapping entry/)) {
+            e.message = `${e.message}
+${tidyverseInfo(
+              "YAML tags like !expr must be followed by YAML strings."
+            )}
+${tidyverseInfo(
+              "Is it possible you need to quote the value you passed to !expr ?"
+            )}`;
+          }
         }
         e.stack = "";
       }

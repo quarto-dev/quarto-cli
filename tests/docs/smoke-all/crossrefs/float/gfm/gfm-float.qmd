@@ -1,0 +1,21 @@
+---
+title: "The Title"
+format: gfm
+_quarto:
+  tests:
+    gfm:
+      ensureSnapshotMatches: true
+---
+
+# The Heading
+
+| Pet type | Rating |
+| -------- | ------ |
+| Dog      | 4/5    |
+| Cat      | 4/5    |
+| Horse    | 3/5    |
+| Ant      | 5/5    |
+: Rating of pets {#tbl-pets_rating}
+
+See @tbl-pets_rating.
+

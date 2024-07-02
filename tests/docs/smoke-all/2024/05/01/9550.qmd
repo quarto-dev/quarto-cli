@@ -1,0 +1,15 @@
+---
+title: "Reproducible Quarto Document"
+format: latex
+---
+
+```{r}
+#| label: tbl-tables
+#| tbl-cap: "Tables"
+#| tbl-subcap: true
+#| layout-ncol: 2
+
+library(knitr)
+kable(head(cars))
+kable(head(pressure))
+```

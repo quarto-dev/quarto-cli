@@ -38,8 +38,8 @@ testRender(docs("email/email-attach.qmd"), "email", false, [fileExists(previewFi
 // Test an email render that has no subject line, this verifies that `rsc_email_subject` key is present and the value is an empty string
 testRender(docs("email/email-no-subject.qmd"), "email", false, [fileExists(previewFile), validJsonWithFields(jsonFile, {"rsc_email_subject": ""})], cleanupCtx);
 
-// Render in a project with an output directory and confirm that everything ends up in the output directory
-testProjectRender(docs("email/project/email-attach.qmd"), "email", "_out", (outputDir: string) => {
+// Render in a project with an output directory set in _quarto.yml and confirm that everything ends up in the output directory
+testProjectRender(docs("email/project/email-attach.qmd"), "email", (outputDir: string) => {
   const verify: Verify[]= [];
   const json = join(outputDir, ".output_metadata.json");
   const preview = join(outputDir, "email-preview", "index.html");

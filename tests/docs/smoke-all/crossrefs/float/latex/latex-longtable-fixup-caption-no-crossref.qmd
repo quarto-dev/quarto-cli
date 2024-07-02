@@ -1,0 +1,33 @@
+---
+format: pdf
+keep-tex: true
+title: "Long Table kable fixups etc"
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['\\begin\{longtable\}']
+        - []
+---
+
+## Raw longtable table with no crossref and caption from kable function
+
+In this case we'll issue a warning about of the type 
+````
+Raw LaTeX table found with non-tbl label: tab:not-tbl
+Won't be able to cross-reference this table using Quarto's native crossref system.
+````
+```{r}
+#| label: not-tbl
+#| echo: false
+df <- tibble::tibble(
+  x = 1:20,
+  y = rnorm(20),
+  z = rnorm(20)
+)
+knitr::kable(df, 
+  format = "latex", 
+  longtable = TRUE, 
+  booktabs = TRUE, 
+  caption = "A long table with a caption")
+```

@@ -10,6 +10,7 @@
 //   - https://typst.app/docs/tutorial/making-a-template/
 //   - https://github.com/typst/templates
 
+
 #let article(
   title: none,
   authors: none,
@@ -24,6 +25,9 @@
   fontsize: 11pt,
   sectionnumbering: none,
   toc: false,
+  toc_title: none,
+  toc_depth: none,
+  toc_indent: 1.5em,
   doc,
 ) = {
   set page(
@@ -68,15 +72,21 @@
 
   if abstract != none {
     block(inset: 2em)[
-    #text(weight: "semibold")[Abstract] #h(1em) #abstract
+    #text(weight: "semibold")[$labels.abstract$] #h(1em) #abstract
     ]
   }
 
   if toc {
+    let title = if toc_title == none {
+      auto
+    } else {
+      toc_title
+    }
     block(above: 0em, below: 2em)[
     #outline(
-      title: auto,
-      depth: none
+      title: toc_title,
+      depth: toc_depth,
+      indent: toc_indent
     );
     ]
   }
@@ -87,3 +97,8 @@
     columns(cols, doc)
   }
 }
+
+#set table(
+  inset: 6pt,
+  stroke: none
+)

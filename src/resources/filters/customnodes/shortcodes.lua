@@ -103,7 +103,7 @@ _quarto.ast.add_handler({
   end,
 })
 
-local function handle_shortcode(shortcode_tbl, node)
+local function handle_shortcode(shortcode_tbl, node, context)
   local name
   if type(shortcode_tbl.name) ~= "string" then
     -- this is a recursive shortcode call,
@@ -135,7 +135,7 @@ local function handle_shortcode(shortcode_tbl, node)
           -- luacov: enable
         end
         -- we are not resolved, so resolve
-        shortcode_node.content[i] = handle_shortcode(custom_data, v)
+        shortcode_node.content[i] = handle_shortcode(custom_data, v, context)
       end
     end
 
@@ -153,7 +153,7 @@ local function handle_shortcode(shortcode_tbl, node)
       table.insert(args, { name = v.key, value = v.value })
       table.insert(raw_args, v.value)
     elseif v.type == "key-value-shortcode" then
-      local result = handle_shortcode(v.value)
+      local result = handle_shortcode(v.value, node, context)
       table.insert(args, { name = v.key, value = result })
       table.insert(raw_args, result)
     elseif v.type == "shortcode" then
@@ -169,7 +169,7 @@ local function handle_shortcode(shortcode_tbl, node)
         fatal("Unexpected shortcode content type " .. tostring(t))
         -- luacov: enable
       else
-        local result = handle_shortcode(custom_data, shortcode_node)
+        local result = handle_shortcode(custom_data, shortcode_node, context)
         result = pandoc.utils.stringify(result)
       end
       table.insert(args, { value = result })
@@ -197,7 +197,7 @@ local function handle_shortcode(shortcode_tbl, node)
     return nil, shortcode_struct
   end
 
-  return callShortcodeHandler(handler, shortcode_struct), shortcode_struct
+  return callShortcodeHandler(handler, shortcode_struct, context), shortcode_struct
 end
 
 function shortcodes_filter()
@@ -205,7 +205,7 @@ function shortcodes_filter()
   local code_shortcode = shortcode_lpeg.make_shortcode_parser({
     escaped = function(s) return "{{<" .. s .. ">}}" end,
     string = function(s) return { value = s } end,
-    keyvalue = function(r, k, v) 
+    keyvalue = function(k, r, v) 
       return { name = k, value = v } 
     end,
     shortcode = function(open, space, lst, close)
@@ -223,10 +223,14 @@ function shortcodes_filter()
       if handler == nil then
         return open .. space .. name .. " " .. table.concat(raw_args, " ") .. " " .. close
       end
-      local result = callShortcodeHandler(handler, shortcode_struct)
+      local result = callShortcodeHandler(handler, shortcode_struct, "text")
       return pandoc.utils.stringify(result) 
     end, 
   })
+  local function apply_code_shortcode(text)
+    return shortcode_lpeg.wrap_lpeg_match(code_shortcode, text) or text
+  end
+
   local filter
 
   local block_handler = function(node)
@@ -237,12 +241,12 @@ function shortcodes_filter()
     if t ~= "Shortcode" then
       return nil
     end
-    local result, struct = handle_shortcode(custom_data, node)
+    local result, struct = handle_shortcode(custom_data, node, "block")
     return _quarto.ast.walk(shortcodeResultAsBlocks(result, struct.name, custom_data), filter)
   end
 
   local inline_handler = function(custom_data, node)
-    local result, struct = handle_shortcode(custom_data, node)
+    local result, struct = handle_shortcode(custom_data, node, "inline")
     local r1 = shortcodeResultAsInlines(result, struct.name, custom_data)
     local r2 = _quarto.ast.walk(r1, filter)
     return r2
@@ -261,7 +265,16 @@ function shortcodes_filter()
       return
     end
 
-    el.text = shortcode_lpeg.wrap_lpeg_match(code_shortcode, el.text)
+    el.text = apply_code_shortcode(el.text)
+    return el
+  end
+
+  local attr_handler = function(el)
+    for k,v in pairs(el.attributes) do
+      if type(v) == "string" then
+        el.attributes[k] = apply_code_shortcode(v)
+      end
+    end
     return el
   end
 
@@ -274,22 +287,42 @@ function shortcodes_filter()
         Code = code_handler,
         RawBlock = code_handler,
         CodeBlock = code_handler,
+        Header = attr_handler,
+        Div = function(el)
+          if el.classes:includes("quarto-markdown-envelope-contents") then
+            return nil
+          end
+          if el.classes:includes("quarto-shortcode__-escaped") then
+            return pandoc.Plain(pandoc.Str(el.attributes["data-value"]))
+          else
+            el = attr_handler(el)
+            return el
+          end
+        end,
       })
 
       doc = _quarto.ast.walk(doc, {
         Shortcode = inline_handler,
         RawInline = code_handler,
         Image = function(el)
-          el.src = shortcode_lpeg.wrap_lpeg_match(code_shortcode, el.src)
+          el = attr_handler(el)
+          el.src = apply_code_shortcode(el.src)
           return el
         end,
         Link = function(el)
-          el.target = shortcode_lpeg.wrap_lpeg_match(code_shortcode, el.target)
+          el = attr_handler(el)
+          el.target = apply_code_shortcode(el.target)
           return el
         end,
         Span = function(el)
+          if el.classes:includes("quarto-markdown-envelope-contents") then
+            return nil
+          end
           if el.classes:includes("quarto-shortcode__-escaped") then
             return pandoc.Str(el.attributes["data-value"])
+          else
+            el = attr_handler(el)
+            return el
           end
         end,
        })
@@ -314,7 +347,7 @@ local function readMetadata(value)
 end
 
 -- call a handler w/ args & kwargs
-function callShortcodeHandler(handler, shortCode)
+function callShortcodeHandler(handler, shortCode, context)
   local args = pandoc.List()
   local kwargs = setmetatable({}, { __index = function () return pandoc.Inlines({}) end })
   for _,arg in ipairs(shortCode.args) do
@@ -328,7 +361,7 @@ function callShortcodeHandler(handler, shortCode)
     return readMetadata(i)
   end})
   local callback = function()
-    return handler.handle(args, kwargs, meta, shortCode.raw_args)
+    return handler.handle(args, kwargs, meta, shortCode.raw_args, context)
   end
   -- set the script file path, if present
   if handler.file ~= nil then
@@ -342,7 +375,6 @@ function shortcodeResultAsInlines(result, name, shortcode_tbl)
   if result == nil then
     warn("Shortcode '" .. name .. "' not found")
     local result = pandoc.Inlines({pandoc.RawInline(FORMAT, shortcode_tbl.unparsed_content)})
-    print("Result from here:", result)
     return result
   end
   local type = quarto.utils.type(result)
@@ -379,8 +411,6 @@ function shortcodeResultAsBlocks(result, name, shortcode_tbl)
     if name ~= 'include' then
       warn("Shortcode '" .. name .. "' not found")
     end
-    print(FORMAT)
-    print(shortcode_tbl.unparsed_content)
     return pandoc.Blocks({pandoc.RawBlock(FORMAT, shortcode_tbl.unparsed_content)})
   end
   local type = quarto.utils.type(result)

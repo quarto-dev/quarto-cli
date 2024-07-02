@@ -6,6 +6,7 @@ import {
 } from "../../config/constants.ts";
 import { Format, FormatDependency, FormatExtras } from "../../config/types.ts";
 import { PandocIncludes } from "../../execute/types.ts";
+import { FileInclusion } from "../../project/types.ts";
 import { DirectiveCell, QuartoMdCell } from "../lib/break-quarto-md-types.ts";
 import { EitherString, MappedString } from "../lib/text-types.ts";
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
@@ -171,3 +172,10 @@ export interface LanguageHandler {
   languageName: string;
   languageClass?: string | ((options: LanguageCellHandlerOptions) => string);
 }
+
+/**
+ * Type for the state object tracked by the include TS handler
+ */
+export type IncludeState = {
+  includes: FileInclusion[];
+};

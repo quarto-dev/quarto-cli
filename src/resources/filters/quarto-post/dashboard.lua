@@ -156,7 +156,9 @@ function render_dashboard()
       end,
       Div = function(el) 
 
-        if el.attributes["output"] == "asis" then
+        if el.classes:includes("cell") and el.classes:includes("markdown") then
+          return el.content
+        elseif el.attributes["output"] == "asis" then
           return nil
 
         elseif dashboard.card_sidebar.isCardSidebar(el) then

@@ -20,6 +20,7 @@ import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 import { normalizePath, pathWithForwardSlashes } from "../core/path.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import {
+  FileInclusion,
   FileInformation,
   kProjectOutputDir,
   kProjectType,
@@ -37,6 +38,13 @@ import { createTempContext } from "../core/temp.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { LanguageCellHandlerOptions } from "../core/handlers/types.ts";
 import { ExecutionEngine } from "../execute/types.ts";
+import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
+import { breakQuartoMd, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
+import { partitionCellOptionsText } from "../core/lib/partition-cell-options.ts";
+import { parse } from "yaml/mod.ts";
+import { mappedIndexToLineCol } from "../core/lib/mapped-text.ts";
+import { normalizeNewlines } from "../core/lib/text.ts";
+import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -68,7 +76,9 @@ export function projectFormatOutputDir(
 export function projectOutputDir(context: ProjectContext): string {
   let outputDir = context.config?.project[kProjectOutputDir];
   if (outputDir) {
-    outputDir = join(context.dir, outputDir);
+    if (!isAbsolute(outputDir)) {
+      outputDir = join(context.dir, outputDir);
+    }
   } else {
     outputDir = context.dir;
   }
@@ -333,6 +343,93 @@ export async function directoryMetadataForInputFile(
   return config;
 }
 
+const mdForFile = async (
+  project: ProjectContext,
+  engine: ExecutionEngine | undefined,
+  file: string,
+): Promise<MappedString> => {
+  if (engine) {
+    return await engine.markdownForFile(file);
+  } else {
+    // Last resort, just read the file
+    return Promise.resolve(mappedStringFromFile(file));
+  }
+};
+
+export async function projectResolveCodeCellsForFile(
+  project: ProjectContext,
+  engine: ExecutionEngine | undefined,
+  file: string,
+  markdown?: MappedString,
+  force?: boolean,
+): Promise<InspectedMdCell[]> {
+  const cache = ensureFileInformationCache(project, file);
+  if (!force && cache.codeCells) {
+    return cache.codeCells || [];
+  }
+  if (!markdown) {
+    markdown = await mdForFile(project, engine, file);
+  }
+
+  const result: InspectedMdCell[] = [];
+  const fileStack: string[] = [];
+
+  const inner = async (file: string, cells: QuartoMdCell[]) => {
+    if (fileStack.includes(file)) {
+      throw new Error(
+        "Circular include detected:\n  " + fileStack.join(" ->\n  "),
+      );
+    }
+    fileStack.push(file);
+    for (const cell of cells) {
+      if (typeof cell.cell_type === "string") {
+        continue;
+      }
+      if (cell.cell_type.language === "_directive") {
+        const directiveCell = cell.cell_type as DirectiveCell;
+        if (directiveCell.name !== "include") {
+          continue;
+        }
+        const arg = directiveCell.shortcode.params[0];
+        const paths = arg.startsWith("/")
+          ? [project.dir, arg]
+          : [project.dir, relative(project.dir, dirname(file)), arg];
+        const innerFile = join(...paths);
+        await inner(
+          innerFile,
+          (await breakQuartoMd(
+            await mdForFile(project, engine, innerFile),
+          )).cells,
+        );
+      }
+      if (
+        cell.cell_type.language !== "_directive"
+      ) {
+        const cellOptions = partitionCellOptionsText(
+          cell.cell_type.language,
+          cell.sourceWithYaml ?? cell.source,
+        );
+        const metadata = cellOptions.yaml
+          ? parse(cellOptions.yaml.value) as Record<string, unknown>
+          : {};
+        const lineLocator = mappedIndexToLineCol(cell.sourceVerbatim);
+        result.push({
+          start: lineLocator(0).line,
+          end: lineLocator(cell.sourceVerbatim.value.length - 1).line,
+          file: file,
+          source: normalizeNewlines(cell.source.value),
+          language: cell.cell_type.language,
+          metadata,
+        });
+      }
+    }
+    fileStack.pop();
+  };
+  await inner(file, (await breakQuartoMd(markdown)).cells);
+  cache.codeCells = result;
+  return result;
+}
+
 export async function projectResolveFullMarkdownForFile(
   project: ProjectContext,
   engine: ExecutionEngine | undefined,
@@ -348,12 +445,7 @@ export async function projectResolveFullMarkdownForFile(
   const temp = createTempContext();
 
   if (!markdown) {
-    if (engine) {
-      markdown = await engine.markdownForFile(file);
-    } else {
-      // Last resort, just read the file
-      markdown = mappedStringFromFile(file);
-    }
+    markdown = await mdForFile(project, engine, file);
   }
 
   const options: LanguageCellHandlerOptions = {
@@ -373,7 +465,7 @@ export async function projectResolveFullMarkdownForFile(
   try {
     const result = await expandIncludes(markdown, options, file);
     cache.fullMarkdown = result;
-    cache.includeMap = options.state?.include as Record<string, string>;
+    cache.includeMap = options.state?.include.includes as FileInclusion[];
     return result;
   } finally {
     temp.cleanup();

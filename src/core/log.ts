@@ -41,6 +41,7 @@ export interface LogMessageOptions {
 
 // deno-lint-ignore no-explicit-any
 export function appendLogOptions(cmd: Command<any>): Command<any> {
+  // deno-lint-ignore no-explicit-any
   const addLogOptions = (cmd: Command<any>) => {
     return cmd.option(
       "--log <file>",
@@ -315,9 +316,9 @@ export function logProgress(message: string) {
   log.info(colors.bold(colors.blue(message)));
 }
 
-export function logError(e: unknown) {
+export function logError(e: unknown, defaultShowStack = true) {
   // normalize
-  const err = asErrorEx(e);
+  const err = asErrorEx(e, defaultShowStack);
 
   // print error name if requested
   let message = err.printName ? `${err.name}: ${err.message}` : err.message;

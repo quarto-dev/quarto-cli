@@ -315,8 +315,9 @@
                       website:
                         comments:
                           giscus:
-                            light: light # giscus theme used for light website theme
-                            dark: dark_dimmed # giscus theme used for dark website theme
+                            theme:
+                              light: light # giscus theme used for light website theme
+                              dark: dark_dimmed # giscus theme used for dark website theme
                       ```
                 language:
                   string:
@@ -750,11 +751,18 @@
                   description: "Whether this announcement may be dismissed by the user."
                 icon:
                   schema: string
-                  description: "The icon to display in the annoucement"
+                  description:
+                    short: "The icon to display in the announcement"
+                    long: |
+                      Name of bootstrap icon (e.g. `github`, `twitter`, `share`) for the announcement.
+                      See <https://icons.getbootstrap.com/> for a list of available icons
                 position:
                   schema:
                     enum: ["above-navbar", "below-navbar"]
-                  description: "The position of the announcement."
+                  description:
+                    short: "The position of the announcement."
+                    long: |
+                      The position of the announcement. One of `above-navbar` (default) or `below-navbar`.
                 type:
                   schema:
                     enum:
@@ -768,7 +776,11 @@
                         light,
                         dark,
                       ]
-                  description: "The type of announcement. Affects the appearance of the announcement."
+                  description:
+                    short: "The type of announcement. Affects the appearance of the announcement."
+                    long: |
+                      The type of announcement. One of `primary`, `secondary`, `success`, `danger`, `warning`,
+                        `info`, `light` or `dark`. Affects the appearance of the announcement.
 
         description: Provides an announcement displayed at the top of the page.
       cookie-consent:
@@ -1359,6 +1371,7 @@
 - id: website-about
   object:
     closed: true
+    required: [template]
     properties:
       id:
         string:
@@ -1578,6 +1591,10 @@
       image-placeholder:
         string:
           description: "The default image to use if an item in the listing doesn't have an image."
+      image-lazy-loading:
+        boolean:
+          description: "If false, images in the listing will be loaded immediately. If true, images will be loaded as they come into view."
+          default: true
       image-align:
         enum: [left, right]
         description: In `default` type listings, whether to place the image on the right or left side of the post content (`left` or `right`).

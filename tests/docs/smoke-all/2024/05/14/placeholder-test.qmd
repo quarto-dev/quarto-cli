@@ -1,0 +1,31 @@
+---
+format: html
+---
+
+::: {#fig-placeholder-test}
+
+{{< placeholder >}}
+
+This is a placeholder.
+
+:::
+
+See @fig-placeholder-test.
+
+A 400x400 placeholder:
+
+{{< placeholder 400 >}}
+
+A 400x200 placeholder:
+
+{{< placeholder 400 200 >}}
+
+A placeholder that is not converted to PNG:
+
+{{< placeholder 400 200 format=svg >}}
+
+This is a placeholder that's expanded to a URL because it's inside an image src:
+
+![Another placeholder.]({{< placeholder 400 400 format=svg >}}){#fig-placeholder-test-2}
+
+See @fig-placeholder-test-2.

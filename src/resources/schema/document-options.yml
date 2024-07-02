@@ -62,6 +62,13 @@
     formats: [$html-doc]
   description: Enables hover over a section title to see an anchor link.
 
+- name: tabsets
+  schema: boolean
+  default: true
+  tags:
+    formats: [$html-doc]
+  description: Enables tabsets to present content.
+
 - name: smooth-scroll
   schema: boolean
   default: false

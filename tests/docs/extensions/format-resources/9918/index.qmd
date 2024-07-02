@@ -1,0 +1,9 @@
+---
+title: Untitled
+format:
+  test-html: default
+  test-gfm: default
+---
+
+This document uses a test extension that should include nested resources
+

@@ -34,7 +34,10 @@ IF EXIST "!QUARTO_TS_PATH!" (
 		SET "QUARTO_TARGET=!QUARTO_TS_PATH!"
 	)
 
-	SET QUARTO_DEBUG=true
+	IF NOT DEFINED QUARTO_DEBUG (
+		SET QUARTO_DEBUG=true 
+	)
+
 	:: Normalize path to remove ../.. stuff
 	for %%i in ("!SCRIPT_PATH!..\config\deno-version") do SET "DENO_VERSION_FILE=%%~fi"
 
@@ -98,8 +101,31 @@ SET "DENO_TLS_CA_STORE=system,mozilla"
 SET "DENO_NO_UPDATE_CHECK=1"
 SET "QUARTO_DENO_OPTIONS=--unstable-ffi --no-config --cached-only --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi"
 
+REM Add expected V8 options to QUARTO_DENO_V8_OPTIONS
+IF DEFINED QUARTO_DENO_V8_OPTIONS (
+	REM --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
+	IF "!QUARTO_DENO_V8_OPTIONS!"=="!QUARTO_DENO_V8_OPTIONS:--enable-experimental-regexp-engine=!" (
+		SET "QUARTO_DENO_V8_OPTIONS=--enable-experimental-regexp-engine,!QUARTO_DENO_V8_OPTIONS!"
+	)
+	IF "!QUARTO_DENO_V8_OPTIONS!"=="!QUARTO_DENO_V8_OPTIONS:--max-old-space-size=!" (
+		SET "QUARTO_DENO_V8_OPTIONS=--max-old-space-size=8192,!QUARTO_DENO_V8_OPTIONS!"
+	)
+	IF "!QUARTO_DENO_V8_OPTIONS!"=="!QUARTO_DENO_V8_OPTIONS:--max-heap-size=!" (
+		SET "QUARTO_DENO_V8_OPTIONS=--max-heap-size=8192,!QUARTO_DENO_V8_OPTIONS!"
+	)
+) ELSE (
+  SET "QUARTO_DENO_V8_OPTIONS=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192"
+)
+
+REM Prepend v8-flags for deno run if necessary
 IF NOT DEFINED QUARTO_DENO_EXTRA_OPTIONS (
-		set "QUARTO_DENO_EXTRA_OPTIONS=--v8-flags=--max-old-space-size=8192,--max-heap-size=8192"
+  SET "QUARTO_DENO_EXTRA_OPTIONS=--v8-flags=!QUARTO_DENO_V8_OPTIONS!"
+) ELSE (
+	IF "!QUARTO_DENO_EXTRA_OPTIONS!"=="!QUARTO_DENO_EXTRA_OPTIONS:--v8-flags=!" (
+  	SET "QUARTO_DENO_EXTRA_OPTIONS=--v8-flags=!QUARTO_DENO_V8_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS!"
+	)	ELSE (
+		ECHO WARN: QUARTO_DENO_EXTRA_OPTIONS already contains --v8-flags, skipping addition of QUARTO_DENO_V8_OPTIONS by quarto itself. This is unexpected and you should check your configuration.
+	)
 )
 
 !QUARTO_DENO! !QUARTO_ACTION! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! !QUARTO_IMPORT_MAP_ARG! !QUARTO_TARGET! %*

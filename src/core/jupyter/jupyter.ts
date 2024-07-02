@@ -86,6 +86,7 @@ import {
   kCellFigScap,
   kCellFigSubCap,
   kCellFormat,
+  kCellHeight,
   kCellId,
   kCellLabel,
   kCellLanguage,
@@ -101,6 +102,7 @@ import {
   kCellSlideshow,
   kCellSlideshowSlideType,
   kCellTblColumn,
+  kCellWidth,
   kCodeFold,
   kCodeLineNumbers,
   kCodeOverflow,
@@ -169,6 +171,10 @@ import {
   resolveUserExpressions,
   userExpressionsFromCell,
 } from "./jupyter-inline.ts";
+import {
+  jupyterCellSrcAsLines,
+  jupyterCellSrcAsStr,
+} from "./jupyter-shared.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -349,7 +355,7 @@ export async function quartoMdToJupyter(
       }
       if (cell_type === "raw" && frontMatter) {
         // delete 'jupyter' metadata since we've already transferred it
-        const yaml = readYamlFromMarkdown(cell.source.join(""));
+        const yaml = readYamlFromMarkdown(jupyterCellSrcAsStr(cell));
         if (yaml.jupyter) {
           delete yaml.jupyter;
           // write the cell only if there is metadata to write
@@ -371,9 +377,12 @@ export async function quartoMdToJupyter(
         }
       } else if (cell_type === "code") {
         // see if there is embedded metadata we should forward into the cell metadata
+        const cellSrcLines = typeof cell.source === "string"
+          ? lines(cell.source)
+          : cell.source;
         const { yaml, source } = partitionCellOptions(
           kernelspec.language.toLowerCase(),
-          cell.source,
+          cellSrcLines,
         );
         if (yaml && !Array.isArray(yaml) && typeof yaml === "object") {
           // use label as id if necessary
@@ -412,7 +421,10 @@ export async function quartoMdToJupyter(
       }
 
       // if the source is empty then don't add it
-      cell.source = trimEmptyLines(cell.source);
+      const cellSrcLines = typeof cell.source === "string"
+        ? lines(cell.source)
+        : cell.source;
+      cell.source = trimEmptyLines(cellSrcLines);
       if (cell.source.length > 0) {
         nb.cells.push(cell);
       }
@@ -427,9 +439,15 @@ export async function quartoMdToJupyter(
     inCodeCell = false,
     inCode = false,
     backtickCount = 0;
-  for (const line of lines(inputContent)) {
+  let currentLine = 0;
+  const contentLines = lines(inputContent);
+  for (currentLine = 0; currentLine < contentLines.length; ++currentLine) {
+    const line = contentLines[currentLine];
     // yaml front matter
-    if (yamlRegEx.test(line) && !inCodeCell && !inCode) {
+    if (
+      yamlRegEx.test(line) && !inCodeCell && !inCode &&
+      contentLines[currentLine + 1]?.trim() !== "" // https://github.com/quarto-dev/quarto-cli/issues/8998
+    ) {
       if (inYaml) {
         lineBuffer.push(line);
         flushLineBuffer("raw", !parsedFrontMatter);
@@ -771,7 +789,9 @@ export async function jupyterToMarkdown(
           // If this is the front matter cell, don't wrap it in
           // a cell envelope, as it need to be remain discoverable
           if (frontMatter === undefined) {
-            frontMatter = partitionYamlFrontMatter(cell.source.join(""))?.yaml;
+            frontMatter = partitionYamlFrontMatter(
+              jupyterCellSrcAsStr(cell),
+            )?.yaml;
             if (frontMatter) {
               markdownOptions.preserveCellMetadata = false;
             }
@@ -852,7 +872,7 @@ export function jupyterCellWithOptions(
 ): JupyterCellWithOptions {
   const { yaml, optionsSource, source } = partitionCellOptions(
     language,
-    cell.source,
+    jupyterCellSrcAsLines(cell),
   );
 
   // read any options defined in cell metadata
@@ -1020,7 +1040,7 @@ export function mdFromRawCell(
 
   const mimeType = cell.metadata?.[kCellRawMimeType];
   if (mimeType) {
-    const rawOutput = mdRawOutput(mimeType, cell.source);
+    const rawOutput = mdRawOutput(mimeType, jupyterCellSrcAsLines(cell));
     if (rawOutput) {
       return rawCellEnvelope(cell.id, rawOutput);
     }
@@ -1247,7 +1267,7 @@ async function mdFromCodeCell(
     }
 
     // filter matplotlib intermediate vars
-    if (isDiscadableTextExecuteResult(output, haveImage)) {
+    if (isDiscardableTextExecuteResult(output, haveImage)) {
       return false;
     }
 
@@ -1306,7 +1326,12 @@ async function mdFromCodeCell(
   }
 
   // resolve caption (main vs. sub)
-  const { cellCaption, outputCaptions } = resolveCaptions(cell);
+  let { cellCaption, outputCaptions } = resolveCaptions(cell);
+
+  // https://github.com/quarto-dev/quarto-cli/issues/5413
+  outputCaptions = outputCaptions.map((caption) =>
+    caption.trim().replaceAll("\n", " ")
+  );
 
   // cell_type classes
   divMd.push(`.cell `);
@@ -1396,7 +1421,7 @@ async function mdFromCodeCell(
   if (includeCode(cell, options) || options.preserveCodeCellYaml) {
     const fenced = echoFenced(cell, options);
     const ticks = "`".repeat(
-      Math.max(countTicks(cell.source) + 1, fenced ? 4 : 3),
+      Math.max(countTicks(jupyterCellSrcAsLines(cell)) + 1, fenced ? 4 : 3),
     );
 
     md.push(ticks + " {");
@@ -1592,7 +1617,13 @@ async function mdFromCodeCell(
       if (output.output_type === "stream") {
         const stream = output as JupyterOutputStream;
         if (asis && stream.name === "stdout") {
-          md.push(stream.text.join(""));
+          let text: string[] = [];
+          if (typeof stream.text === "string") {
+            text = [stream.text];
+          } else {
+            text = stream.text;
+          }
+          md.push(text.join(""));
         } else {
           md.push(mdOutputStream(stream));
         }
@@ -1675,7 +1706,7 @@ async function mdFromCodeCell(
   return md;
 }
 
-function isDiscadableTextExecuteResult(
+function isDiscardableTextExecuteResult(
   output: JupyterOutput,
   haveImage: boolean,
 ) {
@@ -1732,35 +1763,54 @@ function isMarkdown(output: JupyterOutput, options: JupyterToMarkdownOptions) {
 }
 
 function mdOutputStream(output: JupyterOutputStream) {
+  let text: string[] = [];
+  if (typeof output.text === "string") {
+    text = [output.text];
+  } else {
+    text = output.text;
+  }
+
   // trim off warning source line for notebook
   if (output.name === "stderr") {
-    if (output.text[0]) {
-      const firstLine = output.text[0].replace(
+    if (text[0]) {
+      const firstLine = text[0].replace(
         /<ipython-input.*?>:\d+:\s+/,
         "",
       );
       return mdCodeOutput(
-        [firstLine, ...output.text.slice(1)].map(colors.stripColor),
+        [firstLine, ...text.slice(1)].map(colors.stripColor),
       );
     }
   }
 
   // normal default handling
-  return mdCodeOutput(output.text.map(colors.stripColor));
+  return mdCodeOutput(text.map(colors.stripColor));
 }
 
 async function mdOutputError(
   output: JupyterOutputError,
   options: JupyterToMarkdownOptions,
 ) {
-  if (!options.toHtml || !hasAnsiEscapeCodes(output.evalue)) {
-    return mdCodeOutput([output.ename + ": " + output.evalue]);
+  const traceback = output.traceback.join("\n");
+  if (
+    !options.toHtml ||
+    (!hasAnsiEscapeCodes(output.evalue) && !hasAnsiEscapeCodes(traceback))
+  ) {
+    if (output.traceback.length > 0) {
+      return mdCodeOutput([
+        output.ename + ": " + output.evalue + "\n" + traceback,
+      ]);
+    } else {
+      return mdCodeOutput([
+        output.ename + ": " + output.evalue,
+      ]);
+    }
   }
-  const html = await convertToHtmlSpans(output.evalue);
+  const tracebackHtml = await convertToHtmlSpans(traceback);
   return mdMarkdownOutput(
     [
       "\n::: {.ansi-escaped-output}\n```{=html}\n<pre>",
-      html,
+      tracebackHtml,
       "</pre>\n```\n:::\n",
     ],
   );
@@ -1866,11 +1916,14 @@ function mdImageOutput(
   const metadata = output.metadata[mimeType];
 
   // attributes (e.g. width/height/alt)
-  function metadataValue<T>(key: string, defaultValue: T) {
-    return metadata && metadata[key] ? metadata["key"] as T : defaultValue;
+  function metadataValue<T>(key: string, defaultValue?: T) {
+    if (metadata) {
+      return metadata[key] ? metadata[key] as T : defaultValue;
+    }
+    return defaultValue;
   }
-  let width = metadataValue(kCellOutWidth, 0);
-  let height = metadataValue(kCellOutHeight, 0);
+  let width = metadataValue(kCellOutWidth) ?? metadataValue(kCellWidth, 0);
+  let height = metadataValue(kCellOutHeight) ?? metadataValue(kCellHeight, 0);
   const alt = caption || "";
 
   // calculate output file name
@@ -1882,9 +1935,15 @@ function mdImageOutput(
     ? (data as string[]).join("")
     : data as string;
 
-  // base64 decode if it's not svg
   const outputFile = join(options.assets.base_dir, imageFile);
-  if (mimeType !== kImageSvg) {
+  if (
+    // base64 decode if it's not svg
+    mimeType !== kImageSvg ||
+    // or if it is encoded svg; this could happen when used in embed context,
+    // as Pandoc will generate ipynb with base64 encoded svg data
+    // https://github.com/quarto-dev/quarto-cli/issues/9793
+    !/<svg/.test(imageText)
+  ) {
     const imageData = base64decode(imageText);
 
     // if we are in retina mode, then derive width and height from the image

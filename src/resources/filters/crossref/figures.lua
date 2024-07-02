@@ -18,9 +18,9 @@ function crossref_figures()
 
       -- get label and base caption
       -- local label = el.attr.identifier
-      local kind = refType(float.identifier)
+      local kind = ref_type_from_float(float)
       if kind == nil then
-        return nil
+        internal_error()
       end
     
       -- determine order, parent, and displayed caption

@@ -1,0 +1,10 @@
+## Documenting `quarto.*` Lua API
+
+The documentation that's available for Lua filter authors with the VS Code extension installed
+is derived from Lua type information exposed in `src/resources/lua-types/`.
+
+Quarto's Lua API should respect Lua's case conventions, which are:
+
+- `snake_case` for function names
+- `lowercase` for filenames
+

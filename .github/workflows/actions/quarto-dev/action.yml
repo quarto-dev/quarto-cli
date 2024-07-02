@@ -5,7 +5,7 @@ runs:
   using: "composite"
   steps:
     - name: Cache deno std deps
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ./src/resources/deno_std/cache
         key: ${{ runner.os }}-deno_std-1-${{ hashFiles('./src/resources/deno_std/deno_std.lock', './package/scripts/deno_std/deno_std.ts') }}
@@ -49,7 +49,7 @@ runs:
         }
 
     - name: Quarto Check
-      if:  runner.debug == '1'
+      if: runner.debug == '1'
       working-directory: tests
       shell: pwsh
       run: quarto check

@@ -7,6 +7,7 @@
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
 import { info, warning } from "../../deno_ral/log.ts";
+import { mergeProjectMetadata } from "../../config/metadata.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -28,6 +29,7 @@ import {
   kProjectType,
   ProjectContext,
 } from "../../project/types.ts";
+import { kQuartoScratch } from "../../project/project-scratch.ts";
 
 import { projectType } from "../../project/types/project-types.ts";
 import { copyResourceFile } from "../../project/project-resources.ts";
@@ -71,6 +73,8 @@ import { Format } from "../../config/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { projectContextForDirectory } from "../../project/project-context.ts";
 import { ProjectType } from "../../project/types/types.ts";
+import { ProjectConfig as ProjectConfig_Project } from "../../resources/types/schema-types.ts";
+import { Extension } from "../../extension/types.ts";
 
 const noMutationValidations = (
   projType: ProjectType,
@@ -214,11 +218,57 @@ const computeProjectRenderConfig = async (
   };
 };
 
+const getProjectRenderScripts = async (
+  context: ProjectContext,
+) => {
+  const preRenderScripts: string[] = [],
+    postRenderScripts: string[] = [];
+  if (context.config?.project?.[kProjectPreRender]) {
+    preRenderScripts.push(
+      ...asArray(context.config?.project?.[kProjectPreRender]!),
+    );
+  }
+  if (context.config?.project?.[kProjectPostRender]) {
+    postRenderScripts.push(
+      ...asArray(context.config?.project?.[kProjectPostRender]!),
+    );
+  }
+  return { preRenderScripts, postRenderScripts };
+};
+
+const mergeExtensionMetadata = async (
+  context: ProjectContext,
+  pOptions: RenderOptions,
+) => {
+  // this will mutate context.config.project to merge
+  // in any project metadata from extensions
+  if (context.config) {
+    const extensions = await pOptions.services.extension.extensions(
+      undefined,
+      context.config,
+      context.isSingleFile ? undefined : context.dir,
+      { builtIn: false },
+    );
+    const projectMetadata = extensions.map((extension) =>
+      extension.contributes.metadata?.project
+    ).filter((project) => project) as ProjectConfig_Project[];
+    context.config.project = mergeProjectMetadata(
+      context.config.project,
+      ...projectMetadata,
+    );
+  }
+};
+
 export async function renderProject(
   context: ProjectContext,
   pOptions: RenderOptions,
   pFiles?: string[],
 ): Promise<RenderResult> {
+  await mergeExtensionMetadata(context, pOptions);
+  const { preRenderScripts, postRenderScripts } = await getProjectRenderScripts(
+    context,
+  );
+
   // lookup the project type
   const projType = projectType(context.config?.project?.[kProjectType]);
 
@@ -275,10 +325,10 @@ export async function renderProject(
   };
 
   // run pre-render step if we are rendering all files
-  if (context.config?.project?.[kProjectPreRender]) {
+  if (preRenderScripts.length) {
     await runPreRender(
       projDir,
-      asArray(context.config?.project?.[kProjectPreRender]!),
+      preRenderScripts,
       progress,
       !!projectRenderConfig.options.flags?.quiet,
       {
@@ -763,10 +813,10 @@ export async function renderProject(
     }
 
     // run post-render if this isn't incremental
-    if (context.config?.project?.[kProjectPostRender]) {
+    if (postRenderScripts.length) {
       await runPostRender(
         projDir,
-        asArray(context.config?.project?.[kProjectPostRender]!),
+        postRenderScripts,
         progress,
         !!projectRenderConfig.options.flags?.quiet,
         {
@@ -804,6 +854,20 @@ export async function renderProject(
       projectRenderConfig.behavior.incremental,
     );
   }
+
+  // in addition to the cleanup above, if forceClean is set, we need to clean up the project scratch dir
+  // entirely. See options.forceClean in render-shared.ts
+  // .quarto is really a fiction created because of `--output-dir` being set on non-project
+  // renders
+  //
+  // cf https://github.com/quarto-dev/quarto-cli/issues/9745#issuecomment-2125951545
+  if (projectRenderConfig.options.forceClean) {
+    const scratchDir = join(projDir, kQuartoScratch);
+    if (existsSync(scratchDir)) {
+      Deno.removeSync(scratchDir, { recursive: true });
+    }
+  }
+
   return projResults;
 }
 
