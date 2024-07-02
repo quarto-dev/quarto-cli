@@ -1,0 +1,14 @@
+---
+title: "Hello, _Quarto_"
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.callout-title-container em"]
+        - []
+---
+
+::: {.callout-note title='{{< meta title >}}'}
+A note
+:::
