@@ -10,7 +10,7 @@ function parse_blockreftargets()
       return
     end
     -- capture then remove name
-    local name = markdownToInlines(el.attr.attributes["name"])
+    local name = string_to_quarto_ast_inlines(el.attr.attributes["name"] or "")
     if not name or #name == 0 then
       name = resolveHeadingCaption(el)
     end
