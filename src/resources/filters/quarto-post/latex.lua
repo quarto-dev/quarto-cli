@@ -319,6 +319,9 @@ function render_latex()
           -- to be deconstructed
           DecoratedCodeBlock = function(block)
             if block.filename ~= nil then
+              if float.caption_long == nil then
+                float.caption_long = pandoc.Div({})
+              end
               float.caption_long.content:insert(1, pandoc.Space())
               float.caption_long.content:insert(1, pandoc.Code(block.filename))
             end
