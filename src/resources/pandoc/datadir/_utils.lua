@@ -255,6 +255,7 @@ local function as_inlines(v)
   end
   local t = pandoc.utils.type(v)
   if t == "Inlines" then
+    ---@cast v pandoc.Inlines
     return v
   elseif t == "Blocks" then
     return pandoc.utils.blocks_to_inlines(v)

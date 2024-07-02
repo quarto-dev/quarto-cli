@@ -32,7 +32,7 @@ function parse_blockreftargets()
 
     local name = string_to_quarto_ast_inlines(el.attributes["name"] or "")
     if not name or #name == 0 then
-      name = resolveHeadingCaption(el) or pandoc.Inlines({})
+      name = resolveHeadingCaption(el)
     end
     el.attributes["name"] = nil 
     local identifier = el.identifier
