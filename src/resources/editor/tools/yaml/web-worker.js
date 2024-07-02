@@ -15795,6 +15795,11 @@ try {
           },
           {
             name: "number-offset",
+            ags: {
+              formats: [
+                "$html-all"
+              ]
+            },
             schema: {
               maybeArrayOf: "number"
             },
