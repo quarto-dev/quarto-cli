@@ -24,6 +24,7 @@ $if(region)$
 $endif$
 $if(abstract)$
   abstract: [$abstract$],
+  abstract-title: "$labels.abstract$",
 $endif$
 $if(margin)$
   margin: ($for(margin/pairs)$$margin.key$: $margin.value$,$endfor$),
