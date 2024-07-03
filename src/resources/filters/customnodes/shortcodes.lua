@@ -200,6 +200,11 @@ local function handle_shortcode(shortcode_tbl, node, context)
   return callShortcodeHandler(handler, shortcode_struct, context), shortcode_struct
 end
 
+local _shortcodes_filter = nil
+function process_shortcodes(content)
+  return _quarto.ast.walk(content, _shortcodes_filter)
+end
+
 function shortcodes_filter()
 
   local code_shortcode = shortcode_lpeg.make_shortcode_parser({
@@ -329,6 +334,8 @@ function shortcodes_filter()
       return doc
     end
   }
+
+  _shortcodes_filter = filter
   return filter
 end
 

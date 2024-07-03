@@ -24,7 +24,7 @@ function render_folded_block(block)
     })
     
     if not isEmpty(summary) then
-      tappend(beginPara.content, markdownToInlines(summary))
+      tappend(beginPara.content, process_shortcodes(string_to_quarto_ast_inlines(summary)))
     end
     beginPara.content:insert(pandoc.RawInline("html", "</summary>"))
     div.content:insert(beginPara)
