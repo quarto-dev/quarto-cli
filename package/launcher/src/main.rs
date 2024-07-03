@@ -83,6 +83,7 @@ fn main() {
     // Define the base deno options
     let mut deno_options: Vec<String> = vec![
         String::from("--unstable-ffi"),
+        String::from("--unstable-kv"),
         String::from("--no-config"),
         String::from("--cached-only"),
         String::from("--allow-read"),
