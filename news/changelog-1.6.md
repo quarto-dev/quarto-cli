@@ -6,6 +6,7 @@ All changes included in 1.6:
 
 ## `typst` Format
 
+- ([#10168](https://github.com/quarto-dev/quarto-cli/issues/10168)): support `csl` bibliography style.
 - ([#10181](https://github.com/quarto-dev/quarto-cli/issues/10181)): Remove workaround for image dimensions which is no longer necessary and mishandled image paths with spaces.
 
 ## Other Fixes and Improvements
