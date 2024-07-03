@@ -140,7 +140,7 @@ local function kable_raw_latex_fixups(content, identifier)
         identifier = label_identifier,
         type = "Table",
         content = pandoc.Blocks({ raw }),
-        caption_long = pandoc.Blocks({pandoc.Plain(string_to_quarto_ast_inlines(caption_content))}),
+        caption_long = pandoc.Blocks({pandoc.Plain(string_to_quarto_ast_inlines(caption_content or ""))}),
       })
     end
   })

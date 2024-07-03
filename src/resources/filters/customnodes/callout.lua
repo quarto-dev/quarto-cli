@@ -45,7 +45,7 @@ function _callout_main()
     -- and returns the custom node
     parse = function(div)
       quarto_global_state.hasCallouts = true
-      local title = string_to_quarto_ast_inlines(div.attr.attributes["title"])
+      local title = string_to_quarto_ast_inlines(div.attr.attributes["title"] or "")
       if not title or #title == 0 then
         title = resolveHeadingCaption(div)
       end
