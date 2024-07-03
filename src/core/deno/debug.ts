@@ -52,6 +52,11 @@ export const getStackAsArray = (
       "Could not find quarto.ts in stack trace, is QUARTO_DENO_V8_OPTIONS set with a sufficiently-large stack size?",
     );
   }
+
+  // filter out eventLoopTick
+  rawStack = rawStack.filter((s) =>
+    !(s.match(/eventLoopTick/) && s.match(/core\/01_core.js/))
+  );
   if (m && (typeof format !== "undefined") && (format !== "raw")) {
     const pathPrefix = m[1];
     // first, trim all the path prefixes
@@ -70,9 +75,10 @@ export const getStackAsArray = (
       if (m1) {
         return {
           pos: m1[2],
-          name: `${m1[1] ?? ""}<main>`,
+          name: `<main>`,
           line: m1[3],
-          col: m1[4],
+          // if async, move the column to the start of the actual function name
+          col: m1[4] + (m1[1] ? 6 : 0),
         };
       }
       // other stack entry? (with parentheses)
@@ -80,9 +86,10 @@ export const getStackAsArray = (
       if (m2) {
         return {
           pos: m2[3],
-          name: `${m2[1] ?? ""}${m2[2]}`,
+          name: `${m2[2]}`,
           line: m2[4],
-          col: m2[5],
+          // if async, move the column to the start of the actual function name
+          col: m2[5] + (m2[1] ? 6 : 0),
         };
       }
       // links to deno's core?
@@ -93,9 +100,10 @@ export const getStackAsArray = (
       if (m3) {
         return {
           pos: m3[3],
-          name: `${m3[1] ?? ""}${m3[2]}`,
+          name: `${m3[2]}`,
           line: m3[4],
-          col: m3[5],
+          // if async, move the column to the start of the actual function name
+          col: m3[5] + (m3[1] ? 6 : 0),
         };
       }
       throw new Error(`Unexpected stack entry: ${s}`);
