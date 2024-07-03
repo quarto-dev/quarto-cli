@@ -151,7 +151,10 @@ export async function safeWindowsExec(
     { prefix: "quarto-safe-exec", suffix: ".bat" },
   );
   try {
-    Deno.writeTextFileSync(tempFile, [program, ...args].join(" ") + "\n");
+    Deno.writeTextFileSync(
+      tempFile,
+      ["@echo off", [program, ...args].join(" ")].join("\n"),
+    );
     return await fnExec(["cmd", "/c", tempFile]);
   } finally {
     removeIfExists(tempFile);

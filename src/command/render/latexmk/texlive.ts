@@ -237,13 +237,15 @@ async function installPackage(
       quiet,
     );
     if (updateResult.code !== 0) {
-      return Promise.reject();
+      return Promise.reject("Problem running `tlgmr update`.");
     }
 
     // Rebuild format tree
     const fmtutilResult = await fmtutilCommand(context);
     if (fmtutilResult.code !== 0) {
-      return Promise.reject();
+      return Promise.reject(
+        "Problem running `fmtutil-sys --all` to rebuild format tree.",
+      );
     }
   }
 
@@ -274,13 +276,15 @@ async function installPackage(
       quiet,
     );
     if (updateResult.code !== 0) {
-      return Promise.reject();
+      return Promise.reject("Problem running `tlgmr update`.");
     }
 
     // Rebuild format tree
     const fmtutilResult = await fmtutilCommand(context);
     if (fmtutilResult.code !== 0) {
-      return Promise.reject();
+      return Promise.reject(
+        "Problem running `fmtutil-sys --all` to rebuild format tree.",
+      );
     }
 
     // Rerun the install command

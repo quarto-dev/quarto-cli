@@ -1,0 +1,21 @@
+---
+format:
+  typst:
+    output-ext: typ
+keep-typ: true
+csl: american-geophysical-union.csl
+bibliography: references.bib
+_quarto:
+  tests:
+    typst:
+      ensureFileRegexMatches:
+        - ['#set bibliography\(style: "american-geophysical-union.csl"\)']
+        - []
+---
+
+
+## References {.unnumbered}
+
+:::{#refs}
+
+:::
