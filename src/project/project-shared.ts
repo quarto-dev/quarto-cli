@@ -45,6 +45,7 @@ import { parse } from "yaml/mod.ts";
 import { mappedIndexToLineCol } from "../core/lib/mapped-text.ts";
 import { normalizeNewlines } from "../core/lib/text.ts";
 import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
+import { QuartoJSONSchema } from "../core/yaml.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -410,7 +411,9 @@ export async function projectResolveCodeCellsForFile(
           cell.sourceWithYaml ?? cell.source,
         );
         const metadata = cellOptions.yaml
-          ? parse(cellOptions.yaml.value) as Record<string, unknown>
+          ? parse(cellOptions.yaml.value, {
+            schema: QuartoJSONSchema,
+          }) as Record<string, unknown>
           : {};
         const lineLocator = mappedIndexToLineCol(cell.sourceVerbatim);
         result.push({
