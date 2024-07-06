@@ -41,6 +41,7 @@ on:
 jobs:
   run-smokes:
     name: Run smoke (${{ matrix.os }})${{ matrix.time-test && ' with timed file' || ''}}${{ inputs.extra-r-packages && ' - with some extra R packages'|| ''}}
+    if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     strategy:
       fail-fast: false
       matrix:

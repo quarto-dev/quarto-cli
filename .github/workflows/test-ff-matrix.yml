@@ -26,6 +26,7 @@ concurrency:
 jobs:
   run-smokes:
     name: Run feature-format matrix on (${{ matrix.os }})
+    if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     strategy:
       fail-fast: false
       matrix:
