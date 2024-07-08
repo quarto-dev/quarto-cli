@@ -5,6 +5,7 @@ format:
     quality: 2
   typst:
     quality: 2
+    keep-typ: true
   pdf:
     quality: na
   docx:
@@ -31,7 +32,7 @@ _quarto:
           - 'Abstract\!'
         - []
     typst:
-      ensurePdfRegexMatches:
+      ensureTypstFileRegexMatches:
         -
           - 'Abstract\!'
         - []
