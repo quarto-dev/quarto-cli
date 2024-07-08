@@ -11970,7 +11970,8 @@ var require_yaml_intelligence_resources = __commonJS({
             formats: [
               "$html-doc",
               "$epub-all",
-              "docx"
+              "docx",
+              "typst"
             ]
           },
           description: "Title used to label document abstract"
@@ -21121,8 +21122,11 @@ var require_yaml_intelligence_resources = __commonJS({
           long: 'Color for links to other content within the document.\nSee <a href="https://wiki.contextgarden.net/Color">ConTeXt Color</a>\nfor additional information.'
         },
         "Configuration for document commenting.",
-        "Configuration for crossref labels and prefixes.",
-        "A custom cross reference type.",
+        {
+          short: "Configuration for cross-reference labels and prefixes.",
+          long: 'Configuration for cross-reference labels and prefixes. See <a href="https://quarto.org/docs/reference/metadata/crossref.html">Cross-Reference\nOptions</a> for more details.'
+        },
+        'A custom cross reference type. See <a href="https://quarto.org/docs/reference/metadata/crossref.html#custom">Custom</a>\nfor more details.',
         "The kind of cross reference (currently only \u201Cfloat\u201D is\nsupported).",
         "The prefix used in rendered references when referencing this\ntype.",
         "The prefix used in rendered captions when referencing this type. If\nomitted, the field <code>reference-prefix</code> is used.",
@@ -21893,7 +21897,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Extension to use for generated output file",
         "Use the specified file as a custom template for the generated\ndocument.",
         "Include the specified files as partials accessible to the template\nfor the generated content.",
-        "Produce output with an appropriate header and footer (e.g.&nbsp;a\nstandalone HTML, LaTeX, TEI, or RTF file, not a fragment)",
         {
           short: "Produce a standalone HTML file with no external dependencies",
           long: 'Produce a standalone HTML file with no external dependencies, using\n<code>data:</code> URIs to incorporate the contents of linked scripts,\nstylesheets, images, and videos. The resulting file should be\n\u201Cself-contained,\u201D in the sense that it needs no external files and no\nnet access to be displayed properly by a browser. This option works only\nwith HTML output formats, including <code>html4</code>,\n<code>html5</code>, <code>html+lhs</code>, <code>html5+lhs</code>,\n<code>s5</code>, <code>slidy</code>, <code>slideous</code>,\n<code>dzslides</code>, and <code>revealjs</code>. Scripts, images, and\nstylesheets at absolute URLs will be downloaded; those at relative URLs\nwill be sought relative to the working directory (if the first source\nfile is local) or relative to the base URL (if the first source file is\nremote). Elements with the attribute <code>data-external="1"</code> will\nbe left alone; the documents they link to will not be incorporated in\nthe document. Limitation: resources that are loaded dynamically through\nJavaScript cannot be incorporated; as a result, some advanced features\n(e.g.&nbsp;zoom or speaker notes) may not work in an offline \u201Cself-contained\u201D\n<code>reveal.js</code> slide show.'
@@ -23092,12 +23095,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 187065,
+        _internalId: 186714,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 187057,
+            _internalId: 186706,
             type: "enum",
             enum: [
               "png",
@@ -23113,7 +23116,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 187064,
+            _internalId: 186713,
             type: "anyOf",
             anyOf: [
               {
