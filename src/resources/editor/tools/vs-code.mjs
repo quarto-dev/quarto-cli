@@ -11784,6 +11784,488 @@ var require_yaml_intelligence_resources = __commonJS({
               }
             }
           }
+        },
+        {
+          id: "brand-meta",
+          description: "Metadata for a brand, including the brand name and important links.\n",
+          object: {
+            closed: false,
+            properties: {
+              name: {
+                description: "The brand name.",
+                anyOf: [
+                  "string",
+                  {
+                    object: {
+                      properties: {
+                        full: {
+                          string: {
+                            description: "The full, official or legal name of the company or brand."
+                          }
+                        },
+                        short: {
+                          string: {
+                            description: "The short, informal, or common name of the company or brand."
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              link: {
+                description: "Important links for the brand, including social media links. If a single string, it is the brand's home page or website. Additional fields are allowed for internal use.\n",
+                anyOf: [
+                  "string",
+                  {
+                    object: {
+                      properties: {
+                        home: {
+                          string: {
+                            description: "The brand's home page or website."
+                          }
+                        },
+                        mastodon: {
+                          string: {
+                            description: "The brand's Mastodon URL."
+                          }
+                        },
+                        github: {
+                          string: {
+                            description: "The brand's GitHub URL."
+                          }
+                        },
+                        linkedin: {
+                          string: {
+                            description: "The brand's LinkedIn URL."
+                          }
+                        },
+                        twitter: {
+                          string: {
+                            description: "The brand's Twitter URL."
+                          }
+                        },
+                        facebook: {
+                          string: {
+                            description: "The brand's Facebook URL."
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          id: "brand-string-light-dark",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: "string",
+                    description: "A link or path to the brand's light-colored logo or icon.\n"
+                  },
+                  dark: {
+                    schema: "string",
+                    description: "A link or path to the brand's dark-colored logo or icon.\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-logo",
+          description: "Provide links to the brand's logo in various formats and sizes.\n",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  small: {
+                    description: "A link or path to the brand's small-sized logo or icon, or a link or path to both the light and dark versions.\n",
+                    schema: {
+                      ref: "brand-string-light-dark"
+                    }
+                  },
+                  medium: {
+                    description: "A link or path to the brand's medium-sized logo, or a link or path to both the light and dark versions.\n",
+                    schema: {
+                      ref: "brand-string-light-dark"
+                    }
+                  },
+                  large: {
+                    description: "A link or path to the brand's large- or full-sized logo, or a link or path to both the light and dark versions.\n",
+                    schema: {
+                      ref: "brand-string-light-dark"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-color",
+          description: "The brand's custom color palette and theme.\n",
+          object: {
+            closed: true,
+            properties: {
+              palette: {
+                description: "The brand's custom color palette. Any number of colors can be defined, each color having a custom name.\n",
+                object: {
+                  closed: false,
+                  additionalProperties: {
+                    schema: "string"
+                  }
+                }
+              },
+              theme: {
+                description: "The brand's theme colors. These are semantic or theme-oriented colors.\n",
+                object: {
+                  closed: true,
+                  properties: {
+                    foreground: {
+                      description: "The foreground color, used for text.",
+                      schema: "string",
+                      default: "black"
+                    },
+                    background: {
+                      description: "The background color, used for the page background.",
+                      schema: "string",
+                      default: "white"
+                    },
+                    primary: {
+                      description: "The primary accent color, i.e. the main theme color. Typically used for hyperlinks, active states, primary action buttons, etc.\n",
+                      schema: "string"
+                    },
+                    secondary: {
+                      description: "The secondary accent color. Typically used for lighter text or disabled states.\n",
+                      schema: "string"
+                    },
+                    tertiary: {
+                      description: "The tertiary accent color. Typically an even lighter color, used for hover states, accents, and wells.\n",
+                      schema: "string"
+                    },
+                    success: {
+                      description: "The color used for positive or successful actions and information.",
+                      schema: "string"
+                    },
+                    info: {
+                      description: "The color used for neutral or informational actions and information.",
+                      schema: "string"
+                    },
+                    warning: {
+                      description: "The color used for warning or cautionary actions and information.",
+                      schema: "string"
+                    },
+                    danger: {
+                      description: "The color used for errors, dangerous actions, or negative information.",
+                      schema: "string"
+                    },
+                    light: {
+                      description: "A bright color, used as a high-contrast foreground color on dark elements or low-contrast background color on light elements.\n",
+                      schema: "string"
+                    },
+                    dark: {
+                      description: "A dark color, used as a high-contrast foreground color on light elements or high-contrast background color on light elements.\n",
+                      schema: "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          id: "brand-maybe-named-color",
+          description: "A color, which may be a named brand color.\n",
+          anyOf: [
+            {
+              ref: "brand-named-theme-color"
+            },
+            {
+              schema: "string"
+            }
+          ]
+        },
+        {
+          id: "brand-named-theme-color",
+          description: "A named brand color, taken either from `color.theme` or `color.palette` (in that order).\n",
+          enum: [
+            "foreground",
+            "background",
+            "primary",
+            "secondary",
+            "tertiary",
+            "success",
+            "info",
+            "warning",
+            "danger",
+            "light",
+            "dark",
+            "emphasis",
+            "link"
+          ]
+        },
+        {
+          id: "brand-typography",
+          description: "Typography definitions for the brand.",
+          object: {
+            closed: true,
+            properties: {
+              font: {
+                description: "Font files and definitions for the brand.",
+                ref: "brand-font"
+              },
+              base: {
+                description: "The base font settings for the brand. These are used as the default for all text.\n",
+                ref: "brand-typography-options"
+              },
+              headings: {
+                description: "The font settings for headings.\n",
+                ref: "brand-typography-options-no-size"
+              },
+              monospace: {
+                description: "The font settings for monospace text. Color in this context refers to inline code.\n",
+                ref: "brand-typography-options"
+              },
+              emphasis: {
+                description: "The text properties used for emphasized (or emboldened) text.",
+                object: {
+                  closed: true,
+                  properties: {
+                    weight: {
+                      ref: "brand-font-weight"
+                    },
+                    color: {
+                      ref: "brand-maybe-named-color"
+                    },
+                    "background-color": {
+                      ref: "brand-maybe-named-color"
+                    }
+                  }
+                }
+              },
+              link: {
+                description: "The text properties used for hyperlinks.",
+                object: {
+                  closed: true,
+                  properties: {
+                    weight: {
+                      ref: "brand-font-weight"
+                    },
+                    decoration: "string",
+                    color: {
+                      ref: "brand-maybe-named-color",
+                      default: "primary"
+                    },
+                    "background-color": {
+                      ref: "brand-maybe-named-color"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          id: "brand-typography-options",
+          description: "Typographic options.",
+          object: {
+            closed: true,
+            properties: {
+              family: "string",
+              size: "string",
+              "line-height": "string",
+              weight: {
+                ref: "brand-font-weight"
+              },
+              style: {
+                ref: "brand-font-style"
+              },
+              color: {
+                ref: "brand-maybe-named-color"
+              },
+              "background-color": {
+                ref: "brand-maybe-named-color"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-typography-options-no-size",
+          description: "Typographic options without a font size.",
+          object: {
+            closed: true,
+            properties: {
+              family: "string",
+              "line-height": "string",
+              weight: {
+                ref: "brand-font-weight"
+              },
+              style: {
+                ref: "brand-font-style"
+              },
+              color: {
+                ref: "brand-maybe-named-color"
+              },
+              "background-color": {
+                ref: "brand-maybe-named-color"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-font",
+          description: "Font files and definitions for the brand.",
+          arrayOf: {
+            anyOf: [
+              {
+                ref: "brand-font-google"
+              },
+              {
+                ref: "brand-font-file"
+              },
+              {
+                ref: "brand-font-family"
+              }
+            ]
+          }
+        },
+        {
+          id: "brand-font-weight",
+          description: "A font weight.",
+          enum: [
+            100,
+            200,
+            300,
+            400,
+            500,
+            600,
+            700,
+            800,
+            900
+          ],
+          default: 400
+        },
+        {
+          id: "brand-font-style",
+          description: "A font style.",
+          enum: [
+            "normal",
+            "italic"
+          ],
+          default: "normal"
+        },
+        {
+          id: "brand-font-google",
+          description: "A Google Font definition.",
+          object: {
+            closed: true,
+            properties: {
+              google: {
+                anyOf: [
+                  "string",
+                  {
+                    object: {
+                      closed: true,
+                      properties: {
+                        family: {
+                          description: "The font family name, which must match the name of the font on Google Fonts.",
+                          schema: "string"
+                        },
+                        weight: {
+                          description: "The font weights to include.",
+                          maybeArrayOf: {
+                            ref: "brand-font-weight"
+                          },
+                          default: [
+                            400,
+                            700
+                          ]
+                        },
+                        style: {
+                          description: "The font style to include.",
+                          maybeArrayOf: {
+                            ref: "brand-font-style"
+                          },
+                          default: [
+                            "normal",
+                            "italic"
+                          ]
+                        },
+                        display: {
+                          description: "The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use.\n",
+                          enum: [
+                            "auto",
+                            "block",
+                            "swap",
+                            "fallback",
+                            "optional"
+                          ],
+                          default: "swap"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          id: "brand-font-file",
+          description: "A method for providing font files directly, either locally or from an online location.",
+          object: {
+            closed: true,
+            properties: {
+              family: {
+                description: "The font family name.",
+                schema: "string"
+              },
+              files: {
+                maybeArrayOf: {
+                  anyOf: [
+                    "path",
+                    "string"
+                  ]
+                },
+                description: "The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs.\n"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-font-family",
+          description: "A locally-installed font family name. When used, the end-user is responsible for ensuring that the font is installed on their system.\n",
+          schema: "string"
+        },
+        {
+          id: "brand",
+          object: {
+            closed: false,
+            properties: {
+              meta: {
+                ref: "brand-meta"
+              },
+              logo: {
+                ref: "brand-logo"
+              },
+              color: {
+                ref: "brand-color"
+              },
+              typography: {
+                ref: "brand-typography"
+              }
+            }
+          }
         }
       ],
       "schema/document-about.yml": [
@@ -20814,6 +21296,60 @@ var require_yaml_intelligence_resources = __commonJS({
         "Additional file resources to be copied to output directory",
         "Files that specify the execution environment (e.g.&nbsp;renv.lock,\nrequirements.text, etc\u2026)",
         "Files that specify the execution environment (e.g.&nbsp;renv.lock,\nrequirements.text, etc\u2026)",
+        "Metadata for a brand, including the brand name and important\nlinks.",
+        "The brand name.",
+        "The full, official or legal name of the company or brand.",
+        "The short, informal, or common name of the company or brand.",
+        "Important links for the brand, including social media links. If a\nsingle string, it is the brand\u2019s home page or website. Additional fields\nare allowed for internal use.",
+        "The brand\u2019s home page or website.",
+        "The brand\u2019s Mastodon URL.",
+        "The brand\u2019s GitHub URL.",
+        "The brand\u2019s LinkedIn URL.",
+        "The brand\u2019s Twitter URL.",
+        "The brand\u2019s Facebook URL.",
+        "A link or path to the brand\u2019s light-colored logo or icon.",
+        "A link or path to the brand\u2019s dark-colored logo or icon.",
+        "Provide links to the brand\u2019s logo in various formats and sizes.",
+        "A link or path to the brand\u2019s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
+        "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
+        "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
+        "The brand\u2019s custom color palette and theme.",
+        "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
+        "The brand\u2019s theme colors. These are semantic or theme-oriented\ncolors.",
+        "The foreground color, used for text.",
+        "The background color, used for the page background.",
+        "The primary accent color, i.e.&nbsp;the main theme color. Typically used\nfor hyperlinks, active states, primary action buttons, etc.",
+        "The secondary accent color. Typically used for lighter text or\ndisabled states.",
+        "The tertiary accent color. Typically an even lighter color, used for\nhover states, accents, and wells.",
+        "The color used for positive or successful actions and\ninformation.",
+        "The color used for neutral or informational actions and\ninformation.",
+        "The color used for warning or cautionary actions and information.",
+        "The color used for errors, dangerous actions, or negative\ninformation.",
+        "A bright color, used as a high-contrast foreground color on dark\nelements or low-contrast background color on light elements.",
+        "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
+        "A color, which may be a named brand color.",
+        "A named brand color, taken either from <code>color.theme</code> or\n<code>color.palette</code> (in that order).",
+        "Typography definitions for the brand.",
+        "Font files and definitions for the brand.",
+        "The base font settings for the brand. These are used as the default\nfor all text.",
+        "The font settings for headings.",
+        "The font settings for monospace text. Color in this context refers to\ninline code.",
+        "The text properties used for emphasized (or emboldened) text.",
+        "The text properties used for hyperlinks.",
+        "Typographic options.",
+        "Typographic options without a font size.",
+        "Font files and definitions for the brand.",
+        "A font weight.",
+        "A font style.",
+        "A Google Font definition.",
+        "The font family name, which must match the name of the font on Google\nFonts.",
+        "The font weights to include.",
+        "The font style to include.",
+        "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
+        "A method for providing font files directly, either locally or from an\nonline location.",
+        "The font family name.",
+        "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
+        "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
         {
           short: "Unique label for code cell",
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -23095,12 +23631,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 186714,
+        _internalId: 187345,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 186706,
+            _internalId: 187337,
             type: "enum",
             enum: [
               "png",
@@ -23116,7 +23652,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 186713,
+            _internalId: 187344,
             type: "anyOf",
             anyOf: [
               {

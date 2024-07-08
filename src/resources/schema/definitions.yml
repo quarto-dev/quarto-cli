@@ -2453,3 +2453,348 @@
           maybeArrayOf:
             schema: path
             description: "Files that specify the execution environment (e.g. renv.lock, requirements.text, etc...)"
+
+- id: brand-meta
+  description: >
+    Metadata for a brand, including the brand name and important links.
+  object:
+    closed: false
+    properties:
+      name:
+        description: The brand name.
+        anyOf:
+          - string
+          - object:
+              properties:
+                full:
+                  string:
+                    description: The full, official or legal name of the company or brand.
+                short:
+                  string:
+                    description: The short, informal, or common name of the company or brand.
+      link:
+        description: >
+          Important links for the brand, including social media links.
+          If a single string, it is the brand's home page or website.
+          Additional fields are allowed for internal use.
+        anyOf:
+          - string
+          - object:
+              properties:
+                home:
+                  string:
+                    description: The brand's home page or website.
+                mastodon:
+                  string:
+                    description: The brand's Mastodon URL.
+                github:
+                  string:
+                    description: The brand's GitHub URL.
+                linkedin:
+                  string:
+                    description: The brand's LinkedIn URL.
+                twitter:
+                  string:
+                    description: The brand's Twitter URL.
+                facebook:
+                  string:
+                    description: The brand's Facebook URL.
+
+- id: brand-string-light-dark
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          light:
+            schema: string
+            description: >
+              A link or path to the brand's light-colored logo or icon.
+          dark:
+            schema: string
+            description: >
+              A link or path to the brand's dark-colored logo or icon.
+
+- id: brand-logo
+  description: >
+    Provide links to the brand's logo in various formats and sizes.
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          small:
+            description: >
+              A link or path to the brand's small-sized logo or icon, or a link or path
+              to both the light and dark versions.
+            schema:
+              ref: brand-string-light-dark
+          medium:
+            description: >
+              A link or path to the brand's medium-sized logo, or a link or path
+              to both the light and dark versions.
+            schema:
+              ref: brand-string-light-dark
+          large:
+            description: >
+              A link or path to the brand's large- or full-sized logo, or a link or path
+              to both the light and dark versions.
+            schema:
+              ref: brand-string-light-dark
+
+- id: brand-color
+  description: >
+    The brand's custom color palette and theme.
+  object:
+    closed: true
+    properties:
+      palette:
+        description: >
+          The brand's custom color palette. Any number of colors can be defined,
+          each color having a custom name.
+        object:
+          closed: false
+          # We don't know the exact properties yet, but we do know they'll all be strings.
+          # I'm not sure how to express that in the spec.
+          additionalProperties:
+            schema: string
+      theme:
+        description: >
+          The brand's theme colors. These are semantic or theme-oriented colors.
+        object:
+          closed: true
+          properties:
+            foreground:
+              description: The foreground color, used for text.
+              schema: string
+              default: black
+            background:
+              description: The background color, used for the page background.
+              schema: string
+              default: white
+            primary:
+              description: >
+                The primary accent color, i.e. the main theme color. Typically used for
+                hyperlinks, active states, primary action buttons, etc.
+              schema: string
+            secondary:
+              description: >
+                The secondary accent color. Typically used for lighter text or disabled states.
+              schema: string
+            tertiary:
+              description: >
+                The tertiary accent color. Typically an even lighter color, used for hover states,
+                accents, and wells.
+              schema: string
+            success:
+              description: The color used for positive or successful actions and information.
+              schema: string
+            info:
+              description: The color used for neutral or informational actions and information.
+              schema: string
+            warning:
+              description: The color used for warning or cautionary actions and information.
+              schema: string
+            danger:
+              description: The color used for errors, dangerous actions, or negative information.
+              schema: string
+            light:
+              description: >
+                A bright color, used as a high-contrast foreground color on dark elements
+                or low-contrast background color on light elements.
+              schema: string
+            dark:
+              description: >
+                A dark color, used as a high-contrast foreground color on light elements
+                or high-contrast background color on light elements.
+              schema: string
+
+- id: brand-maybe-named-color
+  description: >
+    A color, which may be a named brand color.
+  anyOf:
+    - ref: brand-named-theme-color
+    - schema: string
+
+- id: brand-named-theme-color
+  description: >
+    A named brand color, taken either from `color.theme` or `color.palette` (in that order).
+  enum:
+    [
+      foreground,
+      background,
+      primary,
+      secondary,
+      tertiary,
+      success,
+      info,
+      warning,
+      danger,
+      light,
+      dark,
+      emphasis,
+      link,
+    ]
+
+- id: brand-typography
+  description: Typography definitions for the brand.
+  object:
+    closed: true
+    properties:
+      font:
+        description: Font files and definitions for the brand.
+        ref: brand-font
+      base:
+        description: >
+          The base font settings for the brand. These are used as the default for all text.
+        ref: brand-typography-options
+      headings:
+        description: >
+          The font settings for headings.
+        ref: brand-typography-options-no-size
+      monospace:
+        description: >
+          The font settings for monospace text. Color in this context refers to inline code.
+        ref: brand-typography-options
+      emphasis:
+        description: The text properties used for emphasized (or emboldened) text.
+        object:
+          closed: true
+          properties:
+            weight:
+              ref: brand-font-weight
+            color:
+              ref: brand-maybe-named-color
+            background-color:
+              ref: brand-maybe-named-color
+      link:
+        description: The text properties used for hyperlinks.
+        object:
+          closed: true
+          properties:
+            weight:
+              ref: brand-font-weight
+            decoration: string
+            color:
+              schema:
+                ref: brand-maybe-named-color
+              default: primary
+            background-color:
+              ref: brand-maybe-named-color
+
+- id: brand-typography-options
+  description: Typographic options.
+  object:
+    closed: true
+    properties:
+      family: string
+      size: string
+      line-height: string
+      weight:
+        ref: brand-font-weight
+      style:
+        ref: brand-font-style
+      color:
+        ref: brand-maybe-named-color
+      background-color:
+        ref: brand-maybe-named-color
+
+- id: brand-typography-options-no-size
+  description: Typographic options without a font size.
+  object:
+    closed: true
+    properties:
+      family: string
+      line-height: string
+      weight:
+        ref: brand-font-weight
+      style:
+        ref: brand-font-style
+      color:
+        ref: brand-maybe-named-color
+      background-color:
+        ref: brand-maybe-named-color
+
+- id: brand-font
+  description: Font files and definitions for the brand.
+  arrayOf:
+    anyOf:
+      - ref: brand-font-google
+      - ref: brand-font-file
+      - ref: brand-font-family
+
+- id: brand-font-weight
+  description: A font weight.
+  enum: [100, 200, 300, 400, 500, 600, 700, 800, 900]
+  default: 400
+
+- id: brand-font-style
+  description: A font style.
+  enum: [normal, italic]
+  default: normal
+
+- id: brand-font-google
+  description: A Google Font definition.
+  object:
+    closed: true
+    properties:
+      google:
+        anyOf:
+          - string
+          - object:
+              closed: true
+              properties:
+                family:
+                  description: The font family name, which must match the name of the font on Google Fonts.
+                  schema: string
+                weight:
+                  description: The font weights to include.
+                  maybeArrayOf:
+                    ref: brand-font-weight
+                  default: [400, 700]
+                style:
+                  description: The font style to include.
+                  maybeArrayOf:
+                    ref: brand-font-style
+                  default: [normal, italic]
+                display:
+                  description: >
+                    The font display method, determines how a font face is font face is shown 
+                    depending on its download status and readiness for use.
+                  enum: [auto, block, swap, fallback, optional]
+                  default: swap
+
+- id: brand-font-file
+  description: A method for providing font files directly, either locally or from an online location.
+  object:
+    closed: true
+    properties:
+      family:
+        description: The font family name.
+        schema: string
+      files:
+        maybeArrayOf:
+          anyOf: [path, string]
+        description: >
+          The font files to include. These can be local or online.
+          Local file paths should be relative to the `brand.yml` file.
+          Online paths should be complete URLs.
+
+- id: brand-font-family
+  description: >
+    A locally-installed font family name. When used, the end-user is responsible
+    for ensuring that the font is installed on their system.
+  schema: string
+
+- id: brand
+  object:
+    closed: false
+    properties:
+      meta:
+        ref: brand-meta
+      logo:
+        ref: brand-logo
+      color:
+        ref: brand-color
+      typography:
+        ref: brand-typography

@@ -8,6 +8,7 @@ import { existsSync } from "fs/mod.ts";
 
 import {
   kBibliography,
+  kBrand,
   kCitationLocation,
   kCiteMethod,
   kClearCellOptions,
@@ -192,6 +193,7 @@ export async function filterParamsJson(
     [kIsShinyPython]: isShinyPython,
     [kShinyPythonExec]: isShinyPython ? await pythonExec() : undefined,
     [kExecutionEngine]: options.executionEngine,
+    [kBrand]: options.format.render[kBrand],
   };
   return JSON.stringify(params);
 }

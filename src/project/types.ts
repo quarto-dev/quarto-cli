@@ -13,6 +13,7 @@ import { ExecutionEngine, ExecutionTarget } from "../execute/types.ts";
 import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import {
+  Brand,
   NavigationItem as NavItem,
   NavigationItemObject,
   NavigationItemObject as SidebarTool,
@@ -65,6 +66,10 @@ export interface ProjectContext {
   >;
 
   fileInformationCache: Map<string, FileInformation>;
+
+  // This is a cache of _brand.yml for a project
+  brandCache?: { brand?: Brand };
+  resolveBrand: () => Promise<Brand | undefined>;
 
   // expands markdown for a file
   // input file doesn't have to be markdown; it can be, for example, a knitr spin file

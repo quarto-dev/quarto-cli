@@ -1,7 +1,7 @@
 /*
  * render-contexts.ts
  *
- * Copyright (C) 2021-2023 Posit Software, PBC
+ * Copyright (C) 2021-2024 Posit Software, PBC
  */
 
 import { Format, FormatExecute, Metadata } from "../../config/types.ts";
@@ -89,6 +89,7 @@ import {
 } from "../../core/pandoc/pandoc-formats.ts";
 import { ExtensionContext } from "../../extension/types.ts";
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
+import { Brand } from "../../resources/types/schema-types.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
@@ -394,7 +395,7 @@ async function resolveFormats(
   engine: ExecutionEngine,
   options: RenderOptions,
   _notebookContext: NotebookContext,
-  project?: ProjectContext,
+  project: ProjectContext,
   enforceProjectFormats: boolean = true,
 ): Promise<Record<string, { format: Format; active: boolean }>> {
   // input level metadata
@@ -597,6 +598,9 @@ async function resolveFormats(
         userFormat,
       );
     };
+
+    // resolve brand in project and forward it to format
+    mergedFormats[format].render.brand = await project.resolveBrand();
 
     // ensure that we have a valid forma
     const formatIsValid = isValidFormat(

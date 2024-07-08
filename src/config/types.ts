@@ -13,6 +13,7 @@ import {
   kBackToTop,
   kBaseFormat,
   kBodyClasses,
+  kBrand,
   kCache,
   kCalloutCautionCaption,
   kCalloutImportantCaption,
@@ -246,6 +247,7 @@ import {
 import { HtmlPostProcessor, RenderServices } from "../command/render/types.ts";
 import { QuartoFilterSpec } from "../command/render/types.ts";
 import { ProjectContext } from "../project/types.ts";
+import { Brand } from "../resources/types/schema-types.ts";
 
 export const kDependencies = "dependencies";
 export const kSassBundles = "sass-bundles";
@@ -493,6 +495,7 @@ export interface FormatRender {
   [kValidateYaml]?: boolean;
   [kCanonicalUrl]?: boolean | string;
   [kBodyClasses]?: string;
+  [kBrand]?: Brand;
 }
 
 export interface FormatExecute {
