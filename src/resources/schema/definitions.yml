@@ -2676,7 +2676,8 @@
               ref: brand-font-weight
             decoration: string
             color:
-              ref: brand-maybe-named-color
+              schema:
+                ref: brand-maybe-named-color
               default: primary
             background-color:
               ref: brand-maybe-named-color
