@@ -1263,6 +1263,154 @@ export type ManuscriptSchema = {
   >; /* Additional file resources to be copied to output directory */
 };
 
+export type BrandMeta = {
+  link?: string | {
+    facebook?: string /* The brand's Facebook URL. */;
+    github?: string /* The brand's GitHub URL. */;
+    home?: string /* The brand's home page or website. */;
+    linkedin?: string /* The brand's LinkedIn URL. */;
+    mastodon?: string /* The brand's Mastodon URL. */;
+    twitter?: string; /* The brand's Twitter URL. */
+  } /* Important links for the brand, including social media links. If a single string, it is the brand's home page or website. Additional fields are allowed for internal use. */;
+  name?: string | {
+    full?:
+      string /* The full, official or legal name of the company or brand. */;
+    short?:
+      string; /* The short, informal, or common name of the company or brand. */
+  }; /* The brand name. */
+}; /* Metadata for a brand, including the brand name and important links. */
+
+export type BrandStringLightDark = string | { dark?: string; light?: string };
+
+export type BrandLogo = string | {
+  large?: BrandStringLightDark;
+  medium?: BrandStringLightDark;
+  small?: BrandStringLightDark;
+}; /* Provide links to the brand's logo in various formats and sizes. */
+
+export type BrandColor = {
+  palette?:
+    SchemaObject /* The brand's custom color palette. Any number of colors can be defined, each color having a custom name. */;
+  theme?: {
+    background?: string;
+    danger?: string;
+    dark?: string;
+    foreground?: string;
+    info?: string;
+    light?: string;
+    primary?: string;
+    secondary?: string;
+    success?: string;
+    tertiary?: string;
+    warning?: string;
+  }; /* The brand's theme colors. These are semantic or theme-oriented colors. */
+}; /* The brand's custom color palette and theme. */
+
+export type BrandMaybeNamedColor =
+  | BrandNamedThemeColor
+  | string; /* A color, which may be a named brand color. */
+
+export type BrandNamedThemeColor =
+  | "foreground"
+  | "background"
+  | "primary"
+  | "secondary"
+  | "tertiary"
+  | "success"
+  | "info"
+  | "warning"
+  | "danger"
+  | "light"
+  | "dark"
+  | "emphasis"
+  | "link"; /* A named brand color, taken either from `color.theme` or `color.palette` (in that order). */
+
+export type BrandTypography = {
+  base?: BrandTypographyOptions;
+  emphasis?: {
+    "background-color"?: BrandMaybeNamedColor;
+    color?: BrandMaybeNamedColor;
+    weight?: BrandFontWeight;
+  } /* The text properties used for emphasized (or emboldened) text. */;
+  font?: BrandFont;
+  headings?: BrandTypographyOptionsNoSize;
+  link?: {
+    "background-color"?: BrandMaybeNamedColor;
+    color?: BrandMaybeNamedColor;
+    decoration?: string;
+    weight?: BrandFontWeight;
+  } /* The text properties used for hyperlinks. */;
+  monospace?: BrandTypographyOptions;
+}; /* Typography definitions for the brand. */
+
+export type BrandTypographyOptions = {
+  "line-height"?: string;
+  "background-color"?: BrandMaybeNamedColor;
+  color?: BrandMaybeNamedColor;
+  family?: string;
+  size?: string;
+  style?: BrandFontStyle;
+  weight?: BrandFontWeight;
+}; /* Typographic options. */
+
+export type BrandTypographyOptionsNoSize = {
+  "line-height"?: string;
+  "background-color"?: BrandMaybeNamedColor;
+  color?: BrandMaybeNamedColor;
+  family?: string;
+  style?: BrandFontStyle;
+  weight?: BrandFontWeight;
+}; /* Typographic options without a font size. */
+
+export type BrandFont = ((
+  | BrandFontGoogle
+  | BrandFontFile
+  | BrandFontFamily
+))[]; /* Font files and definitions for the brand. */
+
+export type BrandFontWeight =
+  | 100
+  | 200
+  | 300
+  | 400
+  | 500
+  | 600
+  | 700
+  | 800
+  | 900; /* A font weight. */
+
+export type BrandFontStyle = "normal" | "italic"; /* A font style. */
+
+export type BrandFontGoogle = {
+  google?: string | {
+    display?:
+      | "auto"
+      | "block"
+      | "swap"
+      | "fallback"
+      | "optional" /* The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use. */;
+    family?: string;
+    style?: MaybeArrayOf<BrandFontStyle> /* The font style to include. */;
+    weight?: MaybeArrayOf<BrandFontWeight>; /* The font weights to include. */
+  };
+}; /* A Google Font definition. */
+
+export type BrandFontFile = {
+  family?: string;
+  files?: MaybeArrayOf<
+    (string | string)
+  >; /* The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs. */
+}; /* A method for providing font files directly, either locally or from an online location. */
+
+export type BrandFontFamily = string;
+
+export type Brand = {
+  color?: BrandColor;
+  logo?: BrandLogo;
+  meta?: BrandMeta;
+  typography?: BrandTypography;
+};
+
 export type ProjectConfig = {
   "execute-dir"?:
     | "file"

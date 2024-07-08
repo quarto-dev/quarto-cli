@@ -19,7 +19,10 @@ import { renderFormats } from "../../../command/render/render-contexts.ts";
 import { RenderFlags } from "../../../command/render/types.ts";
 import { MappedString } from "../../../core/mapped-text.ts";
 import { fileExecutionEngineAndTarget } from "../../../execute/engine.ts";
-import { projectResolveFullMarkdownForFile } from "../../project-shared.ts";
+import {
+  projectResolveBrand,
+  projectResolveFullMarkdownForFile,
+} from "../../project-shared.ts";
 import { ExecutionEngine } from "../../../execute/types.ts";
 
 export function singleFileProjectContext(
@@ -30,6 +33,7 @@ export function singleFileProjectContext(
   const environmentMemoizer = makeProjectEnvironmentMemoizer(notebookContext);
 
   const result: ProjectContext = {
+    resolveBrand: () => projectResolveBrand(result),
     dir: normalizePath(dirname(source)),
     engines: [],
     files: {

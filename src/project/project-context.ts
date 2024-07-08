@@ -66,6 +66,7 @@ import {
   ignoreFieldsForProjectType,
   normalizeFormatYaml,
   projectConfigFile,
+  projectResolveBrand,
   projectResolveFullMarkdownForFile,
   projectVarsFile,
 } from "./project-shared.ts";
@@ -254,6 +255,7 @@ export async function projectContext(
         }
 
         const result: ProjectContext = {
+          resolveBrand: async () => projectResolveBrand(result),
           resolveFullMarkdownForFile: (
             engine: ExecutionEngine | undefined,
             file: string,
@@ -333,6 +335,7 @@ export async function projectContext(
       } else {
         debug(`projectContext: Found Quarto project in ${dir}`);
         const result: ProjectContext = {
+          resolveBrand: async () => projectResolveBrand(result),
           resolveFullMarkdownForFile: (
             engine: ExecutionEngine | undefined,
             file: string,
@@ -390,6 +393,7 @@ export async function projectContext(
           configResolvers.shift();
         } else if (force) {
           const context: ProjectContext = {
+            resolveBrand: async () => projectResolveBrand(context),
             resolveFullMarkdownForFile: (
               engine: ExecutionEngine | undefined,
               file: string,

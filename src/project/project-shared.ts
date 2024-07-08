@@ -46,6 +46,8 @@ import { mappedIndexToLineCol } from "../core/lib/mapped-text.ts";
 import { normalizeNewlines } from "../core/lib/text.ts";
 import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
 import { QuartoJSONSchema } from "../core/yaml.ts";
+import { refSchema } from "../core/lib/yaml-schema/common.ts";
+import { Brand } from "../resources/types/schema-types.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -484,3 +486,23 @@ const ensureFileInformationCache = (project: ProjectContext, file: string) => {
   }
   return project.fileInformationCache.get(file)!;
 };
+
+export async function projectResolveBrand(project: ProjectContext) {
+  if (project.brandCache) {
+    return project.brandCache.brand;
+  }
+  project.brandCache = {};
+  for (const brandFile of ["_brand.yml", "_brand.yaml"]) {
+    const brandPath = join(project.dir, brandFile);
+    if (!existsSync(brandPath)) {
+      continue;
+    }
+    const brand = await readAndValidateYamlFromFile(
+      brandPath,
+      refSchema("brand", "Format-independent brand configuration."),
+      "Brand validation failed for " + brandPath + ".",
+    ) as Brand;
+    project.brandCache.brand = brand;
+  }
+  return project.brandCache.brand;
+}
