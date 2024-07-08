@@ -16,6 +16,12 @@ All changes included in 1.6:
 - ([#10181](https://github.com/quarto-dev/quarto-cli/issues/10181)): Remove workaround for image dimensions which is no longer necessary and mishandled image paths with spaces.
 - ([#10217](https://github.com/quarto-dev/quarto-cli/issues/10217)): Explicitly compute units for image dimensions in `typst` format when they're not given.
 
+## Engines
+
+### `julia`
+
+- ([#10225](https://github.com/quarto-dev/quarto-cli/issues/10225)): Handle API change in is_manifest_current in Julia 1.11
+
 ## Other Fixes and Improvements
 
 - ([#10162](https://github.com/quarto-dev/quarto-cli/issues/10162)): Use Edge on `macOS` as a Chromium browser when available.
