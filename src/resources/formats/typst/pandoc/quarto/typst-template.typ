@@ -5,6 +5,7 @@
   authors: none,
   date: none,
   abstract: none,
+  abstract-title: none,
   cols: 1,
   margin: (x: 1.25in, y: 1.25in),
   paper: "us-letter",
@@ -61,7 +62,7 @@
 
   if abstract != none {
     block(inset: 2em)[
-    #text(weight: "semibold")[$labels.abstract$] #h(1em) #abstract
+    #text(weight: "semibold")[#abstract-title] #h(1em) #abstract
     ]
   }
 

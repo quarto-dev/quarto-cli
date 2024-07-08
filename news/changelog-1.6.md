@@ -15,6 +15,13 @@ All changes included in 1.6:
 - ([#10168](https://github.com/quarto-dev/quarto-cli/issues/10168)): support `csl` bibliography style.
 - ([#10181](https://github.com/quarto-dev/quarto-cli/issues/10181)): Remove workaround for image dimensions which is no longer necessary and mishandled image paths with spaces.
 - ([#10217](https://github.com/quarto-dev/quarto-cli/issues/10217)): Explicitly compute units for image dimensions in `typst` format when they're not given.
+- ([#10212](https://github.com/quarto-dev/quarto-cli/issues/10212)): Moves Pandoc variables to the function declaration for the default template.
+
+## Engines
+
+### `julia`
+
+- ([#10225](https://github.com/quarto-dev/quarto-cli/issues/10225)): Handle API change in is_manifest_current in Julia 1.11
 
 ## Other Fixes and Improvements
 

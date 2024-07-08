@@ -44,6 +44,7 @@ export const denoRunHandler: RunHandler = {
           importMap,
           "--cached-only",
           "--allow-all",
+          "--unstable-kv",
           "--unstable-ffi",
           script,
           ...args,

@@ -99,7 +99,7 @@ IF NOT DEFINED QUARTO_DENO (
 
 SET "DENO_TLS_CA_STORE=system,mozilla"
 SET "DENO_NO_UPDATE_CHECK=1"
-SET "QUARTO_DENO_OPTIONS=--unstable-ffi --no-config --cached-only --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi"
+SET "QUARTO_DENO_OPTIONS=--unstable-kv --unstable-ffi --no-config --cached-only --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi"
 
 REM Add expected V8 options to QUARTO_DENO_V8_OPTIONS
 IF DEFINED QUARTO_DENO_V8_OPTIONS (
