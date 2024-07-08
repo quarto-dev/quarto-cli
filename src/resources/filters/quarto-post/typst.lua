@@ -96,6 +96,16 @@ function render_typst_fixups()
     traverse = "topdown",
     Image = function(image)
       image = _quarto.modules.mediabag.resolve_image_from_url(image) or image
+      -- REMINDME 2024-09-01
+      -- work around until https://github.com/jgm/pandoc/issues/9945 is fixed
+      local height_as_number = tonumber(image.attributes["height"])
+      local width_as_number = tonumber(image.attributes["width"])
+      if image.attributes["height"] ~= nil and type(height_as_number) == "number" then
+        image.attributes["height"] = tostring(image.attributes["height"] / PANDOC_WRITER_OPTIONS.dpi) .. "in"
+      end
+      if image.attributes["width"] ~= nil and type(width_as_number) == "number" then
+        image.attributes["width"] = tostring(image.attributes["width"] / PANDOC_WRITER_OPTIONS.dpi) .. "in"
+      end
       return image
     end,
     Div = function(div)

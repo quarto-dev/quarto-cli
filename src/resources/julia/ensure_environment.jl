@@ -14,7 +14,13 @@ function manifest_has_correct_julia_version()
   return version.major == VERSION.major && version.minor == VERSION.minor
 end
 
-manifest_matches_project_toml = Pkg.is_manifest_current() === true # this returns nothing if there's no manifest
+is_manifest_current = @static if VERSION < v"1.11.0-DEV.1135"
+  Pkg.is_manifest_current()
+else
+  Pkg.is_manifest_current(dirname(Base.active_project()))
+end
+
+manifest_matches_project_toml = is_manifest_current === true # this returns nothing if there's no manifest
 
 if manifest_matches_project_toml && manifest_has_correct_julia_version()
   Pkg.instantiate()
