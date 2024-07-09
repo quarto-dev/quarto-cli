@@ -19,7 +19,7 @@ All changes included in 1.6:
 
 ## Website
 
-- ([#10251](https://github.com/quarto-dev/quarto-cli/issues/10251)): EJS template for website now uses proper object to get alt text for logo.
+- ([#10251](https://github.com/quarto-dev/quarto-cli/issues/10251)): EJS template for website now uses proper object to get alt text for logo in sidebar.
 
 ## Engines
 
