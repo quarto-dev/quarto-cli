@@ -2,11 +2,11 @@ $definitions.typ()$
 
 $typst-template.typ()$
 
-$typst-show.typ()$
-
 $for(header-includes)$
 $header-includes$
 $endfor$
+
+$typst-show.typ()$
 
 $for(include-before)$
 $include-before$

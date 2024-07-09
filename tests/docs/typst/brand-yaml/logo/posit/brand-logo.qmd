@@ -1,0 +1,7 @@
+---
+title: logo background
+format: typst
+---
+
+{{< lipsum 4 >}}
+

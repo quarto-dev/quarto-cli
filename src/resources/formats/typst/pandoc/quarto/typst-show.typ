@@ -1,6 +1,9 @@
 #show: doc => article(
 $if(title)$
   title: [$title$],
+$if(title-font)$
+  title-font: ("$title-font$",),
+$endif$
 $endif$
 $if(by-author)$
   authors: (

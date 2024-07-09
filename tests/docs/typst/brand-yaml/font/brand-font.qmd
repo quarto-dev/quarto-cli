@@ -1,0 +1,25 @@
+---
+title: brand font - title is `#context text.font`{=typst} `#context text.size`{=typst}
+format: typst
+  typst:
+    font-paths:
+      - .
+---
+
+## heading-2 is `#context text.font`{=typst} `#context text.size`{=typst}
+
+paragraph is `#context text.font`{=typst} `#context text.size`{=typst}.
+
+```{=typst}
+#text(font: "Fira Code")[Some text with font set explicitly to #context text.font #context text.size]
+```
+
+```
+A Quarto code block.
+I can't figure out how to to introspect Typst
+to find out what font this is,
+but it should be fira code too.
+```
+
+{{< lipsum 5 >}}
+

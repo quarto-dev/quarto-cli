@@ -4,7 +4,12 @@
  * Copyright (C) 2021-2024 Posit Software, PBC
  */
 
-import { Format, FormatExecute, Metadata } from "../../config/types.ts";
+import {
+  Format,
+  FormatExecute,
+  FormatRender,
+  Metadata,
+} from "../../config/types.ts";
 import {
   RenderContext,
   RenderFile,
@@ -600,7 +605,22 @@ async function resolveFormats(
     };
 
     // resolve brand in project and forward it to format
-    mergedFormats[format].render.brand = await project.resolveBrand();
+    const brand = await project.resolveBrand();
+    console.log("before", format, brand);
+    mergedFormats[format].render.brand = brand;
+    const format_defaults: FormatRender =
+      (brand?.brand?.defaults?.quarto as unknown as Record<
+        string,
+        Record<string, object>
+      >)?.format
+        ?.[format as string];
+    if (format_defaults) {
+      mergedFormats[format].render = mergeConfigs(
+        mergedFormats[format].render,
+        format_defaults,
+      );
+      console.log("after", format, mergedFormats[format].render);
+    }
 
     // ensure that we have a valid forma
     const formatIsValid = isValidFormat(

@@ -1,0 +1,24 @@
+typography:
+  with:
+    - family: "Open Sans"
+      files: .
+    - family: "Fira Code"
+      files: .
+    - family: "Roboto Slab"
+      files: .
+      # not supported for file
+      # weight: 600
+      # style: normal
+      # display: block
+
+  base:
+    family: "Open Sans"
+    line-height: 1.25em
+    size: 1rem
+  headings:
+    family: "Roboto Slab"
+    color: primary
+    weight: 600
+  monospace:
+    family: "Fira Code"
+    size: 0.9em
