@@ -3,6 +3,7 @@
 ## in this release
 
 - ([#10196](https://github.com/quarto-dev/quarto-cli/issues/10196)): protect against nil values in `float.caption_long`.
+- ([#10295](https://github.com/quarto-dev/quarto-cli/issues/10196)): Fix regression to return error status to shell when `CommandError` is thrown.
 
 ## in previous releases
 
