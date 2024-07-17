@@ -1548,7 +1548,7 @@ local function processTextDependency(dependency, meta)
    if meta[textLoc] == nil then
       meta[textLoc] = {}
    end
-   meta[textLoc]:insert(pandoc.RawBlock(FORMAT, rawText.text))
+   table.insert(meta[textLoc], pandoc.RawBlock(FORMAT, rawText.text))
  end
 
  -- make the usePackage statement
