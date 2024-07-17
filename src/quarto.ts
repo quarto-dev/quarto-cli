@@ -160,6 +160,7 @@ export async function quarto(
   } catch (e) {
     if (e instanceof CommandError) {
       logError(e, false);
+      Deno.exit(1);
     } else {
       throw e;
     }
