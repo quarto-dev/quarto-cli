@@ -35,7 +35,7 @@ IF EXIST "!QUARTO_TS_PATH!" (
 	)
 
 	IF NOT DEFINED QUARTO_DEBUG (
-		SET QUARTO_DEBUG=true 
+		SET QUARTO_DEBUG=true
 	)
 
 	:: Normalize path to remove ../.. stuff
