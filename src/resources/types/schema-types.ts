@@ -1286,24 +1286,25 @@ export type BrandLogo = string | {
   large?: BrandStringLightDark;
   medium?: BrandStringLightDark;
   small?: BrandStringLightDark;
-}; /* Provide links to the brand's logo in various formats and sizes. */
+  with?: SchemaObject;
+}; /* Provide definitions and defaults for brand's logo in various formats and sizes. */
+
+export type BrandColorValue = string;
 
 export type BrandColor = {
-  palette?:
+  background?: BrandColorValue;
+  danger?: BrandColorValue;
+  dark?: BrandColorValue;
+  foreground?: BrandColorValue;
+  info?: BrandColorValue;
+  light?: BrandColorValue;
+  primary?: BrandColorValue;
+  secondary?: BrandColorValue;
+  success?: BrandColorValue;
+  tertiary?: BrandColorValue;
+  with?:
     SchemaObject /* The brand's custom color palette. Any number of colors can be defined, each color having a custom name. */;
-  theme?: {
-    background?: string;
-    danger?: string;
-    dark?: string;
-    foreground?: string;
-    info?: string;
-    light?: string;
-    primary?: string;
-    secondary?: string;
-    success?: string;
-    tertiary?: string;
-    warning?: string;
-  }; /* The brand's theme colors. These are semantic or theme-oriented colors. */
+  warning?: BrandColorValue;
 }; /* The brand's custom color palette and theme. */
 
 export type BrandMaybeNamedColor =
@@ -1332,7 +1333,6 @@ export type BrandTypography = {
     color?: BrandMaybeNamedColor;
     weight?: BrandFontWeight;
   } /* The text properties used for emphasized (or emboldened) text. */;
-  font?: BrandFont;
   headings?: BrandTypographyOptionsNoSize;
   link?: {
     "background-color"?: BrandMaybeNamedColor;
@@ -1341,6 +1341,7 @@ export type BrandTypography = {
     weight?: BrandFontWeight;
   } /* The text properties used for hyperlinks. */;
   monospace?: BrandTypographyOptions;
+  with?: BrandFont;
 }; /* Typography definitions for the brand. */
 
 export type BrandTypographyOptions = {
@@ -1406,6 +1407,7 @@ export type BrandFontFamily = string;
 
 export type Brand = {
   color?: BrandColor;
+  defaults?: SchemaObject;
   logo?: BrandLogo;
   meta?: BrandMeta;
   typography?: BrandTypography;
