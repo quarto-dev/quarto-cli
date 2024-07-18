@@ -1301,8 +1301,6 @@ async function resolveExtras(
       extras,
       format,
       temp,
-      formatExtras.html?.[kSassBundles],
-      projectExtras.html?.[kSassBundles],
       project,
     );
 

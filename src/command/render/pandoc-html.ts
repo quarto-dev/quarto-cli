@@ -10,7 +10,6 @@ import { cloneDeep, uniqBy } from "../../core/lodash.ts";
 import {
   Format,
   FormatExtras,
-  FormatPandoc,
   kDependencies,
   kQuartoCssVariables,
   kTextHighlightingMode,
@@ -36,6 +35,7 @@ import {
   generateCssKeyValues,
 } from "../../core/pandoc/css.ts";
 import { kMinimal } from "../../format/html/format-html-shared.ts";
+import { kSassBundles } from "../../config/types.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -50,8 +50,6 @@ export async function resolveSassBundles(
   extras: FormatExtras,
   format: Format,
   temp: TempContext,
-  formatBundles?: SassBundle[],
-  projectBundles?: SassBundle[],
   project?: ProjectContext,
 ) {
   extras = cloneDeep(extras);
@@ -71,14 +69,9 @@ export async function resolveSassBundles(
     });
   };
 
-  // group project provided bundles
-  if (projectBundles) {
-    group(projectBundles, mergedBundles);
-  }
-
-  // group format provided bundles
-  if (formatBundles) {
-    group(formatBundles, mergedBundles);
+  // group available sass bundles
+  if (extras?.["html"]?.[kSassBundles]) {
+    group(extras["html"][kSassBundles], mergedBundles);
   }
 
   // Go through and compile the cssPath for each dependency
