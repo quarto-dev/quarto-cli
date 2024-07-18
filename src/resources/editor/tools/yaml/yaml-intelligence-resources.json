@@ -4982,6 +4982,18 @@
             "schema": {
               "ref": "brand-color-value"
             }
+          },
+          "emphasis": {
+            "description": "A color used to emphasize or highlight text or elements.\n",
+            "schema": {
+              "ref": "brand-color-value"
+            }
+          },
+          "link": {
+            "description": "The color used for hyperlinks. If not defined, the `primary` color is used.\n",
+            "schema": {
+              "ref": "brand-color-value"
+            }
           }
         }
       }
@@ -14317,13 +14329,12 @@
     "The brand’s Facebook URL.",
     "A link or path to the brand’s light-colored logo or icon.",
     "A link or path to the brand’s dark-colored logo or icon.",
-    "Provide links to the brand’s logo in various formats and sizes.",
+    "Provide definitions and defaults for brand’s logo in various formats\nand sizes.",
     "A link or path to the brand’s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
     "A link or path to the brand’s medium-sized logo, or a link or path to\nboth the light and dark versions.",
     "A link or path to the brand’s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
     "The brand’s custom color palette and theme.",
     "The brand’s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
-    "The brand’s theme colors. These are semantic or theme-oriented\ncolors.",
     "The foreground color, used for text.",
     "The background color, used for the page background.",
     "The primary accent color, i.e.&nbsp;the main theme color. Typically used\nfor hyperlinks, active states, primary action buttons, etc.",
@@ -16639,12 +16650,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 187374,
+    "_internalId": 187413,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 187366,
+        "_internalId": 187405,
         "type": "enum",
         "enum": [
           "png",
@@ -16660,7 +16671,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 187373,
+        "_internalId": 187412,
         "type": "anyOf",
         "anyOf": [
           {

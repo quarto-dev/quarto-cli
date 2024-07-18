@@ -12011,6 +12011,18 @@ try {
                   schema: {
                     ref: "brand-color-value"
                   }
+                },
+                emphasis: {
+                  description: "A color used to emphasize or highlight text or elements.\n",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                link: {
+                  description: "The color used for hyperlinks. If not defined, the `primary` color is used.\n",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
                 }
               }
             }
@@ -21346,13 +21358,12 @@ try {
           "The brand\u2019s Facebook URL.",
           "A link or path to the brand\u2019s light-colored logo or icon.",
           "A link or path to the brand\u2019s dark-colored logo or icon.",
-          "Provide links to the brand\u2019s logo in various formats and sizes.",
+          "Provide definitions and defaults for brand\u2019s logo in various formats\nand sizes.",
           "A link or path to the brand\u2019s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
           "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
           "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
           "The brand\u2019s custom color palette and theme.",
           "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
-          "The brand\u2019s theme colors. These are semantic or theme-oriented\ncolors.",
           "The foreground color, used for text.",
           "The background color, used for the page background.",
           "The primary accent color, i.e.&nbsp;the main theme color. Typically used\nfor hyperlinks, active states, primary action buttons, etc.",
@@ -23668,12 +23679,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 187374,
+          _internalId: 187413,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 187366,
+              _internalId: 187405,
               type: "enum",
               enum: [
                 "png",
@@ -23689,7 +23700,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 187373,
+              _internalId: 187412,
               type: "anyOf",
               anyOf: [
                 {

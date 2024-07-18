@@ -1295,9 +1295,11 @@ export type BrandColor = {
   background?: BrandColorValue;
   danger?: BrandColorValue;
   dark?: BrandColorValue;
+  emphasis?: BrandColorValue;
   foreground?: BrandColorValue;
   info?: BrandColorValue;
   light?: BrandColorValue;
+  link?: BrandColorValue;
   primary?: BrandColorValue;
   secondary?: BrandColorValue;
   success?: BrandColorValue;
