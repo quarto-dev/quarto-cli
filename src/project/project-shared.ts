@@ -47,7 +47,8 @@ import { normalizeNewlines } from "../core/lib/text.ts";
 import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
 import { QuartoJSONSchema } from "../core/yaml.ts";
 import { refSchema } from "../core/lib/yaml-schema/common.ts";
-import { Brand } from "../resources/types/schema-types.ts";
+import { Brand as BrandJson } from "../resources/types/schema-types.ts";
+import { Brand } from "../core/brand/brand.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -501,8 +502,8 @@ export async function projectResolveBrand(project: ProjectContext) {
       brandPath,
       refSchema("brand", "Format-independent brand configuration."),
       "Brand validation failed for " + brandPath + ".",
-    ) as Brand;
-    project.brandCache.brand = brand;
+    ) as BrandJson;
+    project.brandCache.brand = new Brand(brand);
   }
   return project.brandCache.brand;
 }
