@@ -201,6 +201,7 @@ import {
   MarkdownPipelineHandler,
 } from "../../core/markdown-pipeline.ts";
 import { getEnv } from "../../../package/src/util/utils.ts";
+import { brandSassFormatExtras } from "../../core/sass/brand.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -404,10 +405,16 @@ export async function runPandoc(
       ))
       : {};
 
+    const brandExtras: FormatExtras = await brandSassFormatExtras(
+      options.format,
+      options.project,
+    );
+
     // start with the merge
     const inputExtras = mergeConfigs(
       projectExtras,
       formatExtras,
+      brandExtras,
       // project documentclass always wins
       {
         metadata: {
