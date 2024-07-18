@@ -11882,13 +11882,24 @@ try {
           },
           {
             id: "brand-logo",
-            description: "Provide links to the brand's logo in various formats and sizes.\n",
+            description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
             anyOf: [
               "string",
               {
                 object: {
                   closed: true,
                   properties: {
+                    with: {
+                      schema: {
+                        object: {
+                          additionalProperties: {
+                            schema: {
+                              ref: "brand-string-light-dark"
+                            }
+                          }
+                        }
+                      }
+                    },
                     small: {
                       description: "A link or path to the brand's small-sized logo or icon, or a link or path to both the light and dark versions.\n",
                       schema: {
@@ -11913,72 +11924,92 @@ try {
             ]
           },
           {
+            id: "brand-color-value",
+            schema: "string"
+          },
+          {
             id: "brand-color",
             description: "The brand's custom color palette and theme.\n",
             object: {
               closed: true,
               properties: {
-                palette: {
+                with: {
                   description: "The brand's custom color palette. Any number of colors can be defined, each color having a custom name.\n",
                   object: {
                     closed: false,
                     additionalProperties: {
-                      schema: "string"
+                      schema: {
+                        ref: "brand-color-value"
+                      }
                     }
                   }
                 },
-                theme: {
-                  description: "The brand's theme colors. These are semantic or theme-oriented colors.\n",
-                  object: {
-                    closed: true,
-                    properties: {
-                      foreground: {
-                        description: "The foreground color, used for text.",
-                        schema: "string",
-                        default: "black"
-                      },
-                      background: {
-                        description: "The background color, used for the page background.",
-                        schema: "string",
-                        default: "white"
-                      },
-                      primary: {
-                        description: "The primary accent color, i.e. the main theme color. Typically used for hyperlinks, active states, primary action buttons, etc.\n",
-                        schema: "string"
-                      },
-                      secondary: {
-                        description: "The secondary accent color. Typically used for lighter text or disabled states.\n",
-                        schema: "string"
-                      },
-                      tertiary: {
-                        description: "The tertiary accent color. Typically an even lighter color, used for hover states, accents, and wells.\n",
-                        schema: "string"
-                      },
-                      success: {
-                        description: "The color used for positive or successful actions and information.",
-                        schema: "string"
-                      },
-                      info: {
-                        description: "The color used for neutral or informational actions and information.",
-                        schema: "string"
-                      },
-                      warning: {
-                        description: "The color used for warning or cautionary actions and information.",
-                        schema: "string"
-                      },
-                      danger: {
-                        description: "The color used for errors, dangerous actions, or negative information.",
-                        schema: "string"
-                      },
-                      light: {
-                        description: "A bright color, used as a high-contrast foreground color on dark elements or low-contrast background color on light elements.\n",
-                        schema: "string"
-                      },
-                      dark: {
-                        description: "A dark color, used as a high-contrast foreground color on light elements or high-contrast background color on light elements.\n",
-                        schema: "string"
-                      }
-                    }
+                foreground: {
+                  description: "The foreground color, used for text.",
+                  schema: {
+                    ref: "brand-color-value"
+                  },
+                  default: "black"
+                },
+                background: {
+                  description: "The background color, used for the page background.",
+                  schema: {
+                    ref: "brand-color-value"
+                  },
+                  default: "white"
+                },
+                primary: {
+                  description: "The primary accent color, i.e. the main theme color. Typically used for hyperlinks, active states, primary action buttons, etc.\n",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                secondary: {
+                  description: "The secondary accent color. Typically used for lighter text or disabled states.\n",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                tertiary: {
+                  description: "The tertiary accent color. Typically an even lighter color, used for hover states, accents, and wells.\n",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                success: {
+                  description: "The color used for positive or successful actions and information.",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                info: {
+                  description: "The color used for neutral or informational actions and information.",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                warning: {
+                  description: "The color used for warning or cautionary actions and information.",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                danger: {
+                  description: "The color used for errors, dangerous actions, or negative information.",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                light: {
+                  description: "A bright color, used as a high-contrast foreground color on dark elements or low-contrast background color on light elements.\n",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                dark: {
+                  description: "A dark color, used as a high-contrast foreground color on light elements or high-contrast background color on light elements.\n",
+                  schema: {
+                    ref: "brand-color-value"
                   }
                 }
               }
@@ -12021,7 +12052,7 @@ try {
             object: {
               closed: true,
               properties: {
-                font: {
+                with: {
                   description: "Font files and definitions for the brand.",
                   ref: "brand-font"
                 },
@@ -12064,7 +12095,9 @@ try {
                       },
                       decoration: "string",
                       color: {
-                        ref: "brand-maybe-named-color",
+                        schema: {
+                          ref: "brand-maybe-named-color"
+                        },
                         default: "primary"
                       },
                       "background-color": {
@@ -12251,7 +12284,7 @@ try {
           {
             id: "brand",
             object: {
-              closed: false,
+              closed: true,
               properties: {
                 meta: {
                   ref: "brand-meta"
@@ -12264,6 +12297,9 @@ try {
                 },
                 typography: {
                   ref: "brand-typography"
+                },
+                defaults: {
+                  schema: "object"
                 }
               }
             }
@@ -23632,12 +23668,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 187345,
+          _internalId: 187374,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 187337,
+              _internalId: 187366,
               type: "enum",
               enum: [
                 "png",
@@ -23653,7 +23689,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 187344,
+              _internalId: 187373,
               type: "anyOf",
               anyOf: [
                 {

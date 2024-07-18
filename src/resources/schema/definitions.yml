@@ -2517,12 +2517,18 @@
 
 - id: brand-logo
   description: >
-    Provide links to the brand's logo in various formats and sizes.
+    Provide definitions and defaults for brand's logo in various formats and sizes.
   anyOf:
     - string
     - object:
         closed: true
         properties:
+          with:
+            schema:
+              object:
+                additionalProperties:
+                  schema:
+                    ref: brand-string-light-dark
           small:
             description: >
               A link or path to the brand's small-sized logo or icon, or a link or path
@@ -2542,13 +2548,16 @@
             schema:
               ref: brand-string-light-dark
 
+- id: brand-color-value
+  schema: string
+
 - id: brand-color
   description: >
     The brand's custom color palette and theme.
   object:
     closed: true
     properties:
-      palette:
+      with:
         description: >
           The brand's custom color palette. Any number of colors can be defined,
           each color having a custom name.
@@ -2557,57 +2566,63 @@
           # We don't know the exact properties yet, but we do know they'll all be strings.
           # I'm not sure how to express that in the spec.
           additionalProperties:
-            schema: string
-      theme:
+            schema:
+              ref: brand-color-value
+      foreground:
+        description: The foreground color, used for text.
+        schema:
+          ref: brand-color-value
+        default: black
+      background:
+        description: The background color, used for the page background.
+        schema:
+          ref: brand-color-value
+        default: white
+      primary:
         description: >
-          The brand's theme colors. These are semantic or theme-oriented colors.
-        object:
-          closed: true
-          properties:
-            foreground:
-              description: The foreground color, used for text.
-              schema: string
-              default: black
-            background:
-              description: The background color, used for the page background.
-              schema: string
-              default: white
-            primary:
-              description: >
-                The primary accent color, i.e. the main theme color. Typically used for
-                hyperlinks, active states, primary action buttons, etc.
-              schema: string
-            secondary:
-              description: >
-                The secondary accent color. Typically used for lighter text or disabled states.
-              schema: string
-            tertiary:
-              description: >
-                The tertiary accent color. Typically an even lighter color, used for hover states,
-                accents, and wells.
-              schema: string
-            success:
-              description: The color used for positive or successful actions and information.
-              schema: string
-            info:
-              description: The color used for neutral or informational actions and information.
-              schema: string
-            warning:
-              description: The color used for warning or cautionary actions and information.
-              schema: string
-            danger:
-              description: The color used for errors, dangerous actions, or negative information.
-              schema: string
-            light:
-              description: >
-                A bright color, used as a high-contrast foreground color on dark elements
-                or low-contrast background color on light elements.
-              schema: string
-            dark:
-              description: >
-                A dark color, used as a high-contrast foreground color on light elements
-                or high-contrast background color on light elements.
-              schema: string
+          The primary accent color, i.e. the main theme color. Typically used for
+          hyperlinks, active states, primary action buttons, etc.
+        schema:
+          ref: brand-color-value
+      secondary:
+        description: >
+          The secondary accent color. Typically used for lighter text or disabled states.
+        schema:
+          ref: brand-color-value
+      tertiary:
+        description: >
+          The tertiary accent color. Typically an even lighter color, used for hover states,
+          accents, and wells.
+        schema:
+          ref: brand-color-value
+      success:
+        description: The color used for positive or successful actions and information.
+        schema:
+          ref: brand-color-value
+      info:
+        description: The color used for neutral or informational actions and information.
+        schema:
+          ref: brand-color-value
+      warning:
+        description: The color used for warning or cautionary actions and information.
+        schema:
+          ref: brand-color-value
+      danger:
+        description: The color used for errors, dangerous actions, or negative information.
+        schema:
+          ref: brand-color-value
+      light:
+        description: >
+          A bright color, used as a high-contrast foreground color on dark elements
+          or low-contrast background color on light elements.
+        schema:
+          ref: brand-color-value
+      dark:
+        description: >
+          A dark color, used as a high-contrast foreground color on light elements
+          or high-contrast background color on light elements.
+        schema:
+          ref: brand-color-value
 
 - id: brand-maybe-named-color
   description: >
@@ -2635,13 +2650,14 @@
       emphasis,
       link,
     ]
-
+# TODO: brand-typography values (aside from `with`) would ideally all have
+# the same types, instead of `brand-typography-options`, `brand-typography-options-no-size`, etc.
 - id: brand-typography
   description: Typography definitions for the brand.
   object:
     closed: true
     properties:
-      font:
+      with:
         description: Font files and definitions for the brand.
         ref: brand-font
       base:
@@ -2788,7 +2804,7 @@
 
 - id: brand
   object:
-    closed: false
+    closed: true
     properties:
       meta:
         ref: brand-meta
@@ -2798,3 +2814,5 @@
         ref: brand-color
       typography:
         ref: brand-typography
+      defaults:
+        schema: object
