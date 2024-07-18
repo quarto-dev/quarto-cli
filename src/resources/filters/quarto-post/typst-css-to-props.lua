@@ -815,8 +815,8 @@ function render_typst_css_to_props()
         elseif k == 'text-align' then
           local a = translate_horizontal_align(v)
           if a then table.insert(aligns, a) end
-        elseif k:find '^padding--' then
-          paddings[k:match('^padding--(%a+)')] = translate_length(v)
+        -- elseif k:find '^padding--' then
+        --   paddings[k:match('^padding--(%a+)')] = translate_length(v)
         elseif k:find '^border' then
           handle_border(k, v, borders)
         end
