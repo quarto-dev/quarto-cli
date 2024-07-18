@@ -404,9 +404,20 @@ export async function runPandoc(
       ))
       : {};
 
-    const extras = await resolveExtras(
+    // start with the merge
+    const inputExtras = mergeConfigs(
       projectExtras,
       formatExtras,
+      // project documentclass always wins
+      {
+        metadata: {
+          [kDocumentClass]: projectExtras.metadata?.[kDocumentClass],
+        },
+      },
+    );
+
+    const extras = await resolveExtras(
+      inputExtras,
       options.format,
       cwd,
       options.libDir,
@@ -1268,8 +1279,7 @@ function cleanupPandocMetadata(metadata: Metadata) {
 }
 
 async function resolveExtras(
-  projectExtras: FormatExtras,
-  formatExtras: FormatExtras,
+  extras: FormatExtras, // input format extras (project, format, brand)
   format: Format,
   inputDir: string,
   libDir: string,
@@ -1277,15 +1287,6 @@ async function resolveExtras(
   dependenciesFile: string,
   project?: ProjectContext,
 ) {
-  // start with the merge
-  let extras = mergeConfigs(projectExtras, formatExtras);
-
-  // project documentclass always wins
-  if (projectExtras.metadata?.[kDocumentClass]) {
-    extras.metadata = extras.metadata || {};
-    extras.metadata[kDocumentClass] = projectExtras.metadata?.[kDocumentClass];
-  }
-
   // resolve format resources
   await writeFormatResources(
     inputDir,
