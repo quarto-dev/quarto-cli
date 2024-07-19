@@ -400,7 +400,7 @@ function parse_floatreftargets()
         end
       end
     })
-    local subcaps = div.attributes[ref .. "-subcap"]
+    local subcaps = div.attributes[ref .. "-subcap"] or "[]"
     if subcaps ~= nil then
       subcaps = quarto.json.decode(subcaps)
     end
