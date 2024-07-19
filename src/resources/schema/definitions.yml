@@ -2623,6 +2623,16 @@
           or high-contrast background color on light elements.
         schema:
           ref: brand-color-value
+      emphasis:
+        description: >
+          A color used to emphasize or highlight text or elements.
+        schema:
+          ref: brand-color-value
+      link:
+        description: >
+          The color used for hyperlinks. If not defined, the `primary` color is used.
+        schema:
+          ref: brand-color-value
 
 - id: brand-maybe-named-color
   description: >

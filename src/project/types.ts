@@ -7,13 +7,14 @@
 import { RenderServices } from "../command/render/types.ts";
 import { Metadata, PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
+import { Brand } from "../core/brand/brand.ts";
 import { MappedString } from "../core/mapped-text.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { ExecutionEngine, ExecutionTarget } from "../execute/types.ts";
 import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import {
-  Brand,
+  Brand as BrandJson,
   NavigationItem as NavItem,
   NavigationItemObject,
   NavigationItemObject as SidebarTool,

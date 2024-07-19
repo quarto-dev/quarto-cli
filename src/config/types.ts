@@ -247,7 +247,7 @@ import {
 import { HtmlPostProcessor, RenderServices } from "../command/render/types.ts";
 import { QuartoFilterSpec } from "../command/render/types.ts";
 import { ProjectContext } from "../project/types.ts";
-import { Brand } from "../resources/types/schema-types.ts";
+import { Brand } from "../core/brand/brand.ts";
 
 export const kDependencies = "dependencies";
 export const kSassBundles = "sass-bundles";
