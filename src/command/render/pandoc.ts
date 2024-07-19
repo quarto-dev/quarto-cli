@@ -1064,9 +1064,12 @@ export async function runPandoc(
   if (authorsRaw) {
     const authors = parseAuthor(pandocMetadata[kAuthor], true);
     if (authors) {
+      // https://github.com/quarto-dev/quarto-cli/issues/10334
+      // pandoc expects a string for author
+      // so if we pass an array it will be joined without separators
       pandocMetadata[kAuthor] = authors.map((author) =>
         cslNameToString(author.name)
-      );
+      ).join(", ");
       pandocMetadata[kAuthors] = Array.isArray(authorsRaw)
         ? authorsRaw
         : [authorsRaw];
