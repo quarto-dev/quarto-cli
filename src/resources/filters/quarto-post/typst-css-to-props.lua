@@ -799,7 +799,7 @@ function render_typst_css_to_props()
         _warnings:insert('invalid 3-item border key ' .. k)
       end
     else
-      _warnings:insert('invalid too-m_-item key ' .. k)
+      _warnings:insert('invalid too-many-item key ' .. k)
     end
   end
 
