@@ -417,9 +417,11 @@ export async function runPandoc(
       brandExtras,
       // project documentclass always wins
       {
-        metadata: {
-          [kDocumentClass]: projectExtras.metadata?.[kDocumentClass],
-        },
+        metadata: projectExtras.metadata?.[kDocumentClass]
+          ? {
+            [kDocumentClass]: projectExtras.metadata?.[kDocumentClass],
+          }
+          : undefined,
       },
     );
 
