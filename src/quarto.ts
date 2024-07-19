@@ -141,6 +141,10 @@ export async function quarto(
     );
   });
 
+  // From here on, we have a temp dir that we need to clean up.
+  // The calls to Deno.exit() above are fine, but no further
+  // ones should be made
+  //
   // init temp dir
   initSessionTempDir();
   onCleanup(cleanupSessionTempDir);
