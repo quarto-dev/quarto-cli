@@ -405,7 +405,7 @@ function parse_floatreftargets()
       subcaps = quarto.json.decode(subcaps)
     end
 
-    if nsubcells == #subcaps then
+    if nsubcells == #subcaps and nsubcells > 0 then
       content = handle_subcells_as_subfloats {
         div = div,
         content = content,
