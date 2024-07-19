@@ -9,7 +9,21 @@ function render_typst_css_to_props()
   local function to_kv(prop_clause)
     return string.match(prop_clause, '([%w-]+)%s*:%s*(.*)$')
   end
-
+  local _warnings
+  local function new_table()
+    local ret = {}
+    setmetatable(ret, {__index = table})
+    return ret
+  end
+  local function aggregate_warnings()
+    local counts = {}
+    for _, warning in ipairs(_warnings) do
+      counts[warning] = (counts[warning] or 0) + 1
+    end
+    for warning, count in pairs(counts) do
+      quarto.log.warning('(' .. string.format('%4d', count) .. ' times) ' .. warning)
+    end
+  end
   local css_named_colors = {
     transparent = 'rgba(0, 0, 0, 0)',
     aliceblue = 'rgb(240, 248, 255)',
@@ -246,7 +260,7 @@ function render_typst_css_to_props()
         if not matches then return nil end
         comps = parse_color_components(matches)
       else
-        quarto.log.warning(colorspace .. ' should have 3-4 components', text)
+        _warnings:insert(colorspace .. ' should have 3-4 components ' .. text)
         return nil
       end
     else
@@ -254,7 +268,7 @@ function render_typst_css_to_props()
       local colors, alpha
       if nslash > 0 then
         if nslash > 1 then
-          quarto.log.warning(colorspace .. ' with multiple slashes', text)
+          _warnings:insert(colorspace .. ' with multiple slashes ' .. text)
           return nil
         end
         colors, alpha = parms:match('(.*) */ *(.*)')
@@ -309,7 +323,7 @@ function render_typst_css_to_props()
         value = color
       }
     end
-    quarto.log.warning('invalid color', color)
+    _warnings:insert('invalid color ' .. color)
     return nil
   end
   local function format_float(x)
@@ -335,7 +349,7 @@ function render_typst_css_to_props()
       end
       if color.type == 'named' then
         if not typst_named_colors[color.value] and not css_named_colors[color.value] then
-          quarto.log.warning('unknown color ' .. color.value)
+          _warnings:insert('unknown color ' .. color.value)
           return nil
         end
         color = parse_color(typst_named_colors[color.value] or css_named_colors[color.value])
@@ -501,7 +515,7 @@ function render_typst_css_to_props()
       if csslen == '0' then
         return '0pt'
       end
-      quarto.log.warning('not a length ', csslen)
+      _warnings:insert('not a length ' .. csslen)
       return nil
     end
     local nums = csslen:sub(1, -#unit - 1)
@@ -510,21 +524,21 @@ function render_typst_css_to_props()
     if not nums:match '^([+-]?%d*%.?%d+)%.?$' then
       local numpart = nums:match '^([+-]?%d*%.?%d+)%.?'
       if not numpart then
-        quarto.log.warning('not a number ' .. nums .. ' for unit ' .. unit .. ' in ' .. csslen)
+        _warnings:insert('not a number ' .. nums .. ' for unit ' .. unit .. ' in ' .. csslen)
         return nil
       else
-        quarto.log.warning('bad unit ' .. csslen:sub(#numpart + 1, -1) .. ' for number ' .. numpart .. ' in ' .. csslen)
+        _warnings:insert('bad unit ' .. csslen:sub(#numpart + 1, -1) .. ' for number ' .. numpart .. ' in ' .. csslen)
         return nil
       end
     end
     local val = tonumber(nums)
     if not val then
-      quarto.log.warning('not a number ' .. nums .. ' for unit ' .. unit .. ' in ' .. csslen)
+      _warnings:insert('not a number ' .. nums .. ' for unit ' .. unit .. ' in ' .. csslen)
       return nil
      end
     local csf = css_lengths[unit]
     if not csf then
-      quarto.log.warning('unit ' .. unit .. ' is not supported in ' .. csslen )
+      _warnings:insert('unit ' .. unit .. ' is not supported in ' .. csslen )
       return nil
     end
     return csf(val, csslen)
@@ -674,7 +688,7 @@ function render_typst_css_to_props()
             if paint2 then
               paint = paint2
             else
-              quarto.log.warning('invalid border shorthand', term)
+              _warnings:insert('invalid border shorthand ' .. term)
             end
           end
         end
@@ -747,7 +761,7 @@ function render_typst_css_to_props()
         end
         local xlate = border_translators[part]
         if #items == 0 then
-          quarto.log.warning('no valid ' .. part .. 's in ' .. v)
+          _warnings:insert('no valid ' .. part .. 's in ' .. v)
         -- the most css thing ever
         elseif #items == 1 then
           borders.top[xlate.prop] = items[1]
@@ -770,10 +784,10 @@ function render_typst_css_to_props()
           borders.bottom[xlate.prop] = items[3]
           borders.left[xlate.prop] = items[4]
         else
-          quarto.log.warning('too many values in ' .. k .. ' list: ' .. v)
+          _warnings:insert('too many values in ' .. k .. ' list: ' .. v)
         end
       else
-        quarto.log.warning('invalid 2-item border key ' .. k)
+        _warnings:insert('invalid 2-item border key ' .. k)
       end
     elseif ndash == 2 then
       local side, prop = k:match('^border--(%a+)--(%a+)')
@@ -782,10 +796,10 @@ function render_typst_css_to_props()
         local tr = border_translators[prop]
         borders[side][tr.prop] = tr.fn(v)
       else
-        quarto.log.warning('invalid 3-item border key ' .. k)
+        _warnings:insert('invalid 3-item border key ' .. k)
       end
     else
-      quarto.log.warning('invalid too-m_-item key ' .. k)
+      _warnings:insert('invalid too-m_-item key ' .. k)
     end
   end
 
@@ -904,6 +918,7 @@ function render_typst_css_to_props()
 
   return {
     Table = function(tab)
+      _warnings = new_table()
       local tabstyle = tab.attributes['style']
       if tabstyle ~= nil then
         for clause in tabstyle:gmatch('([^;]+)') do
@@ -930,9 +945,12 @@ function render_typst_css_to_props()
           end
         end
       end
+      aggregate_warnings()
+      _warnings = nil
       return tab
     end,
     Div = function(div)
+      _warnings = new_table()
       local divstyle = div.attributes['style']
       if divstyle ~= nil then
         for clause in divstyle:gmatch('([^;]+)') do
@@ -945,10 +963,16 @@ function render_typst_css_to_props()
           end
         end
       end
+      aggregate_warnings()
+      _warnings = nil
       return div
     end,
     Span = function(span)
-      return annotate_span(span)
+      _warnings = new_table()
+      span = annotate_span(span)
+      aggregate_warnings()
+      _warnings = nil
+      return span
     end
   }
 end
