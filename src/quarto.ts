@@ -32,7 +32,7 @@ import {
   reconfigureQuarto,
 } from "./core/devconfig.ts";
 import { typstBinaryPath } from "./core/typst.ts";
-import { onCleanup } from "./core/cleanup.ts";
+import { exitWithCleanup, onCleanup } from "./core/cleanup.ts";
 
 import { runScript } from "./command/run/run.ts";
 
@@ -160,7 +160,7 @@ export async function quarto(
   } catch (e) {
     if (e instanceof CommandError) {
       logError(e, false);
-      Deno.exit(1);
+      exitWithCleanup(1);
     } else {
       throw e;
     }
