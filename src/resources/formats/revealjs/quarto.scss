@@ -19,7 +19,8 @@ $body-color: #222 !default;
 $text-muted: lighten($body-color, 30%) !default;
 
 // link colors
-$link-color: #2a76dd !default;
+$primary: #2a76dd !default;
+$link-color: $primary !default;
 $link-color-hover: lighten($link-color, 10%) !default;
 
 // selection colors
