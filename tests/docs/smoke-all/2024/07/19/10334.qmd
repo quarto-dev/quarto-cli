@@ -1,0 +1,21 @@
+---
+title: "Test Dashboard"
+format: dashboard
+author:
+  - name: John Doe
+    orcid: 0000-0000-0000-0000
+    affilifation:
+        name: My Institution
+  - name: Jane Doe
+    orcid: 0000-0000-0000-0001
+    affilifation:
+        name: My Institution
+_quarto:
+  tests:
+    dashboard:
+      ensureFileRegexMatches:
+        - ["John Doe, Jane Doe"]
+        - []
+---
+
+## Dashboard Test
