@@ -11,18 +11,29 @@ import {
   FormatExtras,
   kSassBundles,
   SassBundle,
+  SassBundleLayers,
 } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
-export async function brandSassFormatExtras(
-  _format: Format,
+export async function brandBootstrapSassBundles(
   project: ProjectContext,
-): Promise<FormatExtras> {
+  key: string,
+): Promise<SassBundle[]> {
+  return (await brandBootstrapSassBundleLayers(project, key)).map(
+    (layer: SassBundleLayers) => {
+      return {
+        ...layer,
+        dependency: "bootstrap",
+      };
+    },
+  );
+}
+export async function brandBootstrapSassBundleLayers(
+  project: ProjectContext,
+  key: string,
+): Promise<SassBundleLayers[]> {
   const brand = await project.resolveBrand();
-  if (!brand) {
-    return {};
-  }
-  const sassBundles: SassBundle[] = [];
+  const sassBundles: SassBundleLayers[] = [];
 
   if (brand?.data.color) {
     const colorVariables: string[] = ["/* color variables from _brand.yml */"];
@@ -40,9 +51,9 @@ export async function brandSassFormatExtras(
       );
     }
     // const colorEntries = Object.keys(brand.color);
-    const colorBundle: SassBundle = {
-      key: "brand-color",
-      dependency: "bootstrap",
+    const colorBundle: SassBundleLayers = {
+      key,
+      // dependency: "bootstrap",
       quarto: {
         defaults: colorVariables.join("\n"),
         uses: "",
@@ -54,9 +65,37 @@ export async function brandSassFormatExtras(
     sassBundles.push(colorBundle);
   }
 
-  return {
-    html: {
-      [kSassBundles]: sassBundles,
-    },
-  };
+  return sassBundles;
+}
+
+export async function brandRevealSassBundleLayers(
+  _format: Format,
+  project: ProjectContext,
+): Promise<SassBundleLayers[]> {
+  return brandBootstrapSassBundleLayers(project, "reveal-theme");
+}
+
+export async function brandSassFormatExtras(
+  _format: Format,
+  project: ProjectContext,
+): Promise<FormatExtras> {
+  const htmlSassBundleLayers = await brandBootstrapSassBundleLayers(
+    project,
+    "brand",
+  );
+  const htmlSassBundles: SassBundle[] = htmlSassBundleLayers.map((layer) => {
+    return {
+      ...layer,
+      dependency: "bootstrap",
+    };
+  });
+  if (htmlSassBundles.length === 0) {
+    return {};
+  } else {
+    return {
+      html: {
+        [kSassBundles]: htmlSassBundles,
+      },
+    };
+  }
 }

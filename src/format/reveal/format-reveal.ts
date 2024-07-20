@@ -150,7 +150,13 @@ export function revealjsFormat() {
         }
 
         // get theme info (including text highlighing mode)
-        const theme = await revealTheme(format, input, libDir, services.temp);
+        const theme = await revealTheme(
+          format,
+          input,
+          libDir,
+          services.temp,
+          project,
+        );
 
         const revealPluginData = await revealPluginExtras(
           input,

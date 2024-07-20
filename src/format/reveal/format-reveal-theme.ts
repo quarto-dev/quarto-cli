@@ -38,6 +38,8 @@ import { titleSlideScss } from "./format-reveal-title.ts";
 import { asCssFont, asCssNumber } from "../../core/css.ts";
 import { cssHasDarkModeSentinel } from "../../core/pandoc/css.ts";
 import { pandocNativeStr } from "../../core/pandoc/codegen.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { brandRevealSassBundleLayers } from "../../core/sass/brand.ts";
 
 export const kRevealLightThemes = [
   "white",
@@ -63,6 +65,7 @@ export async function revealTheme(
   input: string,
   libDir: string,
   temp: TempContext,
+  project: ProjectContext,
 ) {
   // metadata override to return
   const metadata: Metadata = {};
@@ -175,8 +178,13 @@ export async function revealTheme(
     loadPaths,
   };
 
+  const brandLayers: SassBundleLayers[] = await brandRevealSassBundleLayers(
+    format,
+    project,
+  );
+
   // compile sass
-  const css = await compileSass([bundleLayers], temp);
+  const css = await compileSass([bundleLayers, ...brandLayers], temp);
   copyTo(
     css,
     join(revealDestDir, "dist", "theme", "quarto.css"),
