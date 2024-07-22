@@ -31,3 +31,4 @@ All changes included in 1.6:
 - ([#10235](https://github.com/quarto-dev/quarto-cli/issues/10235)): Configure the CI schedule trigger to activate exclusively for the upstream repository.
 - ([#10295](https://github.com/quarto-dev/quarto-cli/issues/10235)): fix regression to return error status to shell when `CommandError` is thrown.
 - ([#10332](https://github.com/quarto-dev/quarto-cli/issues/10332)): use `exitWithCleanup` whenever possible instead of `Deno.exit` to clean up temporary resources.
+- ([#10334](https://github.com/quarto-dev/quarto-cli/issues/10334)): fix `author` field rendered incorrectly in dashboards when multiple authors are present.
