@@ -93,6 +93,7 @@ import {
   kEmbedResources,
   kFigResponsive,
   kFilterParams,
+  kFontPaths,
   kFormatResources,
   kFrom,
   kHighlightStyle,
@@ -174,6 +175,7 @@ import { resolveAndFormatDate, resolveDate } from "../../core/date.ts";
 import { katexPostProcessor } from "../../format/html/format-html-math.ts";
 import {
   readAndInjectDependencies,
+  resolveTypstFontPaths, // i know, wrong
   writeDependencies,
 } from "./pandoc-dependencies-html.ts";
 import {
@@ -1337,6 +1339,18 @@ async function resolveExtras(
     delete extras.html?.[kDependencies];
   } else {
     delete extras.html;
+  }
+
+  // perform typst-specific merging
+  if (isTypstOutput(format.pandoc)) {
+    extras.postprocessors = extras.postprocessors || [];
+    extras.postprocessors.push(async () => {
+      const fontPaths = await resolveTypstFontPaths(dependenciesFile);
+      //      format.metadata.format.typst[kFontPaths] = fontPaths;
+      format.metadata[kFontPaths] = fontPaths;
+      console.log("got font paths", fontPaths);
+      console.log("out", format.metadata);
+    });
   }
 
   // Process format resources

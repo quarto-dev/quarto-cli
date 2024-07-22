@@ -150,6 +150,18 @@ function render_typst_brand_yml()
       if not brand then return nil end
       brand = brand.brand or brand
 
+      -- from init.lua
+      local function dependenciesFile()
+        local dependenciesFile = os.getenv("QUARTO_FILTER_DEPENDENCY_FILE")
+        if dependenciesFile == nil then
+          error('Missing expected dependency file environment variable QUARTO_FILTER_DEPENDENCY_FILE')
+        else
+          return pandoc.utils.stringify(dependenciesFile)
+        end
+      end
+      
+      local depsFile = dependenciesFile()
+      quarto.log.output('deps file', depsFile)
       if brand and brand.typography then
         if brand.typography.base then
           meta['mainfont'] = brand.typography.base.family 
@@ -157,23 +169,22 @@ function render_typst_brand_yml()
         if brand.typography.headings then
           meta['title-font'] = brand.typography.headings.family
         end
-        if brand.typography.font then
+        if brand.typography.with then
           local kFontPaths = 'font-paths' -- no luck importing this
-          for _, entry in ipairs(brand.typography.font) do
+          for _, entry in ipairs(brand.typography.with) do
             if entry['files'] then fontdir = '.' end
           end
           if not fontdir then
             quarto.log.warning('hacky brand.yml only supports font: file: right now')
           else
-            local fontPaths = meta[kFontPaths]
-            if not fontPaths then
-              meta[kFontPaths] = {fontdir}
-              -- alas, lua cannot change ts metadata?
-              -- at least, this is not seen at command/render/output-typst.ts
-            end
-            -- lots of other cases here to politely upgrade nil -> str -> array
+            quarto.log.output('adding typst font path')
+            quarto.doc.add_typst_font_path(fontdir)
           end
         end
+        local f = assert(io.open(depsFile, "rb"))
+        local content = f:read("*all")
+        quarto.log.output(content)
+        f:close()
         return meta
       end
     end

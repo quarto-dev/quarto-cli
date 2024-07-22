@@ -60,6 +60,8 @@ export function typstPdfOutputRecipe(
     // input file is pandoc's output
     const input = join(inputDir, output);
 
+    console.log("typst-pdf-output-recipe complete", format.metadata);
+
     // run typst
     await validateRequiredTypstVersion();
     const pdfOutput = join(inputDir, inputStem + ".pdf");
