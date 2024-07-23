@@ -38,11 +38,38 @@ export const defaultColorNames: BrandNamedThemeColor[] = [
 //   "monospace",
 // ];
 
+type ProcessedBrandData = {
+  color: Record<string, string>;
+  // typography: Record<string, ???>;
+  // logo: Record<string, string>; // paths
+};
+
 export class Brand {
   data: BrandJson;
+  processedData: ProcessedBrandData;
 
   constructor(readonly brand: BrandJson) {
     this.data = brand;
+    this.processedData = this.processData(brand);
+  }
+
+  processData(data: BrandJson): ProcessedBrandData {
+    const color: Record<string, string> = {};
+    for (const colorName of Object.keys(data.color?.with ?? {})) {
+      color[colorName] = this.getColor(colorName);
+    }
+    for (const colorName of Object.keys(data.color ?? {})) {
+      if (colorName === "with") {
+        continue;
+      }
+      color[colorName] = this.getColor(colorName);
+    }
+
+    return {
+      color,
+      // typography,
+      // logo,
+    };
   }
 
   // semantics of name resolution for colors, logo and fonts are:
