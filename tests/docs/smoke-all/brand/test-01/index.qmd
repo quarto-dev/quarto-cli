@@ -5,8 +5,8 @@ filters:
 _quarto:
   tests:
     html:
-      ensureHtmlElements:
-        - []
+      ensureFileRegexMatches:
+        - ['<span style="color: #ff0000">a span</span>']
         - []
 ---
 
