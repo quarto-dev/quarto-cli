@@ -202,7 +202,15 @@ function decorate_caption_with_crossref(float)
     internal_error()
     -- luacov: enable
   end
-  local caption_content = (float.caption_long and float.caption_long.content) or float.caption_long or pandoc.Inlines({})
+  if float.caption_long and float.caption_long.content == nil then
+    local error_msg = "FloatRefTarget has caption_long field of type " .. tostring(float.caption_long.t) .. " which doesn't support content: " .. float.identifier
+    error(error_msg)
+    return {}
+  end
+  if float.caption_long == nil then
+    float.caption_long = pandoc.Plain({})
+  end
+  local caption_content = float.caption_long.content
 
   if float.parent_id then
     if float.order == nil then
