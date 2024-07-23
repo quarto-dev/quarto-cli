@@ -11,7 +11,6 @@ All changes included in 1.6:
 - ([#10196](https://github.com/quarto-dev/quarto-cli/issues/10196)): protect against nil values in `float.caption_long`.
 - ([#10328](https://github.com/quarto-dev/quarto-cli/issues/10328)): Interpret subcells as subfloats when subcap
   count matches subcell count.
-- ([#10358](https://github.com/quarto-dev/quarto-cli/issues/10358)): Fix regression with captioned floats where `caption_long` field might not exist.
 
 ## `typst` Format
 
