@@ -15,11 +15,24 @@ import {
 } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
+const defaultColorNameMap: Record<string, string> = {
+  "body-bg": "background",
+  "body-color": "foreground",
+  "body-secondary-color": "secondary",
+  "body-secondary": "secondary",
+  "body-tertiary-color": "tertiary",
+  "body-tertiary": "secondary",
+};
+
 export async function brandBootstrapSassBundles(
   project: ProjectContext,
   key: string,
 ): Promise<SassBundle[]> {
-  return (await brandBootstrapSassBundleLayers(project, key)).map(
+  return (await brandBootstrapSassBundleLayers(
+    project,
+    key,
+    defaultColorNameMap,
+  )).map(
     (layer: SassBundleLayers) => {
       return {
         ...layer,
@@ -31,6 +44,7 @@ export async function brandBootstrapSassBundles(
 export async function brandBootstrapSassBundleLayers(
   project: ProjectContext,
   key: string,
+  nameMap: Record<string, string> = {},
 ): Promise<SassBundleLayers[]> {
   const brand = await project.resolveBrand();
   const sassBundles: SassBundleLayers[] = [];
@@ -49,6 +63,15 @@ export async function brandBootstrapSassBundleLayers(
       colorVariables.push(
         `$${colorKey}: ${brand.getColor(colorKey)} !default;`,
       );
+    }
+    // format-specific name mapping
+    for (const [key, value] of Object.entries(nameMap)) {
+      const resolvedValue = brand.getColor(value);
+      if (resolvedValue !== value) {
+        colorVariables.push(
+          `$${key}: ${resolvedValue} !default;`,
+        );
+      }
     }
     // const colorEntries = Object.keys(brand.color);
     const colorBundle: SassBundleLayers = {
@@ -72,7 +95,11 @@ export async function brandRevealSassBundleLayers(
   _format: Format,
   project: ProjectContext,
 ): Promise<SassBundleLayers[]> {
-  return brandBootstrapSassBundleLayers(project, "reveal-theme");
+  return brandBootstrapSassBundleLayers(
+    project,
+    "reveal-theme",
+    defaultColorNameMap,
+  );
 }
 
 export async function brandSassFormatExtras(
@@ -82,6 +109,7 @@ export async function brandSassFormatExtras(
   const htmlSassBundleLayers = await brandBootstrapSassBundleLayers(
     project,
     "brand",
+    defaultColorNameMap,
   );
   const htmlSassBundles: SassBundle[] = htmlSassBundleLayers.map((layer) => {
     return {
