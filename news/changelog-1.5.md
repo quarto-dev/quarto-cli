@@ -2,6 +2,8 @@
 
 ## in this release
 
+- ([#10358](https://github.com/quarto-dev/quarto-cli/issues/10358)): Fix regression with captioned floats where `caption_long` field might not exist.
+
 ## in previous releases
 
 - ([#10196](https://github.com/quarto-dev/quarto-cli/issues/10196)): protect against nil values in `float.caption_long`.
