@@ -163,7 +163,7 @@ class SassCache {
     registerCleanup(() => {
       try {
         this.kv.close();
-        if (!temp) safeRemoveIfExists(this.path);
+        if (temp) safeRemoveIfExists(this.path);
       } catch (error) {
         log.info(
           `Error occurred during sass cache cleanup for ${this.path}: ${error}`,
