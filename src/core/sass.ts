@@ -307,7 +307,8 @@ export async function compileWithCache(
     const cacheDir = useSessionCache
       ? join(temp.baseDir, "sass")
       : quartoCacheDir("sass");
-    const cache = await sassCache(cacheDir);
+    // when using quarto session cache, we ensure to cleanup the cache files
+    const cache = await sassCache(cacheDir, !!useSessionCache);
     return cache.getOrSet(input, loadPaths, temp, cacheIdentifier, compressed);
   } else {
     const outputFilePath = temp.createFile({ suffix: ".css" });
