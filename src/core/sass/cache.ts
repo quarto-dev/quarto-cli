@@ -158,13 +158,16 @@ class SassCache {
   }
 
   // add a cleanup method to register a cleanup handler
-  cleanup(removeCachePath: boolean = true) {
-    onCleanup(() => {
+  cleanup(temp: TempContext | undefined) {
+    const registerCleanup = temp ? temp.onCleanup : onCleanup;
+    registerCleanup(() => {
       try {
         this.kv.close();
-        if (removeCachePath) safeRemoveIfExists(this.path);
+        if (!temp) safeRemoveIfExists(this.path);
       } catch (error) {
-        log.info("Error occurred during sass cache cleanup: " + error);
+        log.info(
+          `Error occurred during sass cache cleanup for ${this.path}: ${error}`,
+        );
       }
     });
   }
@@ -205,9 +208,10 @@ async function checkVersion(kv: Deno.Kv, path: string) {
 }
 
 const _sassCache: Record<string, SassCache> = {};
+
 export async function sassCache(
   path: string,
-  removeCachePath: boolean = false,
+  temp: TempContext | undefined,
 ): Promise<SassCache> {
   if (!_sassCache[path]) {
     log.debug(`Creating SassCache at ${path}`);
@@ -217,7 +221,7 @@ export async function sassCache(
     await checkVersion(kv, kvFile);
     _sassCache[path] = new SassCache(kv, path);
     // register cleanup for this cache
-    _sassCache[path].cleanup(removeCachePath);
+    _sassCache[path].cleanup(temp);
   }
   log.debug(`Returning SassCache at ${path}`);
   const result = _sassCache[path];
