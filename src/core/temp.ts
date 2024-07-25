@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { debug } from "../deno_ral/log.ts";
+import { debug, info } from "../deno_ral/log.ts";
 import { join } from "../deno_ral/path.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { normalizePath, removeIfExists, safeRemoveIfExists } from "./path.ts";
@@ -53,11 +53,14 @@ export function globalTempContext() {
   return tempContext;
 }
 
-export function createTempContext(options?: Deno.MakeTempOptions) {
+export function createTempContext(options?: Deno.MakeTempOptions): TempContext {
   let dir: string | undefined = Deno.makeTempDirSync({
     ...options,
     dir: tempDir,
   });
+
+  const tempContextCleanupHandlers: VoidFunction[] = [];
+
   return {
     baseDir: dir,
     createFile: (options?: Deno.MakeTempOptions) => {
@@ -68,9 +71,21 @@ export function createTempContext(options?: Deno.MakeTempOptions) {
     },
     cleanup: () => {
       if (dir) {
+        // Not using .reverse() to not mutate the original array
+        for (let i = tempContextCleanupHandlers.length - 1; i >= 0; i--) {
+          const handler = tempContextCleanupHandlers[i];
+          try {
+            handler();
+          } catch (error) {
+            info("Error occurred during tempContext handler cleanup: " + error);
+          }
+        }
         safeRemoveIfExists(dir);
         dir = undefined;
       }
+    },
+    onCleanup(handler: VoidFunction) {
+      tempContextCleanupHandlers.push(handler);
     },
   };
 }

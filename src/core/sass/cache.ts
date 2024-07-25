@@ -14,6 +14,7 @@ import { dartCompile } from "../dart-sass.ts";
 import { TempContext } from "../temp.ts";
 import { safeRemoveIfExists } from "../path.ts";
 import * as log from "../../deno_ral/log.ts";
+import { onCleanup } from "../cleanup.ts";
 
 class SassCache {
   kv: Deno.Kv;
@@ -155,6 +156,21 @@ class SassCache {
       compressed,
     );
   }
+
+  // add a cleanup method to register a cleanup handler
+  cleanup(temp: TempContext | undefined) {
+    const registerCleanup = temp ? temp.onCleanup : onCleanup;
+    registerCleanup(() => {
+      try {
+        this.kv.close();
+        if (temp) safeRemoveIfExists(this.path);
+      } catch (error) {
+        log.info(
+          `Error occurred during sass cache cleanup for ${this.path}: ${error}`,
+        );
+      }
+    });
+  }
 }
 
 const currentSassCacheVersion = 1;
@@ -192,7 +208,11 @@ async function checkVersion(kv: Deno.Kv, path: string) {
 }
 
 const _sassCache: Record<string, SassCache> = {};
-export async function sassCache(path: string): Promise<SassCache> {
+
+export async function sassCache(
+  path: string,
+  temp: TempContext | undefined,
+): Promise<SassCache> {
   if (!_sassCache[path]) {
     log.debug(`Creating SassCache at ${path}`);
     ensureDirSync(path);
@@ -200,6 +220,8 @@ export async function sassCache(path: string): Promise<SassCache> {
     const kv = await Deno.openKv(kvFile);
     await checkVersion(kv, kvFile);
     _sassCache[path] = new SassCache(kv, path);
+    // register cleanup for this cache
+    _sassCache[path].cleanup(temp);
   }
   log.debug(`Returning SassCache at ${path}`);
   const result = _sassCache[path];
