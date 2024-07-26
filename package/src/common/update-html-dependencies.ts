@@ -386,7 +386,7 @@ export async function updateHtmlDependencies(config: Configuration) {
       );
       return Promise.resolve();
     },
-    false, // not a commit
+    true, // true if commit, false otherwise
     false, // no v prefix,
   );
 
