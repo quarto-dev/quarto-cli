@@ -37,7 +37,9 @@ export TIPPY_JS=6.3.7
 export PDF_JS=2.8.335
 export REVEAL_JS=5.1.0
 export REVEAL_JS_MENU=2.1.0
-export REVEAL_JS_CHALKBOARD=4.2.5
+# unrelease version needed for a fix with Reveal.js 5
+# https://github.com/rajgoel/reveal.js-plugins/pull/180
+export REVEAL_JS_CHALKBOARD=8408d5a265abf74a042122520bbb4fd0d31feaed
 export REVEAL_JS_PDFEXPORT=2.0.1
 export LIST_JS=2.3.1
 export DAY_JS=1.11.7

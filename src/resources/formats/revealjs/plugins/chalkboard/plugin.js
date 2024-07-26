@@ -443,6 +443,7 @@ const initChalkboard = function ( Reveal ) {
 			container.style.opacity = 1;
 			container.style.visibility = 'visible';
 			container.style.pointerEvents = 'none';
+			container.style['backdrop-filter'] = 'none';
 
 			var slides = document.querySelector( '.slides' );
 			var aspectRatio = Reveal.getConfig().width / Reveal.getConfig().height;
