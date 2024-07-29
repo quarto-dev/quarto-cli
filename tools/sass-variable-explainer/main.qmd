@@ -1,0 +1,93 @@
+---
+title: Explain my SCSS variables pls ok thx
+---
+
+````{python}
+#| echo: false
+#| output: asis
+import re
+import subprocess
+import json
+import tempfile
+
+filename = "quarto.scss"
+
+output = subprocess.run(
+  ["deno", "run", "--allow-all", "process-scss.ts", filename], 
+  capture_output = True).stdout.decode('utf-8')
+
+# sass_variable_name_re = r'(\$[-A-Za-z0-9]+)'
+# sass_variable_dependency_re = f'^{sass_variable_name_re}:(.*{sass_variable_name_re}.+)+ ?\!default;'
+# p = re.compile(sass_variable_dependency_re)
+# def match_all_in_file(f, p):
+#   with open(filename) as f:
+#     for l in f:
+#       m = p.match(l)
+#       if m:
+#         yield m.groups()[::2]
+
+label_count = 0
+labels = {}
+
+def get_mermaid_node_name(n):
+  if n in labels:
+    return labels[n]
+  labels[n] = f'N{len(labels) + 1}'
+  return f'{labels[n]}[{n}]'
+
+def get_dot_node_name(n):
+  if n in labels:
+    return labels[n], None
+  labels[n] = f'N{len(labels) + 1}'
+  return labels[n], f'{labels[n]}[label="{n}"]'
+
+# # print("```{mermaid}")
+# # print("flowchart LR")
+# # for references in match_all_in_file(filename, p):
+# #   source = references[0]
+# #   for target in references[1::]:
+# #     print(f'  {get_mermaid_node_name(source)} --> {get_mermaid_node_name(target)}')
+# # print("```")
+
+# print("```{dot}")
+# print("digraph G {\n  rankdir=LR;\n")
+# print("  node [shape=rectangle, color=gray]")
+# print("  edge [color=gray]")
+# for references in match_all_in_file(filename, p):
+#   source = references[0]
+#   for target in references[1::]:
+#     source_id, source_stmt = get_dot_node_name(source)
+#     target_id, target_stmt = get_dot_node_name(target)
+#     if source_stmt:
+#       print(f'  {source_stmt};')
+#     if target_stmt:
+#       print(f'  {target_stmt};')
+#     print(f'  {target_id} -> {source_id};')
+# print("}")
+# print("```")
+
+json_input = json.loads(output)
+dependencies = json_input["dependencies"]
+
+print("```{dot}")
+print("digraph G {\n  rankdir=LR;\n")
+print("  node [shape=rectangle, color=gray]")
+print("  edge [color=gray]")
+for references in dependencies:
+  source = references["name"]
+  for target in references["references"]:
+    source_id, source_stmt = get_dot_node_name(source)
+    target_id, target_stmt = get_dot_node_name(target)
+    if source_stmt:
+      print(f'  {source_stmt};')
+    if target_stmt:
+      print(f'  {target_stmt};')
+    print(f'  {target_id} -> {source_id};')
+print("}")
+print("```")
+
+## Our DOT svg engine is a bit broken in determining good sizes, so we will help it here.
+print("""```{=html}
+<script src="./fix-dot-svg.js" type="module"></script>
+```""")
+````
