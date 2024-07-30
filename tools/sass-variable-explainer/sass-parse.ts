@@ -49,6 +49,7 @@ export const cleanSassAst = (ast: any) => {
   ast = filterDeep(ast, isRealContent);
   ast = mapDeep(ast, simplifyLineInfo);
   ast = mapDeep(ast, explicitlyTagDefaultValues);
+  ast = mapDeep(ast, findDimensionValues);
   ast = mapDeep(ast, fixImmediateTypes);
 
   // if the value array looks like an array of keys and values,
@@ -94,10 +95,10 @@ const filterDeep = (outer: any, cb: (v: any) => boolean): any =>
 const mapDeep = (outer: any, cb: (mapped: any) => any): any =>
   withType(outer, (ast: any) => {
     if (Array.isArray(ast.children)) {
-      ast = {
-        ...ast,
-        children: ast.children.map((v: any) => mapDeep(v, cb))
-      };
+      ast.children = ast.children.map((v: any) => mapDeep(v, cb));
+    }
+    if (Array.isArray(ast.value)) {
+      ast.value = ast.value.map((v: any) => mapDeep(v, cb));
     }
     return cb(ast);
   });
@@ -125,22 +126,81 @@ const simplifyLineInfo = (outer: any) =>
   });
 
 const explicitlyTagDefaultValues = (outer: any) =>
-  withTypeAndArray(outer, (node: any) => {
-    const l = node.children.length;
-    if (node?.type !== "value" ||
-      l < 2) {
+  withType(outer, (node: any) => {
+    const l = node.value?.length;
+    if (node?.type !== "value" || l < 2) {
       return node;
     }
-    if (node.children[l - 1]?.type !== "identifier" || 
-      node.children[l - 1]?.value !== "default" ||
-      node.children[l - 2]?.type !== "operator" ||
-      node.children[l - 2]?.value !== "!") {
+    if (node.value[l - 1]?.type !== "identifier" || 
+      node.value[l - 1]?.value !== "default" ||
+      node.value[l - 2]?.type !== "operator" ||
+      node.value[l - 2]?.value !== "!") {
       return node;
     }
     return {
       ...node,
-      children: node.children.slice(0, -2),
+      value: node.value.slice(0, -2),
       isDefault: true,
+    };
+  });
+
+const knownUnits: Set<string> = new Set([
+  // found in 2024-07-29
+  // length https://developer.mozilla.org/en-US/docs/Web/CSS/length,
+  "cap", "ic", "lh", "rcap", "rch", "rex", "ric", "rlh", "vb", "vi", "cqw",
+  "cqh", "cqi", "cqmin", "cqmax", 
+  "Q",
+  "rem", "em", "px", "pt", "pc", "cm", "mm", "in", "ex", "ch", "vw", "vh", "vmin", "vmax",
+  // angle https://developer.mozilla.org/en-US/docs/Web/CSS/angle
+  "deg", "grad", "rad", "turn",
+  // time https://developer.mozilla.org/en-US/docs/Web/CSS/time
+  "s", "ms",
+  // resolution https://developer.mozilla.org/en-US/docs/Web/CSS/resolution
+  "dpi", "dpcm", "dppx", "x",
+  // frequency https://developer.mozilla.org/en-US/docs/Web/CSS/frequency
+  "Hz", "kHz"
+]);
+
+// this also finds percentages
+const findDimensionValues = (outer: any) =>
+  withType(outer, (node: any) => {
+    if (node?.type !== "value") {
+      return node;
+    }
+    const value = node?.value;
+    if (!Array.isArray(value)) {
+      return node;
+    }
+    const newValues = [];
+    for (let i = 0; i < value.length; ++i) {
+      const thisValue = value[i];
+      const nextValue = value[i + 1];
+      if (thisValue?.type === "number" && 
+        nextValue?.type === "identifier" && 
+        knownUnits.has(nextValue?.value)) {
+        newValues.push({
+          ...thisValue,
+          type: "dimension",
+          unit: nextValue.value,
+        });
+        ++i;
+      } else if (thisValue?.type === "number" &&
+        nextValue?.type === "operator" &&
+        nextValue?.value === "%") {
+        // this might be chancy if there's stuff like (3 % 2) floating around
+        // I couldn't find any in our .scss files, but :grimace:
+        newValues.push({
+          ...thisValue,
+          type: "percentage",
+        });
+        ++i;
+      } else {
+        newValues.push(thisValue);
+      }
+    }
+    return {
+      ...node,
+      value: newValues,
     };
   });
 
@@ -163,13 +223,14 @@ const valueArrayToObjectKeys = (outer: any) =>
 
 const typedImmediateValues: Record<string, any> = {
   false: { type: "boolean", value: false },
-  true: { type: "boolean", value: false },
+  true: { type: "boolean", value: true },
+  null: { type: "null", value: null },
 }
 
 const fixImmediateTypes = (outer: any) =>
-  withTypeAndArray(outer, (node: any) => {
-    if (node.type === "identifier" && typedImmediateValues[node.children]) {
-      return {...typedImmediateValues[node.children]};
+  withType(outer, (node: any) => {
+    if (node.type === "identifier" && typedImmediateValues[node.value]) {
+      return {...node, ...typedImmediateValues[node.value]};
     }
     return node;
   });
@@ -178,5 +239,34 @@ if (import.meta.main) {
   debugger;
   const ast = await getSassAst(Deno.readTextFileSync(Deno.args[0] || "/dev/stdin"));
   const cleaned = cleanSassAst(ast);
-  console.log(JSON.stringify(cleaned));
+  console.log(JSON.stringify(cleaned.children.filter((v: any) => v.type === "declaration"
+  && v.value.value[0].type === "identifier")));
+
+  // for (const node of cleaned.children) {
+  //   // boolean
+  //   // color_hex
+  //   // dimension
+  //   // function
+  //   // identifier
+  //   // number
+  //   // operator
+  //   // parentheses
+  //   // percentage
+  //   // string_double
+  //   // variable
+
+  //   if (node?.type === "declaration") {
+  //     const type = node?.value?.value[0]?.type;
+  //     if (type === "identifier") {
+  //       console.log(node);
+  //     }
+  //   }
+  // }
+  // walk(cleaned, (node: any) => {
+  //   if (node?.type === "declaration") {
+  //     console.log(node?.value?.value[0]?.type);
+  //   }
+  //   return true;
+  // });
+  // console.log(JSON.stringify(cleaned));
 }
