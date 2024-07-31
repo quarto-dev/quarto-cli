@@ -1,5 +1,5 @@
-import { getSassAst } from "./sass-parse.ts";
-import { walk } from "./walk.ts";
+import { getSassAst } from "./sass-analyze.ts";
+import { walk } from "./sass-analyzer/ast-utils.ts";
 
 let contents = Deno.readTextFileSync(Deno.args[0] || "/dev/stdin");
 const ast = getSassAst(contents);
