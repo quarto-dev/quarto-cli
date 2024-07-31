@@ -81,8 +81,11 @@ export const getStackAsArray = (
           col: m1[4] + (m1[1] ? 6 : 0),
         };
       }
-      // other stack entry? (with parentheses)
-      const m2 = s.match(/^.*at (async )?(.*) \((src\/.+):(\d+):(\d+)\)$/);
+      // other stack entry
+      // (with parentheses)
+      let m2 = s.match(/^.*at (async )?(.*) \((src\/.+):(\d+):(\d+)\)$/);
+      // without parentheses - name will be empty
+      m2 = m2 || s.match(/^.*at (async )?(.*)(src\/.+):(\d+):(\d+)$/);
       if (m2) {
         return {
           pos: m2[3],
@@ -91,18 +94,6 @@ export const getStackAsArray = (
           // if async, move the column to the start of the actual function name
           col: m2[5] + (m2[1] ? 6 : 0),
         };
-      }
-      // stack entry without parentheses and probably without name
-      const m2b = s.match(/^.*at (async )?(.*)(src\/.+):(\d+):(\d+)$/);
-      if (m2b) {
-        const ret = {
-          pos: m2b[3],
-          name: `${m2b[2]}`,
-          line: m2b[4],
-          // if async, move the column to the start of the actual function name
-          col: m2b[5] + (m2b[1] ? 6 : 0),
-        };
-        return ret;
       }
       // links to deno's core?
       // FIXME these will generate bad links in vscode
