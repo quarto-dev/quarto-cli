@@ -1,0 +1,68 @@
+diff --git a/src/resources/formats/revealjs/themes/beige.scss b/src/resources/formats/revealjs/themes/beige.scss
+index 193eac567..6786c08c0 100644
+--- a/src/resources/formats/revealjs/themes/beige.scss
++++ b/src/resources/formats/revealjs/themes/beige.scss
+@@ -34,6 +34,9 @@ $presentation-h1-text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb,
+ $overlayElementBgColor: 0, 0, 0 !default;
+ $overlayElementFgColor: 240, 240, 240 !default;
+ 
++// code blocks
++$code-block-bg: transparent !default;
++
+ /*-- scss:mixins --*/
+ 
+ @mixin bodyBackground() {
+diff --git a/src/resources/formats/revealjs/themes/league.scss b/src/resources/formats/revealjs/themes/league.scss
+index 3005e6c1e..f7e7d5a15 100644
+--- a/src/resources/formats/revealjs/themes/league.scss
++++ b/src/resources/formats/revealjs/themes/league.scss
+@@ -39,6 +39,9 @@ $light-bg-text-color: #222 !default;
+ // input panel
+ $input-panel-bg: rgba(233, 236, 239, 0.2) !default;
+ 
++// code blocks
++$code-block-bg: transparent !default;
++
+ /*-- scss:mixins --*/
+ 
+ // Background generator
+diff --git a/src/resources/formats/revealjs/themes/night.scss b/src/resources/formats/revealjs/themes/night.scss
+index 9d84bbf86..46a2b7eed 100644
+--- a/src/resources/formats/revealjs/themes/night.scss
++++ b/src/resources/formats/revealjs/themes/night.scss
+@@ -30,3 +30,6 @@ $light-bg-text-color: #222 !default;
+ 
+ // input panel
+ $input-panel-bg: rgba(233, 236, 239, 0.2) !default;
++
++// code blocks
++$code-block-bg: transparent !default;
+diff --git a/src/resources/formats/revealjs/themes/sky.scss b/src/resources/formats/revealjs/themes/sky.scss
+index 2debff7bc..4821a919d 100644
+--- a/src/resources/formats/revealjs/themes/sky.scss
++++ b/src/resources/formats/revealjs/themes/sky.scss
+@@ -33,6 +33,10 @@ $overlayElementFgColor: 240, 240, 240 !default;
+ // Change text colors against dark slide backgrounds
+ $dark-bg-text-color: #fff !default;
+ 
++// code blocks
++$code-block-border-color: lighten($link-color, 30%) !default;
++$code-block-bg: transparent !default;
++
+ /*-- scss:rules --*/
+ 
+ // Fix links so they are not cut off
+diff --git a/src/resources/formats/revealjs/themes/solarized.scss b/src/resources/formats/revealjs/themes/solarized.scss
+index 0bfaf51ad..d2e4d223e 100644
+--- a/src/resources/formats/revealjs/themes/solarized.scss
++++ b/src/resources/formats/revealjs/themes/solarized.scss
+@@ -49,6 +49,9 @@ $selection-bg: $magenta !default;
+ $overlayElementBgColor: 0, 0, 0 !default;
+ $overlayElementFgColor: 240, 240, 240 !default;
+ 
++// code blocks
++$code-block-border-color: #93a1a1 !default;
++
+ /*-- scss:rules --*/
+ 
+ html * {

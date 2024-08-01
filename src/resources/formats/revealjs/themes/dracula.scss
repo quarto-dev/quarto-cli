@@ -1,0 +1,88 @@
+/**
+ * Dracula Dark theme for reveal.js.
+ * Based on https://draculatheme.com
+ *
+ * Adapted for Quarto by Posit, PBC
+ * Copyright (C) 2024 Posit, PBC
+ */
+
+/*-- scss:defaults --*/
+
+// Include theme-specific fonts
+$systemFontsSansSerif: -apple-system, BlinkMacSystemFont, avenir next, avenir,
+  segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial,
+  sans-serif;
+$systemFontsMono: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console,
+  monospace;
+
+$background: #282a36;
+$foreground: #f8f8f2;
+$selection: #44475a;
+$comment: #6272a4;
+$red: #ff5555;
+$orange: #ffb86c;
+$yellow: #f1fa8c;
+$green: #50fa7b;
+$purple: #bd93f9;
+$cyan: #8be9fd;
+$pink: #ff79c6;
+
+// Override theme settings
+$body-color: $foreground !default;
+$presentation-heading-color: $purple !default;
+$presentation-heading-text-shadow: none !default;
+$presentation-heading-text-transform: none !default;
+$body-bg: $background !default;
+$link-color: $pink !default;
+$link-color-hover: $cyan !default;
+$selection-bg: $selection !default;
+$code-color: $green !default;
+$presentation-list-bullet-color: $cyan !default;
+
+$font-family-sans-serif: $systemFontsSansSerif !default;
+$font-family-monospace: "Fira Code", $systemFontsMono !default;
+
+// Change text colors against light slide backgrounds
+$light-bg-text-color: $body-bg !default;
+
+/*-- scss:rules --*/
+
+// Define additional color effects based on Dracula spec
+// https://spec.draculatheme.com/
+:root {
+  --r-bold-color: #{$orange};
+  --r-italic-color: #{$yellow};
+  --r-inline-code-color: #{$code-color};
+  --r-list-bullet-color: #{$presentation-list-bullet-color};
+}
+
+.reveal {
+  strong,
+  b {
+    color: var(--r-bold-color);
+  }
+  em,
+  i,
+  blockquote {
+    color: var(--r-italic-color);
+  }
+  code {
+    color: var(--r-inline-code-color);
+  }
+  // Dracula colored list bullets and numbers
+  ul,
+  ol {
+    li::marker {
+      color: var(--r-list-bullet-color);
+    }
+  }
+}
+
+/**
+ * Dracula colors by Zeno Rocha
+ * https://draculatheme.com/contribute
+ */
+html * {
+  color-profile: sRGB;
+  rendering-intent: auto;
+}

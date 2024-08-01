@@ -1,0 +1,14 @@
+diff --git a/src/resources/formats/revealjs/plugins/pdfexport/pdfexport.js b/src/resources/formats/revealjs/plugins/pdfexport/pdfexport.js
+index c399fa9de..bf9104c8e 100644
+--- a/src/resources/formats/revealjs/plugins/pdfexport/pdfexport.js
++++ b/src/resources/formats/revealjs/plugins/pdfexport/pdfexport.js
+@@ -100,6 +100,9 @@ var PdfExport = ( function( _Reveal ){
+ 		Plugin.init = function( _Reveal ){
+ 			Reveal = _Reveal;
+ 			install();
++		};
++		Plugin.togglePdfExport = function () {
++      togglePdfExport();
+     };
+ 	}
+ 

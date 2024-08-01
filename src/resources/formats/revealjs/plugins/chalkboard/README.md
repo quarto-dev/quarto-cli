@@ -9,38 +9,51 @@ The main use case in mind when implementing the plugin is classroom usage in whi
 
 The plugin records all drawings made so that they can be play backed using the `autoSlide` feature or the `audio-slideshow` plugin.
 
-[Check out the live demo](https://rajgoel.github.io/reveal.js-demos/chalkboard-demo.html)
 
-The chalkboard effect is based on [Chalkboard](https://github.com/mmoustafa/Chalkboard) by Mohamed Moustafa.
+[Check out the demo](https://rajgoel.github.io/reveal.js-demos/?topic=chalkboard)
 
-## Installation
+## Setup
 
-Copy the file `plugin.js` and the  `img` directory into the plugin folder of your reveal.js presentation, i.e. `plugin/chalkboard` and load the plugin as shown below.
-
+To use the plugin include
 ```html
-<script src="plugin/chalkboard/plugin.js"></script>
-<script src="plugin/customcontrols/plugin.js"></script>
-
-<script>
-    Reveal.initialize({
-        // ...
-        plugins: [ RevealChalkboard, RevealCustomControls ],
-        // ...
-    });
-</script>
+<!-- Font awesome is required for the chalkboard plugin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Custom controls plugin is used to for opening and closing annotation modes. -->
+<script src="https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/customcontrols/plugin.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/customcontrols/style.css">
+<!-- Chalkboard plugin -->
+<script src="https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/chalkboard/plugin.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/chalkboard/style.css">
 ```
+to the header of your presentation and configure reveal.js and the plugin by
 
-The following stylesheet
-```html
-<link rel="stylesheet" href="plugin/chalkboard/style.css">
-<link rel="stylesheet" href="plugin/customcontrols/style.css">
+```js
+Reveal.initialize({
+  customcontrols: {
+    controls: [
+      { icon: '<i class="fa fa-pen-square"></i>',
+        title: 'Toggle chalkboard (B)',
+        action: 'RevealChalkboard.toggleChalkboard();'
+      },
+      { icon: '<i class="fa fa-pen"></i>',
+        title: 'Toggle notes canvas (C)',
+        action: 'RevealChalkboard.toggleNotesCanvas();'
+      }
+    ]
+  },
+  chalkboard: {
+    // add configuration here
+  },
+  // ...
+  plugins: [ RevealChalkboard, RevealCustomControls ],
+  // ...
+});
 ```
-has to be included to the `head` section of you HTML-file.
-
 
 In order to include buttons for opening and closing the notes canvas or the chalkboard you should make sure that `font-awesome` is available. The easiest way is to include
 ```
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js-plugins/menu/font-awesome/css/fontawesome.css">
 ```
 to the ```head``` section of you HTML-file.
 
@@ -53,7 +66,6 @@ to the ```head``` section of you HTML-file.
 - Click the left mouse button and drag to write on notes canvas or chalkboard
 - Click the right mouse button and drag to wipe away previous drawings
 - Touch and move to write on notes canvas or chalkboard
-- Touch and hold for half a second, then move to wipe away previous drawings
 
 ### Keyboard
 - Press the 'BACKSPACE' key to delete all chalkboard drawings
@@ -135,26 +147,17 @@ Reveal.initialize({
                 { color: 'rgba(255,220,0,0.5)', cursor: 'url(' + path + 'img/chalk-yellow.png), auto'}
         ]
     },
-    customcontrols: {
-  		controls: [
-  			{ icon: '<i class="fa fa-pen-square"></i>',
-  			  title: 'Toggle chalkboard (B)',
-  			  action: 'RevealChalkboard.toggleChalkboard();'
-  			},
-  			{ icon: '<i class="fa fa-pen"></i>',
-  			  title: 'Toggle notes canvas (C)',
-  			  action: 'RevealChalkboard.toggleNotesCanvas();'
-  			}
-  		]
-    },
     // ...
 
 });
 ```
 
+## Credits
+
+The chalkboard effect is based on [Chalkboard](https://github.com/mmoustafa/Chalkboard) by Mohamed Moustafa.
 
 ## License
 
 MIT licensed
 
-Copyright (C) 2021 Asvin Goel
+Copyright (C) 2023 Asvin Goel

@@ -1,0 +1,64 @@
+diff --git a/src/resources/formats/revealjs/themes/serif.scss b/src/resources/formats/revealjs/themes/serif.scss
+index a8abdc887..3b0ff9e6f 100644
+--- a/src/resources/formats/revealjs/themes/serif.scss
++++ b/src/resources/formats/revealjs/themes/serif.scss
+@@ -3,39 +3,33 @@
+  * to the default theme. The accent color is brown.
+  *
+  * This theme is Copyright (C) 2012-2013 Owen Versteeg, http://owenversteeg.com - it is MIT licensed.
++ *
++ * Adapted for Quarto by Posit, PBC
++ * Copyright (C) 2024 Posit, PBC
+  */
+ 
++/*-- scss:defaults --*/
+ 
+-// Default mixins and settings -----------------
+-@import "../template/mixins";
+-@import "../template/settings";
+-// ---------------------------------------------
+-
++// Override theme settings
++$font-family-sans-serif: "Palatino Linotype", "Book Antiqua", Palatino,
++  FreeSerif, serif !default;
++$body-color: #000 !default;
++$presentation-heading-font: $font-family-sans-serif !default;
++$presentation-heading-color: #383d3d !default;
++$presentation-heading-text-shadow: none !default;
++$presentation-heading-text-transform: none !default;
++$body-bg: #f0f1eb !default;
++$link-color: #51483d !default;
++$selection-bg: #26351c !default;
+ 
++$overlayElementBgColor: 0, 0, 0 !default;
++$overlayElementFgColor: 240, 240, 240 !default;
+ 
+-// Override theme settings (see ../template/settings.scss)
+-$font-family-sans-serif: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+-$body-color: #000;
+-$presentation-heading-font: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+-$presentation-heading-color: #383D3D;
+-$presentation-heading-text-shadow: none;
+-$presentation-heading-text-transform: none;
+-$body-bg: #F0F1EB;
+-$link-color: #51483D;
+-$link-color-hover: lighten( $linkColor, 20% );
+-$selection-bg: #26351C;
++// Change text colors against dark slide backgrounds
++$dark-bg-text-color: #fff !default;
+ 
+-$overlayElementBgColor: 0, 0, 0;
+-$overlayElementFgColor: 240, 240, 240;
++/*-- scss:rules --*/
+ 
+ .reveal a {
+   line-height: 1.3em;
+ }
+-
+-// Change text colors against dark slide backgrounds
+-@include dark-bg-text-color(#fff);
+-
+-
+-// Theme template ------------------------------
+-@import "../template/theme";
+-// ---------------------------------------------

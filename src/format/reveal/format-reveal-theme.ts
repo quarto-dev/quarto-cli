@@ -203,6 +203,10 @@ export async function revealTheme(
   };
 }
 
+// Revealjs framework layer is supposed to be more files but:
+// - Only mixins.scss and theme.scss are needed here
+// - settings.scss is manually included in the quarto.scss file
+// - exposer.scss is loaded in theme.scss and found through the loadPaths
 function revealFrameworkLayer(revealDir: string): SassLayer {
   const readTemplate = (template: string) => {
     return Deno.readTextFileSync(

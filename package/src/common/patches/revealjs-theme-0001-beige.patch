@@ -1,0 +1,73 @@
+diff --git a/src/resources/formats/revealjs/themes/beige.scss b/src/resources/formats/revealjs/themes/beige.scss
+index 06957c42d..193eac567 100644
+--- a/src/resources/formats/revealjs/themes/beige.scss
++++ b/src/resources/formats/revealjs/themes/beige.scss
+@@ -2,43 +2,40 @@
+  * Beige theme for reveal.js.
+  *
+  * Copyright (C) 2011-2012 Hakim El Hattab, http://hakim.se
++ * 
++ * Adapted for Quarto by Posit, PBC
++ * Copyright (C) 2024 Posit, PBC
+  */
+ 
+-
+-// Default mixins and settings -----------------
+-@import "../template/mixins";
+-@import "../template/settings";
+-// ---------------------------------------------
+-
+-
++/*-- scss:defaults --*/
+ 
+ // Include theme-specific fonts
+ @import url(./fonts/league-gothic/league-gothic.css);
+ @import url(https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic);
+ 
++// fonts
++$font-family-sans-serif: Lato, sans-serif !default;
+ 
+-// Override theme settings (see ../template/settings.scss)
+-$body-color: #333;
+-$presentation-heading-color: #333;
+-$presentation-heading-text-shadow: none;
+-$body-bg: #f7f3de;
+-$link-color: #8b743d;
+-$link-color-hover: lighten( $linkColor, 20% );
+-$selection-bg: rgba(79, 64, 28, 0.99);
+-$presentation-h1-text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaa, 0 6px 1px rgba(0,0,0,.1), 0 0 5px rgba(0,0,0,.1), 0 1px 3px rgba(0,0,0,.3), 0 3px 5px rgba(0,0,0,.2), 0 5px 10px rgba(0,0,0,.25), 0 20px 20px rgba(0,0,0,.15);
+-
+-$overlayElementBgColor: 0, 0, 0;
+-$overlayElementFgColor: 240, 240, 240;
++// Override theme settings
++$body-color: #333 !default;
++$body-bg: #f7f3de !default;
++$link-color: #8b743d !default;
++$selection-bg: rgba(79, 64, 28, 0.99) !default;
+ 
+-// Background generator
+-@mixin bodyBackground() {
+-	@include radial-gradient( rgba(247,242,211,1), rgba(255,255,255,1) );
+-}
++$presentation-heading-font: "League Gothic", sans-serif !default;
++$presentation-heading-text-transform: uppercase !default;
++$presentation-h1-font-size: 3.77em !default;
++$presentation-h1-text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb,
++  0 4px 0 #b9b9b9, 0 5px 0 #aaa, 0 6px 1px rgba(0, 0, 0, 0.1),
++  0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3),
++  0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25),
++  0 20px 20px rgba(0, 0, 0, 0.15) !default;
+ 
+-// Change text colors against dark slide backgrounds
+-@include dark-bg-text-color(#fff);
++$overlayElementBgColor: 0, 0, 0 !default;
++$overlayElementFgColor: 240, 240, 240 !default;
+ 
++/*-- scss:mixins --*/
+ 
+-// Theme template ------------------------------
+-@import "../template/theme";
+-// ---------------------------------------------
++@mixin bodyBackground() {
++  @include radial-gradient(rgba(247, 242, 211, 1), rgba(255, 255, 255, 1));
++}
