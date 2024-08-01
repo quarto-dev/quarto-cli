@@ -249,6 +249,7 @@
 - ([#7607](https://github.com/quarto-dev/quarto-cli/issues/7607)): Make `output: asis` behave the same way as the `knitr` engine, emitting div enclosures when necessary.
 - ([#5363](https://github.com/quarto-dev/quarto-cli/issues/5363)): Fix issue caused by Quarto incorrectly using some headings as a title when reading notebooks.
 - ([#6411](https://github.com/quarto-dev/quarto-cli/issues/6411)): Don't perform notebook title fixup if the project is providing a title.
+- ([#8012](https://github.com/quarto-dev/quarto-cli/issues/8012)): Don't perform notebook title fixup with `format: revealjs` as this would create a new undesired title slide.
 
 ## Knitr
 
