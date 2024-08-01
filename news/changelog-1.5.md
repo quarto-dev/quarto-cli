@@ -3,6 +3,7 @@
 ## in this release
 
 - ([#10358](https://github.com/quarto-dev/quarto-cli/issues/10358)): Fix regression with captioned floats where `caption_long` field might not exist.
+- ([#10395](https://github.com/quarto-dev/quarto-cli/issues/10395)): Fix issue with `quarto publish accounts` from Cliffy version upgrade.
 
 ## in previous releases
 
