@@ -1445,7 +1445,7 @@ function require(modname)
 end
 
 if os.getenv("QUARTO_LUACOV") ~= nil then
-   require("luacov")
+   luacov_runner = require("luacov")
 end
 
 -- resolves a path, providing either the original path
