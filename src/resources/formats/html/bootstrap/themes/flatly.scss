@@ -119,7 +119,26 @@ $btn-close-color:            $white !default;
 $btn-close-opacity:          .4 !default;
 $btn-close-hover-opacity:    1 !default;
 
+$mermaid-primary: #888 !default;
+// Quarto diagrams
 
+/* SCSS variables for mermaid diagrams
+
+   These are documented in quarto-cli/quarto-web:docs/authoring/_mermaid-theming.qmd
+
+   Make sure to update the docs if you change these. */
+   $mermaid-bg-color: #fff !default;
+   $mermaid-edge-color: darken($secondary, 20%) !default;
+   $mermaid-node-fg-color: $mermaid-primary !default;
+   $mermaid-fg-color: $mermaid-primary !default;
+   $mermaid-fg-color--lighter: lighten($mermaid-primary, 10%) !default;
+   $mermaid-fg-color--lightest: lighten($mermaid-primary, 20%) !default;
+   $mermaid-font-family: sans-serif !default;
+   $mermaid-label-bg-color: #fff !default;
+   $mermaid-label-fg-color: $primary !default;
+   $mermaid-node-bg-color: rgba($primary, 0.1) !default;
+   $mermaid-node-fg-color: $primary !default;
+   
 
 /*-- scss:rules --*/
 
