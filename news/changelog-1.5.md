@@ -2,15 +2,14 @@
 
 ## in this release
 
-- ([#10358](https://github.com/quarto-dev/quarto-cli/issues/10358)): Fix regression with captioned floats where `caption_long` field might not exist.
-- ([#10395](https://github.com/quarto-dev/quarto-cli/issues/10395)): Fix issue with `quarto publish accounts` from Cliffy version upgrade.
-
 ## in previous releases
 
-- ([#10196](https://github.com/quarto-dev/quarto-cli/issues/10196)): protect against nil values in `float.caption_long`.
-- ([#10295](https://github.com/quarto-dev/quarto-cli/issues/10295)): Fix regression to return error status to shell when `CommandError` is thrown.
 - ([#10039](https://github.com/quarto-dev/quarto-cli/issues/10039)): `quarto inspect` properly handles `!expr` tag in metadata.
 - ([#10188](https://github.com/quarto-dev/quarto-cli/issues/10188)): `quarto inspect` properly resolves includes across subdirectory boundaries.
+- ([#10196](https://github.com/quarto-dev/quarto-cli/issues/10196)): protect against nil values in `float.caption_long`.
+- ([#10295](https://github.com/quarto-dev/quarto-cli/issues/10295)): Fix regression to return error status to shell when `CommandError` is thrown.
+- ([#10358](https://github.com/quarto-dev/quarto-cli/issues/10358)): Fix regression with captioned floats where `caption_long` field might not exist.
+- ([#10395](https://github.com/quarto-dev/quarto-cli/issues/10395)): Fix issue with `quarto publish accounts` from Cliffy version upgrade.
 
 # v1.5 changes
 
