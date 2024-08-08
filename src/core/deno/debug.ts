@@ -81,8 +81,11 @@ export const getStackAsArray = (
           col: m1[4] + (m1[1] ? 6 : 0),
         };
       }
-      // other stack entry? (with parentheses)
-      const m2 = s.match(/^.*at (async )?(.*) \((src\/.+):(\d+):(\d+)\)$/);
+      // other stack entry
+      // (with parentheses)
+      const m2 = s.match(/^.*at (async )?(.*) \((src\/.+):(\d+):(\d+)\)$/) ||
+        // without parentheses - async and name will be empty
+        s.match(/^.*at (async )?(.*)(src\/.+):(\d+):(\d+)$/);
       if (m2) {
         return {
           pos: m2[3],
