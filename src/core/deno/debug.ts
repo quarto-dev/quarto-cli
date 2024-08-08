@@ -83,8 +83,8 @@ export const getStackAsArray = (
       }
       // other stack entry
       // (with parentheses)
-      let m2 = s.match(/^.*at (async )?(.*) \((src\/.+):(\d+):(\d+)\)$/) ||
-        // without parentheses - name and async will be empty
+      const m2 = s.match(/^.*at (async )?(.*) \((src\/.+):(\d+):(\d+)\)$/) ||
+        // without parentheses - async and name will be empty
         s.match(/^.*at (async )?(.*)(src\/.+):(\d+):(\d+)$/);
       if (m2) {
         return {
