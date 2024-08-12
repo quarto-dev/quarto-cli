@@ -18999,7 +18999,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-doc"
             ]
           },
-          description: "Setting this to false prevents the `repo-actions` from appearing on this page."
+          description: "Setting this to false prevents the `repo-actions` from appearing on this page.\nPossible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
         },
         {
           name: "aliases",
@@ -21374,6 +21374,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "The color used for errors, dangerous actions, or negative\ninformation.",
         "A bright color, used as a high-contrast foreground color on dark\nelements or low-contrast background color on light elements.",
         "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
+        "A color used to emphasize or highlight text or elements.",
+        "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
         "A color, which may be a named brand color.",
         "A named brand color, taken either from <code>color.theme</code> or\n<code>color.palette</code> (in that order).",
         "Typography definitions for the brand.",
@@ -23678,12 +23680,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 187413,
+        _internalId: 187423,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 187405,
+            _internalId: 187415,
             type: "enum",
             enum: [
               "png",
@@ -23699,7 +23701,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 187412,
+            _internalId: 187422,
             type: "anyOf",
             anyOf: [
               {
