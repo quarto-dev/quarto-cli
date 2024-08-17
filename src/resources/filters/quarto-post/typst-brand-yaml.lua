@@ -42,16 +42,15 @@ function render_typst_brand_yaml()
       if brand and brand.processedData and brand.processedData.color and next(brand.processedData.color) then
         local brandColor = brand.processedData.color
         local colors = {}
-        for name, color in pairs(brandColor) do
-          colors[name] = output_typst_color(parse_css_color(color))
+        for name, _ in pairs(brandColor) do
+          colors[name] = _quarto.modules.brand.get_color(name)
         end
         local decl = '#let brand-color = ' .. to_typst_dict_indent(colors)
         quarto.doc.include_text('in-header', decl)
         local BACKGROUND_OPACITY = 0.1
         local themebk = {}
-        for name, color in pairs(brandColor) do
-          themebk[name] = output_typst_color(parse_css_color(color),
-            {unit = 'fraction', value = BACKGROUND_OPACITY})
+        for name, _ in pairs(brandColor) do
+          themebk[name] = _quarto.modules.brand.get_background_color(name)
         end
         -- for demo purposes only, should implement backgroundcolor and fontcolor
         if brandColor.background then
@@ -60,7 +59,7 @@ function render_typst_brand_yaml()
         if brandColor.foreground then
           quarto.doc.include_text('in-header', '#set text(fill: brand-color.foreground)')
         end
-        local decl = '// theme colors at opacity ' .. BACKGROUND_OPACITY .. '\n#let brand-color-background = ' .. to_typst_dict_indent(themebk)
+        local decl = '// theme colors at opacity ' .. _quarto.modules.brand.BACKGROUND_OPACITY .. '\n#let brand-color-background = ' .. to_typst_dict_indent(themebk)
         quarto.doc.include_text('in-header', decl)
       end
     end,
