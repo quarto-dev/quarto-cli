@@ -25,11 +25,23 @@ function use_cell_filter()
       })
       doc.blocks = _quarto.ast.walk(doc.blocks, {
         Div = function(el)
-          if not ids_used[el.attr.identifier] then
+          if ids_used[el.attr.identifier] then
+            divs[el.attr.identifier] = el
+            return {}
+          end
+          -- remove 'cell-' from identifier, try again
+          local truncated_id = el.attr.identifier:match("^cell%-(.+)$")
+          if ids_used[truncated_id] then
+            divs[truncated_id] = el
+            -- FIXME: this is a workaround for the fact that we don't have a way to
+            --        distinguish between divs that appear as the output of code cells
+            --        (which have a different id creation mechanism)
+            --        and "regular" divs.
+            --        We need to fix https://github.com/quarto-dev/quarto-cli/issues/7062 first.
+            return {}
+          else
             return nil
           end
-          divs[el.attr.identifier] = el
-          return {}
         end,
         Span = function(el)
           if not ids_used[el.attr.identifier] then
@@ -45,7 +57,7 @@ function use_cell_filter()
           return nil
         end
         local raw = quarto.utils.match("[1]/RawInline")(el)
-        if raw == nil then
+        if not raw then
           return nil
         end
         local result, data = pcall(function() 
