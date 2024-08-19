@@ -111,6 +111,7 @@ import("../quarto-pre/table-captions.lua")
 import("../quarto-pre/table-colwidth.lua")
 import("../quarto-pre/table-rawhtml.lua")
 import("../quarto-pre/theorems.lua")
+import("../quarto-pre/usecell.lua")
 
 import("../customnodes/latexenv.lua")
 import("../customnodes/latexcmd.lua")

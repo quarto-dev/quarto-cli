@@ -104,6 +104,17 @@ function initShortcodeHandlers()
     end)
   end
 
+  local function handle_use_cell(args)
+    local data = {
+      type = "use-cell",
+      payload = {
+        id = read_arg(args)
+      }
+    }
+    flags.has_use_cell = true
+    return { pandoc.RawInline('quarto-internal', quarto.json.encode(data)) }
+  end
+
   local function handle_brand(args)
     local brand = require("modules/brand/brand")
     local brandCommand = read_arg(args, 1)
@@ -127,6 +138,7 @@ function initShortcodeHandlers()
   handlers['env'] = { handle = handleEnv }
   handlers['pagebreak'] = { handle = handlePagebreak }
   handlers['brand'] = { handle = handle_brand }
+  handlers['use-cell'] = { handle = handle_use_cell }
 end
 
 function handlerForShortcode(shortCode)

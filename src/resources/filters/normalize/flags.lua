@@ -135,7 +135,19 @@ function compute_flags()
       end
     end,
     RawInline = function(el)
-      if el.text:find("%{%{%<") then
+      if el.format == "quarto-internal" then
+        local result, data = pcall(function() 
+          local data = quarto.json.decode(el.text)
+          return data.type
+        end)
+        if result == false then
+          warn("[Malformed document] Failed to decode quarto-internal JSON: " .. el.text)
+          return
+        end
+        if data == "use-cell" then
+          flags.has_use_cell = true
+        end
+      elseif el.text:find("%{%{%<") then
         flags.has_shortcodes = true
       end
     end,

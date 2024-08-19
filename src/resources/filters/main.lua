@@ -163,6 +163,7 @@ import("./quarto-pre/table-captions.lua")
 import("./quarto-pre/table-colwidth.lua")
 import("./quarto-pre/table-rawhtml.lua")
 import("./quarto-pre/theorems.lua")
+import("./quarto-pre/usecell.lua")
 
 import("./customnodes/panellayout.lua")
 
@@ -261,6 +262,10 @@ local quarto_pre_filters = {
   { name = "pre-shortcodes-filter", 
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
+
+  { name = "pre-use-cell-filter",
+    filter = use_cell_filter(),
+    flags = { "has_use_cell" } },
 
   { name = "pre-combined-hidden",
     filter = combineFilters({
