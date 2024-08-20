@@ -144,8 +144,8 @@ function compute_flags()
           warn("[Malformed document] Failed to decode quarto-internal JSON: " .. el.text)
           return
         end
-        if data == "use-cell" then
-          flags.has_use_cell = true
+        if data == "contents-shortcode" then
+          flags.has_contents_shortcode = true
         end
       elseif el.text:find("%{%{%<") then
         flags.has_shortcodes = true

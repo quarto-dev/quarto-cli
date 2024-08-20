@@ -33,7 +33,7 @@ Another paragraph.
 
 
 
-{{< use-cell my-id >}}
+{{< contents my-id >}}
 
 
 

@@ -104,14 +104,14 @@ function initShortcodeHandlers()
     end)
   end
 
-  local function handle_use_cell(args)
+  local function handle_contents(args)
     local data = {
-      type = "use-cell",
+      type = "contents-shortcode",
       payload = {
         id = read_arg(args)
       }
     }
-    flags.has_use_cell = true
+    flags.has_contents_shortcode = true
     return { pandoc.RawInline('quarto-internal', quarto.json.encode(data)) }
   end
 
@@ -138,7 +138,7 @@ function initShortcodeHandlers()
   handlers['env'] = { handle = handleEnv }
   handlers['pagebreak'] = { handle = handlePagebreak }
   handlers['brand'] = { handle = handle_brand }
-  handlers['use-cell'] = { handle = handle_use_cell }
+  handlers['contents'] = { handle = handle_contents }
 end
 
 function handlerForShortcode(shortCode)

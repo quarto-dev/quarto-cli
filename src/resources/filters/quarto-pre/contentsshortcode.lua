@@ -1,7 +1,7 @@
--- usecell.lua
+-- contentsshortcode.lua
 -- Copyright (C) 2020-2024 Posit Software, PBC
 
-function use_cell_filter()
+function contents_shortcode_filter()
   local ids_used = {}
   local divs = {}
   local spans = {}
@@ -15,7 +15,7 @@ function use_cell_filter()
           end
           if not pcall(function() 
             local data = quarto.json.decode(el.text)
-            if data.type == "use-cell" then
+            if data.type == "contents-shortcode" then
               ids_used[data.payload.id] = true
             end
           end) then
@@ -62,7 +62,7 @@ function use_cell_filter()
         end
         local result, data = pcall(function() 
           local data = quarto.json.decode(raw.text)
-          if data.type == "use-cell" then
+          if data.type == "contents-shortcode" then
             return data.payload.id
           end
           return false
@@ -77,19 +77,19 @@ function use_cell_filter()
         local div = divs[data]
         if div == nil then
           warn(
-            "[Malformed document] Found `use-cell` without a corresponding div with id: " .. tostring(data) .. ".\n" ..
-            "This might happen because this `use-cell` is used in div context, while the id corresponds to a span.\n" ..
+            "[Malformed document] Found `contents` shortcode without a corresponding div with id: " .. tostring(data) .. ".\n" ..
+            "This might happen because the shortcode is used in div context, while the id corresponds to a span.\n" ..
             "Removing from document.")
           return {}
         end
         return div
       end
-      -- replace div-context use-cells
+      -- replace div-context entries
       doc.blocks = _quarto.ast.walk(doc.blocks, {
         Para = handle_block,
         Plain = handle_block
       })
-      -- replace span-context use-cells
+      -- replace span-context entries
       doc.blocks = _quarto.ast.walk(doc.blocks, {
         RawInline = function(el)
           if el.format ~= "quarto-internal" then
@@ -97,7 +97,7 @@ function use_cell_filter()
           end
           local result, data = pcall(function() 
             local data = quarto.json.decode(el.text)
-            if data.type == "use-cell" then
+            if data.type == "contents-shortcode" then
               return spans[data.payload.id]
             end
           end)
@@ -107,8 +107,8 @@ function use_cell_filter()
           end
           if data == nil then
             warn(
-              "[Malformed document] Found `use-cell` without a corresponding span with id: " .. el.text .. ".\n" ..
-              "This might happen because this `use-cell` is used in span context, while the id corresponds to a div.\n" ..
+              "[Malformed document] Found `contents` shortcode without a corresponding span with id: " .. el.text .. ".\n" ..
+              "This might happen because this shortcode is used in span context, while the id corresponds to a div.\n" ..
               "Removing from document.")
             return {}
           end

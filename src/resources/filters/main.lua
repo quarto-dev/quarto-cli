@@ -137,6 +137,7 @@ import("./quarto-pre/book-links.lua")
 import("./quarto-pre/book-numbering.lua")
 import("./quarto-pre/code-annotation.lua")
 import("./quarto-pre/code-filename.lua")
+import("./quarto-pre/contentsshortcode.lua")
 import("./quarto-pre/engine-escape.lua")
 import("./quarto-pre/figures.lua")
 import("./quarto-pre/hidden.lua")
@@ -163,7 +164,6 @@ import("./quarto-pre/table-captions.lua")
 import("./quarto-pre/table-colwidth.lua")
 import("./quarto-pre/table-rawhtml.lua")
 import("./quarto-pre/theorems.lua")
-import("./quarto-pre/usecell.lua")
 
 import("./customnodes/panellayout.lua")
 
@@ -263,9 +263,9 @@ local quarto_pre_filters = {
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
 
-  { name = "pre-use-cell-filter",
-    filter = use_cell_filter(),
-    flags = { "has_use_cell" } },
+  { name = "pre-contents-shortcode-filter",
+    filter = contents_shortcode_filter(),
+    flags = { "has_contents_shortcode" } },
 
   { name = "pre-combined-hidden",
     filter = combineFilters({
