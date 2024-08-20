@@ -137,6 +137,7 @@ import("./quarto-pre/book-links.lua")
 import("./quarto-pre/book-numbering.lua")
 import("./quarto-pre/code-annotation.lua")
 import("./quarto-pre/code-filename.lua")
+import("./quarto-pre/contentsshortcode.lua")
 import("./quarto-pre/engine-escape.lua")
 import("./quarto-pre/figures.lua")
 import("./quarto-pre/hidden.lua")
@@ -261,6 +262,10 @@ local quarto_pre_filters = {
   { name = "pre-shortcodes-filter", 
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
+
+  { name = "pre-contents-shortcode-filter",
+    filter = contents_shortcode_filter(),
+    flags = { "has_contents_shortcode" } },
 
   { name = "pre-combined-hidden",
     filter = combineFilters({

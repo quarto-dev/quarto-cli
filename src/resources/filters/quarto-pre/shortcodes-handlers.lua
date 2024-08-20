@@ -104,6 +104,17 @@ function initShortcodeHandlers()
     end)
   end
 
+  local function handle_contents(args)
+    local data = {
+      type = "contents-shortcode",
+      payload = {
+        id = read_arg(args)
+      }
+    }
+    flags.has_contents_shortcode = true
+    return { pandoc.RawInline('quarto-internal', quarto.json.encode(data)) }
+  end
+
   local function handle_brand(args)
     local brand = require("modules/brand/brand")
     local brandCommand = read_arg(args, 1)
@@ -127,6 +138,7 @@ function initShortcodeHandlers()
   handlers['env'] = { handle = handleEnv }
   handlers['pagebreak'] = { handle = handlePagebreak }
   handlers['brand'] = { handle = handle_brand }
+  handlers['contents'] = { handle = handle_contents }
 end
 
 function handlerForShortcode(shortCode)
