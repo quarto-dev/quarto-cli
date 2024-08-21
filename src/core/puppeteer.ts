@@ -206,9 +206,7 @@ async function findChrome(): Promise<string | undefined> {
       "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
       "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
     ];
-    return programs.find((p) => {
-      safeExistsSync(p);
-    });
+    return programs.find(safeExistsSync);
   } else if (Deno.build.os === "windows") {
     // Try the HKLM key
     const programs = ["chrome.exe", "msedge.exe"];
