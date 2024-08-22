@@ -85,6 +85,7 @@ import("./quarto-post/html.lua")
 import("./quarto-post/dashboard.lua")
 import("./quarto-post/email.lua")
 import("./quarto-post/pptx.lua")
+import("./quarto-post/landscape.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -332,6 +333,10 @@ local quarto_post_filters = {
       indexCites(),
       bibliography()
     })
+  },
+  { name = "post-landscape-div", 
+    filter = landscape_div(),
+    flags = { "has_landscape" }
   },
   { name = "post-ipynb", filters = ipynb()},
   { name = "post-figureCleanupCombined", filter = combineFilters({

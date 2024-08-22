@@ -92,6 +92,10 @@ function compute_flags()
         flags.has_lightbox = true
       end
 
+      if node.attr.classes:find("landscape") then
+        flags.has_landscape = true
+      end
+
       if node.attr.classes:find("hidden") then
         flags.has_hidden = true
       end
