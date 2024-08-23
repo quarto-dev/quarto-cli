@@ -1,0 +1,82 @@
+---
+title: SASS
+theme: flatly
+echo: false
+---
+
+```{ojs}
+import { getSassAst } from "./parse-web.ts";
+import { cleanSassAst } from "./clean-ast.ts";
+import { propagateDeclarationTypes } from "./declaration-types.ts";
+import { getVariableDependencies } from "./get-dependencies.ts";
+
+viewof sourceFile = Inputs.file({label: "SCSS file"})
+source = {
+  if (sourceFile === null) {
+    return `
+$var1: #ff0000 !default;
+$var2: darken($var1, 20%) !default;
+`;
+  } else {
+    return sourceFile.text();
+  }
+}
+deps = {
+  let ast = cleanSassAst(await getSassAst(source));
+  ast = propagateDeclarationTypes(ast); 
+  return getVariableDependencies(ast);
+}
+
+selectedDependency = {
+  const dep = deps.get(varName)
+  if (dep === undefined) {
+    return [];
+  }
+  const chains = [];
+  const buildChain = (dep, lst) => {
+    debugger;
+    if (lst === undefined) {
+      lst = [];
+    }
+    if (dep === undefined) { return; }
+    lst.push(dep.node.property.variable.value);
+    if (dep.dependencies.size === 0) {
+      chains.push([...lst]);
+    } else {
+      for (const subdep of dep.dependencies) {
+        buildChain(deps.get(subdep), lst);
+      }
+    }
+    lst.pop();
+  }
+  buildChain(dep);
+  return chains;
+}
+```
+
+```{ojs}
+viewof varName = Inputs.text({"label": "Variable"})
+renderedDependency = {
+  const result = htl.html`<div></div>`;
+  const seenDependencies = new Set([]);
+  const renderChain = (chain) => {
+    const result = htl.html`<div></div>`;
+    let i = 0;
+    for (let i = 0; i < chain.length; ++i) {
+      const element = chain[i];
+      const opacity = seenDependencies.has(element) ? 0.2 : 1.0;
+      seenDependencies.add(element);
+      if (i > 0) {
+        result.appendChild(htl.html`<span style="opacity: ${opacity}"> → </span>`);
+      }
+      result.appendChild(htl.html`<span style="opacity: ${opacity}">${element}</span>`);
+    }
+    return result;
+  }
+
+  for (const chain of selectedDependency) {
+    result.appendChild(renderChain(chain));
+  }
+  return result;
+}
+```

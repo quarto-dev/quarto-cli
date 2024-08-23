@@ -41,6 +41,7 @@ export function outputVariable(
   return `$${variable.name}: ${variable.value}${isDefault ? " !default" : ""};`;
 }
 
+let counter: number = 1;
 export async function compileSass(
   bundles: SassBundleLayers[],
   temp: TempContext,
@@ -102,22 +103,43 @@ export async function compileSass(
   // * Rules may use functions, variables, and mixins
   //   (theme follows framework so it can override the framework rules)
   const scssInput = [
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...frameWorkUses,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...quartoUses,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...userUses,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...frameworkFunctions,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...quartoFunctions,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...userFunctions,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...userDefaults.reverse(),
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...quartoDefaults.reverse(),
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...frameworkDefaults.reverse(),
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...frameworkMixins,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...quartoMixins,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...userMixins,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...frameworkRules,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...quartoRules,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...userRules,
+    '// quarto-scss-analysis-annotation { "origin": null }',
   ].join("\n\n");
+
+  if (Deno.env.get("QUARTO_SAVE_SCSS")) {
+    const prefix = Deno.env.get("QUARTO_SAVE_SCSS");
+    Deno.writeTextFileSync(`${prefix}-${counter++}.scss`, scssInput);
+  }
 
   // Compile the scss
   // Note that you can set this to undefined to bypass the cache entirely

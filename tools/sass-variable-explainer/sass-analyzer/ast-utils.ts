@@ -59,3 +59,11 @@ export const collect = (outer: any, cb: (v: any) => boolean): any[] => {
   });
   return results;
 }
+
+export const annotateNode = (node: any, annotation: Record<string, unknown>) => {
+  if (!node.annotation) {
+    node.annotation = {};
+  }
+  Object.assign(node.annotation, annotation);
+  return node;
+}

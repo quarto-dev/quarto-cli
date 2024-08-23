@@ -1,5 +1,6 @@
 ---
 title: Explain my SCSS variables pls ok thx
+keep-ipynb: true
 ---
 
 ````{python}
@@ -10,10 +11,10 @@ import subprocess
 import json
 import tempfile
 
-filename = "quarto-1.scss"
+filename = "hello-1.scss"
 
 output = subprocess.run(
-  ["deno", "run", "--allow-all", "sass-analyze.ts", filename], 
+  ["deno", "run", "--allow-all", "print-dependency-graph.ts", filename], 
   capture_output = True).stdout.decode('utf-8')
 
 print(output)
