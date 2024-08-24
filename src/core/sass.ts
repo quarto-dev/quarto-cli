@@ -16,6 +16,7 @@ import { dartCompile } from "./dart-sass.ts";
 import * as ld from "./lodash.ts";
 import { lines } from "./text.ts";
 import { sassCache } from "./sass/cache.ts";
+import { cssVarsBlock } from "./sass/add-css-vars.ts";
 
 export interface SassVariable {
   name: string;
@@ -136,23 +137,50 @@ export async function compileSass(
     '// quarto-scss-analysis-annotation { "origin": null }',
   ].join("\n\n");
 
-  if (Deno.env.get("QUARTO_SAVE_SCSS")) {
-    const prefix = Deno.env.get("QUARTO_SAVE_SCSS");
-    Deno.writeTextFileSync(`${prefix}-${counter++}.scss`, scssInput);
-  }
-
   // Compile the scss
   // Note that you can set this to undefined to bypass the cache entirely
   const cacheKey = bundles.map((bundle) => bundle.key).join("|") + "-" +
     (minified ? "min" : "nomin");
 
-  return await compileWithCache(
+  if (Deno.env.get("QUARTO_SAVE_SCSS")) {
+    const debugResult = await compileWithCache(
+      scssInput + "\n" + cssVarsBlock(scssInput),
+      loadPaths,
+      temp,
+      minified,
+      cacheKey,
+    );
+    const debugOutput = Deno.readTextFileSync(debugResult);
+
+    // now we attempt to find the quarto-internal variables in the output
+    // and inject them in the SCSS so that our debug tooling can use them.
+    const internalVars = Array.from(
+      debugOutput.matchAll(/(:root{(?:--quarto-internal-[^;}]+;?)+})/g),
+    );
+    let scssToWrite = scssInput;
+    for (const internalVar of internalVars) {
+      // we know that the output from the sass compiler
+      // makes our scss parser unhappy, so we patch it here
+      scssToWrite += "\n" + internalVar[0].replace(/}$/, ";}\n");
+    }
+
+    const prefix = Deno.env.get("QUARTO_SAVE_SCSS");
+    const counterValue = counter++;
+    Deno.writeTextFileSync(
+      `${prefix}-${counterValue}.scss`,
+      scssToWrite,
+    );
+  }
+
+  const result = await compileWithCache(
     scssInput,
     loadPaths,
     temp,
     minified,
     cacheKey,
   );
+
+  return result;
 }
 
 /*-- scss:uses --*/

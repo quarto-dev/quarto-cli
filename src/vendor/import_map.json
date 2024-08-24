@@ -66,6 +66,7 @@
     "path/mod.ts": "./deno.land/std@0.217.0/path/mod.ts",
     "async/mod.ts": "./deno.land/std@0.217.0/async/mod.ts",
     "dotenv/mod.ts": "./deno.land/std@0.217.0/dotenv/mod.ts",
+    "scss-parser": "./cdn.skypack.dev/scss-parser@1.0.6.js",
     "fmt/printf.ts": "./deno.land/std@0.217.0/fmt/printf.ts",
     "yaml/schema.ts": "./deno.land/std@0.217.0/yaml/schema.ts",
     "yaml/type.ts": "./deno.land/std@0.217.0/yaml/type.ts",
@@ -194,6 +195,7 @@
       "/-/mensch@v0.3.4-bYdFVPGjq4ZCCd5bQOiD/dist=es2019,mode=imports/optimized/mensch.js": "./cdn.skypack.dev/-/mensch@v0.3.4-bYdFVPGjq4ZCCd5bQOiD/dist=es2019,mode=imports/optimized/mensch.js",
       "/-/slick@v1.12.2-aV7vJdJVxGxCoP6YSykY/dist=es2019,mode=imports/unoptimized/parser.js": "./cdn.skypack.dev/-/slick@v1.12.2-aV7vJdJVxGxCoP6YSykY/dist=es2019,mode=imports/unoptimized/parser.js",
       "/-/entities@v4.3.0-V4vIlnoYfSBRg1gj9BOL/dist=es2019,mode=imports/optimized/entities/lib/escape.js": "./cdn.skypack.dev/-/entities@v4.3.0-V4vIlnoYfSBRg1gj9BOL/dist=es2019,mode=imports/optimized/entities/lib/escape.js",
+      "/-/invariant@v2.2.4-dATvH51LFSHlzMqhAQS8/dist=es2019,mode=imports/optimized/invariant.js": "./cdn.skypack.dev/-/invariant@v2.2.4-dATvH51LFSHlzMqhAQS8/dist=es2019,mode=imports/optimized/invariant.js",
       "/-/whynot@v5.0.0-TIWeI93neceQKiPCfmA6/dist=es2019,mode=imports/optimized/whynot.js": "./cdn.skypack.dev/-/whynot@v5.0.0-TIWeI93neceQKiPCfmA6/dist=es2019,mode=imports/optimized/whynot.js",
       "/-/@observablehq/parser@v4.5.0-rWZiNfab8flhVomtfVvr/dist=es2019,mode=imports/optimized/@observablehq/parser.js": "./cdn.skypack.dev/-/@observablehq/parser@v4.5.0-rWZiNfab8flhVomtfVvr/dist=es2019,mode=imports/optimized/@observablehq/parser.js",
       "/-/acorn-class-fields@v1.0.0-VEggkLxq9gMrdwRuKkzZ/dist=es2019,mode=imports/optimized/acorn-class-fields.js": "./cdn.skypack.dev/-/acorn-class-fields@v1.0.0-VEggkLxq9gMrdwRuKkzZ/dist=es2019,mode=imports/optimized/acorn-class-fields.js",
@@ -221,6 +223,7 @@
       "/-/lodash@v4.17.21-K6GEbP02mWFnLA45zAmi/dist=es2019,mode=imports/unoptimized/uniq.js": "./cdn.skypack.dev/-/lodash@v4.17.21-K6GEbP02mWFnLA45zAmi/dist=es2019,mode=imports/unoptimized/uniq.js",
       "/-/lodash@v4.17.21-K6GEbP02mWFnLA45zAmi/dist=es2019,mode=imports/unoptimized/uniqBy.js": "./cdn.skypack.dev/-/lodash@v4.17.21-K6GEbP02mWFnLA45zAmi/dist=es2019,mode=imports/unoptimized/uniqBy.js",
       "/-/moment-guess@v1.2.4-bDXl7KQy0hLGNuGhyGb4/dist=es2019,mode=imports/optimized/moment-guess.js": "./cdn.skypack.dev/-/moment-guess@v1.2.4-bDXl7KQy0hLGNuGhyGb4/dist=es2019,mode=imports/optimized/moment-guess.js",
+      "/-/scss-parser@v1.0.6-hrwwdU1eImlkqs8SqYeB/dist=es2019,mode=imports/optimized/scss-parser.js": "./cdn.skypack.dev/-/scss-parser@v1.0.6-hrwwdU1eImlkqs8SqYeB/dist=es2019,mode=imports/optimized/scss-parser.js",
       "/-/slimdom@v4.2.0-QzuHPU3P67qdOzczKt6u/dist=es2019,mode=imports/optimized/slimdom.js": "./cdn.skypack.dev/-/slimdom@v4.2.0-QzuHPU3P67qdOzczKt6u/dist=es2019,mode=imports/optimized/slimdom.js"
     }
   }
