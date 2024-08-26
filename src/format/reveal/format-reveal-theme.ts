@@ -194,7 +194,6 @@ export async function revealTheme(
     join(revealDestDir, "dist", "theme", `${fileName}.css`),
   );
   metadata[kTheme] = fileName;
-  console.log({ fileName });
 
   const highlightingMode: "light" | "dark" =
     cssHasDarkModeSentinel(Deno.readTextFileSync(css)) ? "dark" : "light";
