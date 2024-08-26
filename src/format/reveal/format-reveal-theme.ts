@@ -40,7 +40,7 @@ import { cssHasDarkModeSentinel } from "../../core/pandoc/css.ts";
 import { pandocNativeStr } from "../../core/pandoc/codegen.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { brandRevealSassBundleLayers } from "../../core/sass/brand.ts";
-import { md5Hash, md5HashBytes } from "../../core/hash.ts";
+import { md5HashBytes } from "../../core/hash.ts";
 
 export const kRevealLightThemes = [
   "white",
@@ -187,7 +187,7 @@ export async function revealTheme(
   // compile sass
   const css = await compileSass([bundleLayers, ...brandLayers], temp);
   // convert from string to bytes
-  const hash = md5Hash(Deno.readTextFileSync(css));
+  const hash = md5HashBytes(Deno.readFileSync(css));
   const fileName = `quarto-${hash}`;
   copyTo(
     css,
