@@ -193,7 +193,7 @@ export async function filterParamsJson(
     [kIsShinyPython]: isShinyPython,
     [kShinyPythonExec]: isShinyPython ? await pythonExec() : undefined,
     [kExecutionEngine]: options.executionEngine,
-    [kBrand]: options.project.resolveBrand(options.source),
+    [kBrand]: await options.project.resolveBrand(options.source),
   };
   return JSON.stringify(params);
 }
