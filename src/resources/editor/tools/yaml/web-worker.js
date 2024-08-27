@@ -11883,49 +11883,83 @@ try {
           {
             id: "brand-logo",
             description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
+            object: {
+              closed: true,
+              properties: {
+                with: {
+                  schema: {
+                    object: {
+                      additionalProperties: {
+                        schema: {
+                          ref: "brand-string-light-dark"
+                        }
+                      }
+                    }
+                  }
+                },
+                small: {
+                  description: "A link or path to the brand's small-sized logo or icon, or a link or path to both the light and dark versions.\n",
+                  schema: {
+                    ref: "brand-string-light-dark"
+                  }
+                },
+                medium: {
+                  description: "A link or path to the brand's medium-sized logo, or a link or path to both the light and dark versions.\n",
+                  schema: {
+                    ref: "brand-string-light-dark"
+                  }
+                },
+                large: {
+                  description: "A link or path to the brand's large- or full-sized logo, or a link or path to both the light and dark versions.\n",
+                  schema: {
+                    ref: "brand-string-light-dark"
+                  }
+                }
+              }
+            }
+          },
+          {
+            id: "brand-named-logo",
+            description: "Names of customizeable logos",
+            enum: [
+              "small",
+              "medium",
+              "large"
+            ]
+          },
+          {
+            id: "brand-color-value",
+            schema: "string"
+          },
+          {
+            id: "logo-string-layout",
+            description: "Source path or source path with layout options for logo",
             anyOf: [
               "string",
               {
                 object: {
                   closed: true,
                   properties: {
-                    with: {
-                      schema: {
-                        object: {
-                          additionalProperties: {
-                            schema: {
-                              ref: "brand-string-light-dark"
-                            }
-                          }
-                        }
-                      }
+                    location: {
+                      schema: "string",
+                      description: "X-Y positioning of logo\n"
                     },
-                    small: {
-                      description: "A link or path to the brand's small-sized logo or icon, or a link or path to both the light and dark versions.\n",
-                      schema: {
-                        ref: "brand-string-light-dark"
-                      }
+                    padding: {
+                      schema: "string",
+                      description: "Padding of logo\n"
                     },
-                    medium: {
-                      description: "A link or path to the brand's medium-sized logo, or a link or path to both the light and dark versions.\n",
-                      schema: {
-                        ref: "brand-string-light-dark"
-                      }
+                    width: {
+                      schema: "string",
+                      description: "Width of logo\n"
                     },
-                    large: {
-                      description: "A link or path to the brand's large- or full-sized logo, or a link or path to both the light and dark versions.\n",
-                      schema: {
-                        ref: "brand-string-light-dark"
-                      }
+                    src: {
+                      schema: "path",
+                      description: "Source path of logo\n"
                     }
                   }
                 }
               }
             ]
-          },
-          {
-            id: "brand-color-value",
-            schema: "string"
           },
           {
             id: "brand-color",
@@ -17497,10 +17531,13 @@ try {
             name: "logo",
             tags: {
               formats: [
-                "revealjs"
+                "revealjs",
+                "typst"
               ]
             },
-            schema: "path",
+            schema: {
+              ref: "logo-string-layout"
+            },
             description: "Logo image (placed in bottom right corner of slides)"
           },
           {
@@ -21422,6 +21459,12 @@ try {
           "A link or path to the brand\u2019s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
           "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
           "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
+          "Names of customizeable logos",
+          "Source path or source path with layout options for logo",
+          "X-Y positioning of logo",
+          "Padding of logo",
+          "Width of logo",
+          "Source path of logo",
           "The brand\u2019s custom color palette and theme.",
           "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
           "The foreground color, used for text.",
@@ -21447,18 +21490,24 @@ try {
           "The text properties used for emphasized (or emboldened) text.",
           "The text properties used for hyperlinks.",
           "Typographic options.",
+          "Resolved local paths.",
+          "Names of customizeable fonts",
           "Typographic options without a font size.",
+          "Font files and definitions for the brand.",
           "Font files and definitions for the brand.",
           "A font weight.",
           "A font style.",
           "A Google Font definition.",
           "The font family name, which must match the name of the font on Google\nFonts.",
           "The font weights to include.",
-          "The font style to include.",
+          "The font styles to include.",
           "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
           "A method for providing font files directly, either locally or from an\nonline location.",
           "The font family name.",
           "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
+          "The font weights to include.",
+          "The font styles to include.",
+          "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
           "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
           {
             short: "Unique label for code cell",
@@ -23512,9 +23561,7 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack",
-          "Names of customizeable fonts",
-          "Font files and definitions for the brand."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -23743,12 +23790,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 187454,
+          _internalId: 187597,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 187446,
+              _internalId: 187589,
               type: "enum",
               enum: [
                 "png",
@@ -23764,7 +23811,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 187453,
+              _internalId: 187596,
               type: "anyOf",
               anyOf: [
                 {

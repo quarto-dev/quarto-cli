@@ -1,7 +1,8 @@
 - name: logo
   tags:
-    formats: [revealjs]
-  schema: path
+    formats: [revealjs, typst]
+  schema:
+    ref: logo-string-layout
   description: "Logo image (placed in bottom right corner of slides)"
 
 - name: footer

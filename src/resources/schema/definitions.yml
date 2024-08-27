@@ -2518,38 +2518,64 @@
 - id: brand-logo
   description: >
     Provide definitions and defaults for brand's logo in various formats and sizes.
+  object:
+    closed: true
+    properties:
+      with:
+        schema:
+          object:
+            additionalProperties:
+              schema:
+                ref: brand-string-light-dark
+      small:
+        description: >
+          A link or path to the brand's small-sized logo or icon, or a link or path
+          to both the light and dark versions.
+        schema:
+          ref: brand-string-light-dark
+      medium:
+        description: >
+          A link or path to the brand's medium-sized logo, or a link or path
+          to both the light and dark versions.
+        schema:
+          ref: brand-string-light-dark
+      large:
+        description: >
+          A link or path to the brand's large- or full-sized logo, or a link or path
+          to both the light and dark versions.
+        schema:
+          ref: brand-string-light-dark
+
+- id: brand-named-logo
+  description: Names of customizeable logos
+  enum: [small, medium, large]
+
+- id: brand-color-value
+  schema: string
+
+- id: logo-string-layout
+  description: Source path or source path with layout options for logo
   anyOf:
     - string
     - object:
         closed: true
         properties:
-          with:
-            schema:
-              object:
-                additionalProperties:
-                  schema:
-                    ref: brand-string-light-dark
-          small:
+          location:
+            schema: string
             description: >
-              A link or path to the brand's small-sized logo or icon, or a link or path
-              to both the light and dark versions.
-            schema:
-              ref: brand-string-light-dark
-          medium:
+              X-Y positioning of logo
+          padding:
+            schema: string
             description: >
-              A link or path to the brand's medium-sized logo, or a link or path
-              to both the light and dark versions.
-            schema:
-              ref: brand-string-light-dark
-          large:
+              Padding of logo
+          width:
+            schema: string
             description: >
-              A link or path to the brand's large- or full-sized logo, or a link or path
-              to both the light and dark versions.
-            schema:
-              ref: brand-string-light-dark
-
-- id: brand-color-value
-  schema: string
+              Width of logo
+          src:
+            schema: path
+            description: >
+              Source path of logo
 
 - id: brand-color
   description: >

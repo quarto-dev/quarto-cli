@@ -34,6 +34,27 @@ function render_typst_brand_yaml()
     return '(\n' .. inside .. table.concat(entries, ',\n' .. inside) .. '\n' .. curr .. ')'
   end
 
+  local horz_to_typst = {
+    left = "left",
+    center = "center",
+    right = "right",
+  }
+  local vert_to_typst = {
+    top = "top",
+    middle = "horizon",
+    bottom = "bottom",
+  }
+  
+  local function location_to_typst_align(location)
+    local _, ndash = location:gsub('-', '')
+    if ndash ~= 1 then return nil end
+    local horz, vert = location:match '(%a+)--(%a+)'
+    quarto.log.output('lota', horz, vert)
+    if not horz_to_typst[horz] or not vert_to_typst[vert] then return nil end
+    quarto.log.output('lota3', horz, vert)
+    return horz_to_typst[horz] .. '+' .. vert_to_typst[vert]
+  end  
+
   return {
     Pandoc = function(pandoc)
       local brand = param('brand')
@@ -73,6 +94,48 @@ function render_typst_brand_yaml()
             quarto.doc.include_text('in-header', '#show raw: set text(font: "' .. typography.monospace.family .. '")')
           end
         end
+
+        -- logo
+        local logo = param('logo')
+        local logoOptions = {}
+        local foundSrc = null
+         if logo then
+          if type(logo) == 'string' then
+            foundSrc = brand.processedData.logo and brand.processedData.logo[logo] or logo
+          elseif type(logo) == 'table' then
+            for k, v in pairs(logo) do
+              logoOptions[k] = v
+            end
+            if logo.src then
+              foundSrc =  brand.processedData.logo and brand.processedData.logo[logo.src] or logo.src
+            end
+          end
+        end
+        if not foundSrc and brand.processedData.logo then
+          local tries = {'large', 'small', 'medium'} -- low to high priority
+          for _, try in ipairs(tries) do
+            if brand.processedData.logo[try] then
+              foundSrc = brand.processedData.logo[try]
+            end
+          end
+        end
+        if foundSrc then
+          if type(foundSrc) == "string" then
+            logoOptions.src = foundSrc
+          elseif foundSrc.light then
+            logoOptions.src = foundSrc.light
+          elseif foundSrc.dark then
+            logoOptions.src = foundSrc.dark
+          end
+          -- todo: resolve logoOptions.src path
+          logoOptions.padding = logoOptions.padding or '0.5in'
+          logoOptions.width = logoOptions.width or '2in'
+          logoOptions.location = logoOptions.location and
+            location_to_typst_align(logoOptions.location) or 'left+top'
+          quarto.log.debug('logo options', logoOptions)
+          quarto.doc.include_text('in-header',
+            '#set page(background: align(' .. logoOptions.location .. ', box(inset: ' .. logoOptions.padding .. ', image("' .. logoOptions.src .. '", width: ' .. logoOptions.width .. '))))')
+        end  
       end
     end,
     Meta = function(meta)

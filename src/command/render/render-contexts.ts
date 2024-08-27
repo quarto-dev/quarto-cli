@@ -51,7 +51,6 @@ import {
   kOutputFile,
   kServer,
   kTargetFormat,
-  kTheme,
   kWarning,
 } from "../../config/constants.ts";
 import {
@@ -89,7 +88,6 @@ import {
 } from "../../core/pandoc/pandoc-formats.ts";
 import { ExtensionContext } from "../../extension/types.ts";
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
-import { Brand } from "../../resources/types/schema-types.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
@@ -600,7 +598,22 @@ async function resolveFormats(
     };
 
     // resolve brand in project and forward it to format
-    mergedFormats[format].render.brand = await project.resolveBrand();
+    const brand = await project.resolveBrand();
+    mergedFormats[format].render.brand = brand;
+
+    // apply defaults from brand yaml under the metadata of the current format
+    const brandFormatDefaults: Metadata =
+      (brand?.data?.defaults?.quarto as unknown as Record<
+        string,
+        Record<string, Metadata>
+      >)?.format
+        ?.[format as string];
+    if (brandFormatDefaults) {
+      mergedFormats[format].metadata = mergeConfigs(
+        brandFormatDefaults,
+        mergedFormats[format].metadata,
+      );
+    }
 
     // ensure that we have a valid forma
     const formatIsValid = isValidFormat(

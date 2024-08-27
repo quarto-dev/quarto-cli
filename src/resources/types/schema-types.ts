@@ -1282,14 +1282,26 @@ export type BrandMeta = {
 
 export type BrandStringLightDark = string | { dark?: string; light?: string };
 
-export type BrandLogo = string | {
+export type BrandLogo = {
   large?: BrandStringLightDark;
   medium?: BrandStringLightDark;
   small?: BrandStringLightDark;
   with?: SchemaObject;
 }; /* Provide definitions and defaults for brand's logo in various formats and sizes. */
 
+export type BrandNamedLogo =
+  | "small"
+  | "medium"
+  | "large"; /* Names of customizeable logos */
+
 export type BrandColorValue = string;
+
+export type LogoStringLayout = string | {
+  location?: string;
+  padding?: string;
+  src?: string;
+  width?: string;
+}; /* Source path or source path with layout options for logo */
 
 export type BrandColor = {
   background?: BrandColorValue;

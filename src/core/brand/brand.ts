@@ -9,10 +9,10 @@
 import {
   Brand as BrandJson,
   BrandFont,
-  BrandFontStyle,
-  BrandFontWeight,
   BrandNamedFont,
+  BrandNamedLogo,
   BrandNamedThemeColor,
+  BrandStringLightDark,
   BrandTypography,
   BrandTypographyOptions,
 } from "../../resources/types/schema-types.ts";
@@ -48,10 +48,16 @@ const defaultFontNames: string[] = [
   "monospace",
 ];
 
+const defaultLogoNames: string[] = [
+  "small",
+  "medium",
+  "large",
+];
+
 type ProcessedBrandData = {
   color: Record<string, string>;
   typography: BrandTypography;
-  // logo: Record<string, string>; // paths
+  logo: Record<string, BrandStringLightDark>;
 };
 
 export class Brand {
@@ -97,14 +103,25 @@ export class Brand {
       typography.monospace = monospace;
     }
 
+    const logo: Record<string, BrandStringLightDark> = {};
+    for (const logoName of Object.keys(data.logo?.with ?? {})) {
+      logo[logoName] = this.getLogo(logoName);
+    }
+    for (const logoName of Object.keys(data.logo ?? {})) {
+      if (logoName === "with") {
+        continue;
+      }
+      logo[logoName] = this.getLogo(logoName);
+    }
+
     return {
       color,
       typography,
-      // (o,
+      logo,
     };
   }
 
-  // semantics of name resolution for colors, (o and fonts are:
+  // semantics of name resolution for colors, logo and fonts are:
   // - if the name is in the "with" key, use that value as they key for a recursive call (so color names can be aliased or redefined away from scss defaults)
   // - if the name is a default color name, call getColor recursively (so defaults can use named values)
   // - otherwise, assume it's a color value and return it
@@ -215,6 +232,64 @@ export class Brand {
     } while (seenValues.size < 100);
     throw new Error(
       "Recursion depth exceeded 100 in _brand.yml typography definitions",
+    );
+  }
+
+  // the same implementation as getColor except we can also return {light,dark}
+  // assuming for now that with only contains strings, not {light,dark}
+  getLogo(name: string): BrandStringLightDark {
+    const seenValues = new Set<string>();
+    do {
+      if (seenValues.has(name)) {
+        throw new Error(
+          `Circular reference in _brand.yml color definitions: ${
+            Array.from(seenValues).join(
+              " -> ",
+            )
+          }`,
+        );
+      }
+      seenValues.add(name);
+      if (this.data.logo?.with?.[name]) {
+        name = this.data.logo.with[name];
+      } else if (
+        defaultLogoNames.includes(name as BrandNamedLogo) &&
+        this.data.logo?.[name as BrandNamedLogo]
+      ) {
+        const brandSLD: BrandStringLightDark = this.data
+          .logo[name as BrandNamedLogo]!;
+        if (typeof brandSLD == "string") {
+          name = brandSLD;
+        } else {
+          const ret: BrandStringLightDark = {};
+          // we need to actually-recurse and not just use the loop
+          // because two paths light/dark
+          const light = brandSLD.light;
+          if (light) {
+            const brandSLD2 = this.getLogo(light);
+            if (typeof brandSLD2 == "string") {
+              ret.light = brandSLD2;
+            } else {
+              ret.light = brandSLD2.light;
+            }
+          }
+          const dark = brandSLD.dark;
+          if (dark) {
+            const brandSLD2 = this.getLogo(dark);
+            if (typeof brandSLD2 == "string") {
+              ret.dark = brandSLD2;
+            } else {
+              ret.dark = brandSLD2.light;
+            }
+          }
+          return ret;
+        }
+      } else {
+        return name;
+      }
+    } while (seenValues.size < 100); // 100 ought to be enough for anyone, with apologies to Bill Gates
+    throw new Error(
+      "Recursion depth exceeded 100 in _brand.yml logo definitions",
     );
   }
 }
