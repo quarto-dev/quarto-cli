@@ -169,7 +169,7 @@ function _callout_main()
     end
   
     -- contents 
-    local calloutContents = pandoc.Div(node.content, pandoc.Attr("", {"callout-content"}))
+    local calloutContents = pandoc.Div(node.content or pandoc.Blocks({}), pandoc.Attr("", {"callout-content"}))
     calloutBody.content:insert(calloutContents)
   
     -- set attributes (including hiding icon)
