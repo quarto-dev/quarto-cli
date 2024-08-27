@@ -24,6 +24,10 @@ export function isRStudio() {
   return !!Deno.env.get("RSTUDIO");
 }
 
+export function isPositron() {
+  return !!Deno.env.get("POSITRON");
+}
+
 export function isVSCodeOutputChannel() {
   return !!Deno.env.get("VSCODE_PID");
 }
@@ -44,6 +48,11 @@ export function isRStudioWorkbench() {
 
 export function isRStudioTerminal() {
   return !!Deno.env.get("RSTUDIO_TERM");
+}
+
+export function isPositronTerminal() {
+  // it seems there is no POSITRON_TERM variable set
+  return isPositron();
 }
 
 export function isServerSession() {
