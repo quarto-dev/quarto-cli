@@ -85,6 +85,7 @@ import("./quarto-post/html.lua")
 import("./quarto-post/dashboard.lua")
 import("./quarto-post/email.lua")
 import("./quarto-post/pptx.lua")
+import("./quarto-post/landscape.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -137,6 +138,7 @@ import("./quarto-pre/book-links.lua")
 import("./quarto-pre/book-numbering.lua")
 import("./quarto-pre/code-annotation.lua")
 import("./quarto-pre/code-filename.lua")
+import("./quarto-pre/contentsshortcode.lua")
 import("./quarto-pre/engine-escape.lua")
 import("./quarto-pre/figures.lua")
 import("./quarto-pre/hidden.lua")
@@ -262,6 +264,10 @@ local quarto_pre_filters = {
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
 
+  { name = "pre-contents-shortcode-filter",
+    filter = contents_shortcode_filter(),
+    flags = { "has_contents_shortcode" } },
+
   { name = "pre-combined-hidden",
     filter = combineFilters({
       hidden(),
@@ -327,6 +333,10 @@ local quarto_post_filters = {
       indexCites(),
       bibliography()
     })
+  },
+  { name = "post-landscape-div", 
+    filter = landscape_div(),
+    flags = { "has_landscape" }
   },
   { name = "post-ipynb", filters = ipynb()},
   { name = "post-figureCleanupCombined", filter = combineFilters({

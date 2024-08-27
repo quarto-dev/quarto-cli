@@ -111,7 +111,7 @@ export const noErrorsOrWarnings: Verify = {
   name: "No Errors or Warnings",
   verify: (outputs: ExecuteOutput[]) => {
     const isErrorOrWarning = (output: ExecuteOutput) => {
-      return output.levelName.toLowerCase() === "warning" ||
+      return output.levelName.toLowerCase() === "warn" ||
         output.levelName.toLowerCase() === "error";
     };
 

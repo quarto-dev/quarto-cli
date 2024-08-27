@@ -30,7 +30,7 @@ export const createCommand = new Command()
   .option(
     "--open [editor:string]",
     `Open new artifact in this editor (${
-      kEditorInfos.map((info) => info.id).join(",")
+      kEditorInfos.map((info) => info.id).join(", ")
     })`,
   )
   .option("--no-open", "Do not open in an editor")

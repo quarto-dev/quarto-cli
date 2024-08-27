@@ -13,6 +13,7 @@ references:
 ---
 
 ```{python}
+#| classes: plain
 from great_tables import GT, html
 from great_tables.data import airquality
 

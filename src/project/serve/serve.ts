@@ -6,7 +6,13 @@
 
 import { info, warning } from "../../deno_ral/log.ts";
 import { existsSync } from "fs/mod.ts";
-import { basename, dirname, extname, join, relative } from "../../deno_ral/path.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  join,
+  relative,
+} from "../../deno_ral/path.ts";
 import * as colors from "fmt/colors.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -906,7 +912,7 @@ function acquirePreviewLock(project: ProjectContext) {
   // write our pid to the lockfile
   Deno.writeTextFileSync(lockfile, String(Deno.pid));
 
-  // rmeove the lockfile when we exit
+  // remove the lockfile when we exit
   onCleanup(() => releasePreviewLock(project));
 }
 

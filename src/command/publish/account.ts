@@ -151,8 +151,11 @@ export async function manageAccounts() {
   }
 
   // create a checked list from which accounts can be removed
-  const keepAccounts = await Checkbox.prompt({
+  const keepAccounts = await prompt([{
+    name: "accounts",
     message: "Manage Publishing Accounts",
+    type: Checkbox,
+    indent: "",
     options: accounts.map((account) => ({
       name: `${findProvider(account.provider)?.description}: ${account.name}${
         account.server ? " (" + account.server + ")" : ""
@@ -163,15 +166,15 @@ export async function manageAccounts() {
     hint:
       `Use the arrow keys and spacebar to specify accounts you would like to remove.\n` +
       `   Press Enter to confirm the list of accounts you wish to remain available.`,
-  });
+  }]);
 
   // figure out which accounts we should be removing
   const removeAccounts: ProviderAccountToken[] = [];
   for (const account of accounts) {
     if (
-      !keepAccounts.find((keepAccountJson) => {
+      !keepAccounts.accounts?.find((keepAccountJson: string) => {
         const keepAccount = JSON.parse(
-          keepAccountJson.value,
+          keepAccountJson,
         ) as ProviderAccountToken;
         return account.provider == keepAccount.provider &&
           account.name == keepAccount.name &&

@@ -7,7 +7,11 @@
 import { CreateResult } from "./cmd-types.ts";
 
 import { which } from "../../core/path.ts";
-import { isRStudioTerminal, isVSCodeTerminal } from "../../core/platform.ts";
+import {
+  isPositronTerminal,
+  isRStudioTerminal,
+  isVSCodeTerminal,
+} from "../../core/platform.ts";
 
 import { basename, dirname, join } from "../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
@@ -29,6 +33,7 @@ export interface Editor {
 }
 
 export const kEditorInfos: EditorInfo[] = [
+  positronEditorInfo(),
   vscodeEditorInfo(),
   rstudioEditorInfo(),
 ];
@@ -136,6 +141,66 @@ function vscodeEditorInfo(): EditorInfo {
     editorInfo.actions.push({
       action: "path",
       arg: "/snap/bin/code",
+    });
+  }
+  return editorInfo;
+}
+
+function positronEditorInfo(): EditorInfo {
+  const editorInfo: EditorInfo = {
+    id: "positron",
+    name: "positron",
+    open: (path: string, createResult: CreateResult) => {
+      const artifactPath = createResult.path;
+      const cwd = Deno.statSync(artifactPath).isDirectory
+        ? artifactPath
+        : dirname(artifactPath);
+
+      return async () => {
+        const p = Deno.run({
+          cmd: [path, artifactPath],
+          cwd,
+        });
+        await p.status();
+      };
+    },
+    inEditor: isPositronTerminal(),
+    actions: [],
+  };
+
+  if (Deno.build.os === "windows") {
+    editorInfo.actions.push({
+      action: "which",
+      arg: "Positron.exe",
+    });
+    const pathActions = windowsAppPaths("Positron", "Positron.exe").map(
+      (path) => {
+        return {
+          action: "path",
+          arg: path,
+        } as ScanAction;
+      },
+    );
+    editorInfo.actions.push(...pathActions);
+  } else if (Deno.build.os === "darwin") {
+    editorInfo.actions.push({
+      action: "which",
+      arg: "positron",
+    });
+
+    const pathActions = macosAppPaths(
+      "Positron.app/Contents/Resources/app/bin/code",
+    ).map((path) => {
+      return {
+        action: "path",
+        arg: path,
+      } as ScanAction;
+    });
+    editorInfo.actions.push(...pathActions);
+  } else {
+    editorInfo.actions.push({
+      action: "which",
+      arg: "positron",
     });
   }
   return editorInfo;

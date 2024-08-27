@@ -92,6 +92,10 @@ function compute_flags()
         flags.has_lightbox = true
       end
 
+      if node.attr.classes:find("landscape") then
+        flags.has_landscape = true
+      end
+
       if node.attr.classes:find("hidden") then
         flags.has_hidden = true
       end
@@ -135,7 +139,19 @@ function compute_flags()
       end
     end,
     RawInline = function(el)
-      if el.text:find("%{%{%<") then
+      if el.format == "quarto-internal" then
+        local result, data = pcall(function() 
+          local data = quarto.json.decode(el.text)
+          return data.type
+        end)
+        if result == false then
+          warn("[Malformed document] Failed to decode quarto-internal JSON: " .. el.text)
+          return
+        end
+        if data == "contents-shortcode" then
+          flags.has_contents_shortcode = true
+        end
+      elseif el.text:find("%{%{%<") then
         flags.has_shortcodes = true
       end
     end,

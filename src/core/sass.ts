@@ -17,6 +17,7 @@ import * as ld from "./lodash.ts";
 import { lines } from "./text.ts";
 import { sassCache } from "./sass/cache.ts";
 import { cssVarsBlock } from "./sass/add-css-vars.ts";
+import { md5HashBytes } from "./hash.ts";
 
 export interface SassVariable {
   name: string;
@@ -137,10 +138,13 @@ export async function compileSass(
     '// quarto-scss-analysis-annotation { "origin": null }',
   ].join("\n\n");
 
+  const hash = md5HashBytes(new TextEncoder().encode(scssInput));
+
   // Compile the scss
   // Note that you can set this to undefined to bypass the cache entirely
-  const cacheKey = bundles.map((bundle) => bundle.key).join("|") + "-" +
-    (minified ? "min" : "nomin");
+  const cacheKey = hash;
+  // bundles.map((bundle) => bundle.key).join("|") + "-" +
+  //   (minified ? "min" : "nomin");
 
   if (Deno.env.get("QUARTO_SAVE_SCSS")) {
     const debugResult = await compileWithCache(
@@ -357,7 +361,8 @@ export async function compileWithCache(
     const cacheDir = useSessionCache
       ? join(temp.baseDir, "sass")
       : quartoCacheDir("sass");
-    const cache = await sassCache(cacheDir);
+    // when using quarto session cache, we ensure to cleanup the cache files at TempContext cleanup
+    const cache = await sassCache(cacheDir, useSessionCache ? temp : undefined);
     return cache.getOrSet(input, loadPaths, temp, cacheIdentifier, compressed);
   } else {
     const outputFilePath = temp.createFile({ suffix: ".css" });
