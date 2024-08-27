@@ -3,6 +3,7 @@
 ## in this release
 
 - ([#9821](https://github.com/quarto-dev/quarto-cli/issues/9821)): Handle callout with empty contents in `revealjs` format properly.
+- ([#10573](https://github.com/quarto-dev/quarto-cli/issues/10573)), ([#10626](https://github.com/quarto-dev/quarto-cli/issues/10626)): Change command-line arguments to Chrome in remote rendering to avoid crashes with latest version.
 
 ## in previous releases
 
