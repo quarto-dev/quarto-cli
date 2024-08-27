@@ -170,7 +170,7 @@ export function dashboardFormat() {
 
         // add _brand.yml sass bundle
         extras.html[kSassBundles].push(
-          ...await brandBootstrapSassBundles(project, "bootstrap"),
+          ...await brandBootstrapSassBundles(input, project, "bootstrap"),
         );
 
         const scripts: DependencyHtmlFile[] = [];

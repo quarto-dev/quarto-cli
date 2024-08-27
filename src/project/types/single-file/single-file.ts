@@ -34,7 +34,7 @@ export function singleFileProjectContext(
   const environmentMemoizer = makeProjectEnvironmentMemoizer(notebookContext);
 
   const result: ProjectContext = {
-    resolveBrand: () => projectResolveBrand(result),
+    resolveBrand: (fileName?: string) => projectResolveBrand(result, fileName),
     dir: normalizePath(dirname(source)),
     engines: [],
     files: {

@@ -53,6 +53,7 @@ export type FileInformation = {
   engine?: ExecutionEngine;
   target?: ExecutionTarget;
   metadata?: Metadata;
+  brand?: Brand;
 };
 
 export interface ProjectContext {
@@ -67,7 +68,7 @@ export interface ProjectContext {
 
   // This is a cache of _brand.yml for a project
   brandCache?: { brand?: Brand };
-  resolveBrand: () => Promise<Brand | undefined>;
+  resolveBrand: (fileName?: string) => Promise<Brand | undefined>;
 
   // expands markdown for a file
   // input file doesn't have to be markdown; it can be, for example, a knitr spin file

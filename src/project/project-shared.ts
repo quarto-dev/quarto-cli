@@ -49,6 +49,7 @@ import { QuartoJSONSchema, readYamlFromMarkdown } from "../core/yaml.ts";
 import { refSchema } from "../core/lib/yaml-schema/common.ts";
 import { Brand as BrandJson } from "../resources/types/schema-types.ts";
 import { Brand } from "../core/brand/brand.ts";
+import { warnOnce } from "../core/log.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -507,22 +508,69 @@ export const ensureFileInformationCache = (
   return project.fileInformationCache.get(file)!;
 };
 
-export async function projectResolveBrand(project: ProjectContext) {
-  if (project.brandCache) {
+export async function projectResolveBrand(
+  project: ProjectContext,
+  fileName?: string,
+) {
+  if (fileName === undefined) {
+    if (project.brandCache) {
+      return project.brandCache.brand;
+    }
+    project.brandCache = {};
+    let fileNames = ["_brand.yml", "_brand.yaml"].map((file) =>
+      join(project.dir, file)
+    );
+    if (project?.config?.brand === false) {
+      project.brandCache.brand = undefined;
+      return project.brandCache.brand;
+    }
+    if (typeof project?.config?.brand === "string") {
+      fileNames = [join(project.dir, project.config.brand)];
+    }
+
+    for (const brandPath of fileNames) {
+      if (!existsSync(brandPath)) {
+        continue;
+      }
+      const brand = await readAndValidateYamlFromFile(
+        brandPath,
+        refSchema("brand", "Format-independent brand configuration."),
+        "Brand validation failed for " + brandPath + ".",
+      ) as BrandJson;
+      project.brandCache.brand = new Brand(brand);
+    }
     return project.brandCache.brand;
-  }
-  project.brandCache = {};
-  for (const brandFile of ["_brand.yml", "_brand.yaml"]) {
-    const brandPath = join(project.dir, brandFile);
-    if (!existsSync(brandPath)) {
-      continue;
+  } else {
+    const metadata = await project.fileMetadata(fileName);
+    if (metadata.brand === false) {
+      return undefined;
+    }
+    if (metadata.brand === true || metadata.brand === undefined) {
+      return project.resolveBrand();
+    }
+    const fileInformation = ensureFileInformationCache(project, fileName);
+    if (fileInformation.brand) {
+      return fileInformation.brand;
+    }
+    if (typeof metadata.brand !== "string") {
+      warnOnce(
+        `Brand metadata must be a filename, but is of type ${typeof metadata
+          .brand} in file ${fileName}. Will ignore brand information`,
+      );
+      return project.resolveBrand();
+    }
+    let brandPath: string = "";
+    if (brandPath.startsWith("/")) {
+      brandPath = join(project.dir, metadata.brand);
+    } else {
+      brandPath = join(dirname(fileName), metadata.brand);
     }
     const brand = await readAndValidateYamlFromFile(
       brandPath,
       refSchema("brand", "Format-independent brand configuration."),
       "Brand validation failed for " + brandPath + ".",
     ) as BrandJson;
-    project.brandCache.brand = new Brand(brand);
+    fileInformation.brand = new Brand(brand);
+    return fileInformation.brand;
   }
-  return project.brandCache.brand;
 }
