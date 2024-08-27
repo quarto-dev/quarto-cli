@@ -507,31 +507,31 @@ async function resolveFormats(
       (isHtmlOutput(format, true) || isHtmlDashboardOutput(format)) &&
       formatHasBootstrap(projFormat) && projectTypeIsWebsite(projType)
     ) {
-      if (formatHasBootstrap(inputFormat)) {
-        if (
-          inputFormat.metadata[kTheme] !== undefined &&
-          !ld.isEqual(inputFormat.metadata[kTheme], projFormat.metadata[kTheme])
-        ) {
-          warnOnce(
-            `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
-          );
-        }
-        delete inputFormat.metadata[kTheme];
-      }
-      if (formatHasBootstrap(directoryFormat)) {
-        if (
-          directoryFormat.metadata[kTheme] !== undefined &&
-          !ld.isEqual(
-            directoryFormat.metadata[kTheme],
-            projFormat.metadata[kTheme],
-          )
-        ) {
-          warnOnce(
-            `The file ${file.path} contains a theme provided by a metadata file. This theme metadata is being ignored. Website projects do not support per directory themes since all pages within a website share the website's theme.`,
-          );
-        }
-        delete directoryFormat.metadata[kTheme];
-      }
+      // if (formatHasBootstrap(inputFormat)) {
+      //   if (
+      //     inputFormat.metadata[kTheme] !== undefined &&
+      //     !ld.isEqual(inputFormat.metadata[kTheme], projFormat.metadata[kTheme])
+      //   ) {
+      //     warnOnce(
+      //       `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
+      //     );
+      //   }
+      //   delete inputFormat.metadata[kTheme];
+      // }
+      // if (formatHasBootstrap(directoryFormat)) {
+      //   if (
+      //     directoryFormat.metadata[kTheme] !== undefined &&
+      //     !ld.isEqual(
+      //       directoryFormat.metadata[kTheme],
+      //       projFormat.metadata[kTheme],
+      //     )
+      //   ) {
+      //     warnOnce(
+      //       `The file ${file.path} contains a theme provided by a metadata file. This theme metadata is being ignored. Website projects do not support per directory themes since all pages within a website share the website's theme.`,
+      //     );
+      //   }
+      //   delete directoryFormat.metadata[kTheme];
+      // }
     }
 
     // combine user formats
