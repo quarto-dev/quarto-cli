@@ -21375,6 +21375,8 @@ try {
           "The color used for errors, dangerous actions, or negative\ninformation.",
           "A bright color, used as a high-contrast foreground color on dark\nelements or low-contrast background color on light elements.",
           "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
+          "A color used to emphasize or highlight text or elements.",
+          "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
           "A color, which may be a named brand color.",
           "A named brand color, taken either from <code>color.theme</code> or\n<code>color.palette</code> (in that order).",
           "Typography definitions for the brand.",
@@ -23679,12 +23681,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 187413,
+          _internalId: 187423,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 187405,
+              _internalId: 187415,
               type: "enum",
               enum: [
                 "png",
@@ -23700,7 +23702,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 187412,
+              _internalId: 187422,
               type: "anyOf",
               anyOf: [
                 {
@@ -33972,7 +33974,6 @@ ${tidyverseInfo(
       return size;
     };
     if (kind === "completions") {
-      debugger;
       let foundCell = void 0;
       for (const cell of result.cells) {
         const size = lines((cell.sourceWithYaml || cell.source).value).length;
