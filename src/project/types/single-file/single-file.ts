@@ -20,6 +20,7 @@ import { RenderFlags } from "../../../command/render/types.ts";
 import { MappedString } from "../../../core/mapped-text.ts";
 import { fileExecutionEngineAndTarget } from "../../../execute/engine.ts";
 import {
+  projectFileMetadata,
   projectResolveBrand,
   projectResolveFullMarkdownForFile,
 } from "../../project-shared.ts";
@@ -65,6 +66,9 @@ export function singleFileProjectContext(
         markdown,
         force,
       );
+    },
+    fileMetadata: async (file: string, force?: boolean) => {
+      return projectFileMetadata(result, file, force);
     },
     isSingleFile: true,
   };

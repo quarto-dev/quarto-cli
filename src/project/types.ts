@@ -50,6 +50,9 @@ export type FileInformation = {
   fullMarkdown?: MappedString;
   includeMap?: FileInclusion[];
   codeCells?: InspectedMdCell[];
+  engine?: ExecutionEngine;
+  target?: ExecutionTarget;
+  metadata?: Metadata;
 };
 
 export interface ProjectContext {
@@ -59,12 +62,6 @@ export interface ProjectContext {
   config?: ProjectConfig;
   notebookContext: NotebookContext;
   outputNameIndex?: Map<string, { file: string; format: Format } | undefined>;
-
-  // This is a cache of the engine and target for a given filename
-  engineAndTargetCache?: Map<
-    string,
-    { engine: ExecutionEngine; target: ExecutionTarget }
-  >;
 
   fileInformationCache: Map<string, FileInformation>;
 
@@ -87,6 +84,11 @@ export interface ProjectContext {
     file: string,
     force?: boolean,
   ) => Promise<{ engine: ExecutionEngine; target: ExecutionTarget }>;
+
+  fileMetadata: (
+    file: string,
+    force?: boolean,
+  ) => Promise<Metadata>;
 
   formatExtras?: (
     source: string,

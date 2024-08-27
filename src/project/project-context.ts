@@ -66,6 +66,7 @@ import {
   ignoreFieldsForProjectType,
   normalizeFormatYaml,
   projectConfigFile,
+  projectFileMetadata,
   projectResolveBrand,
   projectResolveFullMarkdownForFile,
   projectVarsFile,
@@ -291,6 +292,9 @@ export async function projectContext(
               result,
             );
           },
+          fileMetadata: async (file: string, force?: boolean) => {
+            return projectFileMetadata(result, file, force);
+          },
           isSingleFile: false,
         };
 
@@ -368,6 +372,9 @@ export async function projectContext(
               result,
             );
           },
+          fileMetadata: async (file: string, force?: boolean) => {
+            return projectFileMetadata(result, file, force);
+          },
           notebookContext,
           isSingleFile: false,
         };
@@ -430,6 +437,9 @@ export async function projectContext(
                 flags,
                 context,
               );
+            },
+            fileMetadata: async (file: string, force?: boolean) => {
+              return projectFileMetadata(context, file, force);
             },
             isSingleFile: false,
           };
