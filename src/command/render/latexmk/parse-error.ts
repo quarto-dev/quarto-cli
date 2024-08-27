@@ -111,6 +111,14 @@ const resolvingMatchers = [
 export function findMissingHyphenationFiles(logText: string) {
   //ngerman gets special cased
   const filterLang = (lang: string) => {
+    // It seems some languages have no hyphenation files, so we just filter them out
+    // e.g. `lang: zh` has no hyphenation files
+    // https://github.com/quarto-dev/quarto-cli/issues/10291
+    const noHyphen = ["chinese-hans"];
+    if (noHyphen.includes(lang)) {
+      return;
+    }
+
     // NOTE Although the names of the corresponding lfd files match those in this list,
     // there are some exceptions, particularly in German and Serbian. So, ngerman is
     // called here german, which is the name in the CLDR and, actually, the most logical.
