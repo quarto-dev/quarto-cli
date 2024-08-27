@@ -2,6 +2,7 @@
 
 #let article(
   title: none,
+  title-font: none,
   authors: none,
   date: none,
   abstract: none,
@@ -11,7 +12,7 @@
   paper: "us-letter",
   lang: "en",
   region: "US",
-  font: (),
+  font: "linux libertine",
   fontsize: 11pt,
   sectionnumbering: none,
   toc: false,
@@ -31,10 +32,14 @@
            font: font,
            size: fontsize)
   set heading(numbering: sectionnumbering)
-
   if title != none {
     align(center)[#block(inset: 2em)[
-      #text(weight: "bold", size: 1.5em)[#title]
+      // = #title
+      #if title-font != none {
+        text(weight: "bold", size: 1.5em, font: title-font)[#title]
+      } else {
+        text(weight: "bold", size: 1.5em)[#title]
+      }
     ]]
   }
 

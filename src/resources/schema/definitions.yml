@@ -2669,7 +2669,7 @@
     properties:
       with:
         description: Font files and definitions for the brand.
-        ref: brand-font
+        ref: brand-font-with
       base:
         description: >
           The base font settings for the brand. These are used as the default for all text.
@@ -2724,6 +2724,15 @@
         ref: brand-maybe-named-color
       background-color:
         ref: brand-maybe-named-color
+      files:
+        maybeArrayOf:
+          anyOf: [path, string]
+        description: >
+          Resolved local paths.
+
+- id: brand-named-font
+  description: Names of customizeable fonts
+  enum: [base, headings, monospace]
 
 - id: brand-typography-options-no-size
   description: Typographic options without a font size.
@@ -2741,13 +2750,19 @@
       background-color:
         ref: brand-maybe-named-color
 
+# what's the way to make it open with all values brand-font?
+# i'm doing some casting instead
+- id: brand-font-with
+  description: Font files and definitions for the brand.
+  object:
+    closed: false
+
 - id: brand-font
   description: Font files and definitions for the brand.
-  arrayOf:
-    anyOf:
-      - ref: brand-font-google
-      - ref: brand-font-file
-      - ref: brand-font-family
+  anyOf:
+    - ref: brand-font-google
+    - ref: brand-font-file
+    - ref: brand-font-family
 
 - id: brand-font-weight
   description: A font weight.
@@ -2779,7 +2794,7 @@
                     ref: brand-font-weight
                   default: [400, 700]
                 style:
-                  description: The font style to include.
+                  description: The font styles to include.
                   maybeArrayOf:
                     ref: brand-font-style
                   default: [normal, italic]
@@ -2789,6 +2804,7 @@
                     depending on its download status and readiness for use.
                   enum: [auto, block, swap, fallback, optional]
                   default: swap
+    required: [google]
 
 - id: brand-font-file
   description: A method for providing font files directly, either locally or from an online location.
@@ -2805,6 +2821,23 @@
           The font files to include. These can be local or online.
           Local file paths should be relative to the `brand.yml` file.
           Online paths should be complete URLs.
+      weight:
+        description: The font weights to include.
+        maybeArrayOf:
+          ref: brand-font-weight
+        default: [400, 700]
+      style:
+        description: The font styles to include.
+        maybeArrayOf:
+          ref: brand-font-style
+        default: [normal, italic]
+      display:
+        description: >
+          The font display method, determines how a font face is font face is shown 
+          depending on its download status and readiness for use.
+        enum: [auto, block, swap, fallback, optional]
+        default: swap
+    required: [files]
 
 - id: brand-font-family
   description: >
