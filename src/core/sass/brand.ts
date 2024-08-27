@@ -25,10 +25,12 @@ const defaultColorNameMap: Record<string, string> = {
 };
 
 export async function brandBootstrapSassBundles(
+  fileName: string | undefined,
   project: ProjectContext,
   key: string,
 ): Promise<SassBundle[]> {
   return (await brandBootstrapSassBundleLayers(
+    fileName,
     project,
     key,
     defaultColorNameMap,
@@ -42,11 +44,12 @@ export async function brandBootstrapSassBundles(
   );
 }
 export async function brandBootstrapSassBundleLayers(
+  fileName: string | undefined,
   project: ProjectContext,
   key: string,
   nameMap: Record<string, string> = {},
 ): Promise<SassBundleLayers[]> {
-  const brand = await project.resolveBrand();
+  const brand = await project.resolveBrand(fileName);
   const sassBundles: SassBundleLayers[] = [];
 
   if (brand?.data.color) {
@@ -92,10 +95,12 @@ export async function brandBootstrapSassBundleLayers(
 }
 
 export async function brandRevealSassBundleLayers(
+  input: string | undefined,
   _format: Format,
   project: ProjectContext,
 ): Promise<SassBundleLayers[]> {
   return brandBootstrapSassBundleLayers(
+    input,
     project,
     "reveal-theme",
     defaultColorNameMap,
@@ -103,10 +108,12 @@ export async function brandRevealSassBundleLayers(
 }
 
 export async function brandSassFormatExtras(
+  input: string | undefined,
   _format: Format,
   project: ProjectContext,
 ): Promise<FormatExtras> {
   const htmlSassBundleLayers = await brandBootstrapSassBundleLayers(
+    input,
     project,
     "brand",
     defaultColorNameMap,

@@ -599,9 +599,6 @@ async function resolveFormats(
       );
     };
 
-    // resolve brand in project and forward it to format
-    mergedFormats[format].render.brand = await project.resolveBrand();
-
     // ensure that we have a valid forma
     const formatIsValid = isValidFormat(
       formatDesc,

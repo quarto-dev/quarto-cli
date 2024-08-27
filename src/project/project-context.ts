@@ -256,7 +256,8 @@ export async function projectContext(
         }
 
         const result: ProjectContext = {
-          resolveBrand: async () => projectResolveBrand(result),
+          resolveBrand: async (fileName?: string) =>
+            projectResolveBrand(result, fileName),
           resolveFullMarkdownForFile: (
             engine: ExecutionEngine | undefined,
             file: string,
@@ -339,7 +340,8 @@ export async function projectContext(
       } else {
         debug(`projectContext: Found Quarto project in ${dir}`);
         const result: ProjectContext = {
-          resolveBrand: async () => projectResolveBrand(result),
+          resolveBrand: async (fileName?: string) =>
+            projectResolveBrand(result, fileName),
           resolveFullMarkdownForFile: (
             engine: ExecutionEngine | undefined,
             file: string,
@@ -400,7 +402,8 @@ export async function projectContext(
           configResolvers.shift();
         } else if (force) {
           const context: ProjectContext = {
-            resolveBrand: async () => projectResolveBrand(context),
+            resolveBrand: async (fileName?: string) =>
+              projectResolveBrand(context, fileName),
             resolveFullMarkdownForFile: (
               engine: ExecutionEngine | undefined,
               file: string,
