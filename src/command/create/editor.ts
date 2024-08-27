@@ -189,7 +189,7 @@ function positronEditorInfo(): EditorInfo {
     });
 
     const pathActions = macosAppPaths(
-      "Positron.app/Contents/Resources/app/bin/positron",
+      "Positron.app/Contents/Resources/app/bin/code",
     ).map((path) => {
       return {
         action: "path",
