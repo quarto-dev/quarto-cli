@@ -114,7 +114,7 @@ export function findMissingHyphenationFiles(logText: string) {
     // It seems some languages have no hyphenation files, so we just filter them out
     // e.g. `lang: zh` has no hyphenation files
     // https://github.com/quarto-dev/quarto-cli/issues/10291
-    const noHyphen = ["chinese-hans"];
+    const noHyphen = ["chinese-hans", "chinese"];
     if (noHyphen.includes(lang)) {
       return;
     }
