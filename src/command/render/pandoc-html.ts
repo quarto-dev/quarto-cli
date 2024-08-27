@@ -37,7 +37,6 @@ import {
 import { kMinimal } from "../../format/html/format-html-shared.ts";
 import { kSassBundles } from "../../config/types.ts";
 import { md5HashBytes } from "../../core/hash.ts";
-import { getStack } from "../../core/deno/debug.ts";
 import { InternalError } from "../../core/lib/error.ts";
 
 // The output target for a sass bundle
