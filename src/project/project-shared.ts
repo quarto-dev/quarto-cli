@@ -45,7 +45,7 @@ import { parse } from "yaml/mod.ts";
 import { mappedIndexToLineCol } from "../core/lib/mapped-text.ts";
 import { normalizeNewlines } from "../core/lib/text.ts";
 import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
-import { QuartoJSONSchema } from "../core/yaml.ts";
+import { QuartoJSONSchema, readYamlFromMarkdown } from "../core/yaml.ts";
 import { refSchema } from "../core/lib/yaml-schema/common.ts";
 import { Brand as BrandJson } from "../resources/types/schema-types.ts";
 import { Brand } from "../core/brand/brand.ts";
@@ -436,6 +436,22 @@ export async function projectResolveCodeCellsForFile(
   return result;
 }
 
+export async function projectFileMetadata(
+  project: ProjectContext,
+  file: string,
+  force?: boolean,
+): Promise<Metadata> {
+  const cache = ensureFileInformationCache(project, file);
+  if (!force && cache.metadata) {
+    return cache.metadata;
+  }
+  const { engine } = await project.fileExecutionEngineAndTarget(file);
+  const markdown = await mdForFile(project, engine, file);
+  const metadata = readYamlFromMarkdown(markdown.value);
+  cache.metadata = metadata;
+  return metadata;
+}
+
 export async function projectResolveFullMarkdownForFile(
   project: ProjectContext,
   engine: ExecutionEngine | undefined,
@@ -478,7 +494,10 @@ export async function projectResolveFullMarkdownForFile(
   }
 }
 
-const ensureFileInformationCache = (project: ProjectContext, file: string) => {
+export const ensureFileInformationCache = (
+  project: ProjectContext,
+  file: string,
+) => {
   if (!project.fileInformationCache) {
     project.fileInformationCache = new Map();
   }

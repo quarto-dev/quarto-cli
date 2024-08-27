@@ -30,6 +30,7 @@ import { ProjectContext } from "../project/types.ts";
 import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
 import { gitignoreEntries } from "../project/project-gitignore.ts";
 import { juliaEngine } from "./julia.ts";
+import { ensureFileInformationCache } from "../project/project-shared.ts";
 
 const kEngines: Map<string, ExecutionEngine> = new Map();
 
@@ -193,9 +194,9 @@ export async function fileExecutionEngineAndTarget(
   // markdown: MappedString | undefined,
   project: ProjectContext,
 ) {
-  const cached = project.engineAndTargetCache?.get(file);
-  if (cached) {
-    return cached;
+  const cached = ensureFileInformationCache(project, file);
+  if (cached && cached.engine && cached.target) {
+    return { engine: cached.engine, target: cached.target };
   }
 
   const engine = await fileExecutionEngine(file, flags, project);
@@ -209,11 +210,9 @@ export async function fileExecutionEngineAndTarget(
     throw new Error("Can't determine execution target for " + file);
   }
 
+  cached.engine = engine;
+  cached.target = target;
   const result = { engine, target };
-  if (!project.engineAndTargetCache) {
-    project.engineAndTargetCache = new Map();
-  }
-  project.engineAndTargetCache.set(file, result);
   return result;
 }
 
