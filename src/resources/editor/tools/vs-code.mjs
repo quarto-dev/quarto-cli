@@ -12065,7 +12065,7 @@ var require_yaml_intelligence_resources = __commonJS({
             properties: {
               with: {
                 description: "Font files and definitions for the brand.",
-                ref: "brand-font"
+                ref: "brand-font-with"
               },
               base: {
                 description: "The base font settings for the brand. These are used as the default for all text.\n",
@@ -12140,9 +12140,27 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               "background-color": {
                 ref: "brand-maybe-named-color"
+              },
+              files: {
+                maybeArrayOf: {
+                  anyOf: [
+                    "path",
+                    "string"
+                  ]
+                },
+                description: "Resolved local paths.\n"
               }
             }
           }
+        },
+        {
+          id: "brand-named-font",
+          description: "Names of customizeable fonts",
+          enum: [
+            "base",
+            "headings",
+            "monospace"
+          ]
         },
         {
           id: "brand-typography-options-no-size",
@@ -12168,21 +12186,26 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "brand-font-with",
+          description: "Font files and definitions for the brand.",
+          object: {
+            closed: false
+          }
+        },
+        {
           id: "brand-font",
           description: "Font files and definitions for the brand.",
-          arrayOf: {
-            anyOf: [
-              {
-                ref: "brand-font-google"
-              },
-              {
-                ref: "brand-font-file"
-              },
-              {
-                ref: "brand-font-family"
-              }
-            ]
-          }
+          anyOf: [
+            {
+              ref: "brand-font-google"
+            },
+            {
+              ref: "brand-font-file"
+            },
+            {
+              ref: "brand-font-family"
+            }
+          ]
         },
         {
           id: "brand-font-weight",
@@ -12237,7 +12260,7 @@ var require_yaml_intelligence_resources = __commonJS({
                           ]
                         },
                         style: {
-                          description: "The font style to include.",
+                          description: "The font styles to include.",
                           maybeArrayOf: {
                             ref: "brand-font-style"
                           },
@@ -12262,7 +12285,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   }
                 ]
               }
-            }
+            },
+            required: [
+              "google"
+            ]
           }
         },
         {
@@ -12283,8 +12309,42 @@ var require_yaml_intelligence_resources = __commonJS({
                   ]
                 },
                 description: "The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs.\n"
+              },
+              weight: {
+                description: "The font weights to include.",
+                maybeArrayOf: {
+                  ref: "brand-font-weight"
+                },
+                default: [
+                  400,
+                  700
+                ]
+              },
+              style: {
+                description: "The font styles to include.",
+                maybeArrayOf: {
+                  ref: "brand-font-style"
+                },
+                default: [
+                  "normal",
+                  "italic"
+                ]
+              },
+              display: {
+                description: "The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use.\n",
+                enum: [
+                  "auto",
+                  "block",
+                  "swap",
+                  "fallback",
+                  "optional"
+                ],
+                default: "swap"
               }
-            }
+            },
+            required: [
+              "files"
+            ]
           }
         },
         {
@@ -21374,6 +21434,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "The color used for errors, dangerous actions, or negative\ninformation.",
         "A bright color, used as a high-contrast foreground color on dark\nelements or low-contrast background color on light elements.",
         "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
+        "A color used to emphasize or highlight text or elements.",
+        "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
         "A color, which may be a named brand color.",
         "A named brand color, taken either from <code>color.theme</code> or\n<code>color.palette</code> (in that order).",
         "Typography definitions for the brand.",
@@ -23449,7 +23511,9 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "Names of customizeable fonts",
+        "Font files and definitions for the brand."
       ],
       "schema/external-schemas.yml": [
         {
@@ -23678,12 +23742,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 187413,
+        _internalId: 187454,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 187405,
+            _internalId: 187446,
             type: "enum",
             enum: [
               "png",
@@ -23699,7 +23763,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 187412,
+            _internalId: 187453,
             type: "anyOf",
             anyOf: [
               {
