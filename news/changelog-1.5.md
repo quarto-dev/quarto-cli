@@ -2,6 +2,8 @@
 
 ## in this release
 
+- ([#9821](https://github.com/quarto-dev/quarto-cli/issues/9821)): Handle callout with empty contents in `revealjs` format properly.
+
 ## in previous releases
 
 - ([#10039](https://github.com/quarto-dev/quarto-cli/issues/10039)): `quarto inspect` properly handles `!expr` tag in metadata.
