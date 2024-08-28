@@ -180,6 +180,7 @@ export async function revealTheme(
   };
 
   const brandLayers: SassBundleLayers[] = await brandRevealSassBundleLayers(
+    input,
     format,
     project,
   );
