@@ -1,0 +1,26 @@
+---
+title: "Pandas - Concatenating Data Frames"
+format:
+  typst:
+    quality: 1
+  html:
+    quality: 1
+    format-links: false
+references:
+  - type: website
+    id: pandas-user-guide
+    url: https://pandas.pydata.org/pandas-docs/version/2.2.2/user_guide/style.html#Concatenating-DataFrame-Outputs
+---
+
+```{python}
+#| classes: plain
+import pandas as pd
+import numpy as np
+
+df = pd.DataFrame(np.random.randn(5, 5))
+
+summary_styler = df.agg(["sum", "mean"]).style \
+                   .format(precision=3) \
+                   .relabel_index(["Sum", "Average"])
+df.style.format(precision=1).concat(summary_styler)
+```

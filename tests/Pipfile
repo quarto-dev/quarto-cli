@@ -15,6 +15,7 @@ ipyleaflet = "*"
 seaborn = "*"
 shiny = "*"
 itables = "*"
+jupyter-cache = "*"
 
 [dev-packages]
 

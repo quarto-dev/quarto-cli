@@ -6,7 +6,7 @@
 import { existsSync } from "fs/mod.ts";
 import { dirname } from "../../../src/deno_ral/path.ts";
 import { testQuartoCmd, Verify } from "../../test.ts";
-import { siteOutputForInput } from "../../utils.ts";
+import { projectOutputForInput } from "../../utils.ts";
 import { ensureHtmlElements, noErrorsOrWarnings } from "../../verify.ts";
 
 export const testSite = (
@@ -16,7 +16,7 @@ export const testSite = (
   excludeSelectors: string[],
   ...verify: Verify[]
 ) => {
-  const output = siteOutputForInput(input);
+  const output = projectOutputForInput(input);
 
   const verifySel = ensureHtmlElements(
     output.outputPath,

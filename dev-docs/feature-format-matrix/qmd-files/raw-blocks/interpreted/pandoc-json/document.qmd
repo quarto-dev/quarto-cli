@@ -11,7 +11,7 @@ format:
   typst:
     quality: 2
     comment: "Typst itself interprets the -- as –"
-    output-ext: typ
+    keep-typ: true
   revealjs:
     quality: 1
   docx:

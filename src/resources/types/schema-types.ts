@@ -155,8 +155,9 @@ the discussions feature must be enabled. */;
 website:
   comments:
     giscus:
-      light: light # giscus theme used for light website theme
-      dark: dark_dimmed # giscus theme used for dark website theme
+      theme:
+        light: light # giscus theme used for light website theme
+        dark: dark_dimmed # giscus theme used for dark website theme
 ``` */
   };
   hypothesis?: boolean | {
@@ -763,7 +764,7 @@ and appended to the end of the page. */;
     string /* The path to the main image on the about page. If not specified,
 the `image` provided for the document itself will be used. */;
   links?: (NavigationItem)[];
-  template?:
+  template:
     | ("jolla" | "trestles" | "solana" | "marquee" | "broadside")
     | string; /* The template to use to layout this about page. Choose from:
 
@@ -797,6 +798,8 @@ Learn more about supported date formatting values [here](https://deno.land/std@0
 Defaults to 175. */;
   "image-placeholder"?:
     string /* The default image to use if an item in the listing doesn't have an image. */;
+  "image-lazy-loading"?:
+    boolean /* If false, images in the listing will be loaded immediately. If true, images will be loaded as they come into view. */;
   "image-align"?:
     | "left"
     | "right" /* In `default` type listings, whether to place the image on the right or left side of the post content (`left` or `right`). */;
@@ -1258,6 +1261,158 @@ export type ManuscriptSchema = {
   resources?: MaybeArrayOf<
     string
   >; /* Additional file resources to be copied to output directory */
+};
+
+export type BrandMeta = {
+  link?: string | {
+    facebook?: string /* The brand's Facebook URL. */;
+    github?: string /* The brand's GitHub URL. */;
+    home?: string /* The brand's home page or website. */;
+    linkedin?: string /* The brand's LinkedIn URL. */;
+    mastodon?: string /* The brand's Mastodon URL. */;
+    twitter?: string; /* The brand's Twitter URL. */
+  } /* Important links for the brand, including social media links. If a single string, it is the brand's home page or website. Additional fields are allowed for internal use. */;
+  name?: string | {
+    full?:
+      string /* The full, official or legal name of the company or brand. */;
+    short?:
+      string; /* The short, informal, or common name of the company or brand. */
+  }; /* The brand name. */
+}; /* Metadata for a brand, including the brand name and important links. */
+
+export type BrandStringLightDark = string | { dark?: string; light?: string };
+
+export type BrandLogo = string | {
+  large?: BrandStringLightDark;
+  medium?: BrandStringLightDark;
+  small?: BrandStringLightDark;
+  with?: SchemaObject;
+}; /* Provide definitions and defaults for brand's logo in various formats and sizes. */
+
+export type BrandColorValue = string;
+
+export type BrandColor = {
+  background?: BrandColorValue;
+  danger?: BrandColorValue;
+  dark?: BrandColorValue;
+  emphasis?: BrandColorValue;
+  foreground?: BrandColorValue;
+  info?: BrandColorValue;
+  light?: BrandColorValue;
+  link?: BrandColorValue;
+  primary?: BrandColorValue;
+  secondary?: BrandColorValue;
+  success?: BrandColorValue;
+  tertiary?: BrandColorValue;
+  with?:
+    SchemaObject /* The brand's custom color palette. Any number of colors can be defined, each color having a custom name. */;
+  warning?: BrandColorValue;
+}; /* The brand's custom color palette and theme. */
+
+export type BrandMaybeNamedColor =
+  | BrandNamedThemeColor
+  | string; /* A color, which may be a named brand color. */
+
+export type BrandNamedThemeColor =
+  | "foreground"
+  | "background"
+  | "primary"
+  | "secondary"
+  | "tertiary"
+  | "success"
+  | "info"
+  | "warning"
+  | "danger"
+  | "light"
+  | "dark"
+  | "emphasis"
+  | "link"; /* A named brand color, taken either from `color.theme` or `color.palette` (in that order). */
+
+export type BrandTypography = {
+  base?: BrandTypographyOptions;
+  emphasis?: {
+    "background-color"?: BrandMaybeNamedColor;
+    color?: BrandMaybeNamedColor;
+    weight?: BrandFontWeight;
+  } /* The text properties used for emphasized (or emboldened) text. */;
+  headings?: BrandTypographyOptionsNoSize;
+  link?: {
+    "background-color"?: BrandMaybeNamedColor;
+    color?: BrandMaybeNamedColor;
+    decoration?: string;
+    weight?: BrandFontWeight;
+  } /* The text properties used for hyperlinks. */;
+  monospace?: BrandTypographyOptions;
+  with?: BrandFont;
+}; /* Typography definitions for the brand. */
+
+export type BrandTypographyOptions = {
+  "line-height"?: string;
+  "background-color"?: BrandMaybeNamedColor;
+  color?: BrandMaybeNamedColor;
+  family?: string;
+  size?: string;
+  style?: BrandFontStyle;
+  weight?: BrandFontWeight;
+}; /* Typographic options. */
+
+export type BrandTypographyOptionsNoSize = {
+  "line-height"?: string;
+  "background-color"?: BrandMaybeNamedColor;
+  color?: BrandMaybeNamedColor;
+  family?: string;
+  style?: BrandFontStyle;
+  weight?: BrandFontWeight;
+}; /* Typographic options without a font size. */
+
+export type BrandFont = ((
+  | BrandFontGoogle
+  | BrandFontFile
+  | BrandFontFamily
+))[]; /* Font files and definitions for the brand. */
+
+export type BrandFontWeight =
+  | 100
+  | 200
+  | 300
+  | 400
+  | 500
+  | 600
+  | 700
+  | 800
+  | 900; /* A font weight. */
+
+export type BrandFontStyle = "normal" | "italic"; /* A font style. */
+
+export type BrandFontGoogle = {
+  google?: string | {
+    display?:
+      | "auto"
+      | "block"
+      | "swap"
+      | "fallback"
+      | "optional" /* The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use. */;
+    family?: string;
+    style?: MaybeArrayOf<BrandFontStyle> /* The font style to include. */;
+    weight?: MaybeArrayOf<BrandFontWeight>; /* The font weights to include. */
+  };
+}; /* A Google Font definition. */
+
+export type BrandFontFile = {
+  family?: string;
+  files?: MaybeArrayOf<
+    (string | string)
+  >; /* The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs. */
+}; /* A method for providing font files directly, either locally or from an online location. */
+
+export type BrandFontFamily = string;
+
+export type Brand = {
+  color?: BrandColor;
+  defaults?: SchemaObject;
+  logo?: BrandLogo;
+  meta?: BrandMeta;
+  typography?: BrandTypography;
 };
 
 export type ProjectConfig = {

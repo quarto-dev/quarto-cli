@@ -1,0 +1,4 @@
+color:
+  with:
+    red: "#ff0000"
+  primary: red

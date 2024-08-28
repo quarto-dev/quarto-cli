@@ -13,6 +13,7 @@ import {
   kBackToTop,
   kBaseFormat,
   kBodyClasses,
+  kBrand,
   kCache,
   kCalloutCautionCaption,
   kCalloutImportantCaption,
@@ -56,6 +57,7 @@ import {
   kCrossrefTblTitle,
   kCrossrefThmTitle,
   kCss,
+  kCssPropertyProcessing,
   kDfPrint,
   kDisplayName,
   kDownloadUrl,
@@ -91,6 +93,7 @@ import {
   kGladtex,
   kHighlightStyle,
   kHtmlMathMethod,
+  kHtmlPreTagProcessing,
   kHtmlTableProcessing,
   kInclude,
   kIncludeAfterBody,
@@ -244,6 +247,7 @@ import {
 import { HtmlPostProcessor, RenderServices } from "../command/render/types.ts";
 import { QuartoFilterSpec } from "../command/render/types.ts";
 import { ProjectContext } from "../project/types.ts";
+import { Brand } from "../core/brand/brand.ts";
 
 export const kDependencies = "dependencies";
 export const kSassBundles = "sass-bundles";
@@ -485,6 +489,8 @@ export interface FormatRender {
   [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
   [kHtmlTableProcessing]?: "none";
+  [kHtmlPreTagProcessing]?: "none";
+  [kCssPropertyProcessing]?: "none" | "translate";
   [kUseRsvgConvert]?: boolean;
   [kValidateYaml]?: boolean;
   [kCanonicalUrl]?: boolean | string;

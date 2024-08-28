@@ -131,7 +131,7 @@ end
 function hasRawLatexTable(raw)
   if _quarto.format.isRawLatex(raw) and _quarto.format.isLatexOutput() then
     for i,pattern in ipairs(_quarto.patterns.latexTablePatterns) do
-      if raw.text:match(pattern) then
+      if _quarto.modules.patterns.match_all_in_table(pattern)(raw.text) then
         return true
       end
     end

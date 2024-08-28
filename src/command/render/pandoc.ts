@@ -30,7 +30,6 @@ import {
   kHtmlFinalizers,
   kHtmlPostprocessors,
   kMarkdownAfterBody,
-  kSassBundles,
   kTextHighlightingMode,
 } from "../../config/types.ts";
 import {
@@ -43,6 +42,7 @@ import {
   isIpynbOutput,
   isLatexOutput,
   isMarkdownOutput,
+  isRevealjsOutput,
   isTypstOutput,
 } from "../../config/format.ts";
 import {
@@ -122,6 +122,7 @@ import {
   kSelfContained,
   kSyntaxDefinitions,
   kTemplate,
+  kTheme,
   kTitle,
   kTitlePrefix,
   kTocLocation,
@@ -402,9 +403,21 @@ export async function runPandoc(
       ))
       : {};
 
-    const extras = await resolveExtras(
+    // start with the merge
+    const inputExtras = mergeConfigs(
       projectExtras,
       formatExtras,
+      {
+        metadata: projectExtras.metadata?.[kDocumentClass]
+          ? {
+            [kDocumentClass]: projectExtras.metadata?.[kDocumentClass],
+          }
+          : undefined,
+      },
+    );
+
+    const extras = await resolveExtras(
+      inputExtras,
       options.format,
       cwd,
       options.libDir,
@@ -988,6 +1001,12 @@ export async function runPandoc(
       if (ld.isObject(formats) && metadataGetDeep(formats, key).length > 0) {
         continue;
       }
+
+      // don't process some format specific metadata that may have been processed already
+      // - theme is handled specifically already for revealjs with a metadata override and should not be overridden by user input
+      if (key === kTheme && isRevealjsOutput(options.format.pandoc)) {
+        continue;
+      }
       // perform the override
       pandocMetadata[key] = engineMetadata[key];
     }
@@ -1260,8 +1279,7 @@ function cleanupPandocMetadata(metadata: Metadata) {
 }
 
 async function resolveExtras(
-  projectExtras: FormatExtras,
-  formatExtras: FormatExtras,
+  extras: FormatExtras, // input format extras (project, format, brand)
   format: Format,
   inputDir: string,
   libDir: string,
@@ -1269,15 +1287,6 @@ async function resolveExtras(
   dependenciesFile: string,
   project?: ProjectContext,
 ) {
-  // start with the merge
-  let extras = mergeConfigs(projectExtras, formatExtras);
-
-  // project documentclass always wins
-  if (projectExtras.metadata?.[kDocumentClass]) {
-    extras.metadata = extras.metadata || {};
-    extras.metadata[kDocumentClass] = projectExtras.metadata?.[kDocumentClass];
-  }
-
   // resolve format resources
   await writeFormatResources(
     inputDir,
@@ -1293,8 +1302,6 @@ async function resolveExtras(
       extras,
       format,
       temp,
-      formatExtras.html?.[kSassBundles],
-      projectExtras.html?.[kSassBundles],
       project,
     );
 

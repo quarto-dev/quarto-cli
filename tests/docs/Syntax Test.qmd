@@ -449,7 +449,7 @@ array_nested:
 ### Bash
 
 ``` bash
-#!/bin/bash
+#!/usr/bin/env bash
 
 ###### CONFIG
 ACCEPTED_HOSTS="/root/.hag_accepted.conf"

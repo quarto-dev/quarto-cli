@@ -8,6 +8,7 @@ import sys
 import json
 import pprint
 import copy
+import base64
 
 from pathlib import Path
 
@@ -111,7 +112,7 @@ def set_env_vars(options):
       os.environ["QUARTO_FIG_DPI"] = str(options["fig_dpi"])
       os.environ["QUARTO_FIG_FORMAT"] = options["fig_format"]
 
-def retrieve_nb_from_cache(nb, status, **kwargs):
+def retrieve_nb_from_cache(nb, status, input, **kwargs):
    cache = kwargs["cache"]
    # are we using the cache, if so connect to the cache, and then if we aren't in 'refresh'
    # (forced re-execution) mode then try to satisfy the execution request from the cache
@@ -435,6 +436,8 @@ def nb_language_cell(name, kernelspec, resource_dir, allow_empty, **args):
    lang_dir = os.path.join(resource_dir, 'jupyter', 'lang',  kernelspec.language)
    if os.path.isdir(lang_dir):
       cell_file = glob.glob(os.path.join(lang_dir, name + '.*'))
+      # base64-encode the run_path given
+      args['run_path'] = base64.b64encode(args.get('run_path', '').encode('utf-8')).decode('utf-8')
       if len(cell_file) > 0:
          with open(cell_file[0], 'r') as file:
             source = file.read().format(**args)
@@ -461,11 +464,14 @@ def nb_language_cell(name, kernelspec, resource_dir, allow_empty, **args):
 
 def nb_from_cache(nb, nb_cache, nb_meta = ("kernelspec", "language_info", "widgets")):
    try:
+      trace("nb_from_cache match")
       cache_record = nb_cache.match_cache_notebook(nb)
+      trace("nb_from_cache get buncle")
       cache_bundle = nb_cache.get_cache_bundle(cache_record.pk)
       cache_nb = cache_bundle.nb
       nb = copy.deepcopy(nb)
       # selected (execution-oriented) metadata
+      trace("nb_from_cache processing metadata")
       if nb_meta is None:
          nb.metadata = cache_nb.metadata
       else:
@@ -473,10 +479,12 @@ def nb_from_cache(nb, nb_cache, nb_meta = ("kernelspec", "language_info", "widge
             if key in cache_nb.metadata:
                nb.metadata[key] = cache_nb.metadata[key]
       # code cells
+      trace("nb_from_cache processing cells")
       for idx in range(len(nb.cells)):
          if nb.cells[idx].cell_type == "code":
             cache_cell = cache_nb.cells.pop(0)    
             nb.cells[idx] = cache_cell
+      trace("nb_from_cache returning")
       return nb
    except KeyError:
       return None

@@ -176,7 +176,7 @@ export function test(test: TestDescriptor) {
           try {
             await test.execute();
           } catch (e) {
-            logError(e)
+            logError(e);
           }
 
           // Cleanup the output logging

@@ -9,6 +9,11 @@ $definitions.typst()$
     .join()
 }
 
+#set table(
+  inset: 6pt,
+  stroke: none
+)
+
 $if(template)$
 #import "$template$": conf
 $else$

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { docs } from "../../utils.ts";
+import { docs, projectOutputForInput } from "../../utils.ts";
 
 import { basename, dirname, extname, join, relative } from "../../../src/deno_ral/path.ts";
 import { ensureHtmlElements } from "../../verify.ts";
@@ -12,30 +12,12 @@ import { testQuartoCmd } from "../../test.ts";
 import { noErrors } from "../../verify.ts";
 import { existsSync } from "fs/mod.ts";
 
-const siteOutputForInput = (rootDir: string, input: string) => {
-  const dir = join(rootDir, "_site");
-  const stem = basename(input, extname(input));
-
-  const outputPath = join(
-    dir,
-    dirname(relative(rootDir, input)),
-    `${stem}.html`,
-  );
-  const supportPath = join(dir, `site_libs`);
-
-  return {
-    outputPath,
-    supportPath,
-  };
-};
-
 const testRender = (
-  rootDir: string,
   input: string,
   includeSelectors: string[],
   excludeSelectors: string[],
 ) => {
-  const output = siteOutputForInput(rootDir, input);
+  const output = projectOutputForInput(input);
   const verifySel = ensureHtmlElements(
     output.outputPath,
     includeSelectors,
@@ -63,8 +45,7 @@ const rootDir = docs("extensions/project/");
 
 // Render the home page and verify the output
 // contains the extension shortcodes and filter elements
-const rootInput = join(rootDir, "posts/welcome/index.qmd");
-testRender(rootDir, rootInput, [
+testRender(join(rootDir, "posts/welcome/index.qmd"), [
   "a.lightbox",
   "i.fa-solid.fa-anchor",
   "i.fa-solid.fa-bacteria",
@@ -74,7 +55,7 @@ testRender(rootDir, rootInput, [
 // Render the welcome page (subdirectory) and verify the output
 // contains the extension shortcodes and filter elements
 const subdirInput = join(rootDir, "posts/welcome/index.qmd");
-testRender(rootDir, subdirInput, [
+testRender(join(rootDir, "posts/welcome/index.qmd"), [
   "a.lightbox",
   "i.fa-solid.fa-anchor",
   "i.fa-solid.fa-bacteria",

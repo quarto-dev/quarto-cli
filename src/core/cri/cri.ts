@@ -82,8 +82,8 @@ export async function criClient(appPath?: string, port?: number) {
     app,
     "--headless",
     "--no-sandbox",
-    "--single-process",
     "--disable-gpu",
+    "--renderer-process-limit=1",
     `--remote-debugging-port=${port}`,
   ];
   const browser = Deno.run({ cmd, stdout: "piped", stderr: "piped" });

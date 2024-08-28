@@ -20,8 +20,8 @@ Usage:
     -- }
 ]]
 ---@param blocks pandoc.List List of `Block` elements to be flattened.
----@param sep? pandoc.List List of `Inline` elements inserted as separator between two consecutive blocks; defaults to `{pandoc.LineBreak()}`.
----@return pandoc.List
+---@param sep? pandoc.Inlines List of `Inline` elements inserted as separator between two consecutive blocks; defaults to `{pandoc.LineBreak()}`.
+---@return pandoc.Inlines
 function pandoc.utils.blocks_to_inlines(blocks, sep) end
 
 --[[

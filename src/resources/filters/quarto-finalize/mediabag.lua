@@ -1,7 +1,7 @@
 -- quarto-finalize.lua
 -- Copyright (C) 2022 Posit Software, PBC
 
-function mediabag()
+function mediabag_filter()
   return {
     -- mediabag entries need to be re-routed to the filesystem
     -- if this isn't an office doc (as those formats automatically

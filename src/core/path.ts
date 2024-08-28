@@ -31,7 +31,7 @@ export const kSkipHidden = /[/\\][\.]/;
 
 export function removeIfExists(file: string) {
   if (existsSync(file)) {
-    Deno.removeSync(file, { recursive: true });
+    safeRemoveSync(file, { recursive: true });
   }
 }
 
@@ -50,7 +50,9 @@ export function safeRemoveSync(
   try {
     Deno.removeSync(file, options);
   } catch (e) {
-    if (existsSync(file)) throw e;
+    if (existsSync(file)) {
+      throw e;
+    }
   }
 }
 

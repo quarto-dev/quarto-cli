@@ -15,9 +15,8 @@ import { dartCompile } from "./dart-sass.ts";
 
 import * as ld from "./lodash.ts";
 import { lines } from "./text.ts";
-import { md5Hash } from "./hash.ts";
-import { debug } from "../deno_ral/log.ts";
-import { safeExistsSync } from "./path.ts";
+import { sassCache } from "./sass/cache.ts";
+import { md5HashBytes } from "./hash.ts";
 
 export interface SassVariable {
   name: string;
@@ -121,10 +120,13 @@ export async function compileSass(
     ...userRules,
   ].join("\n\n");
 
+  const hash = md5HashBytes(new TextEncoder().encode(scssInput));
+
   // Compile the scss
   // Note that you can set this to undefined to bypass the cache entirely
-  const cacheKey = bundles.map((bundle) => bundle.key).join("|") + "-" +
-    (minified ? "min" : "nomin");
+  const cacheKey = hash;
+  // bundles.map((bundle) => bundle.key).join("|") + "-" +
+  //   (minified ? "min" : "nomin");
 
   return await compileWithCache(
     scssInput,
@@ -300,10 +302,6 @@ export async function compileWithCache(
   cacheIdentifier?: string,
 ) {
   if (cacheIdentifier) {
-    // Calculate a hash for the input and identifier
-    const identifierHash = md5Hash(cacheIdentifier);
-    const inputHash = md5Hash(input);
-
     // If there are imports, the computed input Hash is incorrect
     // so we should be using a session cache which will cache
     // across renders, but not persistently
@@ -313,50 +311,9 @@ export async function compileWithCache(
     const cacheDir = useSessionCache
       ? join(temp.baseDir, "sass")
       : quartoCacheDir("sass");
-    const cacheIdxPath = join(cacheDir, "index.json");
-
-    const outputFile = `${identifierHash}.css`;
-    const outputFilePath = join(cacheDir, outputFile);
-
-    // Check whether we can use a cached file
-    let cacheIndex: { [key: string]: { key: string; hash: string } } = {};
-    let writeCache = true;
-    if (existsSync(outputFilePath)) {
-      try {
-        cacheIndex = JSON.parse(Deno.readTextFileSync(cacheIdxPath));
-        const existingEntry = cacheIndex[identifierHash];
-        writeCache = !existingEntry || (existingEntry.hash !== inputHash);
-      } catch {
-        debug(`The scss cache index file ${cacheIdxPath} can't be read.`);
-      }
-    }
-
-    // We need to refresh the cache
-    if (writeCache) {
-      try {
-        await dartCompile(
-          input,
-          outputFilePath,
-          temp,
-          loadPaths,
-          compressed,
-        );
-      } catch (error) {
-        // Compilation failed, so clear out the output file (if exists)
-        // which will be invalid CSS
-        try {
-          if (safeExistsSync(outputFilePath)) {
-            Deno.removeSync(outputFilePath);
-          }
-        } finally {
-          //doesn't matter
-        }
-        throw error;
-      }
-      cacheIndex[identifierHash] = { key: cacheIdentifier, hash: inputHash };
-      Deno.writeTextFileSync(cacheIdxPath, JSON.stringify(cacheIndex));
-    }
-    return outputFilePath;
+    // when using quarto session cache, we ensure to cleanup the cache files at TempContext cleanup
+    const cache = await sassCache(cacheDir, useSessionCache ? temp : undefined);
+    return cache.getOrSet(input, loadPaths, temp, cacheIdentifier, compressed);
   } else {
     const outputFilePath = temp.createFile({ suffix: ".css" });
     // Skip the cache and just compile

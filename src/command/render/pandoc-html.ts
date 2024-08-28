@@ -10,7 +10,6 @@ import { cloneDeep, uniqBy } from "../../core/lodash.ts";
 import {
   Format,
   FormatExtras,
-  FormatPandoc,
   kDependencies,
   kQuartoCssVariables,
   kTextHighlightingMode,
@@ -36,6 +35,9 @@ import {
   generateCssKeyValues,
 } from "../../core/pandoc/css.ts";
 import { kMinimal } from "../../format/html/format-html-shared.ts";
+import { kSassBundles } from "../../config/types.ts";
+import { md5HashBytes } from "../../core/hash.ts";
+import { InternalError } from "../../core/lib/error.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -50,8 +52,6 @@ export async function resolveSassBundles(
   extras: FormatExtras,
   format: Format,
   temp: TempContext,
-  formatBundles?: SassBundle[],
-  projectBundles?: SassBundle[],
   project?: ProjectContext,
 ) {
   extras = cloneDeep(extras);
@@ -71,14 +71,9 @@ export async function resolveSassBundles(
     });
   };
 
-  // group project provided bundles
-  if (projectBundles) {
-    group(projectBundles, mergedBundles);
-  }
-
-  // group format provided bundles
-  if (formatBundles) {
-    group(formatBundles, mergedBundles);
+  // group available sass bundles
+  if (extras?.["html"]?.[kSassBundles]) {
+    group(extras["html"][kSassBundles], mergedBundles);
   }
 
   // Go through and compile the cssPath for each dependency
@@ -99,7 +94,9 @@ export async function resolveSassBundles(
     const targets: SassTarget[] = [{
       name: `${dependency}.min.css`,
       bundles,
-      attribs: {},
+      attribs: {
+        "append-hash": "true",
+      },
     }];
     if (hasDark) {
       // Note that the other bundle provides light
@@ -169,12 +166,30 @@ export async function resolveSassBundles(
           extraDep.name === dependency
         );
 
+        let targetName = target.name;
+        if (target.attribs["append-hash"] === "true") {
+          const hashFragment = `-${md5HashBytes(Deno.readFileSync(cssPath))}`;
+          let extension = "";
+          if (target.name.endsWith(".min.css")) {
+            extension = ".min.css";
+          } else if (target.name.endsWith(".css")) {
+            extension = ".css";
+          } else {
+            throw new InternalError("Unexpected target name: " + target.name);
+          }
+          targetName =
+            targetName.slice(0, target.name.length - extension.length) +
+            hashFragment + extension;
+        } else {
+          targetName = target.name;
+        }
+
         if (existingDependency) {
           if (!existingDependency.stylesheets) {
             existingDependency.stylesheets = [];
           }
           existingDependency.stylesheets.push({
-            name: target.name,
+            name: targetName,
             path: cssPath,
             attribs: target.attribs,
           });
@@ -186,7 +201,7 @@ export async function resolveSassBundles(
           extraDeps.push({
             name: dependency,
             stylesheets: [{
-              name: target.name,
+              name: targetName,
               path: cssPath,
               attribs: target.attribs,
             }, ...imports],
@@ -256,7 +271,7 @@ async function resolveQuartoSyntaxHighlighting(
   // Generate and inject the text highlighting css
   const cssFileName = `quarto-syntax-highlighting${
     style === "dark" ? "-dark" : ""
-  }.css`;
+  }`;
 
   // Read the highlight style (theme name)
   const themeDescriptor = readHighlightingTheme(inputDir, format.pandoc, style);
@@ -290,7 +305,7 @@ async function resolveQuartoSyntaxHighlighting(
       // Compile the scss
       const highlightCssPath = await compileSass(
         [{
-          key: cssFileName,
+          key: cssFileName + ".css",
           quarto: {
             uses: "",
             defaults: "",
@@ -319,8 +334,9 @@ async function resolveQuartoSyntaxHighlighting(
           existingDependency.stylesheets = existingDependency.stylesheets ||
             [];
 
+          const hash = md5HashBytes(Deno.readFileSync(highlightCssPath));
           existingDependency.stylesheets.push({
-            name: cssFileName,
+            name: cssFileName + `-${hash}.css`,
             path: highlightCssPath,
             attribs: mediaAttr,
           });
@@ -455,7 +471,8 @@ function processCssIntoExtras(
 
     if (dirty) {
       const cleanedCss = css.replaceAll(kVariablesRegex, "");
-      const newCssPath = temp.createFile({ suffix: ".css" });
+      const hash = md5HashBytes(new TextEncoder().encode(cleanedCss));
+      const newCssPath = temp.createFile({ suffix: `-${hash}.css` });
 
       // Preserve the existing permissions if possible
       // See https://github.com/quarto-dev/quarto-cli/issues/660

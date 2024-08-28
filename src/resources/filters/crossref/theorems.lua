@@ -55,6 +55,10 @@ function crossref_theorems()
           end
 
           -- capture then remove name
+          -- 
+          -- we have string_to_quarto_ast_inlines but we don't need it here
+          -- because this filter happened after shortcode processing, and this
+          -- is a regular div we're processing
           local name = markdownToInlines(el.attr.attributes["name"])
           if not name or #name == 0 then
             name = resolveHeadingCaption(el)

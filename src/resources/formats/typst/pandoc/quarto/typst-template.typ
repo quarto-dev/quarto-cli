@@ -5,6 +5,7 @@
   authors: none,
   date: none,
   abstract: none,
+  abstract-title: none,
   cols: 1,
   margin: (x: 1.25in, y: 1.25in),
   paper: "us-letter",
@@ -16,6 +17,7 @@
   toc: false,
   toc_title: none,
   toc_depth: none,
+  toc_indent: 1.5em,
   doc,
 ) = {
   set page(
@@ -60,7 +62,7 @@
 
   if abstract != none {
     block(inset: 2em)[
-    #text(weight: "semibold")[Abstract] #h(1em) #abstract
+    #text(weight: "semibold")[#abstract-title] #h(1em) #abstract
     ]
   }
 
@@ -73,7 +75,8 @@
     block(above: 0em, below: 2em)[
     #outline(
       title: toc_title,
-      depth: toc_depth
+      depth: toc_depth,
+      indent: toc_indent
     );
     ]
   }

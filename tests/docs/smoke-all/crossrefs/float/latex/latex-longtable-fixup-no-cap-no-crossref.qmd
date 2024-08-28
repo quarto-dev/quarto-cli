@@ -1,0 +1,29 @@
+---
+format: pdf
+keep-tex: true
+title: "Long Table kable fixups etc"
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['\\begin\{longtable\*\}']
+        - ['\\begin\{longtable\}']
+---
+
+## Raw longtable table with no crossref and no caption
+
+In this case, Quarto will transform to longtable* 
+
+```{r}
+#| echo: false
+df <- tibble::tibble(
+  x = 1:20,
+  y = rnorm(20),
+  z = rnorm(20)
+)
+knitr::kable(df, 
+  format = "latex", 
+  longtable = TRUE, 
+  booktabs = TRUE)
+```
+

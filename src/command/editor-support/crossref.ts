@@ -126,6 +126,10 @@ const makeCrossrefCommand = () => {
           stdout: "piped",
         },
         input,
+        undefined, // mergeOutput?: "stderr>stdout" | "stdout>stderr",
+        undefined, // stderrFilter?: (output: string) => string,
+        undefined, // respectStreams?: boolean,
+        5000,
       );
 
       // check for error

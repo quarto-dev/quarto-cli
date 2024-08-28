@@ -10,10 +10,11 @@ import { ensureFileRegexMatches } from "../../verify.ts";
 import { testRender } from "./render.ts";
 
 const tests = [
-  { file: "commonmark-plain.qmd", python: false },
-  { file: "commonmark-r.qmd", python: false },
-  { file: "commonmark-python.qmd", python: true },
-  { file: "commonmark-julia.qmd", python: false },
+  { file: "commonmark-plain.qmd" },
+  { file: "commonmark-r.qmd" },
+  { file: "commonmark-python.qmd"},
+  { file: "commonmark-julia.qmd" },
+  { file: "commonmark-julianative.qmd" },
 ];
 tests.forEach((test) => {
   const input = docs(join("markdown", test.file));

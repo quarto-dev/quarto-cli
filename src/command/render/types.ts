@@ -214,8 +214,8 @@ export interface PandocOptions {
   // optional execution engine
   executionEngine?: string;
 
-  // optoinal project context
-  project?: ProjectContext;
+  // project context
+  project: ProjectContext;
 
   // quiet quarto pandoc informational output
   quiet?: boolean;

@@ -1,0 +1,36 @@
+---
+title: "Pandas - Acting on Data"
+format:
+  typst:
+    quality: 1
+  html:
+    quality: 1
+    format-links: false
+references:
+  - type: website
+    id: pandas-user-guide
+    url: https://pandas.pydata.org/pandas-docs/version/2.2.2/user_guide/style.html#Acting-on-the-Index-and-Column-Headers
+---
+
+```{python}
+#| classes: plain
+import pandas as pd
+import numpy as np
+
+np.random.seed(0)
+df2 = pd.DataFrame(np.random.randn(10,4), columns=['A','B','C','D'])
+
+def style_negative(v, props=''):
+    return props if v < 0 else None
+s2 = df2.style.map(style_negative, props='color:red;')\
+              .map(lambda v: 'opacity: 20%;' if (v < 0.3) and (v > -0.3) else None)
+
+def highlight_max(s, props=''):
+    return np.where(s == np.nanmax(s.values), props, '')
+
+# darkblue, pink
+s2.apply(highlight_max, props='color:white;background-color:#00008b', axis=0)\
+.apply(highlight_max, props='color:white;background-color: #ffc0cb;', axis=1)\
+.apply(highlight_max, props='color:white;background-color:purple', axis=None)
+
+```

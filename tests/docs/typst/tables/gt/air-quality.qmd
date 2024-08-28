@@ -1,0 +1,55 @@
+---
+title: "gt - Air Quality"
+format:
+  typst:
+    quality: 1
+  html:
+    quality: 1
+    format-links: false
+---
+
+```{r}
+#| classes: plain
+library(gt)
+library(dplyr)
+
+# Modify the `airquality` dataset by adding the year
+# of the measurements (1973) and limiting to 10 rows
+airquality_m <-
+  airquality |>
+  mutate(Year = 1973L) |>
+  slice(1:10)
+
+# Create a display table using the `airquality`
+# dataset; arrange columns into groups
+gt_tbl <-
+  gt(airquality_m) |>
+  tab_header(
+    title = "New York Air Quality Measurements",
+    subtitle = "Daily measurements in New York City (May 1-10, 1973)"
+  ) |>
+  tab_spanner(
+    label = "Time",
+    columns = c(Year, Month, Day)
+  ) |>
+  tab_spanner(
+    label = "Measurement",
+    columns = c(Ozone, Solar.R, Wind, Temp)
+  )
+
+gt_tbl <-
+  gt_tbl |>
+  cols_move_to_start(
+    columns = c(Year, Month, Day)
+  ) |>
+  cols_label(
+    Ozone = html("Ozone,<br>ppbV"),
+    Solar.R = html("Solar R.,<br>cal/m<sup>2</sup>"),
+    Wind = html("Wind,<br>mph"),
+    Temp = html("Temp,<br>&deg;F")
+  )
+
+# Show the gt table
+gt_tbl
+
+```

@@ -3,6 +3,18 @@
 function unroll_cell_outputs()
   -- the param("output-divs", true) check is now done in flags.lua
 
+  local function has_ojs_content(div)
+    local ojs_content = false
+    _quarto.ast.walk(div, {
+      Div = function(el)
+        if el.identifier:match("ojs%-cell%-") then
+          ojs_content = true
+        end
+      end
+    })
+    return ojs_content
+  end
+
   return {
     -- unroll output divs for formats (like pptx) that don't support them
     Div = function(div)
@@ -11,7 +23,8 @@ function unroll_cell_outputs()
       if tcontains(div.attr.classes, "cell") then
         -- if this is PowerPoint and it's a figure panel then let it through (as
         -- we'll use PowerPoint columns to layout at least 2 figures side-by-side)
-        if _quarto.format.isPowerPointOutput() and hasLayoutAttributes(div) then
+        if (_quarto.format.isPowerPointOutput() and hasLayoutAttributes(div)) or
+           (_quarto.format.isHugoMarkdownOutput() and has_ojs_content(div)) then
           return nil
         end
 

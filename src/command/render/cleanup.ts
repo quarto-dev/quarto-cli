@@ -1,9 +1,8 @@
 /*
-* renderCleanup.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * renderCleanup.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 import { dirname, extname, isAbsolute, join } from "../../deno_ral/path.ts";
@@ -14,6 +13,7 @@ import {
   normalizePath,
   removeIfEmptyDir,
   removeIfExists,
+  safeRemoveSync,
 } from "../../core/path.ts";
 import { figuresDir, inputFilesDir } from "../../core/render.ts";
 
@@ -90,7 +90,7 @@ export function renderCleanup(
     // clean supporting
     ld.uniq(supporting).forEach((path) => {
       if (existsSync(path)) {
-        Deno.removeSync(path, { recursive: true });
+        safeRemoveSync(path, { recursive: true });
       }
     });
   }

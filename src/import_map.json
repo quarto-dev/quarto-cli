@@ -4,6 +4,7 @@
     "async/": "https://deno.land/std@0.217.0/async/",
     "bytes/": "https://deno.land/std@0.217.0/bytes/",
     "collection/": "https://deno.land/std@0.217.0/collection/",
+    "colors": "https://deno.land/std@0.217.0/fmt/colors.ts",
     "crypto/": "https://deno.land/std@0.217.0/crypto/",
     "datetime/": "https://deno.land/std@0.217.0/datetime/",
     "dotenv/": "https://deno.land/std@0.217.0/dotenv/",

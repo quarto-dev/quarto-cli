@@ -1,0 +1,55 @@
+---
+title: "gt - gtcars"
+format:
+  typst:
+    quality: 1
+  html:
+    quality: 1
+    format-links: false
+references:
+  - type: website
+    id: gt-cookbook
+    url: https://themockup.blog/static/resources/gt-cookbook.html#multiple-colors
+---
+
+```{=typst}
+// this example is a little large for a standard page, at least at 0.75px = 1pt
+// and we don't have
+#set page(margin: 0cm)
+
+// striped
+// #set table(fill: (_,y) => if calc.odd(y) {luma(240)} else {white})
+```
+
+
+```{r}
+#| classes: plain
+library(dplyr)
+library(gt)
+
+gtcars %>%
+  dplyr::filter(mfr == "Ferrari", hp < 900) %>%
+  dplyr::select(model, hp, mpg_c, mpg_h, msrp) %>%
+  gt() %>%
+  data_color(
+    columns = vars(hp),
+    colors = scales::col_numeric(
+      palette = c(
+        "white", "orange", "red"),
+      domain = c(500, 750))
+  ) %>%
+  data_color(
+    columns = vars(mpg_c, mpg_h),
+    colors = scales::col_numeric(
+      palette = c(
+        "white", "green"),
+      domain = c(10, 25))
+  ) %>%
+  data_color(
+    columns = vars(msrp),
+    colors = scales::col_numeric(
+      palette = c(
+        "white", "pink", "red"),
+      domain = NULL)
+  )
+```

@@ -1,0 +1,23 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "div#tbl-example-1"
+          - "div#tbl-example-2"
+        - []
+---
+```{r}
+#| label: tbl-example
+#| layout-ncol: 2
+#| tbl-cap: I want these images to be interpreted as Tables.
+#| tbl-subcap:
+#|   - This is the subcaption for the first subtable
+#|   - This is the subcaption for the second subtable
+plot(1:10)
+plot(11:20)
+```
+
+See @tbl-example, @tbl-example-1, or @tbl-example-2.

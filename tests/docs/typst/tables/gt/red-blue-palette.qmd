@@ -1,0 +1,31 @@
+---
+title: "gt - Red-Blue Palette"
+format:
+  typst:
+    quality: 1
+  html:
+    quality: 1
+    format-links: false
+example-source: https://themockup.blog/static/resources/gt-cookbook.html#red-blue-palette
+---
+
+```{r}
+#| classes: plain
+library(dplyr)
+library(gt)
+
+dimnames <- list(start(nottem)[1]:end(nottem)[1], month.abb)
+temps <- matrix(nottem, ncol = 12, byrow = TRUE, dimnames = dimnames) %>%
+  data.frame() %>%
+  tibble::rownames_to_column() %>%
+  head(10)
+
+temps %>%
+  gt() %>%
+  data_color(
+    columns = vars(month.abb),
+    colors = scales::col_numeric(
+      colorspace::diverge_hcl(n = 9, palette = "Blue-Red 3"),
+      domain = range(nottem))
+  )
+```

@@ -1,7 +1,7 @@
 ---
 format:
   typst:
-    output-ext: typ
+    keep-typ: true
 _quarto:
   tests:
     html:

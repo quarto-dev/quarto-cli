@@ -22,6 +22,8 @@ import { quartoConfig } from "./core/quarto.ts";
 import { execProcess } from "./core/process.ts";
 import { pandocBinaryPath } from "./core/resources.ts";
 import { appendProfileArg, setProfileFromArg } from "./quarto-core/profile.ts";
+import { logError } from "./core/log.ts";
+import { CommandError } from "cliffy/command/_errors.ts";
 
 import {
   devConfigsEqual,
@@ -30,7 +32,7 @@ import {
   reconfigureQuarto,
 } from "./core/devconfig.ts";
 import { typstBinaryPath } from "./core/typst.ts";
-import { onCleanup } from "./core/cleanup.ts";
+import { exitWithCleanup, onCleanup } from "./core/cleanup.ts";
 
 import { runScript } from "./command/run/run.ts";
 
@@ -139,6 +141,10 @@ export async function quarto(
     );
   });
 
+  // From here on, we have a temp dir that we need to clean up.
+  // The calls to Deno.exit() above are fine, but no further
+  // ones should be made
+  //
   // init temp dir
   initSessionTempDir();
   onCleanup(cleanupSessionTempDir);
@@ -153,7 +159,16 @@ export async function quarto(
     }
   }
 
-  await promise;
+  try {
+    await promise;
+  } catch (e) {
+    if (e instanceof CommandError) {
+      logError(e, false);
+      exitWithCleanup(1);
+    } else {
+      throw e;
+    }
+  }
 }
 
 if (import.meta.main) {

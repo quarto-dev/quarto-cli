@@ -1,0 +1,28 @@
+---
+title: "Toward a Unified Theory of High-Energy Metaphysics: Silly String Theory"
+format:
+  html:
+    quality: na
+    comment: description title not shown
+  typst:
+    quality: na
+    comment: description not shown
+  pdf:
+    quality: na
+    comment: description not shown
+  docx:
+    quality: na
+    comment: description not shown
+  pptx:
+    quality: na
+    comment: description not shown
+  revealjs:
+    quality: na
+    comment: description not shown
+  dashboard:
+    quality: na
+    comment: description not shown
+author: Josiah Carberry
+description-title: Description!
+description: A very serious theory
+---

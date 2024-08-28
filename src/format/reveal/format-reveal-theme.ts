@@ -37,6 +37,10 @@ import { copyMinimal, copyTo } from "../../core/copy.ts";
 import { titleSlideScss } from "./format-reveal-title.ts";
 import { asCssFont, asCssNumber } from "../../core/css.ts";
 import { cssHasDarkModeSentinel } from "../../core/pandoc/css.ts";
+import { pandocNativeStr } from "../../core/pandoc/codegen.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { brandRevealSassBundleLayers } from "../../core/sass/brand.ts";
+import { md5HashBytes } from "../../core/hash.ts";
 
 export const kRevealLightThemes = [
   "white",
@@ -62,6 +66,7 @@ export async function revealTheme(
   input: string,
   libDir: string,
   temp: TempContext,
+  project: ProjectContext,
 ) {
   // metadata override to return
   const metadata: Metadata = {};
@@ -82,7 +87,9 @@ export async function revealTheme(
 
   // compute reveal url
   const revealUrl = pathWithForwardSlashes(revealDir);
-  metadata[kRevealJsUrl] = revealUrl;
+  // escape to avoid pandoc markdown parsing from YAML default file
+  // https://github.com/quarto-dev/quarto-cli/issues/9117
+  metadata[kRevealJsUrl] = pandocNativeStr(revealUrl).mappedString().value;
 
   // copy reveal dir
   const revealSrcDir = revealJsUrl ||
@@ -172,13 +179,22 @@ export async function revealTheme(
     loadPaths,
   };
 
+  const brandLayers: SassBundleLayers[] = await brandRevealSassBundleLayers(
+    input,
+    format,
+    project,
+  );
+
   // compile sass
-  const css = await compileSass([bundleLayers], temp);
+  const css = await compileSass([bundleLayers, ...brandLayers], temp);
+  // convert from string to bytes
+  const hash = md5HashBytes(Deno.readFileSync(css));
+  const fileName = `quarto-${hash}`;
   copyTo(
     css,
-    join(revealDestDir, "dist", "theme", "quarto.css"),
+    join(revealDestDir, "dist", "theme", `${fileName}.css`),
   );
-  metadata[kTheme] = "quarto";
+  metadata[kTheme] = fileName;
 
   const highlightingMode: "light" | "dark" =
     cssHasDarkModeSentinel(Deno.readTextFileSync(css)) ? "dark" : "light";

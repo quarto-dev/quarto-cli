@@ -140,7 +140,7 @@ local function kable_raw_latex_fixups(content, identifier)
         identifier = label_identifier,
         type = "Table",
         content = pandoc.Blocks({ raw }),
-        caption_long = pandoc.Blocks({pandoc.Plain(string_to_quarto_ast_inlines(caption_content))}),
+        caption_long = pandoc.Blocks({pandoc.Plain(string_to_quarto_ast_inlines(caption_content or ""))}),
       })
     end
   })
@@ -164,6 +164,38 @@ local function kable_raw_latex_fixups(content, identifier)
 end
 
 function parse_floatreftargets()
+
+  local function handle_subcells_as_subfloats(params)  
+    local identifier = params.identifier
+    local div = params.div
+    local content = params.content
+    local ref = params.ref
+    local category = params.category
+    local subcaps = params.subcaps
+
+    div.attributes[ref .. "-subcap"] = nil
+    local subcap_index = 0
+    local subcells = pandoc.List({})
+    content = _quarto.ast.walk(content, {
+      Div = function(subdiv)
+        if not subdiv.classes:includes("cell-output-display") then
+          return nil
+        end
+        subcap_index = subcap_index + 1
+        local subfloat = quarto.FloatRefTarget({
+          attr = pandoc.Attr(identifier .. "-" .. tostring(subcap_index), {}, {}),
+          type = category.name,
+          content = {subdiv},
+          caption_long = {pandoc.Plain(string_to_quarto_ast_inlines(subcaps[subcap_index]))},
+        })
+        subcells:insert(subfloat)
+        return {}
+      end
+    })
+    content = coalesce_code_blocks(content)
+    content:extend(subcells)
+    return content
+  end
   
   local function parse_float_div(div)
     process_div_caption_classes(div)
@@ -348,6 +380,42 @@ function parse_floatreftargets()
       end
     end
 
+    -- if we're here, then we're going to return a FloatRefTarget
+    -- 
+    -- it's possible that the _contents_ of this FloatRefTarget should
+    -- be interpreted as subfloats.
+    -- 
+    -- See https://github.com/quarto-dev/quarto-cli/issues/10328
+    --
+    -- We'll use the following heuristic: if the FloatRefTarget contains
+    -- a subcap attribute with exactly as many entries as the number of
+    -- div children with class cell-output-display, then we'll interpret
+    -- each of those children as a subfloat.
+
+    local nsubcells = 0
+    content = _quarto.ast.walk(content, {
+      Div = function(subdiv)
+        if subdiv.classes:includes("cell-output-display") then
+          nsubcells = nsubcells + 1
+        end
+      end
+    })
+    local subcaps = div.attributes[ref .. "-subcap"] or "[]"
+    if subcaps ~= nil then
+      subcaps = quarto.json.decode(subcaps)
+    end
+
+    if nsubcells == #subcaps and nsubcells > 0 then
+      content = handle_subcells_as_subfloats {
+        div = div,
+        content = content,
+        identifier = identifier,
+        ref = ref,
+        category = category,
+        subcaps = subcaps
+      }
+    end
+
     return quarto.FloatRefTarget({
       attr = attr,
       type = category.name,
@@ -514,7 +582,8 @@ function parse_floatreftargets()
         local type = refType(identifier)
         local category = crossref.categories.by_ref_type[type]
         if category == nil then
-          warn("Figure with invalid crossref category: " .. identifier .. "\nWon't be able to cross-reference this figure.")
+          -- We've had too many reports of false positives for this, so we're disabling the warning
+          -- warn("Figure with invalid crossref category: " .. identifier .. "\nWon't be able to cross-reference this figure.")
           return nil
         end
         return quarto.FloatRefTarget({
@@ -707,15 +776,26 @@ function forward_cell_subcaps()
       end
       local subcaps = quarto.json.decode(v)
       local index = 1
+      local nsubcaps
+      if type(subcaps) == "table" then
+        nsubcaps = #subcaps
+      end
       div.content = _quarto.ast.walk(div.content, {
         Div = function(subdiv)
-          if index > #subcaps or not subdiv.classes:includes("cell-output-display") then
+          if type(nsubcaps) == "number" and index > nsubcaps or not subdiv.classes:includes("cell-output-display") then
             return nil
+          end
+          local function get_subcap()
+            if type(subcaps) ~= "table" then
+              return pandoc.Str("")
+            else
+              return pandoc.Str(subcaps[index] or "")
+            end
           end
           -- now we attempt to insert subcaptions where it makes sense for them to be inserted
           subdiv.content = _quarto.ast.walk(subdiv.content, {
             Table = function(pandoc_table)
-              pandoc_table.caption.long = quarto.utils.as_blocks(pandoc.Str(subcaps[index]))
+              pandoc_table.caption.long = quarto.utils.as_blocks(get_subcap())
               pandoc_table.identifier = div.identifier .. "-" .. tostring(index)
               index = index + 1
               return pandoc_table
@@ -723,7 +803,7 @@ function forward_cell_subcaps()
             Para = function(maybe_float)
               local fig = discoverFigure(maybe_float, false) or discoverLinkedFigure(maybe_float, false)
               if fig ~= nil then
-                fig.caption = quarto.utils.as_inlines(pandoc.Str(subcaps[index]))
+                fig.caption = quarto.utils.as_inlines(get_subcap())
                 fig.identifier = div.identifier .. "-" .. tostring(index)
                 index = index + 1
                 return maybe_float

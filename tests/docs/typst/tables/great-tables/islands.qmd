@@ -1,0 +1,31 @@
+---
+title: "Great Tables - Islands"
+format:
+  typst:
+    quality: 1
+  html:
+    quality: 1
+    format-links: false
+references:
+  - type: website
+    id: great-tables
+    url: https://posit-dev.github.io/great-tables/examples/
+---
+
+```{python}
+#| classes: plain
+from great_tables import GT, md, html
+from great_tables.data import islands
+
+islands_mini = islands.head(10)
+
+(
+    GT(islands_mini, rowname_col="name")
+    .tab_header(title="Large Landmasses of the World", subtitle="The top ten largest are presented")
+    .tab_source_note(source_note="Source: The World Almanac and Book of Facts, 1975, page 406.")
+    .tab_source_note(
+        source_note=md("Reference: McNeil, D. R. (1977) *Interactive Data Analysis*. Wiley.")
+    )
+    .tab_stubhead(label="landmass")
+)
+```

@@ -59,6 +59,20 @@ end
 
 local handlers = {}
 
+local function read_arg(args, n)
+  local arg = args[n or 1]
+  local varName
+  if arg == nil then
+    return nil
+  end
+  if type(arg) ~= "string" then
+    varName = inlinesToString(arg)
+  else
+    varName = arg
+  end
+  return varName
+end
+
 function initShortcodeHandlers()
 
   -- user provided handlers
@@ -90,30 +104,45 @@ function initShortcodeHandlers()
     end)
   end
 
+  local function handle_contents(args)
+    local data = {
+      type = "contents-shortcode",
+      payload = {
+        id = read_arg(args)
+      }
+    }
+    flags.has_contents_shortcode = true
+    return { pandoc.RawInline('quarto-internal', quarto.json.encode(data)) }
+  end
+
+  local function handle_brand(args)
+    local brand = require("modules/brand/brand")
+    local brandCommand = read_arg(args, 1)
+    if brandCommand ~= "color" then 
+      warn("Unknown brand command " .. brandCommand .. " specified in a brand shortcode.")
+      return { pandoc.Strong({pandoc.Str("?brand:" .. brandCommand)}) } 
+    end
+    local brandName = read_arg(args, 2)
+    local brandValue = brand.get_color(brandName)
+    if brandValue ~= nil then
+      return { pandoc.Str(brandValue) }
+    else 
+      warn("Unknown brand " .. brandName .. " specified in a brand shortcode.")
+      return { pandoc.Strong({pandoc.Str("?brand:" .. brandName)}) } 
+    end
+  end
 
   -- built in handlers (these override any user handlers)
   handlers['meta'] = { handle = handleMeta }
   handlers['var'] = { handle = handleVars }
   handlers['env'] = { handle = handleEnv }
   handlers['pagebreak'] = { handle = handlePagebreak }
+  handlers['brand'] = { handle = handle_brand }
+  handlers['contents'] = { handle = handle_contents }
 end
 
 function handlerForShortcode(shortCode)
   return handlers[shortCode.name]
-end
-
-local function read_arg(args, n)
-  local arg = args[n or 1]
-  local varName
-  if arg == nil then
-    return nil
-  end
-  if type(arg) ~= "string" then
-    varName = inlinesToString(arg)
-  else
-    varName = arg
-  end
-  return varName
 end
 
 -- Implements reading values from envrionment variables

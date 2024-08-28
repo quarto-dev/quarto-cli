@@ -1,0 +1,12 @@
+---
+format: html
+htmllink: https://www.example.com
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "a[data-key='https://www.example.com']"
+---
+
+[a link](./foo.png){key='{{< meta htmllink >}}'}

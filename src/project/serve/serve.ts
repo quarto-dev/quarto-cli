@@ -566,7 +566,20 @@ async function internalPreviewServer(
           watcher.project(),
           filePathRelative,
         );
+
+        if (!inputFile) {
+          // If we couldn't find a input file, check if this is a resource file.
+          // If so, we can bail out early, since we don't need to render it.
+          // This is great for performance, as refreshing the watcher can be slow.
+          const fileSourcePath = join(watcher.project().dir, filePathRelative);
+          const projectResourceFiles = watcher.project().files.resources;
+          if (projectResourceFiles?.includes(fileSourcePath)) {
+            return undefined;
+          }
+        }
+
         if (!inputFile || !existsSync(inputFile.file)) {
+          // If we got here, we need to look harder for an input file.
           inputFile = await inputFileForOutputFile(
             await watcher.refreshProject(),
             filePathRelative,
@@ -899,7 +912,7 @@ function acquirePreviewLock(project: ProjectContext) {
   // write our pid to the lockfile
   Deno.writeTextFileSync(lockfile, String(Deno.pid));
 
-  // rmeove the lockfile when we exit
+  // remove the lockfile when we exit
   onCleanup(() => releasePreviewLock(project));
 }
 

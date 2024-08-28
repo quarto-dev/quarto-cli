@@ -833,7 +833,6 @@ async function automationFromGoodParseMarkdown(
   };
 
   if (kind === "completions") {
-    debugger;
     let foundCell = undefined;
     for (const cell of result.cells) {
       // use sourceWithYaml when it exists (code cells)
