@@ -91,7 +91,7 @@ export class Brand {
       }
       seenValues.add(name);
       if (this.data.color?.with?.[name]) {
-        name = this.data.color.with[name];
+        name = this.data.color.with[name] as string;
       } else if (
         defaultColorNames.includes(name as BrandNamedThemeColor) &&
         this.data.color?.[name as BrandNamedThemeColor]
