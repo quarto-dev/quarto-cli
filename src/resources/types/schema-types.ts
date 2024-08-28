@@ -7,6 +7,7 @@
 
 export type MaybeArrayOf<T> = T | T[];
 export type JsonObject = { [key: string]: unknown };
+export type SchemaObject = { [key: string]: string };
 
 export type Date = string | { format?: string; value: string };
 
@@ -1286,7 +1287,7 @@ export type BrandLogo = string | {
   large?: BrandStringLightDark;
   medium?: BrandStringLightDark;
   small?: BrandStringLightDark;
-  with?: SchemaObject;
+  with?: JsonObject;
 }; /* Provide definitions and defaults for brand's logo in various formats and sizes. */
 
 export type BrandColorValue = string;
@@ -1305,7 +1306,7 @@ export type BrandColor = {
   success?: BrandColorValue;
   tertiary?: BrandColorValue;
   with?:
-    SchemaObject /* The brand's custom color palette. Any number of colors can be defined, each color having a custom name. */;
+    JsonObject /* The brand's custom color palette. Any number of colors can be defined, each color having a custom name. */;
   warning?: BrandColorValue;
 }; /* The brand's custom color palette and theme. */
 
@@ -1409,7 +1410,7 @@ export type BrandFontFamily = string;
 
 export type Brand = {
   color?: BrandColor;
-  defaults?: SchemaObject;
+  defaults?: JsonObject;
   logo?: BrandLogo;
   meta?: BrandMeta;
   typography?: BrandTypography;
