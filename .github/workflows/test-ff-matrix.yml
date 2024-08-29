@@ -177,8 +177,8 @@ jobs:
       - name: "Check Chromium"
         if: ${{ runner.os == 'Linux' }}
         run: |
-          echo $(which chromium-browser)
-          $(which chromium-browser) --headless --no-sandbox --disable-gpu --renderer-process-limit=1 https://www.chromestatus.com
+          echo $(which google-chrome)
+          $(which google-chrome) --headless --no-sandbox --disable-gpu --renderer-process-limit=1 https://www.chromestatus.com
         shell: bash
 
       - name: Run all Smoke Tests Windows
