@@ -57,6 +57,7 @@ export const kRevealDarkThemes = [
   "night",
   "blood",
   "moon",
+  "dracula",
 ];
 
 export const kRevealThemes = [...kRevealLightThemes, ...kRevealDarkThemes];
