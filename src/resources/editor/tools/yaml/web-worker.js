@@ -19000,7 +19000,7 @@ try {
                 "$html-doc"
               ]
             },
-            description: "Setting this to false prevents the `repo-actions` from appearing on this page."
+            description: "Setting this to false prevents the `repo-actions` from appearing on this page.\nPossible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
           },
           {
             name: "aliases",
