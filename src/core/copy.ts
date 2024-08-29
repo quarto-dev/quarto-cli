@@ -18,7 +18,7 @@ import { isSubdir } from "fs/_is_subdir.ts";
 
 import { isWindows } from "./platform.ts";
 
-// emulate the Deno copySync funnction but read and write files manually
+// emulate the Deno copySync function but read and write files manually
 // rather than calling Deno.copyFileSync (to avoid deno's attempt to
 // modify the file permissions, see:
 // https://github.com/denoland/deno/blob/1c05e41f37da022971f0090b2a92e6340d230055/runtime/ops/fs.rs#L914-L916

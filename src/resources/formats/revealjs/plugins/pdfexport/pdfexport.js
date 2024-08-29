@@ -103,7 +103,7 @@ var PdfExport = ( function( _Reveal ){
 		};
 		Plugin.togglePdfExport = function () {
       togglePdfExport();
-    };
+		};
 	}
 
 	return Plugin;

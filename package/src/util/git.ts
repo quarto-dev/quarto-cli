@@ -99,20 +99,25 @@ async function clone(workingDir: string, url: string) {
 export async function applyGitPatches(patches: string[]) {
   if (!patches) return undefined
   info(`Applying Git patches...`);
-  Promise.all(
+  await Promise.all(
     patches.map( async (patch) => {
       info(`  - patch ${colors.blue(patch)}`)
       const gitCmd: string[] = [];
       gitCmd.push("git");
       gitCmd.push("apply");
       gitCmd.push(patch);
+      // this helps with newline handling in patch
+      gitCmd.push("--ignore-space-change");
+      // this helps debug when patch goes wrong
+      // https://git-scm.com/docs/git-apply#Documentation/git-apply.txt---reject
+      gitCmd.push("--reject");
       const p = Deno.run({
         cmd: gitCmd,
         stderr: "piped",
       });
       const status = await p.status();
       if (status.code !== 0) {
-        throw Error("Failed to apply patch");
+        throw Error(`Failed to apply patch: '${patch}'`);
       }
     })
   )
