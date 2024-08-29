@@ -1283,14 +1283,26 @@ export type BrandMeta = {
 
 export type BrandStringLightDark = string | { dark?: string; light?: string };
 
-export type BrandLogo = string | {
+export type BrandLogo = {
   large?: BrandStringLightDark;
   medium?: BrandStringLightDark;
   small?: BrandStringLightDark;
   with?: JsonObject;
 }; /* Provide definitions and defaults for brand's logo in various formats and sizes. */
 
+export type BrandNamedLogo =
+  | "small"
+  | "medium"
+  | "large"; /* Names of customizeable logos */
+
 export type BrandColorValue = string;
+
+export type LogoStringLayout = string | {
+  location?: string;
+  padding?: string;
+  src?: string;
+  width?: string;
+}; /* Source path or source path with layout options for logo */
 
 export type BrandColor = {
   background?: BrandColorValue;
@@ -1344,7 +1356,7 @@ export type BrandTypography = {
     weight?: BrandFontWeight;
   } /* The text properties used for hyperlinks. */;
   monospace?: BrandTypographyOptions;
-  with?: BrandFont;
+  with?: BrandFontWith;
 }; /* Typography definitions for the brand. */
 
 export type BrandTypographyOptions = {
@@ -1352,10 +1364,16 @@ export type BrandTypographyOptions = {
   "background-color"?: BrandMaybeNamedColor;
   color?: BrandMaybeNamedColor;
   family?: string;
+  files?: MaybeArrayOf<(string | string)> /* Resolved local paths. */;
   size?: string;
   style?: BrandFontStyle;
   weight?: BrandFontWeight;
 }; /* Typographic options. */
+
+export type BrandNamedFont =
+  | "base"
+  | "headings"
+  | "monospace"; /* Names of customizeable fonts */
 
 export type BrandTypographyOptionsNoSize = {
   "line-height"?: string;
@@ -1366,11 +1384,13 @@ export type BrandTypographyOptionsNoSize = {
   weight?: BrandFontWeight;
 }; /* Typographic options without a font size. */
 
-export type BrandFont = ((
+export type BrandFontWith =
+  JsonObject; /* Font files and definitions for the brand. */
+
+export type BrandFont =
   | BrandFontGoogle
   | BrandFontFile
-  | BrandFontFamily
-))[]; /* Font files and definitions for the brand. */
+  | BrandFontFamily; /* Font files and definitions for the brand. */
 
 export type BrandFontWeight =
   | 100
@@ -1386,7 +1406,7 @@ export type BrandFontWeight =
 export type BrandFontStyle = "normal" | "italic"; /* A font style. */
 
 export type BrandFontGoogle = {
-  google?: string | {
+  google: string | {
     display?:
       | "auto"
       | "block"
@@ -1394,16 +1414,24 @@ export type BrandFontGoogle = {
       | "fallback"
       | "optional" /* The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use. */;
     family?: string;
-    style?: MaybeArrayOf<BrandFontStyle> /* The font style to include. */;
+    style?: MaybeArrayOf<BrandFontStyle> /* The font styles to include. */;
     weight?: MaybeArrayOf<BrandFontWeight>; /* The font weights to include. */
   };
 }; /* A Google Font definition. */
 
 export type BrandFontFile = {
+  display?:
+    | "auto"
+    | "block"
+    | "swap"
+    | "fallback"
+    | "optional" /* The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use. */;
   family?: string;
-  files?: MaybeArrayOf<
+  files: MaybeArrayOf<
     (string | string)
-  >; /* The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs. */
+  > /* The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs. */;
+  style?: MaybeArrayOf<BrandFontStyle> /* The font styles to include. */;
+  weight?: MaybeArrayOf<BrandFontWeight>; /* The font weights to include. */
 }; /* A method for providing font files directly, either locally or from an online location. */
 
 export type BrandFontFamily = string;
