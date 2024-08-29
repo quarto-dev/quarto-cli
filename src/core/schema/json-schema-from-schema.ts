@@ -3,10 +3,13 @@
  *
  * generates a JSON schema object from our yaml schema definitions.
  *
- * Copyright (C) 2025 Posit Software, PBC
+ * Copyright (C) 2024 Posit Software, PBC
  */
 
-import { schemaDefinitions, typeNameFromSchemaName } from "./types-from-schema.ts";
+import {
+  schemaDefinitions,
+  typeNameFromSchemaName,
+} from "./types-from-schema.ts";
 import {
   JsonObject,
   SchemaSchema,
@@ -153,13 +156,13 @@ export const generateJsonSchemasFromSchemas = async (resourcePath: string) => {
         console.log(JSON.stringify(schema));
         throw e;
       }
-      return acc
-    }, {})
+      return acc;
+    }, {});
 
   const schema = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$defs": defs
-  }
+    "$defs": defs,
+  };
 
   Deno.writeTextFileSync(
     `${resourcePath}/schema/json-schemas.json`,
