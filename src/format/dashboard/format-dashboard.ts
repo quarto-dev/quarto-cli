@@ -110,7 +110,10 @@ export function dashboardFormat() {
           const formats: Record<string, Metadata> = format.metadata
             .format as Record<string, Metadata>;
           const htmlFormat = formats["html"];
-          if (htmlFormat && htmlFormat[kTheme]) {
+          const dashboardFormat = formats["dashboard"];
+          if (dashboardFormat && dashboardFormat[kTheme]) {
+            format.metadata[kTheme] = dashboardFormat[kTheme];
+          } else if (htmlFormat && htmlFormat[kTheme]) {
             format.metadata[kTheme] = htmlFormat[kTheme];
           }
         }
@@ -167,7 +170,7 @@ export function dashboardFormat() {
 
         // add _brand.yml sass bundle
         extras.html[kSassBundles].push(
-          ...await brandBootstrapSassBundles(project, "bootstrap"),
+          ...await brandBootstrapSassBundles(input, project, "bootstrap"),
         );
 
         const scripts: DependencyHtmlFile[] = [];

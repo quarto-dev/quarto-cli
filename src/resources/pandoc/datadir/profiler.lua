@@ -8,7 +8,9 @@
 ]]
 
 local getTime = os.clock
-local module = {}
+local module = {
+    category = "unknown"
+}
 local outputfile
 local stack_count = 0
 

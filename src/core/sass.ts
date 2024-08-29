@@ -16,6 +16,7 @@ import { dartCompile } from "./dart-sass.ts";
 import * as ld from "./lodash.ts";
 import { lines } from "./text.ts";
 import { sassCache } from "./sass/cache.ts";
+import { md5HashBytes } from "./hash.ts";
 
 export interface SassVariable {
   name: string;
@@ -119,10 +120,13 @@ export async function compileSass(
     ...userRules,
   ].join("\n\n");
 
+  const hash = md5HashBytes(new TextEncoder().encode(scssInput));
+
   // Compile the scss
   // Note that you can set this to undefined to bypass the cache entirely
-  const cacheKey = bundles.map((bundle) => bundle.key).join("|") + "-" +
-    (minified ? "min" : "nomin");
+  const cacheKey = hash;
+  // bundles.map((bundle) => bundle.key).join("|") + "-" +
+  //   (minified ? "min" : "nomin");
 
   return await compileWithCache(
     scssInput,

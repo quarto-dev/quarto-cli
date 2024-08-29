@@ -454,7 +454,7 @@ function externalPreviewServer(
   const server = runExternalPreviewServer({
     cmd,
     readyPattern,
-    env: serve.env,
+    env: serve.env as { [key: string]: string },
     cwd: projectOutputDir(project),
   });
 
