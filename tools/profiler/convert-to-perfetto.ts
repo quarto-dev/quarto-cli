@@ -1,5 +1,5 @@
 const filename = Deno.args[0];
-const frameSkip = Number(Deno.args[1]) ?? 3;
+const frameSkip = Deno.args[1] === undefined ? 3 : Number(Deno.args[1]);
 const file = Deno.readTextFileSync(filename);
 
 let longestCommonPrefix: string | undefined = undefined;

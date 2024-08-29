@@ -17,6 +17,12 @@ local stack_count = 0
 -- don't colect coverage for this module
 -- luacov: disable
 local onDebugHook = function(hookType, line)
+  if hookType ~= "alarm" then
+    print("Internal Error - Unexpected hook type in debug hook: " .. hookType)
+    print("For Quarto profiling to work, you need to run a patched version of Pandoc.")
+    print("This feature is currently only meant to be used by Quarto developers.")
+    os.exit(1)
+  end
   local no = 2
   local information = debug.getinfo(no, "nS")
   local now = os.clock()
