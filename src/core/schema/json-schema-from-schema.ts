@@ -6,7 +6,7 @@
  * Copyright (C) 2025 Posit Software, PBC
  */
 
-import { schemaDefinitions } from "./types-from-schema.ts";
+import { schemaDefinitions, typeNameFromSchemaName } from "./types-from-schema.ts";
 import {
   JsonObject,
   SchemaSchema,
@@ -14,6 +14,7 @@ import {
 
 // https://json-schema.org/draft/2020-12/json-schema-core#name-json-schema-documents
 type JsonSchema = JsonObject | boolean;
+type JsonSchemaDefs = Record<string, JsonSchema>;
 
 const convertSchemaToJSONSchema = (_schema: SchemaSchema): JsonSchema => {
   const schema = _schema as any;
@@ -88,7 +89,7 @@ const convertSchemaToJSONSchema = (_schema: SchemaSchema): JsonSchema => {
       }
       if (schema.ref) {
         return {
-          "$ref": schema.ref,
+          "$ref": "#/$defs/" + typeNameFromSchemaName(schema.ref),
         };
       }
       if (schema.maybeArrayOf) {
@@ -143,21 +144,25 @@ const convertSchemaToJSONSchema = (_schema: SchemaSchema): JsonSchema => {
 export const generateJsonSchemasFromSchemas = async (resourcePath: string) => {
   const quartoSchemas = schemaDefinitions(resourcePath);
 
-  const schemas = quartoSchemas.map(({ name, schema }) => {
-    try {
-      return {
-        id: name,
-        schema: convertSchemaToJSONSchema(schema),
-      };
-    } catch (e) {
-      console.log("Outermost failing schema:");
-      console.log(JSON.stringify(schema));
-      throw e;
-    }
-  });
+  const defs = quartoSchemas
+    .reduce((acc: JsonSchemaDefs, { name, schema }) => {
+      try {
+        acc[name] = convertSchemaToJSONSchema(schema);
+      } catch (e) {
+        console.log("Outermost failing schema:");
+        console.log(JSON.stringify(schema));
+        throw e;
+      }
+      return acc
+    }, {})
+
+  const schema = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": defs
+  }
 
   Deno.writeTextFileSync(
     `${resourcePath}/schema/json-schemas.json`,
-    JSON.stringify(schemas, null, 2),
+    JSON.stringify(schema, null, 2),
   );
 };
