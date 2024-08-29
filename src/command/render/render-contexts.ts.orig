@@ -597,8 +597,10 @@ async function resolveFormats(
       );
     };
 
+<<<<<<< HEAD
+=======
     // resolve brand in project and forward it to format
-    const brand = await project.resolveBrand(target.source);
+    const brand = await project.resolveBrand();
     mergedFormats[format].render.brand = brand;
 
     // apply defaults from brand yaml under the metadata of the current format
@@ -615,6 +617,7 @@ async function resolveFormats(
       );
     }
 
+>>>>>>> 7576088f9 (typst brand yaml)
     // ensure that we have a valid forma
     const formatIsValid = isValidFormat(
       formatDesc,

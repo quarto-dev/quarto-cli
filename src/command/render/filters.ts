@@ -36,6 +36,7 @@ import {
   kIPynbTitleBlockTemplate,
   kJatsSubarticleId,
   kKeepHidden,
+  kLogo,
   kMergeIncludes,
   kOutputDivs,
   kOutputLocation,
@@ -193,7 +194,7 @@ export async function filterParamsJson(
     [kIsShinyPython]: isShinyPython,
     [kShinyPythonExec]: isShinyPython ? await pythonExec() : undefined,
     [kExecutionEngine]: options.executionEngine,
-    [kBrand]: await options.project.resolveBrand(options.source),
+    [kBrand]: options.format.render[kBrand],
   };
   return JSON.stringify(params);
 }
@@ -897,6 +898,7 @@ async function resolveFilterExtension(
 const extractTypstFilterParams = (format: Format) => {
   return {
     [kTocIndent]: format.metadata[kTocIndent],
+    [kLogo]: format.metadata[kLogo],
     [kCssPropertyProcessing]: format.metadata[kCssPropertyProcessing],
     [kHtmlPreTagProcessing]: format.metadata[kHtmlPreTagProcessing],
   };

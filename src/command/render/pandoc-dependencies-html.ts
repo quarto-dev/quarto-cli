@@ -15,6 +15,7 @@ import { pathWithForwardSlashes, safeExistsSync } from "../../core/path.ts";
 import {
   DependencyFile,
   DependencyServiceWorker,
+  Format,
   FormatDependency,
   FormatExtras,
   kDependencies,
@@ -135,6 +136,25 @@ export function readAndInjectDependencies(
     resources: [],
     supporting: [],
   });
+}
+
+// this should be resolveMetadata returning an object
+// like {'output-recipe': metadata}
+export function resolveTypstFontPaths(
+  dependenciesFile: string,
+) {
+  const dependencyJsonStream = Deno.readTextFileSync(dependenciesFile);
+  const fontPaths: string[] = [];
+  lines(dependencyJsonStream).forEach((json) => {
+    if (json) {
+      const dependency = JSON.parse(json);
+      if (dependency.type === "typst-font-path") {
+        const path = dependency?.content?.path;
+        fontPaths.push(path);
+      }
+    }
+  });
+  return fontPaths;
 }
 
 export function resolveDependencies(

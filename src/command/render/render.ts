@@ -191,6 +191,7 @@ export async function renderPandoc(
     metadata: executeResult.metadata,
     quiet,
     flags: context.options.flags,
+    recipe,
   };
 
   // add offset if we are in a project

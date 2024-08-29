@@ -93,6 +93,7 @@ import {
   kEmbedResources,
   kFigResponsive,
   kFilterParams,
+  kFontPaths,
   kFormatResources,
   kFrom,
   kHighlightStyle,
@@ -138,6 +139,7 @@ import { kDefaultHighlightStyle } from "./constants.ts";
 import {
   HtmlPostProcessor,
   HtmlPostProcessResult,
+  OutputRecipe,
   PandocOptions,
   RunPandocResult,
 } from "./types.ts";
@@ -174,6 +176,7 @@ import { resolveAndFormatDate, resolveDate } from "../../core/date.ts";
 import { katexPostProcessor } from "../../format/html/format-html-math.ts";
 import {
   readAndInjectDependencies,
+  resolveTypstFontPaths,
   writeDependencies,
 } from "./pandoc-dependencies-html.ts";
 import {
@@ -423,6 +426,7 @@ export async function runPandoc(
       options.libDir,
       options.services.temp,
       dependenciesFile,
+      options.recipe,
       options.project,
     );
 
@@ -1285,6 +1289,7 @@ async function resolveExtras(
   libDir: string,
   temp: TempContext,
   dependenciesFile: string,
+  recipe: OutputRecipe,
   project?: ProjectContext,
 ) {
   // resolve format resources
@@ -1337,6 +1342,19 @@ async function resolveExtras(
     delete extras.html?.[kDependencies];
   } else {
     delete extras.html;
+  }
+
+  // perform typst-specific merging
+  if (isTypstOutput(format.pandoc)) {
+    extras.postprocessors = extras.postprocessors || [];
+    extras.postprocessors.push(async () => {
+      // gw: IMO this could be way more general as resolveMetadata
+      // returning all metadata found in the file
+      // then apply output-recipe and any others found using mergeConfigs
+      // would not be format-specific
+      const fontPaths = await resolveTypstFontPaths(dependenciesFile);
+      recipe.format.metadata[kFontPaths] = fontPaths;
+    });
   }
 
   // Process format resources
