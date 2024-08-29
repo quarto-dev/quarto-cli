@@ -22,7 +22,7 @@ import { toCapitalizationCase } from "../lib/text.ts";
 import { capitalizeWord as capitalize } from "../text.ts";
 import { join } from "../../deno_ral/path.ts";
 
-function typeNameFromSchemaName(schemaName: string) {
+export function typeNameFromSchemaName(schemaName: string) {
   return capitalize(toCapitalizationCase(schemaName.replaceAll("/", "-")));
 }
 
