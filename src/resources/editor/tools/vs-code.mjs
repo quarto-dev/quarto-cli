@@ -11882,49 +11882,83 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "brand-logo",
           description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
+          object: {
+            closed: true,
+            properties: {
+              with: {
+                schema: {
+                  object: {
+                    additionalProperties: {
+                      schema: {
+                        ref: "brand-string-light-dark"
+                      }
+                    }
+                  }
+                }
+              },
+              small: {
+                description: "A link or path to the brand's small-sized logo or icon, or a link or path to both the light and dark versions.\n",
+                schema: {
+                  ref: "brand-string-light-dark"
+                }
+              },
+              medium: {
+                description: "A link or path to the brand's medium-sized logo, or a link or path to both the light and dark versions.\n",
+                schema: {
+                  ref: "brand-string-light-dark"
+                }
+              },
+              large: {
+                description: "A link or path to the brand's large- or full-sized logo, or a link or path to both the light and dark versions.\n",
+                schema: {
+                  ref: "brand-string-light-dark"
+                }
+              }
+            }
+          }
+        },
+        {
+          id: "brand-named-logo",
+          description: "Names of customizeable logos",
+          enum: [
+            "small",
+            "medium",
+            "large"
+          ]
+        },
+        {
+          id: "brand-color-value",
+          schema: "string"
+        },
+        {
+          id: "logo-string-layout",
+          description: "Source path or source path with layout options for logo",
           anyOf: [
             "string",
             {
               object: {
                 closed: true,
                 properties: {
-                  with: {
-                    schema: {
-                      object: {
-                        additionalProperties: {
-                          schema: {
-                            ref: "brand-string-light-dark"
-                          }
-                        }
-                      }
-                    }
+                  location: {
+                    schema: "string",
+                    description: "X-Y positioning of logo\n"
                   },
-                  small: {
-                    description: "A link or path to the brand's small-sized logo or icon, or a link or path to both the light and dark versions.\n",
-                    schema: {
-                      ref: "brand-string-light-dark"
-                    }
+                  padding: {
+                    schema: "string",
+                    description: "Padding of logo\n"
                   },
-                  medium: {
-                    description: "A link or path to the brand's medium-sized logo, or a link or path to both the light and dark versions.\n",
-                    schema: {
-                      ref: "brand-string-light-dark"
-                    }
+                  width: {
+                    schema: "string",
+                    description: "Width of logo\n"
                   },
-                  large: {
-                    description: "A link or path to the brand's large- or full-sized logo, or a link or path to both the light and dark versions.\n",
-                    schema: {
-                      ref: "brand-string-light-dark"
-                    }
+                  src: {
+                    schema: "path",
+                    description: "Source path of logo\n"
                   }
                 }
               }
             }
           ]
-        },
-        {
-          id: "brand-color-value",
-          schema: "string"
         },
         {
           id: "brand-color",
@@ -12065,7 +12099,7 @@ var require_yaml_intelligence_resources = __commonJS({
             properties: {
               with: {
                 description: "Font files and definitions for the brand.",
-                ref: "brand-font"
+                ref: "brand-font-with"
               },
               base: {
                 description: "The base font settings for the brand. These are used as the default for all text.\n",
@@ -12140,9 +12174,27 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               "background-color": {
                 ref: "brand-maybe-named-color"
+              },
+              files: {
+                maybeArrayOf: {
+                  anyOf: [
+                    "path",
+                    "string"
+                  ]
+                },
+                description: "Resolved local paths.\n"
               }
             }
           }
+        },
+        {
+          id: "brand-named-font",
+          description: "Names of customizeable fonts",
+          enum: [
+            "base",
+            "headings",
+            "monospace"
+          ]
         },
         {
           id: "brand-typography-options-no-size",
@@ -12168,21 +12220,26 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "brand-font-with",
+          description: "Font files and definitions for the brand.",
+          object: {
+            closed: false
+          }
+        },
+        {
           id: "brand-font",
           description: "Font files and definitions for the brand.",
-          arrayOf: {
-            anyOf: [
-              {
-                ref: "brand-font-google"
-              },
-              {
-                ref: "brand-font-file"
-              },
-              {
-                ref: "brand-font-family"
-              }
-            ]
-          }
+          anyOf: [
+            {
+              ref: "brand-font-google"
+            },
+            {
+              ref: "brand-font-file"
+            },
+            {
+              ref: "brand-font-family"
+            }
+          ]
         },
         {
           id: "brand-font-weight",
@@ -12237,7 +12294,7 @@ var require_yaml_intelligence_resources = __commonJS({
                           ]
                         },
                         style: {
-                          description: "The font style to include.",
+                          description: "The font styles to include.",
                           maybeArrayOf: {
                             ref: "brand-font-style"
                           },
@@ -12262,7 +12319,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   }
                 ]
               }
-            }
+            },
+            required: [
+              "google"
+            ]
           }
         },
         {
@@ -12283,8 +12343,42 @@ var require_yaml_intelligence_resources = __commonJS({
                   ]
                 },
                 description: "The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs.\n"
+              },
+              weight: {
+                description: "The font weights to include.",
+                maybeArrayOf: {
+                  ref: "brand-font-weight"
+                },
+                default: [
+                  400,
+                  700
+                ]
+              },
+              style: {
+                description: "The font styles to include.",
+                maybeArrayOf: {
+                  ref: "brand-font-style"
+                },
+                default: [
+                  "normal",
+                  "italic"
+                ]
+              },
+              display: {
+                description: "The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use.\n",
+                enum: [
+                  "auto",
+                  "block",
+                  "swap",
+                  "fallback",
+                  "optional"
+                ],
+                default: "swap"
               }
-            }
+            },
+            required: [
+              "files"
+            ]
           }
         },
         {
@@ -17436,10 +17530,13 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "logo",
           tags: {
             formats: [
-              "revealjs"
+              "revealjs",
+              "typst"
             ]
           },
-          schema: "path",
+          schema: {
+            ref: "logo-string-layout"
+          },
           description: "Logo image (placed in bottom right corner of slides)"
         },
         {
@@ -21303,7 +21400,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Short/abbreviated form of container-title;",
         "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
         "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
-        "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
+        "Physical (e.g.&nbsp;size) or temporal (e.g.\uFFFD\uFFFDrunning time) dimensions of\nthe item.",
         "Director (e.g.&nbsp;of a film).",
         "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
         "(Container) edition holding the item (e.g.&nbsp;\u201C3\u201D when citing a chapter\nin the third edition of a book).",
@@ -21485,6 +21582,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "A link or path to the brand\u2019s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
         "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
         "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
+        "Names of customizeable logos",
         "The brand\u2019s custom color palette and theme.",
         "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
         "The foreground color, used for text.",
@@ -21510,18 +21608,24 @@ var require_yaml_intelligence_resources = __commonJS({
         "The text properties used for emphasized (or emboldened) text.",
         "The text properties used for hyperlinks.",
         "Typographic options.",
+        "Resolved local paths.",
+        "Names of customizeable fonts",
         "Typographic options without a font size.",
+        "Font files and definitions for the brand.",
         "Font files and definitions for the brand.",
         "A font weight.",
         "A font style.",
         "A Google Font definition.",
         "The font family name, which must match the name of the font on Google\nFonts.",
         "The font weights to include.",
-        "The font style to include.",
+        "The font styles to include.",
         "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
         "A method for providing font files directly, either locally or from an\nonline location.",
         "The font family name.",
         "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
+        "The font weights to include.",
+        "The font styles to include.",
+        "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
         "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
         {
           short: "Unique label for code cell",
@@ -23804,12 +23908,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 187423,
+        _internalId: 187585,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 187415,
+            _internalId: 187577,
             type: "enum",
             enum: [
               "png",
@@ -23825,7 +23929,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 187422,
+            _internalId: 187584,
             type: "anyOf",
             anyOf: [
               {
@@ -30518,7 +30622,17 @@ function buildJsYamlAnnotation(mappedYaml) {
       `Expected a single result, got ${results.length} instead`
     );
   }
-  JSON.stringify(results[0]);
+  try {
+    JSON.stringify(results[0]);
+  } catch (e) {
+    if (e.message.match("invalid string length")) {
+    } else if (e.message.match(/circular structure/)) {
+      throw new InternalError(
+        `Circular structure detected in parsed yaml: ${e.message}`
+      );
+    } else {
+    }
+  }
   return postProcessAnnotation(results[0]);
 }
 function buildTreeSitterAnnotation(tree, mappedSource2) {
