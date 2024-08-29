@@ -4,6 +4,7 @@
 _quarto.modules = {
   astshortcode = require("modules/astshortcode"),
   authors = require("modules/authors"),
+  brand = require("modules/brand/brand"),
   callouts = require("modules/callouts"),
   classpredicates = require("modules/classpredicates"),
   constants = require("modules/constants"),

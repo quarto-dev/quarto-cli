@@ -1,0 +1,18 @@
+---
+title: logo background
+format:
+  typst:
+    keep-typ: true
+logo:
+  width: 2cm
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+      -
+        - '#set page\(background: align\(center\+top, box\(inset: 1in, image\("quarto.png", width: 2cm\)\)\)\)'
+      - []
+---
+
+{{< lipsum 4 >}}
+

@@ -1,29 +1,13 @@
 local constants = require("modules/constants")
 
-function render_typst_css_to_props()
-  if not _quarto.format.isTypstOutput() or
-    param(constants.kCssPropertyProcessing, 'translate') ~= 'translate' then
-    return {}
-  end
+function format_typst_float(x)
+  local f = string.format('%.2f', x)
+  -- trim zeros after decimal point
+  return f:gsub('%.00', ''):gsub('%.(%d)0', '.%1')
+end
 
-  local function to_kv(prop_clause)
-    return string.match(prop_clause, '([%w-]+)%s*:%s*(.*)$')
-  end
-  local _warnings
-  local function new_table()
-    local ret = {}
-    setmetatable(ret, {__index = table})
-    return ret
-  end
-  local function aggregate_warnings()
-    local counts = {}
-    for _, warning in ipairs(_warnings) do
-      counts[warning] = (counts[warning] or 0) + 1
-    end
-    for warning, count in pairs(counts) do
-      quarto.log.warning('(' .. string.format('%4d', count) .. ' times) ' .. warning)
-    end
-  end
+parse_css_color, parse_css_opacity, output_typst_color =
+ (function()
   local css_named_colors = {
     transparent = 'rgba(0, 0, 0, 0)',
     aliceblue = 'rgb(240, 248, 255)',
@@ -201,7 +185,7 @@ function render_typst_css_to_props()
   -- css can have fraction or percent
   -- typst can have int or percent
   -- what goes for opacity also goes for alpha
-  local function translate_opacity(opacity)
+  local function parse_css_opacity(opacity)
     if not opacity then
       return nil
     end
@@ -226,7 +210,7 @@ function render_typst_css_to_props()
     local comps = {}
     for comp in matches do
       if #comps == 3 then
-        table.insert(comps, translate_opacity(comp))
+        table.insert(comps, parse_css_opacity(comp))
       else
         if comp == 'none' then
           table.insert(comps, {
@@ -280,7 +264,7 @@ function render_typst_css_to_props()
       if not matches then return nil end
       comps = parse_color_components(matches)
       if alpha ~= '' then
-        local alphacomp = translate_opacity(alpha)
+        local alphacomp = parse_css_opacity(alpha)
         comps[4] = alphacomp
       end
     end
@@ -290,7 +274,7 @@ function render_typst_css_to_props()
     }
   end
 
-  local function parse_color(color)
+  local function parse_css_color(color)
     if color:sub(1, 1) == '#' then
       local value = color:sub(2)
       local short = value:len() < 5
@@ -326,16 +310,13 @@ function render_typst_css_to_props()
     _warnings:insert('invalid color ' .. color)
     return nil
   end
-  local function format_float(x)
-    local f = string.format('%.2f', x)
-    -- trim zeros after decimal point
-    return f:gsub('%.00', ''):gsub('%.(%d)0', '.%1')
-  end
+
   local function percent_string(x)
-    return format_float(x) .. '%'
+    return format_typst_float(x) .. '%'
   end
-  local function output_color_opacity(color, opacity)
-    quarto.log.debug('output_color_opacity input', color, opacity)
+
+  local function output_typst_color(color, opacity)
+    quarto.log.debug('output_typst_color input', color, opacity)
     if opacity then
       if not color then
         zero = {
@@ -352,7 +333,7 @@ function render_typst_css_to_props()
           _warnings:insert('unknown color ' .. color.value)
           return nil
         end
-        color = parse_color(typst_named_colors[color.value] or css_named_colors[color.value])
+        color = parse_css_color(typst_named_colors[color.value] or css_named_colors[color.value])
       end
       local mult = 1
       if opacity.unit == 'int' then
@@ -386,7 +367,7 @@ function render_typst_css_to_props()
         end
       end
     end
-    quarto.log.debug('output_color_opacity output', color)
+    quarto.log.debug('output_typst_color output', color)
     if color.value[4] and color.value[4].unit == 'fraction' then
       color.value[4] = {
         unit = 'percent',
@@ -431,10 +412,40 @@ function render_typst_css_to_props()
       else
         assert(false, 'invalid rep ' .. color.rep)
       end
-      quarto.log.debug('output_color_opacity hex output', table.unpack(hexes))
+      quarto.log.debug('output_typst_color hex output', table.unpack(hexes))
       return 'rgb("#' .. table.concat(hexes, '') .. '")'
     end
   end
+
+  return parse_css_color, parse_css_opacity, output_typst_color
+end)()
+
+function render_typst_css_to_props()
+  if not _quarto.format.isTypstOutput() or
+    param(constants.kCssPropertyProcessing, 'translate') ~= 'translate' then
+    return {}
+  end
+
+  local function to_kv(prop_clause)
+    return string.match(prop_clause, '([%w-]+)%s*:%s*(.*)$')
+  end
+
+  local _warnings
+  local function new_table()
+    local ret = {}
+    setmetatable(ret, {__index = table})
+    return ret
+  end
+  local function aggregate_warnings()
+    local counts = {}
+    for _, warning in ipairs(_warnings) do
+      counts[warning] = (counts[warning] or 0) + 1
+    end
+    for warning, count in pairs(counts) do
+      quarto.log.warning('(' .. string.format('%4d', count) .. ' times) ' .. warning)
+    end
+  end
+
   local function sortedPairs(t, f)
     local a = {}
     for n in pairs(t) do table.insert(a, n) end
@@ -498,7 +509,7 @@ function render_typst_css_to_props()
   local css_lengths = {
     px = function(val, _)
       local points = val * PIXELS_TO_POINTS
-      return format_float(points) .. 'pt'
+      return format_typst_float(points) .. 'pt'
     end,
     pt = passthrough,
     ['in'] = passthrough,
@@ -623,7 +634,7 @@ function render_typst_css_to_props()
   end
 
   local function translate_border_color(v)
-    return output_color_opacity(parse_color(v), nil)
+    return output_typst_color(parse_css_color(v), nil)
   end
 
   local border_translators = {
@@ -816,11 +827,11 @@ function render_typst_css_to_props()
         if not k or not v then
           -- pass
         elseif k == 'background-color' then
-          cell.attributes['typst:fill'] = output_color_opacity(parse_color(v), nil)
+          cell.attributes['typst:fill'] = output_typst_color(parse_css_color(v), nil)
         elseif k == 'color' then
-          color = parse_color(v)
+          color = parse_css_color(v)
         elseif k == 'opacity' then
-          opacity = translate_opacity(v)
+          opacity = parse_css_opacity(v)
         elseif k == 'font-size' then
           cell.attributes['typst:text:size'] = translate_length(v)
         elseif k == 'vertical-align' then
@@ -839,7 +850,7 @@ function render_typst_css_to_props()
         cell.attributes['typst:align'] = table.concat(aligns, ' + ')
       end
       if color or opacity then
-        cell.attributes['typst:text:fill'] = output_color_opacity(color, opacity)
+        cell.attributes['typst:text:fill'] = output_typst_color(color, opacity)
       end
 
       -- inset seems either buggy or hard to get right, see
@@ -893,7 +904,7 @@ function render_typst_css_to_props()
       for clause in style:gmatch('([^;]+)') do
         local k, v = to_kv(clause)
         if k == 'background-color' then
-          hlprops.fill = output_color_opacity(parse_color(v), nil)
+          hlprops.fill = output_typst_color(parse_css_color(v), nil)
         end
       end
     end
