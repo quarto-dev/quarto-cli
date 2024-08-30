@@ -14,6 +14,6 @@ _quarto:
 
 # Revealjs theme handling
 
-User provided them9548_files/libs/revealjs/dist/theme/e should be used to build a `quarto-<hash>.css` using SASS and the `theme: beige` should internally by overridden to `theme: quarto` so that the later is added in Pandoc's template
+User provided theme should be used to build a `quarto-<hash>.css` using SASS and the `theme: beige` should internally by overridden to `theme: quarto` so that the later is added in Pandoc's template
 
 2024-08-26: `quarto.css` now carries the MD5 hash of the content to allow different revealjs themes to work on the same website.
