@@ -231,7 +231,7 @@ function baseGeometry(meta, oneside)
   if #meta.geometry == 1 then
     if #meta.geometry[1] == 1 then
       local val = meta.geometry[1][1]
-      if val.t == 'Str' and val.text == 'showframe' then
+      if val.tag == 'Str' and val.text == 'showframe' then
         userDefinedGeometry = false
       end
     end

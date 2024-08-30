@@ -83,7 +83,7 @@ end
 function sidebarInContents(content)
   local hasSidebar = false
   for i, v in ipairs(content) do
-    if v.t == "Header" then
+    if v.tag == "Header" then
       if v.level == 1 and isSidebar(v) then
         hasSidebar = true
         break

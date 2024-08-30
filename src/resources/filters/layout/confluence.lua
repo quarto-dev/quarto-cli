@@ -34,7 +34,7 @@ end, function(float)
   decorate_caption_with_crossref(float)
 
   local attr = pandoc.Attr(float.identifier or "", float.classes or {}, float.attributes or {})
-  if float.content.t == "Plain" and #float.content.content == 1 and float.content.content[1].t == "Image" then
+  if float.content.tag == "Plain" and #float.content.content == 1 and float.content.content[1].tag == "Image" then
     local result = float.content.content[1]
     result.caption = quarto.utils.as_inlines(float.caption_long)
     result.attr = merge_attrs(result.attr, attr)

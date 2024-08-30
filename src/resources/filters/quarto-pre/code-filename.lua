@@ -28,7 +28,7 @@ function code_filename()
     -- to users
     Div = function(div)
       local filename = div.attributes["filename"]
-      if filename and div.content and div.content[1] and div.content[1].t == "CodeBlock" then
+      if filename and div.content and div.content[1] and div.content[1].tag == "CodeBlock" then
         local decorated_block = codeBlockWithFilename(div.content[1], filename)
         div.attributes["filename"] = nil
         div.content[1] = decorated_block
@@ -43,12 +43,12 @@ function code_filename()
     --   for _,block in ipairs(blocks) do
     --     if block.attributes ~= nil and block.attributes["filename"] then
     --       local filename = block.attributes["filename"]
-    --       if block.t == "CodeBlock" then
+    --       if block.tag == "CodeBlock" then
     --         foundFilename = true
     --         block.attributes["filename"] = nil
     --         local code_block = codeBlockWithFilename(block, filename)
     --         newBlocks:insert(code_block)
-    --       elseif is_regular_node(block, "Div") and block.content[1].t == "CodeBlock" then
+    --       elseif is_regular_node(block, "Div") and block.content[1].tag == "CodeBlock" then
     --         foundFilename = true
     --         block.attributes["filename"] = nil
     --         block.content[1] = codeBlockWithFilename(block.content[1], filename)

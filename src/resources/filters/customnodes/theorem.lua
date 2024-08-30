@@ -110,7 +110,7 @@ _quarto.ast.add_renderer("Theorem", function()
 end, function(thm)
   local el = thm.div
   local pt = pandoc.utils.type(el)
-  if pt == "Blocks" or el.t ~= "Div" then
+  if pt == "Blocks" or el.tag ~= "Div" then
     el = pandoc.Div(el)
   end
 
@@ -128,7 +128,7 @@ end, function(thm)
   end
     
   -- If this theorem has no content, then create a placeholder
-  if #el.content == 0 or el.content[1].t ~= "Para" then
+  if #el.content == 0 or el.content[1].tag ~= "Para" then
     tprepend(el.content, {pandoc.Para({pandoc.Str '\u{a0}'})})
   end
 

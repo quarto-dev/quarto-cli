@@ -433,7 +433,7 @@ function render_latex()
         table.insert(calloutContents, nodeContent)
       end
     
-      if calloutContents[1] ~= nil and calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
+      if calloutContents[1] ~= nil and calloutContents[1].tag == "Para" and calloutContents[#calloutContents].tag == "Para" then
         tprepend(calloutContents, { pandoc.Plain(beginEnvironment) })
         tappend(calloutContents, { pandoc.Plain(endEnvironment) })
       else
@@ -446,13 +446,13 @@ function render_latex()
       -- that include the contents
       for _i, v in ipairs(noteContents) do
         -- If there are paragraphs, just attach to them when possible
-        if v[1].t == "Para" then
+        if v[1].tag == "Para" then
           table.insert(v[1].content, 1, pandoc.RawInline('latex', '\\footnotetext{'))
         else
           v:insert(1, pandoc.RawInline('latex', '\\footnotetext{'))
         end
           
-        if v[#v].t == "Para" then
+        if v[#v].tag == "Para" then
           table.insert(v[#v].content, pandoc.RawInline('latex', '}'))
         else
           v:extend({pandoc.RawInline('latex', '}')})

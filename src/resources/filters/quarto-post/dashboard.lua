@@ -108,15 +108,15 @@ function render_dashboard()
         local blocks = pandoc.Blocks({})
         local collecting = false;
         for i, v in ipairs(el.blocks) do
-          if v.t == "Para" then
+          if v.tag == "Para" then
             -- Any paragraphs that are composed only of HTML preserve strings
             -- and soft breaks will protected
             local isHtmlPreserve = true
             for j, w in ipairs(v.content) do
-              if w.t ~= "Str" and w.t ~= "SoftBreak" then
+              if w.tag ~= "Str" and w.tag ~= "SoftBreak" then
                 isHtmlPreserve = false
                 break
-              elseif w.t == "Str" and not w.text:match(preserveInlinePattern) then
+              elseif w.tag == "Str" and not w.text:match(preserveInlinePattern) then
                 isHtmlPreserve = false
                 break
               end
@@ -234,7 +234,7 @@ function render_dashboard()
 
             local results = pandoc.List()
             local cardContent = el.content
-            if #el.content > 0 and el.content[1].t == "Header" then              
+            if #el.content > 0 and el.content[1].tag == "Header" then              
               results:insert(el.content[1])
               cardContent = tslice(cardContent, 2)              
             end
@@ -269,7 +269,7 @@ function render_dashboard()
                     isMarkdownOutput = true
                   end
 
-                  if #childDiv.content == 1 and childDiv.content[1].t == "RawBlock" and childDiv.content[1].format == "html" then
+                  if #childDiv.content == 1 and childDiv.content[1].tag == "RawBlock" and childDiv.content[1].format == "html" then
                     if childDiv.content[1].text:match('bslib-') ~= nil then
                       -- capture any raw blocks that we see
                       bslibRawOutputs:insert(childDiv.content[1])
@@ -324,7 +324,7 @@ function render_dashboard()
 
                 -- See if the content is a CodeBlock 
                 local codeBlockEl = cardContent[1].content[1]
-                if codeBlockEl.t == "CodeBlock"  then
+                if codeBlockEl.tag == "CodeBlock"  then
 
                   local titlePrefix = "title="
                   local prefixLen = pandoc.text.len(titlePrefix)
@@ -410,7 +410,7 @@ function render_dashboard()
             -- Allow arbitrary nesting of sections / heading levels to perform layouts
           local header = el.content[1]
 
-          if header.t == "Header" then            
+          if header.tag == "Header" then            
             local level = header.level
             local contents = tslice(el.content, 2)
 
@@ -596,7 +596,7 @@ function render_dashboard()
                 elseif dashboard.tabset.isTabset(dashboardState.previousCardTarget) then
                   dashboard.card_toolbar.addToTarget(v, dashboardState.previousCardTarget, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
                 else
-                  fatal("Unexpected element " .. dashboardState.previousCardTarget.t .. "appearing as the target for a card toolbar.")
+                  fatal("Unexpected element " .. dashboardState.previousCardTarget.tag .. "appearing as the target for a card toolbar.")
                 end
               elseif dashboard.card_toolbar.targetNext(v) then
                 -- This card toolbar belongs in the next card, hang onto it
@@ -621,7 +621,7 @@ function render_dashboard()
                 elseif dashboard.tabset.isTabset(dashboardState.previousCardTarget) then
                   dashboard.card_sidebar.addToTarget(v, dashboardState.previousCardTarget, dashboard.tabset.addSidebar)
                 else
-                  fatal("Unexpected element " .. dashboardState.previousCardTarget.t .. "appearing as the target for a card sidebar.")
+                  fatal("Unexpected element " .. dashboardState.previousCardTarget.tag .. "appearing as the target for a card sidebar.")
                 end
               elseif dashboard.card_sidebar.targetNext(v) then
                 -- This card toolbar belongs in the next card, hang onto it

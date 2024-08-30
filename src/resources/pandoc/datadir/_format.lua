@@ -15,7 +15,7 @@ local function _main()
   -- Element format checks
 
   local function isRaw(el)
-    return el.t == "RawBlock" or el.t == "RawInline"
+    return el.tag == "RawBlock" or el.tag == "RawInline"
   end
 
   local function isRawHtml(rawEl)

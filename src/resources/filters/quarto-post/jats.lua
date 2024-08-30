@@ -31,7 +31,7 @@ local function jatsMeta(meta)
     meta[_quarto.modules.constants.kQuartoInternal][_quarto.modules.constants.kHasPermissions] = hasPermissions;
 
     -- normalize keywords into tags if they're present and tags aren't
-    if meta[_quarto.modules.constants.kTags] == nil and meta[_quarto.modules.constants.kKeywords] ~= nil and meta[_quarto.modules.constants.kKeywords].t == "Table" then
+    if meta[_quarto.modules.constants.kTags] == nil and meta[_quarto.modules.constants.kKeywords] ~= nil and meta[_quarto.modules.constants.kKeywords].tag == "Table" then
       meta[_quarto.modules.constants.kKeywords] = meta[_quarto.modules.constants.kTags]
     end
 
@@ -78,7 +78,7 @@ function jats()
       Div = function(div) 
         if isTableDiv(div) then
           local tbl = div.content[1]
-          if tbl.t == "Table" then
+          if tbl.tag == "Table" then
             tbl.identifier = div.identifier
           end
           return tbl

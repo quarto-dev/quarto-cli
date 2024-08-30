@@ -150,7 +150,7 @@ local function def_columns()
               el.classes = el.classes:filter(function(clz) 
                 return not isStarEnv(clz)
               end)
-            elseif contentEl.t == 'Table' then
+            elseif contentEl.tag == 'Table' then
               -- TODO do-not-create-environment is hack we add on parsefiguredivs.lua
               -- to handle floatreftarget that have layout elements. we need
               -- this to not doubly-emit table* environments, because in this

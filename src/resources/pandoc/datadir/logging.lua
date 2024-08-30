@@ -23,7 +23,7 @@ if not pandoc.utils.type then
             -- unchanged
         elseif value.__name then
             typ = value.__name
-        elseif value.tag and value.t then
+        elseif value.tag and value.tag then
             typ = value.tag
             if typ:match('^Meta.') then
                 typ = typ:sub(5)

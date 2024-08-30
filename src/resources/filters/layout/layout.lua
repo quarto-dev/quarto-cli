@@ -79,14 +79,14 @@ function partition_cells(float)
   local content = quarto.utils.as_blocks(float.content)
 
   local function is_preamble_block(el)
-    return (el.t == "CodeBlock" and el.attr.classes:includes("cell-code")) or
+    return (el.tag == "CodeBlock" and el.attr.classes:includes("cell-code")) or
            (is_regular_node(el, "Div") and 
             (el.attr.classes:includes("cell-output-stderr") or
              el.attr.classes:includes("cell-annotation")))
   end
 
   local function handle_preamble_codeblock(block)
-    if block.t == "CodeBlock" and #preamble > 0 and preamble[#preamble].t == "CodeBlock" then
+    if block.tag == "CodeBlock" and #preamble > 0 and preamble[#preamble].tag == "CodeBlock" then
       preamble[#preamble].text = preamble[#preamble].text .. "\n" .. block.text
     else
       preamble:insert(block)
@@ -96,7 +96,7 @@ function partition_cells(float)
   for _, block in ipairs(content) do
     if is_preamble_block(block) then
       handle_preamble_codeblock(block)
-    elseif block.t == "Header" then
+    elseif block.tag == "Header" then
       if _quarto.format.isRevealJsOutput() then
         heading = pandoc.Para({ pandoc.Strong(block.content)})
       else
@@ -124,7 +124,7 @@ function partition_cells(float)
         cell_div = pandoc.Div(block)
       end
 
-      if subfloat ~= nil and subfloat.t == "FloatRefTarget" then
+      if subfloat ~= nil and subfloat.tag == "FloatRefTarget" then
         transfer_float_image_width_to_cell(subfloat, cell_div)
       else
         local fig = figureImageFromLayoutCell(cell_div)

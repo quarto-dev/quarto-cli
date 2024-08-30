@@ -12,7 +12,7 @@ local kFloatAlignSuffix = "-align"
 -- local kResizeHeight = "resize.height"
 
 function align_attribute(float)
-  assert(float.t == "FloatRefTarget")
+  assert(float.tag == "FloatRefTarget")
   local prefix = ref_type_from_float(float)
   local attr_key = prefix .. kFloatAlignSuffix
   local default = pandoc.utils.stringify(

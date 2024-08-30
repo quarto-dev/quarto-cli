@@ -118,7 +118,7 @@ function process(float)
     content = pandoc.List({content})
   end
   for _,el in ipairs(content) do
-    if el.t == "Table" then
+    if el.tag == "Table" then
       if el.caption.long ~= nil and #el.caption.long > 0 then
         local label = divEl.attr.identifier
         local caption = el.caption.long[#el.caption.long]
@@ -209,9 +209,9 @@ end
 
 -- handle either a raw block or raw inline in first paragraph
 function rawElement(divEl, el, index)
-  if el.t == "RawBlock" then
+  if el.tag == "RawBlock" then
     return divEl, el, index
-  elseif el.t == "Para" and #el.content > 0 and el.content[1].t == "RawInline" then
+  elseif el.tag == "Para" and #el.content > 0 and el.content[1].tag == "RawInline" then
     return el, el.content[1], 1
   end
 end

@@ -94,7 +94,7 @@
 --   end
 --   if tblColwidths ~= nil then
 --     float.attributes[kTblColwidths] = nil
---     if float.content.t == "Table" then
+--     if float.content.tag == "Table" then
 --       float.content = process_table(float.content)
 --     else            
 --       float.content = _quarto.ast.walk(float.content, {

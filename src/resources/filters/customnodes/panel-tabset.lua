@@ -33,7 +33,7 @@ local function render_quarto_tab(tbl, tabset)
 end
 
 function parse_tabset_contents(div)
-  local heading = div.content:find_if(function(el) return el.t == "Header" end)
+  local heading = div.content:find_if(function(el) return el.tag == "Header" end)
   if heading ~= nil then
     -- note the level, then build tab buckets for content after these levels
     local level = heading.level
@@ -41,7 +41,7 @@ function parse_tabset_contents(div)
     local tab = nil
     for i=1,#div.content do 
       local el = div.content[i]
-      if el.t == "Header" and el.level == level then
+      if el.tag == "Header" and el.level == level then
         tab = quarto.Tab({ title = el.content })
         tabs:insert(tab)
       elseif tab ~= nil then
@@ -316,7 +316,7 @@ end
 
 -- function tabsetLatex(div_content)
 --   -- find the first heading in the tabset
---   local heading = div_content:find_if(function(el) return el.t == "Header" end)
+--   local heading = div_content:find_if(function(el) return el.tag == "Header" end)
 --   if heading ~= nil then
 --     local level = heading.level
 --     if level < 4 then
@@ -324,7 +324,7 @@ end
 
 --       for i=1,#div_content do 
 --         local el = div_content[i]
---         if el.t == "Header" and el.level == level then
+--         if el.tag == "Header" and el.level == level then
 --           el.level = 4
 --         end
 --       end 

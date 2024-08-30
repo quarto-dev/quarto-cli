@@ -33,10 +33,10 @@ function render_extended_nodes()
       node = _quarto.ast.resolve_custom_data(node)
     end
 
-    local handler = _quarto.ast.resolve_handler(node.t)
+    local handler = _quarto.ast.resolve_handler(node.tag)
     if handler == nil then
       -- luacov: disable
-      fatal("Internal Error: handler not found for custom node " .. node.t)
+      fatal("Internal Error: handler not found for custom node " .. node.tag)
       -- luacov: enable
     end
     local scaffold = _quarto.ast.scaffold_element
@@ -47,13 +47,13 @@ function render_extended_nodes()
         end
       end
       -- luacov: disable
-      fatal("Internal Error: renderers table was exhausted without a match for custom node " .. node.t)
+      fatal("Internal Error: renderers table was exhausted without a match for custom node " .. node.tag)
       -- luacov: enable
     elseif handler.render ~= nil then
       return scaffold(postprocess_render(scaffold(handler.render(node))))
     else
       -- luacov: disable
-      fatal("Internal Error: handler for custom node " .. node.t .. " does not have a render function or renderers table")
+      fatal("Internal Error: handler for custom node " .. node.tag .. " does not have a render function or renderers table")
       -- luacov: enable
     end
   end

@@ -12,9 +12,9 @@ function render_pandoc3_figure()
     local div = pandoc.Div({})
     div.identifier = "fig-yesiamafigure" -- this is a bad hack to make discoverLinkedFigureDiv work
     local link = nil
-    if figure.content[1].t == "Plain" then
+    if figure.content[1].tag == "Plain" then
       local plain = figure.content[1]
-      if plain.content[1].t == "Link" then
+      if plain.content[1].tag == "Link" then
         link = plain.content[1]
       end
     end
@@ -81,9 +81,9 @@ function render_pandoc3_figure()
         local s = scope[i]
         local data = _quarto.ast.resolve_custom_data(s)
         if data then
-          if (data.t == "PanelLayout" and data.is_float_reftarget == true) then 
+          if (data.tag == "PanelLayout" and data.is_float_reftarget == true) then 
             return true
-          elseif (data.t == "FloatRefTarget") then
+          elseif (data.tag == "FloatRefTarget") then
             return true
           end
         end
@@ -93,7 +93,7 @@ function render_pandoc3_figure()
       for i = #scope, 1, -1 do
         local s = scope[i]
         local data = _quarto.ast.resolve_custom_data(s)
-        if data and (data.t == "PanelLayout") then 
+        if data and (data.tag == "PanelLayout") then 
           return true
         end
       end

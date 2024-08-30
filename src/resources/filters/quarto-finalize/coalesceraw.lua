@@ -33,13 +33,13 @@ function coalesce_raw()
   table.insert(filters, {
     Inlines = function(inlines)
       local list_of_lists = collate(inlines, function(block, prev_block)
-        return block.t == "RawInline" and 
-              prev_block.t == "RawInline" and prev_block.format == block.format
+        return block.tag == "RawInline" and 
+              prev_block.tag == "RawInline" and prev_block.format == block.format
       end)
       local result = pandoc.Inlines({})
       for _, lst in ipairs(list_of_lists) do
         local first_el = lst[1]
-        if first_el.t == "RawInline" then
+        if first_el.tag == "RawInline" then
           local text = table.concat(lst:map(function(block) return block.text end), "")
           local new_block = pandoc.RawInline(first_el.format, text)
           result:insert(new_block)
@@ -51,13 +51,13 @@ function coalesce_raw()
     end,
     Blocks = function(blocks)
       local list_of_lists = collate(blocks, function(block, prev_block)
-        return block.t == "RawBlock" and block.format:match(".*-merge$") and 
-              prev_block.t == "RawBlock" and prev_block.format == block.format
+        return block.tag == "RawBlock" and block.format:match(".*-merge$") and 
+              prev_block.tag == "RawBlock" and prev_block.format == block.format
       end)
       local result = pandoc.Blocks({})
       for _, lst in ipairs(list_of_lists) do
         local first_el = lst[1]
-        if first_el.t == "RawBlock" and first_el.format:match(".*-merge") then
+        if first_el.tag == "RawBlock" and first_el.format:match(".*-merge") then
           local text = table.concat(lst:map(function(block) return block.text end), "%\n")
           local new_block = pandoc.RawBlock(first_el.format:gsub("-merge$", ""), text)
           result:insert(new_block)

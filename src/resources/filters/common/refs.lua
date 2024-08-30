@@ -65,7 +65,7 @@ end
 
 function refCaptionFromDiv(el)
   local last = el.content[#el.content]
-  if last and last.t == "Para" and #el.content > 1 then
+  if last and last.tag == "Para" and #el.content > 1 then
     return last
   else
     return nil

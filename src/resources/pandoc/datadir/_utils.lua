@@ -73,7 +73,7 @@ function tdump (tbl, raw)
       end
 
       if tbl.is_emulated then
-        printInner(typeIndent .. string.format("{ [quarto-emulated-ast:%s:%s]%s", tbl.t, address, endOfOpen))
+        printInner(typeIndent .. string.format("{ [quarto-emulated-ast:%s:%s]%s", tbl.tag, address, endOfOpen))
       elseif tisarray(tbl) then
         printInner(typeIndent .. string.format("{ [array:%s]%s", address, endOfOpen))
       else
@@ -238,11 +238,11 @@ end
 local function get_type(v)
   local pandoc_type = pandoc.utils.type(v)
   if pandoc_type == "Inline" then
-    if v.t == "Span" and v.attributes.__quarto_custom == "true" then
+    if v.tag == "Span" and v.attributes.__quarto_custom == "true" then
       return "CustomInline"
     end
   elseif pandoc_type == "Block" then
-    if v.t == "Div" and v.attributes.__quarto_custom == "true" then
+    if v.tag == "Div" and v.attributes.__quarto_custom == "true" then
       return "CustomBlock"
     end
   end

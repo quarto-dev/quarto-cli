@@ -26,7 +26,7 @@ function ensure_custom(node)
   return node
 end
 
--- use this instead of node.t == "Div" so that custom nodes
+-- use this instead of node.tag == "Div" so that custom nodes
 -- are not considered Divs
 function is_regular_node(node, name)
   if type(node) ~= "userdata" then
@@ -35,7 +35,7 @@ function is_regular_node(node, name)
   if is_custom_node(node) then
     return false
   end
-  if name ~= nil and node.t ~= name then
+  if name ~= nil and node.tag ~= name then
     return false
   end
   return node
@@ -242,7 +242,7 @@ end
 
 function create_emulated_node(t, tbl, context, forwarder)
   local result = create_custom_node_scaffold(t, context)
-  tbl.t = t -- set t always to custom ast type
+  tbl.tag = t -- set t always to custom ast type
   local id = result.attributes.__quarto_custom_id
 
   custom_node_data[id] = _quarto.ast.create_proxy_accessor(result, tbl, forwarder)
@@ -320,7 +320,7 @@ _quarto.ast = {
 
   grow_scaffold = function(node, size)
     local n = #node.content
-    local ctor = pandoc[node.t or pandoc.utils.type(node)]
+    local ctor = pandoc[node.tag or pandoc.utils.type(node)]
     for _ = n + 1, size do
       local scaffold = ctor({})
       scaffold.attributes.__quarto_custom_scaffold = "true"
@@ -347,7 +347,7 @@ _quarto.ast = {
         if result == nil then
           return nil
         end
-        local t = result.t
+        local t = result.tag
         -- if not (t == "Div" or t == "Span") then
         --   warn("Custom node content is not a Div or Span, but a " .. t)
         --   return nil
@@ -473,7 +473,7 @@ _quarto.ast = {
       if need_emulation ~= false then
         return create_emulated_node(handler.ast_name, tbl, handler.kind, forwarder)
       else
-        tbl.t = handler.ast_name -- set t always to custom ast type
+        tbl.tag = handler.ast_name -- set t always to custom ast type
         custom_node_data[tbl.__quarto_custom_node.attributes.__quarto_custom_id] = tbl
         return tbl.__quarto_custom_node, tbl
       end
@@ -546,15 +546,15 @@ _quarto.ast = {
   writer_walk = function(doc, filter)
     local old_custom_walk = filter.Custom
     local function custom_walk(node)
-      local handler = quarto._quarto.ast.resolve_handler(node.t)
+      local handler = quarto._quarto.ast.resolve_handler(node.tag)
       if handler == nil then
         -- luacov: disable
-        fatal("Internal Error: handler not found for custom node " .. node.t)
+        fatal("Internal Error: handler not found for custom node " .. node.tag)
         -- luacov: enable
       end
       if handler.render == nil then
         -- luacov: disable
-        fatal("Internal Error: handler for custom node " .. node.t .. " does not have a render function")
+        fatal("Internal Error: handler for custom node " .. node.tag .. " does not have a render function")
         -- luacov: enable
       end
       return handler.render(node)

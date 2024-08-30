@@ -274,8 +274,8 @@ function parse_floatreftargets()
 
     local identifier = div.identifier
     local attr = pandoc.Attr(identifier, div.classes, div.attributes)
-    if (#content == 1 and content[1].t == "Para" and
-        content[1].content[1].t == "Image") then
+    if (#content == 1 and content[1].tag == "Para" and
+        content[1].content[1].tag == "Image") then
       -- if the div contains a single image, then we simply use the image as
       -- the content
       content = content[1].content[1]
@@ -435,7 +435,7 @@ function parse_floatreftargets()
       if category == nil then
         return nil
       end
-      if #fig.content ~= 1 and fig.content[1].t ~= "Plain" then
+      if #fig.content ~= 1 and fig.content[1].tag ~= "Plain" then
         -- we don't know how to parse this pandoc 3 figure
         -- just return as is
         return nil

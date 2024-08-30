@@ -111,7 +111,7 @@ Usage:
     -- Get the first block of the document
     local block = document.blocks[1]
     -- The inline element in that block is an `Emph`
-    assert(block.content[1].t == "Emph")
+    assert(block.content[1].tag == "Emph")
 ]]
 ---@param markup string The markup to be parsed
 ---@param format? string|string[]|{format: string, extensions:string[]|table<string,boolean|"enable"|"disable">} Format specification, defaults to `"markdown"

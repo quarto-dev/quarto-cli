@@ -22,14 +22,14 @@ function ojs()
   end
 
   local function isInterpolationOpen(str)
-    if str.t ~= "Str" then
+    if str.tag ~= "Str" then
       return false
     end
     return str.text:find("${")
   end
 
   local function isInterpolationClose(str)
-    if str.t ~= "Str" then
+    if str.tag ~= "Str" then
       return false
     end
     return str.text:find("}")
@@ -71,29 +71,29 @@ function ojs()
 
   stringifyTokenInto = function(token, sequence)
     local function unknown()
-      fail_and_ask_for_bug_report("Don't know how to handle token " .. token.t)
+      fail_and_ask_for_bug_report("Don't know how to handle token " .. token.tag)
     end
-    if     token.t == 'Cite' then
+    if     token.tag == 'Cite' then
       unknown()
-    elseif token.t == 'Code' then
+    elseif token.tag == 'Code' then
       sequence:insert('`')
       sequence:insert(token.text)
       sequence:insert('`')
-    elseif token.t == 'Emph' then
+    elseif token.tag == 'Emph' then
       sequence:insert('*')
       sequence:insert(token.text)
       sequence:insert('*')
-    elseif token.t == 'Image' then
+    elseif token.tag == 'Image' then
       unknown()
-    elseif token.t == 'LineBreak' then
+    elseif token.tag == 'LineBreak' then
       sequence:insert("\n")
-    elseif token.t == 'Link' then
+    elseif token.tag == 'Link' then
       unknown()
-    elseif token.t == 'Math' then
+    elseif token.tag == 'Math' then
       unknown()
-    elseif token.t == 'Note' then
+    elseif token.tag == 'Note' then
       unknown()
-    elseif token.t == 'Quoted' then
+    elseif token.tag == 'Quoted' then
       if token.quotetype == 'SingleQuote' then
         sequence:insert("'")
         local innerContent = stringifyTokens(token.content)
@@ -105,27 +105,27 @@ function ojs()
         sequence:insert(escapeDouble(innerContent))
         sequence:insert('"')
       end
-    elseif token.t == 'RawInline' then
+    elseif token.tag == 'RawInline' then
       sequence:insert(token.text)
-    elseif token.t == 'SmallCaps' then
+    elseif token.tag == 'SmallCaps' then
       unknown()
-    elseif token.t == 'SoftBreak' then
+    elseif token.tag == 'SoftBreak' then
       sequence:insert("\n")
-    elseif token.t == 'Space' then
+    elseif token.tag == 'Space' then
       sequence:insert(" ")
-    elseif token.t == 'Span' then
+    elseif token.tag == 'Span' then
       stringifyTokenInto(token.content, sequence)
-    elseif token.t == 'Str' then
+    elseif token.tag == 'Str' then
       sequence:insert(token.text)
-    elseif token.t == 'Strikeout' then
+    elseif token.tag == 'Strikeout' then
       unknown()
-    elseif token.t == 'Strong' then
+    elseif token.tag == 'Strong' then
       sequence:insert('**')
       sequence:insert(token.text)
       sequence:insert('**')
-    elseif token.t == 'Superscript' then
+    elseif token.tag == 'Superscript' then
       unknown()
-    elseif token.t == 'Underline' then
+    elseif token.tag == 'Underline' then
       sequence:insert('_')
       sequence:insert(token.text)
       sequence:insert('_')

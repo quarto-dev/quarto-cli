@@ -78,7 +78,7 @@ function table_classes()
       tappend(unnormalized_classes, attr.classes)
       local normalized_classes = unnormalized_classes:map(normalize_class)
 
-      if float.content.t == "Table" then
+      if float.content.tag == "Table" then
         float.content = process_table(float.content, normalized_classes)
       else
         float.content = _quarto.ast.walk(float.content, {

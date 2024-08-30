@@ -20,7 +20,7 @@ function bootstrap_panel_sidebar()
                   isTabset(el))
         end
         local function isHeader(el)
-          return el ~= nil and el.t == "Header"
+          return el ~= nil and el.tag == "Header"
         end
         local function isQuartoHiddenDiv(el)
           return el ~= nil and is_regular_node(el, "Div") and

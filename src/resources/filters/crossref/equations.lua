@@ -29,10 +29,10 @@ function process_equations(blockEl)
     -- inline at the end of the loop
     local processInline = true
     if mathInlines then
-      if el.t == "Space" then
+      if el.tag == "Space" then
         mathInlines:insert(el)
         processInline = false
-      elseif el.t == "Str" and refLabel("eq", el) then
+      elseif el.tag == "Str" and refLabel("eq", el) then
 
         -- add to the index
         local label = refLabel("eq", el)
@@ -112,5 +112,5 @@ function eqQquad(eq)
 end
 
 function isDisplayMath(el)
-  return el.t == "Math" and el.mathtype == "DisplayMath"
+  return el.tag == "Math" and el.mathtype == "DisplayMath"
 end

@@ -61,7 +61,7 @@ function render_reveal_fixups()
     -- Prevent BulletList in blockquote to be made incremental with .fragment class
     -- https://github.com/quarto-dev/quarto-cli/issues/7715
     BlockQuote = function(b)
-      if #b.content and b.content[1].t == "BulletList" then
+      if #b.content and b.content[1].tag == "BulletList" then
         b.content = pandoc.Div(b.content, pandoc.Attr('', {'blockquote-list-scaffold'}))
         return b
       end

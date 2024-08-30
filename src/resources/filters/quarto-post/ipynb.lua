@@ -90,7 +90,7 @@ function ipynb()
             -- raw blocks (which specifically addresses tables that are parsed and 
             -- surrounded by rawblocks to contain unparseable content)
             -- This will catch GT tables and render HTML and markdown versions.
-            if #el.content == 3 and el.content[1].t == "RawBlock" and el.content[2].t == "Table" and el.content[3].t == "RawBlock" then
+            if #el.content == 3 and el.content[1].tag == "RawBlock" and el.content[2].tag == "Table" and el.content[3].tag == "RawBlock" then
               if el.content[1].format == "html" and el.content[3].format == "html" then
 
                 local tbl = pandoc.Pandoc(el.content[2])

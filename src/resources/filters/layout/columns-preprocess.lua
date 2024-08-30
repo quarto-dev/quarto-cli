@@ -111,11 +111,11 @@ function resolveColumnClassesForCodeCell(el)
                 -- for a table div, apply the classes to the figOrTableEl itself
                 applyClasses(tblClasses, tblCaptionClasses, el, childEl, figOrTableEl, 'tbl')
                 forwarded = true
-              elseif figOrTableEl.t == 'Table' then
+              elseif figOrTableEl.tag == 'Table' then
                 -- the figOrTableEl is a table, just apply the classes to the div around it
                 applyClasses(tblClasses, tblCaptionClasses, el, childEl, childEl, 'tbl')
                 forwarded = true
-              elseif figOrTableEl.t == "Figure" then
+              elseif figOrTableEl.tag == "Figure" then
                 -- the figOrTableEl is a table, just apply the classes to the div around it
                 applyClasses(figClasses, figCaptionClasses, el, childEl, figOrTableEl, 'fig')
                 forwarded = true

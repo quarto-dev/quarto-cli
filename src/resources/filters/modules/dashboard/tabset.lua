@@ -79,7 +79,7 @@ local function resolveTabs(contents)
       -- If the direct descrendent of a tab isn't a card, see if it has a header within it
       -- that we can use as the tab title, then just allow the content to flow along
       if v.content and #v.content > 1 then
-        if v.content[1].t == "Header" then
+        if v.content[1].tag == "Header" then
           local titleAttr = v.content[1].attributes[kTitleAttr]
           if titleAttr ~= nil then
             attr[kTabTitleOutAttr] = titleAttr
@@ -152,7 +152,7 @@ local function makeTabset(title, contents, classes, options)
 end
 
 local function isTabset(el)
-  return (is_regular_node(el, "Div") or el.t == "Header") and el.classes ~= nil and el.classes:includes(kTabsetClass)
+  return (is_regular_node(el, "Div") or el.tag == "Header") and el.classes ~= nil and el.classes:includes(kTabsetClass)
 end
 
 local function readOptions(el)

@@ -15,7 +15,7 @@ local function transformShortcodeBlocks(blocks)
   
   for i, block in ipairs(blocks) do 
     -- inspect para and plain blocks for shortcodes
-    if block.t == "Para" or block.t == "Plain" then
+    if block.tag == "Para" or block.tag == "Plain" then
       -- if contents are only a shortcode, process and return
       local onlyShortcode = onlyShortcode(block.content)
       if onlyShortcode ~= nil then
@@ -58,7 +58,7 @@ function transformShortcodeInlines(inlines)
   -- iterate through any inlines and process any shortcodes
   for i, el in ipairs(inlines) do
 
-    if el.t == "Str" then 
+    if el.tag == "Str" then 
 
       -- find escaped shortcodes
       local beginEscapeMatch = el.text:match("%{%{%{+<$")
@@ -196,7 +196,7 @@ function processShortCode(inlines)
 
   -- -- The core loop
   for i, el in ipairs(inlines) do
-    if el.t == "Str" then
+    if el.tag == "Str" then
       if endsWith(el.text, kSep) then 
         -- this is the name of an argument
         key_name = el.text:sub(1, #el.text - #kSep)
@@ -204,11 +204,11 @@ function processShortCode(inlines)
         -- this is either an unnamed arg or an arg value
         insertArg(el.text)
       end
-    elseif el.t == "Quoted" then 
+    elseif el.tag == "Quoted" then 
       -- this is either an unnamed arg or an arg value
       insertArg(pandoc.utils.stringify(el.content))
-    elseif el.t ~= "Space" then
-      error("Don't know what to do with " .. el.t .. " in shortcode; skipping")
+    elseif el.tag ~= "Space" then
+      error("Don't know what to do with " .. el.tag .. " in shortcode; skipping")
       -- insertArg({el})
     end
   end
@@ -226,20 +226,20 @@ function onlyShortcode(contents)
   end
 
   -- starts with a shortcode
-  local startsWithShortcode = contents[1].t == "Str" and contents[1].text == kOpenShortcode
+  local startsWithShortcode = contents[1].tag == "Str" and contents[1].text == kOpenShortcode
   if not startsWithShortcode then
     return nil
   end
 
   -- ends with a shortcode
-  local endsWithShortcode = contents[#contents].t == "Str" and contents[#contents].text == kCloseShortcode
+  local endsWithShortcode = contents[#contents].tag == "Str" and contents[#contents].text == kCloseShortcode
   if not endsWithShortcode then  
     return nil
   end
 
   -- has only one open shortcode
   local openShortcodes = filter(contents, function(el) 
-    return el.t == "Str" and el.text == kOpenShortcode  
+    return el.tag == "Str" and el.text == kOpenShortcode  
   end)
   if #openShortcodes ~= 1 then
     return nil
@@ -247,7 +247,7 @@ function onlyShortcode(contents)
 
   -- has only one close shortcode 
   local closeShortcodes = filter(contents, function(el) 
-    return el.t == "Str" and el.text == kCloseShortcode  
+    return el.tag == "Str" and el.text == kCloseShortcode  
   end) 
   if #closeShortcodes ~= 1 then
     return nil
@@ -259,7 +259,7 @@ end
 function trimEmpty(contents) 
   local firstNonEmpty = 1
   for i, el in ipairs(contents) do
-    if el.t == "Str" and el.text == "" then
+    if el.tag == "Str" and el.text == "" then
       firstNonEmpty = firstNonEmpty + 1
     else
       break
@@ -270,8 +270,8 @@ function trimEmpty(contents)
   end
 
   for i = #contents, 1, -1 do
-    el = contents[i]
-    if el.t == "Str" and el.text == "" then
+    local el = contents[i]
+    if el.tag == "Str" and el.text == "" then
       contents = tslice(contents, 1, #contents - 1)
     else
       break

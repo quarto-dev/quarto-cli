@@ -143,7 +143,7 @@ function wrapped_writer()
           end
         else
           local nodeHandler
-          t = node.t or pandoc.utils.type(node)
+          t = node.tag or pandoc.utils.type(node)
           nodeHandler = handler[t] and handler[t].handle
           if nodeHandler == nil then 
             -- no handler, just walk the internals in some default order

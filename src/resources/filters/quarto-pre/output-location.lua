@@ -18,7 +18,7 @@ end
 
 local function outputLocationCellHasCode(el)
   return #el.content > 0 and
-         el.content[1].t == "CodeBlock" and
+         el.content[1].tag == "CodeBlock" and
          el.content[1].attr.classes:includes("cell-code")  
 end
 

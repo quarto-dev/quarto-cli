@@ -76,11 +76,11 @@ function crossref_theorems()
             end
             preamble:insert(pandoc.RawInline("latex", "\n"))
             -- https://github.com/quarto-dev/quarto-cli/issues/6077
-            if el.content[1].t == "Para" then
+            if el.content[1].tag == "Para" then
               preamble:extend(el.content[1].content)
               el.content[1].content = preamble
             else
-              if (el.content[1].t ~= "Para") then
+              if (el.content[1].tag ~= "Para") then
                 -- required trick to get correct alignement when non Para content first
                 preamble:insert(pandoc.RawInline('latex', "\\leavevmode"))
               end
@@ -88,9 +88,9 @@ function crossref_theorems()
             end
             local end_env = "\\end{" .. proof.env .. "}"
             -- https://github.com/quarto-dev/quarto-cli/issues/6077
-            if el.content[#el.content].t == "Para" then
+            if el.content[#el.content].tag == "Para" then
               el.content[#el.content].content:insert(pandoc.RawInline("latex", "\n" .. end_env))
-            elseif el.content[#el.content].t == "RawBlock" and el.content[#el.content].format == "latex" then
+            elseif el.content[#el.content].tag == "RawBlock" and el.content[#el.content].format == "latex" then
               -- this is required for no empty line between end_env and previous latex block
               el.content[#el.content].text = el.content[#el.content].text .. "\n" .. end_env
             else
@@ -112,7 +112,7 @@ function crossref_theorems()
 
             -- if the first block is a paragraph, then prepend the title span
             if #el.content > 0 and 
-               el.content[1].t == "Para" and
+               el.content[1].tag == "Para" and
                el.content[1].content ~= nil and 
                #el.content[1].content > 0 then
               el.content[1].content:insert(1, span)

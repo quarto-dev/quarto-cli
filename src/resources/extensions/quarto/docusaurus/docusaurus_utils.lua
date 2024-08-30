@@ -105,7 +105,7 @@ function code_block(code_block_slot, filename)
 
   code_block_slot = render_folded_block(code_block_slot) or code_block_slot
   
-  if code_block_slot.t == "CodeBlock" then
+  if code_block_slot.tag == "CodeBlock" then
     return process(code_block_slot)
   else
     return _quarto.ast.walk(code_block_slot, {

@@ -46,7 +46,7 @@ local function writeEnvironments(divEl)
         
         -- if the first and last div blocks are paragraphs then we can
         -- bring the environment begin/end closer to the content
-        if divEl.content[1].t == "Para" and divEl.content[#divEl.content].t == "Para" then
+        if divEl.content[1].tag == "Para" and divEl.content[#divEl.content].tag == "Para" then
           table.insert(divEl.content[1].content, 1, pandoc.RawInline('tex', beginEnv .. "\n"))
           table.insert(divEl.content[#divEl.content].content, pandoc.RawInline('tex', "\n" .. endEnv))
         else

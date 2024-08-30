@@ -22,7 +22,7 @@ function render_asciidoc()
       -- We construct the title with cross ref information into the metadata
       -- if we see such a title, we need to move the identifier up outside the title
       local titleInlines = meta['title']
-      if titleInlines ~= nil and #titleInlines == 1 and titleInlines[1].t == 'Span' then ---@diagnostic disable-line
+      if titleInlines ~= nil and #titleInlines == 1 and titleInlines[1].tag == 'Span' then ---@diagnostic disable-line
         
         ---@type pandoc.Span
         local span = titleInlines[1]
@@ -69,7 +69,7 @@ function render_asciidoc()
         admonitionPre = "[" .. admonitionType .. "]\n====\n"
       end
 
-      if el.content.t == "Para" then
+      if el.content.tag == "Para" then
         el.content.content:insert(1, pandoc.RawInline("asciidoc", admonitionPre))
         el.content.content:insert(pandoc.RawInline("asciidoc", "\n" .. admonitionPost))
       elseif pandoc.utils.type(el.content) == "Blocks" then
@@ -83,8 +83,8 @@ function render_asciidoc()
       -- If there is, place a space there (because otherwise asciidoc may be very confused)
       for i, v in ipairs(el) do
 
-        if v.t == "Code" then
-          if el[i+1] and el[i+1].t == "Note" then
+        if v.tag == "Code" then
+          if el[i+1] and el[i+1].tag == "Note" then
 
             local noteEl = el[i+1]
             -- if the note contains a code inline, we need to add a space

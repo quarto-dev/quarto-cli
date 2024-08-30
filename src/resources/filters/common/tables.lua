@@ -21,12 +21,12 @@ function parseTableCaption(caption)
   caption = stripTrailingSpace(caption)
   -- does the caption end with "}"
   local lastInline = caption[#caption]
-  if lastInline ~= nil and lastInline.t == "Str" then
+  if lastInline ~= nil and lastInline.tag == "Str" then
     if endsWith(trim(lastInline.text), "}") then
       -- find index of first inline that starts with "{"
       local beginIndex = nil
       for i = 1,#caption do 
-        if caption[i].t == "Str" and startsWith(caption[i].text, "{") then
+        if caption[i].tag == "Str" and startsWith(caption[i].text, "{") then
           beginIndex = i
           break
         end

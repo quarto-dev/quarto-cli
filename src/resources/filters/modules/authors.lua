@@ -252,13 +252,13 @@ local kLetter = "letter"
 -- Remove Spaces from the ends of tables
 local function trimspace(tbl)
   if #tbl > 0 then
-    if tbl[1].t == 'Space' then
+    if tbl[1].tag == 'Space' then
       tbl = tslice(tbl, 2)
     end
   end
 
   if #tbl > 0 then
-    if tbl[#tbl].t == 'Space' then
+    if tbl[#tbl].tag == 'Space' then
       tbl = tslice(tbl, #tbl -1)
     end
   end
@@ -687,7 +687,7 @@ local function processAttributes(author, attributes)
     -- process attributes as an array of values
     for i,v in ipairs(attributes) do
       if v then
-        if v.t == "Str" then
+        if v.tag == "Str" then
           setAttribute(author, v)
         else
           for j, attr in ipairs(v) do

@@ -413,7 +413,7 @@ function code_annotations()
               outputBlock(resolvedBlock)
             end
 
-          elseif block.t == "Div" then
+          elseif block.tag == "Div" then
             local isDecoratedCodeBlock = is_custom_node(block, "DecoratedCodeBlock")
             if isDecoratedCodeBlock then
               -- If there is a pending code cell and we get here, just
@@ -441,7 +441,7 @@ function code_annotations()
             else
               outputBlockClearPending(block)
             end          
-          elseif block.t == 'CodeBlock'  then
+          elseif block.tag == 'CodeBlock'  then
             -- don't process code cell output here - we'll get it above
             -- This processes non-executable code blocks
             if not block.attr.classes:find('cell-code') then
@@ -463,7 +463,7 @@ function code_annotations()
             else
               outputBlockClearPending(block)
             end
-          elseif block.t == 'OrderedList' and pendingAnnotations ~= nil and next(pendingAnnotations) ~= nil then
+          elseif block.tag == 'OrderedList' and pendingAnnotations ~= nil and next(pendingAnnotations) ~= nil then
             -- There are pending annotations, which means this OL is immediately after
             -- a code cell with annotations. Use to emit a DL describing the code
             local items = pandoc.List()

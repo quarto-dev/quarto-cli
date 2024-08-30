@@ -14,7 +14,7 @@ _quarto.ast.add_handler({
     local inner_content = pandoc.List({})
 
     span.content = span.content:filter(function(el)
-      return el.t == "Span"
+      return el.tag == "Span"
     end)
     local shortcode_content = span.content:map(function(el)
       if not el.classes:includes("quarto-shortcode__-param") then
@@ -239,7 +239,7 @@ function shortcodes_filter()
   local filter
 
   local block_handler = function(node)
-    if (node.t == "Para" or node.t == "Plain") and #node.content == 1 then
+    if (node.tag == "Para" or node.tag == "Plain") and #node.content == 1 then
       node = node.content[1]
     end
     local custom_data, t, kind = _quarto.ast.resolve_custom_data(node)

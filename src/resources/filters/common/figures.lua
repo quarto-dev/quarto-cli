@@ -78,8 +78,8 @@ function discoverLinkedFigureDiv(el, captionRequired)
   if is_regular_node(el, "Div") and 
      hasFigureRef(el) and
      #el.content == 2 and 
-     el.content[1].t == "Para" and 
-     el.content[2].t == "Para" then
+     el.content[1].tag == "Para" and 
+     el.content[2].tag == "Para" then
     return discoverLinkedFigure(el.content[1], captionRequired)  
   end
   return nil

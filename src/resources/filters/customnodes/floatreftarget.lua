@@ -108,7 +108,7 @@ _quarto.ast.add_handler({
 
 function cap_location(obj)
   local ref
-  local is_float = obj.t == "FloatRefTarget"
+  local is_float = obj.tag == "FloatRefTarget"
   
   if is_float then
     ref = ref_type_from_float(obj)
@@ -119,7 +119,7 @@ function cap_location(obj)
     ref = refType(obj.identifier) or refType(obj.attributes["ref-parent"] or "")
   end
   if ref == nil or crossref.categories.by_ref_type[ref] == nil then
-    if obj.t == "Table" then
+    if obj.tag == "Table" then
       ref = "tbl"
     else
       -- last resort, pretend we're a figure
@@ -156,7 +156,7 @@ local function get_node_from_float_and_type(float, type, filter_base)
   if float.content == nil then
     return nil
   end
-  if float.content.t == type then
+  if float.content.tag == type then
     return float.content
   else
     local found_node = nil
@@ -203,7 +203,7 @@ function decorate_caption_with_crossref(float)
     -- luacov: enable
   end
   if float.caption_long and float.caption_long.content == nil then
-    local error_msg = "FloatRefTarget has caption_long field of type " .. tostring(float.caption_long.t) .. " which doesn't support content: " .. float.identifier
+    local error_msg = "FloatRefTarget has caption_long field of type " .. tostring(float.caption_long.tag) .. " which doesn't support content: " .. float.identifier
     error(error_msg)
     return {}
   end
@@ -324,7 +324,7 @@ end, function(float)
       return {}
     end
     caption_cmd_name = "subcaption"
-  elseif float.content.t == "Table" and float_type == "tbl" then -- float.parent_id is nil here
+  elseif float.content.tag == "Table" and float_type == "tbl" then -- float.parent_id is nil here
     -- special-case the situation where the figure is Table and the content is Table
     --
     -- just return the table itself with the caption inside the table
@@ -340,7 +340,7 @@ end, function(float)
       codeblock.attr = merge_attrs(codeblock.attr, pandoc.Attr("", float.classes or {}, float.attributes or {}))
       return codeblock
     end
-    if float.content.t == "CodeBlock" then
+    if float.content.tag == "CodeBlock" then
       float.content = handle_code_block(float.content)
     else
       float.content = _quarto.ast.walk(float.content, {
@@ -381,7 +381,7 @@ end, function(float)
     local function handle_table(tbl)
       return latexTabular(tbl, vAlign)
     end
-    if float.content.t == "Table" then
+    if float.content.tag == "Table" then
       float.content = handle_table(float.content)
     else
       float.content = _quarto.ast.walk(float.content, {
@@ -777,7 +777,7 @@ function float_reftarget_render_html_figure(float)
   local found_image = pandoc.Div({})
   -- #7727: don't recurse into tables when searching for a figure from
   -- which to get attributes
-  if float.content and float.content.t ~= "Table" then
+  if float.content and float.content.tag ~= "Table" then
     found_image = get_node_from_float_and_type(float, "Image", {
       Table = function(table)
         return nil, false
@@ -854,14 +854,14 @@ end
 _quarto.ast.add_renderer("FloatRefTarget", function(_)
   return _quarto.format.isAsciiDocOutput()
 end, function(float)
-  if float.content.t == "Plain" and #float.content.content == 1 and float.content.content[1].t == "Image" then
+  if float.content.tag == "Plain" and #float.content.content == 1 and float.content.content[1].tag == "Image" then
     return pandoc.Figure(
       {float.content},
       {float.caption_long},
       float.identifier)
   end
 
-  if float.type == "Table" and float.content.t == "Table" then
+  if float.type == "Table" and float.content.tag == "Table" then
     -- special-case the situation where the figure is Table and the content is Table
     --
     -- just return the table itself with the caption inside the table
@@ -941,7 +941,7 @@ _quarto.ast.add_renderer("FloatRefTarget", function(_)
   return _quarto.format.isIpynbOutput() and param("enable-crossref", true)
 end, function(float)
   decorate_caption_with_crossref(float)
-  if float.content.t == "Plain" and #float.content.content == 1 and float.content.content[1].t == "Image" then
+  if float.content.tag == "Plain" and #float.content.content == 1 and float.content.content[1].tag == "Image" then
     return pandoc.Figure(
       {float.content},
       {float.caption_long},
@@ -958,7 +958,7 @@ end)
 _quarto.ast.add_renderer("FloatRefTarget", function(_)
   return _quarto.format.isIpynbOutput() and not param("enable-crossref", true)
 end, function(float)
-  if float.content.t == "Plain" and #float.content.content == 1 and float.content.content[1].t == "Image" then
+  if float.content.tag == "Plain" and #float.content.content == 1 and float.content.content[1].tag == "Image" then
     local imgEl = float.content.content[1]
     if not float.in_code_cell_output then
       imgEl.identifier = float.identifier

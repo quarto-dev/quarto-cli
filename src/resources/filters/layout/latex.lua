@@ -90,7 +90,7 @@ end
 function latexJoinParas(content)
   local blocks = pandoc.List()
   for i,block in ipairs(content) do
-    if block.t == "Para" and #blocks > 0 and blocks[#blocks].t == "Para" then
+    if block.tag == "Para" and #blocks > 0 and blocks[#blocks].tag == "Para" then
       tappend(blocks[#blocks].content, block.content)
     else
       blocks:insert(block)
@@ -517,7 +517,7 @@ function latexFigurePosition(el, env)
     return attribute(el, kOffset, nil)
   else
     local prefix
-    if el.t == "FloatRefTarget" then
+    if el.tag == "FloatRefTarget" then
       prefix = ref_type_from_float(el)
     else
       prefix = refType(el.identifier) or "fig"

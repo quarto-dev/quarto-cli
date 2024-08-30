@@ -101,7 +101,7 @@ function walkUnresolvedCitations(func)
     local modified = false
     if _quarto.format.isLatexOutput() and marginCitations() then
       for i,inline in ipairs(inlines) do
-        if inline.t == 'Cite' then
+        if inline.tag == 'Cite' then
           for j, citation in ipairs(inline.citations) do
             if not isResolved(citation) then
               func(
@@ -137,7 +137,7 @@ end
 function resolveCaptionCitations(captionContentInlines, inMargin)
   local citeEls = pandoc.List()
   for i,inline in ipairs(captionContentInlines) do
-    if inline.t == 'Cite' then
+    if inline.tag == 'Cite' then
       for j, citation in ipairs(inline.citations) do
         if inMargin then
           citeEls:insert(citePlaceholderInlineWithProtection(citation))
@@ -193,7 +193,7 @@ end
 
 function discoverTable(div) 
   local tbl = div.content[1]
-  if tbl.t == 'Table' then
+  if tbl.tag == 'Table' then
     return tbl
   else
     return nil

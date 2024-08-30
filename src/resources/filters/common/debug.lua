@@ -11,13 +11,13 @@ function tdump (tbl, indent, refs)
     return
   end
 
-  if tbl.t and type(t) == "string" then
-    print(string.rep("  ", indent) .. tbl.t)
+  if tbl.tag and type(tbl) == "string" then
+    print(string.rep("  ", indent) .. tbl.tag)
   end
   local empty = true
   for k, v in pairs(tbl) do
     empty = false
-    formatting = string.rep("  ", indent) .. k .. ": "
+    local formatting = string.rep("  ", indent) .. k .. ": "
     v = asLua(v)
     if type(v) == "table" then
       print(formatting .. "table: " .. address)

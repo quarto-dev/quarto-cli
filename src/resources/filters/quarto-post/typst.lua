@@ -30,7 +30,7 @@ function render_typst()
     },
     {
       FloatRefTarget = function(float)
-        if float.content.t == "Table" then
+        if float.content.tag == "Table" then
           -- this needs the fix from https://github.com/jgm/pandoc/pulls/9778
           float.content.classes:insert("typst-no-figure")
         else

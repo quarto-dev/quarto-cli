@@ -345,8 +345,8 @@ function docx_callout_and_table_fixup()
       for i,el in ipairs(blocks) do 
         -- determine what this block is
         local isCallout = is_custom_node(el, "Callout")
-        local isTableOrFigure = is_custom_node(el, "FloatRefTarget") or el.t == "Table" or isFigureDiv(el) or (discoverFigure(el, true) ~= nil)
-        local isCodeBlock = el.t == "CodeBlock"
+        local isTableOrFigure = is_custom_node(el, "FloatRefTarget") or el.tag == "Table" or isFigureDiv(el) or (discoverFigure(el, true) ~= nil)
+        local isCodeBlock = el.tag == "CodeBlock"
 
         -- Determine whether this is a code cell that outputs a table
         local isCodeCell = is_regular_node(el, "Div") and el.attr.classes:find_if(_quarto.modules.classpredicates.isCodeCell)

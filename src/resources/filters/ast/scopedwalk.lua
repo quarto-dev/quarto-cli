@@ -7,7 +7,7 @@ function scoped_walk(outer_node, filter)
   local function node_type(node)
     local pt = pandoc.utils.type(node)
     if pt == "Block" or pt == "Inline" then
-      return node.t
+      return node.tag
     end
     return pt
   end
@@ -289,7 +289,7 @@ function scoped_walk(outer_node, filter)
     return node
   end
   local function process_block_or_inline(node, nt)
-    local result, done = process_handler(filter[node.t] or filter[nt], node)
+    local result, done = process_handler(filter[node.tag] or filter[nt], node)
     if done then
       return result
     end

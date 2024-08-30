@@ -52,9 +52,9 @@ function combineFilters(filters)
           local result = fn(current)
           if result ~= nil then
             if (pandoc.utils.type(result) ~= pandoc.utils.type(current) or
-                result.t ~= current.t) then
+                result.tag ~= current.tag) then
               -- luacov: disable
-              quarto.log.info("combineFilters: expected " .. (current.t or pandoc.utils.type(current)) .. " got " .. (result.t or pandoc.utils.type(result)))
+              quarto.log.info("combineFilters: expected " .. (current.tag or pandoc.utils.type(current)) .. " got " .. (result.tag or pandoc.utils.type(result)))
               quarto.log.info("Exiting filter early. (This is a potential bug in Quarto.)")
               return result
               -- luacov: enable
@@ -112,7 +112,7 @@ function stripTrailingSpace(inlines)
   -- we always convert to pandoc.List to ensure a uniform
   -- return type (and its associated methods)
   if #inlines > 0 then
-    if inlines[#inlines].t == "Space" then
+    if inlines[#inlines].tag == "Space" then
       return pandoc.List(tslice(inlines, 1, #inlines - 1))
     else
       return pandoc.List(inlines)
@@ -155,7 +155,7 @@ local kBlockTypes = {
 }
 
 function isBlockEl(el)
-  return tcontains(kBlockTypes, el.t)
+  return tcontains(kBlockTypes, el.tag)
 end
 
 function isInlineEl(el)

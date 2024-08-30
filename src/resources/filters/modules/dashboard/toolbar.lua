@@ -85,7 +85,7 @@ end
 function toolbarInContents(content)
   local hasToolbar = false
   for i, v in ipairs(content) do
-    if v.t == "Header" then
+    if v.tag == "Header" then
       if v.level == 1 and isToolbar(v) then
         hasToolbar = true
         break

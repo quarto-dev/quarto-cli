@@ -133,10 +133,10 @@ local function valueboxContent(el)
     _quarto.ast.walk(el, {
       Div = function(divEl)
         if divEl.classes:includes('cell-output-stdout') then
-          if divEl.content[1] ~= nil and divEl.content[1].t == "CodeBlock" then
+          if divEl.content[1] ~= nil and divEl.content[1].tag == "CodeBlock" then
             stdOut = divEl.content[1].text
           end
-        elseif divEl.classes:includes('cell-output-display') and divEl.content[1] ~= nil and divEl.content[1].t == "CodeBlock" then
+        elseif divEl.classes:includes('cell-output-display') and divEl.content[1] ~= nil and divEl.content[1].tag == "CodeBlock" then
           stdOut = divEl.content[1].text
         end
       end
@@ -248,7 +248,7 @@ local function makeValueBox(el)
 
   -- The valuebox title
   local titleEl = title
-  if titleEl.t == "string" then
+  if titleEl.tag == "string" then
     titleEl = pandoc.Plain(title)
   elseif pandoc.utils.type(title) == "table" and #table == 0 then
     titleEl = pandoc.Para({nbspString()})

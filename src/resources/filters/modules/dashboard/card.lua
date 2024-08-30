@@ -46,9 +46,9 @@ local kForceHeader = "force-header";
 -- will work with images (because they're directly contained)
 -- in a constraining element
 local function processCardBodyContent(el, headingOffset)
-  if el.t == "Para" and #el.content == 1 then
+  if el.tag == "Para" and #el.content == 1 then
     return pandoc.Plain(el.content)
-  elseif el.t == "Header" then
+  elseif el.tag == "Header" then
     local level = math.min(el.level + headingOffset, 6)
     local headerClz = "h" .. level;
     return pandoc.Div(el.content, pandoc.Attr("", {headerClz}))
@@ -81,7 +81,7 @@ local function isCardBody(el)
   end) 
 end
 local function isCardFooter(el)
-  return el.t == "BlockQuote" or (is_regular_node(el, "Div") and el.classes:includes(kCardFooterClass))
+  return el.tag == "BlockQuote" or (is_regular_node(el, "Div") and el.classes:includes(kCardFooterClass))
 end
 
 local function isCardHeader(el)
@@ -95,8 +95,8 @@ local function hasRealLookingContent(contents)
   local hasReal = false
   for _i, v in ipairs(contents) do
     -- This looks like shiny pre-rendered stuff, just ignore it
-    if v.t == "Para" and pandoc.utils.stringify(v):match('^preserve%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x.*') then
-    elseif v.t == "RawBlock" then
+    if v.tag == "Para" and pandoc.utils.stringify(v):match('^preserve%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x.*') then
+    elseif v.tag == "RawBlock" then
     else
       hasReal = true
     end
@@ -106,7 +106,7 @@ end
 
 local function isLiteralCard(el)
   -- it must be a div
-  if el.t ~= "Div" then
+  if el.tag ~= "Div" then
     return false
   end
 
