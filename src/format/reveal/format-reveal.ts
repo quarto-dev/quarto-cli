@@ -834,6 +834,27 @@ function revealHtmlPostprocessor(
       supporting: [],
     };
 
+    // Remove blockquote scaffolding added in Lua post-render to prevent Pandoc syntax for applying
+    if (doc.querySelectorAll("div.blockquote-list-scaffold")) {
+      const blockquoteListScaffolds = doc.querySelectorAll(
+        "div.blockquote-list-scaffold",
+      );
+      for (const blockquoteListScaffold of blockquoteListScaffolds) {
+        const blockquoteListScaffoldEL = blockquoteListScaffold as Element;
+        const blockquoteListScaffoldParent =
+          blockquoteListScaffoldEL.parentNode;
+        if (blockquoteListScaffoldParent) {
+          while (blockquoteListScaffoldEL.firstChild) {
+            blockquoteListScaffoldParent.insertBefore(
+              blockquoteListScaffoldEL.firstChild,
+              blockquoteListScaffoldEL,
+            );
+          }
+          blockquoteListScaffoldParent.removeChild(blockquoteListScaffoldEL);
+        }
+      }
+    }
+
     // apply highlighting mode to body
     doc.body.classList.add("quarto-" + highlightingMode);
 

@@ -392,7 +392,8 @@ local quarto_post_filters = {
   { name = "post-render-gfm-fixups", filter = render_gfm_fixups() },
   { name = "post-render-hugo-fixups", filter = render_hugo_fixups() },
   { name = "post-render-email", filters = render_email() },
-  { name = "post-render-pptx-fixups", filter = render_pptx_fixups() }
+  { name = "post-render-pptx-fixups", filter = render_pptx_fixups() },
+  { name = "post-render-revealjs-fixups", filter = render_reveal_fixups() }
 }
 
 local quarto_finalize_filters = {
