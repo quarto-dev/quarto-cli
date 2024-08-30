@@ -127,12 +127,18 @@ export async function resolveSassBundles(
     }
 
     for (const target of targets) {
-      let cssPath = await compileSass(target.bundles, temp);
+      let cssPath: string | undefined;
+      cssPath = await compileSass(target.bundles, temp);
       // First, Clean CSS
       cleanSourceMappingUrl(cssPath);
       // look for a sentinel 'dark' value, extract variables
       const cssResult = processCssIntoExtras(cssPath, extras, temp);
       cssPath = cssResult.path;
+
+      // it can happen that processing generate an empty css file (e.g quarto-html deps with Quarto CSS variables)
+      // in that case, no need to insert the cssPath in the dependency
+      if (!cssPath) continue;
+
       // Process attributes (forward on to the target)
       for (const bundle of target.bundles) {
         if (bundle.attribs) {
@@ -427,7 +433,7 @@ function generateThemeCssClasses(
 }
 
 interface CSSResult {
-  path: string;
+  path: string | undefined;
   dark: boolean;
 }
 
@@ -468,10 +474,14 @@ function processCssIntoExtras(
 
     if (dirty) {
       const cleanedCss = css.replaceAll(kVariablesRegex, "");
-      const hash = md5HashBytes(new TextEncoder().encode(cleanedCss));
-      const newCssPath = temp.createFile({ suffix: `-${hash}.css` });
-
-      writeTextFileSyncPreserveMode(newCssPath, cleanedCss);
+      let newCssPath: string | undefined;
+      if (cleanedCss.trim() === "") {
+        newCssPath = undefined;
+      } else {
+        const hash = md5HashBytes(new TextEncoder().encode(cleanedCss));
+        newCssPath = temp.createFile({ suffix: `-${hash}.css` });
+        writeTextFileSyncPreserveMode(newCssPath, cleanedCss);
+      }
 
       return {
         dark: hasDarkSentinel,
