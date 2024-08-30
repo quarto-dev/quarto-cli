@@ -8,9 +8,8 @@
 ]]
 
 local getTime = os.clock
-local module = {
-    category = "unknown"
-}
+local category = "unknown"
+local module = {}
 local outputfile
 local stack_count = 0
 
@@ -32,20 +31,24 @@ local onDebugHook = function(hookType, line)
     if string.match(source, ".lua$") then
       outputfile:write(name, " ", source, " ", information.linedefined, "\n")
     end
-      no = no + 1
-      information = debug.getinfo(no, "nS")
+    no = no + 1
+    information = debug.getinfo(no, "nS")
   end
-  outputfile:write(stack_count, " ", now, " ", module.category, " ", line, "\n")
+  outputfile:write(stack_count, " ", now, " ", category, " ", line, "\n")
   stack_count = stack_count + 1
 end
 
-function module.start(filename)
+function module.setcategory(c)
+  category = c
+end
+
+function module.start(filename, ms)
   outputfile = io.open(filename, "a")
   if outputfile == nil then
     error("Could not open profiler.txt for writing")
     return
   end
-  debug.sethook(onDebugHook, "t", 5) -- NB: "t" debugging only exists in our patched Lua interpreter/pandoc binary!
+  debug.sethook(onDebugHook, "t", ms or 5) -- NB: "t" debugging only exists in our patched Lua interpreter/pandoc binary!
 end
 
 function module.stop()
