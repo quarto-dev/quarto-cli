@@ -281,11 +281,11 @@ function trimEmpty(contents)
 end
 
 local function parse(meta)
-  local doc = pandoc.Pandoc({}, meta)
-  return _quarto.ast.walk(doc, {
+  return _quarto.ast.walk(meta, {
+    traverse = "quarto-lua-mutable",
     Blocks = transformShortcodeBlocks,
     Inlines = transformShortcodeInlines,   
-  }).meta
+  })
 end
 
 return {
