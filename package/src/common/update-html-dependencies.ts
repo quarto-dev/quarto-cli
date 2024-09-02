@@ -461,6 +461,7 @@ export async function updateHtmlDependencies(config: Configuration) {
     false, // no v prefix,
     resolvePatches([
       "revealjs-plugin-0001-pdfexport-to-export-toggle-fun.patch",
+      "revealjs-plugin-0001-pdfexport-view-mode.patch"
     ])
   );
 
