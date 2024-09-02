@@ -1002,7 +1002,7 @@ function applyStretch(doc: Document, autoStretch: boolean) {
             }
           };
 
-          // Figure environment ? Get caption and alignment
+          // Figure environment ? Get caption, id and alignment
           const quartoFig = slideEl.querySelector("div.quarto-figure");
           const caption = doc.createElement("p");
           if (quartoFig) {
@@ -1011,6 +1011,9 @@ function applyStretch(doc: Document, autoStretch: boolean) {
               "quarto-figure-(center|left|right)",
             );
             if (align) imageEl.classList.add(align[0]);
+            // Get id
+            const quartoFigId = quartoFig?.id;
+            if (quartoFigId) imageEl.id = quartoFigId;
             // Get Caption
             const figCaption = nodeEl.querySelector("figcaption");
             if (figCaption) {
