@@ -783,23 +783,6 @@ const handleAnchors = (doc: Document) => {
     const codeLineAnchorEl = codeLineAnchor as Element;
     codeLineAnchorEl.removeAttribute("href");
   });
-
-  // https://github.com/quarto-dev/quarto-cli/issues/3533
-  // redirect anchors to the slide they refer to
-  const anchors = doc.querySelectorAll("a[href^='#/']");
-  for (const anchor of anchors) {
-    const anchorEl = anchor as Element;
-    const href = anchorEl.getAttribute("href");
-    if (href) {
-      const target = doc.getElementById(href.replace(/^#\//, ""));
-      if (target) {
-        const slide = findParentSlide(target);
-        if (slide && slide.getAttribute("id")) {
-          anchorEl.setAttribute("href", `#/${slide.getAttribute("id")}`);
-        }
-      }
-    }
-  }
 };
 
 const handleInterColumnDivSpaces = (doc: Document) => {
@@ -1002,7 +985,7 @@ function applyStretch(doc: Document, autoStretch: boolean) {
             }
           };
 
-          // Figure environment ? Get caption and alignment
+          // Figure environment ? Get caption, id and alignment
           const quartoFig = slideEl.querySelector("div.quarto-figure");
           const caption = doc.createElement("p");
           if (quartoFig) {
@@ -1011,6 +994,9 @@ function applyStretch(doc: Document, autoStretch: boolean) {
               "quarto-figure-(center|left|right)",
             );
             if (align) imageEl.classList.add(align[0]);
+            // Get id
+            const quartoFigId = quartoFig?.id;
+            if (quartoFigId) imageEl.id = quartoFigId;
             // Get Caption
             const figCaption = nodeEl.querySelector("figcaption");
             if (figCaption) {
