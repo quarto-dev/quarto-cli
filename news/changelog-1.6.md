@@ -14,8 +14,9 @@ All changes included in 1.6:
 
 ## `revealjs` Format
 
-- Update to Reveal JS 5.1.0.
+- Update to Reveal JS 5.1.0
 - ([#7715](https://github.com/quarto-dev/quarto-cli/issues/7715)): Revealjs don't support anymore special Pandoc syntax making BulletList in Blockquotes become incremental list. This was confusing and unexpected behavior. Supported syntax for incremental list is documented at <https://quarto.org/docs/presentations/revealjs/#incremental-lists>.
+- ([#9742](https://github.com/quarto-dev/quarto-cli/issues/9742)): Links to cross-referenced images correctly works.
 
 ## `typst` Format
 
