@@ -241,7 +241,11 @@ const packageMatchers = [
     regex: /.*Unable to find TFM file "([^"]+)".*/g,
     filter: formatFontFilter,
   },
-
+  {
+    regex:
+      /.*! Package fontspec Error:\s+\(fontspec\)\s+The font "([^"]+)" cannot be\s+\(fontspec\)\s+found;+/g,
+    filter: formatFontFilter,
+  },
   { regex: /.* File `(.+eps-converted-to.pdf)'.*/g, filter: estoPdfFilter },
   { regex: /.*xdvipdfmx:fatal: pdf_ref_obj.*/g, filter: estoPdfFilter },
 
