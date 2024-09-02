@@ -783,23 +783,6 @@ const handleAnchors = (doc: Document) => {
     const codeLineAnchorEl = codeLineAnchor as Element;
     codeLineAnchorEl.removeAttribute("href");
   });
-
-  // https://github.com/quarto-dev/quarto-cli/issues/3533
-  // redirect anchors to the slide they refer to
-  const anchors = doc.querySelectorAll("a[href^='#/']");
-  for (const anchor of anchors) {
-    const anchorEl = anchor as Element;
-    const href = anchorEl.getAttribute("href");
-    if (href) {
-      const target = doc.getElementById(href.replace(/^#\//, ""));
-      if (target) {
-        const slide = findParentSlide(target);
-        if (slide && slide.getAttribute("id")) {
-          anchorEl.setAttribute("href", `#/${slide.getAttribute("id")}`);
-        }
-      }
-    }
-  }
 };
 
 const handleInterColumnDivSpaces = (doc: Document) => {
