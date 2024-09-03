@@ -17,6 +17,8 @@ import * as ld from "./lodash.ts";
 import { lines } from "./text.ts";
 import { sassCache } from "./sass/cache.ts";
 import { md5HashBytes } from "./hash.ts";
+import { kSourceMappingRegexes } from "../config/constants.ts";
+import { writeTextFileSyncPreserveMode } from "./write.ts";
 
 export interface SassVariable {
   name: string;
@@ -326,4 +328,16 @@ export async function compileWithCache(
     );
     return outputFilePath;
   }
+}
+
+// Clean sourceMappingUrl from css after saas compilation
+export function cleanSourceMappingUrl(cssPath: string): void {
+  const cleaned = Deno.readTextFileSync(cssPath).replaceAll(
+    kSourceMappingRegexes[0],
+    "",
+  ).replaceAll(
+    kSourceMappingRegexes[1],
+    "",
+  );
+  writeTextFileSyncPreserveMode(cssPath, cleaned);
 }

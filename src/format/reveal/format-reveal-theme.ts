@@ -20,6 +20,7 @@ import { isFileRef } from "../../core/http.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import {
+  cleanSourceMappingUrl,
   compileSass,
   mergeLayers,
   outputVariable,
@@ -188,6 +189,8 @@ export async function revealTheme(
 
   // compile sass
   const css = await compileSass([bundleLayers, ...brandLayers], temp);
+  // Remove sourcemap information
+  cleanSourceMappingUrl(css);
   // convert from string to bytes
   const hash = md5HashBytes(Deno.readFileSync(css));
   const fileName = `quarto-${hash}`;

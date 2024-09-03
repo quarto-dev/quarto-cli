@@ -6,8 +6,10 @@ _quarto:
   tests:
     revealjs:
       ensureHtmlElements:
-        - ['head > link[rel="stylesheet"][href$="quarto-4f64e0fc78c89fc90127583bb01c366c.css"]']
+        - []
         - ['head > link[rel="stylesheet"][href$="beige.css"]']
+      ensureFileRegexMatches:
+        - ['<link .* href=.+revealjs/dist/theme/quarto-([a-f0-9]{32})\.css']
 ---
 
 # Revealjs theme handling

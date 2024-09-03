@@ -19,7 +19,7 @@ import { ProjectContext } from "../../project/types.ts";
 
 import { TempContext } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
-import { compileSass } from "../../core/sass.ts";
+import { cleanSourceMappingUrl, compileSass } from "../../core/sass.ts";
 
 import { kSourceMappingRegexes } from "../../config/constants.ts";
 
@@ -38,6 +38,7 @@ import { kMinimal } from "../../format/html/format-html-shared.ts";
 import { kSassBundles } from "../../config/types.ts";
 import { md5HashBytes } from "../../core/hash.ts";
 import { InternalError } from "../../core/lib/error.ts";
+import { writeTextFileSyncPreserveMode } from "../../core/write.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -126,11 +127,18 @@ export async function resolveSassBundles(
     }
 
     for (const target of targets) {
-      let cssPath = await compileSass(target.bundles, temp);
-
+      let cssPath: string | undefined;
+      cssPath = await compileSass(target.bundles, temp);
+      // First, Clean CSS
+      cleanSourceMappingUrl(cssPath);
       // look for a sentinel 'dark' value, extract variables
       const cssResult = processCssIntoExtras(cssPath, extras, temp);
       cssPath = cssResult.path;
+
+      // it can happen that processing generate an empty css file (e.g quarto-html deps with Quarto CSS variables)
+      // in that case, no need to insert the cssPath in the dependency
+      if (!cssPath) continue;
+
       // Process attributes (forward on to the target)
       for (const bundle of target.bundles) {
         if (bundle.attribs) {
@@ -425,7 +433,7 @@ function generateThemeCssClasses(
 }
 
 interface CSSResult {
-  path: string;
+  path: string | undefined;
   dark: boolean;
 }
 
@@ -436,13 +444,8 @@ function processCssIntoExtras(
   temp: TempContext,
 ): CSSResult {
   extras.html = extras.html || {};
-  const css = Deno.readTextFileSync(cssPath).replaceAll(
-    kSourceMappingRegexes[0],
-    "",
-  ).replaceAll(
-    kSourceMappingRegexes[1],
-    "",
-  );
+
+  const css = Deno.readTextFileSync(cssPath);
 
   // Extract dark sentinel value
   const hasDarkSentinel = cssHasDarkModeSentinel(css);
@@ -471,23 +474,13 @@ function processCssIntoExtras(
 
     if (dirty) {
       const cleanedCss = css.replaceAll(kVariablesRegex, "");
-      const hash = md5HashBytes(new TextEncoder().encode(cleanedCss));
-      const newCssPath = temp.createFile({ suffix: `-${hash}.css` });
-
-      // Preserve the existing permissions if possible
-      // See https://github.com/quarto-dev/quarto-cli/issues/660
-      let mode;
-      if (Deno.build.os !== "windows") {
-        const stat = Deno.statSync(cssPath);
-        if (stat.mode !== null) {
-          mode = stat.mode;
-        }
-      }
-
-      if (mode !== undefined) {
-        Deno.writeTextFileSync(newCssPath, cleanedCss, { mode });
+      let newCssPath: string | undefined;
+      if (cleanedCss.trim() === "") {
+        newCssPath = undefined;
       } else {
-        Deno.writeTextFileSync(newCssPath, cleanedCss);
+        const hash = md5HashBytes(new TextEncoder().encode(cleanedCss));
+        newCssPath = temp.createFile({ suffix: `-${hash}.css` });
+        writeTextFileSyncPreserveMode(newCssPath, cleanedCss);
       }
 
       return {
