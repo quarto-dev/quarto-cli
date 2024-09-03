@@ -156,6 +156,13 @@ $overlayElementFgColor: 0, 0, 0 !default;
 
 // -- END setting.scss --
 
+// KBD variables
+$kbd-padding-y: 0.4rem !default;
+$kbd-padding-x: 0.4rem !default;
+$kbd-font-size: $presentation-font-size-root !default;
+$kbd-color: $body-color !default;
+$kbd-bg: $body-bg !default;
+
 /*-- scss:functions --*/
 
 @function colorToRGB($color) {
@@ -737,4 +744,17 @@ div.cell-output-display div.pagedtable-wrapper table.table {
 .reveal .scrollable ol li:first-child:nth-last-child(n + 10),
 .reveal .scrollable ol li:first-child:nth-last-child(n + 10) ~ li {
   margin-left: 1em;
+}
+
+/* kbd rules */
+
+kbd {
+  font-family: $font-family-monospace;
+  font-size: $kbd-font-size;
+  color: $kbd-color;
+  background-color: $kbd-bg;
+  border: 1px solid;
+  border-color: $code-block-border-color;
+  border-radius: 5px;
+  padding: $kbd-padding-y $kbd-padding-x;
 }
