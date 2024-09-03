@@ -318,6 +318,13 @@ window.QuartoSupport = function () {
     }
   }
 
+  function cleanEmptyAutpGeneratedContent(deck) {
+    const div = document.querySelector('div.quarto-auto-generated-content')
+    if (div.textContent.trim() === '') {
+      div.remove()
+    }
+  }
+
   return {
     id: "quarto-support",
     init: function (deck) {
@@ -333,6 +340,8 @@ window.QuartoSupport = function () {
       handleSlideChanges(deck);
       workaroundMermaidDistance(deck);
       handleWhiteSpaceInColumns(deck);
+      // should stay last
+      cleanEmptyAutpGeneratedContent(deck);
     },
   };
 };
