@@ -138,13 +138,16 @@ window.QuartoSupport = function () {
 
    // add footer text
    function addFooter(deck) {
-    const revealParent = deck.getRevealElement();
-    const defaultFooterDiv = document.querySelector(".footer-default");
-    if (defaultFooterDiv) {
+     const revealParent = deck.getRevealElement();
+     const defaultFooterDiv = document.querySelector(".footer-default");
+     if (defaultFooterDiv) {
+      // move default footnote to the div.reveal element
       revealParent.appendChild(defaultFooterDiv);
       handleLinkClickEvents(deck, defaultFooterDiv);
       if (!isPrintView()) {
         deck.on("slidechanged", function (ev) {
+          // Set per slide footer if any defined, 
+          // or show default unless data-footer="false" for no footer on this slide
           const prevSlideFooter = document.querySelector(
             ".reveal > .footer:not(.footer-default)"
           );
@@ -160,6 +163,8 @@ window.QuartoSupport = function () {
             handleLinkClickEvents(deck, slideFooter);
             deck.getRevealElement().appendChild(slideFooter);
             toggleBackgroundTheme(slideFooter, onDarkBackground, onLightBackground)
+          } else if (ev.currentSlide.getAttribute("data-footer") === "false") {
+            defaultFooterDiv.style.display = "none";
           } else {
             defaultFooterDiv.style.display = "block";
             toggleBackgroundTheme(defaultFooterDiv, onDarkBackground, onLightBackground)
