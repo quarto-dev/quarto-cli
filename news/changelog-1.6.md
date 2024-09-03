@@ -12,6 +12,10 @@ All changes included in 1.6:
 - ([#10328](https://github.com/quarto-dev/quarto-cli/issues/10328)): Interpret subcells as subfloats when subcap count matches subcell count.
 - ([#10624](https://github.com/quarto-dev/quarto-cli/issues/10624)): Don't crash when proof environments are empty in `pdf`.
 
+## `html` Format
+
+- Fix `kbd` element styling on dark themes.
+
 ## `revealjs` Format
 
 - Update to Reveal JS 5.1.0.
