@@ -19,6 +19,7 @@ All changes included in 1.6:
 - Remove wrong `sourceMappingUrl` entry in SASS built css.
 - ([#7715](https://github.com/quarto-dev/quarto-cli/issues/7715)): Revealjs don't support anymore special Pandoc syntax making BulletList in Blockquotes become incremental list. This was confusing and unexpected behavior. Supported syntax for incremental list is documented at <https://quarto.org/docs/presentations/revealjs/#incremental-lists>.
 - ([#9742](https://github.com/quarto-dev/quarto-cli/issues/9742)): Links to cross-referenced images correctly works.
+- ([#8012](https://github.com/quarto-dev/quarto-cli/issues/8012)): Don't perform notebook title fixup with `format: revealjs` as this would create a new undesired title slide.
 
 ## `typst` Format
 
