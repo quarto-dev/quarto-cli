@@ -762,6 +762,10 @@ $code-block-bg-color: quarto-color.adjust(
 ) !default;
 @if type_of($code-block-bg) == color {
   $code-block-bg-color: $code-block-bg;
+  // export as CSS variable
+  :root {
+    --quarto-code-block-bg-color: #{$code-block-bg-color};
+  }
 }
 
 // stack layout panels on mobile devices
@@ -850,6 +854,10 @@ div.sourceCode {
 @if variable-exists(code-block-color) {
   div.sourceCode pre.sourceCode {
     color: $code-block-color;
+  }
+  // export this one as a CSS variable
+  :root {
+    --quarto-code-block-color: #{$code-block-color};
   }
 }
 

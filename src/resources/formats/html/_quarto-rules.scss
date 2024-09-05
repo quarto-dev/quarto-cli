@@ -588,12 +588,6 @@ div.ansi-escaped-output {
   --quarto-border-color: #{$table-border-color};
   --quarto-border-width: #{$border-width};
   --quarto-border-radius: #{$border-radius};
-  @if $code-block-bg {
-    --quarto-code-block-bg-color: #{$code-block-bg-color};
-  }
-  @if variable-exists(code-block-color) {
-    --quarto-code-block-color: #{$code-block-color};
-  }
 }
 
 /* rules to support GT table styling */
