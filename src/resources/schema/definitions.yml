@@ -2781,7 +2781,8 @@
 - id: brand-font-with
   description: Font files and definitions for the brand.
   object:
-    closed: false
+    additionalProperties:
+      ref: brand-font
 
 - id: brand-font
   description: Font files and definitions for the brand.
