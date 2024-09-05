@@ -495,6 +495,7 @@ export interface FormatRender {
   [kValidateYaml]?: boolean;
   [kCanonicalUrl]?: boolean | string;
   [kBodyClasses]?: string;
+  [kBrand]?: Brand;
 }
 
 export interface FormatExecute {

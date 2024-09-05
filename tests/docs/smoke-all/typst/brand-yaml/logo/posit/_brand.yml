@@ -1,0 +1,15 @@
+logo:
+  with:
+    brand-typst-with-good-padding: good-padding.png
+
+  small: posit-icon.png
+  medium:
+    light: posit-logo-2024.svg
+    dark: posit-reverse.png
+  large: posit-logo-2024.svg
+defaults:
+  quarto:
+    format:
+      typst:
+        logo: # this gets wiped out because brand-logo.qmd uses logo: medium
+          location: left-bottom

@@ -528,6 +528,7 @@ export const kPaperSize = "papersize";
 export const kLogFile = "log-file";
 export const kHighlightStyle = "highlight-style";
 export const kDefaultImageExtension = "default-image-extension";
+export const kLogo = "logo";
 export const kLinkColor = "linkcolor";
 export const kColorLinks = "colorlinks";
 export const kVariables = "variables";

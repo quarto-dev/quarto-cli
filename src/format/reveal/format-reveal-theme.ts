@@ -20,6 +20,7 @@ import { isFileRef } from "../../core/http.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import {
+  cleanSourceMappingUrl,
   compileSass,
   mergeLayers,
   outputVariable,
@@ -57,6 +58,7 @@ export const kRevealDarkThemes = [
   "night",
   "blood",
   "moon",
+  "dracula",
 ];
 
 export const kRevealThemes = [...kRevealLightThemes, ...kRevealDarkThemes];
@@ -187,6 +189,8 @@ export async function revealTheme(
 
   // compile sass
   const css = await compileSass([bundleLayers, ...brandLayers], temp);
+  // Remove sourcemap information
+  cleanSourceMappingUrl(css);
   // convert from string to bytes
   const hash = md5HashBytes(Deno.readFileSync(css));
   const fileName = `quarto-${hash}`;
@@ -208,6 +212,10 @@ export async function revealTheme(
   };
 }
 
+// Revealjs framework layer is supposed to be more files but:
+// - Only mixins.scss and theme.scss are needed here
+// - settings.scss is manually included in the quarto.scss file
+// - exposer.scss is loaded in theme.scss and found through the loadPaths
 function revealFrameworkLayer(revealDir: string): SassLayer {
   const readTemplate = (template: string) => {
     return Deno.readTextFileSync(
