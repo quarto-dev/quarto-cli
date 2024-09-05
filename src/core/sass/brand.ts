@@ -14,6 +14,7 @@ import {
   SassBundleLayers,
 } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { BrandFontGoogle } from "../../resources/types/schema-types.ts";
 
 const defaultColorNameMap: Record<string, string> = {
   "body-bg": "background",
@@ -89,6 +90,103 @@ export async function brandBootstrapSassBundleLayers(
       },
     };
     sassBundles.push(colorBundle);
+  }
+
+  if (brand?.processedData.typography) {
+    const typographyVariables: string[] = [
+      "/* typography variables from _brand.yml */",
+    ];
+    const typographyImports: string[] = [];
+
+    if (brand?.data.typography?.base) {
+      const family = brand.data.typography.base.family;
+      const tWith = brand.data.typography.with;
+      if (!tWith || !family || !tWith[family]) {
+        throw new Error(
+          `Typography base font ${family} description not found in _brand.yml`,
+        );
+      }
+      if (!(tWith[family] as any).google) {
+        console.log(
+          `Only Google fonts are supported in SCSS for now. Skipping base font ${family}`,
+        );
+      } else {
+        const description = (tWith[family] as BrandFontGoogle).google;
+        if (typeof description === "string") {
+          typographyImports.push(
+            `@import url('https://fonts.googleapis.com/css2?family=${
+              description.replace(
+                / /g,
+                "+",
+              )
+            }:ital,wght@400;700&display=swap');`,
+          );
+        } else {
+          const styles = !description.style
+            ? ["normal", "italic"]
+            : typeof description.style === "string"
+            ? [description.style]
+            : description.style;
+          const weightArray = !description.weight
+            ? [400, 700]
+            : typeof description.weight === "number"
+            ? [description.weight]
+            : description.weight;
+          let styleString = "";
+          let weights = "";
+
+          if (styles.includes("italic")) {
+            styleString = "ital,";
+            weights = weightArray.map((w) => `0,${w}`).join(";") +
+              ";" +
+              weightArray.map((w) => `1,${w}`).join(";");
+          } else {
+            weights = !description.weight
+              ? "400;700"
+              : typeof description.weight === "number"
+              ? String(description.weight)
+              : description.weight.join(";");
+          }
+          const display = description.display ?? "swap";
+
+          const googleFamily = description.family;
+          if (!googleFamily) {
+            throw new Error(
+              `Font description requires base font ${family} family information not found in _brand.yml`,
+            );
+          }
+
+          typographyImports.push(
+            `@import url('https://fonts.googleapis.com/css2?family=${
+              googleFamily!.replace(
+                / /g,
+                "+",
+              )
+            }:${styleString}wght@${weights}&display=${display}');`,
+          );
+          typographyVariables.push(
+            `$font-family-base: ${googleFamily} !default;`,
+          );
+          // hack: we add both reveal and bootstrap font names
+          typographyVariables.push(
+            `$mainFont: ${googleFamily} !default;`,
+          );
+        }
+      }
+    }
+
+    const typographyBundle: SassBundleLayers = {
+      key,
+      // dependency: "bootstrap",
+      quarto: {
+        defaults: typographyVariables.join("\n"),
+        uses: typographyImports.join("\n"),
+        functions: "",
+        mixins: "",
+        rules: "",
+      },
+    };
+    sassBundles.push(typographyBundle);
   }
 
   return sassBundles;

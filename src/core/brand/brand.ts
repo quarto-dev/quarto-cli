@@ -203,8 +203,12 @@ export class Brand {
           }
           defs.push(value2);
         } else {
+          console.log(
+            "warning: google font forge not supported for non-html formats",
+          );
           console.assert("google" in value);
-          console.log("warning: google font forge not supported yet");
+          const ret = mergeConfigs({ family: name }, ...defs.reverse());
+          return ret;
           // download to (temporary?) directory and populate .files
         }
       } else if (defaultFontNames.includes(name)) {
