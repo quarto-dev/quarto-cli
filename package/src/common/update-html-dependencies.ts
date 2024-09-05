@@ -187,8 +187,8 @@ export async function updateHtmlDependencies(config: Configuration) {
       // Omit regular expression escaping
       // (Fixes https://github.com/quarto-dev/quarto-cli/issues/8435)
       const contents = Deno.readTextFileSync(listJs);
-      const removeContent = /e=\(e=t\.utils\.toString\(e\)\.toLowerCase\(\)\)\.replace\(.*?\),/g
-      const cleaned = contents.replaceAll(removeContent, "");
+      const removeContent = /(\(e=t\.utils\.toString\(e\)\.toLowerCase\(\)\))\.replace\(.*\)(,r=e)/g;
+      const cleaned = contents.replace(removeContent, "$1$2");
       Deno.writeTextFileSync(listJs, cleaned);
 
       return Promise.resolve();
