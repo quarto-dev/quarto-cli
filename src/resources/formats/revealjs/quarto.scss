@@ -18,6 +18,11 @@ $body-bg: #fff !default;
 $body-color: #222 !default;
 $text-muted: lighten($body-color, 30%) !default;
 
+// grey colors (like in bootstrap)
+$gray-200: #e9ecef !default;
+$gray-100: #f8f9fa !default;
+$gray-900: #212529 !default;
+
 // link colors
 $primary: #2a76dd !default;
 $link-color: $primary !default;
@@ -156,6 +161,13 @@ $overlayElementFgColor: 0, 0, 0 !default;
 
 // -- END setting.scss --
 
+// KBD variables
+$kbd-padding-y: 0.4rem !default;
+$kbd-padding-x: 0.4rem !default;
+$kbd-font-size: $presentation-font-size-root !default;
+$kbd-color: $body-color !default;
+$kbd-bg: $gray-100 !default; // like in bootstrap style
+
 /*-- scss:functions --*/
 
 @function colorToRGB($color) {
@@ -163,7 +175,33 @@ $overlayElementFgColor: 0, 0, 0 !default;
     ")";
 }
 
+@function tint-color($color, $weight) {
+  @return mix(white, $color, $weight);
+}
+
+@function shade-color($color, $weight) {
+  @return mix(black, $color, $weight);
+}
+
+@function shift-color($color, $weight) {
+  @return if(
+    $weight > 0,
+    shade-color($color, $weight),
+    tint-color($color, -$weight)
+  );
+}
+
 /*-- scss:mixins --*/
+
+@mixin shift_to_dark($property, $color) {
+  @if (
+    sass-color.blackness($backgroundColor) > $code-block-theme-dark-threshhold
+  ) {
+    #{$property}: shift-color($color, 70%);
+  } @else {
+    #{$property}: $color;
+  }
+}
 
 // -- START setting.scss --
 
@@ -737,4 +775,17 @@ div.cell-output-display div.pagedtable-wrapper table.table {
 .reveal .scrollable ol li:first-child:nth-last-child(n + 10),
 .reveal .scrollable ol li:first-child:nth-last-child(n + 10) ~ li {
   margin-left: 1em;
+}
+
+/* kbd rules */
+
+kbd {
+  font-family: $font-family-monospace;
+  font-size: $kbd-font-size;
+  color: $kbd-color;
+  @include shift_to_dark("background-color", $kbd-bg);
+  border: 1px solid;
+  border-color: $code-block-border-color;
+  border-radius: 5px;
+  padding: $kbd-padding-y $kbd-padding-x;
 }

@@ -1294,7 +1294,11 @@ $indent: 1.2em;
 kbd,
 .kbd {
   color: $body-color;
-  background-color: $gray-100;
+  @if (quarto-color.blackness($body-bg) > $code-block-theme-dark-threshhold) {
+    background-color: shift-color($gray-100, 70%);
+  } @else {
+    background-color: $gray-100;
+  }
   border: 1px solid;
   border-radius: 5px;
   border-color: $table-border-color;
