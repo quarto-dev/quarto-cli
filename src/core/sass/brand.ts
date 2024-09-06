@@ -75,6 +75,7 @@ export async function brandBootstrapSassBundles(
     },
   );
 }
+
 export async function brandBootstrapSassBundleLayers(
   fileName: string | undefined,
   project: ProjectContext,
@@ -123,83 +124,124 @@ export async function brandBootstrapSassBundleLayers(
     sassBundles.push(colorBundle);
   }
 
-  if (brand?.processedData.typography) {
+  if (brand?.data.typography) {
     const typographyVariables: string[] = [
       "/* typography variables from _brand.yml */",
     ];
     const typographyImports: string[] = [];
+    const tWith = brand.data.typography.with;
+
+    const getFontFamily = (family: string | undefined) => {
+      if (!tWith || !family || !tWith[family]) {
+        throw new Error(
+          `Typography family ${family} description not found in _brand.yml`,
+        );
+      }
+      return tWith[family];
+    };
+
+    const addGoogleFontImport = (description: BrandFontGoogle["google"]) => {
+      if (typeof description === "string") {
+        typographyImports.push(
+          `@import url('https://fonts.googleapis.com/css2?family=${
+            description.replace(
+              / /g,
+              "+",
+            )
+          }:ital,wght@400;700&display=swap');`,
+        );
+      } else {
+        const googleFamily = typeof description === "string"
+          ? description
+          : description.family;
+        const styles = !description.style
+          ? ["normal", "italic"]
+          : typeof description.style === "string"
+          ? [description.style]
+          : description.style;
+        const weightArray = !description.weight
+          ? [400, 700]
+          : typeof description.weight === "number" ||
+              typeof description.weight === "string"
+          ? [brandFontWeightValue(description.weight)]
+          : description.weight.map((w) => brandFontWeightValue(w));
+        let styleString = "";
+        let weights = "";
+
+        if (styles.includes("italic")) {
+          styleString = "ital,";
+          weights = weightArray.map((w) => `0,${w}`).join(";") +
+            ";" +
+            weightArray.map((w) => `1,${w}`).join(";");
+        } else {
+          weights = !description.weight ? "400;700" : weightArray.join(";");
+        }
+        const display = description.display ?? "swap";
+        typographyImports.push(
+          `@import url('https://fonts.googleapis.com/css2?family=${
+            googleFamily!.replace(
+              / /g,
+              "+",
+            )
+          }:${styleString}wght@${weights}&display=${display}');`,
+        );
+      }
+    };
 
     if (brand?.data.typography?.base) {
       const family = brand.data.typography.base.family;
-      const tWith = brand.data.typography.with;
-      if (!tWith || !family || !tWith[family]) {
-        throw new Error(
-          `Typography base font ${family} description not found in _brand.yml`,
+      const fontFamily = getFontFamily(family);
+
+      if ((fontFamily as any).google) {
+        const description = (fontFamily as BrandFontGoogle).google;
+        const googleFamily = typeof description === "string"
+          ? description
+          : description.family;
+        if (!googleFamily) {
+          throw new Error(
+            `Font description requires base font ${family} family information not found in _brand.yml`,
+          );
+        }
+        addGoogleFontImport(description);
+        typographyVariables.push(
+          `$font-family-base: ${googleFamily} !default;`,
         );
-      }
-      if (!(tWith[family] as any).google) {
+        // hack: we add both reveal and bootstrap font names
+        typographyVariables.push(
+          `$mainFont: ${googleFamily} !default;`,
+        );
+      } else {
         console.log(
           `Only Google fonts are supported in SCSS for now. Skipping base font ${family}`,
         );
-      } else {
-        const description = (tWith[family] as BrandFontGoogle).google;
-        if (typeof description === "string") {
-          typographyImports.push(
-            `@import url('https://fonts.googleapis.com/css2?family=${
-              description.replace(
-                / /g,
-                "+",
-              )
-            }:ital,wght@400;700&display=swap');`,
-          );
-        } else {
-          const styles = !description.style
-            ? ["normal", "italic"]
-            : typeof description.style === "string"
-            ? [description.style]
-            : description.style;
-          const weightArray = !description.weight
-            ? [400, 700]
-            : typeof description.weight === "number" ||
-                typeof description.weight === "string"
-            ? [brandFontWeightValue(description.weight)]
-            : description.weight.map((w) => brandFontWeightValue(w));
-          let styleString = "";
-          let weights = "";
+      }
+    }
+    if (brand?.data.typography?.headings) {
+      const family = brand.data.typography.headings.family;
+      const fontFamily = getFontFamily(family);
 
-          if (styles.includes("italic")) {
-            styleString = "ital,";
-            weights = weightArray.map((w) => `0,${w}`).join(";") +
-              ";" +
-              weightArray.map((w) => `1,${w}`).join(";");
-          } else {
-            weights = !description.weight ? "400;700" : weightArray.join(";");
-          }
-          const display = description.display ?? "swap";
-
-          const googleFamily = description.family;
-          if (!googleFamily) {
-            throw new Error(
-              `Font description requires base font ${family} family information not found in _brand.yml`,
-            );
-          }
-
-          typographyImports.push(
-            `@import url('https://fonts.googleapis.com/css2?family=${
-              googleFamily!.replace(
-                / /g,
-                "+",
-              )
-            }:${styleString}wght@${weights}&display=${display}');`,
-          );
-          typographyVariables.push(
-            `$font-family-base: ${googleFamily} !default;`,
-          );
-          // hack: we add both reveal and bootstrap font names
-          typographyVariables.push(
-            `$mainFont: ${googleFamily} !default;`,
+      if ((fontFamily as any).google) {
+        const description = (fontFamily as BrandFontGoogle).google;
+        const googleFamily = typeof description === "string"
+          ? description
+          : description.family;
+        if (!googleFamily) {
+          throw new Error(
+            `Font description requires headings font ${family} family information not found in _brand.yml`,
           );
         }
+        addGoogleFontImport(description);
+        typographyVariables.push(
+          `$headings-font-family: ${googleFamily} !default;`,
+        );
+        // hack: we add both reveal and bootstrap font names
+        // typographyVariables.push(
+        //   `$mainFont: ${googleFamily} !default;`,
+        // );
+      } else {
+        console.log(
+          `Only Google fonts are supported in SCSS for now. Skipping base font ${family}`,
+        );
       }
     }
 
