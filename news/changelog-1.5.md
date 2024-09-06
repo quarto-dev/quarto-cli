@@ -2,6 +2,8 @@
 
 ## in this release
 
+- ([#10720](https://github.com/quarto-dev/quarto-cli/issues/10720)): Fix regression with listing search box not supporting correctly uppercase characters.
+
 ## in previous releases
 
 - ([#9821](https://github.com/quarto-dev/quarto-cli/issues/9821)): Handle callout with empty contents in `revealjs` format properly.
