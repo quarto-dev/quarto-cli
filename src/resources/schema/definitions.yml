@@ -2791,8 +2791,10 @@
     - ref: brand-font-family
 
 - id: brand-font-weight
-  description: A font weight.
-  enum: [100, 200, 300, 400, 500, 600, 700, 800, 900]
+  description: A font weight as a number between 1 and 1000 (inclusive) or a named weight.
+  anyOf:
+    - number # in [1, 1000]
+    - enum: [normal, bold, bolder, lighter]
   default: 400
 
 - id: brand-font-style
