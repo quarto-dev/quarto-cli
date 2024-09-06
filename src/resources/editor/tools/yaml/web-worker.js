@@ -12259,6 +12259,7 @@ try {
               900,
               "thin",
               "extra-light",
+              "ultra-light",
               "light",
               "normal",
               "regular",

@@ -12258,6 +12258,7 @@ var require_yaml_intelligence_resources = __commonJS({
             900,
             "thin",
             "extra-light",
+            "ultra-light",
             "light",
             "normal",
             "regular",
