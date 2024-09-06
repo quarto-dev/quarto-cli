@@ -12255,7 +12255,19 @@ var require_yaml_intelligence_resources = __commonJS({
             600,
             700,
             800,
-            900
+            900,
+            "thin",
+            "extra-light",
+            "light",
+            "normal",
+            "regular",
+            "medium",
+            "semi-bold",
+            "demi-bold",
+            "bold",
+            "extra-bold",
+            "ultra-bold",
+            "black"
           ],
           default: 400
         },

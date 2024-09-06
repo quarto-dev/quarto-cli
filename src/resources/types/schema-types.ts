@@ -1403,7 +1403,19 @@ export type BrandFontWeight =
   | 600
   | 700
   | 800
-  | 900; /* A font weight. */
+  | 900
+  | "thin"
+  | "extra-light"
+  | "light"
+  | "normal"
+  | "regular"
+  | "medium"
+  | "semi-bold"
+  | "demi-bold"
+  | "bold"
+  | "extra-bold"
+  | "ultra-bold"
+  | "black"; /* A font weight. */
 
 export type BrandFontStyle = "normal" | "italic"; /* A font style. */
 

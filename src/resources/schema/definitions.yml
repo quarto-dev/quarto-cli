@@ -2793,7 +2793,30 @@
 
 - id: brand-font-weight
   description: A font weight.
-  enum: [100, 200, 300, 400, 500, 600, 700, 800, 900]
+  enum:
+    [
+      100,
+      200,
+      300,
+      400,
+      500,
+      600,
+      700,
+      800,
+      900,
+      thin,
+      extra-light,
+      light,
+      normal,
+      regular,
+      medium,
+      semi-bold,
+      demi-bold,
+      bold,
+      extra-bold,
+      ultra-bold,
+      black,
+    ]
   default: 400
 
 - id: brand-font-style

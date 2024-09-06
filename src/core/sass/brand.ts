@@ -14,7 +14,10 @@ import {
   SassBundleLayers,
 } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { BrandFontGoogle } from "../../resources/types/schema-types.ts";
+import {
+  BrandFontGoogle,
+  BrandFontWeight,
+} from "../../resources/types/schema-types.ts";
 
 const defaultColorNameMap: Record<string, string> = {
   "body-bg": "background",
@@ -23,6 +26,34 @@ const defaultColorNameMap: Record<string, string> = {
   "body-secondary": "secondary",
   "body-tertiary-color": "tertiary",
   "body-tertiary": "secondary",
+};
+
+const brandFontWeightValue: (weight: BrandFontWeight) => number = (weight) => {
+  if (typeof weight === "number") {
+    return weight;
+  }
+  // from https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight#common_weight_name_mapping
+  // excluding 950
+  const stringMap: Record<string, number> = {
+    thin: 100,
+    "extra-light": 200,
+    "ultra-light": 200,
+    light: 300,
+    normal: 400,
+    regular: 400,
+    medium: 500,
+    "semi-bold": 600,
+    "demi-bold": 600,
+    bold: 700,
+    "extra-bold": 800,
+    "ultra-bold": 800,
+    black: 900,
+  };
+  const result = stringMap[weight];
+  if (result === undefined) {
+    throw new Error(`Unknown font weight ${weight}`);
+  }
+  return result;
 };
 
 export async function brandBootstrapSassBundles(
@@ -129,9 +160,10 @@ export async function brandBootstrapSassBundleLayers(
             : description.style;
           const weightArray = !description.weight
             ? [400, 700]
-            : typeof description.weight === "number"
-            ? [description.weight]
-            : description.weight;
+            : typeof description.weight === "number" ||
+                typeof description.weight === "string"
+            ? [brandFontWeightValue(description.weight)]
+            : description.weight.map((w) => brandFontWeightValue(w));
           let styleString = "";
           let weights = "";
 
@@ -141,11 +173,7 @@ export async function brandBootstrapSassBundleLayers(
               ";" +
               weightArray.map((w) => `1,${w}`).join(";");
           } else {
-            weights = !description.weight
-              ? "400;700"
-              : typeof description.weight === "number"
-              ? String(description.weight)
-              : description.weight.join(";");
+            weights = !description.weight ? "400;700" : weightArray.join(";");
           }
           const display = description.display ?? "swap";
 
