@@ -3522,6 +3522,9 @@
           "$ref": "#/$defs/BrandFontGoogle"
         },
         {
+          "$ref": "#/$defs/BrandFontBunny"
+        },
+        {
           "$ref": "#/$defs/BrandFontFile"
         },
         {
@@ -3561,59 +3564,71 @@
         "italic"
       ]
     },
+    "BrandFontCommon": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "weight": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/BrandFontWeight"
+                    }
+                  },
+                  {
+                    "$ref": "#/$defs/BrandFontWeight"
+                  }
+                ]
+              },
+              "style": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/BrandFontStyle"
+                    }
+                  },
+                  {
+                    "$ref": "#/$defs/BrandFontStyle"
+                  }
+                ]
+              },
+              "display": {
+                "enum": [
+                  "auto",
+                  "block",
+                  "swap",
+                  "fallback",
+                  "optional"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
     "BrandFontGoogle": {
       "object": {
         "properties": {
           "google": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "object": {
-                  "properties": {
-                    "family": {
-                      "type": "string"
-                    },
-                    "weight": {
-                      "anyOf": [
-                        {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/$defs/BrandFontWeight"
-                          }
-                        },
-                        {
-                          "$ref": "#/$defs/BrandFontWeight"
-                        }
-                      ]
-                    },
-                    "style": {
-                      "anyOf": [
-                        {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/$defs/BrandFontStyle"
-                          }
-                        },
-                        {
-                          "$ref": "#/$defs/BrandFontStyle"
-                        }
-                      ]
-                    },
-                    "display": {
-                      "enum": [
-                        "auto",
-                        "block",
-                        "swap",
-                        "fallback",
-                        "optional"
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
+            "$ref": "#/$defs/BrandFontCommon"
+          }
+        }
+      }
+    },
+    "BrandFontBunny": {
+      "object": {
+        "properties": {
+          "bunny": {
+            "$ref": "#/$defs/BrandFontCommon"
           }
         }
       }

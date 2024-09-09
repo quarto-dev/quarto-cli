@@ -12236,6 +12236,9 @@ var require_yaml_intelligence_resources = __commonJS({
               ref: "brand-font-google"
             },
             {
+              ref: "brand-font-bunny"
+            },
+            {
               ref: "brand-font-file"
             },
             {
@@ -12282,61 +12285,82 @@ var require_yaml_intelligence_resources = __commonJS({
           default: "normal"
         },
         {
+          id: "brand-font-common",
+          schema: {
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    family: {
+                      description: "The font family name, which must match the name of the font on the foundry website.",
+                      schema: "string"
+                    },
+                    weight: {
+                      description: "The font weights to include.",
+                      maybeArrayOf: {
+                        ref: "brand-font-weight"
+                      },
+                      default: [
+                        400,
+                        700
+                      ]
+                    },
+                    style: {
+                      description: "The font styles to include.",
+                      maybeArrayOf: {
+                        ref: "brand-font-style"
+                      },
+                      default: [
+                        "normal",
+                        "italic"
+                      ]
+                    },
+                    display: {
+                      description: "The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use.\n",
+                      enum: [
+                        "auto",
+                        "block",
+                        "swap",
+                        "fallback",
+                        "optional"
+                      ],
+                      default: "swap"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
           id: "brand-font-google",
-          description: "A Google Font definition.",
+          description: "A font definition from Google Fonts.",
           object: {
             closed: true,
             properties: {
               google: {
-                anyOf: [
-                  "string",
-                  {
-                    object: {
-                      closed: true,
-                      properties: {
-                        family: {
-                          description: "The font family name, which must match the name of the font on Google Fonts.",
-                          schema: "string"
-                        },
-                        weight: {
-                          description: "The font weights to include.",
-                          maybeArrayOf: {
-                            ref: "brand-font-weight"
-                          },
-                          default: [
-                            400,
-                            700
-                          ]
-                        },
-                        style: {
-                          description: "The font styles to include.",
-                          maybeArrayOf: {
-                            ref: "brand-font-style"
-                          },
-                          default: [
-                            "normal",
-                            "italic"
-                          ]
-                        },
-                        display: {
-                          description: "The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use.\n",
-                          enum: [
-                            "auto",
-                            "block",
-                            "swap",
-                            "fallback",
-                            "optional"
-                          ],
-                          default: "swap"
-                        }
-                      }
-                    }
-                  }
-                ]
+                ref: "brand-font-common"
               }
             },
             required: [
               "google"
+            ]
+          }
+        },
+        {
+          id: "brand-font-bunny",
+          description: "A font definition from fonts.bunny.net.",
+          object: {
+            closed: true,
+            properties: {
+              bunny: {
+                ref: "brand-font-common"
+              }
+            },
+            required: [
+              "bunny"
             ]
           }
         },
@@ -21635,11 +21659,12 @@ var require_yaml_intelligence_resources = __commonJS({
         "Font files and definitions for the brand.",
         "A font weight.",
         "A font style.",
-        "A Google Font definition.",
-        "The font family name, which must match the name of the font on Google\nFonts.",
+        "The font family name, which must match the name of the font on the\nfoundry website.",
         "The font weights to include.",
         "The font styles to include.",
         "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
+        "A font definition from Google Fonts.",
+        "A font definition from fonts.bunny.net.",
         "A method for providing font files directly, either locally or from an\nonline location.",
         "The font family name.",
         "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
@@ -23928,12 +23953,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 187608,
+        _internalId: 187636,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 187600,
+            _internalId: 187628,
             type: "enum",
             enum: [
               "png",
@@ -23949,7 +23974,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 187607,
+            _internalId: 187635,
             type: "anyOf",
             anyOf: [
               {

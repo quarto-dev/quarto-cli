@@ -16,8 +16,10 @@ import {
 import { ProjectContext } from "../../project/types.ts";
 import {
   BrandFont,
+  BrandFontBunny,
   BrandFontGoogle,
   BrandFontWeight,
+  BrandTypographyOptions,
 } from "../../resources/types/schema-types.ts";
 
 const defaultColorNameMap: Record<string, string> = {
@@ -77,6 +79,85 @@ export async function brandBootstrapSassBundles(
     },
   );
 }
+
+const bunnyFontImportString = (description: BrandFontBunny["bunny"]) => {
+  const bunnyName = (name: string) => name.replace(/ /g, "-");
+  if (typeof description === "string") {
+    return `@import url('https://fonts.bunny.net/css?family=${
+      bunnyName(description)
+    }:400,700');`;
+  } else {
+    const bunnyFamily = description.family;
+    if (!bunnyFamily) {
+      throw new Error("Bunny font family not specified");
+    }
+    const styles = !description.style
+      ? ["normal", "italic"]
+      : typeof description.style === "string"
+      ? [description.style]
+      : description.style;
+    const weightArray = !description.weight
+      ? [400, 700]
+      : typeof description.weight === "number" ||
+          typeof description.weight === "string"
+      ? [brandFontWeightValue(description.weight)]
+      : description.weight.map((w) => brandFontWeightValue(w));
+    const display = description.display ?? "swap";
+    const weights = styles.includes("italic")
+      ? weightArray.map((w) => `${w}i`).join(",") +
+        "," +
+        weightArray.join(",")
+      : weightArray.join(",");
+    // @import url(https://fonts.bunny.net/css?family=albert-sans:200i,400,700);
+    return `@import url('https://fonts.bunny.net/css?family=${
+      bunnyName(bunnyFamily)
+    }:${weights}');`;
+  }
+};
+
+const googleFontImportString = (description: BrandFontGoogle["google"]) => {
+  if (typeof description === "string") {
+    return `@import url('https://fonts.googleapis.com/css2?family=${
+      description.replace(
+        / /g,
+        "+",
+      )
+    }:ital,wght@400;700&display=swap');`;
+  } else {
+    const googleFamily = typeof description === "string"
+      ? description
+      : description.family;
+    const styles = !description.style
+      ? ["normal", "italic"]
+      : typeof description.style === "string"
+      ? [description.style]
+      : description.style;
+    const weightArray = !description.weight
+      ? [400, 700]
+      : typeof description.weight === "number" ||
+          typeof description.weight === "string"
+      ? [brandFontWeightValue(description.weight)]
+      : description.weight.map((w) => brandFontWeightValue(w));
+    const display = description.display ?? "swap";
+    let styleString = "";
+    let weights = "";
+
+    if (styles.includes("italic")) {
+      styleString = "ital,";
+      weights = weightArray.map((w) => `0,${w}`).join(";") +
+        ";" +
+        weightArray.map((w) => `1,${w}`).join(";");
+    } else {
+      weights = !description.weight ? "400;700" : weightArray.join(";");
+    }
+    return `@import url('https://fonts.googleapis.com/css2?family=${
+      googleFamily!.replace(
+        / /g,
+        "+",
+      )
+    }:${styleString}wght@${weights}&display=${display}');`;
+  }
+};
 
 export async function brandBootstrapSassBundleLayers(
   fileName: string | undefined,
@@ -142,109 +223,95 @@ export async function brandBootstrapSassBundleLayers(
       return tWith[family];
     };
 
-    const addGoogleFontImport = (description: BrandFontGoogle["google"]) => {
-      if (typeof description === "string") {
-        typographyImports.push(
-          `@import url('https://fonts.googleapis.com/css2?family=${
-            description.replace(
-              / /g,
-              "+",
-            )
-          }:ital,wght@400;700&display=swap');`,
-        );
-      } else {
-        const googleFamily = typeof description === "string"
-          ? description
-          : description.family;
-        const styles = !description.style
-          ? ["normal", "italic"]
-          : typeof description.style === "string"
-          ? [description.style]
-          : description.style;
-        const weightArray = !description.weight
-          ? [400, 700]
-          : typeof description.weight === "number" ||
-              typeof description.weight === "string"
-          ? [brandFontWeightValue(description.weight)]
-          : description.weight.map((w) => brandFontWeightValue(w));
-        let styleString = "";
-        let weights = "";
-
-        if (styles.includes("italic")) {
-          styleString = "ital,";
-          weights = weightArray.map((w) => `0,${w}`).join(";") +
-            ";" +
-            weightArray.map((w) => `1,${w}`).join(";");
-        } else {
-          weights = !description.weight ? "400;700" : weightArray.join(";");
-        }
-        const display = description.display ?? "swap";
-        typographyImports.push(
-          `@import url('https://fonts.googleapis.com/css2?family=${
-            googleFamily!.replace(
-              / /g,
-              "+",
-            )
-          }:${styleString}wght@${weights}&display=${display}');`,
-        );
-      }
-    };
-
     const resolveGoogleFontFamily = (
       font: BrandFont,
-      kind: string,
     ): string | undefined => {
       const description = (font as BrandFontGoogle).google;
+      if (!description) {
+        return undefined;
+      }
       const googleFamily = typeof description === "string"
         ? description
         : description.family;
       if (!googleFamily) {
-        console.log(
-          `Only Google fonts are supported in SCSS for now. Skipping ${kind} font.`,
-        );
         return undefined;
       }
-      addGoogleFontImport(description);
+      typographyVariables.push(googleFontImportString(description));
       return googleFamily;
     };
 
-    if (brand?.data.typography?.base) {
-      const family = brand.data.typography.base.family;
-      const fontFamily = getFontFamily(family);
-      const googleFamily = resolveGoogleFontFamily(fontFamily, "base");
-
-      if (googleFamily) {
-        typographyVariables.push(
-          `$font-family-base: ${googleFamily} !default;`,
-        );
-        // hack: we add both reveal and bootstrap font names
-        typographyVariables.push(
-          `$mainFont: ${googleFamily} !default;`,
-        );
+    const resolveBunnyFontFamily = (
+      font: BrandFont,
+    ): string | undefined => {
+      const description = (font as BrandFontBunny).bunny;
+      if (!description) {
+        return undefined;
       }
-    }
-
-    if (brand?.data.typography?.headings) {
-      const family = brand.data.typography.headings.family;
-      const fontFamily = getFontFamily(family);
-      const googleFamily = resolveGoogleFontFamily(fontFamily, "headings");
-      if (googleFamily) {
-        typographyVariables.push(
-          `$headings-font-family: ${googleFamily} !default;`,
-        );
-        // TODO: revealjs
+      const bunnyFamily = typeof description === "string"
+        ? description
+        : description.family;
+      if (!bunnyFamily) {
+        return undefined;
       }
-    }
+      typographyVariables.push(bunnyFontImportString(description));
+      return bunnyFamily;
+    };
 
-    if (brand?.data.typography?.monospace) {
-      const family = brand.data.typography.monospace.family;
-      const fontFamily = getFontFamily(family);
-      const googleFamily = resolveGoogleFontFamily(fontFamily, "monospace");
-      if (googleFamily) {
-        // bootstrap and revealjs use the same variable
-        typographyVariables.push(
-          `$font-family-monospace: ${googleFamily} !default;`,
-        );
+    type HTMLFontInformation = { [key: string]: unknown };
+
+    const resolveHTMLFontInformation = (
+      kind: "base" | "headings" | "monospace",
+    ): HTMLFontInformation | undefined => {
+      const resolvedFontOptions = brand.data.typography?.[kind];
+      if (!resolvedFontOptions) {
+        return undefined;
+      }
+      const family = resolvedFontOptions.family;
+      const font = getFontFamily(family);
+      return {
+        family: resolveGoogleFontFamily(font) ?? resolveBunnyFontFamily(font),
+        lineHeight: resolvedFontOptions["line-height"],
+      };
+    };
+
+    // see
+    // https://github.com/posit-dev/brand-yml/issues/15: line-height in code
+    // https://github.com/posit-dev/brand-yml/issues/16: where should color be?
+
+    const variableTranslations: Record<string, [string, string][]> = {
+      "base": [
+        ["family", "font-family-base"],
+        ["lineHeight", "line-height-base"],
+        ["family", "mainFont"],
+      ],
+      "headings": [
+        ["family", "headings-font-family"],
+        ["lineHeight", "headings-line-height"],
+      ], // TODO: revealjs
+      "monospace": [
+        ["family", "font-family-monospace"],
+      ],
+    };
+
+    for (const kind of ["base", "headings", "monospace"]) {
+      const fontInformation = resolveHTMLFontInformation(
+        kind as "base" | "headings" | "monospace",
+      );
+      if (!fontInformation) {
+        continue;
+      }
+      const variables = variableTranslations[kind];
+      if (!variables) {
+        throw new Error(`Unknown typography kind ${kind}`);
+      }
+      for (const variable of variables) {
+        const source = variable[0];
+        const target = variable[1];
+        if (fontInformation[source]) {
+          typographyVariables.push(
+            `$${target}: ${fontInformation[source]} !default;`,
+          );
+        }
       }
     }
 

@@ -1391,6 +1391,7 @@ export type BrandFontWith = {
 
 export type BrandFont =
   | BrandFontGoogle
+  | BrandFontBunny
   | BrandFontFile
   | BrandFontFamily; /* Font files and definitions for the brand. */
 
@@ -1420,19 +1421,25 @@ export type BrandFontWeight =
 
 export type BrandFontStyle = "normal" | "italic"; /* A font style. */
 
+export type BrandFontCommon = string | {
+  display?:
+    | "auto"
+    | "block"
+    | "swap"
+    | "fallback"
+    | "optional" /* The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use. */;
+  family?: string;
+  style?: MaybeArrayOf<BrandFontStyle> /* The font styles to include. */;
+  weight?: MaybeArrayOf<BrandFontWeight>; /* The font weights to include. */
+};
+
 export type BrandFontGoogle = {
-  google: string | {
-    display?:
-      | "auto"
-      | "block"
-      | "swap"
-      | "fallback"
-      | "optional" /* The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use. */;
-    family?: string;
-    style?: MaybeArrayOf<BrandFontStyle> /* The font styles to include. */;
-    weight?: MaybeArrayOf<BrandFontWeight>; /* The font weights to include. */
-  };
-}; /* A Google Font definition. */
+  google: BrandFontCommon;
+}; /* A font definition from Google Fonts. */
+
+export type BrandFontBunny = {
+  bunny: BrandFontCommon;
+}; /* A font definition from fonts.bunny.net. */
 
 export type BrandFontFile = {
   display?:

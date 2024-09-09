@@ -2788,6 +2788,7 @@
   description: Font files and definitions for the brand.
   anyOf:
     - ref: brand-font-google
+    - ref: brand-font-bunny
     - ref: brand-font-file
     - ref: brand-font-family
 
@@ -2825,37 +2826,50 @@
   enum: [normal, italic]
   default: normal
 
+- id: brand-font-common
+  schema:
+    anyOf:
+      - string
+      - object:
+          closed: true
+          properties:
+            family:
+              description: The font family name, which must match the name of the font on the foundry website.
+              schema: string
+            weight:
+              description: The font weights to include.
+              maybeArrayOf:
+                ref: brand-font-weight
+              default: [400, 700]
+            style:
+              description: The font styles to include.
+              maybeArrayOf:
+                ref: brand-font-style
+              default: [normal, italic]
+            display:
+              description: >
+                The font display method, determines how a font face is font face is shown 
+                depending on its download status and readiness for use.
+              enum: [auto, block, swap, fallback, optional]
+              default: swap
+
 - id: brand-font-google
-  description: A Google Font definition.
+  description: A font definition from Google Fonts.
   object:
     closed: true
     properties:
       google:
-        anyOf:
-          - string
-          - object:
-              closed: true
-              properties:
-                family:
-                  description: The font family name, which must match the name of the font on Google Fonts.
-                  schema: string
-                weight:
-                  description: The font weights to include.
-                  maybeArrayOf:
-                    ref: brand-font-weight
-                  default: [400, 700]
-                style:
-                  description: The font styles to include.
-                  maybeArrayOf:
-                    ref: brand-font-style
-                  default: [normal, italic]
-                display:
-                  description: >
-                    The font display method, determines how a font face is font face is shown 
-                    depending on its download status and readiness for use.
-                  enum: [auto, block, swap, fallback, optional]
-                  default: swap
+        ref: brand-font-common
     required: [google]
+
+- id: brand-font-bunny
+  description: A font definition from fonts.bunny.net.
+  object:
+    closed: true
+    properties:
+      bunny:
+        ref: brand-font-common
+    required: [bunny]
 
 - id: brand-font-file
   description: A method for providing font files directly, either locally or from an online location.
