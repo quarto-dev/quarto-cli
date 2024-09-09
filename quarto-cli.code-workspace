@@ -14,6 +14,7 @@
     "deno.enable": true,
     "deno.unstable": true,
     "deno.path": "./package/dist/bin/tools/deno",
+    "deno.disablePaths": ["./tests/integration/playwright"],
     "deno.suggest.imports.hosts": {
       "https://deno.land": true,
       "https://den.o.land": false

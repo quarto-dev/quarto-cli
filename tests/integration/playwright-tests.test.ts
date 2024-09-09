@@ -50,10 +50,10 @@ for (const { path: fileName } of globOutput) {
 
 // we'll just use python :facepalm:
 
-const proc = Deno.run({
-  cmd: ["python", "-m", "http.server", "8080"],
-  cwd: "docs/playwright",
-});
+// const proc = Deno.run({
+//   cmd: ["python", "-m", "http.server", "8080"],
+//   cwd: "docs/playwright",
+// });
 
 try {
   // run playwright
@@ -63,8 +63,8 @@ try {
   });
 } finally {
   // cleanup
-  proc.kill();
-  proc.close();
+  // proc.kill();
+  // proc.close();
   for (const fileName of fileNames) {
     cleanoutput(fileName, "html");
   }
