@@ -12,6 +12,10 @@ All changes included in 1.6:
 - ([#10328](https://github.com/quarto-dev/quarto-cli/issues/10328)): Interpret subcells as subfloats when subcap count matches subcell count.
 - ([#10624](https://github.com/quarto-dev/quarto-cli/issues/10624)): Don't crash when proof environments are empty in `pdf`.
 
+## `html` Format
+
+- Fix `kbd` element styling on dark themes.
+
 ## `revealjs` Format
 
 - Update to Reveal JS 5.1.0.
@@ -19,6 +23,7 @@ All changes included in 1.6:
 - Remove wrong `sourceMappingUrl` entry in SASS built css.
 - ([#7715](https://github.com/quarto-dev/quarto-cli/issues/7715)): Revealjs don't support anymore special Pandoc syntax making BulletList in Blockquotes become incremental list. This was confusing and unexpected behavior. Supported syntax for incremental list is documented at <https://quarto.org/docs/presentations/revealjs/#incremental-lists>.
 - ([#9742](https://github.com/quarto-dev/quarto-cli/issues/9742)): Links to cross-referenced images correctly works.
+- ([#6012](https://github.com/quarto-dev/quarto-cli/issues/6012)): Add styling for `kbd` element in Revealjs slides.
 
 ## `typst` Format
 
@@ -38,6 +43,10 @@ All changes included in 1.6:
 ## Projects
 
 - ([#10268](https://github.com/quarto-dev/quarto-cli/issues/10268)]): `quarto create` supports opening project in Positron, in addition to VS Code and RStudio IDE.
+
+## Quarto Blog
+
+- ([#10710](https://github.com/quarto-dev/quarto-cli/issues/10710)): Fix an issue with categorie badges as links in the blog post header.
 
 ## Engines
 
