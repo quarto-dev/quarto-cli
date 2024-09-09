@@ -23,7 +23,7 @@ export const cssVarsBlock = (scssSource: string) => {
   for (const [dep, _] of deps) {
     const decl = ast.get(dep);
     if (decl.valueType === "color") {
-      output.push(`--quarto-internal-${dep}: #{$${dep}};`);
+      output.push(`--quarto-scss-export-${dep}: #{$${dep}};`);
     }
   }
   output.push("}");

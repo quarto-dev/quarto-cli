@@ -106,7 +106,7 @@ export async function compileSass(
   // * Mixins are available to rules as well
   // * Rules may use functions, variables, and mixins
   //   (theme follows framework so it can override the framework rules)
-  const scssInput = [
+  let scssInput = [
     '// quarto-scss-analysis-annotation { "origin": null }',
     ...frameWorkUses,
     '// quarto-scss-analysis-annotation { "origin": null }',
@@ -139,51 +139,38 @@ export async function compileSass(
     ...userRules,
     '// quarto-scss-analysis-annotation { "origin": null }',
   ].join("\n\n");
-
-  const hash = md5HashBytes(new TextEncoder().encode(scssInput));
+  scssInput += "\n" + cssVarsBlock(scssInput);
 
   // Compile the scss
-  // Note that you can set this to undefined to bypass the cache entirely
-  const cacheKey = hash;
-  // bundles.map((bundle) => bundle.key).join("|") + "-" +
-  //   (minified ? "min" : "nomin");
-
-  if (Deno.env.get("QUARTO_SAVE_SCSS")) {
-    const debugResult = await compileWithCache(
-      scssInput + "\n" + cssVarsBlock(scssInput),
-      loadPaths,
-      temp,
-      minified,
-      cacheKey,
-    );
-    const debugOutput = Deno.readTextFileSync(debugResult);
-
-    // now we attempt to find the quarto-internal variables in the output
-    // and inject them in the SCSS so that our debug tooling can use them.
-    const internalVars = Array.from(
-      debugOutput.matchAll(/(:root{(?:--quarto-internal-[^;}]+;?)+})/g),
-    );
-    let scssToWrite = scssInput;
-    for (const internalVar of internalVars) {
-      // we know that the output from the sass compiler
-      // makes our scss parser unhappy, so we patch it here
-      scssToWrite += "\n" + internalVar[0].replace(/}$/, ";}\n");
-    }
-
-    const prefix = Deno.env.get("QUARTO_SAVE_SCSS");
-    const counterValue = counter++;
-    Deno.writeTextFileSync(
-      `${prefix}-${counterValue}.scss`,
-      scssToWrite,
-    );
-  }
-
   const result = await compileWithCache(
     scssInput,
     loadPaths,
     temp,
     minified,
-    cacheKey,
+    md5HashBytes(new TextEncoder().encode(scssInput)),
+  );
+  if (!Deno.env.get("QUARTO_SAVE_SCSS")) {
+    return result;
+  }
+  const partialOutput = Deno.readTextFileSync(result);
+  // now we attempt to find the SCSS variables in the output
+  // and inject them back in the SCSS file so that our debug tooling can use them.
+  const scssToWrite = [scssInput];
+  const internalVars = Array.from(
+    partialOutput.matchAll(/(--quarto-scss-export-[^;}]+;?)/g),
+  ).map((m) => m[0]);
+  const annotation = {
+    "css-vars": internalVars,
+  };
+  scssToWrite.push(
+    `// quarto-scss-analysis-annotation ${JSON.stringify(annotation)}`,
+  );
+  scssInput = scssToWrite.join("\n");
+  const prefix = Deno.env.get("QUARTO_SAVE_SCSS");
+  const counterValue = counter++;
+  Deno.writeTextFileSync(
+    `${prefix}-${counterValue}.scss`,
+    scssInput,
   );
 
   return result;

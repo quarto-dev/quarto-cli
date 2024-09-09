@@ -34,15 +34,22 @@ $var2: darken($var1, 20%) !default;
     return sourceFile.text();
   }
 }
+matchAnnotation = x => x.match(/\/\/ quarto-scss-analysis-annotation (.*)/);
 sourceLines = source.split("\n");
 colorValues = {
-  const matches = Array.from(source.matchAll(/--quarto-internal-([^:]+): ([^;]+)/g));
   const result = new Map();
-  for (const match of matches) {
-    result.set(match[1], match[2]);
-  }
+  try {
+    // ugly
+    const cssAnnotation = sourceLines.filter(matchAnnotation).pop();
+    const matches = JSON.parse(matchAnnotation(cssAnnotation)[1])['css-vars'];
+    for (const match of matches) {
+      const [_, name, color] = match.match(/--quarto-scss-export-(.*): (.*)$/);
+      result.set(name, color.replace(/;$/, ""));
+    }
+  } catch (e) {}
   return result;
 }
+
 renderCssRect = (dep) => {
   const span = document.createElement('span');
   span.style.position = 'relative';
