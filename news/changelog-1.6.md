@@ -44,6 +44,10 @@ All changes included in 1.6:
 
 - ([#10268](https://github.com/quarto-dev/quarto-cli/issues/10268)]): `quarto create` supports opening project in Positron, in addition to VS Code and RStudio IDE.
 
+## Quarto Blog
+
+- ([#10710](https://github.com/quarto-dev/quarto-cli/issues/10710)): Fix an issue with categorie badges as links in the blog post header.
+
 ## Engines
 
 ### `julia`
