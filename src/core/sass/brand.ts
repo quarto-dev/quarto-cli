@@ -268,10 +268,15 @@ export async function brandBootstrapSassBundleLayers(
       }
       const family = resolvedFontOptions.family;
       const font = getFontFamily(family);
-      return {
-        family: resolveGoogleFontFamily(font) ?? resolveBunnyFontFamily(font),
-        lineHeight: resolvedFontOptions["line-height"],
-      };
+      const result: HTMLFontInformation = {};
+
+      result.family = resolveGoogleFontFamily(font) ??
+        resolveBunnyFontFamily(font);
+      result.lineHeight = resolvedFontOptions["line-height"];
+      if ((resolvedFontOptions as any).size) {
+        result[kind + "-size"] = (resolvedFontOptions as any).size;
+      }
+      return result;
     };
 
     // see
@@ -280,16 +285,23 @@ export async function brandBootstrapSassBundleLayers(
 
     const variableTranslations: Record<string, [string, string][]> = {
       "base": [
-        ["family", "font-family-base"],
+        ["family", "font-family-base"], // bootstrap
+        ["family", "mainFont"], // revealjs
+        ["base-size", "font-size-base"], // bootstrap
+        ["base-size", "presentation-font-size-root"], // revealjs
         ["lineHeight", "line-height-base"],
-        ["family", "mainFont"],
+        ["lineHeight", "presentation-line-height"],
       ],
       "headings": [
-        ["family", "headings-font-family"],
-        ["lineHeight", "headings-line-height"],
-      ], // TODO: revealjs
+        ["family", "headings-font-family"], // bootstrap
+        ["family", "presentation-heading-font"], // revealjs
+        ["lineHeight", "headings-line-height"], // bootstrap
+        ["lineHeight", "presentation-heading-line-height"], // revealjs
+      ],
       "monospace": [
-        ["family", "font-family-monospace"],
+        ["family", "font-family-monospace"], // bootstrap + revealjs
+        ["monospace-size", "code-font-size"], // bootstrap
+        ["monospace-size", "code-block-font-size"], // revealjs
       ],
     };
 
