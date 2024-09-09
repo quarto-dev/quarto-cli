@@ -15,11 +15,13 @@ import {
 } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
+  BrandFont,
   BrandFontGoogle,
   BrandFontWeight,
 } from "../../resources/types/schema-types.ts";
 
 const defaultColorNameMap: Record<string, string> = {
+  "pre-color": "foreground",
   "body-bg": "background",
   "body-color": "foreground",
   "body-secondary-color": "secondary",
@@ -188,21 +190,30 @@ export async function brandBootstrapSassBundleLayers(
       }
     };
 
+    const resolveGoogleFontFamily = (
+      font: BrandFont,
+      kind: string,
+    ): string | undefined => {
+      const description = (font as BrandFontGoogle).google;
+      const googleFamily = typeof description === "string"
+        ? description
+        : description.family;
+      if (!googleFamily) {
+        console.log(
+          `Only Google fonts are supported in SCSS for now. Skipping ${kind} font.`,
+        );
+        return undefined;
+      }
+      addGoogleFontImport(description);
+      return googleFamily;
+    };
+
     if (brand?.data.typography?.base) {
       const family = brand.data.typography.base.family;
       const fontFamily = getFontFamily(family);
+      const googleFamily = resolveGoogleFontFamily(fontFamily, "base");
 
-      if ((fontFamily as any).google) {
-        const description = (fontFamily as BrandFontGoogle).google;
-        const googleFamily = typeof description === "string"
-          ? description
-          : description.family;
-        if (!googleFamily) {
-          throw new Error(
-            `Font description requires base font ${family} family information not found in _brand.yml`,
-          );
-        }
-        addGoogleFontImport(description);
+      if (googleFamily) {
         typographyVariables.push(
           `$font-family-base: ${googleFamily} !default;`,
         );
@@ -210,37 +221,29 @@ export async function brandBootstrapSassBundleLayers(
         typographyVariables.push(
           `$mainFont: ${googleFamily} !default;`,
         );
-      } else {
-        console.log(
-          `Only Google fonts are supported in SCSS for now. Skipping base font ${family}`,
-        );
       }
     }
+
     if (brand?.data.typography?.headings) {
       const family = brand.data.typography.headings.family;
       const fontFamily = getFontFamily(family);
-
-      if ((fontFamily as any).google) {
-        const description = (fontFamily as BrandFontGoogle).google;
-        const googleFamily = typeof description === "string"
-          ? description
-          : description.family;
-        if (!googleFamily) {
-          throw new Error(
-            `Font description requires headings font ${family} family information not found in _brand.yml`,
-          );
-        }
-        addGoogleFontImport(description);
+      const googleFamily = resolveGoogleFontFamily(fontFamily, "headings");
+      if (googleFamily) {
         typographyVariables.push(
           `$headings-font-family: ${googleFamily} !default;`,
         );
-        // hack: we add both reveal and bootstrap font names
-        // typographyVariables.push(
-        //   `$mainFont: ${googleFamily} !default;`,
-        // );
-      } else {
-        console.log(
-          `Only Google fonts are supported in SCSS for now. Skipping base font ${family}`,
+        // TODO: revealjs
+      }
+    }
+
+    if (brand?.data.typography?.monospace) {
+      const family = brand.data.typography.monospace.family;
+      const fontFamily = getFontFamily(family);
+      const googleFamily = resolveGoogleFontFamily(fontFamily, "monospace");
+      if (googleFamily) {
+        // bootstrap and revealjs use the same variable
+        typographyVariables.push(
+          `$font-family-monospace: ${googleFamily} !default;`,
         );
       }
     }
