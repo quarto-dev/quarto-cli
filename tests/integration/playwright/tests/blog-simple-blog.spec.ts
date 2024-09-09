@@ -4,7 +4,7 @@ import { getUrl } from "../src/utils.js";
 
 test('List.js is correctly patch to allow searching with lowercase and uppercase', 
   async ({ page }) => {
-    await page.goto(getUrl('blog/listing-search/_site/'));
+    await page.goto(getUrl('blog/simple-blog/_site/'));
     await page.getByPlaceholder('Filter').click();
     await page.getByPlaceholder('Filter').fill('Code');
     await page.getByPlaceholder('Filter').press('Enter');
@@ -20,4 +20,15 @@ test('List.js is correctly patch to allow searching with lowercase and uppercase
     await page.getByPlaceholder('Filter').press('Enter');
     await expect(page.getByRole('link', { name: 'Post With Code' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Welcome To My Blog' })).toBeHidden();
+});
+
+test('Categories link are clickable', async ({ page }) => {
+  await page.goto(getUrl('blog/simple-blog/_site/posts/welcome/'));
+  await page.locator('div').filter({ hasText: /^news$/ }).click();
+  await expect(page).toHaveURL(/_site\/index\.html#category=news$/);
+  await expect(page.locator('div.category[data-category="news"]')).toHaveClass(/active/);
+  await page.goto(getUrl('blog/simple-blog/_site/posts/welcome/#img-lst'));
+  await page.locator('div').filter({ hasText: /^news$/ }).click();
+  await expect(page).toHaveURL(/_site\/index\.html#category=news$/);
+  await expect(page.locator('div.category[data-category="news"]')).toHaveClass(/active/);
 });
