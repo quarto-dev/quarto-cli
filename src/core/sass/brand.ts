@@ -302,6 +302,8 @@ export async function brandBootstrapSassBundleLayers(
         ["family", "font-family-monospace"], // bootstrap + revealjs
         ["monospace-size", "code-font-size"], // bootstrap
         ["monospace-size", "code-block-font-size"], // revealjs
+        ["lineHeight", "pre-line-height"], // bootstrap
+        ["lineHeight", "code-block-line-height"], // revealjs
       ],
     };
 
