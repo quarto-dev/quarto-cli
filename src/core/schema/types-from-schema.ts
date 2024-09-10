@@ -221,9 +221,9 @@ export function schemaToType(schema: any): string {
       );
     }
     if (schema.object) {
-      const mainType = (schema.object.properties === undefined)
-        ? "JsonObject"
-        : ("{" +
+      let mainType: string = "";
+      if (schema.object.properties) {
+        mainType = "{" +
           Object.entries(schema.object.properties).map(([key, value]) => {
             const optionalFlag = schema.object.required === "all"
               ? false
@@ -234,7 +234,13 @@ export function schemaToType(schema: any): string {
               schemaToType(value)
             }`;
           }).sort(([k1, _v1], [k2, _v2]) => k1.localeCompare(k2)).join("; ") +
-          "}");
+          "}";
+      } else if (schema.object.additionalProperties) {
+        mainType = "{ [key: string]: " +
+          schemaToType(schema.object.additionalProperties) + " }";
+      } else {
+        mainType = "JsonObject";
+      }
       if (schema.object?.super?.resolveRef) {
         return document(
           "(" + mainType + " & " +

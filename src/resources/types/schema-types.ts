@@ -1287,7 +1287,7 @@ export type BrandLogo = {
   large?: BrandStringLightDark;
   medium?: BrandStringLightDark;
   small?: BrandStringLightDark;
-  with?: JsonObject;
+  with?: { [key: string]: BrandStringLightDark };
 }; /* Provide definitions and defaults for brand's logo in various formats and sizes. */
 
 export type BrandNamedLogo =
@@ -1317,8 +1317,9 @@ export type BrandColor = {
   secondary?: BrandColorValue;
   success?: BrandColorValue;
   tertiary?: BrandColorValue;
-  with?:
-    JsonObject /* The brand's custom color palette. Any number of colors can be defined, each color having a custom name. */;
+  with?: {
+    [key: string]: BrandColorValue;
+  } /* The brand's custom color palette. Any number of colors can be defined, each color having a custom name. */;
   warning?: BrandColorValue;
 }; /* The brand's custom color palette and theme. */
 
@@ -1384,11 +1385,13 @@ export type BrandTypographyOptionsNoSize = {
   weight?: BrandFontWeight;
 }; /* Typographic options without a font size. */
 
-export type BrandFontWith =
-  JsonObject; /* Font files and definitions for the brand. */
+export type BrandFontWith = {
+  [key: string]: BrandFont;
+}; /* Font files and definitions for the brand. */
 
 export type BrandFont =
   | BrandFontGoogle
+  | BrandFontBunny
   | BrandFontFile
   | BrandFontFamily; /* Font files and definitions for the brand. */
 
@@ -1401,23 +1404,42 @@ export type BrandFontWeight =
   | 600
   | 700
   | 800
-  | 900; /* A font weight. */
+  | 900
+  | "thin"
+  | "extra-light"
+  | "ultra-light"
+  | "light"
+  | "normal"
+  | "regular"
+  | "medium"
+  | "semi-bold"
+  | "demi-bold"
+  | "bold"
+  | "extra-bold"
+  | "ultra-bold"
+  | "black"; /* A font weight. */
 
 export type BrandFontStyle = "normal" | "italic"; /* A font style. */
 
+export type BrandFontCommon = string | {
+  display?:
+    | "auto"
+    | "block"
+    | "swap"
+    | "fallback"
+    | "optional" /* The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use. */;
+  family?: string;
+  style?: MaybeArrayOf<BrandFontStyle> /* The font styles to include. */;
+  weight?: MaybeArrayOf<BrandFontWeight>; /* The font weights to include. */
+};
+
 export type BrandFontGoogle = {
-  google: string | {
-    display?:
-      | "auto"
-      | "block"
-      | "swap"
-      | "fallback"
-      | "optional" /* The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use. */;
-    family?: string;
-    style?: MaybeArrayOf<BrandFontStyle> /* The font styles to include. */;
-    weight?: MaybeArrayOf<BrandFontWeight>; /* The font weights to include. */
-  };
-}; /* A Google Font definition. */
+  google: BrandFontCommon;
+}; /* A font definition from Google Fonts. */
+
+export type BrandFontBunny = {
+  bunny: BrandFontCommon;
+}; /* A font definition from fonts.bunny.net. */
 
 export type BrandFontFile = {
   display?:

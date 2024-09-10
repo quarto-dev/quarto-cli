@@ -291,6 +291,7 @@ div.reveal div.slides section.quarto-title-block {
   border: none;
   margin: 0;
   font-size: $code-block-font-size;
+  line-height: $code-block-line-height;
 }
 
 // Inside code-file-name div, we want to use the same background color as decorated codeblock header
