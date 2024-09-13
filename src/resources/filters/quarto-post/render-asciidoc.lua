@@ -89,7 +89,7 @@ function render_asciidoc()
             local noteEl = el[i+1]
             -- if the note contains a code inline, we need to add a space
             local hasCode = false
-            pandoc.walk_inline(noteEl, {
+            _quarto.module.jog(noteEl, {
               Code = function(_el)
                 hasCode = true
               end

@@ -240,6 +240,10 @@ local element_name_map = {
 
 --- Function to traverse the pandoc AST with context.
 local function jog(element, filter)
+  if _QUARTO_USE_WALK then
+    return element:walk(filter)
+  end
+
   local context = filter.context and List{} or nil
 
   -- Table elements have a `pandoc ` prefix in the name
@@ -262,6 +266,7 @@ local function jog(element, filter)
       return element
     end
   end
+
 
   -- Create and call traversal function
   local jog_internal = make_jogger(filter, context)

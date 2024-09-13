@@ -97,7 +97,7 @@ function makeWrappedJsonFilter(scriptFile, filterHandler)
         path = quarto.utils.resolve_path_relative_to_document(scriptFile)
         local custom_node_map = {}
         local has_custom_nodes = false
-        doc = doc:walk({
+        doc = _quarto.modules.jog(doc, {
           -- FIXME: This is broken with new AST. Needs to go through Custom node instead.
           RawInline = function(raw)
             local custom_node, t, kind = _quarto.ast.resolve_custom_data(raw)
@@ -130,7 +130,7 @@ function makeWrappedJsonFilter(scriptFile, filterHandler)
           return nil
         end
         if has_custom_nodes then
-          doc:walk({
+          _quarto.modules.jog(doc, {
             Meta = function(meta)
               _quarto.ast.reset_custom_tbl(meta["quarto-custom-nodes"])
             end

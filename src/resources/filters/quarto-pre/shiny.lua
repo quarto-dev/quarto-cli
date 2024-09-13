@@ -67,7 +67,7 @@ function server_shiny()
       -- blocks.)
       local context = nil
 
-      local res = pandoc.walk_block(divEl, {
+      local res = _quarto.modules.jog(divEl, {
         CodeBlock = function(el)
           if el.attr.classes:includes("python") and el.attr.classes:includes("cell-code") then
 
