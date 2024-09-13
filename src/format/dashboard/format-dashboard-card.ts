@@ -40,7 +40,6 @@ const kCardHeaderClass = "card-header";
 const kCardFooterClass = "card-footer";
 const kCardTitleClass = "card-title";
 const kCardToolbarClass = "card-toolbar";
-const kCardTitleToolbarClass = "card-title-toolbar";
 
 const kCardSidebarClass = "card-sidebar";
 
@@ -152,17 +151,27 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
     if (cardHeaderEl) {
       // Loose text gets grouped into a div for alignment purposes
       // Always place this element first no matter what else is going on
-      const looseText: string[] = [];
+      const looseText: Node[] = [];
 
       // See if there is a toolbar in the header
       const cardToolbarEl = cardHeaderEl.querySelector(`.${kCardToolbarClass}`);
 
-      for (const headerChildNode of cardHeaderEl.childNodes) {
+      const isText = (node: Node) => node.nodeType === Node.TEXT_NODE;
+      const isEmphasis = (node: Node) => node.nodeName === "EM";
+      const isBold = (node: Node) => node.nodeName === "STRONG";
+      const isMath = (node: Node) =>
+        node.nodeName === "SPAN" &&
+        (node as Element).classList.contains("math") &&
+        (node as Element).classList.contains("inline");
+
+      for (const headerChildNode of Array.from(cardHeaderEl.childNodes)) {
         if (
-          headerChildNode.nodeType === Node.TEXT_NODE &&
-          headerChildNode.textContent.trim() !== ""
+          isText(headerChildNode) ||
+          isEmphasis(headerChildNode) ||
+          isBold(headerChildNode) ||
+          isMath(headerChildNode)
         ) {
-          looseText.push(headerChildNode.textContent.trim());
+          looseText.push(headerChildNode);
           headerChildNode.parentNode?.removeChild(headerChildNode);
         }
       }
@@ -172,7 +181,13 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
         const classes = [kCardTitleClass];
 
         const titleTextDiv = makeEl("DIV", { classes }, doc);
-        titleTextDiv.innerText = looseText.join(" ");
+        const innerSpan = makeEl("SPAN", {
+          attributes: { style: "display: inline" },
+        }, doc);
+        titleTextDiv.appendChild(innerSpan);
+        for (const node of looseText) {
+          innerSpan.appendChild(node);
+        }
         if (cardToolbarEl) {
           cardToolbarEl.insertBefore(titleTextDiv, cardToolbarEl.firstChild);
         } else {
