@@ -12,6 +12,10 @@ All changes included in 1.6:
 - ([#10328](https://github.com/quarto-dev/quarto-cli/issues/10328)): Interpret subcells as subfloats when subcap count matches subcell count.
 - ([#10624](https://github.com/quarto-dev/quarto-cli/issues/10624)): Don't crash when proof environments are empty in `pdf`.
 
+## `dashboard` Format
+
+- ([#10340](https://github.com/quarto-dev/quarto-cli/issues/10340)): Build card title correctly in the presence of equations and other markup.
+
 ## `html` Format
 
 - Fix `kbd` element styling on dark themes.
