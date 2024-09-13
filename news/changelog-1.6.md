@@ -65,6 +65,7 @@ All changes included in 1.6:
 
 ## Other Fixes and Improvements
 
+- ([#10608](https://github.com/quarto-dev/quarto-cli/issues/10608)): Don't overwrite the built-in CSS function `contrast` in Quarto's SCSS.
 - ([#10162](https://github.com/quarto-dev/quarto-cli/issues/10162)): Use Edge on `macOS` as a Chromium browser when available.
 - ([#10235](https://github.com/quarto-dev/quarto-cli/issues/10235)): Configure the CI schedule trigger to activate exclusively for the upstream repository.
 - ([#10295](https://github.com/quarto-dev/quarto-cli/issues/10235)): Fix regression to return error status to shell when `CommandError` is thrown.
