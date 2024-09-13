@@ -43,7 +43,11 @@ All changes included in 1.6:
 
 ## Projects
 
-- ([#10268](https://github.com/quarto-dev/quarto-cli/issues/10268)]): `quarto create` supports opening project in Positron, in addition to VS Code and RStudio IDE.
+- ([#10268](https://github.com/quarto-dev/quarto-cli/issues/10268)): `quarto create` supports opening project in Positron, in addition to VS Code and RStudio IDE.
+
+### Websites
+
+- ([#10616](https://github.com/quarto-dev/quarto-cli/issues/10268)): Add a `z-index` setting to the 'back to top' button to ensure it is always visible.
 
 ## Quarto Blog
 
