@@ -255,6 +255,10 @@ local function jog(element, filter)
     end
   end
 
+  if _QUARTO_USE_WALK then
+    return element:walk(filter)
+  end
+
   -- Create and call traversal function
   local jog_internal = make_jogger(filter, context)
   return jog_internal(element)

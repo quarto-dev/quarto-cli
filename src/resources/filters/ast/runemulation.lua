@@ -79,7 +79,9 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass, profilin
         print(pandoc.write(doc, "native"))
       else
         _quarto.ast._current_doc = doc
-        doc = run_emulated_filter(doc, v.filter)
+
+        doc = run_emulated_filter(doc, v.filter, v.force_pandoc_walk)
+
         ensure_vault(doc)
 
         add_trace(doc, v.name)
