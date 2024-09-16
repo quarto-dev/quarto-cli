@@ -15897,7 +15897,7 @@ try {
             schema: "string",
             description: {
               short: "A regular expression that can be used to determine whether a link is an internal link.",
-              long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
+              long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with `http://www.quarto.org/custom` or `https://www.quarto.org/custom`\nas internal links (and others will be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
             }
           },
           {
@@ -21401,7 +21401,7 @@ try {
           "Short/abbreviated form of container-title;",
           "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
           "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
-          "Physical (e.g.&nbsp;size) or temporal (e.g.\uFFFD\uFFFDrunning time) dimensions of\nthe item.",
+          "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
           "Director (e.g.&nbsp;of a film).",
           "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
           "(Container) edition holding the item (e.g.&nbsp;\u201C3\u201D when citing a chapter\nin the third edition of a book).",
@@ -21584,6 +21584,11 @@ try {
           "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
           "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
           "Names of customizeable logos",
+          "Source path or source path with layout options for logo",
+          "X-Y positioning of logo",
+          "Padding of logo",
+          "Width of logo",
+          "Source path of logo",
           "The brand\u2019s custom color palette and theme.",
           "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
           "The foreground color, used for text.",
@@ -23909,12 +23914,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 187585,
+          _internalId: 187602,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 187577,
+              _internalId: 187594,
               type: "enum",
               enum: [
                 "png",
@@ -23930,7 +23935,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 187584,
+              _internalId: 187601,
               type: "anyOf",
               anyOf: [
                 {
