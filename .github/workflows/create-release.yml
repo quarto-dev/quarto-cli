@@ -89,7 +89,6 @@ jobs:
   make-source-tarball:
     runs-on: ubuntu-latest
     needs: [configure]
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -108,7 +107,6 @@ jobs:
   make-tarball:
     runs-on: ubuntu-latest
     needs: [configure]
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -142,7 +140,6 @@ jobs:
   make-arm64-tarball:
     runs-on: ubuntu-latest
     needs: [configure]
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -176,7 +173,6 @@ jobs:
   make-tarball-rhel:
     runs-on: ubuntu-latest
     needs: [configure]
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -221,7 +217,6 @@ jobs:
   make-installer-arm64-deb:
     runs-on: ubuntu-latest
     needs: [configure]
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -252,7 +247,6 @@ jobs:
   make-installer-deb:
     runs-on: ubuntu-latest
     needs: [configure]
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -328,14 +322,45 @@ jobs:
           cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
           cp package/launcher/target/release/quarto.exe package/pkg-working/bin/quarto.exe
 
+      - name: Sign files before making ZIP and MSI installer
+        id: sign-files
+        uses: ./.github/workflows/actions/sign-files
+        with:
+          paths: |
+            ./package/pkg-working/bin/quarto.exe
+            ./package/pkg-working/bin/tools/x86_64/deno.exe
+            ./package/pkg-working/bin/tools/x86_64/esbuild.exe
+            ./package/pkg-working/bin/tools/x86_64/dart-sass/src/dart.exe
+            ./package/pkg-working/bin/tools/x86_64/deno_dom/plugin.dll
+            ./package/pkg-working/bin/tools/pandoc.exe
+            ./package/pkg-working/bin/quarto.js
+        env:
+          # those environment variables are required to sign with signtool
+          SM_HOST: ${{ secrets.SM_HOST }}
+          SM_API_KEY: ${{ secrets.SM_API_KEY }}
+          SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64 }}
+          SM_CLIENT_CERT_PASSWORD: ${{ secrets.SM_CLIENT_CERT_PASSWORD }}
+          CERT_FINGERPRINT: ${{ secrets.SM_CLIENT_CERT_FINGERPRINT }}
+
       - name: Make Installer
         run: |
+          # Build installer
           pushd package\src\
           .\quarto-bld.cmd make-installer-win --set-version ${{needs.configure.outputs.version}} --log-level debug
           popd
+
+      - name: Sign MSI installer
+        uses: ./.github/workflows/actions/sign-files
+        with:
+          paths: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
+          signtools-extra-args: /d "Quarto CLI"
         env:
-          QUARTO_WIN_PFX: ${{ secrets.WIN_PFX }}
-          QUARTO_WIN_PFX_PW: ${{ secrets.WIN_PFX_PW }}
+          # those environment variables are required to sign with signtool
+          SM_HOST: ${{ secrets.SM_HOST }}
+          SM_API_KEY: ${{ secrets.SM_API_KEY }}
+          SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64 }}
+          SM_CLIENT_CERT_PASSWORD: ${{ secrets.SM_CLIENT_CERT_PASSWORD }}
+          CERT_FINGERPRINT: ${{ secrets.SM_CLIENT_CERT_FINGERPRINT }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
@@ -368,7 +393,6 @@ jobs:
   make-installer-mac:
     runs-on: macos-latest
     needs: [configure]
-
     steps:
       - uses: actions/checkout@v4
         with:
