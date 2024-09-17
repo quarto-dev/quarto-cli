@@ -14,7 +14,7 @@ import {
 import { cleanoutput } from "../smoke/render/render.ts";
 import { execProcess } from "../../src/core/process.ts";
 import { quartoDevCmd } from "../utils.ts";
-import { assert } from "testing/asserts.ts";
+import { fail } from "testing/asserts.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -51,16 +51,15 @@ Deno.test("Playwright tests are passing", async () => {
       cmd: [Deno.build.os == "windows" ? "npx.cmd" : "npx", "playwright", "test"],
       cwd: "integration/playwright",
     });
-
-    if (Deno.env.get("GITHUB_ACTIONS") && Deno.env.get("GITHUB_REPOSITORY") && Deno.env.get("GITHUB_RUN_ID")) {
-      const runUrl = `https://github.com/${Deno.env.get("GITHUB_REPOSITORY")}/actions/runs/${Deno.env.get("GITHUB_RUN_ID")}`;
-      console.log(`::error file=playwright-tests.test.ts, title=Playwright tests::Some tests failed. Download report uploaded as artifact at ${runUrl}`);
+    if (!res.success) {
+      if (Deno.env.get("GITHUB_ACTIONS") && Deno.env.get("GITHUB_REPOSITORY") && Deno.env.get("GITHUB_RUN_ID")) {
+        const runUrl = `https://github.com/${Deno.env.get("GITHUB_REPOSITORY")}/actions/runs/${Deno.env.get("GITHUB_RUN_ID")}`;
+        console.log(`::error file=playwright-tests.test.ts, title=Playwright tests::Some tests failed. Download report uploaded as artifact at ${runUrl}`);
+      }
+      fail("Failed tests with playwright. Look at playwright report for more details.")
     }
-    assert(
-      res.success,
-      "Failed tests with playwright. Look at playwright report for more details."
-    );
-  }finally {
+    
+  } finally {
     for (const fileName of fileNames) {
       cleanoutput(fileName, "html");
     }
