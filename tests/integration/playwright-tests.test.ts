@@ -44,24 +44,29 @@ for (const { path: fileName } of globOutput) {
   fileNames.push(fileName);
 }
 
-Deno.test("Playwright tests are passing", async () => {
-  try {
-    // run playwright
-    const res = await execProcess({
-      cmd: [Deno.build.os == "windows" ? "npx.cmd" : "npx", "playwright", "test"],
-      cwd: "integration/playwright",
-    });
-    if (!res.success) {
-      if (Deno.env.get("GITHUB_ACTIONS") && Deno.env.get("GITHUB_REPOSITORY") && Deno.env.get("GITHUB_RUN_ID")) {
-        const runUrl = `https://github.com/${Deno.env.get("GITHUB_REPOSITORY")}/actions/runs/${Deno.env.get("GITHUB_RUN_ID")}`;
-        console.log(`::error file=playwright-tests.test.ts, title=Playwright tests::Some tests failed. Download report uploaded as artifact at ${runUrl}`);
+Deno.test({
+  name: "Playwright tests are passing", 
+  // currently we run playwright tests only on Linux
+  ignore: Deno.build.os === "windows",
+  fn: async () => {
+    try {
+      // run playwright
+      const res = await execProcess({
+        cmd: [Deno.build.os == "windows" ? "npx.cmd" : "npx", "playwright", "test"],
+        cwd: "integration/playwright",
+      });
+      if (!res.success) {
+        if (Deno.env.get("GITHUB_ACTIONS") && Deno.env.get("GITHUB_REPOSITORY") && Deno.env.get("GITHUB_RUN_ID")) {
+          const runUrl = `https://github.com/${Deno.env.get("GITHUB_REPOSITORY")}/actions/runs/${Deno.env.get("GITHUB_RUN_ID")}`;
+          console.log(`::error file=playwright-tests.test.ts, title=Playwright tests::Some tests failed. Download report uploaded as artifact at ${runUrl}`);
+        }
+        fail("Failed tests with playwright. Look at playwright report for more details.")
       }
-      fail("Failed tests with playwright. Look at playwright report for more details.")
-    }
-    
-  } finally {
-    for (const fileName of fileNames) {
-      cleanoutput(fileName, "html");
+      
+    } finally {
+      for (const fileName of fileNames) {
+        cleanoutput(fileName, "html");
+      }
     }
   }
 });
