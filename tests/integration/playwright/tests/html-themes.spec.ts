@@ -6,7 +6,7 @@ test('Dark and light theme respect user themes', async ({ page }) => {
   await page.goto('./html/dark-light-theme-custom/');
   const locatr = await page.locator('div').filter({ hasText: 'Quarto Playground' }).first()
   await expect(locatr).toHaveCSS('background-color', 'rgb(255, 0, 0)');
-  await page.getByRole('link').nth(1).click();
+  await page.locator("a.quarto-color-scheme-toggle").click();
   const locatr2 = await page.locator('div').filter({ hasText: 'Quarto Playground' }).first()
   await expect(locatr2).toHaveCSS('background-color', 'rgb(255, 0, 0)');
 });
