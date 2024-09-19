@@ -65,7 +65,7 @@ export function zip(
         "PowerShell",
         "Compress-Archive",
         "-Path",
-        filesArr.join(", "),
+        filesArr.map((x) => `"${x}"`).join(", "),
         "-DestinationPath",
         archive,
         "-Force",

@@ -12,6 +12,12 @@ All changes included in 1.6:
 - ([#10328](https://github.com/quarto-dev/quarto-cli/issues/10328)): Interpret subcells as subfloats when subcap count matches subcell count.
 - ([#10624](https://github.com/quarto-dev/quarto-cli/issues/10624)): Don't crash when proof environments are empty in `pdf`.
 
+## `html` Format
+
+- Fix `kbd` element styling on dark themes.
+- ([#10761](https://github.com/quarto-dev/quarto-cli/issues/10761)): Add support for `licence: CC0` to automatically link to Creative Commons licence [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
+- ([#10817](https://github.com/quarto-dev/quarto-cli/issues/10817)): Ensure that user provided SCSS has precedent over quarto generated scss also for dark theme.
+
 ## `revealjs` Format
 
 - Update to Reveal JS 5.1.0.
@@ -20,6 +26,7 @@ All changes included in 1.6:
 - ([#7715](https://github.com/quarto-dev/quarto-cli/issues/7715)): Revealjs don't support anymore special Pandoc syntax making BulletList in Blockquotes become incremental list. This was confusing and unexpected behavior. Supported syntax for incremental list is documented at <https://quarto.org/docs/presentations/revealjs/#incremental-lists>.
 - ([#9742](https://github.com/quarto-dev/quarto-cli/issues/9742)): Links to cross-referenced images correctly works.
 - ([#9558](https://github.com/quarto-dev/quarto-cli/issues/9558)): To prevent default footer to show on slide, set `footer='false'` attribute on the slide header, e.g. `## Slide with no footer {footer='false'}`
+- ([#6012](https://github.com/quarto-dev/quarto-cli/issues/6012)): Add styling for `kbd` element in Revealjs slides.
 
 ## `typst` Format
 
@@ -38,7 +45,19 @@ All changes included in 1.6:
 
 ## Projects
 
-- ([#10268](https://github.com/quarto-dev/quarto-cli/issues/10268)]): `quarto create` supports opening project in Positron, in addition to VS Code and RStudio IDE.
+- ([#10268](https://github.com/quarto-dev/quarto-cli/issues/10268)): `quarto create` supports opening project in Positron, in addition to VS Code and RStudio IDE.
+
+### Websites
+
+- ([#10616](https://github.com/quarto-dev/quarto-cli/issues/10268)): Add a `z-index` setting to the 'back to top' button to ensure it is always visible.
+
+### Quarto Blog
+
+- ([#10710](https://github.com/quarto-dev/quarto-cli/issues/10710)): Fix an issue with categorie badges as links in the blog post header.
+
+### Manuscript
+
+- Fix an issue on Windows when creating MECA bundles containing special file name like space in the path ([quarto-ext/manuscript-template-rstudio#3](https://github.com/quarto-ext/manuscript-template-rstudio/issues/3)).
 
 ## Engines
 
@@ -52,6 +71,7 @@ All changes included in 1.6:
 
 ## Other Fixes and Improvements
 
+- ([#10608](https://github.com/quarto-dev/quarto-cli/issues/10608)): Don't overwrite the built-in CSS function `contrast` in Quarto's SCSS.
 - ([#10162](https://github.com/quarto-dev/quarto-cli/issues/10162)): Use Edge on `macOS` as a Chromium browser when available.
 - ([#10235](https://github.com/quarto-dev/quarto-cli/issues/10235)): Configure the CI schedule trigger to activate exclusively for the upstream repository.
 - ([#10295](https://github.com/quarto-dev/quarto-cli/issues/10235)): Fix regression to return error status to shell when `CommandError` is thrown.
