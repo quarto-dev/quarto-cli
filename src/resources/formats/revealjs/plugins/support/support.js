@@ -136,34 +136,51 @@ window.QuartoSupport = function () {
     })
   }
 
-   // add footer text
-   function addFooter(deck) {
+  // add footer text
+  function addFooter(deck) {
     const revealParent = deck.getRevealElement();
     const defaultFooterDiv = document.querySelector(".footer-default");
+    // Set per slide footer if any defined, 
+    // or show default unless data-footer="false" for no footer on this slide
+    const setSlideFooter = (ev, defaultFooterDiv) => {
+      const currentSlideFooter = ev.currentSlide.querySelector(".footer");
+      const onDarkBackground = deck.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-dark-background')
+      const onLightBackground = deck.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-light-background')
+      if (currentSlideFooter) {
+        defaultFooterDiv.style.display = "none";
+        const slideFooter = currentSlideFooter.cloneNode(true);
+        handleLinkClickEvents(deck, slideFooter);
+        deck.getRevealElement().appendChild(slideFooter);
+        toggleBackgroundTheme(slideFooter, onDarkBackground, onLightBackground)
+      } else if (ev.currentSlide.getAttribute("data-footer") === "false") {
+        defaultFooterDiv.style.display = "none";
+      } else {
+        defaultFooterDiv.style.display = "block";
+        toggleBackgroundTheme(defaultFooterDiv, onDarkBackground, onLightBackground)
+      }
+    }
     if (defaultFooterDiv) {
+      // move default footnote to the div.reveal element
       revealParent.appendChild(defaultFooterDiv);
       handleLinkClickEvents(deck, defaultFooterDiv);
+
       if (!isPrintView()) {
+        // Ready even is needed so that footer customization applies on first loaded slide
+        deck.on('ready', (ev) => {
+          // Set footer (custom, default or none)
+          setSlideFooter(ev, defaultFooterDiv)
+        });
+        // Any new navigated new slide will get the custom footnote check
         deck.on("slidechanged", function (ev) {
+          // Remove presentation footer defined by previous slide
           const prevSlideFooter = document.querySelector(
             ".reveal > .footer:not(.footer-default)"
           );
           if (prevSlideFooter) {
             prevSlideFooter.remove();
           }
-          const currentSlideFooter = ev.currentSlide.querySelector(".footer");
-          const onDarkBackground = Reveal.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-dark-background')
-          const onLightBackground = Reveal.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-light-background')
-          if (currentSlideFooter) {
-            defaultFooterDiv.style.display = "none";
-            const slideFooter = currentSlideFooter.cloneNode(true);
-            handleLinkClickEvents(deck, slideFooter);
-            deck.getRevealElement().appendChild(slideFooter);
-            toggleBackgroundTheme(slideFooter, onDarkBackground, onLightBackground)
-          } else {
-            defaultFooterDiv.style.display = "block";
-            toggleBackgroundTheme(defaultFooterDiv, onDarkBackground, onLightBackground)
-          }
+          // Set new one (custom, default or none)
+          setSlideFooter(ev, defaultFooterDiv)
         });
       }
     }
@@ -318,6 +335,13 @@ window.QuartoSupport = function () {
     }
   }
 
+  function cleanEmptyAutpGeneratedContent(deck) {
+    const div = document.querySelector('div.quarto-auto-generated-content')
+    if (div.textContent.trim() === '') {
+      div.remove()
+    }
+  }
+
   return {
     id: "quarto-support",
     init: function (deck) {
@@ -333,6 +357,8 @@ window.QuartoSupport = function () {
       handleSlideChanges(deck);
       workaroundMermaidDistance(deck);
       handleWhiteSpaceInColumns(deck);
+      // should stay last
+      cleanEmptyAutpGeneratedContent(deck);
     },
   };
 };
