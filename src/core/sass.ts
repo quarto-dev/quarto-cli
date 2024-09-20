@@ -16,6 +16,7 @@ import { dartCompile } from "./dart-sass.ts";
 import * as ld from "./lodash.ts";
 import { lines } from "./text.ts";
 import { sassCache } from "./sass/cache.ts";
+import { cssVarsBlock } from "./sass/add-css-vars.ts";
 import { md5HashBytes } from "./hash.ts";
 import { kSourceMappingRegexes } from "../config/constants.ts";
 import { writeTextFileSyncPreserveMode } from "./write.ts";
@@ -44,6 +45,7 @@ export function outputVariable(
   return `$${variable.name}: ${variable.value}${isDefault ? " !default" : ""};`;
 }
 
+let counter: number = 1;
 export async function compileSass(
   bundles: SassBundleLayers[],
   temp: TempContext,
@@ -104,39 +106,83 @@ export async function compileSass(
   // * Mixins are available to rules as well
   // * Rules may use functions, variables, and mixins
   //   (theme follows framework so it can override the framework rules)
-  const scssInput = [
+  let scssInput = [
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...frameWorkUses,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...quartoUses,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...userUses,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...frameworkFunctions,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...quartoFunctions,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...userFunctions,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...userDefaults.reverse(),
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...quartoDefaults.reverse(),
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...frameworkDefaults.reverse(),
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...frameworkMixins,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...quartoMixins,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...userMixins,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...frameworkRules,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...quartoRules,
+    '// quarto-scss-analysis-annotation { "origin": null }',
     ...userRules,
+    '// quarto-scss-analysis-annotation { "origin": null }',
   ].join("\n\n");
-
-  const hash = md5HashBytes(new TextEncoder().encode(scssInput));
+  try {
+    scssInput += "\n" + cssVarsBlock(scssInput);
+  } catch (e) {
+    console.error("Error adding css vars block", e);
+    Deno.writeTextFileSync("scss-error.scss", scssInput);
+    console.error(
+      "This is a Quarto bug.\nPlease consider reporting it at https://github.com/quarto-dev/quarto-cli,\nalong with the scss-error.scss file that can be found in the current working directory.",
+    );
+    throw e;
+  }
 
   // Compile the scss
-  // Note that you can set this to undefined to bypass the cache entirely
-  const cacheKey = hash;
-  // bundles.map((bundle) => bundle.key).join("|") + "-" +
-  //   (minified ? "min" : "nomin");
-
-  return await compileWithCache(
+  const result = await compileWithCache(
     scssInput,
     loadPaths,
     temp,
     minified,
-    cacheKey,
+    md5HashBytes(new TextEncoder().encode(scssInput)),
   );
+  if (!Deno.env.get("QUARTO_SAVE_SCSS")) {
+    return result;
+  }
+  const partialOutput = Deno.readTextFileSync(result);
+  // now we attempt to find the SCSS variables in the output
+  // and inject them back in the SCSS file so that our debug tooling can use them.
+  const scssToWrite = [scssInput];
+  const internalVars = Array.from(
+    partialOutput.matchAll(/(--quarto-scss-export-[^;}]+;?)/g),
+  ).map((m) => m[0]);
+  const annotation = {
+    "css-vars": internalVars,
+  };
+  scssToWrite.push(
+    `// quarto-scss-analysis-annotation ${JSON.stringify(annotation)}`,
+  );
+  scssInput = scssToWrite.join("\n");
+  const prefix = Deno.env.get("QUARTO_SAVE_SCSS");
+  const counterValue = counter++;
+  Deno.writeTextFileSync(
+    `${prefix}-${counterValue}.scss`,
+    scssInput,
+  );
+
+  return result;
 }
 
 /*-- scss:uses --*/
