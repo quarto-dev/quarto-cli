@@ -8,7 +8,7 @@ import { basename, dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 
 import { info } from "../../deno_ral/log.ts";
 
-import { existsSync, expandGlobSync } from "fs/mod.ts";
+import { ensureDir, existsSync, expandGlobSync } from "fs/mod.ts";
 
 import { stringify } from "yaml/mod.ts";
 import { encodeBase64 } from "encoding/base64.ts";
@@ -139,7 +139,6 @@ import { kDefaultHighlightStyle } from "./constants.ts";
 import {
   HtmlPostProcessor,
   HtmlPostProcessResult,
-  OutputRecipe,
   PandocOptions,
   RunPandocResult,
 } from "./types.ts";
@@ -176,7 +175,6 @@ import { resolveAndFormatDate, resolveDate } from "../../core/date.ts";
 import { katexPostProcessor } from "../../format/html/format-html-math.ts";
 import {
   readAndInjectDependencies,
-  resolveTypstFontPaths,
   writeDependencies,
 } from "./pandoc-dependencies-html.ts";
 import {
@@ -420,13 +418,13 @@ export async function runPandoc(
     );
 
     const extras = await resolveExtras(
+      options.source,
       inputExtras,
       options.format,
       cwd,
       options.libDir,
       options.services.temp,
       dependenciesFile,
-      options.recipe,
       options.project,
     );
 
@@ -1283,14 +1281,14 @@ function cleanupPandocMetadata(metadata: Metadata) {
 }
 
 async function resolveExtras(
+  input: string,
   extras: FormatExtras, // input format extras (project, format, brand)
   format: Format,
   inputDir: string,
   libDir: string,
   temp: TempContext,
   dependenciesFile: string,
-  recipe: OutputRecipe,
-  project?: ProjectContext,
+  project: ProjectContext,
 ) {
   // resolve format resources
   await writeFormatResources(
@@ -1346,15 +1344,135 @@ async function resolveExtras(
 
   // perform typst-specific merging
   if (isTypstOutput(format.pandoc)) {
-    extras.postprocessors = extras.postprocessors || [];
-    extras.postprocessors.push(async () => {
-      // gw: IMO this could be way more general as resolveMetadata
-      // returning all metadata found in the file
-      // then apply output-recipe and any others found using mergeConfigs
-      // would not be format-specific
-      const fontPaths = await resolveTypstFontPaths(dependenciesFile);
-      recipe.format.metadata[kFontPaths] = fontPaths;
-    });
+    const brand = await project.resolveBrand(input);
+    const fontdirs: Set<string> = new Set();
+    const base_urls = {
+      google: "https://fonts.googleapis.com/css",
+      bunny: "https://fonts.bunny.net/css",
+    };
+    const ttf_urls = [], woff_urls: Array<string> = [];
+    if (brand?.data.typography) {
+      const fonts = brand.data.typography.fonts || [];
+      for (const font of fonts) {
+        if (font.source === "file") {
+          for (const file of font.files || []) {
+            const path = typeof file === "object" ? file.path : file;
+            fontdirs.add(dirname(join(brand.brandDir, path)));
+          }
+        } else if (font.source === "bunny") {
+          console.log(
+            "Font bunny is not yet supported for Typst, skipping",
+            font.family,
+          );
+        } else if (font.source === "google" /* || font.source === "bunny" */) {
+          let { family, style, weight } = font;
+          const parts = [family!];
+          if (style) {
+            style = Array.isArray(style) ? style : [style];
+            parts.push(style.join(","));
+          }
+          if (weight) {
+            weight = Array.isArray(weight) ? weight : [weight];
+            parts.push(weight.join(","));
+          }
+          const response = await fetch(
+            `${base_urls[font.source]}?family=${parts.join(":")}`,
+          );
+          const lines = (await response.text()).split("\n");
+          for (const line of lines) {
+            const sourcelist = line.match(/^ *src: (.*); *$/);
+            if (sourcelist) {
+              const sources = sourcelist[1].split(",").map((s) => s.trim());
+              const failed_formats = [];
+              for (const source of sources) {
+                const match = source.match(
+                  /url\(([^)]*)\) *format\('([^)]*)'\)/,
+                );
+                if (match) {
+                  const [_, url, format] = match;
+                  if (["truetype", "opentype"].includes(format)) {
+                    ttf_urls.push(url);
+                    break;
+                  }
+                  //  else if (["woff", "woff2"].includes(format)) {
+                  //   woff_urls.push(url);
+                  //   break;
+                  // }
+                  failed_formats.push(format);
+                }
+              }
+              console.log(
+                "skipping",
+                family,
+                "\nnot currently able to use formats",
+                failed_formats.join(", "),
+              );
+            }
+          }
+        }
+      }
+    }
+    if (ttf_urls.length || woff_urls.length) {
+      const font_cache = join(brand!.projectDir, ".quarto", "typst-font-cache");
+      const url_to_path = (url: string) => url.replace(/^https?:\/\//, "");
+      const cached = async (url: string) => {
+        const path = url_to_path(url);
+        try {
+          await Deno.lstat(join(font_cache, path));
+          return true;
+        } catch (err) {
+          if (!(err instanceof Deno.errors.NotFound)) {
+            throw err;
+          }
+          return false;
+        }
+      };
+      const download = async (url: string) => {
+        const path = url_to_path(url);
+        await ensureDir(
+          join(font_cache, dirname(path)),
+        );
+
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const buffer = await blob.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        await Deno.writeFile(join(font_cache, path), bytes);
+      };
+      const woff2ttf = async (url: string) => {
+        const path = url_to_path(url);
+        await Deno.run({ cmd: ["ttx", join(font_cache, path)] });
+        await Deno.run({
+          cmd: ["ttx", join(font_cache, path.replace(/woff2?$/, "ttx"))],
+        });
+      };
+      const ttf_urls2: Array<string> = [], woff_urls2: Array<string> = [];
+      await Promise.all(ttf_urls.map(async (url) => {
+        if (!await cached(url)) {
+          ttf_urls2.push(url);
+        }
+      }));
+
+      await woff_urls.reduce((cur, next) => {
+        return cur.then(() => woff2ttf(next));
+      }, Promise.resolve());
+      // await Promise.all(woff_urls.map(async (url) => {
+      //   if (!await cached(url)) {
+      //     woff_urls2.push(url);
+      //   }
+      // }));
+      await Promise.all(ttf_urls2.concat(woff_urls2).map(download));
+      if (woff_urls2.length) {
+        await Promise.all(woff_urls2.map(woff2ttf));
+      }
+      fontdirs.add(font_cache);
+    }
+    let fontPaths = format.metadata[kFontPaths] as Array<string> || [];
+    if (typeof fontPaths === "string") {
+      fontPaths = [fontPaths];
+    }
+    fontPaths.push(...fontdirs);
+    format.metadata[kFontPaths] = fontPaths;
   }
 
   // Process format resources

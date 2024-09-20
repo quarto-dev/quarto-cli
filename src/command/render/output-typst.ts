@@ -65,8 +65,7 @@ export function typstPdfOutputRecipe(
     const pdfOutput = join(inputDir, inputStem + ".pdf");
     const typstOptions: TypstCompileOptions = {
       quiet: options.flags?.quiet,
-      // use recipe that may have been modified, not format which has not
-      fontPaths: asArray(recipe.format.metadata?.[kFontPaths]) as string[],
+      fontPaths: asArray(format.metadata?.[kFontPaths]) as string[],
     };
     if (project?.dir) {
       typstOptions.rootDir = project.dir;

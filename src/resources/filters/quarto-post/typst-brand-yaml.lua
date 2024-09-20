@@ -147,23 +147,6 @@ function render_typst_brand_yaml()
       if headings and headings.family then
         meta['title-font'] = headings.family
       end
-      -- really should be _brand.yml directory
-      local projectDir = pandoc.path.directory(quarto.doc.input_file)
-      local fontdirs = {}
-      for _, fontName in ipairs({'base', 'headings', 'monospace'}) do
-        local font = _quarto.modules.brand.get_typography(fontName)
-        if font and font.files then
-          local files = font.files
-          if type(files) == 'string' then files = {files} end
-          for _, file in ipairs(files) do
-            local dir = pandoc.path.directory(pandoc.path.normalize(pandoc.path.join({projectDir, file})))
-            fontdirs[dir] = true
-          end        
-        end
-      end
-      for fontdir, _ in pairs(fontdirs) do
-        quarto.doc.add_typst_font_path(fontdir)
-      end
       return meta
     end
   }

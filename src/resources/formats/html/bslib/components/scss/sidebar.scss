@@ -279,7 +279,7 @@ $bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), 
 
     &, &.sidebar-right {
       // Remove sidebar borders in mobile view (except always-open, added below)
-      > .sidebar { border: none }
+      > .sidebar { border: none; }
 
       // Main area takes up entire layout area to avoid layout shift when
       // sidebar is expanded as an overlay.
@@ -332,7 +332,7 @@ $bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), 
       // Make main contents transparent while sidebar is expanded
       > .main {
         opacity: 0;
-        transition: opacity var(--bslib-sidebar-transition-easing-x) var(--bslib-sidebar-transition-duration)
+        transition: opacity var(--bslib-sidebar-transition-easing-x) var(--bslib-sidebar-transition-duration);
       }
       &.sidebar-collapsed > .main {
         opacity: 1;
