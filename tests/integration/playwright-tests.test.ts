@@ -39,7 +39,7 @@ for (const { path: fileName } of globOutput) {
   // mediabag inspection if we don't wait all renders
   // individually. This is very slow..
   await execProcess({
-    cmd: [quartoDevCmd(), "render", input, "--to", "html"],
+    cmd: [quartoDevCmd(), "render", input],
   });
   fileNames.push(fileName);
 }
