@@ -6,7 +6,7 @@ _quarto:
     html:
       ensureHtmlElements:
         - []
-        - ["table.table"]
+        - ["table[data-quarto-postprocess='true']"]
 ---
 
 
