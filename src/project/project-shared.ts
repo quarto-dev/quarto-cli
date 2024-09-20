@@ -537,7 +537,11 @@ export async function projectResolveBrand(
         refSchema("brand", "Format-independent brand configuration."),
         "Brand validation failed for " + brandPath + ".",
       ) as BrandJson;
-      project.brandCache.brand = new Brand(brand);
+      project.brandCache.brand = new Brand(
+        brand,
+        dirname(brandPath),
+        project.dir,
+      );
     }
     return project.brandCache.brand;
   } else {
@@ -570,7 +574,7 @@ export async function projectResolveBrand(
       refSchema("brand", "Format-independent brand configuration."),
       "Brand validation failed for " + brandPath + ".",
     ) as BrandJson;
-    fileInformation.brand = new Brand(brand);
+    fileInformation.brand = new Brand(brand, dirname(brandPath), project.dir);
     return fileInformation.brand;
   }
 }

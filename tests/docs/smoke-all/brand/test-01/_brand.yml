@@ -1,4 +1,4 @@
 color:
-  with:
+  palette:
     red: "#ff0000"
   primary: red
