@@ -384,11 +384,10 @@ const brandTypographyBundle = (
     const family = resolvedFontOptions.family;
     const font = getFontFamilies(family);
     const result: HTMLFontInformation = {};
-    result.family = "";
-    // FIXME
-    // resolveGoogleFontFamily(font) ??
-    //   resolveBunnyFontFamily(font) ??
-    //   resolveFilesFontFamily(font) ?? family;
+    result.family = resolveGoogleFontFamily(font) ??
+      // resolveBunnyFontFamily(font) ??
+      // resolveFilesFontFamily(font) ??
+      family;
     for (
       const entry of [
         "line-height",
