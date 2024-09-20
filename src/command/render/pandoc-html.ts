@@ -53,7 +53,7 @@ export async function resolveSassBundles(
   extras: FormatExtras,
   format: Format,
   temp: TempContext,
-  project?: ProjectContext,
+  project: ProjectContext,
 ) {
   extras = cloneDeep(extras);
 
@@ -286,6 +286,29 @@ async function resolveQuartoSyntaxHighlighting(
   if (themeDescriptor) {
     // Other variables that need to be injected (if any)
     const extraVariables = extras.html?.[kQuartoCssVariables] || [];
+    for (let i = 0; i < extraVariables.length; ++i) {
+      // For the same reason as outlined in https://github.com/rstudio/bslib/issues/1104,
+      // we need to patch the text to include a semicolon inside the declaration
+      // if it doesn't have one.
+      // This happens because scss-parser is brittle, and will fail to parse a declaration
+      // if it doesn't end with a semicolon.
+      //
+      // In addition, we know that some our variables come from the output
+      // of sassCompile which
+      // - misses the last semicolon
+      // - emits a :root declaration
+      // - triggers the scss-parser bug
+      // So we'll attempt to target the last declaration in the :root
+      // block specifically and add a semicolon if it doesn't have one.
+      let variable = extraVariables[i].trim();
+      if (
+        variable.endsWith("}") && variable.startsWith(":root") &&
+        !variable.match(/.*;\s?}$/)
+      ) {
+        variable = variable.slice(0, -1) + ";}";
+        extraVariables[i] = variable;
+      }
+    }
 
     // The text highlighting CSS variables
     const highlightCss = generateThemeCssVars(themeDescriptor.json);
@@ -308,7 +331,7 @@ async function resolveQuartoSyntaxHighlighting(
       // Add this string literal to the rule set, which prevents pandoc
       // from inlining this style sheet
       // See https://github.com/jgm/pandoc/commit/7c0a80c323f81e6262848bfcfc922301e3f406e0
-      rules.push(".prevent-inlining { content: '</' }");
+      rules.push(".prevent-inlining { content: '</'; }");
 
       // Compile the scss
       const highlightCssPath = await compileSass(

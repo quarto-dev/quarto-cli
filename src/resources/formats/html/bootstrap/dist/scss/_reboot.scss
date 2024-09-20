@@ -305,6 +305,7 @@ pre {
   @include font-size($code-font-size);
   color: $pre-color;
   background-color: $pre-bg;
+  line-height: $pre-line-height;
   padding: $spacer / 2;
   border: $border-width solid var(--#{$prefix}border-color, $border-color);
   @include border-radius($border-radius);

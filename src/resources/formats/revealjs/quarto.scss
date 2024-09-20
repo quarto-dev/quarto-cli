@@ -69,6 +69,7 @@ $code-block-border-color: lighten($body-color, 60%) !default;
 $code-block-font-size: 0.55em !default;
 $code-block-height: 500px !default;
 $code-block-theme-dark-threshhold: 40% !default;
+$code-block-line-height: $presentation-line-height !default;
 
 // inline code
 $code-color: var(--quarto-hl-fu-color) !default;
@@ -291,6 +292,7 @@ div.reveal div.slides section.quarto-title-block {
   border: none;
   margin: 0;
   font-size: $code-block-font-size;
+  line-height: $code-block-line-height;
 }
 
 // Inside code-file-name div, we want to use the same background color as decorated codeblock header

@@ -11885,7 +11885,7 @@ var require_yaml_intelligence_resources = __commonJS({
           object: {
             closed: true,
             properties: {
-              with: {
+              images: {
                 schema: {
                   object: {
                     additionalProperties: {
@@ -11966,10 +11966,9 @@ var require_yaml_intelligence_resources = __commonJS({
           object: {
             closed: true,
             properties: {
-              with: {
+              palette: {
                 description: "The brand's custom color palette. Any number of colors can be defined, each color having a custom name.\n",
                 object: {
-                  closed: false,
                   additionalProperties: {
                     schema: {
                       ref: "brand-color-value"
@@ -12097,59 +12096,99 @@ var require_yaml_intelligence_resources = __commonJS({
           object: {
             closed: true,
             properties: {
-              with: {
+              fonts: {
                 description: "Font files and definitions for the brand.",
-                ref: "brand-font-with"
+                arrayOf: {
+                  ref: "brand-font"
+                }
               },
               base: {
                 description: "The base font settings for the brand. These are used as the default for all text.\n",
                 ref: "brand-typography-options"
               },
               headings: {
-                description: "The font settings for headings.\n",
+                description: "Settings for headings\n",
                 ref: "brand-typography-options-no-size"
               },
               monospace: {
-                description: "The font settings for monospace text. Color in this context refers to inline code.\n",
-                ref: "brand-typography-options"
+                description: "Settings for monospace text\n",
+                ref: "brand-typography-options-text"
               },
-              emphasis: {
-                description: "The text properties used for emphasized (or emboldened) text.",
-                object: {
-                  closed: true,
-                  properties: {
-                    weight: {
-                      ref: "brand-font-weight"
-                    },
-                    color: {
-                      ref: "brand-maybe-named-color"
-                    },
-                    "background-color": {
-                      ref: "brand-maybe-named-color"
-                    }
-                  }
-                }
+              "monospace-inline": {
+                description: "Settings for inline code",
+                ref: "brand-typography-options-inline"
+              },
+              "monospace-block": {
+                description: "Settings for code blocks",
+                ref: "brand-typography-options-block"
               },
               link: {
-                description: "The text properties used for hyperlinks.",
-                object: {
-                  closed: true,
-                  properties: {
-                    weight: {
-                      ref: "brand-font-weight"
-                    },
-                    decoration: "string",
-                    color: {
-                      schema: {
-                        ref: "brand-maybe-named-color"
-                      },
-                      default: "primary"
-                    },
-                    "background-color": {
-                      ref: "brand-maybe-named-color"
-                    }
-                  }
-                }
+                description: "Settings for links",
+                ref: "brand-typography-options-inline"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-typography-options-text",
+          description: "Typographic options for monospace elements.",
+          object: {
+            closed: true,
+            properties: {
+              family: "string",
+              size: "string",
+              weight: {
+                ref: "brand-font-weight"
+              },
+              style: {
+                ref: "brand-font-style"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-typography-options-inline",
+          description: "Typographic options for inline monospace elements.",
+          object: {
+            closed: true,
+            properties: {
+              family: "string",
+              size: "string",
+              weight: {
+                ref: "brand-font-weight"
+              },
+              style: {
+                ref: "brand-font-style"
+              },
+              color: {
+                ref: "brand-maybe-named-color"
+              },
+              "background-color": {
+                ref: "brand-maybe-named-color"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-typography-options-block",
+          description: "Typographic options for block monospace elements.",
+          object: {
+            closed: true,
+            properties: {
+              family: "string",
+              size: "string",
+              weight: {
+                ref: "brand-font-weight"
+              },
+              style: {
+                ref: "brand-font-style"
+              },
+              "line-height": "string",
+              color: {
+                ref: "brand-maybe-named-color"
+              },
+              "background-color": {
+                ref: "brand-maybe-named-color"
               }
             }
           }
@@ -12220,13 +12259,6 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
-          id: "brand-font-with",
-          description: "Font files and definitions for the brand.",
-          object: {
-            closed: false
-          }
-        },
-        {
           id: "brand-font",
           description: "Font files and definitions for the brand.",
           anyOf: [
@@ -12234,10 +12266,10 @@ var require_yaml_intelligence_resources = __commonJS({
               ref: "brand-font-google"
             },
             {
-              ref: "brand-font-file"
+              ref: "brand-font-bunny"
             },
             {
-              ref: "brand-font-family"
+              ref: "brand-font-file"
             }
           ]
         },
@@ -12253,7 +12285,20 @@ var require_yaml_intelligence_resources = __commonJS({
             600,
             700,
             800,
-            900
+            900,
+            "thin",
+            "extra-light",
+            "ultra-light",
+            "light",
+            "normal",
+            "regular",
+            "medium",
+            "semi-bold",
+            "demi-bold",
+            "bold",
+            "extra-bold",
+            "ultra-bold",
+            "black"
           ],
           default: 400
         },
@@ -12262,67 +12307,88 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "A font style.",
           enum: [
             "normal",
-            "italic"
+            "italic",
+            "oblique"
           ],
           default: "normal"
         },
         {
+          id: "brand-font-common",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                family: {
+                  description: "The font family name, which must match the name of the font on the foundry website.",
+                  schema: "string"
+                },
+                weight: {
+                  description: "The font weights to include.",
+                  maybeArrayOf: {
+                    ref: "brand-font-weight"
+                  },
+                  default: [
+                    400,
+                    700
+                  ]
+                },
+                style: {
+                  description: "The font styles to include.",
+                  maybeArrayOf: {
+                    ref: "brand-font-style"
+                  },
+                  default: [
+                    "normal",
+                    "italic"
+                  ]
+                },
+                display: {
+                  description: "The font display method, determines how a font face is font face is shown depending on its download status and readiness for use.\n",
+                  enum: [
+                    "auto",
+                    "block",
+                    "swap",
+                    "fallback",
+                    "optional"
+                  ],
+                  default: "swap"
+                }
+              }
+            }
+          }
+        },
+        {
           id: "brand-font-google",
-          description: "A Google Font definition.",
+          description: "A font definition from Google Fonts.",
           object: {
+            super: {
+              resolveRef: "brand-font-common"
+            },
             closed: true,
             properties: {
-              google: {
-                anyOf: [
-                  "string",
-                  {
-                    object: {
-                      closed: true,
-                      properties: {
-                        family: {
-                          description: "The font family name, which must match the name of the font on Google Fonts.",
-                          schema: "string"
-                        },
-                        weight: {
-                          description: "The font weights to include.",
-                          maybeArrayOf: {
-                            ref: "brand-font-weight"
-                          },
-                          default: [
-                            400,
-                            700
-                          ]
-                        },
-                        style: {
-                          description: "The font styles to include.",
-                          maybeArrayOf: {
-                            ref: "brand-font-style"
-                          },
-                          default: [
-                            "normal",
-                            "italic"
-                          ]
-                        },
-                        display: {
-                          description: "The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use.\n",
-                          enum: [
-                            "auto",
-                            "block",
-                            "swap",
-                            "fallback",
-                            "optional"
-                          ],
-                          default: "swap"
-                        }
-                      }
-                    }
-                  }
+              source: {
+                enum: [
+                  "google"
                 ]
               }
+            }
+          }
+        },
+        {
+          id: "brand-font-bunny",
+          description: "A font definition from fonts.bunny.net.",
+          object: {
+            super: {
+              resolveRef: "brand-font-common"
             },
-            required: [
-              "google"
-            ]
+            closed: true,
+            properties: {
+              source: {
+                enum: [
+                  "bunny"
+                ]
+              }
+            }
           }
         },
         {
@@ -12331,53 +12397,49 @@ var require_yaml_intelligence_resources = __commonJS({
           object: {
             closed: true,
             properties: {
+              source: {
+                enum: [
+                  "file"
+                ]
+              },
               family: {
                 description: "The font family name.",
                 schema: "string"
               },
               files: {
-                maybeArrayOf: {
+                arrayOf: {
                   anyOf: [
                     "path",
-                    "string"
+                    {
+                      schema: {
+                        object: {
+                          properties: {
+                            path: {
+                              schema: "path",
+                              description: "The path to the font file. This can be a local path or a URL.\n"
+                            },
+                            weight: {
+                              ref: "brand-font-weight"
+                            },
+                            style: {
+                              ref: "brand-font-style"
+                            }
+                          },
+                          required: [
+                            "path"
+                          ]
+                        }
+                      }
+                    }
                   ]
                 },
                 description: "The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs.\n"
-              },
-              weight: {
-                description: "The font weights to include.",
-                maybeArrayOf: {
-                  ref: "brand-font-weight"
-                },
-                default: [
-                  400,
-                  700
-                ]
-              },
-              style: {
-                description: "The font styles to include.",
-                maybeArrayOf: {
-                  ref: "brand-font-style"
-                },
-                default: [
-                  "normal",
-                  "italic"
-                ]
-              },
-              display: {
-                description: "The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use.\n",
-                enum: [
-                  "auto",
-                  "block",
-                  "swap",
-                  "fallback",
-                  "optional"
-                ],
-                default: "swap"
               }
             },
             required: [
-              "files"
+              "files",
+              "family",
+              "source"
             ]
           }
         },
@@ -21400,7 +21462,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Short/abbreviated form of container-title;",
         "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
         "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
-        "Physical (e.g.&nbsp;size) or temporal (e.g.\uFFFD\uFFFDrunning time) dimensions of\nthe item.",
+        "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
         "Director (e.g.&nbsp;of a film).",
         "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
         "(Container) edition holding the item (e.g.&nbsp;\u201C3\u201D when citing a chapter\nin the third edition of a book).",
@@ -21583,6 +21645,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
         "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
         "Names of customizeable logos",
+        "Source path or source path with layout options for logo",
+        "X-Y positioning of logo",
+        "Padding of logo",
+        "Width of logo",
+        "Source path of logo",
         "The brand\u2019s custom color palette and theme.",
         "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
         "The foreground color, used for text.",
@@ -21604,28 +21671,38 @@ var require_yaml_intelligence_resources = __commonJS({
         "Font files and definitions for the brand.",
         "The base font settings for the brand. These are used as the default\nfor all text.",
         "The font settings for headings.",
-        "The font settings for monospace text. Color in this context refers to\ninline code.",
-        "The text properties used for emphasized (or emboldened) text.",
+        "The font settings for monospace text",
+        "Inline code, all values inherit from <code>monospace</code>.",
+        "Block code, all values inherit from <code>monospace</code>.",
         "The text properties used for hyperlinks.",
+        "Typographic options for monospace elements.",
+        "Typographic options for inline monospace elements.",
+        "Typographic options for block monospace elements.",
         "Typographic options.",
         "Resolved local paths.",
         "Names of customizeable fonts",
         "Typographic options without a font size.",
         "Font files and definitions for the brand.",
-        "Font files and definitions for the brand.",
         "A font weight.",
         "A font style.",
-        "A Google Font definition.",
-        "The font family name, which must match the name of the font on Google\nFonts.",
+        "The font family name, which must match the name of the font on the\nfoundry website.",
+        "The font weights to include.",
+        "The font styles to include.",
+        "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
+        "A font definition from Google Fonts.",
+        "The font family name, which must match the name of the font on the\nfoundry website.",
+        "The font weights to include.",
+        "The font styles to include.",
+        "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
+        "A font definition from fonts.bunny.net.",
+        "The font family name, which must match the name of the font on the\nfoundry website.",
         "The font weights to include.",
         "The font styles to include.",
         "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
         "A method for providing font files directly, either locally or from an\nonline location.",
         "The font family name.",
         "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
-        "The font weights to include.",
-        "The font styles to include.",
-        "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
+        "The path to the font file. This can be a local path or a URL.",
         "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
         {
           short: "Unique label for code cell",
@@ -23908,12 +23985,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 187585,
+        _internalId: 187697,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 187577,
+            _internalId: 187689,
             type: "enum",
             enum: [
               "png",
@@ -23929,7 +24006,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 187584,
+            _internalId: 187696,
             type: "anyOf",
             anyOf: [
               {

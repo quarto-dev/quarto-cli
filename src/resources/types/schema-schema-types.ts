@@ -7,6 +7,7 @@
 
 export type MaybeArrayOf<T> = T | T[];
 export type JsonObject = { [key: string]: unknown };
+// export type SchemaObject = { [key: string]: string };
 
 export type SchemaScalar = number | boolean | string | null;
 
@@ -31,17 +32,21 @@ export type SchemaNull = "null" | { null: SchemaBase };
 
 export type SchemaExplicitSchema = { schema: SchemaSchema } & SchemaBase;
 
+export type SchemaExplicitPatternString = { pattern: string } & SchemaBase;
+
 export type SchemaString =
   | ("string" | "path")
-  | ({ pattern: string } & SchemaBase)
-  | ({ path: SchemaSchema } & SchemaBase)
-  | ({ string: SchemaSchema } & SchemaBase);
+  | SchemaExplicitPatternString
+  | ({ path: SchemaExplicitPatternString | SchemaBase } & SchemaBase)
+  | ({ string: SchemaExplicitPatternString | SchemaBase } & SchemaBase);
 
-export type SchemaNumber = "number" | ({ number: SchemaSchema } & SchemaBase);
+export type SchemaNumber =
+  | "number"
+  | ({ number: SchemaSchema | SchemaBase } & SchemaBase);
 
 export type SchemaBoolean =
   | "boolean"
-  | ({ boolean: SchemaSchema } & SchemaBase);
+  | ({ boolean: SchemaSchema | SchemaBase } & SchemaBase);
 
 export type SchemaResolveRef = { resolveRef: string };
 
@@ -64,44 +69,48 @@ export type SchemaAnyOf = {
 } & SchemaBase;
 
 export type SchemaRecord = {
-  record: JsonObject | ({ properties: JsonObject } & SchemaBase);
+  record:
+    | { [key: string]: SchemaSchema }
+    | ({ properties: { [key: string]: SchemaSchema } } & SchemaBase);
 } & SchemaBase;
 
-export type SchemaObject = {
-  object: {
-    additionalProperties?: SchemaSchema;
-    closed?: boolean;
-    completions?: (string)[];
-    description?: SchemaDescription;
-    namingConvention?:
-      | "ignore"
-      | ((
-        | "camelCase"
-        | "camel-case"
-        | "camel_case"
-        | "capitalizationCase"
-        | "capitalization-case"
-        | "capitalization_case"
-        | "underscoreCase"
-        | "underscore-case"
-        | "underscore_case"
-        | "snakeCase"
-        | "snake-case"
-        | "snake_case"
-        | "dashCase"
-        | "dash-case"
-        | "dash_case"
-        | "kebabCase"
-        | "kebab-case"
-        | "kebab_case"
-      ))[];
-    properties?: JsonObject;
-    patternProperties?: JsonObject;
-    propertyNames?: SchemaSchema;
-    required?: "all" | (string)[];
-    super?: MaybeArrayOf<SchemaSchema>;
-  } & SchemaBase;
-} & SchemaBase;
+export type SchemaObject =
+  | "object"
+  | ({
+    object: {
+      additionalProperties?: SchemaSchema;
+      closed?: boolean;
+      completions?: (string)[];
+      description?: SchemaDescription;
+      namingConvention?:
+        | "ignore"
+        | ((
+          | "camelCase"
+          | "camel-case"
+          | "camel_case"
+          | "capitalizationCase"
+          | "capitalization-case"
+          | "capitalization_case"
+          | "underscoreCase"
+          | "underscore-case"
+          | "underscore_case"
+          | "snakeCase"
+          | "snake-case"
+          | "snake_case"
+          | "dashCase"
+          | "dash-case"
+          | "dash_case"
+          | "kebabCase"
+          | "kebab-case"
+          | "kebab_case"
+        ))[];
+      properties?: { [key: string]: SchemaSchema };
+      patternProperties?: { [key: string]: SchemaSchema };
+      propertyNames?: SchemaSchema;
+      required?: "all" | (string)[];
+      super?: MaybeArrayOf<SchemaSchema>;
+    } & SchemaBase;
+  } & SchemaBase);
 
 export type SchemaSchema =
   | SchemaEnum
@@ -118,15 +127,7 @@ export type SchemaSchema =
   | SchemaAllOf
   | SchemaRecord
   | SchemaObject
-  | (
-    | "number"
-    | "boolean"
-    | "path"
-    | "string"
-    | null
-    | "object"
-    | "any"
-  ) /* be a yaml schema */;
+  | (null | "any") /* be a yaml schema */;
 
 export type SchemaSchemaField = {
   alias?: string;

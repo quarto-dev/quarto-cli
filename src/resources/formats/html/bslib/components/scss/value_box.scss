@@ -109,7 +109,7 @@ $bslib-value-box-horizontal-break-point: 300px;
     @include bootstrap-heading-font-and-spacing($h6-font-size);
     // add a non-breaking space to ensure it's not 0 height
     &:empty::after {
-      content: '\00a0 '
+      content: '\00a0 ';
     }
   }
 
@@ -117,7 +117,7 @@ $bslib-value-box-horizontal-break-point: 300px;
     @include bootstrap-heading-font-and-spacing($h2-font-size);
     // add a non-breaking space to ensure it's not 0 height
     &:empty::after {
-      content: '\00a0 '
+      content: '\00a0 ';
     }
   }
 

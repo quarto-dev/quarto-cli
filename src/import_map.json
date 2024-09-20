@@ -49,6 +49,7 @@
 
     "slimdom": "https://cdn.skypack.dev/slimdom@4.2.0",
     "fontoxpath": "https://cdn.skypack.dev/fontoxpath@3.29.1",
+    "scss-parser": "https://cdn.skypack.dev/scss-parser@1.0.6",
 
     "https://deno.land/std@0.161.0/": "https://deno.land/std@0.217.0/",
     "https://deno.land/std@0.101.0/": "https://deno.land/std@0.217.0/",
