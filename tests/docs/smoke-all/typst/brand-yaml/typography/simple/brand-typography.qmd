@@ -9,8 +9,8 @@ _quarto:
     typst:
       ensurePdfRegexMatches:
       -
-        - 'title is roboto slab bold normal 16.5pt'
-        - 'heading-2 is roboto slab bold normal 15.4pt'
+        - 'title is roboto slab semibold normal 16.5pt'
+        - 'heading-2 is roboto slab semibold normal 15.4pt'
         - 'paragraph is open sans thin normal 11pt'
         - 'fib = num => num < 2'
       - []

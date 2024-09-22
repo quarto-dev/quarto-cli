@@ -90,17 +90,17 @@ export class Brand {
       typography.monospace = monospace;
     }
     const monospaceInline = this.getFont("monospace-inline");
-    if (monospaceInline) {
+    if (monospace || monospaceInline) {
       typography["monospace-inline"] = {
         ...(monospace ?? {}),
-        ...monospaceInline,
+        ...(monospaceInline ?? {}),
       };
     }
     const monospaceBlock = this.getFont("monospace-block");
-    if (monospaceBlock) {
+    if (monospace || monospaceBlock) {
       typography["monospace-block"] = {
         ...(monospace ?? {}),
-        ...monospaceBlock,
+        ...(monospaceBlock ?? {}),
       };
     }
 

@@ -6,7 +6,7 @@ function format_typst_float(x)
   return f:gsub('%.00', ''):gsub('%.(%d)0', '.%1')
 end
 
-parse_css_color, parse_css_opacity, output_typst_color =
+parse_css_color, parse_css_opacity, output_typst_color, parse_css_length_unit, translate_css_length =
  (function()
   local css_named_colors = {
     transparent = 'rgba(0, 0, 0, 0)',
@@ -232,7 +232,14 @@ parse_css_color, parse_css_opacity, output_typst_color =
     end
     return comps
   end
-  local function parse_rgb(text)
+  local function output_warning(warnings, message)
+    if warnings then
+      warnings:insert(message)
+    else
+      quarto.log.warning(message)
+    end
+  end
+  local function parse_rgb(text, warnings)
     local parms = text:match('rgba?%((.*)%)')
     local colorspace = 'rgb'
     if not parms then return nil end
@@ -244,7 +251,7 @@ parse_css_color, parse_css_opacity, output_typst_color =
         if not matches then return nil end
         comps = parse_color_components(matches)
       else
-        _warnings:insert(colorspace .. ' should have 3-4 components ' .. text)
+        output_warning(warnings, colorspace .. ' should have 3-4 components ' .. text)
         return nil
       end
     else
@@ -252,7 +259,7 @@ parse_css_color, parse_css_opacity, output_typst_color =
       local colors, alpha
       if nslash > 0 then
         if nslash > 1 then
-          _warnings:insert(colorspace .. ' with multiple slashes ' .. text)
+          output_warning(warnings, colorspace .. ' with multiple slashes ' .. text)
           return nil
         end
         colors, alpha = parms:match('(.*) */ *(.*)')
@@ -274,7 +281,7 @@ parse_css_color, parse_css_opacity, output_typst_color =
     }
   end
 
-  local function parse_css_color(color)
+  local function parse_css_color(color, warnings)
     if color:sub(1, 1) == '#' then
       local value = color:sub(2)
       local short = value:len() < 5
@@ -307,7 +314,7 @@ parse_css_color, parse_css_opacity, output_typst_color =
         value = color
       }
     end
-    _warnings:insert('invalid color ' .. color)
+    output_warning(warnings, 'invalid color ' .. color)
     return nil
   end
 
@@ -315,7 +322,7 @@ parse_css_color, parse_css_opacity, output_typst_color =
     return format_typst_float(x) .. '%'
   end
 
-  local function output_typst_color(color, opacity)
+  local function output_typst_color(color, opacity, warnings)
     quarto.log.debug('output_typst_color input', color, opacity)
     if opacity then
       if not color then
@@ -330,7 +337,7 @@ parse_css_color, parse_css_opacity, output_typst_color =
       end
       if color.type == 'named' then
         if not typst_named_colors[color.value] and not css_named_colors[color.value] then
-          _warnings:insert('unknown color ' .. color.value)
+          output_warning(warnings, 'unknown color ' .. color.value)
           return nil
         end
         color = parse_css_color(typst_named_colors[color.value] or css_named_colors[color.value])
@@ -417,7 +424,98 @@ parse_css_color, parse_css_opacity, output_typst_color =
     end
   end
 
-  return parse_css_color, parse_css_opacity, output_typst_color
+  local length_units = {
+    -- font-relative
+    'em', 'rem', 'ex', 'rex', 'cap', 'rcap', 'ch', 'rch', 'ic', 'ric', 'lh', 'rlh',
+    -- viewport-relative
+    'vw', 'svw', 'lvw', 'dvw', 'vh', 'svh', 'lvh', 'dvh',
+    'vi', 'svi', 'lvi', 'dvi', 'vb', 'svb', 'lvb', 'dvb',
+    'vmin', 'svmin', 'lvmin', 'dvmin ', 'vmax', 'svmax', 'lvmax', 'dvmax',
+    -- absolute
+    'cm', 'mm', 'Q', 'in', 'pt', 'pc', 'px',
+    -- not really a length unit, but used for font-size
+    '%'
+  }
+  -- sort longest to shortest to find most specific
+  table.sort(length_units, function(a, b) return #a > #b end)
+
+  local PIXELS_TO_POINTS = 0.75
+
+  local function has_any_suffix(s, suffixes)
+    for _, suff in ipairs(suffixes) do
+      local suff2 = suff == '%' and '%%' or suff
+      if s:find(suff2 .. '$') then
+        return suff
+      end
+    end
+    return nil
+  end
+  
+  local function parse_css_length_unit(s)
+    return has_any_suffix(s, length_units)
+  end
+
+  local function passthrough(_, _, csslen) return csslen end
+  local function replace_suffix(dest)
+    return function(val, _, _) 
+      return val .. dest
+    end
+  end
+
+  local css_lengths = {
+    px = function(val, _, _)
+      local points = val * PIXELS_TO_POINTS
+      return format_typst_float(points) .. 'pt'
+    end,
+    pt = passthrough,
+    ['in'] = passthrough,
+    cm = passthrough,
+    mm = passthrough,
+    em = passthrough,
+    rem = replace_suffix('em'),
+    ['%'] = function(val, _, _)
+      return tostring(val / 100) .. 'em'
+    end,
+  }
+
+  local function translate_css_length(csslen, warnings)
+    local unit = parse_css_length_unit(csslen)
+    if not unit then
+      if csslen == '0' then
+        return '0pt'
+      end
+      output_warning(warnings, 'not a length ' .. csslen)
+      return nil
+    end
+    local nums = csslen:sub(1, -#unit - 1)
+    -- lua regex for number
+    -- https://stackoverflow.com/a/56694730
+    if not nums:match '^([+-]?%d*%.?%d+)%.?$' then
+      local numpart = nums:match '^([+-]?%d*%.?%d+)%.?'
+      if not numpart then
+        output_warning(warnings, 'not a number ' .. nums .. ' for unit ' .. unit .. ' in ' .. csslen)
+        return nil
+      else
+        output_warning(warnings, 'bad unit ' .. csslen:sub(#numpart + 1, -1) .. ' for number ' .. numpart .. ' in ' .. csslen)
+        return nil
+      end
+    end
+    local val = tonumber(nums)
+    if not val then
+      output_warning(warnings, 'not a number ' .. nums .. ' for unit ' .. unit .. ' in ' .. csslen)
+      return nil
+     end
+    local csf = css_lengths[unit]
+    if not csf then
+      output_warning(warnings, 'unit ' .. unit .. ' is not supported in ' .. csslen )
+      return nil
+    end
+    return csf(val, unit, csslen)
+  end
+
+
+  return parse_css_color, parse_css_opacity, output_typst_color,
+  parse_css_length_unit, translate_css_length
 end)()
 
 function render_typst_css_to_props()
@@ -466,93 +564,6 @@ function render_typst_css_to_props()
 
   local function quote(s)
     return '"' .. s .. '"'
-  end
-
-  local length_units = {
-    -- font-relative
-    'em', 'rem', 'ex', 'rex', 'cap', 'rcap', 'ch', 'rch', 'ic', 'ric', 'lh', 'rlh',
-    -- viewport-relative
-    'vw', 'svw', 'lvw', 'dvw', 'vh', 'svh', 'lvh', 'dvh',
-    'vi', 'svi', 'lvi', 'dvi', 'vb', 'svb', 'lvb', 'dvb',
-    'vmin', 'svmin', 'lvmin', 'dvmin ', 'vmax', 'svmax', 'lvmax', 'dvmax',
-    -- absolute
-    'cm', 'mm', 'Q', 'in', 'pt', 'pc', 'px',
-    -- not really a length unit, but used for font-size
-    '%'
-  }
-  -- sort longest to shortest to find most specific
-  table.sort(length_units, function(a, b) return #a > #b end)
-
-  PIXELS_TO_POINTS = 0.75
-
-  local function translate_string_list(sl)
-    local strings = {}
-    for s in sl:gmatch('([^,]+)') do
-      s = s:gsub('^%s+', '')
-      table.insert(strings, quote(dequote(s)))
-    end
-    return '(' .. table.concat(strings, ', ') ..')'
-  end
-
-  local function has_any_suffix(s, suffixes)
-    for _, suff in ipairs(suffixes) do
-      local suff2 = suff == '%' and '%%' or suff
-      if s:find(suff2 .. '$') then
-        return suff
-      end
-    end
-    return nil
-  end
-
-  local function passthrough(_, csslen) return csslen end
-
-  local css_lengths = {
-    px = function(val, _)
-      local points = val * PIXELS_TO_POINTS
-      return format_typst_float(points) .. 'pt'
-    end,
-    pt = passthrough,
-    ['in'] = passthrough,
-    cm = passthrough,
-    mm = passthrough,
-    ['%'] = function(val, _)
-      return tostring(val / 100) .. 'em'
-    end,
-  }
-
-  local function translate_length(csslen)
-    local unit = has_any_suffix(csslen, length_units)
-    if not unit then
-      if csslen == '0' then
-        return '0pt'
-      end
-      _warnings:insert('not a length ' .. csslen)
-      return nil
-    end
-    local nums = csslen:sub(1, -#unit - 1)
-    -- lua regex for number
-    -- https://stackoverflow.com/a/56694730
-    if not nums:match '^([+-]?%d*%.?%d+)%.?$' then
-      local numpart = nums:match '^([+-]?%d*%.?%d+)%.?'
-      if not numpart then
-        _warnings:insert('not a number ' .. nums .. ' for unit ' .. unit .. ' in ' .. csslen)
-        return nil
-      else
-        _warnings:insert('bad unit ' .. csslen:sub(#numpart + 1, -1) .. ' for number ' .. numpart .. ' in ' .. csslen)
-        return nil
-      end
-    end
-    local val = tonumber(nums)
-    if not val then
-      _warnings:insert('not a number ' .. nums .. ' for unit ' .. unit .. ' in ' .. csslen)
-      return nil
-     end
-    local csf = css_lengths[unit]
-    if not csf then
-      _warnings:insert('unit ' .. unit .. ' is not supported in ' .. csslen )
-      return nil
-    end
-    return csf(val, csslen)
   end
 
   local function translate_vertical_align(va)
@@ -619,7 +630,7 @@ function render_typst_css_to_props()
 
   local function translate_border_width(v)
     v = border_width_keywords[v] or v
-    local thickness = translate_length(v)
+    local thickness = translate_css_length(v, _warnings)
     return thickness == '0pt' and 'delete' or thickness
   end
 
@@ -634,7 +645,7 @@ function render_typst_css_to_props()
   end
 
   local function translate_border_color(v)
-    return output_typst_color(parse_css_color(v), nil)
+    return output_typst_color(parse_css_color(v, _warnings), nil, _warnings)
   end
 
   local border_translators = {
@@ -692,7 +703,7 @@ function render_typst_css_to_props()
         if tcontains(border_styles, term) then
           style = term
         else
-          if has_any_suffix(term, length_units) or border_width_keywords[term] then
+          if parse_css_length_unit(term) or border_width_keywords[term] then
             width = term
           else
             local paint2 = translate_border_color(term)
@@ -827,13 +838,13 @@ function render_typst_css_to_props()
         if not k or not v then
           -- pass
         elseif k == 'background-color' then
-          cell.attributes['typst:fill'] = output_typst_color(parse_css_color(v), nil)
+          cell.attributes['typst:fill'] = output_typst_color(parse_css_color(v, _warnings), nil, _warnings)
         elseif k == 'color' then
-          color = parse_css_color(v)
+          color = parse_css_color(v, _warnings)
         elseif k == 'opacity' then
-          opacity = parse_css_opacity(v)
+          opacity = parse_css_opacity(v, _warnings)
         elseif k == 'font-size' then
-          cell.attributes['typst:text:size'] = translate_length(v)
+          cell.attributes['typst:text:size'] = translate_css_length(v, _warnings)
         elseif k == 'vertical-align' then
           local a = translate_vertical_align(v)
           if a then table.insert(aligns, a) end
@@ -841,7 +852,7 @@ function render_typst_css_to_props()
           local a = translate_horizontal_align(v)
           if a then table.insert(aligns, a) end
         -- elseif k:find '^padding--' then
-        --   paddings[k:match('^padding--(%a+)')] = translate_length(v)
+        --   paddings[k:match('^padding--(%a+)')] = translate_css_length(v, _warnings)
         elseif k:find '^border' then
           handle_border(k, v, borders)
         end
@@ -850,7 +861,7 @@ function render_typst_css_to_props()
         cell.attributes['typst:align'] = table.concat(aligns, ' + ')
       end
       if color or opacity then
-        cell.attributes['typst:text:fill'] = output_typst_color(color, opacity)
+        cell.attributes['typst:text:fill'] = output_typst_color(color, opacity, _warnings)
       end
 
       -- inset seems either buggy or hard to get right, see
@@ -904,7 +915,7 @@ function render_typst_css_to_props()
       for clause in style:gmatch('([^;]+)') do
         local k, v = to_kv(clause)
         if k == 'background-color' then
-          hlprops.fill = output_typst_color(parse_css_color(v), nil)
+          hlprops.fill = output_typst_color(parse_css_color(v, _warnings), nil, _warnings)
         end
       end
     end
@@ -927,6 +938,15 @@ function render_typst_css_to_props()
     return span
   end
 
+  local function translate_string_list(sl)
+    local strings = {}
+    for s in sl:gmatch('([^,]+)') do
+      s = s:gsub('^%s+', '')
+      table.insert(strings, quote(dequote(s)))
+    end
+    return '(' .. table.concat(strings, ', ') ..')'
+  end
+  
   return {
     Table = function(tab)
       _warnings = new_table()
@@ -938,7 +958,7 @@ function render_typst_css_to_props()
             tab.attributes['typst:text:font'] = translate_string_list(v)
           end
           if k == 'font-size' then
-            tab.attributes['typst:text:size'] = translate_length(v)
+            tab.attributes['typst:text:size'] = translate_css_length(v, _warnings)
           end
         end
       end
@@ -970,7 +990,7 @@ function render_typst_css_to_props()
             div.attributes['typst:text:font'] = translate_string_list(v)
           end
           if k == 'font-size' then
-            div.attributes['typst:text:size'] = translate_length(v)
+            div.attributes['typst:text:size'] = translate_css_length(v, _warnings)
           end
         end
       end

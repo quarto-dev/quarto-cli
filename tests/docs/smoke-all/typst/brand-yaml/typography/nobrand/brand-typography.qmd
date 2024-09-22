@@ -1,5 +1,6 @@
 ---
 title: brand font - title is `#context text.font`{=typst} `#context text.size`{=typst}
+subtitle: subtitle is the same except `#context text.size`{=typst}
 format: typst
 include-in-header:
   text: |
@@ -21,9 +22,7 @@ _quarto:
 
 paragraph is `#context text.font`{=typst} `#context text.size`{=typst}.
 
-```{=typst}
-#text(font: "Fira Code")[Some text with font set explicitly to #context text.font #context text.size]
-```
+Here is some inline code: `fib(5)`
 
 ```
 const fib = num => num < 2 ? num : fib(num-1) + fib(num - 2);

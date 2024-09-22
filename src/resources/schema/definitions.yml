@@ -2749,6 +2749,11 @@
         ref: brand-maybe-named-color
       background-color:
         ref: brand-maybe-named-color
+      decoration: string
+
+- id: line-height-number-string
+  description: Line height
+  anyOf: [number, string]
 
 - id: brand-typography-options-block
   description: Typographic options for block monospace elements.
@@ -2761,11 +2766,13 @@
         ref: brand-font-weight
       style:
         ref: brand-font-style
-      line-height: string
+      line-height:
+        ref: line-height-number-string
       color:
         ref: brand-maybe-named-color
       background-color:
         ref: brand-maybe-named-color
+      decoration: string
 
 - id: brand-typography-options
   description: Typographic options.
@@ -2774,7 +2781,8 @@
     properties:
       family: string
       size: string
-      line-height: string
+      line-height:
+        ref: line-height-number-string
       weight:
         ref: brand-font-weight
       style:
@@ -2788,6 +2796,7 @@
           anyOf: [path, string]
         description: >
           Resolved local paths.
+      decoration: string
 
 - id: brand-named-font
   description: Names of customizeable fonts
@@ -2799,7 +2808,8 @@
     closed: true
     properties:
       family: string
-      line-height: string
+      line-height:
+        ref: line-height-number-string
       weight:
         ref: brand-font-weight
       style:
@@ -2808,6 +2818,7 @@
         ref: brand-maybe-named-color
       background-color:
         ref: brand-maybe-named-color
+      decoration: string
 
 - id: brand-font
   description: Font files and definitions for the brand.

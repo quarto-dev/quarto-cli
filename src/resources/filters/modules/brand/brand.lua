@@ -30,8 +30,19 @@ local function get_typography(fontName)
   local brand = param("brand")
   brand = brand and brand.processedData -- from src/core/brand/brand.ts
   if not brand then return nil end
-  -- todo: convert typography options from CSS to Typst
-  return brand.typography and brand.typography[fontName]
+  local typography = brand.typography and brand.typography[fontName]
+  if not typography then return nil end
+  local typsted = {}
+  for k, v in pairs(typography) do
+    if k == 'color' or k == 'background-color' then
+      typsted[k] = output_typst_color(parse_css_color(v))
+    elseif k == 'size' then
+      typsted[k] = translate_css_length(v)
+    else
+      typsted[k] = v
+    end
+  end
+  return typsted 
 end
 
 local function get_logo(name)
