@@ -49,15 +49,26 @@ function render_typst_brand_yaml()
     local _, ndash = location:gsub('-', '')
     if ndash ~= 1 then return nil end
     local horz, vert = location:match '(%a+)--(%a+)'
-    quarto.log.output('lota', horz, vert)
     if not horz_to_typst[horz] or not vert_to_typst[vert] then return nil end
-    quarto.log.output('lota3', horz, vert)
     return horz_to_typst[horz] .. '+' .. vert_to_typst[vert]
   end  
+
+  -- an approximation found here
+  -- https://github.com/typst/typst/issues/159
+  local function line_height_to_leading(lineHeight)
+    if not lineHeight then
+      return nil
+    elseif type(lineHeight) == 'number' then
+      return (lineHeight - 0.75) .. 'em'
+    else
+      quarto.log.warning("don't know how to use line-height " .. lineHeight .. ", only numeric supported atm")
+    end
+  end
 
   return {
     Pandoc = function(pandoc)
       local brand = param('brand')
+      local raw_block_shown = false
       if brand and brand.processedData then
         -- color
         if brand.processedData.color and next(brand.processedData.color) then
@@ -83,17 +94,158 @@ function render_typst_brand_yaml()
           local decl = '// theme colors at opacity ' .. BACKGROUND_OPACITY .. '\n#let brand-color-background = ' .. to_typst_dict_indent(themebk)
           quarto.doc.include_text('in-header', decl)
         end
-
+        local function quote_string(value)
+          if type(value) ~= 'string' then return value end
+          return '"' .. value .. '"'
+        end
+        local function conditional_entry(key, value, quote_strings)
+          if quote_strings == null then quote_strings = true end
+          if not value then return '' end
+          if quote_strings then value = quote_string(value) end
+          return key .. ': ' .. value .. ', '
+        end
         -- typography
-        local headings = _quarto.modules.brand.get_typography('headings')
-        if headings and headings.family then
-          quarto.doc.include_text('in-header', '#show heading: set text(font: "' .. headings.family .. '")')
+        local base = _quarto.modules.brand.get_typography('base')
+        if base and (base.weight or base.style or base.color) then
+            quarto.doc.include_text('in-header', table.concat({
+              '#set text(',
+              -- '#show par: set text(', has narrow effect than #show heading!
+              conditional_entry('weight', base.weight),
+              conditional_entry('style', base.style),
+              conditional_entry('fill', base.color, false),
+              ')'
+            }))
         end
-        local monospace = _quarto.modules.brand.get_typography('monospace')
-        if monospace and monospace.family then
-            quarto.doc.include_text('in-header', '#show raw: set text(font: "' .. monospace.family .. '")')
+        if base and base.decoration == 'underline' then
+          quarto.doc.include_text('in-header', '#show text: content => underline(content)')
+        end
+        if base and base['background-color'] then
+          quarto.doc.include_text('in-header', table.concat({
+            '#show text: content => highlight(fill: ',
+            base['background-color'],
+            ', content)'
+          }))
+        end
+        if base and base['line-height'] then
+          local lineHeight = base['line-height']
+          local leading = line_height_to_leading(lineHeight)
+          if leading then
+            quarto.doc.include_text('in-header', table.concat({
+              '#set par(leading: ', leading, ')'
+            }))
+          end
         end
 
+        local headings = _quarto.modules.brand.get_typography('headings')
+        if headings and (headings.weight or headings.style or headings.color) then
+            quarto.doc.include_text('in-header', table.concat({
+              '#show heading: set text(',
+              conditional_entry('font', headings.family),
+              conditional_entry('weight', headings.weight),
+              conditional_entry('style', headings.style),
+              conditional_entry('fill', headings.color, false),
+              ')'
+            }))
+        end
+        if headings and headings.decoration and headings.decoration == 'underline' then
+          quarto.doc.include_text('in-header', '#show heading: content => underline(content)')
+        end
+        if headings and headings['background-color'] then
+          quarto.doc.include_text('in-header', table.concat({
+            '#show heading: set block(fill: ',
+            headings['background-color'],
+            ', inset: 0.25em)'
+          }))
+        end
+        if headings and headings['line-height'] then
+          local lineHeight = headings['line-height']
+          local leading = line_height_to_leading(lineHeight)
+          if leading then
+            quarto.doc.include_text('in-header', table.concat({
+              '#show heading: set par(leading: ', leading, ')'
+            }))
+          end
+        end
+
+        local monospaceInline = _quarto.modules.brand.get_typography('monospace-inline')
+        if monospaceInline and monospaceInline.family then
+            quarto.doc.include_text('in-header', table.concat({
+              '#show raw.where(block: false): set text(',
+              conditional_entry('font', monospaceInline.family),
+              conditional_entry('weight', monospaceInline.weight),
+              conditional_entry('style', monospaceInline.style),
+              conditional_entry('size', monospaceInline.size, false),
+              conditional_entry('fill', monospaceInline.color, false),
+              ')'
+            }))
+        end
+        if monospaceInline and monospaceInline.decoration == 'underline' then
+          quarto.doc.include_text('in-header', '#show raw.where(block: false): content => underline(content)')
+        end
+        if monospaceInline and monospaceInline['background-color'] then
+          quarto.doc.include_text('in-header', table.concat({
+            '#show raw.where(block: false): content => highlight(fill: ',
+            monospaceInline['background-color'],
+            ', content)'
+          }))
+        end
+    
+        local monospaceBlock = _quarto.modules.brand.get_typography('monospace-block')
+        if monospaceBlock and monospaceBlock.family then
+          quarto.doc.include_text('in-header', table.concat({
+            '#show raw.where(block: true): set text(',
+            conditional_entry('font', monospaceBlock.family),
+            conditional_entry('weight', monospaceBlock.weight),
+            conditional_entry('style', monospaceBlock.style),
+            conditional_entry('size', monospaceBlock.size, false),
+            conditional_entry('fill', monospaceBlock.color, false),
+            ')'
+          }))
+        end
+        if monospaceBlock and monospaceBlock.decoration == 'underline' then
+          quarto.doc.include_text('in-header', '#show raw.where(block: true): content => underline(content)')
+        end
+        if monospaceBlock and monospaceBlock['background-color'] then
+          raw_block_shown = true
+          quarto.doc.include_text('in-header', table.concat({
+            '#show raw.where(block: true): set block(fill: ',
+            monospaceBlock['background-color'],
+            ')'
+          }))
+        end
+        if monospaceBlock and monospaceBlock['line-height'] then
+          local lineHeight = monospaceBlock['line-height']
+          local leading = line_height_to_leading(lineHeight)
+          if leading then
+            quarto.doc.include_text('in-header', table.concat({
+              '#show raw.where(block: true): set par(leading: ', leading, ')'
+            }))
+          end
+        end
+
+        local link = _quarto.modules.brand.get_typography('link')
+        if link and link.family then
+          quarto.doc.include_text('in-header', table.concat({
+            '#show link: set text(',
+            conditional_entry('font', link.family),
+            conditional_entry('weight', link.weight),
+            conditional_entry('style', link.style),
+            conditional_entry('size', link.size, false),
+            conditional_entry('fill', link.color, false),
+            ')'
+          }))
+        end
+        if link and link.decoration == 'underline' then
+          quarto.doc.include_text('in-header', '#show link: content => underline(content)')
+        end
+        if link and link['background-color'] then
+          quarto.doc.include_text('in-header', table.concat({
+            '#show link: content => highlight(fill: ',
+            link['background-color'],
+            ', content)'
+          }))
+        end
+  
         -- logo
         local logo = param('logo')
         local logoOptions = {}
@@ -139,16 +291,30 @@ function render_typst_brand_yaml()
       end
     end,
     Meta = function(meta)
+      meta.brand = meta.brand or {typography = {}}
       local base = _quarto.modules.brand.get_typography('base')
-      if base and base.family then
-        meta['mainfont'] = base.family
+      if base and next(base) then
+        meta.brand.typography.base = {
+          family = base.family,
+          size = base.size,
+        }
       end
+
       local headings = _quarto.modules.brand.get_typography('headings')
-      if headings and headings.family then
-        meta['title-font'] = headings.family
+      if headings and next(headings) then
+        base = base or {}
+        meta.brand.typography.headings = {
+          family = headings.family or base.family,
+          weight = headings.weight or base.weight,
+          style = headings.style or base.style,
+          decoration = headings.decoration or base.decoration,
+          color = headings.color or base.color,
+          ['background-color'] = headings['background-color'] or base['background-color'],
+          ['line-height'] = line_height_to_leading(headings['line-height'] or base['line-height']),
+        }
       end
       return meta
-    end
+    end,
   }
 end
 
