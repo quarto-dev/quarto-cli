@@ -1045,23 +1045,33 @@ end, function(float)
 
   local open_block = pandoc.RawBlock("markdown", "<div id=\"" .. float.identifier .. "\">\n")
   local close_block = pandoc.RawBlock("markdown", "\n</div>")
+  local result = pandoc.Blocks({open_block})
+  local insert_content = function()
+    if pandoc.utils.type(float.content) == "Block" then
+      result:insert(float.content)
+    else
+      result:extend(quarto.utils.as_blocks(float.content))
+    end
+  end
+  local insert_caption = function()
+    if pandoc.utils.type(float.caption_long) == "Block" then
+      result:insert(float.caption_long)
+    else
+      result:insert(pandoc.Plain(quarto.utils.as_inlines(float.caption_long)))
+    end
+  end
 
   if caption_location == "top" then
-    return pandoc.Blocks({
-      open_block,
-      float.caption_long,
-      float.content,
-      close_block
-    })
+    insert_caption()
+    insert_content()
+    result:insert(close_block)
   else
-    return pandoc.Blocks({
-      open_block,
-      float.content,
-      pandoc.RawBlock("markdown", "\n"),
-      float.caption_long,
-      close_block
-    })
+    insert_content()
+    result:insert(pandoc.RawBlock("markdown", "\n"))
+    insert_caption()
+    result:insert(close_block)
   end
+  return result
 end)
 
 _quarto.ast.add_renderer("FloatRefTarget", function(_)
