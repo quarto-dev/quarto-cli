@@ -139,15 +139,14 @@ export async function compileSass(
     ...userRules,
     '// quarto-scss-analysis-annotation { "origin": null }',
   ].join("\n\n");
+  let failed = false;
+  // deno-lint-ignore no-explicit-any
+  let e: any = null;
   try {
     scssInput += "\n" + cssVarsBlock(scssInput);
-  } catch (e) {
-    console.error("Error adding css vars block", e);
-    Deno.writeTextFileSync("scss-error.scss", scssInput);
-    console.error(
-      "This is a Quarto bug.\nPlease consider reporting it at https://github.com/quarto-dev/quarto-cli,\nalong with the scss-error.scss file that can be found in the current working directory.",
-    );
-    throw e;
+  } catch (_e) {
+    e = _e;
+    failed = true;
   }
 
   // Compile the scss
@@ -158,6 +157,18 @@ export async function compileSass(
     minified,
     md5HashBytes(new TextEncoder().encode(scssInput)),
   );
+
+  if (failed) {
+    console.warn("Error adding css vars block", e);
+    console.warn(
+      "The resulting CSS file will not have SCSS color variables exported as CSS.",
+    );
+    Deno.writeTextFileSync("_quarto_internal_scss_error.scss", scssInput);
+    console.warn(
+      "This is likely a Quarto bug.\nPlease consider reporting it at https://github.com/quarto-dev/quarto-cli,\nalong with the _quarto_internal_scss_error.scss file that can be found in the current working directory.",
+    );
+  }
+
   if (!Deno.env.get("QUARTO_SAVE_SCSS")) {
     return result;
   }
