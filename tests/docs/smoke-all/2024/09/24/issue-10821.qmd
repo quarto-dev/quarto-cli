@@ -1,0 +1,18 @@
+---
+title: issue-10821
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['<span class="in">#\| fig-cap: "This figure will have ''echo: fenced'' in its caption."</span>']
+        - []
+---
+
+```{r}
+#| echo: fenced
+#| whatever: "echo: fenced"
+#| fig-cap: "This figure will have 'echo: fenced' in its caption."
+#| label: fig-1
+plot(1:100)
+```
