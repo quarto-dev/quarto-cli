@@ -5,6 +5,9 @@ $if(title-font)$
   title-font: ("$title-font$",),
 $endif$
 $endif$
+$if(subtitle)$
+  subtitle: [$subtitle$],
+$endif$
 $if(by-author)$
   authors: (
 $for(by-author)$

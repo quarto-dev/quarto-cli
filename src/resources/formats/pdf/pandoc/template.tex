@@ -39,13 +39,13 @@ $if(section-titles)$
 }
 \setbeamertemplate{section page}{
   \centering
-  \begin{beamercolorbox}[sep=12pt,center]{part title}
+  \begin{beamercolorbox}[sep=12pt,center]{section title}
     \usebeamerfont{section title}\insertsection\par
   \end{beamercolorbox}
 }
 \setbeamertemplate{subsection page}{
   \centering
-  \begin{beamercolorbox}[sep=8pt,center]{part title}
+  \begin{beamercolorbox}[sep=8pt,center]{subsection title}
     \usebeamerfont{subsection title}\insertsubsection\par
   \end{beamercolorbox}
 }
@@ -344,10 +344,12 @@ $endfor$
 % get rid of language-specific shorthands (see #6817):
 \let\LanguageShortHands\languageshorthands
 \def\languageshorthands#1{}
-$endif$
+$if(selnolig-langs)$
 \ifLuaTeX
-  \usepackage{selnolig}  % disable illegal ligatures
+  \usepackage[$for(selnolig-langs)$$it$$sep$,$endfor$]{selnolig} % disable illegal ligatures
 \fi
+$endif$
+$endif$
 $if(dir)$
 \ifPDFTeX
   \TeXXeTstate=1

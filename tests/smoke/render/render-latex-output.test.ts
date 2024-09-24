@@ -8,7 +8,8 @@ import { docs } from "../../utils.ts";
 import { renderVerifyLatexOutput } from "./render.ts";
 
 renderVerifyLatexOutput(docs("latex-output/captionless-margin-image.qmd"), [
-  /{\\marginnote{\\begin{footnotesize}\\includegraphics{/,
+  /{\\marginnote{\\begin{footnotesize}\\pandocbounded{\\includegraphics\[keepaspectratio\]{/,
+  // /{\\marginnote{\\begin{footnotesize}\\pandocbounded{\\includegraphics{/,
 ]);
 renderVerifyLatexOutput(docs("latex-output/figure-div.qmd"), [
   /\\centering{/,
