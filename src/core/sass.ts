@@ -142,12 +142,11 @@ export async function compileSass(
   try {
     scssInput += "\n" + cssVarsBlock(scssInput);
   } catch (e) {
-    console.error("Error adding css vars block", e);
-    Deno.writeTextFileSync("scss-error.scss", scssInput);
-    console.error(
-      "This is a Quarto bug.\nPlease consider reporting it at https://github.com/quarto-dev/quarto-cli,\nalong with the scss-error.scss file that can be found in the current working directory.",
+    console.warn("Error adding css vars block", e);
+    Deno.writeTextFileSync("_quarto_internal_scss_error.scss", scssInput);
+    console.warn(
+      "This is a Quarto bug.\nPlease consider reporting it at https://github.com/quarto-dev/quarto-cli,\nalong with the _quarto_internal_scss_error.scss file that can be found in the current working directory.",
     );
-    throw e;
   }
 
   // Compile the scss
