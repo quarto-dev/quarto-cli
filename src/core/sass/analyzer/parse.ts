@@ -14,10 +14,20 @@ export const makeParserModule = (
       // it also doesn't like some valid ways to do '@import url'
       contents = contents.replaceAll("@import url", "//@import url");
 
-      // it also really doesn't like statemnts that don't end in a semicolon
+      // it also really doesn't like statements that don't end in a semicolon
       // so, in case you are reading this code to understand why the parser is failing,
       // ensure that your SCSS has semicolons at the end of every statement.
-      //
+      // we try to work around this by adding semicolons at the end of declarations that don't have them
+      contents = contents.replaceAll(
+        /^(?!\/\/)(.*[^}/\s\n;])([\s\n]*)}(\n|$)/mg,
+        "$1;$2}$3",
+      );
+      // It also doesn't like values that follow a colon directly without a space
+      contents = contents.replaceAll(
+        /(^\s*[A-Za-z0-9-]+):([^ \n])/mg,
+        "$1: $2",
+      );
+
       // This is relatively painful, because unfortunately the error message of scss-parser
       // is not helpful.
 

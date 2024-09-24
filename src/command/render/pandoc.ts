@@ -1383,6 +1383,7 @@ async function resolveExtras(
             const sourcelist = line.match(/^ *src: (.*); *$/);
             if (sourcelist) {
               const sources = sourcelist[1].split(",").map((s) => s.trim());
+              let found = false;
               const failed_formats = [];
               for (const source of sources) {
                 const match = source.match(
@@ -1392,6 +1393,7 @@ async function resolveExtras(
                   const [_, url, format] = match;
                   if (["truetype", "opentype"].includes(format)) {
                     ttf_urls.push(url);
+                    found = true;
                     break;
                   }
                   //  else if (["woff", "woff2"].includes(format)) {
@@ -1401,12 +1403,14 @@ async function resolveExtras(
                   failed_formats.push(format);
                 }
               }
-              console.log(
-                "skipping",
-                family,
-                "\nnot currently able to use formats",
-                failed_formats.join(", "),
-              );
+              if (!found) {
+                console.log(
+                  "skipping",
+                  family,
+                  "\nnot currently able to use formats",
+                  failed_formats.join(", "),
+                );
+              }
             }
           }
         }

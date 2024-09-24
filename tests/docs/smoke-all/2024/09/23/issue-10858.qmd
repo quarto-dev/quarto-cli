@@ -1,0 +1,17 @@
+---
+title: "Test"
+format: gfm
+---
+
+::: {#fig-line-plot}
+
+```python
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+```
+
+Some output
+
+A line plot
+:::
