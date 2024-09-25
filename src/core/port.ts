@@ -16,10 +16,13 @@ const kMaxPort = 8000;
 
 function isPortSafe(port: number): boolean {
   // cf https://superuser.com/a/188070
-  // excludes port numbers that chrome considers unsafe
+  // and netwerk/base/nsIOService.cpp in Firefox's source
+  //
+  // excludes port numbers that Chrome or Firefox consider unsafe
   return ![
     3659, // apple-sasl / PasswordServer
     4045, // lockd
+    4160, // sieve
     5060, // sip
     5061, // sips
     6000, // X11
@@ -29,6 +32,7 @@ function isPortSafe(port: number): boolean {
     6667, // Standard IRC [Apple addition]
     6668, // Alternate IRC [Apple addition]
     6669, // Alternate IRC [Apple addition]
+    6679, // osaut
     6697, // IRC + TLS
   ].includes(port);
 }
