@@ -1464,7 +1464,7 @@ async function mdFromCodeCell(
     let source = ld.cloneDeep(cell.source);
     if (fenced) {
       const optionsSource = cell.optionsSource.filter((line) =>
-        line.search(/echo:\s+fenced/) === -1
+        line.search(/\|\s+echo:\s+fenced\s*$/) === -1
       );
       if (optionsSource.length > 0) {
         source = trimEmptyLines(source, "trailing");

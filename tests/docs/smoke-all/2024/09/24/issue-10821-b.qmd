@@ -1,0 +1,19 @@
+---
+title: issue-10821
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['<span class="in">#\| fig-cap: ''This figure will have ''''echo: fenced'''' in its caption.''</span>']
+        - []
+        # - ['fig-cap']
+---
+
+```{python}
+#| echo: fenced
+#| label: fig-1
+#| fig-cap: "This figure will have 'echo: fenced' in its caption."
+import matplotlib.pyplot as plt
+plt.plot([1,2,3])
+```
