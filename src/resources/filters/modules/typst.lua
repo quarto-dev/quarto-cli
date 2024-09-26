@@ -59,12 +59,21 @@ local function _main()
     end
   end
   
-  local function as_typst_content(content)
-    local result = pandoc.Blocks({})
-    result:insert(pandoc.RawInline("typst", "[\n"))
-    result:extend(quarto.utils.as_blocks(content) or {})
-    result:insert(pandoc.RawInline("typst", "]\n"))
-    return result
+  local function as_typst_content(content, blocks_or_inlines)
+    blocks_or_inlines = blocks_or_inlines or "blocks"
+    if blocks_or_inlines == "blocks" then
+      local result = pandoc.Blocks({})
+      result:insert(pandoc.RawInline("typst", "["))
+      result:extend(quarto.utils.as_blocks(content) or {})
+      result:insert(pandoc.RawInline("typst", "]\n"))
+      return result
+    else
+      local result = pandoc.Inlines({})
+      result:insert(pandoc.RawInline("typst", "["))
+      result:extend(quarto.utils.as_inlines(content) or {})
+      result:insert(pandoc.RawInline("typst", "]"))
+      return result
+    end
   end
   
   return {

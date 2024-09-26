@@ -142,7 +142,7 @@
       new_title))
 
   block_with_new_content(old_callout,
-    new_title_block +
+    block(below: 0pt, new_title_block) +
     old_callout.body.children.at(1))
 }
 
