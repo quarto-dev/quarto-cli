@@ -282,7 +282,8 @@ jobs:
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
           echo "Pull Request Action Performed - ${{ steps.cpr.outputs.pull-request-operation }}"
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload test timing file
+        uses: actions/upload-artifact@v4
         if: matrix.time-test && ( failure() || cancelled())
         with:
           name: timed test file

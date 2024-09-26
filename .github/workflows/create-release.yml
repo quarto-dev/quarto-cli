@@ -65,7 +65,7 @@ jobs:
           # echo -e "Due to an issue with upstream dependency, the RHEL build may not included in this release." >> "release_note.md"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: News
           path: |
@@ -99,7 +99,7 @@ jobs:
           tar --owner=root --group=root -zcvf  quarto-${{needs.configure.outputs.version}}.tar.gz *
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Source
           path: ./quarto-${{needs.configure.outputs.version}}.tar.gz
@@ -132,7 +132,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Deb Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
@@ -165,7 +165,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Deb Arm64 Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
@@ -209,7 +209,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: RHEL Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
@@ -239,7 +239,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Deb Arm64 Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
@@ -269,7 +269,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Deb Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
@@ -278,7 +278,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure, make-tarball]
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: Deb Zip
           path: .
@@ -363,13 +363,13 @@ jobs:
           CERT_FINGERPRINT: ${{ secrets.SM_CLIENT_CERT_FINGERPRINT }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Windows Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
 
       - name: Upload Zip
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Windows Zip
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.zip
@@ -378,7 +378,7 @@ jobs:
     runs-on: windows-latest
     needs: [configure, make-installer-win]
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: Windows Zip
           path: .
@@ -439,13 +439,13 @@ jobs:
           QUARTO_APPLE_CONNECT_PW: ${{ secrets.APPLE_CONNECT_PW }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Mac Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.pkg
 
       - name: Upload Zip
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Mac Zip
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
@@ -459,7 +459,7 @@ jobs:
     runs-on: macos-latest
     needs: [configure, make-installer-mac]
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: Mac Zip
           path: .
@@ -495,7 +495,7 @@ jobs:
 
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - name: Rename news
         run: |
@@ -619,7 +619,7 @@ jobs:
     needs: [configure, publish-release]
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - uses: quarto-dev/quarto-cli/.github/actions/docker@main
         with:
