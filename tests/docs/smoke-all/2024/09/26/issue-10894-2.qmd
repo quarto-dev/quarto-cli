@@ -7,7 +7,9 @@ _quarto:
   tests:
     revealjs:
       ensureFileRegexMatches:
-        - ['98ce773e8b340c34e879b359b774b802.*1']
+        - 
+          - '98ce773e8b340c34e879b359b774b802.*1'
+          - 'Note.*1'
         - []
 ---
 
