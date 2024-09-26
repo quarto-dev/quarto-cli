@@ -23,7 +23,8 @@ local function ensure_callout_counter(ref)
   quarto.doc.include_text('in-header', newcommand)
 end
 
-function latexCalloutBoxDefault(title, callout_type, icon, callout) 
+function latexCalloutBoxDefault(title, callout_type, icon, callout)
+  title = title or ""
 
   -- callout dimensions
   local leftBorderWidth = '.75mm'
@@ -31,11 +32,12 @@ function latexCalloutBoxDefault(title, callout_type, icon, callout)
   local borderRadius = '.35mm'
   local leftPad = '2mm'
   local color = _quarto.modules.callouts.latexColorForType(callout_type)
+  local display_title = _quarto.modules.callouts.displayName(callout_type)
   local frameColor = _quarto.modules.callouts.latexFrameColorForType(callout_type)
 
   local iconForType = _quarto.modules.callouts.iconForType(callout_type)
 
-  local calloutContents = pandoc.List({});
+  local calloutContents = pandoc.List({})
 
   if is_valid_ref_type(refType(callout.attr.identifier)) then
     local ref = refType(callout.attr.identifier)
@@ -43,12 +45,18 @@ function latexCalloutBoxDefault(title, callout_type, icon, callout)
     -- ensure that front matter includes the correct new counter types
     ensure_callout_counter(ref)
 
-    local delim = ""
+    local suffix = ""
     if title:len() > 0 then
-       delim = pandoc.utils.stringify(titleDelim())
+       suffix = pandoc.utils.stringify(titleDelim()) .. " " .. title
     end
-    title = crossref_info.prefix .. " \\ref*{" .. callout.attr.identifier .. "}" .. delim .. " " .. title
+    title = display_title .. " \\ref*{" .. callout.attr.identifier .. "}" .. suffix
     calloutContents:insert(pandoc.RawInline('latex', '\\quartocallout' .. crossref_info.ref_type .. '{' .. callout.attr.identifier .. '} '))
+  else
+    if title:len() > 0 then
+      title = display_title .. pandoc.utils.stringify(titleDelim()) .. " " .. title
+    else
+      title = display_title
+    end
   end
 
   -- generate options
@@ -411,9 +419,7 @@ function render_latex()
       -- generate the callout box
       local callout
       if calloutAppearance == _quarto.modules.constants.kCalloutAppearanceDefault then
-        if title == nil then
-          title = _quarto.modules.callouts.displayName(type)
-        else
+        if title ~= nil then
           title = pandoc.write(pandoc.Pandoc(title), 'latex')
         end
         callout = latexCalloutBoxDefault(title, type, icon, node)
@@ -467,7 +473,6 @@ function render_latex()
         quarto.doc.use_latex_package('fancyvrb')
         quarto.doc.include_text('in-header', '\\VerbatimFootnotes')
       end
-      
       return pandoc.Div(calloutContents)
     end,
     Note = function(n)
