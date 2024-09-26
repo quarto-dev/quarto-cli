@@ -284,13 +284,13 @@ jobs:
           echo "Pull Request Action Performed - ${{ steps.cpr.outputs.pull-request-operation }}"
 
       - name: Upload test timing file
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: matrix.time-test && ( failure() || cancelled())
         with:
           name: timed test file
           path: tests/timing-for-ci.txt
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         # PLaywright test only runs on Linux for now
         if: ${{ !cancelled() && runner.os != 'Windows' }}
         with:
