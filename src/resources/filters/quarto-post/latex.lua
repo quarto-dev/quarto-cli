@@ -53,7 +53,7 @@ function latexCalloutBoxDefault(title, callout_type, icon, callout)
     calloutContents:insert(pandoc.RawInline('latex', '\\quartocallout' .. crossref_info.ref_type .. '{' .. callout.attr.identifier .. '} '))
   else
     if title:len() > 0 then
-      title = display_title .. pandoc.utils.stringify(titleDelim()) .. " " .. title
+      title = title
     else
       title = display_title
     end
