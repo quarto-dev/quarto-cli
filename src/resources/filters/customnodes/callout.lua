@@ -139,6 +139,7 @@ function _callout_main()
   _quarto.ast.add_renderer("Callout", function(_) 
     return _quarto.format.isEpubOutput() or _quarto.format.isRevealJsOutput()
   end, function (node)
+    node = _quarto.modules.callouts.decorate_callout_title_with_crossref(node)
     local title = quarto.utils.as_inlines(node.title)
     local type = node.type
     local calloutAppearance = node.appearance
