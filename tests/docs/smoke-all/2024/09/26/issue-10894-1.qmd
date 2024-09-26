@@ -1,0 +1,26 @@
+---
+format: html
+language:
+  callout-tip-title: "Note"
+  crossref-tip-prefix: "Note"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['<a href=.*>Note.*1</a>']
+        - []
+---
+
+::: {#tip-123 .callout-tip}
+
+Text
+
+:::
+
+::: {.callout-tip}
+
+Text
+
+:::
+
+See @tip-123.
