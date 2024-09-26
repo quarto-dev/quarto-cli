@@ -457,14 +457,6 @@ function languageFilterParams(format: Format) {
     [kCodeSummary]: format.metadata[kCodeSummary] || language[kCodeSummary],
     [kTocTitleDocument]: language[kTocTitleDocument],
   };
-  Object.keys(language).forEach((key) => {
-    if (
-      key.startsWith("callout-") || key.startsWith("crossref-") ||
-      key.startsWith("environment-")
-    ) {
-      params[key] = language[key];
-    }
-  });
   // default prefixes based on titles
   [
     "fig",
@@ -480,6 +472,14 @@ function languageFilterParams(format: Format) {
     "exr",
   ].forEach((type) => {
     params[`crossref-${type}-prefix`] = language[`crossref-${type}-title`];
+  });
+  Object.keys(language).forEach((key) => {
+    if (
+      key.startsWith("callout-") || key.startsWith("crossref-") ||
+      key.startsWith("environment-")
+    ) {
+      params[key] = language[key];
+    }
   });
   return params;
 }

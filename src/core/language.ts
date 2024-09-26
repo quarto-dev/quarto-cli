@@ -162,7 +162,12 @@ export function translationsForLang(language: FormatLanguage, lang: string) {
   // start with the defaults
   let translations = {} as FormatLanguage;
   Object.keys(language).forEach((key) => {
-    if (kLanguageDefaultsKeys.includes(key)) {
+    // crossrefs can be custom, so be more lenient
+    if (
+      kLanguageDefaultsKeys.includes(key) ||
+      key.match(/^crossref-.*-title$/) ||
+      key.match(/^crossref-.*-prefix$/)
+    ) {
       translations[key] = language[key];
     }
   });
@@ -193,13 +198,13 @@ export async function formatLanguage(
     metadata[kLang] ||
     "en"
   ) as string;
-  const defaultLanguge = translationsForLang(
+  const defaultLanguage = translationsForLang(
     (await readDefaultLanguageTranslations(langCode)).language,
     langCode,
   );
 
   // merge any user provided language w/ the defaults
-  language = mergeConfigs(defaultLanguge, language);
+  language = mergeConfigs(defaultLanguage, language);
 
   // now select the correct variations based on the lang code and translations
   return translationsForLang(language, langCode);
