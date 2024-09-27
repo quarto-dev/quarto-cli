@@ -25,7 +25,7 @@ _quarto:
     html:
       ensureHtmlElements:
         -
-          - 'table'
+          - 'table.table'
         - []
     typst:
       ensureTypstFileRegexMatches:

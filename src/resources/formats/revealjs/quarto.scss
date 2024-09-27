@@ -669,7 +669,7 @@ $panel-sidebar-padding: 0.5em;
 
 // https://github.com/quarto-dev/quarto-cli/issues/3380
 
-div.cell-output-display div.pagedtable-wrapper table {
+div.cell-output-display div.pagedtable-wrapper table.table {
   font-size: 0.6em;
 }
 
