@@ -27,7 +27,6 @@ export const makeParserModule = (
         /(^\s*[A-Za-z0-9-]+):([^ \n])/mg,
         "$1: $2",
       );
-      Deno.writeTextFileSync(`temp-${counter++}.scss`, contents);
 
       // This is relatively painful, because unfortunately the error message of scss-parser
       // is not helpful.
