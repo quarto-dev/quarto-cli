@@ -49,6 +49,7 @@ All changes included in 1.6:
   - For default behavior (`latex-auto-install: true`), detection is still happening and missing packages are installed automatically. If it fails, Quarto does not fail anymore as PDF rendering as succeeded already. Only a warning will be thrown to log the installation failure.
   - Log message about hyphenation package missing for `chinese` or `chinese-hans` languages are now ignored.
 - ([#10655](https://github.com/quarto-dev/quarto-cli/issues/10655)): Missing fonts from fontspec error are correctly detected and looked for to be installed.
+- ([#10891](https://github.com/quarto-dev/quarto-cli/issues/10891)): Interpret ANSI color codes in otherwise unformatted code blocks in `pdf` format.
 
 ## Projects
 
