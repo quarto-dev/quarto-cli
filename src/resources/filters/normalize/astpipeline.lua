@@ -22,6 +22,9 @@ function quarto_ast_pipeline()
     }
   end
   return {
+    -- identify pandoc table
+    { name = "normalize-pandoc-table", filter = pandoc_tables() },
+
     { name = "normalize-table-merge-raw-html", filter = table_merge_raw_html() },
 
     -- this filter can't be combined with others because it's top-down processing.
