@@ -489,8 +489,100 @@ function render_latex_fixups()
   if not _quarto.format.isLatexOutput() then
     return {}
   end
+  local hex_to_rgb = function(hex)
+    local r = tonumber(hex:sub(2, 3), 16) / 255
+    local g = tonumber(hex:sub(4, 5), 16) / 255
+    local b = tonumber(hex:sub(6, 7), 16) / 255
+    return ("{rgb}{%.2f,%.2f,%.2f}"):format(r, g, b)
+  end
 
+  local n_emitted_colors = 0
+  local emitted_colors = {}
+  local need_inject = false
+
+  local function emit_color(code)
+    need_inject = true
+    local n = emitted_colors[code]
+    if n == nil then
+      n_emitted_colors = n_emitted_colors + 1
+      emitted_colors[code] = n_emitted_colors
+      n = n_emitted_colors
+    end
+    return "{QuartoInternalColor" .. n .. "}"
+  end
+  -- these are currently copied from _quarto-rules.scss
+  -- which itself copies from IPython's ansi color scheme
+  -- TODO we should allow users to customize these
+  local dark_ansi_fg_colors = {
+    [30] = hex_to_rgb("#282c36"),
+    [31] = hex_to_rgb("#b22b31"),
+    [32] = hex_to_rgb("#007427"),
+    [33] = hex_to_rgb("#b27d12"),
+    [34] = hex_to_rgb("#0065ca"),
+    [35] = hex_to_rgb("#a03196"),
+    [36] = hex_to_rgb("#258f8f"),
+    [37] = hex_to_rgb("#a1a6b2"),
+  }
+  local bright_ansi_fg_colors = {
+    [30] = hex_to_rgb("#3e424d"),
+    [31] = hex_to_rgb("#e75c58"),
+    [32] = hex_to_rgb("#00a250"),
+    [33] = hex_to_rgb("#208ffb"),
+    [34] = hex_to_rgb("#ddb62b"),
+    [35] = hex_to_rgb("#d160c4"),
+    [36] = hex_to_rgb("#60c6c8"),
+    [37] = hex_to_rgb("#c5c1b4"),
+  }
+  local function emit_quarto_ansi_color(n)
+    local vs = pandoc.List(split(n, ";")):map(function (v) return tonumber(v) or 0 end)
+    if #vs == 0 then
+      return emit_color("{rgb}{0,0,0}")
+    elseif #vs == 1 then
+      return emit_color(dark_ansi_fg_colors[vs[1]] or "{rgb}{0,0,0}")
+    elseif #vs == 2 then
+      if vs[1] == 0 then
+        return emit_color(dark_ansi_fg_colors[vs[2]] or "{rgb}{0,0,0}")
+      elseif vs[1] == 1 then
+        return emit_color(bright_ansi_fg_colors[vs[2]] or "{rgb}{0,0,0}")
+      else
+        return emit_color("{rgb}{0,0,0}")
+      end
+    else
+      -- here we'll ignore the 4th entry in 38,5,color,??? codes
+      -- because we don't know what to do with it
+      if vs[1] == 38 and vs[2] == 5 then
+        local color = vs[3]
+        if color >= 0 and color <= 7 then
+          return emit_color(dark_ansi_fg_colors[color + 23] or "{rgb}{0,0,0}")
+        elseif color >= 8 and color <= 15 then
+          return emit_color(bright_ansi_fg_colors[color + 15] or "{rgb}{0,0,0}")
+        elseif color >= 16 and color <= 231 then
+          local r = math.floor((color - 16) / 36)
+          local g = math.floor(((color - 16) % 36) / 6)
+          local b = (color - 16) % 6
+          return emit_color(("{rgb}{%.2f,%.2f,%.2f}"):format(r / 5, g / 5, b / 5))
+        elseif color >= 232 and color <= 255 then
+          local v = (color - 232) * 10 + 8
+          return emit_color(("{rgb}{%.2f,%.2f,%.2f}"):format(v / 255, v / 255, v / 255))
+        end
+      end
+      print("Unknown ANSI color code: " .. n)
+      return emit_color("{rgb}{0,0,0}")
+    end
+  end
   return {
+    Meta = function(meta)
+      if not need_inject then
+        return
+      end
+      metaInjectLatex(meta, function(inject)
+        for v, i in pairs(emitted_colors) do
+          local def = "\\definecolor{QuartoInternalColor" .. i .. "}" .. v
+          inject(def)
+        end
+      end)
+      return meta
+    end,
     RawBlock = function(raw)
       if _quarto.format.isRawLatex(raw) then
         local long_table_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexLongtablePattern)
@@ -500,6 +592,27 @@ function render_latex_fixups()
             _quarto.modules.patterns.combine_patterns(_quarto.patterns.latexLongtablePattern), "\\begin{longtable*}%2\\end{longtable*}", 1)
           return raw
         end
+      end
+    end,
+    CodeBlock = function(code)
+      if code.text:match("\027%[[0-9;]+m") and #code.classes == 0 then
+        local lines = split(code.text, "\n")
+        local new_lines = pandoc.List({
+          '\\begin{Highlighting}'
+        })
+        local cur_color = "\\textcolor{black}"
+        for _, line in ipairs(lines) do
+          local start_color = cur_color
+          line = line:gsub("\027%[([0-9;]+)m", function(n)
+            local this_color = "\\textcolor" .. emit_quarto_ansi_color(n)
+            cur_color = this_color
+            return "}" .. this_color .. "{"
+          end)
+          line = start_color .. "{" .. line .. "}"
+          new_lines:insert(line)
+        end
+        new_lines:insert('\\end{Highlighting}')
+        return pandoc.RawBlock('latex', table.concat(new_lines, "\n"))
       end
     end
   }
