@@ -150,6 +150,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     } else {
       localAlternateSentinel = value;
     }
+    window.dispatchEvent(
+      new CustomEvent("quarto-color-scheme", { detail: { value } })
+    );
   }
 
   const getColorSchemeSentinel = () => {
