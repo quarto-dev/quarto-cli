@@ -12,6 +12,7 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   /* Look for test files in the "tests" directory, relative to this configuration file. */
   testDir: "./tests",
+  snapshotPathTemplate: "{testDir}/__screenshots__/{testFilePath}/{arg}{ext}",
   /* Maximum time one test can run for. */
   timeout: 30 * 1000,
   expect: {
