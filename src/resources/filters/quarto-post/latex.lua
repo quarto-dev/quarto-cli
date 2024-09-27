@@ -498,8 +498,10 @@ function render_latex_fixups()
 
   local n_emitted_colors = 0
   local emitted_colors = {}
+  local need_inject = false
 
   local function emit_color(code)
+    need_inject = true
     local n = emitted_colors[code]
     if n == nil then
       n_emitted_colors = n_emitted_colors + 1
@@ -570,6 +572,9 @@ function render_latex_fixups()
   end
   return {
     Meta = function(meta)
+      if not need_inject then
+        return
+      end
       metaInjectLatex(meta, function(inject)
         for v, i in pairs(emitted_colors) do
           local def = "\\definecolor{QuartoInternalColor" .. i .. "}" .. v
