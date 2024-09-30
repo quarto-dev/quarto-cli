@@ -93,3 +93,4 @@ All changes included in 1.6:
 - ([#10608](https://github.com/quarto-dev/quarto-cli/issues/10608)): Don't overwrite the built-in CSS function `contrast` in Quarto's SCSS.
 - ([#10821](https://github.com/quarto-dev/quarto-cli/issues/10821)): Be more conservative in stripping `echo: fenced` from fenced output.
 - ([#10890](https://github.com/quarto-dev/quarto-cli/issues/10890)): Don't use ports that Firefox considers unsafe.
+- ([#10936](https://github.com/quarto-dev/quarto-cli/issues/10936)): Use `\\` in `meta` shortcode to escape the following character, allowing keys with `.` in them.
