@@ -14,7 +14,7 @@ const isCI = !!process.env.CI;
 export default defineConfig({
   /* Look for test files in the "tests" directory, relative to this configuration file. */
   testDir: "./tests",
-  snapshotPathTemplate: "{testDir}/__screenshots__/{testFilePath}/{arg}{ext}",
+  snapshotPathTemplate: "{testDir}/__screenshots__/{testFilePath}/{platform}/{arg}{ext}",
   /* Maximum time one test can run for. */
   timeout: 30 * 1000,
   expect: {
