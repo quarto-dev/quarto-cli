@@ -624,7 +624,7 @@ h2 {
   );
   margin-top: 2rem;
   margin-bottom: 1rem;
-  font-weight: 600;
+  font-weight: $h1h2h3-font-weight;
 }
 
 h1.title {
@@ -641,7 +641,7 @@ h2 {
 }
 
 h3 {
-  font-weight: 600;
+  font-weight: $h1h2h3-font-weight;
 }
 
 h3,

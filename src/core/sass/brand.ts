@@ -18,7 +18,6 @@ import { ProjectContext } from "../../project/types.ts";
 import {
   BrandFont,
   BrandFontBunny,
-  BrandFontFile,
   BrandFontGoogle,
   BrandFontWeight,
 } from "../../resources/types/schema-types.ts";
@@ -275,97 +274,6 @@ const brandTypographyBundle = (
     return googleFamily;
   };
 
-  // const resolveBunnyFontFamily = (
-  //   font: BrandFont[],
-  // ): string | undefined => {
-  //   let bunnyFamily = "";
-  //   for (const _resolvedFont of font) {
-  //     const resolvedFont = _resolvedFont as (BrandFontGoogle | BrandFontBunny);
-  //     if (resolvedFont.source !== "bunny") {
-  //       return undefined;
-  //     }
-  //     const thisFamily = resolvedFont.family;
-  //     if (!thisFamily) {
-  //       continue;
-  //     }
-  //     if (bunnyFamily === "") {
-  //       bunnyFamily = thisFamily;
-  //     } else if (bunnyFamily !== thisFamily) {
-  //       throw new Error(
-  //         `Inconsisent Bunny font families found: ${bunnyFamily} and ${thisFamily}`,
-  //       );
-  //     }
-  //     typographyVariables.push(bunnyFontImportString(resolvedFont));
-  //   }
-  //   if (bunnyFamily === "") {
-  //     return undefined;
-  //   }
-  //   return bunnyFamily;
-  // };
-
-  // const resolveFilesFontFamily = (
-  //   font: BrandFont[],
-  // ): string | undefined => {
-  //   let filesFamily = "";
-  //   for (const _resolvedFont of font) {
-  //     const resolvedFont = _resolvedFont as BrandFontFile;
-  //     const files = typeof resolvedFont.files === "string"
-  //       ? [resolvedFont.files]
-  //       : resolvedFont.files;
-  //     if (filesFamily === "") {
-  //       filesFamily = resolvedFont.family;
-  //     } else if (filesFamily !== resolvedFont.family) {
-  //       throw new Error(
-  //         `Inconsisent font families found: ${filesFamily} and ${resolvedFont.family}`,
-  //       );
-  //     }
-  //     // we roll our own List monad-like thing here
-  //     let cssRuleEntries: Record<string, string>[] = [{
-  //       // FIXME
-  //       // src: files.map((file) =>
-  //       //   `url('${computePath(file)}') format('${fontFileFormat(file)}')`
-  //       // ).join(", "),
-  //       src: "",
-  //       "font-family": `'${resolvedFont.family}'`,
-  //     }];
-  //     const addEntry = (key: string, value: string | string[] | undefined) => {
-  //       if (!value) {
-  //         return;
-  //       }
-  //       if (typeof value === "string") {
-  //         cssRuleEntries = cssRuleEntries.map((entry) => ({
-  //           ...entry,
-  //           [key]: value,
-  //         }));
-  //       } else {
-  //         const newEntries: Record<string, string>[] = [];
-  //         for (const entry of cssRuleEntries) {
-  //           for (const v of value) {
-  //             newEntries.push({
-  //               ...entry,
-  //               [key]: v,
-  //             });
-  //           }
-  //         }
-  //         cssRuleEntries = newEntries;
-  //       }
-  //     };
-  //     addEntry("font-style", resolvedFont.style);
-  //     const weight = Array.isArray(resolvedFont.weight)
-  //       ? resolvedFont.weight.map((x) => String(x))
-  //       : [String(resolvedFont.weight)];
-  //     addEntry("font-weight", weight);
-
-  //     const cssString = cssRuleEntries.map((entry) => {
-  //       return "@font-face { " + Object.entries(entry).map(([key, value]) =>
-  //         `${key}: ${value}`
-  //       ).join("; ") + "; }";
-  //     }).join("\n");
-  //     typographyImports.push(cssString);
-  //   }
-  //   return filesFamily;
-  // };
-
   type HTMLFontInformation = { [key: string]: unknown };
 
   type FontKind =
@@ -427,6 +335,7 @@ const brandTypographyBundle = (
       ["family", "headings-font-family"],
       ["line-height", "headings-line-height"],
       ["weight", "headings-font-weight"],
+      ["weight", "h1h2h3-font-weight"],
       ["color", "headings-color"],
       ["style", "headings-font-style"],
 

@@ -9,15 +9,12 @@
 import {
   Brand as BrandJson,
   BrandFont,
-  BrandNamedFont,
   BrandNamedLogo,
   BrandNamedThemeColor,
   BrandStringLightDark,
   BrandTypography,
   BrandTypographyOptions,
 } from "../../resources/types/schema-types.ts";
-
-import { mergeConfigs } from "../../core/config.ts";
 
 // we can't programmatically convert typescript types to string arrays,
 // so we have to define this manually. They should match `BrandNamedThemeColor` in schema-types.ts
@@ -36,18 +33,6 @@ export const defaultColorNames: BrandNamedThemeColor[] = [
   "dark",
   "emphasis",
   "link",
-];
-
-// emphasis and link do not have font-family key
-// could they still refer to with items?
-const defaultFontNames: string[] = [
-  "base",
-  // "emphasis",
-  "headings",
-  // "link",
-  "monospace",
-  "monospace-inline",
-  "monospace-block",
 ];
 
 const defaultLogoNames: string[] = [
