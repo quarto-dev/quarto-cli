@@ -1081,15 +1081,17 @@ end, function(float)
     warn("Can't render float without content")
     return pandoc.Null()
   end
-  local im = quarto.utils.match("Plain/[1]/Image")(float.content)
-  if im then
-    decorate_caption_with_crossref(float)
-    im.caption = quarto.utils.as_inlines(float.caption_long)
-    return pandoc.Para({im})
-  else 
+  local im_plain = quarto.utils.match("Plain/[1]/Image")(float.content)
+  local im_para = quarto.utils.match("Para/[1]/Image")(float.content)
+  if not im_plain and not im_para then
     warn("PowerPoint output for FloatRefTargets require a single image as content")
     return pandoc.Null()
   end
+
+  local im = im_plain or im_para
+  decorate_caption_with_crossref(float)
+  im.caption = quarto.utils.as_inlines(float.caption_long)
+  return pandoc.Para({im})
 end)
 
 global_table_guid_id = 0
