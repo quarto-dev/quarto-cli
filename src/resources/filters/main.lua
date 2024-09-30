@@ -98,7 +98,6 @@ import("./quarto-finalize/typst.lua")
 
 import("./normalize/flags.lua")
 import("./normalize/normalize.lua")
-import("./normalize/pandoc-tables.lua")
 import("./normalize/parsehtml.lua")
 import("./normalize/extractquartodom.lua")
 import("./normalize/astpipeline.lua")
