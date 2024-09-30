@@ -1,0 +1,28 @@
+---
+title: Unsupported floatref gives Lua warning and empty content
+format: pptx
+_quarto:
+  tests:
+    pptx:
+      printsMessage:
+        - INFO
+        - 'WARNING.*FloatRefTargets require'
+      ensurePptxXpath:
+      - 
+        - 2
+        - []
+        - ['//a:tbl']
+
+---
+
+## slide with fig div
+
+::: {#fig-table}
+
+| A | B |
+|---|---|
+| C | D |
+
+A table treated like a figure 
+
+:::
