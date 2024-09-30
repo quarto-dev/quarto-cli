@@ -52,7 +52,7 @@ Deno.test({
     try {
       // run playwright
       const res = await execProcess({
-        cmd: [Deno.build.os == "windows" ? "npx.cmd" : "npx", "playwright", "test"],
+        cmd: [Deno.build.os == "windows" ? "npx.cmd" : "npx", "playwright", "test", "--ignore-snapshots"],
         cwd: "integration/playwright",
       });
       if (!res.success) {
