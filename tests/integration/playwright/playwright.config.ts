@@ -6,12 +6,15 @@ import { defineConfig, devices } from '@playwright/test';
  */
 // require('dotenv').config();
 
+const isCI = !!process.env.CI;
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
   /* Look for test files in the "tests" directory, relative to this configuration file. */
   testDir: "./tests",
+  snapshotPathTemplate: "{testDir}/__screenshots__/{testFilePath}/{platform}/{arg}{ext}",
   /* Maximum time one test can run for. */
   timeout: 30 * 1000,
   expect: {
@@ -24,13 +27,16 @@ export default defineConfig({
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!process.env.CI,
+  forbidOnly: isCI,
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  retries: isCI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  workers: isCI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [["html", { open: "never" }]],
+  reporter: [
+    ["html", { open: "never" }],
+    isCI ? ['github'] : ['line'],
+  ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -91,7 +97,7 @@ export default defineConfig({
   webServer: {
     command: 'python -m http.server 8080',
     url: 'http://127.0.0.1:8080',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !isCI,
     cwd: '../../docs/playwright',
   },
 });
