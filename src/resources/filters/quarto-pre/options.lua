@@ -39,7 +39,6 @@ function var(name, def)
 end
 
 function parseOption(name, options, def)
-  print(name)
   name = name:gsub("%\\%.", string.char(1))
   local keys = split(name, ".")
   local value = nil
