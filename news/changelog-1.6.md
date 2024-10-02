@@ -1,5 +1,9 @@
 All changes included in 1.6:
 
+## Breaking changes
+
+- The syntax for standard library imports in `quarto run` TypeScript files (`*.ts`) changed. Please see https://prerelease.quarto.org/docs/projects/scripts.html#deno-scripts for how to make the necessary changes.
+
 ## `quarto inspect`
 
 - ([#10039](https://github.com/quarto-dev/quarto-cli/issues/10039)): `quarto inspect` properly handles `!expr` tag in metadata.
@@ -81,6 +85,7 @@ All changes included in 1.6:
 
 - Upgrade `mermaidjs` to 11.2.0.
 - Upgrade Pandoc to 3.4.
+- Upgrade `deno` to 1.46.3.
 - ([#10162](https://github.com/quarto-dev/quarto-cli/issues/10162)): Use Edge on `macOS` as a Chromium browser when available.
 - ([#10235](https://github.com/quarto-dev/quarto-cli/issues/10235)): Configure the CI schedule trigger to activate exclusively for the upstream repository.
 - ([#10295](https://github.com/quarto-dev/quarto-cli/issues/10235)): Fix regression to return error status to shell when `CommandError` is thrown.
