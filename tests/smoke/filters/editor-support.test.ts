@@ -6,7 +6,7 @@
 
 import { docs } from "../../utils.ts";
 import { test } from "../../test.ts";
-import { assertEquals } from "testing/asserts.ts";
+import { assertEquals } from "testing/asserts";
 
 async function runEditorSupportCrossref(doc: string) {
   let cmdLine: string;

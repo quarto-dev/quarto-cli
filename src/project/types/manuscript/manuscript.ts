@@ -84,7 +84,7 @@ import {
   mecaFileName,
   shouldMakeMecaBundle,
 } from "./manuscript-meca.ts";
-import { readLines } from "io/mod.ts";
+import { readLines } from "../../../deno_ral/io.ts";
 import {
   computeProjectArticleFile,
   isArticle,
@@ -107,7 +107,7 @@ import { isQmdFile } from "../../../execute/qmd.ts";
 import * as ld from "../../../core/lodash.ts";
 import { safeExistsSync } from "../../../core/path.ts";
 
-import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
+import { copySync, ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
 import { kTitleBlockStyle } from "../../../format/html/format-html-title.ts";
 import { resolveProjectInputLinks } from "../website/website-utils.ts";
 

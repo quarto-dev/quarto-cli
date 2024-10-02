@@ -1,7 +1,7 @@
 import { testQuartoCmd } from "../../test.ts";
 import { directoryContainsOnlyAllowedPaths, fileExists, folderExists, noErrorsOrWarnings, printsMessage } from "../../verify.ts";
 import { join } from "../../../src/deno_ral/path.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
 
 const tempDir = Deno.makeTempDirSync();
 

@@ -4,7 +4,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
 import { basename, join } from "../../deno_ral/path.ts";
 import { kIncludeInHeader, kSelfContained } from "../../config/constants.ts";
 
@@ -177,7 +177,7 @@ export async function revealPluginExtras(
   const resolvePlugin = async (
     plugin: string | RevealPluginBundle | RevealPlugin,
   ) => {
-    if (typeof (plugin) === "string") {
+    if (typeof plugin === "string") {
       // This is just a simple path
       // If the path can be resolved to a file on disk then
       // don't treat it as an extension
@@ -194,7 +194,7 @@ export async function revealPluginExtras(
 
         const pluginBundles = resolvedPlugins.map(
           (resolvedPlug): RevealPluginBundle => {
-            if (typeof (resolvedPlug) === "string") {
+            if (typeof resolvedPlug === "string") {
               return {
                 plugin: resolvedPlug,
                 config: plugin.config,
@@ -234,7 +234,7 @@ export async function revealPluginExtras(
   // read plugins
   for (let bundle of pluginBundles) {
     // convert string to plugin
-    if (typeof (bundle) === "string") {
+    if (typeof bundle === "string") {
       bundle = {
         plugin: bundle,
       };
@@ -513,7 +513,7 @@ async function pluginFromBundle(
     plugin.script = [plugin.script];
   }
   plugin.script = plugin.script?.map((script) => {
-    if (typeof (script) === "string") {
+    if (typeof script === "string") {
       return {
         path: script,
       };

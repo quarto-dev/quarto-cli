@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync, walkSync} from "fs/mod.ts";
+import { existsSync, walkSync } from "../src/deno_ral/fs.ts";
 import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 import { basename, dirname, join, relative, resolve } from "../src/deno_ral/path.ts";
 import { parseXmlDocument } from "slimdom";
 import xpath from "fontoxpath";

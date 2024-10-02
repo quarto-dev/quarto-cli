@@ -6,7 +6,7 @@
 
 import * as ld from "../core/lodash.ts";
 
-import { existsSync, walkSync } from "fs/mod.ts";
+import { existsSync, walkSync } from "../deno_ral/fs.ts";
 
 import {
   basename,

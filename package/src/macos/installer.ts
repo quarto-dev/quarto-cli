@@ -11,7 +11,7 @@
 // TODO: Bundle and package Identifier - same or different?
 
 import { dirname, join } from "../../../src/deno_ral/path.ts";
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "../../../src/deno_ral/fs.ts";
 import { error, info, warning } from "../../../src/deno_ral/log.ts";
 
 import { Configuration } from "../common/config.ts";

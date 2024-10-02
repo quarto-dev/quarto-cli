@@ -83,7 +83,7 @@ import { getDivAttributes } from "../../core/handlers/base.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { executeInlineCodeHandlerMapped } from "../../core/execute-inline.ts";
 
-import { encodeBase64 } from "encoding/base64.ts";
+import { encodeBase64 } from "encoding/base64";
 
 export interface OjsCompileOptions {
   source: string;

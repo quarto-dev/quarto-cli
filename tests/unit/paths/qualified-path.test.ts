@@ -12,7 +12,7 @@ import {
   PathInfo,
   QualifiedPath,
 } from "../../../src/core/qualified-path.ts";
-import { assertEquals, assertRejects } from "testing/asserts.ts";
+import { assertEquals, assertRejects } from "testing/asserts";
 
 //deno-lint-ignore require-await
 unitTest("qualified-path - basic", async () => {

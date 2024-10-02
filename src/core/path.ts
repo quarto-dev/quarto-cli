@@ -9,18 +9,16 @@ import {
   dirname,
   extname,
   fromFileUrl,
+  globToRegExp,
   isAbsolute,
+  isGlob,
   join,
   normalize,
 } from "../deno_ral/path.ts";
 
-import { globToRegExp } from "path/glob_to_regexp.ts";
-import { isGlob } from "path/mod.ts";
-
 import { warning } from "../deno_ral/log.ts";
 
-import { existsSync } from "fs/exists.ts";
-import { expandGlobSync } from "fs/expand_glob.ts";
+import { existsSync, expandGlobSync } from "../deno_ral/fs.ts";
 
 import * as ld from "./lodash.ts";
 

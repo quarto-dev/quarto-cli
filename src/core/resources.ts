@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { debug, warning } from "../deno_ral/log.ts";
-import { existsSync, walkSync } from "fs/mod.ts";
+import { debug } from "../deno_ral/log.ts";
+import { existsSync, walkSync } from "../deno_ral/fs.ts";
 import { dirname, join } from "../deno_ral/path.ts";
 import { warnOnce } from "./log.ts";
 import { safeExistsSync, which } from "./path.ts";

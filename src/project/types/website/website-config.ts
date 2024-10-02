@@ -44,7 +44,7 @@ import {
   kWebsite,
 } from "./website-constants.ts";
 import { ensureTrailingSlash } from "../../../core/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../deno_ral/fs.ts";
 import { join } from "../../../deno_ral/path.ts";
 
 type WebsiteConfigKey =

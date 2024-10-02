@@ -5,7 +5,7 @@
  */
 import { debug, warning } from "../../deno_ral/log.ts";
 
-import { existsSync } from "fs/exists.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 import { basename, join, relative } from "../../deno_ral/path.ts";
 
 import { expandPath, which } from "../../core/path.ts";
@@ -31,7 +31,7 @@ import { hasTinyTex, tinyTexInstallDir } from "./tinytex-info.ts";
 import { copyTo } from "../../core/copy.ts";
 import { suggestUserBinPaths } from "../../core/path.ts";
 
-import { ensureDirSync, walkSync } from "fs/mod.ts";
+import { ensureDirSync, walkSync } from "../../deno_ral/fs.ts";
 
 // This the https texlive repo that we use by default
 const kDefaultRepos = [

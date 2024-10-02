@@ -7,7 +7,7 @@
 import { readRegistryKey } from "./windows.ts";
 import { safeExistsSync, which } from "./path.ts";
 import { error, info } from "../deno_ral/log.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { UnreachableError } from "./lib/error.ts";
 import { quartoDataDir } from "./appdirs.ts";
 

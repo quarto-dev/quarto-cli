@@ -7,8 +7,8 @@
  */
 
 import { initializeLogger, logError, logOptions } from "../../src/core/log.ts";
-import { Args } from "flags/mod.ts";
-import { parse } from "flags/mod.ts";
+import { Args } from "flags";
+import { parse } from "flags";
 import { exitWithCleanup } from "./cleanup.ts";
 import {
   captureFileReads,

@@ -1,12 +1,10 @@
 /*
-* filtered-notebook-cache.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * filtered-notebook-cache.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
-import { existsSync } from "fs/exists.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
 import { dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 
 import { parseShellRunCommand } from "../../core/run/shell.ts";

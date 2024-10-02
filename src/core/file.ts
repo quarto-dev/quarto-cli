@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { execProcess } from "./process.ts";
-import { TextLineStream } from "streams/mod.ts";
+import { TextLineStream } from "streams/text-line-stream";
 
 export function existsSync1(s: string | URL) {
   // eat all but the first param to work in map, filter, find, etc.

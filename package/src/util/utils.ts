@@ -1,4 +1,4 @@
-import { writeAll } from "io/write_all.ts";
+import { writeAll } from "io/write-all";
 import { CmdResult, runCmd } from "./cmd.ts";
 
 // Read an environment variable

@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { MuxAsyncIterator, pooledMap } from "async/mod.ts";
-import { iterateReader } from "streams/mod.ts";
+import { MuxAsyncIterator, pooledMap } from "async";
+import { iterateReader } from "io/iterate-reader";
 import { debug, info } from "../deno_ral/log.ts";
 import { onCleanup } from "./cleanup.ts";
 import { ProcessResult } from "./process-types.ts";

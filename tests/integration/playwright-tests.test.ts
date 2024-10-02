@@ -14,7 +14,7 @@ import {
 import { cleanoutput } from "../smoke/render/render.ts";
 import { execProcess } from "../../src/core/process.ts";
 import { quartoDevCmd } from "../utils.ts";
-import { fail } from "testing/asserts.ts";
+import { fail } from "testing/asserts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();

@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { MuxAsyncIterator } from "async/mod.ts";
-import { iterateReader } from "streams/mod.ts";
+import { MuxAsyncIterator } from "async/mux-async-iterator";
+import { iterateReader } from "io/iterate-reader";
 import { isWindows } from "../core/platform.ts";
 
 export interface PreviewServer {

@@ -5,7 +5,7 @@
  */
 
 import { basename, join } from "../../../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../deno_ral/fs.ts";
 import { error, info } from "../../../deno_ral/log.ts";
 
 import { PdfEngine } from "../../../config/types.ts";

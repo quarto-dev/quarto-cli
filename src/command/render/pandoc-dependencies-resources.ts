@@ -17,7 +17,7 @@ import {
   appendDependencies,
   FormatResourceDependency,
 } from "./pandoc-dependencies.ts";
-import { existsSync } from "fs/exists.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 
 export interface Resource {
   file: string;

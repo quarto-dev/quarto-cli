@@ -26,7 +26,7 @@ import {
 import { formatResourcePath } from "../../core/resources.ts";
 import { createFormat } from "../formats-shared.ts";
 
-import { decodeBase64 as base64decode } from "encoding/base64.ts";
+import { decodeBase64 as base64decode } from "encoding/base64";
 import {
   JupyterOutput,
   JupyterOutputDisplayData,

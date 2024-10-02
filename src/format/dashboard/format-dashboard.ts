@@ -61,7 +61,7 @@ import { projectIsWebsite } from "../../project/project-shared.ts";
 import { processShinyComponents } from "./format-dashboard-shiny.ts";
 import { processToolbars } from "./format-dashboard-toolbar.ts";
 import { processDatatables } from "./format-dashboard-tables.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 import { brandBootstrapSassBundles } from "../../core/sass/brand.ts";
 
 const kDashboardClz = "quarto-dashboard";

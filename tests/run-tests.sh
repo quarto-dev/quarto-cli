@@ -17,7 +17,7 @@ DENO_ARCH_DIR=$DENO_DIR
 DENO_DIR="$QUARTO_ROOT/package/dist/bin/"
 
 # Local import map
-QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_DIR/dev_import_map.json
+QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_DIR/import_map.json
 
 export QUARTO_BIN_PATH=$DENO_DIR
 export QUARTO_SHARE_PATH="`cd "$QUARTO_ROOT/src/resources/";pwd`"

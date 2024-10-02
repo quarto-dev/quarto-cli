@@ -102,7 +102,7 @@ export function readConfiguration(
     );
   }
 
-  const importmap = join(src, "dev_import_map.json");
+  const importmap = join(src, "import_map.json");
 
   return {
     productName,

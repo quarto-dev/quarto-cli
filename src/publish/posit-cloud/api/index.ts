@@ -18,12 +18,11 @@ import {
 import { md5Hash } from "../../../core/hash.ts";
 import { quartoConfig } from "../../../core/quarto.ts";
 
-import { crypto } from "crypto/mod.ts";
-
+import { crypto } from "crypto/crypto";
 import {
   decodeBase64 as base64Decode,
   encodeBase64 as base64Encode,
-} from "encoding/base64.ts";
+} from "encoding/base64";
 
 interface FetchOpts {
   body?: string;

@@ -4,8 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 import { dirname, join, SEP } from "../../../src/deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { existsSync, ensureDirSync } from "../../../src/deno_ral/fs.ts";
 import { info, warning } from "../../../src/deno_ral/log.ts";
 
 import { expandPath } from "../../../src/core/path.ts";

@@ -7,7 +7,7 @@
 
 import { breakQuartoMd } from "../../../src/core/lib/break-quarto-md.ts";
 import { unitTest } from "../../test.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 import { docs } from "../../utils.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../src/core/schema/utils.ts";
 import { lines } from "../../../src/core/lib/text.ts";

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 import { dirname } from "../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { isWindows } from "./platform.ts";
 import { execProcess } from "./process.ts";
 import { safeWindowsExec } from "./windows.ts";

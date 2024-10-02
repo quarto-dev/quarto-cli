@@ -1,12 +1,11 @@
 import { info } from "../../../src/deno_ral/log.ts";
 import { basename, dirname, join } from "../../../src/deno_ral/path.ts";
-import { emptyDirSync, ensureDirSync, existsSync, moveSync } from "fs/mod.ts";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
 import { download, unzip } from "../util/utils.ts";
 import { execProcess } from "../../../src/core/process.ts";
-import { copySync } from "fs/copy.ts";
+import { emptyDirSync, ensureDirSync, existsSync, moveSync, copySync } from "../../../src/deno_ral/fs.ts";
 
 export async function makeInstallerWindows(configuration: Configuration) {
   const packageName = `quarto-${configuration.version}-win.msi`;

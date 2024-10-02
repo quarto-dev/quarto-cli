@@ -132,7 +132,7 @@ export async function resolveSassBundles(
       // First, Clean CSS
       cleanSourceMappingUrl(cssPath);
       // look for a sentinel 'dark' value, extract variables
-      const cssResult = processCssIntoExtras(cssPath, extras, temp);
+      const cssResult = await processCssIntoExtras(cssPath, extras, temp);
       cssPath = cssResult.path;
 
       // it can happen that processing generate an empty css file (e.g quarto-html deps with Quarto CSS variables)
@@ -176,7 +176,9 @@ export async function resolveSassBundles(
 
         let targetName = target.name;
         if (target.attribs["append-hash"] === "true") {
-          const hashFragment = `-${md5HashBytes(Deno.readFileSync(cssPath))}`;
+          const hashFragment = `-${await md5HashBytes(
+            Deno.readFileSync(cssPath),
+          )}`;
           let extension = "";
           if (target.name.endsWith(".min.css")) {
             extension = ".min.css";
@@ -365,7 +367,7 @@ async function resolveQuartoSyntaxHighlighting(
           existingDependency.stylesheets = existingDependency.stylesheets ||
             [];
 
-          const hash = md5HashBytes(Deno.readFileSync(highlightCssPath));
+          const hash = await md5HashBytes(Deno.readFileSync(highlightCssPath));
           existingDependency.stylesheets.push({
             name: cssFileName + `-${hash}.css`,
             path: highlightCssPath,
@@ -461,11 +463,11 @@ interface CSSResult {
 }
 
 // Processes CSS into format extras (scanning for variables and removing them)
-function processCssIntoExtras(
+async function processCssIntoExtras(
   cssPath: string,
   extras: FormatExtras,
   temp: TempContext,
-): CSSResult {
+): Promise<CSSResult> {
   extras.html = extras.html || {};
 
   const css = Deno.readTextFileSync(cssPath);
@@ -501,7 +503,7 @@ function processCssIntoExtras(
       if (cleanedCss.trim() === "") {
         newCssPath = undefined;
       } else {
-        const hash = md5HashBytes(new TextEncoder().encode(cleanedCss));
+        const hash = await md5HashBytes(new TextEncoder().encode(cleanedCss));
         newCssPath = temp.createFile({ suffix: `-${hash}.css` });
         writeTextFileSyncPreserveMode(newCssPath, cleanedCss);
       }

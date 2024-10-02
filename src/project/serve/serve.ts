@@ -5,7 +5,7 @@
  */
 
 import { info, warning } from "../../deno_ral/log.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 import {
   basename,
   dirname,
@@ -13,7 +13,7 @@ import {
   join,
   relative,
 } from "../../deno_ral/path.ts";
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 
 import * as ld from "../../core/lodash.ts";
 

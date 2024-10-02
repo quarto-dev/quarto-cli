@@ -8,10 +8,10 @@ import { basename, dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 
 import { info } from "../../deno_ral/log.ts";
 
-import { ensureDir, existsSync, expandGlobSync } from "fs/mod.ts";
+import { ensureDir, existsSync, expandGlobSync } from "../../deno_ral/fs.ts";
 
-import { stringify } from "yaml/mod.ts";
-import { encodeBase64 } from "encoding/base64.ts";
+import { stringify } from "../../core/yaml.ts";
+import { encodeBase64 } from "encoding/base64";
 
 import * as ld from "../../core/lodash.ts";
 

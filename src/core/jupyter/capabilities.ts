@@ -5,7 +5,7 @@
  */
 
 import { isAbsolute, join } from "../../deno_ral/path.ts";
-import { existsSync, expandGlobSync } from "fs/mod.ts";
+import { existsSync, expandGlobSync } from "../../deno_ral/fs.ts";
 
 import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";

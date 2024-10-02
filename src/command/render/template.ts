@@ -21,7 +21,7 @@ import { copyTo } from "../../core/copy.ts";
 import { PandocOptions, RenderFlags } from "./types.ts";
 import * as ld from "../../core/lodash.ts";
 import { isHtmlDocOutput, isRevealjsOutput } from "../../config/format.ts";
-import { expandGlobSync } from "fs/mod.ts";
+import { expandGlobSync } from "../../deno_ral/fs.ts";
 import { normalizePath } from "../../core/path.ts";
 import { isGlob } from "../../core/lib/glob.ts";
 import { ProjectContext } from "../../project/types.ts";

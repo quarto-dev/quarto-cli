@@ -49,7 +49,7 @@ if [ -f "$DEV_PATH" ]; then
   fi
 
   # Local import map
-  QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_PATH/dev_import_map.json
+  QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_PATH/import_map.json
 
   # Turn on type checking for dev version
   QUARTO_DENO_OPTIONS=--check
@@ -63,7 +63,7 @@ if [ -f "$DEV_PATH" ]; then
   if [ -z ${QUARTO_DEBUG+x} ]; then
     export QUARTO_DEBUG=true
   fi
-  QUARTO_CACHE_OPTIONS="--cached-only"
+  # QUARTO_CACHE_OPTIONS="--cached-only"
 
   # Check for deno update
   QUARTO_DIST_CONFIG=$QUARTO_BIN_PATH/../config

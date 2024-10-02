@@ -6,7 +6,7 @@
 
 import { error, info } from "../deno_ral/log.ts";
 import { join } from "../deno_ral/path.ts";
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "../deno_ral/fs.ts";
 
 import { md5Hash } from "./hash.ts";
 

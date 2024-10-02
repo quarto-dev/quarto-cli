@@ -10,7 +10,7 @@
 // Currently, this file houses utilities to make the
 // single-file path look closer to a project.
 
-import { dirname } from "path/dirname.ts";
+import { dirname } from "../../../deno_ral/path.ts";
 import { normalizePath } from "../../../core/path.ts";
 import { NotebookContext } from "../../../render/notebook/notebook-types.ts";
 import { makeProjectEnvironmentMemoizer } from "../../project-environment.ts";
