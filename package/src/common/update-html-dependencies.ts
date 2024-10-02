@@ -3,8 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { ensureDir, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
-import { copySync } from "fs/copy.ts";
+import { copySync, ensureDir, ensureDirSync, existsSync, walkSync } from "../../../src/deno_ral/fs.ts";
 import { info } from "../../../src/deno_ral/log.ts";
 import { dirname, basename, extname, join } from "../../../src/deno_ral/path.ts";
 import { lines } from "../../../src/core/text.ts";

@@ -31,7 +31,7 @@ import {
 } from "./pandoc-dependencies.ts";
 import { fixupCssReferences, isCssFile } from "../../core/css.ts";
 
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync } from "../../deno_ral/fs.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { insecureHash } from "../../core/hash.ts";

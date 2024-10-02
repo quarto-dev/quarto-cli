@@ -13,7 +13,7 @@ import {
 } from "../../src/core/lib/yaml-validation/state.ts";
 
 import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
-import { parse } from "yaml/mod.ts";
+import { parse } from "../../src/core/yaml.ts";
 import { cleanoutput } from "./render/render.ts";
 import {
   ensureDocxRegexMatches,
@@ -39,7 +39,7 @@ import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
-import { WalkEntry } from "fs/mod.ts";
+import { WalkEntry } from "../../src/deno_ral/fs.ts";
 import { quarto } from "../../src/quarto.ts";
 import { safeExistsSync, safeRemoveSync } from "../../src/core/path.ts";
 

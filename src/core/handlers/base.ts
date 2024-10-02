@@ -75,7 +75,7 @@ import {
   resolve,
 } from "../../deno_ral/path.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync } from "../../deno_ral/fs.ts";
 import { mappedStringFromFile } from "../mapped-text.ts";
 import { error } from "../../deno_ral/log.ts";
 import { withCriClient } from "../cri/cri.ts";

@@ -8,7 +8,7 @@ import { md5Hash } from "../../../../core/hash.ts";
 import { projectScratchPath } from "../../../../project/project-scratch.ts";
 
 import { info, warning } from "../../../../deno_ral/log.ts";
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "../../../../deno_ral/fs.ts";
 import { dirname, join } from "../../../../deno_ral/path.ts";
 
 import { Confirm } from "cliffy/prompt/mod.ts";

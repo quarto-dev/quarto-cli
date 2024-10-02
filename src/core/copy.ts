@@ -12,9 +12,14 @@ import {
   resolve,
 } from "../deno_ral/path.ts";
 
-import { CopyOptions, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
-import { getFileInfoType } from "fs/_get_file_info_type.ts";
-import { isSubdir } from "fs/_is_subdir.ts";
+import {
+  CopyOptions,
+  ensureDirSync,
+  existsSync,
+  getFileInfoType,
+  isSubdir,
+  walkSync,
+} from "../deno_ral/fs.ts";
 
 import { isWindows } from "./platform.ts";
 

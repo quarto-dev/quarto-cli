@@ -3,11 +3,11 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { existsSync } from "fs/exists.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { extname, join } from "../deno_ral/path.ts";
 import { info } from "../deno_ral/log.ts";
-import * as colors from "fmt/colors.ts";
-import { load as config, LoadOptions as ConfigOptions } from "dotenv/mod.ts";
+import * as colors from "fmt/colors";
+import { load as config, LoadOptions as ConfigOptions } from "dotenv";
 
 import { getenv } from "./env.ts";
 import { exitWithCleanup } from "./cleanup.ts";

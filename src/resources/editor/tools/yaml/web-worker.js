@@ -20384,6 +20384,7 @@ try {
           }
         ],
         "pandoc/formats.yml": [
+          "ansi",
           "asciidoc",
           "asciidoc_legacy",
           "asciidoctor",
@@ -21671,11 +21672,11 @@ try {
           "Typography definitions for the brand.",
           "Font files and definitions for the brand.",
           "The base font settings for the brand. These are used as the default\nfor all text.",
-          "The font settings for headings.",
-          "The font settings for monospace text",
-          "Inline code, all values inherit from <code>monospace</code>.",
-          "Block code, all values inherit from <code>monospace</code>.",
-          "The text properties used for hyperlinks.",
+          "Settings for headings",
+          "Settings for monospace text",
+          "Settings for inline code",
+          "Settings for code blocks",
+          "Settings for links",
           "Typographic options for monospace elements.",
           "Typographic options for inline monospace elements.",
           "Typographic options for block monospace elements.",
@@ -23986,12 +23987,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 187697,
+          _internalId: 190200,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 187689,
+              _internalId: 190192,
               type: "enum",
               enum: [
                 "png",
@@ -24007,7 +24008,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 187696,
+              _internalId: 190199,
               type: "anyOf",
               anyOf: [
                 {

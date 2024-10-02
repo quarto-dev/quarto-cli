@@ -4,7 +4,6 @@
 *.Rproj
 *.Rhistory
 __pycache__/
-build
 quarto_cli.egg-info
 .Rproj.user
 package/dist/**
@@ -17,6 +16,9 @@ package/dist/**
 # deno_std library
 src/resources/deno_std/cache
 src/vendor-*
+
+# deno lock file
+deno.lock
 
 # windows configuration file
 win_configuration.bat

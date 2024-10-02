@@ -6,7 +6,7 @@
 
 import { info } from "../../deno_ral/log.ts";
 import { dirname, join } from "../../deno_ral/path.ts";
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 import { ProjectContext } from "../../project/types.ts";
 import {
   AccountToken,
@@ -23,7 +23,7 @@ import {
 } from "../common/git.ts";
 import { throwUnableToPublish } from "../common/errors.ts";
 import { Input } from "cliffy/prompt/input.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 import { Secret } from "cliffy/prompt/secret.ts";
 
 export const kHuggingFace = "huggingface";

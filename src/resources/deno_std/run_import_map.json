@@ -1,6 +1,40 @@
 {
   "imports": {
-    "https://deno.land/std/": "https://deno.land/std@0.217.0/",
-    "https://cdn.skypack.dev/juice": "https://cdn.skypack.dev/juice@10.0.0"
+    "stdlib/tar": "jsr:/@std/archive@^0.224.0/tar",
+    "stdlib/async": "jsr:/@std/async@^0.224.0",
+    "stdlib/bytes": "jsr:/@std/bytes@^0.224.0",
+    "stdlib/collections": "jsr:/@std/collections@^0.224.0",
+    "stdlib/crypto": "jsr:/@std/crypto@^0.224.0",
+    "stdlib/datetime": "jsr:/@std/datetime@^0.224.0",
+    "stdlib/dotenv": "jsr:/@std/dotenv@^0.224.0",
+
+    "stdlib/ascii85": "https://deno.land/std@0.224.0/encoding/ascii85.ts",
+    "stdlib/base32": "https://deno.land/std@0.224.0/encoding/base32.ts",
+    "stdlib/base58": "https://deno.land/std@0.224.0/encoding/base58.ts",
+    "stdlib/base64": "https://deno.land/std@0.224.0/encoding/base64.ts",
+    "stdlib/base64url": "https://deno.land/std@0.224.0/encoding/base64url.ts",
+    "stdlib/csv": "jsr:/@std/csv@^0.224.0",
+    "stdlib/front_matter": "jsr:/@std/front-matter@^0.224.0",
+    "stdlib/hex": "https://deno.land/std@0.224.0/encoding/hex.ts",
+    "stdlib/jsonc": "jsr:/@std/jsonc@^0.224.0",
+    "stdlib/toml": "jsr:/@std/toml@^0.224.0",
+    "stdlib/varint": "https://deno.land/std@0.224.0/encoding/varint.ts",
+    "stdlib/yaml": "jsr:/@std/yaml@^0.224.0",
+
+    "stdlib/flags": "jsr:/@std/flags@^0.224.0",
+    "stdlib/fmt_bytes": "https://deno.land/std@0.224.0/fmt/bytes.ts",
+    "stdlib/fmt_colors": "https://deno.land/std@0.224.0/fmt/colors.ts",
+    "stdlib/fmt_printf": "https://deno.land/std@0.224.0/fmt/printf.ts",
+    "stdlib/fs": "jsr:/@std/fs@^0.224.0",
+    "stdlib/http": "jsr:/@std/http@^0.224.0",
+    "stdlib/io": "jsr:/@std/io@^0.224.0",
+    "stdlib/log": "jsr:/@std/log@^0.224.0",
+    "stdlib/mediaTypes": "jsr:/@std/media-types@^0.224.0",
+    "stdlib/path": "jsr:/@std/path@^0.224.0",
+    "stdlib/permissions": "jsr:/@std/permissions@^0.224.0",
+    "stdlib/semver": "jsr:/@std/semver@^0.224.0",
+    "stdlib/streams": "jsr:/@std/streams@^0.224.0",
+    "stdlib/uuid": "jsr:/@std/uuid@^0.224.0",
+    "stdlib/juice": "https://cdn.skypack.dev/juice@10.0.0"
   }
 }

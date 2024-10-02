@@ -4,7 +4,6 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { existsSync } from "fs/mod.ts";
 import { basename, join } from "../../../src/deno_ral/path.ts";
 
 import { outputForInput } from "../../utils.ts";

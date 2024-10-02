@@ -1,5 +1,5 @@
-import { error, info } from "log/mod.ts";
-import { join } from "path/mod.ts";
+import { error, info } from "../deno_ral/log.ts";
+import { join } from "../deno_ral/path.ts";
 import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { readYamlFromMarkdown } from "../core/yaml.ts";
@@ -39,8 +39,8 @@ import { isInteractiveSession } from "../core/platform.ts";
 import { runningInCI } from "../core/ci-info.ts";
 import { sleep } from "../core/async.ts";
 import { JupyterNotebook } from "../core/jupyter/types.ts";
-import { existsSync } from "fs/mod.ts";
-import { encodeBase64 } from "encoding/base64.ts";
+import { existsSync } from "../deno_ral/fs.ts";
+import { encodeBase64 } from "encoding/base64";
 import {
   executeResultEngineDependencies,
   executeResultIncludes,

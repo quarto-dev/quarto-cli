@@ -6,7 +6,7 @@
 */
 
 import { unitTest } from "../../test.ts";
-import { assertEquals } from "testing/asserts.ts";
+import { assertEquals } from "testing/asserts";
 import { pandocNativeStr } from "../../../src/core/pandoc/codegen.ts";
 
 // deno-lint-ignore require-await

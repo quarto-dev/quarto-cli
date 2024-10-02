@@ -6,7 +6,7 @@ import { ensureAjv, YAMLSchema } from "../../../src/core/schema/yaml-schema.ts";
 import { getFrontMatterSchema } from "../../../src/core/schema/front-matter.ts";
 import { readAnnotatedYamlFromString } from "../../../src/core/schema/annotated-yaml.ts";
 import { asMappedString } from "../../../src/core/mapped-text.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 
 unitTest("execute-validation", async () => {
   // FIXME we skip validation for now while we're updating the schemas

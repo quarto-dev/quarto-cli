@@ -1,4 +1,4 @@
-import { join } from "https://deno.land/std/path/mod.ts";
+import { join } from "stdlib/path";
 
 try {
   Deno.removeSync(join(Deno.cwd(), "i-exist.txt"));

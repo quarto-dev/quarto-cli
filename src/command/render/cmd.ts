@@ -5,7 +5,7 @@
  */
 
 import { dirname, relative } from "../../deno_ral/path.ts";
-import { expandGlobSync } from "fs/expand_glob.ts";
+import { expandGlobSync } from "../../deno_ral/fs.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { debug, info, warning } from "../../deno_ral/log.ts";
 

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync, expandGlobSync } from "fs/mod.ts";
+import { existsSync, expandGlobSync } from "../deno_ral/fs.ts";
 import { extname, join } from "../deno_ral/path.ts";
 
 import {

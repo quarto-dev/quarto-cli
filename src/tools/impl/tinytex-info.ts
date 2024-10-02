@@ -1,15 +1,14 @@
 /*
-* tools-info.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * tools-info.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { expandPath, safeExistsSync } from "../../core/path.ts";
 import { join } from "../../deno_ral/path.ts";
 import { getenv } from "../../core/env.ts";
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 
 export function hasTinyTex(): boolean {
   const installDir = tinyTexInstallDir();
@@ -45,7 +44,7 @@ export function tinyTexBinDir(): string | undefined {
       case "windows": {
         // TeX Live 2023 use windows now. Previous version were using win32
         const winPath = join(basePath, "bin\\win32\\");
-        if (safeExistsSync(winPath)) return (winPath);
+        if (safeExistsSync(winPath)) return winPath;
         return join(basePath, "bin\\windows\\");
       }
       case "linux":

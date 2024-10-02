@@ -5,7 +5,7 @@
  */
 
 import { join } from "../deno_ral/path.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync } from "../deno_ral/fs.ts";
 
 export function quartoDataDir(subdir?: string, roaming = false) {
   return quartoDir(userDataDir, subdir, roaming);

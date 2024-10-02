@@ -1,6 +1,6 @@
 import { basename, join } from "../../../src/deno_ral/path.ts";
-import { ensureDirSync } from "fs/mod.ts";
-import { assert } from "testing/asserts.ts";
+import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
+import { assert } from "testing/asserts";
 import { execProcess } from "../../../src/core/process.ts";
 import { quartoDevCmd } from "../../utils.ts";
 import { unitTest } from "../../test.ts";

@@ -5,7 +5,7 @@
  */
 
 import { join } from "../deno_ral/path.ts";
-import { existsSync, walkSync } from "fs/mod.ts";
+import { existsSync, walkSync } from "../deno_ral/fs.ts";
 
 import { which } from "../core/path.ts";
 import { execProcess } from "../core/process.ts";

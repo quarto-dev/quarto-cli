@@ -4,9 +4,14 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import * as colors from "fmt/colors.ts";
-import { dirname, fromFileUrl, relative, resolve } from "../../deno_ral/path.ts";
-import { encodeBase64 } from "encoding/base64.ts";
+import * as colors from "fmt/colors";
+import {
+  dirname,
+  fromFileUrl,
+  relative,
+  resolve,
+} from "../../deno_ral/path.ts";
+import { encodeBase64 } from "encoding/base64";
 import { lookup } from "media_types/mod.ts";
 
 import { parseModule } from "observablehq/parser";

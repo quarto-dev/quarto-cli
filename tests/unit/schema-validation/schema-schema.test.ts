@@ -5,7 +5,7 @@
  *
  */
 
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 import { schemaPath } from "../../../src/core/schema/utils.ts";
 import { getSchemaSchemas } from "../../../src/core/lib/yaml-schema/from-yaml.ts";
 import { yamlValidationUnitTest } from "./utils.ts";

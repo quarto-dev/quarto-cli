@@ -20,6 +20,7 @@ export async function bundle(
   }
   denoBundleCmd.push(denoExecPath);
   denoBundleCmd.push("bundle");
+  denoBundleCmd.push("--no-check");
   denoBundleCmd.push("--unstable-kv");
   denoBundleCmd.push("--unstable-ffi");
   denoBundleCmd.push(

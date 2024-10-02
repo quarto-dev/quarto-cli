@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/exists.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import {
   dirname,
   isAbsolute,
@@ -41,7 +41,7 @@ import { ExecutionEngine } from "../execute/types.ts";
 import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
 import { breakQuartoMd, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
 import { partitionCellOptionsText } from "../core/lib/partition-cell-options.ts";
-import { parse } from "yaml/mod.ts";
+import { parse } from "../core/yaml.ts";
 import { mappedIndexToLineCol } from "../core/lib/mapped-text.ts";
 import { normalizeNewlines } from "../core/lib/text.ts";
 import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";

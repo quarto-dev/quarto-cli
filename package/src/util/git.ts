@@ -6,7 +6,7 @@
 */
 import { join } from "../../../src/deno_ral/path.ts";
 import { info } from "../../../src/deno_ral/log.ts";
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 
 export interface Repo {
   dir: string;

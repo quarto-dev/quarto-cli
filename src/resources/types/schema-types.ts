@@ -3,7 +3,7 @@
 // If you find yourself trying to rebuild types and `quarto build-js` won't run because
 // of bad type definitions, run the following:
 // $ cd $QUARTO_ROOT
-// $ ./package/dist/bin/tools/deno run --importmap=./src/dev_import_map.json --allow-all ./package/src/common/create-schema-types.ts ./src/resources
+// $ ./package/dist/bin/tools/deno run --importmap=./src/import_map.json --allow-all ./package/src/common/create-schema-types.ts ./src/resources
 
 export type MaybeArrayOf<T> = T | T[];
 export type JsonObject = { [key: string]: unknown };

@@ -14,7 +14,7 @@ import {
 } from "../../core/platform.ts";
 
 import { basename, dirname, join } from "../../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 
 export interface Editor {
   // A short, command line friendly id

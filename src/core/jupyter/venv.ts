@@ -1,14 +1,13 @@
 /*
-* venv.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * venv.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { info } from "../../deno_ral/log.ts";
 import { join } from "../../deno_ral/path.ts";
 
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 
 import * as ld from "../lodash.ts";
 

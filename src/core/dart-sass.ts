@@ -10,7 +10,7 @@ import { execProcess } from "./process.ts";
 import { TempContext } from "./temp.ts";
 import { lines } from "./text.ts";
 import { debug, info } from "../deno_ral/log.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { warnOnce } from "./log.ts";
 
 export function dartSassInstallDir() {

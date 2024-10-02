@@ -5,8 +5,7 @@
 *
 */
 import { join } from "../../../src/deno_ral/path.ts";
-import { emptyDirSync, ensureDirSync, walk } from "fs/mod.ts";
-import { copySync } from "fs/copy.ts";
+import { copySync, emptyDirSync, ensureDirSync, walk } from "../../../src/deno_ral/fs.ts";
 import { info } from "../../../src/deno_ral/log.ts";
 
 import { Configuration } from "../common/config.ts";

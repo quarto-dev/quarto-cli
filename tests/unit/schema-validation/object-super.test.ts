@@ -17,7 +17,7 @@ import {
 } from "../../../src/core/lib/yaml-schema/validated-yaml.ts";
 import { asMappedString } from "../../../src/core/lib/mapped-text.ts";
 import { refSchema } from "../../../src/core/lib/yaml-schema/common.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 
 yamlValidationUnitTest("object-super-closed", async () => {
   const _schema1 = schemaFromString(`

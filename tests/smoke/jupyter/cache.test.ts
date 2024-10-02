@@ -5,7 +5,7 @@
  */
 import { quarto } from "../../../src/quarto.ts";
 import { test } from "../../test.ts";
-import { assertEquals } from "testing/asserts.ts";
+import { assertEquals } from "testing/asserts";
 
 test({
   name: "jupyter:cache:test-1",

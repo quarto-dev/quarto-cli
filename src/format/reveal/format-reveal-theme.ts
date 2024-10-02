@@ -5,7 +5,7 @@
  */
 
 import { dirname, join, relative } from "../../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 
 import { kTheme } from "../../config/constants.ts";
 import {
@@ -192,7 +192,7 @@ export async function revealTheme(
   // Remove sourcemap information
   cleanSourceMappingUrl(css);
   // convert from string to bytes
-  const hash = md5HashBytes(Deno.readFileSync(css));
+  const hash = await md5HashBytes(Deno.readFileSync(css));
   const fileName = `quarto-${hash}`;
   copyTo(
     css,
