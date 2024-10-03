@@ -238,6 +238,7 @@ export class LogFileHandler extends FileHandler {
     // Ignore any messages that are blank
     if (msg !== "") {
       this.logger.log(msg);
+      this.flush();
     }
   }
 }
