@@ -318,12 +318,33 @@ export function revealjsFormat() {
   );
 }
 
+const determineRevealLogo = (format: Format): string | undefined => {
+  const brandData = format.render.brand?.processedData;
+  if (brandData?.logo) {
+    // add slide logo if we have one
+    for (const size of ["medium", "small", "large"]) {
+      const logoInfo = brandData.logo[size];
+      if (!logoInfo) {
+        continue;
+      }
+      if (typeof logoInfo === "string") {
+        return logoInfo;
+      } else {
+        // what to do about light vs dark?
+        return logoInfo.light ?? logoInfo.dark;
+      }
+    }
+  }
+};
+
 function revealMarkdownAfterBody(format: Format) {
   const lines: string[] = [];
   lines.push("::: {.quarto-auto-generated-content style='display: none;'}\n");
-  if (format.metadata[kSlideLogo]) {
+  const revealLogo = (format.metadata[kSlideLogo] as (string | undefined)) ??
+    determineRevealLogo(format);
+  if (revealLogo) {
     lines.push(
-      `<img src="${format.metadata[kSlideLogo]}" class="slide-logo" />`,
+      `<img src="${revealLogo}" class="slide-logo" />`,
     );
     lines.push("\n");
   }
