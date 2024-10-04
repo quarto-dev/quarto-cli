@@ -13,7 +13,7 @@ _quarto:
           # Document should not be broken
           - '\\end\{document\}'
           # Any table with T1 - T6 caption
-          - '\\begin\{longtable\}[\s\S]+\\caption\{T[1-6][\s\S]+\\endlastfoot'
+          - '\\begin\{longtable\}[\s\S]+\\caption\{T([1-6]|8)[\s\S]+\\endlastfoot'
           # Special table with endlastfoot 
           - '\\begin\{longtable\}[\s\S]+\\caption\{.*T7[^}]+\}[\s\S]+\\tabularnewline\s+\\end\{longtable\}'
         - 
@@ -26,6 +26,7 @@ _quarto:
           - '\\caption\{T3[\s\S]+?\\begin\{longtable\}[\s\S]+?\\endlastfoot[\s\S]+?\\caption\{T4'
           - '\\caption\{T4[\s\S]+?\\begin\{longtable\}[\s\S]+?\\endlastfoot[\s\S]+?\\caption\{T5'
           - '\\caption\{T5[\s\S]+?\\begin\{longtable\}[\s\S]+?\\endlastfoot[\s\S]+?\\caption\{T6'
+          - '\\caption\{T7[\s\S]+?\\begin\{longtable\}[\s\S]+?\\endlastfoot[\s\S]+?\\caption\{T8'
 ---
 
 
@@ -89,3 +90,15 @@ kable(head(cars))
 kable(head(cars), format = "latex", longtable = TRUE, caption = "T7 HELLO CARS")
 ```
 
+::: {#tbl-1}
+
+| X       | Y    | 
+|---------|:-----|
+| 12      | 12   |
+| 123     | 123  | 
+| 1       | 1    |
+
+T8 Table caption
+:::
+
+See @tbl-1
