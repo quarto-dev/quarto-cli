@@ -981,6 +981,10 @@ const longtableBottomCaptionProcessor = () => {
           caption = line;
           capturing = true;
           return undefined;
+        } else if (line.match(/^\\endlastfoot/) && caption) {
+          line = `\\tabularnewline\n${caption}\n${line}`;
+          caption = undefined;
+          return line;
         } else if (line.match(/^\\end{longtable}$/)) {
           scanning = false;
           if (caption) {

@@ -456,7 +456,7 @@ export const ensureTypstFileRegexMatches = (
   return(verifyKeepFileRegexMatches("pdf", "typ")(file, matchesUntyped, noMatchesUntyped));
 };
 
-// FIXME: do this properly without resorting on file having keep-typ
+// FIXME: do this properly without resorting on file having keep-tex
 export const ensureLatexFileRegexMatches = (
   file: string,
   matchesUntyped: (string | RegExp)[],

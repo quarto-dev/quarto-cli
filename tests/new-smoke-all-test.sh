@@ -39,6 +39,9 @@ _quarto:
       noErrors: default
       fileExists: 
         supportPath: mediabag/lter_penguins.png
+      ensureLatexFileRegexMatches:
+        - []
+        - []
     typst:
       ensureFileRegexMatches:
         - []
