@@ -12,6 +12,18 @@ Contact JJ so he uploads the binaries to the S3 bucket.
 
 - run `./package/scripts/vendoring/vendor.sh`
 
+### Upgrade Deno download link for RHEL build from conda-forge
+
+- Go to <https://anaconda.org/conda-forge/deno/files> and find the version of Deno required.
+  - BTW those versions are built at <https://github.com/conda-forge/deno-feedstock>
+- Take the hash part of the download link for linux-64 (e.g. `hcab8b69_0` for `linux-64/deno-1.46.3-hcab8b69_0.conda`)
+- Use it in the build release action: `.github\workflows\create-release.yml` at the step `- name: Move Custom Deno`
+  ```
+  echo Placing custom Deno ${DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files
+  curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-hcab8b69_0.conda --output deno.conda
+  ```
+- Commit the `create-release.yml`
+
 ## Upgrade mermaidjs
 
 Apparently mermaidjs doesn't actually build mermaid in their releases :shrug:.
