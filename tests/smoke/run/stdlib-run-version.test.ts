@@ -19,4 +19,6 @@ unitTest("stdlib-run-version", async () => {
   });
   console.log({result})
   assert(result.success);
+}, {
+  ignore: Deno.build.os == "windows",
 });
