@@ -12,6 +12,7 @@ import { architectureToolsPath, resourcePath } from "../resources.ts";
 import { RunHandler, RunHandlerOptions } from "./types.ts";
 import { removeIfExists } from "../path.ts";
 import { copyTo } from "../copy.ts";
+import { quartoConfig } from "../quarto.ts";
 
 export const denoRunHandler: RunHandler = {
   canHandle: (script: string) => {
@@ -42,7 +43,8 @@ export const denoRunHandler: RunHandler = {
           "run",
           "--import-map",
           importMap,
-          "--cached-only",
+          // --cached-only can only be used in bundles as vendoring is not done anymore in dev mode
+          ...(quartoConfig.isDebug() ? [] : ["--cached-only"]),
           "--allow-all",
           "--unstable-kv",
           "--unstable-ffi",
