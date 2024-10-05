@@ -43,18 +43,12 @@ typography:
   monospace-inline:
     color: rgb(8, 111, 15)
     background-color: rgb(255, 250, 224)
-    style: italic
   monospace-block:
     color: "#eee"
     weight: 400
     background-color: "#0a3c07"
-    decoration: underline
-    style: italic
   link:
-    family: "Gentium Plus"
-    size: 14px
     color: maroon
     weight: 200
     decoration: underline
-    style: italic
     background-color: "#adf8"

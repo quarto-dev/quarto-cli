@@ -26,7 +26,6 @@ typography:
       weight: [400]
   base:
     family: Aguafina Script
-    style: italic
     size: 14pt
     weight: 200
     color: "#080180"
@@ -37,8 +36,6 @@ typography:
     style: normal
     color: "#0b8005"
     line-height: 1
-    decoration: underline
-    background-color: "#fff"
   monospace:
     family: Inconsolata
   monospace-inline:
@@ -46,15 +43,12 @@ typography:
     size: 0.57rem
     color: rgb(8, 111, 15)
     background-color: rgb(255, 250, 224)
-    decoration: underline
   monospace-block:
     color: mintcream
     size: 18pt
     background-color: "#77aae1"
     line-height: 2
   link:
-    family: "Roboto Slab"
-    size: 14px
     color: maroon
     decoration: underline
     background-color: "#adf8"
