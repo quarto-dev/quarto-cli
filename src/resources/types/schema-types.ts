@@ -1343,65 +1343,69 @@ export type BrandNamedThemeColor =
   | "link"; /* A named brand color, taken either from `color.theme` or `color.palette` (in that order). */
 
 export type BrandTypography = {
-  "monospace-inline"?: BrandTypographyOptionsInline;
-  "monospace-block"?: BrandTypographyOptionsBlock;
-  base?: BrandTypographyOptions;
+  "monospace-inline"?: BrandTypographyOptionsMonospaceInline;
+  "monospace-block"?: BrandTypographyOptionsMonospaceBlock;
+  base?: BrandTypographyOptionsBase;
   fonts?: (BrandFont)[] /* Font files and definitions for the brand. */;
-  headings?: BrandTypographyOptionsNoSize;
-  link?: BrandTypographyOptionsInline;
-  monospace?: BrandTypographyOptionsText;
+  headings?: BrandTypographyOptionsHeadings;
+  link?: BrandTypographyOptionsLink;
+  monospace?: BrandTypographyOptionsMonospace;
 }; /* Typography definitions for the brand. */
 
-export type BrandTypographyOptionsText = {
-  family?: string;
-  size?: string;
-  style?: BrandFontStyle;
-  weight?: BrandFontWeight;
-}; /* Typographic options for monospace elements. */
-
-export type BrandTypographyOptionsInline = {
-  "background-color"?: BrandMaybeNamedColor;
+export type BrandTypographyOptionsBase = {
+  "line-height"?: LineHeightNumberString;
   color?: BrandMaybeNamedColor;
   family?: string;
   size?: string;
-  style?: BrandFontStyle;
-  weight?: BrandFontWeight;
-}; /* Typographic options for inline monospace elements. */
-
-export type BrandTypographyOptionsBlock = {
-  "line-height"?: string;
-  "background-color"?: BrandMaybeNamedColor;
-  color?: BrandMaybeNamedColor;
-  family?: string;
-  size?: string;
-  style?: BrandFontStyle;
-  weight?: BrandFontWeight;
-}; /* Typographic options for block monospace elements. */
-
-export type BrandTypographyOptions = {
-  "line-height"?: string;
-  "background-color"?: BrandMaybeNamedColor;
-  color?: BrandMaybeNamedColor;
-  family?: string;
-  files?: MaybeArrayOf<(string | string)> /* Resolved local paths. */;
-  size?: string;
-  style?: BrandFontStyle;
   weight?: BrandFontWeight;
 }; /* Typographic options. */
 
-export type BrandNamedFont =
-  | "base"
-  | "headings"
-  | "monospace"; /* Names of customizeable fonts */
-
-export type BrandTypographyOptionsNoSize = {
-  "line-height"?: string;
-  "background-color"?: BrandMaybeNamedColor;
+export type BrandTypographyOptionsHeadings = {
+  "line-height"?: LineHeightNumberString;
   color?: BrandMaybeNamedColor;
   family?: string;
   style?: BrandFontStyle;
   weight?: BrandFontWeight;
 }; /* Typographic options without a font size. */
+
+export type BrandTypographyOptionsMonospace = {
+  "background-color"?: BrandMaybeNamedColor;
+  color?: BrandMaybeNamedColor;
+  family?: string;
+  size?: string;
+  weight?: BrandFontWeight;
+}; /* Typographic options for monospace elements. */
+
+export type BrandTypographyOptionsMonospaceInline = {
+  "background-color"?: BrandMaybeNamedColor;
+  color?: BrandMaybeNamedColor;
+  family?: string;
+  size?: string;
+  weight?: BrandFontWeight;
+}; /* Typographic options for inline monospace elements. */
+
+export type LineHeightNumberString = number | string; /* Line height */
+
+export type BrandTypographyOptionsMonospaceBlock = {
+  "background-color"?: BrandMaybeNamedColor;
+  "line-height"?: LineHeightNumberString;
+  color?: BrandMaybeNamedColor;
+  family?: string;
+  size?: string;
+  weight?: BrandFontWeight;
+}; /* Typographic options for block monospace elements. */
+
+export type BrandTypographyOptionsLink = {
+  "background-color"?: BrandMaybeNamedColor;
+  color?: BrandMaybeNamedColor;
+  decoration?: string;
+  weight?: BrandFontWeight;
+}; /* Typographic options for inline monospace elements. */
+
+export type BrandNamedFont =
+  | "base"
+  | "headings"
+  | "monospace"; /* Names of customizeable fonts */
 
 export type BrandFont =
   | BrandFontGoogle
