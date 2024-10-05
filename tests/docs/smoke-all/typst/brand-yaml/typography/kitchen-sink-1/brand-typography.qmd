@@ -15,42 +15,42 @@ _quarto:
         - 'title is\s*rgb\("#0b8005"\)\s*montserrat extra-?bold\s*normal 21pt'
         - 'subtitle is the same except 17\.5pt'
         - 'heading-2 is rgb\("#0b8005"\) montserrat extrabold\s*normal 19\.6pt'
-        - 'Paragraph is rgb\("#080180"\) aguafina script extralight italic 14pt'
+        - 'Paragraph is rgb\("#080180"\) aguafina script extralight normal 14pt'
         - 'fib = num => num < 2' # unable to reflect raw
-        - 'a link in roboto slab extralight italic\s*10\.5pt'
+        - 'a link in aguafina script extralight normal\s*14pt'
       - []
       ensureTypstFileRegexMatches:
       -
         - 'font: \("Aguafina Script",\),$'
         - 'fontsize: 14pt,$'
-        - '^#set text\(weight: 200, style: "italic", fill: rgb\("#080180"\), \)$'
+        - '^#set text\(weight: 200, fill: rgb\("#080180"\), \)$'
         - '^#set par\(leading: 0\.75em\)$'
 
         - 'heading-family: \("Montserrat",\),$'
         - 'heading-weight: 800,$'
         - 'heading-style: "normal",$'
-        - 'heading-decoration: "underline",$'
         - 'heading-color: unescape-eval\("rgb\(\\"\\#0b8005\\"\)"\),$'
-        - 'heading-background-color: unescape-eval\("rgb\(\\"\\#fff\\"\)"\),$'
         - 'heading-line-height: 0\.25em,$'
         - '^#show heading: set text\(font: "Montserrat", weight: 800, style: "normal", fill: rgb\("#0b8005"\), \)$'
-        - '^#show heading: content => underline\(content\)$'
-        - '^#show heading: set block\(fill: rgb\("#fff"\), inset: 0.25em\)$'
         - '^#show heading: set par\(leading: 0.25em\)$'
 
         - '^#show raw.where\(block: false\): set text\(font: "Inconsolata", weight: 600, size: 0.57em, fill: rgb\(8, 111, 15\), \)$'
-        - '^#show raw.where\(block: false\): content => underline\(content\)$'
         - '^#show raw.where\(block: false\): content => highlight\(fill: rgb\(255, 250, 224\), content\)$'
 
         - '^#show raw.where\(block: true\): set text\(font: "Inconsolata", size: 18pt, fill: rgb\(245, 255, 250\), \)$'
         - '^#show raw.where\(block: true\): set block\(fill: rgb\("#77aae1"\)\)$'
         - '^#show raw.where\(block: true\): set par\(leading: 1\.25em\)$'
 
-        - '^#show link: set text\(font: "Roboto Slab", size: 10.5pt, fill: maroon, \)$'
+        - '^#show link: set text\(fill: maroon, \)$'
         - '^#show link: content => underline\(content\)$'
         - '^#show link: content => highlight\(fill: rgb\("#adf8"\), content\)$'
 
-      - []
+      -
+        - '^#show heading: content => underline\(content\)$'
+        - '^#show heading: set block'
+        - 'heading-decoration: "underline",$'
+        - '^#show raw.where\(block: false\): content => underline\(content\)$'
+        - 'heading-background-color: unescape-eval'
 ---
 
 ## heading-2 is `#context text.fill #context text.font #context text.weight #context text.style #context text.size`{=typst}

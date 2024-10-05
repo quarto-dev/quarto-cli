@@ -19,9 +19,7 @@
   heading-family: "linux libertine",
   heading-weight: "bold",
   heading-style: "normal",
-  heading-decoration: none,
   heading-color: black,
-  heading-background-color: none,
   heading-line-height: 0.65em,
   sectionnumbering: none,
   toc: false,
@@ -44,22 +42,14 @@
   if title != none {
     align(center)[#block(inset: 2em)[
       #set par(leading: heading-line-height)
-      #set block(fill: heading-background-color, inset: 0.25em)
       #if (heading-family != none or heading-weight != "bold" or heading-style != "normal"
            or heading-color != black or heading-decoration == "underline"
            or heading-background-color != none) {
-        show block: content => {
-          if heading-decoration == "underline" {
-            underline(content)
-          } else {
-            content
-          }
-        }
         set text(font: heading-family, weight: heading-weight, style: heading-style, fill: heading-color)
-        block(text(size: title-size)[#title])
+        text(size: title-size)[#title]
         if subtitle != none {
           parbreak()
-          block(text(size: subtitle-size)[#subtitle])
+          text(size: subtitle-size)[#subtitle]
         }
       } else {
         text(weight: "bold", size: title-size)[#title]

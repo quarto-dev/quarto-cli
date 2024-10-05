@@ -17,7 +17,7 @@ _quarto:
         - 'heading-2 is rgb\("#042f02"\) raleway medium normal\s*16\.8pt'
         - 'Paragraph is rgb\("#27262e"\) eb garamond light normal 12pt'
         - 'fib = num => num < 2' # unable to reflect raw
-        - 'a link in gentium plus extralight italic\s*10\.5pt'
+        - 'a link in eb garamond extralight normal\s*12pt'
       - []
       ensureTypstFileRegexMatches:
       -
@@ -33,14 +33,13 @@ _quarto:
         - '^#show heading: set text\(font: "Raleway", weight: 500, style: "normal", fill: rgb\("#042f02"\), \)$'
         - '^#show heading: set par\(leading: 0.25em\)$'
 
-        - '^#show raw.where\(block: false\): set text\(font: "Space Mono", weight: 400, style: "italic", size: 12pt, fill: rgb\(8, 111, 15\), \)$'
+        - '^#show raw.where\(block: false\): set text\(font: "Space Mono", weight: 400, size: 12pt, fill: rgb\(8, 111, 15\), \)$'
         - '^#show raw.where\(block: false\): content => highlight\(fill: rgb\(255, 250, 224\), content\)$'
 
-        - '^#show raw.where\(block: true\): set text\(font: "Space Mono", weight: 400, style: "italic", size: 12pt, fill: rgb\("#eee"\), \)$'
-        - '^#show raw.where\(block: true\): content => underline\(content\)$'
+        - '^#show raw.where\(block: true\): set text\(font: "Space Mono", weight: 400, size: 12pt, fill: rgb\("#eee"\), \)$'
         - '^#show raw.where\(block: true\): set block\(fill: rgb\("#0a3c07"\)\)$'
 
-        - '^#show link: set text\(font: "Gentium Plus", weight: 200, style: "italic", size: 10.5pt, fill: maroon, \)$'
+        - '^#show link: set text\(weight: 200, fill: maroon, \)$'
         - '^#show link: content => underline\(content\)$'
         - '^#show link: content => highlight\(fill: rgb\("#adf8"\), content\)$'
 
@@ -52,6 +51,7 @@ _quarto:
         - '^#show heading: content => underline\(content\)$'
         - '^#show heading: set block'
         - '^#show raw.where\(block: true\): set par\(leading'
+        - '^#show raw.where\(block: true\): content => underline\(content\)$'
 ---
 
 ## heading-2 is `#context text.fill #context text.font #context text.weight #context text.style #context text.size`{=typst}
