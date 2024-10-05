@@ -4,13 +4,13 @@ format:
   typst:
     keep-typ: true
 logo:
-  width: 2cm
+  padding: 2rem
 _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
       -
-        - '#set page\(background: align\(center\+top, box\(inset: 1in, image\("quarto.png", width: 2cm\)\)\)\)'
+        - '#set page\(background: align\(center\+top, box\(inset: 2em, image\("quarto.png", width: 225pt\)\)\)\)'
       - []
 ---
 

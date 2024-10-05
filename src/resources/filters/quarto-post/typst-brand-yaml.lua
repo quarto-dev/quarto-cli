@@ -247,8 +247,8 @@ function render_typst_brand_yaml()
             logoOptions.src = foundSrc.dark
           end
           -- todo: resolve logoOptions.src path
-          logoOptions.padding = logoOptions.padding or '0.5in'
-          logoOptions.width = logoOptions.width or '2in'
+          logoOptions.padding = _quarto.modules.typst.css.translate_length(logoOptions.padding or '0.5in')
+          logoOptions.width = _quarto.modules.typst.css.translate_length(logoOptions.width or '2in')
           logoOptions.location = logoOptions.location and
             location_to_typst_align(logoOptions.location) or 'left+top'
           quarto.log.debug('logo options', logoOptions)
