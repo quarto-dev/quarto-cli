@@ -8,7 +8,7 @@ local function get_color(name)
   local cssColor = brand.color[name]
   if not cssColor then return nil end
   if _quarto.format.isTypstOutput() then
-    return output_typst_color(parse_css_color(cssColor))
+    return _quarto.format.typst.css.output_color(_quarto.format.typst.css.parse_color(cssColor))
   end
   return cssColor
 end
@@ -20,7 +20,7 @@ local function get_background_color(name, opacity)
   local cssColor = brand.color[name]
   if not cssColor then return nil end
   if _quarto.format.isTypstOutput() then
-    return output_typst_color(parse_css_color(cssColor), {unit = 'fraction', value = opacity})
+    return _quarto.format.typst.css.output_color(_quarto.modules.typst.css.parse_color(cssColor), {unit = 'fraction', value = opacity})
   end
   -- todo: implement for html if useful
   return cssColor
@@ -35,9 +35,9 @@ local function get_typography(fontName)
   local typsted = {}
   for k, v in pairs(typography) do
     if k == 'color' or k == 'background-color' then
-      typsted[k] = get_color(v) or output_typst_color(parse_css_color(v))
+      typsted[k] = get_color(v) or _quarto.format.typst.css.output_color(_quarto.format.typst.css.parse_color(v))
     elseif k == 'size' then
-      typsted[k] = translate_css_length(v)
+      typsted[k] = _quarto.format.typst.css.translate_length(v)
     else
       typsted[k] = v
     end

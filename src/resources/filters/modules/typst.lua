@@ -78,7 +78,8 @@ local function _main()
   
   return {
     function_call = typst_function_call,
-    as_typst_content = as_typst_content
+    as_typst_content = as_typst_content,
+    css = require("modules/typst_css")
   }
 end
 

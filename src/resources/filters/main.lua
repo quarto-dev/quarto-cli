@@ -69,7 +69,7 @@ import("./quarto-post/gfm.lua")
 import("./quarto-post/ipynb.lua")
 import("./quarto-post/latex.lua")
 import("./quarto-post/typst.lua")
-import("./quarto-post/typst-css-to-props.lua")
+import("./quarto-post/typst-css-property-processing.lua")
 import("./quarto-post/typst-brand-yaml.lua")
 import("./quarto-post/latexdiv.lua")
 import("./quarto-post/meta.lua")
@@ -387,7 +387,7 @@ local quarto_post_filters = {
   { name = "post-render-html-fixups", filter = render_html_fixups() },
   { name = "post-render-ipynb-fixups", filter = render_ipynb_fixups() },
   { name = "post-render-typst-fixups", filter = render_typst_fixups() },
-  { name = "post-render-typst-css-to-props", filter = render_typst_css_to_props() },
+  { name = "post-render-typst-css-to-props", filter = render_typst_css_property_processing() },
   { name = "post-render-typst-brand-yaml", filter = render_typst_brand_yaml() },
   { name = "post-render-gfm-fixups", filter = render_gfm_fixups() },
   { name = "post-render-hugo-fixups", filter = render_hugo_fixups() },
