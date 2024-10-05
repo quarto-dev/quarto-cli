@@ -37,7 +37,14 @@ local function get_typography(fontName)
     if k == 'color' or k == 'background-color' then
       typsted[k] = get_color(v) or _quarto.format.typst.css.output_color(_quarto.format.typst.css.parse_color(v))
     elseif k == 'size' then
-      typsted[k] = _quarto.format.typst.css.translate_length(v)
+      local length = _quarto.format.typst.css.parse_length(v)
+      if length and fontName == 'base' and length.unit == 'rem' then
+        -- this should not be a problem? because it's being set in the header?
+        quarto.log.warning('brand.typography.base.size in rem units, changing to em')
+        typsted[k] = length.value .. 'em'
+      else
+        typsted[k] = _quarto.format.typst.css.translate_length(v)
+      end
     else
       typsted[k] = v
     end
