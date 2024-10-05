@@ -35,7 +35,7 @@ local function get_typography(fontName)
   local typsted = {}
   for k, v in pairs(typography) do
     if k == 'color' or k == 'background-color' then
-      typsted[k] = output_typst_color(parse_css_color(v))
+      typsted[k] = get_color(v) or output_typst_color(parse_css_color(v))
     elseif k == 'size' then
       typsted[k] = translate_css_length(v)
     else

@@ -57,7 +57,7 @@ _quarto:
 ## heading-2 is `#context text.fill #context text.font #context text.weight #context text.style #context text.size`{=typst}
 
 Paragraph is `#context text.fill #context text.font #context text.weight #context text.style #context text.size`{=typst}, \
-and here's an inline code block `{js} fib(90)` (lorem ipsum dolor).
+and here's an inline code block `fib(90)` (lorem ipsum dolor).
 
 ```
 const fib = num => num < 2 ? num : fib(num-1) + fib(num - 2);
