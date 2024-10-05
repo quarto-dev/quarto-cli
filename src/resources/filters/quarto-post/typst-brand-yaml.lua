@@ -84,7 +84,6 @@ function render_typst_brand_yaml()
           for name, _ in pairs(brandColor) do
             themebk[name] = _quarto.modules.brand.get_background_color(name, BACKGROUND_OPACITY)
           end
-          -- for demo purposes only, should implement backgroundcolor and fontcolor
           if brandColor.background then
             quarto.doc.include_text('in-header', '#set page(fill: brand-color.background)')
           end
