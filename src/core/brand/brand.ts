@@ -13,7 +13,8 @@ import {
   BrandNamedThemeColor,
   BrandStringLightDark,
   BrandTypography,
-  BrandTypographyOptions,
+  BrandTypographyOptionsBase,
+  BrandTypographyOptionsHeadings,
 } from "../../resources/types/schema-types.ts";
 
 // we can't programmatically convert typescript types to string arrays,
@@ -156,7 +157,9 @@ export class Brand {
     );
   }
 
-  getFont(name: string): BrandTypographyOptions | undefined {
+  getFont(
+    name: string,
+  ): BrandTypographyOptionsBase | BrandTypographyOptionsHeadings | undefined {
     if (!this.data.typography) {
       return undefined;
     }
