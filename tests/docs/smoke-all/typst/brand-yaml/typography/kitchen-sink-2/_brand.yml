@@ -46,7 +46,7 @@ typography:
   monospace:
     family: Space Mono
     weight: 400
-    size: 16px
+    size: 0.75rem
   monospace-inline:
     color: branded-monospace-inline-foreground
     background-color: branded-monospace-inline-background
