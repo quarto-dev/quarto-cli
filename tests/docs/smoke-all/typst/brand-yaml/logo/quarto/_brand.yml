@@ -7,5 +7,5 @@ defaults:
         logo:
           src: large
           location: center-top
-          width: 3in
+          width: 300px
           padding: 1in
