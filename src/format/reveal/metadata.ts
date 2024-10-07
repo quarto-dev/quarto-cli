@@ -6,6 +6,9 @@
 
 import { Metadata } from "../../config/types.ts";
 import { camelToKebab, kebabToCamel } from "../../core/config.ts";
+import {
+  kJumpToSlide,
+} from "./constants.ts";
 
 export function optionsToKebab(options: string[]) {
   return options.reduce(
@@ -111,6 +114,7 @@ const kRevealOptions = [
   "pdfMaxPagesPerSlide",
   "pdfSeparateFragments",
   "pdfPageHeightOffset",
+  kJumpToSlide,
 ];
 
 const kRevealKebabOptions = optionsToKebab(kRevealOptions);

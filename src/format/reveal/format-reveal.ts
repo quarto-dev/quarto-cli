@@ -56,6 +56,7 @@ import {
   kCenterTitleSlide,
   kControlsAuto,
   kHashType,
+  kJumpToSlide,
   kPdfMaxPagesPerSlide,
   kPdfSeparateFragments,
   kPreviewLinksAuto,
@@ -142,6 +143,9 @@ export function revealjsFormat() {
             format.metadata[kAutoAnimateUnmatched] !== undefined
               ? format.metadata[kAutoAnimateUnmatched]
               : true,
+          [kJumpToSlide]: format.metadata[kJumpToSlide] !== undefined
+            ? !!format.metadata[kJumpToSlide]
+            : true,
         };
 
         if (format.metadata[kPdfMaxPagesPerSlide]) {
