@@ -2072,24 +2072,30 @@ quarto = {
     crossref = {}
   },
   project = {
-   directory = projectDirectory(),
-   offset = projectOffset(),
-   profile = pandoc.List(projectProfiles()),
-   output_directory = projectOutputDirectory()
+    directory = projectDirectory(),
+    offset = projectOffset(),
+    profile = pandoc.List(projectProfiles()),
+    output_directory = projectOutputDirectory()
   },
   utils = {
-   dump = utils.dump,
-   table = utils.table,
-   type = utils.type,
-   resolve_path = resolvePathExt,
-   resolve_path_relative_to_document = resolvePath,
-   as_inlines = utils.as_inlines,
-   as_blocks = utils.as_blocks,
-   string_to_blocks = utils.string_to_blocks,
-   string_to_inlines = utils.string_to_inlines,
-   render = utils.render,
-   match = utils.match,
-   add_to_blocks = utils.add_to_blocks
+    dump = utils.dump,
+    table = utils.table,
+    type = utils.type,
+    resolve_path = resolvePathExt,
+    resolve_path_relative_to_document = resolvePath,
+    as_inlines = utils.as_inlines,
+    as_blocks = utils.as_blocks,
+    string_to_blocks = utils.string_to_blocks,
+    string_to_inlines = utils.string_to_inlines,
+    render = utils.render,
+    match = utils.match,
+    add_to_blocks = utils.add_to_blocks,
+  },
+  paths = {
+    rscript = function()
+      -- matches the path from `quartoEnvironmentParams` from src/command/render/filters.ts
+      return param('quarto-environment', nil).paths.Rscript
+    end,
   },
   json = json,
   base64 = base64,
