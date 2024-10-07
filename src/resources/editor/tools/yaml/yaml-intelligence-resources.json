@@ -15916,6 +15916,7 @@
     "Monitor the hash and change slides accordingly",
     "Include the current fragment in the URL",
     "Play a subtle sound when changing slides",
+    "Deactivate jump to slide feature.",
     {
       "short": "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
       "long": "Slides that are too tall to fit within a single page will expand onto\nmultiple pages. You can limit how many pages a slide may expand to using\nthis option."
@@ -16753,8 +16754,7 @@
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "Manuscript configuration",
-    "internal-schema-hack",
-    "Deactivate jump to slide feature."
+    "internal-schema-hack"
   ],
   "schema/external-schemas.yml": [
     {
@@ -16983,12 +16983,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 190204,
+    "_internalId": 190350,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 190196,
+        "_internalId": 190342,
         "type": "enum",
         "enum": [
           "png",
@@ -17004,7 +17004,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 190203,
+        "_internalId": 190349,
         "type": "anyOf",
         "anyOf": [
           {
