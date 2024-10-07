@@ -164,7 +164,7 @@ export async function initWebsiteNavigation(project: ProjectContext) {
     pageMargin,
     bodyDecorators,
     announcement,
-  } = websiteNavigationConfig(
+  } = await websiteNavigationConfig(
     project,
   );
   if (
@@ -258,7 +258,7 @@ export async function websiteNavigationExtras(
 
   // determine dependencies (always include baseline nav dependency)
   const dependencies: FormatDependency[] = [
-    websiteNavigationDependency(project),
+    await websiteNavigationDependency(project),
   ];
 
   // the contents of anything before the head
@@ -267,11 +267,13 @@ export async function websiteNavigationExtras(
   // Determine any sass bundles
   const sassBundles: SassBundle[] = [websiteNavigationSassBundle()];
 
-  const searchDep = websiteSearchDependency(project, source);
+  const searchDep = await websiteSearchDependency(project, source);
   if (searchDep) {
     dependencies.push(...searchDep);
     sassBundles.push(websiteSearchSassBundle());
-    includeInHeader.push(websiteSearchIncludeInHeader(project, format, temp));
+    includeInHeader.push(
+      await websiteSearchIncludeInHeader(project, format, temp),
+    );
   }
 
   // Inject dashboard dependencies so they are present if necessary
@@ -997,7 +999,7 @@ async function sidebarsEjsData(project: ProjectContext, sidebars: Sidebar[]) {
   for (let i = 0; i < sidebars.length; i++) {
     ejsSidebars.push(await sidebarEjsData(project, sidebars[i]));
   }
-  return Promise.resolve(ejsSidebars);
+  return ejsSidebars;
 }
 
 async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
@@ -1009,10 +1011,10 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   }
 
   // ensure title and search are present
-  sidebar.title = sidebarTitle(sidebar, project) as string | undefined;
+  sidebar.title = await sidebarTitle(sidebar, project) as string | undefined;
   sidebar.logo = resolveLogo(sidebar.logo);
 
-  const searchOpts = searchOptions(project);
+  const searchOpts = await searchOptions(project);
   sidebar.search = sidebar.search !== undefined
     ? sidebar.search
     : searchOpts && searchOpts.location === "sidebar"
@@ -1227,7 +1229,7 @@ async function navbarEjsData(
 ): Promise<Navbar> {
   const collapse = navbar.collapse !== undefined ? !!navbar.collapse : true;
 
-  const searchOpts = searchOptions(project);
+  const searchOpts = await searchOptions(project);
   const data: Navbar = {
     ...navbar,
     search: searchOpts && searchOpts.location === "navbar"
@@ -1472,8 +1474,8 @@ function looksLikeShortCode(href: string) {
   return href.startsWith("{{<") && href.endsWith(">}}");
 }
 
-function sidebarTitle(sidebar: Sidebar, project: ProjectContext) {
-  const { navbar } = websiteNavigationConfig(project);
+async function sidebarTitle(sidebar: Sidebar, project: ProjectContext) {
+  const { navbar } = await websiteNavigationConfig(project);
   if (sidebar.title) {
     // Title was explicitly set
     return sidebar.title;
@@ -1499,8 +1501,8 @@ function resolveLogo(logo?: string) {
   }
 }
 
-function websiteHeadroom(project: ProjectContext) {
-  const { navbar, sidebars } = websiteNavigationConfig(project);
+async function websiteHeadroom(project: ProjectContext) {
+  const { navbar, sidebars } = await websiteNavigationConfig(project);
   if (navbar || sidebars?.length) {
     const navbarPinned = navbar?.pinned === true;
     const anySidebarPinned = sidebars &&
@@ -1525,9 +1527,9 @@ function websiteNavigationSassBundle() {
   };
 }
 
-function websiteNavigationDependency(project: ProjectContext) {
+async function websiteNavigationDependency(project: ProjectContext) {
   const scripts = [navigationDependency("quarto-nav.js")];
-  if (websiteHeadroom(project)) {
+  if (await websiteHeadroom(project)) {
     scripts.push(navigationDependency("headroom.min.js"));
   }
   return {
