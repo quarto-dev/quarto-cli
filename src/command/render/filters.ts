@@ -66,7 +66,7 @@ import { QuartoFilterSpec } from "./types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kProjectType } from "../../project/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
-import { resourcePath } from "../../core/resources.ts";
+import { rBinaryPath, resourcePath } from "../../core/resources.ts";
 import { crossrefFilterActive, crossrefFilterParams } from "./crossref.ts";
 import { layoutFilterParams } from "./layout.ts";
 import { pandocMetadataPath } from "./render-paths.ts";
@@ -195,8 +195,17 @@ export async function filterParamsJson(
     [kShinyPythonExec]: isShinyPython ? await pythonExec() : undefined,
     [kExecutionEngine]: options.executionEngine,
     [kBrand]: options.format.render[kBrand],
+    "quarto-environment": await quartoEnvironmentParams(options),
   };
   return JSON.stringify(params);
+}
+
+async function quartoEnvironmentParams(_options: PandocOptions) {
+  return {
+    "paths": {
+      "Rscript": await rBinaryPath("Rscript"),
+    },
+  };
 }
 
 export function removeFilterParams(metadata: Metadata) {
