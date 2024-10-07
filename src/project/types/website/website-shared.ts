@@ -114,7 +114,7 @@ export function inputFileHref(href: string) {
   return pathWithForwardSlashes(htmlHref);
 }
 
-export function websiteNavigationConfig(project: ProjectContext) {
+export async function websiteNavigationConfig(project: ProjectContext) {
   // read navbar
   let navbar = websiteConfig(kSiteNavbar, project.config) as
     | Navbar
@@ -160,6 +160,22 @@ export function websiteNavigationConfig(project: ProjectContext) {
         } else {
           sb.contents = [sb.contents as SidebarItem];
         }
+      }
+    }
+  }
+
+  const projectBrand = await project.resolveBrand();
+  if (
+    projectBrand && sidebars && sidebars[0] && projectBrand.processedData.logo
+  ) {
+    if (sidebars[0].logo === undefined) {
+      const logo = projectBrand.processedData.logo.medium ??
+        projectBrand.processedData.logo.small ??
+        projectBrand.processedData.logo.large;
+      if (typeof logo === "string") {
+        sidebars[0].logo = logo;
+      } else if (typeof logo === "object") {
+        sidebars[0].logo = logo.light; // TODO: This needs smarts to work on light+dark themes
       }
     }
   }
