@@ -36,5 +36,6 @@
     "deno.inlayHints.propertyDeclarationTypes.enabled": false,
     "deno.inlayHints.variableTypes.enabled": false,
     "deno.inlayHints.variableTypes.suppressWhenTypeMatchesName": false
-  }
+  },
+  "typst-lsp.exportPdf": "never"
 }
