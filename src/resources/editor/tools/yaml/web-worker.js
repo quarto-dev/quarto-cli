@@ -18319,6 +18319,17 @@ try {
             schema: "boolean",
             default: false,
             description: "Play a subtle sound when changing slides"
+          },
+          {
+            name: "jump-to-slide",
+            tags: {
+              formats: [
+                "revealjs"
+              ]
+            },
+            schema: "boolean",
+            default: true,
+            description: "Deactivate jump to slide feature."
           }
         ],
         "schema/document-reveal-print.yml": [
@@ -23771,7 +23782,8 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Deactivate jump to slide feature."
         ],
         "schema/external-schemas.yml": [
           {
@@ -24000,12 +24012,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 190202,
+          _internalId: 190204,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 190194,
+              _internalId: 190196,
               type: "enum",
               enum: [
                 "png",
@@ -24021,7 +24033,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 190201,
+              _internalId: 190203,
               type: "anyOf",
               anyOf: [
                 {
