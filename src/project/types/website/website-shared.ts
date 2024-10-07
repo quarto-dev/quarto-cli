@@ -166,7 +166,7 @@ export async function websiteNavigationConfig(project: ProjectContext) {
 
   const projectBrand = await project.resolveBrand();
   if (
-    projectBrand && sidebars && sidebars[0] && projectBrand.processedData.logo
+    projectBrand?.processedData.logo && sidebars?.[0]
   ) {
     if (sidebars[0].logo === undefined) {
       const logo = projectBrand.processedData.logo.medium ??
@@ -177,6 +177,19 @@ export async function websiteNavigationConfig(project: ProjectContext) {
       } else if (typeof logo === "object") {
         sidebars[0].logo = logo.light; // TODO: This needs smarts to work on light+dark themes
       }
+    }
+  }
+
+  if (
+    projectBrand?.processedData && navbar
+  ) {
+    const logo = projectBrand.processedData.logo.small ??
+      projectBrand.processedData.logo.medium ??
+      projectBrand.processedData.logo.large;
+    if (typeof logo === "string") {
+      navbar.logo = logo;
+    } else if (typeof logo === "object") {
+      navbar.logo = logo.light; // TODO: This needs smarts to work on light+dark themes
     }
   }
 
