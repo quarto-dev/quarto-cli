@@ -6,6 +6,14 @@
 
 import { Metadata } from "../../config/types.ts";
 import { camelToKebab, kebabToCamel } from "../../core/config.ts";
+import {
+  kAutoAnimateDuration,
+  kAutoAnimateEasing,
+  kAutoAnimateUnmatched,
+  kJumpToSlide,
+  kPdfMaxPagesPerSlide,
+  kPdfSeparateFragments,
+} from "./constants.ts";
 
 export function optionsToKebab(options: string[]) {
   return options.reduce(
@@ -80,9 +88,9 @@ const kRevealOptions = [
   "preloadIframes",
   "autoAnimate",
   "autoAnimateMatcher",
-  "autoAnimateEasing",
-  "autoAnimateDuration",
-  "autoAnimateUnmatched",
+  kAutoAnimateEasing,
+  kAutoAnimateDuration,
+  kAutoAnimateUnmatched,
   "autoAnimateStyles",
   "autoSlide",
   "autoSlideStoppable",
@@ -108,9 +116,10 @@ const kRevealOptions = [
   "minScale",
   "maxScale",
   "mathjax",
-  "pdfMaxPagesPerSlide",
-  "pdfSeparateFragments",
+  kPdfMaxPagesPerSlide,
+  kPdfSeparateFragments,
   "pdfPageHeightOffset",
+  kJumpToSlide,
 ];
 
 const kRevealKebabOptions = optionsToKebab(kRevealOptions);
