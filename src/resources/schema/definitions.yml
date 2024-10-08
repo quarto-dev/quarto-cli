@@ -2568,30 +2568,6 @@
 - id: brand-color-value
   schema: string
 
-- id: logo-string-layout
-  description: Source path or source path with layout options for logo
-  anyOf:
-    - string
-    - object:
-        closed: true
-        properties:
-          location:
-            schema: string
-            description: >
-              X-Y positioning of logo
-          padding:
-            schema: string
-            description: >
-              Padding of logo
-          width:
-            schema: string
-            description: >
-              Width of logo
-          src:
-            schema: path
-            description: >
-              Source path of logo
-
 - id: brand-color
   description: >
     The brand's custom color palette and theme.
