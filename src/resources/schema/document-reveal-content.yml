@@ -2,7 +2,9 @@
   tags:
     formats: [revealjs, typst]
   schema:
-    ref: logo-string-layout
+    anyOf:
+      - string
+      - object # typst: location, padding, padding-*, width, source
   description: "Logo image (placed in bottom right corner of slides)"
 
 - name: footer
