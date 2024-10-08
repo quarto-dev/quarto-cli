@@ -22944,6 +22944,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Monitor the hash and change slides accordingly",
         "Include the current fragment in the URL",
         "Play a subtle sound when changing slides",
+        "Deactivate jump to slide feature.",
         {
           short: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
           long: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages. You can limit how many pages a slide may expand to using\nthis option."
@@ -23781,8 +23782,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack",
-        "Deactivate jump to slide feature."
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -24011,12 +24011,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 190204,
+        _internalId: 190350,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 190196,
+            _internalId: 190342,
             type: "enum",
             enum: [
               "png",
@@ -24032,7 +24032,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 190203,
+            _internalId: 190349,
             type: "anyOf",
             anyOf: [
               {
@@ -33935,6 +33935,11 @@ async function locateCellWithCursor(context) {
   return foundCell;
 }
 
+// ../yaml-schema/brand.ts
+var getBrandConfigSchema = async () => {
+  return refSchema("brand", "");
+};
+
 // yaml-intelligence.ts
 function getTagValue(schema2, tag) {
   if (schema2 === true || schema2 === false) {
@@ -34663,7 +34668,19 @@ var determineSchema = async (context) => {
       schema: extensionConfigSchema,
       schemaName: "extension-config"
     };
-  } else {
+  }
+  const brandYamlNames = [
+    "_brand.yml",
+    "_brand.yaml"
+  ];
+  if (context.path && brandYamlNames.some((name) => context.path.endsWith(name))) {
+    const brandYamlSchema = await getBrandConfigSchema();
+    return {
+      schema: brandYamlSchema,
+      schemaName: "brand"
+    };
+  }
+  {
     const projectConfigSchema = await getProjectConfigSchema();
     return {
       schema: projectConfigSchema,
