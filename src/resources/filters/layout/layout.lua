@@ -86,8 +86,16 @@ function partition_cells(float)
   end
 
   local function handle_preamble_codeblock(block)
-    if block.t == "CodeBlock" and #preamble > 0 and preamble[#preamble].t == "CodeBlock" then
-      preamble[#preamble].text = preamble[#preamble].text .. "\n" .. block.text
+    if #preamble == 0 then
+      preamble:insert(block)
+      return
+    end
+    local last = preamble[#preamble]
+    if block.t == "CodeBlock" and 
+      last.t == "CodeBlock" and
+      -- https://pandoc.org/lua-filters.html#pandoc.list:__eq
+      last.classes == block.classes then
+      last.text = last.text .. "\n" .. block.text
     else
       preamble:insert(block)
     end
