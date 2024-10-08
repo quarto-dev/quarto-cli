@@ -2,7 +2,7 @@
 
 import * as fs from 'stdlib/fs';
 import * as yaml from 'stdlib/yaml';
-import * as path from 'stdlib/globPath';
+import * as path from 'stdlib/path';
 
 const formatKeep: Record<string, string> = {
   'pdf': 'tex',
