@@ -387,6 +387,11 @@ export async function updateHtmlDependencies(config: Configuration) {
     },
     true, // true if commit, false otherwise
     false, // no v prefix,
+    // FIXME: Patch waiting for fix upstream to be merged
+    // https://github.com/rajgoel/reveal.js-plugins/pull/184
+    resolvePatches([
+      "revealjs-plugin-0001-chakboard-backdrop-filter.patch"
+    ])
   );
 
   // revealjs-menu
@@ -1123,7 +1128,7 @@ async function updateGithubSourceCodeDependency(
     await unzip(zipFile, working);
 
     await onDownload(working, version);
-    if (patches) await applyGitPatches(patches);
+    if (patches) applyGitPatches(patches);
   } else {
     throw new Error(`${versionEnvVar} is not defined`);
   }
