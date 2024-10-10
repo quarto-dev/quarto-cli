@@ -11880,23 +11880,27 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "brand-logo-explicit-resource",
+          object: {
+            closed: true,
+            properties: {
+              path: "path",
+              alt: {
+                schema: "string",
+                description: "Alternative text for the logo, used for accessibility.\n"
+              }
+            },
+            required: [
+              "path"
+            ]
+          }
+        },
+        {
           id: "brand-logo-resource",
           anyOf: [
             "string",
             {
-              object: {
-                closed: true,
-                properties: {
-                  path: "path",
-                  alt: {
-                    schema: "string",
-                    description: "Alternative text for the logo, used for accessibility.\n"
-                  }
-                },
-                required: [
-                  "path"
-                ]
-              }
+              ref: "brand-logo-explicit-resource"
             }
           ]
         },
@@ -21728,6 +21732,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The brand\u2019s Facebook URL.",
         "A link or path to the brand\u2019s light-colored logo or icon.",
         "A link or path to the brand\u2019s dark-colored logo or icon.",
+        "Alternative text for the logo, used for accessibility.",
         "Provide definitions and defaults for brand\u2019s logo in various formats\nand sizes.",
         "A link or path to the brand\u2019s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
         "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
@@ -24080,12 +24085,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 190435,
+        _internalId: 190453,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 190427,
+            _internalId: 190445,
             type: "enum",
             enum: [
               "png",
@@ -24101,7 +24106,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 190434,
+            _internalId: 190452,
             type: "anyOf",
             anyOf: [
               {

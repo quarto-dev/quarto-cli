@@ -335,7 +335,7 @@ const determineRevealLogo = (format: Format): string | undefined => {
         return logoInfo;
       } else {
         // what to do about light vs dark?
-        return logoInfo.light ?? logoInfo.dark;
+        return logoInfo?.light.path ?? logoInfo?.dark.path;
       }
     }
   }

@@ -9,6 +9,7 @@
 import {
   Brand as BrandJson,
   BrandFont,
+  BrandLogoExplicitResource,
   BrandNamedLogo,
   BrandNamedThemeColor,
   BrandStringLightDark,
@@ -42,10 +43,15 @@ const defaultLogoNames: string[] = [
   "large",
 ];
 
+type CanonicalLogoInfo = {
+  light: BrandLogoExplicitResource;
+  dark: BrandLogoExplicitResource;
+};
+
 type ProcessedBrandData = {
   color: Record<string, string>;
   typography: BrandTypography;
-  logo: Record<string, BrandStringLightDark>;
+  logo: Record<string, CanonicalLogoInfo>;
 };
 
 export class Brand {
@@ -133,15 +139,18 @@ export class Brand {
       };
     }
 
-    const logo: Record<string, BrandStringLightDark> = {};
-    for (const logoName of Object.keys(data.logo?.images ?? {})) {
-      logo[logoName] = this.getLogo(logoName);
-    }
-    for (const logoName of Object.keys(data.logo ?? {})) {
-      if (logoName === "images") {
-        continue;
+    const logo: Record<string, CanonicalLogoInfo> = {};
+    for (
+      const size of [
+        "small",
+        "medium",
+        "large",
+      ] as ("small" | "medium" | "large")[]
+    ) {
+      const v = this.getLogo(size);
+      if (v) {
+        logo[size] = v;
       }
-      logo[logoName] = this.getLogo(logoName);
     }
 
     return {
@@ -223,61 +232,42 @@ export class Brand {
     return fonts ?? [];
   }
 
+  getLogoResource(name: string): BrandLogoExplicitResource {
+    const entry = this.data.logo?.images?.[name];
+    if (!entry) {
+      return { path: name };
+    }
+    if (typeof entry === "string") {
+      return { path: entry };
+    }
+    return entry;
+  }
+
   // the same implementation as getColor except we can also return {light,dark}
   // assuming for now that with only contains strings, not {light,dark}
-  getLogo(name: string): BrandStringLightDark {
-    const seenValues = new Set<string>();
-    do {
-      if (seenValues.has(name)) {
-        throw new Error(
-          `Circular reference in _brand.yml color definitions: ${
-            Array.from(seenValues).join(
-              " -> ",
-            )
-          }`,
-        );
-      }
-      seenValues.add(name);
-      if (this.data.logo?.images?.[name]) {
-        name = this.data.logo.images[name] as string;
-      } else if (
-        defaultLogoNames.includes(name as BrandNamedLogo) &&
-        this.data.logo?.[name as BrandNamedLogo]
-      ) {
-        const brandSLD: BrandStringLightDark = this.data
-          .logo[name as BrandNamedLogo]!;
-        if (typeof brandSLD == "string") {
-          name = brandSLD;
-        } else {
-          const ret: BrandStringLightDark = {};
-          // we need to actually-recurse and not just use the loop
-          // because two paths light/dark
-          const light = brandSLD.light;
-          if (light) {
-            const brandSLD2 = this.getLogo(light);
-            if (typeof brandSLD2 == "string") {
-              ret.light = brandSLD2;
-            } else {
-              ret.light = brandSLD2.light;
-            }
-          }
-          const dark = brandSLD.dark;
-          if (dark) {
-            const brandSLD2 = this.getLogo(dark);
-            if (typeof brandSLD2 == "string") {
-              ret.dark = brandSLD2;
-            } else {
-              ret.dark = brandSLD2.light;
-            }
-          }
-          return ret;
-        }
-      } else {
-        return name;
-      }
-    } while (seenValues.size < 100); // 100 ought to be enough for anyone, with apologies to Bill Gates
-    throw new Error(
-      "Recursion depth exceeded 100 in _brand.yml logo definitions",
-    );
+  getLogo(name: "small" | "medium" | "large"): CanonicalLogoInfo | undefined {
+    const entry = this.data.logo?.[name];
+    if (!entry) {
+      return undefined;
+    }
+    if (typeof entry === "string") {
+      const res = this.getLogoResource(entry);
+      return {
+        light: res,
+        dark: res,
+      };
+    }
+    const lightEntry = entry?.light
+      ? this.getLogoResource(entry.light)
+      : undefined;
+    const darkEntry = entry?.dark
+      ? this.getLogoResource(entry.dark)
+      : undefined;
+    if (lightEntry && darkEntry) {
+      return {
+        light: lightEntry,
+        dark: darkEntry,
+      };
+    }
   }
 }

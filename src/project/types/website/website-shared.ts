@@ -172,10 +172,9 @@ export async function websiteNavigationConfig(project: ProjectContext) {
       const logo = projectBrand.processedData.logo.medium ??
         projectBrand.processedData.logo.small ??
         projectBrand.processedData.logo.large;
-      if (typeof logo === "string") {
-        sidebars[0].logo = logo;
-      } else if (typeof logo === "object") {
-        sidebars[0].logo = logo.light; // TODO: This needs smarts to work on light+dark themes
+      if (logo) {
+        sidebars[0].logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
+        sidebars[0]["logo-alt"] = logo.light.alt;
       }
     }
   }
@@ -186,10 +185,9 @@ export async function websiteNavigationConfig(project: ProjectContext) {
     const logo = projectBrand.processedData.logo.small ??
       projectBrand.processedData.logo.medium ??
       projectBrand.processedData.logo.large;
-    if (typeof logo === "string") {
-      navbar.logo = logo;
-    } else if (typeof logo === "object") {
-      navbar.logo = logo.light; // TODO: This needs smarts to work on light+dark themes
+    if (logo) {
+      navbar.logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
+      navbar["logo-alt"] = logo.light.alt;
     }
   }
 

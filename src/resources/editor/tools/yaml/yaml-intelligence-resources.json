@@ -4852,23 +4852,27 @@
       ]
     },
     {
+      "id": "brand-logo-explicit-resource",
+      "object": {
+        "closed": true,
+        "properties": {
+          "path": "path",
+          "alt": {
+            "schema": "string",
+            "description": "Alternative text for the logo, used for accessibility.\n"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
       "id": "brand-logo-resource",
       "anyOf": [
         "string",
         {
-          "object": {
-            "closed": true,
-            "properties": {
-              "path": "path",
-              "alt": {
-                "schema": "string",
-                "description": "Alternative text for the logo, used for accessibility.\n"
-              }
-            },
-            "required": [
-              "path"
-            ]
-          }
+          "ref": "brand-logo-explicit-resource"
         }
       ]
     },
@@ -14700,6 +14704,7 @@
     "The brand’s Facebook URL.",
     "A link or path to the brand’s light-colored logo or icon.",
     "A link or path to the brand’s dark-colored logo or icon.",
+    "Alternative text for the logo, used for accessibility.",
     "Provide definitions and defaults for brand’s logo in various formats\nand sizes.",
     "A link or path to the brand’s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
     "A link or path to the brand’s medium-sized logo, or a link or path to\nboth the light and dark versions.",
@@ -17052,12 +17057,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 190435,
+    "_internalId": 190453,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 190427,
+        "_internalId": 190445,
         "type": "enum",
         "enum": [
           "png",
@@ -17073,7 +17078,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 190434,
+        "_internalId": 190452,
         "type": "anyOf",
         "anyOf": [
           {

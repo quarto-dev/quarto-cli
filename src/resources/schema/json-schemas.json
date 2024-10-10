@@ -3243,22 +3243,25 @@
         }
       ]
     },
+    "BrandLogoExplicitResource": {
+      "object": {
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "BrandLogoResource": {
       "anyOf": [
         {
           "type": "string"
         },
         {
-          "object": {
-            "properties": {
-              "path": {
-                "type": "string"
-              },
-              "alt": {
-                "type": "string"
-              }
-            }
-          }
+          "$ref": "#/$defs/BrandLogoExplicitResource"
         }
       ]
     },

@@ -1283,7 +1283,9 @@ export type BrandMeta = {
 
 export type BrandStringLightDark = string | { dark?: string; light?: string };
 
-export type BrandLogoResource = string | { alt?: string; path: string };
+export type BrandLogoExplicitResource = { alt?: string; path: string };
+
+export type BrandLogoResource = string | BrandLogoExplicitResource;
 
 export type BrandLogo = {
   images?: { [key: string]: BrandLogoResource };

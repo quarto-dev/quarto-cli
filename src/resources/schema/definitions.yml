@@ -2515,18 +2515,21 @@
             description: >
               A link or path to the brand's dark-colored logo or icon.
 
+- id: brand-logo-explicit-resource
+  object:
+    closed: true
+    properties:
+      path: path
+      alt:
+        schema: string
+        description: >
+          Alternative text for the logo, used for accessibility.
+    required: [path]
+
 - id: brand-logo-resource
   anyOf:
     - string
-    - object:
-        closed: true
-        properties:
-          path: path
-          alt:
-            schema: string
-            description: >
-              Alternative text for the logo, used for accessibility.
-        required: [path]
+    - ref: brand-logo-explicit-resource
 
 - id: brand-logo
   description: >
