@@ -32,7 +32,6 @@ export const defaultColorNames: BrandNamedThemeColor[] = [
   "danger",
   "light",
   "dark",
-  "emphasis",
   "link",
 ];
 

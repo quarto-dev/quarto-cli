@@ -2713,60 +2713,68 @@
 
 - id: brand-typography-options-base
   description: Typographic options.
-  object:
-    closed: true
-    properties:
-      family: string
-      size: string
-      weight:
-        ref: brand-font-weight
-      color:
-        ref: brand-maybe-named-color
-      line-height:
-        ref: line-height-number-string
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          family: string
+          size: string
+          weight:
+            ref: brand-font-weight
+          color:
+            ref: brand-maybe-named-color
+          line-height:
+            ref: line-height-number-string
 
 - id: brand-typography-options-headings
   description: Typographic options without a font size.
-  object:
-    closed: true
-    properties:
-      family: string
-      weight:
-        ref: brand-font-weight
-      style:
-        ref: brand-font-style
-      color:
-        ref: brand-maybe-named-color
-      line-height:
-        ref: line-height-number-string
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          family: string
+          weight:
+            ref: brand-font-weight
+          style:
+            ref: brand-font-style
+          color:
+            ref: brand-maybe-named-color
+          line-height:
+            ref: line-height-number-string
 
 - id: brand-typography-options-monospace
   description: Typographic options for monospace elements.
-  object:
-    closed: true
-    properties:
-      family: string
-      size: string
-      weight:
-        ref: brand-font-weight
-      color:
-        ref: brand-maybe-named-color
-      background-color:
-        ref: brand-maybe-named-color
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          family: string
+          size: string
+          weight:
+            ref: brand-font-weight
+          color:
+            ref: brand-maybe-named-color
+          background-color:
+            ref: brand-maybe-named-color
 
 - id: brand-typography-options-monospace-inline
   description: Typographic options for inline monospace elements.
-  object:
-    closed: true
-    properties:
-      family: string
-      size: string
-      weight:
-        ref: brand-font-weight
-      color:
-        ref: brand-maybe-named-color
-      background-color:
-        ref: brand-maybe-named-color
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          family: string
+          size: string
+          weight:
+            ref: brand-font-weight
+          color:
+            ref: brand-maybe-named-color
+          background-color:
+            ref: brand-maybe-named-color
 
 - id: line-height-number-string
   description: Line height
@@ -2774,32 +2782,36 @@
 
 - id: brand-typography-options-monospace-block
   description: Typographic options for block monospace elements.
-  object:
-    closed: true
-    properties:
-      family: string
-      size: string
-      weight:
-        ref: brand-font-weight
-      color:
-        ref: brand-maybe-named-color
-      background-color:
-        ref: brand-maybe-named-color
-      line-height:
-        ref: line-height-number-string
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          family: string
+          size: string
+          weight:
+            ref: brand-font-weight
+          color:
+            ref: brand-maybe-named-color
+          background-color:
+            ref: brand-maybe-named-color
+          line-height:
+            ref: line-height-number-string
 
 - id: brand-typography-options-link
   description: Typographic options for inline monospace elements.
-  object:
-    closed: true
-    properties:
-      weight:
-        ref: brand-font-weight
-      color:
-        ref: brand-maybe-named-color
-      background-color:
-        ref: brand-maybe-named-color
-      decoration: string
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          weight:
+            ref: brand-font-weight
+          color:
+            ref: brand-maybe-named-color
+          background-color:
+            ref: brand-maybe-named-color
+          decoration: string
 
 - id: brand-named-font
   description: Names of customizeable fonts
@@ -2811,7 +2823,7 @@
     - ref: brand-font-google
     - ref: brand-font-bunny
     - ref: brand-font-file
-    # - ref: brand-font-family
+    - ref: brand-font-system
 
 - id: brand-font-weight
   description: A font weight.
@@ -2871,6 +2883,16 @@
             depending on its download status and readiness for use.
           enum: [auto, block, swap, fallback, optional]
           default: swap
+
+- id: brand-font-system
+  description: A system font definition.
+  object:
+    super:
+      resolveRef: brand-font-common
+    closed: true
+    properties:
+      source:
+        enum: [system]
 
 - id: brand-font-google
   description: A font definition from Google Fonts.
