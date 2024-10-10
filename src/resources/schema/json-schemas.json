@@ -3339,9 +3339,6 @@
           "dark": {
             "$ref": "#/$defs/BrandColorValue"
           },
-          "emphasis": {
-            "$ref": "#/$defs/BrandColorValue"
-          },
           "link": {
             "$ref": "#/$defs/BrandColorValue"
           }

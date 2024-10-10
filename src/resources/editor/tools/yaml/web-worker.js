@@ -11890,9 +11890,7 @@ try {
                   schema: {
                     object: {
                       additionalProperties: {
-                        schema: {
-                          ref: "brand-string-light-dark"
-                        }
+                        schema: "string"
                       }
                     }
                   }
@@ -12041,12 +12039,6 @@ try {
                 },
                 dark: {
                   description: "A dark color, used as a high-contrast foreground color on light elements or high-contrast background color on light elements.\n",
-                  schema: {
-                    ref: "brand-color-value"
-                  }
-                },
-                emphasis: {
-                  description: "A color used to emphasize or highlight text or elements.\n",
                   schema: {
                     ref: "brand-color-value"
                   }
@@ -24012,12 +24004,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 190350,
+          _internalId: 190344,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 190342,
+              _internalId: 190336,
               type: "enum",
               enum: [
                 "png",
@@ -24033,7 +24025,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 190349,
+              _internalId: 190343,
               type: "anyOf",
               anyOf: [
                 {

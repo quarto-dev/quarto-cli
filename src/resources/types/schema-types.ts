@@ -1284,7 +1284,7 @@ export type BrandMeta = {
 export type BrandStringLightDark = string | { dark?: string; light?: string };
 
 export type BrandLogo = {
-  images?: { [key: string]: BrandStringLightDark };
+  images?: { [key: string]: string };
   large?: BrandStringLightDark;
   medium?: BrandStringLightDark;
   small?: BrandStringLightDark;
@@ -1308,7 +1308,6 @@ export type BrandColor = {
   background?: BrandColorValue;
   danger?: BrandColorValue;
   dark?: BrandColorValue;
-  emphasis?: BrandColorValue;
   foreground?: BrandColorValue;
   info?: BrandColorValue;
   light?: BrandColorValue;

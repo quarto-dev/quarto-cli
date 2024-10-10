@@ -2525,8 +2525,8 @@
         schema:
           object:
             additionalProperties:
-              schema:
-                ref: brand-string-light-dark
+              schema: string
+              # ref: brand-string-light-dark
       small:
         description: >
           A link or path to the brand's small-sized logo or icon, or a link or path
@@ -2644,11 +2644,6 @@
         description: >
           A dark color, used as a high-contrast foreground color on light elements
           or high-contrast background color on light elements.
-        schema:
-          ref: brand-color-value
-      emphasis:
-        description: >
-          A color used to emphasize or highlight text or elements.
         schema:
           ref: brand-color-value
       link:
