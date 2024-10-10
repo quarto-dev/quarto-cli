@@ -16,6 +16,7 @@ import {
   BrandTypographyOptionsBase,
   BrandTypographyOptionsHeadings,
 } from "../../resources/types/schema-types.ts";
+import { InternalError } from "../lib/error.ts";
 
 // we can't programmatically convert typescript types to string arrays,
 // so we have to define this manually. They should match `BrandNamedThemeColor` in schema-types.ts
@@ -85,18 +86,46 @@ export class Brand {
     if (link) {
       typography.link = link;
     }
-    const monospace = this.getFont("monospace");
+    let monospace = this.getFont("monospace");
+    let monospaceInline = this.getFont("monospace-inline");
+    let monospaceBlock = this.getFont("monospace-block");
+
     if (monospace) {
+      if (typeof monospace === "string") {
+        monospace = { family: monospace };
+      }
       typography.monospace = monospace;
     }
-    const monospaceInline = this.getFont("monospace-inline");
+    if (monospaceInline && typeof monospaceInline === "string") {
+      monospaceInline = { family: monospaceInline };
+    }
+    if (monospaceBlock && typeof monospaceBlock === "string") {
+      monospaceBlock = { family: monospaceBlock };
+    }
+
+    // cut off control flow here so the type checker knows these
+    // are not strings
+    if (typeof monospace === "string") {
+      throw new InternalError("should never happen");
+    }
+    if (typeof monospaceInline === "string") {
+      throw new InternalError("should never happen");
+    }
+    if (typeof monospaceBlock === "string") {
+      throw new InternalError("should never happen");
+    }
+
     if (monospace || monospaceInline) {
       typography["monospace-inline"] = {
         ...(monospace ?? {}),
         ...(monospaceInline ?? {}),
       };
     }
-    const monospaceBlock = this.getFont("monospace-block");
+    if (monospaceBlock) {
+      if (typeof monospaceBlock === "string") {
+        monospaceBlock = { family: monospaceBlock };
+      }
+    }
     if (monospace || monospaceBlock) {
       typography["monospace-block"] = {
         ...(monospace ?? {}),

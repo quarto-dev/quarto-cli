@@ -11880,6 +11880,27 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "brand-logo-resource",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  path: "path",
+                  alt: {
+                    schema: "string",
+                    description: "Alternative text for the logo, used for accessibility.\n"
+                  }
+                },
+                required: [
+                  "path"
+                ]
+              }
+            }
+          ]
+        },
+        {
           id: "brand-logo",
           description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
           object: {
@@ -11889,7 +11910,9 @@ var require_yaml_intelligence_resources = __commonJS({
                 schema: {
                   object: {
                     additionalProperties: {
-                      schema: "string"
+                      schema: {
+                        ref: "brand-logo-resource"
+                      }
                     }
                   }
                 }
@@ -12078,7 +12101,6 @@ var require_yaml_intelligence_resources = __commonJS({
             "danger",
             "light",
             "dark",
-            "emphasis",
             "link"
           ]
         },
@@ -21755,6 +21777,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "The font weights to include.",
         "The font styles to include.",
         "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
+        "A system font definition.",
+        "The font family name, which must match the name of the font on the\nfoundry website.",
+        "The font weights to include.",
+        "The font styles to include.",
+        "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
         "A font definition from Google Fonts.",
         "The font family name, which must match the name of the font on the\nfoundry website.",
         "The font weights to include.",
@@ -23824,11 +23851,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "A system font definition.",
-        "The font family name, which must match the name of the font on the\nfoundry website.",
-        "The font weights to include.",
-        "The font styles to include.",
-        "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use."
+        "Alternative text for the logo, used for accessibility."
       ],
       "schema/external-schemas.yml": [
         {
@@ -24057,12 +24080,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 190379,
+        _internalId: 190435,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 190371,
+            _internalId: 190427,
             type: "enum",
             enum: [
               "png",
@@ -24078,7 +24101,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 190378,
+            _internalId: 190434,
             type: "anyOf",
             anyOf: [
               {

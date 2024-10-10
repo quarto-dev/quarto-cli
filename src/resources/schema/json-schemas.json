@@ -3243,6 +3243,25 @@
         }
       ]
     },
+    "BrandLogoResource": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "alt": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
     "BrandLogo": {
       "object": {
         "properties": {
@@ -3368,7 +3387,6 @@
         "danger",
         "light",
         "dark",
-        "emphasis",
         "link"
       ]
     },

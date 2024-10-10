@@ -2515,6 +2515,19 @@
             description: >
               A link or path to the brand's dark-colored logo or icon.
 
+- id: brand-logo-resource
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          path: path
+          alt:
+            schema: string
+            description: >
+              Alternative text for the logo, used for accessibility.
+        required: [path]
+
 - id: brand-logo
   description: >
     Provide definitions and defaults for brand's logo in various formats and sizes.
@@ -2525,8 +2538,7 @@
         schema:
           object:
             additionalProperties:
-              schema: string
-              # ref: brand-string-light-dark
+              schema: { ref: brand-logo-resource }
       small:
         description: >
           A link or path to the brand's small-sized logo or icon, or a link or path
@@ -2675,7 +2687,6 @@
       danger,
       light,
       dark,
-      emphasis,
       link,
     ]
 

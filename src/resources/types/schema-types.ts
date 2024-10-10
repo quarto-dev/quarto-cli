@@ -1283,8 +1283,10 @@ export type BrandMeta = {
 
 export type BrandStringLightDark = string | { dark?: string; light?: string };
 
+export type BrandLogoResource = string | { alt?: string; path: string };
+
 export type BrandLogo = {
-  images?: { [key: string]: string };
+  images?: { [key: string]: BrandLogoResource };
   large?: BrandStringLightDark;
   medium?: BrandStringLightDark;
   small?: BrandStringLightDark;
@@ -1338,7 +1340,6 @@ export type BrandNamedThemeColor =
   | "danger"
   | "light"
   | "dark"
-  | "emphasis"
   | "link"; /* A named brand color, taken either from `color.theme` or `color.palette` (in that order). */
 
 export type BrandTypography = {
