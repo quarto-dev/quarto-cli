@@ -616,6 +616,8 @@ $font-family-monospace:       SFMono-Regular, Menlo, Monaco, Consolas, "Liberati
 // stylelint-enable value-keyword-case
 $font-family-base:            $font-family-sans-serif !default;
 $font-family-code:            $font-family-monospace !default;
+$font-family-monospace-block: $font-family-monospace !default;
+$font-family-monospace-inline: $font-family-monospace !default;
 
 // $font-size-root affects the value of `rem`, which is used for as well font sizes, paddings, and margins
 // $font-size-base affects the font size of the body text
@@ -633,6 +635,9 @@ $font-weight-bold:            700 !default;
 $font-weight-bolder:          bolder !default;
 
 $font-weight-base:            $font-weight-normal !default;
+$font-weight-monospace:       $font-weight-base !default;
+$font-weight-monospace-block: $font-weight-monospace !default;
+$font-weight-monospace-inline: $font-weight-monospace !default;
 
 $line-height-base:            1.5 !default;
 $line-height-sm:              1.25 !default;
@@ -1758,6 +1763,8 @@ $offcanvas-backdrop-opacity:        $modal-backdrop-opacity !default;
 // Code
 
 $code-font-size:                    $small-font-size !default;
+$code-block-font-size:              $code-font-size-base !default;
+$code-inline-font-size:             $code-font-size-base !default;
 // Amount intentionally matches mixture amount of shiny::inputPanel()
 // https://github.com/rstudio/shiny/blob/4eeb4a1/inst/www/shared/shiny_scss/bootstrap.scss#L25
 $code-bg:                           $body-emphasis-color !default;

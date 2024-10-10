@@ -321,12 +321,14 @@ const brandTypographyBundle = (
       ["family", "font-family-base"],
       ["size", "font-size-base"],
       ["line-height", "line-height-base"],
+      ["weight", "font-weight-base"],
 
       // revealjs
       ["family", "mainFont"],
       ["size", "presentation-font-size-root"],
       ["line-height", "presentation-line-height"],
       // TBD?
+
       // ["style", "font-style-base"],
       // ["weight", "font-weight-base"],
     ],
@@ -351,6 +353,13 @@ const brandTypographyBundle = (
       ["family", "font-family-monospace"],
       // bootstrap
       ["size", "code-font-size"],
+      // forward explicitly to both `code` and `pre`
+      // because that interacts less with the default bootstrap styles
+      ["color", "code-color"],
+      ["color", "pre-color"],
+
+      ["weight", "font-weight-monospace"],
+
       // revealjs
       ["size", "code-block-font-size"],
     ],
@@ -361,6 +370,8 @@ const brandTypographyBundle = (
       ["line-height", "pre-line-height"],
       ["color", "pre-color"],
       ["background-color", "pre-bg"],
+      ["size", "code-block-font-size"],
+      ["weight", "font-weight-monospace-block"],
       // revealjs
       ["line-height", "code-block-line-height"],
       ["color", "code-block-color"],
@@ -373,18 +384,20 @@ const brandTypographyBundle = (
       ["background-color", "code-bg"],
       // bootstrap
       ["size", "code-inline-font-size"],
+      ["weight", "font-weight-monospace-inline"],
       // revealjs
-      ["size", "code-block-font-size"],
+      // ["size", "code-block-font-size"],
     ],
   };
 
   for (
     const kind of [
-      "base",
-      "headings",
-      "monospace",
+      // more specific entries go first
       "monospace-block",
       "monospace-inline",
+      "monospace",
+      "headings",
+      "base",
     ]
   ) {
     const fontInformation = resolveHTMLFontInformation(

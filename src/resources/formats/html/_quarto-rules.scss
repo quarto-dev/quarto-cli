@@ -340,6 +340,24 @@ ul.task-list {
   padding-left: 1em;
 }
 
+// override _reboot.scss
+
+// code blocks
+pre code {
+  font-family: $font-family-monospace-block;
+  // I'm really not confident that this is correct
+  @include font-size($code-block-font-size);
+  font-weight: $font-weight-monospace-block;
+}
+
+// code inlines
+p code {
+  font-family: $font-family-monospace-inline;
+  // I'm really not confident that this is correct
+  @include font-size($code-inline-font-size);
+  font-weight: $font-weight-monospace-inline;
+}
+
 // tippy
 
 [data-tippy-root] {
