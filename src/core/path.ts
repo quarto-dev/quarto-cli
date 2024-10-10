@@ -24,6 +24,7 @@ import * as ld from "./lodash.ts";
 
 import { getenv } from "./env.ts";
 import { execProcess } from "./process.ts";
+import { isWindows } from "./platform.ts";
 
 export const kSkipHidden = /[/\\][\.]/;
 
@@ -48,8 +49,25 @@ export function safeRemoveSync(
   try {
     Deno.removeSync(file, options);
   } catch (e) {
+    let lastError = e;
+    // WINDOWS ONLY: Retry on windows to let time to file to unlock
+    if (isWindows() && e.code === "EBUSY") {
+      let nTry: number = 1;
+      // high number to prevent infinite loop
+      const maxTry: number = 500;
+      let eCode = e.code;
+      while (eCode === "EBUSY" && nTry <= maxTry) {
+        try {
+          Deno.removeSync(file, options);
+        } catch (e) {
+          lastError = e;
+          eCode = e.code;
+          nTry++;
+        }
+      }
+    }
     if (existsSync(file)) {
-      throw e;
+      throw lastError;
     }
   }
 }
