@@ -96,3 +96,39 @@
             secret:
               string:
                 description: Secret provided by multiplex token server
+
+- name: scroll-view
+  description: Control the scroll view feature of Revealjs
+  tags:
+    formats: [revealjs]
+  schema:
+    anyOf:
+      - boolean
+      - object:
+          properties:
+            activate:
+              boolean:
+                default: true
+                description: "Activate scroll view by default for the presentation. Otherwise, it is manually avalaible by adding `?view=scroll` to url."
+            progress:
+              anyOf:
+                - boolean
+                - enum: ["auto"]
+              default: "auto"
+              description: "Show the scrollbar while scrolling, hide while idle (default `auto`). Set to 'true' to always show, `false` to always hide."
+            snap:
+              anyOf:
+                - boolean
+                - enum: ["mandatory", "proximity"]
+              default: "mandatory"
+              description: >
+                When scrolling, it will automatically snap to the closest slide. Only snap when close to the top of a slide using `proximity`. Disable snapping altogether by setting to `false`.
+            layout:
+              enum: ["compact", "full"]
+              default: full
+              description: |
+                By default each slide will be sized to be as tall as the viewport. If you prefer a more dense layout with multiple slides visible in parallel, set to `compact`.
+            activation-width:
+              number:
+                description: |
+                  Control scroll view activation width. The scroll view is automatically unable when the viewport reaches mobile widths. Set to `0` to disable automatic scroll view.

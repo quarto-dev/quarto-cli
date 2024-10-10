@@ -13,6 +13,11 @@ import {
   kJumpToSlide,
   kPdfMaxPagesPerSlide,
   kPdfSeparateFragments,
+  kScrollActivationWidth,
+  kScrollLayout,
+  kScrollProgress,
+  kScrollSnap,
+  kView,
 } from "./constants.ts";
 
 export function optionsToKebab(options: string[]) {
@@ -120,6 +125,11 @@ const kRevealOptions = [
   kPdfSeparateFragments,
   "pdfPageHeightOffset",
   kJumpToSlide,
+  kView,
+  kScrollProgress,
+  kScrollSnap,
+  kScrollLayout,
+  kScrollActivationWidth,
 ];
 
 const kRevealKebabOptions = optionsToKebab(kRevealOptions);

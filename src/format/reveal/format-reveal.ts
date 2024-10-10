@@ -62,8 +62,14 @@ import {
   kPreviewLinksAuto,
   kRevealJsConfig,
   kScrollable,
+  kScrollActivationWidth,
+  kScrollLayout,
+  kScrollProgress,
+  kScrollSnap,
+  kScrollView,
   kSlideFooter,
   kSlideLogo,
+  kView,
 } from "./constants.ts";
 import { revealMetadataFilter } from "./metadata.ts";
 import { ProjectContext } from "../../project/types.ts";
@@ -78,6 +84,36 @@ export function revealResolveFormat(format: Format) {
   if (format.metadata["navigationMode"] === "vertical") {
     format.metadata["navigationMode"] = "default";
   }
+
+  // normalize scroll-view to map to revealjs configuration
+  const scrollView = format.metadata[kScrollView];
+  if (typeof scrollView === "boolean" && scrollView) {
+    // if scroll-view is true then set view to scroll by default
+    // using all default option
+    format.metadata[kView] = "scroll";
+  } else if (typeof scrollView === "object") {
+    // if scroll-view is an object then map to revealjs configuration individually
+    const scrollViewRecord = scrollView as Record<string, unknown>;
+    // Only activate scroll by default when ask explicitly
+    if (scrollViewRecord["activate"] === true) {
+      format.metadata[kView] = "scroll";
+    }
+    if (scrollViewRecord["progress"] !== undefined) {
+      format.metadata[kScrollProgress] = scrollViewRecord["progress"];
+    }
+    if (scrollViewRecord["snap"] !== undefined) {
+      format.metadata[kScrollSnap] = scrollViewRecord["snap"];
+    }
+    if (scrollViewRecord["layout"] !== undefined) {
+      format.metadata[kScrollLayout] = scrollViewRecord["layout"];
+    }
+    if (scrollViewRecord["activation-width"] !== undefined) {
+      format.metadata[kScrollActivationWidth] =
+        scrollViewRecord["activation-width"];
+    }
+  }
+  // remove scroll-view from metadata
+  delete format.metadata[kScrollView];
 }
 
 export function revealjsFormat() {
@@ -151,6 +187,24 @@ export function revealjsFormat() {
         if (format.metadata[kPdfMaxPagesPerSlide]) {
           extraConfig[kPdfMaxPagesPerSlide] =
             format.metadata[kPdfMaxPagesPerSlide];
+        }
+
+        // pass scroll view settings as they are not yet in revealjs template
+        if (format.metadata[kView]) {
+          extraConfig[kView] = format.metadata[kView];
+        }
+        if (format.metadata[kScrollProgress] !== undefined) {
+          extraConfig[kScrollProgress] = format.metadata[kScrollProgress];
+        }
+        if (format.metadata[kScrollSnap] !== undefined) {
+          extraConfig[kScrollSnap] = format.metadata[kScrollSnap];
+        }
+        if (format.metadata[kScrollLayout] !== undefined) {
+          extraConfig[kScrollLayout] = format.metadata[kScrollLayout];
+        }
+        if (format.metadata[kScrollActivationWidth] !== undefined) {
+          extraConfig[kScrollActivationWidth] =
+            format.metadata[kScrollActivationWidth];
         }
 
         // get theme info (including text highlighing mode)
