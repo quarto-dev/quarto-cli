@@ -128,10 +128,13 @@ window.QuartoSupport = function () {
   // tweak slide-number element
   function tweakSlideNumber(deck) {
     deck.on("slidechanged", function (ev) {
+      // FIXME: Add scrollview support
+      if (deck.isScrollView()) { return }
       const revealParent = deck.getRevealElement();
       const slideNumberEl = revealParent.querySelector(".slide-number");
-      const onDarkBackground = Reveal.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-dark-background');
-      const onLightBackground = Reveal.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-light-background');
+      const slideBackground = Reveal.getSlideBackground(ev.indexh, ev.indexv);
+      const onDarkBackground = slideBackground.classList.contains('has-dark-background')
+      const onLightBackground = slideBackground.classList.contains('has-light-background')
       toggleBackgroundTheme(slideNumberEl, onDarkBackground, onLightBackground);
     })
   }
@@ -143,6 +146,8 @@ window.QuartoSupport = function () {
     // Set per slide footer if any defined, 
     // or show default unless data-footer="false" for no footer on this slide
     const setSlideFooter = (ev, defaultFooterDiv) => {
+      // FIXME: Add scrollview support
+      if (deck.isScrollView()) { return }
       const currentSlideFooter = ev.currentSlide.querySelector(".footer");
       const onDarkBackground = deck.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-dark-background')
       const onLightBackground = deck.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-light-background')
@@ -342,6 +347,31 @@ window.QuartoSupport = function () {
     }
   }
 
+
+  function toggleScrollViewWrapper(deck) {
+    let oldscrollActivationWidth;
+    return () => {
+      if (deck.isScrollView() === true) {
+        deck.configure({scrollActivationWidth: oldscrollActivationWidth});
+        deck.toggleScrollView(false);
+      } else if (deck.isScrollView() === false) {
+        oldscrollActivationWidth = deck.getConfig()['scrollActivationWidth'];
+        deck.configure({scrollActivationWidth: null});
+        deck.toggleScrollView(true);
+      }
+    }
+  }
+
+  function installScollViewKeyBindings(deck) {
+		var config = deck.getConfig();
+		var shortcut = config.scrollViewShortcut || 'R';
+		Reveal.addKeyBinding({
+			keyCode: shortcut.toUpperCase().charCodeAt( 0 ),
+			key: shortcut.toUpperCase(),
+			description: 'Scroll View Mode'
+		}, toggleScrollViewWrapper(deck) );
+	}
+
   return {
     id: "quarto-support",
     init: function (deck) {
@@ -357,8 +387,10 @@ window.QuartoSupport = function () {
       handleSlideChanges(deck);
       workaroundMermaidDistance(deck);
       handleWhiteSpaceInColumns(deck);
+      installScollViewKeyBindings(deck);
       // should stay last
       cleanEmptyAutpGeneratedContent(deck);
     },
+    toggleScrollView: toggleScrollViewWrapper,
   };
 };
