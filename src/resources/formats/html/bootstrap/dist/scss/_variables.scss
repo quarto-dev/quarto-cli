@@ -1763,8 +1763,8 @@ $offcanvas-backdrop-opacity:        $modal-backdrop-opacity !default;
 // Code
 
 $code-font-size:                    $small-font-size !default;
-$code-block-font-size:              $code-font-size-base !default;
-$code-inline-font-size:             $code-font-size-base !default;
+$code-block-font-size:              $code-font-size !default;
+$code-inline-font-size:             $code-font-size !default;
 // Amount intentionally matches mixture amount of shiny::inputPanel()
 // https://github.com/rstudio/shiny/blob/4eeb4a1/inst/www/shared/shiny_scss/bootstrap.scss#L25
 $code-bg:                           $body-emphasis-color !default;
