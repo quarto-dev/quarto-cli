@@ -117,9 +117,7 @@
               default: "auto"
               description: "Show the scrollbar while scrolling, hide while idle (default `auto`). Set to 'true' to always show, `false` to always hide."
             snap:
-              anyOf:
-                - boolean
-                - enum: ["mandatory", "proximity"]
+              enum: ["mandatory", "proximity", false]
               default: "mandatory"
               description: >
                 When scrolling, it will automatically snap to the closest slide. Only snap when close to the top of a slide using `proximity`. Disable snapping altogether by setting to `false`.
