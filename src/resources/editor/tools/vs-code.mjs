@@ -11880,6 +11880,31 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "brand-logo-explicit-resource",
+          object: {
+            closed: true,
+            properties: {
+              path: "path",
+              alt: {
+                schema: "string",
+                description: "Alternative text for the logo, used for accessibility.\n"
+              }
+            },
+            required: [
+              "path"
+            ]
+          }
+        },
+        {
+          id: "brand-logo-resource",
+          anyOf: [
+            "string",
+            {
+              ref: "brand-logo-explicit-resource"
+            }
+          ]
+        },
+        {
           id: "brand-logo",
           description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
           object: {
@@ -11890,7 +11915,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   object: {
                     additionalProperties: {
                       schema: {
-                        ref: "brand-string-light-dark"
+                        ref: "brand-logo-resource"
                       }
                     }
                   }
@@ -12044,12 +12069,6 @@ var require_yaml_intelligence_resources = __commonJS({
                   ref: "brand-color-value"
                 }
               },
-              emphasis: {
-                description: "A color used to emphasize or highlight text or elements.\n",
-                schema: {
-                  ref: "brand-color-value"
-                }
-              },
               link: {
                 description: "The color used for hyperlinks. If not defined, the `primary` color is used.\n",
                 schema: {
@@ -12086,7 +12105,6 @@ var require_yaml_intelligence_resources = __commonJS({
             "danger",
             "light",
             "dark",
-            "emphasis",
             "link"
           ]
         },
@@ -12132,84 +12150,104 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "brand-typography-options-base",
           description: "Typographic options.",
-          object: {
-            closed: true,
-            properties: {
-              family: "string",
-              size: "string",
-              weight: {
-                ref: "brand-font-weight"
-              },
-              color: {
-                ref: "brand-maybe-named-color"
-              },
-              "line-height": {
-                ref: "line-height-number-string"
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color"
+                  },
+                  "line-height": {
+                    ref: "line-height-number-string"
+                  }
+                }
               }
             }
-          }
+          ]
         },
         {
           id: "brand-typography-options-headings",
           description: "Typographic options without a font size.",
-          object: {
-            closed: true,
-            properties: {
-              family: "string",
-              weight: {
-                ref: "brand-font-weight"
-              },
-              style: {
-                ref: "brand-font-style"
-              },
-              color: {
-                ref: "brand-maybe-named-color"
-              },
-              "line-height": {
-                ref: "line-height-number-string"
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  style: {
+                    ref: "brand-font-style"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color"
+                  },
+                  "line-height": {
+                    ref: "line-height-number-string"
+                  }
+                }
               }
             }
-          }
+          ]
         },
         {
           id: "brand-typography-options-monospace",
           description: "Typographic options for monospace elements.",
-          object: {
-            closed: true,
-            properties: {
-              family: "string",
-              size: "string",
-              weight: {
-                ref: "brand-font-weight"
-              },
-              color: {
-                ref: "brand-maybe-named-color"
-              },
-              "background-color": {
-                ref: "brand-maybe-named-color"
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color"
+                  }
+                }
               }
             }
-          }
+          ]
         },
         {
           id: "brand-typography-options-monospace-inline",
           description: "Typographic options for inline monospace elements.",
-          object: {
-            closed: true,
-            properties: {
-              family: "string",
-              size: "string",
-              weight: {
-                ref: "brand-font-weight"
-              },
-              color: {
-                ref: "brand-maybe-named-color"
-              },
-              "background-color": {
-                ref: "brand-maybe-named-color"
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color"
+                  }
+                }
               }
             }
-          }
+          ]
         },
         {
           id: "line-height-number-string",
@@ -12222,44 +12260,54 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "brand-typography-options-monospace-block",
           description: "Typographic options for block monospace elements.",
-          object: {
-            closed: true,
-            properties: {
-              family: "string",
-              size: "string",
-              weight: {
-                ref: "brand-font-weight"
-              },
-              color: {
-                ref: "brand-maybe-named-color"
-              },
-              "background-color": {
-                ref: "brand-maybe-named-color"
-              },
-              "line-height": {
-                ref: "line-height-number-string"
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color"
+                  },
+                  "line-height": {
+                    ref: "line-height-number-string"
+                  }
+                }
               }
             }
-          }
+          ]
         },
         {
           id: "brand-typography-options-link",
           description: "Typographic options for inline monospace elements.",
-          object: {
-            closed: true,
-            properties: {
-              weight: {
-                ref: "brand-font-weight"
-              },
-              color: {
-                ref: "brand-maybe-named-color"
-              },
-              "background-color": {
-                ref: "brand-maybe-named-color"
-              },
-              decoration: "string"
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color"
+                  },
+                  decoration: "string"
+                }
+              }
             }
-          }
+          ]
         },
         {
           id: "brand-named-font",
@@ -12282,6 +12330,9 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             {
               ref: "brand-font-file"
+            },
+            {
+              ref: "brand-font-system"
             }
           ]
         },
@@ -12365,6 +12416,23 @@ var require_yaml_intelligence_resources = __commonJS({
                   ],
                   default: "swap"
                 }
+              }
+            }
+          }
+        },
+        {
+          id: "brand-font-system",
+          description: "A system font definition.",
+          object: {
+            super: {
+              resolveRef: "brand-font-common"
+            },
+            closed: true,
+            properties: {
+              source: {
+                enum: [
+                  "system"
+                ]
               }
             }
           }
@@ -21664,6 +21732,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The brand\u2019s Facebook URL.",
         "A link or path to the brand\u2019s light-colored logo or icon.",
         "A link or path to the brand\u2019s dark-colored logo or icon.",
+        "Alternative text for the logo, used for accessibility.",
         "Provide definitions and defaults for brand\u2019s logo in various formats\nand sizes.",
         "A link or path to the brand\u2019s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
         "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
@@ -21687,7 +21756,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "The color used for errors, dangerous actions, or negative\ninformation.",
         "A bright color, used as a high-contrast foreground color on dark\nelements or low-contrast background color on light elements.",
         "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
-        "A color used to emphasize or highlight text or elements.",
         "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
         "A color, which may be a named brand color.",
         "A named brand color, taken either from <code>color.theme</code> or\n<code>color.palette</code> (in that order).",
@@ -21710,6 +21778,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Font files and definitions for the brand.",
         "A font weight.",
         "A font style.",
+        "The font family name, which must match the name of the font on the\nfoundry website.",
+        "The font weights to include.",
+        "The font styles to include.",
+        "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
+        "A system font definition.",
         "The font family name, which must match the name of the font on the\nfoundry website.",
         "The font weights to include.",
         "The font styles to include.",
@@ -23782,7 +23855,8 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "Alternative text for the logo, used for accessibility."
       ],
       "schema/external-schemas.yml": [
         {
@@ -24011,12 +24085,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 190350,
+        _internalId: 190453,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 190342,
+            _internalId: 190445,
             type: "enum",
             enum: [
               "png",
@@ -24032,7 +24106,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 190349,
+            _internalId: 190452,
             type: "anyOf",
             anyOf: [
               {

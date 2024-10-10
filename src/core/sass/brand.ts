@@ -285,9 +285,11 @@ const brandTypographyBundle = (
   const resolveHTMLFontInformation = (
     kind: FontKind,
   ): HTMLFontInformation | undefined => {
-    const resolvedFontOptions = brand.data.typography?.[kind];
+    let resolvedFontOptions = brand.data.typography?.[kind];
     if (!resolvedFontOptions) {
       return undefined;
+    } else if (typeof resolvedFontOptions === "string") {
+      resolvedFontOptions = { family: resolvedFontOptions };
     }
     const family = resolvedFontOptions.family;
     const font = getFontFamilies(family);

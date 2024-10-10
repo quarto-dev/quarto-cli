@@ -3243,6 +3243,28 @@
         }
       ]
     },
+    "BrandLogoExplicitResource": {
+      "object": {
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "BrandLogoResource": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/BrandLogoExplicitResource"
+        }
+      ]
+    },
     "BrandLogo": {
       "object": {
         "properties": {
@@ -3339,9 +3361,6 @@
           "dark": {
             "$ref": "#/$defs/BrandColorValue"
           },
-          "emphasis": {
-            "$ref": "#/$defs/BrandColorValue"
-          },
           "link": {
             "$ref": "#/$defs/BrandColorValue"
           }
@@ -3371,7 +3390,6 @@
         "danger",
         "light",
         "dark",
-        "emphasis",
         "link"
       ]
     },
@@ -3406,88 +3424,116 @@
       }
     },
     "BrandTypographyOptionsBase": {
-      "object": {
-        "properties": {
-          "family": {
-            "type": "string"
-          },
-          "size": {
-            "type": "string"
-          },
-          "weight": {
-            "$ref": "#/$defs/BrandFontWeight"
-          },
-          "color": {
-            "$ref": "#/$defs/BrandMaybeNamedColor"
-          },
-          "line-height": {
-            "$ref": "#/$defs/LineHeightNumberString"
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string"
+              },
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColor"
+              },
+              "line-height": {
+                "$ref": "#/$defs/LineHeightNumberString"
+              }
+            }
           }
         }
-      }
+      ]
     },
     "BrandTypographyOptionsHeadings": {
-      "object": {
-        "properties": {
-          "family": {
-            "type": "string"
-          },
-          "weight": {
-            "$ref": "#/$defs/BrandFontWeight"
-          },
-          "style": {
-            "$ref": "#/$defs/BrandFontStyle"
-          },
-          "color": {
-            "$ref": "#/$defs/BrandMaybeNamedColor"
-          },
-          "line-height": {
-            "$ref": "#/$defs/LineHeightNumberString"
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "style": {
+                "$ref": "#/$defs/BrandFontStyle"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColor"
+              },
+              "line-height": {
+                "$ref": "#/$defs/LineHeightNumberString"
+              }
+            }
           }
         }
-      }
+      ]
     },
     "BrandTypographyOptionsMonospace": {
-      "object": {
-        "properties": {
-          "family": {
-            "type": "string"
-          },
-          "size": {
-            "type": "string"
-          },
-          "weight": {
-            "$ref": "#/$defs/BrandFontWeight"
-          },
-          "color": {
-            "$ref": "#/$defs/BrandMaybeNamedColor"
-          },
-          "background-color": {
-            "$ref": "#/$defs/BrandMaybeNamedColor"
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string"
+              },
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColor"
+              },
+              "background-color": {
+                "$ref": "#/$defs/BrandMaybeNamedColor"
+              }
+            }
           }
         }
-      }
+      ]
     },
     "BrandTypographyOptionsMonospaceInline": {
-      "object": {
-        "properties": {
-          "family": {
-            "type": "string"
-          },
-          "size": {
-            "type": "string"
-          },
-          "weight": {
-            "$ref": "#/$defs/BrandFontWeight"
-          },
-          "color": {
-            "$ref": "#/$defs/BrandMaybeNamedColor"
-          },
-          "background-color": {
-            "$ref": "#/$defs/BrandMaybeNamedColor"
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string"
+              },
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColor"
+              },
+              "background-color": {
+                "$ref": "#/$defs/BrandMaybeNamedColor"
+              }
+            }
           }
         }
-      }
+      ]
     },
     "LineHeightNumberString": {
       "anyOf": [
@@ -3500,46 +3546,60 @@
       ]
     },
     "BrandTypographyOptionsMonospaceBlock": {
-      "object": {
-        "properties": {
-          "family": {
-            "type": "string"
-          },
-          "size": {
-            "type": "string"
-          },
-          "weight": {
-            "$ref": "#/$defs/BrandFontWeight"
-          },
-          "color": {
-            "$ref": "#/$defs/BrandMaybeNamedColor"
-          },
-          "background-color": {
-            "$ref": "#/$defs/BrandMaybeNamedColor"
-          },
-          "line-height": {
-            "$ref": "#/$defs/LineHeightNumberString"
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string"
+              },
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColor"
+              },
+              "background-color": {
+                "$ref": "#/$defs/BrandMaybeNamedColor"
+              },
+              "line-height": {
+                "$ref": "#/$defs/LineHeightNumberString"
+              }
+            }
           }
         }
-      }
+      ]
     },
     "BrandTypographyOptionsLink": {
-      "object": {
-        "properties": {
-          "weight": {
-            "$ref": "#/$defs/BrandFontWeight"
-          },
-          "color": {
-            "$ref": "#/$defs/BrandMaybeNamedColor"
-          },
-          "background-color": {
-            "$ref": "#/$defs/BrandMaybeNamedColor"
-          },
-          "decoration": {
-            "type": "string"
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColor"
+              },
+              "background-color": {
+                "$ref": "#/$defs/BrandMaybeNamedColor"
+              },
+              "decoration": {
+                "type": "string"
+              }
+            }
           }
         }
-      }
+      ]
     },
     "BrandNamedFont": {
       "enum": [
@@ -3558,6 +3618,9 @@
         },
         {
           "$ref": "#/$defs/BrandFontFile"
+        },
+        {
+          "$ref": "#/$defs/BrandFontSystem"
         }
       ]
     },
@@ -3633,6 +3696,17 @@
               "swap",
               "fallback",
               "optional"
+            ]
+          }
+        }
+      }
+    },
+    "BrandFontSystem": {
+      "object": {
+        "properties": {
+          "source": {
+            "enum": [
+              "system"
             ]
           }
         }
