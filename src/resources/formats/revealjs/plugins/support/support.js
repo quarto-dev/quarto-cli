@@ -146,11 +146,9 @@ window.QuartoSupport = function () {
     // Set per slide footer if any defined, 
     // or show default unless data-footer="false" for no footer on this slide
     const setSlideFooter = (ev, defaultFooterDiv) => {
-      // FIXME: Add scrollview support
-      if (deck.isScrollView()) { return }
       const currentSlideFooter = ev.currentSlide.querySelector(".footer");
-      const onDarkBackground = deck.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-dark-background')
-      const onLightBackground = deck.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-light-background')
+      const onDarkBackground = deck.getSlideBackground(ev.currentSlide).classList.contains('has-dark-background')
+      const onLightBackground = deck.getSlideBackground(ev.currentSlide).classList.contains('has-light-background')
       if (currentSlideFooter) {
         defaultFooterDiv.style.display = "none";
         const slideFooter = currentSlideFooter.cloneNode(true);
