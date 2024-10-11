@@ -346,7 +346,11 @@ ul.task-list {
 pre code {
   font-family: $font-family-monospace-block;
   // I'm really not confident that this is correct
-  @include font-size($code-block-font-size);
+  @if mixin-exists(font-size) {
+    @include font-size($code-block-font-size);
+  } @else {
+    font-size: $code-block-font-size;
+  }
   font-weight: $font-weight-monospace-block;
 }
 
@@ -354,7 +358,11 @@ pre code {
 p code {
   font-family: $font-family-monospace-inline;
   // I'm really not confident that this is correct
-  @include font-size($code-inline-font-size);
+  @if mixin-exists(font-size) {
+    @include font-size($code-inline-font-size);
+  } @else {
+    font-size: $code-inline-font-size;
+  }
   font-weight: $font-weight-monospace-inline;
 }
 

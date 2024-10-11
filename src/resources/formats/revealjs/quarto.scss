@@ -169,6 +169,21 @@ $kbd-font-size: $presentation-font-size-root !default;
 $kbd-color: $body-color !default;
 $kbd-bg: $gray-100 !default; // like in bootstrap style
 
+// Default variables which exist in bootstrap themes
+// and are here to simplify the implementation of _brand.yml and
+// user theming customization in general
+$font-weight-base: 400 !default;
+$code-font-size: $presentation-font-size-root !default;
+
+// variables required by _brand.yml
+$font-family-monospace-block: $font-family-monospace !default;
+$font-family-monospace-inline: $font-family-monospace !default;
+$font-weight-monospace: $font-weight-base !default;
+$font-weight-monospace-block: $font-weight-monospace !default;
+$font-weight-monospace-inline: $font-weight-monospace !default;
+$code-block-font-size: $code-font-size !default;
+$code-inline-font-size: $code-font-size !default;
+
 /*-- scss:functions --*/
 
 @function colorToRGB($color) {
