@@ -8,12 +8,3 @@ $border-color: lighten($body-color, 30%) !default;
 $table-border-color: $border-color !default;
 $border-width: 1px !default;
 $border-radius: 4px !default;
-
-// brand.yml adjustments
-$font-family-monospace-block: $font-family-monospace !default;
-$font-family-monospace-inline: $font-family-monospace !default;
-$font-weight-monospace: $font-weight-base !default;
-$font-weight-monospace-block: $font-weight-monospace !default;
-$font-weight-monospace-inline: $font-weight-monospace !default;
-$code-block-font-size: $code-font-size !default;
-$code-inline-font-size: $code-font-size !default;
