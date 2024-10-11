@@ -355,13 +355,14 @@ const brandTypographyBundle = (
       ["size", "code-font-size"],
       // forward explicitly to both `code` and `pre`
       // because that interacts less with the default bootstrap styles
-      ["color", "code-color"],
+      ["color", "code-color"], // this is also revealjs
       ["color", "pre-color"],
 
       ["weight", "font-weight-monospace"],
 
       // revealjs
       ["size", "code-block-font-size"],
+      ["color", "code-block-color"],
     ],
     "monospace-block": [
       // bootstrap + revealjs

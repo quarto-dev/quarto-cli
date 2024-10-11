@@ -174,7 +174,6 @@
 
 	text-align: left;
 	font-size: 0.55em;
-	font-family: var(--r-code-font);
 	line-height: 1.2em;
 
 	word-wrap: break-word;
@@ -183,12 +182,13 @@
 }
 
 .reveal code {
-	font-family: var(--r-code-font);
+	font-family: var(--r-inline-code-font);
 	text-transform: none;
 	tab-size: 2;
 }
 
 .reveal pre code {
+	font-family: var(--r-block-code-font);
 	display: block;
 	padding: 5px;
 	overflow: auto;
