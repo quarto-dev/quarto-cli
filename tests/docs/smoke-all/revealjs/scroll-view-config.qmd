@@ -1,0 +1,31 @@
+---
+title: "Jump to slide"
+format: 
+  revealjs:
+    scroll-view:
+      activate: true
+      progress: true
+      snap: false
+      layout: compact
+      activation-width: 0
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        - 
+          - '''view'':"scroll",'
+          - '''scrollProgress'': true,'
+          - '''scrollSnap'': false,'
+          - '''scrollLayout'': "compact",'
+          - '''scrollActivationWidth'': 0,'
+        - []
+---
+
+## test
+
+Content
+
+## test 
+
+Content
+
