@@ -13,7 +13,7 @@ _quarto:
     revealjs:
       ensureFileRegexMatches:
         - 
-          - '''view'':"scroll",'
+          - '''view'': "scroll",'
           - '''scrollProgress'': true,'
           - '''scrollSnap'': false,'
           - '''scrollLayout'': "compact",'
