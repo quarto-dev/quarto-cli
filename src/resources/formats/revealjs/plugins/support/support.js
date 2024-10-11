@@ -345,7 +345,9 @@ window.QuartoSupport = function () {
     }
   }
 
-
+  // FIXME: Possibly remove this wrapper when upstream trigger is fixed
+  // https://github.com/hakimel/reveal.js/issues/3688
+  // Currently, scrollActivationWidth needs to be unset for toggle to work
   function toggleScrollViewWrapper(deck) {
     let oldscrollActivationWidth;
     return () => {
@@ -389,6 +391,7 @@ window.QuartoSupport = function () {
       // should stay last
       cleanEmptyAutpGeneratedContent(deck);
     },
+    // Export for adding in menu
     toggleScrollView: toggleScrollViewWrapper,
   };
 };
