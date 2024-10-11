@@ -1283,8 +1283,12 @@ export type BrandMeta = {
 
 export type BrandStringLightDark = string | { dark?: string; light?: string };
 
+export type BrandLogoExplicitResource = { alt?: string; path: string };
+
+export type BrandLogoResource = string | BrandLogoExplicitResource;
+
 export type BrandLogo = {
-  images?: { [key: string]: BrandStringLightDark };
+  images?: { [key: string]: BrandLogoResource };
   large?: BrandStringLightDark;
   medium?: BrandStringLightDark;
   small?: BrandStringLightDark;
@@ -1308,7 +1312,6 @@ export type BrandColor = {
   background?: BrandColorValue;
   danger?: BrandColorValue;
   dark?: BrandColorValue;
-  emphasis?: BrandColorValue;
   foreground?: BrandColorValue;
   info?: BrandColorValue;
   light?: BrandColorValue;
@@ -1339,7 +1342,6 @@ export type BrandNamedThemeColor =
   | "danger"
   | "light"
   | "dark"
-  | "emphasis"
   | "link"; /* A named brand color, taken either from `color.theme` or `color.palette` (in that order). */
 
 export type BrandTypography = {
@@ -1352,7 +1354,7 @@ export type BrandTypography = {
   monospace?: BrandTypographyOptionsMonospace;
 }; /* Typography definitions for the brand. */
 
-export type BrandTypographyOptionsBase = {
+export type BrandTypographyOptionsBase = string | {
   "line-height"?: LineHeightNumberString;
   color?: BrandMaybeNamedColor;
   family?: string;
@@ -1360,7 +1362,7 @@ export type BrandTypographyOptionsBase = {
   weight?: BrandFontWeight;
 }; /* Typographic options. */
 
-export type BrandTypographyOptionsHeadings = {
+export type BrandTypographyOptionsHeadings = string | {
   "line-height"?: LineHeightNumberString;
   color?: BrandMaybeNamedColor;
   family?: string;
@@ -1368,7 +1370,7 @@ export type BrandTypographyOptionsHeadings = {
   weight?: BrandFontWeight;
 }; /* Typographic options without a font size. */
 
-export type BrandTypographyOptionsMonospace = {
+export type BrandTypographyOptionsMonospace = string | {
   "background-color"?: BrandMaybeNamedColor;
   color?: BrandMaybeNamedColor;
   family?: string;
@@ -1376,7 +1378,7 @@ export type BrandTypographyOptionsMonospace = {
   weight?: BrandFontWeight;
 }; /* Typographic options for monospace elements. */
 
-export type BrandTypographyOptionsMonospaceInline = {
+export type BrandTypographyOptionsMonospaceInline = string | {
   "background-color"?: BrandMaybeNamedColor;
   color?: BrandMaybeNamedColor;
   family?: string;
@@ -1386,7 +1388,7 @@ export type BrandTypographyOptionsMonospaceInline = {
 
 export type LineHeightNumberString = number | string; /* Line height */
 
-export type BrandTypographyOptionsMonospaceBlock = {
+export type BrandTypographyOptionsMonospaceBlock = string | {
   "background-color"?: BrandMaybeNamedColor;
   "line-height"?: LineHeightNumberString;
   color?: BrandMaybeNamedColor;
@@ -1395,7 +1397,7 @@ export type BrandTypographyOptionsMonospaceBlock = {
   weight?: BrandFontWeight;
 }; /* Typographic options for block monospace elements. */
 
-export type BrandTypographyOptionsLink = {
+export type BrandTypographyOptionsLink = string | {
   "background-color"?: BrandMaybeNamedColor;
   color?: BrandMaybeNamedColor;
   decoration?: string;
@@ -1410,7 +1412,8 @@ export type BrandNamedFont =
 export type BrandFont =
   | BrandFontGoogle
   | BrandFontBunny
-  | BrandFontFile; /* Font files and definitions for the brand. */
+  | BrandFontFile
+  | BrandFontSystem; /* Font files and definitions for the brand. */
 
 export type BrandFontWeight =
   | 100
@@ -1452,6 +1455,10 @@ export type BrandFontCommon = {
   style?: MaybeArrayOf<BrandFontStyle> /* The font styles to include. */;
   weight?: MaybeArrayOf<BrandFontWeight>; /* The font weights to include. */
 };
+
+export type BrandFontSystem =
+  & { source?: "system" }
+  & BrandFontCommon; /* A system font definition. */
 
 export type BrandFontGoogle =
   & { source?: "google" }

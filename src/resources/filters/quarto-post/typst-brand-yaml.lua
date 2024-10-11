@@ -216,44 +216,42 @@ function render_typst_brand_yaml()
         -- logo
         local logo = param('logo')
         local logoOptions = {}
-        local foundSrc = null
+        local foundLogo = null
          if logo then
           if type(logo) == 'string' then
-            foundSrc = _quarto.modules.brand.get_logo(logo) or logo
+            foundLogo = _quarto.modules.brand.get_logo(logo) or {light={path=logo}}
           elseif type(logo) == 'table' then
             for k, v in pairs(logo) do
               logoOptions[k] = v
             end
-            if logo.src then
-              foundSrc =  _quarto.modules.brand.get_logo(logo.src) or logo.src
+            if logo.path then
+              foundLogo =  _quarto.modules.brand.get_logo(logo.path) or {light={path=logo}}
             end
           end
         end
-        if not foundSrc and brand.processedData.logo then
+        if not foundLogo and brand.processedData.logo then
           local tries = {'large', 'small', 'medium'} -- low to high priority
-          for _, try in ipairs(tries) do
-            local src = _quarto.modules.brand.get_logo(try)
-            if src then
-              foundSrc = src
-            end
-          end
+          foundLogo = _quarto.modules.brand.get_logo('medium')
+            or _quarto.modules.brand.get_logo('small')
+            or _quarto.modules.brand.get_logo('large')
         end
-        if foundSrc then
-          if type(foundSrc) == "string" then
-            logoOptions.src = foundSrc
-          elseif foundSrc.light then
-            logoOptions.src = foundSrc.light
-          elseif foundSrc.dark then
-            logoOptions.src = foundSrc.dark
+        if foundLogo then
+          if foundLogo.light then
+            logoOptions.path = foundLogo.light.path
+            logoOptions.alt = foundLogo.light.alt
+          elseif foundLogo.dark then
+            logoOptions.path = foundLogo.dark.path
+            logoOptions.alt = foundLogo.dark.alt
           end
-          -- todo: resolve logoOptions.src path
+          -- todo: path relative to brand.yaml
           logoOptions.padding = _quarto.modules.typst.css.translate_length(logoOptions.padding or '0.5in')
           logoOptions.width = _quarto.modules.typst.css.translate_length(logoOptions.width or '2in')
           logoOptions.location = logoOptions.location and
             location_to_typst_align(logoOptions.location) or 'left+top'
           quarto.log.debug('logo options', logoOptions)
+          local altProp = logoOptions.alt and (', alt: "' .. logoOptions.alt .. '"') or ''
           quarto.doc.include_text('in-header',
-            '#set page(background: align(' .. logoOptions.location .. ', box(inset: ' .. logoOptions.padding .. ', image("' .. logoOptions.src .. '", width: ' .. logoOptions.width .. '))))')
+            '#set page(background: align(' .. logoOptions.location .. ', box(inset: ' .. logoOptions.padding .. ', image("' .. logoOptions.path .. '", width: ' .. logoOptions.width .. altProp .. '))))')
         end  
       end
     end,
