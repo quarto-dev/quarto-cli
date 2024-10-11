@@ -128,11 +128,11 @@ window.QuartoSupport = function () {
   // tweak slide-number element
   function tweakSlideNumber(deck) {
     deck.on("slidechanged", function (ev) {
-      // FIXME: Add scrollview support
+      // No slide number in scroll view
       if (deck.isScrollView()) { return }
       const revealParent = deck.getRevealElement();
       const slideNumberEl = revealParent.querySelector(".slide-number");
-      const slideBackground = Reveal.getSlideBackground(ev.indexh, ev.indexv);
+      const slideBackground = Reveal.getSlideBackground(ev.currentSlide);
       const onDarkBackground = slideBackground.classList.contains('has-dark-background')
       const onLightBackground = slideBackground.classList.contains('has-light-background')
       toggleBackgroundTheme(slideNumberEl, onDarkBackground, onLightBackground);
