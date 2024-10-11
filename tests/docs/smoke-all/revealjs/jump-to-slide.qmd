@@ -4,7 +4,7 @@ format:
   revealjs:
     jump-to-slide: false
 _quarto:
-  test:
+  tests:
     revealjs:
       ensureFileRegexMatches:
         - ["jumpToSlide.*false,"]

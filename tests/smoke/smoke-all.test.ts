@@ -78,8 +78,12 @@ async function guessFormat(fileName: string): Promise<string[]> {
 }
 
 //deno-lint-ignore no-explicit-any
-function hasTestSpecs(metadata: any): boolean {
-  return metadata?.["_quarto"]?.["tests"] != undefined;
+function hasTestSpecs(metadata: any, input: string): boolean {
+  const hasTestSpecs = metadata?.["_quarto"]?.["tests"] != undefined
+  if (!hasTestSpecs && metadata?.["_quarto"]?.["test"] != undefined) {
+    throw new Error(`Test is ${input} is using 'test' in metadata instead of 'tests'. This is probably a typo.`);
+  }
+  return hasTestSpecs
 }
 
 interface QuartoInlineTestSpec {
@@ -231,7 +235,7 @@ for (const { path: fileName } of files) {
 
   const testSpecs: QuartoInlineTestSpec[] = [];
 
-  if (hasTestSpecs(metadata)) {
+  if (hasTestSpecs(metadata, input)) {
     testSpecs.push(...resolveTestSpecs(input, metadata));
   } else {
     const formats = await guessFormat(input);
