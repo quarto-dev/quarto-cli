@@ -1,5 +1,7 @@
 logo:
-  large: quarto.png
+  images:
+    large-light: quarto.png
+  large: large-light
 defaults:
   quarto:
     format:

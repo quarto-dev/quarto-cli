@@ -56,7 +56,6 @@ local function get_logo(name)
   local brand = param("brand")
   brand = brand and brand.processedData -- from src/core/brand/brand.ts
   if not brand then return nil end
-  -- todo convert logo options from CSS to Typst
   return brand.logo and brand.logo[name]
 end
 
