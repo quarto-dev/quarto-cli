@@ -35,28 +35,4 @@ async function loadGiscusWhenReady() {
 
 // Call the async function to start the loop
 loadGiscusWhenReady();
-setTimeout(() => {
-  var bodyClass = window.document.body.classList;
-  const GetTheme = () => {
-    const baseTheme = document.getElementById('giscus-base-theme').value;
-    const altTheme = document.getElementById('giscus-alt-theme').value;
-    return bodyClass.contains('quarto-dark') ? altTheme : baseTheme;
-  };
-  const script = document.createElement("script");
-      script.src = "https://giscus.app/client.js";
-      script.async = true;
-      script.dataset.repo = "<%- giscus.repo %>";
-      script.dataset.repoId = "<%- giscus['repo-id'] %>";
-      script.dataset.category = "<%- giscus.category %>";
-      script.dataset.categoryId = "<%- giscus['category-id'] %>";
-      script.dataset.mapping = "<%- giscus.mapping %>";
-      script.dataset.reactionsEnabled = "<%- giscus['reactions-enabled'] ? 1 : 0 %>";
-      script.dataset.emitMetadata = "0";
-      script.dataset.inputPosition = "<%- giscus['input-position'] %>";
-      script.dataset.theme = GetTheme();
-      script.dataset.lang = "<%- giscus.language %>";
-      script.crossOrigin = "anonymous";
-  // Insert the Giscus script after the current script
-  document.getElementById("quarto-content").appendChild(script);
-}, 50);
 </script>
