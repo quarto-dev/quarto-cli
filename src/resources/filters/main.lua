@@ -196,6 +196,10 @@ import("./quarto-init/metainit.lua")
 
 -- [/import]
 
+if os.getenv 'QUARTO_JOG_CHECK' then
+  _quarto.modules.attribcheck.enable_attribute_checks()
+end
+
 initCrossrefIndex()
 
 initShortcodeHandlers()

@@ -47,8 +47,97 @@ local function remove_vault(doc)
   end
 end
 
+--- Create a deep copy of a table.
+local function copy_table (tbl, depth, seen)
+  local tp = type(tbl)
+  if tp == 'table' then
+    local copy = {}
+    -- Iterate 'raw' pairs, i.e., without using metamethods
+    for key, value in next, tbl, nil do
+      if depth == 'shallow' then
+        copy[key] = value
+      else
+        copy[copy_table(key)] = copy_table(value)
+      end
+    end
+    return setmetatable(copy, getmetatable(tbl))
+  elseif tp == 'userdata' then
+    return tbl:clone()
+  else -- number, string, boolean, etc
+    return tbl
+  end
+end
+
+--- Checks if two tables are equal
+function equals(o1, o2)
+  if o1 == o2 then
+    return true
+  end
+  local o1type = type(o1)
+  local o2type = type(o2)
+  if o1type ~= o2type or o1type ~= 'table' then
+    return false
+  end
+
+  local keys = {}
+
+  for key1, value1 in pairs(o1) do
+    local value2 = o2[key1]
+    if value2 == nil or equals(value1, value2) == false then
+      return false
+    end
+    keys[key1] = true
+  end
+
+  for key2 in pairs(o2) do
+    if not keys[key2] then return false end
+  end
+  return true
+end
+
+--- Checks if a filter follows the "nondestructive" property.
+-- The nondestructive property is fulfilled if filter functions returns
+-- an explicit object, or if it returns `nil` while leaving the passed
+-- in object unmodified.
+--
+-- An error is raised if the property is violated.
+--
+-- Only filters with this property can use jog safely, without
+-- unintended consequences.
+local function check_nondestructive_property (namedfilter)
+  for name, fn in pairs(namedfilter.filter) do
+    if type(fn) == 'function' then
+      local copy = function (x)
+        local tp = type(x)
+        return tp ~= 'table' and x:clone() or
+          (pandoc.utils.type(x) == 'Meta' and pandoc.Meta(x) or copy_table(x))
+      end
+      namedfilter.filter[name] = function (obj, context)
+        local orig = copy(obj)
+        local result, descend = fn(obj, context)
+        if result == nil then
+          if type(obj) ~= 'table' and not equals(obj, orig) then
+            warn(
+              "\nFunction '" .. name .. "' in filter '" .. namedfilter.name ..
+              "' returned `nil`, but modified the input."
+            )
+          end
+        -- elseif result.t == obj.t and not rawequal(result, obj) then
+        --   warn(
+        --     "\nFunction '" .. name .. "' in filter '" .. namedfilter.name ..
+        --     "' returned a new object instead of passing the original one through."
+        --   )
+        end
+        return result, descend
+      end
+    end
+  end
+  return namedfilter
+end
+
 local function run_emulated_filter_chain(doc, filters, afterFilterPass, profiling)
   init_trace(doc)
+  local compare_jog_and_walk = os.getenv 'QUARTO_JOG_CHECK'
   for i, v in ipairs(filters) do
     local function callback()
       if v.flags then
@@ -79,7 +168,17 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass, profilin
         print(pandoc.write(doc, "native"))
       else
         _quarto.ast._current_doc = doc
-        doc = run_emulated_filter(doc, v.filter)
+
+        if compare_jog_and_walk and not v.force_pandoc_walk then
+          v = check_nondestructive_property(v)
+        end
+        doc = run_emulated_filter(doc, v.filter, v.force_pandoc_walk)
+
+        if compare_jog_and_walk and not v.force_pandoc_walk then
+          -- Types of meta values are only check on assignment.
+          doc.meta = doc.meta
+        end
+
         ensure_vault(doc)
 
         add_trace(doc, v.name)
