@@ -139,35 +139,18 @@ export async function compileSass(
     ...userRules,
     '// quarto-scss-analysis-annotation { "origin": null }',
   ].join("\n\n");
-  let failed = false;
-  // deno-lint-ignore no-explicit-any
-  let e: any = null;
-  try {
-    scssInput += "\n" + cssVarsBlock(scssInput);
-  } catch (_e) {
-    e = _e;
-    failed = true;
-  }
 
   // Compile the scss
   const result = await compileWithCache(
     scssInput,
     loadPaths,
     temp,
-    minified,
-    await md5HashBytes(new TextEncoder().encode(scssInput)),
+    {
+      compressed: minified,
+      cacheIdentifier: await md5HashBytes(new TextEncoder().encode(scssInput)),
+      addVarsBlock: true,
+    },
   );
-
-  if (failed) {
-    console.warn("Error adding css vars block", e);
-    console.warn(
-      "The resulting CSS file will not have SCSS color variables exported as CSS.",
-    );
-    Deno.writeTextFileSync("_quarto_internal_scss_error.scss", scssInput);
-    console.warn(
-      "This is likely a Quarto bug.\nPlease consider reporting it at https://github.com/quarto-dev/quarto-cli,\nalong with the _quarto_internal_scss_error.scss file that can be found in the current working directory.",
-    );
-  }
 
   if (!Deno.env.get("QUARTO_SAVE_SCSS")) {
     return result;
@@ -353,13 +336,44 @@ export function sassLayerDir(
   };
 }
 
+type CompileWithCacheOptions = {
+  compressed?: boolean;
+  cacheIdentifier?: string;
+  addVarsBlock?: boolean;
+};
+
 export async function compileWithCache(
   input: string,
   loadPaths: string[],
   temp: TempContext,
-  compressed?: boolean,
-  cacheIdentifier?: string,
+  options?: CompileWithCacheOptions,
 ) {
+  const {
+    compressed,
+    cacheIdentifier,
+    addVarsBlock,
+  } = options || {};
+
+  const handleVarsBlock = (input: string) => {
+    if (!addVarsBlock) {
+      return input;
+    }
+    try {
+      input += "\n" + cssVarsBlock(input);
+    } catch (e) {
+      console.warn("Error adding css vars block", e);
+      console.warn(
+        "The resulting CSS file will not have SCSS color variables exported as CSS.",
+      );
+      Deno.writeTextFileSync("_quarto_internal_scss_error.scss", input);
+      console.warn(
+        "This is likely a Quarto bug.\nPlease consider reporting it at https://github.com/quarto-dev/quarto-cli,\nalong with the _quarto_internal_scss_error.scss file that can be found in the current working directory.",
+      );
+      throw e;
+    }
+    return input;
+  };
+
   if (cacheIdentifier) {
     // If there are imports, the computed input Hash is incorrect
     // so we should be using a session cache which will cache
@@ -372,8 +386,16 @@ export async function compileWithCache(
       : quartoCacheDir("sass");
     // when using quarto session cache, we ensure to cleanup the cache files at TempContext cleanup
     const cache = await sassCache(cacheDir, useSessionCache ? temp : undefined);
-    return cache.getOrSet(input, loadPaths, temp, cacheIdentifier, compressed);
+    return cache.getOrSet(
+      input,
+      cacheIdentifier,
+      async (outputFilePath: string) => {
+        input = handleVarsBlock(input);
+        await dartCompile(input, outputFilePath, temp, loadPaths, compressed);
+      },
+    );
   } else {
+    input = handleVarsBlock(input);
     const outputFilePath = temp.createFile({ suffix: ".css" });
     // Skip the cache and just compile
     await dartCompile(
