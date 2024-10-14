@@ -741,7 +741,7 @@ export async function projectInputFiles(
     engineIntermediates: string[];
   };
 
-  const addFile = async (file: string): Promise<FileInclusion | undefined> => {
+  const addFile = async (file: string): Promise<FileInclusion[]> => {
     // ignore the file if it is in the output directory
     if (
       outputDir &&
@@ -752,23 +752,23 @@ export async function projectInputFiles(
         ensureTrailingSlash(dir),
       )
     ) {
-      return;
+      return [];
     }
 
     const engine = await fileExecutionEngine(file, undefined, project);
     // ignore the file if there's no engine to handle it
     if (!engine) {
-      return undefined;
+      return [];
     }
     const engineIntermediates = executionEngineIntermediateFiles(
       engine,
       file,
     );
-    return {
+    return [{
       file,
       engineName: engine.name,
       engineIntermediates: engineIntermediates,
-    };
+    }];
   };
   const addDir = async (dir: string): Promise<FileInclusion[]> => {
     // ignore selected other globs
@@ -794,18 +794,13 @@ export async function projectInputFiles(
           return !projectIgnores.some((regex) => regex.test(pathRelative));
         })
         .map(async (walk) => addFile(walk.path)),
-    ).then((fileInclusions) => fileInclusions.filter((f) => f !== undefined));
+    ).then((fileInclusions) => fileInclusions.flat());
   };
   const addEntry = async (entry: string) => {
     if (Deno.statSync(entry).isDirectory) {
       return addDir(entry);
     } else {
-      const inclusion = await addFile(entry);
-      if (inclusion) {
-        return [inclusion];
-      } else {
-        return [];
-      }
+      return addFile(entry);
     }
   };
   const renderFiles = metadata?.project[kProjectRender];
