@@ -724,9 +724,6 @@ export async function projectInputFiles(
   metadata?: ProjectConfig,
 ): Promise<{ files: string[]; engines: string[] }> {
   const { dir } = project;
-  const files: string[] = [];
-  const engines: string[] = [];
-  const intermediateFiles: string[] = [];
 
   const outputDir = metadata?.project[kProjectOutputDir];
 
@@ -738,83 +735,101 @@ export async function projectInputFiles(
     globToRegExp(glob, { extended: true, globstar: true })
   );
 
-  const addFile = async (file: string) => {
+  type FileInclusion = {
+    file: string;
+    engineName: string;
+    engineIntermediates: string[];
+  };
+
+  const addFile = async (file: string): Promise<FileInclusion | undefined> => {
+    // ignore the file if it is in the output directory
     if (
-      // no output dir to worry about
-      !outputDir ||
-      // crawled file is not inside the output directory
-      !ensureTrailingSlash(dirname(file)).startsWith(
+      outputDir &&
+      ensureTrailingSlash(dirname(file)).startsWith(
         ensureTrailingSlash(join(dir, outputDir)),
-      ) ||
-      // output directory is not in the project directory
-      // so we don't need to worry about crawling outputs
-      !ensureTrailingSlash(join(dir, outputDir)).startsWith(
+      ) &&
+      ensureTrailingSlash(join(dir, outputDir)).startsWith(
         ensureTrailingSlash(dir),
       )
     ) {
-      const engine = await fileExecutionEngine(file, undefined, project);
-      if (engine) {
-        if (!engines.includes(engine.name)) {
-          engines.push(engine.name);
-        }
-        files.push(file);
-        const engineIntermediates = executionEngineIntermediateFiles(
-          engine,
-          file,
-        );
-        if (engineIntermediates) {
-          intermediateFiles.push(...engineIntermediates);
-        }
-      }
+      return;
     }
-  };
 
-  const addDir = async (dir: string) => {
+    const engine = await fileExecutionEngine(file, undefined, project);
+    // ignore the file if there's no engine to handle it
+    if (!engine) {
+      return undefined;
+    }
+    const engineIntermediates = executionEngineIntermediateFiles(
+      engine,
+      file,
+    );
+    return {
+      file,
+      engineName: engine.name,
+      engineIntermediates: engineIntermediates,
+    };
+  };
+  const addDir = async (dir: string): Promise<FileInclusion[]> => {
     // ignore selected other globs
-
-    for (
-      const walk of walkSync(
-        dir,
-        {
-          includeDirs: false,
-          // this was done b/c some directories e.g. renv/packrat and potentially python
-          // virtualenvs include symblinks to R or Python libraries that are in turn
-          // circular. much safer to not follow symlinks!
-          followSymlinks: false,
-          skip: [kSkipHidden].concat(
-            engineIgnoreDirs().map((ignore) =>
-              globToRegExp(join(dir, ignore) + SEP)
-            ),
+    const walkIterator = walkSync(
+      dir,
+      {
+        includeDirs: false,
+        // this was done b/c some directories e.g. renv/packrat and potentially python
+        // virtualenvs include symblinks to R or Python libraries that are in turn
+        // circular. much safer to not follow symlinks!
+        followSymlinks: false,
+        skip: [kSkipHidden].concat(
+          engineIgnoreDirs().map((ignore) =>
+            globToRegExp(join(dir, ignore) + SEP)
           ),
-        },
-      )
-    ) {
-      const pathRelative = pathWithForwardSlashes(relative(dir, walk.path));
-      if (!projectIgnores.some((regex) => regex.test(pathRelative))) {
-        await addFile(walk.path);
+        ),
+      },
+    );
+    return Promise.all(
+      Array.from(walkIterator)
+        .filter((walk) => {
+          const pathRelative = pathWithForwardSlashes(relative(dir, walk.path));
+          return !projectIgnores.some((regex) => regex.test(pathRelative));
+        })
+        .map(async (walk) => addFile(walk.path)),
+    ).then((fileInclusions) => fileInclusions.filter((f) => f !== undefined));
+  };
+  const addEntry = async (entry: string) => {
+    if (Deno.statSync(entry).isDirectory) {
+      return addDir(entry);
+    } else {
+      const inclusion = await addFile(entry);
+      if (inclusion) {
+        return [inclusion];
+      } else {
+        return [];
       }
     }
   };
-
   const renderFiles = metadata?.project[kProjectRender];
+
+  let inclusions: FileInclusion[];
   if (renderFiles) {
     const exclude = projIgnoreGlobs.concat(outputDir ? [outputDir] : []);
     const resolved = resolvePathGlobs(dir, renderFiles, exclude, {
       mode: "auto",
     });
-    await Promise.all(
-      (ld.difference(resolved.include, resolved.exclude) as string[])
-        .map((file) => {
-          if (Deno.statSync(file).isDirectory) {
-            return addDir(file);
-          } else {
-            return addFile(file);
-          }
-        }),
-    );
+    const toInclude = ld.difference(
+      resolved.include,
+      resolved.exclude,
+    ) as string[];
+    inclusions = (await Promise.all(toInclude.map(addEntry))).flat();
   } else {
-    await addDir(dir);
+    inclusions = await addDir(dir);
   }
+
+  const files = inclusions.map((inclusion) => inclusion.file);
+  const engines = ld.uniq(inclusions.map((inclusion) => inclusion.engineName));
+  const intermediateFiles = inclusions.map((inclusion) =>
+    inclusion.engineIntermediates
+  ).flat();
 
   const inputFiles = ld.difference(
     ld.uniq(files),
