@@ -802,16 +802,18 @@ export async function projectInputFiles(
     const resolved = resolvePathGlobs(dir, renderFiles, exclude, {
       mode: "auto",
     });
-    await Promise.all(
-      (ld.difference(resolved.include, resolved.exclude) as string[])
-        .map((file) => {
-          if (Deno.statSync(file).isDirectory) {
-            return addDir(file);
-          } else {
-            return addFile(file);
-          }
-        }),
-    );
+    for (
+      const file of ld.difference(
+        resolved.include,
+        resolved.exclude,
+      ) as string[]
+    ) {
+      if (Deno.statSync(file).isDirectory) {
+        await addDir(file);
+      } else {
+        await addFile(file);
+      }
+    }
   } else {
     await addDir(dir);
   }
