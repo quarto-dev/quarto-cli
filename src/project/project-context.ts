@@ -757,7 +757,6 @@ export async function projectInputFiles(
         if (!engines.includes(engine.name)) {
           engines.push(engine.name);
         }
-        files.push(file);
         const engineIntermediates = executionEngineIntermediateFiles(
           engine,
           file,
@@ -765,13 +764,14 @@ export async function projectInputFiles(
         if (engineIntermediates) {
           intermediateFiles.push(...engineIntermediates);
         }
+        return file;
       }
     }
   };
 
   const addDir = async (dir: string) => {
+    const dirFiles: string[] = [];
     // ignore selected other globs
-
     for (
       const walk of walkSync(
         dir,
@@ -791,9 +791,13 @@ export async function projectInputFiles(
     ) {
       const pathRelative = pathWithForwardSlashes(relative(dir, walk.path));
       if (!projectIgnores.some((regex) => regex.test(pathRelative))) {
-        await addFile(walk.path);
+        const file = await addFile(walk.path);
+        if (file) {
+          dirFiles.push(file);
+        }
       }
     }
+    return dirFiles;
   };
 
   const renderFiles = metadata?.project[kProjectRender];
@@ -802,22 +806,36 @@ export async function projectInputFiles(
     const resolved = resolvePathGlobs(dir, renderFiles, exclude, {
       mode: "auto",
     });
-    for (
-      const file of ld.difference(
-        resolved.include,
-        resolved.exclude,
-      ) as string[]
-    ) {
-      if (Deno.statSync(file).isDirectory) {
-        await addDir(file);
-      } else {
-        await addFile(file);
+    const includedFiles = ld.difference(
+      resolved.include,
+      resolved.exclude,
+    ) as string[];
+    const filePromises = includedFiles.map(async (file, index) => {
+      const result = Deno.statSync(file).isDirectory
+        ? await addDir(file)
+        : await addFile(file);
+      return { index, result };
+    });
+    // Await for resolution of all files and reorder based on resolved file order
+    const sortedResults = (await Promise.all(filePromises)).sort((a, b) =>
+      a.index - b.index
+    );
+    // Return project input files in order of discovery
+    for (const { result } of sortedResults) {
+      if (Array.isArray(result)) {
+        // when files are added from a directory
+        files.push(...result);
+      } else if (result) {
+        // when a single file is added
+        files.push(result);
       }
     }
   } else {
-    await addDir(dir);
+    const dirFiles = await addDir(dir);
+    files.push(...dirFiles);
   }
 
+  // Be sure to exclude any known intermediate files
   const inputFiles = ld.difference(
     ld.uniq(files),
     ld.uniq(intermediateFiles),
