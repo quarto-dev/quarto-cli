@@ -23,7 +23,7 @@ export QUARTO_BIN_PATH=$DENO_DIR
 export QUARTO_SHARE_PATH="`cd "$QUARTO_ROOT/src/resources/";pwd`"
 export QUARTO_DEBUG=true
 
-QUARTO_DENO_OPTIONS="--config test-conf.json --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192 --unstable-kv --unstable-ffi --allow-read --allow-write --allow-run --allow-env --allow-net"
+QUARTO_DENO_OPTIONS="--config test-conf.json --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192 --unstable-kv --unstable-ffi --no-lock --allow-read --allow-write --allow-run --allow-env --allow-net"
 
 
 if [[ -z $GITHUB_ACTION ]] && [[ -z $QUARTO_TESTS_NO_CONFIG ]]
