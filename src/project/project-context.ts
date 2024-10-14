@@ -317,7 +317,7 @@ export async function projectContext(
           result,
           projectConfig,
         );
-        // if we are attemping to get the projectConext for a file and the
+        // if we are attemping to get the projectContext for a file and the
         // file isn't in list of input files then return a single-file project
         const fullPath = normalizePath(path);
         if (Deno.statSync(fullPath).isFile && !files.includes(fullPath)) {
