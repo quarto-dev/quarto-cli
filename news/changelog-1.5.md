@@ -2,6 +2,7 @@
 
 ## in this release
 
+- ([#10463](https://github.com/quarto-dev/quarto-cli/issues/10463), [#10714](https://github.com/quarto-dev/quarto-cli/issues/10714), [#11039](https://github.com/quarto-dev/quarto-cli/issues/11039)): Maintain ordering of render files when they are specified in the render list.
 - ([#10720](https://github.com/quarto-dev/quarto-cli/issues/10720)): Fix regression with listing search box not supporting correctly uppercase characters.
 
 ## in previous releases
