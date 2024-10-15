@@ -2,8 +2,9 @@ import { annotateNode } from './ast-utils.ts';
 
 export const forwardAnnotations = (ast: any) => {
   const pragmaAnnotation = "quarto-scss-analysis-annotation";
-  const currentAnnotation: Record<string, unknown> = {};
-  let hasAnnotations: boolean = false
+  const annotationStack: Record<string, string>[] = [{}];
+  let currentAnnotation: Record<string, unknown> = annotationStack[0];
+  let hasAnnotations: boolean = false;
   for (const node of ast.children) {
     if (node.type === "comment_singleline") {
       const value = node?.value?.trim();
@@ -15,7 +16,17 @@ export const forwardAnnotations = (ast: any) => {
           console.error("Could not parse annotation payload", e);
           continue;
         }
+        if (payload.action === "push") {
+          annotationStack.push(JSON.parse(JSON.stringify(currentAnnotation)));
+          currentAnnotation = annotationStack[annotationStack.length - 1];
+        } else if (payload.action === "pop" && annotationStack.length) {
+          annotationStack.pop();
+          currentAnnotation = annotationStack[annotationStack.length - 1];
+        }
         for (const [key, value] of Object.entries(payload)) {
+          if (key === "action") {
+            continue;
+          }
           if (value === null) {
             delete currentAnnotation[key];
           } else {

@@ -20,6 +20,7 @@ import { cssVarsBlock } from "./sass/add-css-vars.ts";
 import { md5HashBytes } from "./hash.ts";
 import { kSourceMappingRegexes } from "../config/constants.ts";
 import { writeTextFileSyncPreserveMode } from "./write.ts";
+import { quartoConfig } from "../core/quarto.ts";
 
 export interface SassVariable {
   name: string;
@@ -107,6 +108,7 @@ export async function compileSass(
   // * Rules may use functions, variables, and mixins
   //   (theme follows framework so it can override the framework rules)
   let scssInput = [
+    `// quarto-scss-analysis-annotation { "quarto-version": "${quartoConfig.version()}" }`,
     '// quarto-scss-analysis-annotation { "origin": "\'use\' section from format" }',
     ...frameWorkUses,
     '// quarto-scss-analysis-annotation { "origin": "\'use\' section from Quarto" }',
@@ -119,11 +121,11 @@ export async function compileSass(
     ...quartoFunctions,
     '// quarto-scss-analysis-annotation { "origin": "\'functions\' section from user-defined SCSS" }',
     ...userFunctions,
-    '// quarto-scss-analysis-annotation { "origin": "user-defined defaults" }',
+    '// quarto-scss-analysis-annotation { "origin": "Defaults from user-defined SCSS" }',
     ...userDefaults.reverse(),
-    '// quarto-scss-analysis-annotation { "origin": "quarto-specific defaults" }',
+    '// quarto-scss-analysis-annotation { "origin": "Defaults from Quarto\'s SCSS" }',
     ...quartoDefaults.reverse(),
-    '// quarto-scss-analysis-annotation { "origin": "format framework defaults" }',
+    '// quarto-scss-analysis-annotation { "origin": "Defaults from the format SCSS" }',
     ...frameworkDefaults.reverse(),
     '// quarto-scss-analysis-annotation { "origin": "\'mixins\' section from format" }',
     ...frameworkMixins,

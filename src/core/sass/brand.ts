@@ -180,7 +180,10 @@ const brandColorBundle = (
   key: string,
   nameMap: Record<string, string>,
 ): SassBundleLayers => {
-  const colorVariables: string[] = ["/* color variables from _brand.yml */"];
+  const colorVariables: string[] = [
+    "/* color variables from _brand.yml */",
+    '// quarto-scss-analysis-annotation { "action": "push", "origin": "_brand.yml color" }',
+  ];
   for (const colorKey of Object.keys(brand.data?.color?.palette ?? {})) {
     colorVariables.push(
       `$${colorKey}: ${brand.getColor(colorKey)} !default;`,
@@ -204,6 +207,7 @@ const brandColorBundle = (
     }
   }
   // const colorEntries = Object.keys(brand.color);
+  colorVariables.push('// quarto-scss-analysis-annotation { "action": "pop" }');
   const colorBundle: SassBundleLayers = {
     key,
     // dependency: "bootstrap",
@@ -224,6 +228,7 @@ const brandTypographyBundle = (
 ): SassBundleLayers => {
   const typographyVariables: string[] = [
     "/* typography variables from _brand.yml */",
+    '// quarto-scss-analysis-annotation { "action": "push", "origin": "_brand.yml typography" }',
   ];
   const typographyImports: string[] = [];
   const fonts = brand.data?.typography?.fonts ?? [];
@@ -422,6 +427,9 @@ const brandTypographyBundle = (
     }
   }
 
+  typographyVariables.push(
+    '// quarto-scss-analysis-annotation { "action": "pop" }',
+  );
   const typographyBundle: SassBundleLayers = {
     key,
     // dependency: "bootstrap",

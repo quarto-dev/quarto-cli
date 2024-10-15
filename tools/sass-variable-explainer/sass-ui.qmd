@@ -105,13 +105,13 @@ selectedDependencyTitle = {
   if (selectedDependency === undefined) {
     return htl.html`<h5>Select a single variable to analyze</h5>`;
   } else {
-    return htl.html`<h5>Variable analysis for ${selectedDependency?.node?.property?.variable?.value ?? "<i>unknown</i>"}</h5>`;
+    return htl.html`<h5>Variable analysis for <code>${selectedDependency?.node?.property?.variable?.value ?? "<i>unknown</i>"}</code></h5>`;
     }
 }
 renderedAnalysis = {
   deps;
   debugger;
-  const result = htl.html`<div style="padding-left: 20px"></div>`;
+  const result = htl.html`<div style="padding-left: 20px; padding-top: 20px"></div>`;
   if (!selectedDependencyChains.length) {
     return result;
   }
@@ -124,7 +124,7 @@ renderedAnalysis = {
   }
 
   if (selectedDependency?.node?.annotation?.origin) {
-    result.appendChild(htl.html`<div><b>Origin</b>: ${selectedDependency?.node?.annotation?.origin}</div>`);
+    result.appendChild(htl.html`<div style="padding-bottom:1em"><b>Origin</b>: ${selectedDependency?.node?.annotation?.origin}</div>`);
   }
 
   const lineEnd = Math.max(
@@ -133,14 +133,14 @@ renderedAnalysis = {
     selectedDependency?.node?.value?.lineEnd ?? -Infinity,
   );
   if (selectedDependency?.node?.line !== undefined && lineEnd !== -Infinity) {
-    result.appendChild(htl.html`<div><b>SCSS source<b></div>`);
+    result.appendChild(htl.html`<div><b>SCSS source:<b></div>`);
     const snippet = sourceLines.slice(selectedDependency?.node?.line - 1, lineEnd).join("\n");
     result.appendChild(htl.html`<div><pre style='padding-left: 20px; padding-top:1em'>${snippet}</pre></div>`)
   }
 
   
   // Dependencies
-  result.appendChild(htl.html`<div>Dependencies:</div>`);
+  result.appendChild(htl.html`<div><b>Dependencies:</b></div>`);
   const depsDiv = htl.html`<div style="padding-left: 20px"></div>`;
   result.appendChild(depsDiv);
   const seenDependencies = new Set([]);
