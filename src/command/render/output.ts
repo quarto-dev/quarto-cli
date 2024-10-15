@@ -181,7 +181,7 @@ export function outputRecipe(
       });
     }
 
-    if (!recipe.output) {
+    const deriveAutoOutput = () => {
       // no output specified: derive an output path from the extension
 
       // derive new output file
@@ -200,11 +200,17 @@ export function outputRecipe(
 
       // assign output
       updateOutput(output);
+    };
+
+    if (!recipe.output) {
+      deriveAutoOutput();
     } else if (recipe.output === kStdOut) {
-      // output to stdout: direct pandoc to write to a temp file then we'll
-      // forward to stdout (necessary b/c a postprocesor may need to act on
-      // the output before its complete)
-      updateOutput(options.services.temp.createFile({ suffix: "." + ext }));
+      deriveAutoOutput();
+
+      // https://github.com/quarto-dev/quarto-cli/issues/11068
+      // we need the output to be in the same directory or
+      // embed-resources doesn't work.
+
       recipe.isOutputTransient = true;
       completeActions.push(() => {
         writeFileToStdout(recipe.output);

@@ -277,9 +277,6 @@ export async function renderPandoc(
         // ensure flags
         const flags = context.options.flags || {};
 
-        // call complete handler (might e.g. run latexmk to complete the render)
-        finalOutput = await recipe.complete(pandocOptions) || recipe.output;
-
         // determine whether this is self-contained output
         selfContained = isSelfContainedOutput(
           flags,
@@ -295,6 +292,9 @@ export async function renderPandoc(
             format.pandoc[kResourcePath],
           );
         }
+
+        // call complete handler (might e.g. run latexmk to complete the render)
+        finalOutput = await recipe.complete(pandocOptions) || recipe.output;
       });
 
       // compute the relative path to the files dir
