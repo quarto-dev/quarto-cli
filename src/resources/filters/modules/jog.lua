@@ -31,8 +31,10 @@ local function run_filter_function (fn, element, context)
     return element
   end
 
-  local result, continue = fn(element, context)
-  if result == nil then
+  local ok, result, continue = pcall(fn, element, context)
+  if ok == false then
+    return element
+  elseif result == nil then
     return element, continue
   else
     return result, continue
