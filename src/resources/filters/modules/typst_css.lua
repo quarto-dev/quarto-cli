@@ -463,7 +463,6 @@ local css_lengths = {
   mm = passthrough,
   em = passthrough,
   rem = function(val, _, _, warnings)
-    quarto.log.output('rem process', val)
     local base = _quarto.modules.brand.get_typography('base')
     if base and base.size then
       local base_size = parse_length(base.size)
