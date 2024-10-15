@@ -276,12 +276,11 @@ export async function renderPandoc(
       await withTimingAsync("postprocess-selfcontained", async () => {
         // ensure flags
         const flags = context.options.flags || {};
-
         // determine whether this is self-contained output
         selfContained = isSelfContainedOutput(
           flags,
           format,
-          finalOutput,
+          recipe.output,
         );
 
         // If this is self-contained, run pandoc to 'suck in' the dependencies
