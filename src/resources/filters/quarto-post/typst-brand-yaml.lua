@@ -256,7 +256,11 @@ function render_typst_brand_yaml()
       end
     end,
     Meta = function(meta)
-      meta.brand = meta.brand or {typography = {}}
+      -- it can contain the path but we want to store an object here
+      if not meta.brand or pandoc.utils.type(meta.brand) == 'Inlines' then
+        meta.brand = {}
+      end
+      meta.brand.typography = meta.brand.typography or {}
       local base = _quarto.modules.brand.get_typography('base')
       if base and next(base) then
         meta.brand.typography.base = {
