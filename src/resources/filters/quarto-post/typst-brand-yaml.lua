@@ -250,8 +250,9 @@ function render_typst_brand_yaml()
             location_to_typst_align(logoOptions.location) or 'left+top'
           quarto.log.debug('logo options', logoOptions)
           local altProp = logoOptions.alt and (', alt: "' .. logoOptions.alt .. '"') or ''
+          local dblbackslash = string.gsub(logoOptions.path, '\\', '\\\\') -- double backslash?
           quarto.doc.include_text('in-header',
-            '#set page(background: align(' .. logoOptions.location .. ', box(inset: ' .. logoOptions.padding .. ', image("' .. logoOptions.path .. '", width: ' .. logoOptions.width .. altProp .. '))))')
+            '#set page(background: align(' .. logoOptions.location .. ', box(inset: ' .. logoOptions.padding .. ', image("' .. dblbackslash .. '", width: ' .. logoOptions.width .. altProp .. '))))')
         end  
       end
     end,
