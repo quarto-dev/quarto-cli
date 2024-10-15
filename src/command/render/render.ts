@@ -277,14 +277,18 @@ export async function renderPandoc(
         // ensure flags
         const flags = context.options.flags || {};
         // determine whether this is self-contained output
+        finalOutput = recipe.output;
+
+        // note that we intentionally call isSelfContainedOutput twice
+        // the first needs to happen before recipe completion
+        // because ingestion of self-contained output needs
+        // to happen before recipe completion (which cleans up some files)
         selfContained = isSelfContainedOutput(
           flags,
           format,
-          recipe.output,
+          finalOutput,
         );
 
-        // If this is self-contained, run pandoc to 'suck in' the dependencies
-        // which may have been added in the post processor
         if (selfContained && isHtmlFileOutput(format.pandoc)) {
           await pandocIngestSelfContainedContent(
             outputFile,
@@ -293,7 +297,17 @@ export async function renderPandoc(
         }
 
         // call complete handler (might e.g. run latexmk to complete the render)
-        finalOutput = await recipe.complete(pandocOptions) || recipe.output;
+        finalOutput = (await recipe.complete(pandocOptions)) || recipe.output;
+
+        // note that we intentionally call isSelfContainedOutput twice
+        // the second call happens because some recipes change
+        // their output extension on completion (notably, .pdf files)
+        // and become self-contained for purposes of cleanup
+        selfContained = isSelfContainedOutput(
+          flags,
+          format,
+          finalOutput,
+        );
       });
 
       // compute the relative path to the files dir
