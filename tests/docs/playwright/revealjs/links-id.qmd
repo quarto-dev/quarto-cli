@@ -1,20 +1,6 @@
 ---
 title: Links to nested elements works
 format: revealjs
-_quarto:
-  tests:
-    revealjs:
-      ensureHtmlElements:
-        - 
-          - 'img.r-stretch#fig-elephant'
-          - 'a[href="#/fig-elephant"]'
-          - 'img.r-stretch#elephant'
-          - 'a[href="#/elephant"]'
-          - 'span#eq-EEE > span.math'
-          - 'a[href="#/eq-EEE"]'
-          - 'div.theorem#thm-TTT'
-          - 'a[href="#/thm-TTT"]'
-        - []
 ---
 
 ## Quarto Figure

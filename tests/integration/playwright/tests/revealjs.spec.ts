@@ -15,3 +15,18 @@ test('logo and footer are correctly shown', async ({ page }) => {
   await expect(page.locator('.reveal > .footer:not(.footer-default)')).toContainText('A different footer');
   await expect(page.locator('.slide-logo')).toHaveAttribute("src", "quarto.png");
 });
+
+test('internal id for links between slides are working', async ({ page }) => {
+  await page.goto('./revealjs/links-id.html#/link-to-the-figure');
+  await page.getByRole('link', { name: 'Figure Element' }).click();
+  await page.waitForURL(/quarto-figure$/);
+  await page.goto('./revealjs/links-id.html#/link-to-the-image');
+  await page.getByRole('link', { name: 'Figure Element' }).click();
+  await page.waitForURL(/image$/);
+  await page.goto('./revealjs/links-id.html#/link-to-equation');
+  await page.getByRole('link', { name: 'Equation' }).click();
+  await page.waitForURL(/equation$/);
+  await page.goto('./revealjs/links-id.html#/link-to-theorem');
+  await page.getByRole('link', { name: 'Theorem' }).click();
+  await page.waitForURL(/theorem$/);
+});
