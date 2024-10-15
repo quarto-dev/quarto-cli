@@ -206,15 +206,10 @@ export function outputRecipe(
       deriveAutoOutput();
     } else if (recipe.output === kStdOut) {
       deriveAutoOutput();
-
-      // https://github.com/quarto-dev/quarto-cli/issues/11068
-      // we need the output to be in the same directory or
-      // embed-resources doesn't work.
-
       recipe.isOutputTransient = true;
       completeActions.push(() => {
-        writeFileToStdout(recipe.output);
-        Deno.removeSync(recipe.output);
+        writeFileToStdout(join(inputDir, recipe.output));
+        Deno.removeSync(join(inputDir, recipe.output));
       });
     } else if (!isAbsolute(recipe.output)) {
       // relatve output file on the command line: make it relative to the input dir
