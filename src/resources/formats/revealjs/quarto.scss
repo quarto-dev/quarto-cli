@@ -812,3 +812,16 @@ kbd {
   border-radius: 5px;
   padding: $kbd-padding-y $kbd-padding-x;
 }
+
+:root {
+  --r-inline-code-font: #{$inlineCodeFont};
+  --r-block-code-font: #{$blockCodeFont};
+}
+
+.reveal code {
+  font-family: var(--r-inline-code-font);
+}
+
+.reveal pre code {
+	font-family: var(--r-block-code-font);
+}

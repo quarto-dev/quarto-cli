@@ -1756,6 +1756,7 @@ $offcanvas-backdrop-opacity:        $modal-backdrop-opacity !default;
 // scss-docs-end offcanvas-variables
 
 // Code
+
 $code-font-size:                    $small-font-size !default;
 // Amount intentionally matches mixture amount of shiny::inputPanel()
 // https://github.com/rstudio/shiny/blob/4eeb4a1/inst/www/shared/shiny_scss/bootstrap.scss#L25
@@ -1773,12 +1774,3 @@ $nested-kbd-font-weight:            null !default; // Deprecated in v5.2.0, remo
 $pre-bg:                            $code-bg  !default;
 $pre-color:                         $body-emphasis-color !default;
 $pre-line-height:                   $line-height-base !default;
-
-// variables required by _brand.yml
-$font-family-monospace-block: $font-family-monospace !default;
-$font-family-monospace-inline: $font-family-monospace !default;
-$font-weight-monospace: $font-weight-base !default;
-$font-weight-monospace-block: $font-weight-monospace !default;
-$font-weight-monospace-inline: $font-weight-monospace !default;
-$code-block-font-size: $code-font-size !default;
-$code-inline-font-size: $code-font-size !default;

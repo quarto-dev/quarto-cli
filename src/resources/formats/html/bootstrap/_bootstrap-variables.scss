@@ -245,3 +245,12 @@ $table-group-separator-color-lighter: lighten(
 $bootstrap-version: 5;
 
 $h1h2h3-font-weight: 600 !default;
+
+// variables required by _brand.yml
+$font-family-monospace-block: $font-family-monospace !default;
+$font-family-monospace-inline: $font-family-monospace !default;
+$font-weight-monospace: $font-weight-base !default;
+$font-weight-monospace-block: $font-weight-monospace !default;
+$font-weight-monospace-inline: $font-weight-monospace !default;
+$code-block-font-size: $code-font-size !default;
+$code-inline-font-size: $code-font-size !default;
