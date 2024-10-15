@@ -10,14 +10,14 @@ import {
   Brand as BrandJson,
   BrandFont,
   BrandLogoExplicitResource,
-  BrandNamedLogo,
   BrandNamedThemeColor,
-  BrandStringLightDark,
   BrandTypography,
   BrandTypographyOptionsBase,
   BrandTypographyOptionsHeadings,
 } from "../../resources/types/schema-types.ts";
 import { InternalError } from "../lib/error.ts";
+
+import { join, relative } from "../../deno_ral/path.ts";
 
 // we can't programmatically convert typescript types to string arrays,
 // so we have to define this manually. They should match `BrandNamedThemeColor` in schema-types.ts
@@ -237,14 +237,14 @@ export class Brand {
     if (!entry) {
       return { path: name };
     }
+    const pathPrefix = relative(this.projectDir, this.brandDir);
     if (typeof entry === "string") {
-      return { path: entry };
+      return { path: join(pathPrefix, entry) };
     }
+    entry.path = join(pathPrefix, entry.path);
     return entry;
   }
 
-  // the same implementation as getColor except we can also return {light,dark}
-  // assuming for now that with only contains strings, not {light,dark}
   getLogo(name: "small" | "medium" | "large"): CanonicalLogoInfo | undefined {
     const entry = this.data.logo?.[name];
     if (!entry) {
