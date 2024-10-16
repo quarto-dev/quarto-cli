@@ -59,6 +59,9 @@ IF EXIST "!QUARTO_TS_PATH!" (
 
 	SET QUARTO_CACHE_OPTIONS=
 
+	REM Turn on type checking for dev version
+  SET QUARTO_DENO_OPTIONS=--check
+
 ) ELSE (
 
 	IF NOT DEFINED QUARTO_SHARE_PATH (
@@ -102,7 +105,7 @@ IF NOT DEFINED QUARTO_DENO (
 
 SET "DENO_TLS_CA_STORE=system,mozilla"
 SET "DENO_NO_UPDATE_CHECK=1"
-SET "QUARTO_DENO_OPTIONS=--unstable-kv --unstable-ffi --no-config --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi"
+SET "QUARTO_DENO_OPTIONS=--unstable-kv --unstable-ffi --no-config --no-lock --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi !QUARTO_DENO_OPTIONS!"
 
 REM Add expected V8 options to QUARTO_DENO_V8_OPTIONS
 IF DEFINED QUARTO_DENO_V8_OPTIONS (

@@ -461,17 +461,17 @@ $panel-sidebar-padding: 0.5em;
 }
 
 .reveal .columns > .column > :not(ul, ol) {
-  margin-left: 0.25em;
-  margin-right: 0.25em;
+  margin-left: 0.25rem;
+  margin-right: 0.25rem;
 }
 
 .reveal .columns > .column:first-child > :not(ul, ol) {
-  margin-right: 0.5em;
+  margin-right: 0.5rem;
   margin-left: 0;
 }
 .reveal .columns > .column:last-child > :not(ul, ol) {
   margin-right: 0;
-  margin-left: 0.5em;
+  margin-left: 0.5rem;
 }
 
 .reveal .slide-number {

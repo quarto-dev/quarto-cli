@@ -42,6 +42,7 @@ All changes included in 1.6:
 - ([#9558](https://github.com/quarto-dev/quarto-cli/issues/9558)): To prevent default footer to show on slide, set `footer='false'` attribute on the slide header, e.g. `## Slide with no footer {footer='false'}`
 - ([#6012](https://github.com/quarto-dev/quarto-cli/issues/6012)): Add styling for `kbd` element in Revealjs slides.
 - ([#10887](https://github.com/quarto-dev/quarto-cli/issues/10887)): Updating default Mathjax used from 2.7.0 to 2.7.9.
+- ([#9999](https://github.com/quarto-dev/quarto-cli/issues/9999)): Fix spacing problems of different size elements in columns.
 
 ## `typst` Format
 
@@ -91,6 +92,7 @@ All changes included in 1.6:
 - Upgrade `mermaidjs` to 11.2.0.
 - Upgrade Pandoc to 3.4.
 - Upgrade `deno` to 1.46.3.
+- ([#11068](https://github.com/quarto-dev/quarto-cli/issues/11068)): use standard location when writing to standard output to avoid breakage under `self-contained: true`.
 - ([#10162](https://github.com/quarto-dev/quarto-cli/issues/10162)): Use Edge on `macOS` as a Chromium browser when available.
 - ([#10235](https://github.com/quarto-dev/quarto-cli/issues/10235)): Configure the CI schedule trigger to activate exclusively for the upstream repository.
 - ([#10295](https://github.com/quarto-dev/quarto-cli/issues/10235)): Fix regression to return error status to shell when `CommandError` is thrown.

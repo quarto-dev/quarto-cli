@@ -86,6 +86,7 @@ fn main() {
         String::from("--unstable-ffi"),
         String::from("--no-config"),
         String::from("--cached-only"),
+        String::from("--no-lock"),
         String::from("--allow-read"),
         String::from("--allow-write"),
         String::from("--allow-run"),

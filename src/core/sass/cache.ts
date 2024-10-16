@@ -77,22 +77,13 @@ class SassCache {
   async setFromHash(
     identifierHash: string,
     inputHash: string,
-    input: string,
-    loadPaths: string[],
-    temp: TempContext,
     cacheIdentifier: string,
-    compressed?: boolean,
+    compilationThunk: (outputFilePath: string) => Promise<void>,
   ): Promise<string> {
     log.debug(`SassCache.setFromHash(${identifierHash}, ${inputHash}), ...`);
     const outputFilePath = join(this.path, `${identifierHash}.css`);
     try {
-      await dartCompile(
-        input,
-        outputFilePath,
-        temp,
-        loadPaths,
-        compressed,
-      );
+      await compilationThunk(outputFilePath);
     } catch (error) {
       // Compilation failed, so clear out the output file (if exists)
       // which will be invalid CSS
@@ -112,30 +103,23 @@ class SassCache {
 
   async set(
     input: string,
-    loadPaths: string[],
-    temp: TempContext,
     cacheIdentifier: string,
-    compressed?: boolean,
+    compilationThunk: (outputFilePath: string) => Promise<void>,
   ): Promise<string> {
     const identifierHash = md5Hash(cacheIdentifier);
     const inputHash = md5Hash(input);
     return this.setFromHash(
       identifierHash,
       inputHash,
-      input,
-      loadPaths,
-      temp,
       cacheIdentifier,
-      compressed,
+      compilationThunk,
     );
   }
 
   async getOrSet(
     input: string,
-    loadPaths: string[],
-    temp: TempContext,
     cacheIdentifier: string,
-    compressed?: boolean,
+    compilationThunk: (outputFilePath: string) => Promise<void>,
   ): Promise<string> {
     log.debug(`SassCache.getOrSet(...)`);
     const identifierHash = md5Hash(cacheIdentifier);
@@ -149,11 +133,8 @@ class SassCache {
     return this.setFromHash(
       identifierHash,
       inputHash,
-      input,
-      loadPaths,
-      temp,
       cacheIdentifier,
-      compressed,
+      compilationThunk,
     );
   }
 
