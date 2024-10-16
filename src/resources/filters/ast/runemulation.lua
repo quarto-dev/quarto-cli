@@ -49,6 +49,7 @@ end
 
 local function run_emulated_filter_chain(doc, filters, afterFilterPass, profiling)
   init_trace(doc)
+  local compare_jog_and_walk = os.getenv 'QUARTO_JOG_CHECK'
   for i, v in ipairs(filters) do
     local function callback()
       if v.flags then
@@ -79,7 +80,20 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass, profilin
         print(pandoc.write(doc, "native"))
       else
         _quarto.ast._current_doc = doc
-        doc = run_emulated_filter(doc, v.filter)
+
+        if compare_jog_and_walk and not v.force_pandoc_walk then
+          local expected = run_emulated_filter(doc:clone(), v.filter, true)
+          doc = run_emulated_filter(doc:clone(), v.filter, false)
+          if doc == expected then
+            io.stderr:write("[ OK ] " .. v.name .. '\n')
+          else
+            io.stderr:write("[FAIL] " .. v.name .. '\n')
+            doc = expected
+          end
+        else
+          doc = run_emulated_filter(doc, v.filter, v.force_pandoc_walk)
+        end
+
         ensure_vault(doc)
 
         add_trace(doc, v.name)

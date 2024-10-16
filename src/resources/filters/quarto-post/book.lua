@@ -8,10 +8,11 @@ local license = require 'modules/license'
 local function clean (inlines)
   -- this is in post, so it's after render, so we don't need to worry about
   -- custom ast nodes
-  return inlines:walk {
-    Note = function (_) return {} end,
+  return _quarto.modules.jog(inlines, {
+    traverse = 'topdown',
+    Note = function (_) return {}, false end,
     Link = function (link) return link.content end,
-  }
+  })
 end
 
 --- Creates an Inlines singleton containing the raw LaTeX.

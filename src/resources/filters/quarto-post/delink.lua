@@ -19,7 +19,7 @@ function delink()
         -- find links and transform them to spans
         -- this is in post, so it's after render, so we don't need to worry about
         -- custom ast nodes
-        return pandoc.walk_block(div, {
+        return _quarto.modules.jog(div, {
           Link = function(link)
             return pandoc.Span(link.content)
           end

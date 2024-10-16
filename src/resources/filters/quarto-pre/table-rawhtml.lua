@@ -15,7 +15,7 @@ function table_merge_raw_html()
   return {
     Blocks = function(blocks)
       local pendingRaw = pandoc.List()
-      local merged = pandoc.List()
+      local merged = pandoc.Blocks{}
       for i,el in ipairs(blocks) do
         if _quarto.format.isRawHtml(el) and el.text:find(patterns.html_table_tag_name) then
           pendingRaw:insert(el.text)

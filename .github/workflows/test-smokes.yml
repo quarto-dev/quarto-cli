@@ -53,6 +53,8 @@ jobs:
           - os: windows-latest
             time-test: true
     runs-on: ${{ matrix.os }}
+    env:
+      QUARTO_JOG_CHECK: true
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
