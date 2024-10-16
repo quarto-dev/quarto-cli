@@ -34,6 +34,7 @@ All changes included in 1.6:
 
 - Update to Reveal JS 5.1.0.
   - Support for a [Jump To Slide](https://revealjs.com/jump-to-slide/) menu to quickly navigate between slides. Set `jump-to-slide: false` to opt out.
+  - Support for new [Scroll View](https://revealjs.com/scroll-view/) mode with configuration through new `scroll-view` revealjs's format configuration key. A new menu tool has been added to toggle scroll view mode on and off, associated with `R` key by default.
 - Prevent empty SASS built css file to be included in header.
 - Remove wrong `sourceMappingUrl` entry in SASS built css.
 - ([#7715](https://github.com/quarto-dev/quarto-cli/issues/7715)): Revealjs don't support anymore special Pandoc syntax making BulletList in Blockquotes become incremental list. This was confusing and unexpected behavior. Supported syntax for incremental list is documented at <https://quarto.org/docs/presentations/revealjs/#incremental-lists>.

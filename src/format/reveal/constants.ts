@@ -24,3 +24,10 @@ export const kAutoAnimateUnmatched = "autoAnimateUnmatched";
 export const kAutoStretch = "auto-stretch";
 export const kCodeBlockHeight = "code-block-height";
 export const kJumpToSlide = "jumpToSlide";
+// scroll view configurations - https://revealjs.com/scroll-view/
+export const kScrollView = "scroll-view";
+export const kView = "view";
+export const kScrollProgress = "scrollProgress";
+export const kScrollSnap = "scrollSnap";
+export const kScrollActivationWidth = "scrollActivationWidth";
+export const kScrollLayout = "scrollLayout";

@@ -420,6 +420,11 @@ function revealMenuTools(format: Format) {
       key: "e",
       handler: "togglePdfExport",
     },
+    {
+      title: "Scroll View Mode",
+      key: "r",
+      handler: "toggleScrollView",
+    },
   ];
   if (format.metadata[kRevealChalkboard]) {
     tools.push(
