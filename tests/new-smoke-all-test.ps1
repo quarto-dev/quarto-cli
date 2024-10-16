@@ -33,6 +33,13 @@ _quarto:
       ensureFileRegexMatches:
         - [] 
         - []
+    revealjs:
+      ensureHtmlElements:
+        - []
+        - []
+      ensureFileRegexMatches:
+        - [] 
+        - []
     latex:
       ensureFileRegexMatches:
         - []
