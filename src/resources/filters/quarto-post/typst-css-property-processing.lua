@@ -100,12 +100,6 @@ function render_typst_css_property_processing()
 
   local border_sides = {'left', 'top', 'right', 'bottom'}
   local border_properties = {'width', 'style', 'color'}
-  local border_width_keywords = {
-    thin = '1px',
-    medium = '3px',
-    thick = '5px'
-  }
-
   local function all_equal(seq)
     local a = seq[1]
     for i = 2, #seq do
@@ -116,135 +110,31 @@ function render_typst_css_property_processing()
     return true
   end
 
-  local function translate_border_width(v)
-    v = border_width_keywords[v] or v
-    local thickness = _quarto.format.typst.css.translate_length(v, _warnings)
-    return thickness == '0pt' and 'delete' or thickness
-  end
-
-  local function translate_border_style(v)
-    local dash
-    if v == 'none' then
-      return 'delete'
-    elseif tcontains({'dotted', 'dashed'}, v) then
-      return quote(v)
-    end
-    return nil
-  end
-
-  local function translate_border_color(v)
-    return _quarto.format.typst.css.output_color(_quarto.modules.typst.css.parse_color(v, _warnings), nil, _warnings)
-  end
 
   local border_translators = {
     width = {
       prop = 'thickness',
-      fn = translate_border_width
+      fn = _quarto.modules.typst.css.translate_border_width
     },
     style = {
       prop = 'dash',
-      fn = translate_border_style
+      fn = _quarto.modules.typst.css.translate_border_style
     },
     color = {
       prop = 'paint',
-      fn = translate_border_color
+      fn = _quarto.modules.typst.css.translate_border_color
     }
   }
-
-  -- only a few of these map to typst, again seems simplest to parse anyway
-  local border_styles = {
-    'none', 'hidden', 'dotted', 'dashed', 'solid', 'double', 'groove', 'ridge', 'inset', 'outset', 'inherit', 'initial', 'revert', 'revert-layer', 'unset'
-  }
-
-  function parse_multiple(s, limit, callback)
-    local start = 0
-    local count = 0
-    repeat
-      start = callback(s, start)
-      -- not really necessary with string:find
-      -- as evidenced that s.sub also works
-      while s:sub(start, start) == ' ' do
-        start = start + 1
-      end
-      count = count + 1
-    until count >=limit or start >= #s
-  end
-
-  -- border shorthand
-  -- https://developer.mozilla.org/en-US/docs/Web/CSS/border
-  local function translate_border(v)
-    -- not sure why the default style that works is not the same one specified
-    local width = 'medium'
-    local style = 'solid' -- css specifies none
-    local paint = 'black' -- css specifies currentcolor
-    parse_multiple(v, 3, function(s, start)
-      local fbeg, fend = s:find('%w+%b()', start)
-      if fbeg then
-        local paint2 = translate_border_color(s:sub(fbeg, fend))
-        if paint2 then
-          paint = paint2
-        end
-        return fend + 1
-      else
-        fbeg, fend = s:find('%S+', start)
-        local term = v:sub(fbeg, fend)
-        if tcontains(border_styles, term) then
-          style = term
-        else
-          if _quarto.format.typst.css.parse_length_unit(term) or border_width_keywords[term] then
-            width = term
-          else
-            local paint2 = translate_border_color(term)
-            if paint2 then
-              paint = paint2
-            else
-              _warnings:insert('invalid border shorthand ' .. term)
-            end
-          end
-        end
-        return fend + 1
-      end
-    end)
-    return {
-      thickness = translate_border_width(width),
-      dash = translate_border_style(style),
-      paint = paint
-    }
-  end
-
-  local function consume_width(s, start)
-      fbeg, fend = s:find('%S+', start)
-      local term = s:sub(fbeg, fend)
-      local thickness = translate_border_width(term)
-      return thickness, fend + 1
-  end
-
-  local function consume_style(s, start)
-    fbeg, fend = s:find('%S+', start)
-    local term = s:sub(fbeg, fend)
-    local dash = translate_border_style(term)
-    return dash, fend + 1
-  end
-
-  local function consume_color(s, start)
-    local fbeg, fend = s:find('%w+%b()', start)
-    if not fbeg then
-      fbeg, fend = s:find('%S+', start)
-    end
-    if not fbeg then return nil end
-    local paint = translate_border_color(s:sub(fbeg, fend))
-    return paint, fend + 1
-  end
 
   local border_consumers = {
-    width = consume_width,
-    style = consume_style,
-    color = consume_color,
+    width = _quarto.modules.typst.css.consume_width,
+    style = _quarto.modules.typst.css.consume_style,
+    color = _quarto.modules.typst.css.consume_color,
   }
   local function handle_border(k, v, borders)
     local _, ndash = k:gsub('-', '')
     if ndash == 0 then
-      local border = translate_border(v)
+      local border = _quarto.modules.typst.css.translate_border(v, _warnings)
       for _, side in ipairs(border_sides) do
         borders[side] = borders[side] or {}
         for k2, v2 in pairs(border) do
@@ -255,13 +145,13 @@ function render_typst_css_property_processing()
       local part = k:match('^border--(%a+)')
       if tcontains(border_sides, part) then
         borders[part] = borders[part] or {}
-        local border = translate_border(v)
+        local border = _quarto.modules.typst.css.translate_border(v, _warnings)
         for k2, v2 in pairs(border) do
           borders[part][k2] = v2
         end
       elseif tcontains(border_properties, part) then
         local items = {}
-        parse_multiple(v, 4, function(s, start)
+        _quarto.modules.typst.css.parse_multiple(v, 4, function(s, start)
           local item, newstart = border_consumers[part](s, start)
           table.insert(items, item)
           return newstart
@@ -304,7 +194,7 @@ function render_typst_css_property_processing()
       if tcontains(border_sides, side) and tcontains(border_properties, prop) then
         borders[side] = borders[side] or {}
         local tr = border_translators[prop]
-        borders[side][tr.prop] = tr.fn(v)
+        borders[side][tr.prop] = tr.fn(v, _warnings)
       else
         _warnings:insert('invalid 3-item border key ' .. k)
       end

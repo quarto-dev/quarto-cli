@@ -533,6 +533,122 @@ local function translate_length(csslen, warnings)
   return length and output_length(length, warnings)
 end
 
+-- only a few of these map to typst, again seems simplest to parse anyway
+local border_styles = {
+  'none', 'hidden', 'dotted', 'dashed', 'solid', 'double', 'groove', 'ridge', 'inset', 'outset', 'inherit', 'initial', 'revert', 'revert-layer', 'unset'
+}
+
+function parse_multiple(s, limit, callback)
+  local start = 0
+  local count = 0
+  repeat
+    start = callback(s, start)
+    -- not really necessary with string:find
+    -- as evidenced that s.sub also works
+    while s:sub(start, start) == ' ' do
+      start = start + 1
+    end
+    count = count + 1
+  until count >=limit or start >= #s
+end
+
+local border_width_keywords = {
+  thin = '1px',
+  medium = '3px',
+  thick = '5px'
+}
+
+local function translate_border_width(v, warnings)
+  v = border_width_keywords[v] or v
+  local thickness = translate_length(v, warnings)
+  return thickness == '0pt' and 'delete' or thickness
+end
+
+local function quote(s)
+  return '"' .. s .. '"'
+end
+
+local function translate_border_style(v, _warnings)
+  local dash
+  if v == 'none' then
+    return 'delete'
+  elseif tcontains({'dotted', 'dashed'}, v) then
+    return quote(v)
+  end
+  return nil
+end
+
+local function translate_border_color(v, warnings)
+  return output_color(parse_color(v, warnings), nil, warnings)
+end
+
+-- border shorthand
+-- https://developer.mozilla.org/en-US/docs/Web/CSS/border
+local function translate_border(v, warnings)
+  -- not sure why the default style that works is not the same one specified
+  local width = 'medium'
+  local style = 'solid' -- css specifies none
+  local paint = 'black' -- css specifies currentcolor
+  parse_multiple(v, 3, function(s, start)
+    local fbeg, fend = s:find('%w+%b()', start)
+    if fbeg then
+      local paint2 = translate_border_color(s:sub(fbeg, fend), warnings)
+      if paint2 then
+        paint = paint2
+      end
+      return fend + 1
+    else
+      fbeg, fend = s:find('%S+', start)
+      local term = v:sub(fbeg, fend)
+      if tcontains(border_styles, term) then
+        style = term
+      else
+        if parse_length_unit(term) or border_width_keywords[term] then
+          width = term
+        else
+          local paint2 = translate_border_color(term, warnings)
+          if paint2 then
+            paint = paint2
+          else
+            output_warning(warnings, 'invalid border shorthand ' .. term)
+          end
+        end
+      end
+      return fend + 1
+    end
+  end)
+  return {
+    thickness = translate_border_width(width, warnings),
+    dash = translate_border_style(style, warnings),
+    paint = paint
+  }
+end
+
+local function consume_width(s, start, warnings)
+    fbeg, fend = s:find('%S+', start)
+    local term = s:sub(fbeg, fend)
+    local thickness = translate_border_width(term, warnings)
+    return thickness, fend + 1
+end
+
+local function consume_style(s, start, warnings)
+  fbeg, fend = s:find('%S+', start)
+  local term = s:sub(fbeg, fend)
+  local dash = translate_border_style(term, warnings)
+  return dash, fend + 1
+end
+
+local function consume_color(s, start, warnings)
+  local fbeg, fend = s:find('%w+%b()', start)
+  if not fbeg then
+    fbeg, fend = s:find('%S+', start)
+  end
+  if not fbeg then return nil end
+  local paint = translate_border_color(s:sub(fbeg, fend), warnings)
+  return paint, fend + 1
+end
+
+
 return {
   parse_color = parse_color,
   parse_opacity = parse_opacity,
@@ -540,5 +656,13 @@ return {
   parse_length_unit = parse_length_unit,
   parse_length = parse_length,
   output_length = output_length,
-  translate_length = translate_length
+  translate_length = translate_length,
+  parse_multiple = parse_multiple,
+  translate_border = translate_border,
+  translate_border_width = translate_border_width,
+  translate_border_style = translate_border_style,
+  translate_border_color = translate_border_color,
+  consume_width = consume_width,
+  consume_style = consume_style,
+  consume_color = consume_color
 }
