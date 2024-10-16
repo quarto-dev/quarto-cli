@@ -648,6 +648,36 @@ local function consume_color(s, start, warnings)
   return paint, fend + 1
 end
 
+-- the most css thing ever
+local function expand_side_shorthand(items, context, warnings)
+  local sides = {}
+  if #items == 0 then
+    output_warning(warnings, 'no valid ' .. context)
+  elseif #items == 1 then
+    sides.top = items[1]
+    sides.right = items[1]
+    sides.bottom = items[1]
+    sides.left = items[1]
+  elseif #items == 2 then
+    sides.top = items[1]
+    sides.right = items[2]
+    sides.bottom = items[1]
+    sides.left = items[2]
+  elseif #items == 3 then
+    sides.top = items[1]
+    sides.right = items[2]
+    sides.bottom = items[3]
+    sides.left = items[2]
+  elseif #items == 4 then
+    sides.top = items[1]
+    sides.right = items[2]
+    sides.bottom = items[3]
+    sides.left = items[4]
+  else
+    output_warning(warnings, 'too many ' .. context)
+  end
+  return sides
+end
 
 return {
   parse_color = parse_color,
@@ -658,6 +688,7 @@ return {
   output_length = output_length,
   translate_length = translate_length,
   parse_multiple = parse_multiple,
+  expand_side_shorthand = expand_side_shorthand,
   translate_border = translate_border,
   translate_border_width = translate_border_width,
   translate_border_style = translate_border_style,

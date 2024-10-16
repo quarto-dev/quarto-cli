@@ -151,7 +151,8 @@ function render_typst_css_property_processing()
         end
       elseif tcontains(border_properties, part) then
         local items = {}
-        _quarto.modules.typst.css.parse_multiple(v, 4, function(s, start)
+        -- one extra only so we can error on it
+        _quarto.modules.typst.css.parse_multiple(v, 5, function(s, start)
           local item, newstart = border_consumers[part](s, start)
           table.insert(items, item)
           return newstart
@@ -160,32 +161,14 @@ function render_typst_css_property_processing()
           borders[side] = borders[side] or {}
         end
         local xlate = border_translators[part]
-        if #items == 0 then
-          _warnings:insert('no valid ' .. part .. 's in ' .. v)
-        -- the most css thing ever
-        elseif #items == 1 then
-          borders.top[xlate.prop] = items[1]
-          borders.right[xlate.prop] = items[1]
-          borders.bottom[xlate.prop] = items[1]
-          borders.left[xlate.prop] = items[1]
-        elseif #items == 2 then
-          borders.top[xlate.prop] = items[1]
-          borders.right[xlate.prop] = items[2]
-          borders.bottom[xlate.prop] = items[1]
-          borders.left[xlate.prop] = items[2]
-        elseif #items == 3 then
-          borders.top[xlate.prop] = items[1]
-          borders.right[xlate.prop] = items[2]
-          borders.bottom[xlate.prop] = items[3]
-          borders.left[xlate.prop] = items[2]
-        elseif #items == 4 then
-          borders.top[xlate.prop] = items[1]
-          borders.right[xlate.prop] = items[2]
-          borders.bottom[xlate.prop] = items[3]
-          borders.left[xlate.prop] = items[4]
-        else
-          _warnings:insert('too many values in ' .. k .. ' list: ' .. v)
-        end
+        local sides = _quarto.modules.typst.css.expand_side_shorthand(
+          items,
+          part .. 's in ' .. k .. ' list: ' .. v,
+          _warnings)
+        borders.top[xlate.prop] = sides.top
+        borders.right[xlate.prop] = sides.right
+        borders.bottom[xlate.prop] = sides.bottom
+        borders.left[xlate.prop] = sides.left
       else
         _warnings:insert('invalid 2-item border key ' .. k)
       end
