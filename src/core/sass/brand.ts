@@ -271,7 +271,7 @@ const brandTypographyBundle = (
           `Inconsisent Google font families found: ${googleFamily} and ${thisFamily}`,
         );
       }
-      typographyVariables.push(googleFontImportString(resolvedFont));
+      typographyImports.push(googleFontImportString(resolvedFont));
     }
     if (googleFamily === "") {
       return undefined;
