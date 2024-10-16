@@ -1301,13 +1301,6 @@ export type BrandNamedLogo =
 
 export type BrandColorValue = string;
 
-export type LogoStringLayout = string | {
-  location?: string;
-  padding?: string;
-  src?: string;
-  width?: string;
-}; /* Source path or source path with layout options for logo */
-
 export type BrandColor = {
   background?: BrandColorValue;
   danger?: BrandColorValue;

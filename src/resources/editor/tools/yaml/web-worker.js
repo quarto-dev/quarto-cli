@@ -11957,36 +11957,6 @@ try {
             schema: "string"
           },
           {
-            id: "logo-string-layout",
-            description: "Source path or source path with layout options for logo",
-            anyOf: [
-              "string",
-              {
-                object: {
-                  closed: true,
-                  properties: {
-                    location: {
-                      schema: "string",
-                      description: "X-Y positioning of logo\n"
-                    },
-                    padding: {
-                      schema: "string",
-                      description: "Padding of logo\n"
-                    },
-                    width: {
-                      schema: "string",
-                      description: "Width of logo\n"
-                    },
-                    src: {
-                      schema: "path",
-                      description: "Source path of logo\n"
-                    }
-                  }
-                }
-              }
-            ]
-          },
-          {
             id: "brand-color",
             description: "The brand's custom color palette and theme.\n",
             object: {
@@ -17678,7 +17648,10 @@ try {
               ]
             },
             schema: {
-              ref: "logo-string-layout"
+              anyOf: [
+                "string",
+                "object"
+              ]
             },
             description: "Logo image (placed in bottom right corner of slides)"
           },
@@ -24151,12 +24124,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 192356,
+          _internalId: 192336,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 192348,
+              _internalId: 192328,
               type: "enum",
               enum: [
                 "png",
@@ -24172,7 +24145,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 192355,
+              _internalId: 192335,
               type: "anyOf",
               anyOf: [
                 {

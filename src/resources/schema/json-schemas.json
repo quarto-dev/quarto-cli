@@ -3295,31 +3295,6 @@
     "BrandColorValue": {
       "type": "string"
     },
-    "LogoStringLayout": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "object": {
-            "properties": {
-              "location": {
-                "type": "string"
-              },
-              "padding": {
-                "type": "string"
-              },
-              "width": {
-                "type": "string"
-              },
-              "src": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      ]
-    },
     "BrandColor": {
       "object": {
         "properties": {
