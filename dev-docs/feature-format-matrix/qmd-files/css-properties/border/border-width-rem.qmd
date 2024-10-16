@@ -19,7 +19,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - '    table.cell\(stroke: \(thickness: 17em\)\)\[A\], \[B\]'
+          - '  table.cell\(stroke: \(thickness: 17em\)\)\[A\], \[B\]'
         - []
 ---
 
