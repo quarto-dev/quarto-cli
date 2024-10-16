@@ -175,6 +175,7 @@ local typst_named_colors = {
   green = '#2ecc40',
   lime = '#01ff70',
 }
+
 -- css can have fraction or percent
 -- typst can have int or percent
 -- what goes for opacity also goes for alpha
