@@ -32,20 +32,6 @@ function render_typst_css_property_processing()
     end
   end
 
-  local function sortedPairs(t, f)
-    local a = {}
-    for n in pairs(t) do table.insert(a, n) end
-    table.sort(a, f)
-    local i = 0      -- iterator variable
-    local iter = function()   -- iterator function
-        i = i + 1
-        if a[i] == nil then return nil
-        else return a[i], t[a[i]]
-        end
-    end
-    return iter
-  end
-
   local function dequote(s)
     return s:gsub('^["\']', ''):gsub('["\']$', '')
   end
@@ -82,20 +68,6 @@ function render_typst_css_property_processing()
       return ha
     end
     return nil
-  end
-
-  local function to_typst_dict(tab)
-    local entries = {}
-    for k, v in sortedPairs(tab) do
-      if type(v) == 'table' then
-        v = to_typst_dict(v)
-      end
-      if k and v then
-        table.insert(entries, k .. ': ' .. v)
-      end
-    end
-    if #entries == 0 then return nil end
-    return '(' .. table.concat(entries, ', ') .. ')'
   end
 
   local border_sides = {'left', 'top', 'right', 'bottom'}
@@ -228,7 +200,7 @@ function render_typst_css_property_processing()
       -- inset seems either buggy or hard to get right, see
       -- https://github.com/quarto-dev/quarto-cli/pull/9387#issuecomment-2076015962
       -- if next(paddings) ~= nil then
-      --   cell.attributes['typst:inset'] = to_typst_dict(paddings)
+      --   cell.attributes['typst:inset'] = _quarto.modules.typst.as_typst_dictionary(paddings)
       -- end
 
       -- since e.g. the left side of one cell can override the right side of another
@@ -259,9 +231,9 @@ function render_typst_css_property_processing()
         quarto.log.debug('paints', table.unpack(paints))
         if all_equal(thicknesses) and all_equal(dashes) and all_equal(paints) then
           assert(borders.left)
-          cell.attributes['typst:stroke'] = to_typst_dict(borders.left)
+          cell.attributes['typst:stroke'] = _quarto.modules.typst.as_typst_dictionary(borders.left)
         else
-          cell.attributes['typst:stroke'] = to_typst_dict(borders)
+          cell.attributes['typst:stroke'] = _quarto.modules.typst.as_typst_dictionary(borders)
         end
       end
     end
@@ -291,7 +263,7 @@ function render_typst_css_property_processing()
         hlprops.fill = 'rgb(0,0,0,0)'
       end
       return pandoc.Inlines({
-        pandoc.RawInline('typst', '#highlight' .. to_typst_dict(hlprops) .. '['),
+        pandoc.RawInline('typst', '#highlight' .. _quarto.modules.typst.as_typst_dictionary(hlprops) .. '['),
         span,
         pandoc.RawInline('typst', ']')
       })

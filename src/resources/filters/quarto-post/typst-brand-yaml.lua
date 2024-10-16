@@ -3,26 +3,12 @@ function render_typst_brand_yaml()
     return {}
   end
 
-  local function sortedPairs(t, f)
-    local a = {}
-    for n in pairs(t) do table.insert(a, n) end
-    table.sort(a, f)
-    local i = 0      -- iterator variable
-    local iter = function()   -- iterator function
-        i = i + 1
-        if a[i] == nil then return nil
-        else return a[i], t[a[i]]
-        end
-    end
-    return iter
-  end
-
   local function to_typst_dict_indent(tab, curr, indent)
     curr = curr or ''
     indent = indent or '  '
     local entries = {}
     local inside = curr .. indent
-    for k, v in sortedPairs(tab) do
+    for k, v in _quarto.utils.table.sortedPairs(tab) do
       if type(v) == 'table' then
         v = to_typst_dict_indent(v, inside, indent)
       end
@@ -243,8 +229,55 @@ function render_typst_brand_yaml()
             logoOptions.path = foundLogo.dark.path
             logoOptions.alt = foundLogo.dark.alt
           end
-          -- todo: path relative to brand.yaml
-          logoOptions.padding = _quarto.modules.typst.css.translate_length(logoOptions.padding or '0.5in')
+
+          local pads = {}
+          for k, v in _quarto.utils.table.sortedPairs(logoOptions) do
+            if k == 'padding' then
+              quarto.log.output('foo', k)
+              local widths = {}
+              _quarto.modules.typst.css.parse_multiple(v, 5, function(s, start)
+                local width, newstart = _quarto.modules.typst.css.consume_width(s, start)
+                table.insert(widths, width)
+                return newstart
+              end)
+              local sides = _quarto.modules.typst.css.expand_side_shorthand(
+                widths,
+                'widths in padding list: ' .. v)
+              pads.top = sides.top
+              pads.right = sides.right
+              pads.bottom = sides.bottom
+              pads.left = sides.left
+            elseif k:find '^padding-' then
+              quarto.log.output('foo', k)
+              local _, ndash = k:gsub('-', '')
+              if ndash == 1 then
+                local side = k:match('^padding--(%a+)')
+                local padding_sides = {'left', 'top', 'right', 'bottom'}
+                if tcontains(padding_sides, side) then
+                  pads[side] = _quarto.modules.typst.css.translate_length(v)
+                else
+                  quarto.log.warning('invalid padding key ' .. k)
+                end
+              else
+                quarto.log.warning('invalid padding key ' .. k)
+              end
+            end
+          end
+          local inset = nil
+          if next(pads) then
+            if pads.top == pads.right and
+              pads.right == pads.bottom and
+              pads.bottom == pads.left
+            then
+              inset = pads.top
+            elseif pads.top == pads.bottom and pads.left == pads.right then
+              inset = _quarto.modules.typst.as_typst_dictionary({x = pads.left, y = pads.top})
+            else
+              inset = _quarto.modules.typst.as_typst_dictionary(pads)
+            end
+          else
+            inset = '0.5in'
+          end
           logoOptions.width = _quarto.modules.typst.css.translate_length(logoOptions.width or '2in')
           logoOptions.location = logoOptions.location and
             location_to_typst_align(logoOptions.location) or 'left+top'
@@ -252,7 +285,7 @@ function render_typst_brand_yaml()
           local altProp = logoOptions.alt and (', alt: "' .. logoOptions.alt .. '"') or ''
           local dblbackslash = string.gsub(logoOptions.path, '\\', '\\\\') -- double backslash?
           quarto.doc.include_text('in-header',
-            '#set page(background: align(' .. logoOptions.location .. ', box(inset: ' .. logoOptions.padding .. ', image("' .. dblbackslash .. '", width: ' .. logoOptions.width .. altProp .. '))))')
+            '#set page(background: align(' .. logoOptions.location .. ', box(inset: ' .. inset .. ', image("' .. dblbackslash .. '", width: ' .. logoOptions.width .. altProp .. '))))')
         end  
       end
     end,

@@ -75,10 +75,26 @@ local function _main()
       return result
     end
   end
+
+  local function as_typst_dictionary(tab)
+    local entries = {}
+    for k, v in _quarto.utils.table.sortedPairs(tab) do
+      if type(v) == 'table' then
+        v = as_typst_dictionary(v)
+      end
+      if k and v then
+        table.insert(entries, k .. ': ' .. v)
+      end
+    end
+    if #entries == 0 then return nil end
+    return '(' .. table.concat(entries, ', ') .. ')'
+  end
   
   return {
     function_call = typst_function_call,
+    sortedPairs = sortedPairs,
     as_typst_content = as_typst_content,
+    as_typst_dictionary = as_typst_dictionary,
     css = require("modules/typst_css")
   }
 end
