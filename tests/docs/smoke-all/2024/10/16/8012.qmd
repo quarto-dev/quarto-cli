@@ -1,0 +1,27 @@
+---
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - ['section:nth-child(2)#python-slide > h2']
+        - ['section#title-slide', 'section#title-slide > h1.title']
+      ensureFileRegexMatches:
+        - ['Custom title[\s\S]+Python slide']
+        - ['Python slide[\s\S]+Custom title']
+engine: jupyter
+---
+
+## 
+
+Custom title slide desired here with custom content and no slide title
+
+There should be no title slide in this presentation, and Python slide should be after this slide. 
+
+rendering through ipynb shouldn't promote title in a way that it messes the slide order. 
+
+## Python slide {#python-slide}
+
+```{python}
+print(2+2)
+```
