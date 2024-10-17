@@ -52,6 +52,10 @@ All changes included in 1.6:
 - ([#10212](https://github.com/quarto-dev/quarto-cli/issues/10212)): Move Pandoc variables to the function declaration for the default template.
 - ([#10438](https://github.com/quarto-dev/quarto-cli/issues/10438)): Ensure Pandoc doesn't emit its own crossref environments for table elements.
 
+## `docx` Format
+
+- ([#10401](https://github.com/quarto-dev/quarto-cli/issues/10401)): Fix crash when `docx` format is used with an empty crossref environment.
+
 ## `latex` and `pdf` Format
 
 - ([#10291](https://github.com/quarto-dev/quarto-cli/issues/10291)): Several improvement regarding Quarto LaTeX engine behavior for missing hyphenation log message:
