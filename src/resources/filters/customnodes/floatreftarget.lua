@@ -676,6 +676,10 @@ end, function(float)
   local row = pandoc.List()
   local cell = pandoc.Div({})
   cell.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
+  if float.content == nil then
+    warn("FloatRefTarget with no content: " .. float.identifier)
+    return pandoc.Div({})
+  end
   local c = float.content.content or float.content
   if pandoc.utils.type(c) == "Block" then
     cell.content:insert(c)
