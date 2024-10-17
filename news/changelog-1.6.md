@@ -71,6 +71,7 @@ All changes included in 1.6:
 
 ### Websites
 
+- ([#8932](https://github.com/quarto-dev/quarto-cli/issues/8932)): Escape render ids in markdown pipeline to allow special characters in sidebars/navbars, etc.
 - ([#10616](https://github.com/quarto-dev/quarto-cli/issues/10268)): Add a `z-index` setting to the 'back to top' button to ensure it is always visible.
 
 ### Quarto Blog
