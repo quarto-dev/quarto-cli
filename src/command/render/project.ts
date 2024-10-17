@@ -326,18 +326,34 @@ export async function renderProject(
 
   // run pre-render step if we are rendering all files
   if (preRenderScripts.length) {
+    // https://github.com/quarto-dev/quarto-cli/issues/10828
+    // some environments limit the length of environment variables.
+    // It's hard to know in advance what the limit is, so we will
+    // instead ask users to configure their environment with
+    // the names of the files we will write the list of files to.
+
+    const filesToRender = projectRenderConfig.filesToRender
+      .map((fileToRender) => fileToRender.path)
+      .map((file) => relative(projDir, file));
+    const env: Record<string, string> = {
+      ...prePostEnv,
+    };
+
+    if (Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES")) {
+      Deno.writeTextFileSync(
+        Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES")!,
+        filesToRender.join("\n"),
+      );
+    } else {
+      env.QUARTO_PROJECT_INPUT_FILES = filesToRender.join("\n");
+    }
+
     await runPreRender(
       projDir,
       preRenderScripts,
       progress,
       !!projectRenderConfig.options.flags?.quiet,
-      {
-        ...prePostEnv,
-        QUARTO_PROJECT_INPUT_FILES: projectRenderConfig.filesToRender
-          .map((fileToRender) => fileToRender.path)
-          .map((file) => relative(projDir, file))
-          .join("\n"),
-      },
+      env,
     );
 
     // re-initialize project context
@@ -814,17 +830,34 @@ export async function renderProject(
 
     // run post-render if this isn't incremental
     if (postRenderScripts.length) {
+      // https://github.com/quarto-dev/quarto-cli/issues/10828
+      // some environments limit the length of environment variables.
+      // It's hard to know in advance what the limit is, so we will
+      // instead ask users to configure their environment with
+      // the names of the files we will write the list of files to.
+
+      const env: Record<string, string> = {
+        ...prePostEnv,
+      };
+
+      if (Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES")) {
+        Deno.writeTextFileSync(
+          Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES")!,
+          outputFiles.map((outputFile) => relative(projDir, outputFile.file))
+            .join("\n"),
+        );
+      } else {
+        env.QUARTO_PROJECT_OUTPUT_FILES = outputFiles
+          .map((outputFile) => relative(projDir, outputFile.file))
+          .join("\n");
+      }
+
       await runPostRender(
         projDir,
         postRenderScripts,
         progress,
         !!projectRenderConfig.options.flags?.quiet,
-        {
-          ...prePostEnv,
-          QUARTO_PROJECT_OUTPUT_FILES: outputFiles
-            .map((outputFile) => relative(projDir, outputFile.file))
-            .join("\n"),
-        },
+        env,
       );
     }
   }
@@ -908,6 +941,23 @@ async function runScripts(
 
     const handler = handlerForScript(script);
     if (handler) {
+      if (env) {
+        env = {
+          ...env,
+        };
+      } else {
+        env = {};
+      }
+      if (!env) throw new Error("should never get here");
+      const input = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES");
+      const output = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES");
+      if (input) {
+        env["QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES"] = input;
+      }
+      if (output) {
+        env["QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES"] = output;
+      }
+
       const result = await handler.run(script, args.splice(1), undefined, {
         cwd: projDir,
         stdout: quiet ? "piped" : "inherit",

@@ -93,7 +93,7 @@ export async function quarto(
 
   // passthrough to run handlers
   if (args[0] === "run" && args[1] !== "help" && args[1] !== "--help") {
-    const result = await runScript(args.slice(1));
+    const result = await runScript(args.slice(1), env);
     Deno.exit(result.code);
   }
 
@@ -151,16 +151,16 @@ export async function quarto(
 
   const promise = quartoCommand.command("help", new HelpCommand().global())
     .command("completions", new CompletionsCommand()).hidden().parse(args);
-  for (const [key, value] of Object.entries(oldEnv)) {
-    if (value === undefined) {
-      Deno.env.delete(key);
-    } else {
-      Deno.env.set(key, value);
-    }
-  }
 
   try {
     await promise;
+    for (const [key, value] of Object.entries(oldEnv)) {
+      if (value === undefined) {
+        Deno.env.delete(key);
+      } else {
+        Deno.env.set(key, value);
+      }
+    }
   } catch (e) {
     if (e instanceof CommandError) {
       logError(e, false);
