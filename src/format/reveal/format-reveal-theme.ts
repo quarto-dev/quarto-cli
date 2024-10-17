@@ -18,7 +18,7 @@ import {
 
 import { isFileRef } from "../../core/http.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
-import { formatResourcePath } from "../../core/resources.ts";
+import { formatResourcePath, resourcePath } from "../../core/resources.ts";
 import {
   cleanSourceMappingUrl,
   compileSass,
@@ -164,6 +164,7 @@ export async function revealTheme(
   const quartoLayers = [
     quartoBaseLayer(format, true, true, false, true),
     quartoLayer(),
+    quartoRevealBrandLayer(),
   ];
   const titleSlideLayer = titleSlideScss(format);
   if (titleSlideLayer) {
@@ -283,4 +284,10 @@ function quartoLayer(): SassLayer {
 
 function themeLayer(theme: string): SassLayer {
   return sassLayerFile(theme);
+}
+
+function quartoRevealBrandLayer(): SassLayer {
+  return sassLayerFile(
+    resourcePath(join("formats", "revealjs", "brand", "brand.scss")),
+  );
 }

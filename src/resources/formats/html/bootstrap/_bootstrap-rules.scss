@@ -2144,3 +2144,20 @@ code.sourceCode a.code-annotation-anchor {
 #quarto-back-to-top {
   z-index: 1000;
 }
+
+// override _reboot.scss
+
+// code blocks
+pre code {
+  font-family: $font-family-monospace-block;
+  // I'm really not confident that this is correct
+  @include font-size($code-block-font-size);
+  font-weight: $font-weight-monospace-block;
+}
+
+// code inlines
+p code {
+  font-family: $font-family-monospace-inline;
+  @include font-size($code-inline-font-size);
+  font-weight: $font-weight-monospace-inline;
+}

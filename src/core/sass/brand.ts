@@ -180,7 +180,10 @@ const brandColorBundle = (
   key: string,
   nameMap: Record<string, string>,
 ): SassBundleLayers => {
-  const colorVariables: string[] = ["/* color variables from _brand.yml */"];
+  const colorVariables: string[] = [
+    "/* color variables from _brand.yml */",
+    '// quarto-scss-analysis-annotation { "action": "push", "origin": "_brand.yml color" }',
+  ];
   for (const colorKey of Object.keys(brand.data?.color?.palette ?? {})) {
     colorVariables.push(
       `$${colorKey}: ${brand.getColor(colorKey)} !default;`,
@@ -204,6 +207,7 @@ const brandColorBundle = (
     }
   }
   // const colorEntries = Object.keys(brand.color);
+  colorVariables.push('// quarto-scss-analysis-annotation { "action": "pop" }');
   const colorBundle: SassBundleLayers = {
     key,
     // dependency: "bootstrap",
@@ -224,6 +228,7 @@ const brandTypographyBundle = (
 ): SassBundleLayers => {
   const typographyVariables: string[] = [
     "/* typography variables from _brand.yml */",
+    '// quarto-scss-analysis-annotation { "action": "push", "origin": "_brand.yml typography" }',
   ];
   const typographyImports: string[] = [];
   const fonts = brand.data?.typography?.fonts ?? [];
@@ -266,7 +271,7 @@ const brandTypographyBundle = (
           `Inconsisent Google font families found: ${googleFamily} and ${thisFamily}`,
         );
       }
-      typographyVariables.push(googleFontImportString(resolvedFont));
+      typographyImports.push(googleFontImportString(resolvedFont));
     }
     if (googleFamily === "") {
       return undefined;
@@ -323,12 +328,14 @@ const brandTypographyBundle = (
       ["family", "font-family-base"],
       ["size", "font-size-base"],
       ["line-height", "line-height-base"],
+      ["weight", "font-weight-base"],
 
       // revealjs
       ["family", "mainFont"],
       ["size", "presentation-font-size-root"],
       ["line-height", "presentation-line-height"],
       // TBD?
+
       // ["style", "font-style-base"],
       // ["weight", "font-weight-base"],
     ],
@@ -353,8 +360,16 @@ const brandTypographyBundle = (
       ["family", "font-family-monospace"],
       // bootstrap
       ["size", "code-font-size"],
+      // forward explicitly to both `code` and `pre`
+      // because that interacts less with the default bootstrap styles
+      ["color", "code-color"], // this is also revealjs
+      ["color", "pre-color"],
+
+      ["weight", "font-weight-monospace"],
+
       // revealjs
       ["size", "code-block-font-size"],
+      ["color", "code-block-color"],
     ],
     "monospace-block": [
       // bootstrap + revealjs
@@ -363,6 +378,8 @@ const brandTypographyBundle = (
       ["line-height", "pre-line-height"],
       ["color", "pre-color"],
       ["background-color", "pre-bg"],
+      ["size", "code-block-font-size"],
+      ["weight", "font-weight-monospace-block"],
       // revealjs
       ["line-height", "code-block-line-height"],
       ["color", "code-block-color"],
@@ -375,18 +392,20 @@ const brandTypographyBundle = (
       ["background-color", "code-bg"],
       // bootstrap
       ["size", "code-inline-font-size"],
+      ["weight", "font-weight-monospace-inline"],
       // revealjs
-      ["size", "code-block-font-size"],
+      // ["size", "code-block-font-size"],
     ],
   };
 
   for (
     const kind of [
-      "base",
-      "headings",
-      "monospace",
+      // more specific entries go first
       "monospace-block",
       "monospace-inline",
+      "monospace",
+      "headings",
+      "base",
     ]
   ) {
     const fontInformation = resolveHTMLFontInformation(
@@ -410,6 +429,9 @@ const brandTypographyBundle = (
     }
   }
 
+  typographyVariables.push(
+    '// quarto-scss-analysis-annotation { "action": "pop" }',
+  );
   const typographyBundle: SassBundleLayers = {
     key,
     // dependency: "bootstrap",
