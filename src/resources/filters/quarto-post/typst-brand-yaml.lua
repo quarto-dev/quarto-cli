@@ -233,7 +233,6 @@ function render_typst_brand_yaml()
           local pads = {}
           for k, v in _quarto.utils.table.sortedPairs(logoOptions) do
             if k == 'padding' then
-              quarto.log.output('foo', k)
               local widths = {}
               _quarto.modules.typst.css.parse_multiple(v, 5, function(s, start)
                 local width, newstart = _quarto.modules.typst.css.consume_width(s, start)
@@ -248,7 +247,6 @@ function render_typst_brand_yaml()
               pads.bottom = sides.bottom
               pads.left = sides.left
             elseif k:find '^padding-' then
-              quarto.log.output('foo', k)
               local _, ndash = k:gsub('-', '')
               if ndash == 1 then
                 local side = k:match('^padding--(%a+)')
