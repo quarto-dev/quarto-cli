@@ -230,7 +230,7 @@ const brandTypographyBundle = (
     "/* typography variables from _brand.yml */",
     '// quarto-scss-analysis-annotation { "action": "push", "origin": "_brand.yml typography" }',
   ];
-  const typographyImports: string[] = [];
+  const typographyImports: Set<string> = new Set();
   const fonts = brand.data?.typography?.fonts ?? [];
 
   const pathCorrection = relative(brand.projectDir, brand.brandDir);
@@ -268,10 +268,10 @@ const brandTypographyBundle = (
         googleFamily = thisFamily;
       } else if (googleFamily !== thisFamily) {
         throw new Error(
-          `Inconsisent Google font families found: ${googleFamily} and ${thisFamily}`,
+          `Inconsistent Google font families found: ${googleFamily} and ${thisFamily}`,
         );
       }
-      typographyImports.push(googleFontImportString(resolvedFont));
+      typographyImports.add(googleFontImportString(resolvedFont));
     }
     if (googleFamily === "") {
       return undefined;
@@ -441,7 +441,7 @@ const brandTypographyBundle = (
     // dependency: "bootstrap",
     quarto: {
       defaults: typographyVariables.join("\n"),
-      uses: typographyImports.join("\n"),
+      uses: Array.from(typographyImports).join("\n"),
       functions: "",
       mixins: "",
       rules: "",
