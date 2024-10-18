@@ -99,8 +99,8 @@ testRunCmd("run-r-script", rScript);
 
 // in R
 const rScript2 = join(workingDir, "test2.R");
-Deno.writeTextFileSync(rScript2, "cat('write stdout', file = stdout()); cat('write stderr', file = stderr())");
-ensureStreams("run-r-script-stdout-stderr", rScript2, "write stdout", "write stderr");
+Deno.writeTextFileSync(rScript2, "cat('write stdout\\n', file = stdout()); cat('write stderr\\n', file = stderr())");
+ensureStreams("run-r-script-stdout-stderr", rScript2, "write stdout\n", "write stderr\n");
 
 // in Python
 const pyScript2 = join(workingDir, "test2.py");
@@ -114,5 +114,5 @@ ensureStreams("run-ts-script-stdout-stderr", tsScript2, "write stdout\n", "write
 
 // in Lua
 const luaScript2 = join(workingDir, "test2.lua");
-Deno.writeTextFileSync(luaScript2, "print('write stdout'); io.stderr:write('write stderr')");
-ensureStreams("run-lua-script-stdout-stderr", luaScript2, "write stdout\n\n", "write stderr"); // don't know why there is an extra newline
+Deno.writeTextFileSync(luaScript2, "print('write stdout'); io.stderr:write('write stderr\\n')");
+ensureStreams("run-lua-script-stdout-stderr", luaScript2, "write stdout\n\n", "write stderr\n"); // don't know why there is an extra newline
