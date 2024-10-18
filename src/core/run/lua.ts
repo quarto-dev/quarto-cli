@@ -42,10 +42,16 @@ export const luaRunHandler: RunHandler = {
     );
     cmd.push(...args);
 
-    return await execProcess({
-      cmd,
-      ...options,
-    }, "");
+    return await execProcess(
+      {
+        cmd,
+        ...options,
+      },
+      "",
+      undefined,
+      undefined,
+      true,
+    );
   },
 };
 
