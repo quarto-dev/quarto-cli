@@ -4,6 +4,8 @@ import { assert, assertEquals } from "testing/asserts";
 import { execProcess } from "../../../src/core/process.ts";
 import { quartoDevCmd } from "../../utils.ts";
 import { unitTest } from "../../test.ts";
+import { EOL } from "fs/eol";
+import { lines } from "../../../src/core/text.ts";
 
 const workingDir = Deno.makeTempDirSync();
 
@@ -24,6 +26,11 @@ const ensureStreams = (name: string, script: string, stdout: string, stderr: str
       true
     );
     assert(result.success);
+    // strip debugging output since this might run
+    // in our CI with debugging enabled
+    stdout = lines(result.stdout ?? "").filter((line: string) => !line.startsWith("[execProcess]")).join(EOL);
+    stderr = lines(result.stderr ?? "").filter((line: string) => !line.startsWith("[execProcess]")).join(EOL);
+    
     assertEquals(result.stdout, stdout);
     assertEquals(result.stderr, stderr);
   }, 
