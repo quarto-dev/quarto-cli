@@ -1,6 +1,6 @@
 import { basename, join } from "../../../src/deno_ral/path.ts";
 import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
-import { assert } from "testing/asserts";
+import { assert, assertEquals } from "testing/asserts";
 import { execProcess } from "../../../src/core/process.ts";
 import { quartoDevCmd } from "../../utils.ts";
 import { unitTest } from "../../test.ts";
@@ -8,6 +8,39 @@ import { unitTest } from "../../test.ts";
 const workingDir = Deno.makeTempDirSync();
 
 ensureDirSync(workingDir);
+
+const ensureStreams = (name: string, script: string, stdout: string, stderr: string) => {
+  unitTest(name, async () => {
+    const result = await execProcess({
+        cmd: [
+          quartoDevCmd(),
+          "run",
+          basename(script),
+        ]
+      },
+      undefined,
+      undefined,
+      undefined,
+      true
+    );
+    assert(result.success);
+    assertEquals(result.stdout, stdout);
+    assertEquals(result.stderr, stderr);
+  }, 
+  {
+    teardown: () => {
+      try {
+        Deno.removeSync(basename(script));
+      } catch (_e) {
+        // ignore
+      }
+      return Promise.resolve();
+    },
+    cwd: () => {
+      return workingDir;
+    }
+  })
+}
 
 const testRunCmd = (name: string, script: string) => {
   unitTest(name, async () => {
@@ -54,3 +87,25 @@ testRunCmd("run-py-script", pyScript);
 const rScript = join(workingDir, "test.R");
 Deno.writeTextFileSync(rScript, "print('Hello, world!')");
 testRunCmd("run-r-script", rScript);
+
+// check stream outputs
+
+// in R
+const rScript2 = join(workingDir, "test2.R");
+Deno.writeTextFileSync(rScript2, "cat('write stdout', file = stdout()); cat('write stderr', file = stderr())");
+ensureStreams("run-r-script-stdout-stderr", rScript2, "write stdout", "write stderr");
+
+// in Python
+const pyScript2 = join(workingDir, "test2.py");
+Deno.writeTextFileSync(pyScript2, "import sys; print('write stdout'); print('write stderr', file = sys.stderr)");
+ensureStreams("run-py-script-stdout-stderr", pyScript2, "write stdout\n", "write stderr\n");
+
+// in Deno TS
+const tsScript2 = join(workingDir, "test2.ts");
+Deno.writeTextFileSync(tsScript2, "console.log('write stdout'); console.error('write stderr')");
+ensureStreams("run-ts-script-stdout-stderr", tsScript2, "write stdout\n", "write stderr\n");
+
+// in Lua
+const luaScript2 = join(workingDir, "test2.lua");
+Deno.writeTextFileSync(luaScript2, "print('write stdout'); io.stderr:write('write stderr')");
+ensureStreams("run-lua-script-stdout-stderr", luaScript2, "write stdout\n\n", "write stderr"); // don't know why there is an extra newline

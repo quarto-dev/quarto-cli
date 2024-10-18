@@ -1,9 +1,8 @@
 /*
-* r.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * r.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { extname } from "../../deno_ral/path.ts";
 
@@ -21,13 +20,19 @@ export const rRunHandler: RunHandler = {
     stdin?: string,
     options?: RunHandlerOptions,
   ) => {
-    return await execProcess({
-      cmd: [
-        await rBinaryPath("Rscript"),
-        script,
-        ...args,
-      ],
-      ...options,
-    }, stdin);
+    return await execProcess(
+      {
+        cmd: [
+          await rBinaryPath("Rscript"),
+          script,
+          ...args,
+        ],
+        ...options,
+      },
+      stdin,
+      undefined,
+      undefined,
+      true,
+    );
   },
 };
