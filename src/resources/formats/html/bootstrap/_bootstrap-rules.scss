@@ -835,7 +835,7 @@ div.sourceCode {
   @if $code-block-bg {
     background-color: $code-block-bg-color;
     border: 1px solid $code-block-bg-color;
-    border-radius: $border-radius;
+    border-radius: var(--quarto-border-radius);
   } @else {
     background-color: $body-bg !important;
     border: none;
