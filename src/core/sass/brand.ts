@@ -222,6 +222,43 @@ const brandColorBundle = (
   return colorBundle;
 };
 
+const brandBootstrapBundle = (
+  brand: Brand,
+  key: string
+): SassBundleLayers | void => {
+  const brandBootstrap = (brand?.data?.defaults?.bootstrap as unknown as Record<
+    string,
+    Record<string, string | boolean | number | null>
+  >);
+
+  const bsVariables: string[] = [
+    "/* Bootstrap variables from _brand.yml */",
+    '// quarto-scss-analysis-annotation { "action": "push", "origin": "_brand.yml defaults.bootstrap" }',
+  ];
+  for (const bsVar of Object.keys(brandBootstrap)) {
+    if (bsVar === "version") {
+      continue;
+    }
+    bsVariables.push(
+      `$${bsVar}: ${brandBootstrap[bsVar]} !default;`,
+    );
+  }
+  // const colorEntries = Object.keys(brand.color);
+  bsVariables.push('// quarto-scss-analysis-annotation { "action": "pop" }');
+  const bsBundle: SassBundleLayers = {
+    key,
+    // dependency: "bootstrap",
+    quarto: {
+      defaults: bsVariables.join("\n"),
+      uses: "",
+      functions: "",
+      mixins: "",
+      rules: "",
+    },
+  };
+  return bsBundle;
+};
+
 const brandTypographyBundle = (
   brand: Brand,
   key: string,
@@ -446,7 +483,7 @@ const brandTypographyBundle = (
   return typographyBundle;
 };
 
-export async function brandBootstrapSassBundleLayers(
+export async function brandSassBundleLayers(
   fileName: string | undefined,
   project: ProjectContext,
   key: string,
@@ -466,12 +503,33 @@ export async function brandBootstrapSassBundleLayers(
   return sassBundles;
 }
 
+export async function brandBootstrapSassBundleLayers(
+  fileName: string | undefined,
+  project: ProjectContext,
+  key: string,
+  nameMap: Record<string, string> = {},
+): Promise<SassBundleLayers[]> {
+  const brand = await project.resolveBrand(fileName);
+  const sassBundles = await brandSassBundleLayers(fileName, project, key, nameMap);
+
+  if (brand?.data?.defaults?.bootstrap) {
+    const bsBundle = brandBootstrapBundle(brand, key);
+    if (bsBundle) {
+      // Add bsBundle to the beginning of the array so that defaults appear
+      // *after* the rest of the brand variables.
+      sassBundles.unshift(bsBundle);
+    }
+  }
+
+  return sassBundles;
+}
+
 export async function brandRevealSassBundleLayers(
   input: string | undefined,
   _format: Format,
   project: ProjectContext,
 ): Promise<SassBundleLayers[]> {
-  return brandBootstrapSassBundleLayers(
+  return brandSassBundleLayers(
     input,
     project,
     "reveal-theme",
