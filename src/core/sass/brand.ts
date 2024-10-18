@@ -240,7 +240,8 @@ const brandColorBundle = (
 const brandBootstrapBundle = (
   brand: Brand,
   key: string
-): SassBundleLayers | void => {
+): SassBundleLayers => {
+  // Bootstrap Variables from brand.defaults.bootstrap
   const brandBootstrap = (brand?.data?.defaults?.bootstrap as unknown as Record<
     string,
     Record<string, string | boolean | number | null>
@@ -258,13 +259,54 @@ const brandBootstrapBundle = (
       `$${bsVar}: ${brandBootstrap[bsVar]} !default;`,
     );
   }
-  // const colorEntries = Object.keys(brand.color);
   bsVariables.push('// quarto-scss-analysis-annotation { "action": "pop" }');
+
+  // Bootstrap Colors from color.palette
+  let bootstrapColorVariables: string[] = [];
+  if (Number(brandBootstrap?.version ?? 5) === 5) {
+    // https://getbootstrap.com/docs/5.3/customize/color/#color-sass-maps
+    bootstrapColorVariables = [
+      "blue",
+      "indigo",
+      "purple",
+      "pink",
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "teal",
+      "cyan",
+      "black",
+      "white",
+      "gray",
+      "gray-dark"
+    ]
+  }
+
+  const bsColors: string[] = [
+    "/* Bootstrap color variables from _brand.yml */",
+    '// quarto-scss-analysis-annotation { "action": "push", "origin": "_brand.yml color.palette" }',
+  ];
+
+  if (bootstrapColorVariables.length > 0) {
+    for (const colorKey of Object.keys(brand.data?.color?.palette ?? {})) {
+      if (!bootstrapColorVariables.includes(colorKey)) {
+        continue;
+      }
+
+      bsColors.push(
+        `$${colorKey}: ${brand.getColor(colorKey)} !default;`,
+      );
+    }
+  }
+
+  bsColors.push('// quarto-scss-analysis-annotation { "action": "pop" }');
+
   const bsBundle: SassBundleLayers = {
     key,
     // dependency: "bootstrap",
     quarto: {
-      defaults: bsVariables.join("\n"),
+      defaults: bsColors.join("\n") + "\n" + bsVariables.join("\n"),
       uses: "",
       functions: "",
       mixins: "",
