@@ -184,11 +184,24 @@ const brandColorBundle = (
     "/* color variables from _brand.yml */",
     '// quarto-scss-analysis-annotation { "action": "push", "origin": "_brand.yml color" }',
   ];
+  const colorCssVariables: string[] = [
+    "/* color CSS variables from _brand.yml */",
+    '// quarto-scss-analysis-annotation { "action": "push", "origin": "_brand.yml color" }',
+    ":root {",
+  ];
+
+  // Create `brand-` prefixed Sass and CSS variables from color.palette
   for (const colorKey of Object.keys(brand.data?.color?.palette ?? {})) {
+    const colorVar = colorKey.replace(/[^a-zA-Z0-9_-]+/, "-");
     colorVariables.push(
-      `$${colorKey}: ${brand.getColor(colorKey)} !default;`,
+      `$brand-${colorVar}: ${brand.getColor(colorKey)} !default;`,
     );
+    colorCssVariables.push(
+      `  --brand-${colorVar}: ${brand.getColor(colorKey)};`,
+    )
   }
+
+  // Map theme colors directly to Sass variables
   for (const colorKey of Object.keys(brand.data.color ?? {})) {
     if (colorKey === "palette") {
       continue;
@@ -197,6 +210,7 @@ const brandColorBundle = (
       `$${colorKey}: ${brand.getColor(colorKey)} !default;`,
     );
   }
+
   // format-specific name mapping
   for (const [key, value] of Object.entries(nameMap)) {
     const resolvedValue = brand.getColor(value);
@@ -208,6 +222,7 @@ const brandColorBundle = (
   }
   // const colorEntries = Object.keys(brand.color);
   colorVariables.push('// quarto-scss-analysis-annotation { "action": "pop" }');
+  colorCssVariables.push("}", '// quarto-scss-analysis-annotation { "action": "pop" }');
   const colorBundle: SassBundleLayers = {
     key,
     // dependency: "bootstrap",
@@ -216,7 +231,7 @@ const brandColorBundle = (
       uses: "",
       functions: "",
       mixins: "",
-      rules: "",
+      rules: colorCssVariables.join("\n"),
     },
   };
   return colorBundle;
