@@ -41,7 +41,126 @@ function is_regular_node(node, name)
   return node
 end
 
+local custom_walking_algorithms = {
+  ["quarto-lua-mutable"] = function(node, filter)
+    local function handle(node)
+      local lt = type(node)
+      if lt ~= "table" and lt ~= "userdata" then
+        return node
+      end
+      local pt = pandoc.utils.type(node)
+      local t = node.tag
+      local handler = filter[t] or filter[pt]
+      if handler == nil then
+        return nil
+      end
+      return handler(node)
+    end
+    local dispatch
+
+    local function walk(node)
+      local lt = type(node)
+      if lt ~= "table" and lt ~= "userdata" then
+        return node
+      end
+      local t = node.tag
+      local pt = pandoc.utils.type(node)
+      return (dispatch[t] or dispatch[pt])(node)
+    end
+
+    local function dispatch_meta(meta)
+      local result, recurse = handle(meta)
+      if result ~= nil then
+        meta = result
+      end
+      if recurse == false then
+        return meta
+      end
+      for k, v in pairs(meta) do
+        meta[k] = walk(v)
+      end
+      return meta
+    end
+
+    local function list_function_factory(list_constructor)
+      return function(lst)
+        local function slow_path(lst, i, result)
+          local new_result = list_constructor({})
+          -- bring us up to the point where we need to switch to the slow path
+          for j = 1, i - 1 do
+            new_result:insert(lst[j])
+          end
+          new_result:extend(result)
+          for j = i + 1, #lst do
+            local inner_result = walk(lst[j]) or lst[j]
+            if type(inner_result) == "table" then
+              new_result:extend(inner_result)
+            else
+              new_result:insert(inner_result)
+            end
+          end
+          return new_result
+        end
+        local result, recurse = handle(lst)
+        if result ~= nil then
+          lst = result
+        end
+        if recurse == false then
+          return lst
+        end
+        local i = 0
+        local n = #lst
+        -- tricky algorithm here. We want a fast path
+        -- where we don't have to create a new table
+        -- but we also want to avoid the overhead of
+        -- creating a new table if we don't need to.
+        while i < n do
+          i = i + 1
+          local inline = lst[i]
+          local inner_result = walk(inline) or inline
+          if type(inner_result) == "table" then
+            return slow_path(lst, i, inner_result)
+            -- here we have to switch to the slow path
+          end
+          lst[i] = inner_result
+        end
+        return lst
+      end
+    end
+
+    local function dispatch_node(node)
+      local result, recurse = handle(node)
+      if result ~= nil then
+        node = result
+      end
+      if recurse == false then
+        return node
+      end
+      if node.content then
+        node.content = walk(node.content)
+      end
+      return node
+    end
+    
+    dispatch = {
+      Meta = dispatch_meta,
+      table = dispatch_meta,
+      Inlines = list_function_factory(pandoc.Inlines),
+      List = list_function_factory(pandoc.List),
+      Blocks = list_function_factory(pandoc.Blocks),
+      Block = dispatch_node,
+      Inline = dispatch_node,
+      -- TODO handle missing nodes that have stuff other than content: Figure, Table, Image
+      -- TODO handle custom node dispatching on Span and Div
+    }
+    return walk(node)
+  end
+}
+
 function run_emulated_filter(doc, filter)
+  if custom_walking_algorithms[filter.traverse] then
+    return custom_walking_algorithms[filter.traverse](doc, filter)
+  end
   if doc == nil then
     return nil
   end

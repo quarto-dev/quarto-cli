@@ -71,7 +71,7 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass, profilin
       -- We don't seem to need coverage for profiling
       -- luacov: disable
       if profiling then
-        profiler.category = v.name
+        profiler.setcategory(v.name)
       end
       -- luacov: enable
 
@@ -141,7 +141,7 @@ local function emulate_pandoc_filter(filters, afterFilterPass)
         profiler = require('profiler')
       end
       pandoc.system.with_temporary_directory("temp", function(tmpdir)
-        profiler.start(tmpdir .. "/prof.txt")
+        profiler.start(tmpdir .. "/prof.txt", 1)
         doc = run_emulated_filter_chain(doc, filters, afterFilterPass, profiling)
         profiler.stop()
         -- os.execute("cp " .. tmpdir .. "/prof.txt /tmp/prof.out")
