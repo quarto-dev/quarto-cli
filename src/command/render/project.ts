@@ -477,15 +477,24 @@ export async function renderProject(
       // remove directories, we should instead make a function that
       // does that explicitly, rather than as a side effect of a missing
       // src Dir
-      if (existsSync(srcDir)) {
-        if (existsSync(targetDir)) {
-          Deno.removeSync(targetDir, { recursive: true });
-        }
-        ensureDirSync(dirname(targetDir));
-        if (copy) {
-          copyTo(srcDir, targetDir);
-        } else {
+      if (!existsSync(srcDir)) {
+        return;
+      }
+      if (existsSync(targetDir)) {
+        Deno.removeSync(targetDir, { recursive: true });
+      }
+      ensureDirSync(dirname(targetDir));
+      if (copy) {
+        copyTo(srcDir, targetDir);
+      } else {
+        try {
           Deno.renameSync(srcDir, targetDir);
+        } catch (_e) {
+          // if renaming failed, it could have happened
+          // because src and target are in different file systems.
+          // In that case, try to recursively copy from src
+          copyTo(srcDir, targetDir);
+          Deno.removeSync(srcDir, { recursive: true });
         }
       }
     };
