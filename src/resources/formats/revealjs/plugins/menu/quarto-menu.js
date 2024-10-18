@@ -41,6 +41,6 @@ window.RevealMenuToolHandlers = {
     PdfExport.togglePdfExport();
   }),
   toggleScrollView: revealMenuToolHandler(function() {
-    Reveal.getPlugin("quarto-support").toggleScrollView(Reveal)();
+    Reveal.getPlugin("quarto-support").toggleScrollView();
   })
 };
