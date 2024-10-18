@@ -21772,11 +21772,6 @@ try {
           "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
           "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
           "Names of customizeable logos",
-          "Source path or source path with layout options for logo",
-          "X-Y positioning of logo",
-          "Padding of logo",
-          "Width of logo",
-          "Source path of logo",
           "The brand\u2019s custom color palette and theme.",
           "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
           "The foreground color, used for text.",
@@ -24124,12 +24119,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 192336,
+          _internalId: 192600,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 192328,
+              _internalId: 192592,
               type: "enum",
               enum: [
                 "png",
@@ -24145,7 +24140,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 192335,
+              _internalId: 192599,
               type: "anyOf",
               anyOf: [
                 {
