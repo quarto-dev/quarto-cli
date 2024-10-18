@@ -122,7 +122,13 @@ function render_typst_fixups()
     Table = function(tbl)
       -- https://github.com/quarto-dev/quarto-cli/issues/10438
       tbl.classes:insert("typst:no-figure")
-      return tbl
+      
+      -- Create Div wrapper and return false to prevent processing its contents
+      return pandoc.Div({
+        pandoc.RawBlock("typst", "#["),
+        tbl,
+        pandoc.RawBlock("typst", "]")
+      }), false
     end,
     Para = function(para)
       if #para.content ~= 1 then
