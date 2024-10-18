@@ -374,7 +374,7 @@ local quarto_post_filters = {
   { name = "post-ojs", filter = ojs() },
 
   { name = "post-render-pandoc3-figure", filter = render_pandoc3_figure(),
-    flags = { "has_pandoc3_figure" } },
+    flags = { "has_pandoc3_figure" }, force_pandoc_walk = true },
 
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
@@ -425,6 +425,10 @@ local quarto_layout_filters = {
   { name = "layout-panels", filter = layout_panels() },
   { name = "post-fold-code-and-lift-codeblocks-from-floats", filter = fold_code_and_lift_codeblocks() },
 }
+quarto_layout_filters = pandoc.List.map(quarto_layout_filters, function (f)
+  f.force_pandoc_walk = true
+  return f
+end)
 
 local quarto_crossref_filters = {
 
@@ -435,7 +439,8 @@ local quarto_crossref_filters = {
     filter = crossref_preprocess_theorems(),
     flags = { "has_theorem_refs" } },
 
-  { name = "crossref-combineFilters", filter = combineFilters({
+  { name = "crossref-combineFilters", force_pandoc_walk = true,
+    filter = combineFilters({
     file_metadata(),
     qmd(),
     sections(),
