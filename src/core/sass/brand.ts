@@ -422,8 +422,12 @@ const brandTypographyBundle = (
       const source = variable[0];
       const target = variable[1];
       if (fontInformation[source]) {
+        let value = fontInformation[source];
+        if (["color", "background-color"].includes(source)) {
+          value = brand.getColor(value as string);
+        }
         typographyVariables.push(
-          `$${target}: ${fontInformation[source]} !default;`,
+          `$${target}: ${value} !default;`,
         );
       }
     }
