@@ -587,13 +587,11 @@ div.ansi-escaped-output {
   --quarto-text-muted: #{$text-muted};
   --quarto-border-color: #{$table-border-color};
   --quarto-border-width: #{$border-width};
-}
-
-@if not variable-exists(enable-rounded) or $enable-rounded == true {
-  :root {
+  @if not variable-exists(enable-rounded) or $enable-rounded == true {
     --quarto-border-radius: #{$border-radius};
   }
 }
+
 
 /* rules to support GT table styling */
 table.gt_table {
