@@ -101,7 +101,7 @@ local function encode_table(val, stack)
     return "[" .. table.concat(res, ",") .. "]"
   elseif types["string"] then
     -- Treat as object
-    for k, v in pairs(val) do
+    for k, v in _quarto.utils.table.sortedPairs(val) do
       table.insert(res, encode_string(k) .. ":" .. encode(v, stack))
     end
     stack[val] = nil
