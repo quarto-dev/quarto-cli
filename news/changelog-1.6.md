@@ -19,7 +19,7 @@ All changes included in 1.6:
 - ([#10858](https://github.com/quarto-dev/quarto-cli/issues/10858)): Don't crash in `gfm` when `content` of a `FloatRefTarget` is of type `Blocks`.
 - ([#10894](https://github.com/quarto-dev/quarto-cli/issues/10894)): Fix configuration of title and prefix in callouts for `html`, `revealjs`, `pdf`, and `typst`.
 - ([#10999](https://github.com/quarto-dev/quarto-cli/issues/10999)): New API entry point: `quarto.paths.rscript()` to resolve `Rscript` path in Lua filters and extensions consistently with Quarto itself.
-- ([#11124](https://github.com/quarto-dev/quarto-cli/pull/11124)): Sort keys when encoding tables as JSON
+- ([#11124](https://github.com/quarto-dev/quarto-cli/pull/11124)): Sort keys when encoding tables as JSON objects to ensure deterministic output.
 
 ## `dashboard` Format
 
@@ -30,7 +30,6 @@ All changes included in 1.6:
 - Fix `kbd` element styling on dark themes.
 - ([#10761](https://github.com/quarto-dev/quarto-cli/issues/10761)): Add support for `licence: CC0` to automatically link to Creative Commons licence [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
 - ([#10817](https://github.com/quarto-dev/quarto-cli/issues/10817)): Ensure that user provided SCSS has precedent over quarto generated scss also for dark theme.
-- ([#11124](https://github.com/quarto-dev/quarto-cli/pull/11124)): Use stable order of GLightbox options
 
 ## `revealjs` Format
 
