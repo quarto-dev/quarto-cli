@@ -4,8 +4,7 @@
 -- Copyright (c) 2020 rxi
 -- https://github.com/rxi/json.lua
 --
--- 2023-02-08: Modified by RStudio, PBC to make encoding more robust under the
--- following example: encode(decode("[null, 'test']"))
+-- includes unreleased upstream changes: https://github.com/rxi/json.lua/blob/dbf4b2dd2eb7c23be2773c89eb059dadd6436f94/json.lua
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy of
 -- this software and associated documentation files (the "Software"), to deal in
@@ -26,7 +25,7 @@
 -- SOFTWARE.
 --
 
-local json = { _version = "0.1.2" }
+local json = { _version = "0.1.2-quarto" }
 
 -------------------------------------------------------------------------------
 -- Encode
@@ -59,9 +58,6 @@ local function encode_nil(val)
   return "null"
 end
 
-local function encode_string(val)
-  return '"' .. val:gsub('[%z\1-\31\\"]', escape_char) .. '"'
-end
 
 local function encode_table(val, stack)
   local res = {}
@@ -72,44 +68,43 @@ local function encode_table(val, stack)
 
   stack[val] = true
 
-  local n = 0
-  local types = {}
-
-  for k in pairs(val) do
-    types[type(k)] = true
-  end
-
-  if #types > 1 then
-    error("invalid table: mixed or invalid key types")
-  elseif types["number"] then
-    -- Treat as array
-    local max_key = 0
+  if rawget(val, 1) ~= nil or next(val) == nil then
+    -- Treat as array -- check keys are valid and it is not sparse
+    local n = 0
     for k in pairs(val) do
-      if k > max_key then
-        max_key = k
+      if type(k) ~= "number" then
+        error("invalid table: mixed or invalid key types")
       end
+      n = n + 1
     end
-    for i = 1, max_key do
-      if val[i] == nil then
-        table.insert(res, "null")
-      else
-        local v = encode(val[i], stack)
-        table.insert(res, v)
-      end
+    if n ~= #val then
+      error("invalid table: sparse array")
+    end
+    -- Encode
+    for i, v in ipairs(val) do
+      table.insert(res, encode(v, stack))
     end
     stack[val] = nil
     return "[" .. table.concat(res, ",") .. "]"
-  elseif types["string"] then
-    -- Treat as object
-    for k, v in _quarto.utils.table.sortedPairs(val) do
-      table.insert(res, encode_string(k) .. ":" .. encode(v, stack))
+
+  else
+    -- Treat as an object
+    for k, v in pairs(val) do
+      if type(k) ~= "string" then
+        error("invalid table: mixed or invalid key types")
+      end
+      table.insert(res, encode(k, stack) .. ":" .. encode(v, stack))
     end
     stack[val] = nil
     return "{" .. table.concat(res, ",") .. "}"
-  else
-    return "[]"
   end
 end
+
+
+local function encode_string(val)
+  return '"' .. val:gsub('[%z\1-\31\\"]', escape_char) .. '"'
+end
+
 
 local function encode_number(val)
   -- Check for NaN, -inf and inf
@@ -139,7 +134,7 @@ encode = function(val, stack)
 end
 
 
-local function jsonEncode(val)
+function json.encode(val)
   return ( encode(val) )
 end
 
@@ -205,7 +200,7 @@ local function codepoint_to_utf8(n)
     return string.char(f(n / 4096) + 224, f(n % 4096 / 64) + 128, n % 64 + 128)
   elseif n <= 0x10ffff then
     return string.char(f(n / 262144) + 240, f(n % 262144 / 4096) + 128,
-                       f(n % 4096 / 64) + 128, n % 64 + 128)
+            f(n % 4096 / 64) + 128, n % 64 + 128)
   end
   error( string.format("invalid unicode codepoint '%x'", n) )
 end
@@ -214,7 +209,7 @@ end
 local function parse_unicode_escape(s)
   local n1 = tonumber( s:sub(1, 4),  16 )
   local n2 = tonumber( s:sub(7, 10), 16 )
-   -- Surrogate pair?
+  -- Surrogate pair?
   if n2 then
     return codepoint_to_utf8((n1 - 0xd800) * 0x400 + (n2 - 0xdc00) + 0x10000)
   else
@@ -240,8 +235,8 @@ local function parse_string(str, i)
       local c = str:sub(j, j)
       if c == "u" then
         local hex = str:match("^[dD][89aAbB]%x%x\\u%x%x%x%x", j + 1)
-                 or str:match("^%x%x%x%x", j + 1)
-                 or decode_error(str, j - 1, "invalid unicode escape in string")
+                or str:match("^%x%x%x%x", j + 1)
+                or decode_error(str, j - 1, "invalid unicode escape in string")
         res = res .. parse_unicode_escape(hex)
         j = j + #hex
       else
@@ -380,7 +375,7 @@ parse = function(str, idx)
 end
 
 
-local function jsonDecode(str)
+function json.decode(str)
   if type(str) ~= "string" then
     error("expected argument of type string, got " .. type(str))
   end
@@ -393,7 +388,4 @@ local function jsonDecode(str)
 end
 
 
-return {
-  encode = jsonEncode,
-  decode = jsonDecode
-}
+return json
