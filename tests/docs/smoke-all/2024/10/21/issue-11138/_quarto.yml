@@ -1,0 +1,20 @@
+project:
+  type: website
+
+website:
+  title: "This is the website title"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+mymeta:
+  key1: value1
+  key2: value2
