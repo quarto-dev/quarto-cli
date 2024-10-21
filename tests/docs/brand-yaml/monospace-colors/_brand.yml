@@ -1,0 +1,9 @@
+color:
+  ## ERROR: Expecting punctuation: "}" if no palette
+  palette:
+    orangeblue: "#ccc"
+  background: "#e6f8ff"
+typography:
+  monospace:
+    color: "#eee"
+    background-color: "#0a3c07"

@@ -14,11 +14,19 @@ format:
 
 ## heading-2 is gothic a1 italic 700
 
-Paragraph is blue eb garamond normal 400 with line-height 0.9; currently we get a sass compilation error if we set base.size to an absolute length unit.
+Paragraph is 12pt blue eb garamond normal 400 with line-height 0.9.
 
-Here's a monospace inline in space mono normal 700 20px:  `fib(90) // in red on white` \
-and here's a monospace block in space mono normal 400 8pt with line-height 2:
+Here's a monospace inline in 20px space mono normal 700, red on white:  `fib(90)` \
+and here's a monospace block in 8pt space mono normal 400, white on dark green, with line-height 2:
 
+:::{.sourceCode}
+```
+const fib = num => num < 2 ? num : fib(num-1) + fib(num - 2);
+console.log(fib(12));
+```
+:::
+
+Syntax highlighting makes colors more complicated:
 ```javascript
 const fib = num => num < 2 ? num : fib(num-1) + fib(num - 2);
 console.log(fib(12))
