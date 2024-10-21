@@ -8,14 +8,14 @@ import * as ld from "./lodash.ts";
 
 export function mergeConfigs<T>(config: T, ...configs: Array<unknown>): T {
   // copy all configs so we don't mutate them
-  config = ld.cloneDeep(config);
-  configs = ld.cloneDeep(configs);
+  config = ld.cloneDeep({ foo: config });
+  configs = ld.cloneDeep(configs.map((x) => ({ foo: x })));
 
   return ld.mergeWith(
     config,
     ...configs,
     mergeArrayCustomizer,
-  );
+  ).foo;
 }
 
 export function mergeArrayCustomizer(objValue: unknown, srcValue: unknown) {
