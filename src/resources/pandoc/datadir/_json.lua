@@ -6,6 +6,7 @@
 --
 -- includes unreleased upstream changes: https://github.com/rxi/json.lua/blob/dbf4b2dd2eb7c23be2773c89eb059dadd6436f94/json.lua
 -- includes unmerged upstream pull request: https://github.com/rxi/json.lua/pull/51
+-- includes unmerged upstream pull request: https://github.com/rxi/json.lua/pull/52
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy of
 -- this software and associated documentation files (the "Software"), to deal in
@@ -74,6 +75,9 @@ local function encode_nil(val)
   return "null"
 end
 
+local function encode_string(val)
+  return '"' .. val:gsub('[%z\1-\31\\"]', escape_char) .. '"'
+end
 
 local function encode_table(val, stack)
   local res = {}
@@ -84,43 +88,47 @@ local function encode_table(val, stack)
 
   stack[val] = true
 
-  if rawget(val, 1) ~= nil or next(val) == nil then
-    -- Treat as array -- check keys are valid and it is not sparse
-    local n = 0
+  if next(val) == nil then
+    return '[]'
+  end
+
+  local types = {}
+
+  for k in pairs(val) do
+    types[type(k)] = true
+  end
+
+  if #types > 1 then
+    error("invalid table: mixed or invalid key types")
+  elseif types["number"] then
+    -- Treat as array
+    local max_key = 0
     for k in pairs(val) do
-      if type(k) ~= "number" then
-        error("invalid table: mixed or invalid key types")
+      if k > max_key then
+        max_key = k
       end
-      n = n + 1
     end
-    if n ~= #val then
-      error("invalid table: sparse array")
-    end
-    -- Encode
-    for i, v in ipairs(val) do
-      table.insert(res, encode(v, stack))
+    for i = 1, max_key do
+      if val[i] == nil then
+        table.insert(res, "null")
+      else
+        local v = encode(val[i], stack)
+        table.insert(res, v)
+      end
     end
     stack[val] = nil
     return "[" .. table.concat(res, ",") .. "]"
-
-  else
-    -- Treat as an object
+  elseif types["string"] then
+    -- Treat as object
     for k, v in pairsByKeys(val) do
-      if type(k) ~= "string" then
-        error("invalid table: mixed or invalid key types")
-      end
-      table.insert(res, encode(k, stack) .. ":" .. encode(v, stack))
+      table.insert(res, encode_string(k) .. ":" .. encode(v, stack))
     end
     stack[val] = nil
     return "{" .. table.concat(res, ",") .. "}"
+  else
+    error( string.format("invalid table: unsupported key type %s", types[1]) )
   end
 end
-
-
-local function encode_string(val)
-  return '"' .. val:gsub('[%z\1-\31\\"]', escape_char) .. '"'
-end
-
 
 local function encode_number(val)
   -- Check for NaN, -inf and inf
