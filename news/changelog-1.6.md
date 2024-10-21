@@ -19,7 +19,7 @@ All changes included in 1.6:
 - ([#10858](https://github.com/quarto-dev/quarto-cli/issues/10858)): Don't crash in `gfm` when `content` of a `FloatRefTarget` is of type `Blocks`.
 - ([#10894](https://github.com/quarto-dev/quarto-cli/issues/10894)): Fix configuration of title and prefix in callouts for `html`, `revealjs`, `pdf`, and `typst`.
 - ([#10999](https://github.com/quarto-dev/quarto-cli/issues/10999)): New API entry point: `quarto.paths.rscript()` to resolve `Rscript` path in Lua filters and extensions consistently with Quarto itself.
-- ([#11124](https://github.com/quarto-dev/quarto-cli/pull/11124)): Sort keys when encoding tables as JSON objects to ensure deterministic output.
+- ([#11124](https://github.com/quarto-dev/quarto-cli/pull/11124)): Sort keys when encoding tables as JSON objects to ensure deterministic output (author: @winniehell).
 
 ## `dashboard` Format
 
