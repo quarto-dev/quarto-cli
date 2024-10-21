@@ -201,6 +201,7 @@ import {
   MarkdownPipelineHandler,
 } from "../../core/markdown-pipeline.ts";
 import { getEnv } from "../../../package/src/util/utils.ts";
+import { is } from "https://cdn.skypack.dev/-/css-select@v5.1.0-lzo7kuDagEAqaWVyUzkG/dist=es2019,mode=imports/optimized/css-select.js";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -993,25 +994,29 @@ export async function runPandoc(
   const pandocMetadata = ld.cloneDeep(options.format.metadata || {});
   for (const key of Object.keys(engineMetadata)) {
     const isChapterTitle = key === kTitle && projectIsBook(options.project);
-
-    if (!isQuartoMetadata(key) && !isChapterTitle && !isIncludeMetadata(key)) {
-      // if it's standard pandoc metadata and NOT contained in a format specific
-      // override then use the engine metadata value
-
-      // don't do if they've overridden the value in a format
-      const formats = engineMetadata[kMetadataFormat] as Metadata;
-      if (ld.isObject(formats) && metadataGetDeep(formats, key).length > 0) {
-        continue;
-      }
-
-      // don't process some format specific metadata that may have been processed already
-      // - theme is handled specifically already for revealjs with a metadata override and should not be overridden by user input
-      if (key === kTheme && isRevealjsOutput(options.format.pandoc)) {
-        continue;
-      }
-      // perform the override
-      pandocMetadata[key] = engineMetadata[key];
+    // if it's standard pandoc metadata and NOT contained in a format specific
+    // override then use the engine metadata value
+    if (isQuartoMetadata(key) || isChapterTitle || isIncludeMetadata(key)) {
+      continue;
     }
+
+    // don't do if they've overridden the value in a format
+    const formats = engineMetadata[kMetadataFormat] as Metadata;
+    if (ld.isObject(formats) && metadataGetDeep(formats, key).length > 0) {
+      continue;
+    }
+
+    // don't process some format specific metadata that may have been processed already
+    // - theme is handled specifically already for revealjs with a metadata override and should not be overridden by user input
+    if (key === kTheme && isRevealjsOutput(options.format.pandoc)) {
+      continue;
+    }
+
+    // perform the override
+    pandocMetadata[key] = mergeConfigs(
+      pandocMetadata[key],
+      engineMetadata[key],
+    );
   }
 
   // Resolve any date fields
