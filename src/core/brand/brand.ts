@@ -51,7 +51,12 @@ type CanonicalLogoInfo = {
 type ProcessedBrandData = {
   color: Record<string, string>;
   typography: BrandTypography;
-  logo: Record<string, CanonicalLogoInfo>;
+  logo: {
+    small?: CanonicalLogoInfo;
+    medium?: CanonicalLogoInfo;
+    large?: CanonicalLogoInfo;
+    images: Record<string, BrandLogoExplicitResource>;
+  };
 };
 
 export class Brand {
@@ -139,7 +144,7 @@ export class Brand {
       };
     }
 
-    const logo: Record<string, CanonicalLogoInfo> = {};
+    const logo: ProcessedBrandData["logo"] = { images: {} };
     for (
       const size of [
         "small",
@@ -150,6 +155,13 @@ export class Brand {
       const v = this.getLogo(size);
       if (v) {
         logo[size] = v;
+      }
+      for (const [key, value] of Object.entries(data.logo?.images ?? {})) {
+        if (typeof value === "string") {
+          logo.images[key] = { path: value };
+        } else {
+          logo.images[key] = value;
+        }
       }
     }
 

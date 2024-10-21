@@ -56,7 +56,7 @@ local function get_logo(name)
   local brand = param("brand")
   brand = brand and brand.processedData -- from src/core/brand/brand.ts
   if not brand then return nil end
-  return brand.logo and brand.logo[name]
+  return brand.logo and (brand.logo[name] or brand.logo.images[name])
 end
 
 return {

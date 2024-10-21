@@ -379,8 +379,9 @@ export function revealjsFormat() {
 const determineRevealLogo = (format: Format): string | undefined => {
   const brandData = format.render.brand?.processedData;
   if (brandData?.logo) {
+    const keys: ("medium" | "small" | "large")[] = ["medium", "small", "large"]
     // add slide logo if we have one
-    for (const size of ["medium", "small", "large"]) {
+    for (const size of keys) {
       const logoInfo = brandData.logo[size];
       if (!logoInfo) {
         continue;
