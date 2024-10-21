@@ -34,6 +34,7 @@ function isPortSafe(port: number): boolean {
     6669, // Alternate IRC [Apple addition]
     6679, // osaut
     6697, // IRC + TLS
+    7000, // As of 2024-10-21, Chrome doesn't appear to like this port anymore
   ].includes(port);
 }
 
