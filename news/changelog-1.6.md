@@ -117,3 +117,4 @@ All changes included in 1.6:
 - ([#10890](https://github.com/quarto-dev/quarto-cli/issues/10890)): Don't use ports that Firefox considers unsafe.
 - ([#10936](https://github.com/quarto-dev/quarto-cli/issues/10936)): Use `\\` in `meta` shortcode to escape the following character, allowing keys with `.` in them.
 - ([#11068](https://github.com/quarto-dev/quarto-cli/issues/11068)): use standard location when writing to standard output to avoid breakage under `self-contained: true`.
+- ([#11155](https://github.com/quarto-dev/quarto-cli/pull/11155)): Add cache location information to `quarto check`.
