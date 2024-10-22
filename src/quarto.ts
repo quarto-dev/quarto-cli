@@ -68,10 +68,16 @@ export async function quarto(
 
   // passthrough to pandoc
   if (args[0] === "pandoc" && args[1] !== "help") {
-    const result = await execProcess({
-      cmd: [pandocBinaryPath(), ...args.slice(1)],
-      env,
-    });
+    const result = await execProcess(
+      {
+        cmd: [pandocBinaryPath(), ...args.slice(1)],
+        env,
+      },
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
     Deno.exit(result.code);
   }
 
