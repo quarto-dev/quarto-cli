@@ -92,7 +92,6 @@ All changes included in 1.6:
 - Upgrade `mermaidjs` to 11.2.0.
 - Upgrade Pandoc to 3.4.
 - Upgrade `deno` to 1.46.3.
-- ([#11068](https://github.com/quarto-dev/quarto-cli/issues/11068)): use standard location when writing to standard output to avoid breakage under `self-contained: true`.
 - ([#10162](https://github.com/quarto-dev/quarto-cli/issues/10162)): Use Edge on `macOS` as a Chromium browser when available.
 - ([#10235](https://github.com/quarto-dev/quarto-cli/issues/10235)): Configure the CI schedule trigger to activate exclusively for the upstream repository.
 - ([#10295](https://github.com/quarto-dev/quarto-cli/issues/10235)): Fix regression to return error status to shell when `CommandError` is thrown.
@@ -103,6 +102,8 @@ All changes included in 1.6:
 - ([#10581](https://github.com/quarto-dev/quarto-cli/issues/10581)): Add `.landscape` div processing to `typst`, `docx` and `pdf` formats to support pages in landscape orientation.
 - ([#10591](https://github.com/quarto-dev/quarto-cli/issues/10591)): Make fenced div syntax slightly more robust by removing spaces around the `=` sign ahead of Pandoc's reader.
 - ([#10608](https://github.com/quarto-dev/quarto-cli/issues/10608)): Don't overwrite the built-in CSS function `contrast` in Quarto's SCSS.
+- ([#10622](https://github.com/quarto-dev/quarto-cli/issues/10622)): Use copy+remove instead of move when needed to support temporary directories in different filesystems.
 - ([#10821](https://github.com/quarto-dev/quarto-cli/issues/10821)): Be more conservative in stripping `echo: fenced` from fenced output.
 - ([#10890](https://github.com/quarto-dev/quarto-cli/issues/10890)): Don't use ports that Firefox considers unsafe.
 - ([#10936](https://github.com/quarto-dev/quarto-cli/issues/10936)): Use `\\` in `meta` shortcode to escape the following character, allowing keys with `.` in them.
+- ([#11068](https://github.com/quarto-dev/quarto-cli/issues/11068)): use standard location when writing to standard output to avoid breakage under `self-contained: true`.
