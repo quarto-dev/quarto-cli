@@ -4,6 +4,10 @@ All changes included in 1.6:
 
 - The syntax for standard library imports in `quarto run` TypeScript files (`*.ts`) changed. Please see https://prerelease.quarto.org/docs/projects/scripts.html#deno-scripts for how to make the necessary changes.
 
+## Shortcodes
+
+- ([#10292](https://github.com/quarto-dev/quarto-cli/issues/10292)): Improve shortcode passthrough when handlers are not available.
+
 ## `quarto inspect`
 
 - ([#10039](https://github.com/quarto-dev/quarto-cli/issues/10039)): `quarto inspect` properly handles `!expr` tag in metadata.
