@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
+import { ensureDirSync, existsSync, safeMoveSync } from "../../deno_ral/fs.ts";
 import { dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
 import { info, warning } from "../../deno_ral/log.ts";
 import { mergeProjectMetadata } from "../../config/metadata.ts";
@@ -530,7 +530,7 @@ export async function renderProject(
       if (!renderedFile.isTransient) {
         const outputFile = join(formatOutputDir, renderedFile.file);
         ensureDirSync(dirname(outputFile));
-        Deno.renameSync(join(projDir, renderedFile.file), outputFile);
+        safeMoveSync(join(projDir, renderedFile.file), outputFile);
       }
 
       // files dir

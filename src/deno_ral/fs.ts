@@ -6,6 +6,8 @@
 
 import { fromFileUrl } from "./path.ts";
 import { resolve, SEP as SEPARATOR } from "./path.ts";
+import { copySync } from "fs/copy";
+import { existsSync } from "fs/exists";
 
 export { ensureDir, ensureDirSync } from "fs/ensure-dir";
 export { existsSync } from "fs/exists";
@@ -73,4 +75,32 @@ export function toPathString(
   pathUrl: string | URL,
 ): string {
   return pathUrl instanceof URL ? fromFileUrl(pathUrl) : pathUrl;
+}
+
+export function safeMoveSync(
+  src: string,
+  dest: string,
+): void {
+  try {
+    Deno.renameSync(src, dest);
+  } catch (err) {
+    if (err.code !== "EXDEV") {
+      throw err;
+    }
+    copySync(src, dest, { overwrite: true });
+    safeRemoveSync(src, { recursive: true });
+  }
+}
+
+export function safeRemoveSync(
+  file: string,
+  options: Deno.RemoveOptions = {},
+) {
+  try {
+    Deno.removeSync(file, options);
+  } catch (e) {
+    if (existsSync(file)) {
+      throw e;
+    }
+  }
 }
