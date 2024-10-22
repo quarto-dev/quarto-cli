@@ -226,7 +226,23 @@ function shortcodes_filter()
       }
       local handler = handlerForShortcode(shortcode_struct)
       if handler == nil then
-        return open .. space .. name .. " " .. table.concat(raw_args, " ") .. " " .. close
+        local strs = {}
+        table.insert(strs, open)
+        table.insert(strs, space)
+        table.insert(strs, name)
+        for _, v in ipairs(lst) do
+          if type(v) == "string" then
+            table.insert(strs, v)
+          else
+            if v.name then
+              table.insert(strs, v.name .. "=" .. v.value)
+            else
+              table.insert(strs, v.value)
+            end
+          end
+        end
+        table.insert(strs, close)
+        return table.concat(strs, "")
       end
       local result = callShortcodeHandler(handler, shortcode_struct, "text")
       return pandoc.utils.stringify(result) 
