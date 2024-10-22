@@ -379,7 +379,7 @@ export function revealjsFormat() {
 const determineRevealLogo = (format: Format): string | undefined => {
   const brandData = format.render.brand?.processedData;
   if (brandData?.logo) {
-    const keys: ("medium" | "small" | "large")[] = ["medium", "small", "large"]
+    const keys: ("medium" | "small" | "large")[] = ["medium", "small", "large"];
     // add slide logo if we have one
     for (const size of keys) {
       const logoInfo = brandData.logo[size];
@@ -582,12 +582,12 @@ const handleInvisibleSlides = (doc: Document) => {
 const handleUntitledSlidesInToc = (doc: Document) => {
   // remove from toc all slides that have no title
   const tocEntries = Array.from(doc.querySelectorAll(
-    'nav[role="doc-toc"] a[href^="#/"]',
+    'nav[role="doc-toc"] ul > li',
   ));
   for (const tocEntry of tocEntries) {
     const tocEntryEl = tocEntry as Element;
     if (tocEntryEl.textContent.trim() === "") {
-      tocEntryEl.parentElement?.remove();
+      tocEntryEl.remove();
     }
   }
 };
