@@ -371,7 +371,6 @@ export async function compileWithCache(
       console.warn(
         "This is likely a Quarto bug.\nPlease consider reporting it at https://github.com/quarto-dev/quarto-cli,\nalong with the _quarto_internal_scss_error.scss file that can be found in the current working directory.",
       );
-      throw e;
     }
     return input;
   };
