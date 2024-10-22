@@ -14,6 +14,16 @@ export const makeParserModule = (
       // it also doesn't like some valid ways to do '@import url'
       contents = contents.replaceAll("@import url", "//@import url");
 
+      // https://github.com/quarto-dev/quarto-cli/issues/11121
+      // It also doesn't like empty rules
+
+      // that long character class rule matches everything in \s except for \n
+      // using the explanation from regex101.com as a reference
+      contents = contents.replaceAll(
+        /^[\t\f\v \u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]*([^\n{]+)([{])\s*([}])$/mg,
+        "$1$2 /* empty rule */ $3",
+      );
+
       // it also really doesn't like statements that don't end in a semicolon
       // so, in case you are reading this code to understand why the parser is failing,
       // ensure that your SCSS has semicolons at the end of every statement.
