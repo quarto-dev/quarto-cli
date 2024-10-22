@@ -45,6 +45,7 @@ All changes included in 1.6:
 - ([#6012](https://github.com/quarto-dev/quarto-cli/issues/6012)): Add styling for `kbd` element in Revealjs slides.
 - ([#10887](https://github.com/quarto-dev/quarto-cli/issues/10887)): Updating default Mathjax used from 2.7.0 to 2.7.9.
 - ([#9999](https://github.com/quarto-dev/quarto-cli/issues/9999)): Fix spacing problems of different size elements in columns.
+- ([#11146](https://github.com/quarto-dev/quarto-cli/issues/11146)): Fix issue with slide created with `---` and having no title showing up in TOC. Now they don't show up as slide created with empty header e.g. `## `.
 
 ## `typst` Format
 
