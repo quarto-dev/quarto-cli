@@ -18,7 +18,9 @@ import {
 
 import { warning } from "../deno_ral/log.ts";
 
-import { existsSync, expandGlobSync } from "../deno_ral/fs.ts";
+export { safeRemoveSync } from "../deno_ral/fs.ts";
+
+import { existsSync, expandGlobSync, safeRemoveSync } from "../deno_ral/fs.ts";
 
 import * as ld from "./lodash.ts";
 
@@ -38,19 +40,6 @@ export function safeRemoveIfExists(file: string) {
     removeIfExists(file);
   } catch (error) {
     warning(`Error removing file ${file}: ${error.message}`);
-  }
-}
-
-export function safeRemoveSync(
-  file: string,
-  options: Deno.RemoveOptions = {},
-) {
-  try {
-    Deno.removeSync(file, options);
-  } catch (e) {
-    if (existsSync(file)) {
-      throw e;
-    }
   }
 }
 
