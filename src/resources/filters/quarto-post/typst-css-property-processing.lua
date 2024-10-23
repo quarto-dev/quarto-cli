@@ -315,8 +315,8 @@ function render_typst_css_property_processing()
       aggregate_warnings()
       _warnings = nil
       if not has_typst_text then return tab end
-      -- Create Div wrapper and return false to prevent processing its contents
-      return pandoc.Div({
+      -- wrap in typst content block and return false to prevent processing its contents
+      return pandoc.Blocks({
         pandoc.RawBlock("typst", "#["),
         tab,
         pandoc.RawBlock("typst", "]")
