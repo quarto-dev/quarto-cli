@@ -155,6 +155,9 @@ local kBackgroundColorWarning = "fcefdc"
 local kBackgroundColorTip = "ccf1e3"
 local kBackgroundColorCaution = "ffe5d0"
 
+-- Pandoc classes for incremental flag
+local kIncremental = "incremental"
+local kNonIncremental = "nonincremental"
 
 return {
   kCitation = kCitation,
@@ -245,4 +248,7 @@ return {
   kBackgroundColorWarning = kBackgroundColorWarning,
   kBackgroundColorTip = kBackgroundColorTip,
   kBackgroundColorCaution = kBackgroundColorCaution,
+
+  kIncremental = kIncremental,
+  kNonIncremental = kNonIncremental
 }
