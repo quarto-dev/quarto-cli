@@ -39,6 +39,8 @@ local kDataCodeCellLines = 'data-code-lines'
 local kDataCodeCellAnnotation = 'data-code-annotation'
 local kDataCodeAnnonationClz = 'code-annotation-code'
 local kCodeAnnotationStyleNone = "none"
+local kCodeAnnotationStyleHover = "hover"
+local kCodeAnnotationStyleSelect = "select"
 local kCodeLine = "code-line"
 local kCodeLines = "code-lines"
 local kCellAnnotationClass = "cell-annotation"
@@ -197,6 +199,8 @@ return {
   kDataCodeCellAnnotation = kDataCodeCellAnnotation,
   kDataCodeAnnonationClz = kDataCodeAnnonationClz,
   kCodeAnnotationStyleNone = kCodeAnnotationStyleNone,
+  kCodeAnnotationStyleHover = kCodeAnnotationStyleHover,
+  kCodeAnnotationStyleSelect = kCodeAnnotationStyleSelect,
   kCodeLine = kCodeLine,
   kCodeLines = kCodeLines,
   kCellAnnotationClass = kCellAnnotationClass,

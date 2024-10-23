@@ -8,8 +8,8 @@ _quarto:
   tests:
     revealjs:
       ensureHtmlElements:
+        - ['dt.fragment', 'dd.fragment']
         - []
-        - ['.fragment']
       ensureFileRegexMatches:
         - [] 
         - []
