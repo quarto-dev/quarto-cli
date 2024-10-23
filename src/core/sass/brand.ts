@@ -262,24 +262,21 @@ const brandBootstrapBundle = (
   bsVariables.push('// quarto-scss-analysis-annotation { "action": "pop" }');
 
   // Bootstrap Colors from color.palette
-  let bootstrapColorVariables: string[] = [];
-  if (Number(brandBootstrap?.version ?? 5) === 5) {
-    // https://getbootstrap.com/docs/5.3/customize/color/#color-sass-maps
-    bootstrapColorVariables = [
-      "black",
-      "white",
-      "blue",
-      "indigo",
-      "purple",
-      "pink",
-      "red",
-      "orange",
-      "yellow",
-      "green",
-      "teal",
-      "cyan",
-    ]
-  }
+  // https://getbootstrap.com/docs/5.3/customize/color/#color-sass-maps
+  const bootstrapColorVariables = [
+    "black",
+    "white",
+    "blue",
+    "indigo",
+    "purple",
+    "pink",
+    "red",
+    "orange",
+    "yellow",
+    "green",
+    "teal",
+    "cyan",
+  ]
 
   const bsColors: string[] = [
     "/* Bootstrap color variables from _brand.yml */",
