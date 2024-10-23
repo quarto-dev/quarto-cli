@@ -96,6 +96,7 @@ All changes included in 1.6:
 ### `julia`
 
 - ([#10225](https://github.com/quarto-dev/quarto-cli/issues/10225)): Handle API change in `is_manifest_current` in Julia 1.11.
+- ([#11013](https://github.com/quarto-dev/quarto-cli/issues/11013)): Fix QuartoNotebookRunner.jl precompilation failure on Julia 1.11.
 
 ### `jupyter`
 
