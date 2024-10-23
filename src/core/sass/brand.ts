@@ -266,6 +266,8 @@ const brandBootstrapBundle = (
   if (Number(brandBootstrap?.version ?? 5) === 5) {
     // https://getbootstrap.com/docs/5.3/customize/color/#color-sass-maps
     bootstrapColorVariables = [
+      "black",
+      "white",
       "blue",
       "indigo",
       "purple",
@@ -276,10 +278,6 @@ const brandBootstrapBundle = (
       "green",
       "teal",
       "cyan",
-      "black",
-      "white",
-      "gray",
-      "gray-dark"
     ]
   }
 
