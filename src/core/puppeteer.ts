@@ -201,6 +201,12 @@ export async function withHeadlessBrowser<T>(
 
 async function findChrome(): Promise<string | undefined> {
   let path;
+  // First check env var and use this path if specified
+  const envPath = Deno.env.get("QUARTO_CHROMIUM");
+  if (envPath && safeExistsSync(envPath)) {
+    return envPath;
+  }
+  // Otherwise, try to find the path based on OS.
   if (Deno.build.os === "darwin") {
     const programs = [
       "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
