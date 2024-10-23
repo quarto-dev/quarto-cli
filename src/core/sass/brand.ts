@@ -192,7 +192,7 @@ const brandColorBundle = (
 
   // Create `brand-` prefixed Sass and CSS variables from color.palette
   for (const colorKey of Object.keys(brand.data?.color?.palette ?? {})) {
-    const colorVar = colorKey.replace(/[^a-zA-Z0-9_-]+/, "-");
+    const colorVar = colorKey.replace(/[^a-zA-Z0-9_-]+/g, "-");
     colorVariables.push(
       `$brand-${colorVar}: ${brand.getColor(colorKey)} !default;`,
     );
