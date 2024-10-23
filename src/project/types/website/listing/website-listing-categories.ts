@@ -1,9 +1,8 @@
 /*
-* website-listing-categories.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-listing-categories.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kListingPageCategoryAll,
@@ -118,7 +117,7 @@ function categoryElement(
   categoryEl.classList.add("category");
   categoryEl.setAttribute(
     "data-category",
-    value !== undefined ? value : category,
+    value !== undefined ? btoa(value) : btoa(category),
   );
   categoryEl.innerHTML = contents;
   return categoryEl;

@@ -24,9 +24,9 @@ test('Categories link are clickable', async ({ page }) => {
   await page.goto('./blog/simple-blog/_site/posts/welcome/');
   await page.locator('div').filter({ hasText: /^news$/ }).click();
   await expect(page).toHaveURL(/_site\/index\.html#category=news$/);
-  await expect(page.locator('div.category[data-category="news"]')).toHaveClass(/active/);
+  await expect(page.locator(`div.category[data-category="${btoa('news')}"]`)).toHaveClass(/active/);
   await page.goto('./blog/simple-blog/_site/posts/welcome/#img-lst');
   await page.locator('div').filter({ hasText: /^news$/ }).click();
   await expect(page).toHaveURL(/_site\/index\.html#category=news$/);
-  await expect(page.locator('div.category[data-category="news"]')).toHaveClass(/active/);
+  await expect(page.locator(`div.category[data-category="${btoa('news')}"]`)).toHaveClass(/active/);
 });
