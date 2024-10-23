@@ -15566,7 +15566,7 @@ try {
             schema: "number",
             description: {
               short: "Target page width for output (used to compute columns widths for `layout` divs)\n",
-              long: "Target page width for output (used to compute columns widths for `layout` divs).\nDefaults to 6.5 inches, which corresponds to default letter page settings in \ndocx and odt.\n"
+              long: "Target body page width for output (used to compute columns widths for `layout` divs).\nDefaults to 6.5 inches, which corresponds to default letter page settings in \ndocx and odt (8.5 inches with 1 inch for each margins).\n"
             }
           },
           {
