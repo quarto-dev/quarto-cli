@@ -80,7 +80,15 @@ export async function criClient(appPath?: string, port?: number) {
 
   const cmd = [
     app,
-    "--headless",
+    // TODO: Chrome v128 changed the default from --headless=old to --headless=new
+    // in 2024-08. Old headless mode was effectively a separate browser render,
+    // and while more performant did not share the same browser implementation as
+    // headful Chrome. New headless mode will likely be useful to some, but in Quarto use cases
+    // like printing to PDF or screenshoting, we need more work to
+    // move to the new mode. We'll use `--headless=old` as the default for now
+    // until the new mode is more stable, or until we really pin a version as default to be used.
+    // This is also impacting in chromote and pagedown R packages and we could keep syncing with them.
+    "--headless=old",
     "--no-sandbox",
     "--disable-gpu",
     "--renderer-process-limit=1",
