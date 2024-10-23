@@ -192,7 +192,7 @@ const brandColorBundle = (
 
   // Create `brand-` prefixed Sass and CSS variables from color.palette
   for (const colorKey of Object.keys(brand.data?.color?.palette ?? {})) {
-    const colorVar = colorKey.replace(/[^a-zA-Z0-9_-]+/, "-");
+    const colorVar = colorKey.replace(/[^a-zA-Z0-9_-]+/g, "-");
     colorVariables.push(
       `$brand-${colorVar}: ${brand.getColor(colorKey)} !default;`,
     );
@@ -262,26 +262,21 @@ const brandBootstrapBundle = (
   bsVariables.push('// quarto-scss-analysis-annotation { "action": "pop" }');
 
   // Bootstrap Colors from color.palette
-  let bootstrapColorVariables: string[] = [];
-  if (Number(brandBootstrap?.version ?? 5) === 5) {
-    // https://getbootstrap.com/docs/5.3/customize/color/#color-sass-maps
-    bootstrapColorVariables = [
-      "blue",
-      "indigo",
-      "purple",
-      "pink",
-      "red",
-      "orange",
-      "yellow",
-      "green",
-      "teal",
-      "cyan",
-      "black",
-      "white",
-      "gray",
-      "gray-dark"
-    ]
-  }
+  // https://getbootstrap.com/docs/5.3/customize/color/#color-sass-maps
+  const bootstrapColorVariables = [
+    "black",
+    "white",
+    "blue",
+    "indigo",
+    "purple",
+    "pink",
+    "red",
+    "orange",
+    "yellow",
+    "green",
+    "teal",
+    "cyan",
+  ]
 
   const bsColors: string[] = [
     "/* Bootstrap color variables from _brand.yml */",
