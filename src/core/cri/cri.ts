@@ -14,6 +14,7 @@ import { findOpenPort } from "../port.ts";
 import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
 import { sleep } from "../async.ts";
 import { InternalError } from "../lib/error.ts";
+import { getenv } from "../env.ts";
 import { kRenderFileLifetime } from "../../config/constants.ts";
 
 async function waitForServer(port: number, timeout = 3000) {
@@ -78,6 +79,9 @@ export async function criClient(appPath?: string, port?: number) {
   }
   const app: string = appPath || await getBrowserExecutablePath();
 
+  // Allow to adapt the headless mode depending on the Chrome version
+  const headlessMode = getenv("QUARTO_CHROME_HEADLESS_MODE", "old");
+
   const cmd = [
     app,
     // TODO: Chrome v128 changed the default from --headless=old to --headless=new
@@ -88,7 +92,7 @@ export async function criClient(appPath?: string, port?: number) {
     // move to the new mode. We'll use `--headless=old` as the default for now
     // until the new mode is more stable, or until we really pin a version as default to be used.
     // This is also impacting in chromote and pagedown R packages and we could keep syncing with them.
-    "--headless=old",
+    `--headless${headlessMode ? "=" + headlessMode : ""}`,
     "--no-sandbox",
     "--disable-gpu",
     "--renderer-process-limit=1",
