@@ -454,7 +454,8 @@ export function reshapeListing(
 
     attr["index"] = (index++).toString();
     if (item.categories) {
-      attr["categories"] = (item.categories as string[]).join(",");
+      const str = (item.categories as string[]).join(",");
+      attr["categories"] = btoa(str);
     }
 
     // Add magic attributes for the sortable values
