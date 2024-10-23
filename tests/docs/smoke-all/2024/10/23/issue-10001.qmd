@@ -1,0 +1,31 @@
+---
+title: "Untitled"
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - ['\\begin{table}\[H\]']
+        - []
+---
+
+:::{#tbl-tm2 tbl-pos="H" layout-ncol="2"}
+
+:::{#tbl-tm2a}
+| A | B | C |
+|---|---|---|
+| 1 | 2 | 3 |
+
+Table1: 
+:::
+
+:::{#tbl-tm2b}
+| A | B | C |
+|---|---|---|
+| 1 | 2 | 3 |
+
+Table2: 
+:::
+
+Not so nice: Where Latex Wants it
+:::
