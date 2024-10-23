@@ -8,7 +8,7 @@ import type { Command } from "cliffy/command/mod.ts";
 
 import { renderCommand } from "./render/cmd.ts";
 import { serveCommand } from "./serve/cmd.ts";
-import { createProjectCommand } from "./create-project/cmd.ts";
+import { CreateProjectCommand } from "./create-project/cmd.ts";
 import { toolsCommand } from "./tools/cmd.ts";
 import { previewCommand } from "./preview/cmd.ts";
 import { ConvertCommand } from "./convert/cmd.ts";
@@ -42,7 +42,7 @@ export function commands(): Command<any>[] {
     AddCommand,
     updateCommand,
     removeCommand,
-    createProjectCommand,
+    CreateProjectCommand,
     ConvertCommand,
     pandocCommand,
     typstCommand,
