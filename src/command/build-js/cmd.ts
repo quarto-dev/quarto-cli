@@ -1,10 +1,10 @@
 /*
  * cmd.ts
  *
- * Copyright (C) 2021-2022 Posit Software, PBC
+ * Copyright (C) 2021-2024 Posit Software, PBC
  */
 
-import { Command } from "cliffy/command/mod.ts";
+import { Command } from "npm:clipanion";
 
 import { esbuildCompile } from "../../core/esbuild.ts";
 import { buildIntelligenceResources } from "../../core/schema/build-schema-file.ts";
@@ -133,13 +133,17 @@ export async function buildAssets() {
   await buildYAMLJS();
 }
 
-export const buildJsCommand = new Command()
-  .name("build-js")
-  .hidden()
-  .description(
-    "Builds all the javascript assets necessary for IDE support.\n\n",
-  )
-  .action(async () => {
+export class BuildJsCommand extends Command {
+  static name = 'build-js';
+  static paths = [[BuildJsCommand.name]];
+
+  static usage = Command.Usage({
+    category: 'internal',
+    description: "Builds all the javascript assets necessary for IDE support."
+  })
+
+  async execute() {
     await initYamlIntelligenceResourcesFromFilesystem();
     await buildAssets();
-  });
+  }
+}
