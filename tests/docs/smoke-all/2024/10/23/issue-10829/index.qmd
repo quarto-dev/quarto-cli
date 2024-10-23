@@ -10,6 +10,7 @@ listing:
 page-layout: full
 title-block-banner: true
 _quarto:
+  render-project: true
   tests:
     html:
       ensureFileRegexMatches:
