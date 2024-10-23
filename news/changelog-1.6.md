@@ -65,6 +65,7 @@ All changes included in 1.6:
 
 ## `latex` and `pdf` Format
 
+- ([#10001](https://github.com/quarto-dev/quarto-cli/issues/10001)): Support correct `*-pos` attribute in `FloatRefTarget` nodes with layouts.
 - ([#10291](https://github.com/quarto-dev/quarto-cli/issues/10291)): Several improvement regarding Quarto LaTeX engine behavior for missing hyphenation log message:
   - `latex-auto-install: false` now correctly opt out any missing hyphenation packages detection and installation. Only a warning will be thrown if any detected in the log.
   - For default behavior (`latex-auto-install: true`), detection is still happening and missing packages are installed automatically. If it fails, Quarto does not fail anymore as PDF rendering as succeeded already. Only a warning will be thrown to log the installation failure.
