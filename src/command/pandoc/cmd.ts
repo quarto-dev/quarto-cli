@@ -1,28 +1,38 @@
 /*
 * pandoc.ts
 *
-* Copyright (C) 2020-2022 Posit Software, PBC
+* Copyright (C) 2020-2024 Posit Software, PBC
 *
 */
 
-import { Command } from "cliffy/command/command.ts";
+import { Command, Option } from "npm:clipanion";
+import { execProcess } from "../../core/process.ts";
+import { pandocBinaryPath } from "../../core/resources.ts";
 
-// pandoc 'command' (this is a fake command that is here just for docs,
-// the actual processing of 'run' bypasses cliffy entirely)
-export const pandocCommand = new Command()
-  .name("pandoc")
-  .stopEarly()
-  .arguments("[...args]")
-  .description(
-    "Run the version of Pandoc embedded within Quarto.\n\n" +
-      "You can pass arbitrary command line arguments to quarto pandoc (they will\n" +
-      "be passed through unmodified to Pandoc)",
-  )
-  .example(
-    "Render markdown to HTML",
-    "quarto pandoc document.md --to html --output document.html",
-  )
-  .example(
-    "List Pandoc output formats",
-    "quarto pandoc --list-output-formats",
-  );
+export class PandocCommand extends Command {
+  static name = 'pandoc';
+  static paths = [[PandocCommand.name]];
+
+  static usage = Command.Usage({
+    description: "Run the version of Pandoc embedded within Quarto.\n" +
+        "You can pass arbitrary command line arguments to quarto pandoc\n" +
+        "(they will be passed through unmodified to Pandoc)",
+  })
+
+  args = Option.Proxy();
+
+  async execute() {
+    const { env } = this.context;
+    const result = await execProcess(
+      {
+        cmd: [pandocBinaryPath(), ...this.args],
+        env: (env as Record<string, string>),
+      },
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
+    Deno.exit(result.code);
+  }
+}
