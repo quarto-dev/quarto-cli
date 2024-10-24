@@ -14,7 +14,9 @@ import { findOpenPort } from "../port.ts";
 import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
 import { sleep } from "../async.ts";
 import { InternalError } from "../lib/error.ts";
+import { getenv } from "../env.ts";
 import { kRenderFileLifetime } from "../../config/constants.ts";
+import { debug } from "../../deno_ral/log.ts";
 
 async function waitForServer(port: number, timeout = 3000) {
   const interval = 50;
@@ -78,9 +80,20 @@ export async function criClient(appPath?: string, port?: number) {
   }
   const app: string = appPath || await getBrowserExecutablePath();
 
+  // Allow to adapt the headless mode depending on the Chrome version
+  const headlessMode = getenv("QUARTO_CHROMIUM_HEADLESS_MODE", "old");
+
   const cmd = [
     app,
-    "--headless",
+    // TODO: Chrome v128 changed the default from --headless=old to --headless=new
+    // in 2024-08. Old headless mode was effectively a separate browser render,
+    // and while more performant did not share the same browser implementation as
+    // headful Chrome. New headless mode will likely be useful to some, but in Quarto use cases
+    // like printing to PDF or screenshoting, we need more work to
+    // move to the new mode. We'll use `--headless=old` as the default for now
+    // until the new mode is more stable, or until we really pin a version as default to be used.
+    // This is also impacting in chromote and pagedown R packages and we could keep syncing with them.
+    `--headless${headlessMode == "none" ? "" : "=" + headlessMode}`,
     "--no-sandbox",
     "--disable-gpu",
     "--renderer-process-limit=1",
@@ -92,6 +105,8 @@ export async function criClient(appPath?: string, port?: number) {
     let msg = "Couldn't find open server.";
     // Printing more error information if chrome process errored
     if (!(await browser.status()).success) {
+      debug(`[CHROMIUM path]   : ${app}`);
+      debug(`[CHROMIUM cmd]   : ${cmd}`);
       const rawError = await browser.stderrOutput();
       const errorString = new TextDecoder().decode(rawError);
       msg = msg + "\n" + `Chrome process error: ${errorString}`;
