@@ -19,7 +19,7 @@ import { CapabilitiesCommand } from "./capabilities/cmd.ts";
 import { CheckCommand } from "./check/cmd.ts";
 import { InspectCommand } from "./inspect/cmd.ts";
 import { BuildJsCommand } from "./build-js/cmd.ts";
-import { installCommand } from "./install/cmd.ts";
+import { InstallCommand } from "./install/cmd.ts";
 import { updateCommand } from "./update/cmd.ts";
 import { publishCommand } from "./publish/cmd.ts";
 import { removeCommand } from "./remove/cmd.ts";
@@ -48,7 +48,7 @@ export function commands(): Command<any>[] {
     typstCommand,
     runCommand,
     listCommand,
-    installCommand,
+    InstallCommand,
     uninstallCommand,
     toolsCommand,
     publishCommand,
