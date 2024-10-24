@@ -27,4 +27,4 @@ I have (if applicable):
 - [ ] updated the appropriate changelog in the PR
 - [ ] ensured the present test suite passes
 - [ ] added new tests
-- [ ] created a separate documentation PR in [Quarto's website repo](https://github.com/quarto-dev/quarto-web/) and linked it to this PR.
+- [ ] created a separate documentation PR in [Quarto's website repo](https://github.com/quarto-dev/quarto-web/) and linked it to this PR
