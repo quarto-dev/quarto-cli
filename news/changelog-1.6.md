@@ -101,6 +101,11 @@ All changes included in 1.6:
 
 - ([#9134](https://github.com/quarto-dev/quarto-cli/issues/9134)): Add proper fix for `multiprocessing` in notebooks with the Python kernel.
 
+## Chromium support
+
+- ([#11135](https://github.com/quarto-dev/quarto-cli/issues/11135)): Use `--headless=old` mode for Chromium to avoid recent issues with the new `--headless` mode. Setting `--headless=new` can be configured with `QUARTO_CHROMIUM_HEADLESS_MODE=new` environment variable, however it is not recommended new headless mode seems to be unstable. Only use to be unblocked of a situation (like `QUARTO_CHROMIUM_HEADLESS_MODE=""` if you use a old chrome version somehow).
+- ([#10170](https://github.com/quarto-dev/quarto-cli/issues/10170)): Quarto should find chrome executable automatically on most OS. If this is does not find it, or a specific version is needed, set `QUARTO_CHROMIUM` environment variable to the executable path.
+
 ## Other Fixes and Improvements
 
 - Upgrade `mermaidjs` to 11.2.0.
