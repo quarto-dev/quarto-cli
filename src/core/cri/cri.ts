@@ -81,7 +81,7 @@ export async function criClient(appPath?: string, port?: number) {
   const app: string = appPath || await getBrowserExecutablePath();
 
   // Allow to adapt the headless mode depending on the Chrome version
-  const headlessMode = getenv("QUARTO_CHROME_HEADLESS_MODE", "old");
+  const headlessMode = getenv("QUARTO_CHROMIUM_HEADLESS_MODE", "old");
 
   const cmd = [
     app,
