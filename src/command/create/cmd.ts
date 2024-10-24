@@ -1,7 +1,7 @@
 /*
  * cmd.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 
 import { extensionArtifactCreator } from "./artifacts/extension.ts";
@@ -11,7 +11,7 @@ import { kEditorInfos, scanForEditors } from "./editor.ts";
 import { isInteractiveTerminal } from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
 
-import { Command } from "cliffy/command/mod.ts";
+import { Command, Option } from "npm:clipanion";
 import { prompt, Select, SelectValueOptions } from "cliffy/prompt/mod.ts";
 import { readLines } from "../../deno_ral/io.ts";
 import { info } from "../../deno_ral/log.ts";
@@ -24,98 +24,95 @@ const kArtifactCreators: ArtifactCreator[] = [
   // documentArtifactCreator, CT: Disabled for 1.2 as it arrived too late on the scene
 ];
 
-export const createCommand = new Command()
-  .name("create")
-  .description("Create a Quarto project or extension")
-  .option(
-    "--open [editor:string]",
-    `Open new artifact in this editor (${
-      kEditorInfos.map((info) => info.id).join(", ")
-    })`,
-  )
-  .option("--no-open", "Do not open in an editor")
-  .option("--no-prompt", "Do not prompt to confirm actions")
-  .option("--json", "Pass serialized creation options via stdin", {
-    hidden: true,
-  })
-  .arguments("[type] [commands...]")
-  .action(
-    async (
-      options: {
-        prompt: boolean;
-        json?: boolean;
-        open?: string | boolean;
-      },
-      type?: string,
-      ...commands: string[]
-    ) => {
-      if (options.json) {
-        await createFromStdin();
-      } else {
-        // Compute a sane default for prompting
-        const isInteractive = isInteractiveTerminal() && !runningInCI();
-        const allowPrompt = isInteractive && !!options.prompt && !options.json;
+export class CreateCommand extends Command {
+  static name = 'create';
+  static paths = [[CreateCommand.name]];
 
-        // Resolve the type into an artifact
-        const resolved = await resolveArtifact(
-          type,
-          options.prompt,
-        );
-        const resolvedArtifact = resolved.artifact;
-        if (resolvedArtifact) {
-          // Resolve the arguments that the user provided into options
-          // for the artifact provider
+  static usage = Command.Usage({
+    description: "Create a Quarto project or extension",
+  });
 
-          // If we aliased the type, shift the args (including what was
-          // the type alias in the list of args for the artifact creator
-          // to resolve)
-          const args = commands;
+  type = Option.String({required: false});
+  commands = Option.Rest();
 
-          const commandOpts = resolvedArtifact.resolveOptions(args);
-          const createOptions = {
-            cwd: Deno.cwd(),
-            options: commandOpts,
-          };
+  json = Option.Boolean('--json', {description: "Pass serialized creation options via stdin", hidden: true});
+  noOpen = Option.Boolean('--no-open', {description: "Do not open in an editor"});
+  noPrompt = Option.Boolean('--no-prompt', {description: "Do not prompt to confirm actions"});
 
-          if (allowPrompt) {
-            // Prompt the user until the options have been fully realized
-            let nextPrompt = resolvedArtifact.nextPrompt(createOptions);
-            while (nextPrompt !== undefined) {
-              if (nextPrompt) {
-                const result = await prompt([nextPrompt]);
-                createOptions.options = {
-                  ...createOptions.options,
-                  ...result,
-                };
-              }
-              nextPrompt = resolvedArtifact.nextPrompt(createOptions);
+  open = Option.String('--open', {
+    description: `Open new artifact in this editor (${
+        kEditorInfos.map((info) => info.id).join(", ")
+    })`
+  });
+
+  async execute() {
+    if (this.json) {
+      await createFromStdin();
+    } else {
+      // Compute a sane default for prompting
+      const isInteractive = isInteractiveTerminal() && !runningInCI();
+      const allowPrompt = isInteractive && !this.noPrompt && !this.json;
+
+      // Resolve the type into an artifact
+      const resolved = await resolveArtifact(
+        this.type,
+        !this.noPrompt,
+      );
+      const resolvedArtifact = resolved.artifact;
+      if (resolvedArtifact) {
+        // Resolve the arguments that the user provided into options
+        // for the artifact provider
+
+        // If we aliased the type, shift the args (including what was
+        // the type alias in the list of args for the artifact creator
+        // to resolve)
+        const args = this.commands;
+
+        const commandOpts = resolvedArtifact.resolveOptions(args);
+        const createOptions = {
+          cwd: Deno.cwd(),
+          options: commandOpts,
+        };
+
+        if (allowPrompt) {
+          // Prompt the user until the options have been fully realized
+          let nextPrompt = resolvedArtifact.nextPrompt(createOptions);
+          while (nextPrompt !== undefined) {
+            if (nextPrompt) {
+              const result = await prompt([nextPrompt]);
+              createOptions.options = {
+                ...createOptions.options,
+                ...result,
+              };
             }
+            nextPrompt = resolvedArtifact.nextPrompt(createOptions);
           }
+        }
 
-          // Complete the defaults
-          const createDirective = resolvedArtifact.finalizeOptions(
+        // Complete the defaults
+        const createDirective = resolvedArtifact.finalizeOptions(
             createOptions,
-          );
+        );
 
-          // Create the artifact using the options
-          const createResult = await resolvedArtifact.createArtifact(
+        // Create the artifact using the options
+        const createResult = await resolvedArtifact.createArtifact(
             createDirective,
-          );
+        );
 
           // Now that the article was created, offer to open the item
-          if (allowPrompt && options.open !== false) {
+          if (allowPrompt && !this.noOpen) {
             const resolvedEditor = await resolveEditor(
               createResult,
-              typeof (options.open) === "string" ? options.open : undefined,
-            );
-            if (resolvedEditor) {
-              resolvedEditor.open();
-            }
+              typeof (this.open) === "string" ? this.open : undefined,
+          );
+          if (resolvedEditor) {
+            await resolvedEditor.open();
           }
         }
       }
-    },
-  );
+    }
+  }
+}
 
 // Resolves the artifact string (or undefined) into an
 // Artifact interface which will provide the functions
