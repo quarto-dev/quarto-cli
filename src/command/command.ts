@@ -23,7 +23,7 @@ import { InstallCommand } from "./install/cmd.ts";
 import { updateCommand } from "./update/cmd.ts";
 import { publishCommand } from "./publish/cmd.ts";
 import { removeCommand } from "./remove/cmd.ts";
-import { listCommand } from "./list/cmd.ts";
+import { ListCommand } from "./list/cmd.ts";
 import { makeUseCommand } from "./use/cmd.ts";
 import { AddCommand } from "./add/cmd.ts";
 import { uninstallCommand } from "./uninstall/cmd.ts";
@@ -47,7 +47,7 @@ export function commands(): Command<any>[] {
     pandocCommand,
     typstCommand,
     runCommand,
-    listCommand,
+    ListCommand,
     InstallCommand,
     uninstallCommand,
     toolsCommand,

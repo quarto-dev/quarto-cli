@@ -1,9 +1,9 @@
 /*
  * cmd.ts
  *
- * Copyright (C) 2021-2022 Posit Software, PBC
+ * Copyright (C) 2021-2024 Posit Software, PBC
  */
-import { Command } from "cliffy/command/mod.ts";
+import { Command, Option } from "npm:clipanion";
 import { Table } from "cliffy/table/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { createTempContext } from "../../core/temp.ts";
@@ -16,42 +16,46 @@ import { projectContext } from "../../project/project-context.ts";
 import { outputTools } from "../../tools/tools-console.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
-export const listCommand = new Command()
-  .hidden()
-  .name("list")
-  .arguments("<type:string>")
-  .description(
-    "Lists an extension or global dependency.",
-  )
-  .example(
-    "List installed extensions",
-    "quarto list extensions",
-  )
-  .example(
-    "List global tools",
-    "quarto list tools",
-  )
-  .action(
-    async (_options: unknown, type: string) => {
-      await initYamlIntelligenceResourcesFromFilesystem();
-      const temp = createTempContext();
-      const extensionContext = createExtensionContext();
-      try {
-        if (type.toLowerCase() === "extensions") {
-          await outputExtensions(Deno.cwd(), extensionContext);
-        } else if (type.toLowerCase() === "tools") {
-          await outputTools();
-        } else {
-          // This is an unrecognized type option
-          info(
-            `Unrecognized option '${type}' - please choose 'tools' or 'extensions'.`,
-          );
-        }
-      } finally {
-        temp.cleanup();
+export class ListCommand extends Command {
+  static name = 'list';
+  static paths = [[ListCommand.name]];
+
+  static usage = Command.Usage({
+    category: 'internal',
+    description: "Lists an extension or global dependency.",
+    examples: [
+      [
+        "List installed extensions",
+        `$0 ${ListCommand.name} extensions`,
+      ], [
+        "List global tools",
+        `$0 ${ListCommand.name} tools`,
+      ],
+    ]
+  })
+
+  type = Option.String({required: true});
+
+  async execute() {
+    await initYamlIntelligenceResourcesFromFilesystem();
+    const temp = createTempContext();
+    const extensionContext = createExtensionContext();
+    try {
+      if (this.type.toLowerCase() === "extensions") {
+        await outputExtensions(Deno.cwd(), extensionContext);
+      } else if (this.type.toLowerCase() === "tools") {
+        await outputTools();
+      } else {
+        // This is an unrecognized type option
+        info(
+            `Unrecognized option '${(this.type)}' - please choose 'tools' or 'extensions'.`,
+        );
       }
-    },
-  );
+    } finally {
+      temp.cleanup();
+    }
+  }
+}
 
 async function outputExtensions(
   path: string,
