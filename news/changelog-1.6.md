@@ -16,6 +16,7 @@ All changes included in 1.6:
 ## Lua Filters and extensions
 
 - ([#8179](https://github.com/quarto-dev/quarto-cli/issues/8179)): When merging code cells for complex layouts, do not merge cells with different languages.
+- ([#8428](https://github.com/quarto-dev/quarto-cli/issues/8428)): only forward cell labels to tables when tables will be cross-referenceable.
 - ([#10004](https://github.com/quarto-dev/quarto-cli/issues/10004)): Resolve callout titles, theorem names, and `code-summary` content through `quarto_ast_pipeline()` and `process_shortcodes()`.
 - ([#10196](https://github.com/quarto-dev/quarto-cli/issues/10196)): Protect against nil values in `float.caption_long`.
 - ([#10328](https://github.com/quarto-dev/quarto-cli/issues/10328)): Interpret subcells as subfloats when subcap count matches subcell count.
