@@ -16,6 +16,7 @@ import { sleep } from "../async.ts";
 import { InternalError } from "../lib/error.ts";
 import { getenv } from "../env.ts";
 import { kRenderFileLifetime } from "../../config/constants.ts";
+import { debug } from "../../deno_ral/log.ts";
 
 async function waitForServer(port: number, timeout = 3000) {
   const interval = 50;
@@ -104,6 +105,8 @@ export async function criClient(appPath?: string, port?: number) {
     let msg = "Couldn't find open server.";
     // Printing more error information if chrome process errored
     if (!(await browser.status()).success) {
+      debug(`[CHROMIUM path]   : ${app}`);
+      debug(`[CHROMIUM cmd]   : ${cmd}`);
       const rawError = await browser.stderrOutput();
       const errorString = new TextDecoder().decode(rawError);
       msg = msg + "\n" + `Chrome process error: ${errorString}`;
