@@ -1,0 +1,15 @@
+---
+title: "issue-10251"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - [
+            '<img src="https://quarto.org/quarto.png" alt="this is the alt text that for the logo in the sidebar" class="sidebar-logo py-0 d-lg-inline d-none">',
+            '<img src="https://quarto.org/quarto.png" alt="this is the alt text that for the logo in the navbar" class="navbar-logo">'
+          ]
+---
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
