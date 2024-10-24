@@ -78,6 +78,7 @@ All changes included in 1.6:
 ## Projects
 
 - ([#10268](https://github.com/quarto-dev/quarto-cli/issues/10268)): `quarto create` supports opening project in Positron, in addition to VS Code and RStudio IDE.
+- ([#10285](https://github.com/quarto-dev/quarto-cli/issues/10285)): Include text from before the first chapter sections in search indices. In addition, include text of every element with `.quarto-include-in-search-index` class in search indices.
 - ([#10566](https://github.com/quarto-dev/quarto-cli/issues/10566)): Ensure that `quarto run` outputs `stdout` and `stderr` to the correct streams.
 
 ### Websites
