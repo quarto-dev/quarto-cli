@@ -28,7 +28,7 @@ import { makeUseCommand } from "./use/cmd.ts";
 import { AddCommand } from "./add/cmd.ts";
 import { uninstallCommand } from "./uninstall/cmd.ts";
 import { CreateCommand } from "./create/cmd.ts";
-import { editorSupportCommand } from "./editor-support/cmd.ts";
+import { editorSupportCommands } from "./editor-support/cmd.ts";
 
 // deno-lint-ignore no-explicit-any
 export function commands(): Command<any>[] {
@@ -56,6 +56,6 @@ export function commands(): Command<any>[] {
     inspectCommand,
     CheckCommand,
     BuildJsCommand,
-    editorSupportCommand,
+    ...editorSupportCommands,
   ];
 }
