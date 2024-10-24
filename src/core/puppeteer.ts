@@ -6,7 +6,7 @@
 
 import { readRegistryKey } from "./windows.ts";
 import { safeExistsSync, which } from "./path.ts";
-import { error, info } from "../deno_ral/log.ts";
+import { debug, error, info } from "../deno_ral/log.ts";
 import { existsSync } from "../deno_ral/fs.ts";
 import { UnreachableError } from "./lib/error.ts";
 import { quartoDataDir } from "./appdirs.ts";
@@ -204,6 +204,8 @@ async function findChrome(): Promise<string | undefined> {
   // First check env var and use this path if specified
   const envPath = Deno.env.get("QUARTO_CHROMIUM");
   if (envPath && safeExistsSync(envPath)) {
+    debug("[CHROMIUM] Using path specified in QUARTO_CHROMIUM");
+    debug(`[CHROMIUM] Path: ${envPath}`);
     return envPath;
   }
   // Otherwise, try to find the path based on OS.
@@ -212,7 +214,7 @@ async function findChrome(): Promise<string | undefined> {
       "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
       "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
     ];
-    return programs.find(safeExistsSync);
+    path = programs.find(safeExistsSync);
   } else if (Deno.build.os === "windows") {
     // Try the HKLM key
     const programs = ["chrome.exe", "msedge.exe"];
@@ -222,7 +224,7 @@ async function findChrome(): Promise<string | undefined> {
           programs[i],
         "(Default)",
       );
-      if (path && existsSync(path)) break;
+      if (path && safeExistsSync(path)) break;
     }
 
     // Try the HKCR key
@@ -245,6 +247,12 @@ async function findChrome(): Promise<string | undefined> {
     if (!path) {
       path = await which("chromium-browser");
     }
+  }
+  if (path) {
+    debug("[CHROMIUM] Found Chromium on OS known location");
+    debug(`[CHROMIUM] Path: ${path}`);
+  } else {
+    debug("[CHROMIUM] Chromium not found on OS known location");
   }
   return path;
 }
