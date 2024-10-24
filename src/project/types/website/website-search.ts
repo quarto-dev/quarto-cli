@@ -326,11 +326,11 @@ export async function updateSearchIndex(
 
         // If there are any paragraphs residing outside a section, just
         // include that in the document entry
-        const pararaphNodes = doc.querySelectorAll(
-          `${mainSelector} > p, ${mainSelector} > div.cell`,
+        const paragraphNodes = doc.querySelectorAll(
+          `${mainSelector} > p, ${mainSelector} > div.cell, main > p`,
         );
 
-        for (const paragraphNode of pararaphNodes) {
+        const addToIndex = (paragraphNode: Element) => {
           const text = paragraphNode.textContent.trim();
           if (text) {
             pageText.push(text);
@@ -338,7 +338,19 @@ export async function updateSearchIndex(
 
           // Since these are already indexed with the main entry, remove them
           // so they are not indexed again
-          (paragraphNode as Element).remove();
+          paragraphNode.remove();
+        };
+
+        for (const paragraphNode of paragraphNodes) {
+          addToIndex(paragraphNode as Element);
+        }
+
+        // Add forced inclusions to the index
+        const forcedInclusions = doc.querySelectorAll(
+          `.quarto-include-in-search-index`,
+        );
+        for (const forcedInclusion of forcedInclusions) {
+          addToIndex(forcedInclusion as Element);
         }
 
         if (pageText.length > 0) {
