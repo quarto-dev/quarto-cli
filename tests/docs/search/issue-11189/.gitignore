@@ -1,0 +1,6 @@
+/.quarto/
+*.html
+*.pdf
+*_files/
+/_site_with_filter/
+/_site_without_filter/

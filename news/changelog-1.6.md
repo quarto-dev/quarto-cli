@@ -95,6 +95,7 @@ All changes included in 1.6:
 - ([#10125](https://github.com/quarto-dev/quarto-cli/issues/10125)): Show path to the project when project YAML validation fails.
 - ([#10268](https://github.com/quarto-dev/quarto-cli/issues/10268)): `quarto create` supports opening project in Positron, in addition to VS Code and RStudio IDE.
 - ([#10285](https://github.com/quarto-dev/quarto-cli/issues/10285)): Include text from before the first chapter sections in search indices. In addition, include text of every element with `.quarto-include-in-search-index` class in search indices.
+- ([#11189](https://github.com/quarto-dev/quarto-cli/issues/11189)): Exclude text of every element with the `.quarto-exclude-from-search-index` class from search indices.
 - ([#10566](https://github.com/quarto-dev/quarto-cli/issues/10566)): Ensure that `quarto run` outputs `stdout` and `stderr` to the correct streams.
 
 ### Websites
