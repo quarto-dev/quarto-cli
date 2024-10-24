@@ -458,7 +458,7 @@ function parse_floatreftargets()
               fig_attr.classes:insert(v)
             end
           end
-          image.caption = {}
+          image.caption = pandoc.Inlines{}
           return image
         end
       }) or fig.content[1] -- this shouldn't be needed but the lua analyzer doesn't know it
@@ -602,7 +602,7 @@ function parse_floatreftargets()
         if img.identifier == "" then
           local caption = img.caption
           if #caption > 0 then
-            img.caption = nil
+            img.caption = pandoc.Inlines{}
             return pandoc.Figure(link, { long = { caption } })
           else
             return nil

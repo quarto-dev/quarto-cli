@@ -310,7 +310,7 @@ function code_annotations()
       -- if code annotations is false, then shut it down
       if codeAnnotations ~= false then
 
-        local outputs = pandoc.List()
+        local outputs = pandoc.Blocks{}
 
         -- annotations[annotation-number] = {list of line numbers}
         local pendingAnnotations = nil
