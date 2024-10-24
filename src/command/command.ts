@@ -11,7 +11,7 @@ import { serveCommand } from "./serve/cmd.ts";
 import { createProjectCommand } from "./create-project/cmd.ts";
 import { toolsCommand } from "./tools/cmd.ts";
 import { previewCommand } from "./preview/cmd.ts";
-import { convertCommand } from "./convert/cmd.ts";
+import { ConvertCommand } from "./convert/cmd.ts";
 import { runCommand } from "./run/run.ts";
 import { pandocCommand } from "./pandoc/cmd.ts";
 import { typstCommand } from "./typst/cmd.ts";
@@ -43,7 +43,7 @@ export function commands(): Command<any>[] {
     updateCommand,
     removeCommand,
     createProjectCommand,
-    convertCommand,
+    ConvertCommand,
     pandocCommand,
     typstCommand,
     runCommand,
