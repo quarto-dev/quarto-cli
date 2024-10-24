@@ -10,7 +10,7 @@ import { RenderCommand } from "./render/cmd.ts";
 import { serveCommand } from "./serve/cmd.ts";
 import { CreateProjectCommand } from "./create-project/cmd.ts";
 import { toolsCommand } from "./tools/cmd.ts";
-import { previewCommand } from "./preview/cmd.ts";
+import { PreviewCommand } from "./preview/cmd.ts";
 import { ConvertCommand } from "./convert/cmd.ts";
 import { runCommand } from "./run/run.ts";
 import { PandocCommand, GeneratePandocWrapperCommand } from "./pandoc/cmd.ts";
@@ -35,7 +35,7 @@ export function commands(): Command<any>[] {
   return [
     // deno-lint-ignore no-explicit-any
     RenderCommand,
-    previewCommand,
+    PreviewCommand,
     serveCommand,
     CreateCommand,
     makeUseCommand(),
