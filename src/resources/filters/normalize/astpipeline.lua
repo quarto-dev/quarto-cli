@@ -35,7 +35,8 @@ function quarto_ast_pipeline()
         code_filename(),
         normalize_fixup_data_uri_image_extension(),
         warn_on_stray_triple_colons(),
-      })
+      }),
+      force_pandoc_walk = true,
     },
     { 
       name = "normalize-combine-2", 
@@ -44,6 +45,7 @@ function quarto_ast_pipeline()
         parse_floatreftargets(),
         parse_blockreftargets()
       }),
+      force_pandoc_walk = true,
     },
     {
       name = "normalize-3",

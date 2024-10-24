@@ -68,6 +68,9 @@ inject_user_filters_at_entry_points = function(filter_list)
     end
     local filter = {
       name = entry_point .. "-user-" .. tostring(entry_point_counts[entry_point]),
+      -- The filter might not work as expected when doing a non-lazy jog, so
+      -- make sure it is processed with the default 'walk' function.
+      force_pandoc_walk = true,
     }
     if is_many_filters then
       filter.filters = wrapped

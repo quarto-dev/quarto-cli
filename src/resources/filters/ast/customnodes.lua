@@ -41,7 +41,7 @@ function is_regular_node(node, name)
   return node
 end
 
-function run_emulated_filter(doc, filter)
+function run_emulated_filter(doc, filter, force_use_walk)
   if doc == nil then
     return nil
   end
@@ -73,7 +73,10 @@ function run_emulated_filter(doc, filter)
         -- luacov: enable
       end
     end
-    return node:walk(filter_param)
+    _QUARTO_USE_WALK = force_use_walk
+    local result = _quarto.modules.jog(node, filter_param)
+    _QUARTO_USE_WALK = false
+    return result
   end
 
   -- performance: if filter is empty, do nothing
@@ -384,8 +387,10 @@ _quarto.ast = {
           _quarto.ast.grow_scaffold(node, index)
         end
         local pt = pandoc.utils.type(value)
-        if pt == "Block" or pt == "Inline" then
-          node.content[index].content = {value}
+        if pt == "Block" then
+          node.content[index].content = pandoc.Blocks{value}
+        elseif pt == "Inline" then
+          node.content[index].content = pandoc.Inlines{value}
         else
           node.content[index].content = value
         end

@@ -407,7 +407,7 @@ function render_latex()
         end,
         Note = function(el)
           tappend(noteContents, {el.content})
-          el.content:walk({
+          _quarto.modules.jog(el.content, {
             CodeBlock = function(el)
               hasVerbatimInNotes = true
             end

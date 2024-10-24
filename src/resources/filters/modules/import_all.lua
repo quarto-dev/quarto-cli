@@ -3,6 +3,7 @@
 
 _quarto.modules = {
   astshortcode = require("modules/astshortcode"),
+  attribcheck = require("modules/attribcheck"),
   authors = require("modules/authors"),
   brand = require("modules/brand/brand"),
   callouts = require("modules/callouts"),
@@ -11,6 +12,7 @@ _quarto.modules = {
   dashboard = require("modules/dashboard"),
   filenames = require("modules/filenames"),
   filters = require("modules/filters"),
+  jog = require("modules/jog"),
   license = require("modules/license"),
   lightbox = require("modules/lightbox"),
   mediabag = require("modules/mediabag"),

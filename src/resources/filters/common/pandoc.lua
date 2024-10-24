@@ -217,11 +217,11 @@ function string_to_quarto_ast_blocks(text, opts)
   
   -- run the whole normalization pipeline here to get extended AST nodes, etc.
   for _, filter in ipairs(quarto_ast_pipeline()) do
-    doc = doc:walk(filter.filter)
+    doc = _quarto.modules.jog(doc, filter.filter)
   end
 
   -- compute flags so we don't skip filters that depend on them
-  doc:walk(compute_flags())
+  _quarto.modules.jog(doc, compute_flags())
   return doc.blocks
 end
 
