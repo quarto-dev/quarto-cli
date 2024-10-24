@@ -93,7 +93,7 @@ export async function criClient(appPath?: string, port?: number) {
     // move to the new mode. We'll use `--headless=old` as the default for now
     // until the new mode is more stable, or until we really pin a version as default to be used.
     // This is also impacting in chromote and pagedown R packages and we could keep syncing with them.
-    `--headless${headlessMode ? "=" + headlessMode : ""}`,
+    `--headless${headlessMode == "none" ? "" : "=" + headlessMode}`,
     "--no-sandbox",
     "--disable-gpu",
     "--renderer-process-limit=1",
