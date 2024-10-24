@@ -16,7 +16,7 @@ import { runCommand } from "./run/run.ts";
 import { pandocCommand } from "./pandoc/cmd.ts";
 import { typstCommand } from "./typst/cmd.ts";
 import { CapabilitiesCommand } from "./capabilities/cmd.ts";
-import { checkCommand } from "./check/cmd.ts";
+import { CheckCommand } from "./check/cmd.ts";
 import { inspectCommand } from "./inspect/cmd.ts";
 import { BuildJsCommand } from "./build-js/cmd.ts";
 import { installCommand } from "./install/cmd.ts";
@@ -54,7 +54,7 @@ export function commands(): Command<any>[] {
     publishCommand,
     CapabilitiesCommand,
     inspectCommand,
-    checkCommand,
+    CheckCommand,
     BuildJsCommand,
     editorSupportCommand,
   ];
