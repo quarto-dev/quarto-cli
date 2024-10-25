@@ -2150,15 +2150,26 @@ code.sourceCode a.code-annotation-anchor {
 // override _reboot.scss
 
 // code blocks
-pre code {
+pre {
   font-family: $font-family-monospace-block;
   // I'm really not confident that this is correct
   @include font-size($code-block-font-size);
   font-weight: $font-weight-monospace-block;
+
+  // adding these inherit overrides here
+  // is what `_reboot.scss` does.
+  // we mirror it here for consistency
+  //
+  // Account for some code outputs that place code tags in pre tags
+  code {
+    font-family: inherit;
+    @include font-size(inherit);
+    font-weight: inherit;
+  }
 }
 
 // code inlines
-p code {
+code {
   font-family: $font-family-monospace-inline;
   @include font-size($code-inline-font-size);
   font-weight: $font-weight-monospace-inline;
