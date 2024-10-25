@@ -17,6 +17,10 @@ import { InternalError } from "../lib/error.ts";
 import { getenv } from "../env.ts";
 import { kRenderFileLifetime } from "../../config/constants.ts";
 import { debug } from "../../deno_ral/log.ts";
+import {
+  registerForExitCleanup,
+  unregisterForExitCleanup,
+} from "../process.ts";
 
 async function waitForServer(port: number, timeout = 3000) {
   const interval = 50;
@@ -101,6 +105,9 @@ export async function criClient(appPath?: string, port?: number) {
   ];
   const browser = Deno.run({ cmd, stdout: "piped", stderr: "piped" });
 
+  // Register for cleanup inside exitWithCleanup() in case something goes wrong
+  const thisProcessId = registerForExitCleanup(browser);
+
   if (!(await waitForServer(port as number))) {
     let msg = "Couldn't find open server.";
     // Printing more error information if chrome process errored
@@ -121,7 +128,13 @@ export async function criClient(appPath?: string, port?: number) {
   const result = {
     close: async () => {
       await client.close();
-      browser.close();
+      // FIXME: 2024-10
+      // We have a bug where `client.close()` doesn't return properly and we don't go below
+      // meaning the `browser` process is not killed here, and it will be handled in exitWithCleanup().
+
+      browser.kill(); // Chromium headless won't terminate on its own, so we need to send kill signal
+      browser.close(); // Closing the browser Deno process
+      unregisterForExitCleanup(thisProcessId); // All went well so not need to cleanup on quarto exit
     },
 
     rawClient: () => client,
