@@ -1,246 +1,247 @@
 /*
  * cmd.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 
-import { dirname, relative } from "../../deno_ral/path.ts";
-import { expandGlobSync } from "../../deno_ral/fs.ts";
-import { Command } from "cliffy/command/mod.ts";
-import { debug, info, warning } from "../../deno_ral/log.ts";
+import { applyCascade, isArray, isNumber, isString, makeValidator } from "npm:typanion";
 
-import { fixupPandocArgs, kStdOut, parseRenderFlags } from "./flags.ts";
+import { dirname, relative, isAbsolute, SEP_PATTERN } from "../../deno_ral/path.ts";
+import { expandGlobSync, existsSync } from "../../deno_ral/fs.ts";
+import { Command, Option } from "npm:clipanion";
+import { debug, info } from "../../deno_ral/log.ts";
+
+import { kStdOut, parseMetadataFlagValue } from "./flags.ts";
 
 import { renderResultFinalOutput } from "./render.ts";
 import { render } from "./render-shared.ts";
 import { renderServices } from "./render-services.ts";
+import { normalizePath } from "../../core/path.ts";
+import { readYaml } from "../../core/yaml.ts";
 
-import { RenderResult } from "./types.ts";
-import { kCliffyImplicitCwd } from "../../config/constants.ts";
-import { InternalError } from "../../core/lib/error.ts";
+import { RenderFlags, RenderResult } from "./types.ts";
+import {
+  kEmbedResources,
+  kListings,
+  kNumberOffset,
+  kNumberSections,
+  kReferenceLocation,
+  kSelfContained,
+  kShiftHeadingLevelBy,
+  kStandalone,
+  kTopLevelDivision,
+} from "../../config/constants.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { PandocWrapperCommand } from "../pandoc/wrapper.ts";
+import { isQuartoMetadata } from "../../config/metadata.ts";
 
-export const renderCommand = new Command()
-  .name("render")
-  .stopEarly()
-  .arguments("[input:string] [...args]")
-  .description(
-    "Render files or projects to various document types.",
-  )
-  .option(
-    "-t, --to",
-    "Specify output format(s).",
-  )
-  .option(
-    "-o, --output",
-    "Write output to FILE (use '--output -' for stdout).",
-  )
-  .option(
-    "--output-dir",
-    "Write output to DIR (path is input/project relative)",
-  )
-  .option(
-    "-M, --metadata",
-    "Metadata value (KEY:VALUE).",
-  )
-  .option(
-    "--site-url",
-    "Override site-url for website or book output",
-  )
-  .option(
-    "--execute",
-    "Execute code (--no-execute to skip execution).",
-  )
-  .option(
-    "-P, --execute-param",
-    "Execution parameter (KEY:VALUE).",
-  )
-  .option(
-    "--execute-params",
-    "YAML file with execution parameters.",
-  )
-  .option(
-    "--execute-dir",
-    "Working directory for code execution.",
-  )
-  .option(
-    "--execute-daemon",
-    "Keep Jupyter kernel alive (defaults to 300 seconds).",
-  )
-  .option(
-    "--execute-daemon-restart",
-    "Restart keepalive Jupyter kernel before render.",
-  )
-  .option(
-    "--execute-debug",
-    "Show debug output when executing computations.",
-  )
-  .option(
-    "--use-freezer",
-    "Force use of frozen computations for an incremental file render.",
-  )
-  .option(
-    "--cache",
-    "Cache execution output (--no-cache to prevent cache).",
-  )
-  .option(
-    "--cache-refresh",
-    "Force refresh of execution cache.",
-  )
-  .option(
-    "--no-clean",
-    "Do not clean project output-dir prior to render",
-  )
-  .option(
-    "--debug",
-    "Leave intermediate files in place after render.",
-  )
-  .option(
-    "pandoc-args...",
-    "Additional pandoc command line arguments.",
-  )
-  .example(
-    "Render Markdown",
-    "quarto render document.qmd\n" +
-      "quarto render document.qmd --to html\n" +
-      "quarto render document.qmd --to pdf --toc",
-  )
-  .example(
-    "Render Notebook",
-    "quarto render notebook.ipynb\n" +
-      "quarto render notebook.ipynb --to docx\n" +
-      "quarto render notebook.ipynb --to pdf --toc",
-  )
-  .example(
-    "Render Project",
-    "quarto render\n" +
-      "quarto render projdir",
-  )
-  .example(
-    "Render w/ Metadata",
-    "quarto render document.qmd -M echo:false\n" +
-      "quarto render document.qmd -M code-fold:true",
-  )
-  .example(
-    "Render to Stdout",
-    "quarto render document.qmd --output -",
-  )
-  // deno-lint-ignore no-explicit-any
-  .action(async (options: any, input?: string, ...args: string[]) => {
-    // remove implicit clean argument (re-injected based on what the user
-    // actually passes in flags.ts)
-    if (options === undefined) {
-      throw new InternalError("Expected `options` to be an object");
-    }
-    delete options.clean;
+const isValidOutput = applyCascade(
+    isString(), [
+      // https://github.com/quarto-dev/quarto-cli/issues/2440
+      makeValidator<string>({
+        test: (value, { errors, p } = {}) => {
+          if (value.match(SEP_PATTERN)) {
+            errors?.push(`${p ?? `.`}: option cannot specify a relative or absolute path`);
+            return false
+          }
 
-    // if an option got defined then this was mis-parsed as an 'option'
-    // rather than an 'arg' because no input was passed. reshuffle
-    // things to make them work
-    if (Object.keys(options).length === 1) {
-      const option = Object.keys(options)[0];
-      const optionArg = option.replaceAll(
-        /([A-Z])/g,
-        (_match: string, p1: string) => `-${p1.toLowerCase()}`,
-      );
-      if (input) {
-        args.unshift(input);
-        input = undefined;
+          return true;
+        },
+      })
+    ]
+);
+
+export class RenderCommand extends PandocWrapperCommand {
+  static name = 'render';
+  static paths = [[RenderCommand.name]];
+
+  static usage = Command.Usage({
+    description: "Render files or projects to various document types.",
+    examples: [
+      [
+        "Render Markdown",
+        [
+          `$0 ${RenderCommand.name} document.qmd`,
+          `$0 ${RenderCommand.name} document.qmd --to html`,
+          `$0 ${RenderCommand.name} document.qmd --to pdf --toc`,
+        ].join("\n")
+      ],
+      [
+        "Render Notebook",
+        [
+          `$0 ${RenderCommand.name} notebook.ipynb`,
+          `$0 ${RenderCommand.name} notebook.ipynb --to docx`,
+          `$0 ${RenderCommand.name} notebook.ipynb --to pdf --toc`,
+        ].join("\n")
+      ],
+      [
+        "Render Project",
+        [
+          `$0 ${RenderCommand.name}`,
+          `$0 ${RenderCommand.name} projdir`,
+        ].join("\n")
+      ],
+      [
+        "Render with Metadata",
+        [
+          `$0 ${RenderCommand.name} document.qmd -M echo:false`,
+          `$0 ${RenderCommand.name} document.qmd -M code-fold:true`,
+        ].join("\n")
+      ],
+      [
+        "Render to Stdout",
+        `$0 ${RenderCommand.name} document.qmd --output -`,
+      ]
+    ]
+  });
+
+  inputs = Option.Rest();
+
+  executeCacheRefresh = Option.Boolean("--cache-refresh", { description: "Force refresh of execution cache." });
+  clean = Option.Boolean("--clean", true, { description: "Clean project output-dir prior to render" });
+  debug = Option.Boolean("--debug", { description: "Leave intermediate files in place after render." });
+  execute_ = Option.Boolean("--execute", { description: "Execute code (--no-execute to skip execution)." });
+  executeCache = Option.Boolean("--cache", { description: "Cache execution output (--no-cache to prevent cache)." });
+  executeDaemon = Option.String("--execute-daemon", {
+    description: "Keep Jupyter kernel alive (defaults to 300 seconds).",
+    validator: isNumber(),
+  });
+  noExecuteDaemon = Option.Boolean("--no-execute-daemon");
+  executeDaemonRestart = Option.Boolean("--execute-daemon-restart", { description: "Restart keepalive Jupyter kernel before render." });
+  executeDebug = Option.Boolean("--execute-debug", { description: "Show debug output when executing computations." });
+  executeDir = Option.String("--execute-dir", { description: "Working directory for code execution." });
+  executeParam = Option.String("-P,--execute-param", { description: "Execution parameter (KEY:VALUE)." });
+  metadata = Option.Array("-M,--metadata", { description: "Metadata value (KEY:VALUE).", validator: isArray(isString()) });
+  metadataFiles = Option.Array("--metadata-files", { validator: isArray(isString()) });
+  output = Option.String("-o,--output", {
+    description: "Write output to FILE (use '--output -' for stdout).",
+    validator: isValidOutput
+  });
+  outputDir = Option.String("--output-dir", { description: "Write output to DIR (path is input/project relative)" });
+  paramsFile = Option.String("--execute-params", { description: "YAML file with execution parameters." });
+  siteUrl = Option.String("--site-url", { description: "Override site-url for website or book output" });
+  to = Option.String("-t,--to", { description: "Specify output format(s)." });
+  useFreezer = Option.Boolean("--use-freezer", { description: "Force use of frozen computations for an incremental file render." });
+
+  // TODO: should the following be documented?
+  makeIndexOpts = Option.Array("--latex-makeindex-opt", { hidden: true });
+  tlmgrOpts = Option.Array("--latex-tlmgr-opt", { hidden: true });
+
+  async parseMetadata() {
+    type Metadata = Record<        string,        unknown    >;
+    const metadata = {} as Metadata;
+
+    for (const file in this.metadataFiles || []) {
+      if (!existsSync(file)) {
+        debug(`Ignoring missing metadata file: ${file}`);
+        continue;
       }
-      args.unshift("--" + optionArg);
-      delete options[option];
+
+      const metadataFile = (await readYaml(file)) as Metadata;
+
+      // TODO: merge instead of overwriting
+      //   see https://github.com/quarto-dev/quarto-cli/issues/11139
+      Object.assign(metadata, metadataFile);
     }
 
-    // show help if requested
-    if (args.length > 0 && args[0] === "--help" || args[0] === "-h") {
-      renderCommand.showHelp();
-      return;
-    }
-
-    // if input is missing but there exists an args parameter which is a .qmd or .ipynb file,
-    // issue a warning.
-    if (!input || input === kCliffyImplicitCwd) {
-      input = Deno.cwd();
-      debug(`Render: Using current directory (${input}) as implicit input`);
-      const firstArg = args.find((arg) =>
-        arg.endsWith(".qmd") || arg.endsWith(".ipynb")
-      );
-      if (firstArg) {
-        warning(
-          "`quarto render` invoked with no input file specified (the parameter order matters).\nQuarto will render the current directory by default.\n" +
-            `Did you mean to run \`quarto render ${firstArg} ${
-              args.filter((arg) => arg !== firstArg).join(" ")
-            }\`?\n` +
-            "Use `quarto render --help` for more information.",
-        );
+    for (const metadataValue of this.metadata || []) {
+      const { name, value } = parseMetadataFlagValue(metadataValue) || {};
+      if (name === undefined || value === undefined) {
+        continue;
       }
-    }
-    const inputs = [input!];
-    const firstPandocArg = args.findIndex((arg) => arg.startsWith("-"));
-    if (firstPandocArg !== -1) {
-      inputs.push(...args.slice(0, firstPandocArg));
-      args = args.slice(firstPandocArg);
+
+      metadata[name] = value;
     }
 
-    // found by
-    // $ pandoc --help | grep '\[='
-    // cf https://github.com/jgm/pandoc/issues/8013#issuecomment-1094162866
+    const quartoMetadata = {} as Metadata;
+    const pandocMetadata = {} as Metadata;
 
-    const pandocArgsWithOptionalValues = [
-      "--file-scope",
-      "--sandbox",
-      "--standalone",
-      "--ascii",
-      "--toc",
-      "--preserve-tabs",
-      "--self-contained",
-      "--embed-resources",
-      "--no-check-certificate",
-      "--strip-comments",
-      "--reference-links",
-      "--list-tables",
-      "--listings",
-      "--incremental",
-      "--section-divs",
-      "--html-q-tags",
-      "--epub-title-page",
-      "--webtex",
-      "--mathjax",
-      "--katex",
-      "--trace",
-      "--dump-args",
-      "--ignore-args",
-      "--fail-if-warnings",
-      "--list-extensions",
-    ];
-
-    // normalize args (to deal with args like --foo=bar)
-    const normalizedArgs = [];
-    for (const arg of args) {
-      const equalSignIndex = arg.indexOf("=");
-      if (
-        equalSignIndex > 0 && arg.startsWith("-") &&
-        !pandocArgsWithOptionalValues.includes(arg.slice(0, equalSignIndex))
-      ) {
-        // Split the arg at the first equal sign
-        normalizedArgs.push(arg.slice(0, equalSignIndex));
-        normalizedArgs.push(arg.slice(equalSignIndex + 1));
+    Object.entries(metadata).forEach(([key, value]) => {
+      if (isQuartoMetadata(key)) {
+        quartoMetadata[key] = value;
       } else {
-        normalizedArgs.push(arg);
+        pandocMetadata[key] = value;
+      }
+    });
+
+    return { quartoMetadata, pandocMetadata }
+  }
+
+  // TODO: this can be simplified by making the Command inherit RenderFlags and naming attributes consistently
+  async parseRenderFlags() {
+    const flags: RenderFlags = {};
+
+    // converts any value to `true` but keeps `undefined`
+    const isSet = (value: any): true | undefined => !(typeof value === "undefined") || value;
+
+    const pandocWrapper = this as PandocWrapperCommand;
+    flags.biblatex = pandocWrapper["biblatex"];
+    flags.gladtex = pandocWrapper["gladtex"];
+    flags["include-after-body"] = pandocWrapper["include-after-body"];
+    flags["include-before-body"] = pandocWrapper["include-before-body"];
+    flags["include-in-header"] = pandocWrapper["include-in-header"];
+    flags.katex = isSet(pandocWrapper["katex"]);
+    flags.mathjax = isSet(pandocWrapper["mathjax"]);
+    flags.mathml = pandocWrapper["mathml"];
+    flags.natbib = pandocWrapper["natbib"];
+    flags.output = pandocWrapper.output;
+    flags.pdfEngine = pandocWrapper["pdf-engine"];
+    flags.pdfEngineOpts = pandocWrapper["pdf-engine-opt"];
+    flags.to = pandocWrapper.to;
+    flags.toc = pandocWrapper["toc"];
+    flags.webtex = isSet(pandocWrapper["webtex"]);
+    flags[kEmbedResources] = pandocWrapper["embed-resources"];
+    flags[kListings] = pandocWrapper["listings"];
+    flags[kNumberSections] = pandocWrapper["number-sections"] || isSet(pandocWrapper["number-offset"]);
+    flags[kNumberOffset] = pandocWrapper["number-offset"];
+    flags[kReferenceLocation] = pandocWrapper["reference-location"];
+    flags[kSelfContained] = pandocWrapper["self-contained"];
+    flags[kShiftHeadingLevelBy] = pandocWrapper["shift-heading-level-by"];
+    flags[kStandalone] = pandocWrapper["standalone"];
+    flags[kTopLevelDivision] = pandocWrapper["top-level-division"];
+
+    const { quartoMetadata, pandocMetadata } = await this.parseMetadata();
+    flags.metadata = quartoMetadata;
+    flags.pandocMetadata = pandocMetadata;
+
+    flags.clean = this.clean;
+    flags.debug = this.debug;
+    flags.execute = this.execute_;
+    flags.executeCache = this.executeCacheRefresh ? "refresh" : this.executeCache;
+    flags.executeDaemon = this.noExecuteDaemon ? 0 : this.executeDaemon;
+    flags.executeDaemonRestart = this.executeDaemonRestart;
+    flags.executeDebug = this.executeDebug;
+    flags.executeDir = (!this.executeDir || isAbsolute(this.executeDir)) ? this.executeDir : normalizePath(this.executeDir);
+    flags.makeIndexOpts = this.makeIndexOpts;
+    flags.outputDir = this.outputDir;
+    flags.paramsFile = this.paramsFile;
+    flags.siteUrl = this.siteUrl;
+    flags.tlmgrOpts = this.tlmgrOpts;
+    flags.useFreezer = this.useFreezer;
+
+    const param = this.executeParam && parseMetadataFlagValue(this.executeParam);
+    if (param) {
+      if (param.value !== undefined) {
+        flags.params = flags.params || {};
+        flags.params[param.name] = param.value;
       }
     }
-    args = normalizedArgs;
 
-    // extract pandoc flag values we know/care about, then fixup args as
-    // necessary (remove our flags that pandoc doesn't know about)
-    const flags = await parseRenderFlags(args);
-    args = fixupPandocArgs(args, flags);
+    return flags;
+  }
+
+  async execute() {
+    if (this.inputs.length === 0) {
+      this.inputs = [Deno.cwd()];
+      debug(`Render: Using current directory (${this.inputs[0]}) as implicit input`);
+    }
+
+    const flags = await this.parseRenderFlags();
 
     // run render on input files
-
     let renderResult: RenderResult | undefined;
     let renderResultInput: string | undefined;
-    for (const input of inputs) {
+    for (const input of this.inputs) {
       for (const walk of expandGlobSync(input)) {
         const services = renderServices(notebookContext());
         try {
@@ -248,12 +249,11 @@ export const renderCommand = new Command()
           renderResult = await render(renderResultInput, {
             services,
             flags,
-            pandocArgs: args,
+            pandocArgs: this.formattedPandocArgs,
             useFreezer: flags.useFreezer === true,
             setProjectDir: true,
           });
 
-          // check for error
           if (renderResult.error) {
             throw renderResult.error;
           }
@@ -262,14 +262,15 @@ export const renderCommand = new Command()
         }
       }
     }
+
     if (renderResult && renderResultInput) {
       // report output created
-      if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
+      if (!flags.quiet && flags.output !== kStdOut) {
         const finalOutput = renderResultFinalOutput(
-          renderResult,
-          Deno.statSync(renderResultInput).isDirectory
-            ? renderResultInput
-            : dirname(renderResultInput),
+            renderResult,
+            Deno.statSync(renderResultInput).isDirectory
+                ? renderResultInput
+                : dirname(renderResultInput),
         );
 
         if (finalOutput) {
@@ -279,4 +280,5 @@ export const renderCommand = new Command()
     } else {
       throw new Error(`No valid input files passed to render`);
     }
-  });
+  }
+}

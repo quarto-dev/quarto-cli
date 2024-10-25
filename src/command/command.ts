@@ -6,7 +6,7 @@
 
 import type { Command } from "cliffy/command/mod.ts";
 
-import { renderCommand } from "./render/cmd.ts";
+import { RenderCommand } from "./render/cmd.ts";
 import { serveCommand } from "./serve/cmd.ts";
 import { CreateProjectCommand } from "./create-project/cmd.ts";
 import { toolsCommand } from "./tools/cmd.ts";
@@ -34,7 +34,7 @@ import { editorSupportCommands } from "./editor-support/cmd.ts";
 export function commands(): Command<any>[] {
   return [
     // deno-lint-ignore no-explicit-any
-    renderCommand as any,
+    RenderCommand,
     previewCommand,
     serveCommand,
     CreateCommand,

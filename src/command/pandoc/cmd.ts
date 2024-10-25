@@ -22,18 +22,23 @@ export class PandocCommand extends Command {
 
   args = Option.Proxy();
 
-  async execute() {
+  async runPandoc(options = {}) {
     const { env } = this.context;
-    const result = await execProcess(
-      {
-        cmd: [pandocBinaryPath(), ...this.args],
-        env: (env as Record<string, string>),
-      },
-      undefined,
-      undefined,
-      undefined,
-      true,
+    return await execProcess(
+        {
+          cmd: [pandocBinaryPath(), ...this.args],
+          env: (env as Record<string, string>),
+          ...options,
+        },
+        undefined,
+        undefined,
+        undefined,
+        true,
     );
+  }
+
+  async execute() {
+    const result = await this.runPandoc();
     Deno.exit(result.code);
   }
 }
