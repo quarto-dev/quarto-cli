@@ -13,7 +13,7 @@ import { toolsCommand } from "./tools/cmd.ts";
 import { previewCommand } from "./preview/cmd.ts";
 import { ConvertCommand } from "./convert/cmd.ts";
 import { runCommand } from "./run/run.ts";
-import { PandocCommand } from "./pandoc/cmd.ts";
+import { PandocCommand, GeneratePandocWrapperCommand } from "./pandoc/cmd.ts";
 import { typstCommand } from "./typst/cmd.ts";
 import { CapabilitiesCommand } from "./capabilities/cmd.ts";
 import { CheckCommand } from "./check/cmd.ts";
@@ -45,6 +45,7 @@ export function commands(): Command<any>[] {
     CreateProjectCommand,
     ConvertCommand,
     PandocCommand,
+    GeneratePandocWrapperCommand,
     typstCommand,
     runCommand,
     ...listCommands,
