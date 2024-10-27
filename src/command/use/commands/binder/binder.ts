@@ -206,7 +206,7 @@ const createPostBuild = (
   pythonConfig: PythonConfiguration,
 ) => {
   const postBuildScript: string[] = [];
-  postBuildScript.push("#!/usr/bin/env bash -v");
+  postBuildScript.push("#!/usr/bin/env -S bash -v");
   postBuildScript.push("");
   postBuildScript.push(`# determine which version of Quarto to install`);
   postBuildScript.push(`QUARTO_VERSION=${quartoConfig.version}`);
