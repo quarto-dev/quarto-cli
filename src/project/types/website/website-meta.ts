@@ -180,7 +180,7 @@ export function metadataHtmlPostProcessor(
 
       // find a preview image if one is not provided
       if (metadata[kImage] === undefined && format.metadata[kImage] !== false) {
-        metadata[kImage] = findPreviewImg(doc, true) ||
+        metadata[kImage] = findPreviewImg(doc) ||
           websiteImage(project.config);
       }
 
@@ -249,7 +249,6 @@ function opengraphMetadata(
   if (siteMeta && siteMeta[kTitle]) {
     metadata[kSiteName] = siteMeta[kTitle];
   }
-
   // Read open graph data in
   if (openGraph && typeof openGraph === "object") {
     [
