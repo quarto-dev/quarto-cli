@@ -86,6 +86,7 @@ All changes included in 1.6:
 - ([#2671](https://github.com/quarto-dev/quarto-cli/issues/2671)): Ensure that `--output-dir` works across filesystem boundaries.
 - ([#8517](https://github.com/quarto-dev/quarto-cli/issues/8571)), ([#10829](https://github.com/quarto-dev/quarto-cli/issues/10829)): Allow listing categories with non-alphanumeric characters such as apostrophes, etc.
 - ([#8932](https://github.com/quarto-dev/quarto-cli/issues/8932)): Escape render ids in markdown pipeline to allow special characters in sidebars/navbars, etc.
+- ([#10311](https://github.com/quarto-dev/quarto-cli/issues/10311)): Loosen auto-discovery of images for OpenGraph cards.
 - ([#10567](https://github.com/quarto-dev/quarto-cli/issues/10567)): Generate breadcrumbs correctly for documents using a level-1 heading as the title.
 - ([#10616](https://github.com/quarto-dev/quarto-cli/issues/10268)): Add a `z-index` setting to the 'back to top' button to ensure it is always visible.
 
