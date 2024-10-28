@@ -32,6 +32,9 @@ local function get_typography(fontName)
   if not brand then return nil end
   local typography = brand.typography and brand.typography[fontName]
   if not typography then return nil end
+  if type(typography) == 'string' then
+    typography = { family = typography }
+  end
   local typsted = {}
   for k, v in pairs(typography) do
     if k == 'color' or k == 'background-color' then
