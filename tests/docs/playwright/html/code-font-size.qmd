@@ -1,0 +1,8 @@
+---
+title: Testing code font size
+format: html
+---
+
+```python
+1 + 1
+```
