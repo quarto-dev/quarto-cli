@@ -203,10 +203,16 @@ async function findChrome(): Promise<string | undefined> {
   let path;
   // First check env var and use this path if specified
   const envPath = Deno.env.get("QUARTO_CHROMIUM");
-  if (envPath && safeExistsSync(envPath)) {
+  if (envPath) {
     debug("[CHROMIUM] Using path specified in QUARTO_CHROMIUM");
-    debug(`[CHROMIUM] Path: ${envPath}`);
-    return envPath;
+    if (safeExistsSync(envPath)) {
+      debug(`[CHROMIUM] Found at ${envPath}, and will be used.`);
+      return envPath;
+    } else {
+      debug(
+        `[CHROMIUM] Not found at ${envPath}. Check your environment variable valye. Searching now for another binary.`,
+      );
+    }
   }
   // Otherwise, try to find the path based on OS.
   if (Deno.build.os === "darwin") {
