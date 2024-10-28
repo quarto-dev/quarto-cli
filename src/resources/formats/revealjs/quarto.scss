@@ -1,5 +1,4 @@
 /*-- scss:uses --*/
-@use "sass:color" as sass-color;
 
 /*-- scss:defaults --*/
 
@@ -219,7 +218,7 @@ $overlayElementFgColor: 0, 0, 0 !default;
 
 @mixin shift_to_dark($property, $color) {
   @if (
-    sass-color.blackness($backgroundColor) > $code-block-theme-dark-threshhold
+    quarto-color.blackness($backgroundColor) > $code-block-theme-dark-threshhold
   ) {
     #{$property}: shift-color($color, 70%);
   } @else {
@@ -611,18 +610,18 @@ $panel-sidebar-padding: 0.5em;
   }
 
   &.has-dark-background {
-    color: sass-color.scale($dark-bg-text-color, $whiteness: 30%);
+    color: quarto-color.scale($dark-bg-text-color, $whiteness: 30%);
 
     a {
-      color: sass-color.scale($dark-bg-link-color, $whiteness: 30%);
+      color: quarto-color.scale($dark-bg-link-color, $whiteness: 30%);
     }
   }
 
   &.has-light-background {
-    color: sass-color.scale($light-bg-text-color, $whiteness: 30%);
+    color: quarto-color.scale($light-bg-text-color, $whiteness: 30%);
 
     a {
-      color: sass-color.scale($light-bg-link-color, $whiteness: 30%);
+      color: quarto-color.scale($light-bg-link-color, $whiteness: 30%);
     }
   }
 }
@@ -631,11 +630,11 @@ $panel-sidebar-padding: 0.5em;
   color: $text-muted;
 
   &.has-dark-background {
-    color: sass-color.scale($dark-bg-text-color, $whiteness: 30%);
+    color: quarto-color.scale($dark-bg-text-color, $whiteness: 30%);
   }
 
   &.has-light-background {
-    color: sass-color.scale($light-bg-text-color, $whiteness: 30%);
+    color: quarto-color.scale($light-bg-text-color, $whiteness: 30%);
   }
 }
 
@@ -735,7 +734,7 @@ $panel-sidebar-padding: 0.5em;
 // This is a sentinel value that renderers can use to determine
 // whether the theme is dark or light
 @if (
-  sass-color.blackness($backgroundColor) > $code-block-theme-dark-threshhold
+  quarto-color.blackness($backgroundColor) > $code-block-theme-dark-threshhold
 ) {
   /*! dark */
   .reveal div.callout.callout-style-default .callout-title {
