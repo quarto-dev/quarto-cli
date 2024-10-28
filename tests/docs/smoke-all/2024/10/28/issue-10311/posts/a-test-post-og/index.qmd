@@ -2,6 +2,7 @@
 date: '2024-07-20T20:47:56-04:00'
 title: "Yes, opengraph image"
 _quarto:
+  render-project: true
   tests:
     html:
       ensureFileRegexMatches:
