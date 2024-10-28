@@ -1,0 +1,10 @@
+---
+title: "Home"
+listing:
+  contents:
+    - "posts.qmd"
+  type: grid 
+  sort: false
+---
+
+
