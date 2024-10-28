@@ -20,3 +20,13 @@ test('Dark theming toggle change to dark background ', async ({ page }) => {
   const locatr2 = await page.locator('div').filter({ hasText: 'Quarto Playground' }).first()
   await expect(locatr2).toHaveCSS('background-color', 'rgb(255, 0, 0)');
 });
+
+test('Code block font size did not change and still equals to pre size', async ({ page }) => {
+  await page.goto('./html/code-font-size.html');
+  const code = page.getByRole('code')
+  const pre = page.locator('pre')
+  const preFontSize = await pre.evaluate((element) =>
+    window.getComputedStyle(element).getPropertyValue('font-size'),
+  );
+  await expect(code).toHaveCSS('font-size', preFontSize);
+});
