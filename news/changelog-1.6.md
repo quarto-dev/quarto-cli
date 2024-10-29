@@ -52,6 +52,7 @@ All changes included in 1.6:
 - ([#9999](https://github.com/quarto-dev/quarto-cli/issues/9999)): Fix spacing problems of different size elements in columns.
 - ([#11146](https://github.com/quarto-dev/quarto-cli/issues/11146)): Fix issue with slide created with `---` and having no title showing up in TOC. Now they don't show up as slide created with empty header e.g. `## `.
 - ([#7142](https://github.com/quarto-dev/quarto-cli/issues/7142)): Fix issue in slides with `incremental: true` not working as expected when `code-annotation: hover` or `code-annotation: select`.
+- ([#9803](https://github.com/quarto-dev/quarto-cli/issues/9803)): Using url for `logo` to an online svg is now working correctly with `embed-resources: true`.
 
 ## `typst` Format
 
