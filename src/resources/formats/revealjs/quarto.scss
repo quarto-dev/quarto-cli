@@ -315,6 +315,14 @@ div.reveal div.slides section.quarto-title-block {
   margin: 0;
   font-size: $revealjs-code-block-font-size;
   line-height: $code-block-line-height;
+  font-family: $blockCodeFont;
+
+  code {
+    background-color: $body-bg;
+    font-size: inherit;
+    color: $code-block-color;
+    font-family: inherit;
+  }
 }
 
 // Inside code-file-name div, we want to use the same background color as decorated codeblock header
@@ -328,6 +336,7 @@ div.reveal div.slides section.quarto-title-block {
   font-size: $revealjs-code-inline-font-size;
   background-color: $code-bg;
   white-space: pre-wrap;
+  font-family: $inlineCodeFont;
 }
 
 .reveal pre.sourceCode code {
@@ -819,12 +828,4 @@ kbd {
 :root {
   --r-inline-code-font: #{$inlineCodeFont};
   --r-block-code-font: #{$blockCodeFont};
-}
-
-.reveal code {
-  font-family: var(--r-inline-code-font);
-}
-
-.reveal pre code {
-	font-family: var(--r-block-code-font);
 }
