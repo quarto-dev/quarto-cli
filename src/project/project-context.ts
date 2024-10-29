@@ -496,7 +496,7 @@ function quartoYamlProjectConfigResolver(
     if (configFile) {
       // read config file
       const files = [configFile];
-      const errMsg = "Project _quarto.yml validation failed.";
+      const errMsg = `Project ${configFile} validation failed.`;
       let config = (await readAndValidateYamlFromFile(
         configFile,
         configSchema,
