@@ -321,6 +321,14 @@ div.reveal div.slides section.quarto-title-block {
     color: $code-block-color;
     font-family: inherit;
   }
+
+  &.sourceCode code {
+    color: $code-block-color;
+    background-color: $code-block-bg;
+    padding: 6px 9px;
+    max-height: $code-block-height;
+    white-space: pre;
+  }
 }
 
 // Inside code-file-name div, we want to use the same background color as decorated codeblock header
@@ -335,14 +343,6 @@ div.reveal div.slides section.quarto-title-block {
   background-color: $code-bg;
   white-space: pre-wrap;
   font-family: $font-family-monospace-inline;
-}
-
-.reveal pre.sourceCode code {
-    color: $code-block-color;
-  background-color: $code-block-bg;
-  padding: 6px 9px;
-  max-height: $code-block-height;
-  white-space: pre;
 }
 
 .reveal .column-output-location {
