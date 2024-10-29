@@ -338,9 +338,7 @@ div.reveal div.slides section.quarto-title-block {
 }
 
 .reveal pre.sourceCode code {
-  @if variable-exists(code-block-color) {
     color: $code-block-color;
-  }
   background-color: $code-block-bg;
   padding: 6px 9px;
   max-height: $code-block-height;
