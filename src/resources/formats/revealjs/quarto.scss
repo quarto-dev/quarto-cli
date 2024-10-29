@@ -173,8 +173,6 @@ $heading3Size: $revealjs-h3-font-size !default;
 $heading4Size: $revealjs-h4-font-size !default;
 
 $codeFont: $font-family-monospace !default;
-$inlineCodeFont: $font-family-monospace-inline !default;
-$blockCodeFont: $font-family-monospace-block !default;
 
 // Links and actions
 $linkColor: $link-color !default;
@@ -315,7 +313,7 @@ div.reveal div.slides section.quarto-title-block {
   margin: 0;
   font-size: $revealjs-code-block-font-size;
   line-height: $code-block-line-height;
-  font-family: $blockCodeFont;
+  font-family: $font-family-monospace-block;
 
   code {
     background-color: $body-bg;
@@ -336,7 +334,7 @@ div.reveal div.slides section.quarto-title-block {
   font-size: $revealjs-code-inline-font-size;
   background-color: $code-bg;
   white-space: pre-wrap;
-  font-family: $inlineCodeFont;
+  font-family: $font-family-monospace-inline;
 }
 
 .reveal pre.sourceCode code {
@@ -826,6 +824,6 @@ kbd {
 }
 
 :root {
-  --r-inline-code-font: #{$inlineCodeFont};
-  --r-block-code-font: #{$blockCodeFont};
+  --r-inline-code-font: #{$font-family-monospace-inline};
+  --r-block-code-font: #{$font-family-monospace-block};
 }
