@@ -16630,6 +16630,19 @@ try {
             description: "Use the specified file as a style reference in producing a docx, \npptx, or odt file.\n"
           },
           {
+            name: "brand",
+            schema: {
+              anyOf: [
+                "string",
+                "boolean",
+                {
+                  ref: "brand"
+                }
+              ]
+            },
+            description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition.\n"
+          },
+          {
             name: "theme",
             tags: {
               formats: [
@@ -22619,7 +22632,7 @@ try {
           "The page layout to use for this document (<code>article</code>,\n<code>full</code>, or <code>custom</code>)",
           {
             short: "Target page width for output (used to compute columns widths for\n<code>layout</code> divs)",
-            long: "Target page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt."
+            long: "Target body page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt (8.5 inches with 1 inch for\neach margins)."
           },
           {
             short: "Properties of the grid system used to layout Quarto HTML pages.",
@@ -24119,12 +24132,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 192600,
+          _internalId: 193258,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 192592,
+              _internalId: 193250,
               type: "enum",
               enum: [
                 "png",
@@ -24140,7 +24153,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 192599,
+              _internalId: 193257,
               type: "anyOf",
               anyOf: [
                 {
