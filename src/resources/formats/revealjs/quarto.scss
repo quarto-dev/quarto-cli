@@ -224,6 +224,14 @@ $overlayElementFgColor: 0, 0, 0 !default;
   }
 }
 
+@mixin make-smaller-font-size($element) {
+  font-size: calc(#{$element} * #{$presentation-font-smaller});
+}
+
+@mixin undo-smaller-font-size($element) {
+  font-size: calc(#{$element} / #{$presentation-font-smaller});
+}
+
 // -- START setting.scss --
 
 // Generates the presentation background, can be overridden
@@ -460,29 +468,88 @@ $panel-sidebar-padding: 0.5em;
   line-height: $revealjs-line-height;
 }
 
-.reveal.smaller .slides section,
-.reveal .slides section.smaller,
-.reveal .slides section .callout {
-  font-size: #{$presentation-font-smaller}em;
-}
-// avoid applying twice the reduction when using nested section
-.reveal.smaller .slides section section {
-  font-size: inherit;
-}
+// Smaller font size logic
+.reveal {
+  // When smaller is set globally
+  &.smaller {
+    .slides {
+      // We make the all slide font-size smaller by a factor of $presentation-font-smaller
+      section {
+        font-size: #{$presentation-font-smaller}em;
 
-.reveal.smaller .slides h1,
-.reveal .slides section.smaller h1 {
-  font-size: calc(#{$revealjs-h1-font-size} / #{$presentation-font-smaller});
-}
+        // avoid applying twice the reduction when using nested section
+        section {
+          font-size: inherit;
+        }
+      }
 
-.reveal.smaller .slides h2,
-.reveal .slides section.smaller h2 {
-  font-size: calc(#{$revealjs-h2-font-size} / #{$presentation-font-smaller});
-}
+      // But we don't want headers to change size and they are in em
+      h1 {
+        @include undo-smaller-font-size($revealjs-h1-font-size);
+      }
+      h2 {
+        @include undo-smaller-font-size($revealjs-h2-font-size);
+      }
+      h3 {
+        @include undo-smaller-font-size($revealjs-h3-font-size);
+      }
+      // Though we want pre and code to be smaller and they are in px
+      pre {
+        @include make-smaller-font-size($revealjs-code-block-font-size);
+      }
+      code {
+        @include make-smaller-font-size($revealjs-code-inline-font-size);
+      }
+    }
+  }
 
-.reveal.smaller .slides h3,
-.reveal .slides section.smaller h3 {
-  font-size: calc(#{$revealjs-h3-font-size} / #{$presentation-font-smaller});
+  .slides section {
+    // when  smaller is set on slide
+    &.smaller {
+      font-size: #{$presentation-font-smaller}em;
+
+      // But we don't want headers to change size and they are in em
+      h1 {
+        @include undo-smaller-font-size($revealjs-h1-font-size);
+      }
+      h2 {
+        @include undo-smaller-font-size($revealjs-h2-font-size);
+      }
+      h3 {
+        @include undo-smaller-font-size($revealjs-h3-font-size);
+      }
+      // Though we want pre and code to be smaller and they are in px
+      pre {
+        @include make-smaller-font-size($revealjs-code-block-font-size);
+      }
+      code {
+        @include make-smaller-font-size($revealjs-code-inline-font-size);
+      }
+    }
+
+    // On callout we want to make the font-size smaller too
+    .callout {
+      font-size: #{$presentation-font-smaller}em;
+
+      // But we don't want headers to change size and they are in em
+      h1 {
+        @include undo-smaller-font-size($revealjs-h1-font-size);
+      }
+      h2 {
+        @include undo-smaller-font-size($revealjs-h2-font-size);
+      }
+      h3 {
+        @include undo-smaller-font-size($revealjs-h3-font-size);
+      }
+      // Though we want pre and code to be smaller and they are in px
+      pre {
+        @include make-smaller-font-size($revealjs-code-block-font-size);
+      }
+      code {
+        @include make-smaller-font-size($revealjs-code-inline-font-size);
+      }
+    }
+  }
 }
 
 .reveal .columns > .column > :not(ul, ol) {
