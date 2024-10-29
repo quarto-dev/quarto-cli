@@ -654,30 +654,34 @@ $panel-sidebar-padding: 0.5em;
   z-index: 1;
 }
 
-.reveal .callout.callout-style-simple .callout-body,
-.reveal .callout.callout-style-default .callout-body,
-.reveal .callout.callout-style-simple div.callout-title,
-.reveal .callout.callout-style-default div.callout-title {
-  font-size: inherit;
-}
+/* Callout styles */
+.reveal .callout {
+  &.callout-style-simple,
+  &.callout-style-default {
+    .callout-body,
+    div.callout-title {
+      font-size: inherit;
+    }
+    .callout-icon::before {
+      height: 2rem;
+      width: 2rem;
+      background-size: 2rem 2rem;
+    }
+  }
 
-.reveal .callout.callout-style-default .callout-icon::before,
-.reveal .callout.callout-style-simple .callout-icon::before {
-  height: 2rem;
-  width: 2rem;
-  background-size: 2rem 2rem;
-}
+  &.callout-titled {
+    .callout-title p {
+      margin-top: 0.5em;
+    }
 
-.reveal .callout.callout-titled .callout-title p {
-  margin-top: 0.5em;
-}
+    .callout-icon::before {
+      margin-top: 1rem;
+    }
 
-.reveal .callout.callout-titled .callout-icon::before {
-  margin-top: 1rem;
-}
-
-.reveal .callout.callout-titled .callout-body > .callout-content > :last-child {
-  margin-bottom: 1rem;
+    .callout-body > .callout-content > :last-child {
+      margin-bottom: 1rem;
+    }
+  }
 }
 
 .reveal .panel-tabset [role="tab"] {
