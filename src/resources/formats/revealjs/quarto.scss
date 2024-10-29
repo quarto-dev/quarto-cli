@@ -1041,29 +1041,29 @@ kbd {
 }
 
 .callout.callout-style-simple .callout-icon::before {
-  height: 1rem;
-  width: 1rem;
+  height: 1em;
+  width: 1em;
   display: inline-block;
   content: "";
   background-repeat: no-repeat;
-  background-size: 1rem 1rem;
+  background-size: contain;
 }
 
 .callout.callout-style-default .callout-icon::before {
-  height: 0.9rem;
-  width: 0.9rem;
+  height: 0.9em;
+  width: 0.9em;
   display: inline-block;
   content: "";
   background-repeat: no-repeat;
-  background-size: 0.9rem 0.9rem;
+  background-size: contain;
 }
 
 .callout-title {
   display: flex;
+  align-items: center;
 }
 
 .callout-icon::before {
-  margin-top: 1rem;
   padding-right: 0.5rem;
 }
 
