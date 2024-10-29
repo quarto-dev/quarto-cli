@@ -347,12 +347,6 @@ div.reveal div.slides section.quarto-title-block {
   white-space: pre;
 }
 
-.reveal pre code {
-  background-color: $body-bg;
-  font-size: $revealjs-code-block-font-size;
-  color: $code-block-color;
-}
-
 .reveal .column-output-location {
   display: flex;
   align-items: stretch;
