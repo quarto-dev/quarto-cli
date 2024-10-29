@@ -496,6 +496,10 @@ $panel-sidebar-padding: 0.5em;
       // Though we want pre and code to be smaller and they are in px
       pre {
         @include make-smaller-font-size($revealjs-code-block-font-size);
+        // Make sure code inside pre use code block font size
+        code {
+          font-size: inherit;
+        }
       }
       code {
         @include make-smaller-font-size($revealjs-code-inline-font-size);
@@ -521,6 +525,10 @@ $panel-sidebar-padding: 0.5em;
       // Though we want pre and code to be smaller and they are in px
       pre {
         @include make-smaller-font-size($revealjs-code-block-font-size);
+        // Make sure code inside pre use code block font size
+        code {
+          font-size: inherit;
+        }
       }
       code {
         @include make-smaller-font-size($revealjs-code-inline-font-size);
@@ -544,6 +552,10 @@ $panel-sidebar-padding: 0.5em;
       // Though we want pre and code to be smaller and they are in px
       pre {
         @include make-smaller-font-size($revealjs-code-block-font-size);
+        // Make sure code inside pre use code block font size
+        code {
+          font-size: inherit;
+        }
       }
       code {
         @include make-smaller-font-size($revealjs-code-inline-font-size);
