@@ -139,6 +139,9 @@ $revealjs-block-margin: $presentation-block-margin !default;
 $revealjs-line-height: $presentation-line-height !default;
 $revealjs-list-bullet-color: $presentation-list-bullet-color !default;
 
+$revealjs-code-inline-font-size: $code-inline-font-size !default;
+$revealjs-code-block-font-size: $code-block-font-size !default;
+
 // ---- map to reveal scss variables ---
 // ---- This is based from the revealjs setting.scss
 // -- START setting.scss --
@@ -310,7 +313,7 @@ div.reveal div.slides section.quarto-title-block {
   background-color: $code-block-bg;
   border: none;
   margin: 0;
-  font-size: $code-block-font-size;
+  font-size: $revealjs-code-block-font-size;
   line-height: $code-block-line-height;
 }
 
@@ -322,7 +325,7 @@ div.reveal div.slides section.quarto-title-block {
 
 .reveal code {
   color: $code-color;
-  font-size: $code-inline-font-size;
+  font-size: $revealjs-code-inline-font-size;
   background-color: $code-bg;
   white-space: pre-wrap;
 }
@@ -339,7 +342,7 @@ div.reveal div.slides section.quarto-title-block {
 
 .reveal pre code {
   background-color: $body-bg;
-  font-size: $code-block-font-size;
+  font-size: $revealjs-code-block-font-size;
   color: $code-block-color;
 }
 
