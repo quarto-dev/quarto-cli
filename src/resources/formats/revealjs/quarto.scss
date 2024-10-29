@@ -104,6 +104,21 @@ $dark-bg-link-color: #42affa !default;
 $light-bg-code-color: #4758ab !default;
 $dark-bg-code-color: #ffa07a !default;
 
+// KBD variables
+$kbd-padding-y: 0.4rem !default;
+$kbd-padding-x: 0.4rem !default;
+$kbd-font-size: $presentation-font-size-root !default;
+$kbd-color: $body-color !default;
+$kbd-bg: $gray-100 !default; // like in bootstrap style
+
+// variables required by _brand.yml
+$font-family-monospace-block: $font-family-monospace !default;
+$font-family-monospace-inline: $font-family-monospace !default;
+$font-weight-monospace: $font-weight-base !default;
+$font-weight-monospace-block: $font-weight-monospace !default;
+$font-weight-monospace-inline: $font-weight-monospace !default;
+$code-inline-font-size: $code-font-size !default;
+
 // --- derive reveal versions of presentation variables for finer-grained override ---
 
 $revealjs-font-size-root: $presentation-font-size-root !default;
@@ -172,21 +187,6 @@ $overlayElementBgColor: 240, 240, 240 !default;
 $overlayElementFgColor: 0, 0, 0 !default;
 
 // -- END setting.scss --
-
-// KBD variables
-$kbd-padding-y: 0.4rem !default;
-$kbd-padding-x: 0.4rem !default;
-$kbd-font-size: $presentation-font-size-root !default;
-$kbd-color: $body-color !default;
-$kbd-bg: $gray-100 !default; // like in bootstrap style
-
-// variables required by _brand.yml
-$font-family-monospace-block: $font-family-monospace !default;
-$font-family-monospace-inline: $font-family-monospace !default;
-$font-weight-monospace: $font-weight-base !default;
-$font-weight-monospace-block: $font-weight-monospace !default;
-$font-weight-monospace-inline: $font-weight-monospace !default;
-$code-inline-font-size: $code-font-size !default;
 
 /*-- scss:functions --*/
 
