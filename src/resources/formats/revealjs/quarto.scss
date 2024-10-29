@@ -903,4 +903,6 @@ kbd {
 :root {
   --r-inline-code-font: #{$font-family-monospace-inline};
   --r-block-code-font: #{$font-family-monospace-block};
+  --r-inline-code-font-size: #{$revealjs-code-inline-font-size};
+  --r-block-code-font-size: #{$revealjs-code-block-font-size};
 }
