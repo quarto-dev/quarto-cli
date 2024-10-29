@@ -536,7 +536,65 @@ _quarto.ast = {
   make_scaffold = function(ctor, node)
     return ctor(node or {}, pandoc.Attr("", {"quarto-scaffold", "hidden"}, {}))
   end,
-  
+
+  -- custom_node_data_as_meta and reset_custom_node_data_from_meta
+  -- are both used to enable JSON filters to work with custom nodes
+  custom_node_data_as_meta = function()
+    local list = pandoc.List({})
+    for k, v in pairs(custom_node_data) do
+      local custom_meta = {}
+      local inner = { quarto_custom_meta = custom_meta }
+      -- FIXME we need to get the ids of all the slots
+      for k2, v2 in pairs(v) do
+        if k2 == "__quarto_custom_node" then
+          custom_meta.id = v2.attributes.__quarto_custom_id
+        else
+          inner[k2] = v2
+        end
+      end
+      list:insert(inner)
+    end
+    return pandoc.MetaList(list)
+  end,
+  reset_custom_node_data_from_meta = function(obj, custom_node_map)
+    local new_custom_node_data = {}
+    for i, v in ipairs(obj) do
+      local new_obj = {}
+      local n_objs = 0
+      local t = v.t
+      local handler = quarto._quarto.ast.resolve_handler(t)
+      assert(handler)
+
+      local qcm_obj = nil
+
+      for k2, v2 in pairs(v) do
+        if k2 == "quarto_custom_meta" then
+          qcm_obj = v2
+        else
+          new_obj[k2] = v2
+        end
+      end
+
+      assert(qcm_obj)
+      local id = qcm_obj.id
+      local forwarder = { }
+      if tisarray(handler.slots) then
+        for i, slot in ipairs(handler.slots) do
+          forwarder[slot] = i
+        end
+      else
+        forwarder = handler.slots
+      end
+      
+      new_obj.__quarto_custom_node = custom_node_map[id]
+      n_objs = math.max(n_objs, tonumber(id))
+      new_custom_node_data[id] = _quarto.ast.create_proxy_accessor(
+        custom_node_map[id], new_obj, forwarder)
+    end
+    _quarto.ast.custom_node_data = new_custom_node_data
+    custom_node_data = new_custom_node_data
+  end,
+
   scoped_walk = scoped_walk,
 
   walk = run_emulated_filter,

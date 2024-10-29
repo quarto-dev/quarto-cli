@@ -97,22 +97,16 @@ function makeWrappedJsonFilter(scriptFile, filterHandler)
         path = quarto.utils.resolve_path_relative_to_document(scriptFile)
         local custom_node_map = {}
         local has_custom_nodes = false
-        doc = doc:walk({
-          -- FIXME: This is broken with new AST. Needs to go through Custom node instead.
-          RawInline = function(raw)
-            local custom_node, t, kind = _quarto.ast.resolve_custom_data(raw)
-            if custom_node ~= nil then
-              has_custom_nodes = true
-              custom_node = safeguard_for_meta(custom_node)
-              table.insert(custom_node_map, { id = raw.text, tbl = custom_node, t = t, kind = kind })
-            end
+        doc = _quarto.ast.walk(doc, {
+          Custom = function(_)
+            has_custom_nodes = true
           end,
           Meta = function(meta)
             if has_custom_nodes then
-              meta["quarto-custom-nodes"] = pandoc.MetaList(custom_node_map)
+              meta["quarto-custom-node-data"] = _quarto.ast.custom_node_data_as_meta()
             end
             return meta
-          end
+          end          
         })
         local success, result = pcall(pandoc.utils.run_json_filter, doc, path)
         if not success then
@@ -129,14 +123,29 @@ function makeWrappedJsonFilter(scriptFile, filterHandler)
           fail(table.concat(message, "\n"))
           return nil
         end
-        if has_custom_nodes then
-          doc:walk({
-            Meta = function(meta)
-              _quarto.ast.reset_custom_tbl(meta["quarto-custom-nodes"])
+        assert(result)
+        local custom_node_map = {}
+        -- can't call _quarto.ast.walk here
+        -- because the custom_node_map data is not restored yet
+        -- so we use a plain :walk{} call and check for the
+        -- custom attributes
+        result:walk({
+          Span = function(span)
+            if span.attributes.__quarto_custom == "true" then
+              custom_node_map[span.attributes.__quarto_custom_id] = span
             end
-          })
-        end
-
+          end,
+          Div = function(div)
+            if div.attributes.__quarto_custom == "true" then
+              custom_node_map[div.attributes.__quarto_custom_id] = div
+            end
+          end,
+          Meta = function(meta)
+            if meta["quarto-custom-node-data"] ~= nil then
+              _quarto.ast.reset_custom_node_data_from_meta(meta["quarto-custom-node-data"], custom_node_map)
+            end
+          end
+        })
         return result
       end
     }

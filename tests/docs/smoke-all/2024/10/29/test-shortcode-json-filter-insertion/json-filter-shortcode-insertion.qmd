@@ -1,0 +1,25 @@
+---
+filters:
+  - at: pre-quarto
+    path: insert_shortcode.py
+    type: json
+title: Hello
+foo: bar
+baz: "d79920da-f2a6-4f3e-9c5c-84c9854d5b11"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["d79920da-f2a6-4f3e-9c5c-84c9854d5b11"]
+        - []
+---
+
+{{< meta foo >}}
+
+::: {#fig-1}
+
+This is the content.
+
+This is a caption.
+
+:::
