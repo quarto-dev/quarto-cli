@@ -16633,11 +16633,13 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: {
             anyOf: [
               "string",
+              "boolean",
               {
                 ref: "brand"
               }
             ]
-          }
+          },
+          description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition.\n"
         },
         {
           name: "theme",
@@ -24129,12 +24131,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 192608,
+        _internalId: 193258,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 192600,
+            _internalId: 193250,
             type: "enum",
             enum: [
               "png",
@@ -24150,7 +24152,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 192607,
+            _internalId: 193257,
             type: "anyOf",
             anyOf: [
               {
