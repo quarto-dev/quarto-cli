@@ -24,6 +24,7 @@ import { pandocBinaryPath } from "./core/resources.ts";
 import { appendProfileArg, setProfileFromArg } from "./quarto-core/profile.ts";
 import { logError } from "./core/log.ts";
 import { CommandError } from "cliffy/command/_errors.ts";
+import { satisfies } from "semver/mod.ts";
 
 import {
   devConfigsEqual,
@@ -51,11 +52,19 @@ import "./format/imports.ts";
 import { kCliffyImplicitCwd } from "./config/constants.ts";
 import { mainRunner } from "./core/main.ts";
 
-export async function quarto(
-  args: string[],
-  cmdHandler?: (command: Command) => Command,
-  env?: Record<string, string>,
-) {
+const checkVersionRequirement = () => {
+  const versionReq = Deno.env.get("QUARTO_VERSION_REQUIREMENT");
+  if (versionReq) {
+    if (!satisfies(quartoConfig.version(), versionReq)) {
+      error(
+        `Quarto version ${quartoConfig.version()} does not meet semver requirement ${versionReq}`,
+      );
+      Deno.exit(1);
+    }
+  }
+};
+
+const checkReconfiguration = async () => {
   // check for need to reconfigure
   if (quartoConfig.isDebug()) {
     const installed = readInstalledDevConfig();
@@ -65,36 +74,55 @@ export async function quarto(
       Deno.exit(1);
     }
   }
+};
 
-  // passthrough to pandoc
-  if (args[0] === "pandoc" && args[1] !== "help") {
-    const result = await execProcess(
-      {
-        cmd: [pandocBinaryPath(), ...args.slice(1)],
-        env,
-      },
-      undefined,
-      undefined,
-      undefined,
-      true,
-    );
-    Deno.exit(result.code);
-  }
-
-  // passthrough to typst
-  if (args[0] === "typst") {
-    if (args[1] === "update") {
-      error(
-        "The 'typst update' command is not supported.\n" +
-          "Please install the latest version of Quarto from http://quarto.org to get the latest supported typst features.",
-      );
-      Deno.exit(1);
-    }
-    const result = await execProcess({
-      cmd: [typstBinaryPath(), ...args.slice(1)],
+const passThroughPandoc = async (
+  args: string[],
+  env?: Record<string, string>,
+) => {
+  const result = await execProcess(
+    {
+      cmd: [pandocBinaryPath(), ...args.slice(1)],
       env,
-    });
-    Deno.exit(result.code);
+    },
+    undefined,
+    undefined,
+    undefined,
+    true,
+  );
+  Deno.exit(result.code);
+};
+
+const passThroughTypst = async (
+  args: string[],
+  env?: Record<string, string>,
+) => {
+  if (args[1] === "update") {
+    error(
+      "The 'typst update' command is not supported.\n" +
+        "Please install the latest version of Quarto from http://quarto.org to get the latest supported typst features.",
+    );
+    Deno.exit(1);
+  }
+  const result = await execProcess({
+    cmd: [typstBinaryPath(), ...args.slice(1)],
+    env,
+  });
+  Deno.exit(result.code);
+};
+
+export async function quarto(
+  args: string[],
+  cmdHandler?: (command: Command) => Command,
+  env?: Record<string, string>,
+) {
+  await checkReconfiguration();
+  checkVersionRequirement();
+  if (args[0] === "pandoc" && args[1] !== "help") {
+    await passThroughPandoc(args.slice(1), env);
+  }
+  if (args[0] === "typst") {
+    await passThroughTypst(args, env);
   }
 
   // passthrough to run handlers
