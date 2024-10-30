@@ -944,6 +944,11 @@ kbd {
 
   &.callout-style-simple,
   &.callout-style-default {
+    border-left: $callout-border-width solid #acacac;
+    border-right: solid 1px $table-border-color;
+    border-top: solid 1px $table-border-color;
+    border-bottom: solid 1px $table-border-color;
+
     .callout-body,
     div.callout-title {
       font-size: inherit;
@@ -957,10 +962,6 @@ kbd {
 
   &.callout-style-simple {
     padding: 0em 0.5em;
-    border-left: $callout-border-width solid #acacac;
-    border-right: solid 1px $table-border-color;
-    border-top: solid 1px $table-border-color;
-    border-bottom: solid 1px $table-border-color;
     display: flex;
 
     .callout-body {
@@ -1002,11 +1003,6 @@ kbd {
   }
 
   &.callout-style-default {
-    border-left: $callout-border-width solid #acacac;
-    border-right: solid 1px $table-border-color;
-    border-top: solid 1px $table-border-color;
-    border-bottom: solid 1px $table-border-color;
-
     .callout-body {
       font-size: 0.9rem;
       font-weight: 400;
