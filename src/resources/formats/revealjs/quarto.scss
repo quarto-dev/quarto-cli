@@ -975,10 +975,6 @@ kbd {
     padding: 0em 0.5em;
     display: flex;
 
-    .callout-body {
-      font-weight: 400;
-    }
-
     &.callout-titled {
       .callout-body {
         margin-top: 0.2em;
@@ -1004,15 +1000,17 @@ kbd {
       background-size: contain;
     }
 
-    div.callout-title {
-      opacity: 75%;
+    div {
+      &.callout-title {
+        opacity: 75%;
+      }
+      &.callout-body {
+        font-weight: 400;
+      }
     }
   }
 
   &.callout-style-default {
-    .callout-body {
-      font-weight: 400;
-    }
     &.callout-titled {
       .callout-content {
         p {
@@ -1031,6 +1029,9 @@ kbd {
     }
 
     div {
+      &.callout-body {
+        font-weight: 400;
+      }
       &.callout-title {
         opacity: 85%;
         padding-left: 0.5em;
