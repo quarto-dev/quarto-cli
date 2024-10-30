@@ -1143,34 +1143,36 @@ $callouts: (
 );
 
 @each $name, $info in $callouts {
-  div.callout.callout-#{$name} {
-    border-left-color: shift-color(
-      quarto-map.get($info, "color"),
-      $callout-border-scale
-    );
-  }
-
-  div.callout.callout-#{$name}.callout-style-default .callout-title {
-    @include shift_to_dark(
-      "background-color",
-      shift-color(quarto-map.get($info, "color"), 70%),
-      shift-color(quarto-map.get($info, "color"), -90%)
-    );
-  }
-
   $shifted-color: #{shift-color(
       quarto-map.get($info, "color"),
       $callout-icon-scale
     )};
   $shifted-color-svg: str-replace($shifted-color, "#", "%23");
 
-  div.callout-#{$name} .callout-icon::before {
-    background-image: #{"url('data:image/svg+xml," +
-      str-replace(
-        quarto-map.get($info, "icon"),
-        'fill="currentColor"',
-        'style="fill: #{$shifted-color-svg}"'
-      ) +
-      "');"};
+  div.callout {
+    &.callout-#{$name} {
+      border-left-color: shift-color(
+        quarto-map.get($info, "color"),
+        $callout-border-scale
+      );
+      &.callout-style-default {
+        .callout-title {
+          @include shift_to_dark(
+            "background-color",
+            shift-color(quarto-map.get($info, "color"), 70%),
+            shift-color(quarto-map.get($info, "color"), -90%)
+          );
+        }
+      }
+      .callout-icon::before {
+        background-image: #{"url('data:image/svg+xml," +
+          str-replace(
+            quarto-map.get($info, "icon"),
+            'fill="currentColor"',
+            'style="fill: #{$shifted-color-svg}"'
+          ) +
+          "');"};
+      }
+    }
   }
 }
