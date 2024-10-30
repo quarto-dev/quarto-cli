@@ -11912,6 +11912,7 @@ try {
               closed: true,
               properties: {
                 images: {
+                  description: "A dictionary of named logo resources.",
                   schema: {
                     object: {
                       additionalProperties: {
@@ -12096,23 +12097,23 @@ try {
                   ref: "brand-typography-options-base"
                 },
                 headings: {
-                  description: "Settings for headings\n",
+                  description: "Settings for headings, or a string specifying the font family only.",
                   ref: "brand-typography-options-headings"
                 },
                 monospace: {
-                  description: "Settings for monospace text\n",
+                  description: "Settings for monospace text, or a string specifying the font family only.",
                   ref: "brand-typography-options-monospace"
                 },
                 "monospace-inline": {
-                  description: "Settings for inline code",
+                  description: "Settings for inline code, or a string specifying the font family only.",
                   ref: "brand-typography-options-monospace-inline"
                 },
                 "monospace-block": {
-                  description: "Settings for code blocks",
+                  description: "Settings for code blocks, or a string specifying the font family only.",
                   ref: "brand-typography-options-monospace-block"
                 },
                 link: {
-                  description: "Settings for links",
+                  description: "Settings for links.",
                   ref: "brand-typography-options-link"
                 }
               }
@@ -12120,7 +12121,7 @@ try {
           },
           {
             id: "brand-typography-options-base",
-            description: "Typographic options.",
+            description: "Base typographic options.",
             anyOf: [
               "string",
               {
@@ -12132,9 +12133,6 @@ try {
                     weight: {
                       ref: "brand-font-weight"
                     },
-                    color: {
-                      ref: "brand-maybe-named-color"
-                    },
                     "line-height": {
                       ref: "line-height-number-string"
                     }
@@ -12145,7 +12143,7 @@ try {
           },
           {
             id: "brand-typography-options-headings",
-            description: "Typographic options without a font size.",
+            description: "Typographic options for headings.",
             anyOf: [
               "string",
               {
@@ -22810,6 +22808,7 @@ try {
           },
           "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
           "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
+          "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition.",
           "Theme name, theme scss file, or a mix of both.",
           "The light theme name, theme scss file, or a mix of both.",
           "The light theme name, theme scss file, or a mix of both.",
@@ -24132,12 +24131,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 193258,
+          _internalId: 193399,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 193250,
+              _internalId: 193391,
               type: "enum",
               enum: [
                 "png",
@@ -24153,7 +24152,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 193257,
+              _internalId: 193398,
               type: "anyOf",
               anyOf: [
                 {

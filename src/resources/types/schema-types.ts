@@ -1349,11 +1349,10 @@ export type BrandTypography = {
 
 export type BrandTypographyOptionsBase = string | {
   "line-height"?: LineHeightNumberString;
-  color?: BrandMaybeNamedColor;
   family?: string;
   size?: string;
   weight?: BrandFontWeight;
-}; /* Typographic options. */
+}; /* Base typographic options. */
 
 export type BrandTypographyOptionsHeadings = string | {
   "line-height"?: LineHeightNumberString;
@@ -1361,7 +1360,7 @@ export type BrandTypographyOptionsHeadings = string | {
   family?: string;
   style?: BrandFontStyle;
   weight?: BrandFontWeight;
-}; /* Typographic options without a font size. */
+}; /* Typographic options for headings. */
 
 export type BrandTypographyOptionsMonospace = string | {
   "background-color"?: BrandMaybeNamedColor;

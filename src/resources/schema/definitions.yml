@@ -2711,8 +2711,6 @@
           size: string
           weight:
             ref: brand-font-weight
-          color:
-            ref: brand-maybe-named-color
           line-height:
             ref: line-height-number-string
 

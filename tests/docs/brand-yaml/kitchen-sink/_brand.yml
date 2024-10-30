@@ -4,7 +4,7 @@ color:
     black: "#002040"
 
   primary: red
-  foreground: black
+  foreground: "#21f"
   background: "#e6f8ff"
 
 typography:
@@ -26,7 +26,6 @@ typography:
     # sass fails to typecheck
     size: 12pt
     weight: 400
-    color: "#21f"
     line-height: 0.9
   headings:
     family: PT Sans
