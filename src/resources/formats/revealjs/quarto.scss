@@ -1052,6 +1052,15 @@ kbd {
       margin-top: 1rem;
       padding-right: 0.5rem;
     }
+    .callout-body {
+      > .callout-content {
+        // Margin needs to be added when last child is div.sourceCode
+        // Other code cell border is mixed with callout border
+        > div.sourceCode:last-child {
+          margin-bottom: 1rem;
+        }
+      }
+    }
   }
 
   &.callout-titled {
