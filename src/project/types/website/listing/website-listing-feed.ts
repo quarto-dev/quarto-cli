@@ -163,7 +163,7 @@ export async function createFeed(
 
   // Add any image metadata
   const image = options.image || format.metadata[kImage] as string ||
-    websiteImage(project.config);
+    websiteImage(project.config)?.src;
   if (image) {
     feed.image = {
       title: feedTitle,

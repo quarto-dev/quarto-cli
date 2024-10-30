@@ -50,6 +50,7 @@ import { join } from "../../../deno_ral/path.ts";
 type WebsiteConfigKey =
   | "title"
   | "image"
+  | "image-alt"
   | "description"
   | "favicon"
   | "site-url"
@@ -173,8 +174,16 @@ export function websiteBaseurl(project?: ProjectConfig): string | undefined {
   return websiteConfigString(kSiteUrl, project);
 }
 
-export function websiteImage(project?: ProjectConfig): string | undefined {
-  return websiteConfigString(kImage, project);
+export function websiteImage(
+  project?: ProjectConfig,
+): { src: string; alt?: string } | undefined {
+  const src = websiteConfigString(kImage, project);
+  if (src) {
+    const alt = websiteConfigString("image-alt", project);
+    return { src, alt };
+  } else {
+    return undefined;
+  }
 }
 
 export function websiteDescription(
