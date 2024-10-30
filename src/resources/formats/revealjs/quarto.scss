@@ -224,8 +224,10 @@ $overlayElementFgColor: 0, 0, 0 !default;
   }
 }
 
-@mixin make-smaller-font-size($element) {
-  font-size: calc(#{$element} * #{$presentation-font-smaller});
+@mixin make-smaller-font-size($element, $times: 1) {
+  font-size: calc(
+    #{$element} * #{quarto-math.pow($presentation-font-smaller, $times)}
+  );
 }
 
 @mixin undo-smaller-font-size($element) {
@@ -559,6 +561,21 @@ $panel-sidebar-padding: 0.5em;
       }
       code {
         @include make-smaller-font-size($revealjs-code-inline-font-size);
+      }
+    }
+    // twice for code / pre inside callout if inside a smaller slide
+    // this is because they are passed in pixels
+    &.smaller div.callout {
+      // Though we want pre and code to be smaller and they are in px
+      pre {
+        @include make-smaller-font-size($revealjs-code-block-font-size, 2);
+        // Make sure code inside pre use code block font size
+        code {
+          font-size: inherit;
+        }
+      }
+      code {
+        @include make-smaller-font-size($revealjs-code-inline-font-size, 2);
       }
     }
   }
