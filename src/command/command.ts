@@ -1,10 +1,10 @@
 /*
  * command.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 
-import type { Command } from "cliffy/command/mod.ts";
+import type { CommandClass } from "npm:clipanion";
 
 import { RenderCommand } from "./render/cmd.ts";
 import { ServeCommand } from "./serve/cmd.ts";
@@ -30,33 +30,29 @@ import { UninstallCommand } from "./uninstall/cmd.ts";
 import { CreateCommand } from "./create/cmd.ts";
 import { editorSupportCommands } from "./editor-support/cmd.ts";
 
-// deno-lint-ignore no-explicit-any
-export function commands(): Command<any>[] {
-  return [
-    // deno-lint-ignore no-explicit-any
-    RenderCommand,
-    PreviewCommand,
-    ServeCommand,
-    CreateCommand,
-    ...useCommands,
-    AddCommand,
-    UpdateCommand,
-    RemoveCommand,
-    CreateProjectCommand,
-    ConvertCommand,
-    PandocCommand,
-    GeneratePandocWrapperCommand,
-    TypstCommand,
-    RunCommand,
-    ...listCommands,
-    InstallCommand,
-    UninstallCommand,
-    ...toolsCommands,
-    PublishCommand,
-    CapabilitiesCommand,
-    InspectCommand,
-    CheckCommand,
-    BuildJsCommand,
-    ...editorSupportCommands,
-  ];
-}
+export const commands: CommandClass[] = [
+  AddCommand,
+  BuildJsCommand,
+  CapabilitiesCommand,
+  CheckCommand,
+  ConvertCommand,
+  CreateCommand,
+  CreateProjectCommand,
+  ...editorSupportCommands,
+  GeneratePandocWrapperCommand,
+  InspectCommand,
+  InstallCommand,
+  ...listCommands,
+  PandocCommand,
+  PreviewCommand,
+  PublishCommand,
+  RemoveCommand,
+  RenderCommand,
+  RunCommand,
+  ServeCommand,
+  ...toolsCommands,
+  TypstCommand,
+  UninstallCommand,
+  UpdateCommand,
+  ...useCommands,
+];

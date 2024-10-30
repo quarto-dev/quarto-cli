@@ -45,10 +45,10 @@ for (const journalRepo of journalRepos) {
       const wd = Deno.cwd();
       Deno.chdir(workingDir);
       await quarto([
-        "use",
-        "template",
-        `quarto-journals/${journalRepo.repo}`,
-        "--no-prompt",
+          "use",
+          "template",
+          `quarto-journals/${journalRepo.repo}`,
+          "--no-prompt",
       ]);
       Deno.chdir(wd);
     },

@@ -76,7 +76,7 @@ export function testQuartoCmd(
         setTimeout(reject, 600000, "timed out after 10 minutes");
       });
       await Promise.race([
-        quarto([cmd, ...args], undefined, context?.env),
+        quarto([cmd, ...args], context?.env),
         timeout,
       ]);
     },
