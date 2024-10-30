@@ -949,12 +949,21 @@ kbd {
     border-top: solid 1px $table-border-color;
     border-bottom: solid 1px $table-border-color;
 
-    .callout-body,
-    div.callout-title {
-      // Font size is inherited from the parent div.callout
-      // which is scaled down like .smaller
-      font-size: inherit;
+    div {
+      &.callout-body,
+      &.callout-title {
+        // Font size is inherited from the parent div.callout
+        // which is scaled down like .smaller
+        font-size: inherit;
+      }
+
+      &.callout-title {
+        border-bottom: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
     }
+
     .callout-icon::before {
       height: 2rem;
       width: 2rem;
@@ -996,9 +1005,6 @@ kbd {
     }
 
     div.callout-title {
-      border-bottom: none;
-      font-size: 0.9rem;
-      font-weight: 600;
       opacity: 75%;
     }
   }
@@ -1026,10 +1032,7 @@ kbd {
 
     div {
       &.callout-title {
-        border-bottom: none;
-        font-weight: 600;
         opacity: 85%;
-        font-size: 0.9rem;
         padding-left: 0.5em;
         padding-right: 0.5em;
       }
