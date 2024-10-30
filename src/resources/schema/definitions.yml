@@ -2538,6 +2538,7 @@
     closed: true
     properties:
       images:
+        description: A dictionary of named logo resources.
         schema:
           object:
             additionalProperties:
@@ -2684,25 +2685,23 @@
           all text.
         ref: brand-typography-options-base
       headings:
-        description: >
-          Settings for headings
+        description: Settings for headings, or a string specifying the font family only.
         ref: brand-typography-options-headings
       monospace:
-        description: >
-          Settings for monospace text
+        description: Settings for monospace text, or a string specifying the font family only. 
         ref: brand-typography-options-monospace
       monospace-inline:
-        description: Settings for inline code
+        description: Settings for inline code, or a string specifying the font family only.
         ref: brand-typography-options-monospace-inline
       monospace-block:
-        description: Settings for code blocks
+        description: Settings for code blocks, or a string specifying the font family only.
         ref: brand-typography-options-monospace-block
       link:
-        description: Settings for links
+        description: Settings for links. 
         ref: brand-typography-options-link
 
 - id: brand-typography-options-base
-  description: Typographic options.
+  description: Base typographic options.
   anyOf:
     - string
     - object:
@@ -2718,7 +2717,7 @@
             ref: line-height-number-string
 
 - id: brand-typography-options-headings
-  description: Typographic options without a font size.
+  description: Typographic options for headings.
   anyOf:
     - string
     - object:
