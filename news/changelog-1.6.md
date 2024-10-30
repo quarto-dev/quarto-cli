@@ -92,6 +92,7 @@ All changes included in 1.6:
 - ([#10311](https://github.com/quarto-dev/quarto-cli/issues/10311)): Loosen auto-discovery of images for OpenGraph cards.
 - ([#10567](https://github.com/quarto-dev/quarto-cli/issues/10567)): Generate breadcrumbs correctly for documents using a level-1 heading as the title.
 - ([#10616](https://github.com/quarto-dev/quarto-cli/issues/10268)): Add a `z-index` setting to the 'back to top' button to ensure it is always visible.
+- ([#10864](https://github.com/quarto-dev/quarto-cli/issues/10864)): Support detection of `og:image:alt` attribute from auto-discovered images.
 
 ### Quarto Blog
 
