@@ -952,7 +952,7 @@ kbd {
 
 /* Callout styles */
 
-.callout {
+div.callout {
   margin-top: $callout-margin-top;
   margin-bottom: $callout-margin-bottom;
   border-radius: $border-radius;
@@ -1089,15 +1089,15 @@ kbd {
   &.no-icon::before {
     display: none !important;
   }
-}
 
-.callout-title {
-  display: flex;
-  align-items: center;
-}
+  .callout-title {
+    display: flex;
+    align-items: center;
+  }
 
-.callout-icon::before {
-  padding-right: 0.5rem;
+  .callout-icon::before {
+    padding-right: 0.5rem;
+  }
 }
 
 /* Callout Types */
