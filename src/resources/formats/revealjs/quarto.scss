@@ -552,7 +552,7 @@ $panel-sidebar-padding: 0.5em;
     }
 
     // On callout we want to make the font-size smaller too
-    .callout {
+    div.callout {
       font-size: #{$presentation-font-smaller}em;
 
       // But we don't want headers to change size and they are in em
@@ -951,6 +951,8 @@ kbd {
 
     .callout-body,
     div.callout-title {
+      // Font size is inherited from the parent div.callout
+      // which is scaled down like .smaller
       font-size: inherit;
     }
     .callout-icon::before {
@@ -965,7 +967,6 @@ kbd {
     display: flex;
 
     .callout-body {
-      font-size: 1rem;
       font-weight: 400;
     }
 
@@ -1004,7 +1005,6 @@ kbd {
 
   &.callout-style-default {
     .callout-body {
-      font-size: 0.9rem;
       font-weight: 400;
     }
     &.callout-titled {
