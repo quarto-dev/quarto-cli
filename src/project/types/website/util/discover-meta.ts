@@ -41,12 +41,16 @@ export function findDescription(doc: Document): string | undefined {
 
 export function findPreviewImg(
   doc: Document,
-): string | undefined {
+): { src: string; alt?: string } | undefined {
   const imgEl = findPreviewImgEl(doc);
   if (imgEl) {
     const src = getDecodedAttribute(imgEl, "src");
+    const alt = getDecodedAttribute(imgEl, "alt");
     if (src !== null) {
-      return src;
+      return {
+        src,
+        alt: alt ?? undefined,
+      };
     } else {
       return undefined;
     }
