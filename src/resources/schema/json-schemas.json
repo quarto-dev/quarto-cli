@@ -3415,9 +3415,6 @@
               "weight": {
                 "$ref": "#/$defs/BrandFontWeight"
               },
-              "color": {
-                "$ref": "#/$defs/BrandMaybeNamedColor"
-              },
               "line-height": {
                 "$ref": "#/$defs/LineHeightNumberString"
               }

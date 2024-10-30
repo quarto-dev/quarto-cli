@@ -23,8 +23,8 @@ _quarto:
       -
         - 'font: \("EB Garamond",\),$'
         - 'fontsize: 12pt,$'
-        - '^#set text\(weight: 300, fill: rgb\("#27262e"\), \)$'
-
+        - '^#set text\(weight: 300, \)$'
+        - '^#set text\(fill: brand-color.foreground\)'
         - 'heading-family: \("Raleway",\),$'
         - 'heading-weight: 500,$'
         - 'heading-style: "normal",$'

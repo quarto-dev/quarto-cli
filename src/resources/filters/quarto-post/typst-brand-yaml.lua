@@ -96,7 +96,6 @@ function render_typst_brand_yaml()
               '#set text(',
               -- '#show par: set text(', overrules #show heading!
               conditional_entry('weight', base.weight),
-              conditional_entry('fill', base.color, false),
               ')'
             }))
         end

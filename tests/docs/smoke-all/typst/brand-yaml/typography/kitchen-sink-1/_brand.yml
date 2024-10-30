@@ -4,7 +4,7 @@ color:
     black: "#002040"
     white: "#FFE0C0"
   primary: red
-  foreground: black
+  foreground: "#080180"
   background: white
 
 typography:
@@ -28,7 +28,6 @@ typography:
     family: Aguafina Script
     size: 14pt
     weight: 200
-    color: "#080180"
     line-height: 1.5
   headings:
     family: Montserrat

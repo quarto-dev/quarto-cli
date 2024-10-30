@@ -11,7 +11,7 @@ color:
     branded-monospace-block-background: "#0a3c07"
 
   primary: red
-  foreground: black
+  foreground: branded-base-foreground
   background: white
 
 typography:
@@ -36,7 +36,6 @@ typography:
     family: EB Garamond
     size: 16px
     weight: 300
-    color: branded-base-foreground
   headings:
     family: Raleway
     weight: 500

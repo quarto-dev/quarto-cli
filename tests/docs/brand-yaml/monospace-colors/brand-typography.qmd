@@ -13,7 +13,7 @@ format:
 
 We're using only `brand.typography.monospace.color` and `.background-color`.
 
-Raw inlines `3 * fib(5)` and raw blocks will inherit the same colors, off-white and dark green.
+Raw inlines `3 * fib(5)` and raw blocks will inherit the same colors, off-white and green.
 
 :::{.sourceCode}
 ```
