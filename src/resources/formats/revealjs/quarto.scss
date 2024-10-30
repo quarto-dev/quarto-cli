@@ -104,6 +104,21 @@ $dark-bg-link-color: #42affa !default;
 $light-bg-code-color: #4758ab !default;
 $dark-bg-code-color: #ffa07a !default;
 
+// KBD variables
+$kbd-padding-y: 0.4rem !default;
+$kbd-padding-x: 0.4rem !default;
+$kbd-font-size: $presentation-font-size-root !default;
+$kbd-color: $body-color !default;
+$kbd-bg: $gray-100 !default; // like in bootstrap style
+
+// variables required by _brand.yml
+$font-family-monospace-block: $font-family-monospace !default;
+$font-family-monospace-inline: $font-family-monospace !default;
+$font-weight-monospace: $font-weight-base !default;
+$font-weight-monospace-block: $font-weight-monospace !default;
+$font-weight-monospace-inline: $font-weight-monospace !default;
+$code-inline-font-size: $code-font-size !default;
+
 // --- derive reveal versions of presentation variables for finer-grained override ---
 
 $revealjs-font-size-root: $presentation-font-size-root !default;
@@ -123,6 +138,9 @@ $revealjs-heading-font-weight: $presentation-heading-font-weight !default;
 $revealjs-block-margin: $presentation-block-margin !default;
 $revealjs-line-height: $presentation-line-height !default;
 $revealjs-list-bullet-color: $presentation-list-bullet-color !default;
+
+$revealjs-code-inline-font-size: $code-inline-font-size !default;
+$revealjs-code-block-font-size: $code-block-font-size !default;
 
 // ---- map to reveal scss variables ---
 // ---- This is based from the revealjs setting.scss
@@ -155,8 +173,6 @@ $heading3Size: $revealjs-h3-font-size !default;
 $heading4Size: $revealjs-h4-font-size !default;
 
 $codeFont: $font-family-monospace !default;
-$inlineCodeFont: $font-family-monospace-inline !default;
-$blockCodeFont: $font-family-monospace-block !default;
 
 // Links and actions
 $linkColor: $link-color !default;
@@ -172,21 +188,6 @@ $overlayElementBgColor: 240, 240, 240 !default;
 $overlayElementFgColor: 0, 0, 0 !default;
 
 // -- END setting.scss --
-
-// KBD variables
-$kbd-padding-y: 0.4rem !default;
-$kbd-padding-x: 0.4rem !default;
-$kbd-font-size: $presentation-font-size-root !default;
-$kbd-color: $body-color !default;
-$kbd-bg: $gray-100 !default; // like in bootstrap style
-
-// variables required by _brand.yml
-$font-family-monospace-block: $font-family-monospace !default;
-$font-family-monospace-inline: $font-family-monospace !default;
-$font-weight-monospace: $font-weight-base !default;
-$font-weight-monospace-block: $font-weight-monospace !default;
-$font-weight-monospace-inline: $font-weight-monospace !default;
-$code-inline-font-size: $code-font-size !default;
 
 /*-- scss:functions --*/
 
@@ -221,6 +222,14 @@ $code-inline-font-size: $code-font-size !default;
   } @else {
     #{$property}: $color;
   }
+}
+
+@mixin make-smaller-font-size($element) {
+  font-size: calc(#{$element} * #{$presentation-font-smaller});
+}
+
+@mixin undo-smaller-font-size($element) {
+  font-size: calc(#{$element} / #{$presentation-font-smaller});
 }
 
 // -- START setting.scss --
@@ -310,8 +319,26 @@ div.reveal div.slides section.quarto-title-block {
   background-color: $code-block-bg;
   border: none;
   margin: 0;
-  font-size: $code-block-font-size;
+  font-size: $revealjs-code-block-font-size;
   line-height: $code-block-line-height;
+  font-family: $font-family-monospace-block;
+
+  code {
+    background-color: $body-bg; // Insure we color output and code cell differently
+    font-size: inherit;
+    color: $code-block-color;
+    font-family: inherit;
+  }
+
+  &.sourceCode code {
+    color: $code-block-color;
+    font-size: inherit;
+    background-color: inherit;
+    white-space: pre;
+    font-family: inherit;
+    padding: 6px 9px;
+    max-height: $code-block-height;
+  }
 }
 
 // Inside code-file-name div, we want to use the same background color as decorated codeblock header
@@ -322,25 +349,10 @@ div.reveal div.slides section.quarto-title-block {
 
 .reveal code {
   color: $code-color;
-  font-size: $code-inline-font-size;
+  font-size: $revealjs-code-inline-font-size;
   background-color: $code-bg;
   white-space: pre-wrap;
-}
-
-.reveal pre.sourceCode code {
-  @if variable-exists(code-block-color) {
-    color: $code-block-color;
-  }
-  background-color: $code-block-bg;
-  padding: 6px 9px;
-  max-height: $code-block-height;
-  white-space: pre;
-}
-
-.reveal pre code {
-  background-color: $body-bg;
-  font-size: $code-block-font-size;
-  color: $code-block-color;
+  font-family: $font-family-monospace-inline;
 }
 
 .reveal .column-output-location {
@@ -456,29 +468,100 @@ $panel-sidebar-padding: 0.5em;
   line-height: $revealjs-line-height;
 }
 
-.reveal.smaller .slides section,
-.reveal .slides section.smaller,
-.reveal .slides section .callout {
-  font-size: #{$presentation-font-smaller}em;
-}
-// avoid applying twice the reduction when using nested section
-.reveal.smaller .slides section section {
-  font-size: inherit;
-}
+// Smaller font size logic
+.reveal {
+  // When smaller is set globally
+  &.smaller {
+    .slides {
+      // We make the all slide font-size smaller by a factor of $presentation-font-smaller
+      section {
+        font-size: #{$presentation-font-smaller}em;
 
-.reveal.smaller .slides h1,
-.reveal .slides section.smaller h1 {
-  font-size: calc(#{$revealjs-h1-font-size} / #{$presentation-font-smaller});
-}
+        // avoid applying twice the reduction when using nested section
+        section {
+          font-size: inherit;
+        }
+      }
 
-.reveal.smaller .slides h2,
-.reveal .slides section.smaller h2 {
-  font-size: calc(#{$revealjs-h2-font-size} / #{$presentation-font-smaller});
-}
+      // But we don't want headers to change size and they are in em
+      h1 {
+        @include undo-smaller-font-size($revealjs-h1-font-size);
+      }
+      h2 {
+        @include undo-smaller-font-size($revealjs-h2-font-size);
+      }
+      h3 {
+        @include undo-smaller-font-size($revealjs-h3-font-size);
+      }
+      // Though we want pre and code to be smaller and they are in px
+      pre {
+        @include make-smaller-font-size($revealjs-code-block-font-size);
+        // Make sure code inside pre use code block font size
+        code {
+          font-size: inherit;
+        }
+      }
+      code {
+        @include make-smaller-font-size($revealjs-code-inline-font-size);
+      }
+    }
+  }
 
-.reveal.smaller .slides h3,
-.reveal .slides section.smaller h3 {
-  font-size: calc(#{$revealjs-h3-font-size} / #{$presentation-font-smaller});
+  .slides section {
+    // when  smaller is set on slide
+    &.smaller {
+      font-size: #{$presentation-font-smaller}em;
+
+      // But we don't want headers to change size and they are in em
+      h1 {
+        @include undo-smaller-font-size($revealjs-h1-font-size);
+      }
+      h2 {
+        @include undo-smaller-font-size($revealjs-h2-font-size);
+      }
+      h3 {
+        @include undo-smaller-font-size($revealjs-h3-font-size);
+      }
+      // Though we want pre and code to be smaller and they are in px
+      pre {
+        @include make-smaller-font-size($revealjs-code-block-font-size);
+        // Make sure code inside pre use code block font size
+        code {
+          font-size: inherit;
+        }
+      }
+      code {
+        @include make-smaller-font-size($revealjs-code-inline-font-size);
+      }
+    }
+
+    // On callout we want to make the font-size smaller too
+    .callout {
+      font-size: #{$presentation-font-smaller}em;
+
+      // But we don't want headers to change size and they are in em
+      h1 {
+        @include undo-smaller-font-size($revealjs-h1-font-size);
+      }
+      h2 {
+        @include undo-smaller-font-size($revealjs-h2-font-size);
+      }
+      h3 {
+        @include undo-smaller-font-size($revealjs-h3-font-size);
+      }
+      // Though we want pre and code to be smaller and they are in px
+      pre {
+        @include make-smaller-font-size($revealjs-code-block-font-size);
+        // Make sure code inside pre use code block font size
+        code {
+          font-size: inherit;
+        }
+      }
+      code {
+        @include make-smaller-font-size($revealjs-code-inline-font-size);
+      }
+    }
+  }
 }
 
 .reveal .columns > .column > :not(ul, ol) {
@@ -583,30 +666,34 @@ $panel-sidebar-padding: 0.5em;
   z-index: 1;
 }
 
-.reveal .callout.callout-style-simple .callout-body,
-.reveal .callout.callout-style-default .callout-body,
-.reveal .callout.callout-style-simple div.callout-title,
-.reveal .callout.callout-style-default div.callout-title {
-  font-size: inherit;
-}
+/* Callout styles */
+.reveal .callout {
+  &.callout-style-simple,
+  &.callout-style-default {
+    .callout-body,
+    div.callout-title {
+      font-size: inherit;
+    }
+    .callout-icon::before {
+      height: 2rem;
+      width: 2rem;
+      background-size: 2rem 2rem;
+    }
+  }
 
-.reveal .callout.callout-style-default .callout-icon::before,
-.reveal .callout.callout-style-simple .callout-icon::before {
-  height: 2rem;
-  width: 2rem;
-  background-size: 2rem 2rem;
-}
+  &.callout-titled {
+    .callout-title p {
+      margin-top: 0.5em;
+    }
 
-.reveal .callout.callout-titled .callout-title p {
-  margin-top: 0.5em;
-}
+    .callout-icon::before {
+      margin-top: 1rem;
+    }
 
-.reveal .callout.callout-titled .callout-icon::before {
-  margin-top: 1rem;
-}
-
-.reveal .callout.callout-titled .callout-body > .callout-content > :last-child {
-  margin-bottom: 1rem;
+    .callout-body > .callout-content > :last-child {
+      margin-bottom: 1rem;
+    }
+  }
 }
 
 .reveal .panel-tabset [role="tab"] {
@@ -814,14 +901,8 @@ kbd {
 }
 
 :root {
-  --r-inline-code-font: #{$inlineCodeFont};
-  --r-block-code-font: #{$blockCodeFont};
-}
-
-.reveal code {
-  font-family: var(--r-inline-code-font);
-}
-
-.reveal pre code {
-	font-family: var(--r-block-code-font);
+  --r-inline-code-font: #{$font-family-monospace-inline};
+  --r-block-code-font: #{$font-family-monospace-block};
+  --r-inline-code-font-size: #{$revealjs-code-inline-font-size};
+  --r-block-code-font-size: #{$revealjs-code-block-font-size};
 }
