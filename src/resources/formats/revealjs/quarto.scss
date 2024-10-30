@@ -1070,7 +1070,7 @@ kbd {
     }
     .callout-body {
       > .callout-content {
-        > :last-child {
+        > :last-child:not(div.sourceCode) {
           padding-bottom: 0.5rem;
           margin-bottom: 0;
         }
