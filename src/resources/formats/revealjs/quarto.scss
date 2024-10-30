@@ -1145,7 +1145,7 @@ $callouts: (
     )};
   $shifted-color-svg: str-replace($shifted-color, "#", "%23");
 
-  div.callout {
+  .reveal div.callout {
     &.callout-#{$name} {
       border-left-color: shift-color(
         quarto-map.get($info, "color"),
