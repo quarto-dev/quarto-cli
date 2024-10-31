@@ -991,12 +991,9 @@ kbd {
     }
 
     .callout-icon::before {
-      height: 1em;
-      width: 1em;
       display: inline-block;
       content: "";
       background-repeat: no-repeat;
-      background-size: contain;
     }
 
     div {
@@ -1049,8 +1046,8 @@ kbd {
       display: flex;
     }
     .callout-icon::before {
-      margin-top: 1rem;
-      padding-right: 0.5rem;
+      margin-top: 1em;
+      padding-right: 0.5em;
     }
     .callout-body {
       > .callout-content {
