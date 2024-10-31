@@ -198,7 +198,7 @@ const brandColorBundle = (
     );
     colorCssVariables.push(
       `  --brand-${colorVar}: ${brand.getColor(colorKey)};`,
-    )
+    );
   }
 
   // Map theme colors directly to Sass variables
@@ -222,7 +222,10 @@ const brandColorBundle = (
   }
   // const colorEntries = Object.keys(brand.color);
   colorVariables.push('// quarto-scss-analysis-annotation { "action": "pop" }');
-  colorCssVariables.push("}", '// quarto-scss-analysis-annotation { "action": "pop" }');
+  colorCssVariables.push(
+    "}",
+    '// quarto-scss-analysis-annotation { "action": "pop" }',
+  );
   const colorBundle: SassBundleLayers = {
     key,
     // dependency: "bootstrap",
@@ -239,13 +242,13 @@ const brandColorBundle = (
 
 const brandBootstrapBundle = (
   brand: Brand,
-  key: string
+  key: string,
 ): SassBundleLayers => {
   // Bootstrap Variables from brand.defaults.bootstrap
-  const brandBootstrap = (brand?.data?.defaults?.bootstrap as unknown as Record<
+  const brandBootstrap = brand?.data?.defaults?.bootstrap as unknown as Record<
     string,
     Record<string, string | boolean | number | null>
-  >);
+  >;
 
   const bsVariables: string[] = [
     "/* Bootstrap variables from _brand.yml */",
@@ -276,7 +279,7 @@ const brandBootstrapBundle = (
     "green",
     "teal",
     "cyan",
-  ]
+  ];
 
   const bsColors: string[] = [
     "/* Bootstrap color variables from _brand.yml */",
@@ -459,6 +462,10 @@ const brandTypographyBundle = (
       // revealjs
       ["size", "code-block-font-size"],
       ["color", "code-block-color"],
+
+      // monospace forwards to both block and inline
+      ["background-color", "code-bg"],
+      ["background-color", "code-block-bg"],
     ],
     "monospace-block": [
       // bootstrap + revealjs
@@ -566,7 +573,12 @@ export async function brandBootstrapSassBundleLayers(
   nameMap: Record<string, string> = {},
 ): Promise<SassBundleLayers[]> {
   const brand = await project.resolveBrand(fileName);
-  const sassBundles = await brandSassBundleLayers(fileName, project, key, nameMap);
+  const sassBundles = await brandSassBundleLayers(
+    fileName,
+    project,
+    key,
+    nameMap,
+  );
 
   if (brand?.data?.defaults?.bootstrap) {
     const bsBundle = brandBootstrapBundle(brand, key);
