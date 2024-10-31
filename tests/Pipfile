@@ -11,7 +11,7 @@ matplotlib = "*"
 pexpect = {version = "*", sys_platform = "!= 'win32'"}
 ptyprocess = {version = "*", sys_platform = "!= 'win32'"}
 appnope = {version = "*", sys_platform = "== 'darwin'"}
-pywin32 = {version = "*", sys_platform = "== 'win32'"}
+colorama = {version = "*", sys_platform = "== 'win32'"}
 ipyleaflet = "*"
 seaborn = "*"
 shiny = "*"
