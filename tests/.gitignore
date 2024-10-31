@@ -9,3 +9,8 @@ venv.bak/
 
 bin/
 /.luarc.json
+
+# 2024-10-31: https://github.com/quarto-dev/quarto-cli/actions/runs/11615265201/job/32345433238
+# We need to understand why tests/Pipfile.lock is getting modified by our setup
+# in the meantime, we'll ignore it
+Pipfile.lock
