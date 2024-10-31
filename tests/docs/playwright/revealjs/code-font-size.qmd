@@ -47,4 +47,15 @@ And block code:
 1 + 1
 ```
 
+## Smaller slide with callouts {#smaller-slide2 .smaller}
 
+::: {.callout-note}
+
+Some inline code: `1 + 1`
+
+And block code:
+
+```{.r}
+2 + 2
+```
+:::
