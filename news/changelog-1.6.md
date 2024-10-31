@@ -28,6 +28,7 @@ All changes included in 1.6:
 
 ## `dashboard` Format
 
+- ([#9411](https://github.com/quarto-dev/quarto-cli/issues/9411)): Fix issue with history navigation in dashboards and external links.
 - ([#10340](https://github.com/quarto-dev/quarto-cli/issues/10340)): Build card title correctly in the presence of equations and other markup.
 
 ## `html` Format
