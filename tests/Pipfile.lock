@@ -1873,22 +1873,6 @@
             "markers": "python_version >= '3.7'",
             "version": "==26.2.0"
         },
-        "qtconsole": {
-            "hashes": [
-                "sha256:8c75fa3e9b4ed884880ff7cea90a1b67451219279ec33deaee1d59e3df1a5d2b",
-                "sha256:a0e806c6951db9490628e4df80caec9669b65149c7ba40f9bf033c025a5b56bc"
-            ],
-            "markers": "python_version >= '3.8'",
-            "version": "==5.5.1"
-        },
-        "qtpy": {
-            "hashes": [
-                "sha256:1c1d8c4fa2c884ae742b069151b0abe15b3f70491f3972698c683b8e38de839b",
-                "sha256:a5a15ffd519550a1361bdc56ffc07fda56a6af7292f17c7b395d4083af632987"
-            ],
-            "markers": "python_version >= '3.7'",
-            "version": "==2.4.1"
-        },
         "questionary": {
             "hashes": [
                 "sha256:8ab9a01d0b91b68444dff7f6652c1e754105533f083cbe27597c8110ecc230a2",
