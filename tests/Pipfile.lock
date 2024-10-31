@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "1fc91844834a8403227b21d7f8a096e8ccc3c87c9d2ee7951f7ed7fb99656b3f"
+            "sha256": "21b25e8ed15bdfa6e78f52efbed36b654aefcb34517e7939798f39a3d1319c98"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -1684,7 +1684,7 @@
                 "sha256:ef313c46d4c18dfb82a2431e3051ac8f112ccee1a34f29c263c583c568db63cd",
                 "sha256:fd380990e792eaf6827fcb7e187b2b4b1cede0585e3d0c9e84201ec27b9905e4"
             ],
-            "markers": "sys_platform == 'win32' and platform_python_implementation != 'PyPy'",
+            "markers": "sys_platform == 'win32'",
             "version": "==308"
         },
         "pywinpty": {
