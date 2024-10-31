@@ -112,6 +112,7 @@ All changes included in 1.6:
 ### `jupyter`
 
 - ([#9134](https://github.com/quarto-dev/quarto-cli/issues/9134)): Add proper fix for `multiprocessing` in notebooks with the Python kernel.
+- ([#10097](https://github.com/quarto-dev/quarto-cli/issues/10097)): Ensure papermill parameterization works when default values are set in a cell with labels.
 
 ## Chromium support
 
