@@ -150,7 +150,7 @@ jobs:
       - name: Restore Python Dependencies
         working-directory: tests
         run: |
-          python -m pip install pipenv
+          python -m pip install pipenv==2024.3.0
           pipenv install
 
       - uses: ./.github/workflows/actions/quarto-dev
