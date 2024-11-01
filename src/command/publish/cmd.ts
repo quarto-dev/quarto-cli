@@ -1,12 +1,15 @@
 /*
  * cmd.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 
 import { existsSync } from "../../deno_ral/fs.ts";
 
-import { Command } from "cliffy/command/mod.ts";
+import { Command, Option } from "npm:clipanion";
+
+// TODO: replace cliffy
+//   see https://github.com/quarto-dev/quarto-cli/issues/10878
 import { Select } from "cliffy/prompt/select.ts";
 import { prompt } from "cliffy/prompt/mod.ts";
 
@@ -22,7 +25,6 @@ import {
 } from "../../core/lib/yaml-validation/state.ts";
 import {
   projectContext,
-  projectInputFiles,
 } from "../../project/project-context.ts";
 
 import {
@@ -44,12 +46,14 @@ import { handleUnauthorized } from "../../publish/account.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 
-export const publishCommand =
-  // deno-lint-ignore no-explicit-any
-  new Command<any>()
-    .name("publish")
-    .description(
-      "Publish a document or project to a provider.\n\nAvailable providers include:\n\n" +
+
+export class PublishCommand extends Command {
+  static name = 'publish';
+  static paths = [[PublishCommand.name]];
+
+  static usage = Command.Usage({
+    description:
+        "Publish a document or project to a provider.\n\nAvailable providers include:\n\n" +
         " - Quarto Pub (quarto-pub)\n" +
         " - GitHub Pages (gh-pages)\n" +
         " - Posit Connect (connect)\n" +
@@ -59,111 +63,106 @@ export const publishCommand =
         " - Hugging Face Spaces (huggingface)\n\n" +
         "Accounts are configured interactively during publishing.\n" +
         "Manage/remove accounts with: quarto publish accounts",
-    )
-    .arguments("[provider] [path]")
-    .option(
-      "--id <id:string>",
-      "Identifier of content to publish",
-    )
-    .option(
-      "--server <server:string>",
-      "Server to publish to",
-    )
-    .option(
-      "--token <token:string>",
-      "Access token for publising provider",
-    )
-    .option(
-      "--no-render",
-      "Do not render before publishing.",
-    )
-    .option(
-      "--no-prompt",
-      "Do not prompt to confirm publishing destination",
-    )
-    .option(
-      "--no-browser",
-      "Do not open a browser to the site after publishing",
-    )
-    .example(
-      "Publish project (prompt for provider)",
-      "quarto publish",
-    )
-    .example(
-      "Publish document (prompt for provider)",
-      "quarto publish document.qmd",
-    )
-    .example(
-      "Publish project to Hugging Face Spaces",
-      "quarto publish huggingface",
-    )
-    .example(
-      "Publish project to Netlify",
-      "quarto publish netlify",
-    )
-    .example(
-      "Publish with explicit target",
-      "quarto publish netlify --id DA36416-F950-4647-815C-01A24233E294",
-    )
-    .example(
-      "Publish project to GitHub Pages",
-      "quarto publish gh-pages",
-    )
-    .example(
-      "Publish project to Posit Connect",
-      "quarto publish connect",
-    )
-    .example(
-      "Publish with explicit credentials",
-      "quarto publish connect --server example.com --token 01A24233E294",
-    )
-    .example(
-      "Publish project to Posit Cloud",
-      "quarto publish posit-cloud",
-    )
-    .example(
-      "Publish without confirmation prompt",
-      "quarto publish --no-prompt",
-    )
-    .example(
-      "Publish without rendering",
-      "quarto publish --no-render",
-    )
-    .example(
-      "Publish without opening browser",
-      "quarto publish --no-browser",
-    )
-    .example(
-      "Manage/remove publishing accounts",
-      "quarto publish accounts",
-    )
-    .action(
-      async (
-        options: PublishCommandOptions,
-        provider?: string,
-        path?: string,
-      ) => {
-        // if provider is a path and no path is specified then swap
-        if (provider && !path && existsSync(provider)) {
-          path = provider;
-          provider = undefined;
-        }
+    examples: [
+      [
+        "Publish project (prompt for provider)",
+        `$0 ${PublishCommand.name}`,
+      ],
+      [
+        "Publish document (prompt for provider)",
+        `$0 ${PublishCommand.name} document.qmd`,
+      ],
+      [
+        "Publish project to Hugging Face Spaces",
+        `$0 ${PublishCommand.name} huggingface`,
+      ],
+      [
+        "Publish project to Netlify",
+        `$0 ${PublishCommand.name} netlify`,
+      ],
+      [
+        "Publish with explicit target",
+        `$0 ${PublishCommand.name} netlify --id DA36416-F950-4647-815C-01A24233E294`,
+      ],
+      [
+        "Publish project to GitHub Pages",
+        `$0 ${PublishCommand.name} gh-pages`,
+      ],
+      [
+        "Publish project to Posit Connect",
+        `$0 ${PublishCommand.name} connect`,
+      ],
+      [
+        "Publish with explicit credentials",
+        `$0 ${PublishCommand.name} connect --server example.com --token 01A24233E294`,
+      ],
+      [
+        "Publish project to Posit Cloud",
+        `$0 ${PublishCommand.name} posit-cloud`,
+      ],
+      [
+        "Publish without confirmation prompt",
+        `$0 ${PublishCommand.name} --no-prompt`,
+      ],
+      [
+        "Publish without rendering",
+        `$0 ${PublishCommand.name} --no-render`,
+      ],
+      [
+        "Publish without opening browser",
+        `$0 ${PublishCommand.name} --no-browser`,
+      ],
+      [
+        "Manage/remove publishing accounts",
+        `$0 ${PublishCommand.name} accounts`,
+      ],
+    ]
+  })
 
-        // if provider is 'accounts' then invoke account management ui
-        if (provider === "accounts") {
-          await manageAccounts();
-        } else {
-          let providerInterface: PublishProvider | undefined;
-          if (provider) {
-            providerInterface = findProvider(provider);
-            if (!providerInterface) {
-              throw new Error(`Publishing source '${provider}' not found`);
-            }
-          }
-          await publishAction(options, providerInterface, path);
+  provider = Option.String({ required: false });
+  path_ = Option.String({ required: false });
+
+  id = Option.String('--id', { description: "Identifier of content to publish" });
+  noBrowser = Option.Boolean('--no-browser', { description: "Do not open a browser to the site after publishing" });
+  noPrompt = Option.Boolean('--no-prompt', { description: "Do not prompt to confirm publishing destination" });
+  noRender = Option.Boolean('--no-render', { description: "Do not render before publishing." });
+  server = Option.String('--server', { description: "Server to publish to" });
+  token = Option.String('--token', { description: "Access token for publising provider" });
+
+  async execute() {
+    let provider = this.provider;
+    let path = this.path_;
+
+    // if provider is a path and no path is specified then swap
+    if (provider && !path && existsSync(provider)) {
+      path = provider;
+      provider = undefined;
+    }
+
+    // if provider is 'accounts' then invoke account management ui
+    if (provider === "accounts") {
+      await manageAccounts();
+    } else {
+      let providerInterface: PublishProvider | undefined;
+      if (provider) {
+        providerInterface = findProvider(provider);
+        if (!providerInterface) {
+          throw new Error(`Publishing source '${provider}' not found`);
         }
-      },
-    );
+      }
+
+      const options : PublishCommandOptions = {
+        browser: !this.noBrowser,
+        id: this.id,
+        render: !this.noRender,
+        prompt: !this.noPrompt,
+        server: this.server,
+        token: this.token,
+      };
+      await publishAction(options, providerInterface, path);
+    }
+  }
+}
 
 async function publishAction(
   options: PublishCommandOptions,
