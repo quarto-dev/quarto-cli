@@ -18,6 +18,7 @@ import { ProjectContext } from "../../project/types.ts";
 import {
   BrandFont,
   BrandFontBunny,
+  BrandFontCommon,
   BrandFontGoogle,
   BrandFontWeight,
 } from "../../resources/types/schema-types.ts";
@@ -110,7 +111,7 @@ const fontFileFormat = (file: string): string => {
   }
 };
 
-const bunnyFontImportString = (description: BrandFontBunny) => {
+const bunnyFontImportString = (description: BrandFontCommon) => {
   const bunnyName = (name: string) => name.replace(/ /g, "-");
   const bunnyFamily = description.family;
   if (!bunnyFamily) {
@@ -137,7 +138,6 @@ const bunnyFontImportString = (description: BrandFontBunny) => {
   return `@import url('https://fonts.bunny.net/css?family=${
     bunnyName(bunnyFamily)
   }:${weights}&display=${display}');`;
-  // }
 };
 
 const googleFontImportString = (description: BrandFontGoogle) => {
@@ -198,7 +198,7 @@ const brandColorBundle = (
     );
     colorCssVariables.push(
       `  --brand-${colorVar}: ${brand.getColor(colorKey)};`,
-    )
+    );
   }
 
   // Map theme colors directly to Sass variables
@@ -222,7 +222,10 @@ const brandColorBundle = (
   }
   // const colorEntries = Object.keys(brand.color);
   colorVariables.push('// quarto-scss-analysis-annotation { "action": "pop" }');
-  colorCssVariables.push("}", '// quarto-scss-analysis-annotation { "action": "pop" }');
+  colorCssVariables.push(
+    "}",
+    '// quarto-scss-analysis-annotation { "action": "pop" }',
+  );
   const colorBundle: SassBundleLayers = {
     key,
     // dependency: "bootstrap",
@@ -239,13 +242,13 @@ const brandColorBundle = (
 
 const brandBootstrapBundle = (
   brand: Brand,
-  key: string
+  key: string,
 ): SassBundleLayers => {
   // Bootstrap Variables from brand.defaults.bootstrap
-  const brandBootstrap = (brand?.data?.defaults?.bootstrap as unknown as Record<
+  const brandBootstrap = brand?.data?.defaults?.bootstrap as unknown as Record<
     string,
     Record<string, string | boolean | number | null>
-  >);
+  >;
 
   const bsVariables: string[] = [
     "/* Bootstrap variables from _brand.yml */",
@@ -276,7 +279,7 @@ const brandBootstrapBundle = (
     "green",
     "teal",
     "cyan",
-  ]
+  ];
 
   const bsColors: string[] = [
     "/* Bootstrap color variables from _brand.yml */",
@@ -368,6 +371,35 @@ const brandTypographyBundle = (
     return googleFamily;
   };
 
+  const resolveBunnyFontFamily = (
+    font: BrandFont[],
+  ): string | undefined => {
+    let googleFamily = "";
+    for (const _resolvedFont of font) {
+      const resolvedFont =
+        _resolvedFont as (BrandFont | BrandFontGoogle | BrandFontBunny);
+      if ((resolvedFont as any).source && resolvedFont.source !== "bunny") {
+        return undefined;
+      }
+      const thisFamily = resolvedFont.family;
+      if (!thisFamily) {
+        continue;
+      }
+      if (googleFamily === "") {
+        googleFamily = thisFamily;
+      } else if (googleFamily !== thisFamily) {
+        throw new Error(
+          `Inconsistent Google font families found: ${googleFamily} and ${thisFamily}`,
+        );
+      }
+      typographyImports.add(bunnyFontImportString(resolvedFont));
+    }
+    if (googleFamily === "") {
+      return undefined;
+    }
+    return googleFamily;
+  };
+
   type HTMLFontInformation = { [key: string]: unknown };
 
   type FontKind =
@@ -389,7 +421,7 @@ const brandTypographyBundle = (
     const font = getFontFamilies(family);
     const result: HTMLFontInformation = {};
     result.family = resolveGoogleFontFamily(font) ??
-      // resolveBunnyFontFamily(font) ??
+      resolveBunnyFontFamily(font) ??
       // resolveFilesFontFamily(font) ??
       family;
     for (
@@ -566,7 +598,12 @@ export async function brandBootstrapSassBundleLayers(
   nameMap: Record<string, string> = {},
 ): Promise<SassBundleLayers[]> {
   const brand = await project.resolveBrand(fileName);
-  const sassBundles = await brandSassBundleLayers(fileName, project, key, nameMap);
+  const sassBundles = await brandSassBundleLayers(
+    fileName,
+    project,
+    key,
+    nameMap,
+  );
 
   if (brand?.data?.defaults?.bootstrap) {
     const bsBundle = brandBootstrapBundle(brand, key);

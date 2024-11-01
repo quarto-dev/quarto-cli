@@ -1405,7 +1405,8 @@ export type BrandFont =
   | BrandFontGoogle
   | BrandFontBunny
   | BrandFontFile
-  | BrandFontSystem; /* Font files and definitions for the brand. */
+  | BrandFontSystem
+  | BrandFontCommon; /* Font files and definitions for the brand. */
 
 export type BrandFontWeight =
   | 100

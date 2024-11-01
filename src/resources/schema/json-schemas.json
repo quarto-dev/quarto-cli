@@ -3593,6 +3593,9 @@
         },
         {
           "$ref": "#/$defs/BrandFontSystem"
+        },
+        {
+          "$ref": "#/$defs/BrandFontCommon"
         }
       ]
     },
