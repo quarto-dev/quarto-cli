@@ -1,7 +1,7 @@
 /*
  * template.ts
  *
- * Copyright (C) 2021-2022 Posit Software, PBC
+ * Copyright (C) 2021-2024 Posit Software, PBC
  */
 
 import {
@@ -9,7 +9,11 @@ import {
   extensionSource,
 } from "../../../extension/extension-host.ts";
 import { info } from "../../../deno_ral/log.ts";
+
+// TODO: replace cliffy
+//   see https://github.com/quarto-dev/quarto-cli/issues/10878
 import { Confirm, Input } from "cliffy/prompt/mod.ts";
+
 import { basename, dirname, join, relative } from "../../../deno_ral/path.ts";
 import { ensureDir, ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
 import { TempContext } from "../../../core/temp-types.ts";
@@ -17,7 +21,7 @@ import { downloadWithProgress } from "../../../core/download.ts";
 import { withSpinner } from "../../../core/console.ts";
 import { unzip } from "../../../core/zip.ts";
 import { templateFiles } from "../../../extension/template.ts";
-import { Command } from "cliffy/command/mod.ts";
+import { Command, Option } from "npm:clipanion";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
 import { createTempContext } from "../../../core/temp.ts";
 import {
@@ -28,35 +32,41 @@ import {
 import { kExtensionDir } from "../../../extension/constants.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 import { readExtensions } from "../../../extension/extension.ts";
+import { namespace } from "../namespace.ts";
 
 const kRootTemplateName = "template.qmd";
 
-export const useTemplateCommand = new Command()
-  .name("template")
-  .arguments("<target:string>")
-  .description(
-    "Use a Quarto template for this directory or project.",
-  )
-  .option(
-    "--no-prompt",
-    "Do not prompt to confirm actions",
-  )
-  .example(
-    "Use a template from Github",
-    "quarto use template <gh-org>/<gh-repo>",
-  )
-  .action(async (options: { prompt?: boolean }, target: string) => {
+export class TemplateCommand extends Command {
+  static name = 'template';
+  static paths = [[namespace, TemplateCommand.name]];
+
+  static usage = Command.Usage({
+    description: "Use a Quarto template for this directory or project.",
+    examples: [
+      [
+        "Use a template from Github",
+        `$0 ${namespace} ${TemplateCommand.name} <gh-org>/<gh-repo>`,
+      ],
+    ]
+  });
+
+  target = Option.String();
+  noPrompt = Option.Boolean('--no-prompt', {description: "Do not prompt to confirm actions"});
+
+  async execute() {
+    const allowPrompt = !this.noPrompt;
     await initYamlIntelligenceResourcesFromFilesystem();
     const temp = createTempContext();
     try {
-      await useTemplate(options, target, temp);
+      await useTemplate(allowPrompt, this.target, temp);
     } finally {
       temp.cleanup();
     }
-  });
+  }
+}
 
 async function useTemplate(
-  options: { prompt?: boolean },
+  allowPrompt: boolean,
   target: string,
   tempContext: TempContext,
 ) {
@@ -69,10 +79,10 @@ async function useTemplate(
     );
     return;
   }
-  const trusted = await isTrusted(source, options.prompt !== false);
+  const trusted = await isTrusted(source, allowPrompt);
   if (trusted) {
     // Resolve target directory
-    const outputDirectory = await determineDirectory(options.prompt !== false);
+    const outputDirectory = await determineDirectory(allowPrompt);
 
     // Extract and move the template into place
     const stagedDir = await stageTemplate(source, tempContext);
@@ -93,7 +103,7 @@ async function useTemplate(
         templateExtensions,
         outputDirectory,
         {
-          allowPrompt: options.prompt !== false,
+          allowPrompt,
           throw: true,
           message: "The template requires the following changes to extensions:",
         },
@@ -133,7 +143,7 @@ async function useTemplate(
         };
 
         if (existsSync(target)) {
-          if (options.prompt) {
+          if (allowPrompt) {
             const proceed = await Confirm.prompt({
               message: `Overwrite file ${displayName}?`,
             });

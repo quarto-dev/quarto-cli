@@ -1,7 +1,7 @@
 /*
  * binder.ts
  *
- * Copyright (C) 2021-2022 Posit Software, PBC
+ * Copyright (C) 2021-2024 Posit Software, PBC
  */
 
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../../core/schema/utils.ts";
@@ -32,26 +32,34 @@ import {
   ProjectContext,
 } from "../../../../project/types.ts";
 
-import { Command } from "cliffy/command/mod.ts";
+import { Command, Option } from "npm:clipanion";
+
+// TODO: replace cliffy
+//   see https://github.com/quarto-dev/quarto-cli/issues/10878
 import { Table } from "cliffy/table/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
+
 import { notebookContext } from "../../../../render/notebook/notebook-context.ts";
 import { asArray } from "../../../../core/array.ts";
+import { namespace } from "../../namespace.ts";
 
-export const useBinderCommand = new Command()
-  .name("binder")
-  .description(
-    "Configure the current project with Binder support.",
-  )
-  .option(
-    "--no-prompt",
-    "Do not prompt to confirm actions",
-  )
-  .example(
-    "Configure project to use Binder",
-    "quarto use binder",
-  )
-  .action(async (options: { prompt?: boolean }) => {
+export class BinderCommand extends Command {
+  static name = 'binder';
+  static paths = [[namespace, BinderCommand.name]];
+
+  static usage = Command.Usage({
+    description: "Configure the current project with Binder support.",
+    examples: [
+      [
+        "Configure project to use Binder",
+        `$0 ${namespace} ${BinderCommand.name}`,
+      ],
+    ]
+  });
+
+  noPrompt = Option.Boolean('--no-prompt', {description: "Do not prompt to confirm actions"});
+
+  async execute() {
     await initYamlIntelligenceResourcesFromFilesystem();
     const temp = createTempContext();
     try {
@@ -61,19 +69,19 @@ export const useBinderCommand = new Command()
       const context = await projectContext(Deno.cwd(), nbContext);
       if (!context) {
         throw new Error(
-          "You must be in a Quarto project in order to configure Binder support.",
+            "You must be in a Quarto project in order to configure Binder support.",
         );
       }
 
       // Read the project environment
       const projEnv = await withSpinner(
-        {
-          message: "Inspecting project configuration:",
-          doneMessage: "Detected Project configuration:\n",
-        },
-        () => {
-          return context.environment();
-        },
+          {
+            message: "Inspecting project configuration:",
+            doneMessage: "Detected Project configuration:\n",
+          },
+          () => {
+            return context.environment();
+          },
       );
 
       const jupyterLab4 = jupyterLabVersion(context, projEnv);
@@ -81,19 +89,19 @@ export const useBinderCommand = new Command()
       const rConfig: RConfiguration = {};
       if (projectHasR(context, projEnv)) {
         const result = await execProcess(
-          {
-            cmd: [
-              await rBinaryPath("R"),
-              "--version",
-            ],
-            stdout: "piped",
-            stderr: "piped",
-          },
+            {
+              cmd: [
+                await rBinaryPath("R"),
+                "--version",
+              ],
+              stdout: "piped",
+              stderr: "piped",
+            },
         );
         if (result.success) {
           const output = result.stdout;
           const verMatch = output?.match(
-            /R version (\d+\.\d+\.\d+) \((\d\d\d\d-\d\d-\d\d)\)/m,
+              /R version (\d+\.\d+\.\d+) \((\d\d\d\d-\d\d-\d\d)\)/m,
           );
           if (verMatch) {
             const version = verMatch[1];
@@ -106,10 +114,10 @@ export const useBinderCommand = new Command()
       }
 
       const quartoVersion = typeof (projEnv.quarto) === "string"
-        ? projEnv.quarto === "prerelease"
-          ? "most recent prerelease"
-          : "most recent release"
-        : projEnv.quarto.toString();
+          ? projEnv.quarto === "prerelease"
+              ? "most recent prerelease"
+              : "most recent release"
+          : projEnv.quarto.toString();
 
       const table = new Table();
       table.push(["Quarto", quartoVersion]);
@@ -151,13 +159,13 @@ export const useBinderCommand = new Command()
         return engines.length === 1 && engines.includes("markdown");
       };
       if (
-        projEnv.environments.length === 0 &&
-        !isMarkdownEngineOnly(projEnv.engines)
+          projEnv.environments.length === 0 &&
+          !isMarkdownEngineOnly(projEnv.engines)
       ) {
         info(
-          "\nNo files which provide dependencies were discovered. If you continue, no dependencies will be restored when running this project with Binder.\n\nLearn more at:\nhttps://www.quarto.org/docs/prerelease/1.4/binder.html#dependencies\n",
+            "\nNo files which provide dependencies were discovered. If you continue, no dependencies will be restored when running this project with Binder.\n\nLearn more at:\nhttps://www.quarto.org/docs/prerelease/1.4/binder.html#dependencies\n",
         );
-        const proceed = !options.prompt || await Confirm.prompt({
+        const proceed = this.noPrompt || await Confirm.prompt({
           message: "Do you want to continue?",
           default: true,
         });
@@ -168,14 +176,14 @@ export const useBinderCommand = new Command()
 
       // Get the list of operations that need to be performed
       const fileOperations = await binderFileOperations(
-        projEnv,
-        jupyterLab4,
-        context,
-        options,
-        rConfig,
+          projEnv,
+          jupyterLab4,
+          context,
+          !this.noPrompt,
+          rConfig,
       );
       info(
-        "\nThe following files will be written:",
+          "\nThe following files will be written:",
       );
       const changeTable = new Table();
       fileOperations.forEach((op) => {
@@ -184,7 +192,7 @@ export const useBinderCommand = new Command()
       changeTable.border(true).render();
       info("");
 
-      const writeFiles = !options.prompt || await Confirm.prompt({
+      const writeFiles = this.noPrompt || await Confirm.prompt({
         message: "Continue?",
         default: true,
       });
@@ -198,7 +206,8 @@ export const useBinderCommand = new Command()
     } finally {
       temp.cleanup();
     }
-  });
+  }
+}
 
 const createPostBuild = (
   quartoConfig: QuartoConfiguration,
@@ -359,7 +368,7 @@ async function binderFileOperations(
   projEnv: ProjectEnvironment,
   jupyterLab4: boolean,
   context: ProjectContext,
-  options: { prompt?: boolean | undefined },
+  allowPrompt: boolean,
   rConfig: RConfiguration,
 ) {
   const operations: Array<
@@ -408,7 +417,7 @@ async function binderFileOperations(
   };
 
   // Get a file writer
-  const writeFile = safeFileWriter(context.dir, options.prompt);
+  const writeFile = safeFileWriter(context.dir, allowPrompt);
 
   // Look for an renv.lock file
   const renvPath = join(context.dir, "renv.lock");
