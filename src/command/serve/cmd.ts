@@ -1,13 +1,12 @@
 /*
  * cmd.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 
-import { Command } from "cliffy/command/mod.ts";
+import { Command, Option } from "npm:clipanion";
+import { applyCascade, isInInclusiveRange, isInteger, isNumber } from "npm:typanion";
 
-import * as colors from "fmt/colors";
-import { error } from "../../deno_ral/log.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { projectContext } from "../../project/project-context.ts";
 
@@ -21,69 +20,70 @@ import { RenderServices } from "../render/types.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 import { exitWithCleanup } from "../../core/cleanup.ts";
 
-export const serveCommand = new Command()
-  .name("serve")
-  .arguments("[input:string]")
-  .option(
-    "--no-render",
-    "Do not render the document before serving.",
-  )
-  .option(
-    "-p, --port [port:number]",
-    "The TCP port that the application should listen on.",
-  )
-  .option(
-    "--host [host:string]",
-    "Hostname to bind to (defaults to 127.0.0.1)",
-  )
-  .option(
-    "--browser",
-    "Open a browser to preview the site.",
-  )
-  .description(
-    "Serve a Shiny interactive document.\n\nBy default, the document will be rendered first and then served. " +
-      "If you have previously rendered the document, pass --no-render to skip the rendering step.",
-  )
-  .example(
-    "Serve an interactive Shiny document",
-    "quarto serve dashboard.qmd",
-  )
-  .example(
-    "Serve a document without rendering",
-    "quarto serve dashboard.qmd --no-render",
-  )
-  // deno-lint-ignore no-explicit-any
-  .action(async (options: any, input?: string) => {
-    await initYamlIntelligenceResourcesFromFilesystem();
-    if (!input) {
-      error(
-        "No input passed to serve.\n" +
-          "If you are attempting to preview a website or book use the " +
-          colors.bold("quarto preview") + " command instead.",
-      );
-      exitWithCleanup(1);
-      throw new Error(); // we never reach this point but the Deno analyzer doesn't see it.
-    }
+const isPort = applyCascade(isNumber(), [
+  isInteger(),
+  isInInclusiveRange(1, 65535),
+]);
 
-    const { host, port } = await resolveHostAndPort(options);
+export class ServeCommand extends Command {
+  static name = 'serve';
+  static paths = [[ServeCommand.name]];
+
+  static usage = Command.Usage({
+    description:
+        "Serve a Shiny interactive document.\n\nBy default, the document will be rendered first and then served. " +
+        "If you have previously rendered the document, pass --no-render to skip the rendering step.",
+    examples: [
+      [
+        "Serve an interactive Shiny document",
+        `$0 ${ServeCommand.name} dashboard.qmd`,
+      ],
+      [
+        "Serve a document without rendering",
+        `$0 ${ServeCommand.name} dashboard.qmd --no-render`,
+      ]
+    ]
+  });
+
+  input = Option.String();
+
+  browser = Option.Boolean('--browser', true, {
+    description: "Open a browser to preview the site."
+  });
+
+  host = Option.String('--host', {
+    description: "Hostname to bind to (defaults to 127.0.0.1)",
+  });
+
+  render = Option.Boolean('--render', true, { description: "Render before serving." });
+
+  port = Option.String('-p,--port', {
+    description: "The TCP port that the application should listen on.",
+    validator: isPort
+  })
+
+  async execute() {
+    const { browser, input, render } = this;
+    await initYamlIntelligenceResourcesFromFilesystem();
+    const { host, port } = await resolveHostAndPort({ host: this.host, port: this.port });
 
     const nbContext = notebookContext();
     const context = (await projectContext(input, nbContext)) ||
-      singleFileProjectContext(input, nbContext);
+        singleFileProjectContext(input, nbContext);
     const formats = await withRenderServices(
-      nbContext,
-      (services: RenderServices) =>
-        renderFormats(input, services, undefined, context),
+        nbContext,
+        (services: RenderServices) =>
+            renderFormats(input, services, undefined, context),
     );
     const format = await previewFormat(input, undefined, formats, context);
 
     const result = await serve({
       input,
-      render: options.render,
+      render,
       format,
       port,
       host,
-      browser: options.browser,
+      browser,
       projectDir: context?.dir,
       tempDir: Deno.makeTempDirSync(),
     });
@@ -92,4 +92,5 @@ export const serveCommand = new Command()
       // error diagnostics already written to stderr
       exitWithCleanup(result.code);
     }
-  });
+  }
+}
