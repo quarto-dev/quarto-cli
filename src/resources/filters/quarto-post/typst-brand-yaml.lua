@@ -301,14 +301,15 @@ function render_typst_brand_yaml()
       end
 
       local headings = _quarto.modules.brand.get_typography('headings')
-      if headings and next(headings) then
+      if headings and next(headings) or _quarto.modules.brand.get_color('foreground') then
         base = base or {}
+        headings = headings or {}
         meta.brand.typography.headings = {
           family = headings.family or base.family,
           weight = headings.weight or base.weight,
           style = headings.style or base.style,
           decoration = headings.decoration or base.decoration,
-          color = headings.color or base.color,
+          color = headings.color or _quarto.modules.brand.get_color('foreground'),
           ['background-color'] = headings['background-color'] or base['background-color'],
           ['line-height'] = line_height_to_leading(headings['line-height'] or base['line-height']),
         }
