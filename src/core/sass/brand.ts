@@ -18,6 +18,7 @@ import { ProjectContext } from "../../project/types.ts";
 import {
   BrandFont,
   BrandFontBunny,
+  BrandFontCommon,
   BrandFontGoogle,
   BrandFontWeight,
 } from "../../resources/types/schema-types.ts";
@@ -110,7 +111,7 @@ const fontFileFormat = (file: string): string => {
   }
 };
 
-const bunnyFontImportString = (description: BrandFontBunny) => {
+const bunnyFontImportString = (description: BrandFontCommon) => {
   const bunnyName = (name: string) => name.replace(/ /g, "-");
   const bunnyFamily = description.family;
   if (!bunnyFamily) {
@@ -137,7 +138,6 @@ const bunnyFontImportString = (description: BrandFontBunny) => {
   return `@import url('https://fonts.bunny.net/css?family=${
     bunnyName(bunnyFamily)
   }:${weights}&display=${display}');`;
-  // }
 };
 
 const googleFontImportString = (description: BrandFontGoogle) => {
@@ -371,6 +371,41 @@ const brandTypographyBundle = (
     return googleFamily;
   };
 
+  const resolveBunnyFontFamily = (
+    font: BrandFont[],
+  ): string | undefined => {
+    let googleFamily = "";
+    for (const _resolvedFont of font) {
+      const resolvedFont =
+        _resolvedFont as (BrandFont | BrandFontGoogle | BrandFontBunny);
+      // Typescript's type checker doesn't understand that it's ok to attempt
+      // to access a property that might not exist on a type when you're
+      // only testing for its existence.
+
+      // deno-lint-ignore no-explicit-any
+      const source = (resolvedFont as any).source;
+      if (source && source !== "bunny") {
+        return undefined;
+      }
+      const thisFamily = resolvedFont.family;
+      if (!thisFamily) {
+        continue;
+      }
+      if (googleFamily === "") {
+        googleFamily = thisFamily;
+      } else if (googleFamily !== thisFamily) {
+        throw new Error(
+          `Inconsistent Google font families found: ${googleFamily} and ${thisFamily}`,
+        );
+      }
+      typographyImports.add(bunnyFontImportString(resolvedFont));
+    }
+    if (googleFamily === "") {
+      return undefined;
+    }
+    return googleFamily;
+  };
+
   type HTMLFontInformation = { [key: string]: unknown };
 
   type FontKind =
@@ -392,7 +427,7 @@ const brandTypographyBundle = (
     const font = getFontFamilies(family);
     const result: HTMLFontInformation = {};
     result.family = resolveGoogleFontFamily(font) ??
-      // resolveBunnyFontFamily(font) ??
+      resolveBunnyFontFamily(font) ??
       // resolveFilesFontFamily(font) ??
       family;
     for (

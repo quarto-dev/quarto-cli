@@ -12301,6 +12301,9 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             {
               ref: "brand-font-system"
+            },
+            {
+              ref: "brand-font-common"
             }
           ]
         },
@@ -21778,6 +21781,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "A link or path to the brand\u2019s dark-colored logo or icon.",
         "Alternative text for the logo, used for accessibility.",
         "Provide definitions and defaults for brand\u2019s logo in various formats\nand sizes.",
+        "A dictionary of named logo resources.",
         "A link or path to the brand\u2019s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
         "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
         "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
@@ -21801,13 +21805,13 @@ var require_yaml_intelligence_resources = __commonJS({
         "Typography definitions for the brand.",
         "Font files and definitions for the brand.",
         "The base font settings for the brand. These are used as the default\nfor all text.",
-        "Settings for headings",
-        "Settings for monospace text",
-        "Settings for inline code",
-        "Settings for code blocks",
-        "Settings for links",
-        "Typographic options.",
-        "Typographic options without a font size.",
+        "Settings for headings, or a string specifying the font family\nonly.",
+        "Settings for monospace text, or a string specifying the font family\nonly.",
+        "Settings for inline code, or a string specifying the font family\nonly.",
+        "Settings for code blocks, or a string specifying the font family\nonly.",
+        "Settings for links.",
+        "Base typographic options.",
+        "Typographic options for headings.",
         "Typographic options for monospace elements.",
         "Typographic options for inline monospace elements.",
         "Line height",

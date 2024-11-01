@@ -2688,7 +2688,7 @@
         description: Settings for headings, or a string specifying the font family only.
         ref: brand-typography-options-headings
       monospace:
-        description: Settings for monospace text, or a string specifying the font family only. 
+        description: Settings for monospace text, or a string specifying the font family only.
         ref: brand-typography-options-monospace
       monospace-inline:
         description: Settings for inline code, or a string specifying the font family only.
@@ -2697,7 +2697,7 @@
         description: Settings for code blocks, or a string specifying the font family only.
         ref: brand-typography-options-monospace-block
       link:
-        description: Settings for links. 
+        description: Settings for links.
         ref: brand-typography-options-link
 
 - id: brand-typography-options-base
@@ -2811,7 +2811,12 @@
     - ref: brand-font-bunny
     - ref: brand-font-file
     - ref: brand-font-system
-
+    # a font definition missing source information,
+    # from which we will assume a default source
+    #
+    # in Quarto, the default source for typst is `google`
+    # and the default source for html formats is `bunny`
+    - ref: brand-font-common
 - id: brand-font-weight
   description: A font weight.
   enum:
