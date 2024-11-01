@@ -125,12 +125,6 @@ export async function quarto(
     await passThroughTypst(args, env);
   }
 
-  // passthrough to run handlers
-  if (args[0] === "run" && args[1] !== "help" && args[1] !== "--help") {
-    const result = await runScript(args.slice(1), env);
-    Deno.exit(result.code);
-  }
-
   // inject implicit cwd arg for quarto preview/render whose
   // first argument is a command line parmaeter. this allows
   // us to evade a cliffy cli parsing issue where it requires
