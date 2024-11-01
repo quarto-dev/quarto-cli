@@ -273,7 +273,7 @@ $link-decoration: inherit !default;
 
 // border colors
 $border-color: mix(
-  if(variable-exists(body-color), $body-color, "#fff"),
+  if(variable-exists(body-color), $body-color, #fff),
   $body-contrast-bg,
   30%
 ) !default;
