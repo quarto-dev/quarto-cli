@@ -378,7 +378,13 @@ const brandTypographyBundle = (
     for (const _resolvedFont of font) {
       const resolvedFont =
         _resolvedFont as (BrandFont | BrandFontGoogle | BrandFontBunny);
-      if ((resolvedFont as any).source && resolvedFont.source !== "bunny") {
+      // Typescript's type checker doesn't understand that it's ok to attempt
+      // to access a property that might not exist on a type when you're
+      // only testing for its existence.
+
+      // deno-lint-ignore no-explicit-any
+      const source = (resolvedFont as any).source;
+      if (source && source !== "bunny") {
         return undefined;
       }
       const thisFamily = resolvedFont.family;
