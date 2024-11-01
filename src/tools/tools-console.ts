@@ -4,8 +4,12 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 import * as colors from "fmt/colors";
+
+// TODO: replace cliffy
+//   see https://github.com/quarto-dev/quarto-cli/issues/10878
 import { Confirm, Select } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
+
 import { info, warning } from "../deno_ral/log.ts";
 
 import {

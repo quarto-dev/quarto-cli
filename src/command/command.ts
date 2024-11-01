@@ -20,7 +20,7 @@ import { CheckCommand } from "./check/cmd.ts";
 import { InspectCommand } from "./inspect/cmd.ts";
 import { BuildJsCommand } from "./build-js/cmd.ts";
 import { InstallCommand } from "./install/cmd.ts";
-import { updateCommand } from "./update/cmd.ts";
+import { UpdateCommand } from "./update/cmd.ts";
 import { PublishCommand } from "./publish/cmd.ts";
 import { RemoveCommand } from "./remove/cmd.ts";
 import { listCommands } from "./list/cmd.ts";
@@ -40,7 +40,7 @@ export function commands(): Command<any>[] {
     CreateCommand,
     makeUseCommand(),
     AddCommand,
-    updateCommand,
+    UpdateCommand,
     RemoveCommand,
     CreateProjectCommand,
     ConvertCommand,
