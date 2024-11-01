@@ -22,7 +22,7 @@ import { BuildJsCommand } from "./build-js/cmd.ts";
 import { InstallCommand } from "./install/cmd.ts";
 import { updateCommand } from "./update/cmd.ts";
 import { PublishCommand } from "./publish/cmd.ts";
-import { removeCommand } from "./remove/cmd.ts";
+import { RemoveCommand } from "./remove/cmd.ts";
 import { listCommands } from "./list/cmd.ts";
 import { makeUseCommand } from "./use/cmd.ts";
 import { AddCommand } from "./add/cmd.ts";
@@ -41,7 +41,7 @@ export function commands(): Command<any>[] {
     makeUseCommand(),
     AddCommand,
     updateCommand,
-    removeCommand,
+    RemoveCommand,
     CreateProjectCommand,
     ConvertCommand,
     PandocCommand,
