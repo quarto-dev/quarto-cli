@@ -75,6 +75,9 @@ function render_typst_brand_yaml()
           end
           if brandColor.foreground then
             quarto.doc.include_text('in-header', '#set text(fill: brand-color.foreground)')
+            quarto.doc.include_text('in-header', '#set table.hline(stroke: (paint: brand-color.foreground))')
+            quarto.doc.include_text('in-header', '#set line(stroke: (paint: brand-color.foreground))')
+    
           end
           local decl = '// theme colors at opacity ' .. BACKGROUND_OPACITY .. '\n#let brand-color-background = ' .. to_typst_dict_indent(themebk)
           quarto.doc.include_text('in-header', decl)
