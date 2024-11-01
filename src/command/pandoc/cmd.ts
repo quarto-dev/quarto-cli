@@ -57,7 +57,7 @@ const ignoredPandocOptions = [
     "--metadata",
     "--metadata-file",
 
-    // handled by appendLogOptions()
+    // handled by addLoggingOptions()
     "--log",
 
     // injected from RenderFlags
