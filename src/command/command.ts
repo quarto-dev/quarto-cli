@@ -26,7 +26,7 @@ import { RemoveCommand } from "./remove/cmd.ts";
 import { listCommands } from "./list/cmd.ts";
 import { makeUseCommand } from "./use/cmd.ts";
 import { AddCommand } from "./add/cmd.ts";
-import { uninstallCommand } from "./uninstall/cmd.ts";
+import { UninstallCommand } from "./uninstall/cmd.ts";
 import { CreateCommand } from "./create/cmd.ts";
 import { editorSupportCommands } from "./editor-support/cmd.ts";
 
@@ -50,7 +50,7 @@ export function commands(): Command<any>[] {
     RunCommand,
     ...listCommands,
     InstallCommand,
-    uninstallCommand,
+    UninstallCommand,
     ...toolsCommands,
     PublishCommand,
     CapabilitiesCommand,
