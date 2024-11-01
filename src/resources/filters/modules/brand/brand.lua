@@ -1,11 +1,16 @@
 -- brand.lua
 -- Copyright (C) 2020-2024 Posit Software, PBC
 
-local function get_color(name)
+local function get_color_css(name)
   local brand = param("brand")
   brand = brand and brand.processedData -- from src/core/brand/brand.ts
   if not brand then return nil end
   local cssColor = brand.color[name]
+  return cssColor
+end
+
+local function get_color(name)
+  local cssColor = get_color_css(name)
   if not cssColor then return nil end
   if _quarto.format.isTypstOutput() then
     return _quarto.format.typst.css.output_color(_quarto.format.typst.css.parse_color(cssColor))
@@ -32,9 +37,6 @@ local function get_typography(fontName)
   if not brand then return nil end
   local typography = brand.typography and brand.typography[fontName]
   if not typography then return nil end
-  if type(typography) == 'string' then
-    typography = { family = typography }
-  end
   local typsted = {}
   for k, v in pairs(typography) do
     if k == 'color' or k == 'background-color' then
@@ -63,6 +65,7 @@ local function get_logo(name)
 end
 
 return {
+  get_color_css = get_color_css,
   get_color = get_color,
   get_background_color = get_background_color,
   get_typography = get_typography,

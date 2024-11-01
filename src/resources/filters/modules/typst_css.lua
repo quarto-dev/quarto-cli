@@ -302,6 +302,16 @@ local function parse_color(color, warnings)
     }
   elseif color:find '^rgb%(' or color:find '^rgba%(' then
     return parse_rgb(color)
+  elseif color:find '^var%(%-%-brand%-' then
+    local colorName = color:match '^var%(%-%-brand%-([%a--]*)%)'
+    if not colorName then
+      output_warning(warnings, 'invalid brand color reference ' .. v)
+      return null
+    end
+    return colorName and {
+      type = 'brand',
+      value = colorName
+    }
   elseif css_named_colors[color] then
     return {
       type = 'named',
@@ -335,6 +345,13 @@ local function output_color(color, opacity, warnings)
         return nil
       end
       color = parse_color(typst_named_colors[color.value] or css_named_colors[color.value])
+    elseif color.type == 'brand' then
+      local cssColor = _quarto.modules.brand.get_color_css(color.value)
+      if not cssColor then
+        output_warning(warnings, 'unknown brand color ' .. color.value)
+        return nil
+      end
+      color = _quarto.format.typst.css.parse_color(cssColor)
     end
     local mult = 1
     if opacity.unit == 'int' then
@@ -366,6 +383,13 @@ local function output_color(color, opacity, warnings)
       else
         return nil
       end
+    elseif color.type == 'brand' then
+      local cssColor = _quarto.modules.brand.get_color_css(color.value)
+      if not cssColor then
+        output_warning(warnings, 'unknown brand color ' .. color.value)
+        return nil
+      end
+      return 'brand-color.' .. color.value
     end
   end
   quarto.log.debug('output_color output', color)
