@@ -272,5 +272,9 @@ $link-weight: $font-weight-base !default;
 $link-decoration: inherit !default;
 
 // border colors
-$border-color: mix($body-color, $body-contrast-bg, 30%) !default;
+$border-color: mix(
+  if(variable-exists(body-color), $body-color, "#fff"),
+  $body-contrast-bg,
+  30%
+) !default;
 $table-border-color: $border-color !default;
