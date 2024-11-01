@@ -32,7 +32,6 @@ import {
   readSourceDevConfig,
   reconfigureQuarto,
 } from "./core/devconfig.ts";
-import { typstBinaryPath } from "./core/typst.ts";
 import { exitWithCleanup, onCleanup } from "./core/cleanup.ts";
 
 import { runScript } from "./command/run/run.ts";
@@ -93,24 +92,6 @@ const passThroughPandoc = async (
   Deno.exit(result.code);
 };
 
-const passThroughTypst = async (
-  args: string[],
-  env?: Record<string, string>,
-) => {
-  if (args[1] === "update") {
-    error(
-      "The 'typst update' command is not supported.\n" +
-        "Please install the latest version of Quarto from http://quarto.org to get the latest supported typst features.",
-    );
-    Deno.exit(1);
-  }
-  const result = await execProcess({
-    cmd: [typstBinaryPath(), ...args.slice(1)],
-    env,
-  });
-  Deno.exit(result.code);
-};
-
 export async function quarto(
   args: string[],
   cmdHandler?: (command: Command) => Command,
@@ -120,9 +101,6 @@ export async function quarto(
   checkVersionRequirement();
   if (args[0] === "pandoc" && args[1] !== "help") {
     await passThroughPandoc(args.slice(1), env);
-  }
-  if (args[0] === "typst") {
-    await passThroughTypst(args, env);
   }
 
   // inject implicit cwd arg for quarto preview/render whose
