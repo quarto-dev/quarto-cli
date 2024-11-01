@@ -2174,3 +2174,10 @@ code {
   @include font-size($code-inline-font-size);
   font-weight: $font-weight-monospace-inline;
 }
+
+// link styling
+a {
+  background-color: $link-color-bg;
+  font-weight: $link-weight;
+  text-decoration: $link-decoration;
+}

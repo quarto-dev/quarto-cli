@@ -403,6 +403,7 @@ const brandTypographyBundle = (
         "style",
         "color",
         "background-color",
+        "decoration",
       ]
     ) {
       // deno-lint-ignore no-explicit-any
@@ -446,6 +447,13 @@ const brandTypographyBundle = (
       ["weight", "presentation-heading-font-weight"],
       ["color", "presentation-heading-color"],
       // TODO: style, needs CSS change
+    ],
+    "link": [
+      // bootstrap + revealjs
+      ["color", "link-color"],
+      ["background-color", "link-color-bg"],
+      ["weight", "link-weight"],
+      ["decoration", "link-decoration"],
     ],
     "monospace": [
       // bootstrap + revealjs
@@ -497,6 +505,7 @@ const brandTypographyBundle = (
   for (
     const kind of [
       // more specific entries go first
+      "link",
       "monospace-block",
       "monospace-inline",
       "monospace",

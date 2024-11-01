@@ -20,6 +20,8 @@ $font-weight-base: 400 !default;
 $code-font-size: $presentation-font-size-root !default;
 $font-family-monospace-block: $font-family-monospace !default;
 $font-family-monospace-inline: $font-family-monospace !default;
+$link-weight: $font-weight-base !default;
+$link-color-bg: transparent !default;
 
 // main colors
 $body-bg: #fff !default;
@@ -922,4 +924,12 @@ kbd {
   --r-block-code-font: #{$font-family-monospace-block};
   --r-inline-code-font-size: #{$revealjs-code-inline-font-size};
   --r-block-code-font-size: #{$revealjs-code-block-font-size};
+}
+
+// _brand.yml rules
+
+.reveal a {
+  font-weight: $link-weight;
+  background-color: $link-color-bg;
+  text-decoration: $link-decoration;
 }

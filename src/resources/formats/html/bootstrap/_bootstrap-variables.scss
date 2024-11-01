@@ -17,6 +17,7 @@ $link-color: if(
   theme-override-value($theme-name, "link-color", $link-color),
   $link-color
 );
+$link-color-bg: transparent !default;
 
 /* Code Block Formatting */
 // Code Block Border Treatment
@@ -255,7 +256,8 @@ $h1h2h3-font-weight: 600 !default;
 $font-weight-base: 400 !default;
 $small-font-size: 0.875em !default;
 $code-font-size: $small-font-size !default;
-$font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !default;
+$font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas,
+  "Liberation Mono", "Courier New", monospace !default;
 
 $font-family-monospace-block: $font-family-monospace !default;
 $font-family-monospace-inline: $font-family-monospace !default;
@@ -264,3 +266,5 @@ $font-weight-monospace-block: $font-weight-monospace !default;
 $font-weight-monospace-inline: $font-weight-monospace !default;
 $code-block-font-size: $code-font-size !default;
 $code-inline-font-size: $code-font-size !default;
+$link-weight: $font-weight-base !default;
+$link-decoration: inherit !default;
