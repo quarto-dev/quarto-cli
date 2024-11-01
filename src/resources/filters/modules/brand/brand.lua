@@ -38,6 +38,7 @@ local function get_typography(fontName)
   local typography = brand.typography and brand.typography[fontName]
   if not typography then return nil end
   local typsted = {}
+  if type(typography) == 'string' then typography = {family = typography} end
   for k, v in pairs(typography) do
     if k == 'color' or k == 'background-color' then
       typsted[k] = get_color(v) or _quarto.format.typst.css.output_color(_quarto.format.typst.css.parse_color(v))
