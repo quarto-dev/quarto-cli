@@ -182,11 +182,13 @@ function render_typst_brand_yaml()
         end
 
         local link = _quarto.modules.brand.get_typography('link')
-        if link and next(link) then
+        local primaryColor = _quarto.modules.brand.get_color('primary')
+        if link and next(link) or primaryColor then
+          link = link or {}
           quarto.doc.include_text('in-header', table.concat({
             '#show link: set text(',
             conditional_entry('weight', link.weight),
-            conditional_entry('fill', link.color, false),
+            conditional_entry('fill', link.color or primaryColor, false),
             ')'
           }))
         end
@@ -304,7 +306,8 @@ function render_typst_brand_yaml()
       end
 
       local headings = _quarto.modules.brand.get_typography('headings')
-      if headings and next(headings) or _quarto.modules.brand.get_color('foreground') then
+      local foregroundColor = _quarto.modules.brand.get_color('foreground')
+      if headings and next(headings) or foregroundColor then
         base = base or {}
         headings = headings or {}
         meta.brand.typography.headings = {
@@ -312,7 +315,7 @@ function render_typst_brand_yaml()
           weight = headings.weight or base.weight,
           style = headings.style or base.style,
           decoration = headings.decoration or base.decoration,
-          color = headings.color or _quarto.modules.brand.get_color('foreground'),
+          color = headings.color or foregroundColor,
           ['background-color'] = headings['background-color'] or base['background-color'],
           ['line-height'] = line_height_to_leading(headings['line-height'] or base['line-height']),
         }
