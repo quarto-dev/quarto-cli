@@ -1,0 +1,21 @@
+---
+title: Foreground and background colors
+format:
+  typst:
+    keep-typ: true
+brand:
+  color:
+    palette:
+      fire: "#dd571c"
+    primary: fire
+
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+        -
+          - 'a link in rgb\("#dd571c"\)'
+        - []
+---
+
+Here is [a link in `#context text.fill`{=typst}](http://example.com).
