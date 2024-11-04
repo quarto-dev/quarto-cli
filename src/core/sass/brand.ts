@@ -464,6 +464,9 @@ const brandTypographyBundle = (
       ["line-height", "presentation-line-height"],
       // TBD?
 
+      // mermaid
+      ["family", "mermaid-font-family"],
+      ["weight", "mermaid-font-weight"],
       // ["style", "font-style-base"],
       // ["weight", "font-weight-base"],
     ],
