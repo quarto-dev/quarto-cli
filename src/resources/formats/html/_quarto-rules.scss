@@ -592,7 +592,6 @@ div.ansi-escaped-output {
   }
 }
 
-
 /* rules to support GT table styling */
 table.gt_table {
   color: var(--quarto-body-color);
@@ -715,6 +714,7 @@ $mermaid-fg-color: $body-color !default;
 $mermaid-fg-color--lighter: lighten($body-color, 10%) !default;
 $mermaid-fg-color--lightest: lighten($body-color, 20%) !default;
 $mermaid-font-family: $font-family-sans-serif !default;
+$mermaid-font-weight: $font-weight-base !default;
 $mermaid-label-bg-color: $body-bg !default;
 $mermaid-label-fg-color: $primary !default;
 $mermaid-node-bg-color: rgba($primary, 0.1) !default;
