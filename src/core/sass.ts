@@ -21,6 +21,7 @@ import { md5HashBytes } from "./hash.ts";
 import { kSourceMappingRegexes } from "../config/constants.ts";
 import { writeTextFileSyncPreserveMode } from "./write.ts";
 import { quartoConfig } from "../core/quarto.ts";
+import { getStack } from "./deno/debug.ts";
 
 export interface SassVariable {
   name: string;
@@ -52,6 +53,7 @@ export async function compileSass(
   temp: TempContext,
   minified = true,
 ) {
+  console.log(getStack("ansi"));
   // Gather the inputs for the framework
   const frameWorkUses = bundles.map(
     (bundle) => bundle.framework?.uses || "",

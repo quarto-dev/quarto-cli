@@ -623,6 +623,7 @@ async function renderFileInternal(
           context,
           flags: options.flags || {} as RenderFlags,
           stage: "post-engine",
+          project,
         };
 
         let unmappedExecuteResult: ExecuteResult;

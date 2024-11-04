@@ -6,7 +6,7 @@ import {
 } from "../../config/constants.ts";
 import { Format, FormatDependency, FormatExtras } from "../../config/types.ts";
 import { PandocIncludes } from "../../execute/types.ts";
-import { FileInclusion } from "../../project/types.ts";
+import { FileInclusion, ProjectContext } from "../../project/types.ts";
 import { DirectiveCell, QuartoMdCell } from "../lib/break-quarto-md-types.ts";
 import { EitherString, MappedString } from "../lib/text-types.ts";
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
@@ -34,6 +34,8 @@ export interface LanguageCellHandlerOptions {
   context: RenderContext;
 
   flags: RenderFlags;
+
+  project: ProjectContext;
 
   // per-document state, so that different handlers can share state as needed.
   state?: Record<string, Record<string, unknown>>;

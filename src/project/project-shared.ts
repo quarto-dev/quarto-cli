@@ -350,7 +350,7 @@ export async function directoryMetadataForInputFile(
 }
 
 const mdForFile = async (
-  project: ProjectContext,
+  _project: ProjectContext,
   engine: ExecutionEngine | undefined,
   file: string,
 ): Promise<MappedString> => {
@@ -485,6 +485,7 @@ export async function projectResolveFullMarkdownForFile(
       },
     } as unknown as RenderContext,
     flags: {} as RenderFlags,
+    project,
   };
   try {
     const result = await expandIncludes(markdown, options, file);

@@ -43,6 +43,9 @@ import { warning } from "../../deno_ral/log.ts";
 import { FormatDependency } from "../../config/types.ts";
 import { mappedDiff } from "../mapped-text.ts";
 import { escape } from "../../core/lodash.ts";
+import { getStack } from "../deno/debug.ts";
+import { brandSassBundleLayers } from "../sass/brand.ts";
+import { compileSass } from "../sass.ts";
 
 const mermaidHandler: LanguageHandler = {
   ...baseHandler,
@@ -100,12 +103,20 @@ object:
       }
     }
 
+    const bundle = await brandSassBundleLayers(
+      handlerContext.options.context.target.source,
+      handlerContext.options.project,
+      "bootstrap",
+    );
+    const cssPath = await compileSass(bundle, handlerContext.options.temp);
+
     const cellContent = handlerContext.cellContent(cell);
     // TODO escaping removes MappedString information.
     // create puppeteer target page
     const content = `<html>
 <head>
 <script src="./mermaid.min.js"></script>
+<link rel="stylesheet" href="./bootstrap.min.css"/>
 </head>
 <body>
 <pre class="mermaid">\n${escape(cellContent.value)}\n</pre> 
@@ -119,6 +130,9 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
       Deno.readTextFileSync(
         formatResourcePath("html", join("mermaid", "mermaid.min.js")),
       ),
+    ], [
+      "bootstrap.min.css",
+      Deno.readTextFileSync(cssPath),
     ]];
 
     const setupMermaidSvgJsRuntime = () => {

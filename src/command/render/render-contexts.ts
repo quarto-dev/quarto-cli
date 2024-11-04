@@ -282,6 +282,7 @@ export async function renderContexts(
         context,
         flags: options.flags || {} as RenderFlags,
         stage: "pre-engine",
+        project,
       };
 
       const { markdown, results } = await handleLanguageCells(

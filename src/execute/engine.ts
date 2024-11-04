@@ -43,7 +43,7 @@ export function executionEngine(name: string) {
 }
 
 for (
-  const engine of [knitrEngine, jupyterEngine, markdownEngine, juliaEngine]
+  const engine of [knitrEngine, jupyterEngine, juliaEngine, markdownEngine]
 ) {
   registerExecutionEngine(engine);
 }
