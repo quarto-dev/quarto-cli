@@ -924,6 +924,7 @@ kbd {
   border-radius: $border-radius;
   overflow-wrap: break-word;
 
+  // Rules for both styles
   &.callout-style-simple,
   &.callout-style-default {
     border-left: $callout-border-width solid #acacac;
@@ -983,6 +984,9 @@ kbd {
     }
   }
 
+  // Apply only to simple callout style which could have
+  // - a title or not
+  // - an icon or not
   &.callout-style-simple {
     padding: 0em 0.5em;
     display: flex;
@@ -1041,6 +1045,9 @@ kbd {
     }
   }
 
+  // Apply only to default callout style which could have
+  // - a title (can't have no title)
+  // - an icon or not
   &.callout-style-default {
     &.callout-titled {
       .callout-content {
@@ -1072,6 +1079,7 @@ kbd {
     }
   }
 
+  // FIXME: There is no body-container in revealjs so remove but before find what it was suppose to do
   .callout-body-container {
     flex-grow: 1;
   }
