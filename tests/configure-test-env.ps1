@@ -23,22 +23,13 @@ try { $null = gcm python -ea stop; $python=$true } catch {
 }
 
 If ( $py -and $python) {
-    Write-Host "Setting up python environnement with pipenv"
-    try { $null = gcm pipenv -ea stop; $pipenv=$true } catch { 
-      Write-Host -ForegroundColor red "No pipenv found in PATH - Installing pipenv running ``pip install pipenv``"
+    Write-Host "Setting up python environnement with uv"
+    try { $null = gcm uv -ea stop; $uv=$true } catch { 
+      Write-Host -ForegroundColor red "No uv found in PATH - Install uv please: https://docs.astral.sh/uv/getting-started/installation/"
     }
-    If ($null -eq $pipenv) {
-      python -m pip install pipenv
-      try { $null = gcm pyenv -ea stop; $pyenv=$true } catch { }
-      If ($pyenv) {
-        pyenv rehash
-      }
-    }
-    # our default is pipenv to use its own virtualenv and be in project directory
-    $Env:PIPENV_IGNORE_VIRTUALENVS=1
-    $Env:PIPENV_VENV_IN_PROJECT=1
-    pipenv install
-    $pipenv=$true
+    # install from lockfile
+    uv sync
+    $uv=$true
 }
 
 # Check Julia environment --- 

@@ -140,18 +140,17 @@ jobs:
         env:
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Install uv for Python
+        uses: astral-sh/setup-uv@v3
         with:
-          python-version: "3.12"
-          cache: "pipenv"
-          cache-dependency-path: "./tests/Pipfile.lock"
+          version: "0.4.30"
+          enable-cache: true
+          cache-dependency-glob: "tests/uv.lock"
 
-      - name: Restore Python Dependencies
+      - name: Install Python and Dependencies
         working-directory: tests
         run: |
-          python -m pip install pipenv==2024.3.0
-          pipenv install
+          uv sync
 
       - uses: ./.github/workflows/actions/quarto-dev
 
@@ -181,8 +180,8 @@ jobs:
         run: |
           # Setup IJulia with the jupyter from the Python environment
           # https://julialang.github.io/IJulia.jl/stable/manual/installation/
-          export JUPYTER=$(find $(dirname $(pipenv run which jupyter))/ -type f -name "jupyter.exe" -o -name "jupyter")
-          pipenv run julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
+          export JUPYTER=$(find $(dirname $(uv run which jupyter))/ -type f -name "jupyter.exe" -o -name "jupyter")
+          uv run julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
           echo "Julia Jupyter:"
           julia --project=. -e "import IJulia;println(IJulia.JUPYTER);println(IJulia.find_jupyter_subcommand(\"notebook\"))"
 
