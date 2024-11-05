@@ -1062,10 +1062,6 @@ kbd {
   }
 
   &.callout-titled {
-    .callout-header {
-      padding-top: 0.2em;
-      margin-bottom: -0.2em;
-    }
     .callout-body {
       > .callout-content {
         > :last-child:not(div.sourceCode) {
