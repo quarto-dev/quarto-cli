@@ -983,7 +983,7 @@ kbd {
         display: flex;
       }
       .callout-icon::before {
-        margin-top: 1em;
+        margin-top: var(--r-block-margin);
         padding-right: 0.5em;
       }
       .callout-body {
@@ -992,6 +992,9 @@ kbd {
           // Other code cell border is mixed with callout border
           > div.sourceCode:last-child {
             margin-bottom: 1rem;
+          }
+          :first-child {
+            margin-top: var(--r-block-margin);
           }
         }
       }
