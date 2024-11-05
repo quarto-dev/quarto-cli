@@ -947,6 +947,11 @@ kbd {
           margin-bottom: 0.5em;
         }
       }
+
+      &.callout-title {
+        display: flex;
+        align-items: center;
+      }
     }
 
     &.callout-titled {
@@ -1077,11 +1082,6 @@ kbd {
 
   &.no-icon::before {
     display: none !important;
-  }
-
-  .callout-title {
-    display: flex;
-    align-items: center;
   }
 }
 
