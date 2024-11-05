@@ -8221,9 +8221,18 @@ try {
             tags: {
               engine: "knitr"
             },
-            schema: "boolean",
+            schema: {
+              enum: [
+                true,
+                false,
+                "NA"
+              ]
+            },
             default: true,
-            description: "Include messages in rendered output."
+            description: {
+              short: "Include messages in rendered output.",
+              long: "Include messages in rendered output. Possible values are `true`, `false`, or `NA`. \nIf `true`, messages are included in the output. If `false`, messages are not included. \nIf `NA`, messages are not included in output but shown in the knitr log to console.\n"
+            }
           },
           {
             name: "results",
@@ -22036,7 +22045,10 @@ try {
             short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
             long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
           },
-          "Include messages in rendered output.",
+          {
+            short: "Include messages in rendered output.",
+            long: "Include messages in rendered output. Possible values are\n<code>true</code>, <code>false</code>, or <code>NA</code>. If\n<code>true</code>, messages are included in the output. If\n<code>false</code>, messages are not included. If <code>NA</code>,\nmessages are not included in output but shown in the knitr log to\nconsole."
+          },
           {
             short: "How to display text results",
             long: "How to display text results. Note that this option only applies to\nnormal text output (not warnings, messages, or errors). The possible\nvalues are as follows:"
@@ -24135,12 +24147,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 193399,
+          _internalId: 193475,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 193391,
+              _internalId: 193467,
               type: "enum",
               enum: [
                 "png",
@@ -24156,7 +24168,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 193398,
+              _internalId: 193474,
               type: "anyOf",
               anyOf: [
                 {
