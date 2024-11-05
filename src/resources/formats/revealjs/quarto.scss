@@ -925,10 +925,6 @@ kbd {
   overflow-wrap: break-word;
 
   &.callout-titled {
-    .callout-icon::before {
-      margin-top: 1rem;
-    }
-
     .callout-body > .callout-content > :last-child {
       margin-bottom: 1rem;
     }
