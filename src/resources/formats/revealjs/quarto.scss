@@ -978,28 +978,6 @@ kbd {
       }
     }
 
-    &:not(.callout-titled) {
-      .callout-body {
-        display: flex;
-      }
-      .callout-icon::before {
-        margin-top: var(--r-block-margin);
-        padding-right: 0.5em;
-      }
-      .callout-body {
-        > .callout-content {
-          // Margin needs to be added when last child is div.sourceCode
-          // Other code cell border is mixed with callout border
-          > div.sourceCode:last-child {
-            margin-bottom: 1rem;
-          }
-          :first-child {
-            margin-top: var(--r-block-margin);
-          }
-        }
-      }
-    }
-
     &.no-icon::before {
       display: none !important;
     }
@@ -1021,6 +999,28 @@ kbd {
       .callout-content {
         p {
           margin-top: 0;
+        }
+      }
+    }
+
+    &:not(.callout-titled) {
+      .callout-body {
+        display: flex;
+      }
+      .callout-icon::before {
+        margin-top: var(--r-block-margin);
+        padding-right: 0.5em;
+      }
+      .callout-body {
+        > .callout-content {
+          // Margin needs to be added when last child is div.sourceCode
+          // Other code cell border is mixed with callout border
+          > div.sourceCode:last-child {
+            margin-bottom: 1rem;
+          }
+          > :first-child {
+            margin-top: var(--r-block-margin);
+          }
         }
       }
     }
