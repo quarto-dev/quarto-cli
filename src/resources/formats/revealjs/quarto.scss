@@ -951,9 +951,6 @@ kbd {
         // Font size is inherited from the parent div.callout
         // which is scaled down like .smaller
         font-size: inherit;
-      }
-
-      &.callout-title {
         border-bottom: none;
         font-weight: 600;
       }
