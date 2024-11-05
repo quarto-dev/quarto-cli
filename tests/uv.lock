@@ -572,8 +572,7 @@ dependencies = [
     { name = "appnope", marker = "platform_system == 'Darwin'" },
     { name = "comm" },
     { name = "debugpy" },
-    { name = "ipython", version = "8.18.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_system != 'Emscripten'" },
-    { name = "ipython", version = "8.29.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_system == 'Emscripten'" },
+    { name = "ipython" },
     { name = "jupyter-client" },
     { name = "jupyter-core" },
     { name = "matplotlib-inline" },
@@ -609,46 +608,20 @@ wheels = [
 name = "ipython"
 version = "8.18.0"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "platform_system != 'Emscripten'",
-]
 dependencies = [
-    { name = "colorama", marker = "platform_system != 'Emscripten' and sys_platform == 'win32'" },
-    { name = "decorator", marker = "platform_system != 'Emscripten'" },
-    { name = "jedi", marker = "platform_system != 'Emscripten'" },
-    { name = "matplotlib-inline", marker = "platform_system != 'Emscripten'" },
-    { name = "pexpect", marker = "platform_system != 'Emscripten' and sys_platform != 'win32'" },
-    { name = "prompt-toolkit", version = "3.0.36", source = { registry = "https://pypi.org/simple" }, marker = "platform_system != 'Emscripten'" },
-    { name = "pygments", marker = "platform_system != 'Emscripten'" },
-    { name = "stack-data", marker = "platform_system != 'Emscripten'" },
-    { name = "traitlets", marker = "platform_system != 'Emscripten'" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "decorator" },
+    { name = "jedi" },
+    { name = "matplotlib-inline" },
+    { name = "pexpect", marker = "sys_platform != 'win32'" },
+    { name = "prompt-toolkit" },
+    { name = "pygments" },
+    { name = "stack-data" },
+    { name = "traitlets" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/9b/af/e1ff4d5499165e330413e0fb9811ca937c332d20900eae641cd590c0ab71/ipython-8.18.0.tar.gz", hash = "sha256:4feb61210160f75e229ce932dbf8b719bff37af123c0b985fd038b14233daa16", size = 5486388 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7a/57/ef12725f8af19920db1d8f2eaee44ebbaee6d9fdcf853be5db76bfdb9ce6/ipython-8.18.0-py3-none-any.whl", hash = "sha256:d538a7a98ad9b7e018926447a5f35856113a85d08fd68a165d7871ab5175f6e0", size = 808166 },
-]
-
-[[package]]
-name = "ipython"
-version = "8.29.0"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "platform_system == 'Emscripten'",
-]
-dependencies = [
-    { name = "colorama", marker = "platform_system == 'Emscripten' and sys_platform == 'win32'" },
-    { name = "decorator", marker = "platform_system == 'Emscripten'" },
-    { name = "jedi", marker = "platform_system == 'Emscripten'" },
-    { name = "matplotlib-inline", marker = "platform_system == 'Emscripten'" },
-    { name = "pexpect", marker = "platform_system == 'Emscripten' and sys_platform != 'emscripten' and sys_platform != 'win32'" },
-    { name = "prompt-toolkit", version = "3.0.48", source = { registry = "https://pypi.org/simple" }, marker = "platform_system == 'Emscripten'" },
-    { name = "pygments", marker = "platform_system == 'Emscripten'" },
-    { name = "stack-data", marker = "platform_system == 'Emscripten'" },
-    { name = "traitlets", marker = "platform_system == 'Emscripten'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/85/e0/a3f36dde97e12121106807d80485423ae4c5b27ce60d40d4ab0bab18a9db/ipython-8.29.0.tar.gz", hash = "sha256:40b60e15b22591450eef73e40a027cf77bd652e757523eebc5bd7c7c498290eb", size = 5497513 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c5/a5/c15ed187f1b3fac445bb42a2dedd8dec1eee1718b35129242049a13a962f/ipython-8.29.0-py3-none-any.whl", hash = "sha256:0188a1bd83267192123ccea7f4a8ed0a78910535dbaa3f37671dca76ebd429c8", size = 819911 },
 ]
 
 [[package]]
@@ -657,8 +630,7 @@ version = "8.1.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "comm" },
-    { name = "ipython", version = "8.18.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_system != 'Emscripten'" },
-    { name = "ipython", version = "8.29.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_system == 'Emscripten'" },
+    { name = "ipython" },
     { name = "jupyterlab-widgets" },
     { name = "traitlets" },
     { name = "widgetsnbextension" },
@@ -685,8 +657,7 @@ name = "itables"
 version = "2.2.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ipython", version = "8.18.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_system != 'Emscripten'" },
-    { name = "ipython", version = "8.29.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_system == 'Emscripten'" },
+    { name = "ipython" },
     { name = "numpy" },
     { name = "pandas" },
 ]
@@ -834,12 +805,10 @@ version = "6.6.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ipykernel" },
-    { name = "ipython", version = "8.18.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_system != 'Emscripten'" },
-    { name = "ipython", version = "8.29.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_system == 'Emscripten'" },
+    { name = "ipython" },
     { name = "jupyter-client" },
     { name = "jupyter-core" },
-    { name = "prompt-toolkit", version = "3.0.36", source = { registry = "https://pypi.org/simple" }, marker = "platform_system != 'Emscripten'" },
-    { name = "prompt-toolkit", version = "3.0.48", source = { registry = "https://pypi.org/simple" }, marker = "platform_system == 'Emscripten'" },
+    { name = "prompt-toolkit" },
     { name = "pygments" },
     { name = "pyzmq" },
     { name = "traitlets" },
@@ -1373,7 +1342,7 @@ name = "pandas"
 version = "2.2.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy", marker = "python_full_version >= '3.12'" },
+    { name = "numpy" },
     { name = "python-dateutil" },
     { name = "pytz" },
     { name = "tzdata" },
@@ -1492,30 +1461,12 @@ wheels = [
 name = "prompt-toolkit"
 version = "3.0.36"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "platform_system != 'Emscripten'",
-]
 dependencies = [
-    { name = "wcwidth", marker = "platform_system != 'Emscripten'" },
+    { name = "wcwidth" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/fb/93/180be2342f89f16543ec4eb3f25083b5b84eba5378f68efff05409fb39a9/prompt_toolkit-3.0.36.tar.gz", hash = "sha256:3e163f254bef5a03b146397d7c1963bd3e2812f0964bb9a24e6ec761fd28db63", size = 423863 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/eb/37/791f1a6edd13c61cac85282368aa68cb0f3f164440fdf60032f2cc6ca34e/prompt_toolkit-3.0.36-py3-none-any.whl", hash = "sha256:aa64ad242a462c5ff0363a7b9cfe696c20d55d9fc60c11fd8e632d064804d305", size = 386414 },
-]
-
-[[package]]
-name = "prompt-toolkit"
-version = "3.0.48"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "platform_system == 'Emscripten'",
-]
-dependencies = [
-    { name = "wcwidth", marker = "platform_system == 'Emscripten'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/2d/4f/feb5e137aff82f7c7f3248267b97451da3644f6cdc218edfe549fb354127/prompt_toolkit-3.0.48.tar.gz", hash = "sha256:d6623ab0477a80df74e646bdbc93621143f5caf104206aa29294d53de1a03d90", size = 424684 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a9/6a/fd08d94654f7e67c52ca30523a178b3f8ccc4237fce4be90d39c938a831a/prompt_toolkit-3.0.48-py3-none-any.whl", hash = "sha256:f49a827f90062e411f1ce1f854f2aedb3c23353244f8108b89283587397ac10e", size = 386595 },
 ]
 
 [[package]]
@@ -1715,7 +1666,7 @@ name = "questionary"
 version = "2.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "prompt-toolkit", version = "3.0.36", source = { registry = "https://pypi.org/simple" }, marker = "platform_system != 'Emscripten'" },
+    { name = "prompt-toolkit", marker = "platform_system != 'Emscripten'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/84/d0/d73525aeba800df7030ac187d09c59dc40df1c878b4fab8669bdc805535d/questionary-2.0.1.tar.gz", hash = "sha256:bcce898bf3dbb446ff62830c86c5c6fb9a22a54146f0f5597d3da43b10d8fc8b", size = 24726 }
 wheels = [
@@ -1852,10 +1803,10 @@ dependencies = [
     { name = "narwhals" },
     { name = "orjson" },
     { name = "packaging" },
-    { name = "prompt-toolkit", version = "3.0.36", source = { registry = "https://pypi.org/simple" }, marker = "platform_system != 'Emscripten'" },
+    { name = "prompt-toolkit", marker = "platform_system != 'Emscripten'" },
     { name = "python-multipart" },
     { name = "questionary", marker = "platform_system != 'Emscripten'" },
-    { name = "setuptools", marker = "python_full_version >= '3.12'" },
+    { name = "setuptools" },
     { name = "starlette" },
     { name = "typing-extensions" },
     { name = "uvicorn", marker = "platform_system != 'Emscripten'" },
@@ -1899,7 +1850,7 @@ name = "sqlalchemy"
 version = "2.0.36"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "greenlet", marker = "(python_full_version < '3.13' and platform_machine == 'AMD64' and python_full_version >= '3.12') or (python_full_version < '3.13' and platform_machine == 'WIN32' and python_full_version >= '3.12') or (python_full_version < '3.13' and platform_machine == 'aarch64' and python_full_version >= '3.12') or (python_full_version < '3.13' and platform_machine == 'amd64' and python_full_version >= '3.12') or (python_full_version < '3.13' and platform_machine == 'ppc64le' and python_full_version >= '3.12') or (python_full_version < '3.13' and platform_machine == 'win32' and python_full_version >= '3.12') or (python_full_version < '3.13' and platform_machine == 'x86_64' and python_full_version >= '3.12')" },
+    { name = "greenlet", marker = "(python_full_version < '3.13' and platform_machine == 'AMD64') or (python_full_version < '3.13' and platform_machine == 'WIN32') or (python_full_version < '3.13' and platform_machine == 'aarch64') or (python_full_version < '3.13' and platform_machine == 'amd64') or (python_full_version < '3.13' and platform_machine == 'ppc64le') or (python_full_version < '3.13' and platform_machine == 'win32') or (python_full_version < '3.13' and platform_machine == 'x86_64')" },
     { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/65/9cbc9c4c3287bed2499e05033e207473504dc4df999ce49385fb1f8b058a/sqlalchemy-2.0.36.tar.gz", hash = "sha256:7f2767680b6d2398aea7082e45a774b2b0767b5c8d8ffb9c8b683088ea9b29c5", size = 9574485 }
