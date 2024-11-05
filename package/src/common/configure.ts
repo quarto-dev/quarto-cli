@@ -1,11 +1,12 @@
 /*
  * dependencies.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 import { dirname, join, SEP } from "../../../src/deno_ral/path.ts";
 import { existsSync, ensureDirSync } from "../../../src/deno_ral/fs.ts";
 import { info, warning } from "../../../src/deno_ral/log.ts";
+import { Command } from "npm:clipanion";
 
 import { expandPath } from "../../../src/core/path.ts";
 import {
@@ -20,6 +21,7 @@ import {
 } from "./dependencies/dependencies.ts";
 import { suggestUserBinPaths } from "../../../src/core/path.ts";
 import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
+import { PackageCommand } from "../cmd/pkg-cmd.ts";
 
 export async function configure(
   config: Configuration,
@@ -169,21 +171,15 @@ export function copyPandocScript(config: Configuration, targetDir: string) {
   }
 }
 
-export function copyPandocAliasScript(config: Configuration, toolsDir: string) {
-    // Move the quarto script into place
-    if (config.os === "darwin") {
-      const out = join(toolsDir, "pandoc");
-      Deno.copyFileSync(
-        join(config.directoryInfo.pkg, "scripts", "macos", "pandoc"),
-        out,
-      );
-      Deno.chmodSync(out, 0o755);
-    } else if (config.os === "linux") {
-      const out = join(toolsDir, "pandoc");
-      Deno.copyFileSync(
-        join(config.directoryInfo.pkg, "scripts", "linux", "pandoc"),
-        out,
-      );
-      Deno.chmodSync(out, 0o755);
-    }
+export class ConfigureCommand extends PackageCommand {
+  static paths = [["configure"]];
+
+  static usage = Command.Usage({
+    description: "Configures this machine for running developer version of Quarto",
+  });
+
+  async execute() {
+    await super.execute();
+    await configure(this.config)
+  }
 }
