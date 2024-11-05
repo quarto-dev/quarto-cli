@@ -28,7 +28,7 @@ If ( $py -and $python) {
       Write-Host -ForegroundColor red "No uv found in PATH - Install uv please: https://docs.astral.sh/uv/getting-started/installation/"
     }
     # install from lockfile
-    uv sync
+    uv sync --frozen
     $uv=$true
 }
 

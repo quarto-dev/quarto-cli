@@ -32,7 +32,7 @@ then
   if [ -z $uv_exist ] 
     echo "Setting up python environnement with uv"
     # create or sync the virtual env in the project
-    uv sync
+    uv sync --frozen
   then
     echo "No uv found - Install uv please: https://docs.astral.sh/uv/getting-started/installation/"
   fi
