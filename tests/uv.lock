@@ -175,6 +175,19 @@ wheels = [
 ]
 
 [[package]]
+name = "bokeh-sampledata"
+version = "2024.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "icalendar" },
+    { name = "pandas" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/93/af/8bec6227aafb3e9e710e5d38fb73e5ff040c2e1355f196650880466d7437/bokeh_sampledata-2024.2.tar.gz", hash = "sha256:e63daa96e79d563ec8b84f20672ffe94f905b21455fab8d83ee334e46da33624", size = 17179702 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ee/89/e1c6291be89e533d9271cf91c2afca790dc901bd1f69948aa1566d186c7d/bokeh_sampledata-2024.2-py3-none-any.whl", hash = "sha256:b41f94472ea8ca9c8b8ee999de47236879b169034bb7b789421c6a20e10b7205", size = 17594714 },
+]
+
+[[package]]
 name = "branca"
 version = "0.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -515,6 +528,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/78/82/08f8c936781f67d9e6b9eeb8a0c8b4e406136ea4c3d1f89a5db71d42e0e6/httpx-0.27.2.tar.gz", hash = "sha256:f7c2be1d2f3c3c3160d441802406b206c2b76f5947b11115e6df10c6c65e66c2", size = 144189 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/56/95/9377bcb415797e44274b51d46e3249eba641711cf3348050f76ee7b15ffc/httpx-0.27.2-py3-none-any.whl", hash = "sha256:7bb2708e112d8fdd7829cd4243970f0c223274051cb35ee80c03301ee29a3df0", size = 76395 },
+]
+
+[[package]]
+name = "icalendar"
+version = "6.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-dateutil" },
+    { name = "tzdata" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2f/c8/517de527ddd5acf8dfb4da1b0faf27ceba30526f481680f56e7c5b91dd83/icalendar-6.0.1.tar.gz", hash = "sha256:1ff44825d7b41c3f77eac9e09cc67a770dd3c2377430c23b0eb7d91603088892", size = 98425 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/76/c5/d10fc932f7fcc770180b4bf3c63df79d518086a51548422101f4a7c8fdfa/icalendar-6.0.1-py3-none-any.whl", hash = "sha256:9bf3d69203bd0366a9a29a8b0e220574580b86d7918afcb628fc6920287922f3", size = 131316 },
 ]
 
 [[package]]
@@ -1952,6 +1978,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "bokeh" },
+    { name = "bokeh-sampledata" },
     { name = "ipyleaflet" },
     { name = "itables" },
     { name = "jupyter" },
@@ -1965,6 +1992,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "bokeh", specifier = ">=3.6.0" },
+    { name = "bokeh-sampledata", specifier = ">=2024.2" },
     { name = "ipyleaflet", specifier = ">=0.19.2" },
     { name = "itables", specifier = ">=2.2.3" },
     { name = "jupyter", specifier = ">=1.1.1" },

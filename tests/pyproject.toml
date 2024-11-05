@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Quarto Tests"
 requires-python = ">=3.12"
 dependencies = [
+    "bokeh-sampledata>=2024.2",
     "bokeh>=3.6.0",
     "ipyleaflet>=0.19.2",
     "itables>=2.2.3",
