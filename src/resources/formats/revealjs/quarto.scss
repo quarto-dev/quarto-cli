@@ -925,10 +925,6 @@ kbd {
   overflow-wrap: break-word;
 
   &.callout-titled {
-    .callout-title p {
-      margin-top: 0.5em;
-    }
-
     .callout-icon::before {
       margin-top: 1rem;
     }
@@ -953,6 +949,14 @@ kbd {
         font-size: inherit;
         border-bottom: none;
         font-weight: 600;
+      }
+
+      &.callout-title {
+
+        p {
+          margin-top: 0.5em;
+          margin-bottom: 0.5em;
+        }
       }
     }
 
@@ -1057,12 +1061,6 @@ kbd {
     .callout-header {
       padding-top: 0.2em;
       margin-bottom: -0.2em;
-    }
-    .callout-title {
-      p {
-        margin-top: 0.5em;
-        margin-bottom: 0.5em;
-      }
     }
     .callout-body {
       > .callout-content {
