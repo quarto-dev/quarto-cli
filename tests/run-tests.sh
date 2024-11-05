@@ -43,7 +43,7 @@ then
   # Save possible activated virtualenv for later restauration
   OLD_VIRTUAL_ENV=$VIRTUAL_ENV
   echo "> Activating virtualenv from .venv for Python tests in Quarto"
-  source "$QUARTO_ROOT/tests/bin/activate"
+  source "${QUARTO_ROOT}/tests/.venv/bin/activate"
   echo "> Using Python from $(which python)"
   echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
   quarto_venv_activated="true"
