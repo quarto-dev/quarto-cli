@@ -924,12 +924,6 @@ kbd {
   border-radius: $border-radius;
   overflow-wrap: break-word;
 
-  &.callout-titled {
-    .callout-body > .callout-content > :last-child {
-      margin-bottom: 1rem;
-    }
-  }
-
   &.callout-style-simple,
   &.callout-style-default {
     border-left: $callout-border-width solid #acacac;
@@ -948,10 +942,19 @@ kbd {
       }
 
       &.callout-title {
-
         p {
           margin-top: 0.5em;
           margin-bottom: 0.5em;
+        }
+      }
+    }
+
+    &.callout-titled {
+      .callout-body {
+        > .callout-content {
+          > :last-child {
+            margin-bottom: var(--r-block-margin);
+          }
         }
       }
     }
