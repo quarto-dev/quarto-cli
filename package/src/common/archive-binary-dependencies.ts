@@ -1,10 +1,11 @@
 /*
  * archive-binary-dependencies.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 import { join } from "../../../src/deno_ral/path.ts";
 import { info } from "../../../src/deno_ral/log.ts";
+import { Command } from "npm:clipanion";
 
 import { execProcess } from "../../../src/core/process.ts";
 import { Configuration, withWorkingDir } from "./config.ts";
@@ -14,6 +15,7 @@ import {
   kDependencies,
   PlatformDependency,
 } from "./dependencies/dependencies.ts";
+import { PackageCommand } from "../cmd/pkg-cmd.ts";
 
 const kBucket = "s3://rstudio-buildtools/quarto";
 const kBucketBaseUrl = "https://s3.amazonaws.com/rstudio-buildtools/quarto";
@@ -195,5 +197,31 @@ async function download(
     throw new Error(
       `Failed to fetch dependency ${dependency.filename}.\nThe url ${dependency.url} returned a non 200 status code:\n${response.status} - ${response.statusText}`,
     );
+  }
+}
+
+export class ArchiveBinaryDependenciesCommand extends PackageCommand {
+  static paths = [["archive-bin-deps"]];
+
+  static usage = Command.Usage({
+    description: "Downloads and archives our binary dependencies.",
+  });
+
+  async execute() {
+    await super.execute();
+    await archiveBinaryDependencies(this.config)
+  }
+}
+
+export class CheckBinaryDependenciesCommand extends PackageCommand {
+  static paths = [["check-bin-deps"]];
+
+  static usage = Command.Usage({
+    description: "Checks the paths and URLs of our binary dependencies.",
+  });
+
+  async execute() {
+    await super.execute();
+    await checkBinaryDependencies(this.config)
   }
 }
