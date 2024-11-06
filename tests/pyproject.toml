@@ -12,6 +12,7 @@ dependencies = [
     "jupyter>=1.1.1",
     "matplotlib>=3.9.2",
     "pandas>=2.2.3",
+    "papermill>=2.6.0",
     "seaborn>=0.13.2",
     "shiny>=1.2.0",
 ]
