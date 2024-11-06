@@ -29,6 +29,16 @@ async function getRevealCodeInlineFontSize(page: any): Promise<number> {
   return await getCSSProperty(page.locator('body'), "--r-inline-code-font-size", true) as number;
 }
 
+async function checkColor(element, cssProperty, rgbColors) {
+  await expect(element).toHaveCSS(cssProperty, `rgb(${rgbColors.red}, ${rgbColors.green}, ${rgbColors.blue})`);
+}
+
+function asRGB(red, green, blue) {
+  return { red, green, blue };
+}
+
+
+
 test('Code font size in callouts and smaller slide is scaled down', async ({ page }) => {
   await page.goto('./revealjs/code-font-size.html');
   await page.locator('body').press('ArrowRight');
@@ -116,4 +126,13 @@ test('Code font size is correctly set', async ({ page }) => {
   expect(
     await getCSSProperty(page.locator("#non-highligted pre code"), 'font-size', true)
   ).toBeCloseTo(codeBlockFontSize);
+});
+
+test('Callouts colors can be customized', async ({ page }) => {
+  await page.goto('./revealjs/callouts/custom-colors.html');
+  await checkColor(page.locator('div.callout-note'), 'border-left-color', asRGB(128, 0, 128));
+  await checkColor(page.locator('div.callout-tip'), 'border-left-color', asRGB(255, 255, 0));
+  await checkColor(page.locator('div.callout-warning'), 'border-left-color', asRGB(173, 216, 230));
+  await checkColor(page.locator('div.callout-important'), 'border-left-color', asRGB(128, 128, 128));
+  await checkColor(page.locator('div.callout-caution'), 'border-left-color', asRGB(0, 128, 0));
 });
