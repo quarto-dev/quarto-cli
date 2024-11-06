@@ -121,11 +121,17 @@ export const checkClick = async (page: any, locator: any) => {
   return !error;
 };
 
-export async function checkColor(element, cssProperty, rgbColors) {
+export type RGBColor = {
+  red: number;
+  green: number;
+  blue: number;
+};
+
+export async function checkColor(element, cssProperty, rgbColors: RGBColor) {
   await expect(element).toHaveCSS(cssProperty, `rgb(${rgbColors.red}, ${rgbColors.green}, ${rgbColors.blue})`);
 }
 
-export function asRGB(red, green, blue) {
+export function asRGB(red: number, green: number, blue: number): RGBColor {
   return { red, green, blue };
 }
 

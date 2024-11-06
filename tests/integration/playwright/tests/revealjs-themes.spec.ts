@@ -1,5 +1,5 @@
 import { test, expect, Locator } from '@playwright/test';
-import { asRGB, checkColor, checkFontSizeIdentical, getCSSProperty } from '../src/utils';
+import { asRGB, checkColor, checkFontSizeIdentical, getCSSProperty, RGBColor } from '../src/utils';
 
 async function getRevealMainFontSize(page: any): Promise<number> {
   return await getCSSProperty(page.locator('body'), "--r-main-font-size", true) as number;
@@ -103,11 +103,15 @@ test('Code font size is correctly set', async ({ page }) => {
   ).toBeCloseTo(codeBlockFontSize);
 });
 
-test('Callouts colors can be customized', async ({ page }) => {
+test('Callouts can be customized using SCSS variables', async ({ page }) => {
   await page.goto('./revealjs/callouts/custom-colors.html');
-  await checkColor(page.locator('div.callout-note'), 'border-left-color', asRGB(128, 0, 128));
-  await checkColor(page.locator('div.callout-tip'), 'border-left-color', asRGB(255, 255, 0));
-  await checkColor(page.locator('div.callout-warning'), 'border-left-color', asRGB(173, 216, 230));
-  await checkColor(page.locator('div.callout-important'), 'border-left-color', asRGB(128, 128, 128));
-  await checkColor(page.locator('div.callout-caution'), 'border-left-color', asRGB(0, 128, 0));
+  async function checkCustom(loc: Locator, width: string, color: RGBColor) {
+    await expect(loc).toHaveCSS('border-left-width', width);
+    await checkColor(loc, 'border-left-color', color);
+  }
+  await checkCustom(page.locator('div.callout-note'), '10px', asRGB(128, 0, 128));
+  await checkCustom(page.locator('div.callout-tip'), '10px', asRGB(255, 255, 0));
+  await checkCustom(page.locator('div.callout-warning'), '10px', asRGB(173, 216, 230));
+  await checkCustom(page.locator('div.callout-important'), '10px', asRGB(128, 128, 128));
+  await checkCustom(page.locator('div.callout-caution'), '10px', asRGB(0, 128, 0));
 });
