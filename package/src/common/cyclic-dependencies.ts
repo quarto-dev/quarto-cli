@@ -1,11 +1,11 @@
 /*
 * cyclic-dependencies.ts
 *
-* Copyright (C) 2020-2022 Posit Software, PBC
+* Copyright (C) 2020-2024 Posit Software, PBC
 *
 */
 import { basename, isAbsolute, join } from "../../../src/deno_ral/path.ts";
-import { Command } from "cliffy/command/mod.ts";
+import { Command, Option } from "npm:clipanion";
 
 import { runCmd } from "../util/cmd.ts";
 import { Configuration, readConfiguration } from "./config.ts";
@@ -13,48 +13,41 @@ import { error, info } from "../../../src/deno_ral/log.ts";
 import { progressBar } from "../../../src/core/console.ts";
 import { md5Hash } from "../../../src/core/hash.ts";
 
-export function cycleDependenciesCommand() {
-  return new Command()
-    .name("cycle-dependencies")
-    .description(
-      "Debugging tool for helping discover cyclic dependencies in quarto",
-    )
-    .option(
-      "-o, --output",
-      "Path to write json output",
-    )
-    // deno-lint-ignore no-explicit-any
-    .action(async (args: Record<string, any>) => {
-      const configuration = readConfiguration();
-      info("Using configuration:");
-      info(configuration);
-      info("");
-      await cyclicDependencies(args.output as string, configuration);
-    });
+export class CycleDependenciesCommand extends Command {
+  static paths = [["cycle-dependencies"]];
+
+  static usage = Command.Usage({
+    description: "Debugging tool for helping discover cyclic dependencies in quarto",
+  });
+
+  output = Option.String("-o,--output", {description: "Path to write json output"});
+
+  async execute() {
+    const configuration = readConfiguration();
+    info("Using configuration:");
+    info(configuration);
+    info("");
+    await cyclicDependencies(this.output, configuration);
+  }
 }
 
-export function parseSwcLogCommand() {
-  return new Command()
-    .name("parse-swc-log")
-    .description(
-      "Parses SWC bundler debug log to discover cyclic dependencies in quarto",
-    )
-    .option(
-      "-i, --input",
-      "Path to text file containing swc bundler debug output",
-    )
-    .option(
-      "-o, --output",
-      "Path to write json output",
-    )
-    // deno-lint-ignore no-explicit-any
-    .action((args: Record<string, any>) => {
-      const configuration = readConfiguration();
-      info("Using configuration:");
-      info(configuration);
-      info("");
-      parseSwcBundlerLog(args.input, args.output, configuration);
-    });
+export class ParseSwcLogCommand extends Command {
+  static paths = [["parse-swc-log"]];
+
+  static usage = Command.Usage({
+    description: "Parses SWC bundler debug log to discover cyclic dependencies in quarto",
+  });
+
+  input = Option.String("-i,--input", {description: "Path to text file containing swc bundler debug output"});
+  output = Option.String("-o,--output", {description: "Path to write json output"});
+
+  async execute() {
+    const configuration = readConfiguration();
+    info("Using configuration:");
+    info(configuration);
+    info("");
+    parseSwcBundlerLog(this.input, this.output, configuration);
+  }
 }
 
 export async function cyclicDependencies(
