@@ -1,3 +1,5 @@
+import { expect, Locator } from "@playwright/test";
+
 export const getUrl = (path: string) => {
   return `http://127.0.0.1:8080/${path}`;
 };
@@ -118,3 +120,29 @@ export const checkClick = async (page: any, locator: any) => {
   }
   return !error;
 };
+
+export async function checkColor(element, cssProperty, rgbColors) {
+  await expect(element).toHaveCSS(cssProperty, `rgb(${rgbColors.red}, ${rgbColors.green}, ${rgbColors.blue})`);
+}
+
+export function asRGB(red, green, blue) {
+  return { red, green, blue };
+}
+
+export async function getCSSProperty(loc: Locator, variable: string, asNumber = false): Promise<string | number> {
+  const property = await loc.evaluate((element, variable) =>
+    window.getComputedStyle(element).getPropertyValue(variable),
+    variable
+  );
+  if (asNumber) {
+    return parseFloat(property);
+  } else {
+    return property;
+  }
+}
+
+
+export async function checkFontSizeIdentical(loc1: Locator, loc2: Locator) {
+  const loc1FontSize = await getCSSProperty(loc1, 'font-size', false) as string;
+  await expect(loc2).toHaveCSS('font-size', loc1FontSize);
+}

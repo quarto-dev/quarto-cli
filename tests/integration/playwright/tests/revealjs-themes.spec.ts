@@ -1,21 +1,5 @@
 import { test, expect, Locator } from '@playwright/test';
-
-async function getCSSProperty(loc: Locator, variable: string, asNumber = false): Promise<string | number> {
-  const property = await loc.evaluate((element, variable) =>
-    window.getComputedStyle(element).getPropertyValue(variable),
-    variable
-  );
-  if (asNumber) {
-    return parseFloat(property);
-  } else {
-    return property;
-  }
-}
-
-async function checkFontSizeIdentical(loc1: Locator, loc2: Locator) {
-  const loc1FontSize = await getCSSProperty(loc1, 'font-size', false) as string;
-  await expect(loc2).toHaveCSS('font-size', loc1FontSize);
-}
+import { asRGB, checkColor, checkFontSizeIdentical, getCSSProperty } from '../src/utils';
 
 async function getRevealMainFontSize(page: any): Promise<number> {
   return await getCSSProperty(page.locator('body'), "--r-main-font-size", true) as number;
@@ -28,15 +12,6 @@ async function getRevealCodeBlockFontSize(page: any): Promise<number> {
 async function getRevealCodeInlineFontSize(page: any): Promise<number> {
   return await getCSSProperty(page.locator('body'), "--r-inline-code-font-size", true) as number;
 }
-
-async function checkColor(element, cssProperty, rgbColors) {
-  await expect(element).toHaveCSS(cssProperty, `rgb(${rgbColors.red}, ${rgbColors.green}, ${rgbColors.blue})`);
-}
-
-function asRGB(red, green, blue) {
-  return { red, green, blue };
-}
-
 
 
 test('Code font size in callouts and smaller slide is scaled down', async ({ page }) => {
