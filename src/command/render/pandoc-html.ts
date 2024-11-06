@@ -120,7 +120,10 @@ export async function resolveSassBundles(
       targets.push({
         name: `${dependency}-dark.min.css`,
         bundles: darkBundles,
-        attribs: attribForThemeStyle("dark", defaultStyle),
+        attribs: {
+          "append-hash": "true",
+          ...attribForThemeStyle("dark", defaultStyle),
+        },
       });
 
       hasDarkStyles = true;
