@@ -1,21 +1,5 @@
 import { test, expect, Locator } from '@playwright/test';
-
-async function getCSSProperty(loc: Locator, variable: string, asNumber = false): Promise<string | number> {
-  const property = await loc.evaluate((element, variable) =>
-    window.getComputedStyle(element).getPropertyValue(variable),
-    variable
-  );
-  if (asNumber) {
-    return parseFloat(property);
-  } else {
-    return property;
-  }
-}
-
-async function checkFontSizeIdentical(loc1: Locator, loc2: Locator) {
-  const loc1FontSize = await getCSSProperty(loc1, 'font-size', false) as string;
-  await expect(loc2).toHaveCSS('font-size', loc1FontSize);
-}
+import { asRGB, checkColor, checkFontSizeIdentical, getCSSProperty, RGBColor } from '../src/utils';
 
 async function getRevealMainFontSize(page: any): Promise<number> {
   return await getCSSProperty(page.locator('body'), "--r-main-font-size", true) as number;
@@ -28,6 +12,7 @@ async function getRevealCodeBlockFontSize(page: any): Promise<number> {
 async function getRevealCodeInlineFontSize(page: any): Promise<number> {
   return await getCSSProperty(page.locator('body'), "--r-inline-code-font-size", true) as number;
 }
+
 
 test('Code font size in callouts and smaller slide is scaled down', async ({ page }) => {
   await page.goto('./revealjs/code-font-size.html');
@@ -116,4 +101,17 @@ test('Code font size is correctly set', async ({ page }) => {
   expect(
     await getCSSProperty(page.locator("#non-highligted pre code"), 'font-size', true)
   ).toBeCloseTo(codeBlockFontSize);
+});
+
+test('Callouts can be customized using SCSS variables', async ({ page }) => {
+  await page.goto('./revealjs/callouts/custom-colors.html');
+  async function checkCustom(loc: Locator, width: string, color: RGBColor) {
+    await expect(loc).toHaveCSS('border-left-width', width);
+    await checkColor(loc, 'border-left-color', color);
+  }
+  await checkCustom(page.locator('div.callout-note'), '10px', asRGB(128, 0, 128));
+  await checkCustom(page.locator('div.callout-tip'), '10px', asRGB(255, 255, 0));
+  await checkCustom(page.locator('div.callout-warning'), '10px', asRGB(173, 216, 230));
+  await checkCustom(page.locator('div.callout-important'), '10px', asRGB(128, 128, 128));
+  await checkCustom(page.locator('div.callout-caution'), '10px', asRGB(0, 128, 0));
 });

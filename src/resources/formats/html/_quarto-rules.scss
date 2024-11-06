@@ -438,6 +438,12 @@ a {
   text-underline-offset: 3px;
 }
 
+/* Callout styling */
+
+.callout pre.sourceCode {
+  padding-left: 0;
+}
+
 // ansi escaping
 div.ansi-escaped-output {
   font-family: monospace;

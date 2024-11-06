@@ -44,6 +44,15 @@ All changes included in 1.6:
 - Update to Reveal JS 5.1.0.
   - Support for a [Jump To Slide](https://revealjs.com/jump-to-slide/) menu to quickly navigate between slides. Set `jump-to-slide: false` to opt out.
   - Support for new [Scroll View](https://revealjs.com/scroll-view/) mode with configuration through new `scroll-view` revealjs's format configuration key. A new menu tool has been added to toggle scroll view mode on and off, associated with `R` key by default.
+- Styles improvements for Callouts in Revealjs:
+  - SCSS variables can be used to customize the appearance of callouts in Revealjs. The following SCSS variables are available:
+    - Border width and scale (`$callout-border-width`, `$callout-border-scale`)
+    - Border colors (`$callout-color-note`, `$callout-color-tip`, `$callout-color-important`, `$callout-color-caution`, `$callout-color-warning`)
+    - Margins (`$callout-margin-top`, `$callout-margin-bottom`)
+  - Color for each callout type is now the same as in Bootstrap document `format: html`. This allows for consistent styling across formats. If you prefer other colors, you can override using the new SCSS variables
+  - Icon for each callout type is now using SVG like in Bootstrap document `format: html`. This allows for consistent styling across formats.
+  - Callouts looks better in slides made smaller and when containing code blocks.
+  - To see how callouts looks like in revealjs, see this example: <https://examples.quarto.pub/revealjs-default-callouts-styles>
 - Prevent empty SASS built css file to be included in header.
 - Remove wrong `sourceMappingUrl` entry in SASS built css.
 - ([#7715](https://github.com/quarto-dev/quarto-cli/issues/7715)): Revealjs don't support anymore special Pandoc syntax making BulletList in Blockquotes become incremental list. This was confusing and unexpected behavior. Supported syntax for incremental list is documented at <https://quarto.org/docs/presentations/revealjs/#incremental-lists>.
