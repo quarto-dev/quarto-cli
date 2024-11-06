@@ -1,15 +1,17 @@
 /*
 * installer.ts
 *
-* Copyright (C) 2020-2022 Posit Software, PBC
+* Copyright (C) 2020-2024 Posit Software, PBC
 *
 */
 import { join } from "../../../src/deno_ral/path.ts";
 import { copySync, emptyDirSync, ensureDirSync, walk } from "../../../src/deno_ral/fs.ts";
 import { info } from "../../../src/deno_ral/log.ts";
+import { Command } from "npm:clipanion";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
+import { PackageCommand } from "../cmd/pkg-cmd.ts";
 
 export async function makeInstallerDeb(
   configuration: Configuration,
@@ -135,4 +137,17 @@ export async function makeInstallerDeb(
 
   // Remove the working directory
   // Deno.removeSync(workingDir, { recursive: true });
+}
+
+export class MakeInstallerDebCommand extends PackageCommand {
+  static paths = [["make-installer-deb"]];
+
+  static usage = Command.Usage({
+    description: "Builds Linux deb installer",
+  });
+
+  async execute() {
+    await super.execute();
+    await makeInstallerDeb(this.config)
+  }
 }

@@ -1,15 +1,17 @@
 /*
 * installer.ts
 *
-* Copyright (C) 2020-2022 Posit Software, PBC
+* Copyright (C) 2020-2024 Posit Software, PBC
 *
 */
 
 import { join } from "../../../src/deno_ral/path.ts";
 import { copySync } from "../../../src/deno_ral/fs.ts";
 import { info } from "../../../src/deno_ral/log.ts";
+import { Command } from "npm:clipanion";
 
 import { Configuration } from "../common/config.ts";
+import { PackageCommand } from "../cmd/pkg-cmd.ts";
 
 export async function makeInstallerExternal(
   configuration: Configuration,
@@ -28,4 +30,17 @@ export async function makeInstallerExternal(
   copySync(configuration.directoryInfo.pkgWorking.share, workingSharePath, {
     overwrite: true,
   });
+}
+
+export class MakeInstallerExternalCommand extends PackageCommand {
+  static paths = [["make-installer-dir"]];
+
+  static usage = Command.Usage({
+    description: "Copies Quarto-only files, omitting dependencies, to specified location (for use in third party packaging)",
+  });
+
+  async execute() {
+    await super.execute();
+    await makeInstallerExternal(this.config)
+  }
 }
