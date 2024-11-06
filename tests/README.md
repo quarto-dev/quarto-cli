@@ -23,7 +23,7 @@ Tests are running through `Deno.test()` framework, adapted for our Quarto projec
 
 Here are what is expected in the environment for the tests :
 
-- R should be installed and in PATH - [**rig**](https://github.com/r-lib/rig) is a good tool to manage R versions.
+- R should be installed and in PATH - [**rig**](https://github.com/r-lib/rig) is a good tool to manage R versions. e.g `rig install 4.4.2` and `rig default 4.4.2` to install and set the version to 4.4.2
   - On Windows, Rtools should be too (for source package installation)
 - Python should be installed and in PATH - [**pyenv**](https://github.com/pyenv/pyenv) is a good option to manage Python versions.
   - On Windows, it will be [`pyenv-win`](https://pyenv-win.github.io/pyenv-win/) to manage versions. Otherwise or install from https://www.python.org/ manually or using `winget`.
@@ -52,6 +52,8 @@ Our project is using [explicit dependencies discovery](https://rstudio.github.io
 - Commit the new `DESCRIPTION` and `renv.lock`
 
 See [documentation](https://rstudio.github.io/renv/) if you need to tweak the R environment.
+
+After a dependency update, you can run `configure-test-env.sh` or `configure-test-env.ps1` to update the environment, or manually run `renv::restore()` to recreate the environment with new versions. Be sure to update your R version if needed.
 
 #### Python
 
