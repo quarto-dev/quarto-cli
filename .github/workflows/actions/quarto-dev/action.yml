@@ -49,9 +49,9 @@ runs:
           # Convert the list to an array
           $modifiedFilesArray = $modifiedFiles -split "`n" | ForEach-Object { $_.Trim() }
 
-          If ($modifiedFilesArray -contains "tests/Pipfile.lock") {
-            Write-Output "::warning::test/Pipfile.lock has been modified."
-            $modifiedFilesArray = $modifiedFilesArray | Where-Object { $_ -notmatch "Pipfile.lock" }
+          If ($modifiedFilesArray -contains "tests/uv.lock") {
+            Write-Output "::warning::test/uv.lock has been modified."
+            $modifiedFilesArray = $modifiedFilesArray | Where-Object { $_ -notmatch "uv.lock" }
           }
 
           # Count the number of modified files
