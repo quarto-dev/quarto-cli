@@ -1,71 +1,56 @@
 /*
 * compile-quarto-latexmk.ts
 *
-* Copyright (C) 2020-2022 Posit Software, PBC
+* Copyright (C) 2020-2024 Posit Software, PBC
 *
 */
-import { Command } from "cliffy/command/mod.ts";
+import { Command, Option } from "npm:clipanion";
 import { basename, join } from "../../../src/deno_ral/path.ts";
 import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
 import { info } from "../../../src/deno_ral/log.ts";
 
-import { Configuration, readConfiguration } from "../common/config.ts";
+import { Configuration, readConfiguration } from "./config.ts";
 import { compile, install, updateDenoPath } from "../util/deno.ts";
 
-export function compileQuartoLatexmkCommand() {
-  return new Command()
-    .name("compile-quarto-latexmk")
-    .description("Builds binary for quarto-latexmk")
-    .option(
-      "-d, --development",
-      "Install for local development",
-    )
-    .option(
-      "-t, --target <target:string>",
-      "The target architecture for the binary (e.g. x86_64-unknown-linux-gnu, x86_64-pc-windows-msvc, x86_64-apple-darwin, aarch64-apple-darwin)",
-      {
-        collect: true,
-      },
-    )
-    .option(
-      "-v, --version <version:string>",
-      "The version number of the compiled executable",
-    )
-    .option(
-      "-n, --name <name:string>",
-      "The name of the compiled executable",
-    )
-    .option(
-      "--description <description...:string>",
-      "The description of the compiled executable",
-    )
-    // deno-lint-ignore no-explicit-any
-    .action(async (args: Record<string, any>) => {
-      const configuration = readConfiguration();
-      info("Using configuration:");
-      info(configuration);
-      info("");
+export class CompileQuartoLatexmkCommand extends Command {
+  static paths = [["compile-quarto-latexmk"]];
 
-      if (args.development) {
-        await installQuartoLatexmk(configuration);
-      } else {
-        const description = Array.isArray(args.description)
-          ? args.description.join(" ")
-          : args.description || "Quarto Latexmk Engine";
+  static usage = Command.Usage({
+    description: "Builds binary for quarto-latexmk",
+  });
 
-        const version = args.version || configuration.version;
-        const name = args.name || "quarto-latexmk";
-        const targets = (args.targets || [Deno.build.target]) as string[];
+  description = Option.String("--description", {description: "The description of the compiled executable"});
+  development = Option.Boolean("-d,--development", {description: "Install for local development"});
+  name = Option.String("-n,--name", {description: "The name of the compiled executable"});
+  targets = Option.Array("-t,--target", {description: "The target architecture for the binary (e.g. x86_64-unknown-linux-gnu, x86_64-pc-windows-msvc, x86_64-apple-darwin, aarch64-apple-darwin)"});
+  version = Option.String("-v,--version", {description: "The version number of the compiled executable"});
 
-        await compileQuartoLatexmk(
-          configuration,
-          targets,
-          version,
-          name,
-          description,
-        );
-      }
-    });
+  async execute() {
+    const configuration = readConfiguration();
+    info("Using configuration:");
+    info(configuration);
+    info("");
+
+    if (this.development) {
+      await installQuartoLatexmk(configuration);
+    } else {
+      const description = Array.isArray(this.description)
+        ? this.description.join(" ")
+        : this.description || "Quarto Latexmk Engine";
+
+      const version = this.version || configuration.version;
+      const name = this.name || "quarto-latexmk";
+      const targets = (this.targets || [Deno.build.target]) as string[];
+
+      await compileQuartoLatexmk(
+        configuration,
+        targets,
+        version,
+        name,
+        description,
+      );
+    }
+  }
 }
 
 const kFlags = [
