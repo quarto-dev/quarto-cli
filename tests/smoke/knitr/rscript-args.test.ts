@@ -18,7 +18,7 @@ let rscriptArgs: string | undefined;
 testRender(rscriptArgsDoc.input, "markdown_strict", true, [
   noErrorsOrWarnings,
   ensureFileRegexMatches(rscriptArgsDoc.output.outputPath, [
-    /"--no-restore"/, /"--max-connection=258"/]
+    /"--no-restore"/, /"--max-connections=258"/]
   ),
 ],
 {
