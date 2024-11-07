@@ -1,0 +1,12 @@
+---
+title: Rscript args passed to quarto
+format: markdown_strict
+---
+
+```{r}
+#| echo: false
+args <- commandArgs(trailingOnly = FALSE)
+# keep only flags
+args <- args[grep("^--", args)]
+args
+```

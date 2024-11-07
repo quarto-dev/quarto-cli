@@ -6,7 +6,7 @@
 */
 
 import { testQuartoCmd } from "../../test.ts";
-import { docs } from "../../utils.ts";
+import { docs, setEnvVar, restoreEnvVar } from "../../utils.ts";
 import { printsMessage } from "../../verify.ts";
 
 const input = docs("quarto-required.qmd");
@@ -27,8 +27,7 @@ testQuartoCmd(
   {
     setup: async () => {
       // Save current version of QUARTO_VERSION_REQUIREMENT env var and set it to a value that will not be satisfied
-      oldVersionRequirement = Deno.env.get("QUARTO_VERSION_REQUIREMENT");
-      Deno.env.set("QUARTO_VERSION_REQUIREMENT", "< 0.0.0");
+      oldVersionRequirement = setEnvVar("QUARTO_VERSION_REQUIREMENT", "< 0.0.0");
       // Mock Deno.exit to throw an error instead of exiting
       // Otherwise we would not check the error assertion
       originalDenoExit = Deno.exit;
@@ -38,11 +37,7 @@ testQuartoCmd(
     },
     teardown: async () => {
       // Restore QUARTO_VERSION_REQUIREMENT
-      if (oldVersionRequirement) {
-        Deno.env.set("QUARTO_VERSION_REQUIREMENT", oldVersionRequirement);
-      } else {
-        Deno.env.delete("QUARTO_VERSION_REQUIREMENT");
-      }
+      restoreEnvVar("QUARTO_VERSION_REQUIREMENT", oldVersionRequirement);
       // Restore Deno.exit
       Deno.exit = originalDenoExit;
     },

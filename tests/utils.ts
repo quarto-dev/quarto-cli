@@ -114,7 +114,7 @@ export function outputForInput(
     if (baseFormat === "revealjs") {
       outputExt = "html";
     }
-    if (["commonmark", "gfm", "markdown"].some((f) => f === baseFormat)) {
+    if (["commonmark", "gfm", "markdown", "markdown_strict"].some((f) => f === baseFormat)) {
       outputExt = "md";
     }
     if (baseFormat === "csljson") {
@@ -189,4 +189,18 @@ export function fileLoader(...path: string[]) {
 // On Windows, `quarto.cmd` needs to be explicit in `execProcess()`
 export function quartoDevCmd(): string {
   return Deno.build.os === "windows" ? "quarto.cmd" : "quarto";
+}
+
+export function setEnvVar(name: string, value: string): string | undefined {
+  const originalValue = Deno.env.get(name);
+  Deno.env.set(name, value);
+  return originalValue;
+}
+
+export function restoreEnvVar(name: string, originalValue: string | undefined): void {
+  if (originalValue !== undefined) {
+    Deno.env.set(name, originalValue);
+  } else {
+    Deno.env.delete(name);
+  }
 }
