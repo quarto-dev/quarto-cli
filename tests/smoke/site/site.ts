@@ -42,25 +42,3 @@ export const testSite = (
     mergeTestContexts(baseContext, additionalContext),
   );
 };
-
-export function testSiteWithProfile(profile: string) {
-  return (
-    input: string,
-    renderTarget: string,
-    includeSelectors: string[],
-    excludeSelectors: string[],
-    ...verify: Verify[]
-  ) => {
-    let profileEnv: string | undefined;
-    const additionalContext: TestContext = {
-      name: `with profile: ${profile}`,
-      setup: async () => {
-        profileEnv = setEnvVar("QUARTO_PROFILE", profile);
-      },
-      teardown: async () => {
-        restoreEnvVar("QUARTO_PROFILE", profileEnv);
-      }
-    }
-      testSite(input, renderTarget, includeSelectors, excludeSelectors, additionalContext, ...verify);
-  };
-}
