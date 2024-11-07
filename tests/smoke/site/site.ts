@@ -6,7 +6,7 @@
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { dirname } from "../../../src/deno_ral/path.ts";
 import { testQuartoCmd, Verify, TestContext, mergeTestContexts } from "../../test.ts";
-import { projectOutputForInput, restoreEnvVar, setEnvVar } from "../../utils.ts";
+import { projectOutputForInput } from "../../utils.ts";
 import { ensureHtmlElements, noErrorsOrWarnings } from "../../verify.ts";
 
 export const testSite = (
