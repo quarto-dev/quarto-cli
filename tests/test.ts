@@ -50,7 +50,7 @@ export interface TestContext {
   cwd?: () => string;
 
   // Control of underlying sanitizer
-  santize?: { resources?: boolean; ops?: boolean; exit?: boolean };
+  sanitize?: { resources?: boolean; ops?: boolean; exit?: boolean };
 
   // control if test is ran or skipped
   ignore?: boolean;
@@ -86,11 +86,11 @@ export function mergeTestContexts(baseContext: TestContext, additionalContext?: 
     },
     // override cwd if provided
     cwd: additionalContext.cwd || baseContext.cwd,
-    // merge santize options
-    santize: {
-      resources: additionalContext.santize?.resources ?? baseContext.santize?.resources,
-      ops: additionalContext.santize?.ops ?? baseContext.santize?.ops,
-      exit: additionalContext.santize?.exit ?? baseContext.santize?.exit,
+    // merge sanitize options
+    sanitize: {
+      resources: additionalContext.sanitize?.resources ?? baseContext.sanitize?.resources,
+      ops: additionalContext.sanitize?.ops ?? baseContext.sanitize?.ops,
+      exit: additionalContext.sanitize?.exit ?? baseContext.sanitize?.exit,
     },
     // override ignore if provided
     ignore: additionalContext.ignore ?? baseContext.ignore,
@@ -165,9 +165,9 @@ export function test(test: TestDescriptor) {
     ? `[${test.type}] > ${test.name} (${test.context.name})`
     : `[${test.type}] > ${test.name}`;
 
-  const sanitizeResources = test.context.santize?.resources;
-  const sanitizeOps = test.context.santize?.ops;
-  const sanitizeExit = test.context.santize?.exit;
+  const sanitizeResources = test.context.sanitize?.resources;
+  const sanitizeOps = test.context.sanitize?.ops;
+  const sanitizeExit = test.context.sanitize?.exit;
   const ignore = test.context.ignore;
   const userSession = !runningInCI();
 
