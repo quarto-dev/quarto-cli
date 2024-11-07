@@ -59,6 +59,46 @@ export interface TestContext {
   env?: Record<string, string>;
 }
 
+// Allow to merge test contexts in Tests helpers
+export function mergeTestContexts(baseContext: TestContext, additionalContext?: TestContext): TestContext {
+  if (!additionalContext) {
+    return baseContext;
+  }
+
+  return {
+    // override name if provided
+    name: additionalContext.name || baseContext.name,
+    // combine prereq conditions
+    prereq: async () => {
+      const baseResult = !baseContext.prereq || await baseContext.prereq();
+      const additionalResult = !additionalContext.prereq || await additionalContext.prereq();
+      return baseResult && additionalResult;
+    },
+    // run teardowns in reverse order
+    teardown: async () => {
+      if (baseContext.teardown) await baseContext.teardown();
+      if (additionalContext.teardown) await additionalContext.teardown();
+    },
+    // run setups in order
+    setup: async () => {
+      if (additionalContext.setup) await additionalContext.setup();
+      if (baseContext.setup) await baseContext.setup();
+    },
+    // override cwd if provided
+    cwd: additionalContext.cwd || baseContext.cwd,
+    // merge santize options
+    santize: {
+      resources: additionalContext.santize?.resources ?? baseContext.santize?.resources,
+      ops: additionalContext.santize?.ops ?? baseContext.santize?.ops,
+      exit: additionalContext.santize?.exit ?? baseContext.santize?.exit,
+    },
+    // override ignore if provided
+    ignore: additionalContext.ignore ?? baseContext.ignore,
+    // merge env with additional context taking precedence
+    env: { ...baseContext.env, ...additionalContext.env },
+  };
+}
+
 export function testQuartoCmd(
   cmd: string,
   args: string[],
