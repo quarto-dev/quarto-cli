@@ -1232,7 +1232,9 @@ async function navbarEjsData(
   const searchOpts = await searchOptions(project);
   const data: Navbar = {
     ...navbar,
-    search: searchOpts && searchOpts.location === "navbar"
+    search: navbar.search !== undefined
+      ? navbar.search
+      : searchOpts && searchOpts.location === "navbar"
       ? searchOpts.type
       : false,
     background: navbar.background || "primary",
