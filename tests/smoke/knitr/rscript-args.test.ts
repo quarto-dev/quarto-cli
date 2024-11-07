@@ -18,12 +18,12 @@ let rscriptArgs: string | undefined;
 testRender(rscriptArgsDoc.input, "markdown_strict", true, [
   noErrorsOrWarnings,
   ensureFileRegexMatches(rscriptArgsDoc.output.outputPath, [
-    /"--vanilla"/, /"--max-connection=258"/]
+    /"--no-restore"/, /"--max-connection=258"/]
   ),
 ],
 {
   setup: async () => {
-    rscriptArgs = setEnvVar("QUARTO_KNITR_RSCRIPT_ARGS", "--vanilla,--max-connections=258");
+    rscriptArgs = setEnvVar("QUARTO_KNITR_RSCRIPT_ARGS", "--no-restore,--max-connections=258");
   },
   teardown: async () => {
     restoreEnvVar("QUARTO_KNITR_RSCRIPT_ARGS", rscriptArgs);
