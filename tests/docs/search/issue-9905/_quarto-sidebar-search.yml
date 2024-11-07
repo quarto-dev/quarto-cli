@@ -1,0 +1,9 @@
+website:
+  search:
+    location: sidebar
+  sidebar:
+    search: true
+    contents:
+      - section: "Basics"
+        contents:
+          - index.qmd

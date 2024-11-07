@@ -1,0 +1,8 @@
+website:
+  search:
+    location: sidebar
+  navbar:
+    search: false
+    left:
+      - href: index.qmd
+        text: Home
