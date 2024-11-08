@@ -50,13 +50,53 @@ export interface TestContext {
   cwd?: () => string;
 
   // Control of underlying sanitizer
-  santize?: { resources?: boolean; ops?: boolean; exit?: boolean };
+  sanitize?: { resources?: boolean; ops?: boolean; exit?: boolean };
 
   // control if test is ran or skipped
   ignore?: boolean;
 
   // environment to pass to downstream processes
   env?: Record<string, string>;
+}
+
+// Allow to merge test contexts in Tests helpers
+export function mergeTestContexts(baseContext: TestContext, additionalContext?: TestContext): TestContext {
+  if (!additionalContext) {
+    return baseContext;
+  }
+
+  return {
+    // override name if provided
+    name: additionalContext.name || baseContext.name,
+    // combine prereq conditions
+    prereq: async () => {
+      const baseResult = !baseContext.prereq || await baseContext.prereq();
+      const additionalResult = !additionalContext.prereq || await additionalContext.prereq();
+      return baseResult && additionalResult;
+    },
+    // run teardowns in reverse order
+    teardown: async () => {
+      if (baseContext.teardown) await baseContext.teardown();
+      if (additionalContext.teardown) await additionalContext.teardown();
+    },
+    // run setups in order
+    setup: async () => {
+      if (additionalContext.setup) await additionalContext.setup();
+      if (baseContext.setup) await baseContext.setup();
+    },
+    // override cwd if provided
+    cwd: additionalContext.cwd || baseContext.cwd,
+    // merge sanitize options
+    sanitize: {
+      resources: additionalContext.sanitize?.resources ?? baseContext.sanitize?.resources,
+      ops: additionalContext.sanitize?.ops ?? baseContext.sanitize?.ops,
+      exit: additionalContext.sanitize?.exit ?? baseContext.sanitize?.exit,
+    },
+    // override ignore if provided
+    ignore: additionalContext.ignore ?? baseContext.ignore,
+    // merge env with additional context taking precedence
+    env: { ...baseContext.env, ...additionalContext.env },
+  };
 }
 
 export function testQuartoCmd(
@@ -125,9 +165,9 @@ export function test(test: TestDescriptor) {
     ? `[${test.type}] > ${test.name} (${test.context.name})`
     : `[${test.type}] > ${test.name}`;
 
-  const sanitizeResources = test.context.santize?.resources;
-  const sanitizeOps = test.context.santize?.ops;
-  const sanitizeExit = test.context.santize?.exit;
+  const sanitizeResources = test.context.sanitize?.resources;
+  const sanitizeOps = test.context.sanitize?.ops;
+  const sanitizeExit = test.context.sanitize?.exit;
   const ignore = test.context.ignore;
   const userSession = !runningInCI();
 

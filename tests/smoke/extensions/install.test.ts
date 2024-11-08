@@ -98,7 +98,7 @@ for (const extUrl of extUrls) {
         Deno.removeSync("_extensions", { recursive: true });
         return Promise.resolve();
       },
-      santize: {
+      sanitize: {
         resources: false,
       },
     },
