@@ -885,11 +885,6 @@ pre.sourceCode > code.sourceCode {
   }
 }
 
-// no border inside callouts
-.callout pre.sourceCode {
-  padding-left: 0;
-}
-
 div.sourceCode {
   overflow-y: hidden;
 }
@@ -2173,4 +2168,11 @@ code {
   font-family: $font-family-monospace-inline;
   @include font-size($code-inline-font-size);
   font-weight: $font-weight-monospace-inline;
+}
+
+// link styling
+a {
+  background-color: $link-color-bg;
+  font-weight: $link-weight;
+  text-decoration: $link-decoration;
 }

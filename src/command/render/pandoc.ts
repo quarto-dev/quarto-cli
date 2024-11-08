@@ -202,6 +202,11 @@ import {
 } from "../../core/markdown-pipeline.ts";
 import { getEnv } from "../../../package/src/util/utils.ts";
 import { canonicalizeTitlePostprocessor } from "../../format/html/format-html-title.ts";
+import {
+  BrandFontBunny,
+  BrandFontFile,
+  BrandFontGoogle,
+} from "../../resources/types/schema-types.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -1359,18 +1364,25 @@ async function resolveExtras(
     const ttf_urls = [], woff_urls: Array<string> = [];
     if (brand?.data.typography) {
       const fonts = brand.data.typography.fonts || [];
-      for (const font of fonts) {
-        if (font.source === "file") {
+      for (const _font of fonts) {
+        // if font lacks a source, we assume google in typst output
+
+        // deno-lint-ignore no-explicit-any
+        const source: string = (_font as any).source ?? "google";
+        if (source === "file") {
+          const font = _font as BrandFontFile;
           for (const file of font.files || []) {
             const path = typeof file === "object" ? file.path : file;
             fontdirs.add(dirname(join(brand.brandDir, path)));
           }
-        } else if (font.source === "bunny") {
+        } else if (source === "bunny") {
+          const font = _font as BrandFontBunny;
           console.log(
             "Font bunny is not yet supported for Typst, skipping",
             font.family,
           );
-        } else if (font.source === "google" /* || font.source === "bunny" */) {
+        } else if (source === "google" /* || font.source === "bunny" */) {
+          const font = _font as BrandFontGoogle;
           let { family, style, weight } = font;
           const parts = [family!];
           if (style) {
@@ -1382,7 +1394,7 @@ async function resolveExtras(
             parts.push(weight.join(","));
           }
           const response = await fetch(
-            `${base_urls[font.source]}?family=${parts.join(":")}`,
+            `${base_urls[source]}?family=${parts.join(":")}`,
           );
           const lines = (await response.text()).split("\n");
           for (const line of lines) {

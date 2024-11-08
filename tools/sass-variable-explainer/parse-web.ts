@@ -4,4 +4,4 @@ import { parse } from 'https://cdn.skypack.dev/scss-parser/';
 // import * as prettier from "https://esm.sh/prettier@3.3.3"; // skypack crashes with prettier
 import { makeParserModule } from "./parse.ts";
 
-export const getSassAst = makeParserModule(parse, (s: string) => s).getSassAst;
+export const getSassAst = makeParserModule(parse).getSassAst;

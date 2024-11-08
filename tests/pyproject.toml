@@ -1,0 +1,18 @@
+[project]
+name = "tests"
+version = "0.1.0"
+description = "Quarto Tests"
+requires-python = ">=3.12"
+dependencies = [
+    "bokeh-sampledata>=2024.2",
+    "bokeh>=3.6.0",
+    "ipyleaflet>=0.19.2",
+    "itables>=2.2.3",
+    "jupyter-cache>=1.0.0",
+    "jupyter>=1.1.1",
+    "matplotlib>=3.9.2",
+    "pandas>=2.2.3",
+    "papermill>=2.6.0",
+    "seaborn>=0.13.2",
+    "shiny>=1.2.0",
+]

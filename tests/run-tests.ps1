@@ -138,12 +138,16 @@ $DENO_ARGS += -split $QUARTO_IMPORT_MAP_ARG
 $DENO_ARGS += $TESTS_TO_RUN
 
 # Activate python virtualenv
-# set QUARTO_TESTS_FORCE_NO_PIPENV env var to not activate the virtualenv managed by pipenv for the project
-If ($null -eq $Env:QUARTO_TESTS_FORCE_NO_PIPENV) {
+# set QUARTO_TESTS_FORCE_NO_VENV env var to not activate the virtualenv located in the project
+# QUARTO_TESTS_FORCE_NO_PIPENV is there for backward compatibility
+If ($null -eq $Env:QUARTO_TESTS_FORCE_NO_VENV -and $null -ne $Env:QUARTO_TESTS_FORCE_NO_PIPENV) {
+  $Env:QUARTO_TESTS_FORCE_NO_VENV = $Env:QUARTO_TESTS_FORCE_NO_PIPENV
+}
+If ($null -eq $Env:QUARTO_TESTS_FORCE_NO_VENV) {
   # Save possible activated virtualenv for later restauration
   $OLD_VIRTUAL_ENV=$VIRTUAL_ENV
-  Write-Host "> Activating virtualenv for Python tests in Quarto"
-  . "$(pipenv --venv)/Scripts/activate.ps1"
+  Write-Host "> Activating virtualenv from .venv for Python tests in Quarto"
+  . $(Join-Path $QUARTO_ROOT "tests" ".venv/Scripts/activate.ps1")
   Write-Host "> Using Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
   Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
   $quarto_venv_activated = $true

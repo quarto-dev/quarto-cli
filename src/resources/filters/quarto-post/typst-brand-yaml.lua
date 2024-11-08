@@ -75,6 +75,9 @@ function render_typst_brand_yaml()
           end
           if brandColor.foreground then
             quarto.doc.include_text('in-header', '#set text(fill: brand-color.foreground)')
+            quarto.doc.include_text('in-header', '#set table.hline(stroke: (paint: brand-color.foreground))')
+            quarto.doc.include_text('in-header', '#set line(stroke: (paint: brand-color.foreground))')
+    
           end
           local decl = '// theme colors at opacity ' .. BACKGROUND_OPACITY .. '\n#let brand-color-background = ' .. to_typst_dict_indent(themebk)
           quarto.doc.include_text('in-header', decl)
@@ -179,11 +182,13 @@ function render_typst_brand_yaml()
         end
 
         local link = _quarto.modules.brand.get_typography('link')
-        if link and next(link) then
+        local primaryColor = _quarto.modules.brand.get_color('primary')
+        if link and next(link) or primaryColor then
+          link = link or {}
           quarto.doc.include_text('in-header', table.concat({
             '#show link: set text(',
             conditional_entry('weight', link.weight),
-            conditional_entry('fill', link.color, false),
+            conditional_entry('fill', link.color or primaryColor, false),
             ')'
           }))
         end
@@ -301,14 +306,16 @@ function render_typst_brand_yaml()
       end
 
       local headings = _quarto.modules.brand.get_typography('headings')
-      if headings and next(headings) then
+      local foregroundColor = _quarto.modules.brand.get_color('foreground')
+      if headings and next(headings) or foregroundColor then
         base = base or {}
+        headings = headings or {}
         meta.brand.typography.headings = {
           family = headings.family or base.family,
           weight = headings.weight or base.weight,
           style = headings.style or base.style,
           decoration = headings.decoration or base.decoration,
-          color = headings.color or base.color,
+          color = headings.color or foregroundColor,
           ['background-color'] = headings['background-color'] or base['background-color'],
           ['line-height'] = line_height_to_leading(headings['line-height'] or base['line-height']),
         }

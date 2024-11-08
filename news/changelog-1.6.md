@@ -24,10 +24,12 @@ All changes included in 1.6:
 - ([#10858](https://github.com/quarto-dev/quarto-cli/issues/10858)): Don't crash in `gfm` when `content` of a `FloatRefTarget` is of type `Blocks`.
 - ([#10894](https://github.com/quarto-dev/quarto-cli/issues/10894)): Fix configuration of title and prefix in callouts for `html`, `revealjs`, `pdf`, and `typst`.
 - ([#10999](https://github.com/quarto-dev/quarto-cli/issues/10999)): New API entry point: `quarto.paths.rscript()` to resolve `Rscript` path in Lua filters and extensions consistently with Quarto itself.
-- ([#11124](https://github.com/quarto-dev/quarto-cli/pull/11124)): Sort keys when encoding tables as JSON
+- ([#11124](https://github.com/quarto-dev/quarto-cli/pull/11124)): Sort keys when encoding tables as JSON.
+- ([#11303](https://github.com/quarto-dev/quarto-cli/issues/11303)): Fix conditional content for divs with repeated attributes.
 
 ## `dashboard` Format
 
+- ([#9411](https://github.com/quarto-dev/quarto-cli/issues/9411)): Fix issue with history navigation in dashboards and external links.
 - ([#10340](https://github.com/quarto-dev/quarto-cli/issues/10340)): Build card title correctly in the presence of equations and other markup.
 
 ## `html` Format
@@ -42,6 +44,15 @@ All changes included in 1.6:
 - Update to Reveal JS 5.1.0.
   - Support for a [Jump To Slide](https://revealjs.com/jump-to-slide/) menu to quickly navigate between slides. Set `jump-to-slide: false` to opt out.
   - Support for new [Scroll View](https://revealjs.com/scroll-view/) mode with configuration through new `scroll-view` revealjs's format configuration key. A new menu tool has been added to toggle scroll view mode on and off, associated with `R` key by default.
+- Styles improvements for Callouts in Revealjs:
+  - SCSS variables can be used to customize the appearance of callouts in Revealjs. The following SCSS variables are available:
+    - Border width and scale (`$callout-border-width`, `$callout-border-scale`)
+    - Border colors (`$callout-color-note`, `$callout-color-tip`, `$callout-color-important`, `$callout-color-caution`, `$callout-color-warning`)
+    - Margins (`$callout-margin-top`, `$callout-margin-bottom`)
+  - Color for each callout type is now the same as in Bootstrap document `format: html`. This allows for consistent styling across formats. If you prefer other colors, you can override using the new SCSS variables
+  - Icon for each callout type is now using SVG like in Bootstrap document `format: html`. This allows for consistent styling across formats.
+  - Callouts looks better in slides made smaller and when containing code blocks.
+  - To see how callouts looks like in revealjs, see this example: <https://examples.quarto.pub/revealjs-default-callouts-styles>
 - Prevent empty SASS built css file to be included in header.
 - Remove wrong `sourceMappingUrl` entry in SASS built css.
 - ([#7715](https://github.com/quarto-dev/quarto-cli/issues/7715)): Revealjs don't support anymore special Pandoc syntax making BulletList in Blockquotes become incremental list. This was confusing and unexpected behavior. Supported syntax for incremental list is documented at <https://quarto.org/docs/presentations/revealjs/#incremental-lists>.
@@ -93,6 +104,7 @@ All changes included in 1.6:
 - ([#10567](https://github.com/quarto-dev/quarto-cli/issues/10567)): Generate breadcrumbs correctly for documents using a level-1 heading as the title.
 - ([#10616](https://github.com/quarto-dev/quarto-cli/issues/10268)): Add a `z-index` setting to the 'back to top' button to ensure it is always visible.
 - ([#10864](https://github.com/quarto-dev/quarto-cli/issues/10864)): Support detection of `og:image:alt` attribute from auto-discovered images.
+- ([#9905](https://github.com/quarto-dev/quarto-cli/issues/9905)): Setting `search: false` in `navbar` config for `website` in `_quarto.yml` correctly opt-out sidebar.
 
 ### Quarto Blog
 

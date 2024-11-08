@@ -18,6 +18,7 @@ import { ProjectContext } from "../../project/types.ts";
 import {
   BrandFont,
   BrandFontBunny,
+  BrandFontCommon,
   BrandFontGoogle,
   BrandFontWeight,
 } from "../../resources/types/schema-types.ts";
@@ -110,7 +111,7 @@ const fontFileFormat = (file: string): string => {
   }
 };
 
-const bunnyFontImportString = (description: BrandFontBunny) => {
+const bunnyFontImportString = (description: BrandFontCommon) => {
   const bunnyName = (name: string) => name.replace(/ /g, "-");
   const bunnyFamily = description.family;
   if (!bunnyFamily) {
@@ -137,7 +138,6 @@ const bunnyFontImportString = (description: BrandFontBunny) => {
   return `@import url('https://fonts.bunny.net/css?family=${
     bunnyName(bunnyFamily)
   }:${weights}&display=${display}');`;
-  // }
 };
 
 const googleFontImportString = (description: BrandFontGoogle) => {
@@ -198,7 +198,7 @@ const brandColorBundle = (
     );
     colorCssVariables.push(
       `  --brand-${colorVar}: ${brand.getColor(colorKey)};`,
-    )
+    );
   }
 
   // Map theme colors directly to Sass variables
@@ -222,7 +222,10 @@ const brandColorBundle = (
   }
   // const colorEntries = Object.keys(brand.color);
   colorVariables.push('// quarto-scss-analysis-annotation { "action": "pop" }');
-  colorCssVariables.push("}", '// quarto-scss-analysis-annotation { "action": "pop" }');
+  colorCssVariables.push(
+    "}",
+    '// quarto-scss-analysis-annotation { "action": "pop" }',
+  );
   const colorBundle: SassBundleLayers = {
     key,
     // dependency: "bootstrap",
@@ -239,13 +242,13 @@ const brandColorBundle = (
 
 const brandBootstrapBundle = (
   brand: Brand,
-  key: string
+  key: string,
 ): SassBundleLayers => {
   // Bootstrap Variables from brand.defaults.bootstrap
-  const brandBootstrap = (brand?.data?.defaults?.bootstrap as unknown as Record<
+  const brandBootstrap = brand?.data?.defaults?.bootstrap as unknown as Record<
     string,
     Record<string, string | boolean | number | null>
-  >);
+  >;
 
   const bsVariables: string[] = [
     "/* Bootstrap variables from _brand.yml */",
@@ -276,7 +279,7 @@ const brandBootstrapBundle = (
     "green",
     "teal",
     "cyan",
-  ]
+  ];
 
   const bsColors: string[] = [
     "/* Bootstrap color variables from _brand.yml */",
@@ -368,6 +371,41 @@ const brandTypographyBundle = (
     return googleFamily;
   };
 
+  const resolveBunnyFontFamily = (
+    font: BrandFont[],
+  ): string | undefined => {
+    let googleFamily = "";
+    for (const _resolvedFont of font) {
+      const resolvedFont =
+        _resolvedFont as (BrandFont | BrandFontGoogle | BrandFontBunny);
+      // Typescript's type checker doesn't understand that it's ok to attempt
+      // to access a property that might not exist on a type when you're
+      // only testing for its existence.
+
+      // deno-lint-ignore no-explicit-any
+      const source = (resolvedFont as any).source;
+      if (source && source !== "bunny") {
+        return undefined;
+      }
+      const thisFamily = resolvedFont.family;
+      if (!thisFamily) {
+        continue;
+      }
+      if (googleFamily === "") {
+        googleFamily = thisFamily;
+      } else if (googleFamily !== thisFamily) {
+        throw new Error(
+          `Inconsistent Google font families found: ${googleFamily} and ${thisFamily}`,
+        );
+      }
+      typographyImports.add(bunnyFontImportString(resolvedFont));
+    }
+    if (googleFamily === "") {
+      return undefined;
+    }
+    return googleFamily;
+  };
+
   type HTMLFontInformation = { [key: string]: unknown };
 
   type FontKind =
@@ -389,7 +427,7 @@ const brandTypographyBundle = (
     const font = getFontFamilies(family);
     const result: HTMLFontInformation = {};
     result.family = resolveGoogleFontFamily(font) ??
-      // resolveBunnyFontFamily(font) ??
+      resolveBunnyFontFamily(font) ??
       // resolveFilesFontFamily(font) ??
       family;
     for (
@@ -400,6 +438,7 @@ const brandTypographyBundle = (
         "style",
         "color",
         "background-color",
+        "decoration",
       ]
     ) {
       // deno-lint-ignore no-explicit-any
@@ -425,6 +464,9 @@ const brandTypographyBundle = (
       ["line-height", "presentation-line-height"],
       // TBD?
 
+      // mermaid
+      ["family", "mermaid-font-family"],
+      ["weight", "mermaid-font-weight"],
       // ["style", "font-style-base"],
       // ["weight", "font-weight-base"],
     ],
@@ -444,6 +486,13 @@ const brandTypographyBundle = (
       ["color", "presentation-heading-color"],
       // TODO: style, needs CSS change
     ],
+    "link": [
+      // bootstrap + revealjs
+      ["color", "link-color"],
+      ["background-color", "link-color-bg"],
+      ["weight", "link-weight"],
+      ["decoration", "link-decoration"],
+    ],
     "monospace": [
       // bootstrap + revealjs
       ["family", "font-family-monospace"],
@@ -459,6 +508,10 @@ const brandTypographyBundle = (
       // revealjs
       ["size", "code-block-font-size"],
       ["color", "code-block-color"],
+
+      // monospace forwards to both block and inline
+      ["background-color", "code-bg"],
+      ["background-color", "code-block-bg"],
     ],
     "monospace-block": [
       // bootstrap + revealjs
@@ -490,6 +543,7 @@ const brandTypographyBundle = (
   for (
     const kind of [
       // more specific entries go first
+      "link",
       "monospace-block",
       "monospace-inline",
       "monospace",
@@ -566,7 +620,12 @@ export async function brandBootstrapSassBundleLayers(
   nameMap: Record<string, string> = {},
 ): Promise<SassBundleLayers[]> {
   const brand = await project.resolveBrand(fileName);
-  const sassBundles = await brandSassBundleLayers(fileName, project, key, nameMap);
+  const sassBundles = await brandSassBundleLayers(
+    fileName,
+    project,
+    key,
+    nameMap,
+  );
 
   if (brand?.data?.defaults?.bootstrap) {
     const bsBundle = brandBootstrapBundle(brand, key);

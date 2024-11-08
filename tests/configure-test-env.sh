@@ -28,20 +28,14 @@ then
 fi
 if [ -n $python_exists ]
 then
-  pipenv_exist=$(command -v pipenv)
-  if [ -z $pipenv_exist ] 
+  uv_exist=$(command -v uv)
+  if [ -z $uv_exist ] 
+    echo "Setting up python environnement with uv"
+    # create or sync the virtual env in the project
+    uv sync --frozen
   then
-    echo "No pipenv found - Installing pipenv running ``pip install pipenv``..."
-    $python_exists -m pip install pipenv
-    echo "...pipenv installed"
+    echo "No uv found - Install uv please: https://docs.astral.sh/uv/getting-started/installation/"
   fi
-  # specific for pyenv shim
-  [[ -n $(command -v pyenv) ]] && pyenv rehash
-  echo "Setting up python environnement with pipenv"
-  # our default is pipenv to use its own virtualenv and be in project directory
-  export PIPENV_IGNORE_VIRTUALENVS=1
-  export PIPENV_VENV_IN_PROJECT=1
-  pipenv install
 fi
 
 # Check Julia environment ---

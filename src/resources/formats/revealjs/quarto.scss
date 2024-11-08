@@ -1,5 +1,4 @@
 /*-- scss:uses --*/
-@use "sass:color" as sass-color;
 
 /*-- scss:defaults --*/
 
@@ -20,6 +19,13 @@ $font-weight-base: 400 !default;
 $code-font-size: $presentation-font-size-root !default;
 $font-family-monospace-block: $font-family-monospace !default;
 $font-family-monospace-inline: $font-family-monospace !default;
+$link-weight: $font-weight-base !default;
+$link-color-bg: transparent !default;
+$link-decoration: inherit !default;
+$font-weight-monospace: $font-weight-base !default;
+$font-weight-monospace-block: $font-weight-monospace !default;
+$font-weight-monospace-inline: $font-weight-monospace !default;
+$code-inline-font-size: $code-font-size !default;
 
 // main colors
 $body-bg: #fff !default;
@@ -96,6 +102,18 @@ $input-panel-border-width: $border-width !default;
 $input-panel-border-radius: $border-radius !default;
 $input-panel-bg: rgba(248, 249, 250, 1) !default;
 
+// Callouts
+$callout-border-width: 0.3rem !default;
+$callout-border-scale: 0% !default;
+$callout-icon-scale: 10% !default;
+$callout-margin-top: 1rem !default;
+$callout-margin-bottom: 1rem !default;
+$callout-color-note: #0d6efd !default;
+$callout-color-tip: #198754 !default;
+$callout-color-important: #dc3545 !default;
+$callout-color-caution: #fd7e14 !default;
+$callout-color-warning: #ffc107 !default;
+
 // alternate colors for when the background changes
 $light-bg-text-color: #222 !default;
 $dark-bg-text-color: #fff !default;
@@ -110,14 +128,6 @@ $kbd-padding-x: 0.4rem !default;
 $kbd-font-size: $presentation-font-size-root !default;
 $kbd-color: $body-color !default;
 $kbd-bg: $gray-100 !default; // like in bootstrap style
-
-// variables required by _brand.yml
-$font-family-monospace-block: $font-family-monospace !default;
-$font-family-monospace-inline: $font-family-monospace !default;
-$font-weight-monospace: $font-weight-base !default;
-$font-weight-monospace-block: $font-weight-monospace !default;
-$font-weight-monospace-inline: $font-weight-monospace !default;
-$code-inline-font-size: $code-font-size !default;
 
 // --- derive reveal versions of presentation variables for finer-grained override ---
 
@@ -214,13 +224,13 @@ $overlayElementFgColor: 0, 0, 0 !default;
 
 /*-- scss:mixins --*/
 
-@mixin shift_to_dark($property, $color) {
+@mixin shift_to_dark($property, $colorDark, $colorLight) {
   @if (
-    sass-color.blackness($backgroundColor) > $code-block-theme-dark-threshhold
+    quarto-color.blackness($backgroundColor) > $code-block-theme-dark-threshhold
   ) {
-    #{$property}: shift-color($color, 70%);
+    #{$property}: $colorDark;
   } @else {
-    #{$property}: $color;
+    #{$property}: $colorLight;
   }
 }
 
@@ -538,7 +548,7 @@ $panel-sidebar-padding: 0.5em;
     }
 
     // On callout we want to make the font-size smaller too
-    .callout {
+    div.callout {
       font-size: #{$presentation-font-smaller}em;
 
       // But we don't want headers to change size and they are in em
@@ -608,18 +618,18 @@ $panel-sidebar-padding: 0.5em;
   }
 
   &.has-dark-background {
-    color: sass-color.scale($dark-bg-text-color, $whiteness: 30%);
+    color: quarto-color.scale($dark-bg-text-color, $whiteness: 30%);
 
     a {
-      color: sass-color.scale($dark-bg-link-color, $whiteness: 30%);
+      color: quarto-color.scale($dark-bg-link-color, $whiteness: 30%);
     }
   }
 
   &.has-light-background {
-    color: sass-color.scale($light-bg-text-color, $whiteness: 30%);
+    color: quarto-color.scale($light-bg-text-color, $whiteness: 30%);
 
     a {
-      color: sass-color.scale($light-bg-link-color, $whiteness: 30%);
+      color: quarto-color.scale($light-bg-link-color, $whiteness: 30%);
     }
   }
 }
@@ -628,11 +638,11 @@ $panel-sidebar-padding: 0.5em;
   color: $text-muted;
 
   &.has-dark-background {
-    color: sass-color.scale($dark-bg-text-color, $whiteness: 30%);
+    color: quarto-color.scale($dark-bg-text-color, $whiteness: 30%);
   }
 
   &.has-light-background {
-    color: sass-color.scale($light-bg-text-color, $whiteness: 30%);
+    color: quarto-color.scale($light-bg-text-color, $whiteness: 30%);
   }
 }
 
@@ -683,36 +693,6 @@ $panel-sidebar-padding: 0.5em;
   z-index: 1;
 }
 
-/* Callout styles */
-.reveal .callout {
-  &.callout-style-simple,
-  &.callout-style-default {
-    .callout-body,
-    div.callout-title {
-      font-size: inherit;
-    }
-    .callout-icon::before {
-      height: 2rem;
-      width: 2rem;
-      background-size: 2rem 2rem;
-    }
-  }
-
-  &.callout-titled {
-    .callout-title p {
-      margin-top: 0.5em;
-    }
-
-    .callout-icon::before {
-      margin-top: 1rem;
-    }
-
-    .callout-body > .callout-content > :last-child {
-      margin-bottom: 1rem;
-    }
-  }
-}
-
 .reveal .panel-tabset [role="tab"] {
   padding: 0.25em 0.7em;
 }
@@ -732,7 +712,7 @@ $panel-sidebar-padding: 0.5em;
 // This is a sentinel value that renderers can use to determine
 // whether the theme is dark or light
 @if (
-  sass-color.blackness($backgroundColor) > $code-block-theme-dark-threshhold
+  quarto-color.blackness($backgroundColor) > $code-block-theme-dark-threshhold
 ) {
   /*! dark */
   .reveal div.callout.callout-style-default .callout-title {
@@ -910,7 +890,11 @@ kbd {
   font-family: $font-family-monospace;
   font-size: $kbd-font-size;
   color: $kbd-color;
-  @include shift_to_dark("background-color", $kbd-bg);
+  @include shift_to_dark(
+    "background-color",
+    shift-color($kbd-bg, 70%),
+    $kbd-bg
+  );
   border: 1px solid;
   border-color: $code-block-border-color;
   border-radius: 5px;
@@ -922,4 +906,258 @@ kbd {
   --r-block-code-font: #{$font-family-monospace-block};
   --r-inline-code-font-size: #{$revealjs-code-inline-font-size};
   --r-block-code-font-size: #{$revealjs-code-block-font-size};
+}
+
+// _brand.yml rules
+
+.reveal a {
+  font-weight: $link-weight;
+  background-color: $link-color-bg;
+  text-decoration: $link-decoration;
+}
+
+/* Callout styles */
+
+.reveal div.callout {
+  margin-top: $callout-margin-top;
+  margin-bottom: $callout-margin-bottom;
+  border-radius: $border-radius;
+  overflow-wrap: break-word;
+
+  // Rules for both styles
+  &.callout-style-simple,
+  &.callout-style-default {
+    border-left: $callout-border-width solid #acacac;
+    border-right: solid 1px $table-border-color;
+    border-top: solid 1px $table-border-color;
+    border-bottom: solid 1px $table-border-color;
+
+    div {
+      &.callout-body,
+      &.callout-title {
+        // Font size is inherited from the parent div.callout
+        // which is scaled down like .smaller
+        font-size: inherit;
+        border-bottom: none;
+        font-weight: 600;
+      }
+
+      &.callout-title {
+        p {
+          margin-top: 0.5em;
+          margin-bottom: 0.5em;
+        }
+      }
+
+      &.callout-title {
+        display: flex;
+        align-items: center;
+      }
+    }
+
+    .callout-icon::before {
+      height: 1.25em;
+      width: 1.25em;
+      background-size: 1.25em 1.25em;
+    }
+
+    &.callout-titled {
+      .callout-body {
+        > .callout-content {
+          > :last-child {
+            margin-bottom: var(--r-block-margin);
+          }
+          > :last-child:not(div.sourceCode) {
+            padding-bottom: 0.5rem;
+            margin-bottom: 0;
+          }
+        }
+      }
+      .callout-icon::before {
+        margin-top: 0.25em;
+        padding-right: 0.25em;
+      }
+    }
+
+    &.no-icon::before {
+      display: none !important;
+    }
+  }
+
+  // Apply only to simple callout style which could have
+  // - a title or not
+  // - an icon or not
+  &.callout-style-simple {
+    padding: 0em 0.5em;
+    display: flex;
+
+    &.callout-titled {
+      .callout-body {
+        margin-top: 0.2em;
+      }
+      &:not(.no-icon) {
+        .callout-content {
+          padding-left: 1.6em;
+        }
+      }
+      .callout-content {
+        p {
+          margin-top: 0;
+        }
+      }
+    }
+
+    &:not(.callout-titled) {
+      .callout-body {
+        display: flex;
+      }
+      .callout-icon::before {
+        margin-top: var(--r-block-margin);
+        padding-right: 0.5em;
+      }
+      .callout-body {
+        > .callout-content {
+          // Margin needs to be added when last child is div.sourceCode
+          // Other code cell border is mixed with callout border
+          > div.sourceCode:last-child {
+            margin-bottom: 1rem;
+          }
+          > :first-child {
+            margin-top: var(--r-block-margin);
+          }
+        }
+      }
+    }
+
+    .callout-icon::before {
+      display: inline-block;
+      content: "";
+      background-repeat: no-repeat;
+    }
+
+    div {
+      &.callout-title {
+        opacity: 75%;
+      }
+      &.callout-body {
+        font-weight: 400;
+      }
+    }
+  }
+
+  // Apply only to default callout style which could have
+  // - a title (can't have no title)
+  // - an icon or not
+  &.callout-style-default {
+    &.callout-titled {
+      .callout-content {
+        p {
+          margin-top: 0.7em;
+        }
+      }
+    }
+
+    .callout-icon::before {
+      display: inline-block;
+      content: "";
+      background-repeat: no-repeat;
+    }
+
+    div {
+      &.callout-body {
+        font-weight: 400;
+      }
+      &.callout-title {
+        opacity: 85%;
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+      }
+      &.callout-content {
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+      }
+    }
+  }
+
+  // FIXME: There is no body-container in revealjs so remove but before find what it was suppose to do
+  .callout-body-container {
+    flex-grow: 1;
+  }
+}
+
+/* Callout Types */
+
+// Generate per callout type css to customize their appearance
+// Define the callouts for which we should define styles
+$callouts: (
+  // NOTE
+  "note":
+    (
+      "color": $callout-color-note,
+      "icon":
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg>',
+    ),
+  // TIP
+  "tip":
+    (
+      "color": $callout-color-tip,
+      "icon":
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-lightbulb" viewBox="0 0 16 16"><path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13a.5.5 0 0 1 0 1 .5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1 0-1 .5.5 0 0 1 0-1 .5.5 0 0 1-.46-.302l-.761-1.77a1.964 1.964 0 0 0-.453-.618A5.984 5.984 0 0 1 2 6zm6-5a5 5 0 0 0-3.479 8.592c.263.254.514.564.676.941L5.83 12h4.342l.632-1.467c.162-.377.413-.687.676-.941A5 5 0 0 0 8 1z"/></svg>',
+    ),
+  // WARNING
+  "warning":
+    (
+      "color": $callout-color-warning,
+      "icon":
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle" viewBox="0 0 16 16"><path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/><path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z"/></svg>',
+    ),
+  // CAUTION
+  "caution":
+    (
+      "color": $callout-color-caution,
+      "icon":
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cone-striped" viewBox="0 0 16 16"><path d="M9.97 4.88l.953 3.811C10.158 8.878 9.14 9 8 9c-1.14 0-2.159-.122-2.923-.309L6.03 4.88C6.635 4.957 7.3 5 8 5s1.365-.043 1.97-.12zm-.245-.978L8.97.88C8.718-.13 7.282-.13 7.03.88L6.274 3.9C6.8 3.965 7.382 4 8 4c.618 0 1.2-.036 1.725-.098zm4.396 8.613a.5.5 0 0 1 .037.96l-6 2a.5.5 0 0 1-.316 0l-6-2a.5.5 0 0 1 .037-.96l2.391-.598.565-2.257c.862.212 1.964.339 3.165.339s2.303-.127 3.165-.339l.565 2.257 2.391.598z"/></svg>',
+    ),
+  // IMPORTANT
+  "important":
+    (
+      "color": $callout-color-important,
+      "icon":
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/></svg>',
+    )
+);
+
+@each $name, $info in $callouts {
+  $shifted-color: #{shift-color(
+      quarto-map.get($info, "color"),
+      $callout-icon-scale
+    )};
+  $shifted-color-svg: str-replace($shifted-color, "#", "%23");
+
+  .reveal div.callout {
+    &.callout-#{$name} {
+      border-left-color: shift-color(
+        quarto-map.get($info, "color"),
+        $callout-border-scale
+      );
+      &.callout-style-default {
+        .callout-title {
+          @include shift_to_dark(
+            "background-color",
+            shift-color(quarto-map.get($info, "color"), 70%),
+            shift-color(quarto-map.get($info, "color"), -90%)
+          );
+        }
+      }
+      .callout-icon::before {
+        background-image: #{"url('data:image/svg+xml," +
+          str-replace(
+            quarto-map.get($info, "icon"),
+            'fill="currentColor"',
+            'style="fill: #{$shifted-color-svg}"'
+          ) +
+          "');"};
+      }
+    }
+  }
 }

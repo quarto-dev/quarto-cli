@@ -285,7 +285,6 @@ export function revealjsFormat() {
             metadataOverride,
             templateContext,
             [kIncludeInHeader]: [
-              formatResourcePath("html", "styles-callout.html"),
               stylesFile,
             ],
             html: {
