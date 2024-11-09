@@ -6,7 +6,7 @@
 
 import { MuxAsyncIterator, pooledMap } from "async";
 import { iterateReader } from "io/iterate-reader";
-import { type Closer } from "io/types";
+import { type Closer, type Reader } from "io/types";
 import { debug, info } from "../deno_ral/log.ts";
 import { onCleanup } from "./cleanup.ts";
 import { ProcessResult } from "./process-types.ts";
@@ -105,7 +105,7 @@ export async function execProcess(
 
       // Add streams to the multiplexer
       const addStream = (
-        stream: (Deno.Reader & Closer) | null,
+        stream: (Reader & Closer) | null,
         filter?: (output: string) => string,
       ) => {
         if (stream !== null) {
@@ -132,7 +132,7 @@ export async function execProcess(
       }
 
       // Close the streams
-      const closeStream = (stream: (Deno.Reader & Closer) | null) => {
+      const closeStream = (stream: (Reader & Closer) | null) => {
         if (stream) {
           stream.close();
         }
