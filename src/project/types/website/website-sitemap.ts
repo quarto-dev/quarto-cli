@@ -165,8 +165,7 @@ async function readSitemap(sitemapPath: string): Promise<Urlset> {
     }
   });
   const reader = await Deno.open(sitemapPath);
-  await parser.parse(reader);
-  reader.close();
+  await parser.parse(reader.readable);
   return urlset;
 }
 
