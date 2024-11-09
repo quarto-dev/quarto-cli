@@ -93,7 +93,7 @@ export function jupyterHubServicePrefix() {
 }
 
 export function isInteractiveTerminal() {
-  return Deno.isatty(Deno.stderr.rid);
+  return Deno.stderr.isTerminal();
 }
 
 export function isInteractiveSession() {
