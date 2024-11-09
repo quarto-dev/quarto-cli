@@ -173,7 +173,7 @@ export function writeFileToStdout(file: string) {
   const df = Deno.openSync(file, { read: true });
   const contents = readAllSync(df);
   writeAllSync(Deno.stdout, contents);
-  Deno.close(df.rid);
+  df.close();
 }
 
 export function clearLine() {

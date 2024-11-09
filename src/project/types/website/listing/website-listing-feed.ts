@@ -536,7 +536,7 @@ async function generateFeed(
     );
     await Deno.write(feedFile.rid, textEncoder.encode(postamble));
   } finally {
-    Deno.close(feedFile.rid);
+    feedFile.close();
   }
 }
 

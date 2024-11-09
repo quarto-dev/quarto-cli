@@ -24,7 +24,7 @@ export async function download(src: string, dest: string): Promise<void> {
 
   const file = await Deno.create(dest);
   await writeAll(file, contents);
-  Deno.close(file.rid);
+  file.close();
 }
 
 export async function unzip(
