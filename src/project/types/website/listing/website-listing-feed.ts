@@ -513,7 +513,7 @@ async function generateFeed(
         escape,
       },
     );
-    await Deno.write(feedFile.rid, textEncoder.encode(preamble));
+    await feedFile.write(textEncoder.encode(preamble));
 
     for (const feedItem of feedItems) {
       const item = renderEjs(
@@ -523,7 +523,7 @@ async function generateFeed(
           escape,
         },
       );
-      await Deno.write(feedFile.rid, textEncoder.encode(item));
+      await feedFile.write(textEncoder.encode(item));
     }
 
     // Render the postamble
@@ -534,7 +534,7 @@ async function generateFeed(
         escape,
       },
     );
-    await Deno.write(feedFile.rid, textEncoder.encode(postamble));
+    await feedFile.write(textEncoder.encode(postamble));
   } finally {
     feedFile.close();
   }
