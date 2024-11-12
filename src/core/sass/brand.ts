@@ -240,27 +240,26 @@ const brandColorBundle = (
   return colorBundle;
 };
 
-const brandBootstrapBundle = (
-  brand: Brand,
-  key: string,
-): SassBundleLayers => {
+type BootstrapDefaultsConfig = {
+  uses?: string;
+  functions?: string;
+  defaults?: Record<string, Record<string, string | boolean | number | null>>;
+  mixins?: string;
+  rules?: string;
+};
+
+const brandBootstrapBundle = (brand: Brand, key: string): SassBundleLayers => {
   // Bootstrap Variables from brand.defaults.bootstrap
-  const brandBootstrap = brand?.data?.defaults?.bootstrap as unknown as Record<
-    string,
-    Record<string, string | boolean | number | null>
-  >;
+  const brandBootstrap = brand?.data?.defaults
+    ?.bootstrap as unknown as BootstrapDefaultsConfig;
 
   const bsVariables: string[] = [
     "/* Bootstrap variables from _brand.yml */",
-    '// quarto-scss-analysis-annotation { "action": "push", "origin": "_brand.yml defaults.bootstrap" }',
+    '// quarto-scss-analysis-annotation { "action": "push", "origin": "_brand.yml defaults.bootstrap.defaults" }',
   ];
-  for (const bsVar of Object.keys(brandBootstrap)) {
-    if (bsVar === "version") {
-      continue;
-    }
-    bsVariables.push(
-      `$${bsVar}: ${brandBootstrap[bsVar]} !default;`,
-    );
+  const bsDefaults = brandBootstrap.defaults || {};
+  for (const bsVar of Object.keys(bsDefaults)) {
+    bsVariables.push(`$${bsVar}: ${bsDefaults[bsVar]} !default;`);
   }
   bsVariables.push('// quarto-scss-analysis-annotation { "action": "pop" }');
 
@@ -292,23 +291,39 @@ const brandBootstrapBundle = (
         continue;
       }
 
-      bsColors.push(
-        `$${colorKey}: ${brand.getColor(colorKey)} !default;`,
-      );
+      bsColors.push(`$${colorKey}: ${brand.getColor(colorKey)} !default;`);
     }
   }
 
   bsColors.push('// quarto-scss-analysis-annotation { "action": "pop" }');
+
+  const scssWithQuartoAnnotation = (
+    x: string | undefined,
+    origin: string
+  ): string => {
+    if (!x) {
+      return "";
+    }
+
+    return [
+      `// quarto-scss-analysis-annotation { "action": "push", "origin": "_brand.yml defaults.bootstrap.${origin}" }`,
+      x,
+      '// quarto-scss-analysis-annotation { "action": "pop" }',
+    ].join("\n");
+  };
 
   const bsBundle: SassBundleLayers = {
     key,
     // dependency: "bootstrap",
     quarto: {
       defaults: bsColors.join("\n") + "\n" + bsVariables.join("\n"),
-      uses: "",
-      functions: "",
-      mixins: "",
-      rules: "",
+      uses: scssWithQuartoAnnotation(brandBootstrap.uses, "uses"),
+      functions: scssWithQuartoAnnotation(
+        brandBootstrap.functions,
+        "functions"
+      ),
+      mixins: scssWithQuartoAnnotation(brandBootstrap.mixins, "mixins"),
+      rules: scssWithQuartoAnnotation(brandBootstrap.rules, "rules"),
     },
   };
   return bsBundle;
