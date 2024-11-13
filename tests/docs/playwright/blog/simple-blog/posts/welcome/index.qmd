@@ -2,7 +2,7 @@
 title: "Welcome To My Blog"
 author: "Tristan O'Malley"
 date: "2024-09-03"
-categories: [news]
+categories: [news, 'euros (€)', 免疫]
 ---
 
 This is the first post in a Quarto blog. Welcome!
