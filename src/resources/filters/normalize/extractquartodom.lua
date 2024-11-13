@@ -49,11 +49,6 @@ function parse_md_in_html_rawblocks()
       end
       return result
     end,
-    -- Meta = function(meta)
-    --   local filter = parse_md_in_html_rawblocks()
-    --   local result = _quarto.ast.walk_meta(meta, filter)
-    --   return result
-    -- end,
   }
 end
 
