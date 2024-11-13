@@ -16,7 +16,9 @@ window["quarto-listing-loaded"] = () => {
   if (hash) {
     // If there is a category, switch to that
     if (hash.category) {
-      activateCategory(hash.category);
+      // category hash are URI encoded so we need to decode it before processing
+      // so that we can match it with the category element processed in JS
+      activateCategory(decodeURIComponent(hash.category));
     }
     // Paginate a specific listing
     const listingIds = Object.keys(window["quarto-listings"]);

@@ -2,7 +2,7 @@
 title: "Post With Code"
 author: "Harlow Malloc"
 date: "2024-09-06"
-categories: [news, code, analysis]
+categories: [news, code, analysis, apos'trophe]
 image: "image.jpg"
 ---
 

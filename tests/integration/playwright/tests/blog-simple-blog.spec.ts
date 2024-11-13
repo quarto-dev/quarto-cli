@@ -45,6 +45,10 @@ test('Categories link with special chars are clickable', async ({ page }) => {
   await page.getByRole('link', { name: '免疫' }).click();
   await expect(page).toHaveURL(getUrl(`blog/simple-blog/_site/index.html#category=${encodeURIComponent('免疫')}`));
   await expect(page.locator(`div.category[data-category="${btoa(encodeURIComponent('免疫'))}"]`)).toHaveClass(/active/);
+  await page.goto('./blog/simple-blog/_site/posts/post-with-code/');  
+  await page.getByRole('link', { name: "apos'trophe" }).click();
+  await expect(page).toHaveURL(getUrl(`blog/simple-blog/_site/index.html#category=${encodeURIComponent("apos'trophe")}`));
+  await expect(page.locator(`div.category[data-category="${btoa(encodeURIComponent("apos'trophe"))}"]`)).toHaveClass(/active/);
   await page.goto('./blog/simple-blog/_site/posts/welcome/#img-lst');
   await page.locator('div').filter({ hasText: /^news$/ }).click();
   await expect(page).toHaveURL(/_site\/index\.html#category=news$/);
