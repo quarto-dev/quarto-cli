@@ -2487,6 +2487,9 @@
                 mastodon:
                   string:
                     description: The brand's Mastodon URL.
+                bluesky:
+                  string:
+                    description: The brand's Bluesky URL.
                 github:
                   string:
                     description: The brand's GitHub URL.
