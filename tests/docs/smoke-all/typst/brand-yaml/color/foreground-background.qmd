@@ -18,7 +18,7 @@ _quarto:
         -
           - '#set page\(fill: brand-color\.background\)'
           - '#set text\(fill: brand-color\.foreground\)'
-          - 'heading-color: unescape-eval\("rgb\(\\"\\#ccd2b2\\"\)"\)'
+          - 'heading-color: rgb\("#ccd2b2"\)'
         - []
 ---
 

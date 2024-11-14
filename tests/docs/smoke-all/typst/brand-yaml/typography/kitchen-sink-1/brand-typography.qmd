@@ -30,7 +30,7 @@ _quarto:
         - 'heading-family: \("Montserrat",\),$'
         - 'heading-weight: 800,$'
         - 'heading-style: "normal",$'
-        - 'heading-color: unescape-eval\("rgb\(\\"\\#0b8005\\"\)"\),$'
+        - 'heading-color: rgb\("#0b8005"\),$'
         - 'heading-line-height: 0\.25em,$'
         - '^#show heading: set text\(font: "Montserrat", weight: 800, style: "normal", fill: rgb\("#0b8005"\), \)$'
         - '^#show heading: set par\(leading: 0.25em\)$'
