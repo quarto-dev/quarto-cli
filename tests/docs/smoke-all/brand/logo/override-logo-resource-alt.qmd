@@ -1,0 +1,28 @@
+---
+title: brand and base logo
+format:
+  dashboard: default
+brand:
+  logo:
+    images:
+      quarto:
+        path: quarto.png
+        alt: quarto logo
+      posit:
+        path: posit-logo-2024.svg
+        alt: posit logo
+    medium: quarto
+    large: posit
+logo:
+  path: large
+  alt: logo of posit
+_quarto:
+  tests:
+    dashboard:
+      ensureFileRegexMatches:
+        -
+          - '<img src="posit-logo-2024\.svg" alt="logo of posit"'
+        - []
+---
+
+{{< lipsum 4 >}}
