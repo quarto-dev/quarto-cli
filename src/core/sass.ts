@@ -136,7 +136,7 @@ export async function compileSass(
     '// quarto-scss-analysis-annotation { "origin": "\'mixins\' section from Quarto" }',
     ...quartoMixins,
     '// quarto-scss-analysis-annotation { "origin": "\'mixins\' section from user-defined SCSS" }',
-    ...userMixins,
+    userMixins,
     '// quarto-scss-analysis-annotation { "origin": "\'rules\' section from format" }',
     ...frameworkRules,
     '// quarto-scss-analysis-annotation { "origin": "\'rules\' section from Quarto" }',
