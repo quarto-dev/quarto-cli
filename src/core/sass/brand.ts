@@ -257,9 +257,19 @@ const brandBootstrapBundle = (brand: Brand, key: string): SassBundleLayers => {
     "/* Bootstrap variables from _brand.yml */",
     '// quarto-scss-analysis-annotation { "action": "push", "origin": "_brand.yml defaults.bootstrap.defaults" }',
   ];
-  const bsDefaults = brandBootstrap.defaults || {};
-  for (const bsVar of Object.keys(bsDefaults)) {
-    bsVariables.push(`$${bsVar}: ${bsDefaults[bsVar]} !default;`);
+  const bsDefaults = brandBootstrap.defaults || "";
+  if (typeof bsDefaults === "string") {
+    bsVariables.push(bsDefaults);
+  } else if (typeof bsDefaults === "object") {
+    for (const bsVar of Object.keys(bsDefaults)) {
+      bsVariables.push(`$${bsVar}: ${bsDefaults[bsVar]} !default;`);
+    }
+  } else {
+    throw new Error(
+      "Invalid bootstrap defaults in _brand.yml or `brand`. " +
+        "`defaults.bootstrap.defaults` expects a string or a dictionary  " +
+        "mapping Sass variables to default values."
+    );
   }
   bsVariables.push('// quarto-scss-analysis-annotation { "action": "pop" }');
 
