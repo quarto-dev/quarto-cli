@@ -19,7 +19,12 @@ import { mergeLayers, sassLayer } from "../../core/sass.ts";
 
 import { outputVariable, SassVariable, sassVariable } from "../../core/sass.ts";
 
-import { Format, SassBundle, SassLayer } from "../../config/types.ts";
+import {
+  Format,
+  SassBundle,
+  SassBundleWithBrand,
+  SassLayer,
+} from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kGrid, kTheme } from "../../config/constants.ts";
 
@@ -56,6 +61,7 @@ import {
   sassUtilFunctions,
 } from "./format-html-shared.ts";
 import { readHighlightingTheme } from "../../quarto-core/text-highlighting.ts";
+import { warn } from "log";
 
 export interface Themes {
   light: string[];
@@ -65,12 +71,12 @@ export interface Themes {
 function layerQuartoScss(
   key: string,
   dependency: string,
-  sassLayer: SassLayer,
+  sassLayer: (SassLayer | "brand")[],
   format: Format,
-  darkLayer?: SassLayer,
+  darkLayer?: (SassLayer | "brand")[],
   darkDefault?: boolean,
   loadPaths?: string[],
-): SassBundle {
+): SassBundleWithBrand {
   // Compose the base Quarto SCSS
   const uses = quartoUses();
   const defaults = [
@@ -155,7 +161,7 @@ export function resolveBootstrapScss(
   input: string,
   format: Format,
   sassLayers: SassLayer[],
-): SassBundle[] {
+): SassBundleWithBrand[] {
   // Quarto built in css
   const quartoThemesDir = formatResourcePath(
     "html",
@@ -173,7 +179,7 @@ export function resolveBootstrapScss(
   );
 
   // Find light and dark sass layers
-  const sassBundles: SassBundle[] = [];
+  const sassBundles: SassBundleWithBrand[] = [];
 
   // light
   sassBundles.push(
@@ -192,27 +198,33 @@ export function resolveBootstrapScss(
 }
 
 export interface ThemeSassLayer {
-  light: SassLayer;
-  dark?: SassLayer;
+  light: (SassLayer | "brand")[];
+  dark?: (SassLayer | "brand")[];
 }
 
 function layerTheme(
   input: string,
   themes: string[],
   quartoThemesDir: string,
-): { layers: SassLayer[]; loadPaths: string[] } {
+): { layers: (SassLayer | "brand")[]; loadPaths: string[] } {
   let injectedCustomization = false;
   const loadPaths: string[] = [];
   const layers = themes.flatMap((theme) => {
     const isAbs = isAbsolute(theme);
     const isScssFile = [".scss", ".css"].includes(extname(theme));
 
-    if (isAbs && isScssFile) {
+    if (theme === "brand") {
+      // provide a brand order marker for downstream
+      // processing to know where to insert the brand scss
+      return "brand";
+    } else if (isAbs && isScssFile) {
       // Absolute path to a SCSS file
       if (existsSync(theme)) {
         const themeDir = dirname(theme);
         loadPaths.push(themeDir);
         return sassLayer(theme);
+      } else {
+        warn(`Theme file not found: ${theme}`);
       }
     } else if (isScssFile) {
       // Relative path to a SCSS file
@@ -221,6 +233,8 @@ function layerTheme(
         const themeDir = dirname(themePath);
         loadPaths.push(themeDir);
         return sassLayer(themePath);
+      } else {
+        warn(`Theme file not found: ${themePath}`);
       }
     } else {
       // The directory for this theme
@@ -429,10 +443,8 @@ function resolveThemeLayer(
   }
 
   const themeSassLayer = {
-    light: mergeLayers(...lightLayerContext.layers),
-    dark: darkLayerContext?.layers
-      ? mergeLayers(...darkLayerContext?.layers)
-      : undefined,
+    light: lightLayerContext.layers,
+    dark: darkLayerContext?.layers,
   };
 
   const loadPaths = [

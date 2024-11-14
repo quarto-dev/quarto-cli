@@ -13,6 +13,7 @@ import {
   kTextHighlightingMode,
   Metadata,
   SassBundleLayers,
+  SassBundleLayersWithBrand,
   SassLayer,
 } from "../../config/types.ts";
 
@@ -40,7 +41,7 @@ import { asCssFont, asCssNumber } from "../../core/css.ts";
 import { cssHasDarkModeSentinel } from "../../core/pandoc/css.ts";
 import { pandocNativeStr } from "../../core/pandoc/codegen.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { brandRevealSassBundleLayers } from "../../core/sass/brand.ts";
+import { brandRevealSassLayers } from "../../core/sass/brand.ts";
 import { md5HashBytes } from "../../core/hash.ts";
 
 export const kRevealLightThemes = [
@@ -108,18 +109,28 @@ export async function revealTheme(
     join(cssThemeDir, "template"),
   ];
 
+  const brandLayers: SassLayer[] = await brandRevealSassLayers(
+    input,
+    format,
+    project,
+  );
+
   // theme is either user provided scss or something in our 'themes' dir
   // (note that standard reveal scss themes must be converted to quarto
   // theme format so they can participate in the pipeline)
   const themeConfig =
     (format.metadata?.[kTheme] as string | string[] | undefined) || "default";
+  let usedBrandLayers = false;
   const themeLayers = (Array.isArray(themeConfig) ? themeConfig : [themeConfig])
     .map(
       (theme) => {
         const themePath = join(relative(Deno.cwd(), dirname(input)), theme);
-        if (existsSync(themePath)) {
+        if (themePath === "brand") {
+          usedBrandLayers = true;
+          return brandLayers;
+        } else if (existsSync(themePath)) {
           loadPaths.unshift(join(dirname(input), dirname(theme)));
-          return themeLayer(themePath);
+          return [themeLayer(themePath)];
         } else {
           // alias revealjs theme names
           if (theme === "white") {
@@ -132,11 +143,13 @@ export async function revealTheme(
             "revealjs",
             join("themes", `${theme}.scss`),
           );
-          return themeLayer(theme);
+          return [themeLayer(theme)];
         }
       },
-    );
-
+    ).flat();
+  if (!usedBrandLayers) {
+    themeLayers.unshift(...brandLayers);
+  }
   // get any variables defined in yaml
   const yamlLayer: SassLayer = {
     uses: "",
@@ -174,7 +187,7 @@ export async function revealTheme(
   // create sass bundle layers
   const bundleLayers: SassBundleLayers = {
     key: "reveal-theme",
-    user: mergeLayers(...userLayers),
+    user: userLayers,
     quarto: mergeLayers(
       ...quartoLayers,
     ),
@@ -182,14 +195,8 @@ export async function revealTheme(
     loadPaths,
   };
 
-  const brandLayers: SassBundleLayers[] = await brandRevealSassBundleLayers(
-    input,
-    format,
-    project,
-  );
-
   // compile sass
-  const css = await compileSass([bundleLayers, ...brandLayers], temp);
+  const css = await compileSass([bundleLayers], temp);
   // Remove sourcemap information
   cleanSourceMappingUrl(css);
   // convert from string to bytes

@@ -11,9 +11,8 @@ import {
   FormatExtras,
   kSassBundles,
   SassBundle,
-  SassBundleLayers,
+  SassLayer,
 } from "../../config/types.ts";
-import { join, relative } from "../../deno_ral/path.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
   BrandFont,
@@ -25,6 +24,7 @@ import {
 import { Brand } from "../brand/brand.ts";
 
 const defaultColorNameMap: Record<string, string> = {
+  "link-color": "link",
   "pre-color": "foreground",
   "body-bg": "background",
   "body-color": "foreground",
@@ -67,49 +67,17 @@ export async function brandBootstrapSassBundles(
   project: ProjectContext,
   key: string,
 ): Promise<SassBundle[]> {
-  return (await brandBootstrapSassBundleLayers(
+  const layers = await brandBootstrapSassLayers(
     fileName,
     project,
-    key,
     defaultColorNameMap,
-  )).map(
-    (layer: SassBundleLayers) => {
-      return {
-        ...layer,
-        dependency: "bootstrap",
-      };
-    },
   );
+  return [{
+    key,
+    dependency: "bootstrap",
+    user: layers,
+  }];
 }
-
-const fontFileFormat = (file: string): string => {
-  const fragments = file.split(".");
-  if (fragments.length < 2) {
-    throw new Error(`Invalid font file ${file}; expected extension.`);
-  }
-  const ext = fragments.pop();
-  // https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src#font_formats
-  switch (ext) {
-    case "otc":
-    case "ttc":
-      return "collection";
-    case "woff":
-      return "woff";
-    case "woff2":
-      return "woff2";
-    case "ttf":
-      return "truetype";
-    case "otf":
-      return "opentype";
-    case "svg":
-    case "svgz":
-      return "svg";
-    case "eot":
-      return "embedded-opentype";
-    default:
-      throw new Error(`Unknown font format ${ext} in ${file}`);
-  }
-};
 
 const bunnyFontImportString = (description: BrandFontCommon) => {
   const bunnyName = (name: string) => name.replace(/ /g, "-");
@@ -175,11 +143,10 @@ const googleFontImportString = (description: BrandFontGoogle) => {
   }:${styleString}wght@${weights}&display=${display}');`;
 };
 
-const brandColorBundle = (
+const brandColorLayer = (
   brand: Brand,
-  key: string,
   nameMap: Record<string, string>,
-): SassBundleLayers => {
+): SassLayer => {
   const colorVariables: string[] = [
     "/* color variables from _brand.yml */",
     '// quarto-scss-analysis-annotation { "action": "push", "origin": "_brand.yml color" }',
@@ -226,24 +193,18 @@ const brandColorBundle = (
     "}",
     '// quarto-scss-analysis-annotation { "action": "pop" }',
   );
-  const colorBundle: SassBundleLayers = {
-    key,
-    // dependency: "bootstrap",
-    quarto: {
-      defaults: colorVariables.join("\n"),
-      uses: "",
-      functions: "",
-      mixins: "",
-      rules: colorCssVariables.join("\n"),
-    },
+  return {
+    defaults: colorVariables.join("\n"),
+    uses: "",
+    functions: "",
+    mixins: "",
+    rules: colorCssVariables.join("\n"),
   };
-  return colorBundle;
 };
 
-const brandBootstrapBundle = (
+const brandDefaultsBootstrapLayer = (
   brand: Brand,
-  key: string,
-): SassBundleLayers => {
+): SassLayer => {
   // Bootstrap Variables from brand.defaults.bootstrap
   const brandBootstrap = brand?.data?.defaults?.bootstrap as unknown as Record<
     string,
@@ -300,42 +261,24 @@ const brandBootstrapBundle = (
 
   bsColors.push('// quarto-scss-analysis-annotation { "action": "pop" }');
 
-  const bsBundle: SassBundleLayers = {
-    key,
-    // dependency: "bootstrap",
-    quarto: {
-      defaults: bsColors.join("\n") + "\n" + bsVariables.join("\n"),
-      uses: "",
-      functions: "",
-      mixins: "",
-      rules: "",
-    },
+  return {
+    defaults: bsColors.join("\n") + "\n" + bsVariables.join("\n"),
+    uses: "",
+    functions: "",
+    mixins: "",
+    rules: "",
   };
-  return bsBundle;
 };
 
-const brandTypographyBundle = (
+const brandTypographyLayer = (
   brand: Brand,
-  key: string,
-): SassBundleLayers => {
+): SassLayer => {
   const typographyVariables: string[] = [
     "/* typography variables from _brand.yml */",
     '// quarto-scss-analysis-annotation { "action": "push", "origin": "_brand.yml typography" }',
   ];
   const typographyImports: Set<string> = new Set();
   const fonts = brand.data?.typography?.fonts ?? [];
-
-  const pathCorrection = relative(brand.projectDir, brand.brandDir);
-  const computePath = (file: string) => {
-    if (file.startsWith("http://") || file.startsWith("https://")) {
-      return file;
-    }
-    // paths in our CSS are always relative to the project directory
-    if (file.startsWith("/")) {
-      return file.slice(1);
-    }
-    return join(pathCorrection, file);
-  };
 
   const getFontFamilies = (family: string | undefined) => {
     return fonts.filter((font) =>
@@ -579,75 +522,61 @@ const brandTypographyBundle = (
   typographyVariables.push(
     '// quarto-scss-analysis-annotation { "action": "pop" }',
   );
-  const typographyBundle: SassBundleLayers = {
-    key,
-    // dependency: "bootstrap",
-    quarto: {
-      defaults: typographyVariables.join("\n"),
-      uses: Array.from(typographyImports).join("\n"),
-      functions: "",
-      mixins: "",
-      rules: "",
-    },
+  return {
+    defaults: typographyVariables.join("\n"),
+    uses: Array.from(typographyImports).join("\n"),
+    functions: "",
+    mixins: "",
+    rules: "",
   };
-  return typographyBundle;
 };
 
-export async function brandSassBundleLayers(
+export async function brandSassLayers(
   fileName: string | undefined,
   project: ProjectContext,
-  key: string,
   nameMap: Record<string, string> = {},
-): Promise<SassBundleLayers[]> {
+): Promise<SassLayer[]> {
   const brand = await project.resolveBrand(fileName);
-  const sassBundles: SassBundleLayers[] = [];
+  const sassLayers: SassLayer[] = [];
 
   if (brand?.data.color) {
-    sassBundles.push(brandColorBundle(brand, key, nameMap));
+    sassLayers.push(brandColorLayer(brand, nameMap));
   }
 
   if (brand?.data.typography) {
-    sassBundles.push(brandTypographyBundle(brand, key));
+    sassLayers.push(brandTypographyLayer(brand));
   }
 
-  return sassBundles;
+  return sassLayers;
 }
 
-export async function brandBootstrapSassBundleLayers(
+export async function brandBootstrapSassLayers(
   fileName: string | undefined,
   project: ProjectContext,
-  key: string,
   nameMap: Record<string, string> = {},
-): Promise<SassBundleLayers[]> {
-  const brand = await project.resolveBrand(fileName);
-  const sassBundles = await brandSassBundleLayers(
+): Promise<SassLayer[]> {
+  const layers = await brandSassLayers(
     fileName,
     project,
-    key,
     nameMap,
   );
 
+  const brand = await project.resolveBrand(fileName);
   if (brand?.data?.defaults?.bootstrap) {
-    const bsBundle = brandBootstrapBundle(brand, key);
-    if (bsBundle) {
-      // Add bsBundle to the beginning of the array so that defaults appear
-      // *after* the rest of the brand variables.
-      sassBundles.unshift(bsBundle);
-    }
+    layers.push(brandDefaultsBootstrapLayer(brand));
   }
 
-  return sassBundles;
+  return layers;
 }
 
-export async function brandRevealSassBundleLayers(
+export async function brandRevealSassLayers(
   input: string | undefined,
   _format: Format,
   project: ProjectContext,
-): Promise<SassBundleLayers[]> {
-  return brandSassBundleLayers(
+): Promise<SassLayer[]> {
+  return brandSassLayers(
     input,
     project,
-    "reveal-theme",
     defaultColorNameMap,
   );
 }
@@ -657,25 +586,20 @@ export async function brandSassFormatExtras(
   _format: Format,
   project: ProjectContext,
 ): Promise<FormatExtras> {
-  const htmlSassBundleLayers = await brandBootstrapSassBundleLayers(
+  const htmlSassBundleLayers = await brandBootstrapSassLayers(
     input,
     project,
-    "brand",
     defaultColorNameMap,
   );
-  const htmlSassBundles: SassBundle[] = htmlSassBundleLayers.map((layer) => {
-    return {
-      ...layer,
-      dependency: "bootstrap",
-    };
-  });
-  if (htmlSassBundles.length === 0) {
-    return {};
-  } else {
-    return {
-      html: {
-        [kSassBundles]: htmlSassBundles,
-      },
-    };
-  }
+  return {
+    html: {
+      [kSassBundles]: [
+        {
+          key: "brand",
+          dependency: "bootstrap",
+          user: htmlSassBundleLayers,
+        },
+      ],
+    },
+  };
 }
