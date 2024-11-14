@@ -17,6 +17,7 @@ import {
   ListingDescriptor,
   ListingSharedOptions,
 } from "./website-listing-shared.ts";
+import { b64EncodeUnicode } from "../../../../core/base64.ts";
 
 export function categorySidebar(
   doc: Document,
@@ -117,7 +118,7 @@ function categoryElement(
   categoryEl.classList.add("category");
   categoryEl.setAttribute(
     "data-category",
-    value !== undefined ? btoa(value) : btoa(category),
+    value !== undefined ? b64EncodeUnicode(value) : b64EncodeUnicode(category),
   );
   categoryEl.innerHTML = contents;
   return categoryEl;

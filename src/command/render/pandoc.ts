@@ -207,6 +207,7 @@ import {
   BrandFontFile,
   BrandFontGoogle,
 } from "../../resources/types/schema-types.ts";
+import { kFieldCategories } from "../../project/types/website/listing/website-listing-shared.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -1018,6 +1019,10 @@ export async function runPandoc(
       // don't process some format specific metadata that may have been processed already
       // - theme is handled specifically already for revealjs with a metadata override and should not be overridden by user input
       if (key === kTheme && isRevealjsOutput(options.format.pandoc)) {
+        continue;
+      }
+      // - categories are handled specifically already for website projects with a metadata override and should not be overridden by user input
+      if (key === kFieldCategories && projectIsWebsite(options.project)) {
         continue;
       }
       // perform the override
