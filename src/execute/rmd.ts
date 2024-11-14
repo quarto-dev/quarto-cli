@@ -272,11 +272,19 @@ async function callR<T>(
     wd: cwd,
   });
 
+  // QUARTO_KNITR_RSCRIPT_ARGS allows to pass additional arguments to Rscript as comma separated values
+  // e.g. QUARTO_KNITR_RSCRIPT_ARGS="--vanilla,--no-init-file,--max-connections=258"
+  const rscriptArgs = Deno.env.get("QUARTO_KNITR_RSCRIPT_ARGS") || "";
+  const rscriptArgsArray = rscriptArgs.split(",").filter((a) =>
+    a.trim() !== ""
+  );
+
   try {
     const result = await execProcess(
       {
         cmd: [
           await rBinaryPath("Rscript"),
+          ...rscriptArgsArray,
           resourcePath("rmd/rmd.R"),
         ],
         cwd,
