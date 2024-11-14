@@ -86,7 +86,6 @@ export async function compileSass(
   const userLayers = mergeLayers(
     ...bundles.map((bundle) => bundle.user || []).flat(),
   );
-  console.log("userLayers", userLayers);
 
   // Gather sasslayer for the user
   const userUses = userLayers.uses; //bundles.map((bundle) => bundle.user?.uses || "");
