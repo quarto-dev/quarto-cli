@@ -422,5 +422,5 @@ export function cleanSourceMappingUrl(cssPath: string): void {
     kSourceMappingRegexes[1],
     "",
   );
-  writeTextFileSyncPreserveMode(cssPath, cleaned);
+  writeTextFileSyncPreserveMode(cssPath, cleaned.trim());
 }

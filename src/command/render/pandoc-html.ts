@@ -41,7 +41,6 @@ import { kSassBundles } from "../../config/types.ts";
 import { md5HashBytes } from "../../core/hash.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { writeTextFileSyncPreserveMode } from "../../core/write.ts";
-import { getStack } from "../../core/deno/debug.ts";
 import { assert } from "testing/asserts";
 
 // The output target for a sass bundle
@@ -163,6 +162,9 @@ export async function resolveSassBundles(
       // it can happen that processing generate an empty css file (e.g quarto-html deps with Quarto CSS variables)
       // in that case, no need to insert the cssPath in the dependency
       if (!cssPath) continue;
+      if (Deno.readTextFileSync(cssPath).length === 0) {
+        continue;
+      }
 
       // Process attributes (forward on to the target)
       for (const bundle of target.bundles) {
