@@ -310,12 +310,14 @@ function render_typst_brand_yaml()
       if headings and next(headings) or foregroundColor then
         base = base or {}
         headings = headings or {}
+        local color = headings.color or foregroundColor
+        color = color and pandoc.RawInline('typst', color)
         meta.brand.typography.headings = {
           family = headings.family or base.family,
           weight = headings.weight or base.weight,
           style = headings.style or base.style,
           decoration = headings.decoration or base.decoration,
-          color = headings.color or foregroundColor,
+          color = color,
           ['background-color'] = headings['background-color'] or base['background-color'],
           ['line-height'] = line_height_to_leading(headings['line-height'] or base['line-height']),
         }
