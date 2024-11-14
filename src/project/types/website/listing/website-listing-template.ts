@@ -44,7 +44,7 @@ import { formatDate, parsePandocDate } from "../../../../core/date.ts";
 import { truncateText } from "../../../../core/text.ts";
 import { encodeAttributeValue } from "../../../../core/html.ts";
 import { imagePlaceholder, isPlaceHolder } from "./website-listing-read.ts";
-import { b64EncodeUnicode, UnicodeDecodeB64 } from "../../../../core/base64.ts";
+import { b64EncodeUnicode, unicodeDecodeB64 } from "../../../../core/base64.ts";
 
 export const kDateFormat = "date-format";
 
@@ -164,7 +164,7 @@ export function templateMarkdownHandler(
     // some custom utils function
     ejsParams["utils"] = {
       b64encode: b64EncodeUnicode,
-      b64decode: UnicodeDecodeB64,
+      b64decode: unicodeDecodeB64,
     };
 
     return ejsParams;
