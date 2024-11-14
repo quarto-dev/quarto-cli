@@ -28,7 +28,7 @@ _quarto:
         - 'heading-family: \("Raleway",\),$'
         - 'heading-weight: 500,$'
         - 'heading-style: "normal",$'
-        - 'heading-color: unescape-eval\("rgb\(\\"\\#042f02\\"\)"\),$'
+        - 'heading-color: rgb\("#042f02"\),$'
         - 'heading-line-height: 0\.25em,$'
         - '^#show heading: set text\(font: "Raleway", weight: 500, style: "normal", fill: rgb\("#042f02"\), \)$'
         - '^#show heading: set par\(leading: 0.25em\)$'

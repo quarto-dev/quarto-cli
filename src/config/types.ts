@@ -305,9 +305,28 @@ export interface SassLayer {
   rules: string;
 }
 
+export interface SassBundleLayersWithBrand {
+  key: string;
+  user?: (SassLayer | "brand")[];
+  quarto?: SassLayer;
+  framework?: SassLayer;
+  loadPaths?: string[];
+}
+
+export interface SassBundleWithBrand extends SassBundleLayersWithBrand {
+  dependency: string;
+  dark?: {
+    user?: (SassLayer | "brand")[];
+    quarto?: SassLayer;
+    framework?: SassLayer;
+    default?: boolean;
+  };
+  attribs?: Record<string, string>;
+}
+
 export interface SassBundleLayers {
   key: string;
-  user?: SassLayer;
+  user?: SassLayer[];
   quarto?: SassLayer;
   framework?: SassLayer;
   loadPaths?: string[];
@@ -316,7 +335,7 @@ export interface SassBundleLayers {
 export interface SassBundle extends SassBundleLayers {
   dependency: string;
   dark?: {
-    user?: SassLayer;
+    user?: SassLayer[];
     quarto?: SassLayer;
     framework?: SassLayer;
     default?: boolean;
@@ -376,7 +395,7 @@ export interface FormatExtras {
   templateContext?: FormatTemplateContext;
   html?: {
     [kDependencies]?: FormatDependency[];
-    [kSassBundles]?: SassBundle[];
+    [kSassBundles]?: SassBundleWithBrand[];
     [kBodyEnvelope]?: BodyEnvelope;
     [kHtmlPostprocessors]?: Array<HtmlPostProcessor>;
     [kHtmlFinalizers]?: Array<

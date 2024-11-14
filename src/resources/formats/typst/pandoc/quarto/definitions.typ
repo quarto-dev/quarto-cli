@@ -42,10 +42,6 @@
   return block.with(..fields)(new_content)
 }
 
-#let unescape-eval(str) = {
-  return eval(str.replace("\\", ""))
-}
-
 #let empty(v) = {
   if type(v) == "string" {
     // two dollar signs here because we're technically inside

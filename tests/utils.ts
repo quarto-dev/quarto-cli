@@ -114,7 +114,7 @@ export function outputForInput(
     if (baseFormat === "revealjs") {
       outputExt = "html";
     }
-    if (["commonmark", "gfm", "markdown"].some((f) => f === baseFormat)) {
+    if (["commonmark", "gfm", "markdown", "markdown_strict"].some((f) => f === baseFormat)) {
       outputExt = "md";
     }
     if (baseFormat === "csljson") {
@@ -190,3 +190,4 @@ export function fileLoader(...path: string[]) {
 export function quartoDevCmd(): string {
   return Deno.build.os === "windows" ? "quarto.cmd" : "quarto";
 }
+

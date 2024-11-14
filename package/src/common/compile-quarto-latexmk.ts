@@ -68,6 +68,9 @@ export function compileQuartoLatexmkCommand() {
     });
 }
 
+// Using --allow-all as there is otherwise an issue in Deno 1.46.3 with --allow-read and --allow-write with network drives
+// https://github.com/quarto-dev/quarto-cli/issues/11332
+/* 
 const kFlags = [
   "--allow-read",
   "--allow-write",
@@ -75,6 +78,8 @@ const kFlags = [
   "--allow-env",
   "--allow-net",
 ];
+*/
+const kFlags = ["--allow-all"];
 
 export async function installQuartoLatexmk(
   config: Configuration,

@@ -23,7 +23,7 @@ Every test is a call to `testthat::test_that()` function.
 
 - And inside a list : `1+1`
 
-## Highlited Cell
+## Highlighted Cell
 
 ````{.python}
 1 + 1
