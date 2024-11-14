@@ -38,6 +38,7 @@ All changes included in 1.6:
 - ([#10761](https://github.com/quarto-dev/quarto-cli/issues/10761)): Add support for `licence: CC0` to automatically link to Creative Commons licence [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
 - ([#10817](https://github.com/quarto-dev/quarto-cli/issues/10817)): Ensure that user provided SCSS has precedent over quarto generated scss also for dark theme.
 - ([#11124](https://github.com/quarto-dev/quarto-cli/pull/11124)): Use stable order of GLightbox options
+- ([#11401](https://github.com/quarto-dev/quarto-cli/issues/11401)): Use EJS comment syntax to hide internal TODO notes from the output.
 
 ## `revealjs` Format
 
