@@ -1,61 +1,58 @@
 /*
  * command.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 
-import type { Command } from "cliffy/command/mod.ts";
+import type { CommandClass } from "npm:clipanion";
 
-import { renderCommand } from "./render/cmd.ts";
-import { serveCommand } from "./serve/cmd.ts";
-import { createProjectCommand } from "./create-project/cmd.ts";
-import { toolsCommand } from "./tools/cmd.ts";
-import { previewCommand } from "./preview/cmd.ts";
-import { convertCommand } from "./convert/cmd.ts";
-import { runCommand } from "./run/run.ts";
-import { pandocCommand } from "./pandoc/cmd.ts";
-import { typstCommand } from "./typst/cmd.ts";
-import { capabilitiesCommand } from "./capabilities/cmd.ts";
-import { checkCommand } from "./check/cmd.ts";
-import { inspectCommand } from "./inspect/cmd.ts";
-import { buildJsCommand } from "./build-js/cmd.ts";
-import { installCommand } from "./install/cmd.ts";
-import { updateCommand } from "./update/cmd.ts";
-import { publishCommand } from "./publish/cmd.ts";
-import { removeCommand } from "./remove/cmd.ts";
-import { listCommand } from "./list/cmd.ts";
-import { makeUseCommand } from "./use/cmd.ts";
-import { addCommand } from "./add/cmd.ts";
-import { uninstallCommand } from "./uninstall/cmd.ts";
-import { createCommand } from "./create/cmd.ts";
-import { editorSupportCommand } from "./editor-support/cmd.ts";
+import { RenderCommand } from "./render/cmd.ts";
+import { ServeCommand } from "./serve/cmd.ts";
+import { CreateProjectCommand } from "./create-project/cmd.ts";
+import { toolsCommands } from "./tools/cmd.ts";
+import { PreviewCommand } from "./preview/cmd.ts";
+import { ConvertCommand } from "./convert/cmd.ts";
+import { RunCommand } from "./run/run.ts";
+import { PandocCommand, GeneratePandocWrapperCommand } from "./pandoc/cmd.ts";
+import { TypstCommand } from "./typst/cmd.ts";
+import { CapabilitiesCommand } from "./capabilities/cmd.ts";
+import { CheckCommand } from "./check/cmd.ts";
+import { InspectCommand } from "./inspect/cmd.ts";
+import { BuildJsCommand } from "./build-js/cmd.ts";
+import { InstallCommand } from "./install/cmd.ts";
+import { UpdateCommand } from "./update/cmd.ts";
+import { PublishCommand } from "./publish/cmd.ts";
+import { RemoveCommand } from "./remove/cmd.ts";
+import { listCommands } from "./list/cmd.ts";
+import { useCommands } from "./use/cmd.ts";
+import { AddCommand } from "./add/cmd.ts";
+import { UninstallCommand } from "./uninstall/cmd.ts";
+import { CreateCommand } from "./create/cmd.ts";
+import { editorSupportCommands } from "./editor-support/cmd.ts";
 
-// deno-lint-ignore no-explicit-any
-export function commands(): Command<any>[] {
-  return [
-    // deno-lint-ignore no-explicit-any
-    renderCommand as any,
-    previewCommand,
-    serveCommand,
-    createCommand,
-    makeUseCommand(),
-    addCommand,
-    updateCommand,
-    removeCommand,
-    createProjectCommand,
-    convertCommand,
-    pandocCommand,
-    typstCommand,
-    runCommand,
-    listCommand,
-    installCommand,
-    uninstallCommand,
-    toolsCommand,
-    publishCommand,
-    capabilitiesCommand,
-    inspectCommand,
-    checkCommand,
-    buildJsCommand,
-    editorSupportCommand,
-  ];
-}
+export const commands: CommandClass[] = [
+  AddCommand,
+  BuildJsCommand,
+  CapabilitiesCommand,
+  CheckCommand,
+  ConvertCommand,
+  CreateCommand,
+  CreateProjectCommand,
+  ...editorSupportCommands,
+  GeneratePandocWrapperCommand,
+  InspectCommand,
+  InstallCommand,
+  ...listCommands,
+  PandocCommand,
+  PreviewCommand,
+  PublishCommand,
+  RemoveCommand,
+  RenderCommand,
+  RunCommand,
+  ServeCommand,
+  ...toolsCommands,
+  TypstCommand,
+  UninstallCommand,
+  UpdateCommand,
+  ...useCommands,
+];

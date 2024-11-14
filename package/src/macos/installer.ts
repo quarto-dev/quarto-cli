@@ -1,7 +1,7 @@
 /*
 * installer.ts
 *
-* Copyright (C) 2020-2022 Posit Software, PBC
+* Copyright (C) 2020-2024 Posit Software, PBC
 *
 */
 
@@ -13,19 +13,13 @@
 import { dirname, join } from "../../../src/deno_ral/path.ts";
 import { ensureDirSync, existsSync } from "../../../src/deno_ral/fs.ts";
 import { error, info, warning } from "../../../src/deno_ral/log.ts";
+import { Command } from "npm:clipanion";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
 import { getEnv } from "../util/utils.ts";
 import { makeTarball } from "../util/tar.ts";
-
-// Packaging specific configuration
-// (Some things are global others may be platform specific)
-export interface PackageInfo {
-  name: string;
-  identifier: string;
-  packageArgs: () => string[];
-}
+import { PackageCommand } from "../cmd/pkg-cmd.ts";
 
 export async function makeInstallerMac(config: Configuration) {
   // Core package
@@ -262,13 +256,6 @@ export async function makeInstallerMac(config: Configuration) {
   }
 }
 
-// https://deno.com/blog/v1.23#remove-unstable-denosleepsync-api
-function sleepSync(timeout: number) {
-  const sab = new SharedArrayBuffer(1024);
-  const int32 = new Int32Array(sab);
-  Atomics.wait(int32, 0, 0, timeout);
-}
-
 async function signPackage(
   developerId: string,
   input: string,
@@ -347,71 +334,22 @@ async function notarizeAndWait(
   }
 }
 
-async function waitForNotaryStatus(
-  requestId: string,
-  username: string,
-  password: string,
-) {
-  const starttime = Date.now();
-
-  // 20 minutes
-  const msToWait = 1200000;
-
-  const pollIntervalSeconds = 15;
-
-  let errorCount = 0;
-  let notaryResult = undefined;
-  while (notaryResult == undefined) {
-    const result = await runCmd(
-      "xcrun",
-      [
-        "altool",
-        "--notarization-info",
-        requestId,
-        "--username",
-        username,
-        "--password",
-        password,
-      ],
-    );
-
-    const match = result.stdout.match(/Status: (.*)\n/);
-    if (match) {
-      const status = match[1];
-      if (status === "in progress") {
-        // Successful status means reset error counter
-        errorCount = 0;
-
-        // Sleep for 15 seconds between checks
-        await new Promise((resolve) =>
-          setTimeout(resolve, pollIntervalSeconds * 1000)
-        );
-      } else if (status === "success") {
-        notaryResult = "Success";
-      } else {
-        if (errorCount > 5) {
-          error(result.stderr);
-          throw new Error("Failed to Notarize - " + status);
-        }
-
-        //increment error counter
-        errorCount = errorCount + 1;
-      }
-    }
-    if (Date.now() - starttime > msToWait) {
-      throw new Error(
-        `Failed to Notarize - timed out after ${
-          msToWait / 1000
-        } seconds when awaiting notarization`,
-      );
-    }
-  }
-  return notaryResult;
-}
-
 async function stapleNotary(input: string) {
   await runCmd(
     "xcrun",
     ["stapler", "staple", input],
   );
+}
+
+export class MakeInstallerMacCommand extends PackageCommand {
+  static paths = [["make-installer-mac"]];
+
+  static usage = Command.Usage({
+    description: "Builds Mac OS installer",
+  });
+
+  async execute() {
+    await super.execute();
+    await makeInstallerMac(this.config)
+  }
 }

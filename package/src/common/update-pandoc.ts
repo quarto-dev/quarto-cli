@@ -1,10 +1,10 @@
 /*
 * update-pandoc.ts
 *
-* Copyright (C) 2020-2022 Posit Software, PBC
+* Copyright (C) 2020-2024 Posit Software, PBC
 *
 */
-import { Command } from "cliffy/command/mod.ts";
+import { Command, Option } from "npm:clipanion";
 import { join } from "../../../src/deno_ral/path.ts";
 import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
 import { info } from "../../../src/deno_ral/log.ts";
@@ -13,7 +13,7 @@ import {
   Configuration,
   readConfiguration,
   withWorkingDir,
-} from "../common/config.ts";
+} from "./config.ts";
 import { lines } from "../../../src/core/text.ts";
 import { pandoc } from "./dependencies/pandoc.ts";
 import { archiveBinaryDependency } from "./archive-binary-dependencies.ts";
@@ -33,12 +33,17 @@ import {
 
 import * as ld from "../../../src/core/lodash.ts";
 
-export function updatePandoc() {
-  return new Command()
-    .name("update-pandoc")
-    .arguments("<version:string>")
-    .description("Updates Pandoc to the specified version")
-    .action(async (_args, version: string) => {
+export class UpdatePandocCommand extends Command {
+    static paths = [["update-pandoc"]];
+
+    static usage = Command.Usage({
+        description: "Updates Pandoc to the specified version",
+    });
+
+    version = Option.String();
+
+    async execute() {
+      const { version } = this;
       info(`Updating Pandoc to ${version}`);
 
       const configuration = readConfiguration();
@@ -85,7 +90,7 @@ export function updatePandoc() {
       console.log(bgBlack(brightWhite(bold(
         "\n** Remember to complete the checklist in /dev-docs/update-pandoc-checklist.md! **",
       ))));
-    });
+    }
 }
 
 // Starting in Pandoc 3, we saw a number of variants that appear to be supported

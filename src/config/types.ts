@@ -594,7 +594,7 @@ export interface PandocFlags {
   [kNumberSections]?: boolean;
   [kNumberOffset]?: number[];
   [kTopLevelDivision]?: string;
-  [kShiftHeadingLevelBy]?: string;
+  [kShiftHeadingLevelBy]?: number;
   [kIncludeInHeader]?: string;
   [kIncludeBeforeBody]?: string;
   [kIncludeAfterBody]?: string;

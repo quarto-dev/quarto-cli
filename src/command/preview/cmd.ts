@@ -1,50 +1,31 @@
 /*
  * cmd.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 
 import { existsSync } from "../../deno_ral/fs.ts";
 import { dirname, extname, join, relative } from "../../deno_ral/path.ts";
 
-import * as colors from "fmt/colors";
-
-import { Command } from "cliffy/command/mod.ts";
+import { Command, Option } from "npm:clipanion";
+import { applyCascade, isInInclusiveRange, isInteger, isNumber, isPositive } from "npm:typanion";
 
 import { kLocalhost } from "../../core/port-consts.ts";
 import { waitForPort } from "../../core/port.ts";
-import { fixupPandocArgs, parseRenderFlags } from "../render/flags.ts";
-import {
-  handleRenderResult,
-  preview,
-  previewFormat,
-  setPreviewFormat,
-} from "./preview.ts";
-import {
-  kRenderDefault,
-  kRenderNone,
-  serveProject,
-} from "../../project/serve/serve.ts";
+import { handleRenderResult, preview, previewFormat, setPreviewFormat, } from "./preview.ts";
+import { kRenderDefault, kRenderNone, serveProject, } from "../../project/serve/serve.ts";
 
-import {
-  initState,
-  setInitializer,
-} from "../../core/lib/yaml-validation/state.ts";
+import { initState, setInitializer, } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { kProjectWatchInputs, ProjectContext } from "../../project/types.ts";
 import { projectContext } from "../../project/project-context.ts";
-import {
-  projectIsServeable,
-  projectPreviewServe,
-} from "../../project/project-shared.ts";
+import { projectIsServeable, projectPreviewServe, } from "../../project/project-shared.ts";
 
 import { isHtmlOutput } from "../../config/format.ts";
 import { renderProject } from "../render/project.ts";
 import { renderServices } from "../render/render-services.ts";
 import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
 import { normalizePath } from "../../core/path.ts";
-import { kCliffyImplicitCwd } from "../../config/constants.ts";
-import { warning } from "../../deno_ral/log.ts";
 import { renderFormats } from "../render/render-contexts.ts";
 import { Format } from "../../config/types.ts";
 import { isServerShiny, isServerShinyPython } from "../../core/render.ts";
@@ -54,220 +35,143 @@ import { fileExecutionEngine } from "../../execute/engine.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 import { exitWithCleanup } from "../../core/cleanup.ts";
+import { RenderCommand } from "../render/cmd.ts";
 
-export const previewCommand = new Command()
-  .name("preview")
-  .stopEarly()
-  .option(
-    "--port [port:number]",
-    "Suggested port to listen on (defaults to random value between 3000 and 8000).\n" +
-      "If the port is not available then a random port between 3000 and 8000 will be selected.",
-  )
-  .option(
-    "--host [host:string]",
-    "Hostname to bind to (defaults to 127.0.0.1)",
-  )
-  .option(
-    "--render [format:string]",
-    "Render to the specified format(s) before previewing",
-    {
-      default: kRenderNone,
-    },
-  )
-  .option(
-    "--no-serve",
-    "Don't run a local preview web server (just monitor and re-render input files)",
-  )
-  .option(
-    "--no-navigate",
-    "Don't navigate the browser automatically when outputs are updated.",
-  )
-  .option(
-    "--no-browser",
-    "Don't open a browser to preview the site.",
-  )
-  .option(
-    "--no-watch-inputs",
-    "Do not re-render input files when they change.",
-  )
-  .option(
-    "--timeout",
-    "Time (in seconds) after which to exit if there are no active clients.",
-  )
-  .arguments("[file:string] [...args:string]")
-  .description(
-    "Render and preview a document or website project.\n\nAutomatically reloads the browser when " +
-      "input files or document resources (e.g. CSS) change.\n\n" +
-      "For website preview, the most recent execution results of computational documents are used to render\n" +
-      "the site (this is to optimize startup time). If you want to perform a full render prior to\n" +
-      'previewing pass the --render option with "all" or a comma-separated list of formats to render.\n\n' +
-      "For document preview, input file changes will result in a re-render (pass --no-watch to prevent).\n\n" +
-      "You can also include arbitrary command line arguments to be forwarded to " +
-      colors.bold("quarto render") + ".",
-  )
-  .example(
-    "Preview document",
-    "quarto preview doc.qmd",
-  )
-  .example(
-    "Preview document with render command line args",
-    "quarto preview doc.qmd --toc",
-  )
-  .example(
-    "Preview document (don't watch for input changes)",
-    "quarto preview doc.qmd --no-watch-inputs",
-  )
-  .example(
-    "Preview website with most recent execution results",
-    "quarto preview",
-  )
-  .example(
-    "Previewing website using a specific port",
-    "quarto preview --port 4444",
-  )
-  .example(
-    "Preview website (don't open a browser)",
-    "quarto preview --no-browser",
-  )
-  .example(
-    "Fully render all website/book formats then preview",
-    "quarto preview --render all",
-  )
-  .example(
-    "Fully render the html format then preview",
-    "quarto preview --render html",
-  )
-  // deno-lint-ignore no-explicit-any
-  .action(async (options: any, file?: string, ...args: string[]) => {
+const isPort = applyCascade(isNumber(), [
+  isInteger(),
+  isInInclusiveRange(1, 65535),
+]);
+
+export class PreviewCommand extends RenderCommand {
+  static name = 'preview';
+  static paths = [[PreviewCommand.name]];
+
+  static usage = Command.Usage({
+    description:
+        "Render and preview a document or website project.\n\nAutomatically reloads the browser when " +
+        "input files or document resources (e.g. CSS) change.\n\n" +
+        "For website preview, the most recent execution results of computational documents are used to render\n" +
+        "the site (this is to optimize startup time). If you want to perform a full render prior to\n" +
+        'previewing pass the --render option with "all" or a comma-separated list of formats to render.\n\n' +
+        "For document preview, input file changes will result in a re-render (pass --no-watch to prevent).\n\n" +
+        "You can also include arbitrary command line arguments to be forwarded to quarto render.",
+    examples: [
+      [
+        "Preview document",
+        `$0 ${PreviewCommand.name} doc.qmd`,
+      ],
+      [
+        "Preview document with render command line args",
+        `$0 ${PreviewCommand.name} doc.qmd --toc`,
+      ],
+      [
+        "Preview document (don't watch for input changes)",
+        `$0 ${PreviewCommand.name} doc.qmd --no-watch-inputs`,
+      ],
+      [
+        "Preview website with most recent execution results",
+        `$0 ${PreviewCommand.name}`,
+      ],
+      [
+        "Previewing website using a specific port",
+        `$0 ${PreviewCommand.name} --port 4444`,
+      ],
+      [
+        "Preview website (don't open a browser)",
+        `$0 ${PreviewCommand.name} --no-browser`,
+      ],
+      [
+        "Fully render all website/book formats then preview",
+        `$0 ${PreviewCommand.name} --render all`,
+      ],
+      [
+        "Fully render the html format then preview",
+        `$0 ${PreviewCommand.name} --render html`,
+      ]
+    ]
+  })
+
+  browser = Option.Boolean('--browser,--browse', {
+    description: "Open a browser to preview the site. (default true)"
+  });
+
+  browserPath = Option.String('--browser-path');
+
+  host = Option.String('--host', {
+    description: "Hostname to bind to (defaults to 127.0.0.1)",
+  });
+
+  navigate = Option.Boolean('--navigate', {
+    description: "Navigate the browser automatically when outputs are updated. (default true)"
+  });
+
+  noRender = Option.Boolean('--no-render', {
+    description: "Alias for --no-watch-inputs (used by older versions of rstudio)",
+    hidden: true,
+  });
+
+  noWatch = Option.Boolean('--no-watch', {
+    description: "Alias for --no-watch-inputs (used by older versions of quarto r package)",
+    hidden: true,
+  });
+
+  presentation = Option.Boolean('--presentation');
+
+  port = Option.String('--port', {
+    description: "Suggested port to listen on (defaults to random value between 3000 and 8000).\n" +
+        "If the port is not available then a random port between 3000 and 8000 will be selected.",
+    validator: isPort
+  })
+
+  render = Option.String('--render', kRenderNone, {
+    description: "Render to the specified format(s) before previewing",
+    tolerateBoolean: true,
+  });
+
+  serve = Option.Boolean('--serve', {
+    description: "Run a local preview web server\n" +
+        "(default true; if false: just monitor and re-render input files)"
+  });
+
+  timeoutInSeconds = Option.String('--timeout', {
+    description: "Time (in seconds) after which to exit if there are no active clients.",
+    validator: applyCascade(isNumber(), [
+      isInteger(),
+      isPositive(),
+    ])
+  });
+
+  watchInputs = Option.Boolean('--watch-inputs', {
+    description: "Re-render input files when they change. (default true)"
+  });
+
+  async execute() {
+    // --no-watch: alias for --no-watch-inputs (used by older versions of quarto r package)
+    // --no-render: alias for --no-watch-inputs (used by older versions of rstudio)
+    if (this.noWatch || this.noRender) {
+      this.watchInputs = false;
+    }
+
     // one-time initialization of yaml validation modules
     setInitializer(initYamlIntelligenceResourcesFromFilesystem);
     await initState();
 
-    // if input is missing but there exists an args parameter which is a .qmd or .ipynb file,
-    // issue a warning.
-    if (!file || file === kCliffyImplicitCwd) {
-      file = Deno.cwd();
-      const firstArg = args.find((arg) =>
-        arg.endsWith(".qmd") || arg.endsWith(".ipynb")
-      );
-      if (firstArg) {
-        warning(
-          "`quarto preview` invoked with no input file specified (the parameter order matters).\nQuarto will preview the current directory by default.\n" +
-            `Did you mean to run \`quarto preview ${firstArg} ${
-              args.filter((arg) => arg !== firstArg).join(" ")
-            }\`?\n` +
-            "Use `quarto preview --help` for more information.",
-        );
+    if (this.port) {
+      if (!await waitForPort({ port: this.port, hostname: kLocalhost })) {
+        throw new Error(`Requested port ${this.port} is already in use.`);
       }
     }
 
-    file = file || Deno.cwd();
+    // interpret first input as format if --render is used without parameter
+    const render = typeof (this.render) === "boolean" ? (this.inputs.shift() || kRenderDefault) : this.render;
+
+    let file = this.inputs[0] || Deno.cwd();
     if (!existsSync(file)) {
       throw new Error(`${file} not found`);
     }
 
-    // show help if requested
-    if (args.length > 0 && args[0] === "--help") {
-      previewCommand.showHelp();
-      return;
-    }
-
-    // pull out our command line args
-    const portPos = args.indexOf("--port");
-    if (portPos !== -1) {
-      options.port = parseInt(args[portPos + 1]);
-      args.splice(portPos, 2);
-    }
-    const hostPos = args.indexOf("--host");
-    if (hostPos !== -1) {
-      options.host = String(args[hostPos + 1]);
-      args.splice(hostPos, 2);
-    }
-    const renderPos = args.indexOf("--render");
-    if (renderPos !== -1) {
-      options.render = String(args[renderPos + 1]);
-      args.splice(renderPos, 2);
-    }
-    const presentationPos = args.indexOf("--presentation");
-    if (presentationPos !== -1) {
-      options.presentation = true;
-      args.splice(presentationPos, 1);
-    } else {
-      options.presentation = false;
-    }
-    const browserPathPos = args.indexOf("--browser-path");
-    if (browserPathPos !== -1) {
-      options.browserPath = String(args[browserPathPos + 1]);
-      args.splice(browserPathPos, 2);
-    }
-    const noServePos = args.indexOf("--no-serve");
-    if (noServePos !== -1) {
-      options.noServe = true;
-      args.splice(noServePos, 1);
-    }
-    const noBrowsePos = args.indexOf("--no-browse");
-    if (noBrowsePos !== -1) {
-      options.browse = false;
-      args.splice(noBrowsePos, 1);
-    }
-    const noBrowserPos = args.indexOf("--no-browser");
-    if (noBrowserPos !== -1) {
-      options.browser = false;
-      args.splice(noBrowserPos, 1);
-    }
-    const navigatePos = args.indexOf("--navigate");
-    if (navigatePos !== -1) {
-      options.navigate = true;
-      args.splice(navigatePos, 1);
-    }
-    const noNavigatePos = args.indexOf("--no-navigate");
-    if (noNavigatePos !== -1) {
-      options.navigate = false;
-      args.splice(noNavigatePos, 1);
-    }
-    const watchInputsPos = args.indexOf("--watch-inputs");
-    if (watchInputsPos !== -1) {
-      options.watchInputs = true;
-      args.splice(watchInputsPos, 1);
-    }
-    const noWatchInputsPos = args.indexOf("--no-watch-inputs");
-    if (noWatchInputsPos !== -1) {
-      options.watchInputs = false;
-      args.splice(noWatchInputsPos, 1);
-    }
-    const timeoutPos = args.indexOf("--timeout");
-    if (timeoutPos !== -1) {
-      options.timeout = parseInt(args[timeoutPos + 1]);
-      args.splice(timeoutPos, 2);
-    }
-
-    // alias for --no-watch-inputs (used by older versions of quarto r package)
-    const noWatchPos = args.indexOf("--no-watch");
-    if (noWatchPos !== -1) {
-      options.watchInputs = false;
-      args.splice(noWatchPos, 1);
-    }
-    // alias for --no-watch-inputs (used by older versions of rstudio)
-    const noRenderPos = args.indexOf("--no-render");
-    if (noRenderPos !== -1) {
-      options.watchInputs = false;
-      args.splice(noRenderPos, 1);
-    }
-
-    if (options.port) {
-      // try to bind to requested port (error if its in use)
-      const port = parseInt(options.port);
-      if (await waitForPort({ port, hostname: kLocalhost })) {
-        options.port = port;
-      } else {
-        throw new Error(`Requested port ${options.port} is already in use.`);
-      }
-    }
-
-    // extract pandoc flag values we know/care about, then fixup args as
-    // necessary (remove our flags that pandoc doesn't know about)
-    const flags = await parseRenderFlags(args);
-    args = fixupPandocArgs(args, flags);
+    const flags = await this.parseRenderFlags();
+    const args = this.formattedPandocArgs;
 
     // if this is a single-file preview within a 'serveable' project
     // without a specific render directive then render the file
@@ -278,15 +182,15 @@ export const previewCommand = new Command()
       // get project and preview format
       const nbContext = notebookContext();
       const project = (await projectContext(dirname(file), nbContext)) ||
-        singleFileProjectContext(file, nbContext);
+          singleFileProjectContext(file, nbContext);
       const formats = await (async () => {
         const services = renderServices(nbContext);
         try {
           return await renderFormats(
-            file!,
-            services,
-            undefined,
-            project,
+              file!,
+              services,
+              undefined,
+              project,
           );
         } finally {
           services.cleanup();
@@ -303,30 +207,26 @@ export const previewCommand = new Command()
           if (isServerShinyPython(renderFormat, engine?.name)) {
             const result = await previewShiny({
               input: file,
-              render: !!options.render,
-              port: typeof (options.port) === "string"
-                ? parseInt(options.port)
-                : options.port,
-              host: options.host,
-              browser: options.browser,
+              render: render !== kRenderNone,
+              port: this.port,
+              host: this.host,
+              browser: this.browser !== false,
               projectDir: project?.dir,
               tempDir: Deno.makeTempDirSync(),
               format,
               pandocArgs: args,
-              watchInputs: options.watchInputs!,
+              watchInputs: this.watchInputs!,
             });
             exitWithCleanup(result.code);
             throw new Error(); // unreachable
           } else {
             const result = await serve({
               input: file,
-              render: !!options.render,
-              port: typeof (options.port) === "string"
-                ? parseInt(options.port)
-                : options.port,
-              host: options.host,
+              render: render !== kRenderNone,
+              port: this.port,
+              host: this.host,
               format: format,
-              browser: options.browser,
+              browser: this.browser !== false,
               projectDir: project?.dir,
               tempDir: Deno.makeTempDirSync(),
             });
@@ -345,14 +245,14 @@ export const previewCommand = new Command()
           if (extname(file) === ".md" && projectPreviewServe(project)) {
             setPreviewFormat(format, flags, args);
             touchPath = filePath;
-            options.browserPath = "";
+            this.browserPath = "";
             file = project.dir;
             projectTarget = project;
           }
         } else {
           if (
-            isHtmlOutput(parseFormatString(format).baseFormat, true) ||
-            projectPreviewServe(project)
+              isHtmlOutput(parseFormatString(format).baseFormat, true) ||
+              projectPreviewServe(project)
           ) {
             setPreviewFormat(format, flags, args);
             const services = renderServices(notebookContext());
@@ -371,8 +271,8 @@ export const previewCommand = new Command()
               handleRenderResult(file, renderResult);
               if (projectPreviewServe(project) && renderResult.baseDir) {
                 touchPath = join(
-                  renderResult.baseDir,
-                  renderResult.files[0].file,
+                    renderResult.baseDir,
+                    renderResult.files[0].file,
                 );
               }
             } finally {
@@ -380,9 +280,9 @@ export const previewCommand = new Command()
             }
             // re-write various targets to redirect to project preview
             if (projectPreviewServe(project)) {
-              options.browserPath = "";
+              this.browserPath = "";
             } else {
-              options.browserPath = relative(project.dir, file);
+              this.browserPath = relative(project.dir, file);
             }
             file = project.dir;
             projectTarget = project;
@@ -399,37 +299,34 @@ export const previewCommand = new Command()
         flags,
       };
       await serveProject(projectTarget, renderOptions, args, {
-        port: options.port,
-        host: options.host,
-        browser: (options.browser === false || options.browse === false)
-          ? false
-          : undefined,
-        [kProjectWatchInputs]: options.watchInputs,
-        timeout: options.timeout,
-        render: options.render,
+        port: this.port,
+        host: this.host,
+        browser: (this.browser !== false) || undefined,
+        [kProjectWatchInputs]: this.watchInputs,
+        timeout: this.timeoutInSeconds,
+        render,
         touchPath,
-        browserPath: options.browserPath,
-        navigate: options.navigate,
-      }, options.noServe === true);
+        browserPath: this.browserPath,
+        navigate: this.navigate !== false,
+      }, this.serve === false);
     } else {
       // single file preview
       if (
-        options.render !== kRenderNone &&
-        options.render !== kRenderDefault &&
-        args.indexOf("--to") === -1
+          render !== kRenderNone &&
+          render !== kRenderDefault &&
+          this.to === undefined
       ) {
-        args.push("--to", options.render);
+        args.push(`--to=${render}`);
       }
 
       await preview(relative(Deno.cwd(), file), flags, args, {
-        port: options.port,
-        host: options.host,
-        browser: (options.browser === false || options.browse === false)
-          ? false
-          : undefined,
-        [kProjectWatchInputs]: options.watchInputs,
-        timeout: options.timeout,
-        presentation: options.presentation,
+        port: this.port,
+        host: this.host,
+        browser: (this.browser !== false) || undefined,
+        [kProjectWatchInputs]: this.watchInputs,
+        timeout: this.timeoutInSeconds,
+        presentation: !!this.presentation,
       });
     }
-  });
+  }
+}

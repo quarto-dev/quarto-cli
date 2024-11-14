@@ -1,13 +1,13 @@
 /*
  * bootstrap.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 import { copySync, ensureDir, ensureDirSync, existsSync, walkSync } from "../../../src/deno_ral/fs.ts";
 import { info } from "../../../src/deno_ral/log.ts";
 import { dirname, basename, extname, join } from "../../../src/deno_ral/path.ts";
 import { lines } from "../../../src/core/text.ts";
-import * as ld from "../../../src/core/lodash.ts";
+import { Command } from "npm:clipanion";
 
 import { runCmd } from "../util/cmd.ts";
 import { applyGitPatches, Repo, withRepo } from "../util/git.ts";
@@ -18,6 +18,7 @@ import { visitLines } from "../../../src/core/file.ts";
 import { copyTo } from "../../../src/core/copy.ts";
 import { kSourceMappingRegexes } from "../../../src/config/constants.ts";
 import { unzip } from "../../../src/core/zip.ts";
+import { PackageCommand } from "../cmd/pkg-cmd.ts";
 
 export async function updateHtmlDependencies(config: Configuration) {
   info("Updating Bootstrap with version info:");
@@ -224,7 +225,7 @@ export async function updateHtmlDependencies(config: Configuration) {
 
   // Glightbox
   const glightboxDir = join(formatDir, "glightbox");
-  const glightBoxVersion = Deno.env.get("GLIGHTBOX_JS");;
+  const glightBoxVersion = Deno.env.get("GLIGHTBOX_JS");
 
   info("Updating glightbox");
   const fileName = `glightbox-master.zip`;
@@ -660,8 +661,8 @@ async function updateDatatables(
   // pdfmake
   // https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js
   // https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js
-  const datatablesConfig = Deno.env.get("DATATABLES_CONFIG");;
-  const pdfMakeVersion = Deno.env.get("PDF_MAKE");;
+  const datatablesConfig = Deno.env.get("DATATABLES_CONFIG");
+  const pdfMakeVersion = Deno.env.get("PDF_MAKE");
   const dtFiles = ["datatables.min.css", "datatables.min.js"];
   const targetDir = join(
     config.directoryInfo.src,
@@ -1365,3 +1366,16 @@ revealjsThemePatches["solarized"] = createRevealjsThemePatches(["mainColor", "he
 revealjsThemePatches["white-contrast"] = createRevealjsThemePatches(["backgroundColor", "mainColor", "headingColor", "mainFontSize", "mainFont", "headingFont", "headingTextShadow",  "headingLetterSpacing", "headingTextTransform", "headingFontWeight", "linkColor", "linkColorHover", "selectionBackgroundColor", "heading1Size", "heading2Size", "heading3Size", "heading4Size"])
 revealjsThemePatches["white"] = createRevealjsThemePatches(["backgroundColor", "mainColor", "headingColor", "mainFontSize", "mainFont", "headingFont", "headingTextShadow",  "headingLetterSpacing", "headingTextTransform", "headingFontWeight", "linkColor", "linkColorHover", "selectionBackgroundColor", "heading1Size", "heading2Size", "heading3Size", "heading4Size"])
 revealjsThemePatches["settings"] = createRevealjsThemePatches(["backgroundColor", "mainFont", "mainFontSize", "mainColor", "blockMargin", "headingFont", "headingColor", "headingLineHeight", "headingLetterSpacing", "headingTextTransform", "headingTextShadow", "headingFontWeight", "heading1TextShadow", "heading1Size", "heading2Size", "heading3Size", "heading4Size", "codeFont", "linkColor", "linkColorHover", "selectionBackgroundColor", "selectionColor"])
+
+export class UpdateHTMLDependenciesCommand extends PackageCommand {
+    static paths = [["update-html-dependencies"]];
+
+    static usage = Command.Usage({
+        description: "Updates Bootstrap, themes, and JS/CSS dependencies based upon the version in configuration",
+    });
+
+    async execute() {
+        await super.execute();
+        await updateHtmlDependencies(this.config)
+    }
+}

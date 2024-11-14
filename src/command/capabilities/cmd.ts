@@ -1,23 +1,27 @@
 /*
  * cmd.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 
 import { writeAllSync } from "io/write-all";
-import { Command } from "cliffy/command/mod.ts";
+import { Command } from "npm:clipanion";
 import { capabilities } from "./capabilities.ts";
 
-export const capabilitiesCommand = new Command()
-  .name("capabilities")
-  .description(
-    "Query for current capabilities (formats, engines, kernels etc.)",
-  )
-  .hidden()
-  .action(async () => {
+export class CapabilitiesCommand extends Command {
+  static name = 'capabilities';
+  static paths = [[CapabilitiesCommand.name]];
+
+  static usage = Command.Usage({
+    category: 'internal',
+    description: "Query for current capabilities (formats, engines, kernels etc.)",
+  })
+
+  async execute() {
     const capsJSON = JSON.stringify(await capabilities(), undefined, 2);
     writeAllSync(
-      Deno.stdout,
-      new TextEncoder().encode(capsJSON),
+        Deno.stdout,
+        new TextEncoder().encode(capsJSON),
     );
-  });
+  }
+}

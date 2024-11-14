@@ -1,11 +1,19 @@
+/*
+* installer.ts
+*
+* Copyright (C) 2020-2024 Posit Software, PBC
+*
+*/
 import { info } from "../../../src/deno_ral/log.ts";
 import { basename, dirname, join } from "../../../src/deno_ral/path.ts";
+import { Command } from "npm:clipanion";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
 import { download, unzip } from "../util/utils.ts";
 import { execProcess } from "../../../src/core/process.ts";
 import { emptyDirSync, ensureDirSync, existsSync, moveSync, copySync } from "../../../src/deno_ral/fs.ts";
+import { PackageCommand } from "../cmd/pkg-cmd.ts";
 
 export async function makeInstallerWindows(configuration: Configuration) {
   const packageName = `quarto-${configuration.version}-win.msi`;
@@ -173,4 +181,17 @@ export function zip(input: string, output: string) {
       stdout: "piped",
     },
   );
+}
+
+export class MakeInstallerWindowsCommand extends PackageCommand {
+    static paths = [["make-installer-mac"]];
+
+    static usage = Command.Usage({
+        description: "Builds Mac OS installer",
+    });
+
+    async execute() {
+        await super.execute();
+        await makeInstallerWindows(this.config)
+    }
 }

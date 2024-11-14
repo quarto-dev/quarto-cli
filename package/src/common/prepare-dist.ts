@@ -1,14 +1,15 @@
 /*
 * prepare-dist.ts
 *
-* Copyright (C) 2020-2022 Posit Software, PBC
+* Copyright (C) 2020-2024 Posit Software, PBC
 *
 */
 
 import { dirname, join } from "../../../src/deno_ral/path.ts";
 import { copySync, ensureDirSync, existsSync } from "../../../src/deno_ral/fs.ts";
+import { Command } from "npm:clipanion";
 
-import { Configuration } from "../common/config.ts";
+import { Configuration } from "./config.ts";
 import { buildFilter } from "./package-filters.ts";
 import { bundle } from "../util/deno.ts";
 import { info } from "../../../src/deno_ral/log.ts";
@@ -22,6 +23,7 @@ Dependency,
 import { copyQuartoScript } from "./configure.ts";
 import { deno } from "./dependencies/deno.ts";
 import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
+import { PackageCommand } from "../cmd/pkg-cmd.ts";
 
 export async function prepareDist(
   config: Configuration,
@@ -265,4 +267,17 @@ function inlineFilters(config: Configuration) {
   copySync(modulesIn, modulesOut)
   
 
+}
+
+export class PrepareDistCommand extends PackageCommand {
+  static paths = [["prepare-dist"]];
+
+  static usage = Command.Usage({
+    description: "Prepares the distribution directory for packaging.",
+  });
+
+  async execute() {
+    await super.execute();
+    await prepareDist(this.config)
+  }
 }

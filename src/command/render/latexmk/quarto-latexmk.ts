@@ -1,17 +1,14 @@
+/*
+ * quarto-latexmk.ts
+ *
+ * Copyright (C) 2021-2024 Posit Software, PBC
+ */
 import { debug } from "../../../deno_ral/log.ts";
-import {
-  Command,
-  CompletionsCommand,
-  HelpCommand,
-} from "cliffy/command/mod.ts";
-import { parse } from "flags";
+import { Command, Option } from "npm:clipanion";
+import { isNumber } from "npm:typanion";
 
 import {
-  appendLogOptions,
-  cleanupLogger,
-  initializeLogger,
-  logError,
-  logOptions,
+  addLoggingOptions,
 } from "../../../core/log.ts";
 import { LatexmkOptions } from "./types.ts";
 import { generatePdf } from "./pdf.ts";
@@ -20,7 +17,6 @@ import {
   kExeName,
   kExeVersion,
 } from "./quarto-latexmk-metadata.ts";
-import { exitWithCleanup } from "../../../core/cleanup.ts";
 import { mainRunner } from "../../../core/main.ts";
 
 interface EngineOpts {
@@ -29,105 +25,92 @@ interface EngineOpts {
   tlmgr: string[];
 }
 
-function parseOpts(args: string[]): [string[], EngineOpts] {
-  const pdfOpts = parseEngineFlags("pdf-engine-opt", args);
-  const indexOpts = parseEngineFlags("index-engine-opt", pdfOpts.resultArgs);
-  const tlmgrOpts = parseEngineFlags("tlmgr-opt", indexOpts.resultArgs);
-  return [
-    tlmgrOpts.resultArgs,
-    {
-      pdf: pdfOpts.values,
-      index: indexOpts.values,
-      tlmgr: tlmgrOpts.values,
-    },
-  ];
-}
+export abstract class PDFCommand extends Command {
+  input = Option.String();
 
-function parseEngineFlags(optFlag: string, args: string[]) {
-  const values = [];
-  const resultArgs = [];
+  ['bib-engine'] = Option.String('--bib-engine', {description: "The bibliography engine to use"});
 
-  for (const arg of args) {
-    if (arg.startsWith(`--${optFlag}=`)) {
-      const value = arg.split("=")[1];
-      values.push(value);
-    } else {
-      resultArgs.push(arg);
-    }
-  }
-  return { values, resultArgs };
-}
+  ['index-engine'] = Option.String('--index-engine', {description: "The index engine to use"});
+  ['index-engine-opt'] = Option.Array('--index-engine', {
+    description: "Options passed to the index engine." +
+        "Can be used multiple times - values will be passed in the order they appear in the command." +
+        "These must be specified using an '='."
+  });
 
-export async function pdf(args: string[]) {
-  // Parse any of the option flags
-  const [parsedArgs, engineOpts] = parseOpts(args);
+  max = Option.String("--max", {
+    description: "The maximum number of iterations",
+    validator: isNumber(),
+  });
 
-  const pdfCommand = new Command()
-    .name(kExeName)
-    .arguments("<input:string>")
-    .version(kExeVersion + "\n")
-    .description(kExeDescription)
-    .option(
-      "--pdf-engine <engine>",
-      "The PDF engine to use",
-    )
-    .option(
-      "--pdf-engine-opt=<optionsfile:string>",
-      "Options passed to the pdf engine. Can be used multiple times - values will be passed in the order they appear in the command. These must be specified using an '='.",
-    )
-    .option(
-      "--index-engine <engine>",
-      "The index engine to use",
-    )
-    .option(
-      "--index-engine-opt=<optionsfile:string>",
-      "Options passed to the index engine. Can be used multiple times - values will be passed in the order they appear in the command. These must be specified using an '='.",
-    )
-    .option(
-      "--bib-engine <engine>",
-      "The bibliography engine to use",
-    )
-    .option(
-      "--no-auto-install",
-      "Disable automatic package installation",
-    )
-    .option(
-      "--tlmgr-opt=<optionsfile:string>",
-      "Options passed to the tlmgr engine. Can be used multiple times - values will be passed in the order they appear in the command. These must be specified using an '='.",
-    )
-    .option(
-      "--no-auto-mk",
-      "Disable the pdf generation loop",
-    )
-    .option(
-      "--min <min:number>",
-      "The minimum number of iterations",
-    )
-    .option(
-      "--max <max:number>",
-      "The maximum number of iterations",
-    )
-    .option("--output-dir <directory>", "The output directory")
-    .option("--no-clean", "Don't clean intermediaries")
-    .throwErrors()
-    .action(async (options: unknown, input: string) => {
-      const latexmkOptions = mkOptions(
-        input,
-        options as Record<string, unknown>,
+  min = Option.String("--min", {
+    description: "The minimum number of iterations",
+    validator: isNumber(),
+  });
+
+  ['no-auto-install'] = Option.Boolean('--no-auto-install', {description: "Disable automatic package installation"});
+  ['no-auto-mk'] = Option.Boolean('--no-auto-mk', {description: "Disable the pdf generation loop"});
+  ['no-clean'] = Option.Boolean('--no-clean', {description: "Don't clean intermediaries"});
+
+  outputDir = Option.String("--output-dir", { description: "The output directory" });
+
+  ['pdf-engine'] = Option.String('--pdf-engine', {description: "The PDF engine to use"});
+  ['pdf-engine-opt'] = Option.Array('--pdf-engine-opt', {
+    description: "Options passed to the pdf engine." +
+        "Can be used multiple times - values will be passed in the order they appear in the command." +
+        "These must be specified using an '='."
+  });
+
+  ['tlmgr-opt'] = Option.Array('--tlmgr-opt', {
+    description: "Options passed to the tlmgr engine." +
+        "Can be used multiple times - values will be passed in the order they appear in the command." +
+        "These must be specified using an '='."
+  });
+
+  async execute() {
+    const engineOpts: EngineOpts = {
+      index: this['index-engine-opt'],
+      pdf: this['pdf-engine-opt'],
+      tlmgr: this['tlmgr-opt'],
+    };
+    const latexmkOptions = mkOptions(
+        this.input,
+        this,
         engineOpts,
-      );
-      await generatePdf(latexmkOptions);
+    );
+    await generatePdf(latexmkOptions);
+  }
+}
+
+const commands = [
+    PDFCommand,
+];
+
+class PDFCli extends Cli {
+  constructor() {
+    super({
+      binaryLabel: kExeDescription,
+      binaryName: kExeName,
+      binaryVersion: kExeVersion,
     });
 
-  await appendLogOptions(pdfCommand)
-    .command("help", new HelpCommand().global())
-    .command("completions", new CompletionsCommand()).hidden()
-    .parse(parsedArgs);
+    [
+      ...commands,
+      Builtins.HelpCommand
+
+      // TODO: shell completion is not yet supported by clipanion
+      //   see https://github.com/arcanis/clipanion/pull/89
+      // Builtins.CompletionsCommand
+    ].forEach((command) => {
+      addLoggingOptions(command);
+      this.register(command);
+    });
+  }
 }
 
 if (import.meta.main) {
   await mainRunner(async () => {
-    await pdf(Deno.args);
+    const pdf = new PDFCli();
+    await pdf.runExit(Deno.args);
   });
 }
 

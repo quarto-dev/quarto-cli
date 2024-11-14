@@ -1,11 +1,11 @@
 /*
  * profile.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 
-import { Args } from "flags";
-import { Command } from "cliffy/command/mod.ts";
+import { Option } from "npm:clipanion";
+import { addCommandOptions } from "../command/options.ts";
 
 export const kQuartoProfile = "QUARTO_PROFILE";
 
@@ -21,23 +21,13 @@ export function readProfile(profile?: string) {
   }
 }
 
-export function setProfileFromArg(args: Args) {
-  // set profile if specified
-  if (args.profile) {
-    Deno.env.set(kQuartoProfile, args.profile);
-    return true;
-  } else {
-    return false;
-  }
-}
+const profileOptions = {
+  profile: Option.String('--profile', { description: "Active project profile(s)" }),
+};
 
-// deno-lint-ignore no-explicit-any
-export function appendProfileArg(cmd: Command<any>): Command<any> {
-  return cmd.option(
-    "--profile",
-    "Active project profile(s)",
-    {
-      global: true,
-    },
-  );
-}
+export const addProfileOptions = addCommandOptions(profileOptions, async (commandWithOptions)  => {
+  const { profile } = commandWithOptions;
+  if (profile) {
+    Deno.env.set(kQuartoProfile, profile);
+  }
+});

@@ -1,11 +1,15 @@
 /*
  * cmd.ts
  *
- * Copyright (C) 2021-2022 Posit Software, PBC
+ * Copyright (C) 2021-2024 Posit Software, PBC
  */
 
-import { Command } from "cliffy/command/mod.ts";
+import { Command, Option } from "npm:clipanion";
+
+// TODO: replace cliffy
+//   see https://github.com/quarto-dev/quarto-cli/issues/10878
 import { Checkbox } from "cliffy/prompt/mod.ts";
+
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { createTempContext } from "../../core/temp.ts";
 
@@ -15,137 +19,127 @@ import { createExtensionContext } from "../../extension/extension.ts";
 import { extensionIdString } from "../../extension/extension-shared.ts";
 import { Extension } from "../../extension/types.ts";
 import { projectContext } from "../../project/project-context.ts";
-import {
-  afterConfirm,
-  loadTools,
-  removeTool,
-  selectTool,
-} from "../../tools/tools-console.ts";
+import { afterConfirm, loadTools, removeTool, selectTool, } from "../../tools/tools-console.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
-export const removeCommand = new Command()
-  .name("remove")
-  .arguments("[target...]")
-  .option(
-    "--no-prompt",
-    "Do not prompt to confirm actions",
-  )
-  .option(
-    "--embed <extensionId>",
-    "Remove this extension from within another extension (used when authoring extensions).",
-  )
-  .option(
-    "--update-path",
-    "Update system path when a tool is installed",
-    {
-      hidden: true,
-    },
-  )
-  .description(
-    "Removes an extension.",
-  )
-  .example(
-    "Remove extension using name",
-    "quarto remove <extension-name>",
-  )
-  .action(
-    async (
-      options: { prompt?: boolean; embed?: string; updatePath?: boolean },
-      ...target: string[]
-    ) => {
-      await initYamlIntelligenceResourcesFromFilesystem();
-      const temp = createTempContext();
-      const extensionContext = createExtensionContext();
 
-      // -- update path
-      try {
-        const resolved = resolveCompatibleArgs(target || [], "extension");
-        if (resolved.action === "tool") {
-          if (resolved.name) {
-            // Explicitly provided
-            await removeTool(resolved.name, options.prompt, options.updatePath);
+export class RemoveCommand extends Command {
+  static name = 'remove';
+  static paths = [[RemoveCommand.name]];
+
+  static usage = Command.Usage({
+    description: "Removes an extension.",
+    examples: [
+      [
+        "Remove extension using name",
+        `$0 ${RemoveCommand.name} <extension-name>`,
+      ]
+    ]
+  });
+
+  targets = Option.Rest();
+
+  embed = Option.String('--embed', {description: "Remove this extension from within another extension (used when authoring extensions)." });
+  noPrompt = Option.Boolean('--no-prompt', { description: "Do not prompt to confirm actions" });
+  updatePath = Option.Boolean('--update-path', { description: "Update system path when a tool is installed", hidden: true });
+
+  async execute() {
+    const prompt = !this.noPrompt;
+    const embed = this.embed;
+    const updatePath = this.updatePath;
+    await initYamlIntelligenceResourcesFromFilesystem();
+    const temp = createTempContext();
+    const extensionContext = createExtensionContext();
+
+    // -- update path
+    try {
+      const resolved = resolveCompatibleArgs(this.targets || [], "extension");
+      if (resolved.action === "tool") {
+        if (resolved.name) {
+          // Explicitly provided
+          await removeTool(resolved.name, prompt, updatePath);
+        } else {
+          // Not provided, give the user a list to choose from
+          const allTools = await loadTools();
+          if (allTools.filter((tool) => tool.installed).length === 0) {
+            info("No tools are installed.");
           } else {
-            // Not provided, give the user a list to choose from
-            const allTools = await loadTools();
-            if (allTools.filter((tool) => tool.installed).length === 0) {
-              info("No tools are installed.");
-            } else {
-              // Select which tool should be installed
-              const toolTarget = await selectTool(allTools, "remove");
-              if (toolTarget) {
-                info("");
-                await removeTool(toolTarget);
-              }
+            // Select which tool should be installed
+            const toolTarget = await selectTool(allTools, "remove");
+            if (toolTarget) {
+              info("");
+              await removeTool(toolTarget);
             }
           }
-        } else {
-          // Not provided, give the user a list to select from
-          const workingDir = Deno.cwd();
+        }
+      } else {
+        // Not provided, give the user a list to select from
+        const workingDir = Deno.cwd();
 
-          const resolveTargetDir = async () => {
-            if (options.embed) {
-              // We're removing an embedded extension, lookup the extension
-              // and use its path
-              const context = createExtensionContext();
-              const extension = await context.extension(
-                options.embed,
+        const resolveTargetDir = async () => {
+          if (embed) {
+            // We're removing an embedded extension, lookup the extension
+            // and use its path
+            const context = createExtensionContext();
+            const extension = await context.extension(
+                embed,
                 workingDir,
-              );
-              if (extension) {
-                return extension?.path;
-              } else {
-                throw new Error(`Unable to find extension '${options.embed}.`);
-              }
+            );
+            if (extension) {
+              return extension?.path;
             } else {
-              // Just use the current directory
-              return workingDir;
+              throw new Error(`Unable to find extension '${embed}.`);
             }
-          };
-          const targetDir = await resolveTargetDir();
+          } else {
+            // Just use the current directory
+            return workingDir;
+          }
+        };
+        const targetDir = await resolveTargetDir();
 
-          // Process extension
-          if (resolved.name) {
-            // explicitly provided
-            const extensions = await extensionContext.find(
+        // Process extension
+        if (resolved.name) {
+          // explicitly provided
+          const extensions = await extensionContext.find(
               resolved.name,
               targetDir,
               undefined,
               undefined,
               undefined,
               { builtIn: false },
-            );
-            if (extensions.length > 0) {
-              await removeExtensions(extensions.slice(), options.prompt);
-            } else {
-              info("No matching extension found.");
-            }
+          );
+          if (extensions.length > 0) {
+            await removeExtensions(extensions.slice(), prompt);
           } else {
-            const nbContext = notebookContext();
-            // Provide the with with a list
-            const project = await projectContext(targetDir, nbContext);
-            const extensions = await extensionContext.extensions(
+            info("No matching extension found.");
+          }
+        } else {
+          const nbContext = notebookContext();
+          // Provide the with with a list
+          const project = await projectContext(targetDir, nbContext);
+          const extensions = await extensionContext.extensions(
               targetDir,
               project?.config,
               project?.dir,
               { builtIn: false },
-            );
+          );
 
-            // Show a list
-            if (extensions.length > 0) {
-              const extensionsToRemove = await selectExtensions(extensions);
-              if (extensionsToRemove.length > 0) {
-                await removeExtensions(extensionsToRemove);
-              }
-            } else {
-              info("No extensions installed.");
+          // Show a list
+          if (extensions.length > 0) {
+            const extensionsToRemove = await selectExtensions(extensions);
+            if (extensionsToRemove.length > 0) {
+              await removeExtensions(extensionsToRemove);
             }
+          } else {
+            info("No extensions installed.");
           }
         }
-      } finally {
-        temp.cleanup();
       }
-    },
-  );
+    } finally {
+      temp.cleanup();
+    }
+  }
+}
 
 // note that we're using variadic arguments here to preserve backware compatibility.
 export const resolveCompatibleArgs = (

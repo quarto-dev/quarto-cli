@@ -1,12 +1,12 @@
 /*
  * cmd.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 
 import { basename } from "../../deno_ral/path.ts";
 
-import { Command } from "cliffy/command/mod.ts";
+import { Command, Option } from "npm:clipanion";
 
 import { executionEngine, executionEngines } from "../../execute/engine.ts";
 
@@ -29,124 +29,94 @@ const kProjectTypesAndAliases = [...kProjectTypes, ...kProjectTypeAliases];
 const kExecutionEngines = executionEngines().reverse();
 const kEditorTypes = ["source", "visual"];
 
-export const createProjectCommand = new Command()
-  .name("create-project")
-  .description("Create a project for rendering multiple documents")
-  .arguments("[dir:string]")
-  .hidden()
-  .option(
-    "--title <title:string>",
-    "Project title",
-  )
-  .option(
-    "--type <type:string>",
-    `Project type (${kProjectTypes.join(", ")})`,
-  )
-  .option(
-    "--template <type:string>",
-    `Use a specific project template`,
-  )
-  .option(
-    "--engine <engine:string>",
-    `Use execution engine (${kExecutionEngines.join(", ")})`,
-    {
-      value: (value: string): string[] => {
-        value = value || kMarkdownEngine;
-        const engine = executionEngine(value.split(":")[0]);
-        if (!engine) {
-          throw new Error(`Unknown --engine: ${value}`);
-        }
-        // check for kernel
-        const match = value.match(/(\w+)(:(.+))?$/);
-        if (match) {
-          return [match[1], match[3]];
-        } else {
-          return [value];
-        }
-      },
-    },
-  )
-  .option(
-    "--editor <editor:string>",
-    "Default editor for project ('source' or 'visual')",
-  )
-  .option(
-    "--with-venv [packages:string]",
-    "Create a virtualenv for this project",
-  )
-  .option(
-    "--with-condaenv [packages:string]",
-    "Create a condaenv for this project",
-  )
-  .option(
-    "--no-scaffold",
-    "Don't create initial project file(s)",
-  )
-  .example(
-    "Create a project in the current directory",
-    "quarto create-project",
-  )
-  .example(
-    "Create a project in the 'myproject' directory",
-    "quarto create-project myproject",
-  )
-  .example(
-    "Create a website project",
-    "quarto create-project mysite --type website",
-  )
-  .example(
-    "Create a blog project",
-    "quarto create-project mysite --type website --template blog",
-  )
-  .example(
-    "Create a book project",
-    "quarto create-project mybook --type book",
-  )
-  .example(
-    "Create a website project with jupyter",
-    "quarto create-project mysite --type website --engine jupyter",
-  )
-  .example(
-    "Create a website project with jupyter + kernel",
-    "quarto create-project mysite --type website --engine jupyter:python3",
-  )
-  .example(
-    "Create a book project with knitr",
-    "quarto create-project mybook --type book --engine knitr",
-  )
-  .example(
-    "Create jupyter project with virtualenv",
-    "quarto create-project myproject --engine jupyter --with-venv",
-  )
-  .example(
-    "Create jupyter project with virtualenv + packages",
-    "quarto create-project myproject --engine jupyter --with-venv pandas,matplotlib",
-  )
-  .example(
-    "Create jupyter project with condaenv ",
-    "quarto create-project myproject --engine jupyter --with-condaenv",
-  )
-  .example(
-    "Create jupyter project with condaenv + packages",
-    "quarto create-project myproject --engine jupyter --with-condaenv pandas,matplotlib",
-  )
-  // deno-lint-ignore no-explicit-any
-  .action(async (options: any, dir?: string) => {
-    if (dir === undefined || dir === ".") {
-      dir = Deno.cwd();
+// TODO: can this be part of the option definition?
+const parseEngine = (value: string): string[] => {
+    value = value || kMarkdownEngine;
+    const engine = executionEngine(value.split(":")[0]);
+    if (!engine) {
+      throw new Error(`Unknown --engine: ${value}`);
     }
+    // check for kernel
+    const match = value.match(/(\w+)(:(.+))?$/);
+    if (match) {
+      return [match[1], match[3]];
+    } else {
+      return [value];
+    }
+};
 
-    const engine = options.engine || [];
+export class CreateProjectCommand extends Command {
+  static name = 'create-project';
+  static paths = [[CreateProjectCommand.name]];
 
-    const envPackages = typeof (options.withVenv) === "string"
-      ? options.withVenv.split(",").map((pkg: string) => pkg.trim())
-      : typeof (options.withCondaenv) === "string"
-      ? options.withCondaenv.split(",").map((pkg: string) => pkg.trim())
+  static usage = Command.Usage({
+    category: 'internal',
+    description: 'Create a project for rendering multiple documents',
+    examples: [
+      [
+        "Create a project in the current directory",
+        `$0 ${CreateProjectCommand.name}`,
+      ], [
+        "Create a project in the 'myproject' directory",
+        `$0 ${CreateProjectCommand.name} myproject`,
+      ], [
+        "Create a website project",
+        `$0 ${CreateProjectCommand.name} mysite --type website`,
+      ], [
+        "Create a blog project",
+        `$0 ${CreateProjectCommand.name} mysite --type website --template blog`,
+      ], [
+        "Create a book project",
+        `$0 ${CreateProjectCommand.name} mybook --type book`,
+      ], [
+        "Create a website project with jupyter",
+        `$0 ${CreateProjectCommand.name} mysite --type website --engine jupyter`,
+      ], [
+        "Create a website project with jupyter + kernel",
+        `$0 ${CreateProjectCommand.name} mysite --type website --engine jupyter:python3`,
+      ], [
+        "Create a book project with knitr",
+        `$0 ${CreateProjectCommand.name} mybook --type book --engine knitr`,
+      ], [
+        "Create jupyter project with virtualenv",
+        `$0 ${CreateProjectCommand.name} myproject --engine jupyter --with-venv`,
+      ], [
+        "Create jupyter project with virtualenv + packages",
+        `$0 ${CreateProjectCommand.name} myproject --engine jupyter --with-venv pandas,matplotlib`,
+      ], [
+        "Create jupyter project with condaenv",
+        `$0 ${CreateProjectCommand.name} myproject --engine jupyter --with-condaenv`,
+      ], [
+        "Create jupyter project with condaenv + packages",
+        `$0 ${CreateProjectCommand.name} myproject --engine jupyter --with-condaenv pandas,matplotlib`,
+      ]
+    ],
+  });
+
+  dir = Option.String({ required: false });
+
+  editor = Option.String('--editor', { description: "Default editor for project ('source' or 'visual')" });
+  engine = Option.String('--engine', { description: `Use execution engine (${kExecutionEngines.join(", ")})` });
+  noScaffold = Option.Boolean('--no-scaffold', { description: "Don't create initial project file(s)" });
+  template = Option.String('--template', { description: "Use a specific project template" });
+  title = Option.String('--title', { description: "Project title" });
+  type = Option.String('--type', { description: `Project type (${kProjectTypes.join(", ")})` });
+  withCondaenv = Option.String('--with-condaenv', { description: "Create a condaenv for this project", tolerateBoolean: true });
+  withVenv = Option.String('--with-venv', { description: "Create a virtualenv for this project", tolerateBoolean: true });
+
+  async execute() {
+    const dir = (this.dir === undefined || this.dir === ".") ? Deno.cwd() : this.dir;
+    const engine = this.engine ? parseEngine(this.engine) : [];
+
+    const envPackages = typeof (this.withVenv) === "string"
+      ? this.withVenv.split(",").map((pkg: string) => pkg.trim())
+      : typeof (this.withCondaenv) === "string"
+      ? this.withCondaenv.split(",").map((pkg: string) => pkg.trim())
       : undefined;
 
     // Parse the project type and template
-    const { type, template } = parseProjectType(options.type);
-    const projectTemplate = options.template || template;
+    const { type, template } = parseProjectType(this.type);
+    const projectTemplate = this.template || template;
 
     // Validate the type
     if (kProjectTypesAndAliases.indexOf(type) === -1) {
@@ -158,7 +128,7 @@ export const createProjectCommand = new Command()
     }
 
     // Validate the editor
-    const editorType = options.editor;
+    const editorType = this.editor;
     if (editorType && !kEditorTypes.includes(editorType)) {
       throw new Error(
         `Editor type must be one of ${
@@ -185,15 +155,16 @@ export const createProjectCommand = new Command()
 
     await projectCreate({
       dir,
-      type: type,
-      title: options.title || basename(dir),
-      scaffold: !!options.scaffold,
+      type,
+      title: this.title || basename(dir),
+      scaffold: !this.noScaffold,
       engine: engine[0] || kMarkdownEngine,
       kernel: engine[1],
       editor: editorType,
-      venv: !!options.withVenv,
-      condaenv: !!options.withCondaenv,
+      venv: !!this.withVenv,
+      condaenv: !!this.withCondaenv,
       envPackages,
       template: projectTemplate,
     });
-  });
+  }
+}

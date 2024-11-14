@@ -1,68 +1,63 @@
 /*
  * cmd.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 
-import { Command } from "cliffy/command/mod.ts";
+import { Command, Option } from "npm:clipanion";
 
-import {
-  initState,
-  setInitializer,
-} from "../../core/lib/yaml-validation/state.ts";
+import { initState, setInitializer, } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { inspectConfig } from "../../quarto-core/inspect.ts";
 
-export const inspectCommand = new Command()
-  .name("inspect")
-  .arguments("[path] [output]")
-  .description(
-    "Inspect a Quarto project or input path.\n\nInspecting a project returns its config and engines.\n" +
-      "Inspecting an input path return its formats, engine, and dependent resources.\n\n" +
-      "Emits results of inspection as JSON to output (or stdout if not provided).",
-  )
-  .hidden()
-  .example(
-    "Inspect project in current directory",
-    "quarto inspect",
-  )
-  .example(
-    "Inspect project in directory",
-    "quarto inspect myproject",
-  )
-  .example(
-    "Inspect input path",
-    "quarto inspect document.md",
-  )
-  .example(
-    "Inspect input path and write to file",
-    "quarto inspect document.md output.json",
-  )
-  .action(
-    async (
-      // deno-lint-ignore no-explicit-any
-      _options: any,
-      path?: string,
-      output?: string,
-    ) => {
-      // one-time initialization of yaml validation modules
-      setInitializer(initYamlIntelligenceResourcesFromFilesystem);
-      await initState();
+export class InspectCommand extends Command {
+  static name = 'inspect';
+  static paths = [[InspectCommand.name]];
 
-      path = path || Deno.cwd();
+  static usage = Command.Usage({
+    category: 'internal',
+    description: "Inspect a Quarto project or input path.\n\nInspecting a project returns its config and engines.\n" +
+        "Inspecting an input path return its formats, engine, and dependent resources.\n\n" +
+        "Emits results of inspection as JSON to output (or stdout if not provided).",
+    examples: [
+      [
+        "Inspect project in current directory",
+        `$0 ${InspectCommand.name}`,
+      ], [
+        "Inspect project in directory",
+        `$0 ${InspectCommand.name} myproject`,
+      ], [
+        "Inspect input path",
+        `$0 ${InspectCommand.name} document.md`,
+      ], [
+        "Inspect input path and write to file",
+        `$0 ${InspectCommand.name} document.md output.json`,
+      ]
+    ]
+  })
 
-      // get the config
-      const config = await inspectConfig(path);
+  path_ = Option.String({ required: false });
+  output = Option.String({ required: false });
 
-      // write using the requisite format
-      const outputJson = JSON.stringify(config, undefined, 2);
+  async execute() {
+    // one-time initialization of yaml validation modules
+    setInitializer(initYamlIntelligenceResourcesFromFilesystem);
+    await initState();
 
-      if (!output) {
-        Deno.stdout.writeSync(
+    this.path_ = this.path_ || Deno.cwd();
+
+    // get the config
+    const config = await inspectConfig(this.path_);
+
+    // write using the requisite format
+    const outputJson = JSON.stringify(config, undefined, 2);
+
+    if (!this.output) {
+      Deno.stdout.writeSync(
           new TextEncoder().encode(outputJson + "\n"),
-        );
-      } else {
-        Deno.writeTextFileSync(output, outputJson + "\n");
-      }
-    },
-  );
+      );
+    } else {
+      Deno.writeTextFileSync(this.output, outputJson + "\n");
+    }
+  }
+}

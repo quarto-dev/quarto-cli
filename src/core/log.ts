@@ -1,7 +1,7 @@
 /*
  * log.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2024 Posit Software, PBC
  */
 
 import { ensureDirSync } from "../deno_ral/fs.ts";
@@ -11,16 +11,18 @@ import * as log from "../deno_ral/log.ts";
 import { LogRecord } from "log/logger";
 import { BaseHandler } from "log/base-handler";
 import { FileHandler } from "log/file-handler";
-import { Command } from "cliffy/command/mod.ts";
+import { Option } from "npm:clipanion";
+import { applyCascade, isLiteral, isOneOf, isString, matchesRegExp } from "npm:typanion";
 
+import { addCommandOptions } from "../command/options.ts";
 import { getenv } from "./env.ts";
-import { Args } from "flags";
 import { lines } from "./text.ts";
 import { debug, error, getLogger, setup, warning } from "../deno_ral/log.ts";
 import { asErrorEx, InternalError } from "./lib/error.ts";
 import { onCleanup } from "./cleanup.ts";
 
 export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
+const defaultLevel: LogLevel = "INFO";
 
 export interface LogOptions {
   log?: string;
@@ -39,71 +41,49 @@ export interface LogMessageOptions {
   colorize?: boolean;
 }
 
-// deno-lint-ignore no-explicit-any
-export function appendLogOptions(cmd: Command<any>): Command<any> {
-  // deno-lint-ignore no-explicit-any
-  const addLogOptions = (cmd: Command<any>) => {
-    return cmd.option(
-      "--log <file>",
-      "Path to log file",
-      {
-        global: true,
-      },
-    ).option(
-      "--log-level <level>",
-      "Log level (info, warning, error, critical)",
-      {
-        global: true,
-      },
+const loggingOptions: LogOptions = {
+  format: Option.String('-lf,--log-format', {
+    description: "Log format (plain, json-stream)",
+    validator: isOneOf([isLiteral("plain"), isLiteral("json-stream")])
+  }),
+
+  level: Option.String('-ll,--log-level', {
+    description: "Log level (info, warning, error, critical)",
+    validator: applyCascade(
+        isString(),
+        [matchesRegExp(/(DEBUG|ERROR|INFO|WARN)/i)]
     )
-      .option(
-        "--log-format <format>",
-        "Log format (plain, json-stream)",
-        {
-          global: true,
-        },
-      )
-      .option(
-        "--quiet",
-        "Suppress console output.",
-        {
-          global: true,
-        },
-      );
-  };
+  }),
 
-  // If there are subcommands, forward the log options
-  // directly to the subcommands. Otherwise, just attach
-  // to the outer command
-  //
-  // Fixes https://github.com/quarto-dev/quarto-cli/issues/8438
-  const subCommands = cmd.getCommands();
-  if (subCommands.length > 0) {
-    subCommands.forEach((command) => {
-      addLogOptions(command);
-    });
-    return cmd;
-  } else {
-    return addLogOptions(cmd);
-  }
+  log: Option.String('-l,--log', { description: "Path to log file" }),
+  quiet: Option.Boolean('-q,--quiet', { description: "Suppress console output." }),
 }
 
-export function logOptions(args: Args) {
-  const logOptions: LogOptions = {};
-  logOptions.log = args.l || args.log || Deno.env.get("QUARTO_LOG");
-  if (logOptions.log) {
-    ensureDirSync(dirname(logOptions.log));
+export const addLoggingOptions = addCommandOptions(loggingOptions, async (commandWithOptions)  => {
+  const log = commandWithOptions.log || Deno.env.get("QUARTO_LOG");
+  if (log) {
+    ensureDirSync(dirname(log));
   }
-  logOptions.level = args.ll || args["log-level"] ||
-    Deno.env.get("QUARTO_LOG_LEVEL");
-  logOptions.quiet = args.q || args.quiet;
-  logOptions.format = parseFormat(
-    args.lf || args["log-format"] || Deno.env.get("QUARTO_LOG_FORMAT"),
+
+  const format = parseFormat(
+      commandWithOptions.format  || Deno.env.get("QUARTO_LOG_FORMAT")
   );
-  return logOptions;
-}
 
-let currentLogLevel: LogLevel = "INFO";
+  const level = parseLevel(
+      commandWithOptions.level || Deno.env.get("QUARTO_LOG_LEVEL") || defaultLevel
+  );
+
+  const { quiet } = commandWithOptions;
+
+  await initializeLogger({
+    format,
+    log,
+    level,
+    quiet,
+  });
+});
+
+let currentLogLevel: LogLevel = defaultLevel;
 export function logLevel() {
   return currentLogLevel;
 }

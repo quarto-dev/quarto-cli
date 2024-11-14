@@ -651,5 +651,8 @@
       "src/resources/projects/website/search/fuse.min.js",
       "src/resources/projects/website/search/quarto-search.js"
     ]
+  },
+  "imports": {
+    "clipanion": "npm:clipanion@^4.0.0-rc.4"
   }
 }

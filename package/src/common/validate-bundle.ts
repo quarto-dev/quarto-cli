@@ -1,15 +1,15 @@
 /*
 * prepare-dist.ts
 *
-* Copyright (C) 2020-2022 Posit Software, PBC
+* Copyright (C) 2020-2024 Posit Software, PBC
 *
 */
-
-
 import { join } from "../../../src/deno_ral/path.ts";
 import { info } from "../../../src/deno_ral/log.ts";
-import { Configuration } from "../common/config.ts";
+import { Configuration } from "./config.ts";
 import { execProcess } from "../../../src/core/process.ts";
+import { PackageCommand } from "../cmd/pkg-cmd.ts";
+import { Command } from "npm:clipanion";
 
 export async function validateBundle(
   config: Configuration,
@@ -68,4 +68,17 @@ export async function validateBundle(
     })
 
   }
+}
+
+export class ValidateBundleCommand extends PackageCommand {
+    static paths = [["validate-bundle"]];
+
+    static usage = Command.Usage({
+        description: "Validate a JS bundle built using prepare-dist",
+    });
+
+    async execute() {
+        await super.execute();
+        await validateBundle(this.config)
+    }
 }
