@@ -90,7 +90,9 @@ export function asCssFont(value: unknown): string | undefined {
       .split(",")
       .map((font) => {
         font = font.trim();
-        if (font.includes(" ")) {
+        if (
+          font.includes(" ") && !font.startsWith('"') && !font.startsWith("'")
+        ) {
           font = `"${font}"`;
         }
         return font;

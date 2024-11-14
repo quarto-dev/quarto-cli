@@ -242,7 +242,7 @@ $table-group-separator-color: mix(
 $table-group-separator-color-lighter: mix(
   if(variable-exists(body-color), $body-color, $gray-900),
   $body-contrast-bg,
-  70%
+  20%
 ) !default;
 
 $bootstrap-version: 5;

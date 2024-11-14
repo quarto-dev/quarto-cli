@@ -152,3 +152,9 @@ export async function checkFontSizeIdentical(loc1: Locator, loc2: Locator) {
   const loc1FontSize = await getCSSProperty(loc1, 'font-size', false) as string;
   await expect(loc2).toHaveCSS('font-size', loc1FontSize);
 }
+
+export async function checkFontSizeSimilar(loc1: Locator, loc2: Locator, factor: number = 1) {
+  const loc1FontSize = await getCSSProperty(loc1, 'font-size', true) as number;
+  const loc2FontSize = await getCSSProperty(loc2, 'font-size', true) as number;
+  await expect(loc1FontSize).toBeCloseTo(loc2FontSize * factor);
+}

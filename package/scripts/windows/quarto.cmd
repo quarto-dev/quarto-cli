@@ -105,7 +105,9 @@ IF NOT DEFINED QUARTO_DENO (
 
 SET "DENO_TLS_CA_STORE=system,mozilla"
 SET "DENO_NO_UPDATE_CHECK=1"
-SET "QUARTO_DENO_OPTIONS=--unstable-kv --unstable-ffi --no-config --no-lock --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi !QUARTO_DENO_OPTIONS!"
+REM Using --allow-all as there is otherwise an issue in Deno 1.46.3 with --allow-read and --allow-write with network drives
+REM https://github.com/quarto-dev/quarto-cli/issues/11332
+SET "QUARTO_DENO_OPTIONS=--unstable-kv --unstable-ffi --no-config --no-lock --allow-all !QUARTO_DENO_OPTIONS!"
 
 REM Add expected V8 options to QUARTO_DENO_V8_OPTIONS
 IF DEFINED QUARTO_DENO_V8_OPTIONS (

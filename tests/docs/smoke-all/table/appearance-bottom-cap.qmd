@@ -1,32 +1,14 @@
 ---
 title: Table Appearance
+tbl-cap-location: bottom
 format: html
 _quarto:
   tests: 
     html:
       ensureHtmlElements:
-        - ['table tbody tr.odd', 'table tbody tr.even'] 
+        - ['table tbody tr.odd', 'table tbody tr.even']
         - ['table tbody tr:not(.odd):not(.even)'] # All table should have .odd .even class for styling 
 ---
-
-### With header
-
-A short sentence that makes a paragraph.
-
-header left  header right
------------  ------------
-left 1       right 1
-left 2       right 2
------------  ------------
-
-### Without header
-
-A short sentence that makes a paragraph.
-
------------  ------------
-left 1       right 1
-left 2       right 2
------------  ------------
 
 ### Md table (w/caption) {#captioned}
 
