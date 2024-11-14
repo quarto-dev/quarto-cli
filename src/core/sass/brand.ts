@@ -24,6 +24,7 @@ import {
 import { Brand } from "../brand/brand.ts";
 
 const defaultColorNameMap: Record<string, string> = {
+  "link-color": "link",
   "pre-color": "foreground",
   "body-bg": "background",
   "body-color": "foreground",
