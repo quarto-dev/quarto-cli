@@ -232,7 +232,7 @@ const brandDefaultsBootstrapLayer = (
     throw new Error(
       "Invalid bootstrap defaults in _brand.yml or `brand`. " +
         "`defaults.bootstrap.defaults` expects a string or a dictionary  " +
-        "mapping Sass variables to default values."
+        "mapping Sass variables to default values.",
     );
   }
   bsVariables.push('// quarto-scss-analysis-annotation { "action": "pop" }');
@@ -273,7 +273,7 @@ const brandDefaultsBootstrapLayer = (
 
   const scssWithQuartoAnnotation = (
     x: string | undefined,
-    origin: string
+    origin: string,
   ): string => {
     if (!x) {
       return "";
@@ -285,13 +285,13 @@ const brandDefaultsBootstrapLayer = (
       '// quarto-scss-analysis-annotation { "action": "pop" }',
     ].join("\n");
   };
-  
+
   return {
     defaults: bsColors.join("\n") + "\n" + bsVariables.join("\n"),
     uses: scssWithQuartoAnnotation(brandBootstrap.uses, "uses"),
     functions: scssWithQuartoAnnotation(
       brandBootstrap.functions,
-      "functions"
+      "functions",
     ),
     mixins: scssWithQuartoAnnotation(brandBootstrap.mixins, "mixins"),
     rules: scssWithQuartoAnnotation(brandBootstrap.rules, "rules"),
@@ -591,7 +591,7 @@ export async function brandBootstrapSassLayers(
 
   const brand = await project.resolveBrand(fileName);
   if (brand?.data?.defaults?.bootstrap) {
-    layers.push(brandDefaultsBootstrapLayer(brand));
+    layers.unshift(brandDefaultsBootstrapLayer(brand));
   }
 
   return layers;
