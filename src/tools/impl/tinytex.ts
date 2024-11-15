@@ -5,7 +5,7 @@
  */
 import { debug, warning } from "../../deno_ral/log.ts";
 
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 import { basename, join, relative } from "../../deno_ral/path.ts";
 
 import { expandPath, which } from "../../core/path.ts";
@@ -226,7 +226,7 @@ async function install(
             }
           }
 
-          Deno.removeSync(from, { recursive: true });
+          safeRemoveSync(from, { recursive: true });
 
           // Note the version that we have installed
           noteInstalledVersion(pkgInfo.version);

@@ -20,6 +20,7 @@ import { chromiumInstallable } from "./impl/chromium.ts";
 import { downloadWithProgress } from "../core/download.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { isWSL } from "../core/platform.ts";
+import { safeRemoveSync } from "../deno_ral/fs.ts";
 
 // The tools that are available to install
 const kInstallableTools: { [key: string]: InstallableTool } = {
@@ -152,7 +153,7 @@ export async function installTool(name: string, updatePath?: boolean) {
         }
       } finally {
         // Cleanup the working directory
-        Deno.removeSync(workingDir, { recursive: true });
+        safeRemoveSync(workingDir, { recursive: true });
       }
     }
   } else {
@@ -184,7 +185,7 @@ export async function uninstallTool(name: string, updatePath?: boolean) {
       } catch (e) {
         logError(e);
       } finally {
-        Deno.removeSync(workingDir, { recursive: true });
+        safeRemoveSync(workingDir, { recursive: true });
       }
     } else {
       info(
@@ -232,7 +233,7 @@ export async function updateTool(name: string) {
     } catch (e) {
       logError(e);
     } finally {
-      Deno.removeSync(workingDir, { recursive: true });
+      safeRemoveSync(workingDir, { recursive: true });
     }
   } else {
     info(

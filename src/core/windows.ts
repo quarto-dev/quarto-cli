@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
 import { join } from "../deno_ral/path.ts";
 import { quartoCacheDir } from "./appdirs.ts";
 import { removeIfExists } from "./path.ts";
@@ -79,7 +79,7 @@ export async function cacheCodePage() {
 
 export function clearCodePageCache() {
   if (existsSync(tokenPath)) {
-    Deno.removeSync(tokenPath);
+    safeRemoveSync(tokenPath);
   }
 }
 

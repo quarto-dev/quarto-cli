@@ -5,7 +5,7 @@
  */
 
 import { dirname, join } from "../../../deno_ral/path.ts";
-import { existsSync } from "../../../deno_ral/fs.ts";
+import { existsSync, safeRemoveSync } from "../../../deno_ral/fs.ts";
 
 import { PdfEngine } from "../../../config/types.ts";
 import { LatexmkOptions } from "./types.ts";
@@ -594,7 +594,7 @@ function cleanup(workingDir: string, stem: string) {
 
   auxFiles.forEach((auxFile) => {
     if (existsSync(auxFile)) {
-      Deno.removeSync(auxFile);
+      safeRemoveSync(auxFile);
     }
   });
 }

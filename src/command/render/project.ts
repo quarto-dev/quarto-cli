@@ -4,7 +4,14 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureDirSync, existsSync, safeMoveSync } from "../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  existsSync,
+  safeMoveSync,
+  safeRemoveDirSync,
+  safeRemoveSync,
+  UnsafeRemovalError,
+} from "../../deno_ral/fs.ts";
 import { dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
 import { info, warning } from "../../deno_ral/log.ts";
 import { mergeProjectMetadata } from "../../config/metadata.ts";
@@ -481,7 +488,18 @@ export async function renderProject(
         return;
       }
       if (existsSync(targetDir)) {
-        Deno.removeSync(targetDir, { recursive: true });
+        try {
+          safeRemoveDirSync(targetDir, context.dir);
+        } catch (e) {
+          if (e instanceof UnsafeRemovalError) {
+            warning(
+              `Refusing to remove directory ${targetDir} since it is not a subdirectory of the main project directory.`,
+            );
+            warning(
+              `Quarto did not expect the path configuration being used in this project, and strange behavior may result.`,
+            );
+          }
+        }
       }
       ensureDirSync(dirname(targetDir));
       if (copy) {
@@ -494,7 +512,7 @@ export async function renderProject(
           // because src and target are in different file systems.
           // In that case, try to recursively copy from src
           copyTo(srcDir, targetDir);
-          Deno.removeSync(srcDir, { recursive: true });
+          safeRemoveDirSync(targetDir, context.dir);
         }
       }
     };
@@ -906,7 +924,7 @@ export async function renderProject(
   if (projectRenderConfig.options.forceClean) {
     const scratchDir = join(projDir, kQuartoScratch);
     if (existsSync(scratchDir)) {
-      Deno.removeSync(scratchDir, { recursive: true });
+      safeRemoveSync(scratchDir, { recursive: true });
     }
   }
 

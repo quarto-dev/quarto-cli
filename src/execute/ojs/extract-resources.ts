@@ -34,6 +34,7 @@ import { stripColor } from "../../core/lib/external/colors.ts";
 import { lines } from "../../core/lib/text.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { kRenderServicesLifetime } from "../../config/constants.ts";
+import { safeRemoveSync } from "../../deno_ral/fs.ts";
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -571,7 +572,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
             // more than once, so we could end up with more than one request
             // to delete it. Fail gracefully if so.
             try {
-              Deno.removeSync(res.filename);
+              safeRemoveSync(res.filename);
             } catch (e) {
               if (e.name !== "NotFound") {
                 throw e;

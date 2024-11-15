@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { existsSync } from "../src/deno_ral/fs.ts";
+import { existsSync, safeRemoveSync } from "../src/deno_ral/fs.ts";
 import { AssertionError, fail } from "testing/asserts";
 import { warning } from "../src/deno_ral/log.ts";
 import { initDenoDom } from "../src/core/deno-dom.ts";
@@ -301,7 +301,7 @@ export function test(test: TestDescriptor) {
           }
           fail(output.join("\n"));
         } finally {
-          Deno.removeSync(log);
+          safeRemoveSync(log);
           await cleanupLogOnce();
           if (test.context.teardown) {
             await test.context.teardown();

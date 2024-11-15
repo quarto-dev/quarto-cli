@@ -5,7 +5,7 @@
  */
 
 import { basename, join } from "../../../deno_ral/path.ts";
-import { existsSync } from "../../../deno_ral/fs.ts";
+import { existsSync, safeRemoveSync } from "../../../deno_ral/fs.ts";
 import { error, info } from "../../../deno_ral/log.ts";
 
 import { PdfEngine } from "../../../config/types.ts";
@@ -67,7 +67,7 @@ export async function runPdfEngine(
   // Clean any log file or output from previous runs
   [log, output].forEach((file) => {
     if (existsSync(file)) {
-      Deno.removeSync(file);
+      safeRemoveSync(file);
     }
   });
 
@@ -141,7 +141,7 @@ export async function runIndexEngine(
 
   // Clean any log file from previous runs
   if (existsSync(log)) {
-    Deno.removeSync(log);
+    safeRemoveSync(log);
   }
 
   const result = await runLatexCommand(
@@ -176,7 +176,7 @@ export async function runBibEngine(
 
   // Clean any log file from previous runs
   if (existsSync(log)) {
-    Deno.removeSync(log);
+    safeRemoveSync(log);
   }
 
   const result = await runLatexCommand(
