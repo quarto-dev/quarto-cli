@@ -19,7 +19,7 @@ unitTest("break-quarto-md - empty code cells", async () => {
   );
 
   const result = await breakQuartoMd(qmd);
-  assert(result.cells.length === 9);
+  assert(result.cells.length === 10);
 });
 
 unitTest("break-quarto-md - indented code cells", async () => {
