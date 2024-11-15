@@ -398,8 +398,25 @@ const determineRevealLogo = (format: Format): string | undefined => {
 function revealMarkdownAfterBody(format: Format) {
   const lines: string[] = [];
   lines.push("::: {.quarto-auto-generated-content style='display: none;'}\n");
-  const revealLogo = (format.metadata[kSlideLogo] as (string | undefined)) ??
-    determineRevealLogo(format);
+  let revealLogo = format
+    .metadata[kSlideLogo] as (string | { path: string } | undefined);
+  if (revealLogo) {
+    if (typeof revealLogo === "object") {
+      revealLogo = revealLogo.path;
+    }
+    if (["small", "medium", "large"].includes(revealLogo)) {
+      const brandData = format.render.brand?.processedData;
+      const logoInfo = brandData?.logo
+        ?.[revealLogo as ("medium" | "small" | "large")];
+      if (typeof logoInfo === "string") {
+        revealLogo = logoInfo;
+      } else {
+        revealLogo = logoInfo?.light.path ?? logoInfo?.dark.path;
+      }
+    }
+  } else {
+    revealLogo = determineRevealLogo(format);
+  }
   if (revealLogo) {
     lines.push(
       `<img src="${revealLogo}" class="slide-logo" />`,

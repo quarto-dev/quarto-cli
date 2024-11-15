@@ -2,6 +2,7 @@
 title: brand and base logo
 format:
   dashboard: default
+  revealjs: default
 brand:
   logo:
     images:
@@ -20,6 +21,11 @@ _quarto:
       ensureFileRegexMatches:
         -
           - '<img src="posit-logo-2024\.svg" alt=""'
+        - []
+    revealjs:
+      ensureFileRegexMatches:
+        -
+          - '<img src="posit-logo-2024\.svg" class="slide-logo">'
         - []
 ---
 

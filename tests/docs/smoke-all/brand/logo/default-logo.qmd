@@ -2,6 +2,7 @@
 title: brand and base logo
 format:
   dashboard: default
+  revealjs: default
 brand:
   logo:
     images:
@@ -19,6 +20,11 @@ _quarto:
       ensureFileRegexMatches:
         -
           - '<img src="quarto\.png" alt="quarto logo"'
+        - []
+    revealjs:
+      ensureFileRegexMatches:
+        -
+          - '<img src="quarto\.png" class="slide-logo">'
         - []
 ---
 
