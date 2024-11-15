@@ -307,7 +307,7 @@ function render_typst_brand_yaml()
 
       local headings = _quarto.modules.brand.get_typography('headings')
       local foregroundColor = _quarto.modules.brand.get_color('foreground')
-      if headings and next(headings) or foregroundColor then
+      if headings and next(headings) or base and next(base) or foregroundColor then
         base = base or {}
         headings = headings or {}
         local color = headings.color or foregroundColor
