@@ -145,6 +145,16 @@ export async function compileSass(
     '// quarto-scss-analysis-annotation { "origin": null }',
   ].join("\n\n");
 
+  const save_scss_prefix = Deno.env.get("QUARTO_SAVE_SCSS")
+  if (save_scss_prefix) {
+    // Save the SCSS before compilation
+    const counterValue = counter++;
+    Deno.writeTextFileSync(
+      `${save_scss_prefix}-${counterValue}.scss`,
+      scssInput,
+    );
+  }
+
   // Compile the scss
   const result = await compileWithCache(
     scssInput,
@@ -157,29 +167,27 @@ export async function compileSass(
     },
   );
 
-  if (!Deno.env.get("QUARTO_SAVE_SCSS")) {
-    return result;
+  if (save_scss_prefix) {
+    // The compilation succeeded, we can update the file with additional info
+    const partialOutput = Deno.readTextFileSync(result);
+    // now we attempt to find the SCSS variables in the output
+    // and inject them back in the SCSS file so that our debug tooling can use them.
+    const scssToWrite = [scssInput];
+    const internalVars = Array.from(
+      partialOutput.matchAll(/(--quarto-scss-export-[^;}]+;?)/g),
+    ).map((m) => m[0]);
+    const annotation = {
+      "css-vars": internalVars,
+    };
+    scssToWrite.push(
+      `// quarto-scss-analysis-annotation ${JSON.stringify(annotation)}`,
+    );
+    scssInput = scssToWrite.join("\n");
+    Deno.writeTextFileSync(
+      `${save_scss_prefix}-${counter}.scss`,
+      scssInput,
+    );
   }
-  const partialOutput = Deno.readTextFileSync(result);
-  // now we attempt to find the SCSS variables in the output
-  // and inject them back in the SCSS file so that our debug tooling can use them.
-  const scssToWrite = [scssInput];
-  const internalVars = Array.from(
-    partialOutput.matchAll(/(--quarto-scss-export-[^;}]+;?)/g),
-  ).map((m) => m[0]);
-  const annotation = {
-    "css-vars": internalVars,
-  };
-  scssToWrite.push(
-    `// quarto-scss-analysis-annotation ${JSON.stringify(annotation)}`,
-  );
-  scssInput = scssToWrite.join("\n");
-  const prefix = Deno.env.get("QUARTO_SAVE_SCSS");
-  const counterValue = counter++;
-  Deno.writeTextFileSync(
-    `${prefix}-${counterValue}.scss`,
-    scssInput,
-  );
 
   return result;
 }
