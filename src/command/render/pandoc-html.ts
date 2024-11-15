@@ -90,12 +90,13 @@ export async function resolveSassBundles(
     //
     // the brand bundle itself doesn't have any 'brand' entries;
     // those are used to specify where the brand-specific layers should be inserted
-    // in the final bundle. We filter
+    // in the final bundle.
     const brandLayersMaybeBrand = bundlesWithBrand.find((bundle) =>
       bundle.key === "brand"
     )?.user || [];
     assert(!brandLayersMaybeBrand.find((v) => v === "brand"));
     const brandLayers = brandLayersMaybeBrand as SassLayer[];
+    let foundBrand = false;
     const bundles: SassBundle[] = bundlesWithBrand.filter((bundle) =>
       bundle.key !== "brand"
     ).map((bundle) => {
@@ -103,9 +104,17 @@ export async function resolveSassBundles(
       if (userBrand && userBrand !== -1) {
         bundle = cloneDeep(bundle);
         bundle.user!.splice(userBrand, 1, ...brandLayers);
+        foundBrand = true;
       }
       return bundle as SassBundle;
     });
+    if (!foundBrand) {
+      bundles.unshift({
+        dependency,
+        key: "brand",
+        user: brandLayers,
+      });
+    }
 
     // See if any bundles are providing dark specific css
     const hasDark = bundles.some((bundle) => bundle.dark !== undefined);
