@@ -119,7 +119,7 @@ export async function quarto(
   await checkReconfiguration();
   checkVersionRequirement();
   if (args[0] === "pandoc" && args[1] !== "help") {
-    await passThroughPandoc(args.slice(1), env);
+    await passThroughPandoc(args, env);
   }
   if (args[0] === "typst") {
     await passThroughTypst(args, env);

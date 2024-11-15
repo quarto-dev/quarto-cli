@@ -5,7 +5,7 @@
 *
 */
 import { existsSync } from "../src/deno_ral/fs.ts";
-import { fail } from "testing/asserts";
+import { AssertionError, fail } from "testing/asserts";
 import { warning } from "../src/deno_ral/log.ts";
 import { initDenoDom } from "../src/core/deno-dom.ts";
 
@@ -153,7 +153,10 @@ export function unitTest(
       {
         name: `${name}`,
         verify: async (_outputs: ExecuteOutput[]) => {
-          await ver();
+          const timeout = new Promise((_resolve, reject) => {
+            setTimeout(() => reject(new AssertionError(`timed out after 2 minutes. Something may be wrong with verify function in the test '${name}'.`)), 120000);
+          });
+          await Promise.race([ver(), timeout]);
         },
       },
     ],
