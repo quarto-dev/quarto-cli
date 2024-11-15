@@ -145,12 +145,12 @@ export async function compileSass(
     '// quarto-scss-analysis-annotation { "origin": null }',
   ].join("\n\n");
 
-  const save_scss_prefix = Deno.env.get("QUARTO_SAVE_SCSS")
-  if (save_scss_prefix) {
+  const saveScssPrefix = Deno.env.get("QUARTO_SAVE_SCSS")
+  if (saveScssPrefix) {
     // Save the SCSS before compilation
     const counterValue = counter++;
     Deno.writeTextFileSync(
-      `${save_scss_prefix}-${counterValue}.scss`,
+      `${saveScssPrefix}-${counterValue}.scss`,
       scssInput,
     );
   }
@@ -167,7 +167,7 @@ export async function compileSass(
     },
   );
 
-  if (save_scss_prefix) {
+  if (saveScssPrefix) {
     // The compilation succeeded, we can update the file with additional info
     const partialOutput = Deno.readTextFileSync(result);
     // now we attempt to find the SCSS variables in the output
@@ -184,7 +184,7 @@ export async function compileSass(
     );
     scssInput = scssToWrite.join("\n");
     Deno.writeTextFileSync(
-      `${save_scss_prefix}-${counter}.scss`,
+      `${saveScssPrefix}-${counter}.scss`,
       scssInput,
     );
   }
