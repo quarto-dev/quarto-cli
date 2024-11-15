@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 import { join } from "../../deno_ral/path.ts";
 import { error, info, warning } from "../../deno_ral/log.ts";
 
@@ -148,7 +148,7 @@ export async function executeKernelKeepalive(
     // in that case remove the connection file and re-throw the exception
     const transportFile = kernelTransportFile(options.target.input);
     if (existsSync(transportFile)) {
-      Deno.removeSync(transportFile);
+      safeRemoveSync(transportFile);
     }
     throw e;
   } finally {
@@ -174,7 +174,7 @@ async function abortKernel(options: JupyterExecuteOptions) {
     } finally {
       const transportFile = kernelTransportFile(options.target.input);
       if (existsSync(transportFile)) {
-        Deno.removeSync(transportFile);
+        safeRemoveSync(transportFile);
       }
       conn.close();
     }
@@ -360,7 +360,7 @@ function readKernelTransportFile(
           "Error reading kernel transport file: " + e.toString() +
             "(removing file)",
         );
-        Deno.removeSync(transportFile);
+        safeRemoveSync(transportFile);
         return null;
       }
     } else {
@@ -408,7 +408,7 @@ async function connectToKernel(
     } catch {
       // remove the transport file
       if (existsSync(transportFile)) {
-        Deno.removeSync(transportFile);
+        safeRemoveSync(transportFile);
       }
     }
   }
@@ -453,7 +453,7 @@ async function connectToKernel(
         return await denoConnectToKernel(kernelTransport);
       } catch (e) {
         // remove the transport file
-        Deno.removeSync(transportFile);
+        safeRemoveSync(transportFile);
         error("Error connecting to Jupyter kernel: " + e.toString());
         return Promise.reject();
       }

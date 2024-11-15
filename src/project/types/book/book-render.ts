@@ -681,6 +681,7 @@ function cleanupExecutedFile(
     file.context.target.input,
     finalOutput,
     file.recipe.format,
+    file.context.project,
     file.executeResult.supporting,
     executionEngineKeepMd(file.context),
   );

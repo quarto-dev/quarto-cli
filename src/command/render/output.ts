@@ -15,7 +15,7 @@ import {
 } from "../../deno_ral/path.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
-import { dirAndStem, expandPath } from "../../core/path.ts";
+import { dirAndStem, expandPath, safeRemoveSync } from "../../core/path.ts";
 import {
   parse as parseYaml,
   partitionYamlFrontMatter,
@@ -209,7 +209,7 @@ export function outputRecipe(
       recipe.isOutputTransient = true;
       completeActions.push(() => {
         writeFileToStdout(join(inputDir, recipe.output));
-        Deno.removeSync(join(inputDir, recipe.output));
+        safeRemoveSync(join(inputDir, recipe.output));
       });
     } else if (!isAbsolute(recipe.output)) {
       // relatve output file on the command line: make it relative to the input dir

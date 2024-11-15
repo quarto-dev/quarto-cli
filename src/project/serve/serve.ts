@@ -5,7 +5,7 @@
  */
 
 import { info, warning } from "../../deno_ral/log.ts";
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 import {
   basename,
   dirname,
@@ -918,7 +918,7 @@ function acquirePreviewLock(project: ProjectContext) {
 
 function releasePreviewLock(project: ProjectContext) {
   try {
-    Deno.removeSync(previewLockFile(project));
+    safeRemoveSync(previewLockFile(project));
   } catch {
     //
   }

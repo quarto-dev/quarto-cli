@@ -107,7 +107,12 @@ import { isQmdFile } from "../../../execute/qmd.ts";
 import * as ld from "../../../core/lodash.ts";
 import { safeExistsSync } from "../../../core/path.ts";
 
-import { copySync, ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
+import {
+  copySync,
+  ensureDirSync,
+  existsSync,
+  safeRemoveSync,
+} from "../../../deno_ral/fs.ts";
 import { kTitleBlockStyle } from "../../../format/html/format-html-title.ts";
 import { resolveProjectInputLinks } from "../website/website-utils.ts";
 
@@ -751,7 +756,7 @@ const createTexOutputBundle = (
       texInputFile,
       texOutputFile,
     );
-    Deno.removeSync(texInputFile);
+    safeRemoveSync(texInputFile);
 
     // Create the resulting bundle descriptor
     const texBundle: { manuscript: string; supporting: string[] } = {
@@ -767,7 +772,7 @@ const createTexOutputBundle = (
         const outPath = join(texDirAbs, relative(context.dir, supportingAbs));
         ensureDirSync(dirname(outPath));
         copySync(supportingAbs, outPath, { overwrite: true });
-        Deno.removeSync(supportingAbs, { recursive: true });
+        safeRemoveSync(supportingAbs, { recursive: true });
         texBundle.supporting.push(outPath);
       }
     }

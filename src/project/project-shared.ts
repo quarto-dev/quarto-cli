@@ -350,7 +350,7 @@ export async function directoryMetadataForInputFile(
 }
 
 const mdForFile = async (
-  project: ProjectContext,
+  _project: ProjectContext,
   engine: ExecutionEngine | undefined,
   file: string,
 ): Promise<MappedString> => {

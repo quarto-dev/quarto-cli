@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, safeRemoveDirSync } from "../../deno_ral/fs.ts";
 import { dirname, extname, isAbsolute, join } from "../../deno_ral/path.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -22,11 +22,13 @@ import { isHtmlFileOutput, isLatexOutput } from "../../config/format.ts";
 import { kKeepMd, kKeepTex, kKeepTyp } from "../../config/constants.ts";
 
 import { filesDirLibDir, filesDirMediabagDir } from "./render-paths.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export function renderCleanup(
   input: string,
   output: string,
   format: Format,
+  project: ProjectContext,
   supporting?: string[],
   keepMd?: string,
 ) {
@@ -90,7 +92,7 @@ export function renderCleanup(
     // clean supporting
     ld.uniq(supporting).forEach((path) => {
       if (existsSync(path)) {
-        safeRemoveSync(path, { recursive: true });
+        safeRemoveDirSync(path, project.dir);
       }
     });
   }

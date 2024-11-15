@@ -40,7 +40,11 @@ import {
   renderedContentReader,
   RenderedContents,
 } from "./website-listing-shared.ts";
-import { dirAndStem, resolvePathGlobs } from "../../../../core/path.ts";
+import {
+  dirAndStem,
+  resolvePathGlobs,
+  safeRemoveSync,
+} from "../../../../core/path.ts";
 import { ProjectOutputFile } from "../../types.ts";
 import { resolveInputTarget } from "../../../project-index.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
@@ -372,7 +376,7 @@ export function completeStagedFeeds(
             );
           } finally {
             try {
-              Deno.removeSync(feedFile);
+              safeRemoveSync(feedFile);
             } catch {
               // Just ignore this and move on
             }

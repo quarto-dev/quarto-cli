@@ -5,7 +5,7 @@
  */
 
 import { dirname, join, normalize, relative } from "../../deno_ral/path.ts";
-import { ensureDirSync } from "../../deno_ral/fs.ts";
+import { ensureDirSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 
 import {
   kFontPaths,
@@ -81,14 +81,14 @@ export function typstPdfOutputRecipe(
 
     // keep typ if requested
     if (!format.render[kKeepTyp]) {
-      Deno.removeSync(input);
+      safeRemoveSync(input);
     }
 
     // copy (or write for stdout) compiled pdf to final output location
     if (finalOutput) {
       if (finalOutput === kStdOut) {
         writeFileToStdout(pdfOutput);
-        Deno.removeSync(pdfOutput);
+        safeRemoveSync(pdfOutput);
       } else {
         const outputPdf = expandPath(finalOutput);
 

@@ -36,6 +36,7 @@ export function getFileInfoType(fileInfo: Deno.FileInfo): PathType | undefined {
 }
 
 // from https://jsr.io/@std/fs/1.0.3/_is_subdir.ts
+// 2024-15-11: isSubDir("foo", "foo/bar") returns true, which gets src and dest exactly backwards?!
 /**
  * Checks whether `src` is a sub-directory of `dest`.
  *
@@ -103,4 +104,23 @@ export function safeRemoveSync(
       throw e;
     }
   }
+}
+
+export class UnsafeRemovalError extends Error {
+  constructor(msg: string) {
+    super(msg);
+  }
+}
+
+export function safeRemoveDirSync(
+  path: string,
+  boundary: string,
+) {
+  // note the comment above about isSubdir getting src and dest backwards
+  if (path === boundary || isSubdir(path, boundary)) {
+    throw new UnsafeRemovalError(
+      `Refusing to remove directory ${path} that isn't a subdirectory of ${boundary}`,
+    );
+  }
+  return safeRemoveSync(path, { recursive: true });
 }

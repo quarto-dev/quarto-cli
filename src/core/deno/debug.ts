@@ -122,6 +122,19 @@ export const getStackAsArray = (
           col: m4[5] + (m4[1] ? 6 : 0),
         };
       }
+
+      // at Array.map (<anonymous>)
+      const m5 = s.match(
+        /^.*at (.*)\(<anonymous>\)$/,
+      );
+      if (m5) {
+        return {
+          pos: "",
+          name: `${m5[1]}`,
+          line: "",
+          col: "",
+        };
+      }
       throw new Error(`Unexpected stack entry: ${s}`);
     });
 
