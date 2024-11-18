@@ -231,7 +231,7 @@ function extractTblCapAttrib(el, name, subcap)
     else
       value = pandoc.List({ value })
     end
-    el.attr.attributes[name] = nil
+    -- el.attr.attributes[name] = nil
     return value
   end
   return nil
