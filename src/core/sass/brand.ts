@@ -567,6 +567,16 @@ export async function brandSassLayers(
   const brand = await project.resolveBrand(fileName);
   const sassLayers: SassLayer[] = [];
 
+  sassLayers.push(
+    {
+      defaults: '$theme: "brand" !default;',
+      uses: "",
+      functions: "",
+      mixins: "",
+      rules: "",
+    }
+  )
+
   if (brand?.data.color) {
     sassLayers.push(brandColorLayer(brand, nameMap));
   }
