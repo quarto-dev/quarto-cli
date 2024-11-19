@@ -1546,9 +1546,9 @@ local function processTextDependency(dependency, meta)
    local textLoc = rawText.location
 
    if meta[textLoc] == nil then
-      meta[textLoc] = {}
+      meta[textLoc] = pandoc.List{}
    end
-   table.insert(meta[textLoc], pandoc.RawBlock(FORMAT, rawText.text))
+   meta[textLoc]:insert(pandoc.Blocks{pandoc.RawBlock(FORMAT, rawText.text)})
  end
 
  -- make the usePackage statement
@@ -1568,9 +1568,9 @@ local function usePackage(package, option)
    
    local headerLoc = resolveLocation(kInHeader)
    if meta[headerLoc] == nil then
-      meta[headerLoc] = {}
+      meta[headerLoc] = pandoc.List{}
    end
-   table.insert(meta[headerLoc], usePackage(rawPackage.package, rawPackage.options))
+   meta[headerLoc]:insert(usePackage(rawPackage.package, rawPackage.options))
  end
  
  
@@ -1584,28 +1584,28 @@ local function processDependencies(meta)
    -- holds a list of hashes for dependencies that
    -- have been processed. Process each dependency
    -- only once
-   local injectedText = {}
-   local injectedFile = {}
-   local injectedPackage = {}
+   local injectedText = pandoc.List{}
+   local injectedFile = pandoc.List{}
+   local injectedPackage = pandoc.List{}
 
   -- each line was written as a dependency.
   -- process them and contribute the appropriate headers
-  for line in io.lines(dependenciesFile) do 
+  for line in io.lines(dependenciesFile) do
     local dependency = json.decode(line)
     if dependency.type == 'text' then
       if not utils.table.contains(injectedText, dependency.content) then
          processTextDependency(dependency, meta)
-         injectedText[#injectedText + 1] = dependency.content   
+         injectedText:insert(dependency.content)
       end
     elseif dependency.type == "file" then
       if not utils.table.contains(injectedFile, dependency.content.path) then
          processFileDependency(dependency, meta)
-         injectedFile[#injectedFile + 1] = dependency.content.path
+         injectedFile:insert(dependency.content.path)
       end
     elseif dependency.type == "usepackage" then
       if not utils.table.contains(injectedPackage, dependency.content.package) then
          processUsePackageDependency(dependency, meta)
-         injectedPackage[#injectedPackage + 1] = dependency.content.package
+         injectedPackage:insert(dependency.content.package)
       end
     end
   end
