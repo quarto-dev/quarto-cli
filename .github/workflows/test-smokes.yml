@@ -294,7 +294,8 @@ jobs:
         if: always()
         uses: actions/cache/save@v4
         with:
-          key: ${{ steps.cache-typst.outputs.cache-key }}
+          key: ${{ steps.cache-typst.outputs.cache-primary-key }}
+          path: ${{ steps.cache-typst.outputs.cache-path }}
 
       - uses: actions/upload-artifact@v4
         # PLaywright test only runs on Linux for now

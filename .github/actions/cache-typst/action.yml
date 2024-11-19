@@ -2,10 +2,13 @@ name: "Restore any Typst package cache"
 description: "Configures the caching for Typst packages"
 outputs:
   cache-hit:
-    description: "Is there a cache restored ?"
+    description: "Was a cache found with primary key ?"
     value: ${{ steps.cache-typst-restore.outputs.cache-hit }}
-  cache-key:
-    description: "Key of the cache considered"
+  cache-primary-key:
+    description: "Key of the cache to find and save"
+    value: ${{ steps.cache-typst-restore.outputs.cache-primary-key }}
+  cache-matched-key:
+    description: "Key of the cache found and used."
     value: ${{ steps.cache-typst-restore.outputs.cache-primary-key }}
   cache-path:
     description: "where is the packages cache for typst ?"
@@ -41,3 +44,5 @@ runs:
       with:
         path: ${{ env.TYPST_CACHE }}
         key: ${{ runner.os }}-typst-1
+        restore-keys: |
+          ${{ runner.os }}-typst-
