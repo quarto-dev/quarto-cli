@@ -236,7 +236,7 @@ function parse_floatreftargets()
     end
     local caption = refCaptionFromDiv(div)
     if caption ~= nil then
-      div.content:remove(#div.content)
+      div.content:remove()  -- drop the last element
     elseif div.attributes[caption_attr_key] ~= nil then
       caption = pandoc.Plain(string_to_quarto_ast_inlines(div.attributes[caption_attr_key]))
       div.attributes[caption_attr_key] = nil
@@ -246,10 +246,10 @@ function parse_floatreftargets()
       local found_caption = false
       content = _quarto.ast.walk(content, {
         Table = function(table)
-          if table.caption.long ~= nil then
+          -- check if caption is non-empty
+          if table.caption.long and next(table.caption.long) then
             found_caption = true
             caption = table.caption.long[1] -- what if there's more than one entry here?
-            table.caption.long = nil
             return table
           end
         end
