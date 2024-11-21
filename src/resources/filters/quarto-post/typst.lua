@@ -140,7 +140,7 @@ function render_typst_fixups()
       end
 
       img.attributes["fig-align"] = nil
-      return pandoc.Inlines({
+      return pandoc.Plain({
         pandoc.RawInline("typst", "#align(" .. align .. ")["),
         img,
         pandoc.RawInline("typst", "]"),
