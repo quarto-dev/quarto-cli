@@ -416,13 +416,15 @@ _quarto.ast = {
       -- luacov: enable
     end
 
-    local forwarder = { }
+    local forwarder
     if tisarray(handler.slots) then
+      forwarder = pandoc.List{}
       for i, slot in ipairs(handler.slots) do
         forwarder[slot] = i
       end
-    else
-      forwarder = handler.slots
+    elseif handler.slots ~= nil then
+      warn('Expected `slots` to be either an array or nil, got ' ..
+           tostring(handler.slots))
     end
 
     quarto[handler.ast_name] = function(params)
