@@ -494,7 +494,7 @@ function parse_floatreftargets()
       end
       
       -- we've parsed the caption, so we can remove it from the table
-      el.caption.long = pandoc.List({})
+      el.caption.long = pandoc.Blocks({})
 
       if label == "" then
         return nil

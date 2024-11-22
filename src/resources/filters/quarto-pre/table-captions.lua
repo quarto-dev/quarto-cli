@@ -140,7 +140,7 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           cap:insert(pandoc.Str("{#" .. tblLabels[idx] .. "}"))
         end
         idx = idx + 1
-        el.caption.long = pandoc.Plain(cap)
+        el.caption.long = pandoc.Blocks{pandoc.Plain(cap)}
         return el
       end
     end,
