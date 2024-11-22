@@ -1,6 +1,10 @@
 -- _utils.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
+--- The pandoc module. Imported to avoid 'no such variable'
+--- warnings in some editors.
+local pandoc = require 'pandoc'
+
 -- improved formatting for dumping tables and quarto's emulated pandoc nodes
 function tdump (tbl, raw)
 
