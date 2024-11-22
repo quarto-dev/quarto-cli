@@ -269,7 +269,7 @@ $font-weight-monospace-inline: $font-weight-monospace !default;
 $code-block-font-size: $code-font-size !default;
 $code-inline-font-size: $code-font-size !default;
 $link-weight: $font-weight-base !default;
-$link-decoration: inherit !default;
+$link-decoration: null !default;
 
 // border colors
 $border-color: mix(
