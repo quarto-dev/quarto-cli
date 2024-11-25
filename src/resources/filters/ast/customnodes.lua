@@ -336,16 +336,21 @@ _quarto.ast = {
           return
         end
         local node = node_accessor(table)
-        local t = pandoc.utils.type(value)
-        quarto_assert(t ~= 'Div' and t ~= 'Span', "")
+        local valtype = pandoc.utils.type(value)
+        quarto_assert(valtype ~= 'Div' and valtype ~= 'Span', "")
         if index > #node.content then
           _quarto.ast.grow_scaffold(node, index)
         end
-        local pt = pandoc.utils.type(value)
-        if pt == "Block" or pt == "Inline" then
-          node.content[index].content = {value}
+        local inner_node = node.content[index]
+        local innertype = pandoc.utils.type(inner_node)
+        if innertype == 'Block' then
+          inner_node.content = quarto.utils.as_blocks(value)
+        elseif innertype == 'Inline' then
+          inner_node.content = quarto.utils.as_inlines(value)
         else
-          node.content[index].content = value
+          warn(debug.traceback(
+                 'Cannot find the right content type for value ' .. valtype))
+          inner_node.content = value
         end
       end
     }
