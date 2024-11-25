@@ -557,6 +557,32 @@ local function match(...)
   return match_fun(reset, table.unpack(result))
 end
 
+--- Returns `true` iff the given AST node is empty.
+-- A node is considered "empty" if it's an empty list, table, or a node
+-- without any text or nested AST nodes.
+local function is_empty_node (node)
+  if not node then
+    return true
+  elseif type(node) == 'table' then
+    -- tables are considered empty if they don't have any fields.
+    return not next(node)
+  elseif node.content then
+    return not next(node.content)
+  elseif node.caption then
+    -- looks like an image, figure, or table
+    if node.caption.long then
+      return not next(node.caption.long)
+    end
+    return not next(node.caption)
+  elseif node.text then
+    -- looks like a code node or text node
+    return node.text ~= ''
+  else
+    -- Not sure what this is, but it's probably not empty.
+    return false
+  end
+end
+
 return {
   dump = dump,
   type = get_type,
@@ -567,6 +593,7 @@ return {
   },
   as_inlines = as_inlines,
   as_blocks = as_blocks,
+  is_empty_node = is_empty_node,
   match = match,
   add_to_blocks = function(blocks, block)
     if pandoc.utils.type(blocks) ~= "Blocks" then
