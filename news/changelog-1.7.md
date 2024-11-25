@@ -9,3 +9,11 @@ All changes included in 1.7:
 ## `quarto check`
 
 - ([#11608](https://github.com/quarto-dev/quarto-cli/pull/11608)): Do not issue error message when calling `quarto check info`.
+
+## Lua Filters and extensions
+
+- ([#11526](https://github.com/quarto-dev/quarto-cli/pull/11526)):
+  General improvements to the style and robustness of Quarto's Lua code.
+  This also provides a new public function `quarto.utils.is_empty_node`
+  that allows to check whether a node is empty, i.e., whether it's an
+  empty list, has no child nodes, and contains no text.
