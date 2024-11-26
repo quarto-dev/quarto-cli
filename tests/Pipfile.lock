@@ -1871,7 +1871,7 @@
                 "sha256:ed050aaf3896945bfaae93bdf337e53ef3f29115a9d9c153e402985115cd9c8e"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==0.34.0"
+            "version": "==0.40.0"
         },
         "tabulate": {
             "hashes": [
