@@ -801,7 +801,7 @@
                 "sha256:fa3e8c18b804eac04e51ceebd9dd3dd396e08106816f0d09cc426799d7087632"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==4.1.1"
+            "version": "==4.2.5"
         },
         "jupyterlab-pygments": {
             "hashes": [
