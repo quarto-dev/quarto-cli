@@ -259,56 +259,85 @@ tappend(quarto_normalize_filters, quarto_ast_pipeline())
 
 local quarto_pre_filters = {
   -- quarto-pre
-  { name = "flags", filter = compute_flags() },
+  { name = "flags",
+    filter = compute_flags()
+  },
 
-  { name = "pre-server-shiny", filter = server_shiny() },
+  { name = "pre-server-shiny",
+    filter = server_shiny(),
+    traverser = 'jog',
+  },
 
   -- https://github.com/quarto-dev/quarto-cli/issues/5031
   -- recompute options object in case user filters have changed meta
   -- this will need to change in the future; users will have to indicate
   -- when they mutate options
-  { name = "pre-read-options-again", filter = init_options() },
+  { name = "pre-read-options-again",
+    filter = init_options(),
+    traverser = 'jog',
+  },
 
-  { name = "pre-bibliography-formats", filter = bibliography_formats() }, 
-  
+  { name = "pre-bibliography-formats",
+    filter = bibliography_formats(),
+    traverser = 'jog',
+  },
+
   { name = "pre-shortcodes-filter", 
     filter = shortcodes_filter(),
-    flags = { "has_shortcodes" } },
+    flags = { "has_shortcodes" },
+    traverser = 'jog',
+  },
 
   { name = "pre-contents-shortcode-filter",
     filter = contents_shortcode_filter(),
-    flags = { "has_contents_shortcode" } },
+    flags = { "has_contents_shortcode" },
+    traverser = 'jog',
+  },
 
   { name = "pre-combined-hidden",
     filter = combineFilters({
       hidden(),
       content_hidden()
     }),
-    flags = { "has_hidden", "has_conditional_content" } },
+    flags = { "has_hidden", "has_conditional_content" },
+    traverser = 'jog',
+  },
 
-  { name = "pre-table-captions", 
+  { name = "pre-table-captions",
     filter = table_captions(),
-    flags = { "has_table_captions" } },
- 
-  { name = "pre-code-annotations", 
+    flags = { "has_table_captions" },
+    traverser = 'jog',
+  },
+
+  { name = "pre-code-annotations",
     filter = code_annotations(),
-    flags = { "has_code_annotations" } },
-  
-  { name = "pre-code-annotations-meta", filter = code_meta() },
+    flags = { "has_code_annotations" },
+    traverser = 'jog',
+  },
 
-  { name = "pre-unroll-cell-outputs", 
+  { name = "pre-code-annotations-meta",
+    filter = code_meta(),
+    traverser = 'jog',
+  },
+
+  { name = "pre-unroll-cell-outputs",
     filter = unroll_cell_outputs(),
-    flags = { "needs_output_unrolling" } },
+    flags = { "needs_output_unrolling" },
+    traverser = 'jog',
+  },
 
-  { name = "pre-output-location", 
-    filter = output_location()
+  { name = "pre-output-location",
+    filter = output_location(),
+    traverser = 'jog',
   },
 
   { name = "pre-scope-resolution",
-    filter = resolve_scoped_elements()
+    filter = resolve_scoped_elements(),
+    traverser = 'jog',
   },
 
-  { name = "pre-combined-figures-theorems-etc", filter = combineFilters({
+  { name = "pre-combined-figures-theorems-etc",
+    filter = combineFilters({
     file_metadata(),
     index_book_file_targets(),
     book_numbering(),
@@ -323,15 +352,23 @@ local quarto_pre_filters = {
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
     table_respecify_gt_css(),
-    -- table_colwidth(), 
+    -- table_colwidth(),
     table_classes(),
     input_traits(),
     resolve_book_file_targets(),
     project_paths()
-  }) },
+  }),
+    traverser = 'jog',
+  },
 
-  { name = "pre-quarto-pre-meta-inject", filter = quarto_pre_meta_inject() },
-  { name = "pre-write-results", filter = write_results() },
+  { name = "pre-quarto-pre-meta-inject",
+    filter = quarto_pre_meta_inject(),
+    traverser = 'jog',
+  },
+  { name = "pre-write-results",
+    filter = write_results(),
+    traverser = 'jog',
+  },
 }
 
 local quarto_post_filters = {
