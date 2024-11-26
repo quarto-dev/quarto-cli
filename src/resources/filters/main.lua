@@ -233,16 +233,26 @@ local quarto_init_filters = {
 
 local quarto_normalize_filters = {
   { name = "normalize-draft", 
-    filter = normalize_draft() },
+    filter = normalize_draft(),
+    traverser = 'jog',
+  },
 
-  { name = "normalize", filter = filterIf(function()
-    if quarto_global_state.active_filters == nil then
-      return false
-    end
-    return quarto_global_state.active_filters.normalization
-  end, normalize_filter()) },
+  { name = "normalize",
+    filter = filterIf(
+      function()
+        if quarto_global_state.active_filters == nil then
+          return false
+        end
+        return quarto_global_state.active_filters.normalization
+      end,
+      normalize_filter()),
+    traverser = 'jog',
+  },
 
-  { name = "normalize-capture-reader-state", filter = normalize_capture_reader_state() }
+  { name = "normalize-capture-reader-state",
+    filter = normalize_capture_reader_state(),
+    traverser = 'jog',
+  }
 }
 
 tappend(quarto_normalize_filters, quarto_ast_pipeline())
