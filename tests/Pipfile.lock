@@ -1630,7 +1630,7 @@
                 "sha256:942c5a758f98d790eaed1a29cb6eefc7ffb0d1cf7af05c3d2791656dbd6ad1e1"
             ],
             "markers": "python_version >= '3.7'",
-            "version": "==2.31.0"
+            "version": "==2.32.0"
         },
         "rfc3339-validator": {
             "hashes": [
