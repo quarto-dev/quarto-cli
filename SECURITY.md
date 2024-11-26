@@ -13,5 +13,4 @@ currently being supported with security updates.
 | < 4.0   | :x:                |
 
 ## Reporting a Vulnerability
-
-www.bounty.com Lütfen Güvanlik Açıklarını adrese bildirin.
+ercetinguler@hotmail.com Lütfen Güvanlik Açıklarını adrese bildirin.
