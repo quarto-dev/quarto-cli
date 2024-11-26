@@ -16,7 +16,7 @@ import {
 } from "../../verify.ts";
 import { safeRemoveSync } from "../../../src/core/path.ts";
 import { safeExistsSync } from "../../../src/core/path.ts";
-import { assert } from "../../../src/vendor/deno.land/std@0.217.0/assert/assert.ts";
+import { assert } from "testing/asserts";
 
 export function testSimpleIsolatedRender(
   file: string,
