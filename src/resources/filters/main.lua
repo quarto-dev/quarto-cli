@@ -580,28 +580,40 @@ local quarto_layout_filters = {
 
 local quarto_crossref_filters = {
 
-  { name = "crossref-preprocess-floats", filter = crossref_mark_subfloats(),
+  { name = "crossref-preprocess-floats",
+    filter = crossref_mark_subfloats(),
+    traverser = 'jog',
   },
-
   { name = "crossref-preprocessTheorems", 
     filter = crossref_preprocess_theorems(),
-    flags = { "has_theorem_refs" } },
-
-  { name = "crossref-combineFilters", filter = combineFilters({
-    file_metadata(),
-    qmd(),
-    sections(),
-    crossref_figures(),
-    equations(),
-    crossref_theorems(),
-    crossref_callouts(),
-  })},
-
-  { name = "crossref-resolveRefs", filter = resolveRefs(),
-    flags = { "has_cites" } },
-    
-  { name = "crossref-crossrefMetaInject", filter = crossrefMetaInject() },
-  { name = "crossref-writeIndex", filter = writeIndex() },
+    flags = { "has_theorem_refs" },
+    traverser = 'jog',
+  },
+  { name = "crossref-combineFilters",
+    filter = combineFilters{
+      file_metadata(),
+      qmd(),
+      sections(),
+      crossref_figures(),
+      equations(),
+      crossref_theorems(),
+      crossref_callouts(),
+    },
+    traverser = 'jog',
+  },
+  { name = "crossref-resolveRefs",
+    filter = resolveRefs(),
+    flags = { "has_cites" },
+    traverser = 'jog',
+  },
+  { name = "crossref-crossrefMetaInject",
+    filter = crossrefMetaInject(),
+    traverser = 'jog',
+  },
+  { name = "crossref-writeIndex",
+    filter = writeIndex(),
+    traverser = 'jog',
+  },
 }
 
 local quarto_filter_list = {}
