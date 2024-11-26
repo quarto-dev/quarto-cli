@@ -1912,7 +1912,7 @@
                 "sha256:fd03192e287fbd0899dd8f81c6fb9cbbc69194d2074b38f384cb6fa72b80e9c2"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==6.4"
+            "version": "==6.4.2"
         },
         "traitlets": {
             "hashes": [
