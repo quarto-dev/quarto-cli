@@ -541,7 +541,7 @@ async function processCssIntoExtras(
       } else {
         const hash = await md5HashBytes(new TextEncoder().encode(cleanedCss));
         newCssPath = temp.createFile({ suffix: `-${hash}.css` });
-        writeTextFileSyncPreserveMode(newCssPath, cleanedCss);
+        writeTextFileSyncPreserveMode(cssPath, newCssPath, cleanedCss);
       }
 
       return {

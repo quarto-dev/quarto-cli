@@ -5,7 +5,8 @@
  */
 
 export function writeTextFileSyncPreserveMode(
-  path: string,
+  pathWithModeToPreserve: string,
+  pathToWrite: string,
   data: string,
   options?: Deno.WriteFileOptions | undefined,
 ): void {
@@ -13,7 +14,7 @@ export function writeTextFileSyncPreserveMode(
   // See https://github.com/quarto-dev/quarto-cli/issues/660
   let mode;
   if (Deno.build.os !== "windows") {
-    const stat = Deno.statSync(path);
+    const stat = Deno.statSync(pathWithModeToPreserve);
     if (stat.mode !== null) {
       mode = stat.mode;
     }
@@ -23,5 +24,5 @@ export function writeTextFileSyncPreserveMode(
     options = { ...options, mode }; // Merge provided options with mode
   }
 
-  Deno.writeTextFileSync(path, data, options);
+  Deno.writeTextFileSync(pathToWrite, data, options);
 }

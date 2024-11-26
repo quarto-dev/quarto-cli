@@ -145,7 +145,7 @@ export async function compileSass(
     '// quarto-scss-analysis-annotation { "origin": null }',
   ].join("\n\n");
 
-  const saveScssPrefix = Deno.env.get("QUARTO_SAVE_SCSS")
+  const saveScssPrefix = Deno.env.get("QUARTO_SAVE_SCSS");
   if (saveScssPrefix) {
     // Save the SCSS before compilation
     const counterValue = counter++;
@@ -430,5 +430,5 @@ export function cleanSourceMappingUrl(cssPath: string): void {
     kSourceMappingRegexes[1],
     "",
   );
-  writeTextFileSyncPreserveMode(cssPath, cleaned.trim());
+  writeTextFileSyncPreserveMode(cssPath, cssPath, cleaned.trim());
 }
