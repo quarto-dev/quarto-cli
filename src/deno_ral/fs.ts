@@ -124,3 +124,19 @@ export function safeRemoveDirSync(
   }
   return safeRemoveSync(path, { recursive: true });
 }
+
+/**
+ * Obtain the mode of a file in a windows-safe way.
+ *
+ * @param path The path to the file.
+ *
+ * @returns The mode of the file, or `undefined` if the mode cannot be obtained.
+ */
+export function safeModeFromFile(path: string): number | undefined {
+  if (Deno.build.os !== "windows") {
+    const stat = Deno.statSync(path);
+    if (stat.mode !== null) {
+      return stat.mode;
+    }
+  }
+}

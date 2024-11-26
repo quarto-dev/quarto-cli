@@ -46,6 +46,7 @@ import { dirname } from "../../deno_ral/path.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { typstBinaryPath } from "../../core/typst.ts";
 import { quartoCacheDir } from "../../core/appdirs.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 
 const kIndent = "      ";
 
@@ -176,7 +177,7 @@ async function checkInstall(services: RenderServices) {
     }
   }
   info(`${kIndent}Path: ${quartoConfig.binPath()}`);
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     try {
       const codePage = readCodePage();
       clearCodePageCache();

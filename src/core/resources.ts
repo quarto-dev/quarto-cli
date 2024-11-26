@@ -15,6 +15,7 @@ import {
   kHKeyLocalMachine,
   registryReadString,
 } from "./registry.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export function resourcePath(resource?: string): string {
   const sharePath = quartoConfig.sharePath();
@@ -47,7 +48,7 @@ export function toolsPath(binary: string, defaultPath?: string): string {
   if (binaryPath) {
     if (!existsSync(binaryPath)) {
       // If this is windows, we shouldn't warn if there is an 'exe' version of the path
-      if (Deno.build.os === "windows") {
+      if (isWindows) {
         const exeExists = !binary.endsWith(".exe") ||
           [binary + ".exe"].some((path) => {
             return existsSync(path);
@@ -76,9 +77,7 @@ export function toolsPath(binary: string, defaultPath?: string): string {
 }
 
 export function pandocBinaryPath(): string {
-  return Deno.build.os === "windows"
-    ? toolsPath("pandoc")
-    : architectureToolsPath("pandoc");
+  return isWindows ? toolsPath("pandoc") : architectureToolsPath("pandoc");
 }
 
 const _r_binary_path: Map<string, string> = new Map();
@@ -123,7 +122,7 @@ export async function rBinaryPath(
       debug(`Found in ${rHomeBin}`);
       return setPath(rHomeBin);
     }
-    if (Deno.build.os === "windows") {
+    if (isWindows) {
       // Some installation have binaries in the sub folder only
       rHomeBin = join(rHome, "bin", "x64", binary);
       if (safeExistsSync(rHomeBin)) {
@@ -142,7 +141,7 @@ export async function rBinaryPath(
   }
 
   // on windows check the registry for a current version
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     // determine current version
     debug(`Looking for '${binary}' in Windows Registry.`);
     const version = await registryReadString(

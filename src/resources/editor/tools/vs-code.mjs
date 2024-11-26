@@ -24301,7 +24301,7 @@ var ANSI_PATTERN = new RegExp(
 // ../errors.ts
 function platformHasNonAsciiCharacters() {
   try {
-    return Deno.build.os !== "windows";
+    return !isWindows;
   } catch (_e) {
     return false;
   }

@@ -4,6 +4,7 @@ import { ExecuteOutput, testQuartoCmd, Verify } from "../../test.ts";
 import { assert } from "testing/asserts";
 import { ensureDirSync, existsSync } from "../../../src/deno_ral/fs.ts";
 import { docs } from "../../utils.ts";
+import { isLinux } from "../../../src/deno_ral/platform.ts";
 
 const verifySubDirCount = (dir: string, count: number): Verify => {
   return {
@@ -70,7 +71,7 @@ const extUrls = [
   "https://github.com/quarto-ext/lightbox/archive/refs/heads/cool.tar.gz",
 ];
 
-if (Deno.build.os !== "linux") {
+if (!isLinux) {
   extUrls.push(
     ...[
       "https://github.com/quarto-ext/lightbox/archive/refs/tags/v0.1.4.zip",

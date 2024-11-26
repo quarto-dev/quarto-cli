@@ -7,7 +7,7 @@
 import { isAbsolute, join } from "../../deno_ral/path.ts";
 import { existsSync, expandGlobSync } from "../../deno_ral/fs.ts";
 
-import { isWindows } from "../platform.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 import { execProcess } from "../process.ts";
 import { resourcePath } from "../resources.ts";
 import { readYamlFromString } from "../yaml.ts";
@@ -42,7 +42,7 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
     }
 
     // if we are on windows and have PY_PYTHON defined then use the launcher
-    if (isWindows() && pyPython()) {
+    if (isWindows && pyPython()) {
       const pyLauncherCaps = await getPyLauncherJupyterCapabilities();
       if (pyLauncherCaps) {
         jupyterCapsCache.set(language, pyLauncherCaps);
@@ -56,7 +56,7 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
       if (condaCaps?.conda) {
         jupyterCapsCache.set(language, condaCaps);
       } else {
-        const caps = isWindows()
+        const caps = isWindows
           ? await getPyLauncherJupyterCapabilities()
           : await getJupyterCapabilities(["python3"]);
         if (caps) {
@@ -82,9 +82,7 @@ const S_IXUSR = 0o100;
 async function getVerifiedJuliaCondaJupyterCapabilities() {
   let juliaHome = Deno.env.get("JULIA_HOME");
   if (!juliaHome) {
-    const home = isWindows()
-      ? Deno.env.get("USERPROFILE")
-      : Deno.env.get("HOME");
+    const home = isWindows ? Deno.env.get("USERPROFILE") : Deno.env.get("HOME");
     if (home) {
       juliaHome = join(home, ".julia");
     }
@@ -92,7 +90,7 @@ async function getVerifiedJuliaCondaJupyterCapabilities() {
 
   if (juliaHome) {
     const juliaCondaPath = join(juliaHome, "conda", "3");
-    const bin = isWindows()
+    const bin = isWindows
       ? ["python3.exe", "python.exe"]
       : [join("bin", "python3"), join("bin", "python")];
 
@@ -172,7 +170,7 @@ export async function jupyterCapabilitiesNoConda() {
     return caps;
   }
 
-  if (isWindows()) {
+  if (isWindows) {
     return await getPyLauncherJupyterCapabilities();
   } else {
     const caps = await getJupyterCapabilities(["python3"]);

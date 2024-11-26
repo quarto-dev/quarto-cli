@@ -19,8 +19,8 @@ import { sassCache } from "./sass/cache.ts";
 import { cssVarsBlock } from "./sass/add-css-vars.ts";
 import { md5HashBytes } from "./hash.ts";
 import { kSourceMappingRegexes } from "../config/constants.ts";
-import { writeTextFileSyncPreserveMode } from "./write.ts";
 import { quartoConfig } from "../core/quarto.ts";
+import { safeModeFromFile } from "../deno_ral/fs.ts";
 
 export interface SassVariable {
   name: string;
@@ -145,7 +145,7 @@ export async function compileSass(
     '// quarto-scss-analysis-annotation { "origin": null }',
   ].join("\n\n");
 
-  const saveScssPrefix = Deno.env.get("QUARTO_SAVE_SCSS")
+  const saveScssPrefix = Deno.env.get("QUARTO_SAVE_SCSS");
   if (saveScssPrefix) {
     // Save the SCSS before compilation
     const counterValue = counter++;
@@ -430,5 +430,7 @@ export function cleanSourceMappingUrl(cssPath: string): void {
     kSourceMappingRegexes[1],
     "",
   );
-  writeTextFileSyncPreserveMode(cssPath, cleaned.trim());
+  Deno.writeTextFileSync(cssPath, cleaned.trim(), {
+    mode: safeModeFromFile(cssPath),
+  });
 }
