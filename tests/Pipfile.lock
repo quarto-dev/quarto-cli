@@ -614,7 +614,7 @@
                 "sha256:c05567e9c24a6b9faaa835c4821bad0590fbb9d5779e7caa6e1cc4978e7eb24f"
             ],
             "markers": "python_version >= '3.5'",
-            "version": "==3.6"
+            "version": "==3.7"
         },
         "importlib-metadata": {
             "hashes": [
