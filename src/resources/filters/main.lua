@@ -260,7 +260,8 @@ tappend(quarto_normalize_filters, quarto_ast_pipeline())
 local quarto_pre_filters = {
   -- quarto-pre
   { name = "flags",
-    filter = compute_flags()
+    filters = compute_flags(),
+    traverser = 'jog',
   },
 
   { name = "pre-server-shiny",
