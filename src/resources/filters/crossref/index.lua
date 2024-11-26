@@ -65,9 +65,9 @@ end
 -- add an entry to the index
 function indexAddEntry(label, parent, order, caption, appendix)
   if caption ~= nil then
-    caption = pandoc.List(caption)
+    caption = quarto.utils.as_blocks(caption)
   else
-    caption = pandoc.List({})
+    caption = pandoc.Blocks({})
   end
   crossref.index.entries[label] = {
     parent = parent,
