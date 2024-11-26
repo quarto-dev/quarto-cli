@@ -7,17 +7,13 @@
 import { docs } from "../../utils.ts";
 import { test } from "../../test.ts";
 import { assertEquals } from "testing/asserts";
+import { isWindows } from "../../../src/deno_ral/platform.ts";
 
 async function runEditorSupportCrossref(doc: string) {
-  let cmdLine: string;
-  switch (Deno.build.os) {
-    case "windows":
-      cmdLine = "../package/dist/bin/quarto.cmd";
-      break;
-    default:
-      cmdLine = "../package/dist/bin/quarto";
-      break;
-  }
+  const cmdLine: string = isWindows ?
+    "../package/dist/bin/quarto.cmd" :
+    "../package/dist/bin/quarto";
+
   const cmd = new Deno.Command(cmdLine, {
     args: ["editor-support", "crossref"],
     stdin: "piped",

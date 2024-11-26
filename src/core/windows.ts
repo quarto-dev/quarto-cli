@@ -15,6 +15,7 @@ import {
   kHKeyLocalMachine,
   registryReadString,
 } from "./registry.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export async function readRegistryKey(
   registryPath: string,
@@ -120,8 +121,9 @@ export function readCodePage() {
 export function requireQuoting(
   args: string[],
 ) {
+  // TODO - we probably shouldn't be calling this if we're not on windows
   let requireQuoting = false;
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     // On Windows, we need to check if arguments may need quoting to avoid issue with Deno.Run()
     // https://github.com/quarto-dev/quarto-cli/issues/336
     const shellCharReg = new RegExp("[ <>()|\\:&;#?*']");

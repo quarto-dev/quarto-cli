@@ -5,6 +5,7 @@
 *
 */
 import { info } from "../../../src/deno_ral/log.ts";
+import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { Configuration } from "../common/config.ts";
 
 export async function bundle(
@@ -132,7 +133,7 @@ export function updateDenoPath(installPath: string, _config: Configuration) {
     if (!denoExecPath) {
       throw Error("QUARTO_DENO is not defined");
     }
-    const finalTxt = Deno.build.os === "windows"
+    const finalTxt = isWindows
       ? installTxt.replace(
         /deno.exe /g,
         denoExecPath + " ",

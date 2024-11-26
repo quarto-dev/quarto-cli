@@ -23,8 +23,6 @@ import { TempContext } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 import { cleanSourceMappingUrl, compileSass } from "../../core/sass.ts";
 
-import { kSourceMappingRegexes } from "../../config/constants.ts";
-
 import { kQuartoHtmlDependency } from "../../format/html/format-html-constants.ts";
 import {
   kAbbrevs,
@@ -40,8 +38,8 @@ import { kMinimal } from "../../format/html/format-html-shared.ts";
 import { kSassBundles } from "../../config/types.ts";
 import { md5HashBytes } from "../../core/hash.ts";
 import { InternalError } from "../../core/lib/error.ts";
-import { writeTextFileSyncPreserveMode } from "../../core/write.ts";
 import { assert } from "testing/asserts";
+import { safeModeFromFile } from "../../deno_ral/fs.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -541,7 +539,9 @@ async function processCssIntoExtras(
       } else {
         const hash = await md5HashBytes(new TextEncoder().encode(cleanedCss));
         newCssPath = temp.createFile({ suffix: `-${hash}.css` });
-        writeTextFileSyncPreserveMode(newCssPath, cleanedCss);
+        Deno.writeTextFileSync(newCssPath, cleanedCss, {
+          mode: safeModeFromFile(cssPath),
+        });
       }
 
       return {

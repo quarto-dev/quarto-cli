@@ -4,6 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { isWindows } from "../deno_ral/platform.ts";
+
 export function getenv(name: string, defaultValue?: string) {
   const value = Deno.env.get(name);
   if (value === undefined) {
@@ -20,7 +22,7 @@ export function getenv(name: string, defaultValue?: string) {
 export function withPath(
   paths: { append?: string[]; prepend?: string[] },
 ): string {
-  const delimiter = Deno.build.os === "windows" ? ";" : ":";
+  const delimiter = isWindows ? ";" : ":";
 
   const currentPath = Deno.env.get("PATH") || "";
   if (paths.append !== undefined && paths.prepend !== undefined) {

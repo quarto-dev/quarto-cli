@@ -128,6 +128,7 @@ import {
   runExternalPreviewServer,
 } from "../../preview/preview-server.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -435,7 +436,7 @@ function externalPreviewServer(
 
   // parse command line args and interpolate host and port
   const cmd = serve.cmd.split(/[\t ]/).map((arg, index) => {
-    if (Deno.build.os === "windows" && index === 0 && arg === "npm") {
+    if (isWindows && index === 0 && arg === "npm") {
       return "npm.cmd";
     } else if (arg === "{host}") {
       return options.host || kLocalhost;

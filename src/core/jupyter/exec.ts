@@ -1,11 +1,10 @@
 /*
-* exec.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * exec.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { isWindows } from "../platform.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 import { jupyterCapabilities } from "./capabilities.ts";
 import { JupyterCapabilities, JupyterKernelspec } from "./types.ts";
 
@@ -23,7 +22,7 @@ export function pythonExecForCaps(
 ) {
   if (caps?.pyLauncher) {
     return ["py"];
-  } else if (isWindows()) {
+  } else if (isWindows) {
     return [binaryOnly ? "python" : caps?.executable || "python"];
   } else {
     return [binaryOnly ? "python3" : caps?.executable || "python3"];

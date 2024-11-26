@@ -15,6 +15,7 @@ import { onActiveProfileChanged } from "../project/project-profile.ts";
 import { onDotenvChanged } from "../quarto-core/dotenv.ts";
 import { normalizePath, safeExistsSync } from "./path.ts";
 import { buildQuartoPreviewJs } from "./previewjs.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export const kLocalDevelopment = "99.9.9";
 
@@ -46,7 +47,7 @@ export const quartoConfig = {
   cliPath: () => {
     // full path to quarto, quarto.cmd or quarto.exe depending on OS
     const binPath = quartoConfig.binPath();
-    if (Deno.build.os !== "windows") {
+    if (!isWindows) {
       return join(binPath, "quarto");
     }
     // WINDOWS

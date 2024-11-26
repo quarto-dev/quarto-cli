@@ -35,6 +35,7 @@ import {
 
 import { ExecuteOptions } from "../types.ts";
 import { normalizePath } from "../../core/path.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 
 export interface JupyterExecuteOptions extends ExecuteOptions {
   kernelspec: JupyterKernelspec;
@@ -72,7 +73,7 @@ export async function executeKernelKeepalive(
   // if we are in debug mode then tail follow the log file
   let serverLogProcess: Deno.Process | undefined;
   if (options.format.execute[kExecuteDebug]) {
-    if (Deno.build.os !== "windows") {
+    if (!isWindows) {
       serverLogProcess = Deno.run({
         cmd: ["tail", "-F", "-n", "0", kernelLogFile()],
       });
@@ -392,7 +393,7 @@ async function connectToKernel(
   // note also that the entire preview subsystem requires the ability to bind to tcp ports
   // so this isn't really taking us into new compatibility waters
   /*
-  const type = Deno.build.os === "windows" || transportFile.length >= 100
+  const type = isWindows || transportFile.length >= 100
     ? "tcp"
     : "unix";
   */

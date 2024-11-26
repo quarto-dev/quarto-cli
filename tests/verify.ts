@@ -18,7 +18,7 @@ import { ExecuteOutput, Verify } from "./test.ts";
 import { outputForInput } from "./utils.ts";
 import { unzip } from "../src/core/zip.ts";
 import { dirAndStem, which } from "../src/core/path.ts";
-import { isWindows } from "../src/core/platform.ts";
+import { isWindows } from "../src/deno_ral/platform.ts";
 import { execProcess } from "../src/core/process.ts";
 import { canonicalizeSnapshot, checkSnapshot } from "./verify-snapshot.ts";
 
@@ -871,7 +871,7 @@ export const ensureXmlValidatesWithXsd = (
   return {
     name: "Validating XML",
     verify: async (_output: ExecuteOutput[]) => {
-      if (!isWindows()) {
+      if (!isWindows) {
         const cmd = ["xmllint", "--noout", "--valid", file, "--path", xsdPath];
         const runOptions: Deno.RunOptions = {
           cmd,
@@ -894,7 +894,7 @@ export const ensureMECAValidates = (
   return {
     name: "Validating MECA Archive",
     verify: async (_output: ExecuteOutput[]) => {
-      if (Deno.build.os !== "windows") {
+      if (!isWindows) {
         const hasNpm = await which("npm");
         if (hasNpm) {
           const hasMeca = await which("meca");

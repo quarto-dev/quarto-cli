@@ -9,6 +9,7 @@
 import * as colors from "./external/colors.ts";
 import { MappedString } from "./text-types.ts";
 import { ErrorLocation, TidyverseError } from "./errors-types.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 
 // tidyverse error message styling
 // https://style.tidyverse.org/error-messages.html
@@ -24,7 +25,7 @@ import { ErrorLocation, TidyverseError } from "./errors-types.ts";
 
 function platformHasNonAsciiCharacters(): boolean {
   try {
-    return Deno.build.os !== "windows";
+    return !isWindows;
   } catch (_e) {
     return false;
   }

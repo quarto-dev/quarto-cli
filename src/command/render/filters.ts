@@ -92,6 +92,7 @@ import { shortUuid } from "../../core/uuid.ts";
 import { isServerShinyPython } from "../../core/render.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
 import { kTocIndent } from "../../config/constants.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -700,7 +701,7 @@ async function extensionShortcodes(options: PandocOptions) {
 
 function initFilterParams(dependenciesFile: string) {
   const params: Metadata = {};
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     const value = readCodePage();
     if (value) {
       debug("Windows: Using code page " + value);

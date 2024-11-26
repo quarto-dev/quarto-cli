@@ -208,6 +208,7 @@ import {
   BrandFontGoogle,
 } from "../../resources/types/schema-types.ts";
 import { kFieldCategories } from "../../project/types/website/listing/website-listing-shared.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -855,7 +856,7 @@ export async function runPandoc(
   // Attempt to cache the code page, if this windows.
   // We cache the code page to prevent looking it up
   // in the registry repeatedly (which triggers MS Defender)
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     await cacheCodePage();
   }
 
@@ -1271,7 +1272,7 @@ export async function runPandoc(
     // Since this render wasn't successful, clear the code page cache
     // (since the code page could've changed and we could be caching the
     // wrong value)
-    if (Deno.build.os === "windows") {
+    if (isWindows) {
       clearCodePageCache();
     }
 
