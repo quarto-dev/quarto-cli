@@ -335,75 +335,154 @@ local quarto_pre_filters = {
 }
 
 local quarto_post_filters = {
-  { name = "post-cell-cleanup", 
+  { name = "post-cell-cleanup",
     filter = cell_cleanup(),
-    flags = { "has_output_cells" }
+    flags = { "has_output_cells" },
+    traverser = 'jog',
   },
-  { name = "post-combined-cites-bibliography", 
-    filter = combineFilters({
+  { name = "post-combined-cites-bibliography",
+    filter = combineFilters{
       indexCites(),
       bibliography()
-    })
+    },
+    traverser = 'jog',
   },
-  { name = "post-landscape-div", 
+  { name = "post-landscape-div",
     filter = landscape_div(),
-    flags = { "has_landscape" }
+    flags = { "has_landscape" },
+    traverser = 'jog',
   },
-  { name = "post-ipynb", filters = ipynb()},
-  { name = "post-figureCleanupCombined", filter = combineFilters({
-    latexDiv(),
-    responsive(),
-    quartoBook(),
-    reveal(),
-    tikz(),
-    pdfImages(),
-    delink(),
-    figCleanup(),
-    responsive_table(),
-  }) },
-
-  { name = "post-postMetaInject", filter = quartoPostMetaInject() },
-  
-  { name = "post-render-jats", filter = filterIf(function()
-    return quarto_global_state.active_filters.jats_subarticle == nil or not quarto_global_state.active_filters.jats_subarticle
-  end, jats()) },
-  { name = "post-render-jats-subarticle", filter = filterIf(function()
-    return quarto_global_state.active_filters.jats_subarticle ~= nil and quarto_global_state.active_filters.jats_subarticle
-  end, jatsSubarticle()) },
-
-  { name = "post-code-options", filter = filterIf(function() 
-    return param("clear-cell-options", false) == true
-  end, removeCodeOptions()) },
+  { name = "post-ipynb",
+    filters = ipynb(),
+    traverser = 'jog',
+  },
+  { name = "post-figureCleanupCombined",
+    filter = combineFilters{
+      latexDiv(),
+      responsive(),
+      quartoBook(),
+      reveal(),
+      tikz(),
+      pdfImages(),
+      delink(),
+      figCleanup(),
+      responsive_table(),
+    },
+    traverser = 'jog',
+  },
+  { name = "post-postMetaInject",
+    filter = quartoPostMetaInject(),
+    traverser = 'jog',
+  },
+  { name = "post-render-jats",
+    filter = filterIf(
+      function()
+        return quarto_global_state.active_filters.jats_subarticle == nil or
+          not quarto_global_state.active_filters.jats_subarticle
+      end,
+      jats()
+    ),
+    traverser = 'jog',
+  },
+  { name = "post-render-jats-subarticle",
+    filter = filterIf(
+      function()
+        return quarto_global_state.active_filters.jats_subarticle ~= nil and
+          quarto_global_state.active_filters.jats_subarticle
+      end,
+      jatsSubarticle()
+    ),
+    traverser = 'jog',
+  },
+  { name = "post-code-options",
+    filter = filterIf(
+      function() return param("clear-cell-options", false) == true end,
+      removeCodeOptions()
+    ),
+    traverser = 'jog',
+  },
 
   -- format-specific rendering
-  { name = "post-render-asciidoc", filter = render_asciidoc() },
-  { name = "post-render-latex", filter = render_latex() },
-  { name = "post-render-typst", filters = render_typst() },
-  { name = "post-render-dashboard", filters = render_dashboard() },
+  { name = "post-render-asciidoc", filter = render_asciidoc(),
+    traverser = 'jog',
+  },
+  { name = "post-render-latex", filter = render_latex(),
+    traverser = 'jog',
+  },
+  { name = "post-render-typst", filters = render_typst(),
+    traverser = 'jog',
+  },
+  { name = "post-render-dashboard", filters = render_dashboard(),
+    traverser = 'jog',
+  },
 
-  { name = "post-ojs", filter = ojs() },
+  { name = "post-ojs", filter = ojs(),
+    traverser = 'jog',
+  },
 
-  { name = "post-render-pandoc3-figure", filter = render_pandoc3_figure(),
-    flags = { "has_pandoc3_figure" } },
+  { name = "post-render-pandoc3-figure",
+    filter = render_pandoc3_figure(),
+    flags = { "has_pandoc3_figure" },
+    traverser = 'jog',
+  },
 
   -- extensible rendering
-  { name = "post-render_extended_nodes", filter = render_extended_nodes() },
+  { name = "post-render_extended_nodes",
+    filter = render_extended_nodes(),
+    traverser = 'jog',
+  },
 
   -- inject required packages post-rendering
-  { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() },
+  { name = "layout-meta-inject-latex-packages",
+    filter = layout_meta_inject_latex_packages(),
+    traverser = 'jog',
+  },
 
   -- format fixups post rendering
-  { name = "post-render-latex-fixups", filter = render_latex_fixups() },
-  { name = "post-render-html-fixups", filter = render_html_fixups() },
-  { name = "post-render-ipynb-fixups", filter = render_ipynb_fixups() },
-  { name = "post-render-typst-fixups", filter = render_typst_fixups() },
-  { name = "post-render-typst-css-to-props", filter = render_typst_css_property_processing() },
-  { name = "post-render-typst-brand-yaml", filter = render_typst_brand_yaml() },
-  { name = "post-render-gfm-fixups", filter = render_gfm_fixups() },
-  { name = "post-render-hugo-fixups", filter = render_hugo_fixups() },
-  { name = "post-render-email", filters = render_email() },
-  { name = "post-render-pptx-fixups", filter = render_pptx_fixups() },
-  { name = "post-render-revealjs-fixups", filter = render_reveal_fixups() }
+  { name = "post-render-latex-fixups",
+    filters = render_latex_fixups(),
+    traverser = 'jog',
+  },
+  { name = "post-render-html-fixups",
+    filter = render_html_fixups(),
+    traverser = 'jog',
+  },
+  { name = "post-render-ipynb-fixups",
+    filter = render_ipynb_fixups(),
+    traverser = 'jog',
+  },
+  { name = "post-render-typst-fixups",
+    filter = render_typst_fixups(),
+    traverser = 'jog',
+  },
+  { name = "post-render-typst-css-to-props",
+    filter = render_typst_css_property_processing(),
+    traverser = 'jog',
+  },
+  { name = "post-render-typst-brand-yaml",
+    filter = render_typst_brand_yaml(),
+    traverser = 'jog',
+  },
+  { name = "post-render-gfm-fixups",
+    filter = render_gfm_fixups(),
+    traverser = 'jog',
+  },
+  { name = "post-render-hugo-fixups",
+    filter = render_hugo_fixups(),
+    traverser = 'jog',
+  },
+  { name = "post-render-email",
+    filters = render_email(),
+    traverser = 'jog',
+  },
+  { name = "post-render-pptx-fixups",
+    filter = render_pptx_fixups(),
+    traverser = 'jog',
+  },
+  { name = "post-render-revealjs-fixups",
+    filter = render_reveal_fixups(),
+    traverser = 'jog',
+  }
 }
 
 local quarto_finalize_filters = {
