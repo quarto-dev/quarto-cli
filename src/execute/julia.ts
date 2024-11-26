@@ -45,6 +45,7 @@ import {
   executeResultEngineDependencies,
   executeResultIncludes,
 } from "./jupyter/jupyter.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
   julia_cmd: string;
@@ -277,9 +278,7 @@ async function startOrReuseJuliaServer(
         ],
         env: {
           // ignore the main env
-          "JULIA_LOAD_PATH": Deno.build.os === "windows"
-            ? "@;@stdlib"
-            : "@:@stdlib",
+          "JULIA_LOAD_PATH": isWindows ? "@;@stdlib" : "@:@stdlib",
         },
       });
       const qnrTestProc = qnrTestCommand.spawn();
@@ -302,7 +301,7 @@ async function startOrReuseJuliaServer(
     // tests on windows hang forever if we use the same launching mechanism as for Unix systems.
     // So we utilize powershell instead which can start completely detached processes with
     // the Start-Process commandlet.
-    if (Deno.build.os === "windows") {
+    if (isWindows) {
       const command = new Deno.Command(
         "PowerShell",
         {

@@ -13,6 +13,7 @@ import { execProcess } from "../core/process.ts";
 import { kQuartoScratch } from "./project-scratch.ts";
 import { lines } from "../core/text.ts";
 import { isEnvDir } from "../core/jupyter/capabilities.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export const kQuartoIgnore = [`/${kQuartoScratch}/`];
 
@@ -86,7 +87,7 @@ export function gitignoreEntries(dir: string, forceEnv = false) {
 
 function writeGitignore(dir: string, lines: string[]) {
   // write gitignore
-  const lineEnding = Deno.build.os === "windows" ? "\r\n" : "\n";
+  const lineEnding = isWindows ? "\r\n" : "\n";
   Deno.writeTextFileSync(
     join(dir, ".gitignore"),
     lines.join(lineEnding) + lineEnding,

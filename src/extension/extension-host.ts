@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "../deno_ral/fs.ts";
-import { isWindows } from "../core/platform.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export interface ResolvedExtensionInfo {
   // The url to the resolved extension
@@ -103,7 +103,7 @@ interface ExtensionUrlProvider {
   learnMoreUrl: (host: ExtensionHost) => string | undefined;
 }
 
-const archiveExt = isWindows() ? ".zip" : ".tar.gz";
+const archiveExt = isWindows ? ".zip" : ".tar.gz";
 
 const githubLatestUrlProvider = {
   extensionUrl: (host: ExtensionHost) => {

@@ -10,6 +10,8 @@ import { info } from "../../../src/deno_ral/log.ts";
 
 import { getEnv } from "../util/utils.ts";
 
+import { os as platformOs } from "../../../src/deno_ral/platform.ts"
+
 // The core configuration for the packaging process
 export interface Configuration extends PlatformConfiguration {
   productName: string;
@@ -87,7 +89,7 @@ export function readConfiguration(
 
 
 
-  const cmdOs = os || getEnv("QUARTO_OS", Deno.build.os);
+  const cmdOs = os || getEnv("QUARTO_OS", platformOs);
   if (!kValidOS.includes(cmdOs)) {
     throw new Error(
       `Invalid OS ${os} provided. Please use one of ${kValidOS.join(",")}`,

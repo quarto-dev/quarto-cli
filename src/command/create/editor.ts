@@ -15,6 +15,7 @@ import {
 
 import { basename, dirname, join } from "../../deno_ral/path.ts";
 import { existsSync } from "../../deno_ral/fs.ts";
+import { isMac, isWindows } from "../../deno_ral/platform.ts";
 
 export interface Editor {
   // A short, command line friendly id
@@ -104,7 +105,7 @@ function vscodeEditorInfo(): EditorInfo {
     actions: [],
   };
 
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     editorInfo.actions.push({
       action: "which",
       arg: "code.exe",
@@ -118,7 +119,7 @@ function vscodeEditorInfo(): EditorInfo {
       },
     );
     editorInfo.actions.push(...pathActions);
-  } else if (Deno.build.os === "darwin") {
+  } else if (isMac) {
     editorInfo.actions.push({
       action: "which",
       arg: "code",
@@ -168,7 +169,7 @@ function positronEditorInfo(): EditorInfo {
     actions: [],
   };
 
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     editorInfo.actions.push({
       action: "which",
       arg: "Positron.exe",
@@ -182,7 +183,7 @@ function positronEditorInfo(): EditorInfo {
       },
     );
     editorInfo.actions.push(...pathActions);
-  } else if (Deno.build.os === "darwin") {
+  } else if (isMac) {
     editorInfo.actions.push({
       action: "which",
       arg: "positron",
@@ -223,7 +224,7 @@ function rstudioEditorInfo(): EditorInfo {
         const rProjPath = join(cwd, `${artifactName}.Rproj`);
         Deno.writeTextFileSync(rProjPath, kRProjContents);
 
-        const cmd = path.endsWith(".app") && Deno.build.os === "darwin"
+        const cmd = path.endsWith(".app") && isMac
           ? ["open", "-na", path, "--args", rProjPath]
           : [path, rProjPath];
 
@@ -239,7 +240,7 @@ function rstudioEditorInfo(): EditorInfo {
   };
 
   const rstudioExe = "rstudio.exe";
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     editorInfo.actions.push({
       action: "env",
       arg: "RS_RPOSTBACK_PATH",
@@ -257,7 +258,7 @@ function rstudioEditorInfo(): EditorInfo {
       },
     );
     editorInfo.actions.push(...paths);
-  } else if (Deno.build.os === "darwin") {
+  } else if (isMac) {
     const paths = macosAppPaths("RStudio.app").map((path) => {
       return {
         action: "path",

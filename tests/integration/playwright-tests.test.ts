@@ -15,6 +15,7 @@ import { cleanoutput } from "../smoke/render/render.ts";
 import { execProcess } from "../../src/core/process.ts";
 import { quartoDevCmd } from "../utils.ts";
 import { fail } from "testing/asserts";
+import { isWindows } from "../../src/deno_ral/platform.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -47,12 +48,12 @@ for (const { path: fileName } of globOutput) {
 Deno.test({
   name: "Playwright tests are passing", 
   // currently we run playwright tests only on Linux
-  ignore: Deno.build.os === "windows",
+  ignore: isWindows,
   fn: async () => {
     try {
       // run playwright
       const res = await execProcess({
-        cmd: [Deno.build.os == "windows" ? "npx.cmd" : "npx", "playwright", "test", "--ignore-snapshots"],
+        cmd: [isWindows ? "npx.cmd" : "npx", "playwright", "test", "--ignore-snapshots"],
         cwd: "integration/playwright",
       });
       if (!res.success) {

@@ -12,6 +12,7 @@ import { lines } from "./text.ts";
 import { debug, info } from "../deno_ral/log.ts";
 import { existsSync } from "../deno_ral/fs.ts";
 import { warnOnce } from "./log.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export function dartSassInstallDir() {
   return architectureToolsPath("dart-sass");
@@ -65,7 +66,7 @@ export async function dartCommand(args: string[]) {
       }
     }
 
-    const command = Deno.build.os === "windows" ? "sass.bat" : "sass";
+    const command = isWindows ? "sass.bat" : "sass";
     return architectureToolsPath(join("dart-sass", command));
   };
   const sass = resolvePath();

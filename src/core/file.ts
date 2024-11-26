@@ -5,6 +5,7 @@
  */
 
 import { existsSync } from "../deno_ral/fs.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 import { execProcess } from "./process.ts";
 import { TextLineStream } from "streams/text-line-stream";
 
@@ -59,7 +60,8 @@ export async function appendTextFile(
 }
 
 export async function touch(path: string) {
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
+    // TODO is there a better way to do this that doesn't rewrite the file?
     // Touch the file be rewriting it
     const contents = await Deno.readFileSync(path);
     await Deno.writeFileSync(path, contents);

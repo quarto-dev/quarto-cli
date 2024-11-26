@@ -7,6 +7,7 @@
 import { info, warning } from "../deno_ral/log.ts";
 import { withSpinner } from "../core/console.ts";
 import { logError } from "../core/log.ts";
+import { os as platformOs } from "../deno_ral/platform.ts";
 
 import {
   InstallableTool,
@@ -123,7 +124,7 @@ export async function installTool(name: string, updatePath?: boolean) {
         } else {
           // Prereqs for this platform
           const platformPrereqs = tool.prereqs.filter((prereq) =>
-            prereq.os.includes(Deno.build.os)
+            prereq.os.includes(platformOs)
           );
 
           // Check to see whether any prerequisites are satisfied

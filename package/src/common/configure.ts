@@ -20,6 +20,7 @@ import {
 } from "./dependencies/dependencies.ts";
 import { suggestUserBinPaths } from "../../../src/core/path.ts";
 import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
+import { isWindows } from "../../../src/deno_ral/platform.ts";
 
 export async function configure(
   config: Configuration,
@@ -160,7 +161,7 @@ export function copyPandocScript(config: Configuration, targetDir: string) {
     Deno.removeSync(pandocFile);
   }
 
-  if (Deno.build.os !== "windows") {
+  if (!isWindows) {
     info("> creating pandoc symlink");
     Deno.run({
       cwd: targetDir,

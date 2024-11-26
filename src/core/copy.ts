@@ -22,7 +22,7 @@ import {
   walkSync,
 } from "../deno_ral/fs.ts";
 
-import { isWindows } from "./platform.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 // emulate the Deno copySync function but read and write files manually
 // rather than calling Deno.copyFileSync (to avoid deno's attempt to
@@ -201,7 +201,7 @@ function copySymlinkSync(
   }
   const originSrcFilePath = Deno.readLinkSync(src);
   const type = getFileInfoType(Deno.lstatSync(src));
-  if (isWindows()) {
+  if (isWindows) {
     Deno.symlinkSync(originSrcFilePath, dest, {
       type: type === "dir" ? "dir" : "file",
     });

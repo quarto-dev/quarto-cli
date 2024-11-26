@@ -5,7 +5,7 @@
  */
 import { dirname } from "../deno_ral/path.ts";
 import { existsSync } from "../deno_ral/fs.ts";
-import { isWindows } from "./platform.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 import { execProcess } from "./process.ts";
 import { safeWindowsExec } from "./windows.ts";
 
@@ -14,7 +14,7 @@ export function unzip(file: string, dir?: string) {
 
   if (file.endsWith("zip")) {
     // It's a zip file
-    if (isWindows()) {
+    if (isWindows) {
       const args = [
         "-Command",
         `"& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('${file}', '${dir}'); }"`,
@@ -60,7 +60,7 @@ export function zip(
   const filesArr = Array.isArray(files) ? files : [files];
 
   const zipCmd = () => {
-    if (Deno.build.os === "windows") {
+    if (isWindows) {
       return [
         "PowerShell",
         "Compress-Archive",
