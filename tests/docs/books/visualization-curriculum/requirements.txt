@@ -66,7 +66,7 @@ sniffio==1.2.0
 terminado==0.9.5
 testpath==0.4.4
 toolz==0.11.1
-tornado==6.1
+tornado==6.4.2
 traitlets==5.0.5
 urllib3==1.26.18
 vega-datasets==0.9.0
