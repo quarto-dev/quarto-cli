@@ -11,6 +11,7 @@ import { testRender } from "./render.ts";
 import { fileLoader } from "../../utils.ts";
 import { join } from "path";
 import { assert } from "testing/asserts";
+import { isWindows } from "../../../src/core/platform.ts";
 
 const testFile = fileLoader()("test.qmd", "html");
 
@@ -22,14 +23,16 @@ testRender(testFile.input, "html", false, [], {
     assert(existsSync(bootstrapPath), `Expected ${bootstrapPath} to exist`);
     // Check that the bootstrap files have the correct mode
     // Related to #660, and #11532
-    const files = Deno.readDirSync(bootstrapPath);
-    for (const file of files) {
-      if (file.name.match(/bootstrap-.*\.min\.css$/)) {
-        const fileInfo = Deno.statSync(join(bootstrapPath, file.name));
-        assert(
-          fileInfo.mode?.toString(8) === "100644", 
-          `Expected file mode 100644, got ${fileInfo.mode?.toString(8)}`
-        );
+    if (!isWindows()) {
+      const files = Deno.readDirSync(bootstrapPath);
+      for (const file of files) {
+        if (file.name.match(/bootstrap-.*\.min\.css$/)) {
+          const fileInfo = Deno.statSync(join(bootstrapPath, file.name));
+          assert(
+            fileInfo.mode?.toString(8) === "100644", 
+            `Expected file mode 100644, got ${fileInfo.mode?.toString(8)}`
+          );
+        }
       }
     }
   },
