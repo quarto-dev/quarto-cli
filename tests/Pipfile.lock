@@ -2194,7 +2194,7 @@
                 "sha256:2884ed22e7d8961de1c9a05142eb69a247f120291bc0206a00a7642f09b5b715"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==3.18.1"
+            "version": "==3.19.1"
         }
     },
     "develop": {}
