@@ -1291,7 +1291,7 @@
                 "sha256:fe4c15f6c9285dc54ce6553a3ce908ed37c8f3825b5a51a15c91442bb955b868"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==10.2.0"
+            "version": "==10.3.0"
         },
         "platformdirs": {
             "hashes": [
