@@ -1124,7 +1124,7 @@
                 "sha256:a8fa4ccb5e5fe220f29d9900337efd7752bc6f2efe004d6f320db01f7743adc9"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==7.1.0"
+            "version": "==7.2.2"
         },
         "notebook-shim": {
             "hashes": [
