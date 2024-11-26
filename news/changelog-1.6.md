@@ -1,4 +1,10 @@
-All changes included in 1.6:
+# v1.7 backports
+
+## In this release
+
+- ([#11532](https://github.com/quarto-dev/quarto-cli/issues/11532)): Fix regression for [#660](https://github.com/quarto-dev/quarto-cli/issues/660), which causes files to have incorrect permissions when Quarto is installed in a location not writable by the current user.
+
+# v1.6 changes
 
 ## Breaking changes
 
