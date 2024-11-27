@@ -1,0 +1,16 @@
+
+appSettings:
+  notifications:
+    showNotifications: true
+    showStartCommandNotification: true
+    showEndCommandNotification: true
+    showErrors: true
+  autoFocusOnStartCommand: false
+  showOnlyFavorites: false
+  commandViewMode: 'normal'
+
+commands:
+  example:
+    name: 'Example Command'
+    description: 'This is an example command'
+    command: 'echo "Hello, EnvTrack!"'
