@@ -35,7 +35,16 @@
     "deno.inlayHints.parameterTypes.enabled": false,
     "deno.inlayHints.propertyDeclarationTypes.enabled": false,
     "deno.inlayHints.variableTypes.enabled": false,
-    "deno.inlayHints.variableTypes.suppressWhenTypeMatchesName": false
+    "deno.inlayHints.variableTypes.suppressWhenTypeMatchesName": false,
+    "files.exclude": {
+      "**/.git": true,
+      "**/.svn": true,
+      "**/.hg": true,
+      "**/CVS": true,
+      "**/.DS_Store": true,
+      "**/Thumbs.db": true,
+      ".mule": true
+    }
   },
   "typst-lsp.exportPdf": "never"
 }
