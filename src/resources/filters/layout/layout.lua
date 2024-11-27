@@ -86,8 +86,16 @@ function partition_cells(float)
   end
 
   local function handle_preamble_codeblock(block)
-    if block.t == "CodeBlock" and #preamble > 0 and preamble[#preamble].t == "CodeBlock" then
-      preamble[#preamble].text = preamble[#preamble].text .. "\n" .. block.text
+    if #preamble == 0 then
+      preamble:insert(block)
+      return
+    end
+    local last = preamble[#preamble]
+    if block.t == "CodeBlock" and 
+      last.t == "CodeBlock" and
+      -- https://pandoc.org/lua-filters.html#pandoc.list:__eq
+      last.classes == block.classes then
+      last.text = last.text .. "\n" .. block.text
     else
       preamble:insert(block)
     end
@@ -126,6 +134,12 @@ function partition_cells(float)
 
       if subfloat ~= nil and subfloat.t == "FloatRefTarget" then
         transfer_float_image_width_to_cell(subfloat, cell_div)
+      else
+        local fig = figureImageFromLayoutCell(cell_div)
+        if fig then
+          -- transfer width to cell
+          transferImageWidthToCell(fig, cell_div)
+        end
       end
       
       -- if we have a heading then insert it

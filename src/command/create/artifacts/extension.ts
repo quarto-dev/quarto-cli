@@ -16,7 +16,7 @@ import { resourcePath } from "../../../core/resources.ts";
 
 import { Input, Select } from "cliffy/prompt/mod.ts";
 import { join } from "../../../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../deno_ral/fs.ts";
 
 const kType = "type";
 const kSubType = "subtype";
@@ -40,6 +40,7 @@ const kExtensionTypes: Array<string | ExtensionType> = [
   },
   { name: "journal format", value: "journal", openfiles: ["template.qmd"] },
   { name: "custom format", value: "format", openfiles: ["template.qmd"] },
+  { name: "metadata", value: "metadata", openfiles: [] },
 ];
 
 const kExtensionSubtypes: Record<string, string[]> = {

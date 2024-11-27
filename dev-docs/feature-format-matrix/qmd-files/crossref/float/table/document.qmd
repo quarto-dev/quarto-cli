@@ -32,6 +32,7 @@ _quarto:
           - "a[href=\"#tbl-2\"].quarto-xref"
     dashboard: *dom-tests
     revealjs: # reveal resolves anchors differently, using the section headings instead of the float ids
+      ensureHtmlElements:
         - 
           - "div#tbl-1.quarto-float figure.quarto-float.quarto-float-tbl table"
           - "div#tbl-2.quarto-float figure.quarto-float.quarto-float-tbl img"

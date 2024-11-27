@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
-import { stringify } from "yaml/mod.ts";
+import { stringify } from "../yaml.ts";
 import { warning } from "../../deno_ral/log.ts";
 
 import { kTitle } from "../../config/constants.ts";

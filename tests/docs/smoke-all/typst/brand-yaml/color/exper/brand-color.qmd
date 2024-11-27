@@ -1,0 +1,35 @@
+---
+title: Branding - Colors
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '#set page\(fill: brand-color\.background\)'
+          - '#set text\(fill: brand-color\.foreground\)'
+        - []
+---
+
+::: {.callout-note}
+This is a `note` callout.
+:::
+
+::: {.callout-warning}
+This is a `warning` callout.
+:::
+
+::: {.callout-important}
+This is an `important` callout.
+:::
+
+::: {.callout-tip}
+This is a `tip` callout.
+:::
+
+::: {.callout-caution}
+This is a `caution` callout.
+:::
+

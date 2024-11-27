@@ -1,6 +1,12 @@
 ---
 title: Table Appearance
 format: html
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        - ['table tbody tr.odd', 'table tbody tr.even'] 
+        - ['table tbody tr:not(.odd):not(.even)'] # All table should have .odd .even class for styling 
 ---
 
 ### With header
@@ -22,7 +28,7 @@ left 1       right 1
 left 2       right 2
 -----------  ------------
 
-### Md table (w/caption)
+### Md table (w/caption) {#captioned}
 
 A short sentence that makes a paragraph.
 
@@ -86,3 +92,23 @@ Main Caption
 :::
 
 See @tbl-panel for details, especially @tbl-second.
+
+### HTML Table
+
+```{=html}
+<table>
+  <caption>As described in the section above, Quarto tables are great.</caption>
+  <thead>
+    <tr>
+      <th>Header 1</th>
+      <th>Header 2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <td>First Column</td>
+    <td>Second Column</td>
+    </tr>
+  </tbody>
+</table>
+```

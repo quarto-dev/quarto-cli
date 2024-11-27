@@ -23,6 +23,7 @@ export type InspectedMdCell = {
 export interface InspectedFile {
   includeMap: FileInclusion[];
   codeCells: InspectedMdCell[];
+  metadata: Record<string, unknown>;
 }
 
 export interface InspectedConfig {

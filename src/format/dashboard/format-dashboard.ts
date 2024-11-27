@@ -61,6 +61,8 @@ import { projectIsWebsite } from "../../project/project-shared.ts";
 import { processShinyComponents } from "./format-dashboard-shiny.ts";
 import { processToolbars } from "./format-dashboard-toolbar.ts";
 import { processDatatables } from "./format-dashboard-tables.ts";
+import { assert } from "testing/asserts";
+import { brandBootstrapSassBundles } from "../../core/sass/brand.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -94,6 +96,7 @@ export function dashboardFormat() {
       project?: ProjectContext,
       quiet?: boolean,
     ) => {
+      assert(project);
       if (baseHtmlFormat.formatExtras) {
         // Read the dashboard metadata
         const dashboard = await dashboardMeta(format);
@@ -107,7 +110,10 @@ export function dashboardFormat() {
           const formats: Record<string, Metadata> = format.metadata
             .format as Record<string, Metadata>;
           const htmlFormat = formats["html"];
-          if (htmlFormat && htmlFormat[kTheme]) {
+          const dashboardFormat = formats["dashboard"];
+          if (dashboardFormat && dashboardFormat[kTheme]) {
+            format.metadata[kTheme] = dashboardFormat[kTheme];
+          } else if (htmlFormat && htmlFormat[kTheme]) {
             format.metadata[kTheme] = htmlFormat[kTheme];
           }
         }
@@ -156,11 +162,16 @@ export function dashboardFormat() {
           scrolling: dashboard.scrolling,
         };
 
+        extras.html[kSassBundles] = extras.html[kSassBundles] || [];
         if (!isWebsiteProject) {
           // If this is a website project, it will inject the scss for dashboards
-          extras.html[kSassBundles] = extras.html[kSassBundles] || [];
           extras.html[kSassBundles].unshift(dashboardScssLayer());
         }
+
+        // add _brand.yml sass bundle
+        extras.html[kSassBundles].push(
+          ...await brandBootstrapSassBundles(input, project, "bootstrap"),
+        );
 
         const scripts: DependencyHtmlFile[] = [];
         const stylesheets: DependencyHtmlFile[] = [];

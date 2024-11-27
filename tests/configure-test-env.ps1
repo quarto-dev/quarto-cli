@@ -23,22 +23,13 @@ try { $null = gcm python -ea stop; $python=$true } catch {
 }
 
 If ( $py -and $python) {
-    Write-Host "Setting up python environnement with pipenv"
-    try { $null = gcm pipenv -ea stop; $pipenv=$true } catch { 
-      Write-Host -ForegroundColor red "No pipenv found in PATH - Installing pipenv running ``pip install pipenv``"
+    Write-Host "Setting up python environnement with uv"
+    try { $null = gcm uv -ea stop; $uv=$true } catch { 
+      Write-Host -ForegroundColor red "No uv found in PATH - Install uv please: https://docs.astral.sh/uv/getting-started/installation/"
     }
-    If ($null -eq $pipenv) {
-      python -m pip install pipenv
-      try { $null = gcm pyenv -ea stop; $pyenv=$true } catch { }
-      If ($pyenv) {
-        pyenv rehash
-      }
-    }
-    # our default is pipenv to use its own virtualenv and be in project directory
-    $Env:PIPENV_IGNORE_VIRTUALENVS=1
-    $Env:PIPENV_VENV_IN_PROJECT=1
-    pipenv install
-    $pipenv=$true
+    # install from lockfile
+    uv sync --frozen
+    $uv=$true
 }
 
 # Check Julia environment --- 
@@ -66,11 +57,24 @@ quarto install tinytex
 
 # Get npm in place
 Write-Host -ForegroundColor green ">>>> Configuring npm for MECA testing environment"
-try {$null = gcm npm -ea stop; $npm=$true } catch {
+try {$null = gcm npm -ea stop; $npm_exists=$true } catch {
   Write-Host -ForegroundColor red "No npm found - will skip any tests that require npm (e.g. JATS / MECA validation)"
 }
 If ($npm_exists) {
   # TODO: Check to do equivalent of virtualenv
   Write-Host "Setting up npm testing environment"
   npm install -g meca
+}
+
+# Other tests dependencies
+Write-Host -ForegroundColor green ">>>> Checking pdftotext from poppler"
+try {$null = gcm pdftotext -ea stop; $pdftotext=$true } catch {
+  Write-Host -ForegroundColor red "No pdftotext found - Some tests requires `pdftotext` from poppler to be on PATH"
+  try {$null = gcm scoop -ea stop; $scoop=$true } catch {
+    Write-Host -ForegroundColor red "No scoop found - Scoop is a package manager for Windows - see https://scoop.sh/ and it can install poppler"
+  }
+  If($scoop) {
+    Write-Host -ForegroundColor green "Scoop is found so trying to install poppler for pdftotext" 
+    scoop install poppler
+  }
 }

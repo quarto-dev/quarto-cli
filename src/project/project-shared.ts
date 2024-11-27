@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/exists.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import {
   dirname,
   isAbsolute,
@@ -41,10 +41,16 @@ import { ExecutionEngine } from "../execute/types.ts";
 import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
 import { breakQuartoMd, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
 import { partitionCellOptionsText } from "../core/lib/partition-cell-options.ts";
-import { parse } from "yaml/mod.ts";
+import { parse } from "../core/yaml.ts";
 import { mappedIndexToLineCol } from "../core/lib/mapped-text.ts";
 import { normalizeNewlines } from "../core/lib/text.ts";
 import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
+import { QuartoJSONSchema, readYamlFromMarkdown } from "../core/yaml.ts";
+import { refSchema } from "../core/lib/yaml-schema/common.ts";
+import { Brand as BrandJson } from "../resources/types/schema-types.ts";
+import { Brand } from "../core/brand/brand.ts";
+import { warnOnce } from "../core/log.ts";
+import { assert } from "testing/asserts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -344,7 +350,7 @@ export async function directoryMetadataForInputFile(
 }
 
 const mdForFile = async (
-  project: ProjectContext,
+  _project: ProjectContext,
   engine: ExecutionEngine | undefined,
   file: string,
 ): Promise<MappedString> => {
@@ -390,7 +396,11 @@ export async function projectResolveCodeCellsForFile(
         if (directiveCell.name !== "include") {
           continue;
         }
-        const innerFile = join(project.dir, directiveCell.shortcode.params[0]);
+        const arg = directiveCell.shortcode.params[0];
+        const paths = arg.startsWith("/")
+          ? [project.dir, arg]
+          : [project.dir, relative(project.dir, dirname(file)), arg];
+        const innerFile = join(...paths);
         await inner(
           innerFile,
           (await breakQuartoMd(
@@ -406,7 +416,9 @@ export async function projectResolveCodeCellsForFile(
           cell.sourceWithYaml ?? cell.source,
         );
         const metadata = cellOptions.yaml
-          ? parse(cellOptions.yaml.value) as Record<string, unknown>
+          ? parse(cellOptions.yaml.value, {
+            schema: QuartoJSONSchema,
+          }) as Record<string, unknown>
           : {};
         const lineLocator = mappedIndexToLineCol(cell.sourceVerbatim);
         result.push({
@@ -424,6 +436,22 @@ export async function projectResolveCodeCellsForFile(
   await inner(file, (await breakQuartoMd(markdown)).cells);
   cache.codeCells = result;
   return result;
+}
+
+export async function projectFileMetadata(
+  project: ProjectContext,
+  file: string,
+  force?: boolean,
+): Promise<Metadata> {
+  const cache = ensureFileInformationCache(project, file);
+  if (!force && cache.metadata) {
+    return cache.metadata;
+  }
+  const { engine } = await project.fileExecutionEngineAndTarget(file);
+  const markdown = await mdForFile(project, engine, file);
+  const metadata = readYamlFromMarkdown(markdown.value);
+  cache.metadata = metadata;
+  return metadata;
 }
 
 export async function projectResolveFullMarkdownForFile(
@@ -468,7 +496,10 @@ export async function projectResolveFullMarkdownForFile(
   }
 }
 
-const ensureFileInformationCache = (project: ProjectContext, file: string) => {
+export const ensureFileInformationCache = (
+  project: ProjectContext,
+  file: string,
+) => {
   if (!project.fileInformationCache) {
     project.fileInformationCache = new Map();
   }
@@ -477,3 +508,77 @@ const ensureFileInformationCache = (project: ProjectContext, file: string) => {
   }
   return project.fileInformationCache.get(file)!;
 };
+
+export async function projectResolveBrand(
+  project: ProjectContext,
+  fileName?: string,
+) {
+  if (fileName === undefined) {
+    if (project.brandCache) {
+      return project.brandCache.brand;
+    }
+    project.brandCache = {};
+    let fileNames = ["_brand.yml", "_brand.yaml"].map((file) =>
+      join(project.dir, file)
+    );
+    if (project?.config?.brand === false) {
+      project.brandCache.brand = undefined;
+      return project.brandCache.brand;
+    }
+    if (typeof project?.config?.brand === "string") {
+      fileNames = [join(project.dir, project.config.brand)];
+    }
+
+    for (const brandPath of fileNames) {
+      if (!existsSync(brandPath)) {
+        continue;
+      }
+      const brand = await readAndValidateYamlFromFile(
+        brandPath,
+        refSchema("brand", "Format-independent brand configuration."),
+        "Brand validation failed for " + brandPath + ".",
+      ) as BrandJson;
+      project.brandCache.brand = new Brand(
+        brand,
+        dirname(brandPath),
+        project.dir,
+      );
+    }
+    return project.brandCache.brand;
+  } else {
+    const metadata = await project.fileMetadata(fileName);
+    if (metadata.brand === false) {
+      return undefined;
+    }
+    if (metadata.brand === true || metadata.brand === undefined) {
+      return project.resolveBrand();
+    }
+    const fileInformation = ensureFileInformationCache(project, fileName);
+    if (fileInformation.brand) {
+      return fileInformation.brand;
+    }
+    if (typeof metadata.brand === "string") {
+      let brandPath: string = "";
+      if (brandPath.startsWith("/")) {
+        brandPath = join(project.dir, metadata.brand);
+      } else {
+        brandPath = join(dirname(fileName), metadata.brand);
+      }
+      const brand = await readAndValidateYamlFromFile(
+        brandPath,
+        refSchema("brand", "Format-independent brand configuration."),
+        "Brand validation failed for " + brandPath + ".",
+      ) as BrandJson;
+      fileInformation.brand = new Brand(brand, dirname(brandPath), project.dir);
+      return fileInformation.brand;
+    } else {
+      assert(typeof metadata.brand === "object");
+      fileInformation.brand = new Brand(
+        metadata.brand as BrandJson,
+        dirname(fileName),
+        project.dir,
+      );
+      return fileInformation.brand;
+    }
+  }
+}

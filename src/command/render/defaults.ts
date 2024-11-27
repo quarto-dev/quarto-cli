@@ -5,7 +5,7 @@
  */
 
 import { extname } from "../../deno_ral/path.ts";
-import { stringify } from "yaml/mod.ts";
+import { stringify } from "../../core/yaml.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -125,10 +125,10 @@ export function pandocDefaultsMessage(
 
   const filtersContains = (filters: QuartoFilter[], filter: QuartoFilter) => {
     return filters.find((sysFilter) => {
-      const sysPath = typeof (sysFilter) === "string"
+      const sysPath = typeof sysFilter === "string"
         ? sysFilter
         : sysFilter.path;
-      const filterPath = typeof (filter) === "string" ? filter : filter.path;
+      const filterPath = typeof filter === "string" ? filter : filter.path;
       return sysPath === filterPath;
     });
   };

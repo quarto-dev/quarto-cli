@@ -1,0 +1,11 @@
+---
+title: "About"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['link[rel="canonical"][href="https://index.html.com/about/"]']
+        - []
+---
+
+About this site

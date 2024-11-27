@@ -113,6 +113,7 @@ import {
 } from "./format-html-types.ts";
 import { kQuartoHtmlDependency } from "./format-html-constants.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
+import { brandSassFormatExtras } from "../../core/sass/brand.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -171,6 +172,7 @@ export function htmlFormat(
             project,
             quiet,
           ),
+          await brandSassFormatExtras(input, format, project),
           { [kFilterParams]: htmlFilterParams },
         );
       },

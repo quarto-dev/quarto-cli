@@ -1,0 +1,56 @@
+---
+format:
+  html+zero:
+    license: "CC0"
+  html+cc: 
+    license: "CC BY"
+  html+text: 
+    license: "This work is dedicated to the Public Domain"
+  html+custom: 
+    license:
+      text: > 
+        Permission is granted to copy, distribute and/or 
+        modify this document under the terms of the GNU Free 
+        Documentation License, Version 1.3 or any later version 
+        published by the Free Software Foundation; with no 
+        Invariant Sections, no Front-Cover Texts, and no 
+        Back-Cover Texts. A copy of the license is included in 
+        the section entitled "GNU Free Documentation License
+      type: open-access
+      url: https://www.gnu.org/licenses/fdl-1.3-standalone.html
+_quarto:
+  tests:
+    html+zero:
+      ensureHtmlElements:
+        - ['a[rel="license"][href="https://creativecommons.org/publicdomain/zero/1.0/"]']
+        - []
+      ensureFileRegexMatches:
+        - ['CC0 1.0'] 
+        - []
+    html+cc:
+      ensureHtmlElements:
+        - ['a[rel="license"][href="https://creativecommons.org/licenses/by/4.0/"]']
+        - []
+      ensureFileRegexMatches:
+        - ['CC BY 4.0'] 
+        - []
+    html+text:
+      ensureHtmlElements:
+        - ['h2 + div.quarto-appendix-contents']
+        - []
+      ensureFileRegexMatches:
+        - ['This work is dedicated to the Public Domain'] 
+        - []
+    html+custom:
+      ensureHtmlElements:
+        - ['a[rel="license"][href="https://www.gnu.org/licenses/fdl-1.3-standalone.html"]']
+        - []
+      ensureFileRegexMatches:
+        - ['GNU Free Documentation License'] 
+        - []
+---
+
+
+## Title
+
+This doc will have an appendix part with a licence as a link to the right creative common url

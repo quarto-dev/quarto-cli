@@ -1,5 +1,7 @@
 ## Adding a new Typescript dependency to the project
 
+FIXME THIS ALL NEEDS UPDATING FOR 1.46.3 AND LATER
+
 We vendor all external dependencies to avoid downloads during the execution of quarto in installed environments. To add a new dependency, edit the `./src/import_map.json` file.
 
 - If the dependency comes from the Deno standard library, make sure you match the version number (otherwise we can end up with duplicate imports from different versions)

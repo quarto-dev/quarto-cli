@@ -289,6 +289,7 @@ code.sourceCode {
 
 // Inline code should wrap
 // See https://github.com/quarto-dev/quarto-cli/issues/2649
+dd code:not(.sourceCode),
 p code:not(.sourceCode) {
   white-space: pre-wrap;
 }
@@ -435,6 +436,12 @@ div.sourceCode > iframe {
 // link styling
 a {
   text-underline-offset: 3px;
+}
+
+/* Callout styling */
+
+.callout pre.sourceCode {
+  padding-left: 0;
 }
 
 // ansi escaping
@@ -586,7 +593,9 @@ div.ansi-escaped-output {
   --quarto-text-muted: #{$text-muted};
   --quarto-border-color: #{$table-border-color};
   --quarto-border-width: #{$border-width};
-  --quarto-border-radius: #{$border-radius};
+  @if not variable-exists(enable-rounded) or $enable-rounded == true {
+    --quarto-border-radius: #{$border-radius};
+  }
 }
 
 /* rules to support GT table styling */
@@ -697,6 +706,7 @@ $body-bg: #fff !default;
 $primary: #468 !default;
 $secondary: #999 !default;
 $font-family-sans-serif: sans-serif !default;
+$font-weight-base: 400 !default;
 
 /* SCSS variables
 
@@ -711,6 +721,7 @@ $mermaid-fg-color: $body-color !default;
 $mermaid-fg-color--lighter: lighten($body-color, 10%) !default;
 $mermaid-fg-color--lightest: lighten($body-color, 20%) !default;
 $mermaid-font-family: $font-family-sans-serif !default;
+$mermaid-font-weight: $font-weight-base !default;
 $mermaid-label-bg-color: $body-bg !default;
 $mermaid-label-fg-color: $primary !default;
 $mermaid-node-bg-color: rgba($primary, 0.1) !default;

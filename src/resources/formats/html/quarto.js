@@ -225,7 +225,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   }
 
   async function findAndActivateCategories() {
-    const currentPagePath = offsetAbsoluteUrl(window.location.href);
+    // Categories search with listing only use path without query
+    const currentPagePath = offsetAbsoluteUrl(
+      window.location.origin + window.location.pathname
+    );
     const response = await fetch(offsetRelativeUrl("listings.json"));
     if (response.status == 200) {
       return response.json().then(function (listingPaths) {
@@ -319,6 +322,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           for (const child of el.children) {
             child.style.opacity = 0;
             child.style.overflow = "hidden";
+            child.style.pointerEvents = "none";
           }
 
           nexttick(() => {
@@ -360,6 +364,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
               const clone = child.cloneNode(true);
               clone.style.opacity = 1;
+              clone.style.pointerEvents = null;
               clone.style.display = null;
               toggleContents.append(clone);
             }
@@ -434,6 +439,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           for (const child of el.children) {
             child.style.opacity = 1;
             child.style.overflow = null;
+            child.style.pointerEvents = null;
           }
 
           const placeholderEl = window.document.getElementById(

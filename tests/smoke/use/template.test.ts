@@ -1,7 +1,7 @@
 import { testQuartoCmd } from "../../test.ts";
 import { directoryContainsOnlyAllowedPaths, fileExists, folderExists, noErrorsOrWarnings, printsMessage } from "../../verify.ts";
 import { join } from "../../../src/deno_ral/path.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
 
 const tempDir = Deno.makeTempDirSync();
 
@@ -51,6 +51,31 @@ testQuartoCmd(
     teardown: () => {
       try {
        Deno.removeSync(nonEmptyWorkingDir, {recursive: true});
+      } catch {
+        
+      }
+       return Promise.resolve();
+    }
+  }
+)
+
+const starterFolder = "starterFolder";
+const starterWorkingDir = join(tempDir, starterFolder);
+ensureDirSync(starterWorkingDir);
+testQuartoCmd(
+  "use",
+  ["template", "quarto-examples/website-template", "--no-prompt"],
+  [noErrorsOrWarnings, fileExists("_quarto.yml"), fileExists("index.qmd")],
+  {
+    setup: () => {
+      return Promise.resolve();
+    },
+    cwd: () => {
+      return starterWorkingDir;
+    },
+    teardown: () => {
+      try {
+       Deno.removeSync(starterWorkingDir, {recursive: true});
       } catch {
         
       }

@@ -1,0 +1,15 @@
+---
+title: "Quarto Playground"
+title-block-banner: true
+format:
+  html:
+    theme:
+      light:
+        - cosmo
+        - custom.scss
+      dark: 
+        - darkly
+        - custom.scss
+---
+
+This is a playground for Quarto.

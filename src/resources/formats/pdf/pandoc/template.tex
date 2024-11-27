@@ -39,13 +39,13 @@ $if(section-titles)$
 }
 \setbeamertemplate{section page}{
   \centering
-  \begin{beamercolorbox}[sep=12pt,center]{part title}
+  \begin{beamercolorbox}[sep=12pt,center]{section title}
     \usebeamerfont{section title}\insertsection\par
   \end{beamercolorbox}
 }
 \setbeamertemplate{subsection page}{
   \centering
-  \begin{beamercolorbox}[sep=8pt,center]{part title}
+  \begin{beamercolorbox}[sep=8pt,center]{subsection title}
     \usebeamerfont{subsection title}\insertsubsection\par
   \end{beamercolorbox}
 }
@@ -319,6 +319,7 @@ $if(pagestyle)$
 \pagestyle{$pagestyle$}
 $endif$
 $pandoc.tex()$
+
 $if(lang)$
 \ifLuaTeX
 \usepackage[bidi=basic]{babel}
@@ -343,10 +344,12 @@ $endfor$
 % get rid of language-specific shorthands (see #6817):
 \let\LanguageShortHands\languageshorthands
 \def\languageshorthands#1{}
-$endif$
+$if(selnolig-langs)$
 \ifLuaTeX
-  \usepackage{selnolig}  % disable illegal ligatures
+  \usepackage[$for(selnolig-langs)$$it$$sep$,$endfor$]{selnolig} % disable illegal ligatures
 \fi
+$endif$
+$endif$
 $if(dir)$
 \ifPDFTeX
   \TeXXeTstate=1
@@ -416,6 +419,7 @@ $endif$
   pdfcreator={LaTeX via pandoc}}
 
 $before-title.tex()$
+
 $title.tex()$
 
 \begin{document}
@@ -426,6 +430,7 @@ $include-before$
 
 $endfor$
 $toc.tex()$
+
 $if(linestretch)$
 \setstretch{$linestretch$}
 $endif$
@@ -446,4 +451,5 @@ $include-after$
 
 $endfor$
 $after-body.tex()$
+
 \end{document}

@@ -44,6 +44,7 @@ export async function writeDomToHtmlFile(
 
 // 2022-08-26: cscheid changed this to match commit a69551336f37cd4010032e039231d926e1a4774c
 // 2023-02-06: jjallaire confirmed that this is up to date as of commit e18ab07fd6e23f1e32ffd77fb4c0f92fadb81b87
+// 2024-09-23: cscheid changed this to match commit a84e6057d367282efdf3f1a1f80c3f0982252ffa
 
 let s_DenoDomInitialized = false;
 export async function initDenoDom() {
@@ -63,7 +64,7 @@ export async function initDenoDom() {
             result: "void",
           },
           deno_dom_parse_frag_sync: {
-            parameters: ["buffer", "usize", "buffer"],
+            parameters: ["buffer", "usize", "buffer", "usize", "buffer"],
             result: "void",
           },
           deno_dom_is_big_endian: { parameters: [], result: "u32" },
@@ -95,16 +96,43 @@ export async function initDenoDom() {
         const returnBufSizeLenRaw = new ArrayBuffer(usizeBytes * 2);
         const returnBufSizeLen = new Uint8Array(returnBufSizeLenRaw);
 
+        type DocumentParser = (
+          srcBuf: Uint8Array,
+          srcLength: bigint,
+          returnBuf: Uint8Array,
+        ) => void;
+        type FragmentParser = (
+          srcBuf: Uint8Array,
+          srcLength: bigint,
+          contextLocalNameBuf: Uint8Array,
+          contextLocalNameLength: bigint,
+          returnBuf: Uint8Array,
+        ) => void;
+
         const genericParse = (
-          parser: (
-            srcBuf: Uint8Array,
-            srcLength: number,
-            returnBuf: Uint8Array,
-          ) => void,
+          parser: DocumentParser | FragmentParser,
           srcHtml: string,
+          contextLocalName?: string,
         ): string => {
           const encodedHtml = utf8Encoder.encode(srcHtml);
-          parser(encodedHtml, encodedHtml.length, returnBufSizeLen);
+          if (contextLocalName) {
+            const encodedContextLocalName = utf8Encoder.encode(
+              contextLocalName,
+            );
+            (parser as FragmentParser)(
+              encodedHtml,
+              BigInt(encodedHtml.length),
+              encodedContextLocalName,
+              BigInt(encodedContextLocalName.length),
+              returnBufSizeLen,
+            );
+          } else {
+            (parser as DocumentParser)(
+              encodedHtml,
+              BigInt(encodedHtml.length),
+              returnBufSizeLen,
+            );
+          }
 
           const outBufSize = Number(
             new DataView(returnBufSizeLenRaw).getBigUint64(0, !isBigEndian),
@@ -122,8 +150,8 @@ export async function initDenoDom() {
           return genericParse(dylibParseSync, html);
         };
 
-        const parseFrag = (html: string): string => {
-          return genericParse(dylibParseFragSync, html);
+        const parseFrag = (html: string, contextLocalName?: string): string => {
+          return genericParse(dylibParseFragSync, html, contextLocalName);
         };
 
         debug("Loaded deno-dom-native");

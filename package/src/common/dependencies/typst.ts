@@ -1,6 +1,6 @@
 
 import { join, dirname, basename } from "../../../../src/deno_ral/path.ts"
-import { ensureDirSync, existsSync } from "fs/mod.ts"
+import { ensureDirSync, existsSync } from "../../../../src/deno_ral/fs.ts"
 
 import { Configuration } from "../config.ts";
 import { Dependency } from "./dependencies.ts";

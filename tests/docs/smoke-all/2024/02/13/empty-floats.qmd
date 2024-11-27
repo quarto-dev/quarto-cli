@@ -4,7 +4,7 @@ format: latex
 _quarto:
   tests:
     latex:
-      verifyNoErrors: true
+      noErrors: true
 ---
 
 :::{#fig-1}

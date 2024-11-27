@@ -1548,7 +1548,7 @@ local function processTextDependency(dependency, meta)
    if meta[textLoc] == nil then
       meta[textLoc] = {}
    end
-   meta[textLoc]:insert(pandoc.RawBlock(FORMAT, rawText.text))
+   table.insert(meta[textLoc], pandoc.RawBlock(FORMAT, rawText.text))
  end
 
  -- make the usePackage statement
@@ -2024,6 +2024,11 @@ quarto = {
       writeToDependencyFile(dependency("usepackage", {package = package, options = options }))
     end,
 
+    -- could be add_metadata(namespace, {stuff})
+    add_typst_font_path = function(path)
+      writeToDependencyFile(dependency("typst-font-path", {path = path}))
+    end,
+
     add_format_resource = function(path)
       writeToDependencyFile(dependency("format-resources", { file = resolvePathExt(path)}))
     end,
@@ -2067,24 +2072,30 @@ quarto = {
     crossref = {}
   },
   project = {
-   directory = projectDirectory(),
-   offset = projectOffset(),
-   profile = pandoc.List(projectProfiles()),
-   output_directory = projectOutputDirectory()
+    directory = projectDirectory(),
+    offset = projectOffset(),
+    profile = pandoc.List(projectProfiles()),
+    output_directory = projectOutputDirectory()
   },
   utils = {
-   dump = utils.dump,
-   table = utils.table,
-   type = utils.type,
-   resolve_path = resolvePathExt,
-   resolve_path_relative_to_document = resolvePath,
-   as_inlines = utils.as_inlines,
-   as_blocks = utils.as_blocks,
-   string_to_blocks = utils.string_to_blocks,
-   string_to_inlines = utils.string_to_inlines,
-   render = utils.render,
-   match = utils.match,
-   add_to_blocks = utils.add_to_blocks
+    dump = utils.dump,
+    table = utils.table,
+    type = utils.type,
+    resolve_path = resolvePathExt,
+    resolve_path_relative_to_document = resolvePath,
+    as_inlines = utils.as_inlines,
+    as_blocks = utils.as_blocks,
+    string_to_blocks = utils.string_to_blocks,
+    string_to_inlines = utils.string_to_inlines,
+    render = utils.render,
+    match = utils.match,
+    add_to_blocks = utils.add_to_blocks,
+  },
+  paths = {
+    rscript = function()
+      -- matches the path from `quartoEnvironmentParams` from src/command/render/filters.ts
+      return param('quarto-environment', nil).paths.Rscript
+    end,
   },
   json = json,
   base64 = base64,

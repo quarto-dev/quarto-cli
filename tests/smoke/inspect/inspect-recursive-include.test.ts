@@ -11,7 +11,7 @@ import {
   ExecuteOutput,
   testQuartoCmd,
 } from "../../test.ts";
-import { assert, assertEquals } from "testing/asserts.ts";
+import { assert, assertEquals } from "testing/asserts";
 
 (() => {
   const input = "docs/websites/issue-9253/index.qmd";

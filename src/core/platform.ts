@@ -4,24 +4,22 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-export function isMingw() {
-  return isWindows() && !!Deno.env.get("MSYSTEM");
-}
+import { isWindows } from "../deno_ral/platform.ts";
 
-export function isWindows() {
-  return Deno.build.os === "windows";
+export function isMingw() {
+  return isWindows && !!Deno.env.get("MSYSTEM");
 }
 
 export function isWSL() {
   return !!Deno.env.get("WSL_DISTRO_NAME");
 }
 
-export function isMac() {
-  return Deno.build.os === "darwin";
-}
-
 export function isRStudio() {
   return !!Deno.env.get("RSTUDIO");
+}
+
+export function isPositron() {
+  return !!Deno.env.get("POSITRON");
 }
 
 export function isVSCodeOutputChannel() {
@@ -44,6 +42,11 @@ export function isRStudioWorkbench() {
 
 export function isRStudioTerminal() {
   return !!Deno.env.get("RSTUDIO_TERM");
+}
+
+export function isPositronTerminal() {
+  // it seems there is no POSITRON_TERM variable set
+  return isPositron();
 }
 
 export function isServerSession() {

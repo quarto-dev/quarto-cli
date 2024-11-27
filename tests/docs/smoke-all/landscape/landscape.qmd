@@ -1,0 +1,48 @@
+---
+title: "Landscape Example"
+keep-typ: true
+format: 
+  docx: default
+  typst: default
+  latex: default
+_quarto:
+  tests:
+    docx:
+      ensureDocxRegexMatches:
+        - ['w:orient="landscape"']
+        - []
+    latex:
+      ensureFileRegexMatches:
+        - 
+          - '\\usepackage{pdflscape}'
+          - '\\begin{landscape}'
+          - '\\end{landscape}'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - '#set page\(flipped: true\)'
+          - '#set page\(flipped: false\)'
+        - []
+---
+
+# Examples
+
+This is in portrait mode.
+
+1. Things
+2. Stuff
+
+
+::: { .landscape }
+
+This should appear in landscape mode.
+
+1. Things
+
+:::
+
+
+Things should be back to normal here.
+
+1. Things

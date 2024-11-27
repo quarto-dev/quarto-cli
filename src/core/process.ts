@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { MuxAsyncIterator, pooledMap } from "async/mod.ts";
-import { iterateReader } from "streams/mod.ts";
+import { MuxAsyncIterator, pooledMap } from "async";
+import { iterateReader } from "io/iterate-reader";
 import { debug, info } from "../deno_ral/log.ts";
 import { onCleanup } from "./cleanup.ts";
 import { ProcessResult } from "./process-types.ts";
@@ -13,6 +13,16 @@ import { ProcessResult } from "./process-types.ts";
 const processList = new Map<number, Deno.Process>();
 let processCount = 0;
 let cleanupRegistered = false;
+
+export function registerForExitCleanup(process: Deno.Process) {
+  const thisProcessId = ++processCount; // don't risk repeated PIDs
+  processList.set(thisProcessId, process);
+  return thisProcessId;
+}
+
+export function unregisterForExitCleanup(processId: number) {
+  processList.delete(processId);
+}
 
 function ensureCleanup() {
   if (!cleanupRegistered) {
@@ -61,12 +71,11 @@ export async function execProcess(
       stdout: typeof (options.stdout) === "number" ? options.stdout : "piped",
       stderr: typeof (options.stderr) === "number" ? options.stderr : "piped",
     });
-    const thisProcessId = ++processCount; // don't risk repeated PIDs
-    processList.set(thisProcessId, process);
+    const thisProcessId = registerForExitCleanup(process);
 
     if (stdin !== undefined) {
       if (!process.stdin) {
-        processList.delete(processCount);
+        unregisterForExitCleanup(thisProcessId);
         throw new Error("Process stdin not available");
       }
       // write in 4k chunks (deno observed to overflow at > 64k)
@@ -170,7 +179,7 @@ export async function execProcess(
     // close the process
     process.close();
 
-    processList.delete(thisProcessId);
+    unregisterForExitCleanup(thisProcessId);
 
     debug(`[execProcess] Success: ${status.success}, code: ${status.code}`);
 

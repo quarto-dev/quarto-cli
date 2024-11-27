@@ -1,0 +1,64 @@
+diff --git a/src/resources/formats/revealjs/themes/league.scss b/src/resources/formats/revealjs/themes/league.scss
+index 3a1bd7878..476b6c7da 100644
+--- a/src/resources/formats/revealjs/themes/league.scss
++++ b/src/resources/formats/revealjs/themes/league.scss
+@@ -4,33 +4,41 @@
+  * This was the default theme pre-3.0.0.
+  *
+  * Copyright (C) 2011-2012 Hakim El Hattab, http://hakim.se
++ *
++ * Adapted for Quarto by Posit, PBC
++ * Copyright (C) 2024 Posit, PBC
+  */
+ 
+-
+-// Default mixins and settings -----------------
+-@import "../template/mixins";
+-@import "../template/settings";
+-// ---------------------------------------------
+-
+-
++/*-- scss:defaults --*/
+ 
+ // Include theme-specific fonts
+ @import url(./fonts/league-gothic/league-gothic.css);
+ @import url(https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic);
+ 
+-// Override theme settings (see ../template/settings.scss)
+-$presentation-heading-text-shadow: 0px 0px 6px rgba(0,0,0,0.2);
+-$presentation-h1-text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaa, 0 6px 1px rgba(0,0,0,.1), 0 0 5px rgba(0,0,0,.1), 0 1px 3px rgba(0,0,0,.3), 0 3px 5px rgba(0,0,0,.2), 0 5px 10px rgba(0,0,0,.25), 0 20px 20px rgba(0,0,0,.15);
++// fonts
++$font-family-sans-serif: Lato, sans-serif !default;
++$presentation-heading-font: "League Gothic", sans-serif !default;
+ 
+-// Background generator
+-@mixin bodyBackground() {
+-	@include radial-gradient( rgba(28,30,32,1), rgba(85,90,95,1) );
+-}
++$body-bg: #2b2b2b !default; // from settings.scss
++$body-color: #eee !default; // from settings.scss
++$link-color: #13daec !default; // from settings.scss
++$selection-bg: #ff5e99 !default; // from settings.scss
++
++$presentation-heading-text-shadow: 0px 0px 6px rgba(0, 0, 0, 0.2) !default;
++$presentation-h1-text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb,
++  0 4px 0 #b9b9b9, 0 5px 0 #aaa, 0 6px 1px rgba(0, 0, 0, 0.1),
++  0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3),
++  0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25),
++  0 20px 20px rgba(0, 0, 0, 0.15) !default;
++$presentation-h1-font-size: 3.77em !default;
++$presentation-heading-text-transform: uppercase !default;
+ 
+ // Change text colors against light slide backgrounds
+-@include light-bg-text-color(#222);
++$light-bg-text-color: #222 !default;
+ 
++/*-- scss:mixins --*/
+ 
+-// Theme template ------------------------------
+-@import "../template/theme";
+-// ---------------------------------------------
++// Background generator
++@mixin bodyBackground() {
++  @include radial-gradient(rgba(28, 30, 32, 1), rgba(85, 90, 95, 1));
++}

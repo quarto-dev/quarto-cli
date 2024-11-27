@@ -1,0 +1,38 @@
+---
+title: title is gothic a1 italic 700
+subtitle: subtitle is a little smaller
+format:
+  typst:
+    keep-typ: true
+    include-in-header:
+      text: |
+        #set text(fallback: false, weight: 100)
+  dashboard: default
+  html: default
+  revealjs: default
+---
+
+## heading-2 is gothic a1 italic 700
+
+Paragraph is 12pt blue eb garamond normal 400 with line-height 0.9.
+
+Here's a monospace inline in 20px space mono normal 700, red on white:  `fib(90)` \
+and here's a monospace block in 8pt space mono normal 400, white on dark green, with line-height 2:
+
+:::{.sourceCode}
+```
+const fib = num => num < 2 ? num : fib(num-1) + fib(num - 2);
+console.log(fib(12));
+```
+:::
+
+Syntax highlighting makes colors more complicated:
+```javascript
+const fib = num => num < 2 ? num : fib(num-1) + fib(num - 2);
+console.log(fib(12))
+```
+
+Here is [a purple link with a light green background in eb garamond 700](https://www.example.com) and here are some paragraphs:
+
+{{< lipsum 3 >}}
+

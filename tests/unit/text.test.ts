@@ -5,7 +5,7 @@
 *
 */
 import { unitTest } from "../test.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 import { lines } from "../../src/core/text.ts";
 import { editDistance } from "../../src/core/lib/text.ts";
 

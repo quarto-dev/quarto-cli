@@ -1,0 +1,26 @@
+---
+format: pdf
+lang: es
+latex-auto-install: false
+_quarto:
+  tests:
+    pdf:
+      noErrors: true 
+      printsMessage:
+        - WARN
+        - 'missing hyphenation.*hyphen-spanish'
+---
+
+```{r}
+#| include: false
+
+# Remove the hyphen package for spanish so that the test is meaningful
+if (tinytex::check_installed("hyphen-spanish")) {
+  message("Removing 'hyphen-spanish' package for the render")
+  tinytex::tlmgr_remove("hyphen-spanish")
+}
+```
+
+# Hola !
+
+automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente automáticamente

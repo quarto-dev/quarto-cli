@@ -56,13 +56,20 @@ import {
   kCenterTitleSlide,
   kControlsAuto,
   kHashType,
+  kJumpToSlide,
   kPdfMaxPagesPerSlide,
   kPdfSeparateFragments,
   kPreviewLinksAuto,
   kRevealJsConfig,
   kScrollable,
+  kScrollActivationWidth,
+  kScrollLayout,
+  kScrollProgress,
+  kScrollSnap,
+  kScrollView,
   kSlideFooter,
   kSlideLogo,
+  kView,
 } from "./constants.ts";
 import { revealMetadataFilter } from "./metadata.ts";
 import { ProjectContext } from "../../project/types.ts";
@@ -77,6 +84,36 @@ export function revealResolveFormat(format: Format) {
   if (format.metadata["navigationMode"] === "vertical") {
     format.metadata["navigationMode"] = "default";
   }
+
+  // normalize scroll-view to map to revealjs configuration
+  const scrollView = format.metadata[kScrollView];
+  if (typeof scrollView === "boolean" && scrollView) {
+    // if scroll-view is true then set view to scroll by default
+    // using all default option
+    format.metadata[kView] = "scroll";
+  } else if (typeof scrollView === "object") {
+    // if scroll-view is an object then map to revealjs configuration individually
+    const scrollViewRecord = scrollView as Record<string, unknown>;
+    // Only activate scroll by default when ask explicitly
+    if (scrollViewRecord["activate"] === true) {
+      format.metadata[kView] = "scroll";
+    }
+    if (scrollViewRecord["progress"] !== undefined) {
+      format.metadata[kScrollProgress] = scrollViewRecord["progress"];
+    }
+    if (scrollViewRecord["snap"] !== undefined) {
+      format.metadata[kScrollSnap] = scrollViewRecord["snap"];
+    }
+    if (scrollViewRecord["layout"] !== undefined) {
+      format.metadata[kScrollLayout] = scrollViewRecord["layout"];
+    }
+    if (scrollViewRecord["activation-width"] !== undefined) {
+      format.metadata[kScrollActivationWidth] =
+        scrollViewRecord["activation-width"];
+    }
+  }
+  // remove scroll-view from metadata
+  delete format.metadata[kScrollView];
 }
 
 export function revealjsFormat() {
@@ -87,7 +124,7 @@ export function revealjsFormat() {
         [kHtmlMathMethod]: {
           method: "mathjax",
           url:
-            "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML-full",
+            "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-AMS_HTML-full",
         },
         [kSlideLevel]: 2,
       },
@@ -142,6 +179,9 @@ export function revealjsFormat() {
             format.metadata[kAutoAnimateUnmatched] !== undefined
               ? format.metadata[kAutoAnimateUnmatched]
               : true,
+          [kJumpToSlide]: format.metadata[kJumpToSlide] !== undefined
+            ? !!format.metadata[kJumpToSlide]
+            : true,
         };
 
         if (format.metadata[kPdfMaxPagesPerSlide]) {
@@ -149,8 +189,32 @@ export function revealjsFormat() {
             format.metadata[kPdfMaxPagesPerSlide];
         }
 
+        // pass scroll view settings as they are not yet in revealjs template
+        if (format.metadata[kView]) {
+          extraConfig[kView] = format.metadata[kView];
+        }
+        if (format.metadata[kScrollProgress] !== undefined) {
+          extraConfig[kScrollProgress] = format.metadata[kScrollProgress];
+        }
+        if (format.metadata[kScrollSnap] !== undefined) {
+          extraConfig[kScrollSnap] = format.metadata[kScrollSnap];
+        }
+        if (format.metadata[kScrollLayout] !== undefined) {
+          extraConfig[kScrollLayout] = format.metadata[kScrollLayout];
+        }
+        if (format.metadata[kScrollActivationWidth] !== undefined) {
+          extraConfig[kScrollActivationWidth] =
+            format.metadata[kScrollActivationWidth];
+        }
+
         // get theme info (including text highlighing mode)
-        const theme = await revealTheme(format, input, libDir, services.temp);
+        const theme = await revealTheme(
+          format,
+          input,
+          libDir,
+          services.temp,
+          project,
+        );
 
         const revealPluginData = await revealPluginExtras(
           input,
@@ -221,7 +285,6 @@ export function revealjsFormat() {
             metadataOverride,
             templateContext,
             [kIncludeInHeader]: [
-              formatResourcePath("html", "styles-callout.html"),
               stylesFile,
             ],
             html: {
@@ -312,12 +375,51 @@ export function revealjsFormat() {
   );
 }
 
+const determineRevealLogo = (format: Format): string | undefined => {
+  const brandData = format.render.brand?.processedData;
+  if (brandData?.logo) {
+    const keys: ("medium" | "small" | "large")[] = ["medium", "small", "large"];
+    // add slide logo if we have one
+    for (const size of keys) {
+      const logoInfo = brandData.logo[size];
+      if (!logoInfo) {
+        continue;
+      }
+      if (typeof logoInfo === "string") {
+        return logoInfo;
+      } else {
+        // what to do about light vs dark?
+        return logoInfo?.light.path ?? logoInfo?.dark.path;
+      }
+    }
+  }
+};
+
 function revealMarkdownAfterBody(format: Format) {
   const lines: string[] = [];
-  lines.push("::: {.quarto-auto-generated-content}\n");
-  if (format.metadata[kSlideLogo]) {
+  lines.push("::: {.quarto-auto-generated-content style='display: none;'}\n");
+  let revealLogo = format
+    .metadata[kSlideLogo] as (string | { path: string } | undefined);
+  if (revealLogo) {
+    if (typeof revealLogo === "object") {
+      revealLogo = revealLogo.path;
+    }
+    if (["small", "medium", "large"].includes(revealLogo)) {
+      const brandData = format.render.brand?.processedData;
+      const logoInfo = brandData?.logo
+        ?.[revealLogo as ("medium" | "small" | "large")];
+      if (typeof logoInfo === "string") {
+        revealLogo = logoInfo;
+      } else {
+        revealLogo = logoInfo?.light.path ?? logoInfo?.dark.path;
+      }
+    }
+  } else {
+    revealLogo = determineRevealLogo(format);
+  }
+  if (revealLogo) {
     lines.push(
-      `<img src="${format.metadata[kSlideLogo]}" class="slide-logo" />`,
+      `<img src="${revealLogo}" class="slide-logo" />`,
     );
     lines.push("\n");
   }
@@ -335,19 +437,486 @@ function revealMarkdownAfterBody(format: Format) {
   return lines.join("\n");
 }
 
+const handleOutputLocationSlide = (
+  doc: Document,
+  slideHeadingTags: string[],
+) => {
+  // find output-location-slide and inject slides as required
+  const slideOutputs = doc.querySelectorAll(`.${kOutputLocationSlide}`);
+  for (const slideOutput of slideOutputs) {
+    // find parent slide
+    const slideOutputEl = slideOutput as Element;
+    const parentSlide = findParentSlide(slideOutputEl);
+    if (parentSlide && parentSlide.parentElement) {
+      const newSlide = doc.createElement("section");
+      newSlide.setAttribute(
+        "id",
+        parentSlide?.id ? parentSlide.id + "-output" : "",
+      );
+      for (const clz of parentSlide.classList) {
+        newSlide.classList.add(clz);
+      }
+      newSlide.classList.add(kOutputLocationSlide);
+      // repeat header if there is one
+      if (
+        slideHeadingTags.includes(parentSlide.firstElementChild?.tagName || "")
+      ) {
+        const headingEl = doc.createElement(
+          parentSlide.firstElementChild?.tagName!,
+        );
+        headingEl.innerHTML = parentSlide.firstElementChild?.innerHTML || "";
+        newSlide.appendChild(headingEl);
+      }
+      newSlide.appendChild(slideOutputEl);
+      // Place the new slide after the current one
+      const nextSlide = parentSlide.nextElementSibling;
+      parentSlide.parentElement.insertBefore(newSlide, nextSlide);
+    }
+  }
+};
+
+const handleHashTypeNumber = (
+  doc: Document,
+  format: Format,
+) => {
+  // if we are using 'number' as our hash type then remove the
+  // title slide id
+  if (format.metadata[kHashType] === "number") {
+    const titleSlide = doc.getElementById("title-slide");
+    if (titleSlide) {
+      titleSlide.removeAttribute("id");
+      // required for title-slide-style: pandoc
+      titleSlide.classList.add("quarto-title-block");
+    }
+  }
+};
+
+const handleAutoGeneratedContent = (doc: Document) => {
+  // Move quarto auto-generated content outside of slides and hide it
+  // Content is moved with appendChild in quarto-support plugin
+  const slideContentFromQuarto = doc.querySelector(
+    ".quarto-auto-generated-content",
+  );
+  if (slideContentFromQuarto) {
+    doc.querySelector("div.reveal")?.appendChild(slideContentFromQuarto);
+  }
+};
+
+type RevealJsPluginInit = {
+  scripts: RevealPluginScript[];
+  register: string[];
+  revealConfig: Record<string, unknown>;
+};
+
+const fixupRevealJsInitialization = (
+  doc: Document,
+  extraConfig: Record<string, unknown>,
+  pluginInit: RevealJsPluginInit,
+) => {
+  // find reveal initialization and perform fixups
+  const scripts = doc.querySelectorAll("script");
+  for (const script of scripts) {
+    const scriptEl = script as Element;
+    if (
+      scriptEl.innerText &&
+      scriptEl.innerText.indexOf("Reveal.initialize({") !== -1
+    ) {
+      // quote slideNumber
+      scriptEl.innerText = scriptEl.innerText.replace(
+        /slideNumber: (h[\.\/]v|c(?:\/t)?)/,
+        "slideNumber: '$1'",
+      );
+
+      // quote width and heigh if in %
+      scriptEl.innerText = scriptEl.innerText.replace(
+        /width: (\d+(\.\d+)?%)/,
+        "width: '$1'",
+      );
+      scriptEl.innerText = scriptEl.innerText.replace(
+        /height: (\d+(\.\d+)?%)/,
+        "height: '$1'",
+      );
+
+      // plugin registration
+      if (pluginInit.register.length > 0) {
+        const kRevealPluginArray = "plugins: [";
+        scriptEl.innerText = scriptEl.innerText.replace(
+          kRevealPluginArray,
+          kRevealPluginArray + pluginInit.register.join(", ") + ",\n",
+        );
+      }
+
+      // Write any additional configuration of reveal
+      const configJs: string[] = [];
+      Object.keys(extraConfig).forEach((key) => {
+        configJs.push(
+          `'${key}': ${JSON.stringify(extraConfig[key])}`,
+        );
+      });
+
+      // Plugin initialization
+      Object.keys(pluginInit.revealConfig).forEach((key) => {
+        configJs.push(
+          `'${key}': ${JSON.stringify(pluginInit.revealConfig[key])}`,
+        );
+      });
+
+      const configStr = configJs.join(",\n");
+
+      scriptEl.innerText = scriptEl.innerText.replace(
+        "Reveal.initialize({",
+        `Reveal.initialize({\n${configStr},\n`,
+      );
+    }
+  }
+};
 const kOutputLocationSlide = "output-location-slide";
+
+const handleInvisibleSlides = (doc: Document) => {
+  // remove slides with data-visibility=hidden
+  const invisibleSlides = doc.querySelectorAll(
+    'section.slide[data-visibility="hidden"]',
+  );
+  for (let i = invisibleSlides.length - 1; i >= 0; i--) {
+    const slide = invisibleSlides.item(i);
+    // remove from toc
+    const id = (slide as Element).id;
+    if (id) {
+      const tocEntry = doc.querySelector(
+        'nav[role="doc-toc"] a[href="#/' + id + '"]',
+      );
+      if (tocEntry) {
+        tocEntry.parentElement?.remove();
+      }
+    }
+
+    // remove slide
+    slide.parentNode?.removeChild(slide);
+  }
+};
+
+const handleUntitledSlidesInToc = (doc: Document) => {
+  // remove from toc all slides that have no title
+  const tocEntries = Array.from(doc.querySelectorAll(
+    'nav[role="doc-toc"] ul > li',
+  ));
+  for (const tocEntry of tocEntries) {
+    const tocEntryEl = tocEntry as Element;
+    if (tocEntryEl.textContent.trim() === "") {
+      tocEntryEl.remove();
+    }
+  }
+};
+
+const handleSlideHeadingAttributes = (
+  doc: Document,
+  slideHeadingTags: string[],
+) => {
+  // remove all attributes from slide headings (pandoc has already moved
+  // them to the enclosing section)
+  const slideHeadings = doc.querySelectorAll("section.slide > :first-child");
+  slideHeadings.forEach((slideHeading) => {
+    const slideHeadingEl = slideHeading as Element;
+    if (slideHeadingTags.includes(slideHeadingEl.tagName)) {
+      // remove attributes
+      for (const attrib of slideHeadingEl.getAttributeNames()) {
+        slideHeadingEl.removeAttribute(attrib);
+        // if it's auto-animate then do some special handling
+        if (attrib === "data-auto-animate") {
+          // link slide titles for animation
+          slideHeadingEl.setAttribute("data-id", "quarto-animate-title");
+          // add animation id to code blocks
+          const codeBlocks = slideHeadingEl.parentElement?.querySelectorAll(
+            "div.sourceCode > pre > code",
+          );
+          if (codeBlocks?.length === 1) {
+            const codeEl = codeBlocks.item(0) as Element;
+            const preEl = codeEl.parentElement!;
+            preEl.setAttribute(
+              "data-id",
+              "quarto-animate-code",
+            );
+            // markup with highlightjs classes so that are sucessfully targeted by
+            // autoanimate.js
+            codeEl.classList.add("hljs");
+            codeEl.childNodes.forEach((spanNode) => {
+              if (spanNode.nodeType === NodeType.ELEMENT_NODE) {
+                const spanEl = spanNode as Element;
+                spanEl.classList.add("hljs-ln-code");
+              }
+            });
+          }
+        }
+      }
+    }
+  });
+};
+
+const handleCenteredSlides = (doc: Document, format: Format) => {
+  // center title slide if requested
+  // note that disabling title slide centering when the rest of the
+  // slides are centered doesn't currently work b/c reveal consults
+  // the global 'center' config as well as the class. to overcome
+  // this we'd need to always set 'center: false` and then
+  // put the .center classes onto each slide manually. we're not
+  // doing this now the odds a user would want all of their
+  // slides cnetered but NOT the title slide are close to zero
+  if (format.metadata[kCenterTitleSlide] !== false) {
+    const titleSlide = doc.getElementById("title-slide") as Element ??
+      // when hash-type: number, id are removed
+      doc.querySelector(".reveal .slides section.quarto-title-block");
+    if (titleSlide) {
+      titleSlide.classList.add("center");
+    }
+    const titleSlides = doc.querySelectorAll(".title-slide");
+    for (const slide of titleSlides) {
+      (slide as Element).classList.add("center");
+    }
+  }
+  // center other slides if requested
+  if (format.metadata[kCenter] === true) {
+    for (const slide of doc.querySelectorAll("section.slide")) {
+      const slideEl = slide as Element;
+      slideEl.classList.add("center");
+    }
+  }
+};
+
+const fixupAssistiveMmlInNotes = (doc: Document) => {
+  // inject css to hide assistive mml in speaker notes (have to do it for each aside b/c the asides are
+  // slurped into speaker mode one at a time using innerHTML) note that we can remvoe this hack when we begin
+  // defaulting to MathJax 3 (after Pandoc updates their template to support Reveal 4.2 / MathJax 3)
+  // see discussion of underlying issue here: https://github.com/hakimel/reveal.js/issues/1726
+  // hack here: https://stackoverflow.com/questions/35534385/mathjax-config-for-web-mobile-and-assistive
+  const notes = doc.querySelectorAll("aside.notes");
+  for (const note of notes) {
+    const style = doc.createElement("style");
+    style.setAttribute("type", "text/css");
+    style.innerHTML = `
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }`;
+    note.appendChild(style);
+  }
+};
+
+const coalesceAsides = (doc: Document, slideFootnotes: boolean) => {
+  // collect up asides into a single aside
+  const slides = doc.querySelectorAll("section.slide");
+  for (const slide of slides) {
+    const slideEl = slide as Element;
+    const asides = slideEl.querySelectorAll("aside:not(.notes)");
+    const asideDivs = slideEl.querySelectorAll("div.aside");
+    const footnotes = slideEl.querySelectorAll('a[role="doc-noteref"]');
+    if (asides.length > 0 || asideDivs.length > 0 || footnotes.length > 0) {
+      const aside = doc.createElement("aside");
+      // deno-lint-ignore no-explicit-any
+      const collectAsides = (asideList: any) => {
+        asideList.forEach((asideEl: Element) => {
+          const asideDiv = doc.createElement("div");
+          asideDiv.innerHTML = (asideEl as Element).innerHTML;
+          aside.appendChild(asideDiv);
+        });
+        asideList.forEach((asideEl: Element) => {
+          asideEl.remove();
+        });
+      };
+      // start with asides and div.aside
+      collectAsides(asides);
+      collectAsides(asideDivs);
+
+      // append footnotes
+      if (slideFootnotes && footnotes.length > 0) {
+        const ol = doc.createElement("ol");
+        ol.classList.add("aside-footnotes");
+        footnotes.forEach((note, index) => {
+          const noteEl = note as Element;
+          const href = noteEl.getAttribute("href");
+          if (href) {
+            const noteLi = doc.getElementById(href.replace(/^#\//, ""));
+            if (noteLi) {
+              // remove backlink
+              const footnoteBack = noteLi.querySelector(".footnote-back");
+              if (footnoteBack) {
+                footnoteBack.remove();
+              }
+              ol.appendChild(noteLi);
+            }
+          }
+          const sup = doc.createElement("sup");
+          sup.innerText = (index + 1) + "";
+          noteEl.replaceWith(sup);
+        });
+        aside.appendChild(ol);
+      }
+
+      slide.appendChild(aside);
+    }
+  }
+};
+
+const handleSlideFootnotes = (
+  doc: Document,
+  slideFootnotes: boolean,
+  format: Format,
+  slideLevel: number,
+) => {
+  const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
+  if (slideFootnotes) {
+    // we are using slide based footnotes so remove footnotes slide from end
+    for (const footnoteSection of footnotes) {
+      (footnoteSection as Element).remove();
+    }
+  } else {
+    let footnotesId: string | undefined;
+    const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
+    if (footnotes.length === 1) {
+      const footnotesEl = footnotes[0] as Element;
+      footnotesId = footnotesEl?.getAttribute("id") || "footnotes";
+      footnotesEl.setAttribute("id", footnotesId);
+      insertFootnotesTitle(doc, footnotesEl, format.language, slideLevel);
+      footnotesEl.classList.add("smaller");
+      footnotesEl.classList.add("scrollable");
+      footnotesEl.classList.remove("center");
+      removeFootnoteBacklinks(footnotesEl);
+    }
+
+    // we are keeping footnotes at the end so disable the links (we use popups)
+    // and tweak the footnotes slide (add a title add smaller/scrollable)
+    const notes = doc.querySelectorAll('a[role="doc-noteref"]');
+    for (const note of notes) {
+      const noteEl = note as Element;
+      noteEl.setAttribute("data-footnote-href", noteEl.getAttribute("href"));
+      noteEl.setAttribute("href", footnotesId ? `#/${footnotesId}` : "");
+      noteEl.setAttribute("onclick", footnotesId ? "" : "return false;");
+    }
+  }
+};
+
+const handleRefs = (doc: Document): string | undefined => {
+  // add scrollable to refs slide
+  let refsId: string | undefined;
+  const refs = doc.querySelector("#refs");
+  if (refs) {
+    const refsSlide = findParentSlide(refs);
+    if (refsSlide) {
+      refsId = refsSlide?.getAttribute("id") || "references";
+      refsSlide.setAttribute("id", refsId);
+    }
+    applyClassesToParentSlide(refs, ["smaller", "scrollable"]);
+    removeClassesFromParentSlide(refs, ["center"]);
+  }
+  return refsId;
+};
+
+const handleScrollable = (doc: Document, format: Format) => {
+  // #6866: add .scrollable to all sections with ordered lists if format.scrollable is true
+  if (format.metadata[kScrollable] === true) {
+    const ol = doc.querySelectorAll("ol");
+    for (const olEl of ol) {
+      const olParent = findParent(olEl as Element, (el: Element) => {
+        return el.nodeName === "SECTION";
+      });
+      if (olParent) {
+        olParent.classList.add("scrollable");
+      }
+    }
+  }
+};
+
+const handleCitationLinks = (doc: Document, refsId: string | undefined) => {
+  // handle citation links
+  const cites = doc.querySelectorAll('a[role="doc-biblioref"]');
+  for (const cite of cites) {
+    const citeEl = cite as Element;
+    citeEl.setAttribute("href", refsId ? `#/${refsId}` : "");
+    citeEl.setAttribute("onclick", refsId ? "" : "return false;");
+  }
+};
+
+const handleChalkboard = (result: HtmlPostProcessResult, format: Format) => {
+  // include chalkboard src json if specified
+  const chalkboard = format.metadata["chalkboard"];
+  if (typeof chalkboard === "object") {
+    const chalkboardSrc = (chalkboard as Record<string, unknown>)["src"];
+    if (typeof chalkboardSrc === "string") {
+      result.resources.push(chalkboardSrc);
+    }
+  }
+};
+
+const handleAnchors = (doc: Document) => {
+  // Remove anchors on numbered code chunks as they can't work
+  // because ids are used for sections in revealjs
+  const codeLinesAnchors = doc.querySelectorAll(
+    "span[id^='cb'] > a[href^='#c']",
+  );
+  codeLinesAnchors.forEach((codeLineAnchor) => {
+    const codeLineAnchorEl = codeLineAnchor as Element;
+    codeLineAnchorEl.removeAttribute("href");
+  });
+};
+
+const handleInterColumnDivSpaces = (doc: Document) => {
+  // https://github.com/quarto-dev/quarto-cli/issues/8498
+  // columns with spaces between them can cause
+  // layout problems when their total width is almost 100%
+  for (const slide of doc.querySelectorAll("section.slide")) {
+    for (const column of (slide as Element).querySelectorAll("div.column")) {
+      const columnEl = column as Element;
+      let next = columnEl.nextSibling;
+      while (
+        next &&
+        next.nodeType === NodeType.TEXT_NODE &&
+        next.textContent?.trim() === ""
+      ) {
+        next.parentElement?.removeChild(next);
+        next = columnEl.nextSibling;
+      }
+    }
+  }
+};
 
 function revealHtmlPostprocessor(
   format: Format,
   extraConfig: Record<string, unknown>,
-  pluginInit: {
-    scripts: RevealPluginScript[];
-    register: string[];
-    revealConfig: Record<string, unknown>;
-  },
+  pluginInit: RevealJsPluginInit,
   highlightingMode: "light" | "dark",
 ) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
+    const result: HtmlPostProcessResult = {
+      resources: [],
+      supporting: [],
+    };
+
+    // Remove blockquote scaffolding added in Lua post-render to prevent Pandoc syntax for applying
+    if (doc.querySelectorAll("div.blockquote-list-scaffold")) {
+      const blockquoteListScaffolds = doc.querySelectorAll(
+        "div.blockquote-list-scaffold",
+      );
+      for (const blockquoteListScaffold of blockquoteListScaffolds) {
+        const blockquoteListScaffoldEL = blockquoteListScaffold as Element;
+        const blockquoteListScaffoldParent =
+          blockquoteListScaffoldEL.parentNode;
+        if (blockquoteListScaffoldParent) {
+          while (blockquoteListScaffoldEL.firstChild) {
+            blockquoteListScaffoldParent.insertBefore(
+              blockquoteListScaffoldEL.firstChild,
+              blockquoteListScaffoldEL,
+            );
+          }
+          blockquoteListScaffoldParent.removeChild(blockquoteListScaffoldEL);
+        }
+      }
+    }
+
     // apply highlighting mode to body
     doc.body.classList.add("quarto-" + highlightingMode);
 
@@ -360,418 +929,25 @@ function revealHtmlPostprocessor(
       "H" + (i + 1)
     );
 
-    // find output-location-slide and inject slides as required
-    const slideOutputs = doc.querySelectorAll(`.${kOutputLocationSlide}`);
-    for (const slideOutput of slideOutputs) {
-      // find parent slide
-      const slideOutputEl = slideOutput as Element;
-      const parentSlide = findParentSlide(slideOutputEl);
-      if (parentSlide && parentSlide.parentElement) {
-        const newSlide = doc.createElement("section");
-        newSlide.setAttribute(
-          "id",
-          parentSlide?.id ? parentSlide.id + "-output" : "",
-        );
-        for (const clz of parentSlide.classList) {
-          newSlide.classList.add(clz);
-        }
-        newSlide.classList.add(kOutputLocationSlide);
-        // repeat header if there is one
-        if (
-          slideHeadingTags.includes(
-            parentSlide.firstElementChild?.tagName || "",
-          )
-        ) {
-          const headingEl = doc.createElement(
-            parentSlide.firstElementChild?.tagName!,
-          );
-          headingEl.innerHTML = parentSlide.firstElementChild?.innerHTML || "";
-          newSlide.appendChild(headingEl);
-        }
-        newSlide.appendChild(slideOutputEl);
-        // Place the new slide after the current one
-        const nextSlide = parentSlide.nextElementSibling;
-        parentSlide.parentElement.insertBefore(newSlide, nextSlide);
-      }
-    }
-
-    // if we are using 'number' as our hash type then remove the
-    // title slide id
-    if (format.metadata[kHashType] === "number") {
-      const titleSlide = doc.getElementById("title-slide");
-      if (titleSlide) {
-        titleSlide.removeAttribute("id");
-        // required for title-slide-style: pandoc
-        titleSlide.classList.add("quarto-title-block");
-      }
-    }
-
-    // find reveal initialization and perform fixups
-    const scripts = doc.querySelectorAll("script");
-    for (const script of scripts) {
-      const scriptEl = script as Element;
-      if (
-        scriptEl.innerText &&
-        scriptEl.innerText.indexOf("Reveal.initialize({") !== -1
-      ) {
-        // quote slideNumber
-        scriptEl.innerText = scriptEl.innerText.replace(
-          /slideNumber: (h[\.\/]v|c(?:\/t)?)/,
-          "slideNumber: '$1'",
-        );
-
-        // quote width and heigh if in %
-        scriptEl.innerText = scriptEl.innerText.replace(
-          /width: (\d+(\.\d+)?%)/,
-          "width: '$1'",
-        );
-        scriptEl.innerText = scriptEl.innerText.replace(
-          /height: (\d+(\.\d+)?%)/,
-          "height: '$1'",
-        );
-
-        // plugin registration
-        if (pluginInit.register.length > 0) {
-          const kRevealPluginArray = "plugins: [";
-          scriptEl.innerText = scriptEl.innerText.replace(
-            kRevealPluginArray,
-            kRevealPluginArray + pluginInit.register.join(", ") + ",\n",
-          );
-        }
-
-        // Write any additional configuration of reveal
-        const configJs: string[] = [];
-        Object.keys(extraConfig).forEach((key) => {
-          configJs.push(
-            `'${key}': ${JSON.stringify(extraConfig[key])}`,
-          );
-        });
-
-        // Plugin initialization
-        Object.keys(pluginInit.revealConfig).forEach((key) => {
-          configJs.push(
-            `'${key}': ${JSON.stringify(pluginInit.revealConfig[key])}`,
-          );
-        });
-
-        const configStr = configJs.join(",\n");
-
-        scriptEl.innerText = scriptEl.innerText.replace(
-          "Reveal.initialize({",
-          `Reveal.initialize({\n${configStr},\n`,
-        );
-      }
-    }
-
-    // bugfix for #6800
-    // if slides have content that was added by quarto then move that to the parent node
-    for (const slide of doc.querySelectorAll("section.slide")) {
-      const slideContentFromQuarto = (slide as Element).querySelector(
-        ".quarto-auto-generated-content",
-      );
-      if (
-        slideContentFromQuarto &&
-        (slide as Element).getAttribute("data-visibility") === "hidden"
-      ) {
-        if (slideContentFromQuarto.childElementCount === 0) {
-          slideContentFromQuarto.remove();
-        } else {
-          for (const otherSlide of doc.querySelectorAll("section.slide")) {
-            if (
-              (otherSlide as Element).getAttribute("data-visibility") !==
-                "hidden"
-            ) {
-              otherSlide.appendChild(slideContentFromQuarto);
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    // remove slides with data-visibility=hidden
-    const invisibleSlides = doc.querySelectorAll(
-      'section.slide[data-visibility="hidden"]',
-    );
-    for (let i = invisibleSlides.length - 1; i >= 0; i--) {
-      const slide = invisibleSlides.item(i);
-      // remove from toc
-      const id = (slide as Element).id;
-      if (id) {
-        const tocEntry = doc.querySelector(
-          'nav[role="doc-toc"] a[href="#/' + id + '"]',
-        );
-        if (tocEntry) {
-          tocEntry.parentElement?.remove();
-        }
-      }
-
-      // remove slide
-      slide.parentNode?.removeChild(slide);
-    }
-
-    // remove from toc all slides that have no title
-    const tocEntries = Array.from(doc.querySelectorAll(
-      'nav[role="doc-toc"] a[href^="#/"]',
-    ));
-    for (const tocEntry of tocEntries) {
-      const tocEntryEl = tocEntry as Element;
-      if (tocEntryEl.textContent.trim() === "") {
-        tocEntryEl.parentElement?.remove();
-      }
-    }
-
-    // remove all attributes from slide headings (pandoc has already moved
-    // them to the enclosing section)
-    const slideHeadings = doc.querySelectorAll("section.slide > :first-child");
-    slideHeadings.forEach((slideHeading) => {
-      const slideHeadingEl = slideHeading as Element;
-      if (slideHeadingTags.includes(slideHeadingEl.tagName)) {
-        // remove attributes
-        for (const attrib of slideHeadingEl.getAttributeNames()) {
-          slideHeadingEl.removeAttribute(attrib);
-          // if it's auto-animate then do some special handling
-          if (attrib === "data-auto-animate") {
-            // link slide titles for animation
-            slideHeadingEl.setAttribute("data-id", "quarto-animate-title");
-            // add animation id to code blocks
-            const codeBlocks = slideHeadingEl.parentElement?.querySelectorAll(
-              "div.sourceCode > pre > code",
-            );
-            if (codeBlocks?.length === 1) {
-              const codeEl = codeBlocks.item(0) as Element;
-              const preEl = codeEl.parentElement!;
-              preEl.setAttribute(
-                "data-id",
-                "quarto-animate-code",
-              );
-              // markup with highlightjs classes so that are sucessfully targeted by
-              // autoanimate.js
-              codeEl.classList.add("hljs");
-              codeEl.childNodes.forEach((spanNode) => {
-                if (spanNode.nodeType === NodeType.ELEMENT_NODE) {
-                  const spanEl = spanNode as Element;
-                  spanEl.classList.add("hljs-ln-code");
-                }
-              });
-            }
-          }
-        }
-      }
-    });
-
-    // center title slide if requested
-    // note that disabling title slide centering when the rest of the
-    // slides are centered doesn't currently work b/c reveal consults
-    // the global 'center' config as well as the class. to overcome
-    // this we'd need to always set 'center: false` and then
-    // put the .center classes onto each slide manually. we're not
-    // doing this now the odds a user would want all of their
-    // slides cnetered but NOT the title slide are close to zero
-    if (format.metadata[kCenterTitleSlide] !== false) {
-      const titleSlide = doc.getElementById("title-slide") as Element ??
-        // when hash-type: number, id are removed
-        doc.querySelector(".reveal .slides section.quarto-title-block");
-      if (titleSlide) {
-        titleSlide.classList.add("center");
-      }
-      const titleSlides = doc.querySelectorAll(".title-slide");
-      for (const slide of titleSlides) {
-        (slide as Element).classList.add("center");
-      }
-    }
-
-    // center other slides if requested
-    if (format.metadata[kCenter] === true) {
-      for (const slide of doc.querySelectorAll("section.slide")) {
-        const slideEl = slide as Element;
-        slideEl.classList.add("center");
-      }
-    }
-
-    // inject css to hide assistive mml in speaker notes (have to do it for each aside b/c the asides are
-    // slurped into speaker mode one at a time using innerHTML) note that we can remvoe this hack when we begin
-    // defaulting to MathJax 3 (after Pandoc updates their template to support Reveal 4.2 / MathJax 3)
-    // see discussion of underlying issue here: https://github.com/hakimel/reveal.js/issues/1726
-    // hack here: https://stackoverflow.com/questions/35534385/mathjax-config-for-web-mobile-and-assistive
-    const notes = doc.querySelectorAll("aside.notes");
-    for (const note of notes) {
-      const style = doc.createElement("style");
-      style.setAttribute("type", "text/css");
-      style.innerHTML = `
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }`;
-      note.appendChild(style);
-    }
-
-    // collect up asides into a single aside
-    const slides = doc.querySelectorAll("section.slide");
-    for (const slide of slides) {
-      const slideEl = slide as Element;
-      const asides = slideEl.querySelectorAll("aside:not(.notes)");
-      const asideDivs = slideEl.querySelectorAll("div.aside");
-      const footnotes = slideEl.querySelectorAll('a[role="doc-noteref"]');
-      if (asides.length > 0 || asideDivs.length > 0 || footnotes.length > 0) {
-        const aside = doc.createElement("aside");
-        // deno-lint-ignore no-explicit-any
-        const collectAsides = (asideList: any) => {
-          asideList.forEach((asideEl: Element) => {
-            const asideDiv = doc.createElement("div");
-            asideDiv.innerHTML = (asideEl as Element).innerHTML;
-            aside.appendChild(asideDiv);
-          });
-          asideList.forEach((asideEl: Element) => {
-            asideEl.remove();
-          });
-        };
-        // start with asides and div.aside
-        collectAsides(asides);
-        collectAsides(asideDivs);
-
-        // append footnotes
-        if (slideFootnotes && footnotes.length > 0) {
-          const ol = doc.createElement("ol");
-          ol.classList.add("aside-footnotes");
-          footnotes.forEach((note, index) => {
-            const noteEl = note as Element;
-            const href = noteEl.getAttribute("href");
-            if (href) {
-              const noteLi = doc.getElementById(href.replace(/^#\//, ""));
-              if (noteLi) {
-                // remove backlink
-                const footnoteBack = noteLi.querySelector(".footnote-back");
-                if (footnoteBack) {
-                  footnoteBack.remove();
-                }
-                ol.appendChild(noteLi);
-              }
-            }
-            const sup = doc.createElement("sup");
-            sup.innerText = (index + 1) + "";
-            noteEl.replaceWith(sup);
-          });
-          aside.appendChild(ol);
-        }
-
-        slide.appendChild(aside);
-      }
-    }
-
-    const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
-    if (slideFootnotes) {
-      // we are using slide based footnotes so remove footnotes slide from end
-      for (const footnoteSection of footnotes) {
-        (footnoteSection as Element).remove();
-      }
-    } else {
-      let footnotesId: string | undefined;
-      const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
-      if (footnotes.length === 1) {
-        const footnotesEl = footnotes[0] as Element;
-        footnotesId = footnotesEl?.getAttribute("id") || "footnotes";
-        footnotesEl.setAttribute("id", footnotesId);
-        insertFootnotesTitle(doc, footnotesEl, format.language, slideLevel);
-        footnotesEl.classList.add("smaller");
-        footnotesEl.classList.add("scrollable");
-        footnotesEl.classList.remove("center");
-        removeFootnoteBacklinks(footnotesEl);
-      }
-
-      // we are keeping footnotes at the end so disable the links (we use popups)
-      // and tweak the footnotes slide (add a title add smaller/scrollable)
-      const notes = doc.querySelectorAll('a[role="doc-noteref"]');
-      for (const note of notes) {
-        const noteEl = note as Element;
-        noteEl.setAttribute("data-footnote-href", noteEl.getAttribute("href"));
-        noteEl.setAttribute("href", footnotesId ? `#/${footnotesId}` : "");
-        noteEl.setAttribute("onclick", footnotesId ? "" : "return false;");
-      }
-    }
-
-    // add scrollable to refs slide
-    let refsId: string | undefined;
-    const refs = doc.querySelector("#refs");
-    if (refs) {
-      const refsSlide = findParentSlide(refs);
-      if (refsSlide) {
-        refsId = refsSlide?.getAttribute("id") || "references";
-        refsSlide.setAttribute("id", refsId);
-      }
-      applyClassesToParentSlide(refs, ["smaller", "scrollable"]);
-      removeClassesFromParentSlide(refs, ["center"]);
-    }
-
-    // #6866: add .scrollable to all sections with ordered lists if format.scrollable is true
-    if (format.metadata[kScrollable] === true) {
-      const ol = doc.querySelectorAll("ol");
-      for (const olEl of ol) {
-        const olParent = findParent(olEl as Element, (el: Element) => {
-          return el.nodeName === "SECTION";
-        });
-        if (olParent) {
-          olParent.classList.add("scrollable");
-        }
-      }
-    }
-
-    // handle citation links
-    const cites = doc.querySelectorAll('a[role="doc-biblioref"]');
-    for (const cite of cites) {
-      const citeEl = cite as Element;
-      citeEl.setAttribute("href", refsId ? `#/${refsId}` : "");
-      citeEl.setAttribute("onclick", refsId ? "" : "return false;");
-    }
-
+    handleOutputLocationSlide(doc, slideHeadingTags);
+    handleHashTypeNumber(doc, format);
+    fixupRevealJsInitialization(doc, extraConfig, pluginInit);
+    handleAutoGeneratedContent(doc);
+    handleInvisibleSlides(doc);
+    handleUntitledSlidesInToc(doc);
+    handleSlideHeadingAttributes(doc, slideHeadingTags);
+    handleCenteredSlides(doc, format);
+    fixupAssistiveMmlInNotes(doc);
+    coalesceAsides(doc, slideFootnotes);
+    handleSlideFootnotes(doc, slideFootnotes, format, slideLevel);
+    const refsId = handleRefs(doc);
+    handleScrollable(doc, format);
+    handleCitationLinks(doc, refsId);
     // apply stretch to images as required
     applyStretch(doc, format.metadata[kAutoStretch] as boolean);
-
-    // include chalkboard src json if specified
-    const result: HtmlPostProcessResult = {
-      resources: [],
-      supporting: [],
-    };
-    const chalkboard = format.metadata["chalkboard"];
-    if (typeof chalkboard === "object") {
-      const chalkboardSrc = (chalkboard as Record<string, unknown>)["src"];
-      if (typeof chalkboardSrc === "string") {
-        result.resources.push(chalkboardSrc);
-      }
-    }
-
-    // Remove anchors on numbered code chunks as they can't work
-    // because ids are used for sections in revealjs
-    const codeLinesAnchors = doc.querySelectorAll(
-      "span[id^='cb'] > a[href^='#c']",
-    );
-    codeLinesAnchors.forEach((codeLineAnchor) => {
-      const codeLineAnchorEl = codeLineAnchor as Element;
-      codeLineAnchorEl.removeAttribute("href");
-    });
-
-    // https://github.com/quarto-dev/quarto-cli/issues/3533
-    // redirect anchors to the slide they refer to
-    const anchors = doc.querySelectorAll("a[href^='#/']");
-    for (const anchor of anchors) {
-      const anchorEl = anchor as Element;
-      const href = anchorEl.getAttribute("href");
-      if (href) {
-        const target = doc.getElementById(href.replace(/^#\//, ""));
-        if (target) {
-          const slide = findParentSlide(target);
-          if (slide && slide.getAttribute("id")) {
-            anchorEl.setAttribute("href", `#/${slide.getAttribute("id")}`);
-          }
-        }
-      }
-    }
+    handleChalkboard(result, format);
+    handleAnchors(doc);
+    handleInterColumnDivSpaces(doc);
 
     // return result
     return Promise.resolve(result);
@@ -888,7 +1064,7 @@ function applyStretch(doc: Document, autoStretch: boolean) {
             }
           };
 
-          // Figure environment ? Get caption and alignment
+          // Figure environment ? Get caption, id and alignment
           const quartoFig = slideEl.querySelector("div.quarto-figure");
           const caption = doc.createElement("p");
           if (quartoFig) {
@@ -897,6 +1073,9 @@ function applyStretch(doc: Document, autoStretch: boolean) {
               "quarto-figure-(center|left|right)",
             );
             if (align) imageEl.classList.add(align[0]);
+            // Get id
+            const quartoFigId = quartoFig?.id;
+            if (quartoFigId) imageEl.id = quartoFigId;
             // Get Caption
             const figCaption = nodeEl.querySelector("figcaption");
             if (figCaption) {

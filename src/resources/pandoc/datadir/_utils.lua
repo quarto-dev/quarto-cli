@@ -235,6 +235,22 @@ local function tcontains(t, value)
   return false
 end
 
+
+local function sortedPairs(t, f)
+  local a = {}
+  for n in pairs(t) do table.insert(a, n) end
+  table.sort(a, f)
+  local i = 0      -- iterator variable
+  local iter = function()   -- iterator function
+      i = i + 1
+      if a[i] == nil then return nil
+      else return a[i], t[a[i]]
+      end
+  end
+  return iter
+end
+
+
 local function get_type(v)
   local pandoc_type = pandoc.utils.type(v)
   if pandoc_type == "Inline" then
@@ -255,6 +271,7 @@ local function as_inlines(v)
   end
   local t = pandoc.utils.type(v)
   if t == "Inlines" then
+    ---@cast v pandoc.Inlines
     return v
   elseif t == "Blocks" then
     return pandoc.utils.blocks_to_inlines(v)
@@ -545,7 +562,8 @@ return {
   type = get_type,
   table = {
     isarray = tisarray,
-    contains = tcontains
+    contains = tcontains,
+    sortedPairs = sortedPairs
   },
   as_inlines = as_inlines,
   as_blocks = as_blocks,

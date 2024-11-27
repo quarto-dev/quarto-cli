@@ -1,5 +1,8 @@
 $if(citations)$
-$if(bibliographystyle)$
+$if(csl)$ 
+  
+#set bibliography(style: "$csl$") 
+$elseif(bibliographystyle)$ 
 
 #set bibliography(style: "$bibliographystyle$")
 $endif$

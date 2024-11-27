@@ -13,17 +13,21 @@ local function _main()
         result:insert(pandoc.RawInline("typst", tostring(v)))
       elseif type(v) == "string" then
         result:insert(pandoc.RawInline("typst", "\"" .. v .. "\""))
+      elseif type(v) == "boolean" then
+        result:insert(pandoc.RawInline("typst", v and "true" or "false"))
       elseif v.t == "RawInline" or v.t == "RawBlock" then
-        result:insert(v)
+        if v.format == "typst" then
+          result:insert(v)
+        else
+          fail("typst function call with non-typst raw block")
+        end
       elseif type(v) == "userdata" or type(v) == "table" then
-        result:insert(pandoc.RawInline("typst", "["))
         result:extend(quarto.utils.as_blocks(v) or {})
-        result:insert(pandoc.RawInline("typst", "]"))
       else
         result:extend(quarto.utils.as_blocks({pandoc.utils.stringify(v)}) or {})
       end
     end
-    -- needs to be array of pairs because order matters for typst
+    -- params needs to be array of pairs because order matters for typst
     local n = #params
     for i, pair in ipairs(params) do
       if pandoc.utils.type(pair) == "table" then
@@ -55,17 +59,43 @@ local function _main()
     end
   end
   
-  local function as_typst_content(content)
-    local result = pandoc.Blocks({})
-    result:insert(pandoc.RawInline("typst", "[\n"))
-    result:extend(quarto.utils.as_blocks(content) or {})
-    result:insert(pandoc.RawInline("typst", "]\n"))
-    return result
+  local function as_typst_content(content, blocks_or_inlines)
+    blocks_or_inlines = blocks_or_inlines or "blocks"
+    if blocks_or_inlines == "blocks" then
+      local result = pandoc.Blocks({})
+      result:insert(pandoc.RawInline("typst", "["))
+      result:extend(quarto.utils.as_blocks(content) or {})
+      result:insert(pandoc.RawInline("typst", "]\n"))
+      return result
+    else
+      local result = pandoc.Inlines({})
+      result:insert(pandoc.RawInline("typst", "["))
+      result:extend(quarto.utils.as_inlines(content) or {})
+      result:insert(pandoc.RawInline("typst", "]"))
+      return result
+    end
+  end
+
+  local function as_typst_dictionary(tab)
+    local entries = {}
+    for k, v in _quarto.utils.table.sortedPairs(tab) do
+      if type(v) == 'table' then
+        v = as_typst_dictionary(v)
+      end
+      if k and v then
+        table.insert(entries, k .. ': ' .. v)
+      end
+    end
+    if #entries == 0 then return nil end
+    return '(' .. table.concat(entries, ', ') .. ')'
   end
   
   return {
     function_call = typst_function_call,
-    as_typst_content = as_typst_content
+    sortedPairs = sortedPairs,
+    as_typst_content = as_typst_content,
+    as_typst_dictionary = as_typst_dictionary,
+    css = require("modules/typst_css")
   }
 end
 

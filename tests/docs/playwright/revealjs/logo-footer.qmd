@@ -1,0 +1,26 @@
+---
+format:
+  revealjs:
+    logo: quarto.png
+    footer: "Footer text"
+---
+
+## Slide 1
+
+Footer is shown on all slides
+
+## Slide 2
+
+Like logo
+
+## Slide 3 {footer=false}
+
+unless `{footer=false}` is set, which will remove the footer
+
+## Slide 4
+
+Custom footer can also be set
+
+::: {.footer}
+A different footer
+:::

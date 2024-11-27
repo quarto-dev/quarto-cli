@@ -86,6 +86,9 @@ import { formatDate } from "../../../core/date.ts";
 import { projectExtensionPathResolver } from "../../../extension/extension.ts";
 import { websiteDraftPostProcessor } from "./website-draft.ts";
 import { projectDraftMode } from "./website-utils.ts";
+import { kFieldCategories } from "./listing/website-listing-shared.ts";
+import { pandocNativeStr } from "../../../core/pandoc/codegen.ts";
+import { asArray } from "../../../core/array.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -157,6 +160,7 @@ export const websiteProjectType: ProjectType = {
       // add some title related variables
       extras.pandoc = extras.pandoc || {};
       extras.metadata = extras.metadata || {};
+      extras.metadataOverride = extras.metadataOverride || {};
 
       // Resolve any giscus information
       resolveFormatForGiscus(project, format);
@@ -194,6 +198,18 @@ export const websiteProjectType: ProjectType = {
         title
       ) {
         extras.metadata[kPageTitle] = title;
+      }
+
+      // categories metadata needs to be escaped from Markdown processing to
+      // avoid +smart applying to it. Categories are expected to be non markdown.
+      // So we provide an override to ensure they are not processed.
+      if (format.metadata[kFieldCategories]) {
+        extras.metadataOverride[kFieldCategories] = asArray(
+          format.metadata[kFieldCategories],
+        ).map(
+          (category) =>
+            pandocNativeStr(category as string).mappedString().value,
+        );
       }
 
       // html metadata

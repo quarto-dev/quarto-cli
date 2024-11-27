@@ -6,8 +6,7 @@
 
 import { warning } from "../../deno_ral/log.ts";
 
-import { Select } from "cliffy/prompt/select.ts";
-import { Confirm } from "cliffy/prompt/confirm.ts";
+import { Confirm, prompt, Select } from "cliffy/prompt/mod.ts";
 
 import { findProvider, publishProviders } from "../../publish/provider.ts";
 
@@ -226,16 +225,18 @@ export async function chooseDeployment(
     value: kOther,
   });
 
-  const confirm = await Select.prompt({
+  const confirm = await prompt([{
+    name: "destination",
     indent: "",
     message: "Publish update to:",
     options,
-  });
+    type: Select,
+  }]);
 
-  if (confirm.value !== kOther) {
+  if (confirm.destination !== kOther) {
     return depoyments.find((deployment) =>
       publishRecordIdentifier(deployment.target, deployment.account) ===
-        confirm.value
+        confirm.destination
     );
   } else {
     return undefined;

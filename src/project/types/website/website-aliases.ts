@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
 import { dirname, extname, join, relative } from "../../../deno_ral/path.ts";
 
 import { ProjectOutputFile } from "../types.ts";

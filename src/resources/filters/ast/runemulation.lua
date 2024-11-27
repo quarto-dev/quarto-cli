@@ -131,10 +131,11 @@ local function emulate_pandoc_filter(filters, afterFilterPass)
   return {
     traverse = 'topdown',
     Pandoc = function(doc)
-      local profiling = option("profiler", false)
+      local profiling = option("profiler-output", false)
       if not profiling then
         return run_emulated_filter_chain(doc, filters, afterFilterPass), false
       end
+      profiling = pandoc.utils.stringify(profiling)
       -- luacov: disable
       if profiler == nil then
         profiler = require('profiler')

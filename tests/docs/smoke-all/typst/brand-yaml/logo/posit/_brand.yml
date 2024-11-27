@@ -1,0 +1,13 @@
+logo:
+  images:
+    posit-logo-light-medium:
+      path: posit-logo-2024.svg
+      alt: Posit Logo
+    brand-typst-with-good-padding: good-padding.png
+  medium: posit-logo-light-medium
+defaults:
+  quarto:
+    format:
+      typst:
+        logo: # this gets wiped out because brand-logo.qmd uses logo: medium
+          location: left-bottom

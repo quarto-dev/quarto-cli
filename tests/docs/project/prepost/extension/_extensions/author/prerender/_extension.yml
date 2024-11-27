@@ -1,0 +1,11 @@
+title: Pre-Render test
+author: cscheid
+version: 1.0.0
+quarto-required: ">=1.2.0"
+contributes:
+  metadata:
+    project:
+      pre-render:
+        - pre-render.ts
+      post-render:
+        - post-render.ts

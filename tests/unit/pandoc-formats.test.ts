@@ -1,5 +1,5 @@
 import { unitTest } from "../test.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 import {
   FormatDescriptor,
   parseFormatString,

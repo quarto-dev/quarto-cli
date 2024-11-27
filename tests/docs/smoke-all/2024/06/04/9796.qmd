@@ -1,0 +1,14 @@
+---
+format: dashboard
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        - []
+        - ["div.card"]
+
+---
+
+::: {.cell}
+
+:::

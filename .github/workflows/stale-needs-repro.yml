@@ -10,6 +10,7 @@ permissions:
 jobs:
   stale:
     runs-on: ubuntu-latest
+    if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
       - uses: actions/stale@v9
         with:

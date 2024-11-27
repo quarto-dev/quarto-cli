@@ -1,0 +1,32 @@
+---
+format:
+  typst:
+    output-ext: typ
+_quarto:
+  tests:
+    typst:
+      ensureFileRegexMatches:
+        - []
+        - ['#figure\(\[\n#figure\(']
+---
+
+::: {#tbl-main layout-ncol=1}
+
+| A | B |
+|---|---|
+| 1 | 2 |
+| 3 | 4 |
+
+: Caption 1 {#tbl-one}
+ 
+| 1 | 2 |
+|---|---|
+| A | B |
+| C | D |
+
+: Caption 2 {#tbl-two}
+
+Main caption
+:::
+
+See @tbl-main, @tbl-one, @tbl-two.

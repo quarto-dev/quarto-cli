@@ -7,10 +7,15 @@
 import { CreateResult } from "./cmd-types.ts";
 
 import { which } from "../../core/path.ts";
-import { isRStudioTerminal, isVSCodeTerminal } from "../../core/platform.ts";
+import {
+  isPositronTerminal,
+  isRStudioTerminal,
+  isVSCodeTerminal,
+} from "../../core/platform.ts";
 
 import { basename, dirname, join } from "../../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
+import { isMac, isWindows } from "../../deno_ral/platform.ts";
 
 export interface Editor {
   // A short, command line friendly id
@@ -29,6 +34,7 @@ export interface Editor {
 }
 
 export const kEditorInfos: EditorInfo[] = [
+  positronEditorInfo(),
   vscodeEditorInfo(),
   rstudioEditorInfo(),
 ];
@@ -99,7 +105,7 @@ function vscodeEditorInfo(): EditorInfo {
     actions: [],
   };
 
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     editorInfo.actions.push({
       action: "which",
       arg: "code.exe",
@@ -113,7 +119,7 @@ function vscodeEditorInfo(): EditorInfo {
       },
     );
     editorInfo.actions.push(...pathActions);
-  } else if (Deno.build.os === "darwin") {
+  } else if (isMac) {
     editorInfo.actions.push({
       action: "which",
       arg: "code",
@@ -141,6 +147,66 @@ function vscodeEditorInfo(): EditorInfo {
   return editorInfo;
 }
 
+function positronEditorInfo(): EditorInfo {
+  const editorInfo: EditorInfo = {
+    id: "positron",
+    name: "positron",
+    open: (path: string, createResult: CreateResult) => {
+      const artifactPath = createResult.path;
+      const cwd = Deno.statSync(artifactPath).isDirectory
+        ? artifactPath
+        : dirname(artifactPath);
+
+      return async () => {
+        const p = Deno.run({
+          cmd: [path, artifactPath],
+          cwd,
+        });
+        await p.status();
+      };
+    },
+    inEditor: isPositronTerminal(),
+    actions: [],
+  };
+
+  if (isWindows) {
+    editorInfo.actions.push({
+      action: "which",
+      arg: "Positron.exe",
+    });
+    const pathActions = windowsAppPaths("Positron", "Positron.exe").map(
+      (path) => {
+        return {
+          action: "path",
+          arg: path,
+        } as ScanAction;
+      },
+    );
+    editorInfo.actions.push(...pathActions);
+  } else if (isMac) {
+    editorInfo.actions.push({
+      action: "which",
+      arg: "positron",
+    });
+
+    const pathActions = macosAppPaths(
+      "Positron.app/Contents/Resources/app/bin/code",
+    ).map((path) => {
+      return {
+        action: "path",
+        arg: path,
+      } as ScanAction;
+    });
+    editorInfo.actions.push(...pathActions);
+  } else {
+    editorInfo.actions.push({
+      action: "which",
+      arg: "positron",
+    });
+  }
+  return editorInfo;
+}
+
 function rstudioEditorInfo(): EditorInfo {
   const editorInfo: EditorInfo = {
     id: "rstudio",
@@ -158,7 +224,7 @@ function rstudioEditorInfo(): EditorInfo {
         const rProjPath = join(cwd, `${artifactName}.Rproj`);
         Deno.writeTextFileSync(rProjPath, kRProjContents);
 
-        const cmd = path.endsWith(".app") && Deno.build.os === "darwin"
+        const cmd = path.endsWith(".app") && isMac
           ? ["open", "-na", path, "--args", rProjPath]
           : [path, rProjPath];
 
@@ -174,7 +240,7 @@ function rstudioEditorInfo(): EditorInfo {
   };
 
   const rstudioExe = "rstudio.exe";
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     editorInfo.actions.push({
       action: "env",
       arg: "RS_RPOSTBACK_PATH",
@@ -192,7 +258,7 @@ function rstudioEditorInfo(): EditorInfo {
       },
     );
     editorInfo.actions.push(...paths);
-  } else if (Deno.build.os === "darwin") {
+  } else if (isMac) {
     const paths = macosAppPaths("RStudio.app").map((path) => {
       return {
         action: "path",

@@ -1,0 +1,16 @@
+---
+title: "Untitled"
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - ["labelsep=none"]
+---
+
+```{r}
+#| label: tbl-problem
+gt::gtcars[1:5, 1:5] |> 
+    gt::gt()
+```

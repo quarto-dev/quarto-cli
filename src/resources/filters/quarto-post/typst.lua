@@ -75,7 +75,7 @@ function render_typst()
           {"level", el.level},
         })
         if el.classes:includes("unnumbered") then
-          params:insert({"numbering", "none"})
+          params:insert({"numbering", pandoc.RawInline("typst", "none")})
         end
         if el.classes:includes("unlisted") then
           params:insert({"outlined", false})
@@ -91,48 +91,38 @@ function render_typst_fixups()
   if not _quarto.format.isTypstOutput() then
     return {}
   end
-  local function is_ratio_or_relative(value)
-    if value == nil then
-      return nil
-    end
-    if value:find("%%") then
-      return true
-    end
-  end
 
   return {
     traverse = "topdown",
     Image = function(image)
       image = _quarto.modules.mediabag.resolve_image_from_url(image) or image
-
-      -- if the width or height are "ratio" or "relative", in typst parlance,
-      -- then we currently need to hide it from Pandoc 3.1.9 until
-      -- https://github.com/jgm/pandoc/issues/9104 is properly fixed
-      if is_ratio_or_relative(image.attributes["width"]) or is_ratio_or_relative(image.attributes["height"]) then
-        local width = image.attributes["width"]
-        local height = image.attributes["height"]
-        image.attributes["width"] = nil
-        image.attributes["height"] = nil
-        local attr_str = ""
-        if width ~= nil then
-          attr_str = attr_str .. "width: " .. width .. ","
-        end
-        if height ~= nil then
-          attr_str = attr_str .. "height: " .. height .. ","
-        end
-        local escaped_src = image.src:gsub("\\", "\\\\"):gsub("\"", "\\\"")
-        return pandoc.RawInline("typst", "#box(" .. attr_str .. "image(\"" .. escaped_src .. "\"))")
+      -- REMINDME 2024-09-01
+      -- work around until https://github.com/jgm/pandoc/issues/9945 is fixed
+      local height_as_number = tonumber(image.attributes["height"])
+      local width_as_number = tonumber(image.attributes["width"])
+      if image.attributes["height"] ~= nil and type(height_as_number) == "number" then
+        image.attributes["height"] = tostring(image.attributes["height"] / PANDOC_WRITER_OPTIONS.dpi) .. "in"
       end
-
+      if image.attributes["width"] ~= nil and type(width_as_number) == "number" then
+        image.attributes["width"] = tostring(image.attributes["width"] / PANDOC_WRITER_OPTIONS.dpi) .. "in"
+      end
       return image
     end,
     Div = function(div)
-      local cod = quarto.utils.match(".cell/:child/.cell-output-display")(div)
+      -- is the div a .cell which contains .cell-output-display as child or grandchild?
+      local cod = quarto.utils.match(".cell/:child/Div/:child/.cell-output-display")(div)
+        or
+        quarto.utils.match(".cell/:child/.cell-output-display")(div)
       if cod then
           div.classes:extend({'quarto-scaffold'})
           cod.classes:extend({'quarto-scaffold'})
       end
       return div
+    end,
+    Table = function(tbl)
+      -- https://github.com/quarto-dev/quarto-cli/issues/10438
+      tbl.classes:insert("typst:no-figure")
+      return tbl
     end,
     Para = function(para)
       if #para.content ~= 1 then

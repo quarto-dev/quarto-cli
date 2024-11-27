@@ -1,0 +1,112 @@
+diff --git a/src/resources/formats/revealjs/themes/solarized.scss b/src/resources/formats/revealjs/themes/solarized.scss
+index 684de277d..0bfaf51ad 100644
+--- a/src/resources/formats/revealjs/themes/solarized.scss
++++ b/src/resources/formats/revealjs/themes/solarized.scss
+@@ -1,66 +1,57 @@
+ /**
+  * Solarized Light theme for reveal.js.
+  * Author: Achim Staebler
++ *
++ * Adapted for Quarto by Posit, PBC
++ * Copyright (C) 2024 Posit, PBC
+  */
+ 
+-
+-// Default mixins and settings -----------------
+-@import "../template/mixins";
+-@import "../template/settings";
+-// ---------------------------------------------
+-
+-
++/*-- scss:defaults --*/
+ 
+ // Include theme-specific fonts
+ @import url(./fonts/league-gothic/league-gothic.css);
+ @import url(https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic);
+ 
++$font-family-sans-serif: Lato, sans-serif !default;
+ 
+ /**
+  * Solarized colors by Ethan Schoonover
+  */
+-html * {
+-	color-profile: sRGB;
+-	rendering-intent: auto;
+-}
+-
+ // Solarized colors
+-$base03:    #002b36;
+-$base02:    #073642;
+-$base01:    #586e75;
+-$base00:    #657b83;
+-$base0:     #839496;
+-$base1:     #93a1a1;
+-$base2:     #eee8d5;
+-$base3:     #fdf6e3;
+-$yellow:    #b58900;
+-$orange:    #cb4b16;
+-$red:       #dc322f;
+-$magenta:   #d33682;
+-$violet:    #6c71c4;
+-$blue:      #268bd2;
+-$cyan:      #2aa198;
+-$green:     #859900;
+-
+-// Override theme settings (see ../template/settings.scss)
+-$body-color: $base00;
+-$presentation-heading-color: $base01;
+-$presentation-heading-text-shadow: none;
+-$body-bg: $base3;
+-$link-color: $blue;
+-$link-color-hover: lighten( $linkColor, 20% );
+-$selection-bg: $magenta;
++$base03: #002b36;
++$base02: #073642;
++$base01: #586e75;
++$base00: #657b83;
++$base0: #839496;
++$base1: #93a1a1;
++$base2: #eee8d5;
++$base3: #fdf6e3;
++$yellow: #b58900;
++$orange: #cb4b16;
++$red: #dc322f;
++$magenta: #d33682;
++$violet: #6c71c4;
++$blue: #268bd2;
++$cyan: #2aa198;
++$green: #859900;
++
++// Override theme settings
++$body-color: $base00 !default;
++$presentation-heading-font: "League Gothic", sans-serif !default; // from settings.scss
++$presentation-heading-color: $base01 !default;
++$presentation-heading-text-transform: uppercase !default; // from settings.scss
++$presentation-heading-text-shadow: none !default;
++$presentation-heading-font-weight: normal !default;
++$body-bg: $base3 !default;
++$link-color: $blue !default;
++$selection-bg: $magenta !default;
++
++$overlayElementBgColor: 0, 0, 0 !default;
++$overlayElementFgColor: 240, 240, 240 !default;
++
++/*-- scss:rules --*/
+ 
+-$overlayElementBgColor: 0, 0, 0;
+-$overlayElementFgColor: 240, 240, 240;
+-
+-// Background generator
+-// @mixin bodyBackground() {
+-// 	@include radial-gradient( rgba($base3,1), rgba(lighten($base3, 20%),1) );
+-// }
+-
+-
+-
+-// Theme template ------------------------------
+-@import "../template/theme";
+-// ---------------------------------------------
++html * {
++  color-profile: sRGB;
++  rendering-intent: auto;
++}

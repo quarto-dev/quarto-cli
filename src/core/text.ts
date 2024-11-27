@@ -1,12 +1,11 @@
 /*
-* text.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * text.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { sprintf } from "fmt/printf.ts";
-import { rgb24 } from "fmt/colors.ts";
+import { sprintf } from "fmt/printf";
+import { rgb24 } from "fmt/colors";
 
 import { lines } from "./lib/text.ts";
 

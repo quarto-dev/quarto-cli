@@ -10,7 +10,7 @@ attrs==21.2.0
 Babel==2.9.1
 backcall==0.2.0
 bleach==3.3.0
-certifi==2024.7.4
+certifi==20203.7.23
 cffi==1.14.5
 chardet==4.0.0
 decorator==5.0.9
@@ -25,7 +25,7 @@ Jinja2==3.1.4
 json5==0.9.5
 jsonschema==3.2.0
 jupyter-client==6.1.12
-jupyter-core==4.11.2
+jupyter-core==4.11.12
 jupyter-server==2.11.2
 jupyterlab==3.6.8
 jupyterlab-pygments==0.1.2
@@ -58,7 +58,7 @@ python-dateutil==2.8.1
 pytz==2021.1
 PyYAML==5.4.1
 pyzmq==22.0.3
-requests==2.32.2
+requests==2.32.0
 selenium==3.141.0
 Send2Trash==1.5.0
 six==1.16.0

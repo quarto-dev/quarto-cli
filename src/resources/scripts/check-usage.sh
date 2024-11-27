@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # https://stackoverflow.com/a/246128
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-deno info --import-map dev_import_map.json quarto.ts | grep https | gsed -r 's/\x1B\[[0-9;]*[JKmsu]//g' | sed 's/[^ht]*ht/ht/g' | grep -v '\*$' | deno run --allow-read ${SCRIPT_DIR}/check-usage.ts $*
+deno info --import-map import_map.json quarto.ts | grep https | gsed -r 's/\x1B\[[0-9;]*[JKmsu]//g' | sed 's/[^ht]*ht/ht/g' | grep -v '\*$' | deno run --allow-read ${SCRIPT_DIR}/check-usage.ts $*
 
 ## Info on how to read the output
 #

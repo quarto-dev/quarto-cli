@@ -13,7 +13,6 @@ import {
   noErrorsOrWarnings,
 } from "../../verify.ts";
 import { testRender } from "../render/render.ts";
-import { walkSync } from "fs/mod.ts";
 
 const format = "html";
 const input = docs("embed/embed-qmd.qmd");

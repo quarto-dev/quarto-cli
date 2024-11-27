@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { dirname, extname, join } from "../deno_ral/path.ts";
 import { isFileRef } from "./http.ts";
 import { normalizePath } from "./path.ts";
@@ -90,7 +90,9 @@ export function asCssFont(value: unknown): string | undefined {
       .split(",")
       .map((font) => {
         font = font.trim();
-        if (font.includes(" ")) {
+        if (
+          font.includes(" ") && !font.startsWith('"') && !font.startsWith("'")
+        ) {
           font = `"${font}"`;
         }
         return font;
