@@ -3,6 +3,7 @@
 ## In this release
 
 - ([#11509](https://github.com/quarto-dev/quarto-cli/issues/11509)): Fix link-decoration regression in HTML formats.
+- ([#11551](https://github.com/quarto-dev/quarto-cli/issues/11551)): Change `quarto create project` templates to better support `_brand.yml`.
 
 ## In previous releases
 
