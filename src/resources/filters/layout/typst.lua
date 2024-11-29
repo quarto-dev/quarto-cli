@@ -50,7 +50,11 @@ local function render_floatless_typst_layout(panel)
     -- synthesize column spec from row
     local col_spec = {}
     for j, col in ipairs(row) do
-      table.insert(col_spec, col.attributes["width"])
+      local width = col.attributes["width"]
+      if width:sub(-1) == "%" then
+        width = width:sub(1, -2) .. "fr"
+      end
+      table.insert(col_spec, width)
     end
     -- TODO allow configurable gutter
     local col_spec_str = "columns: (" .. table.concat(col_spec, ", ") .. "), gutter: 1em, rows: 1,"
