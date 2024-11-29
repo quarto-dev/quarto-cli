@@ -6,7 +6,7 @@ related-notebooks-title: "Notebooklar"
 source-notebooks-prefix: "Kaynak"
 other-links-title: "Diğer Bağlantılar"
 code-links-title: "Kod Bağlantıları"
-launch-dev-container-title: "Geliştirme Konteynerını Başlat"
+launch-dev-container-title: "Dev Container'ı Başlat"
 launch-binder-title: "Binder Başlat"
 
 article-notebook-label: "Makale Notebook'u"
