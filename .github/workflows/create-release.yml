@@ -293,6 +293,60 @@ jobs:
           quarto --paths
           quarto --version
 
+  make-appimage:
+    runs-on: ubuntu-latest
+    needs: [configure]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
+
+      - name: Configure
+        run: |
+          ./configure.sh
+
+      - name: Prepare Distribution
+        run: |
+          pushd package/src/
+          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
+          popd
+
+      - name: Install necessary packages
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install desktop-file-utils
+
+      - name: Build AppImage
+        env:
+          TARGET_ARCH: x86_64
+          VERSION: ${{needs.configure.outputs.version}}
+        run: |
+          ./package/scripts/linux/appimage/build-appimage.sh
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: AppImage
+          path: Quarto-${{needs.configure.outputs.version}}-x86_64.AppImage
+
+  test-appimage:
+    runs-on: ubuntu-latest
+    needs: [configure, make-appimage]
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: AppImage
+          path: .
+      - run: |
+          mv Quarto-${{needs.configure.outputs.version}}-x86_64.AppImage quarto
+          chmod a+x quarto
+      - run: |
+          ls -lR
+          ./quarto check
+          ./quarto --paths
+          ./quarto --version
+
   make-installer-win:
     runs-on: windows-latest
     needs: [configure]
@@ -488,9 +542,11 @@ jobs:
         make-arm64-tarball,
         make-tarball,
         make-source-tarball,
+        make-appimage,
         test-zip-win,
         test-zip-mac,
         test-tarball-linux,
+        test-appimage,
       ]
 
     steps:
@@ -525,8 +581,8 @@ jobs:
             pushd RHEL\ Zip
             sha256sum quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
             popd
-          fi         
-           
+          fi
+
           pushd Deb\ Zip
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
@@ -541,7 +597,11 @@ jobs:
 
           pushd Deb\ Arm64\ Installer
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-arm64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-          popd          
+          popd
+
+          pushd AppImage
+          sha256sum Quarto-${{needs.configure.outputs.version}}-x86_64.AppImage >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
 
           pushd Source
           sha256sum quarto-${{needs.configure.outputs.version}}.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
@@ -567,6 +627,7 @@ jobs:
             ./RHEL Zip/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
             ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
             ./Deb Arm64 Installer/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
+            ./AppImage/Quarto-${{needs.configure.outputs.version}}-x86_64.AppImage
             ./Windows Installer/quarto-${{needs.configure.outputs.version}}-win.msi
             ./Windows Zip/quarto-${{needs.configure.outputs.version}}-win.zip
             ./Mac Installer/quarto-${{needs.configure.outputs.version}}-macos.pkg
@@ -587,9 +648,11 @@ jobs:
         make-arm64-tarball,
         make-tarball,
         make-source-tarball,
+        make-appimage,
         test-zip-win,
         test-zip-mac,
         test-tarball-linux,
+        test-appimage,
         publish-release,
       ]
     runs-on: ubuntu-latest

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Quarto
+Icon=quarto
+Exec=quarto render %u
+Terminal=true
+Categories=Development;Building;Science;
