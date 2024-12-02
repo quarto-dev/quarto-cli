@@ -267,7 +267,7 @@ function stageDocumentPublish(title: string, publishFiles: PublishFiles) {
   const publishDir = globalTempContext().createDir();
 
   // copy all files to it
-  const stagedFiles = window.structuredClone(publishFiles) as PublishFiles;
+  const stagedFiles = globalThis.structuredClone(publishFiles) as PublishFiles;
   stagedFiles.baseDir = publishDir;
   for (const file of publishFiles.files) {
     const src = join(publishFiles.baseDir, file);
