@@ -89,6 +89,7 @@ import { projectDraftMode } from "./website-utils.ts";
 import { kFieldCategories } from "./listing/website-listing-shared.ts";
 import { pandocNativeStr } from "../../../core/pandoc/codegen.ts";
 import { asArray } from "../../../core/array.ts";
+import { InternalError } from "../../../core/lib/error.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -207,8 +208,12 @@ export const websiteProjectType: ProjectType = {
         extras.metadataOverride[kFieldCategories] = asArray(
           format.metadata[kFieldCategories],
         ).map(
-          (category) =>
-            pandocNativeStr(category as string).mappedString().value,
+          (category) => {
+            const strCategory: string = typeof category === "string"
+              ? category
+              : category.toString();
+            return pandocNativeStr(strCategory).mappedString().value;
+          },
         );
       }
 
