@@ -9,6 +9,8 @@ listing:
   filter-ui: false
 page-layout: full
 title-block-banner: true
+_quarto:
+  render-project: true
 ---
 
 
