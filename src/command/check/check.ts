@@ -47,7 +47,7 @@ import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { typstBinaryPath } from "../../core/typst.ts";
 import { quartoCacheDir } from "../../core/appdirs.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
-import { checkStringEnum } from "../../typing/dynamic.ts";
+import { makeStringEnumTypeEnforcer } from "../../typing/dynamic.ts";
 
 export const kTargets = [
   "install",
@@ -58,7 +58,7 @@ export const kTargets = [
   "all",
 ] as const;
 export type Target = typeof kTargets[number];
-export const checkTargetType = checkStringEnum(...kTargets);
+export const enforceTargetType = makeStringEnumTypeEnforcer(...kTargets);
 
 const kIndent = "      ";
 

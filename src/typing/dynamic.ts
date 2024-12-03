@@ -11,17 +11,62 @@
 
 import { DynamicTypeCheckError } from "../core/lib/error.ts";
 
-export const checkStringEnum = <T extends string>(
+export const makeStringEnumTypeFunctions = <T extends string>(
   ...values: T[]
-): (value: string) => T => {
+): {
+  predicate: (value: unknown) => value is T;
+  enforce: (value: unknown) => T;
+} => {
   const valueSet: Set<string> = new Set(values);
-  return (value: string): T => {
-    if (!valueSet.has(value)) {
-      throw new DynamicTypeCheckError(
-        "Invalid value '" + value + "' (valid values are " +
-          values.join(", ") + ").",
-      );
-    }
-    return value as unknown as T;
+  const predicate = (value: unknown): value is T => {
+    return typeof value === "string" && valueSet.has(value);
   };
+  const enforce = (value: unknown): T => {
+    if (predicate(value)) {
+      return value;
+    }
+    throw new DynamicTypeCheckError(
+      "Invalid value '" + value + "' (valid values are " +
+        values.join(", ") + ").",
+    );
+  };
+  return { predicate, enforce };
+};
+
+export const makeStringEnumTypeEnforcer = <T extends string>(
+  ...values: T[]
+): (value: unknown) => T => {
+  return makeStringEnumTypeFunctions(...values).enforce;
+};
+
+export const enforcer = <T>(
+  predicate: (value: unknown) => value is T,
+  msg?: (value: unknown) => string,
+) => {
+  if (!msg) {
+    msg = (_value: unknown) => "Invalid value.";
+  }
+  return (value: unknown): T => {
+    if (predicate(value)) {
+      return value;
+    }
+    throw new DynamicTypeCheckError(msg(value));
+  };
+};
+
+export const enforceStringType = (value: unknown): string => {
+  if (stringTypePredicate(value)) {
+    return value;
+  }
+  throw new DynamicTypeCheckError("Expected a string.");
+};
+
+export const stringTypePredicate = (value: unknown): value is string => {
+  return typeof value === "string";
+};
+
+export const objectPredicate = (
+  value: unknown,
+): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null;
 };

@@ -5,7 +5,7 @@
  */
 
 import { Command } from "cliffy/command/mod.ts";
-import { check, checkTargetType } from "./check.ts";
+import { check, enforceTargetType } from "./check.ts";
 
 export const checkCommand = new Command()
   .name("check")
@@ -20,5 +20,5 @@ export const checkCommand = new Command()
   .example("Check installation and all engines", "quarto check all")
   .action(async (_options: unknown, targetStr?: string) => {
     targetStr = targetStr || "all";
-    await check(checkTargetType(targetStr));
+    await check(enforceTargetType(targetStr));
   });
