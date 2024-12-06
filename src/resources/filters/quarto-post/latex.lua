@@ -407,7 +407,7 @@ function render_latex()
         end,
         Note = function(el)
           tappend(noteContents, {el.content})
-          el.content:walk({
+          _quarto.traverser(el.content, {
             CodeBlock = function(el)
               hasVerbatimInNotes = true
             end
@@ -570,19 +570,7 @@ function render_latex_fixups()
       return emit_color("{rgb}{0,0,0}")
     end
   end
-  return {
-    Meta = function(meta)
-      if not need_inject then
-        return
-      end
-      metaInjectLatex(meta, function(inject)
-        for v, i in pairs(emitted_colors) do
-          local def = "\\definecolor{QuartoInternalColor" .. i .. "}" .. v
-          inject(def)
-        end
-      end)
-      return meta
-    end,
+  return {{
     RawBlock = function(raw)
       if _quarto.format.isRawLatex(raw) then
         local long_table_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexLongtablePattern)
@@ -615,5 +603,18 @@ function render_latex_fixups()
         return pandoc.RawBlock('latex', table.concat(new_lines, "\n"))
       end
     end
-  }
+  }, {
+    Meta = function(meta)
+      if not need_inject then
+        return
+      end
+      metaInjectLatex(meta, function(inject)
+        for v, i in pairs(emitted_colors) do
+          local def = "\\definecolor{QuartoInternalColor" .. i .. "}" .. v
+          inject(def)
+        end
+      end)
+      return meta
+    end,
+  }}
 end

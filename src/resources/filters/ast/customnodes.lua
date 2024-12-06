@@ -73,7 +73,8 @@ function run_emulated_filter(doc, filter)
         -- luacov: enable
       end
     end
-    return node:walk(filter_param)
+    local result = node:walk(filter_param)
+    return result
   end
 
   -- performance: if filter is empty, do nothing
