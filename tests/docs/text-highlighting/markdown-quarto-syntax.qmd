@@ -1,0 +1,36 @@
+---
+title: Markdown block with quarto syntax
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['client <span class="op">=</span> <span class="ex">connect</span>\.Client\(\)</span>']
+        - ['<span class="in">client = connect\.Client\(\)</span>']
+---
+
+## Nested highlight
+
+This is a quarto document example
+
+```` markdown
+---
+title: "Client Credentials Using the Python SDK"
+format: html
+---
+
+# Example Client Credentials Exchange
+
+This Quarto document is able to acquire an OAuth access token 
+from a Service Account OAuth integration.
+
+```{{python}}
+from posit import connect
+
+client = connect.Client()
+# NOTE: get_content_credentials reads the `CONNECT_CONTENT_SESSION_TOKEN`
+# from the environment to complete the credential exchange.
+print(client.oauth.get_content_credentials().get("access_token"))
+```
+
+````
