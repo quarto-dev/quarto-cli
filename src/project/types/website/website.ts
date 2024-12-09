@@ -89,7 +89,7 @@ import { projectDraftMode } from "./website-utils.ts";
 import { kFieldCategories } from "./listing/website-listing-shared.ts";
 import { pandocNativeStr } from "../../../core/pandoc/codegen.ts";
 import { asArray } from "../../../core/array.ts";
-import { InternalError } from "../../../core/lib/error.ts";
+import { canonicalizeTitlePostprocessor } from "../../../format/html/format-html-title.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -232,7 +232,10 @@ export const websiteProjectType: ProjectType = {
           ),
         ),
       ]);
-      extras.html[kHtmlPostprocessors].unshift(websiteDraftPostProcessor);
+      extras.html[kHtmlPostprocessors].unshift(
+        websiteDraftPostProcessor,
+        canonicalizeTitlePostprocessor,
+      );
 
       // listings extras
       const hasBootstrap = formatHasBootstrap(format);

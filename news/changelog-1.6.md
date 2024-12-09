@@ -2,10 +2,11 @@
 
 ## In this release
 
-- ([#11580](https://github.com/quarto-dev/quarto-cli/issues/11580)): Fix regression with non-string entries in the `categories` field of a listed document.
+- ([#11596](https://github.com/quarto-dev/quarto-cli/issues/11596)): Fix regression with h1 and title processing in non-website project, related to a fix for breadcrumbs in website projects ([#11224](https://github.com/quarto-dev/quarto-cli/issues/11596)).
 
 ## In previous releases
 
+- ([#11580](https://github.com/quarto-dev/quarto-cli/issues/11580)): Fix regression with non-string entries in the `categories` field of a listed document.
 - ([#11509](https://github.com/quarto-dev/quarto-cli/issues/11509)): Fix link-decoration regression in HTML formats.
 - ([#11532](https://github.com/quarto-dev/quarto-cli/issues/11532)): Fix regression for [#660](https://github.com/quarto-dev/quarto-cli/issues/660), which causes files to have incorrect permissions when Quarto is installed in a location not writable by the current user.
 - ([#11551](https://github.com/quarto-dev/quarto-cli/issues/11551)): Change `quarto create project` templates to better support `_brand.yml`.

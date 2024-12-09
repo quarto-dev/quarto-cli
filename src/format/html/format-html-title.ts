@@ -18,7 +18,6 @@ import {
   PandocInputTraits,
   RenderedFormat,
 } from "../../command/render/types.ts";
-import { InternalError } from "../../core/lib/error.ts";
 
 export const kTitleBlockStyle = "title-block-style";
 const kTitleBlockBanner = "title-block-banner";
