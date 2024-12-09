@@ -201,7 +201,6 @@ import {
   MarkdownPipelineHandler,
 } from "../../core/markdown-pipeline.ts";
 import { getEnv } from "../../../package/src/util/utils.ts";
-import { canonicalizeTitlePostprocessor } from "../../format/html/format-html-title.ts";
 import {
   BrandFontBunny,
   BrandFontFile,
