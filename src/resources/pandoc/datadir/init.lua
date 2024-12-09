@@ -2085,6 +2085,7 @@ quarto = {
     resolve_path_relative_to_document = resolvePath,
     as_inlines = utils.as_inlines,
     as_blocks = utils.as_blocks,
+    is_empty_node = utils.is_empty_node,
     string_to_blocks = utils.string_to_blocks,
     string_to_inlines = utils.string_to_inlines,
     render = utils.render,

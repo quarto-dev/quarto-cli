@@ -337,13 +337,7 @@ _quarto.ast = {
         end
         local node = node_accessor(table)
         local t = pandoc.utils.type(value)
-        -- FIXME this is broken; that can only be "Block", "Inline", etc
-        if t == "Div" or t == "Span" then
-          local custom_data, t, kind = _quarto.ast.resolve_custom_data(value)
-          if custom_data ~= nil then
-            value = custom_data
-          end
-        end
+        quarto_assert(t ~= 'Div' and t ~= 'Span', "")
         if index > #node.content then
           _quarto.ast.grow_scaffold(node, index)
         end
