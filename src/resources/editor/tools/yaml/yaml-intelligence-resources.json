@@ -4811,6 +4811,11 @@
                         "description": "The brand's Mastodon URL."
                       }
                     },
+                    "bluesky": {
+                      "string": {
+                        "description": "The brand's Bluesky URL."
+                      }
+                    },
                     "github": {
                       "string": {
                         "description": "The brand's GitHub URL."
@@ -5498,7 +5503,42 @@
             "ref": "brand-typography"
           },
           "defaults": {
+            "ref": "brand-defaults"
+          }
+        }
+      }
+    },
+    {
+      "id": "brand-defaults",
+      "object": {
+        "properties": {
+          "bootstrap": {
+            "ref": "brand-defaults-bootstrap"
+          },
+          "quarto": {
             "schema": "object"
+          }
+        }
+      }
+    },
+    {
+      "id": "brand-defaults-bootstrap",
+      "object": {
+        "properties": {
+          "defaults": {
+            "schema": {
+              "object": {
+                "additionalProperties": {
+                  "schema": {
+                    "anyOf": [
+                      "string",
+                      "boolean",
+                      "number"
+                    ]
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -14754,6 +14794,7 @@
     "Important links for the brand, including social media links. If a\nsingle string, it is the brand’s home page or website. Additional fields\nare allowed for internal use.",
     "The brand’s home page or website.",
     "The brand’s Mastodon URL.",
+    "The brand’s Bluesky URL.",
     "The brand’s GitHub URL.",
     "The brand’s LinkedIn URL.",
     "The brand’s Twitter URL.",
@@ -17118,12 +17159,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 193475,
+    "_internalId": 193524,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 193467,
+        "_internalId": 193516,
         "type": "enum",
         "enum": [
           "png",
@@ -17139,7 +17180,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 193474,
+        "_internalId": 193523,
         "type": "anyOf",
         "anyOf": [
           {

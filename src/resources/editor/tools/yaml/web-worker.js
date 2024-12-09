@@ -11840,6 +11840,11 @@ try {
                               description: "The brand's Mastodon URL."
                             }
                           },
+                          bluesky: {
+                            string: {
+                              description: "The brand's Bluesky URL."
+                            }
+                          },
                           github: {
                             string: {
                               description: "The brand's GitHub URL."
@@ -12527,7 +12532,42 @@ try {
                   ref: "brand-typography"
                 },
                 defaults: {
+                  ref: "brand-defaults"
+                }
+              }
+            }
+          },
+          {
+            id: "brand-defaults",
+            object: {
+              properties: {
+                bootstrap: {
+                  ref: "brand-defaults-bootstrap"
+                },
+                quarto: {
                   schema: "object"
+                }
+              }
+            }
+          },
+          {
+            id: "brand-defaults-bootstrap",
+            object: {
+              properties: {
+                defaults: {
+                  schema: {
+                    object: {
+                      additionalProperties: {
+                        schema: {
+                          anyOf: [
+                            "string",
+                            "boolean",
+                            "number"
+                          ]
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -21783,6 +21823,7 @@ try {
           "Important links for the brand, including social media links. If a\nsingle string, it is the brand\u2019s home page or website. Additional fields\nare allowed for internal use.",
           "The brand\u2019s home page or website.",
           "The brand\u2019s Mastodon URL.",
+          "The brand\u2019s Bluesky URL.",
           "The brand\u2019s GitHub URL.",
           "The brand\u2019s LinkedIn URL.",
           "The brand\u2019s Twitter URL.",
@@ -24147,12 +24188,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 193475,
+          _internalId: 193524,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 193467,
+              _internalId: 193516,
               type: "enum",
               enum: [
                 "png",
@@ -24168,7 +24209,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 193474,
+              _internalId: 193523,
               type: "anyOf",
               anyOf: [
                 {
@@ -24317,7 +24358,7 @@ try {
     try {
       return Deno.build.os !== "windows";
     } catch (_e) {
-      return false;
+      return true;
     }
   }
   function tidyverseInfo(msg) {

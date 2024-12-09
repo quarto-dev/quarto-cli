@@ -1266,6 +1266,7 @@ export type ManuscriptSchema = {
 
 export type BrandMeta = {
   link?: string | {
+    bluesky?: string /* The brand's Bluesky URL. */;
     facebook?: string /* The brand's Facebook URL. */;
     github?: string /* The brand's GitHub URL. */;
     home?: string /* The brand's home page or website. */;
@@ -1475,10 +1476,19 @@ export type BrandFontFamily = string;
 
 export type Brand = {
   color?: BrandColor;
-  defaults?: JsonObject;
+  defaults?: BrandDefaults;
   logo?: BrandLogo;
   meta?: BrandMeta;
   typography?: BrandTypography;
+};
+
+export type BrandDefaults = {
+  bootstrap?: BrandDefaultsBootstrap;
+  quarto?: JsonObject;
+};
+
+export type BrandDefaultsBootstrap = {
+  defaults?: { [key: string]: string | boolean | number };
 };
 
 export type ProjectConfig = {
