@@ -86,6 +86,7 @@ plot(sin,
      fill=(0,:lavender))
 ```
 ````
+
 ## Embedded mermaid {#mermaid}
 
 ````markdown

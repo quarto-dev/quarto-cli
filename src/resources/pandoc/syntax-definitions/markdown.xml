@@ -358,11 +358,12 @@
         <RegExpr attribute="Fenced Code" context="#pop!javascript-code" String="&fcode;\s*\{?\.?(?:javascript|[mo]?js|es6|kwinscript|julius).*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!jsx-code" String="&fcode;\s*\{?\.?(?:jsx|tsx|(?:java|type)script\-react).*&end;" insensitive="true" beginRegion="code-block"/> <!-- Included in the HTML definition. Also apply for TSX. -->
         <RegExpr attribute="Fenced Code" context="#pop!json-code" String="&fcode;\s*\{?\.?(?:json5?|gltf).*&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!julia-code" String="&fcode;\s*\{?\.?(?:julia|jl).*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!yaml-code" String="&fcode;\s*\{?\.?(?:ya?ml).*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!matlab-code" String="&fcode;\s*\{?\.?matlab.*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!markdown-code" String="&fcode;\s*\{?\.?(?:markdown|m?md).*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!mustache-code" String="&fcode;\s*\{?\.?(?:handlebars|hbs|mustache|mst|ractive|hogan|hulk).*&end;" insensitive="true" beginRegion="code-block"/> <!-- Included in the HTML definition -->
-        <RegExpr attribute="Fenced Code" context="#pop!perl-code" String="&fcode;\s*\{?\.?(?:julia|mermaid|dot|perl|p[lm]|pod|psgi|vcl).*&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!perl-code" String="&fcode;\s*\{?\.?(?:mermaid|dot|perl|p[lm]|pod|psgi|vcl).*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!php-code" String="&fcode;\s*\{?\.?(?:php[3457t]?|wml|phtml?|aw|ctp).*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!python-code" String="&fcode;\s*\{?\.?(?:python[23]?|py[23w]?|[rc]py|sconstruct|gypi?).*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!qml-code" String="&fcode;\s*\{?\.?qml(?:types)?.*&end;" insensitive="true" beginRegion="code-block"/>
@@ -446,6 +447,10 @@
       <context attribute="Normal Text" lineEndContext="#stay" name="json-code">
         <IncludeRules context="code"/>
         <IncludeRules context="##JSON" includeAttrib="true"/>
+      </context>
+      <context attribute="Normal Text" lineEndContext="#stay" name="julia-code">
+        <IncludeRules context="code"/>
+        <IncludeRules context="##Julia" includeAttrib="true"/>
       </context>
       <context attribute="Normal Text" lineEndContext="#stay" name="yaml-code">
         <IncludeRules context="code"/>
