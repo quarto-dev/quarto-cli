@@ -4,12 +4,29 @@ format: html
 _quarto:
   tests:
     html:
-      ensureFileRegexMatches:
-        - ['client <span class="op">=</span> <span class="ex">connect</span>\.Client\(\)</span>']
-        - ['<span class="in">client = connect\.Client\(\)</span>']
+      ensureHtmlElements:
+        - 
+          - '#python pre.sourceCode.markdown'
+          - '#python span#cb1-14 span.op'
+          - '#ojs pre.sourceCode.markdown'
+          - '#ojs span#cb2-2 span.co'
+          - '#ojs span#cb2-7 span.op'
+          - '#julia pre.sourceCode.markdown'
+          - '#julia span#cb3-2 span.co'
+          - '#julia span#cb3-7 span.fu'
+          - '#mermaid pre.sourceCode.markdown'
+          - '#mermaid span#cb4-3 *:not(span)'
+          - '#dot pre.sourceCode.markdown'
+          - '#dot span#cb5-4 *:not(span)'
+        - 
+           - '#python span#cb1-14 span.in'
+           - '#ojs span#cb2-7 span.in'
+           - '#julia span#cb3-7 span.in'
+           - '#mermaid span#cb4-3 span.in'
+           - '#dot span#cb5-4 span.in'
 ---
 
-## Nested highlight
+## Nested markdown with highlight python {#python}
 
 This is a quarto document example
 
@@ -33,4 +50,61 @@ client = connect.Client()
 print(client.oauth.get_content_credentials().get("access_token"))
 ```
 
+````
+## embedded ojs highlight {#ojs}
+
+````markdown
+```{{ojs}}
+// Comment
+viewof bill_length_min = Inputs.range(
+  [32, 50], 
+  {value: 35, step: 1, label: "Bill length (min):"}
+)
+viewof islands = Inputs.checkbox(
+  ["Torgersen", "Biscoe", "Dream"], 
+  { value: ["Torgersen", "Biscoe"], 
+    label: "Islands:"
+  }
+)
+```
+````
+
+## embedded julia highlight {#julia}
+
+````markdown
+```{{julia}}
+#| label: fig-parametric
+#| fig-cap: "Parametric Plots"
+
+using Plots
+
+plot(sin, 
+     x->sin(2x), 
+     0, 
+     2π, 
+     leg=false, 
+     fill=(0,:lavender))
+```
+````
+## Embedded mermaid {#mermaid}
+
+````markdown
+```{{mermaid}}
+%%| fig-width: 6.5
+flowchart LR
+  A[Hard edge] --> B(Round edge)
+  B --> C{Decision}
+```
+````
+
+## Embedded dot {#dot}
+
+````markdown
+```{{dot}}
+//| label: fig-linux-kernel
+//| fig-cap: "A diagram of the Linux kernel."
+graph {
+  A -- B
+}
+```
 ````
