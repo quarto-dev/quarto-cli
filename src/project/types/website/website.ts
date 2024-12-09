@@ -230,10 +230,13 @@ export const websiteProjectType: ProjectType = {
           project.dir,
         ),
       ),
+    ]);
+    // add postprocessors that needs to be before other extras.html
+    extras.html[kHtmlPostprocessors].unshift(
+      websiteDraftPostProcessor,
       // Fix H1 title inconsistency
       canonicalizeTitlePostprocessor,
-    ]);
-    extras.html[kHtmlPostprocessors].unshift(websiteDraftPostProcessor);
+    );
 
     // listings extras
     const hasBootstrap = formatHasBootstrap(format);
