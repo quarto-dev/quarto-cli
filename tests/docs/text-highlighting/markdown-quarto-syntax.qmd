@@ -17,7 +17,8 @@ _quarto:
           - '#mermaid pre.sourceCode.markdown'
           - '#mermaid span#cb4-3 *:not(span)'
           - '#dot pre.sourceCode.markdown'
-          - '#dot span#cb5-4 *:not(span)'
+          - '#dot span#cb5-2 span.co'
+          - '#dot span#cb5-4 span.va'
         - 
            - '#python span#cb1-14 span.in'
            - '#ojs span#cb2-7 span.in'

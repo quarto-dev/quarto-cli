@@ -349,6 +349,7 @@
         <RegExpr attribute="Fenced Code" context="#pop!css-code" String="&fcode;\s*\{?\.?css.*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!c-code" String="&fcode;\s*\{?\.?[ch].*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!doxygen-code" String="&fcode;\s*\{?\.?doxygen.*&end;" insensitive="true" beginRegion="code-block"/> <!-- Block comment of Doxygen -->
+        <RegExpr attribute="Fenced Code" context="#pop!dot-code" String="&fcode;\s*\{?\.?dot.*&end;" insensitive="true" beginRegion="code-block"/> <!-- Block comment of Doxygen -->
         <RegExpr attribute="Fenced Code" context="#pop!email-code" String="&fcode;\s*\{?\.?(?:email|emlx?|mbo?x).*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!go-code" String="&fcode;\s*\{?\.?go(?:lang)?.*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!hamlet-code" String="&fcode;\s*\{?\.?[wxs]?hamlet.*&end;" insensitive="true" beginRegion="code-block"/> <!-- Included in the Haskell definition -->
@@ -363,7 +364,7 @@
         <RegExpr attribute="Fenced Code" context="#pop!matlab-code" String="&fcode;\s*\{?\.?matlab.*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!markdown-code" String="&fcode;\s*\{?\.?(?:markdown|m?md).*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!mustache-code" String="&fcode;\s*\{?\.?(?:handlebars|hbs|mustache|mst|ractive|hogan|hulk).*&end;" insensitive="true" beginRegion="code-block"/> <!-- Included in the HTML definition -->
-        <RegExpr attribute="Fenced Code" context="#pop!perl-code" String="&fcode;\s*\{?\.?(?:mermaid|dot|perl|p[lm]|pod|psgi|vcl).*&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!perl-code" String="&fcode;\s*\{?\.?(?:mermaid|perl|p[lm]|pod|psgi|vcl).*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!php-code" String="&fcode;\s*\{?\.?(?:php[3457t]?|wml|phtml?|aw|ctp).*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!python-code" String="&fcode;\s*\{?\.?(?:python[23]?|py[23w]?|[rc]py|sconstruct|gypi?).*&end;" insensitive="true" beginRegion="code-block"/>
         <RegExpr attribute="Fenced Code" context="#pop!qml-code" String="&fcode;\s*\{?\.?qml(?:types)?.*&end;" insensitive="true" beginRegion="code-block"/>
@@ -411,6 +412,10 @@
       <context attribute="Normal Text" lineEndContext="#stay" name="doxygen-code">
         <IncludeRules context="code"/>
         <IncludeRules context="BlockComment##Doxygen" includeAttrib="true"/>
+      </context>
+      <context attribute="Normal Text" lineEndContext="#stay" name="dot-code">
+        <IncludeRules context="code"/>
+        <IncludeRules context="##dot" includeAttrib="true"/>
       </context>
       <context attribute="Normal Text" lineEndContext="#stay" name="email-code">
         <IncludeRules context="code"/>
