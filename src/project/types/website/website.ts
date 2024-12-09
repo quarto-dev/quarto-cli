@@ -211,7 +211,12 @@ export const websiteProjectType: ProjectType = {
       extras.metadataOverride[kFieldCategories] = asArray(
         format.metadata[kFieldCategories],
       ).map(
-        (category) => pandocNativeStr(category as string).mappedString().value,
+        (category) => {
+          const strCategory: string = typeof category === "string"
+            ? category
+            : category.toString();
+          return pandocNativeStr(strCategory).mappedString().value;
+        },
       );
     }
 

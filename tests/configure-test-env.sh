@@ -17,25 +17,16 @@ fi
 
 # Check python test environment ---
 echo ">>>> Configuring Python environment"
-python_exists=$(command -v python)
-if [ -z $python_exists ] 
-then 
-  python_exists=$(command -v python3)
-  if [ -z python_exists ]
-  then
-    echo "No python found in PATH - Check your PATH or install python add to PATH."
-  fi
-fi
-if [ -n $python_exists ]
+# Prefer uv is available
+uv_exist=$(command -v uv)
+if [ -z $uv_exist ]
 then
-  uv_exist=$(command -v uv)
-  if [ -z $uv_exist ] 
-    echo "Setting up python environnement with uv"
-    # create or sync the virtual env in the project
-    uv sync --frozen
-  then
-    echo "No uv found - Install uv please: https://docs.astral.sh/uv/getting-started/installation/"
-  fi
+  echo "Setting up python environnement with uv"
+  # create or sync the virtual env in the project
+  uv sync --frozen
+else
+  echo "No uv found - Install uv please: https://docs.astral.sh/uv/getting-started/installation/."
+  echo "Using 'uv' is the prefered way. You can still use python and create a .venv in the project."
 fi
 
 # Check Julia environment ---
