@@ -439,11 +439,6 @@ export async function runPandoc(
     // record postprocessors
     postprocessors.push(...(extras.postprocessors || []));
 
-    // Fix H1 title inconsistency
-    if (isHtmlFileOutput(options.format.pandoc)) {
-      htmlPostprocessors.push(canonicalizeTitlePostprocessor);
-    }
-
     // add a keep-source post processor if we need one
     if (
       options.format?.render[kKeepSource] || formatHasCodeTools(options.format)
