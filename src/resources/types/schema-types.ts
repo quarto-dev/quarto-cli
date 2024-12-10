@@ -45,6 +45,7 @@ export type PageColumn =
   | "page"
   | "page-left"
   | "page-right"
+  | "page-inset"
   | "page-inset-left"
   | "page-inset-right"
   | "screen"

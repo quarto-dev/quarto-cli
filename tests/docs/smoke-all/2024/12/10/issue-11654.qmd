@@ -1,0 +1,8 @@
+---
+format: html
+---
+
+```{python}
+#| column: page-inset
+print("Hello, world")
+```
