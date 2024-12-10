@@ -22,6 +22,11 @@
           Example: **bold text and _italic and bold text_**
                    __bold and ~~strikeout and bold~~__
 -->
+<!--
+    Quarto specific adaptations to keep upon updates:
+      - Support for ```{language} code block syntax, specific to quarto computation code blocks
+      - Add explicit support for language julia and dot in code blocks as they are available in skylighting
+-->
 <!DOCTYPE language
 [
 <!-- NOTE: To correctly detect bold, italic or strike out text, use minimal="true" in RegExpr rules -->
