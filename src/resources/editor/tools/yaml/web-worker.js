@@ -8465,6 +8465,7 @@ try {
               "page",
               "page-left",
               "page-right",
+              "page-inset",
               "page-inset-left",
               "page-inset-right",
               "screen",
@@ -24188,12 +24189,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 193524,
+          _internalId: 193535,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 193516,
+              _internalId: 193527,
               type: "enum",
               enum: [
                 "png",
@@ -24209,7 +24210,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 193523,
+              _internalId: 193534,
               type: "anyOf",
               anyOf: [
                 {
