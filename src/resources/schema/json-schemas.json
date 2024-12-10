@@ -3204,6 +3204,9 @@
                     "mastodon": {
                       "type": "string"
                     },
+                    "bluesky": {
+                      "type": "string"
+                    },
                     "github": {
                       "type": "string"
                     },
@@ -3767,7 +3770,30 @@
             "$ref": "#/$defs/BrandTypography"
           },
           "defaults": {
+            "$ref": "#/$defs/BrandDefaults"
+          }
+        }
+      }
+    },
+    "BrandDefaults": {
+      "object": {
+        "properties": {
+          "bootstrap": {
+            "$ref": "#/$defs/BrandDefaultsBootstrap"
+          },
+          "quarto": {
             "type": "object"
+          }
+        }
+      }
+    },
+    "BrandDefaultsBootstrap": {
+      "object": {
+        "properties": {
+          "defaults": {
+            "object": {
+              "properties": {}
+            }
           }
         }
       }
