@@ -17,3 +17,7 @@ All changes included in 1.7:
   This also provides a new public function `quarto.utils.is_empty_node`
   that allows to check whether a node is empty, i.e., whether it's an
   empty list, has no child nodes, and contains no text.
+
+## Other Fixes and Improvements
+
+- ([#11643](https://github.com/quarto-dev/quarto-cli/issues/11643)): Improve highlighting of nested code block inside markdown code block, i.e. using ` ```{{python}} ` or ` ```python ` inside ` ````markdown` fenced code block.
