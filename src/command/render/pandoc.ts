@@ -201,7 +201,6 @@ import {
   MarkdownPipelineHandler,
 } from "../../core/markdown-pipeline.ts";
 import { getEnv } from "../../../package/src/util/utils.ts";
-import { canonicalizeTitlePostprocessor } from "../../format/html/format-html-title.ts";
 import {
   BrandFontBunny,
   BrandFontFile,
@@ -438,11 +437,6 @@ export async function runPandoc(
 
     // record postprocessors
     postprocessors.push(...(extras.postprocessors || []));
-
-    // Fix H1 title inconsistency
-    if (isHtmlFileOutput(options.format.pandoc)) {
-      htmlPostprocessors.push(canonicalizeTitlePostprocessor);
-    }
 
     // add a keep-source post processor if we need one
     if (
