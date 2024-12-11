@@ -51,6 +51,7 @@ import "./format/imports.ts";
 
 import { kCliffyImplicitCwd } from "./config/constants.ts";
 import { mainRunner } from "./core/main.ts";
+import { engineCommand } from "./execute/engine.ts";
 
 const checkVersionRequirement = () => {
   const versionReq = Deno.env.get("QUARTO_VERSION_REQUIREMENT");
@@ -129,6 +130,10 @@ export async function quarto(
   if (args[0] === "run" && args[1] !== "help" && args[1] !== "--help") {
     const result = await runScript(args.slice(1), env);
     Deno.exit(result.code);
+  }
+
+  if (args[0] === "engine" && args[1] !== "help" && args[1] !== "--help") {
+    await engineCommand(args.slice(1), env);
   }
 
   // inject implicit cwd arg for quarto preview/render whose

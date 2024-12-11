@@ -238,3 +238,15 @@ export function projectIgnoreGlobs(dir: string) {
     gitignoreEntries(dir).map((ignore) => `**/${ignore}**`),
   );
 }
+
+export async function engineCommand(
+  args: string[],
+  env?: Record<string, string>,
+) {
+  if (args.length === 0) {
+    throw ("No engine name given");
+  }
+  const engine = args[0];
+
+  Deno.exit(0);
+}
