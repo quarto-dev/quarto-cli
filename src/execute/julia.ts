@@ -248,6 +248,12 @@ export const juliaEngine: ExecutionEngine = {
   },
 };
 
+function powershell_argument_list_to_string(...args: string[]): string {
+  // formats as '"arg 1" "arg 2" "arg 3"'
+  const inner = args.map((arg) => `"${arg}"`).join(" ");
+  return `'${inner}'`;
+}
+
 async function startOrReuseJuliaServer(
   options: JuliaExecuteOptions,
 ): Promise<{ reused: boolean }> {
@@ -310,15 +316,12 @@ async function startOrReuseJuliaServer(
             "Start-Process",
             options.julia_cmd,
             "-ArgumentList",
-            // string array argument list, each element but the last must have a "," element after
-            "--startup-file=no",
-            ",",
-            `--project=${juliaProject}`,
-            ",",
-            resourcePath("julia/quartonotebookrunner.jl"),
-            ",",
-            transportFile,
-            // end of string array
+            powershell_argument_list_to_string(
+              "--startup-file=no",
+              `--project=${juliaProject}`,
+              resourcePath("julia/quartonotebookrunner.jl"),
+              transportFile,
+            ),
             "-WindowStyle",
             "Hidden",
           ],
