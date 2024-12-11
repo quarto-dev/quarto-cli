@@ -132,10 +132,6 @@ export async function quarto(
     Deno.exit(result.code);
   }
 
-  if (args[0] === "engine" && args[1] !== "help" && args[1] !== "--help") {
-    await engineCommand(args.slice(1), env);
-  }
-
   // inject implicit cwd arg for quarto preview/render whose
   // first argument is a command line parmaeter. this allows
   // us to evade a cliffy cli parsing issue where it requires

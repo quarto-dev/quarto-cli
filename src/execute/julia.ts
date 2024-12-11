@@ -46,6 +46,7 @@ import {
   executeResultIncludes,
 } from "./jupyter/jupyter.ts";
 import { isWindows } from "../deno_ral/platform.ts";
+import { Command } from "cliffy/command/mod.ts";
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
   julia_cmd: string;
@@ -246,6 +247,8 @@ export const juliaEngine: ExecutionEngine = {
     };
     return Promise.resolve(target);
   },
+
+  populateCommand: populateJuliaEngineCommand,
 };
 
 async function startOrReuseJuliaServer(
@@ -730,4 +733,15 @@ function trace(options: ExecuteOptions, msg: string) {
   if (options.format.execute[kExecuteDebug]) {
     info("- " + msg, { bold: true });
   }
+}
+
+function populateJuliaEngineCommand(command: Command) {
+  command
+    .command("status", "Status")
+    .description(
+      "Get status information on the currently running Julia server process",
+    ).action(() => {
+      console.log(juliaTransportFile());
+    });
+  return;
 }

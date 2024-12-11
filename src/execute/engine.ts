@@ -31,6 +31,7 @@ import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
 import { gitignoreEntries } from "../project/project-gitignore.ts";
 import { juliaEngine } from "./julia.ts";
 import { ensureFileInformationCache } from "../project/project-shared.ts";
+import { Command } from "cliffy/command/mod.ts";
 
 const kEngines: Map<string, ExecutionEngine> = new Map();
 
@@ -239,14 +240,58 @@ export function projectIgnoreGlobs(dir: string) {
   );
 }
 
-export async function engineCommand(
-  args: string[],
-  env?: Record<string, string>,
-) {
-  if (args.length === 0) {
-    throw ("No engine name given");
-  }
-  const engine = args[0];
+// export async function engineCommand(
+//   args: string[],
+//   env?: Record<string, string>,
+// ) {
+//   if (args.length === 0) {
+//     throw ("No engine name given");
+//   }
+//   const engineKey = args[0];
+//   const engine = kEngines.get(engineKey);
+//   if (engine === undefined) {
+//     throw (`No engine with the name \"${engineKey}\" is registered. Available engines are ${
+//       Array.from(kEngines.keys()).map((key) => `"${key}"`).join(", ")
+//     }`);
+//   }
 
-  Deno.exit(0);
-}
+//   if (args.length < 2) {
+//     throw ("No engine command specified");
+//   }
+//   const commandName = args[1];
+
+//   const commandFunction = engine.commands?.[commandName];
+//   if (commandFunction === undefined) {
+//     throw (`No command with the name \"${commandName}\" is registered for the engine \"${engineKey}\".`);
+//   }
+//   await commandFunction(args.slice(2), env);
+
+//   Deno.exit(0);
+// }
+
+export const engineCommand = new Command()
+  .name("engine")
+  .description(
+    `Access functionality specific to quarto's different rendering engines.`,
+  )
+  .action(() => {
+    engineCommand.showHelp();
+    Deno.exit(1);
+  });
+
+kEngines.forEach((engine, name) => {
+  if (engine.populateCommand) {
+    const engineSubcommand = new Command();
+    // fill in some default behavior for each engine command
+    engineSubcommand
+      .description(
+        `Access functionality specific to the ${name} rendering engine.`,
+      )
+      .action(() => {
+        engineSubcommand.showHelp();
+        Deno.exit(1);
+      });
+    engine.populateCommand(engineSubcommand);
+    engineCommand.command(name, engineSubcommand);
+  }
+});
