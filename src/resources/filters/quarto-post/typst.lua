@@ -19,7 +19,9 @@ function render_typst()
   return {
     {
       Meta = function(m)
-        m["toc-depth"] = PANDOC_WRITER_OPTIONS["toc_depth"]
+        -- This should be a number, but we must represent it as a string,
+        -- as numbers are disallowed as metadata values.
+        m["toc-depth"] = tostring(PANDOC_WRITER_OPTIONS["toc_depth"])
         m["toc-indent"] = option("toc-indent")
         if m["number-depth"] then
           number_depth = tonumber(pandoc.utils.stringify(m["number-depth"]))
@@ -138,7 +140,7 @@ function render_typst_fixups()
       end
 
       img.attributes["fig-align"] = nil
-      return pandoc.Inlines({
+      return pandoc.Plain({
         pandoc.RawInline("typst", "#align(" .. align .. ")["),
         img,
         pandoc.RawInline("typst", "]"),

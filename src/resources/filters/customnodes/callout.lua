@@ -264,7 +264,8 @@ function _callout_main()
       return _quarto.format.typst.function_call("callout", { 
         { "body", _quarto.format.typst.as_typst_content(callout.content) },
         { "title", _quarto.format.typst.as_typst_content(
-          callout.title or pandoc.Plain(_quarto.modules.callouts.displayName(callout.type))
+          (not quarto.utils.is_empty_node(callout.title) and callout.title) or
+          pandoc.Plain(_quarto.modules.callouts.displayName(callout.type))
         )},
         { "background_color", pandoc.RawInline("typst", background_color) },
         { "icon_color", pandoc.RawInline("typst", icon_color) },
