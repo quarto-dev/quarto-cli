@@ -9,7 +9,7 @@ import { glb } from "../../src/core/lib/binary-search.ts";
 import bounds from "binary-search-bounds";
 
 import { unitTest } from "../test.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 
 // deno-lint-ignore require-await
 unitTest("binary-search-test - glb property tests", async () => {

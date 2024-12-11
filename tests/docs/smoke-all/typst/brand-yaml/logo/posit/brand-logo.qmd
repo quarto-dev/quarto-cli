@@ -1,0 +1,17 @@
+---
+title: logo background
+format:
+  typst:
+    logo: medium
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+      -
+        - '#set page\(background: align\(left\+top, box\(inset: 0.5in, image\("posit-logo-2024.svg", width: 2in, alt: "Posit Logo"\)\)\)\)'
+      - []
+---
+
+{{< lipsum 4 >}}
+

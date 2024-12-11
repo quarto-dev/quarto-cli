@@ -1,0 +1,14 @@
+---
+# uncomment below to see breadcrumbs say "Tutorial sidebar title"
+# title: Tutorial topmatter title
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["header.quarto-title-block ol.breadcrumb"]
+        - []
+---
+
+# Tutorial qmd first header (not working)
+
+abc

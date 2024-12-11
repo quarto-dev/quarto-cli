@@ -6,24 +6,28 @@
 
 import { Command } from "cliffy/command/command.ts";
 
-import { existsSync } from "fs/exists.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 import { error } from "../../deno_ral/log.ts";
 import { handlerForScript } from "../../core/run/run.ts";
+import { exitWithCleanup } from "../../core/cleanup.ts";
 
 export async function runScript(args: string[], env?: Record<string, string>) {
   const script = args[0];
   if (!script) {
     error("quarto run: no script specified");
-    Deno.exit(1);
+    exitWithCleanup(1);
+    throw new Error(); // unreachable
   }
   if (!existsSync(script)) {
     error("quarto run: script '" + script + "' not found");
-    Deno.exit(1);
+    exitWithCleanup(1);
+    throw new Error(); // unreachable
   }
   const handler = await handlerForScript(script);
   if (!handler) {
     error("quarto run: no handler found for script '" + script + "'");
-    Deno.exit(1);
+    exitWithCleanup(1);
+    throw new Error(); // unreachable
   }
   return await handler.run(script, args.slice(1), undefined, { env });
 }

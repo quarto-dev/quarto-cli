@@ -11,7 +11,7 @@ function make_typst_figure(tbl)
   local identifier = tbl.identifier
   local separator = tbl.separator
 
-  if (not caption or #caption.content == 0) and tbl.separator == nil then
+  if quarto.utils.is_empty_node(caption) and tbl.separator == nil then
     separator = ""
   end
 
@@ -121,7 +121,16 @@ end, function(layout)
     end)
   end)
   cells:insert(pandoc.RawInline("typst", ")\n"))
-  if layout.float.has_subfloats then
+  local has_subfloats = layout.float.has_subfloats
+  -- count any remaining figures (with no / bad ids) as floats
+  if not has_subfloats then
+    _quarto.ast.walk(layout.float.content, {
+      Figure = function(figure)
+        has_subfloats = true
+      end
+    })
+  end
+  if has_subfloats then
     result:insert(_quarto.format.typst.function_call("quarto_super", {
       {"kind", kind},
       {"caption", _quarto.format.typst.as_typst_content(layout.float.caption_long)},

@@ -7,7 +7,6 @@
  */
 
 import * as colors from "colors";
-import { warn } from "log/mod.ts";
 
 type StackEntry = {
   pos: string;
@@ -41,17 +40,22 @@ export const getStackAsArray = (
   // to our expectations of quarto.ts being the entry point.
   // This will only happen in dev builds and when
   //
-  // export QUARTO_DENO_EXTRA_OPTIONS=--v8-flags=--stack-trace-limit=LARGE_ENOUGH_NUMBER
+  // export QUARTO_DENO_V8_OPTIONS=--stack-trace-limit=100
   //
   // is set.
   const m = rawStack[rawStack.length - 1].match(
     /^.*at async (.*)src\/quarto.ts:\d+:\d+$/,
   );
   if (!m) {
-    warn(
-      "Could not find quarto.ts in stack trace, is QUARTO_DENO_EXTRA_OPTIONS with a sufficiently-large stack size set?",
+    console.log(
+      "Could not find quarto.ts in stack trace, is QUARTO_DENO_V8_OPTIONS set with a sufficiently-large stack size?",
     );
   }
+
+  // filter out eventLoopTick
+  rawStack = rawStack.filter((s) =>
+    !(s.match(/eventLoopTick/) && s.match(/core\/01_core.js/))
+  );
   if (m && (typeof format !== "undefined") && (format !== "raw")) {
     const pathPrefix = m[1];
     // first, trim all the path prefixes
@@ -70,19 +74,24 @@ export const getStackAsArray = (
       if (m1) {
         return {
           pos: m1[2],
-          name: `${m1[1] ?? ""}<main>`,
+          name: `<main>`,
           line: m1[3],
-          col: m1[4],
+          // if async, move the column to the start of the actual function name
+          col: m1[4] + (m1[1] ? 6 : 0),
         };
       }
-      // other stack entry? (with parentheses)
-      const m2 = s.match(/^.*at (async )?(.*) \((src\/.+):(\d+):(\d+)\)$/);
+      // other stack entry
+      // (with parentheses)
+      const m2 = s.match(/^.*at (async )?(.*) \((src\/.+):(\d+):(\d+)\)$/) ||
+        // without parentheses - async and name will be empty
+        s.match(/^.*at (async )?(.*)(src\/.+):(\d+):(\d+)$/);
       if (m2) {
         return {
           pos: m2[3],
-          name: `${m2[1] ?? ""}${m2[2]}`,
+          name: `${m2[2]}`,
           line: m2[4],
-          col: m2[5],
+          // if async, move the column to the start of the actual function name
+          col: m2[5] + (m2[1] ? 6 : 0),
         };
       }
       // links to deno's core?
@@ -93,9 +102,37 @@ export const getStackAsArray = (
       if (m3) {
         return {
           pos: m3[3],
-          name: `${m3[1] ?? ""}${m3[2]}`,
+          name: `${m3[2]}`,
           line: m3[4],
-          col: m3[5],
+          // if async, move the column to the start of the actual function name
+          col: m3[5] + (m3[1] ? 6 : 0),
+        };
+      }
+
+      // at async Command.execute (https://deno.land/x/cliffy@v1.0.0-rc.3/command/command.ts:1948:7)
+      const m4 = s.match(
+        /^.*at (async )?(.*) \((http.+):(\d+):(\d+)*\)$/,
+      );
+      if (m4) {
+        return {
+          pos: m4[3],
+          name: `${m4[2]}`,
+          line: m4[4],
+          // if async, move the column to the start of the actual function name
+          col: m4[5] + (m4[1] ? 6 : 0),
+        };
+      }
+
+      // at Array.map (<anonymous>)
+      const m5 = s.match(
+        /^.*at (.*)\(<anonymous>\)$/,
+      );
+      if (m5) {
+        return {
+          pos: "",
+          name: `${m5[1]}`,
+          line: "",
+          col: "",
         };
       }
       throw new Error(`Unexpected stack entry: ${s}`);

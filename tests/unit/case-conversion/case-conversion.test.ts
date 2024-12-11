@@ -6,8 +6,7 @@
 */
 
 import { unitTest } from "../../test.ts";
-import { assert } from "testing/asserts.ts";
-import { join } from "../../../src/deno_ral/path.ts";
+import { assert } from "testing/asserts";
 import {
   camelToKebab,
 } from "../../../src/core/config.ts";

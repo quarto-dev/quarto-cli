@@ -1,0 +1,8 @@
+---
+title: issue-9972
+format: typst
+---
+
+# Section {-}
+
+This is a simple placeholder for the manuscript's main document.

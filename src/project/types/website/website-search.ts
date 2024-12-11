@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../deno_ral/fs.ts";
 import { basename, join, relative } from "../../../deno_ral/path.ts";
 
 // currently not building the index here so not using fuse
@@ -326,11 +326,11 @@ export async function updateSearchIndex(
 
         // If there are any paragraphs residing outside a section, just
         // include that in the document entry
-        const pararaphNodes = doc.querySelectorAll(
-          `${mainSelector} > p, ${mainSelector} > div.cell`,
+        const paragraphNodes = doc.querySelectorAll(
+          `${mainSelector} > p, ${mainSelector} > div.cell, main > p`,
         );
 
-        for (const paragraphNode of pararaphNodes) {
+        const addToIndex = (paragraphNode: Element) => {
           const text = paragraphNode.textContent.trim();
           if (text) {
             pageText.push(text);
@@ -338,7 +338,19 @@ export async function updateSearchIndex(
 
           // Since these are already indexed with the main entry, remove them
           // so they are not indexed again
-          (paragraphNode as Element).remove();
+          paragraphNode.remove();
+        };
+
+        for (const paragraphNode of paragraphNodes) {
+          addToIndex(paragraphNode as Element);
+        }
+
+        // Add forced inclusions to the index
+        const forcedInclusions = doc.querySelectorAll(
+          `.quarto-include-in-search-index`,
+        );
+        for (const forcedInclusion of forcedInclusions) {
+          addToIndex(forcedInclusion as Element);
         }
 
         if (pageText.length > 0) {
@@ -407,13 +419,13 @@ export async function updateSearchIndex(
 
 const kDefaultCollapse = 3;
 
-export function searchOptions(
+export async function searchOptions(
   project: ProjectContext,
-): SearchOptions | undefined {
+): Promise<SearchOptions | undefined> {
   const searchMetadata = websiteConfigMetadata(kSearch, project.config);
 
   // The location of the search input
-  const location = searchInputLocation(project);
+  const location = await searchInputLocation(project);
 
   if (searchMetadata) {
     // Sort out collapsing (by default, show 2 sections per document)
@@ -545,9 +557,9 @@ function algoliaOptions(
   }
 }
 
-export function searchInputLocation(
+export async function searchInputLocation(
   project: ProjectContext,
-): SearchInputLocation {
+): Promise<SearchInputLocation> {
   const searchConfig = websiteConfigMetadata(kSearch, project.config);
   if (searchConfig && searchConfig[kLocation]) {
     switch (searchConfig[kLocation]) {
@@ -558,7 +570,7 @@ export function searchInputLocation(
         return "navbar";
     }
   } else {
-    const { navbar } = websiteNavigationConfig(project);
+    const { navbar } = await websiteNavigationConfig(project);
     if (navbar) {
       return "navbar";
     } else {
@@ -581,7 +593,7 @@ export function websiteSearchSassBundle() {
   };
 }
 
-export function websiteSearchIncludeInHeader(
+export async function websiteSearchIncludeInHeader(
   project: ProjectContext,
   format: Format,
   temp: TempContext,
@@ -589,7 +601,7 @@ export function websiteSearchIncludeInHeader(
   // Generates a script tag that contains the options for configuring search
   // which is ready in quarto-search.js
   const websiteSearchScript = temp.createFile({ suffix: "-search.html" });
-  const options = searchOptions(project) || {} as SearchOptions;
+  const options = await searchOptions(project) || {} as SearchOptions;
   options[kLanguageDefaults] = {} as FormatLanguage;
   Object.keys(format.language).forEach((key) => {
     if (key.startsWith("search-")) {
@@ -615,14 +627,14 @@ export function websiteSearchIncludeInHeader(
   return websiteSearchScript;
 }
 
-export function websiteSearchDependency(
+export async function websiteSearchDependency(
   project: ProjectContext,
   source: string,
-): FormatDependency[] {
+): Promise<FormatDependency[]> {
   const searchDependencies: FormatDependency[] = [];
   const resources: DependencyFile[] = [];
 
-  const options = searchOptions(project);
+  const options = await searchOptions(project);
   if (options) {
     const sourceRelative = relative(project.dir, source);
     const offset = projectOffset(project, source);

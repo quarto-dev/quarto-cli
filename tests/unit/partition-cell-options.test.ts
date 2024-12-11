@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2023 Posit Software, PBC
 *
 */
-import { assertEquals } from "testing/asserts.ts";
+import { assertEquals } from "testing/asserts";
 import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
 import { partitionCellOptions } from "../../src/core/lib/partition-cell-options.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";

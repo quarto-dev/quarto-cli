@@ -7,7 +7,7 @@
 import { basename, dirname, join, relative } from "../../deno_ral/path.ts";
 import { satisfies } from "semver/mod.ts";
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 
 import { error } from "../../deno_ral/log.ts";
 
@@ -110,7 +110,7 @@ import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import { runExternalPreviewServer } from "../../preview/preview-server.ts";
 import { onCleanup } from "../../core/cleanup.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -616,7 +616,7 @@ async function ensureYamlKernelspec(
   const yamlJupyter = readYamlFromMarkdown(markdown)?.jupyter;
   if (yamlJupyter && typeof yamlJupyter !== "boolean") {
     const [yamlKernelspec, _] = await jupyterKernelspecFromMarkdown(markdown);
-    if (yamlKernelspec.name !== kernelspec.name) {
+    if (yamlKernelspec.name !== kernelspec?.name) {
       const nb = jupyterFromJSON(Deno.readTextFileSync(target.source));
       nb.metadata.kernelspec = yamlKernelspec;
       Deno.writeTextFileSync(target.source, JSON.stringify(nb, null, 2));
@@ -706,7 +706,7 @@ interface JupyterTargetData {
   kernelspec: JupyterKernelspec;
 }
 
-function executeResultIncludes(
+export function executeResultIncludes(
   tempDir: string,
   widgetDependencies?: JupyterWidgetDependencies,
 ): PandocIncludes | undefined {
@@ -728,7 +728,7 @@ function executeResultIncludes(
   }
 }
 
-function executeResultEngineDependencies(
+export function executeResultEngineDependencies(
   widgetDependencies?: JupyterWidgetDependencies,
 ): Array<unknown> | undefined {
   if (widgetDependencies) {

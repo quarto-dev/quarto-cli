@@ -164,7 +164,7 @@ export async function renderExecute(
     (context.format.execute[kExecuteEnabled] !== false);
 
   // use previous frozen results if they are available
-  if (context.project && !alwaysExecute) {
+  if (context.project && !context.project.isSingleFile && !alwaysExecute) {
     // check if we are using the freezer
 
     const thaw = canFreeze &&

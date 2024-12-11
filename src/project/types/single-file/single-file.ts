@@ -10,7 +10,7 @@
 // Currently, this file houses utilities to make the
 // single-file path look closer to a project.
 
-import { dirname } from "path/dirname.ts";
+import { dirname } from "../../../deno_ral/path.ts";
 import { normalizePath } from "../../../core/path.ts";
 import { NotebookContext } from "../../../render/notebook/notebook-types.ts";
 import { makeProjectEnvironmentMemoizer } from "../../project-environment.ts";
@@ -19,7 +19,11 @@ import { renderFormats } from "../../../command/render/render-contexts.ts";
 import { RenderFlags } from "../../../command/render/types.ts";
 import { MappedString } from "../../../core/mapped-text.ts";
 import { fileExecutionEngineAndTarget } from "../../../execute/engine.ts";
-import { projectResolveFullMarkdownForFile } from "../../project-shared.ts";
+import {
+  projectFileMetadata,
+  projectResolveBrand,
+  projectResolveFullMarkdownForFile,
+} from "../../project-shared.ts";
 import { ExecutionEngine } from "../../../execute/types.ts";
 
 export function singleFileProjectContext(
@@ -30,6 +34,7 @@ export function singleFileProjectContext(
   const environmentMemoizer = makeProjectEnvironmentMemoizer(notebookContext);
 
   const result: ProjectContext = {
+    resolveBrand: (fileName?: string) => projectResolveBrand(result, fileName),
     dir: normalizePath(dirname(source)),
     engines: [],
     files: {
@@ -61,6 +66,9 @@ export function singleFileProjectContext(
         markdown,
         force,
       );
+    },
+    fileMetadata: async (file: string, force?: boolean) => {
+      return projectFileMetadata(result, file, force);
     },
     isSingleFile: true,
   };

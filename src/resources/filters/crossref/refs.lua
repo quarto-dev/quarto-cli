@@ -22,7 +22,7 @@ function resolveRefs()
       local refTypes = valid_ref_types()
       
       -- scan citations for refs
-      local refs = pandoc.List()
+      local refs = pandoc.Inlines({})
       for i, cite in ipairs (citeEl.citations) do
         -- get the label and type, and note if the label is uppercase
         local label = cite.id

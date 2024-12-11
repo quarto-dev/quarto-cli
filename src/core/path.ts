@@ -9,29 +9,30 @@ import {
   dirname,
   extname,
   fromFileUrl,
+  globToRegExp,
   isAbsolute,
+  isGlob,
   join,
   normalize,
 } from "../deno_ral/path.ts";
 
-import { globToRegExp } from "path/glob_to_regexp.ts";
-import { isGlob } from "path/mod.ts";
-
 import { warning } from "../deno_ral/log.ts";
 
-import { existsSync } from "fs/exists.ts";
-import { expandGlobSync } from "fs/expand_glob.ts";
+export { safeRemoveSync } from "../deno_ral/fs.ts";
+
+import { existsSync, expandGlobSync, safeRemoveSync } from "../deno_ral/fs.ts";
 
 import * as ld from "./lodash.ts";
 
 import { getenv } from "./env.ts";
 import { execProcess } from "./process.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export const kSkipHidden = /[/\\][\.]/;
 
 export function removeIfExists(file: string) {
   if (existsSync(file)) {
-    Deno.removeSync(file, { recursive: true });
+    safeRemoveSync(file, { recursive: true });
   }
 }
 
@@ -40,17 +41,6 @@ export function safeRemoveIfExists(file: string) {
     removeIfExists(file);
   } catch (error) {
     warning(`Error removing file ${file}: ${error.message}`);
-  }
-}
-
-export function safeRemoveSync(
-  file: string,
-  options: Deno.RemoveOptions = {},
-) {
-  try {
-    Deno.removeSync(file, options);
-  } catch (e) {
-    if (existsSync(file)) throw e;
   }
 }
 
@@ -116,14 +106,12 @@ export function safeExistsSync(path: string) {
 }
 
 export async function which(cmd: string) {
-  const args = Deno.build.os === "windows"
-    ? ["CMD", "/C", "where", cmd]
-    : ["which", cmd];
+  const args = isWindows ? ["CMD", "/C", "where", cmd] : ["which", cmd];
   const result = await execProcess(
     { cmd: args, stderr: "piped", stdout: "piped" },
   );
   if (result.code === 0) {
-    return Deno.build.os === "windows"
+    return isWindows
       // WHERE return all files found, only first is kept
       ? result.stdout?.split("\n")[0].trim()
       : result.stdout?.trim();
@@ -314,7 +302,7 @@ export function normalizePath(path: string | URL): string {
 
 // Moved here from env.ts to avoid circular dependency
 export function suggestUserBinPaths() {
-  if (Deno.build.os !== "windows") {
+  if (!isWindows) {
     // List of paths that we consider bin paths
     // in priority order (expanded and not)
     const possiblePaths = [

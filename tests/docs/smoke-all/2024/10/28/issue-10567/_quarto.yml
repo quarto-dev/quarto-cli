@@ -1,0 +1,25 @@
+project:
+  type: website
+
+website:
+  title: "issue-10567"
+  sidebar:
+    - contents:
+      - section: "Tutorials"
+        contents:
+          - text: Tutorials bad
+            href: tutorials-bad.qmd
+          - text: Tutorials good
+            href: tutorials-good.qmd
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+

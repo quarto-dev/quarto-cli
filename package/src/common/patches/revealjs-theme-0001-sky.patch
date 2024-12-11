@@ -1,0 +1,83 @@
+diff --git a/src/resources/formats/revealjs/themes/sky.scss b/src/resources/formats/revealjs/themes/sky.scss
+index 62a52b782..2debff7bc 100644
+--- a/src/resources/formats/revealjs/themes/sky.scss
++++ b/src/resources/formats/revealjs/themes/sky.scss
+@@ -2,51 +2,47 @@
+  * Sky theme for reveal.js.
+  *
+  * Copyright (C) 2011-2012 Hakim El Hattab, http://hakim.se
++ *
++ * Adapted for Quarto by Posit, PBC
++ * Copyright (C) 2024 Posit, PBC
+  */
+ 
+-
+-// Default mixins and settings -----------------
+-@import "../template/mixins";
+-@import "../template/settings";
+-// ---------------------------------------------
+-
+-
++/*-- scss:defaults --*/
+ 
+ // Include theme-specific fonts
+ @import url(https://fonts.googleapis.com/css?family=Quicksand:400,700,400italic,700italic);
+ @import url(https://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700);
+ 
++// Override theme settings
++$font-family-sans-serif: "Open Sans", sans-serif !default;
++$body-color: #333 !default;
++$presentation-heading-font: "Quicksand", sans-serif !default;
++$presentation-heading-color: #333 !default;
++$presentation-heading-letter-spacing: -0.08em !default;
++$presentation-heading-text-shadow: none !default;
++$body-bg: #f7fbfc !default;
++$link-color: #3b759e !default;
++$selection-bg: #134674 !default;
+ 
+-// Override theme settings (see ../template/settings.scss)
+-$font-family-sans-serif: 'Open Sans', sans-serif;
+-$body-color: #333;
+-$presentation-heading-font: 'Quicksand', sans-serif;
+-$presentation-heading-color: #333;
+-$presentation-heading-letter-spacing: -0.08em;
+-$presentation-heading-text-shadow: none;
+-$body-bg: #f7fbfc;
+-$link-color: #3b759e;
+-$link-color-hover: lighten( $linkColor, 20% );
+-$selection-bg: #134674;
++$presentation-heading-text-transform: uppercase !default; // from settings.scss
++$presentation-heading-font-weight: normal !default; // from settings.scss
++
++$overlayElementBgColor: 0, 0, 0 !default;
++$overlayElementFgColor: 240, 240, 240 !default;
++
++// Change text colors against dark slide backgrounds
++$dark-bg-text-color: #fff !default;
+ 
+-$overlayElementBgColor: 0, 0, 0;
+-$overlayElementFgColor: 240, 240, 240;
++/*-- scss:rules --*/
+ 
+ // Fix links so they are not cut off
+ .reveal a {
+-	line-height: 1.3em;
++  line-height: 1.3em;
+ }
+ 
++/*-- scss:mixins --*/
++
+ // Background generator
+ @mixin bodyBackground() {
+-	@include radial-gradient( #add9e4, #f7fbfc );
++  @include radial-gradient(#add9e4, #f7fbfc);
+ }
+-
+-// Change text colors against dark slide backgrounds
+-@include dark-bg-text-color(#fff);
+-
+-
+-
+-// Theme template ------------------------------
+-@import "../template/theme";
+-// ---------------------------------------------

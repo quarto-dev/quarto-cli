@@ -1,0 +1,20 @@
+project:
+  type: website
+
+website:
+  title: "today"
+  open-graph: true
+  page-footer:
+    center: |
+      Footer image:
+      [![](/profile.jpg)](https://quarto.org/)
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - posts.qmd
+
+format:
+  html:
+    theme: cosmo
+    toc: true

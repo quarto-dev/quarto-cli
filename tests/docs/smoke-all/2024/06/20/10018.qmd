@@ -1,0 +1,22 @@
+---
+title: "Quarto Playground"
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["p > span.margin-aside"]
+---
+
+This is a playground for Quarto.
+
+I'm confused... [why isn't this aside working?]{.aside}
+
+This is very confusing.
+
+::: aside
+This aside works!
+:::
+
+[This aside doesn't.]{.aside}

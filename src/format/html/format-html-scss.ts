@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 import { dirname, extname, isAbsolute, join } from "../../deno_ral/path.ts";
 
 import { formatResourcePath } from "../../core/resources.ts";
@@ -19,7 +19,12 @@ import { mergeLayers, sassLayer } from "../../core/sass.ts";
 
 import { outputVariable, SassVariable, sassVariable } from "../../core/sass.ts";
 
-import { Format, SassBundle, SassLayer } from "../../config/types.ts";
+import {
+  Format,
+  SassBundle,
+  SassBundleWithBrand,
+  SassLayer,
+} from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kGrid, kTheme } from "../../config/constants.ts";
 
@@ -56,6 +61,7 @@ import {
   sassUtilFunctions,
 } from "./format-html-shared.ts";
 import { readHighlightingTheme } from "../../quarto-core/text-highlighting.ts";
+import { warn } from "log";
 
 export interface Themes {
   light: string[];
@@ -65,12 +71,12 @@ export interface Themes {
 function layerQuartoScss(
   key: string,
   dependency: string,
-  sassLayer: SassLayer,
+  sassLayer: (SassLayer | "brand")[],
   format: Format,
-  darkLayer?: SassLayer,
+  darkLayer?: (SassLayer | "brand")[],
   darkDefault?: boolean,
   loadPaths?: string[],
-): SassBundle {
+): SassBundleWithBrand {
   // Compose the base Quarto SCSS
   const uses = quartoUses();
   const defaults = [
@@ -155,7 +161,7 @@ export function resolveBootstrapScss(
   input: string,
   format: Format,
   sassLayers: SassLayer[],
-): SassBundle[] {
+): SassBundleWithBrand[] {
   // Quarto built in css
   const quartoThemesDir = formatResourcePath(
     "html",
@@ -173,7 +179,7 @@ export function resolveBootstrapScss(
   );
 
   // Find light and dark sass layers
-  const sassBundles: SassBundle[] = [];
+  const sassBundles: SassBundleWithBrand[] = [];
 
   // light
   sassBundles.push(
@@ -192,27 +198,33 @@ export function resolveBootstrapScss(
 }
 
 export interface ThemeSassLayer {
-  light: SassLayer;
-  dark?: SassLayer;
+  light: (SassLayer | "brand")[];
+  dark?: (SassLayer | "brand")[];
 }
 
 function layerTheme(
   input: string,
   themes: string[],
   quartoThemesDir: string,
-): { layers: SassLayer[]; loadPaths: string[] } {
+): { layers: (SassLayer | "brand")[]; loadPaths: string[] } {
   let injectedCustomization = false;
   const loadPaths: string[] = [];
   const layers = themes.flatMap((theme) => {
     const isAbs = isAbsolute(theme);
     const isScssFile = [".scss", ".css"].includes(extname(theme));
 
-    if (isAbs && isScssFile) {
+    if (theme === "brand") {
+      // provide a brand order marker for downstream
+      // processing to know where to insert the brand scss
+      return "brand";
+    } else if (isAbs && isScssFile) {
       // Absolute path to a SCSS file
       if (existsSync(theme)) {
         const themeDir = dirname(theme);
         loadPaths.push(themeDir);
         return sassLayer(theme);
+      } else {
+        warn(`Theme file not found: ${theme}`);
       }
     } else if (isScssFile) {
       // Relative path to a SCSS file
@@ -221,6 +233,8 @@ function layerTheme(
         const themeDir = dirname(themePath);
         loadPaths.push(themeDir);
         return sassLayer(themePath);
+      } else {
+        warn(`Theme file not found: ${themePath}`);
       }
     } else {
       // The directory for this theme
@@ -317,9 +331,9 @@ export function resolveTextHighlightingLayer(
   if (themeDescriptor) {
     const readTextColor = (name: string) => {
       const textStyles = themeDescriptor.json["text-styles"];
-      if (textStyles && typeof (textStyles) === "object") {
+      if (textStyles && typeof textStyles === "object") {
         const commentColor = (textStyles as Record<string, unknown>)[name];
-        if (commentColor && typeof (commentColor) === "object") {
+        if (commentColor && typeof commentColor === "object") {
           const textColor =
             (commentColor as Record<string, unknown>)["text-color"];
           return textColor;
@@ -368,19 +382,19 @@ function resolveThemeLayer(
   let theme = undefined;
   let defaultDark = false;
 
-  if (typeof (themes) === "string") {
+  if (typeof themes === "string") {
     // The themes is just a string
     theme = { light: [themes] };
   } else if (Array.isArray(themes)) {
     // The themes is an array
     theme = { light: themes };
-  } else if (typeof (themes) === "object") {
+  } else if (typeof themes === "object") {
     // The themes are an object  - look at each key and
     // deal with them either as a string or a string[]
     const themeArr = (theme?: unknown): string[] => {
       const themes: string[] = [];
       if (theme) {
-        if (typeof (theme) === "string") {
+        if (typeof theme === "string") {
           themes.push(theme);
         } else if (Array.isArray(theme)) {
           themes.push(...theme);
@@ -417,7 +431,7 @@ function resolveThemeLayer(
     ? layerTheme(input, theme.dark, quartoThemesDir)
     : undefined;
   if (darkLayerContext) {
-    darkLayerContext.layers.push(...sassLayers);
+    darkLayerContext.layers.unshift(...sassLayers);
     const darkHighlightingLayer = resolveTextHighlightingLayer(
       input,
       format,
@@ -429,10 +443,8 @@ function resolveThemeLayer(
   }
 
   const themeSassLayer = {
-    light: mergeLayers(...lightLayerContext.layers),
-    dark: darkLayerContext?.layers
-      ? mergeLayers(...darkLayerContext?.layers)
-      : undefined,
+    light: lightLayerContext.layers,
+    dark: darkLayerContext?.layers,
   };
 
   const loadPaths = [
@@ -522,7 +534,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
   const colorDefaults: string[] = [];
 
   const navbar = (metadata[kWebsite] as Metadata)?.[kSiteNavbar];
-  if (navbar && typeof (navbar) === "object") {
+  if (navbar && typeof navbar === "object") {
     // Forward navbar background color
     const navbarBackground = (navbar as Record<string, unknown>)[kBackground];
     if (navbarBackground !== undefined) {
@@ -532,9 +544,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
           sassVariable(
             "navbar-bg",
             navbarBackground,
-            typeof (navbarBackground) === "string"
-              ? asBootstrapColor
-              : undefined,
+            typeof navbarBackground === "string" ? asBootstrapColor : undefined,
           ),
         ),
       );
@@ -549,9 +559,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
           sassVariable(
             "navbar-fg",
             navbarForeground,
-            typeof (navbarForeground) === "string"
-              ? asBootstrapColor
-              : undefined,
+            typeof navbarForeground === "string" ? asBootstrapColor : undefined,
           ),
         ),
       );
@@ -575,7 +583,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
   const sidebars = (metadata[kWebsite] as Metadata)?.[kSiteSidebar];
   const sidebar = Array.isArray(sidebars)
     ? sidebars[0]
-    : typeof (sidebars) === "object"
+    : typeof sidebars === "object"
     ? (sidebars as Metadata)
     : undefined;
 
@@ -589,7 +597,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
           sassVariable(
             "sidebar-bg",
             sidebarBackground,
-            typeof (sidebarBackground) === "string"
+            typeof sidebarBackground === "string"
               ? asBootstrapColor
               : undefined,
           ),
@@ -612,7 +620,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
           sassVariable(
             "sidebar-fg",
             sidebarForeground,
-            typeof (sidebarForeground) === "string"
+            typeof sidebarForeground === "string"
               ? asBootstrapColor
               : undefined,
           ),
@@ -640,7 +648,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
   }
 
   const footer = (metadata[kWebsite] as Metadata)?.[kPageFooter] as Metadata;
-  if (footer !== undefined && typeof (footer) === "object") {
+  if (footer !== undefined && typeof footer === "object") {
     // Forward footer color
     const footerBg = footer[kBackground];
     if (footerBg !== undefined) {
@@ -650,7 +658,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
           sassVariable(
             "footer-bg",
             footerBg,
-            typeof (footerBg) === "string" ? asBootstrapColor : undefined,
+            typeof footerBg === "string" ? asBootstrapColor : undefined,
           ),
         ),
       );
@@ -665,7 +673,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
           sassVariable(
             "footer-fg",
             footerFg,
-            typeof (footerFg) === "string" ? asBootstrapColor : undefined,
+            typeof footerFg === "string" ? asBootstrapColor : undefined,
           ),
         ),
       );
@@ -689,7 +697,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     }
 
     // If the footer border is a color, set that
-    if (footerBorder !== undefined && typeof (footerBorder) === "string") {
+    if (footerBorder !== undefined && typeof footerBorder === "string") {
       resolveBootstrapColorDefault(footerBorder, colorDefaults);
       variables.push(
         outputVariable(
@@ -704,7 +712,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
 
     // Forward any footer color
     const footerColor = footer[kColor];
-    if (footerColor && typeof (footerColor) === "string") {
+    if (footerColor && typeof footerColor === "string") {
       resolveBootstrapColorDefault(footerColor, colorDefaults);
       variables.push(
         outputVariable(
@@ -729,7 +737,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
         sassVariable(
           kCodeBorderLeft,
           codeblockLeftBorder,
-          typeof (codeblockLeftBorder) === "string"
+          typeof codeblockLeftBorder === "string"
             ? asBootstrapColor
             : undefined,
         ),
@@ -746,7 +754,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     variables.push(outputVariable(sassVariable(
       kCodeBlockBackground,
       codeblockBackground,
-      typeof (codeblockBackground) === "string" ? asBootstrapColor : undefined,
+      typeof codeblockBackground === "string" ? asBootstrapColor : undefined,
     )));
   }
 
@@ -775,7 +783,7 @@ function resolveBootstrapColorDefault(value: unknown, variables: string[]) {
 }
 
 function bootstrapColorDefault(value: unknown) {
-  if (typeof (value) === "string") {
+  if (typeof value === "string") {
     return bootstrapColorVars[value];
   }
 }

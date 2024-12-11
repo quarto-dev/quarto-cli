@@ -1,0 +1,56 @@
+---
+format: pdf
+keep-tex: true
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - ['\\subcaption{\\label{tbl-example-2}Pressure}']
+        - []
+---
+
+::: {#tbl-example .cell layout-ncol="2" tbl-cap='Example' tbl-subcap='["Cars","Pressure"]'}
+
+```{.r .cell-code}
+library(tinytable)
+tt(head(cars)) |> theme_tt("tabular") |> 
+  save_tt("latex") |> knitr::asis_output()
+```
+
+::: {.cell-output-display}
+```{=latex}
+\begin{tabular}{ll}
+\hline
+speed & dist \\ \hline
+4 &  2 \\
+4 & 10 \\
+7 &  4 \\
+7 & 22 \\
+8 & 16 \\
+9 & 10 \\
+\hline
+\end{tabular}
+```
+:::
+
+```{.r .cell-code}
+tt(head(pressure)) |> theme_tt("tabular")  |> 
+  save_tt("latex") |> knitr::asis_output()
+```
+
+::: {.cell-output-display}
+```{=latex}
+\begin{tabular}{ll}
+\hline
+temperature & pressure \\ \hline
+0 & 0.0002 \\
+20 & 0.0012 \\
+40 & 0.0060 \\
+60 & 0.0300 \\
+80 & 0.0900 \\
+100 & 0.2700 \\
+\hline
+\end{tabular}
+```
+:::
+:::

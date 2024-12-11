@@ -5,7 +5,7 @@
 *
 */
 import { unitTest } from "../../test.ts";
-import { assert, assertEquals } from "testing/asserts.ts";
+import { assert, assertEquals } from "testing/asserts";
 import {
   asMappedString,
   mappedDiff,

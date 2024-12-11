@@ -140,7 +140,7 @@ local function kable_raw_latex_fixups(content, identifier)
         identifier = label_identifier,
         type = "Table",
         content = pandoc.Blocks({ raw }),
-        caption_long = pandoc.Blocks({pandoc.Plain(string_to_quarto_ast_inlines(caption_content))}),
+        caption_long = pandoc.Blocks({pandoc.Plain(string_to_quarto_ast_inlines(caption_content or ""))}),
       })
     end
   })
@@ -164,6 +164,38 @@ local function kable_raw_latex_fixups(content, identifier)
 end
 
 function parse_floatreftargets()
+
+  local function handle_subcells_as_subfloats(params)  
+    local identifier = params.identifier
+    local div = params.div
+    local content = params.content
+    local ref = params.ref
+    local category = params.category
+    local subcaps = params.subcaps
+
+    div.attributes[ref .. "-subcap"] = nil
+    local subcap_index = 0
+    local subcells = pandoc.List({})
+    content = _quarto.ast.walk(content, {
+      Div = function(subdiv)
+        if not subdiv.classes:includes("cell-output-display") then
+          return nil
+        end
+        subcap_index = subcap_index + 1
+        local subfloat = quarto.FloatRefTarget({
+          attr = pandoc.Attr(identifier .. "-" .. tostring(subcap_index), {}, {}),
+          type = category.name,
+          content = {subdiv},
+          caption_long = {pandoc.Plain(string_to_quarto_ast_inlines(subcaps[subcap_index]))},
+        })
+        subcells:insert(subfloat)
+        return {}
+      end
+    })
+    content = coalesce_code_blocks(content)
+    content:extend(subcells)
+    return content
+  end
   
   local function parse_float_div(div)
     process_div_caption_classes(div)
@@ -204,7 +236,7 @@ function parse_floatreftargets()
     end
     local caption = refCaptionFromDiv(div)
     if caption ~= nil then
-      div.content:remove(#div.content)
+      div.content:remove()  -- drop the last element
     elseif div.attributes[caption_attr_key] ~= nil then
       caption = pandoc.Plain(string_to_quarto_ast_inlines(div.attributes[caption_attr_key]))
       div.attributes[caption_attr_key] = nil
@@ -214,10 +246,10 @@ function parse_floatreftargets()
       local found_caption = false
       content = _quarto.ast.walk(content, {
         Table = function(table)
-          if table.caption.long ~= nil then
+          -- check if caption is non-empty
+          if table.caption.long and next(table.caption.long) then
             found_caption = true
             caption = table.caption.long[1] -- what if there's more than one entry here?
-            table.caption.long = nil
             return table
           end
         end
@@ -348,6 +380,42 @@ function parse_floatreftargets()
       end
     end
 
+    -- if we're here, then we're going to return a FloatRefTarget
+    -- 
+    -- it's possible that the _contents_ of this FloatRefTarget should
+    -- be interpreted as subfloats.
+    -- 
+    -- See https://github.com/quarto-dev/quarto-cli/issues/10328
+    --
+    -- We'll use the following heuristic: if the FloatRefTarget contains
+    -- a subcap attribute with exactly as many entries as the number of
+    -- div children with class cell-output-display, then we'll interpret
+    -- each of those children as a subfloat.
+
+    local nsubcells = 0
+    content = _quarto.ast.walk(content, {
+      Div = function(subdiv)
+        if subdiv.classes:includes("cell-output-display") then
+          nsubcells = nsubcells + 1
+        end
+      end
+    })
+    local subcaps = div.attributes[ref .. "-subcap"] or "[]"
+    if subcaps ~= nil then
+      subcaps = quarto.json.decode(subcaps)
+    end
+
+    if nsubcells == #subcaps and nsubcells > 0 then
+      content = handle_subcells_as_subfloats {
+        div = div,
+        content = content,
+        identifier = identifier,
+        ref = ref,
+        category = category,
+        subcaps = subcaps
+      }
+    end
+
     return quarto.FloatRefTarget({
       attr = attr,
       type = category.name,
@@ -390,7 +458,7 @@ function parse_floatreftargets()
               fig_attr.classes:insert(v)
             end
           end
-          image.caption = {}
+          image.caption = pandoc.Inlines{}
           return image
         end
       }) or fig.content[1] -- this shouldn't be needed but the lua analyzer doesn't know it
@@ -426,7 +494,7 @@ function parse_floatreftargets()
       end
       
       -- we've parsed the caption, so we can remove it from the table
-      el.caption.long = pandoc.List({})
+      el.caption.long = pandoc.Blocks({})
 
       if label == "" then
         return nil
@@ -534,7 +602,7 @@ function parse_floatreftargets()
         if img.identifier == "" then
           local caption = img.caption
           if #caption > 0 then
-            img.caption = nil
+            img.caption = pandoc.Inlines{}
             return pandoc.Figure(link, { long = { caption } })
           else
             return nil

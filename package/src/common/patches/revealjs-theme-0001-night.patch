@@ -1,0 +1,57 @@
+diff --git a/src/resources/formats/revealjs/themes/night.scss b/src/resources/formats/revealjs/themes/night.scss
+index 18085f248..34703523a 100644
+--- a/src/resources/formats/revealjs/themes/night.scss
++++ b/src/resources/formats/revealjs/themes/night.scss
+@@ -2,36 +2,28 @@
+  * Black theme for reveal.js.
+  *
+  * Copyright (C) 2011-2012 Hakim El Hattab, http://hakim.se
++ *
++ * Adapted for Quarto by Posit, PBC
++ * Copyright (C) 2024 Posit, PBC
+  */
+ 
+-
+-// Default mixins and settings -----------------
+-@import "../template/mixins";
+-@import "../template/settings";
+-// ---------------------------------------------
+-
++/*-- scss:defaults --*/
+ 
+ // Include theme-specific fonts
+ @import url(https://fonts.googleapis.com/css?family=Montserrat:700);
+ @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700,400italic,700italic);
+ 
++// Override theme settings
++$body-bg: #111 !default;
++$body-color: #eee !default; // from settings.scss
+ 
+-// Override theme settings (see ../template/settings.scss)
+-$body-bg: #111;
+-
+-$font-family-sans-serif: 'Open Sans', sans-serif;
+-$link-color: #e7ad52;
+-$link-color-hover: lighten( $linkColor, 20% );
+-$presentation-heading-font: 'Montserrat', Impact, sans-serif;
+-$presentation-heading-text-shadow: none;
+-$presentation-heading-letter-spacing: -0.03em;
+-$presentation-heading-text-transform: none;
+-$selection-bg: #e7ad52;
++$font-family-sans-serif: "Open Sans", sans-serif !default;
++$link-color: #e7ad52 !default;
++$presentation-heading-font: "Montserrat", sans-serif !default;
++$presentation-heading-text-shadow: none !default;
++$presentation-heading-letter-spacing: -0.03em !default;
++$presentation-heading-text-transform: none !default;
++$selection-bg: #e7ad52 !default;
+ 
+ // Change text colors against light slide backgrounds
+-@include light-bg-text-color(#222);
+-
+-
+-// Theme template ------------------------------
+-@import "../template/theme";
+-// ---------------------------------------------
+\ No newline at end of file
++$light-bg-text-color: #222 !default;

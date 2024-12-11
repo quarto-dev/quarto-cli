@@ -4,8 +4,9 @@
 -- Copyright (c) 2020 rxi
 -- https://github.com/rxi/json.lua
 --
--- 2023-02-08: Modified by RStudio, PBC to make encoding more robust under the
--- following example: encode(decode("[null, 'test']"))
+-- includes unreleased upstream changes: https://github.com/rxi/json.lua/blob/dbf4b2dd2eb7c23be2773c89eb059dadd6436f94/json.lua
+-- includes unmerged upstream pull request: https://github.com/rxi/json.lua/pull/51
+-- includes unmerged upstream pull request: https://github.com/rxi/json.lua/pull/52
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy of
 -- this software and associated documentation files (the "Software"), to deal in
@@ -26,7 +27,22 @@
 -- SOFTWARE.
 --
 
-local json = { _version = "0.1.2" }
+local json = { _version = "0.1.2-quarto" }
+
+-- taken from https://www.lua.org/pil/19.3.html
+function pairsByKeys (t, f)
+  local a = {}
+  for n in pairs(t) do table.insert(a, n) end
+  table.sort(a, f)
+  local i = 0      -- iterator variable
+  local iter = function ()   -- iterator function
+    i = i + 1
+    if a[i] == nil then return nil
+    else return a[i], t[a[i]]
+    end
+  end
+  return iter
+end
 
 -------------------------------------------------------------------------------
 -- Encode
@@ -72,7 +88,10 @@ local function encode_table(val, stack)
 
   stack[val] = true
 
-  local n = 0
+  if next(val) == nil then
+    return '[]'
+  end
+
   local types = {}
 
   for k in pairs(val) do
@@ -101,13 +120,13 @@ local function encode_table(val, stack)
     return "[" .. table.concat(res, ",") .. "]"
   elseif types["string"] then
     -- Treat as object
-    for k, v in pairs(val) do
+    for k, v in pairsByKeys(val) do
       table.insert(res, encode_string(k) .. ":" .. encode(v, stack))
     end
     stack[val] = nil
     return "{" .. table.concat(res, ",") .. "}"
   else
-    return "[]"
+    error( string.format("invalid table: unsupported key type %s", types[1]) )
   end
 end
 
@@ -139,7 +158,7 @@ encode = function(val, stack)
 end
 
 
-local function jsonEncode(val)
+function json.encode(val)
   return ( encode(val) )
 end
 
@@ -205,7 +224,7 @@ local function codepoint_to_utf8(n)
     return string.char(f(n / 4096) + 224, f(n % 4096 / 64) + 128, n % 64 + 128)
   elseif n <= 0x10ffff then
     return string.char(f(n / 262144) + 240, f(n % 262144 / 4096) + 128,
-                       f(n % 4096 / 64) + 128, n % 64 + 128)
+            f(n % 4096 / 64) + 128, n % 64 + 128)
   end
   error( string.format("invalid unicode codepoint '%x'", n) )
 end
@@ -214,7 +233,7 @@ end
 local function parse_unicode_escape(s)
   local n1 = tonumber( s:sub(1, 4),  16 )
   local n2 = tonumber( s:sub(7, 10), 16 )
-   -- Surrogate pair?
+  -- Surrogate pair?
   if n2 then
     return codepoint_to_utf8((n1 - 0xd800) * 0x400 + (n2 - 0xdc00) + 0x10000)
   else
@@ -240,8 +259,8 @@ local function parse_string(str, i)
       local c = str:sub(j, j)
       if c == "u" then
         local hex = str:match("^[dD][89aAbB]%x%x\\u%x%x%x%x", j + 1)
-                 or str:match("^%x%x%x%x", j + 1)
-                 or decode_error(str, j - 1, "invalid unicode escape in string")
+                or str:match("^%x%x%x%x", j + 1)
+                or decode_error(str, j - 1, "invalid unicode escape in string")
         res = res .. parse_unicode_escape(hex)
         j = j + #hex
       else
@@ -380,7 +399,7 @@ parse = function(str, idx)
 end
 
 
-local function jsonDecode(str)
+function json.decode(str)
   if type(str) ~= "string" then
     error("expected argument of type string, got " .. type(str))
   end
@@ -393,7 +412,4 @@ local function jsonDecode(str)
 end
 
 
-return {
-  encode = jsonEncode,
-  decode = jsonDecode
-}
+return json

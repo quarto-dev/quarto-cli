@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { dirname, join, relative } from "../deno_ral/path.ts";
 
 import * as ld from "../core/lodash.ts";
@@ -25,6 +25,7 @@ import { kLocalDevelopment, quartoConfig } from "../core/quarto.ts";
 import { cssFileResourceReferences } from "../core/css.ts";
 import {
   projectExcludeDirs,
+  projectFileMetadata,
   projectResolveCodeCellsForFile,
 } from "../project/project-shared.ts";
 import { normalizePath, safeExistsSync } from "../core/path.ts";
@@ -92,9 +93,11 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
         }
 
         await projectResolveCodeCellsForFile(context, engine, file);
+        await projectFileMetadata(context, file);
         fileInformation[file] = {
           includeMap: context.fileInformationCache.get(file)?.includeMap ?? [],
           codeCells: context.fileInformationCache.get(file)?.codeCells ?? [],
+          metadata: context.fileInformationCache.get(file)?.metadata ?? {},
         };
       }
       const config: InspectedProjectConfig = {
@@ -191,6 +194,7 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
 
       await context.resolveFullMarkdownForFile(engine, path);
       await projectResolveCodeCellsForFile(context, engine, path);
+      await projectFileMetadata(context, path);
       const fileInformation = context.fileInformationCache.get(path);
 
       // data to write
@@ -205,6 +209,7 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
           [path]: {
             includeMap: fileInformation?.includeMap ?? [],
             codeCells: fileInformation?.codeCells ?? [],
+            metadata: fileInformation?.metadata ?? {},
           },
         },
       };

@@ -1,0 +1,19 @@
+---
+title: YAML tag literals, plain
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(ggplot2)
+
+p <- split(mtcars, mtcars[["cyl"]])
+p <- lapply(p, \(x) ggplot(x, aes(x = wt, y = mpg)) +
+                      geom_point())
+```
+
+```{r}
+#| label: plot
+#| fig-cap: !expr names(p)[[1]]
+p[[1]]
+```

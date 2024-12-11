@@ -1,0 +1,49 @@
+---
+format:
+  docusaurus-md:
+    quality: 1
+  pdf:
+    quality: 1
+  html:
+    quality: 1
+  dashboard:
+    quality: 1
+  typst:
+    quality: 1
+  revealjs:
+    quality: 1
+  docx:
+    quality: 1
+  pptx:
+    quality: 1
+
+---
+
+`colspan`, `rowspan`, `text-align`, and `vertical-align`
+
+```{=html}
+<table>
+ <tr>
+  <th></th>
+  <th>A</th>
+  <th>B</th>
+  <th>C</th>
+ </tr>
+ <tr>
+  <th>1<br/><br/></th>
+  <td colspan="2" style="text-align: center">A1-B1</td>
+  <td>C3</td>
+ </tr>
+ <tr>
+  <th>2<br/><br/></th>
+  <td rowspan="2" style="vertical-align: middle">A2-A3</td>
+  <td style="vertical-align: top">B2</td>
+  <td style="text-align: left">C2</td>
+ </tr>
+ <tr>
+  <th>3<br/><br/></th>
+  <td style="vertical-align: bottom">B3</td>
+  <td style="text-align: right">C3</td>
+ </tr>
+</table>
+```

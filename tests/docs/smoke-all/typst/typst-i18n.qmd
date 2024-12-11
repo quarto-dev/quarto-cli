@@ -12,8 +12,8 @@ _quarto:
       - ['Resumen', 'Nota', 'Conjetura']
       - []
       ensurePdfRegexMatches:
-      - ['Figura 1', 'Figura 2', 'Figura 3', 'Figura 4', 'Figura 5', 'Figura 6']
-      - ['Figure 1', 'Figure 2', 'Figure 3', 'Figure 4', 'Figure 5', 'Figure 6']
+      - ['Figura 1', 'Figura 2', 'Figura 3', 'Figura 4']
+      - ['Figure 1', 'Figure 2', 'Figure 3', 'Figure 4', 'Figure 5', 'Figura 5']
 ---
 
 ![Marcador]({{< placeholder 300 >}}){#fig-marcador}

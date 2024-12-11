@@ -1,5 +1,5 @@
-import { error, info } from "log/mod.ts";
-import { join } from "path/mod.ts";
+import { error, info } from "../deno_ral/log.ts";
+import { join } from "../deno_ral/path.ts";
 import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { readYamlFromMarkdown } from "../core/yaml.ts";
@@ -39,8 +39,13 @@ import { isInteractiveSession } from "../core/platform.ts";
 import { runningInCI } from "../core/ci-info.ts";
 import { sleep } from "../core/async.ts";
 import { JupyterNotebook } from "../core/jupyter/types.ts";
-import { existsSync } from "fs/mod.ts";
-import { encodeBase64 } from "encoding/base64.ts";
+import { existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
+import { encodeBase64 } from "encoding/base64";
+import {
+  executeResultEngineDependencies,
+  executeResultIncludes,
+} from "./jupyter/jupyter.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
   julia_cmd: string;
@@ -183,6 +188,20 @@ export const juliaEngine: ExecutionEngine = {
       },
     );
 
+    // return dependencies as either includes or raw dependencies
+    let includes: PandocIncludes | undefined;
+    let engineDependencies: Record<string, Array<unknown>> | undefined;
+    if (options.dependencies) {
+      includes = executeResultIncludes(options.tempDir, result.dependencies);
+    } else {
+      const dependencies = executeResultEngineDependencies(result.dependencies);
+      if (dependencies) {
+        engineDependencies = {
+          [kJuliaEngine]: dependencies,
+        };
+      }
+    }
+
     // Create markdown from the result
     const outputs = result.cellOutputs.map((output) => output.markdown);
     if (result.notebookOutputs) {
@@ -202,8 +221,8 @@ export const juliaEngine: ExecutionEngine = {
       supporting: [join(assets.base_dir, assets.supporting_dir)],
       filters: [],
       pandoc: result.pandoc,
-      // includes,
-      // engineDependencies,
+      includes,
+      engineDependencies,
       preserve: result.htmlPreserve,
       postProcess: result.htmlPreserve &&
         (Object.keys(result.htmlPreserve).length > 0),
@@ -259,9 +278,7 @@ async function startOrReuseJuliaServer(
         ],
         env: {
           // ignore the main env
-          "JULIA_LOAD_PATH": Deno.build.os === "windows"
-            ? "@;@stdlib"
-            : "@:@stdlib",
+          "JULIA_LOAD_PATH": isWindows ? "@;@stdlib" : "@:@stdlib",
         },
       });
       const qnrTestProc = qnrTestCommand.spawn();
@@ -284,7 +301,7 @@ async function startOrReuseJuliaServer(
     // tests on windows hang forever if we use the same launching mechanism as for Unix systems.
     // So we utilize powershell instead which can start completely detached processes with
     // the Start-Process commandlet.
-    if (Deno.build.os === "windows") {
+    if (isWindows) {
       const command = new Deno.Command(
         "PowerShell",
         {
@@ -450,7 +467,7 @@ async function getJuliaServerConnection(
         options,
         "Connecting to server failed, a transport file was reused so it might be stale. Delete transport file and retry.",
       );
-      Deno.removeSync(juliaTransportFile());
+      safeRemoveSync(juliaTransportFile());
       return await getJuliaServerConnection(options);
     } else {
       error(
@@ -600,16 +617,26 @@ async function writeJuliaCommand(
   // but they could also end in a partial one.
   // so to read and process them all correctly, we read in a fixed number of bytes, if there's a newline, we process
   // the string up to that part and save the rest for the next round.
-  let restOfPreviousResponse = "";
+  let restOfPreviousResponse = new Uint8Array(512);
+  let restLength = 0; // number of valid bytes in restOfPreviousResponse
   while (true) {
-    let response = restOfPreviousResponse;
-    const newlineAt = response.indexOf("\n");
+    const respArray: Uint8Array[] = [];
+    let respLength = 0;
+    let response = "";
+    const newlineAt = restOfPreviousResponse.indexOf(10);
     // if we already have a newline, we don't need to read from conn
-    if (newlineAt !== -1) {
-      restOfPreviousResponse = response.substring(newlineAt + 1);
-      response = response.substring(0, newlineAt);
+    if (newlineAt !== -1 && newlineAt < restLength) {
+      response = new TextDecoder().decode(
+        restOfPreviousResponse.slice(0, newlineAt),
+      );
+      restOfPreviousResponse.set(
+        restOfPreviousResponse.slice(newlineAt + 1, restLength),
+      );
+      restLength -= newlineAt + 1;
     } // but if we don't have a newline, we read in more until we get one
     else {
+      respArray.push(restOfPreviousResponse.slice(0, restLength));
+      respLength += restLength;
       while (true) {
         const buffer = new Uint8Array(512);
         const bytesRead = await conn.read(buffer);
@@ -618,18 +645,28 @@ async function writeJuliaCommand(
         }
 
         if (bytesRead > 0) {
-          const payload = new TextDecoder().decode(
-            buffer.slice(0, bytesRead),
-          );
-          const payloadNewlineAt = payload.indexOf("\n");
-          if (payloadNewlineAt === -1) {
-            response += payload;
-            restOfPreviousResponse = "";
+          const bufferNewlineAt = buffer.indexOf(10);
+          if (bufferNewlineAt === -1 || bufferNewlineAt >= bytesRead) {
+            respArray.push(buffer.slice(0, bytesRead));
+            restLength = 0;
+            respLength += bytesRead;
           } else {
-            response += payload.substring(0, payloadNewlineAt);
-            restOfPreviousResponse = payload.substring(payloadNewlineAt + 1);
+            respArray.push(buffer.slice(0, bufferNewlineAt));
+            respLength += bufferNewlineAt;
+            restOfPreviousResponse.set(
+              buffer.slice(bufferNewlineAt + 1, bytesRead),
+            );
+            restLength = bytesRead - bufferNewlineAt - 1;
             // when we have found a newline in a payload, we can stop reading in more data and continue
             // with the response first
+
+            let respBuffer = new Uint8Array(respLength);
+            let offset = 0;
+            respArray.forEach((item) => {
+              respBuffer.set(item, offset);
+              offset += item.length;
+            });
+            response = new TextDecoder().decode(respBuffer);
             break;
           }
         }

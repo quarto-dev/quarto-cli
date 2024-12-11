@@ -8,7 +8,7 @@
 import { expandGlobSync } from "../../../src/core/deno/expand-glob.ts";
 import { unitTest } from "../../test.ts";
 
-import { assert, assertEquals } from "testing/asserts.ts";
+import { assert, assertEquals } from "testing/asserts";
 
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../src/core/schema/utils.ts";
 import {

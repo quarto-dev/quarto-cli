@@ -84,12 +84,14 @@ function inlinesToString(inlines)
   return pandoc.utils.stringify(pandoc.Span(inlines))
 end
 
+local InlinesMT = getmetatable(pandoc.Inlines{})
+
 -- lua string to pandoc inlines
 function stringToInlines(str)
   if str then
-    return pandoc.Inlines({pandoc.Str(str)})
+    return setmetatable({pandoc.Str(str)}, InlinesMT)
   else
-    return pandoc.Inlines({})
+    return setmetatable({}, InlinesMT)
   end
 end
 
@@ -98,27 +100,24 @@ end
 function markdownToInlines(str)
   if str then
     local doc = pandoc.read(str)
-    if #doc.blocks == 0 then
-      return pandoc.List({})
-    else
-      return doc.blocks[1].content
-    end
+    return pandoc.utils.blocks_to_inlines(doc.blocks)
   else
-    return pandoc.List()
+    return setmetatable({}, InlinesMT)
   end
 end
 
+
 function stripTrailingSpace(inlines)
-  -- we always convert to pandoc.List to ensure a uniform
+  -- we always convert to pandoc.Inlines to ensure a uniform
   -- return type (and its associated methods)
   if #inlines > 0 then
     if inlines[#inlines].t == "Space" then
-      return pandoc.List(tslice(inlines, 1, #inlines - 1))
+      return setmetatable(tslice(inlines, 1, #inlines - 1), InlinesMT)
     else
-      return pandoc.List(inlines)
+      return setmetatable(inlines, InlinesMT)
     end
   else
-    return pandoc.List(inlines)
+    return setmetatable(inlines, InlinesMT)
   end
 end
 
@@ -132,9 +131,9 @@ function resolveHeadingCaption(div)
   local capEl = div.content[1]
   if capEl ~= nil and is_regular_node(capEl, "Header") then
     div.content:remove(1)
-    return capEl.content
+    return quarto.utils.as_inlines(capEl.content)
   else 
-    return nil
+    return pandoc.Inlines({})
   end
 end
 

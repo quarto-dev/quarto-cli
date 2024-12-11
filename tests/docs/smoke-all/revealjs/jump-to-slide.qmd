@@ -1,0 +1,17 @@
+---
+title: "Jump to slide"
+format: 
+  revealjs:
+    jump-to-slide: false
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        - ["jumpToSlide.*false,"]
+        - ["jumpToSlide.*true,"]
+---
+
+## test
+
+`jump-to-slide` is converted to revealjs option and inserted as `jumpToSlide`. 
+

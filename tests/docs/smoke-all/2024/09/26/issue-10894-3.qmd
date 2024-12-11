@@ -1,0 +1,47 @@
+---
+format: latex
+language:
+  callout-tip-title: "98ce773e8b340c34e879b359b774b802"
+  crossref-tip-prefix: "Note"
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - 
+          - '98ce773e8b340c34e879b359b774b802'
+          - 'Note\~\\ref\{tip-1\}'
+        - 
+          - ': 98ce773e8b340c34e879b359b774b802' # should never be a title
+---
+
+::: {#tip-1 .callout-tip}
+
+Text
+
+:::
+
+::: {#tip-2 .callout-tip}
+
+## A title
+
+Text
+
+:::
+
+
+::: {.callout-tip}
+
+Text
+
+:::
+
+::: {.callout-tip}
+
+## A title
+
+Text
+
+:::
+
+
+See @tip-1, @tip-2.

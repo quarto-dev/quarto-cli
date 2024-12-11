@@ -1,4 +1,4 @@
-#/bin/bash
+#/usr/bin/env bash
 
 # We should do this for windows too
 

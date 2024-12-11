@@ -1,5 +1,6 @@
 ---
 title: Reproing a bug on codetools dropdown
+format: html
 code-tools: true
 ---
 

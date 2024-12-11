@@ -50,7 +50,7 @@ import { Format } from "../../config/types.ts";
 import { isQmdFile } from "../../execute/qmd.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 
 export const htmlNotebookContributor: NotebookContributor = {
   resolve: resolveHtmlNotebook,

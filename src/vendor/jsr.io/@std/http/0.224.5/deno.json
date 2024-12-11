@@ -1,0 +1,16 @@
+{
+  "name": "@std/http",
+  "version": "0.224.5",
+  "exports": {
+    ".": "./mod.ts",
+    "./cookie": "./cookie.ts",
+    "./etag": "./etag.ts",
+    "./file-server": "./file_server.ts",
+    "./negotiation": "./negotiation.ts",
+    "./server": "./server.ts",
+    "./server-sent-event-stream": "./server_sent_event_stream.ts",
+    "./status": "./status.ts",
+    "./unstable-signed-cookie": "./unstable_signed_cookie.ts",
+    "./user-agent": "./user_agent.ts"
+  }
+}

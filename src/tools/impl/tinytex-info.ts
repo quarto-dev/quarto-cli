@@ -1,15 +1,15 @@
 /*
-* tools-info.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * tools-info.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { expandPath, safeExistsSync } from "../../core/path.ts";
 import { join } from "../../deno_ral/path.ts";
 import { getenv } from "../../core/env.ts";
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
+import { os as platformOs } from "../../deno_ral/platform.ts";
 
 export function hasTinyTex(): boolean {
   const installDir = tinyTexInstallDir();
@@ -21,14 +21,15 @@ export function hasTinyTex(): boolean {
 }
 
 export function tinyTexInstallDir(): string | undefined {
-  switch (Deno.build.os) {
-    case "windows":
+  switch (platformOs) {
+    case "windows": {
       let appDir = getenv("APPDATA", undefined);
       // use ProgramData if APPDATA is not set or contains spaces or non-ASCII characters
       if (!appDir || !appDir.match(/^[!-~]+$/)) {
         appDir = getenv("ProgramData", undefined);
       }
       return expandPath(join(appDir, "TinyTeX"));
+    }
     case "linux":
       return expandPath("~/.TinyTeX");
     case "darwin":
@@ -41,11 +42,11 @@ export function tinyTexInstallDir(): string | undefined {
 export function tinyTexBinDir(): string | undefined {
   const basePath = tinyTexInstallDir();
   if (basePath) {
-    switch (Deno.build.os) {
+    switch (platformOs) {
       case "windows": {
         // TeX Live 2023 use windows now. Previous version were using win32
         const winPath = join(basePath, "bin\\win32\\");
-        if (safeExistsSync(winPath)) return (winPath);
+        if (safeExistsSync(winPath)) return winPath;
         return join(basePath, "bin\\windows\\");
       }
       case "linux":

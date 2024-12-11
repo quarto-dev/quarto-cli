@@ -49,7 +49,7 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 <%= listing.utilities.img(itemNumber, item.image, "thumbnail-image card-img", item['image-alt'], item['image-lazy-loading'] ?? listing['image-lazy-loading']) %>
 </p>
 <% } else { %>
-<%= listing.utilities.imgPlaceholder(itemNumber, item.outputHref) %>
+<%= listing.utilities.imgPlaceholder(listing.id, itemNumber, item.outputHref) %>
 <% } %>
 
 <% } %>
@@ -64,7 +64,7 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 
 <div class="listing-categories">
   <% for (const category of item.categories) { %>
-<div class="listing-category" onclick="window.quartoListingCategory('<%=category%>'); return false;"><%= category %></div>
+<div class="listing-category" onclick="window.quartoListingCategory('<%=utils.b64encode(category)%>'); return false;"><%= category %></div>
   <% } %>
 </div>
 

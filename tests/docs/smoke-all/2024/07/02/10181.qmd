@@ -1,0 +1,8 @@
+---
+format: typst
+keep-typ: true
+---
+
+## This does not work
+
+![](image with space in name.png){width="50%"}

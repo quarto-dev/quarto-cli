@@ -79,7 +79,10 @@ _quarto.ast.add_handler({
         error("Ignoring invalid condition in conditional block: " .. v[1])
         -- luacov: enable
       else
-        result.condition[v[1]] = v[2]
+        if result.condition[v[1]] == nil then
+          result.condition[v[1]] = pandoc.List({})
+        end
+        result.condition[v[1]]:insert(v[2])
       end
     end
 
@@ -102,7 +105,8 @@ local _content_hidden_meta = nil
 function content_hidden_meta(meta)
   -- return {
   --   Meta = function(meta)
-  _content_hidden_meta = meta
+  -- The call to `pandoc.Meta` ensures that we hold a copy.
+  _content_hidden_meta = pandoc.Meta(meta)
   --   end
   -- }
 end
@@ -152,30 +156,46 @@ end
 -- "properties" here will come either from "conditions", in the case of a custom AST node
 -- or from the attributes of the element itself in the case of spans or codeblocks
 function propertiesMatch(properties, profiles)
+  local function check_meta(v)
+    local v = split(v, ".") or { v }
+    local r = get_meta(v)
+    return type(r) == "boolean" and r
+  end
+  local function check_profile(value)
+    return profiles:includes(value)
+  end
+  local function check_property(key, f)
+    local v = properties[key]
+    if type(v) == "string" then
+      return f(v)
+    elseif type(v) == "table" then
+      local r = false
+      for _, value in ipairs(v) do
+        r = r or f(value)
+      end
+      return r
+    else
+      -- luacov: disable
+      error("Invalid value type for condition: " .. type(v))
+      -- luacov: enable
+    end
+  end
+  local tests = {
+    { constants.kWhenMeta, check_meta, false },
+    { constants.kUnlessMeta, check_meta, true },
+    { constants.kWhenFormat, _quarto.format.isFormat, false },
+    { constants.kUnlessFormat, _quarto.format.isFormat, true },
+    { constants.kWhenProfile, check_profile, false },
+    { constants.kUnlessProfile, check_profile, true }
+  }
   local match = true
-  if properties[constants.kWhenMeta] ~= nil then
-    local v = properties[constants.kWhenMeta]
-    v = split(v, ".") or { v }
-    local r = get_meta(v)
-    match = match and (type(r) == "boolean" and r)
-  end
-  if properties[constants.kUnlessMeta] ~= nil then
-    local v = properties[constants.kUnlessMeta]
-    v = split(v, ".") or { v }
-    local r = get_meta(v)
-    match = match and not (type(r) == "boolean" and r)
-  end
-  if properties[constants.kWhenFormat] ~= nil then
-    match = match and _quarto.format.isFormat(properties[constants.kWhenFormat])
-  end
-  if properties[constants.kUnlessFormat] ~= nil then
-    match = match and not _quarto.format.isFormat(properties[constants.kUnlessFormat])
-  end
-  if properties[constants.kWhenProfile] ~= nil then
-    match = match and profiles:includes(properties[constants.kWhenProfile])
-  end
-  if properties[constants.kUnlessProfile] ~= nil then
-    match = match and not profiles:includes(properties[constants.kUnlessProfile])
+  for _, test in ipairs(tests) do
+    local key = test[1]
+    local f = test[2]
+    local invert = test[3]
+    if properties[key] ~= nil then
+      match = match and (invert ~= check_property(key, f))
+    end
   end
   return match
 end

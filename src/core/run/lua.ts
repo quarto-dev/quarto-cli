@@ -7,10 +7,9 @@
 import { info } from "../../deno_ral/log.ts";
 
 import { dirname, extname } from "../../deno_ral/path.ts";
-import { normalizePath } from "../path.ts";
-import { isWindows } from "../platform.ts";
+import { normalizePath, safeRemoveSync } from "../path.ts";
 import { execProcess } from "../process.ts";
-import { pandocBinaryPath, resourcePath } from "../resources.ts";
+import { pandocBinaryPath } from "../resources.ts";
 import { RunHandler, RunHandlerOptions } from "./types.ts";
 
 export const luaRunHandler: RunHandler = {
@@ -42,10 +41,16 @@ export const luaRunHandler: RunHandler = {
     );
     cmd.push(...args);
 
-    return await execProcess({
-      cmd,
-      ...options,
-    }, "");
+    return await execProcess(
+      {
+        cmd,
+        ...options,
+      },
+      "",
+      undefined,
+      undefined,
+      true,
+    );
   },
 };
 
@@ -103,7 +108,7 @@ setmetatable(_G, meta)
   } finally {
     // remove temp script
     if (tempScript) {
-      Deno.removeSync(tempScript);
+      safeRemoveSync(tempScript);
     }
   }
 }

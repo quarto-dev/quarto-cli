@@ -1,0 +1,27 @@
+---
+title: "Hello, Quarto"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          ['#figure\(\[(\r\n?|\n)#table']
+        -
+          ['#block\[(\r\n?|\n)#figure\(\[(\r\n?|\n)#block\[(\r\n?|\n)#figure']
+---
+
+```{r}
+#| label: tbl-example1
+#| tbl-cap: Table created with `knitr::kable()`
+#| echo: false
+
+set.seed(1)
+data <- data.frame(x = rnorm(30), y = rnorm(30))
+knitr::kable(
+  head(data),
+  digits = 2
+)
+```

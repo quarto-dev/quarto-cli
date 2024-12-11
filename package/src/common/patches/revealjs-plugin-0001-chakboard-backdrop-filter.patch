@@ -1,0 +1,15 @@
+diff --git a/src/resources/formats/revealjs/plugins/chalkboard/plugin.js b/src/resources/formats/revealjs/plugins/chalkboard/plugin.js
+index 543ee101f..e9bd64ea3 100644
+--- a/src/resources/formats/revealjs/plugins/chalkboard/plugin.js
++++ b/src/resources/formats/revealjs/plugins/chalkboard/plugin.js
+@@ -444,8 +444,8 @@ const initChalkboard = function ( Reveal ) {
+ 			container.style.visibility = 'visible';
+ 			container.style.pointerEvents = 'none';
+ 			container.style['backdrop-filter'] = 'none';
+-      // for older safari
+-      container.style["-webkit-backdrop-filter"] = "none";
++			// for older safari
++			container.style["-webkit-backdrop-filter"] = "none";
+ 
+ 			var slides = document.querySelector( '.slides' );
+ 			var aspectRatio = Reveal.getConfig().width / Reveal.getConfig().height;

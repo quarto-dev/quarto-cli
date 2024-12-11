@@ -6,7 +6,7 @@
 
 import { Command } from "cliffy/command/mod.ts";
 
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 import { error } from "../../deno_ral/log.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { projectContext } from "../../project/project-context.ts";
@@ -19,6 +19,7 @@ import { withRenderServices } from "../render/render-services.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { RenderServices } from "../render/types.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
+import { exitWithCleanup } from "../../core/cleanup.ts";
 
 export const serveCommand = new Command()
   .name("serve")
@@ -60,7 +61,8 @@ export const serveCommand = new Command()
           "If you are attempting to preview a website or book use the " +
           colors.bold("quarto preview") + " command instead.",
       );
-      Deno.exit(1);
+      exitWithCleanup(1);
+      throw new Error(); // we never reach this point but the Deno analyzer doesn't see it.
     }
 
     const { host, port } = await resolveHostAndPort(options);
@@ -88,6 +90,6 @@ export const serveCommand = new Command()
 
     if (!result.success) {
       // error diagnostics already written to stderr
-      Deno.exit(result.code);
+      exitWithCleanup(result.code);
     }
   });

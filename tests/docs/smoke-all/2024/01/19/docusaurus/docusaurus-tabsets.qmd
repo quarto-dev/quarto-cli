@@ -3,7 +3,7 @@ format: docusaurus-md
 _quarto:
   tests:
     docusaurus-md:
-      ensure-snapshot-matches: true
+      ensureSnapshotMatches: true
 ---
 
 ::: {.panel-tabset}

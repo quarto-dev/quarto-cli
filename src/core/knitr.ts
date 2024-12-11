@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 
 import { execProcess } from "./process.ts";
 import { rBinaryPath, resourcePath } from "./resources.ts";
@@ -48,7 +48,11 @@ export async function checkRBinary() {
       stderr: "piped",
     });
     // Before R4.2.3, the output version information is printed to stderr
-    if (result.success && (result.stdout || /R scripting front-end version/.test(result.stderr ?? ''))) {
+    if (
+      result.success &&
+      (result.stdout ||
+        /R scripting front-end version/.test(result.stderr ?? ""))
+    ) {
       debug(`\n++R found at ${rBin} is working.`);
       return rBin;
     } else {

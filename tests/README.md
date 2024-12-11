@@ -23,7 +23,7 @@ Tests are running through `Deno.test()` framework, adapted for our Quarto projec
 
 Here are what is expected in the environment for the tests :
 
-- R should be installed and in PATH - [**rig**](https://github.com/r-lib/rig) is a good tool to manage R versions.
+- R should be installed and in PATH - [**rig**](https://github.com/r-lib/rig) is a good tool to manage R versions. e.g `rig install 4.4.2` and `rig default 4.4.2` to install and set the version to 4.4.2
   - On Windows, Rtools should be too (for source package installation)
 - Python should be installed and in PATH - [**pyenv**](https://github.com/pyenv/pyenv) is a good option to manage Python versions.
   - On Windows, it will be [`pyenv-win`](https://pyenv-win.github.io/pyenv-win/) to manage versions. Otherwise or install from https://www.python.org/ manually or using `winget`.
@@ -53,17 +53,26 @@ Our project is using [explicit dependencies discovery](https://rstudio.github.io
 
 See [documentation](https://rstudio.github.io/renv/) if you need to tweak the R environment.
 
+After a dependency update, you can run `configure-test-env.sh` or `configure-test-env.ps1` to update the environment, or manually run `renv::restore()` to recreate the environment with new versions. Be sure to update your R version if needed.
+
 #### Python
 
-We use [**pipenv**](https://pipenv.pypa.io/en/latest/) to manage dependencies and recreate easily on all OS. `pipenv` will be installed as part of the configuration if not already.
-A virtual environment will be created locally in `.venv` folder (ignored on git) and activated when running tests. `pipenv run` and `pipenv shell` can help activating the environment outside of running tests.
+We now use [**uv**](https://docs.astral.sh/uv) (previously, it was [**pipenv**](https://pipenv.pypa.io/en/latest/)) to manage dependencies and recreate easily on all OS. `uv` will **not** be installed as part of the configuration - so it needs to be installed manually - see various way at: https://docs.astral.sh/uv/getting-started/installation/
 
-`Pipfile` contains our requirement for the tests project. It can be manually updated but it is best to just use `pipenv` commands. For instance, adding a new dependency can be done with `pipenv install plotly` and it will update the file.
-It will also update the `Pipfile.lock` - this file should never be updated manually.
+**uv** will handle the python versions, including its installation, based on the `.python-version` we have in `tests/` folder. It will also manage the virtual environment in `.venv` folder.
 
-See other [`pipenv` command](https://pipenv.pypa.io/en/latest/#basic-commands-and-concepts) if you need to tweak the python environment.
+A virtual environment will be created locally in `.venv` folder (ignored on git) and activated when running tests. `uv run` can help activating the environment outside of running tests to run a command in the environment.
 
-For a change of python versionn, `pipenv --rm` will need to be called so that the current virtual environment is removed and a new one is created with the new python version when running `pipenv install` inside `configure-test-env` script.
+`pyproject.toml` contains our dependencies requirement for the tests project. It can be manually updated but it is best to just use `uv` commands. For instance, adding a new dependency can be done with `uv add plotly` and it will update the file, update the `uv.lock` and install in the virtual environment. `uv.lock` should never be updated manually, and it is tracked by git, as it allows to recreate the exact environment on different environment (Linux, Mac, Windows, locally and on CI).
+
+See other [`uv` command](https://docs.astral.sh/uv/getting-started/features/) if you need to do more.
+
+For a change of python versionn, `.python-version` needs to be updated, and then `uv` will take care of the rest. `configure-test-env` script will check for `uv` and if installed, it will called `uv sync` to make sure the project virtual environment is up to date with the lockfile.
+
+Note that `./run-test.ps1` and `.run-tests.sh` :
+
+- run `configure-test-env` script by default, unless `QUARTO_TESTS_NO_CONFIG` environment variable is set to a non-empty value.
+- Activate the local virtualenv espected in `.venv`. Set `QUARTO_TESTS_FORCE_NO_VENV` to a non-empty value to prevent this behavior. (It replaces `QUARTO_TESTS_FORCE_NO_PIPENV` which still is considered for backward compatibility but deprecated)
 
 #### Julia
 

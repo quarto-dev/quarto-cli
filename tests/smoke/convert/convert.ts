@@ -4,8 +4,8 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { existsSync } from "fs/mod.ts";
-import { assert } from "testing/asserts.ts";
+import { existsSync } from "../../../src/deno_ral/fs.ts";
+import { assert } from "testing/asserts";
 
 import { outputForInput } from "../../utils.ts";
 import {
