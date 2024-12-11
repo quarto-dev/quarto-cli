@@ -14,14 +14,14 @@ import {
   kQuartoCssVariables,
   kTextHighlightingMode,
   SassBundle,
+  SassBundleWithBrand,
+  SassLayer,
 } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
 import { TempContext } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 import { cleanSourceMappingUrl, compileSass } from "../../core/sass.ts";
-
-import { kSourceMappingRegexes } from "../../config/constants.ts";
 
 import { kQuartoHtmlDependency } from "../../format/html/format-html-constants.ts";
 import {
@@ -38,7 +38,8 @@ import { kMinimal } from "../../format/html/format-html-shared.ts";
 import { kSassBundles } from "../../config/types.ts";
 import { md5HashBytes } from "../../core/hash.ts";
 import { InternalError } from "../../core/lib/error.ts";
-import { writeTextFileSyncPreserveMode } from "../../core/write.ts";
+import { assert } from "testing/asserts";
+import { safeModeFromFile } from "../../deno_ral/fs.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -57,12 +58,12 @@ export async function resolveSassBundles(
 ) {
   extras = cloneDeep(extras);
 
-  const mergedBundles: Record<string, SassBundle[]> = {};
+  const mergedBundles: Record<string, SassBundleWithBrand[]> = {};
 
   // groups the bundles by dependency name
   const group = (
-    bundles: SassBundle[],
-    groupedBundles: Record<string, SassBundle[]>,
+    bundles: SassBundleWithBrand[],
+    groupedBundles: Record<string, SassBundleWithBrand[]>,
   ) => {
     bundles.forEach((bundle) => {
       if (!groupedBundles[bundle.dependency]) {
@@ -82,19 +83,46 @@ export async function resolveSassBundles(
   let defaultStyle: "dark" | "light" | undefined = undefined;
   for (const dependency of Object.keys(mergedBundles)) {
     // compile the cssPath
-    const bundles = mergedBundles[dependency];
+    const bundlesWithBrand = mergedBundles[dependency];
+    // first, pull out the brand-specific layers
+    //
+    // the brand bundle itself doesn't have any 'brand' entries;
+    // those are used to specify where the brand-specific layers should be inserted
+    // in the final bundle.
+    const brandLayersMaybeBrand = bundlesWithBrand.find((bundle) =>
+      bundle.key === "brand"
+    )?.user || [];
+    assert(!brandLayersMaybeBrand.find((v) => v === "brand"));
+    const brandLayers = brandLayersMaybeBrand as SassLayer[];
+    let foundBrand = false;
+    const bundles: SassBundle[] = bundlesWithBrand.filter((bundle) =>
+      bundle.key !== "brand"
+    ).map((bundle) => {
+      const userBrand = bundle.user?.findIndex((layer) => layer === "brand");
+      if (userBrand && userBrand !== -1) {
+        bundle = cloneDeep(bundle);
+        bundle.user!.splice(userBrand, 1, ...brandLayers);
+        foundBrand = true;
+      }
+      return bundle as SassBundle;
+    });
+    if (!foundBrand) {
+      bundles.unshift({
+        dependency,
+        key: "brand",
+        user: brandLayers,
+      });
+    }
 
     // See if any bundles are providing dark specific css
     const hasDark = bundles.some((bundle) => bundle.dark !== undefined);
-    defaultStyle = bundles.some((bundle) =>
-        bundle.dark !== undefined && bundle.dark.default
-      )
-      ? "dark"
-      : "light";
-
+    defaultStyle =
+      bundles.some((bundle) => bundle.dark !== undefined && bundle.dark.default)
+        ? "dark"
+        : "light";
     const targets: SassTarget[] = [{
       name: `${dependency}.min.css`,
-      bundles,
+      bundles: (bundles as any),
       attribs: {
         "append-hash": "true",
       },
@@ -119,7 +147,7 @@ export async function resolveSassBundles(
       });
       targets.push({
         name: `${dependency}-dark.min.css`,
-        bundles: darkBundles,
+        bundles: darkBundles as any,
         attribs: {
           "append-hash": "true",
           ...attribForThemeStyle("dark", defaultStyle),
@@ -141,6 +169,9 @@ export async function resolveSassBundles(
       // it can happen that processing generate an empty css file (e.g quarto-html deps with Quarto CSS variables)
       // in that case, no need to insert the cssPath in the dependency
       if (!cssPath) continue;
+      if (Deno.readTextFileSync(cssPath).length === 0) {
+        continue;
+      }
 
       // Process attributes (forward on to the target)
       for (const bundle of target.bundles) {
@@ -508,7 +539,9 @@ async function processCssIntoExtras(
       } else {
         const hash = await md5HashBytes(new TextEncoder().encode(cleanedCss));
         newCssPath = temp.createFile({ suffix: `-${hash}.css` });
-        writeTextFileSyncPreserveMode(newCssPath, cleanedCss);
+        Deno.writeTextFileSync(newCssPath, cleanedCss, {
+          mode: safeModeFromFile(cssPath),
+        });
       }
 
       return {

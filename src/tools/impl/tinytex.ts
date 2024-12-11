@@ -5,7 +5,7 @@
  */
 import { debug, warning } from "../../deno_ral/log.ts";
 
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 import { basename, join, relative } from "../../deno_ral/path.ts";
 
 import { expandPath, which } from "../../core/path.ts";
@@ -32,6 +32,12 @@ import { copyTo } from "../../core/copy.ts";
 import { suggestUserBinPaths } from "../../core/path.ts";
 
 import { ensureDirSync, walkSync } from "../../deno_ral/fs.ts";
+import {
+  isLinux,
+  isMac,
+  isWindows,
+  os as platformOs,
+} from "../../deno_ral/platform.ts";
 
 // This the https texlive repo that we use by default
 const kDefaultRepos = [
@@ -179,7 +185,7 @@ async function install(
   if (installDir) {
     const parentDir = join(installDir, "..");
     const realParentDir = expandPath(parentDir);
-    const tinyTexDirName = Deno.build.os === "linux" ? ".TinyTeX" : "TinyTeX";
+    const tinyTexDirName = isLinux ? ".TinyTeX" : "TinyTeX";
     debug(`TinyTex Directory Information:`);
     debug(`> installDir:  ${installDir}`);
     debug(`> parentDir:  ${parentDir}`);
@@ -212,7 +218,7 @@ async function install(
           // this change should be reverted, quarto tinytex should
           // be remove and reinstalled and the smoke tests
           // should be run and pass.
-          if (Deno.build.os === "darwin") {
+          if (isMac) {
             for (const file of walkSync(from)) {
               if (file.isFile) {
                 const relativePath = relative(from, file.path);
@@ -226,7 +232,7 @@ async function install(
             }
           }
 
-          Deno.removeSync(from, { recursive: true });
+          safeRemoveSync(from, { recursive: true });
 
           // Note the version that we have installed
           noteInstalledVersion(pkgInfo.version);
@@ -234,7 +240,7 @@ async function install(
         },
       );
 
-      context.props[kTlMgrKey] = Deno.build.os === "windows"
+      context.props[kTlMgrKey] = isWindows
         ? join(binFolder(installDir), "tlmgr.bat")
         : join(binFolder(installDir), "tlmgr");
 
@@ -254,7 +260,7 @@ function binFolder(installDir: string) {
     const oldBinFolder = join(
       installDir,
       "bin",
-      `${Deno.build.arch}-${Deno.build.os}`,
+      `${Deno.build.arch}-${platformOs}`,
     );
     if (existsSync(oldBinFolder)) {
       return oldBinFolder;
@@ -262,7 +268,7 @@ function binFolder(installDir: string) {
       return join(
         installDir,
         "bin",
-        `universal-${Deno.build.os}`,
+        `universal-${platformOs}`,
       );
     }
   };
@@ -286,7 +292,7 @@ function binFolder(installDir: string) {
   };
 
   // Find the tlmgr and note its location
-  return Deno.build.os === "windows" ? winBinFolder() : nixBinFolder();
+  return isWindows ? winBinFolder() : nixBinFolder();
 }
 
 async function afterInstall(context: InstallContext) {
@@ -296,7 +302,7 @@ async function afterInstall(context: InstallContext) {
     await context.withSpinner(
       { message: "Verifying tlgpg support" },
       async () => {
-        if (["darwin", "windows"].includes(Deno.build.os)) {
+        if (["darwin", "windows"].includes(platformOs)) {
           await exec(
             tlmgrPath,
             [
@@ -356,7 +362,7 @@ ${tlmgrPath} path add
 This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path>.`;
 
       const configureBinPath = async (path: string) => {
-        if (Deno.build.os !== "windows") {
+        if (!isWindows) {
           // Find bin paths on this machine
           // Ensure the directory exists
           const expandedPath = expandPath(path);
@@ -377,7 +383,7 @@ This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path
       const envPath = Deno.env.get("QUARTO_TEXLIVE_BINPATH");
       if (envPath) {
         paths.push(envPath);
-      } else if (Deno.build.os !== "windows") {
+      } else if (!isWindows) {
         paths.push(...suggestUserBinPaths());
       } else {
         paths.push(tlmgrPath);
@@ -385,7 +391,7 @@ This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path
 
       const binPathMessage = envPath
         ? `Setting TeXLive Binpath: ${envPath}`
-        : Deno.build.os !== "windows"
+        : !isWindows
         ? `Updating Path (inspecting ${paths.length} possible paths)`
         : "Updating Path";
 
@@ -413,7 +419,7 @@ This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path
       );
 
       // After installing on windows, the path may not be updated which means a restart is required
-      if (Deno.build.os === "windows") {
+      if (isWindows) {
         const texLiveInstalled = await hasTexLive();
         const texLivePath = await texLiveInPath();
         restartRequired = restartRequired || !texLiveInstalled || !texLivePath;
@@ -492,11 +498,7 @@ async function textLiveRepo() {
 }
 
 function tinyTexPkgName(base?: string, ver?: string) {
-  const ext = Deno.build.os === "windows"
-    ? "zip"
-    : Deno.build.os === "linux"
-    ? "tar.gz"
-    : "tgz";
+  const ext = isWindows ? "zip" : isLinux ? "tar.gz" : "tgz";
 
   base = base || "TinyTeX";
   if (ver) {
@@ -531,7 +533,7 @@ async function isWritable(path: string) {
 }
 
 function needsSourceInstall() {
-  if (Deno.build.os === "linux" && Deno.build.arch !== "x86_64") {
+  if (isLinux && Deno.build.arch !== "x86_64") {
     return true;
   } else {
     return false;
@@ -565,7 +567,7 @@ async function texLiveRoot() {
   if (texLivePath) {
     // The real (non-symlink) path
     const realPath = await Deno.realPath(texLivePath);
-    if (Deno.build.os === "windows") {
+    if (isWindows) {
       return join(realPath, "..", "..", "..");
     } else {
       // Check that the directory coontains a bin folder

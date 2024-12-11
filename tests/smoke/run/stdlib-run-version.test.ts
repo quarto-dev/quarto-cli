@@ -8,6 +8,7 @@
 import { execProcess } from "../../../src/core/process.ts";
 import { assert } from "testing/asserts";
 import { unitTest } from "../../test.ts";
+import { isWindows } from "../../../src/deno_ral/platform.ts";
 
 unitTest("stdlib-run-version", async () => {
   const result = await execProcess({
@@ -20,5 +21,5 @@ unitTest("stdlib-run-version", async () => {
   console.log({result})
   assert(result.success);
 }, {
-  ignore: Deno.build.os == "windows",
+  ignore: isWindows,
 });

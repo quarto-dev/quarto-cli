@@ -10,12 +10,13 @@ import { readAllSync } from "io/read-all";
 import { info } from "../deno_ral/log.ts";
 import { runningInCI } from "./ci-info.ts";
 import { SpinnerOptions } from "./console-types.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 // The spinner and progress characters
 const kSpinnerChars = ["|", "/", "-", "\\"];
 const kSpinerContainerChars = ["(", ")"];
 const kSpinerCompleteContainerChars = ["[", "]"];
-const kSpinnerCompleteChar = Deno.build.os !== "windows" ? "✓" : ">";
+const kSpinnerCompleteChar = !isWindows ? "✓" : ">";
 const kProgressIncrementChar = "#";
 const kProgressContainerChars = ["[", "]"];
 const kProgressBarWidth = 35;
@@ -173,7 +174,7 @@ export function writeFileToStdout(file: string) {
   const df = Deno.openSync(file, { read: true });
   const contents = readAllSync(df);
   writeAllSync(Deno.stdout, contents);
-  Deno.close(df.rid);
+  df.close();
 }
 
 export function clearLine() {

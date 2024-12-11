@@ -91,6 +91,7 @@ All changes included in 1.6:
 
 ## Projects
 
+- ([#7988](https://github.com/quarto-dev/quarto-cli/issues/7988)): Do not allow `lib-dir` to cause an accidental cleanup of the project directory when its value points to a parent of the project directory.
 - ([#10125](https://github.com/quarto-dev/quarto-cli/issues/10125)): Show path to the project when project YAML validation fails.
 - ([#10268](https://github.com/quarto-dev/quarto-cli/issues/10268)): `quarto create` supports opening project in Positron, in addition to VS Code and RStudio IDE.
 - ([#10285](https://github.com/quarto-dev/quarto-cli/issues/10285)): Include text from before the first chapter sections in search indices. In addition, include text of every element with `.quarto-include-in-search-index` class in search indices.
@@ -125,6 +126,7 @@ All changes included in 1.6:
 ### `jupyter`
 
 - ([#9134](https://github.com/quarto-dev/quarto-cli/issues/9134)): Add proper fix for `multiprocessing` in notebooks with the Python kernel.
+- ([#10097](https://github.com/quarto-dev/quarto-cli/issues/10097)): Ensure papermill parameterization works when default values are set in a cell with labels.
 
 ## Chromium support
 

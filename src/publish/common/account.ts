@@ -8,7 +8,8 @@ import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
 import { join } from "../../deno_ral/path.ts";
 import { info } from "../../deno_ral/log.ts";
 import * as colors from "fmt/colors";
-import { isServerSession, isWindows } from "../../core/platform.ts";
+import { isServerSession } from "../../core/platform.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 import { openUrl } from "../../core/shell.ts";
 import { sleep } from "../../core/wait.ts";
 import { accountsDataDir } from "./data.ts";
@@ -95,7 +96,7 @@ export function writeAccessTokens<T>(
   );
 
   // set file permissions
-  if (!isWindows()) {
+  if (!isWindows) {
     Deno.chmod(tokensPath, 0o600);
   }
 }

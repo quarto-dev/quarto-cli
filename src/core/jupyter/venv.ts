@@ -11,7 +11,7 @@ import * as colors from "fmt/colors";
 
 import * as ld from "../lodash.ts";
 
-import { isWindows } from "../platform.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 import { execProcess } from "../process.ts";
 import { jupyterCapabilitiesNoConda } from "./capabilities.ts";
 import { which } from "../path.ts";
@@ -32,7 +32,7 @@ export async function jupyterCreateVenv(dir: string, packages?: string[]) {
     const pip3 = join(
       dir,
       kEnvDir,
-      isWindows() ? "Scripts\\pip.exe" : "bin/pip3",
+      isWindows ? "Scripts\\pip.exe" : "bin/pip3",
     );
     packages = ld.uniq(["jupyter"].concat(packages || []));
     const installResult = await execProcess({

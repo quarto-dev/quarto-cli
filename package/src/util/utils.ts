@@ -1,5 +1,6 @@
 import { writeAll } from "io/write-all";
 import { CmdResult, runCmd } from "./cmd.ts";
+import { isWindows } from "../../../src/deno_ral/platform.ts";
 
 // Read an environment variable
 export function getEnv(name: string, defaultValue?: string) {
@@ -24,14 +25,14 @@ export async function download(src: string, dest: string): Promise<void> {
 
   const file = await Deno.create(dest);
   await writeAll(file, contents);
-  Deno.close(file.rid);
+  file.close();
 }
 
 export async function unzip(
   zipFile: string,
   dest: string,
 ): Promise<CmdResult> {
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     return await runCmd("PowerShell", [
       "Expand-Archive",
       "-Path",

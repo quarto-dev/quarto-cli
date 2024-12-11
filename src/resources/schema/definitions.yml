@@ -65,6 +65,7 @@
       page,
       page-left,
       page-right,
+      page-inset,
       page-inset-left,
       page-inset-right,
       screen,
@@ -2977,4 +2978,25 @@
       typography:
         ref: brand-typography
       defaults:
+        ref: brand-defaults
+
+- id: brand-defaults
+  object:
+    properties:
+      bootstrap:
+        ref: brand-defaults-bootstrap
+      quarto:
         schema: object
+
+- id: brand-defaults-bootstrap
+  object:
+    properties:
+      defaults:
+        schema:
+          object:
+            additionalProperties:
+              schema:
+                anyOf:
+                  - string
+                  - boolean
+                  - number

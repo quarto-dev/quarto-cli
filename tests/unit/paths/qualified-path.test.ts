@@ -13,6 +13,7 @@ import {
   QualifiedPath,
 } from "../../../src/core/qualified-path.ts";
 import { assertEquals, assertRejects } from "testing/asserts";
+import { isWindows } from "../../../src/deno_ral/platform.ts";
 
 //deno-lint-ignore require-await
 unitTest("qualified-path - basic", async () => {
@@ -46,7 +47,7 @@ unitTest("qualified-path - basic", async () => {
     }
   }
 }, {
-  ignore: Deno.build.os === "windows",
+  ignore: isWindows,
 });
 
 unitTest("qualified-path - validation", async () => {
@@ -63,5 +64,5 @@ unitTest("qualified-path - validation", async () => {
     return makePath("../../file1", paths);
   });
 }, {
-  ignore: Deno.build.os === "windows",
+  ignore: isWindows,
 });

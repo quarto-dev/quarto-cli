@@ -5,6 +5,10 @@
 -- could write to named filed (e.g. <docname>.filter.log) and client could read warnings and delete (also delete before run)
 -- always append b/c multiple filters
 
+--- The default, built-in error function.
+-- The `error` global is redefined below.
+local builtin_error_function = error
+
 -- luacov: disable
 local function caller_info(offset)
   offset = offset or 3
@@ -27,6 +31,6 @@ end
 function fatal(message, offset)
   io.stderr:write(lunacolors.red("FATAL (" .. caller_info(offset) .. ") " ..message .. "\n"))
   -- TODO write stack trace into log, and then exit.
-  crash_with_stack_trace()  
+  builtin_error_function('FATAL QUARTO ERROR', offset)
 end
 -- luacov: enable

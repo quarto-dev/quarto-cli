@@ -6,6 +6,7 @@
 
 import { join } from "../deno_ral/path.ts";
 import { ensureDirSync } from "../deno_ral/fs.ts";
+import { os as platformOs } from "../deno_ral/platform.ts";
 
 export function quartoDataDir(subdir?: string, roaming = false) {
   return quartoDir(userDataDir, subdir, roaming);
@@ -35,7 +36,7 @@ function quartoDir(
 }
 
 export function userDataDir(appName: string, roaming = false) {
-  switch (Deno.build.os) {
+  switch (platformOs) {
     case "darwin":
       return darwinUserDataDir(appName);
     case "windows":
@@ -53,7 +54,7 @@ export function userDataDir(appName: string, roaming = false) {
 }
 
 export function userConfigDir(appName: string, roaming = false) {
-  switch (Deno.build.os) {
+  switch (platformOs) {
     case "darwin":
       return darwinUserDataDir(appName);
     case "windows":
@@ -71,7 +72,7 @@ export function userConfigDir(appName: string, roaming = false) {
 }
 
 export function userCacheDir(appName: string) {
-  switch (Deno.build.os) {
+  switch (platformOs) {
     case "darwin":
       return darwinUserCacheDir(appName);
     case "windows":
@@ -89,7 +90,7 @@ export function userCacheDir(appName: string) {
 }
 
 export function userRuntimeDir(appName: string) {
-  switch (Deno.build.os) {
+  switch (platformOs) {
     case "darwin":
       return darwinUserCacheDir(appName);
     case "windows":

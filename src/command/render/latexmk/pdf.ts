@@ -5,7 +5,7 @@
  */
 
 import { dirname, join } from "../../../deno_ral/path.ts";
-import { existsSync } from "../../../deno_ral/fs.ts";
+import { existsSync, safeRemoveSync } from "../../../deno_ral/fs.ts";
 
 import { PdfEngine } from "../../../config/types.ts";
 import { LatexmkOptions } from "./types.ts";
@@ -26,6 +26,7 @@ import {
 } from "./parse-error.ts";
 import { error, info, warning } from "../../../deno_ral/log.ts";
 import { logProgress } from "../../../core/log.ts";
+import { isWindows } from "../../../deno_ral/platform.ts";
 
 export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
   if (!mkOptions.quiet) {
@@ -369,7 +370,7 @@ async function makeBibliographyIntermediates(
         // If we're on windows and auto-install isn't enabled,
         // fix up the aux file
         //
-        if (Deno.build.os === "windows") {
+        if (isWindows) {
           if (bibCommand !== "biber" && !hasTexLive()) {
             // See https://github.com/rstudio/tinytex/blob/b2d1bae772f3f979e77fca9fb5efda05855b39d2/R/latex.R#L284
             // Strips the '.bib' from any match and returns the string without the bib extension
@@ -594,7 +595,7 @@ function cleanup(workingDir: string, stem: string) {
 
   auxFiles.forEach((auxFile) => {
     if (existsSync(auxFile)) {
-      Deno.removeSync(auxFile);
+      safeRemoveSync(auxFile);
     }
   });
 }

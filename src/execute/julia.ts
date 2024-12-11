@@ -39,12 +39,13 @@ import { isInteractiveSession } from "../core/platform.ts";
 import { runningInCI } from "../core/ci-info.ts";
 import { sleep } from "../core/async.ts";
 import { JupyterNotebook } from "../core/jupyter/types.ts";
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
 import { encodeBase64 } from "encoding/base64";
 import {
   executeResultEngineDependencies,
   executeResultIncludes,
 } from "./jupyter/jupyter.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
   julia_cmd: string;
@@ -277,9 +278,7 @@ async function startOrReuseJuliaServer(
         ],
         env: {
           // ignore the main env
-          "JULIA_LOAD_PATH": Deno.build.os === "windows"
-            ? "@;@stdlib"
-            : "@:@stdlib",
+          "JULIA_LOAD_PATH": isWindows ? "@;@stdlib" : "@:@stdlib",
         },
       });
       const qnrTestProc = qnrTestCommand.spawn();
@@ -302,7 +301,7 @@ async function startOrReuseJuliaServer(
     // tests on windows hang forever if we use the same launching mechanism as for Unix systems.
     // So we utilize powershell instead which can start completely detached processes with
     // the Start-Process commandlet.
-    if (Deno.build.os === "windows") {
+    if (isWindows) {
       const command = new Deno.Command(
         "PowerShell",
         {
@@ -468,7 +467,7 @@ async function getJuliaServerConnection(
         options,
         "Connecting to server failed, a transport file was reused so it might be stale. Delete transport file and retry.",
       );
-      Deno.removeSync(juliaTransportFile());
+      safeRemoveSync(juliaTransportFile());
       return await getJuliaServerConnection(options);
     } else {
       error(

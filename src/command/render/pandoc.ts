@@ -201,12 +201,13 @@ import {
   MarkdownPipelineHandler,
 } from "../../core/markdown-pipeline.ts";
 import { getEnv } from "../../../package/src/util/utils.ts";
-import { canonicalizeTitlePostprocessor } from "../../format/html/format-html-title.ts";
 import {
   BrandFontBunny,
   BrandFontFile,
   BrandFontGoogle,
 } from "../../resources/types/schema-types.ts";
+import { kFieldCategories } from "../../project/types/website/listing/website-listing-shared.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -436,11 +437,6 @@ export async function runPandoc(
 
     // record postprocessors
     postprocessors.push(...(extras.postprocessors || []));
-
-    // Fix H1 title inconsistency
-    if (isHtmlFileOutput(options.format.pandoc)) {
-      htmlPostprocessors.push(canonicalizeTitlePostprocessor);
-    }
 
     // add a keep-source post processor if we need one
     if (
@@ -854,7 +850,7 @@ export async function runPandoc(
   // Attempt to cache the code page, if this windows.
   // We cache the code page to prevent looking it up
   // in the registry repeatedly (which triggers MS Defender)
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     await cacheCodePage();
   }
 
@@ -1018,6 +1014,10 @@ export async function runPandoc(
       // don't process some format specific metadata that may have been processed already
       // - theme is handled specifically already for revealjs with a metadata override and should not be overridden by user input
       if (key === kTheme && isRevealjsOutput(options.format.pandoc)) {
+        continue;
+      }
+      // - categories are handled specifically already for website projects with a metadata override and should not be overridden by user input
+      if (key === kFieldCategories && projectIsWebsite(options.project)) {
         continue;
       }
       // perform the override
@@ -1266,7 +1266,7 @@ export async function runPandoc(
     // Since this render wasn't successful, clear the code page cache
     // (since the code page could've changed and we could be caching the
     // wrong value)
-    if (Deno.build.os === "windows") {
+    if (isWindows) {
       clearCodePageCache();
     }
 

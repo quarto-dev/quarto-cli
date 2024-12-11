@@ -10,6 +10,7 @@ import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
 import { kMetadataFormat, kOutputExt } from "../src/config/constants.ts";
 import { pathWithForwardSlashes, safeExistsSync } from "../src/core/path.ts";
 import { readYaml } from "../src/core/yaml.ts";
+import { isWindows } from "../src/deno_ral/platform.ts";
 
 // caller is responsible for cleanup!
 export function inTempDirectory(fn: (dir: string) => unknown): unknown {
@@ -188,6 +189,6 @@ export function fileLoader(...path: string[]) {
 
 // On Windows, `quarto.cmd` needs to be explicit in `execProcess()`
 export function quartoDevCmd(): string {
-  return Deno.build.os === "windows" ? "quarto.cmd" : "quarto";
+  return isWindows ? "quarto.cmd" : "quarto";
 }
 

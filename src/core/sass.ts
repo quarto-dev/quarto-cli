@@ -19,8 +19,8 @@ import { sassCache } from "./sass/cache.ts";
 import { cssVarsBlock } from "./sass/add-css-vars.ts";
 import { md5HashBytes } from "./hash.ts";
 import { kSourceMappingRegexes } from "../config/constants.ts";
-import { writeTextFileSyncPreserveMode } from "./write.ts";
 import { quartoConfig } from "../core/quarto.ts";
+import { safeModeFromFile } from "../deno_ral/fs.ts";
 
 export interface SassVariable {
   name: string;
@@ -81,15 +81,18 @@ export async function compileSass(
   );
   const quartoDefaults = bundles.map((bundle) => bundle.quarto?.defaults || "");
   const quartoRules = bundles.map((bundle) => bundle.quarto?.rules || "");
-
   const quartoMixins = bundles.map((bundle) => bundle.quarto?.mixins || "");
 
+  const userLayers = mergeLayers(
+    ...bundles.map((bundle) => bundle.user || []).flat(),
+  );
+
   // Gather sasslayer for the user
-  const userUses = bundles.map((bundle) => bundle.user?.uses || "");
-  const userFunctions = bundles.map((bundle) => bundle.user?.functions || "");
-  const userDefaults = bundles.map((bundle) => bundle.user?.defaults || "");
-  const userRules = bundles.map((bundle) => bundle.user?.rules || "");
-  const userMixins = bundles.map((bundle) => bundle.user?.mixins || "");
+  const userUses = userLayers.uses; //bundles.map((bundle) => bundle.user?.uses || "");
+  const userFunctions = userLayers.functions; // bundles.map((bundle) => bundle.user?.functions || "");
+  const userDefaults = userLayers.defaults; // bundles.map((bundle) => bundle.user?.defaults || "");
+  const userRules = userLayers.rules; // bundles.map((bundle) => bundle.user?.rules || "");
+  const userMixins = userLayers.mixins; // bundles.map((bundle) => bundle.user?.mixins || "");
 
   // Set any load paths used to resolve imports
   const loadPaths: string[] = [];
@@ -114,15 +117,15 @@ export async function compileSass(
     '// quarto-scss-analysis-annotation { "origin": "\'use\' section from Quarto" }',
     ...quartoUses,
     '// quarto-scss-analysis-annotation { "origin": "\'use\' section from user-defined SCSS" }',
-    ...userUses,
+    userUses,
     '// quarto-scss-analysis-annotation { "origin": "\'functions\' section from format" }',
     ...frameworkFunctions,
     '// quarto-scss-analysis-annotation { "origin": "\'functions\' section from Quarto" }',
     ...quartoFunctions,
     '// quarto-scss-analysis-annotation { "origin": "\'functions\' section from user-defined SCSS" }',
-    ...userFunctions,
+    userFunctions,
     '// quarto-scss-analysis-annotation { "origin": "Defaults from user-defined SCSS" }',
-    ...userDefaults.reverse(),
+    userDefaults,
     '// quarto-scss-analysis-annotation { "origin": "Defaults from Quarto\'s SCSS" }',
     ...quartoDefaults.reverse(),
     '// quarto-scss-analysis-annotation { "origin": "Defaults from the format SCSS" }',
@@ -132,15 +135,25 @@ export async function compileSass(
     '// quarto-scss-analysis-annotation { "origin": "\'mixins\' section from Quarto" }',
     ...quartoMixins,
     '// quarto-scss-analysis-annotation { "origin": "\'mixins\' section from user-defined SCSS" }',
-    ...userMixins,
+    userMixins,
     '// quarto-scss-analysis-annotation { "origin": "\'rules\' section from format" }',
     ...frameworkRules,
     '// quarto-scss-analysis-annotation { "origin": "\'rules\' section from Quarto" }',
     ...quartoRules,
     '// quarto-scss-analysis-annotation { "origin": "\'rules\' section from user-defined SCSS" }',
-    ...userRules,
+    userRules,
     '// quarto-scss-analysis-annotation { "origin": null }',
   ].join("\n\n");
+
+  const saveScssPrefix = Deno.env.get("QUARTO_SAVE_SCSS");
+  if (saveScssPrefix) {
+    // Save the SCSS before compilation
+    const counterValue = counter++;
+    Deno.writeTextFileSync(
+      `${saveScssPrefix}-${counterValue}.scss`,
+      scssInput,
+    );
+  }
 
   // Compile the scss
   const result = await compileWithCache(
@@ -154,29 +167,27 @@ export async function compileSass(
     },
   );
 
-  if (!Deno.env.get("QUARTO_SAVE_SCSS")) {
-    return result;
+  if (saveScssPrefix) {
+    // The compilation succeeded, we can update the file with additional info
+    const partialOutput = Deno.readTextFileSync(result);
+    // now we attempt to find the SCSS variables in the output
+    // and inject them back in the SCSS file so that our debug tooling can use them.
+    const scssToWrite = [scssInput];
+    const internalVars = Array.from(
+      partialOutput.matchAll(/(--quarto-scss-export-[^;}]+;?)/g),
+    ).map((m) => m[0]);
+    const annotation = {
+      "css-vars": internalVars,
+    };
+    scssToWrite.push(
+      `// quarto-scss-analysis-annotation ${JSON.stringify(annotation)}`,
+    );
+    scssInput = scssToWrite.join("\n");
+    Deno.writeTextFileSync(
+      `${saveScssPrefix}-${counter}.scss`,
+      scssInput,
+    );
   }
-  const partialOutput = Deno.readTextFileSync(result);
-  // now we attempt to find the SCSS variables in the output
-  // and inject them back in the SCSS file so that our debug tooling can use them.
-  const scssToWrite = [scssInput];
-  const internalVars = Array.from(
-    partialOutput.matchAll(/(--quarto-scss-export-[^;}]+;?)/g),
-  ).map((m) => m[0]);
-  const annotation = {
-    "css-vars": internalVars,
-  };
-  scssToWrite.push(
-    `// quarto-scss-analysis-annotation ${JSON.stringify(annotation)}`,
-  );
-  scssInput = scssToWrite.join("\n");
-  const prefix = Deno.env.get("QUARTO_SAVE_SCSS");
-  const counterValue = counter++;
-  Deno.writeTextFileSync(
-    `${prefix}-${counterValue}.scss`,
-    scssInput,
-  );
 
   return result;
 }
@@ -191,7 +202,7 @@ const layoutBoundary =
 const kLayerBoundaryLine = RegExp(layoutBoundary);
 const kLayerBoundaryTest = RegExp(layoutBoundary, "m");
 
-export function mergeLayers(...layers: SassLayer[]) {
+export function mergeLayers(...layers: SassLayer[]): SassLayer {
   const themeUses: string[] = [];
   const themeDefaults: string[] = [];
   const themeRules: string[] = [];
@@ -202,10 +213,7 @@ export function mergeLayers(...layers: SassLayer[]) {
       themeUses.push(theme.uses);
     }
     if (theme.defaults) {
-      // We need to reverse the order of defaults
-      // since defaults override one another by being
-      // set first
-      themeDefaults.unshift(theme.defaults);
+      themeDefaults.push(theme.defaults);
     }
 
     if (theme.rules) {
@@ -223,7 +231,10 @@ export function mergeLayers(...layers: SassLayer[]) {
 
   return {
     uses: themeUses.join("\n"),
-    defaults: themeDefaults.join("\n"),
+    // We need to reverse the order of defaults
+    // since defaults override one another by being
+    // set first
+    defaults: themeDefaults.reverse().join("\n"),
     functions: themeFunctions.join("\n"),
     mixins: themeMixins.join("\n"),
     rules: themeRules.join("\n"),
@@ -419,5 +430,7 @@ export function cleanSourceMappingUrl(cssPath: string): void {
     kSourceMappingRegexes[1],
     "",
   );
-  writeTextFileSyncPreserveMode(cssPath, cleaned);
+  Deno.writeTextFileSync(cssPath, cleaned.trim(), {
+    mode: safeModeFromFile(cssPath),
+  });
 }

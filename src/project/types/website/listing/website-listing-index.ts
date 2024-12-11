@@ -5,7 +5,7 @@
  */
 
 import { join, relative } from "../../../../deno_ral/path.ts";
-import { existsSync } from "../../../../deno_ral/fs.ts";
+import { existsSync, safeRemoveSync } from "../../../../deno_ral/fs.ts";
 
 import { ProjectContext } from "../../../types.ts";
 import { ListingDescriptor, ListingItem } from "./website-listing-shared.ts";
@@ -124,7 +124,7 @@ export function updateGlobalListingIndex(
             listingPaths.push(indexJson);
           }
 
-          Deno.removeSync(indexPath);
+          safeRemoveSync(indexPath);
         }
       }
     }

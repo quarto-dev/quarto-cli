@@ -15,6 +15,13 @@ import {
 
 import { basename, dirname, join } from "../../deno_ral/path.ts";
 import { existsSync } from "../../deno_ral/fs.ts";
+import { isMac, isWindows } from "../../deno_ral/platform.ts";
+import {
+  enforcer,
+  makeStringEnumTypeFunctions,
+  objectPredicate,
+  stringTypePredicate,
+} from "../../typing/dynamic.ts";
 
 export interface Editor {
   // A short, command line friendly id
@@ -76,11 +83,14 @@ interface EditorInfo {
   open: (path: string, createResult: CreateResult) => () => Promise<void>;
 }
 
-interface ScanAction {
-  action: "path" | "which" | "env";
+const scanActionActions = ["path", "which", "env"] as const;
+type ScanActionAction = typeof scanActionActions[number];
+
+type ScanAction = {
+  action: ScanActionAction;
   arg: string;
   filter?: (path: string) => string;
-}
+};
 
 function vscodeEditorInfo(): EditorInfo {
   const editorInfo: EditorInfo = {
@@ -104,34 +114,31 @@ function vscodeEditorInfo(): EditorInfo {
     actions: [],
   };
 
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     editorInfo.actions.push({
       action: "which",
       arg: "code.exe",
     });
-    const pathActions = windowsAppPaths("Microsoft VS Code", "code.exe").map(
-      (path) => {
-        return {
-          action: "path",
-          arg: path,
-        } as ScanAction;
-      },
-    );
+    const pathActions: ScanAction[] = windowsAppPaths(
+      "Microsoft VS Code",
+      "code.exe",
+    ).map((path) => ({
+      action: "path",
+      arg: path,
+    }));
     editorInfo.actions.push(...pathActions);
-  } else if (Deno.build.os === "darwin") {
+  } else if (isMac) {
     editorInfo.actions.push({
       action: "which",
       arg: "code",
     });
 
-    const pathActions = macosAppPaths(
+    const pathActions: ScanAction[] = macosAppPaths(
       "Visual Studio Code.app/Contents/Resources/app/bin/code",
-    ).map((path) => {
-      return {
-        action: "path",
-        arg: path,
-      } as ScanAction;
-    });
+    ).map((path) => ({
+      action: "path",
+      arg: path,
+    }));
     editorInfo.actions.push(...pathActions);
   } else {
     editorInfo.actions.push({
@@ -168,33 +175,34 @@ function positronEditorInfo(): EditorInfo {
     actions: [],
   };
 
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     editorInfo.actions.push({
       action: "which",
       arg: "Positron.exe",
     });
-    const pathActions = windowsAppPaths("Positron", "Positron.exe").map(
-      (path) => {
-        return {
-          action: "path",
-          arg: path,
-        } as ScanAction;
-      },
+    const pathActions: ScanAction[] = windowsAppPaths(
+      "Positron",
+      "Positron.exe",
+    ).map(
+      (path) => ({
+        action: "path",
+        arg: path,
+      }),
     );
     editorInfo.actions.push(...pathActions);
-  } else if (Deno.build.os === "darwin") {
+  } else if (isMac) {
     editorInfo.actions.push({
       action: "which",
       arg: "positron",
     });
 
-    const pathActions = macosAppPaths(
+    const pathActions: ScanAction[] = macosAppPaths(
       "Positron.app/Contents/Resources/app/bin/code",
     ).map((path) => {
       return {
         action: "path",
         arg: path,
-      } as ScanAction;
+      };
     });
     editorInfo.actions.push(...pathActions);
   } else {
@@ -223,7 +231,7 @@ function rstudioEditorInfo(): EditorInfo {
         const rProjPath = join(cwd, `${artifactName}.Rproj`);
         Deno.writeTextFileSync(rProjPath, kRProjContents);
 
-        const cmd = path.endsWith(".app") && Deno.build.os === "darwin"
+        const cmd = path.endsWith(".app") && isMac
           ? ["open", "-na", path, "--args", rProjPath]
           : [path, rProjPath];
 
@@ -239,7 +247,7 @@ function rstudioEditorInfo(): EditorInfo {
   };
 
   const rstudioExe = "rstudio.exe";
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     editorInfo.actions.push({
       action: "env",
       arg: "RS_RPOSTBACK_PATH",
@@ -248,22 +256,19 @@ function rstudioEditorInfo(): EditorInfo {
       },
     });
 
-    const paths = windowsAppPaths(join("RStudio", "bin"), rstudioExe).map(
-      (path) => {
-        return {
-          action: "path",
-          arg: path,
-        } as ScanAction;
-      },
-    );
+    const paths: ScanAction[] = windowsAppPaths(
+      join("RStudio", "bin"),
+      rstudioExe,
+    ).map((path) => ({
+      action: "path",
+      arg: path,
+    }));
     editorInfo.actions.push(...paths);
-  } else if (Deno.build.os === "darwin") {
-    const paths = macosAppPaths("RStudio.app").map((path) => {
-      return {
-        action: "path",
-        arg: path,
-      } as ScanAction;
-    });
+  } else if (isMac) {
+    const paths: ScanAction[] = macosAppPaths("RStudio.app").map((path) => ({
+      action: "path",
+      arg: path,
+    }));
     editorInfo.actions.push(...paths);
   } else {
     editorInfo.actions.push({

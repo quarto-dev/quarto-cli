@@ -4,20 +4,14 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-export function isMingw() {
-  return isWindows() && !!Deno.env.get("MSYSTEM");
-}
+import { isWindows } from "../deno_ral/platform.ts";
 
-export function isWindows() {
-  return Deno.build.os === "windows";
+export function isMingw() {
+  return isWindows && !!Deno.env.get("MSYSTEM");
 }
 
 export function isWSL() {
   return !!Deno.env.get("WSL_DISTRO_NAME");
-}
-
-export function isMac() {
-  return Deno.build.os === "darwin";
 }
 
 export function isRStudio() {
@@ -93,7 +87,7 @@ export function jupyterHubServicePrefix() {
 }
 
 export function isInteractiveTerminal() {
-  return Deno.isatty(Deno.stderr.rid);
+  return Deno.stderr.isTerminal();
 }
 
 export function isInteractiveSession() {

@@ -5,7 +5,7 @@
  */
 
 import { dirname, join, normalize, relative } from "../../deno_ral/path.ts";
-import { ensureDirSync } from "../../deno_ral/fs.ts";
+import { ensureDirSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
@@ -78,14 +78,14 @@ export function texToPdfOutputRecipe(
     // keep tex if requested
     const compileTex = join(inputDir, output);
     if (!format.render[kKeepTex]) {
-      Deno.removeSync(compileTex);
+      safeRemoveSync(compileTex);
     }
 
     // copy (or write for stdout) compiled pdf to final output location
     if (finalOutput) {
       if (finalOutput === kStdOut) {
         writeFileToStdout(pdfOutput);
-        Deno.removeSync(pdfOutput);
+        safeRemoveSync(pdfOutput);
       } else {
         const outputPdf = expandPath(finalOutput);
 
@@ -99,9 +99,10 @@ export function texToPdfOutputRecipe(
 
       // Clean the output directory if it is empty
       if (pdfOutputDir) {
+        console.log({ pdfOutputDir });
         try {
           // Remove the outputDir if it is empty
-          Deno.removeSync(pdfOutputDir, { recursive: false });
+          safeRemoveSync(pdfOutputDir, { recursive: false });
         } catch {
           // This is ok, just means the directory wasn't empty
         }

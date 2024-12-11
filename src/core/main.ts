@@ -14,6 +14,7 @@ import {
   captureFileReads,
   reportPeformanceMetrics,
 } from "./performance/metrics.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 type Runner = (args: Args) => Promise<unknown>;
 export async function mainRunner(runner: Runner) {
@@ -23,7 +24,7 @@ export async function mainRunner(runner: Runner) {
     await initializeLogger(logOptions(args));
 
     // install termination signal handlers
-    if (Deno.build.os !== "windows") {
+    if (!isWindows) {
       Deno.addSignalListener("SIGINT", abend);
       Deno.addSignalListener("SIGTERM", abend);
     }

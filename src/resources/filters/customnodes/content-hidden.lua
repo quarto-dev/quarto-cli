@@ -105,7 +105,8 @@ local _content_hidden_meta = nil
 function content_hidden_meta(meta)
   -- return {
   --   Meta = function(meta)
-  _content_hidden_meta = meta
+  -- The call to `pandoc.Meta` ensures that we hold a copy.
+  _content_hidden_meta = pandoc.Meta(meta)
   --   end
   -- }
 end

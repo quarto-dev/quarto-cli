@@ -377,6 +377,7 @@ export async function renderPandoc(
             context.target.input,
             finalOutput!,
             format,
+            file.context.project,
             cleanupSelfContained,
             executionEngineKeepMd(context),
           ));

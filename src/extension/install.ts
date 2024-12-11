@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureDirSync, existsSync } from "../deno_ral/fs.ts";
+import { ensureDirSync, existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
 import { basename, dirname, join, relative } from "../deno_ral/path.ts";
@@ -587,7 +587,7 @@ export async function completeInstallation(
         // Move from the staging path to the install dir
         const installPath = join(installExtDir, extensionRelativeDir);
         if (existsSync(installPath)) {
-          Deno.removeSync(installPath, { recursive: true });
+          safeRemoveSync(installPath, { recursive: true });
         }
 
         // Ensure the parent directory exists
@@ -596,7 +596,7 @@ export async function completeInstallation(
       });
     } finally {
       // Clean up the staging directory
-      Deno.removeSync(stagingDir, { recursive: true });
+      safeRemoveSync(stagingDir, { recursive: true });
     }
     return Promise.resolve();
   });

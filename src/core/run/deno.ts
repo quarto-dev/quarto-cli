@@ -36,6 +36,11 @@ export const denoRunHandler: RunHandler = {
 
     const importMap = normalize(join(denoDir, "../run_import_map.json"));
 
+    const noNet = Deno.env.get("QUARTO_RUN_NO_NETWORK") === "true";
+
+    // --cached-only can only be used in bundles as vendoring is not done anymore in dev mode
+    const cachedOnly = noNet;
+
     return await execProcess(
       {
         cmd: [
@@ -43,8 +48,7 @@ export const denoRunHandler: RunHandler = {
           "run",
           "--import-map",
           importMap,
-          // --cached-only can only be used in bundles as vendoring is not done anymore in dev mode
-          ...(quartoConfig.isDebug() ? [] : ["--cached-only"]),
+          ...(cachedOnly ? ["--cached-only"] : []),
           "--allow-all",
           "--unstable-kv",
           "--unstable-ffi",

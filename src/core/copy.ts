@@ -18,10 +18,11 @@ import {
   existsSync,
   getFileInfoType,
   isSubdir,
+  safeRemoveSync,
   walkSync,
 } from "../deno_ral/fs.ts";
 
-import { isWindows } from "./platform.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 // emulate the Deno copySync function but read and write files manually
 // rather than calling Deno.copyFileSync (to avoid deno's attempt to
@@ -146,7 +147,7 @@ function copyFileSync(
   // multiple users/owners in play). see this code for where this occurs:
   // https://github.com/denoland/deno/blob/1c05e41f37da022971f0090b2a92e6340d230055/runtime/ops/fs.rs#L914-L916
   if (existsSync(dest)) {
-    Deno.removeSync(dest);
+    safeRemoveSync(dest);
   }
   Deno.copyFileSync(src, dest);
 
@@ -196,11 +197,11 @@ function copySymlinkSync(
   ensureValidCopySync(src, dest, options);
   // remove dest if it exists
   if (existsSync(dest)) {
-    Deno.removeSync(dest);
+    safeRemoveSync(dest);
   }
   const originSrcFilePath = Deno.readLinkSync(src);
   const type = getFileInfoType(Deno.lstatSync(src));
-  if (isWindows()) {
+  if (isWindows) {
     Deno.symlinkSync(originSrcFilePath, dest, {
       type: type === "dir" ? "dir" : "file",
     });

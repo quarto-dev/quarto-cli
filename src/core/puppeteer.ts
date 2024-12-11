@@ -10,6 +10,7 @@ import { debug, error, info } from "../deno_ral/log.ts";
 import { existsSync } from "../deno_ral/fs.ts";
 import { UnreachableError } from "./lib/error.ts";
 import { quartoDataDir } from "./appdirs.ts";
+import { isMac, isWindows } from "../deno_ral/platform.ts";
 
 // deno-lint-ignore no-explicit-any
 let puppeteerImport: any = undefined;
@@ -215,13 +216,13 @@ async function findChrome(): Promise<string | undefined> {
     }
   }
   // Otherwise, try to find the path based on OS.
-  if (Deno.build.os === "darwin") {
+  if (isMac) {
     const programs = [
       "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
       "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
     ];
     path = programs.find(safeExistsSync);
-  } else if (Deno.build.os === "windows") {
+  } else if (isWindows) {
     // Try the HKLM key
     const programs = ["chrome.exe", "msedge.exe"];
     for (let i = 0; i < programs.length; i++) {
@@ -247,7 +248,7 @@ async function findChrome(): Promise<string | undefined> {
       }
     }
   } else {
-    // in 1.28.2, this is (Deno.build.os === "linux")
+    // in 1.28.2, this is (isLinux)
     // in 1.32, there's other non-linux unixes
     path = await which("google-chrome");
     if (!path) {
