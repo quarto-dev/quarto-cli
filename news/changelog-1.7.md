@@ -14,9 +14,9 @@ All changes included in 1.7:
 
 - ([#11608](https://github.com/quarto-dev/quarto-cli/pull/11608)): Do not issue error message when calling `quarto check info`.
 
-## Typst
+## `typst` Format
 
-- ([#11578](https://github.com/quarto-dev/quarto-cli/issues/11578)): Typst column layout widths use fractional units instead of percent units in order to fill the enclosing block and not spill outside it.
+- ([#11578](https://github.com/quarto-dev/quarto-cli/issues/11578)): Typst column layout widths use fractional `fr` units instead of percent `%` units for unitless and default widths in order to fill the enclosing block and not spill outside it.
 
 ## Lua Filters and extensions
 
