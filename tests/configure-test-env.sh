@@ -21,12 +21,12 @@ echo ">>>> Configuring Python environment"
 uv_exist=$(command -v uv)
 if [ -z $uv_exist ]
 then
+  echo "No uv found - Install uv please: https://docs.astral.sh/uv/getting-started/installation/."
+  echo "Using 'uv' is the prefered way. You can still use python and create a .venv in the project."
+else
   echo "Setting up python environnement with uv"
   # create or sync the virtual env in the project
   uv sync --frozen
-else
-  echo "No uv found - Install uv please: https://docs.astral.sh/uv/getting-started/installation/."
-  echo "Using 'uv' is the prefered way. You can still use python and create a .venv in the project."
 fi
 
 # Check Julia environment ---
