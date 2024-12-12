@@ -420,7 +420,20 @@ async function pollTransportFile(
 }
 
 function readTransportFile(transportFile: string): JuliaTransportFile {
-  const content = Deno.readTextFileSync(transportFile);
+  // As we know the json file ends with \n but we might accidentally read
+  // it too quickly once it exists, for example when not the whole string
+  // has been written to it, yet, we just repeat reading until the string
+  // ends in a newline. The overhead doesn't matter as the file is so small.
+  let content = Deno.readTextFileSync(transportFile);
+  let i = 0;
+  while (i < 20 && !content.endsWith("\n")) {
+    sleep(100);
+    content = Deno.readTextFileSync(transportFile);
+    i += 1;
+  }
+  if (!content.endsWith("\n")) {
+    throw ("Read invalid transport file that did not end with a newline");
+  }
   return JSON.parse(content) as JuliaTransportFile;
 }
 
@@ -756,6 +769,9 @@ function logStatus() {
     return;
   }
   const transportOptions = readTransportFile(transportFile);
+  console.log(
+    `Julia server running at port ${transportOptions.port} pid ${transportOptions.pid}`,
+  );
 }
 
 function startJuliaServer() {
