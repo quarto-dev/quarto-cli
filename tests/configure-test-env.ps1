@@ -8,8 +8,8 @@ If ($r) {
   Write-Host -ForegroundColor green "   > Restoring renv project"
   Rscript -e 'renv::restore()'
   Write-Host -ForegroundColor green "   > Installing dev knitr and rmarkdown"
-  Rscript -e "install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev'))"
-  Rscript -e "install.packages('knitr', repos = c('https://yihui.r-universe.dev'))"
+  Rscript -e "install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev', getOption('repos')))"
+  Rscript -e "install.packages('knitr', repos = c('https://yihui.r-universe.dev', getOption('repos')))"
 }
 
 # Check python test environment ---
