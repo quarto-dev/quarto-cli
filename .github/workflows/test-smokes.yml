@@ -183,7 +183,7 @@ jobs:
           export JUPYTER=$(find $(dirname $(uv run --frozen which jupyter))/ -type f -name "jupyter.exe" -o -name "jupyter")
           uv run --frozen julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
           echo "Julia Jupyter:"
-          julia --project=. -e "import IJulia;println(IJulia.JUPYTER);println(IJulia.find_jupyter_subcommand(\"notebook\"))"
+          uv run julia --project=. -e "import IJulia;println(IJulia.JUPYTER);println(IJulia.find_jupyter_subcommand(\"notebook\"))"
 
       - name: Setup timing file for timed test
         if: ${{ matrix.time-test == true }}

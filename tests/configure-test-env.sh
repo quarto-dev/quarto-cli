@@ -37,7 +37,12 @@ then
   echo "No julia found in PATH - Check your PATH or install julia and add to PATH."
 else
   echo "Setting up Julia environment"
-  julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
+  if [ -z $uv_exist ]
+  then
+    uv run --frozen julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
+  else
+    julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
+  fi
 fi
 
 # Update tinytex
