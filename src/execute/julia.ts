@@ -50,7 +50,6 @@ import { Command } from "cliffy/command/mod.ts";
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
   oneShot: boolean; // if true, the file's worker process is closed before and after running
-  supervisor_pid?: number;
 }
 
 export const juliaEngine: ExecutionEngine = {
@@ -132,7 +131,6 @@ export const juliaEngine: ExecutionEngine = {
 
     const juliaExecOptions: JuliaExecuteOptions = {
       oneShot: !executeDaemon,
-      supervisor_pid: options.previewServer ? Deno.pid : undefined,
       ...execOptions,
     };
 
@@ -758,4 +756,7 @@ function logStatus() {
     return;
   }
   const transportOptions = readTransportFile(transportFile);
+}
+
+function startJuliaServer() {
 }
