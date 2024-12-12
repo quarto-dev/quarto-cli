@@ -400,6 +400,7 @@ interface JuliaTransportFile {
   port: number;
   pid: number;
   key: string;
+  juliaVersion: string;
 }
 
 async function pollTransportFile(
@@ -758,7 +759,10 @@ function populateJuliaEngineCommand(command: Command) {
     .command("status", "Status")
     .description(
       "Get status information on the currently running Julia server process",
-    ).action(logStatus);
+    ).action(logStatus)
+    .command("kill", "Kill server")
+    .description("Kills the control server if it is currently running.")
+    .action(killJuliaServer);
   return;
 }
 
@@ -770,9 +774,21 @@ function logStatus() {
   }
   const transportOptions = readTransportFile(transportFile);
   console.log(
-    `Julia server running at port ${transportOptions.port} pid ${transportOptions.pid}`,
+    `Julia server is running
+  port: ${transportOptions.port}
+  pid: ${transportOptions.pid}
+  julia version: ${transportOptions.juliaVersion}`,
   );
 }
 
-function startJuliaServer() {
+function killJuliaServer() {
+  const transportFile = juliaTransportFile();
+  if (!existsSync(transportFile)) {
+    console.log("Julia control server is not running.");
+    return;
+  }
+  const transportOptions = readTransportFile(transportFile);
+  console.log(transportOptions);
+  console.log("Sending SIGTERM to server process");
+  Deno.kill(transportOptions.pid, "SIGTERM");
 }

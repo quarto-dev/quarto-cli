@@ -30,7 +30,8 @@ end
 json = json_string(JSONDict([
   "port" => Int64(port),
   "pid" => Int64(Base.Libc.getpid()),
-  "key" => string(server.key)
+  "key" => string(server.key),
+  "juliaVersion" => string(VERSION),
 ]))
 
 open(transport_file, "w") do io
