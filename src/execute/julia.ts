@@ -781,7 +781,7 @@ function populateJuliaEngineCommand(command: Command) {
 async function logStatus() {
   const transportFile = juliaTransportFile();
   if (!existsSync(transportFile)) {
-    console.log("Julia control server is not running.");
+    info("Julia control server is not running.");
     return;
   }
   const transportOptions = readTransportFile(transportFile);
@@ -798,7 +798,7 @@ async function logStatus() {
     conn.close();
   }
 
-  console.log(
+  info(
     `Julia server is${successfullyConnected ? "" : " not"} responding.
   port: ${transportOptions.port}
   pid: ${transportOptions.pid}
@@ -811,11 +811,11 @@ async function logStatus() {
 function killJuliaServer() {
   const transportFile = juliaTransportFile();
   if (!existsSync(transportFile)) {
-    console.log("Julia control server is not running.");
+    info("Julia control server is not running.");
     return;
   }
   const transportOptions = readTransportFile(transportFile);
-  console.log(transportOptions);
-  console.log("Sending SIGTERM to server process");
+  info(transportOptions);
+  info("Sending SIGTERM to server process");
   Deno.kill(transportOptions.pid, "SIGTERM");
 }
