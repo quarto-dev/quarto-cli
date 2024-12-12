@@ -11,7 +11,7 @@ _quarto.ast.add_handler({
   kind = "Inline",
 
   parse = function(span)
-    local inner_content = pandoc.List({})
+    local inner_content = pandoc.Inlines({})
 
     span.content = span.content:filter(function(el)
       return el.t == "Span"
@@ -78,9 +78,9 @@ _quarto.ast.add_handler({
     end
 
     local node = _quarto.ast.create_custom_node_scaffold("Shortcode", "Inline")
-    node.content = inner_content:map(function(el) 
-      return pandoc.Span({el}) 
-    end)
+    node.content = pandoc.Inlines(inner_content:map(function(el)
+      return pandoc.Span({el})
+    end))
     local tbl = {
       __quarto_custom_node = node,
       name = name,
@@ -226,7 +226,23 @@ function shortcodes_filter()
       }
       local handler = handlerForShortcode(shortcode_struct)
       if handler == nil then
-        return open .. space .. name .. " " .. table.concat(raw_args, " ") .. " " .. close
+        local strs = {}
+        table.insert(strs, open)
+        table.insert(strs, space)
+        table.insert(strs, name)
+        for _, v in ipairs(lst) do
+          if type(v) == "string" then
+            table.insert(strs, v)
+          else
+            if v.name then
+              table.insert(strs, v.name .. "=" .. v.value)
+            else
+              table.insert(strs, v.value)
+            end
+          end
+        end
+        table.insert(strs, close)
+        return table.concat(strs, "")
       end
       local result = callShortcodeHandler(handler, shortcode_struct, "text")
       return pandoc.utils.stringify(result) 

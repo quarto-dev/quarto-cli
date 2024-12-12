@@ -11,7 +11,7 @@ function make_typst_figure(tbl)
   local identifier = tbl.identifier
   local separator = tbl.separator
 
-  if (not caption or #caption.content == 0) and tbl.separator == nil then
+  if quarto.utils.is_empty_node(caption) and tbl.separator == nil then
     separator = ""
   end
 

@@ -1,5 +1,5 @@
 import { DenoInfoDependency, Edge, getDenoInfo } from "./deno-info.ts";
-import { brightBlue } from "https://deno.land/std/fmt/colors.ts";
+import { brightBlue } from "jsr:/@std/fmt@^0.224.0/colors";
 import { longestCommonDirPrefix } from "./utils.ts";
 
 function isBadImportTypes(source: string, dep: DenoInfoDependency) {

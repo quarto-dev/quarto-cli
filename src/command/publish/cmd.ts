@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { Select } from "cliffy/prompt/select.ts";

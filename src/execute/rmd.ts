@@ -5,10 +5,10 @@
  */
 
 import { error, info, warning } from "../deno_ral/log.ts";
-import { existsSync } from "fs/exists.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { basename, extname } from "../deno_ral/path.ts";
 
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 
 import { execProcess } from "../core/process.ts";
 import { rBinaryPath, resourcePath } from "../core/resources.ts";
@@ -272,11 +272,19 @@ async function callR<T>(
     wd: cwd,
   });
 
+  // QUARTO_KNITR_RSCRIPT_ARGS allows to pass additional arguments to Rscript as comma separated values
+  // e.g. QUARTO_KNITR_RSCRIPT_ARGS="--vanilla,--no-init-file,--max-connections=258"
+  const rscriptArgs = Deno.env.get("QUARTO_KNITR_RSCRIPT_ARGS") || "";
+  const rscriptArgsArray = rscriptArgs.split(",").filter((a) =>
+    a.trim() !== ""
+  );
+
   try {
     const result = await execProcess(
       {
         cmd: [
           await rBinaryPath("Rscript"),
+          ...rscriptArgsArray,
           resourcePath("rmd/rmd.R"),
         ],
         cwd,

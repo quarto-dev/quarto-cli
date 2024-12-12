@@ -676,6 +676,10 @@ end, function(float)
   local row = pandoc.List()
   local cell = pandoc.Div({})
   cell.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
+  if float.content == nil then
+    warn("FloatRefTarget with no content: " .. float.identifier)
+    return pandoc.Div({})
+  end
   local c = float.content.content or float.content
   if pandoc.utils.type(c) == "Block" then
     cell.content:insert(c)
@@ -763,7 +767,7 @@ function float_reftarget_render_html_figure(float)
   local float_content = pandoc.Div(_quarto.ast.walk(float.content, {
     -- strip image captions
     Image = function(image)
-      image.caption = {}
+      image.caption = pandoc.Inlines{}
       return image
     end
   }) or pandoc.Div({})) -- this should never happen but the lua analyzer doesn't know it
@@ -1045,23 +1049,33 @@ end, function(float)
 
   local open_block = pandoc.RawBlock("markdown", "<div id=\"" .. float.identifier .. "\">\n")
   local close_block = pandoc.RawBlock("markdown", "\n</div>")
+  local result = pandoc.Blocks({open_block})
+  local insert_content = function()
+    if pandoc.utils.type(float.content) == "Block" then
+      result:insert(float.content)
+    else
+      result:extend(quarto.utils.as_blocks(float.content))
+    end
+  end
+  local insert_caption = function()
+    if pandoc.utils.type(float.caption_long) == "Block" then
+      result:insert(float.caption_long)
+    else
+      result:insert(pandoc.Plain(quarto.utils.as_inlines(float.caption_long)))
+    end
+  end
 
   if caption_location == "top" then
-    return pandoc.Blocks({
-      open_block,
-      float.caption_long,
-      float.content,
-      close_block
-    })
+    insert_caption()
+    insert_content()
+    result:insert(close_block)
   else
-    return pandoc.Blocks({
-      open_block,
-      float.content,
-      pandoc.RawBlock("markdown", "\n"),
-      float.caption_long,
-      close_block
-    })
+    insert_content()
+    result:insert(pandoc.RawBlock("markdown", "\n"))
+    insert_caption()
+    result:insert(close_block)
   end
+  return result
 end)
 
 _quarto.ast.add_renderer("FloatRefTarget", function(_)
@@ -1071,11 +1085,14 @@ end, function(float)
     warn("Can't render float without content")
     return pandoc.Null()
   end
-  local im = quarto.utils.match("Plain/[1]/Image")(float.content)
-  if im == nil then
+  local im_plain = quarto.utils.match("Plain/[1]/Image")(float.content)
+  local im_para = quarto.utils.match("Para/[1]/Image")(float.content)
+  if not im_plain and not im_para then
     warn("PowerPoint output for FloatRefTargets require a single image as content")
     return pandoc.Null()
   end
+
+  local im = im_plain or im_para
   decorate_caption_with_crossref(float)
   im.caption = quarto.utils.as_inlines(float.caption_long)
   return pandoc.Para({im})

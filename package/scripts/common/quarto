@@ -49,7 +49,7 @@ if [ -f "$DEV_PATH" ]; then
   fi
 
   # Local import map
-  QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_PATH/dev_import_map.json
+  QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_PATH/import_map.json
 
   # Turn on type checking for dev version
   QUARTO_DENO_OPTIONS=--check
@@ -63,7 +63,7 @@ if [ -f "$DEV_PATH" ]; then
   if [ -z ${QUARTO_DEBUG+x} ]; then
     export QUARTO_DEBUG=true
   fi
-  QUARTO_CACHE_OPTIONS="--cached-only"
+  # QUARTO_CACHE_OPTIONS="--cached-only"
 
   # Check for deno update
   QUARTO_DIST_CONFIG=$QUARTO_BIN_PATH/../config
@@ -169,7 +169,9 @@ fi
 export DENO_TLS_CA_STORE=system,mozilla
 export DENO_NO_UPDATE_CHECK=1
 # Be sure to include any already defined QUARTO_DENO_OPTIONS
-QUARTO_DENO_OPTIONS="--unstable-ffi --unstable-kv --no-config ${QUARTO_CACHE_OPTIONS} --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi ${QUARTO_DENO_OPTIONS}"
+## Using --allow-all as there is otherwise an issue in Deno 1.46.3 with --allow-read and --allow-write with network drives
+## https://github.com/quarto-dev/quarto-cli/issues/11332
+QUARTO_DENO_OPTIONS="--unstable-ffi --unstable-kv --no-config --no-lock ${QUARTO_CACHE_OPTIONS} --allow-all ${QUARTO_DENO_OPTIONS}"
 
 # --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
 if [ "$QUARTO_DENO_V8_OPTIONS" != "" ]; then

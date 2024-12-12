@@ -6,8 +6,9 @@
 
 import { debug } from "../../deno_ral/log.ts";
 import { normalizePath } from "../path.ts";
+import { getStack } from "./debug.ts";
 
-// Window UNC paths can be mishandled by realPathSync
+// Windows UNC paths can be mishandled by realPathSync
 // (see https://github.com/quarto-dev/quarto-vscode/issues/67)
 // so we monkey-patch to implement the absolute path and normalize
 // parts of realPathSync (we aren't interested in the symlink

@@ -69,7 +69,8 @@ import("./quarto-post/gfm.lua")
 import("./quarto-post/ipynb.lua")
 import("./quarto-post/latex.lua")
 import("./quarto-post/typst.lua")
-import("./quarto-post/typst-css-to-props.lua")
+import("./quarto-post/typst-css-property-processing.lua")
+import("./quarto-post/typst-brand-yaml.lua")
 import("./quarto-post/latexdiv.lua")
 import("./quarto-post/meta.lua")
 import("./quarto-post/ojs.lua")
@@ -85,6 +86,7 @@ import("./quarto-post/html.lua")
 import("./quarto-post/dashboard.lua")
 import("./quarto-post/email.lua")
 import("./quarto-post/pptx.lua")
+import("./quarto-post/landscape.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -137,6 +139,7 @@ import("./quarto-pre/book-links.lua")
 import("./quarto-pre/book-numbering.lua")
 import("./quarto-pre/code-annotation.lua")
 import("./quarto-pre/code-filename.lua")
+import("./quarto-pre/contentsshortcode.lua")
 import("./quarto-pre/engine-escape.lua")
 import("./quarto-pre/figures.lua")
 import("./quarto-pre/hidden.lua")
@@ -262,6 +265,10 @@ local quarto_pre_filters = {
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
 
+  { name = "pre-contents-shortcode-filter",
+    filter = contents_shortcode_filter(),
+    flags = { "has_contents_shortcode" } },
+
   { name = "pre-combined-hidden",
     filter = combineFilters({
       hidden(),
@@ -328,6 +335,10 @@ local quarto_post_filters = {
       bibliography()
     })
   },
+  { name = "post-landscape-div", 
+    filter = landscape_div(),
+    flags = { "has_landscape" }
+  },
   { name = "post-ipynb", filters = ipynb()},
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
@@ -376,11 +387,13 @@ local quarto_post_filters = {
   { name = "post-render-html-fixups", filter = render_html_fixups() },
   { name = "post-render-ipynb-fixups", filter = render_ipynb_fixups() },
   { name = "post-render-typst-fixups", filter = render_typst_fixups() },
-  { name = "post-render-typst-css-to-props", filter = render_typst_css_to_props() },
+  { name = "post-render-typst-css-to-props", filter = render_typst_css_property_processing() },
+  { name = "post-render-typst-brand-yaml", filter = render_typst_brand_yaml() },
   { name = "post-render-gfm-fixups", filter = render_gfm_fixups() },
   { name = "post-render-hugo-fixups", filter = render_hugo_fixups() },
   { name = "post-render-email", filters = render_email() },
-  { name = "post-render-pptx-fixups", filter = render_pptx_fixups() }
+  { name = "post-render-pptx-fixups", filter = render_pptx_fixups() },
+  { name = "post-render-revealjs-fixups", filter = render_reveal_fixups() }
 }
 
 local quarto_finalize_filters = {

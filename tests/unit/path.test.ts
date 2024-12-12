@@ -6,7 +6,7 @@
 */
 
 import { unitTest } from "../test.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 import { join } from "../../src/deno_ral/path.ts";
 import {
   dirAndStem,
@@ -14,7 +14,7 @@ import {
   removeIfExists,
   resolvePathGlobs,
 } from "../../src/core/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../src/deno_ral/fs.ts";
 import { docs } from "../utils.ts";
 
 const workingDir = Deno.makeTempDirSync({ prefix: "quarto-test" });

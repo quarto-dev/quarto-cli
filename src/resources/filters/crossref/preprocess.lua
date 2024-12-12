@@ -7,7 +7,7 @@ function crossref_mark_subfloats()
   return {
     traverse = "topdown",
     FloatRefTarget = function(float)
-      float.content = _quarto.ast.walk(float.content, {
+      float.content = _quarto.ast.walk(float.content or pandoc.Blocks{}, {
         FloatRefTarget = function(subfloat)
           float.has_subfloats = true
           crossref.subfloats[subfloat.identifier] = {

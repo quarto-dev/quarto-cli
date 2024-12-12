@@ -5,7 +5,7 @@
 *
 */
 import { dirname, join } from "../../../src/deno_ral/path.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
 import { info } from "../../../src/deno_ral/log.ts";
 
 // Creates inlined version of the filters that can be distributed with our installer

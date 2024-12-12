@@ -5,7 +5,7 @@
  */
 
 import { info, warning } from "../../deno_ral/log.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 import {
   basename,
   dirname,
@@ -13,7 +13,7 @@ import {
   join,
   relative,
 } from "../../deno_ral/path.ts";
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -128,6 +128,7 @@ import {
   runExternalPreviewServer,
 } from "../../preview/preview-server.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -435,7 +436,7 @@ function externalPreviewServer(
 
   // parse command line args and interpolate host and port
   const cmd = serve.cmd.split(/[\t ]/).map((arg, index) => {
-    if (Deno.build.os === "windows" && index === 0 && arg === "npm") {
+    if (isWindows && index === 0 && arg === "npm") {
       return "npm.cmd";
     } else if (arg === "{host}") {
       return options.host || kLocalhost;
@@ -454,7 +455,7 @@ function externalPreviewServer(
   const server = runExternalPreviewServer({
     cmd,
     readyPattern,
-    env: serve.env,
+    env: serve.env as { [key: string]: string },
     cwd: projectOutputDir(project),
   });
 
@@ -918,7 +919,7 @@ function acquirePreviewLock(project: ProjectContext) {
 
 function releasePreviewLock(project: ProjectContext) {
   try {
-    Deno.removeSync(previewLockFile(project));
+    safeRemoveSync(previewLockFile(project));
   } catch {
     //
   }

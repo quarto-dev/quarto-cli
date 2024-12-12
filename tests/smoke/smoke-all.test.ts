@@ -13,7 +13,7 @@ import {
 } from "../../src/core/lib/yaml-validation/state.ts";
 
 import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
-import { parse } from "yaml/mod.ts";
+import { parse } from "../../src/core/yaml.ts";
 import { cleanoutput } from "./render/render.ts";
 import {
   ensureDocxRegexMatches,
@@ -39,7 +39,7 @@ import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
-import { WalkEntry } from "fs/mod.ts";
+import { WalkEntry } from "../../src/deno_ral/fs.ts";
 import { quarto } from "../../src/quarto.ts";
 import { safeExistsSync, safeRemoveSync } from "../../src/core/path.ts";
 
@@ -78,8 +78,12 @@ async function guessFormat(fileName: string): Promise<string[]> {
 }
 
 //deno-lint-ignore no-explicit-any
-function hasTestSpecs(metadata: any): boolean {
-  return metadata?.["_quarto"]?.["tests"] != undefined;
+function hasTestSpecs(metadata: any, input: string): boolean {
+  const hasTestSpecs = metadata?.["_quarto"]?.["tests"] != undefined
+  if (!hasTestSpecs && metadata?.["_quarto"]?.["test"] != undefined) {
+    throw new Error(`Test is ${input} is using 'test' in metadata instead of 'tests'. This is probably a typo.`);
+  }
+  return hasTestSpecs
 }
 
 interface QuartoInlineTestSpec {
@@ -231,7 +235,7 @@ for (const { path: fileName } of files) {
 
   const testSpecs: QuartoInlineTestSpec[] = [];
 
-  if (hasTestSpecs(metadata)) {
+  if (hasTestSpecs(metadata, input)) {
     testSpecs.push(...resolveTestSpecs(input, metadata));
   } else {
     const formats = await guessFormat(input);

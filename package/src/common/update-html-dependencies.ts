@@ -3,10 +3,9 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { ensureDir, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
-import { copySync } from "fs/copy.ts";
+import { copySync, ensureDir, ensureDirSync, existsSync, walkSync } from "../../../src/deno_ral/fs.ts";
 import { info } from "../../../src/deno_ral/log.ts";
-import { dirname, extname, join } from "../../../src/deno_ral/path.ts";
+import { dirname, basename, extname, join } from "../../../src/deno_ral/path.ts";
 import { lines } from "../../../src/core/text.ts";
 import * as ld from "../../../src/core/lodash.ts";
 
@@ -16,7 +15,7 @@ import { applyGitPatches, Repo, withRepo } from "../util/git.ts";
 import { download } from "../util/utils.ts";
 import { Configuration } from "./config.ts";
 import { visitLines } from "../../../src/core/file.ts";
-import { copyMinimal } from "../../../src/core/copy.ts";
+import { copyTo } from "../../../src/core/copy.ts";
 import { kSourceMappingRegexes } from "../../../src/config/constants.ts";
 import { unzip } from "../../../src/core/zip.ts";
 
@@ -187,8 +186,8 @@ export async function updateHtmlDependencies(config: Configuration) {
       // Omit regular expression escaping
       // (Fixes https://github.com/quarto-dev/quarto-cli/issues/8435)
       const contents = Deno.readTextFileSync(listJs);
-      const removeContent = /e=\(e=t\.utils\.toString\(e\)\.toLowerCase\(\)\)\.replace\(.*?\),/g
-      const cleaned = contents.replaceAll(removeContent, "");
+      const removeContent = /(\(e=t\.utils\.toString\(e\)\.toLowerCase\(\)\))\.replace\(.*\)(,r=e)/g;
+      const cleaned = contents.replace(removeContent, "$1$2");
       Deno.writeTextFileSync(listJs, cleaned);
 
       return Promise.resolve();
@@ -228,8 +227,7 @@ export async function updateHtmlDependencies(config: Configuration) {
   const glightBoxVersion = Deno.env.get("GLIGHTBOX_JS");;
 
   info("Updating glightbox");
-  const basename = `glightbox-master`;
-  const fileName = `${basename}.zip`;
+  const fileName = `glightbox-master.zip`;
   const distUrl = `https://github.com/biati-digital/glightbox/releases/download/${glightBoxVersion}/${fileName}`;
   const zipFile = join(workingDir, fileName);
 
@@ -309,10 +307,32 @@ export async function updateHtmlDependencies(config: Configuration) {
       ensureDirSync(revealJs);
 
       info("Copying css/");
-      copySync(join(dir, `reveal.js-${version}`, "css"), join(revealJs, "css"));
+      const cssDir = join(revealJs, "css");
+      copyTo(join(dir, `reveal.js-${version}`, "css"), cssDir, { overwrite: true, preserveTimestamps: true });
+      info("Port native scss themes to quarto theme");
+      const sourceThemes = join(cssDir, "theme", "source");
+      const portedThemes = join(dirname(revealJs), "themes");
+      for (const fileEntry of Deno.readDirSync(sourceThemes)) {
+        if (fileEntry.isFile && extname(fileEntry.name) === ".scss") {
+          // Ignore specific files that are aliased to custom quarto theme
+          if (["white.scss", "black.scss", "white-contrast.scss", "black-contrast.scss"].includes(fileEntry.name)) {
+            info(`-> ignore ${fileEntry.name} - do not port to quarto.`);
+            continue;
+          }
+          info(`-> porting ${fileEntry.name} to quarto theme.`);
+          copyTo(join(sourceThemes, fileEntry.name), join(portedThemes, fileEntry.name), { overwrite: true, preserveTimestamps: true });
+          portRevealTheme(join(portedThemes, fileEntry.name));
+        }
+      }
+      // copy settings.scss and patch to help check correct addition of theme
+      const templateDir = join(cssDir, "theme", "template");
+      const templateDirNew = join(portedThemes, "template");
+      ensureDirSync(templateDirNew);
+      copyTo(join(templateDir, "settings.scss"), join(templateDirNew, "settings.scss"), { overwrite: true, preserveTimestamps: true });
+      portRevealTheme(join(templateDirNew, "settings.scss"));
       info("Copying dist/");
       const dist = join(revealJs, "dist");
-      copySync(join(dir, `reveal.js-${version}`, "dist"), dist);
+      copyTo(join(dir, `reveal.js-${version}`, "dist"), dist, { overwrite: true, preserveTimestamps: true });
       // remove unneeded CSS files
       const theme = join(dist, "theme");
       for (const fileEntry of Deno.readDirSync(theme)) {
@@ -322,14 +342,24 @@ export async function updateHtmlDependencies(config: Configuration) {
         }
       }
       info("Copying plugin/");
-      copySync(
+      copyTo(
         join(dir, `reveal.js-${version}`, "plugin"),
-        join(revealJs, "plugin")
+        join(revealJs, "plugin"),
+        { overwrite: true, preserveTimestamps: true }
       );
       return Promise.resolve();
     },
     true,
-    false
+    false,
+    resolvePatches([
+      // patche for each themes
+      ...["beige", "blood", "dracula", "league", "moon", "night", "serif", "simple", "sky", "solarized"].map(
+        (theme) => `revealjs-theme-0001-${theme}.patch`
+      ),
+      // global patches
+      "revealjs-theme-0002-input-panel-bg.patch",
+      "revealjs-theme-0003-code-block-fixup.patch"
+    ])
   );
 
   // revealjs-chalkboard
@@ -348,13 +378,20 @@ export async function updateHtmlDependencies(config: Configuration) {
     workingDir,
     (dir: string, version: string) => {
       ensureDirSync(dirname(revealJsChalkboard));
-      copyMinimal(
+      copyTo(
         join(dir, `reveal.js-plugins-${version}`, "chalkboard"),
-        revealJsChalkboard
+        revealJsChalkboard,
+        { overwrite: true, preserveTimestamps: true }
       );
       return Promise.resolve();
     },
-    true // not a commit
+    true, // true if commit, false otherwise
+    false, // no v prefix,
+    // FIXME: Patch waiting for fix upstream to be merged
+    // https://github.com/rajgoel/reveal.js-plugins/pull/184
+    resolvePatches([
+      "revealjs-plugin-0001-chakboard-backdrop-filter.patch"
+    ])
   );
 
   // revealjs-menu
@@ -389,9 +426,10 @@ export async function updateHtmlDependencies(config: Configuration) {
       );
 
       // copy font-awesome to chalkboard
-      copyMinimal(
+      copyTo(
         join(dir, `reveal.js-menu-${version}`, "font-awesome"),
-        join(revealJsChalkboard, "font-awesome")
+        join(revealJsChalkboard, "font-awesome"),
+        { overwrite: true, preserveTimestamps: true }
       );
       return Promise.resolve();
     },
@@ -416,16 +454,18 @@ export async function updateHtmlDependencies(config: Configuration) {
     workingDir,
     (dir: string, version: string) => {
       ensureDirSync(revealJsPdfExport);
-      Deno.copyFileSync(
+      copyTo(
         join(dir, `reveal-pdfexport-${version}`, "pdfexport.js"),
-        join(revealJsPdfExport, "pdfexport.js")
+        join(revealJsPdfExport, "pdfexport.js"),
+        { overwrite: true, preserveTimestamps: true }
       );
       return Promise.resolve();
     },
     false, // not a commit
     false, // no v prefix,
     resolvePatches([
-      "0001-Patch-PdfExport-RevealJS-plugin-to-export-toggle-fun.patch",
+      "revealjs-plugin-0001-pdfexport-to-export-toggle-fun.patch",
+      "revealjs-plugin-0001-pdfexport-view-mode.patch"
     ])
   );
 
@@ -557,8 +597,7 @@ async function updatePdfJs(config: Configuration, working: string) {
   const version = Deno.env.get("PDF_JS");
 
   info("Updating pdf.js...");
-  const basename = `pdfjs-${version}-legacy-dist`;
-  const fileName = `${basename}.zip`;
+  const fileName = `pdfjs-${version}-legacy-dist.zip`;
   const distUrl = `https://github.com/mozilla/pdf.js/releases/download/v${version}/${fileName}`;
   const zipFile = join(working, fileName);
 
@@ -931,7 +970,7 @@ async function updateBootstrapFromBslib(
             join(themeDir, "_bootswatch.scss")
           );
 
-          const patchedScss = patchTheme(theme, layer);
+          const patchedScss = patchTheme(theme, layer, bootswatchThemePatches);
 
           const themeOut = join(themesDir, `${theme}.scss`);
           Deno.writeTextFileSync(themeOut, patchedScss);
@@ -1089,7 +1128,7 @@ async function updateGithubSourceCodeDependency(
     await unzip(zipFile, working);
 
     await onDownload(working, version);
-    if (patches) await applyGitPatches(patches);
+    if (patches) applyGitPatches(patches);
   } else {
     throw new Error(`${versionEnvVar} is not defined`);
   }
@@ -1182,7 +1221,7 @@ function mergedSassLayer(
   return merged.join("\n");
 }
 
-function patchTheme(themeName: string, themeContents: string) {
+function patchTheme(themeName: string, themeContents: string, themePatches: Record<string, ThemePatch[]> ) {
   const patches = themePatches[themeName];
   if (patches) {
     let patchedTheme = themeContents;
@@ -1206,7 +1245,7 @@ interface ThemePatch {
   to: string;
 }
 
-const themePatches: Record<string, ThemePatch[]> = {
+const bootswatchThemePatches: Record<string, ThemePatch[]> = {
   litera: [
     {
       from: ".navbar {\n  font-size: $font-size-sm;",
@@ -1236,3 +1275,93 @@ const themePatches: Record<string, ThemePatch[]> = {
     },
   ],
 };
+
+function portRevealTheme(themeFile: string) {
+  const themeFileContent = Deno.readTextFileSync(themeFile);
+  const themeName = basename(themeFile, extname(themeFile));
+  const patchedScss = patchTheme(themeName, themeFileContent, revealjsThemePatches)
+  Deno.writeTextFileSync(themeFile, patchedScss);
+}
+
+// This maps the reveal.js theme variables to the Quarto theme variables
+// Revealjs variables can be seen in _settings.scss and this mapping needs to be used
+// to port the revealjs theme to a quarto theme so that users' layers can correctly override 
+// framework defaults. Quarto layer insure the mapping of those SASS variable. 
+//  - Framework revealjs main theme file uses the revealjs variables
+//  - each revealjs ported theme should use the quarto variables
+//  - _quarto.scss maps the quarto variables to the revealjs variables, 
+//    using generic $presentation-* variants for the $revealjs-* specific
+const sassVarsMap = {
+  // Background of the presentation
+  backgroundColor: "body-bg",
+  // Primary/body text
+  mainFont: "font-family-sans-serif",
+  mainFontSize: "presentation-font-size-root",
+  mainColor: "body-color",
+  // Vertical spacing between blocks of text
+  blockMargin: "presentation-block-margin",
+  // Headings
+  // headingMargin is set directly in quarto.scss
+  headingFont: "presentation-heading-font",
+  headingColor: "presentation-heading-color",
+  headingLineHeight: "presentation-heading-line-height",
+  headingLetterSpacing: "presentation-heading-letter-spacing",
+  headingTextTransform: "presentation-heading-text-transform",
+  headingTextShadow: "presentation-heading-text-shadow",
+  heading1TextShadow: "presentation-h1-text-shadow",
+  headingFontWeight: "presentation-heading-font-weight",
+
+  heading1Size: "presentation-h1-font-size",
+  heading2Size: "presentation-h2-font-size",
+  heading3Size: "presentation-h3-font-size",
+  heading4Size: "presentation-h4-font-size",
+
+  codeFont: "font-family-monospace",
+  codeBackground: "code-bg",
+  inlineCodeColor: "code-color", // from dracula.scss
+
+  // Links and actions
+  linkColor: "link-color",
+  linkColorHover: "link-color-hover",
+
+  // Text selection
+  selectionBackgroundColor: "selection-bg",
+  selectionColor: "selection-color",
+
+  // Lists
+  listBulletColor: "presentation-list-bullet-color", // from dracula.scss
+};
+
+let revealjsThemePatches: Record<string, ThemePatch[]> = {}; // Initialize the variable
+
+const createRevealjsThemePatches = (keys: string[]): ThemePatch[] => {
+  const filteredVarsMap: Record<string, string> = keys.reduce((acc, key) => {
+    if (sassVarsMap[key]) {
+      acc[key] = sassVarsMap[key];
+    } else {
+      throw Error(`Variable ${key} not found in the sassVarsMap`);
+    }
+    return acc;
+  }, {});
+
+  return Object.entries(filteredVarsMap).map(([key, value]) => ({
+    from: key,
+    to: value,
+  }));
+}
+
+revealjsThemePatches["beige"] = createRevealjsThemePatches(["mainColor", "headingColor", "headingTextShadow", "backgroundColor", "linkColor","linkColorHover", "selectionBackgroundColor", "heading1TextShadow"])
+revealjsThemePatches["black-contrast"] = createRevealjsThemePatches(["backgroundColor", "mainColor", "headingColor", "mainFontSize", "mainFont", "headingFont", "headingTextShadow",  "headingLetterSpacing", "headingTextTransform", "headingFontWeight", "linkColor", "linkColorHover", "selectionBackgroundColor", "heading1Size", "heading2Size", "heading3Size", "heading4Size"])
+revealjsThemePatches["black"] = createRevealjsThemePatches(["backgroundColor", "mainColor", "headingColor", "mainFontSize", "mainFont", "headingFont", "headingTextShadow",  "headingLetterSpacing", "headingTextTransform", "headingFontWeight", "linkColor", "linkColorHover", "selectionBackgroundColor", "heading1Size", "heading2Size", "heading3Size", "heading4Size"])
+revealjsThemePatches["blood"] = createRevealjsThemePatches(["codeBackground", "backgroundColor", "mainFont", "mainColor", "headingFont", "headingTextShadow",  "heading1TextShadow", "linkColor", "linkColorHover", "selectionBackgroundColor", "selectionColor"])
+revealjsThemePatches["dracula"] = createRevealjsThemePatches(["mainColor", "headingColor", "headingTextShadow", "headingTextTransform", "backgroundColor", "linkColor","linkColorHover", "selectionBackgroundColor", "inlineCodeColor", "listBulletColor", "mainFont", "codeFont"])
+revealjsThemePatches["league"] = createRevealjsThemePatches(["headingTextShadow", "heading1TextShadow"])
+revealjsThemePatches["moon"] = createRevealjsThemePatches(["mainColor", "headingColor", "headingTextShadow", "backgroundColor", "linkColor", "linkColorHover", "selectionBackgroundColor"])
+revealjsThemePatches["night"] = createRevealjsThemePatches(["backgroundColor", "mainFont", "linkColor", "linkColorHover", "headingFont", "headingTextShadow", "headingLetterSpacing", "headingTextTransform", "selectionBackgroundColor"])
+revealjsThemePatches["serif"] = createRevealjsThemePatches(["mainFont", "mainColor", "headingFont", "headingColor", "headingTextShadow", "headingTextTransform", "backgroundColor", "linkColor", "linkColorHover", "selectionBackgroundColor"])
+revealjsThemePatches["simple"] = createRevealjsThemePatches(["mainFont", "mainColor", "headingFont", "headingColor", "headingTextShadow", "headingTextTransform", "backgroundColor", "linkColor", "linkColorHover", "selectionBackgroundColor"])
+revealjsThemePatches["sky"] = createRevealjsThemePatches(["mainFont", "mainColor", "headingFont", "headingColor", "headingLetterSpacing", "headingTextShadow", "backgroundColor", "linkColor", "linkColorHover", "selectionBackgroundColor"])
+revealjsThemePatches["solarized"] = createRevealjsThemePatches(["mainColor", "headingColor", "headingTextShadow", "backgroundColor", "linkColor", "linkColorHover", "selectionBackgroundColor"])
+revealjsThemePatches["white-contrast"] = createRevealjsThemePatches(["backgroundColor", "mainColor", "headingColor", "mainFontSize", "mainFont", "headingFont", "headingTextShadow",  "headingLetterSpacing", "headingTextTransform", "headingFontWeight", "linkColor", "linkColorHover", "selectionBackgroundColor", "heading1Size", "heading2Size", "heading3Size", "heading4Size"])
+revealjsThemePatches["white"] = createRevealjsThemePatches(["backgroundColor", "mainColor", "headingColor", "mainFontSize", "mainFont", "headingFont", "headingTextShadow",  "headingLetterSpacing", "headingTextTransform", "headingFontWeight", "linkColor", "linkColorHover", "selectionBackgroundColor", "heading1Size", "heading2Size", "heading3Size", "heading4Size"])
+revealjsThemePatches["settings"] = createRevealjsThemePatches(["backgroundColor", "mainFont", "mainFontSize", "mainColor", "blockMargin", "headingFont", "headingColor", "headingLineHeight", "headingLetterSpacing", "headingTextTransform", "headingTextShadow", "headingFontWeight", "heading1TextShadow", "heading1Size", "heading2Size", "heading3Size", "heading4Size", "codeFont", "linkColor", "linkColorHover", "selectionBackgroundColor", "selectionColor"])

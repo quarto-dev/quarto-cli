@@ -172,7 +172,7 @@ export function htmlFormat(
             project,
             quiet,
           ),
-          await brandSassFormatExtras(format, project),
+          await brandSassFormatExtras(input, format, project),
           { [kFilterParams]: htmlFilterParams },
         );
       },

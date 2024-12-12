@@ -20,7 +20,7 @@ function process_equations(blockEl)
   end
 
   local mathInlines = nil
-  local targetInlines = pandoc.List()
+  local targetInlines = pandoc.Inlines{}
 
   for i, el in ipairs(inlines) do
 

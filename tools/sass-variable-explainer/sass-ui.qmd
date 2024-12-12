@@ -1,0 +1,217 @@
+---
+title: SASS color variable explainer
+theme: yeti
+echo: false
+---
+
+```{ojs}
+import { getSassAst } from "./parse-web.ts";
+import { cleanSassAst } from "./clean-ast.ts";
+import { propagateDeclarationTypes } from "./declaration-types.ts";
+import { getVariableDependencies } from "./get-dependencies.ts";
+
+// https://observablehq.com/@observablehq/synchronized-inputs
+function set(input, value) {
+  input.value = value;
+  input.dispatchEvent(new Event("input", {bubbles: true}));
+}
+
+changeVarNameClickHandler = ((value) => {
+  return () => {
+    set(viewof varName, value)
+    return false;
+  };
+});
+
+viewof sourceFile = Inputs.file({label: "SCSS file:"})
+source = {
+  if (sourceFile === null) {
+    return `
+$var1: #ff0000 !default;
+$var2: darken($var1, 20%) !default;
+`;
+  } else {
+    return sourceFile.text();
+  }
+}
+matchAnnotation = x => x.match(/\/\/ quarto-scss-analysis-annotation (.*)/);
+sourceLines = source.split("\n");
+colorValues = {
+  const result = new Map();
+  try {
+    // ugly
+    const cssAnnotation = sourceLines.filter(matchAnnotation).pop();
+    const matches = JSON.parse(matchAnnotation(cssAnnotation)[1])['css-vars'];
+    for (const match of matches) {
+      const [_, name, color] = match.match(/--quarto-scss-export-(.*): (.*)$/);
+      result.set(name, color.replace(/;$/, ""));
+    }
+  } catch (e) {}
+  return result;
+}
+
+renderCssRect = (dep) => {
+  const span = document.createElement('span');
+  span.style.position = 'relative';
+  span.style.top = '-2px';
+  span.style.zIndex = '-1000'; // makes this work well in Inputs.table
+  span.innerHTML = `<svg width=14px height=14px><rect x=0 y=0 width=14 height=14 stroke="rgba(0,0,0,0.2)" fill="${colorValues.get(dep) ?? 'black'}"></rect></svg>`;
+  return span;
+}
+
+deps = {
+  let ast = cleanSassAst(await getSassAst(source));
+  ast = propagateDeclarationTypes(ast); 
+  return getVariableDependencies(ast);
+}
+
+selectedDependency = deps.get(varName) ?? (selectedItems.length === 1 ? deps.get(selectedItems[0][0]) : undefined)
+
+selectedDependencyChains = {
+  const dep = selectedDependency;
+  if (dep === undefined) {
+    return [];
+  }
+  const chains = [];
+  const buildChain = (dep, lst) => {
+    if (lst === undefined) {
+      lst = [];
+    }
+    if (dep === undefined) { return; }
+    const needsPush = dep.node?.valueType === 'color';
+    if (needsPush) {  
+      lst.push(dep.node.property.variable.value);
+    }
+    if (dep.dependencies.size === 0) {
+      chains.push([...lst]);
+    } else {
+      for (const subdep of dep.dependencies) {
+        buildChain(deps.get(subdep), lst);
+      }
+    }
+    if (needsPush) {  
+      lst.pop();
+    }
+  }
+  buildChain(dep);
+  return chains;
+}
+```
+
+---
+
+```{ojs}
+selectedDependencyTitle = {
+  if (selectedDependency === undefined) {
+    return htl.html`<h5>Select a single variable to analyze</h5>`;
+  } else {
+    return htl.html`<h5>Variable analysis for <code>${selectedDependency?.node?.property?.variable?.value ?? "<i>unknown</i>"}</code></h5>`;
+    }
+}
+renderedAnalysis = {
+  deps;
+  debugger;
+  const result = htl.html`<div style="padding-left: 20px; padding-top: 20px"></div>`;
+  if (!selectedDependencyChains.length) {
+    return result;
+  }
+
+
+  if (selectedDependency?.node?.property?.variable?.value) {
+    const valueDiv = htl.html`<div style="padding-bottom:1em"><b>Value</b>: </div>`;
+    valueDiv.appendChild(renderCssRect(selectedDependency?.node?.property?.variable?.value));
+    result.appendChild(valueDiv);
+  }
+
+  if (selectedDependency?.node?.annotation?.origin) {
+    result.appendChild(htl.html`<div style="padding-bottom:1em"><b>Origin</b>: ${selectedDependency?.node?.annotation?.origin}</div>`);
+  }
+
+  const lineEnd = Math.max(
+    selectedDependency?.node?.lineEnd ?? -Infinity,
+    selectedDependency?.node?.property?.lineEnd ?? -Infinity,
+    selectedDependency?.node?.value?.lineEnd ?? -Infinity,
+  );
+  if (selectedDependency?.node?.line !== undefined && lineEnd !== -Infinity) {
+    result.appendChild(htl.html`<div><b>SCSS source:<b></div>`);
+    const snippet = sourceLines.slice(selectedDependency?.node?.line - 1, lineEnd).join("\n");
+    result.appendChild(htl.html`<div><pre style='padding-left: 20px; padding-top:1em'>${snippet}</pre></div>`)
+  }
+
+  
+  // Dependencies
+  result.appendChild(htl.html`<div><b>Dependencies:</b></div>`);
+  const depsDiv = htl.html`<div style="padding-left: 20px"></div>`;
+  result.appendChild(depsDiv);
+  const seenDependencies = new Set([]);
+  const renderChain = (chain) => {
+    const result = htl.html`<div></div>`;
+    let i = 0;
+    for (let i = 0; i < chain.length; ++i) {
+      const element = chain[i];
+      const opacity = seenDependencies.has(element) ? 0.2 : 1.0;
+      seenDependencies.add(element);
+      if (i > 0) {
+        result.appendChild(htl.html`<span style="opacity: ${opacity}"> ← </span>`);
+      }
+      const wrapperSpan = htl.html`<span style="opacity: ${opacity}"></span>`;
+      wrapperSpan.appendChild(renderCssRect(element));
+      const spanWithSpace = htl.html`<span> </span>`;
+      wrapperSpan.appendChild(spanWithSpace);
+      const link = htl.html`<a href="#">${element}</a>`
+      link.onclick = changeVarNameClickHandler(element);
+      wrapperSpan.appendChild(link);
+      result.appendChild(wrapperSpan);
+    }
+    return result;
+  }
+
+  let addedChains = false;
+  for (const chain of selectedDependencyChains) {
+    if (chain.length > 1) {
+      depsDiv.appendChild(renderChain(chain));
+      addedChains = true;
+    }
+  }
+  if (!addedChains) {
+    depsDiv.appendChild(htl.html`<i>None</i>`);
+  }
+  return result;
+}
+```
+
+---
+
+```{ojs}
+selectedItems = Array
+    .from(colorValues)
+    .filter(v => !varName.length ? true : v[0].includes(varName))
+viewof varName = Inputs.text({"label": "Name:"});
+colorValueTable = {
+  // const result = htl.html`<table></table>`;
+  // result.appendChild(htl.html`<thead><tr><th>Name</th><th>Value</th></thead>`);
+  // const body = htl.html`<tbody></tbody>`;
+  const items = selectedItems
+    .toSorted((a, b) => a[0].localeCompare(b[0]))
+    .map(v => {
+      const left = htl.html`<a href="#"></a>`;
+      left.appendChild(htl.html`<span>${v[0]}</span>`)
+      left.onclick = changeVarNameClickHandler(v[0]);
+      const right = htl.html`<span></span>`;
+      right.appendChild(renderCssRect(v[0]));
+      right.appendChild(htl.html`<span> <code>${v[1]}</code></span>`)
+      return {
+        name: left,
+        value: right
+      }
+    });
+  return Inputs.table(items, {
+    format: {
+      name: (x) => x,
+      value: (x) => x
+    }
+  });
+}
+```
+
+${selectedItems.length} SCSS color variables found.

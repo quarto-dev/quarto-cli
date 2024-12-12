@@ -1,0 +1,22 @@
+---
+format: revealjs
+language:
+  callout-tip-title: "98ce773e8b340c34e879b359b774b802"
+  crossref-tip-prefix: "Note"
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        - 
+          - '98ce773e8b340c34e879b359b774b802.*1'
+          - 'Note.*1'
+        - []
+---
+
+::: {#tip-123 .callout-tip}
+
+Text
+
+:::
+
+See @tip-123.

@@ -1,0 +1,12 @@
+---
+title: "Test"
+format: hugo-md
+_quarto:
+  tests:
+    hugo-md:
+      ensureSnapshotMatches: true
+---
+
+```{=markdown}
+{{< vimeo id="146022717" class="my-vimeo-wrapper-class" title="My vimeo video" >}}
+```

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 
 import {
   kBibliography,
@@ -36,6 +36,7 @@ import {
   kIPynbTitleBlockTemplate,
   kJatsSubarticleId,
   kKeepHidden,
+  kLogo,
   kMergeIncludes,
   kOutputDivs,
   kOutputLocation,
@@ -65,7 +66,7 @@ import { QuartoFilterSpec } from "./types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kProjectType } from "../../project/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
-import { resourcePath } from "../../core/resources.ts";
+import { rBinaryPath, resourcePath } from "../../core/resources.ts";
 import { crossrefFilterActive, crossrefFilterParams } from "./crossref.ts";
 import { layoutFilterParams } from "./layout.ts";
 import { pandocMetadataPath } from "./render-paths.ts";
@@ -91,6 +92,7 @@ import { shortUuid } from "../../core/uuid.ts";
 import { isServerShinyPython } from "../../core/render.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
 import { kTocIndent } from "../../config/constants.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -194,8 +196,17 @@ export async function filterParamsJson(
     [kShinyPythonExec]: isShinyPython ? await pythonExec() : undefined,
     [kExecutionEngine]: options.executionEngine,
     [kBrand]: options.format.render[kBrand],
+    "quarto-environment": await quartoEnvironmentParams(options),
   };
   return JSON.stringify(params);
+}
+
+async function quartoEnvironmentParams(_options: PandocOptions) {
+  return {
+    "paths": {
+      "Rscript": await rBinaryPath("Rscript"),
+    },
+  };
 }
 
 export function removeFilterParams(metadata: Metadata) {
@@ -456,14 +467,6 @@ function languageFilterParams(format: Format) {
     [kCodeSummary]: format.metadata[kCodeSummary] || language[kCodeSummary],
     [kTocTitleDocument]: language[kTocTitleDocument],
   };
-  Object.keys(language).forEach((key) => {
-    if (
-      key.startsWith("callout-") || key.startsWith("crossref-") ||
-      key.startsWith("environment-")
-    ) {
-      params[key] = language[key];
-    }
-  });
   // default prefixes based on titles
   [
     "fig",
@@ -479,6 +482,14 @@ function languageFilterParams(format: Format) {
     "exr",
   ].forEach((type) => {
     params[`crossref-${type}-prefix`] = language[`crossref-${type}-title`];
+  });
+  Object.keys(language).forEach((key) => {
+    if (
+      key.startsWith("callout-") || key.startsWith("crossref-") ||
+      key.startsWith("environment-")
+    ) {
+      params[key] = language[key];
+    }
   });
   return params;
 }
@@ -690,7 +701,7 @@ async function extensionShortcodes(options: PandocOptions) {
 
 function initFilterParams(dependenciesFile: string) {
   const params: Metadata = {};
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     const value = readCodePage();
     if (value) {
       debug("Windows: Using code page " + value);
@@ -897,6 +908,7 @@ async function resolveFilterExtension(
 const extractTypstFilterParams = (format: Format) => {
   return {
     [kTocIndent]: format.metadata[kTocIndent],
+    [kLogo]: format.metadata[kLogo],
     [kCssPropertyProcessing]: format.metadata[kCssPropertyProcessing],
     [kHtmlPreTagProcessing]: format.metadata[kHtmlPreTagProcessing],
   };

@@ -176,10 +176,11 @@ function lightbox()
     return {{
       traverse = "topdown",
 
-      Meta = function(meta) 
+      Meta = function(meta)
         -- Set auto lightbox mode, if need be
         auto = lightbox_module.automatic(meta) == true
-      end, 
+        imgCount = 0
+      end,
       -- Find images that are already within links
       -- we'll use this to filter out these images if
       -- the most is auto

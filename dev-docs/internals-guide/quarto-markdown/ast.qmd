@@ -1,0 +1,17 @@
+---
+title: Quarto's interpretation of a Pandoc document
+---
+
+## Shortcodes
+
+TBF: describe how shortcode spans are represented
+
+## `pandoc.RawInline("quarto-internal", ...)`
+
+The behavior of the `contents` shortcode can be represented in two ways:
+
+- a shortcode, written as `{{< contents cell-id >}}`
+- a `pandoc.RawInline` block of format `quarto-internal`, with a string representing a JSON-encoded object:
+  - type: `contents-shortcode`
+  - payload:
+    - id: the cell id to be inserted at that point.

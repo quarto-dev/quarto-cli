@@ -1,8 +1,8 @@
 #!/usr/bin/env -S deno run --unstable
 
-import * as fs from 'https://deno.land/std/fs/mod.ts';
-import * as yaml from 'https://deno.land/std/yaml/mod.ts';
-import * as path from 'https://deno.land/std/path/mod.ts';
+import * as fs from 'stdlib/fs';
+import * as yaml from 'stdlib/yaml';
+import * as path from 'stdlib/path';
 
 const formatKeep: Record<string, string> = {
   'pdf': 'tex',

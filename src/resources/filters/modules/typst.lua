@@ -59,17 +59,43 @@ local function _main()
     end
   end
   
-  local function as_typst_content(content)
-    local result = pandoc.Blocks({})
-    result:insert(pandoc.RawInline("typst", "[\n"))
-    result:extend(quarto.utils.as_blocks(content) or {})
-    result:insert(pandoc.RawInline("typst", "]\n"))
-    return result
+  local function as_typst_content(content, blocks_or_inlines)
+    blocks_or_inlines = blocks_or_inlines or "blocks"
+    if blocks_or_inlines == "blocks" then
+      local result = pandoc.Blocks({})
+      result:insert(pandoc.RawInline("typst", "["))
+      result:extend(quarto.utils.as_blocks(content) or {})
+      result:insert(pandoc.RawInline("typst", "]\n"))
+      return result
+    else
+      local result = pandoc.Inlines({})
+      result:insert(pandoc.RawInline("typst", "["))
+      result:extend(quarto.utils.as_inlines(content) or {})
+      result:insert(pandoc.RawInline("typst", "]"))
+      return result
+    end
+  end
+
+  local function as_typst_dictionary(tab)
+    local entries = {}
+    for k, v in _quarto.utils.table.sortedPairs(tab) do
+      if type(v) == 'table' then
+        v = as_typst_dictionary(v)
+      end
+      if k and v then
+        table.insert(entries, k .. ': ' .. v)
+      end
+    end
+    if #entries == 0 then return nil end
+    return '(' .. table.concat(entries, ', ') .. ')'
   end
   
   return {
     function_call = typst_function_call,
-    as_typst_content = as_typst_content
+    sortedPairs = sortedPairs,
+    as_typst_content = as_typst_content,
+    as_typst_dictionary = as_typst_dictionary,
+    css = require("modules/typst_css")
   }
 end
 

@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { debug, warning } from "../deno_ral/log.ts";
-import { existsSync, walkSync } from "fs/mod.ts";
+import { debug } from "../deno_ral/log.ts";
+import { existsSync, walkSync } from "../deno_ral/fs.ts";
 import { dirname, join } from "../deno_ral/path.ts";
 import { warnOnce } from "./log.ts";
 import { safeExistsSync, which } from "./path.ts";
@@ -15,6 +15,7 @@ import {
   kHKeyLocalMachine,
   registryReadString,
 } from "./registry.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export function resourcePath(resource?: string): string {
   const sharePath = quartoConfig.sharePath();
@@ -47,7 +48,7 @@ export function toolsPath(binary: string, defaultPath?: string): string {
   if (binaryPath) {
     if (!existsSync(binaryPath)) {
       // If this is windows, we shouldn't warn if there is an 'exe' version of the path
-      if (Deno.build.os === "windows") {
+      if (isWindows) {
         const exeExists = !binary.endsWith(".exe") ||
           [binary + ".exe"].some((path) => {
             return existsSync(path);
@@ -76,12 +77,26 @@ export function toolsPath(binary: string, defaultPath?: string): string {
 }
 
 export function pandocBinaryPath(): string {
-  return Deno.build.os === "windows"
-    ? toolsPath("pandoc")
-    : architectureToolsPath("pandoc");
+  return isWindows ? toolsPath("pandoc") : architectureToolsPath("pandoc");
 }
 
-export async function rBinaryPath(binary: string): Promise<string> {
+const _r_binary_path: Map<string, string> = new Map();
+export async function rBinaryPath(
+  binary: string,
+  forceLookup = false,
+): Promise<string> {
+  if (forceLookup) {
+    _r_binary_path.delete(binary);
+  }
+  const v = _r_binary_path.get(binary);
+  if (v) {
+    return v;
+  }
+  const setPath = (path: string) => {
+    _r_binary_path.set(binary, path);
+    return path;
+  };
+
   debug(`-- Searching for R binary --`);
   // if there is a QUARTO_R environment variable then respect that
   const quartoR = Deno.env.get("QUARTO_R");
@@ -105,14 +120,14 @@ export async function rBinaryPath(binary: string): Promise<string> {
     let rHomeBin = join(rHome, "bin", binary);
     if (safeExistsSync(rHomeBin)) {
       debug(`Found in ${rHomeBin}`);
-      return rHomeBin;
+      return setPath(rHomeBin);
     }
-    if (Deno.build.os === "windows") {
+    if (isWindows) {
       // Some installation have binaries in the sub folder only
       rHomeBin = join(rHome, "bin", "x64", binary);
       if (safeExistsSync(rHomeBin)) {
         debug(`Found in ${rHomeBin}`);
-        return rHomeBin;
+        return setPath(rHomeBin);
       }
     }
   }
@@ -122,11 +137,11 @@ export async function rBinaryPath(binary: string): Promise<string> {
   const path = await which(binary);
   if (path) {
     debug(`Found in PATH at ${path}`);
-    return path;
+    return setPath(path);
   }
 
   // on windows check the registry for a current version
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     // determine current version
     debug(`Looking for '${binary}' in Windows Registry.`);
     const version = await registryReadString(
@@ -143,7 +158,7 @@ export async function rBinaryPath(binary: string): Promise<string> {
       );
       if (installPath) {
         debug(`Found in Windows Registry at ${join(installPath, "bin")}`);
-        return join(installPath, "bin", binary);
+        return setPath(join(installPath, "bin", binary));
       }
     }
     // last ditch, try to find R in program files
@@ -157,7 +172,7 @@ export async function rBinaryPath(binary: string): Promise<string> {
           for (const walk of walkSync(join(progFiles, "R"))) {
             if (walk.isDirectory && walk.name === "bin") {
               debug(`Found ${walk.path}`);
-              return join(walk.path, binary);
+              return setPath(join(walk.path, binary));
             }
           }
         }
@@ -167,7 +182,7 @@ export async function rBinaryPath(binary: string): Promise<string> {
 
   // We couldn't find R, just pass the binary itself and hope it works out!
   debug(`Quarto did no found ${binary} and will try to use it directly.`);
-  return binary;
+  return setPath(binary);
 }
 
 export function projectTypeResourcePath(projectType: string) {

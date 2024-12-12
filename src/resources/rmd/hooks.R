@@ -462,7 +462,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       lang <- NULL
       yamlCode <- lastYamlCode
       if (!is.null(yamlCode)) {
-        yamlCode <- Filter(function(line) !grepl("echo:\\s+fenced", line), yamlCode)
+        yamlCode <- Filter(function(line) !grepl("\\|\\s+echo:\\s+fenced\\s*$", line), yamlCode)
         yamlCode <- paste(yamlCode, collapse = "\n")
         if (!nzchar(yamlCode)) {
           x <- trimws(x, "left")

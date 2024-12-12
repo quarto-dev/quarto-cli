@@ -1,0 +1,50 @@
+// Base settings for all themes that can optionally be
+// overridden by the super-theme
+
+// Background of the presentation
+$body-bg: #2b2b2b;
+
+// Primary/body text
+$font-family-sans-serif: 'Lato', sans-serif;
+$presentation-font-size-root: 40px;
+$body-color: #eee;
+
+// Vertical spacing between blocks of text
+$presentation-block-margin: 20px;
+
+// Headings
+$headingMargin: 0 0 $blockMargin 0;
+$presentation-heading-font: 'League Gothic', Impact, sans-serif;
+$presentation-heading-color: #eee;
+$presentation-heading-line-height: 1.2;
+$presentation-heading-letter-spacing: normal;
+$presentation-heading-text-transform: uppercase;
+$presentation-heading-text-shadow: none;
+$presentation-heading-font-weight: normal;
+$presentation-h1-text-shadow: $headingTextShadow;
+
+$presentation-h1-font-size: 3.77em;
+$presentation-h2-font-size: 2.11em;
+$presentation-h3-font-size: 1.55em;
+$presentation-h4-font-size: 1.00em;
+
+$font-family-monospace: monospace;
+
+// Links and actions
+$link-color: #13DAEC;
+$link-color-hover: lighten( $linkColor, 20% );
+
+// Text selection
+$selection-bg: #FF5E99;
+$selection-color: #fff;
+
+// Colors used for UI elements that are overlaid on top of
+// the presentation
+$overlayElementBgColor: 240, 240, 240;
+$overlayElementFgColor: 0, 0, 0;
+
+// Generates the presentation background, can be overridden
+// to return a background image or gradient
+@mixin bodyBackground() {
+	background: $backgroundColor;
+}

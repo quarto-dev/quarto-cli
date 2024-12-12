@@ -1,0 +1,92 @@
+diff --git a/src/resources/formats/revealjs/themes/moon.scss b/src/resources/formats/revealjs/themes/moon.scss
+index 9d0e5c3d2..0e0cc8ccb 100644
+--- a/src/resources/formats/revealjs/themes/moon.scss
++++ b/src/resources/formats/revealjs/themes/moon.scss
+@@ -1,54 +1,52 @@
+ /**
+  * Solarized Dark theme for reveal.js.
+  * Author: Achim Staebler
++ *
++ * Adapted for Quarto by Posit, PBC
++ * Copyright (C) 2024 Posit, PBC
+  */
+ 
+-
+-// Default mixins and settings -----------------
+-@import "../template/mixins";
+-@import "../template/settings";
+-// ---------------------------------------------
+-
+-
++/*-- scss:defaults --*/
+ 
+ // Include theme-specific fonts
+ @import url(./fonts/league-gothic/league-gothic.css);
+ @import url(https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic);
+ 
++// fonts
++$font-family-sans-serif: Lato, sans-serif !default;
++
+ /**
+  * Solarized colors by Ethan Schoonover
+  */
+ 
+ // Solarized colors
+-$base03:    #002b36;
+-$base02:    #073642;
+-$base01:    #586e75;
+-$base00:    #657b83;
+-$base0:     #839496;
+-$base1:     #93a1a1;
+-$base2:     #eee8d5;
+-$base3:     #fdf6e3;
+-$yellow:    #b58900;
+-$orange:    #cb4b16;
+-$red:       #dc322f;
+-$magenta:   #d33682;
+-$violet:    #6c71c4;
+-$blue:      #268bd2;
+-$cyan:      #2aa198;
+-$green:     #859900;
++$base03: #002b36;
++$base02: #073642;
++$base01: #586e75;
++$base00: #657b83;
++$base0: #839496;
++$base1: #93a1a1;
++$base2: #eee8d5;
++$base3: #fdf6e3;
++$yellow: #b58900;
++$orange: #cb4b16;
++$red: #dc322f;
++$magenta: #d33682;
++$violet: #6c71c4;
++$blue: #268bd2;
++$cyan: #2aa198;
++$green: #859900;
+ 
+ // Override theme settings (see ../template/settings.scss)
+-$body-color: $base1;
+-$presentation-heading-color: $base2;
+-$presentation-heading-text-shadow: none;
+-$body-bg: $base03;
+-$link-color: $blue;
+-$link-color-hover: lighten( $linkColor, 20% );
+-$selection-bg: $magenta;
++$body-color: $base1 !default;
++$presentation-heading-color: $base2 !default;
++$presentation-heading-text-shadow: none !default;
++$body-bg: $base03 !default;
++$link-color: $blue !default;
++$selection-bg: $magenta !default;
+ 
+-// Change text colors against light slide backgrounds
+-@include light-bg-text-color(#222);
++$presentation-heading-text-transform: uppercase !default; // from settings.scss
++$presentation-heading-font: "League Gothic", sans-serif !default; // from settings.scss
+ 
+-// Theme template ------------------------------
+-@import "../template/theme";
+-// ---------------------------------------------
++// Change text colors against light slide backgrounds
++$light-bg-text-color: #222 !default;

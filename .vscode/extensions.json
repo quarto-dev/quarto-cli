@@ -6,6 +6,7 @@
     "quarto.quarto",
     "julialang.language-julia",
     "ms-python.black-formatter",
-    "ms-python.pylint"
+    "ms-python.pylint",
+    "nvarner.typst-lsp"
   ]
 }

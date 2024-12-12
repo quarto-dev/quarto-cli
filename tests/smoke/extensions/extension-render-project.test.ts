@@ -10,7 +10,7 @@ import { basename, dirname, extname, join, relative } from "../../../src/deno_ra
 import { ensureHtmlElements } from "../../verify.ts";
 import { testQuartoCmd } from "../../test.ts";
 import { noErrors } from "../../verify.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../src/deno_ral/fs.ts";
 
 const testRender = (
   input: string,

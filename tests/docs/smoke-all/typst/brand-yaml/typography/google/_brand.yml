@@ -1,0 +1,22 @@
+typography:
+  fonts:
+    - family: "Open Sans"
+      style: [normal, italic]
+      source: google
+    - family: "Fira Code"
+      source: google
+    - family: "Roboto Slab"
+      source: google
+      weight: [300, 700]
+      style: normal
+  base:
+    family: Open Sans
+    line-height: 1.25em
+    size: 1rem
+  headings:
+    family: Roboto Slab
+    color: primary
+    weight: 700
+  monospace:
+    family: Fira Code
+    size: 0.9em

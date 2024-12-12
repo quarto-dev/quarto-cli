@@ -23,15 +23,15 @@ function normalize_draft()
       end
       is_draft = meta[kDraft] == true or tcontains(drafts, quarto.doc.input_file);     
     end,
-    Pandoc = function(pandoc) 
+    Pandoc = function(doc)
       if _quarto.format.isHtmlOutput() and not _quarto.format.isHtmlSlideOutput() then
         if is_draft and draft_mode == kDraftModeGone then
-          pandoc.blocks = {}
+          doc.blocks = pandoc.Blocks{}
           quarto.doc.includeText("in-header", '<meta name="quarto:status" content="' .. kDraftStatusRemove .. '">')
-          return pandoc
+          return doc
         elseif is_draft and draft_mode ~= kDraftModeGone then
           quarto.doc.includeText("in-header", '<meta name="quarto:status" content="' .. kDraftStatusDraft .. '">')
-          return pandoc
+          return doc
         end
       end
     end

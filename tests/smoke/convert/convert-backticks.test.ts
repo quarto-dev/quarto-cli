@@ -9,7 +9,7 @@ import {
   ExecuteOutput,
   testQuartoCmd,
 } from "../../test.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 
 (() => {
   const input = "docs/convert/backticks.ipynb";

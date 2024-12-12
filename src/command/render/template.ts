@@ -21,10 +21,11 @@ import { copyTo } from "../../core/copy.ts";
 import { PandocOptions, RenderFlags } from "./types.ts";
 import * as ld from "../../core/lodash.ts";
 import { isHtmlDocOutput, isRevealjsOutput } from "../../config/format.ts";
-import { expandGlobSync } from "fs/mod.ts";
+import { expandGlobSync } from "../../deno_ral/fs.ts";
 import { normalizePath } from "../../core/path.ts";
 import { isGlob } from "../../core/lib/glob.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 
 export const kPatchedTemplateExt = ".patched";
 export const kTemplatePartials = "template-partials";
@@ -109,7 +110,7 @@ export async function stageTemplate(
         const targetFile = join(dir, template);
         copyTo(context.template, targetFile);
         // Ensure that file is writable
-        if (Deno.build.os !== "windows") {
+        if (!isWindows) {
           Deno.chmodSync(targetFile, 0o666);
         }
       }

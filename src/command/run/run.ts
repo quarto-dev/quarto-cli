@@ -6,7 +6,7 @@
 
 import { Command } from "cliffy/command/command.ts";
 
-import { existsSync } from "fs/exists.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 import { error } from "../../deno_ral/log.ts";
 import { handlerForScript } from "../../core/run/run.ts";
 import { exitWithCleanup } from "../../core/cleanup.ts";

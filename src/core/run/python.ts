@@ -1,9 +1,8 @@
 /*
-* python.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * python.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { extname } from "../../deno_ral/path.ts";
 import { pythonExec } from "../jupyter/exec.ts";
@@ -21,13 +20,19 @@ export const pythonRunHandler: RunHandler = {
     stdin?: string,
     options?: RunHandlerOptions,
   ) => {
-    return await execProcess({
-      cmd: [
-        ...(await pythonExec()),
-        script,
-        ...args,
-      ],
-      ...options,
-    }, stdin);
+    return await execProcess(
+      {
+        cmd: [
+          ...(await pythonExec()),
+          script,
+          ...args,
+        ],
+        ...options,
+      },
+      stdin,
+      undefined,
+      undefined,
+      true,
+    );
   },
 };

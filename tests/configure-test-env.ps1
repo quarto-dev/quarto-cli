@@ -8,37 +8,20 @@ If ($r) {
   Write-Host -ForegroundColor green "   > Restoring renv project"
   Rscript -e 'renv::restore()'
   Write-Host -ForegroundColor green "   > Installing dev knitr and rmarkdown"
-  Rscript -e "install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev'))"
-  Rscript -e "install.packages('knitr', repos = c('https://yihui.r-universe.dev'))"
+  Rscript -e "install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev', getOption('repos')))"
+  Rscript -e "install.packages('knitr', repos = c('https://yihui.r-universe.dev', getOption('repos')))"
 }
 
 # Check python test environment ---
 Write-Host -ForegroundColor green ">>>> Configuring python environment"
-try { $null = gcm py -ea stop; $py=$true} catch { 
-  Write-Host -ForegroundColor red "Missing Python launcher - py.exe is required on Windows - it should be installed with Python for Windows."
+try { $null = gcm uv -ea stop; $uv=$true } catch { 
+  Write-Host -ForegroundColor red "No uv found in PATH - Install uv please: https://docs.astral.sh/uv/getting-started/installation/"
 }
 
-try { $null = gcm python -ea stop; $python=$true } catch { 
-  Write-Host -ForegroundColor red "No python found in PATH - Check your PATH or install python add to PATH."
-}
-
-If ( $py -and $python) {
-    Write-Host "Setting up python environnement with pipenv"
-    try { $null = gcm pipenv -ea stop; $pipenv=$true } catch { 
-      Write-Host -ForegroundColor red "No pipenv found in PATH - Installing pipenv running ``pip install pipenv``"
-    }
-    If ($null -eq $pipenv) {
-      python -m pip install pipenv
-      try { $null = gcm pyenv -ea stop; $pyenv=$true } catch { }
-      If ($pyenv) {
-        pyenv rehash
-      }
-    }
-    # our default is pipenv to use its own virtualenv and be in project directory
-    $Env:PIPENV_IGNORE_VIRTUALENVS=1
-    $Env:PIPENV_VENV_IN_PROJECT=1
-    pipenv install
-    $pipenv=$true
+If ($uv) {
+    Write-Host "Setting up python environnement with uv"
+    # install from lockfile
+    uv sync --frozen
 }
 
 # Check Julia environment --- 
@@ -50,7 +33,7 @@ try {$null = gcm julia -ea stop; $julia=$true } catch {
 If ($julia) {
   # TODO: Check to do equivalent of virtualenv
   Write-Host "Setting up Julia environment"
-  julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
+  uv run --frozen julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(`"IJulia`"); Pkg.precompile()"
 }
 
 # Check TinyTeX

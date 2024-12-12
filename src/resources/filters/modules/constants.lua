@@ -39,6 +39,8 @@ local kDataCodeCellLines = 'data-code-lines'
 local kDataCodeCellAnnotation = 'data-code-annotation'
 local kDataCodeAnnonationClz = 'code-annotation-code'
 local kCodeAnnotationStyleNone = "none"
+local kCodeAnnotationStyleHover = "hover"
+local kCodeAnnotationStyleSelect = "select"
 local kCodeLine = "code-line"
 local kCodeLines = "code-lines"
 local kCellAnnotationClass = "cell-annotation"
@@ -155,6 +157,9 @@ local kBackgroundColorWarning = "fcefdc"
 local kBackgroundColorTip = "ccf1e3"
 local kBackgroundColorCaution = "ffe5d0"
 
+-- Pandoc classes for incremental flag
+local kIncremental = "incremental"
+local kNonIncremental = "nonincremental"
 
 return {
   kCitation = kCitation,
@@ -194,6 +199,8 @@ return {
   kDataCodeCellAnnotation = kDataCodeCellAnnotation,
   kDataCodeAnnonationClz = kDataCodeAnnonationClz,
   kCodeAnnotationStyleNone = kCodeAnnotationStyleNone,
+  kCodeAnnotationStyleHover = kCodeAnnotationStyleHover,
+  kCodeAnnotationStyleSelect = kCodeAnnotationStyleSelect,
   kCodeLine = kCodeLine,
   kCodeLines = kCodeLines,
   kCellAnnotationClass = kCellAnnotationClass,
@@ -245,4 +252,7 @@ return {
   kBackgroundColorWarning = kBackgroundColorWarning,
   kBackgroundColorTip = kBackgroundColorTip,
   kBackgroundColorCaution = kBackgroundColorCaution,
+
+  kIncremental = kIncremental,
+  kNonIncremental = kNonIncremental
 }

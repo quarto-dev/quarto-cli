@@ -4,17 +4,17 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync } from "../deno_ral/fs.ts";
 import { dirname } from "../deno_ral/path.ts";
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 import * as log from "../deno_ral/log.ts";
-import { LogRecord } from "log/logger.ts";
-import { BaseHandler } from "log/base_handler.ts";
-import { FileHandler } from "log/file_handler.ts";
+import { LogRecord } from "log/logger";
+import { BaseHandler } from "log/base-handler";
+import { FileHandler } from "log/file-handler";
 import { Command } from "cliffy/command/mod.ts";
 
 import { getenv } from "./env.ts";
-import { Args } from "flags/mod.ts";
+import { Args } from "flags";
 import { lines } from "./text.ts";
 import { debug, error, getLogger, setup, warning } from "../deno_ral/log.ts";
 import { asErrorEx, InternalError } from "./lib/error.ts";
@@ -186,11 +186,19 @@ export class LogEventsHandler extends StdErrOutputHandler {
 }
 
 export class LogFileHandler extends FileHandler {
+  logger: FileHandler;
   constructor(levelName: log.LevelName, options: LogFileHandlerOptions) {
     super(levelName, options);
+    this.logger = new FileHandler(levelName, options);
+    this.logger.setup();
     this.msgFormat = options.format;
+    this.logger.formatter = this.format.bind(this);
   }
   msgFormat;
+
+  flush(): void {
+    this.logger.flush();
+  }
 
   format(logRecord: LogRecord): string {
     // Messages that start with a carriage return are progress messages
@@ -229,19 +237,8 @@ export class LogFileHandler extends FileHandler {
   async log(msg: string) {
     // Ignore any messages that are blank
     if (msg !== "") {
-      // Strip any color information that may have been applied
-      msg = colors.stripColor(msg);
-      if (!this._file) {
-        throw new Error("Internal error: logging file not open");
-      }
-      let buf = this._encoder.encode(msg);
-      let total = 0;
-      while (total < buf.length) {
-        const offset = this._file.writeSync(buf);
-        total += offset;
-        buf = buf.subarray(offset);
-      }
-      Deno.fsyncSync(this._file.rid);
+      this.logger.log(msg);
+      this.flush();
     }
   }
 }
@@ -252,7 +249,15 @@ interface LogFileHandlerOptions {
   format?: "plain" | "json-stream";
 }
 
-export async function initializeLogger(logOptions: LogOptions) {
+export function flushLoggers(handlers: Record<string, BaseHandler>) {
+  if (handlers["file"]) {
+    (handlers["file"] as LogFileHandler).flush();
+  }
+}
+
+export async function initializeLogger(
+  logOptions: LogOptions,
+): Promise<Record<string, BaseHandler>> {
   const handlers: Record<string, BaseHandler> = {};
   const defaultHandlers = [];
   const file = logOptions.log;
@@ -299,6 +304,8 @@ export async function initializeLogger(logOptions: LogOptions) {
   });
 
   onCleanup(cleanupLogger);
+
+  return handlers;
 }
 
 export async function cleanupLogger() {

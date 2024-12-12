@@ -235,6 +235,22 @@ local function tcontains(t, value)
   return false
 end
 
+
+local function sortedPairs(t, f)
+  local a = {}
+  for n in pairs(t) do table.insert(a, n) end
+  table.sort(a, f)
+  local i = 0      -- iterator variable
+  local iter = function()   -- iterator function
+      i = i + 1
+      if a[i] == nil then return nil
+      else return a[i], t[a[i]]
+      end
+  end
+  return iter
+end
+
+
 local function get_type(v)
   local pandoc_type = pandoc.utils.type(v)
   if pandoc_type == "Inline" then
@@ -249,59 +265,75 @@ local function get_type(v)
   return pandoc_type
 end
 
-local function as_inlines(v)
-  if v == nil then
-    return pandoc.Inlines({})
-  end
-  local t = pandoc.utils.type(v)
-  if t == "Inlines" then
-    ---@cast v pandoc.Inlines
-    return v
-  elseif t == "Blocks" then
-    return pandoc.utils.blocks_to_inlines(v)
-  elseif t == "Inline" then
-    return pandoc.Inlines({v})
-  elseif t == "Block" then
-    return pandoc.utils.blocks_to_inlines({v})
-  end
+--- Blocks metatable
+local BlocksMT = getmetatable(pandoc.Blocks{})
+--- Inlines metatable
+local InlinesMT = getmetatable(pandoc.Inlines{})
 
-  if type(v) == "table" then
-    local result = pandoc.Inlines({})
-    for i, v in ipairs(v) do
-      tappend(result, as_inlines(v))
+--- Turns the given object into a `Inlines` list.
+--
+-- Works mostly like `pandoc.Inlines`, but doesn't a do a full
+-- unmarshal/marshal roundtrip. This buys performance, at the cost of
+-- less thorough type checks.
+--
+-- NOTE: The input object might be modified *destructively*!
+local function as_inlines(obj)
+  local pt = pandoc.utils.type(obj)
+  if pt == 'Inlines' then
+    return obj
+  elseif pt == "Inline" then
+    -- Faster than calling pandoc.Inlines
+    return setmetatable({obj}, InlinesMT)
+  elseif pt == 'List' or pt == 'table' then
+    if obj[1] and pandoc.utils.type(obj[1]) == 'Block' then
+      return pandoc.utils.blocks_to_inlines(obj)
     end
-    return result
+    -- Faster than calling pandoc.Inlines
+    return setmetatable(obj, InlinesMT)
+  elseif pt == "Block" then
+    return pandoc.utils.blocks_to_inlines({obj})
+  elseif pt == "Blocks" then
+    return pandoc.utils.blocks_to_inlines(obj)
+  else
+    return pandoc.Inlines(obj or {})
   end
-
-  -- luacov: disable
-  fatal("as_inlines: invalid type " .. t)
-  return pandoc.Inlines({})
-  -- luacov: enable
 end
 
-local function as_blocks(v)
-  if v == nil then
-    return pandoc.Blocks({})
+--- Turns the given object into a `Blocks` list.
+--
+-- Works mostly like `pandoc.Blocks`, but doesn't a do a full
+-- unmarshal/marshal roundtrip. This buys performance, at the cost of
+-- less thorough type checks.
+--
+-- NOTE: The input object might be modified *destructively*!
+--
+-- This might need some benchmarking.
+local function as_blocks(obj)
+  local pt = pandoc.utils.type(obj)
+  if pt == 'Blocks' then
+    return obj
+  elseif pt == 'Block' then
+    -- Assigning a metatable directly is faster than calling
+    -- `pandoc.Blocks`.
+    return setmetatable({obj}, BlocksMT)
+  elseif pt == 'Inline' then
+    return setmetatable({pandoc.Plain{obj}}, BlocksMT)
+  elseif pt == 'Inlines' then
+    if next(obj) then
+      return setmetatable({pandoc.Plain(obj)}, BlocksMT)
+    end
+    return setmetatable({}, BlocksMT)
+  elseif pt == 'List' or (pt == 'table' and obj[1]) then
+    if pandoc.utils.type(obj[1]) == 'Inline' then
+      obj = {pandoc.Plain(obj)}
+    end
+    return setmetatable(obj, BlocksMT)
+  elseif (pt == 'table' and obj.long) or pt == 'Caption' then
+    -- Looks like a Caption
+    return as_blocks(obj.long)
+  else
+    return pandoc.Blocks(obj or {})
   end
-  local t = pandoc.utils.type(v)
-  if t == "Blocks" then
-    return v
-  elseif t == "Inlines" then
-    return pandoc.Blocks({pandoc.Plain(v)})
-  elseif t == "Block" then
-    return pandoc.Blocks({v})
-  elseif t == "Inline" then
-    return pandoc.Blocks({pandoc.Plain(v)})
-  end
-
-  if type(v) == "table" then
-    return pandoc.Blocks(v)
-  end
-
-  -- luacov: disable
-  fatal("as_blocks: invalid type " .. t)
-  return pandoc.Blocks({})
-  -- luacov: enable
 end
 
 local function match_fun(reset, ...)
@@ -541,15 +573,43 @@ local function match(...)
   return match_fun(reset, table.unpack(result))
 end
 
+--- Returns `true` iff the given AST node is empty.
+-- A node is considered "empty" if it's an empty list, table, or a node
+-- without any text or nested AST nodes.
+local function is_empty_node (node)
+  if not node then
+    return true
+  elseif type(node) == 'table' then
+    -- tables are considered empty if they don't have any fields.
+    return not next(node)
+  elseif node.content then
+    return not next(node.content)
+  elseif node.caption then
+    -- looks like an image, figure, or table
+    if node.caption.long then
+      return not next(node.caption.long)
+    end
+    return not next(node.caption)
+  elseif node.text then
+    -- looks like a code node or text node
+    return node.text ~= ''
+  else
+    -- Not sure what this is, but it's probably not empty.
+    return false
+  end
+end
+
 return {
   dump = dump,
   type = get_type,
   table = {
     isarray = tisarray,
-    contains = tcontains
+    contains = tcontains,
+    sortedPairs = sortedPairs
   },
   as_inlines = as_inlines,
   as_blocks = as_blocks,
+  is_empty_node = is_empty_node,
   match = match,
   add_to_blocks = function(blocks, block)
     if pandoc.utils.type(blocks) ~= "Blocks" then

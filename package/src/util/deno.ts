@@ -5,6 +5,7 @@
 *
 */
 import { info } from "../../../src/deno_ral/log.ts";
+import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { Configuration } from "../common/config.ts";
 
 export async function bundle(
@@ -20,6 +21,7 @@ export async function bundle(
   }
   denoBundleCmd.push(denoExecPath);
   denoBundleCmd.push("bundle");
+  denoBundleCmd.push("--no-check");
   denoBundleCmd.push("--unstable-kv");
   denoBundleCmd.push("--unstable-ffi");
   denoBundleCmd.push(
@@ -131,7 +133,7 @@ export function updateDenoPath(installPath: string, _config: Configuration) {
     if (!denoExecPath) {
       throw Error("QUARTO_DENO is not defined");
     }
-    const finalTxt = Deno.build.os === "windows"
+    const finalTxt = isWindows
       ? installTxt.replace(
         /deno.exe /g,
         denoExecPath + " ",

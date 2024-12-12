@@ -139,6 +139,7 @@ function _callout_main()
   _quarto.ast.add_renderer("Callout", function(_) 
     return _quarto.format.isEpubOutput() or _quarto.format.isRevealJsOutput()
   end, function (node)
+    node = _quarto.modules.callouts.decorate_callout_title_with_crossref(node)
     local title = quarto.utils.as_inlines(node.title)
     local type = node.type
     local calloutAppearance = node.appearance
@@ -169,7 +170,7 @@ function _callout_main()
     end
   
     -- contents 
-    local calloutContents = pandoc.Div(node.content, pandoc.Attr("", {"callout-content"}))
+    local calloutContents = pandoc.Div(node.content or pandoc.Blocks({}), pandoc.Attr("", {"callout-content"}))
     calloutBody.content:insert(calloutContents)
   
     -- set attributes (including hiding icon)
@@ -231,6 +232,14 @@ function _callout_main()
   end, function(callout)
     ensure_typst_font_awesome()
 
+    local callout_theme_color_map = {
+      note = "primary",
+      warning = "warning",
+      important = "danger",
+      tip = "success",
+      caution = nil -- ?
+    }
+
     local attrs = _quarto.modules.callouts.callout_attrs[callout.type]
     local background_color, icon_color, icon
     if attrs == nil then
@@ -242,31 +251,44 @@ function _callout_main()
       icon_color = "rgb(\"#" .. attrs.color .. "\")";
       icon = attrs.fa_icon_typst
     end
-
-    local title = callout.title
-    if title == nil then
-      title = pandoc.Plain(_quarto.modules.callouts.displayName(callout.type))
+    local brand = param("brand")
+    if brand then
+      local color = brand.processedData and brand.processedData.color
+      if color and callout_theme_color_map[callout.type] and
+          color[callout_theme_color_map[callout.type]] then
+        background_color =  "brand-color-background." .. callout_theme_color_map[callout.type]
+        icon_color = "brand-color." .. callout_theme_color_map[callout.type]
+      end
+    end
+    if callout.attr.identifier == "" then
+      return _quarto.format.typst.function_call("callout", { 
+        { "body", _quarto.format.typst.as_typst_content(callout.content) },
+        { "title", _quarto.format.typst.as_typst_content(
+          (not quarto.utils.is_empty_node(callout.title) and callout.title) or
+          pandoc.Plain(_quarto.modules.callouts.displayName(callout.type))
+        )},
+        { "background_color", pandoc.RawInline("typst", background_color) },
+        { "icon_color", pandoc.RawInline("typst", icon_color) },
+        { "icon", pandoc.RawInline("typst", "" .. icon .. "()")}
+      })
     end
 
     local typst_callout = _quarto.format.typst.function_call("callout", { 
       { "body", _quarto.format.typst.as_typst_content(callout.content) },
-      { "title", _quarto.format.typst.as_typst_content(title) },
+      { "title", _quarto.format.typst.as_typst_content(callout.title, "inlines")
+       },
       { "background_color", pandoc.RawInline("typst", background_color) },
       { "icon_color", pandoc.RawInline("typst", icon_color) },
       { "icon", pandoc.RawInline("typst", "" .. icon .. "()")}
     })
-
-    if callout.attr.identifier == "" then
-      return typst_callout
-    end
 
     local category = crossref.categories.by_ref_type[refType(callout.attr.identifier)]
     return make_typst_figure {
       content = typst_callout,
       caption_location = "top",
       caption = pandoc.Plain(pandoc.Str("")),
-      kind = "quarto-callout-" .. callout.type,
-      supplement = category.name,
+      kind = "quarto-callout-" .. _quarto.modules.callouts.displayName(callout.type),
+      supplement = param("crossref-" .. callout.type .. "-prefix") or category.name,
       numbering = "1",
       identifier = callout.attr.identifier
     }

@@ -1,0 +1,27 @@
+---
+title: Testing floatref div in pptx
+format: pptx
+_quarto:
+  tests:
+    pptx:
+      ensurePptxXpath:
+      - 
+        - 2
+        - 
+          - '//p:pic'
+          - '//a:t[contains(text(),"Figure 1")]'
+        - []
+---
+
+## slide with fig div
+
+::: {#fig-graph1}
+
+```{r}
+#| echo: false
+plot(1:10)
+```
+
+A graph
+
+:::

@@ -15,8 +15,15 @@ function fail(message, level)
   end
 end
 
-function internal_error()
-  fail("This is an internal error. Please file a bug report at https://github.com/quarto-dev/quarto-cli/", 5)
+function internal_error(msg, level)
+  fail((msg and (msg .. '\n') or '') ..
+    "This is an internal error. Please file a bug report at https://github.com/quarto-dev/quarto-cli/", level or 5)
+end
+
+function quarto_assert (test, msg, level)
+  if not test then
+    internal_error(msg, level or 6)
+  end
 end
 
 function currentFile() 

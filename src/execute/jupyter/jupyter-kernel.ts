@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 import { join } from "../../deno_ral/path.ts";
 import { error, info, warning } from "../../deno_ral/log.ts";
 
@@ -35,6 +35,7 @@ import {
 
 import { ExecuteOptions } from "../types.ts";
 import { normalizePath } from "../../core/path.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 
 export interface JupyterExecuteOptions extends ExecuteOptions {
   kernelspec: JupyterKernelspec;
@@ -72,7 +73,7 @@ export async function executeKernelKeepalive(
   // if we are in debug mode then tail follow the log file
   let serverLogProcess: Deno.Process | undefined;
   if (options.format.execute[kExecuteDebug]) {
-    if (Deno.build.os !== "windows") {
+    if (!isWindows) {
       serverLogProcess = Deno.run({
         cmd: ["tail", "-F", "-n", "0", kernelLogFile()],
       });
@@ -148,7 +149,7 @@ export async function executeKernelKeepalive(
     // in that case remove the connection file and re-throw the exception
     const transportFile = kernelTransportFile(options.target.input);
     if (existsSync(transportFile)) {
-      Deno.removeSync(transportFile);
+      safeRemoveSync(transportFile);
     }
     throw e;
   } finally {
@@ -174,7 +175,7 @@ async function abortKernel(options: JupyterExecuteOptions) {
     } finally {
       const transportFile = kernelTransportFile(options.target.input);
       if (existsSync(transportFile)) {
-        Deno.removeSync(transportFile);
+        safeRemoveSync(transportFile);
       }
       conn.close();
     }
@@ -360,7 +361,7 @@ function readKernelTransportFile(
           "Error reading kernel transport file: " + e.toString() +
             "(removing file)",
         );
-        Deno.removeSync(transportFile);
+        safeRemoveSync(transportFile);
         return null;
       }
     } else {
@@ -392,7 +393,7 @@ async function connectToKernel(
   // note also that the entire preview subsystem requires the ability to bind to tcp ports
   // so this isn't really taking us into new compatibility waters
   /*
-  const type = Deno.build.os === "windows" || transportFile.length >= 100
+  const type = isWindows || transportFile.length >= 100
     ? "tcp"
     : "unix";
   */
@@ -408,7 +409,7 @@ async function connectToKernel(
     } catch {
       // remove the transport file
       if (existsSync(transportFile)) {
-        Deno.removeSync(transportFile);
+        safeRemoveSync(transportFile);
       }
     }
   }
@@ -453,7 +454,7 @@ async function connectToKernel(
         return await denoConnectToKernel(kernelTransport);
       } catch (e) {
         // remove the transport file
-        Deno.removeSync(transportFile);
+        safeRemoveSync(transportFile);
         error("Error connecting to Jupyter kernel: " + e.toString());
         return Promise.reject();
       }

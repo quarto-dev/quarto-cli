@@ -104,21 +104,84 @@ function initShortcodeHandlers()
     end)
   end
 
-  local function handle_brand(args)
+  local function handle_contents(args)
+    local data = {
+      type = "contents-shortcode",
+      payload = {
+        id = read_arg(args)
+      }
+    }
+    flags.has_contents_shortcode = true
+    return { pandoc.RawInline('quarto-internal', quarto.json.encode(data)) }
+  end
+
+  local function handle_brand(args, _kwargs, _meta, _raw_args, context)
     local brand = require("modules/brand/brand")
     local brandCommand = read_arg(args, 1)
-    if brandCommand ~= "color" then 
+
+    local warn_bad_brand_command = function()
       warn("Unknown brand command " .. brandCommand .. " specified in a brand shortcode.")
-      return { pandoc.Strong({pandoc.Str("?brand:" .. brandCommand)}) } 
+      if context == "block" then
+        return pandoc.Blocks { pandoc.Strong({pandoc.Str("?brand:" .. table.concat(args, " "))}) }
+      elseif context == "inline" then
+        return pandoc.Inlines { pandoc.Strong({pandoc.Str("?brand:" .. table.concat(args, " "))}) }
+      elseif context == "text" then
+        return "?brand:" .. table.concat(args, " ")
+      else
+        warn("Unknown context for brand shortcode error: " .. context)
+        return { }
+      end
     end
-    local brandName = read_arg(args, 2)
-    local brandValue = brand.get_color(brandName)
-    if brandValue ~= nil then
-      return { pandoc.Str(brandValue) }
-    else 
-      warn("Unknown brand " .. brandName .. " specified in a brand shortcode.")
-      return { pandoc.Strong({pandoc.Str("?brand:" .. brandName)}) } 
+
+    if brandCommand == "color" then 
+      local color_name = read_arg(args, 2)
+      local color_value = brand.get_color(color_name)
+      if color_value == nil then
+        return warn_bad_brand_command()
+      else
+        return pandoc.Inlines { pandoc.Str(color_value) }
+      end
     end
+
+    if brandCommand == "logo" then
+      local logo_name = read_arg(args, 2)
+      local logo_value = brand.get_logo(logo_name)
+      local entry = { path = nil }
+
+      if type(logo_value) ~= "table" then
+        warn("unexpected logo value entry: " .. type(logo_value))
+        return warn_bad_brand_command()
+      end
+
+      quarto.utils.dump(logo_value)
+
+      -- does this have light/dark variants?
+      -- TODO handle light-dark theme switching
+      if logo_value.light then
+        entry = logo_value.light
+      else
+        entry = logo_value
+      end
+
+      if type(entry.path) ~= "string" then
+        warn("unexpected type in logo light entry: " .. type(entry.path))
+        return warn_bad_brand_command()
+      end
+
+      -- TODO fix alt text handling
+      if context == "block" then
+        return pandoc.Blocks { pandoc.Image(pandoc.Inlines {}, entry.path) }
+      elseif context == "inline" then
+        return pandoc.Inlines { pandoc.Image(pandoc.Inlines {}, entry.path) }
+      elseif context == "text" then
+        return entry.path
+      else
+        warn("unexpected context for logo shortcode: " .. context)
+        return warn_bad_brand_command()
+      end
+    end
+
+    return warn_bad_brand_command()
   end
 
   -- built in handlers (these override any user handlers)
@@ -127,6 +190,7 @@ function initShortcodeHandlers()
   handlers['env'] = { handle = handleEnv }
   handlers['pagebreak'] = { handle = handlePagebreak }
   handlers['brand'] = { handle = handle_brand }
+  handlers['contents'] = { handle = handle_contents }
 end
 
 function handlerForShortcode(shortCode)

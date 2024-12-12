@@ -13,6 +13,7 @@ references:
 ---
 
 ```{python}
+#| classes: plain
 import pandas as pd
 import numpy as np
 

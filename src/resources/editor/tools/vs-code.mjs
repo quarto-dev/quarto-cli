@@ -8220,9 +8220,18 @@ var require_yaml_intelligence_resources = __commonJS({
           tags: {
             engine: "knitr"
           },
-          schema: "boolean",
+          schema: {
+            enum: [
+              true,
+              false,
+              "NA"
+            ]
+          },
           default: true,
-          description: "Include messages in rendered output."
+          description: {
+            short: "Include messages in rendered output.",
+            long: "Include messages in rendered output. Possible values are `true`, `false`, or `NA`. \nIf `true`, messages are included in the output. If `false`, messages are not included. \nIf `NA`, messages are not included in output but shown in the knitr log to console.\n"
+          }
         },
         {
           name: "results",
@@ -8455,6 +8464,7 @@ var require_yaml_intelligence_resources = __commonJS({
             "page",
             "page-left",
             "page-right",
+            "page-inset",
             "page-inset-left",
             "page-inset-right",
             "screen",
@@ -11830,6 +11840,11 @@ var require_yaml_intelligence_resources = __commonJS({
                             description: "The brand's Mastodon URL."
                           }
                         },
+                        bluesky: {
+                          string: {
+                            description: "The brand's Bluesky URL."
+                          }
+                        },
                         github: {
                           string: {
                             description: "The brand's GitHub URL."
@@ -11880,46 +11895,76 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-logo",
-          description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
+          id: "brand-logo-explicit-resource",
+          object: {
+            closed: true,
+            properties: {
+              path: "path",
+              alt: {
+                schema: "string",
+                description: "Alternative text for the logo, used for accessibility.\n"
+              }
+            },
+            required: [
+              "path"
+            ]
+          }
+        },
+        {
+          id: "brand-logo-resource",
           anyOf: [
             "string",
             {
-              object: {
-                closed: true,
-                properties: {
-                  with: {
-                    schema: {
-                      object: {
-                        additionalProperties: {
-                          schema: {
-                            ref: "brand-string-light-dark"
-                          }
-                        }
+              ref: "brand-logo-explicit-resource"
+            }
+          ]
+        },
+        {
+          id: "brand-logo",
+          description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
+          object: {
+            closed: true,
+            properties: {
+              images: {
+                description: "A dictionary of named logo resources.",
+                schema: {
+                  object: {
+                    additionalProperties: {
+                      schema: {
+                        ref: "brand-logo-resource"
                       }
-                    }
-                  },
-                  small: {
-                    description: "A link or path to the brand's small-sized logo or icon, or a link or path to both the light and dark versions.\n",
-                    schema: {
-                      ref: "brand-string-light-dark"
-                    }
-                  },
-                  medium: {
-                    description: "A link or path to the brand's medium-sized logo, or a link or path to both the light and dark versions.\n",
-                    schema: {
-                      ref: "brand-string-light-dark"
-                    }
-                  },
-                  large: {
-                    description: "A link or path to the brand's large- or full-sized logo, or a link or path to both the light and dark versions.\n",
-                    schema: {
-                      ref: "brand-string-light-dark"
                     }
                   }
                 }
+              },
+              small: {
+                description: "A link or path to the brand's small-sized logo or icon, or a link or path to both the light and dark versions.\n",
+                schema: {
+                  ref: "brand-string-light-dark"
+                }
+              },
+              medium: {
+                description: "A link or path to the brand's medium-sized logo, or a link or path to both the light and dark versions.\n",
+                schema: {
+                  ref: "brand-string-light-dark"
+                }
+              },
+              large: {
+                description: "A link or path to the brand's large- or full-sized logo, or a link or path to both the light and dark versions.\n",
+                schema: {
+                  ref: "brand-string-light-dark"
+                }
               }
             }
+          }
+        },
+        {
+          id: "brand-named-logo",
+          description: "Names of customizeable logos",
+          enum: [
+            "small",
+            "medium",
+            "large"
           ]
         },
         {
@@ -11932,10 +11977,9 @@ var require_yaml_intelligence_resources = __commonJS({
           object: {
             closed: true,
             properties: {
-              with: {
+              palette: {
                 description: "The brand's custom color palette. Any number of colors can be defined, each color having a custom name.\n",
                 object: {
-                  closed: false,
                   additionalProperties: {
                     schema: {
                       ref: "brand-color-value"
@@ -12011,12 +12055,6 @@ var require_yaml_intelligence_resources = __commonJS({
                   ref: "brand-color-value"
                 }
               },
-              emphasis: {
-                description: "A color used to emphasize or highlight text or elements.\n",
-                schema: {
-                  ref: "brand-color-value"
-                }
-              },
               link: {
                 description: "The color used for hyperlinks. If not defined, the `primary` color is used.\n",
                 schema: {
@@ -12053,7 +12091,6 @@ var require_yaml_intelligence_resources = __commonJS({
             "danger",
             "light",
             "dark",
-            "emphasis",
             "link"
           ]
         },
@@ -12063,126 +12100,227 @@ var require_yaml_intelligence_resources = __commonJS({
           object: {
             closed: true,
             properties: {
-              with: {
+              fonts: {
                 description: "Font files and definitions for the brand.",
-                ref: "brand-font"
+                arrayOf: {
+                  ref: "brand-font"
+                }
               },
               base: {
                 description: "The base font settings for the brand. These are used as the default for all text.\n",
-                ref: "brand-typography-options"
+                ref: "brand-typography-options-base"
               },
               headings: {
-                description: "The font settings for headings.\n",
-                ref: "brand-typography-options-no-size"
+                description: "Settings for headings, or a string specifying the font family only.",
+                ref: "brand-typography-options-headings"
               },
               monospace: {
-                description: "The font settings for monospace text. Color in this context refers to inline code.\n",
-                ref: "brand-typography-options"
+                description: "Settings for monospace text, or a string specifying the font family only.",
+                ref: "brand-typography-options-monospace"
               },
-              emphasis: {
-                description: "The text properties used for emphasized (or emboldened) text.",
-                object: {
-                  closed: true,
-                  properties: {
-                    weight: {
-                      ref: "brand-font-weight"
-                    },
-                    color: {
-                      ref: "brand-maybe-named-color"
-                    },
-                    "background-color": {
-                      ref: "brand-maybe-named-color"
-                    }
-                  }
-                }
+              "monospace-inline": {
+                description: "Settings for inline code, or a string specifying the font family only.",
+                ref: "brand-typography-options-monospace-inline"
+              },
+              "monospace-block": {
+                description: "Settings for code blocks, or a string specifying the font family only.",
+                ref: "brand-typography-options-monospace-block"
               },
               link: {
-                description: "The text properties used for hyperlinks.",
-                object: {
-                  closed: true,
-                  properties: {
-                    weight: {
-                      ref: "brand-font-weight"
-                    },
-                    decoration: "string",
-                    color: {
-                      schema: {
-                        ref: "brand-maybe-named-color"
-                      },
-                      default: "primary"
-                    },
-                    "background-color": {
-                      ref: "brand-maybe-named-color"
-                    }
+                description: "Settings for links.",
+                ref: "brand-typography-options-link"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-typography-options-base",
+          description: "Base typographic options.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  "line-height": {
+                    ref: "line-height-number-string"
                   }
                 }
               }
             }
-          }
+          ]
         },
         {
-          id: "brand-typography-options",
-          description: "Typographic options.",
-          object: {
-            closed: true,
-            properties: {
-              family: "string",
-              size: "string",
-              "line-height": "string",
-              weight: {
-                ref: "brand-font-weight"
-              },
-              style: {
-                ref: "brand-font-style"
-              },
-              color: {
-                ref: "brand-maybe-named-color"
-              },
-              "background-color": {
-                ref: "brand-maybe-named-color"
+          id: "brand-typography-options-headings",
+          description: "Typographic options for headings.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  style: {
+                    ref: "brand-font-style"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color"
+                  },
+                  "line-height": {
+                    ref: "line-height-number-string"
+                  }
+                }
               }
             }
-          }
+          ]
         },
         {
-          id: "brand-typography-options-no-size",
-          description: "Typographic options without a font size.",
-          object: {
-            closed: true,
-            properties: {
-              family: "string",
-              "line-height": "string",
-              weight: {
-                ref: "brand-font-weight"
-              },
-              style: {
-                ref: "brand-font-style"
-              },
-              color: {
-                ref: "brand-maybe-named-color"
-              },
-              "background-color": {
-                ref: "brand-maybe-named-color"
+          id: "brand-typography-options-monospace",
+          description: "Typographic options for monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color"
+                  }
+                }
               }
             }
-          }
+          ]
+        },
+        {
+          id: "brand-typography-options-monospace-inline",
+          description: "Typographic options for inline monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "line-height-number-string",
+          description: "Line height",
+          anyOf: [
+            "number",
+            "string"
+          ]
+        },
+        {
+          id: "brand-typography-options-monospace-block",
+          description: "Typographic options for block monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color"
+                  },
+                  "line-height": {
+                    ref: "line-height-number-string"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-typography-options-link",
+          description: "Typographic options for inline monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color"
+                  },
+                  decoration: "string"
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-named-font",
+          description: "Names of customizeable fonts",
+          enum: [
+            "base",
+            "headings",
+            "monospace"
+          ]
         },
         {
           id: "brand-font",
           description: "Font files and definitions for the brand.",
-          arrayOf: {
-            anyOf: [
-              {
-                ref: "brand-font-google"
-              },
-              {
-                ref: "brand-font-file"
-              },
-              {
-                ref: "brand-font-family"
-              }
-            ]
-          }
+          anyOf: [
+            {
+              ref: "brand-font-google"
+            },
+            {
+              ref: "brand-font-bunny"
+            },
+            {
+              ref: "brand-font-file"
+            },
+            {
+              ref: "brand-font-system"
+            },
+            {
+              ref: "brand-font-common"
+            }
+          ]
         },
         {
           id: "brand-font-weight",
@@ -12196,7 +12334,20 @@ var require_yaml_intelligence_resources = __commonJS({
             600,
             700,
             800,
-            900
+            900,
+            "thin",
+            "extra-light",
+            "ultra-light",
+            "light",
+            "normal",
+            "regular",
+            "medium",
+            "semi-bold",
+            "demi-bold",
+            "bold",
+            "extra-bold",
+            "ultra-bold",
+            "black"
           ],
           default: 400
         },
@@ -12205,61 +12356,102 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "A font style.",
           enum: [
             "normal",
-            "italic"
+            "italic",
+            "oblique"
           ],
           default: "normal"
         },
         {
-          id: "brand-font-google",
-          description: "A Google Font definition.",
+          id: "brand-font-common",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                family: {
+                  description: "The font family name, which must match the name of the font on the foundry website.",
+                  schema: "string"
+                },
+                weight: {
+                  description: "The font weights to include.",
+                  maybeArrayOf: {
+                    ref: "brand-font-weight"
+                  },
+                  default: [
+                    400,
+                    700
+                  ]
+                },
+                style: {
+                  description: "The font styles to include.",
+                  maybeArrayOf: {
+                    ref: "brand-font-style"
+                  },
+                  default: [
+                    "normal",
+                    "italic"
+                  ]
+                },
+                display: {
+                  description: "The font display method, determines how a font face is font face is shown depending on its download status and readiness for use.\n",
+                  enum: [
+                    "auto",
+                    "block",
+                    "swap",
+                    "fallback",
+                    "optional"
+                  ],
+                  default: "swap"
+                }
+              }
+            }
+          }
+        },
+        {
+          id: "brand-font-system",
+          description: "A system font definition.",
           object: {
+            super: {
+              resolveRef: "brand-font-common"
+            },
             closed: true,
             properties: {
-              google: {
-                anyOf: [
-                  "string",
-                  {
-                    object: {
-                      closed: true,
-                      properties: {
-                        family: {
-                          description: "The font family name, which must match the name of the font on Google Fonts.",
-                          schema: "string"
-                        },
-                        weight: {
-                          description: "The font weights to include.",
-                          maybeArrayOf: {
-                            ref: "brand-font-weight"
-                          },
-                          default: [
-                            400,
-                            700
-                          ]
-                        },
-                        style: {
-                          description: "The font style to include.",
-                          maybeArrayOf: {
-                            ref: "brand-font-style"
-                          },
-                          default: [
-                            "normal",
-                            "italic"
-                          ]
-                        },
-                        display: {
-                          description: "The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use.\n",
-                          enum: [
-                            "auto",
-                            "block",
-                            "swap",
-                            "fallback",
-                            "optional"
-                          ],
-                          default: "swap"
-                        }
-                      }
-                    }
-                  }
+              source: {
+                enum: [
+                  "system"
+                ]
+              }
+            }
+          }
+        },
+        {
+          id: "brand-font-google",
+          description: "A font definition from Google Fonts.",
+          object: {
+            super: {
+              resolveRef: "brand-font-common"
+            },
+            closed: true,
+            properties: {
+              source: {
+                enum: [
+                  "google"
+                ]
+              }
+            }
+          }
+        },
+        {
+          id: "brand-font-bunny",
+          description: "A font definition from fonts.bunny.net.",
+          object: {
+            super: {
+              resolveRef: "brand-font-common"
+            },
+            closed: true,
+            properties: {
+              source: {
+                enum: [
+                  "bunny"
                 ]
               }
             }
@@ -12271,20 +12463,50 @@ var require_yaml_intelligence_resources = __commonJS({
           object: {
             closed: true,
             properties: {
+              source: {
+                enum: [
+                  "file"
+                ]
+              },
               family: {
                 description: "The font family name.",
                 schema: "string"
               },
               files: {
-                maybeArrayOf: {
+                arrayOf: {
                   anyOf: [
                     "path",
-                    "string"
+                    {
+                      schema: {
+                        object: {
+                          properties: {
+                            path: {
+                              schema: "path",
+                              description: "The path to the font file. This can be a local path or a URL.\n"
+                            },
+                            weight: {
+                              ref: "brand-font-weight"
+                            },
+                            style: {
+                              ref: "brand-font-style"
+                            }
+                          },
+                          required: [
+                            "path"
+                          ]
+                        }
+                      }
+                    }
                   ]
                 },
                 description: "The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs.\n"
               }
-            }
+            },
+            required: [
+              "files",
+              "family",
+              "source"
+            ]
           }
         },
         {
@@ -12310,7 +12532,42 @@ var require_yaml_intelligence_resources = __commonJS({
                 ref: "brand-typography"
               },
               defaults: {
+                ref: "brand-defaults"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-defaults",
+          object: {
+            properties: {
+              bootstrap: {
+                ref: "brand-defaults-bootstrap"
+              },
+              quarto: {
                 schema: "object"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-defaults-bootstrap",
+          object: {
+            properties: {
+              defaults: {
+                schema: {
+                  object: {
+                    additionalProperties: {
+                      schema: {
+                        anyOf: [
+                          "string",
+                          "boolean",
+                          "number"
+                        ]
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -15359,7 +15616,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "number",
           description: {
             short: "Target page width for output (used to compute columns widths for `layout` divs)\n",
-            long: "Target page width for output (used to compute columns widths for `layout` divs).\nDefaults to 6.5 inches, which corresponds to default letter page settings in \ndocx and odt.\n"
+            long: "Target body page width for output (used to compute columns widths for `layout` divs).\nDefaults to 6.5 inches, which corresponds to default letter page settings in \ndocx and odt (8.5 inches with 1 inch for each margins).\n"
           }
         },
         {
@@ -16423,6 +16680,19 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Use the specified file as a style reference in producing a docx, \npptx, or odt file.\n"
         },
         {
+          name: "brand",
+          schema: {
+            anyOf: [
+              "string",
+              "boolean",
+              {
+                ref: "brand"
+              }
+            ]
+          },
+          description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition.\n"
+        },
+        {
           name: "theme",
           tags: {
             formats: [
@@ -17436,10 +17706,16 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "logo",
           tags: {
             formats: [
-              "revealjs"
+              "revealjs",
+              "typst"
             ]
           },
-          schema: "path",
+          schema: {
+            anyOf: [
+              "string",
+              "object"
+            ]
+          },
           description: "Logo image (placed in bottom right corner of slides)"
         },
         {
@@ -18147,6 +18423,17 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "boolean",
           default: false,
           description: "Play a subtle sound when changing slides"
+        },
+        {
+          name: "jump-to-slide",
+          tags: {
+            formats: [
+              "revealjs"
+            ]
+          },
+          schema: "boolean",
+          default: true,
+          description: "Deactivate jump to slide feature."
         }
       ],
       "schema/document-reveal-print.yml": [
@@ -18344,6 +18631,66 @@ var require_yaml_intelligence_resources = __commonJS({
                     secret: {
                       string: {
                         description: "Secret provided by multiplex token server"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          name: "scroll-view",
+          description: "Control the scroll view feature of Revealjs",
+          tags: {
+            formats: [
+              "revealjs"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                object: {
+                  properties: {
+                    activate: {
+                      boolean: {
+                        default: true,
+                        description: "Activate scroll view by default for the presentation. Otherwise, it is manually avalaible by adding `?view=scroll` to url."
+                      }
+                    },
+                    progress: {
+                      anyOf: [
+                        "boolean",
+                        {
+                          enum: [
+                            "auto"
+                          ]
+                        }
+                      ],
+                      default: "auto",
+                      description: "Show the scrollbar while scrolling, hide while idle (default `auto`). Set to 'true' to always show, `false` to always hide."
+                    },
+                    snap: {
+                      enum: [
+                        "mandatory",
+                        "proximity",
+                        false
+                      ],
+                      default: "mandatory",
+                      description: "When scrolling, it will automatically snap to the closest slide. Only snap when close to the top of a slide using `proximity`. Disable snapping altogether by setting to `false`.\n"
+                    },
+                    layout: {
+                      enum: [
+                        "compact",
+                        "full"
+                      ],
+                      default: "full",
+                      description: "By default each slide will be sized to be as tall as the viewport. If you prefer a more dense layout with multiple slides visible in parallel, set to `compact`.\n"
+                    },
+                    "activation-width": {
+                      number: {
+                        description: "Control scroll view activation width. The scroll view is automatically unable when the viewport reaches mobile widths. Set to `0` to disable automatic scroll view.\n"
                       }
                     }
                   }
@@ -19600,6 +19947,9 @@ var require_yaml_intelligence_resources = __commonJS({
             super: {
               resolveRef: "schema/base"
             },
+            required: [
+              "enum"
+            ],
             properties: {
               enum: {
                 anyOf: [
@@ -19630,22 +19980,38 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           id: "schema/null",
-          object: {
-            closed: true,
-            super: {
-              resolveRef: "schema/base"
+          anyOf: [
+            {
+              enum: [
+                "null"
+              ]
             },
-            properties: {
-              null: {
-                ref: "schema/schema"
+            {
+              object: {
+                closed: true,
+                required: [
+                  "null"
+                ],
+                properties: {
+                  null: {
+                    anyOf: [
+                      {
+                        ref: "schema/base"
+                      }
+                    ]
+                  }
+                }
               }
             }
-          }
+          ]
         },
         {
           id: "schema/explicit-schema",
           object: {
             closed: true,
+            required: [
+              "schema"
+            ],
             super: {
               resolveRef: "schema/base"
             },
@@ -19657,16 +20023,52 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "schema/explicit-pattern-string",
+          object: {
+            closed: true,
+            super: {
+              resolveRef: "schema/base"
+            },
+            required: [
+              "pattern"
+            ],
+            properties: {
+              pattern: "string"
+            }
+          }
+        },
+        {
           id: "schema/string",
           anyOf: [
+            {
+              enum: [
+                "string",
+                "path"
+              ]
+            },
+            {
+              ref: "schema/explicit-pattern-string"
+            },
             {
               object: {
                 closed: true,
                 super: {
                   resolveRef: "schema/base"
                 },
+                required: [
+                  "path"
+                ],
                 properties: {
-                  pattern: "string"
+                  path: {
+                    anyOf: [
+                      {
+                        ref: "schema/explicit-pattern-string"
+                      },
+                      {
+                        ref: "schema/base"
+                      }
+                    ]
+                  }
                 }
               }
             },
@@ -19676,15 +20078,19 @@ var require_yaml_intelligence_resources = __commonJS({
                 super: {
                   resolveRef: "schema/base"
                 },
+                required: [
+                  "string"
+                ],
                 properties: {
                   string: {
-                    ref: "schema/schema"
-                  },
-                  path: {
-                    ref: "schema/schema"
-                  },
-                  pattern: {
-                    ref: "schema/schema"
+                    anyOf: [
+                      {
+                        ref: "schema/explicit-pattern-string"
+                      },
+                      {
+                        ref: "schema/base"
+                      }
+                    ]
                   }
                 }
               }
@@ -19693,36 +20099,77 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           id: "schema/number",
-          object: {
-            closed: true,
-            super: {
-              resolveRef: "schema/base"
+          anyOf: [
+            {
+              enum: [
+                "number"
+              ]
             },
-            properties: {
-              number: {
-                ref: "schema/schema"
+            {
+              object: {
+                closed: true,
+                super: {
+                  resolveRef: "schema/base"
+                },
+                required: [
+                  "number"
+                ],
+                properties: {
+                  number: {
+                    anyOf: [
+                      {
+                        ref: "schema/schema"
+                      },
+                      {
+                        ref: "schema/base"
+                      }
+                    ]
+                  }
+                }
               }
             }
-          }
+          ]
         },
         {
           id: "schema/boolean",
-          object: {
-            closed: true,
-            super: {
-              resolveRef: "schema/base"
+          anyOf: [
+            {
+              enum: [
+                "boolean"
+              ]
             },
-            properties: {
-              boolean: {
-                ref: "schema/schema"
+            {
+              object: {
+                closed: true,
+                required: [
+                  "boolean"
+                ],
+                super: {
+                  resolveRef: "schema/base"
+                },
+                properties: {
+                  boolean: {
+                    anyOf: [
+                      {
+                        ref: "schema/schema"
+                      },
+                      {
+                        ref: "schema/base"
+                      }
+                    ]
+                  }
+                }
               }
             }
-          }
+          ]
         },
         {
           id: "schema/resolve-ref",
           object: {
             closed: true,
+            required: [
+              "resolveRef"
+            ],
             properties: {
               resolveRef: "string"
             }
@@ -19732,6 +20179,9 @@ var require_yaml_intelligence_resources = __commonJS({
           id: "schema/ref",
           object: {
             closed: true,
+            required: [
+              "ref"
+            ],
             properties: {
               ref: "string",
               description: {
@@ -19744,6 +20194,9 @@ var require_yaml_intelligence_resources = __commonJS({
           id: "schema/maybe-array-of",
           object: {
             closed: true,
+            required: [
+              "maybeArrayOf"
+            ],
             super: {
               resolveRef: "schema/base"
             },
@@ -19761,6 +20214,9 @@ var require_yaml_intelligence_resources = __commonJS({
             super: {
               resolveRef: "schema/base"
             },
+            required: [
+              "arrayOf"
+            ],
             properties: {
               arrayOf: {
                 anyOf: [
@@ -19793,6 +20249,9 @@ var require_yaml_intelligence_resources = __commonJS({
             super: {
               resolveRef: "schema/base"
             },
+            required: [
+              "allOf"
+            ],
             properties: {
               allOf: {
                 anyOf: [
@@ -19827,6 +20286,9 @@ var require_yaml_intelligence_resources = __commonJS({
             super: {
               resolveRef: "schema/base"
             },
+            required: [
+              "anyOf"
+            ],
             properties: {
               anyOf: {
                 anyOf: [
@@ -19861,6 +20323,9 @@ var require_yaml_intelligence_resources = __commonJS({
             super: {
               resolveRef: "schema/base"
             },
+            required: [
+              "record"
+            ],
             properties: {
               record: {
                 anyOf: [
@@ -19898,101 +20363,113 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           id: "schema/object",
-          object: {
-            closed: true,
-            super: {
-              resolveRef: "schema/base"
+          anyOf: [
+            {
+              enum: [
+                "object"
+              ]
             },
-            properties: {
+            {
               object: {
-                object: {
-                  super: {
-                    resolveRef: "schema/base"
-                  },
-                  closed: true,
-                  properties: {
-                    namingConvention: {
-                      anyOf: [
-                        {
-                          enum: [
-                            "ignore"
+                closed: true,
+                super: {
+                  resolveRef: "schema/base"
+                },
+                required: [
+                  "object"
+                ],
+                properties: {
+                  object: {
+                    object: {
+                      super: {
+                        resolveRef: "schema/base"
+                      },
+                      closed: true,
+                      properties: {
+                        namingConvention: {
+                          anyOf: [
+                            {
+                              enum: [
+                                "ignore"
+                              ]
+                            },
+                            {
+                              arrayOf: {
+                                enum: [
+                                  "camelCase",
+                                  "camel-case",
+                                  "camel_case",
+                                  "capitalizationCase",
+                                  "capitalization-case",
+                                  "capitalization_case",
+                                  "underscoreCase",
+                                  "underscore-case",
+                                  "underscore_case",
+                                  "snakeCase",
+                                  "snake-case",
+                                  "snake_case",
+                                  "dashCase",
+                                  "dash-case",
+                                  "dash_case",
+                                  "kebabCase",
+                                  "kebab-case",
+                                  "kebab_case"
+                                ]
+                              }
+                            }
                           ]
                         },
-                        {
-                          arrayOf: {
-                            enum: [
-                              "camelCase",
-                              "camel-case",
-                              "camel_case",
-                              "capitalizationCase",
-                              "capitalization-case",
-                              "capitalization_case",
-                              "underscoreCase",
-                              "underscore-case",
-                              "underscore_case",
-                              "snakeCase",
-                              "snake-case",
-                              "snake_case",
-                              "dashCase",
-                              "dash-case",
-                              "dash_case",
-                              "kebabCase",
-                              "kebab-case",
-                              "kebab_case"
-                            ]
+                        properties: {
+                          object: {
+                            additionalProperties: {
+                              ref: "schema/schema"
+                            }
                           }
-                        }
-                      ]
-                    },
-                    properties: {
-                      object: {
+                        },
+                        patternProperties: {
+                          object: {
+                            additionalProperties: {
+                              ref: "schema/schema"
+                            }
+                          }
+                        },
+                        propertyNames: {
+                          ref: "schema/schema"
+                        },
                         additionalProperties: {
                           ref: "schema/schema"
-                        }
-                      }
-                    },
-                    patternProperties: {
-                      object: {
-                        additionalProperties: {
-                          ref: "schema/schema"
-                        }
-                      }
-                    },
-                    propertyNames: {
-                      ref: "schema/schema"
-                    },
-                    additionalProperties: {
-                      ref: "schema/schema"
-                    },
-                    super: {
-                      maybeArrayOf: {
-                        ref: "schema/schema"
-                      }
-                    },
-                    required: {
-                      anyOf: [
-                        {
-                          enum: [
-                            "all"
+                        },
+                        super: {
+                          maybeArrayOf: {
+                            ref: "schema/schema"
+                          }
+                        },
+                        required: {
+                          anyOf: [
+                            {
+                              enum: [
+                                "all"
+                              ]
+                            },
+                            {
+                              arrayOf: "string"
+                            }
                           ]
                         },
-                        {
+                        closed: "boolean",
+                        description: {
+                          ref: "schema/description"
+                        },
+                        completions: {
                           arrayOf: "string"
                         }
-                      ]
-                    },
-                    closed: "boolean",
-                    description: {
-                      ref: "schema/description"
-                    },
-                    completions: {
-                      arrayOf: "string"
+                      }
                     }
                   }
                 }
               }
             }
-          }
+          ]
         },
         {
           id: "schema/schema",
@@ -20041,13 +20518,7 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             {
               enum: [
-                "number",
-                "boolean",
-                "path",
-                "string",
                 null,
-                "null",
-                "object",
                 "any"
               ]
             }
@@ -20100,6 +20571,7 @@ var require_yaml_intelligence_resources = __commonJS({
         }
       ],
       "pandoc/formats.yml": [
+        "ansi",
         "asciidoc",
         "asciidoc_legacy",
         "asciidoctor",
@@ -21351,16 +21823,20 @@ var require_yaml_intelligence_resources = __commonJS({
         "Important links for the brand, including social media links. If a\nsingle string, it is the brand\u2019s home page or website. Additional fields\nare allowed for internal use.",
         "The brand\u2019s home page or website.",
         "The brand\u2019s Mastodon URL.",
+        "The brand\u2019s Bluesky URL.",
         "The brand\u2019s GitHub URL.",
         "The brand\u2019s LinkedIn URL.",
         "The brand\u2019s Twitter URL.",
         "The brand\u2019s Facebook URL.",
         "A link or path to the brand\u2019s light-colored logo or icon.",
         "A link or path to the brand\u2019s dark-colored logo or icon.",
+        "Alternative text for the logo, used for accessibility.",
         "Provide definitions and defaults for brand\u2019s logo in various formats\nand sizes.",
+        "A dictionary of named logo resources.",
         "A link or path to the brand\u2019s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
         "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
         "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
+        "Names of customizeable logos",
         "The brand\u2019s custom color palette and theme.",
         "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
         "The foreground color, used for text.",
@@ -21374,28 +21850,51 @@ var require_yaml_intelligence_resources = __commonJS({
         "The color used for errors, dangerous actions, or negative\ninformation.",
         "A bright color, used as a high-contrast foreground color on dark\nelements or low-contrast background color on light elements.",
         "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
+        "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
         "A color, which may be a named brand color.",
         "A named brand color, taken either from <code>color.theme</code> or\n<code>color.palette</code> (in that order).",
         "Typography definitions for the brand.",
         "Font files and definitions for the brand.",
         "The base font settings for the brand. These are used as the default\nfor all text.",
-        "The font settings for headings.",
-        "The font settings for monospace text. Color in this context refers to\ninline code.",
-        "The text properties used for emphasized (or emboldened) text.",
-        "The text properties used for hyperlinks.",
-        "Typographic options.",
-        "Typographic options without a font size.",
+        "Settings for headings, or a string specifying the font family\nonly.",
+        "Settings for monospace text, or a string specifying the font family\nonly.",
+        "Settings for inline code, or a string specifying the font family\nonly.",
+        "Settings for code blocks, or a string specifying the font family\nonly.",
+        "Settings for links.",
+        "Base typographic options.",
+        "Typographic options for headings.",
+        "Typographic options for monospace elements.",
+        "Typographic options for inline monospace elements.",
+        "Line height",
+        "Typographic options for block monospace elements.",
+        "Typographic options for inline monospace elements.",
+        "Names of customizeable fonts",
         "Font files and definitions for the brand.",
         "A font weight.",
         "A font style.",
-        "A Google Font definition.",
-        "The font family name, which must match the name of the font on Google\nFonts.",
+        "The font family name, which must match the name of the font on the\nfoundry website.",
         "The font weights to include.",
-        "The font style to include.",
+        "The font styles to include.",
+        "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
+        "A system font definition.",
+        "The font family name, which must match the name of the font on the\nfoundry website.",
+        "The font weights to include.",
+        "The font styles to include.",
+        "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
+        "A font definition from Google Fonts.",
+        "The font family name, which must match the name of the font on the\nfoundry website.",
+        "The font weights to include.",
+        "The font styles to include.",
+        "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
+        "A font definition from fonts.bunny.net.",
+        "The font family name, which must match the name of the font on the\nfoundry website.",
+        "The font weights to include.",
+        "The font styles to include.",
         "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
         "A method for providing font files directly, either locally or from an\nonline location.",
         "The font family name.",
         "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
+        "The path to the font file. This can be a local path or a URL.",
         "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
         {
           short: "Unique label for code cell",
@@ -21587,7 +22086,10 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
           long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
         },
-        "Include messages in rendered output.",
+        {
+          short: "Include messages in rendered output.",
+          long: "Include messages in rendered output. Possible values are\n<code>true</code>, <code>false</code>, or <code>NA</code>. If\n<code>true</code>, messages are included in the output. If\n<code>false</code>, messages are not included. If <code>NA</code>,\nmessages are not included in output but shown in the knitr log to\nconsole."
+        },
         {
           short: "How to display text results",
           long: "How to display text results. Note that this option only applies to\nnormal text output (not warnings, messages, or errors). The possible\nvalues are as follows:"
@@ -22185,7 +22687,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The page layout to use for this document (<code>article</code>,\n<code>full</code>, or <code>custom</code>)",
         {
           short: "Target page width for output (used to compute columns widths for\n<code>layout</code> divs)",
-          long: "Target page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt."
+          long: "Target body page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt (8.5 inches with 1 inch for\neach margins)."
         },
         {
           short: "Properties of the grid system used to layout Quarto HTML pages.",
@@ -22363,6 +22865,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
         "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
+        "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition.",
         "Theme name, theme scss file, or a mix of both.",
         "The light theme name, theme scss file, or a mix of both.",
         "The light theme name, theme scss file, or a mix of both.",
@@ -22612,6 +23115,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Monitor the hash and change slides accordingly",
         "Include the current fragment in the URL",
         "Play a subtle sound when changing slides",
+        "Deactivate jump to slide feature.",
         {
           short: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
           long: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages. You can limit how many pages a slide may expand to using\nthis option."
@@ -22639,6 +23143,12 @@ var require_yaml_intelligence_resources = __commonJS({
         "Multiplex token server (defaults to Reveal-hosted server)",
         "Unique presentation id provided by multiplex token server",
         "Secret provided by multiplex token server",
+        "Control the scroll view feature of Revealjs",
+        "Activate scroll view by default for the presentation. Otherwise, it\nis manually avalaible by adding <code>?view=scroll</code> to url.",
+        "Show the scrollbar while scrolling, hide while idle (default\n<code>auto</code>). Set to \u2018true\u2019 to always show, <code>false</code> to\nalways hide.",
+        "When scrolling, it will automatically snap to the closest slide. Only\nsnap when close to the top of a slide using <code>proximity</code>.\nDisable snapping altogether by setting to <code>false</code>.",
+        "By default each slide will be sized to be as tall as the viewport. If\nyou prefer a more dense layout with multiple slides visible in parallel,\nset to <code>compact</code>.",
+        "Control scroll view activation width. The scroll view is\nautomatically unable when the viewport reaches mobile widths. Set to\n<code>0</code> to disable automatic scroll view.",
         {
           short: "Transition style for slides",
           long: "Transition style for slides backgrounds. (<code>none</code>,\n<code>fade</code>, <code>slide</code>, <code>convex</code>,\n<code>concave</code>, or <code>zoom</code>)"
@@ -23678,12 +24188,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 187413,
+        _internalId: 193535,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 187405,
+            _internalId: 193527,
             type: "enum",
             enum: [
               "png",
@@ -23699,7 +24209,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 187412,
+            _internalId: 193534,
             type: "anyOf",
             anyOf: [
               {
@@ -23835,7 +24345,7 @@ function platformHasNonAsciiCharacters() {
   try {
     return Deno.build.os !== "windows";
   } catch (_e) {
-    return false;
+    return true;
   }
 }
 function tidyverseInfo(msg) {
@@ -30392,7 +30902,17 @@ function buildJsYamlAnnotation(mappedYaml) {
       `Expected a single result, got ${results.length} instead`
     );
   }
-  JSON.stringify(results[0]);
+  try {
+    JSON.stringify(results[0]);
+  } catch (e) {
+    if (e.message.match("invalid string length")) {
+    } else if (e.message.match(/circular structure/)) {
+      throw new InternalError(
+        `Circular structure detected in parsed yaml: ${e.message}`
+      );
+    } else {
+    }
+  }
   return postProcessAnnotation(results[0]);
 }
 function buildTreeSitterAnnotation(tree, mappedSource2) {
@@ -33592,6 +34112,11 @@ async function locateCellWithCursor(context) {
   return foundCell;
 }
 
+// ../yaml-schema/brand.ts
+var getBrandConfigSchema = async () => {
+  return refSchema("brand", "");
+};
+
 // yaml-intelligence.ts
 function getTagValue(schema2, tag) {
   if (schema2 === true || schema2 === false) {
@@ -34118,7 +34643,6 @@ async function automationFromGoodParseMarkdown(kind, context) {
     return size;
   };
   if (kind === "completions") {
-    debugger;
     let foundCell = void 0;
     for (const cell of result.cells) {
       const size = lines((cell.sourceWithYaml || cell.source).value).length;
@@ -34321,7 +34845,19 @@ var determineSchema = async (context) => {
       schema: extensionConfigSchema,
       schemaName: "extension-config"
     };
-  } else {
+  }
+  const brandYamlNames = [
+    "_brand.yml",
+    "_brand.yaml"
+  ];
+  if (context.path && brandYamlNames.some((name) => context.path.endsWith(name))) {
+    const brandYamlSchema = await getBrandConfigSchema();
+    return {
+      schema: brandYamlSchema,
+      schemaName: "brand"
+    };
+  }
+  {
     const projectConfigSchema = await getProjectConfigSchema();
     return {
       schema: projectConfigSchema,

@@ -70,11 +70,26 @@ function initialize_custom_crossref_categories(meta)
       local function as_latex(inlines)
         return trim(pandoc.write(pandoc.Pandoc(inlines), "latex"))
       end
+      local function emit_warning(msg)
+        warn(msg)
+        quarto.log.output(entry)
+        warn("Compilation will continue, but the output is likely going to be incorrect.")
+      end
       metaInjectLatex(meta, function(inject)
+        local ref_type = entry["key"]
+        if ref_type == nil then
+          emit_warning("field 'key' is required for custom crossref environments, but is missing for the following entry:")
+          return
+        end
         local env_name = entry["latex-env"]
+        if env_name == nil then
+          emit_warning("field 'latex-env' is required for custom crossref environments, but is missing for the following entry:")
+        end
         local name = entry["reference-prefix"]
         local env_prefix = entry["caption-prefix"] or name
-        local ref_type = entry["key"]
+        if env_prefix == nil then
+          emit_warning("fields 'caption-prefix' or 'reference-prefix' are required for custom crossref environments, but are missing for the following entry:")
+        end
         local list_of_name = entry["latex-list-of-file-extension"] or ("lo" .. ref_type)
         local list_of_description = entry["latex-list-of-description"] or name
         local cap_location = entry["caption-location"] or "bottom"

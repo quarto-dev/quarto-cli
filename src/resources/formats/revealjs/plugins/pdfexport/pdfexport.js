@@ -53,16 +53,20 @@ var PdfExport = ( function( _Reveal ){
 	}
 	
 	function isPrintingPDF(){
-		return ( /print-pdf/gi ).test( window.location.search );
+		return /print-pdf/gi.test(window.location.search) || /view=print/gi.test(window.location.search);
 	}
 
 	function togglePdfExport(){
 		var url_doc = new URL( document.URL );
 		var query_doc = new URLSearchParams( url_doc.searchParams );
 		if( isPrintingPDF() ){
-			query_doc.delete( 'print-pdf' );
+			if (query_doc.has('print-pdf')) {
+				query_doc.delete('print-pdf');
+			} else if (query_doc.has('view')) {
+				query_doc.delete('view');
+			}
 		}else{
-			query_doc.set( 'print-pdf', '' );
+			query_doc.set( 'view', 'print' );
 		}
 		url_doc.search = ( query_doc.toString() ? '?' + query_doc.toString() : '' );
 		window.location.href = url_doc.toString();
@@ -103,7 +107,7 @@ var PdfExport = ( function( _Reveal ){
 		};
 		Plugin.togglePdfExport = function () {
       togglePdfExport();
-    };
+		};
 	}
 
 	return Plugin;
