@@ -401,6 +401,8 @@ interface JuliaTransportFile {
   pid: number;
   key: string;
   juliaVersion: string;
+  environment: string;
+  runnerVersion: string;
 }
 
 async function pollTransportFile(
@@ -777,7 +779,9 @@ function logStatus() {
     `Julia server is running
   port: ${transportOptions.port}
   pid: ${transportOptions.pid}
-  julia version: ${transportOptions.juliaVersion}`,
+  julia version: ${transportOptions.juliaVersion}
+  environment: ${transportOptions.environment}
+  runner version: ${transportOptions.runnerVersion}`,
   );
 }
 
