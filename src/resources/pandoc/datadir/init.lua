@@ -2093,9 +2093,12 @@ quarto = {
     add_to_blocks = utils.add_to_blocks,
   },
   paths = {
+     -- matches the path from `quartoEnvironmentParams` from src/command/render/filters.ts
     rscript = function()
-      -- matches the path from `quartoEnvironmentParams` from src/command/render/filters.ts
       return param('quarto-environment', nil).paths.Rscript
+    end,
+    tinytex_bin_dir = function()
+      return param('quarto-environment', nil).paths.TinyTexBinDir
     end,
   },
   json = json,

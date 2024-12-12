@@ -25,6 +25,7 @@ All changes included in 1.7:
   This also provides a new public function `quarto.utils.is_empty_node`
   that allows to check whether a node is empty, i.e., whether it's an
   empty list, has no child nodes, and contains no text.
+- Expose new `quarto.paths.tinytex_bin_dir` in Quarto's Lua API. If TinyTeX is found by Quarto, this will be set to the path to the `bin` directory of the TinyTeX installation where command line tool are located (e.g., `pdflatex`, `tlmgr`, etc.). If TinyTeX is not found, this will be `nil`, meaning Quarto will use the system PATH to find the command line tools.
 
 ## Other Fixes and Improvements
 
