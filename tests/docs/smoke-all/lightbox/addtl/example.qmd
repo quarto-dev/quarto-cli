@@ -8,7 +8,6 @@ _quarto:
         - [".glightbox-desc.lightbox-desc-1",".glightbox-desc.lightbox-desc-5",".glightbox-desc.lightbox-desc-10", "a[data-gallery='elsewhere']"]
       ensureFileRegexMatches:
         - ['title="Figure&nbsp;1', "Chilmark has a reputation as having some of the best beaches on Martha’s Vineyard."]
-
 ---
 
 ## Chilmark
@@ -73,6 +72,7 @@ plot(mtcars)
 ```
 
 It is possible to create several plots, and group them in a lightbox gallery. Use list in YAML for options when you have several plots, on per plot.
+
 ```{r}
 #| fig-cap: 
 #|   - Caption for first plot

@@ -11,7 +11,7 @@ _quarto.ast.add_handler({
   kind = "Inline",
 
   parse = function(span)
-    local inner_content = pandoc.List({})
+    local inner_content = pandoc.Inlines({})
 
     span.content = span.content:filter(function(el)
       return el.t == "Span"
@@ -78,9 +78,9 @@ _quarto.ast.add_handler({
     end
 
     local node = _quarto.ast.create_custom_node_scaffold("Shortcode", "Inline")
-    node.content = inner_content:map(function(el) 
-      return pandoc.Span({el}) 
-    end)
+    node.content = pandoc.Inlines(inner_content:map(function(el)
+      return pandoc.Span({el})
+    end))
     local tbl = {
       __quarto_custom_node = node,
       name = name,

@@ -9,7 +9,6 @@
 import * as colors from "./external/colors.ts";
 import { MappedString } from "./text-types.ts";
 import { ErrorLocation, TidyverseError } from "./errors-types.ts";
-import { isWindows } from "../../deno_ral/platform.ts";
 
 // tidyverse error message styling
 // https://style.tidyverse.org/error-messages.html
@@ -25,9 +24,19 @@ import { isWindows } from "../../deno_ral/platform.ts";
 
 function platformHasNonAsciiCharacters(): boolean {
   try {
-    return !isWindows;
+    // we can't import from deno_ral directly here
+    // because it's outside of core/lib, which
+    // gets imported by code that runs in the browser
+    //
+    // Then, we need to guard against Deno being undefined
+    // there as well
+    return Deno.build.os !== "windows";
   } catch (_e) {
-    return false;
+    //
+    // But if deno is undefined, we can assume that we're
+    // running in the browser, where non-ascii characters
+    // are supported
+    return true;
   }
 }
 

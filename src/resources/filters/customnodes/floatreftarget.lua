@@ -767,7 +767,7 @@ function float_reftarget_render_html_figure(float)
   local float_content = pandoc.Div(_quarto.ast.walk(float.content, {
     -- strip image captions
     Image = function(image)
-      image.caption = {}
+      image.caption = pandoc.Inlines{}
       return image
     end
   }) or pandoc.Div({})) -- this should never happen but the lua analyzer doesn't know it

@@ -14,23 +14,32 @@ function table_merge_raw_html()
 
   return {
     Blocks = function(blocks)
-      local pendingRaw = pandoc.List()
-      local merged = pandoc.List()
-      for i,el in ipairs(blocks) do
-        if _quarto.format.isRawHtml(el) and el.text:find(patterns.html_table_tag_name) then
-          pendingRaw:insert(el.text)
+      local pending_raw = pandoc.List()
+      local next_element_idx = 1
+      for _, el in ipairs(blocks) do
+        if _quarto.format.isRawHtml(el) and
+           el.text:find(patterns.html_table_tag_name) then
+          pending_raw:insert(el.text)
         else
-          if #pendingRaw > 0 then
-            merged:insert(pandoc.RawBlock("html", table.concat(pendingRaw, "\n")))
-            pendingRaw = pandoc.List()
+          if next(pending_raw) then
+            blocks[next_element_idx] =
+              pandoc.RawBlock("html", table.concat(pending_raw, "\n"))
+            pending_raw = pandoc.List()
+            next_element_idx = next_element_idx + 1
           end
-          merged:insert(el)
+          blocks[next_element_idx] = el
+          next_element_idx = next_element_idx + 1
         end
       end
-      if #pendingRaw > 0 then
-        merged:insert(pandoc.RawBlock("html", table.concat(pendingRaw, "\n")))
+      if #pending_raw > 0 then
+        blocks[next_element_idx] =
+          pandoc.RawBlock("html", table.concat(pending_raw, "\n"))
+        next_element_idx = next_element_idx + 1
       end
-      return merged
+      for i = next_element_idx, #blocks do
+        blocks[i] = nil
+      end
+      return blocks
     end
   }
 end
