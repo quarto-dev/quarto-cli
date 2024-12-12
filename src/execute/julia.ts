@@ -440,6 +440,38 @@ function readTransportFile(transportFile: string): JuliaTransportFile {
   return JSON.parse(content) as JuliaTransportFile;
 }
 
+async function getReadyServerConnection(
+  transportOptions: JuliaTransportFile,
+  executeOptions: JuliaExecuteOptions,
+) {
+  const conn = await Deno.connect({
+    port: transportOptions.port,
+  });
+  const isready = writeJuliaCommand(
+    conn,
+    "isready",
+    transportOptions.key,
+    executeOptions,
+  ) as Promise<boolean>;
+  const timeoutMilliseconds = 10000;
+  const timeout = new Promise((accept, _) =>
+    setTimeout(() => {
+      accept(
+        `Timed out after getting no response for ${timeoutMilliseconds} milliseconds.`,
+      );
+    }, timeoutMilliseconds)
+  );
+  const result = await Promise.race([isready, timeout]);
+  if (typeof result === "string") {
+    return result;
+  } else if (result !== true) {
+    conn.close();
+    return `Expected isready command to return true, returned ${isready} instead. Closing connection.`;
+  } else {
+    return conn;
+  }
+}
+
 async function getJuliaServerConnection(
   options: JuliaExecuteOptions,
 ): Promise<Deno.TcpConn> {
@@ -456,35 +488,13 @@ async function getJuliaServerConnection(
   );
 
   try {
-    const conn = await Deno.connect({
-      port: transportOptions.port,
-    });
-    const isready = writeJuliaCommand(
-      conn,
-      "isready",
-      transportOptions.key,
-      options,
-    ) as Promise<boolean>;
-    const timeoutMilliseconds = 10000;
-    const timeout = new Promise((accept, _) =>
-      setTimeout(() => {
-        accept(
-          `Timed out after getting no response for ${timeoutMilliseconds} milliseconds.`,
-        );
-      }, timeoutMilliseconds)
-    );
-    const result = await Promise.race([isready, timeout]);
-    if (typeof result === "string") {
-      // timed out
-      throw new Error(result);
-    } else if (result !== true) {
-      error(
-        `Expected isready command to return true, returned ${isready} instead. Closing connection.`,
-      );
-      conn.close();
-      return Promise.reject();
+    const conn = await getReadyServerConnection(transportOptions, options);
+    if (typeof conn === "string") {
+      // timed out or otherwise not ready
+      throw new Error(conn);
+    } else {
+      return conn;
     }
-    return conn;
   } catch (e) {
     if (reused) {
       trace(
@@ -751,7 +761,7 @@ function juliaTransportFile() {
 }
 
 function trace(options: ExecuteOptions, msg: string) {
-  if (options.format.execute[kExecuteDebug]) {
+  if (options.format?.execute[kExecuteDebug] === true) {
     info("- " + msg, { bold: true });
   }
 }
@@ -768,15 +778,28 @@ function populateJuliaEngineCommand(command: Command) {
   return;
 }
 
-function logStatus() {
+async function logStatus() {
   const transportFile = juliaTransportFile();
   if (!existsSync(transportFile)) {
     console.log("Julia control server is not running.");
     return;
   }
   const transportOptions = readTransportFile(transportFile);
+
+  const conn = await getReadyServerConnection(
+    transportOptions,
+    {} as JuliaExecuteOptions,
+  );
+  let successfullyConnected: boolean;
+  if (typeof conn === "string") {
+    successfullyConnected = false;
+  } else {
+    successfullyConnected = true;
+    conn.close();
+  }
+
   console.log(
-    `Julia server is running
+    `Julia server is${successfullyConnected ? "" : " not"} responding.
   port: ${transportOptions.port}
   pid: ${transportOptions.pid}
   julia version: ${transportOptions.juliaVersion}
