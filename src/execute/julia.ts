@@ -816,6 +816,6 @@ function killJuliaServer() {
   }
   const transportOptions = readTransportFile(transportFile);
   info(transportOptions);
-  info("Sending SIGTERM to server process");
   Deno.kill(transportOptions.pid, "SIGTERM");
+  info("Sent SIGTERM to server process");
 }
