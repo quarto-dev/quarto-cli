@@ -49,7 +49,6 @@ import { isWindows } from "../deno_ral/platform.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
-  julia_cmd: string;
   oneShot: boolean; // if true, the file's worker process is closed before and after running
   supervisor_pid?: number;
 }
@@ -132,7 +131,6 @@ export const juliaEngine: ExecutionEngine = {
     };
 
     const juliaExecOptions: JuliaExecuteOptions = {
-      julia_cmd: Deno.env.get("QUARTO_JULIA") ?? "julia",
       oneShot: !executeDaemon,
       supervisor_pid: options.previewServer ? Deno.pid : undefined,
       ...execOptions,
@@ -251,6 +249,10 @@ export const juliaEngine: ExecutionEngine = {
   populateCommand: populateJuliaEngineCommand,
 };
 
+function juliaCmd() {
+  return Deno.env.get("QUARTO_JULIA") ?? "julia";
+}
+
 async function startOrReuseJuliaServer(
   options: JuliaExecuteOptions,
 ): Promise<{ reused: boolean }> {
@@ -272,7 +274,7 @@ async function startOrReuseJuliaServer(
         options,
         `Custom julia project set via QUARTO_JULIA_PROJECT="${juliaProject}". Checking if QuartoNotebookRunner can be loaded.`,
       );
-      const qnrTestCommand = new Deno.Command(options.julia_cmd, {
+      const qnrTestCommand = new Deno.Command(juliaCmd(), {
         args: [
           "--startup-file=no",
           `--project=${juliaProject}`,
@@ -311,7 +313,7 @@ async function startOrReuseJuliaServer(
           args: [
             "-Command",
             "Start-Process",
-            options.julia_cmd,
+            juliaCmd(),
             "-ArgumentList",
             // string array argument list, each element but the last must have a "," element after
             "--startup-file=no",
@@ -339,11 +341,11 @@ async function startOrReuseJuliaServer(
         throw new Error(new TextDecoder().decode(result.stderr));
       }
     } else {
-      const command = new Deno.Command(options.julia_cmd, {
+      const command = new Deno.Command(juliaCmd(), {
         args: [
           "--startup-file=no",
           resourcePath("julia/start_quartonotebookrunner_detached.jl"),
-          options.julia_cmd,
+          juliaCmd(),
           juliaProject,
           resourcePath("julia/quartonotebookrunner.jl"),
           transportFile,
@@ -377,7 +379,7 @@ async function ensureQuartoNotebookRunnerEnvironment(
   const projectTomlTemplate = juliaResourcePath("Project.toml");
   const projectToml = join(juliaRuntimeDir(), "Project.toml");
   Deno.copyFileSync(projectTomlTemplate, projectToml);
-  const command = new Deno.Command(options.julia_cmd, {
+  const command = new Deno.Command(juliaCmd(), {
     args: [
       "--startup-file=no",
       `--project=${juliaRuntimeDir()}`,
@@ -409,14 +411,19 @@ async function pollTransportFile(
 
   for (let i = 0; i < 20; i++) {
     if (existsSync(transportFile)) {
-      const content = Deno.readTextFileSync(transportFile);
+      const transportOptions = readTransportFile(transportFile);
       trace(options, "Transport file read successfully.");
-      return JSON.parse(content) as JuliaTransportFile;
+      return transportOptions;
     }
     trace(options, "Transport file did not exist, yet.");
     await sleep(i * 100);
   }
   return Promise.reject();
+}
+
+function readTransportFile(transportFile: string): JuliaTransportFile {
+  const content = Deno.readTextFileSync(transportFile);
+  return JSON.parse(content) as JuliaTransportFile;
 }
 
 async function getJuliaServerConnection(
@@ -740,8 +747,15 @@ function populateJuliaEngineCommand(command: Command) {
     .command("status", "Status")
     .description(
       "Get status information on the currently running Julia server process",
-    ).action(() => {
-      console.log(juliaTransportFile());
-    });
+    ).action(logStatus);
   return;
+}
+
+function logStatus() {
+  const transportFile = juliaTransportFile();
+  if (!existsSync(transportFile)) {
+    console.log("Julia control server is not running.");
+    return;
+  }
+  const transportOptions = readTransportFile(transportFile);
 }
