@@ -449,7 +449,7 @@ async function getReadyServerConnection(
   });
   const isready = writeJuliaCommand(
     conn,
-    "isready",
+    { type: "isready", content: {} },
     transportOptions.key,
     executeOptions,
   ) as Promise<boolean>;
@@ -548,20 +548,26 @@ async function executeJulia(
 ): Promise<JupyterNotebook> {
   const conn = await getJuliaServerConnection(options);
   const transportOptions = await pollTransportFile(options);
+  const file = options.target.input;
   if (options.oneShot || options.format.execute[kExecuteDaemonRestart]) {
     const isopen = await writeJuliaCommand(
       conn,
-      "isopen",
+      { type: "isopen", content: { file } },
       transportOptions.key,
       options,
     ) as boolean;
     if (isopen) {
-      await writeJuliaCommand(conn, "close", transportOptions.key, options);
+      await writeJuliaCommand(
+        conn,
+        { type: "close", content: { file } },
+        transportOptions.key,
+        options,
+      );
     }
   }
   const response = await writeJuliaCommand(
     conn,
-    "run",
+    { type: "run", content: { file, options } },
     transportOptions.key,
     options,
     (update: ProgressUpdate) => {
@@ -580,7 +586,12 @@ async function executeJulia(
   );
 
   if (options.oneShot) {
-    await writeJuliaCommand(conn, "close", transportOptions.key, options);
+    await writeJuliaCommand(
+      conn,
+      { type: "close", content: { file } },
+      transportOptions.key,
+      options,
+    );
   }
 
   if (response.error !== undefined) {
@@ -598,26 +609,21 @@ interface ProgressUpdate {
   line: number;
 }
 
+type ServerCommand =
+  | { type: "run"; content: { file: string; options: JuliaExecuteOptions } }
+  | { type: "close"; content: { file: string } }
+  | { type: "isopen"; content: { file: string } }
+  | { type: "stop"; content: Record<string | number | symbol, never> }
+  | { type: "isready"; content: Record<string | number | symbol, never> };
+
 async function writeJuliaCommand(
   conn: Deno.Conn,
-  command: "run" | "close" | "stop" | "isready" | "isopen",
+  command: ServerCommand,
   secret: string,
   options: JuliaExecuteOptions,
   onProgressUpdate?: (update: ProgressUpdate) => void,
 ) {
-  // send the options along with the "run" command
-  const content = command === "run"
-    ? { file: options.target.input, options }
-    : command === "stop" || command === "isready"
-    ? {}
-    : options.target.input;
-
-  const commandData = {
-    type: command,
-    content,
-  };
-
-  const payload = JSON.stringify(commandData);
+  const payload = JSON.stringify(command);
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
@@ -625,9 +631,7 @@ async function writeJuliaCommand(
     true,
     ["sign"],
   );
-  const canonicalRequestBytes = new TextEncoder().encode(
-    JSON.stringify(commandData),
-  );
+  const canonicalRequestBytes = new TextEncoder().encode(payload);
   const signatureArrayBuffer = await crypto.subtle.sign(
     "HMAC",
     key,
@@ -640,7 +644,7 @@ async function writeJuliaCommand(
 
   const messageBytes = new TextEncoder().encode(message);
 
-  trace(options, `write command "${command}" to socket server`);
+  trace(options, `write command "${command.type}" to socket server`);
   const bytesWritten = await conn.write(messageBytes);
   if (bytesWritten !== messageBytes.length) {
     throw new Error("Internal Error");
@@ -727,7 +731,7 @@ async function writeJuliaCommand(
     if (err !== undefined) {
       const juliaError = data.juliaError ?? "No julia error message available.";
       error(
-        `Julia server returned error after receiving "${command}" command:\n` +
+        `Julia server returned error after receiving "${command.type}" command:\n` +
           err,
       );
       error(juliaError);
