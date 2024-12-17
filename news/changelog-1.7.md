@@ -26,6 +26,7 @@ All changes included in 1.7:
   This also provides a new public function `quarto.utils.is_empty_node`
   that allows to check whether a node is empty, i.e., whether it's an
   empty list, has no child nodes, and contains no text.
+- ([#11699](https://github.com/quarto-dev/quarto-cli/issues/11699)): Fix crash with `video` shortcode inside HTML comments.
 
 ## Other Fixes and Improvements
 
