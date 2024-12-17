@@ -1,0 +1,16 @@
+project:
+  type: book
+
+book:
+  title: "mybook"
+  author: "Norah Jones"
+  date: "11/24/2024"
+  cover-image: cover.png
+  chapters:
+    - index.qmd
+
+format:
+  html:
+    theme: cosmo
+
+lightbox: true

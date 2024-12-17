@@ -11,6 +11,10 @@ All changes included in 1.7:
 
 - ([#11654](https://github.com/quarto-dev/quarto-cli/issues/11654)): Allow `page-inset` as value in `column` key for code cells.
 
+## Book Project
+
+- ([#11520](https://github.com/quarto-dev/quarto-cli/issues/11520)): Book's cover image now escapes lightbox treatment, which was incorrectly applied to it when `lightbox: true` was set in the book's configuration.
+
 ## `quarto check`
 
 - ([#11608](https://github.com/quarto-dev/quarto-cli/pull/11608)): Do not issue error message when calling `quarto check info`.
@@ -27,6 +31,7 @@ All changes included in 1.7:
   that allows to check whether a node is empty, i.e., whether it's an
   empty list, has no child nodes, and contains no text.
 - ([#11699](https://github.com/quarto-dev/quarto-cli/issues/11699)): Fix crash with `video` shortcode inside HTML comments.
+- Expose new `quarto.paths.tinytex_bin_dir` in Quarto's Lua API. If TinyTeX is found by Quarto, this will be set to the path to the `bin` directory of the TinyTeX installation where command line tool are located (e.g., `pdflatex`, `tlmgr`, etc.). If TinyTeX is not found, this will be `nil`, meaning Quarto will use the system PATH to find the command line tools.
 
 ## Other Fixes and Improvements
 
