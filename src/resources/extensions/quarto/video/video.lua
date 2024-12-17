@@ -237,9 +237,16 @@ function htmlVideo(src, height, width, title, start, aspectRatio)
   -- https://github.com/quarto-dev/quarto-cli/issues/6833
   -- handle partially-specified width, height, and aspectRatio
   if aspectRatio then
-    local strs = splitString(aspectRatio, 'x')
-    wr = tonumber(strs[1])
-    hr = tonumber(strs[2])
+    -- https://github.com/quarto-dev/quarto-cli/issues/11699#issuecomment-2549219533
+    -- we remove quotes as a 
+    -- local workaround for inconsistent shortcode argument parsing on our end.
+    --
+    -- removing quotes in general is not a good idea, but the
+    -- only acceptable values for aspectRatio are 4x3, 16x9, 21x9, 1x1
+    -- and so we can safely remove quotes in this context.
+    local strs = splitString(aspectRatio:gsub('"', ''):gsub("'", ''), 'x')
+    local wr = tonumber(strs[1])
+    local hr = tonumber(strs[2])
     local aspectRatioNum = wr / hr
     if height and not width then
       width = math.floor(height * aspectRatioNum + 0.5)
