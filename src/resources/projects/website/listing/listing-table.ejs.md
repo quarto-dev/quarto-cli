@@ -64,6 +64,7 @@ return listing.utilities.outputLink(item, field, value, `listing-${field}`);
 }
 %>
 
+```{=html}
 <table class="quarto-listing-table table<%- stripedCls %><%- hoverCls %>">
 <thead>
 <tr>
@@ -90,3 +91,4 @@ return listing.utilities.outputLink(item, field, value, `listing-${field}`);
 <% } %>
 </tbody>
 </table>
+```

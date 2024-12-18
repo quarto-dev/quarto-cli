@@ -11,7 +11,11 @@ All changes included in 1.7:
 
 - ([#11654](https://github.com/quarto-dev/quarto-cli/issues/11654)): Allow `page-inset` as value in `column` key for code cells.
 
-## Book Project
+## Website projects
+
+- ([#11701](https://github.com/quarto-dev/quarto-cli/issues/11701)): Wrap HTML emitted by EJS templates in `{=html}` blocks to avoid memory blowup issues with Pandoc's parser.
+
+## Book projects
 
 - ([#11520](https://github.com/quarto-dev/quarto-cli/issues/11520)): Book's cover image now escapes lightbox treatment, which was incorrectly applied to it when `lightbox: true` was set in the book's configuration.
 
