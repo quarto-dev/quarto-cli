@@ -65,7 +65,7 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% } %>
 </div>
 <div class="metadata"><a href="<%- item.path %>" class="no-external">
-<% if (fields.includes('date') && item.date) { %><div class="listing-date">`<%= item.date %>`{=html}</div><% } %>
+<% if (fields.includes('date') && item.date) { %><div class="listing-date"><%= item.date %></div><% } %>
 <% if (fields.includes('author') && item.author) { %><div class="listing-author"><%= item.author %></div><% } %>
 <% if (fields.includes('reading-time') && item['reading-time']) { %> <div class="listing-reading-time"><%= item['reading-time'] %></div> <% } %>
 <% for (const field of otherFields) { %>
