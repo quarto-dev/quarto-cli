@@ -1,5 +1,7 @@
 $definitions.typ()$
 
+$typst-title.typ()$
+
 $typst-template.typ()$
 
 $for(header-includes)$

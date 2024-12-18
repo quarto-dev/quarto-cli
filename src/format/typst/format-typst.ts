@@ -92,6 +92,7 @@ export function typstFormat(): Format {
           "definitions.typ",
           "typst-template.typ",
           "typst-show.typ",
+          "typst-title.typ",
           "notes.typ",
           "biblio.typ",
         ].map((partial) => join(templateDir, partial)),
