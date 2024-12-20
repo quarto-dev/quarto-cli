@@ -1562,12 +1562,9 @@
     "renv": {
       "Package": "renv",
       "Version": "1.0.11",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "utils"
-      ],
-      "Hash": "47623f66b4e80b3b0587bc5d7b309888"
+      "OS_type": null,
+      "Repository": "P3M",
+      "Source": "Repository"
     },
     "reprex": {
       "Package": "reprex",
