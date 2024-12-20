@@ -225,7 +225,6 @@ async function writePandocTemplates(
       ],
       [typstOutdir]: [
         { from: "default.typst", to: "typst.template" },
-        { from: "definitions.typst" },
         { from: "template.typst" }
       ]
     };
