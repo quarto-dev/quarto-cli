@@ -307,7 +307,7 @@ export async function renderProject(
       (projectRenderConfig.options.flags?.clean == true) &&
         (projType.cleanOutputDir === true))
   ) {
-    // ouptut dir
+    // output dir
     const realProjectDir = normalizePath(context.dir);
     if (existsSync(projOutputDir)) {
       const realOutputDir = normalizePath(projOutputDir);
