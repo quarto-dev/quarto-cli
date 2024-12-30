@@ -31,44 +31,64 @@ return value;
 
 let value = readField(item, field);
 if (value !== undefined) {
-print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLink(item, field, value)}</div>`);  
+print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLink(item, field, value)}</div>`);
  }
 }
 %>
 
-<div class="quarto-post image-<%= imageAlign %>" <%= listing.utilities.metadataAttrs(item) %>>
+::: {.quarto-post .image-<%= imageAlign %> <%= listing.utilities.metadataAttrs(item) %>}
+
 <% if (fields.includes('image')) { %>
-<div class="thumbnail">
-<a href="<%- item.path %>" class="no-external">
+`<div class="thumbnail"><a href="<%- item.path %>" class="no-external">`{=html}
 <% if (item.image) { %>
 <%= listing.utilities.img(itemNumber, item.image, "thumbnail-image", item['image-alt'], item['image-lazy-loading'] ?? listing['image-lazy-loading']) %>
 <% } else { %>
 <%= listing.utilities.imgPlaceholder(listing.id, itemNumber, item.outputHref) %>
 <% } %>
-</a>
-</div>
+`</a></div>`{=html}
 <% } %>
-<div class="body">
-<% if (fields.includes('title')) { %>
-<h3 class="no-anchor listing-title"><a href="<%- item.path %>" class="no-external"><%= item.title %></a></h3>
-<div class="listing-subtitle"><a href="<%- item.path %>" class="no-external"><%= item.subtitle %></a></div>
-<% } %>
-<% if (fields.includes('categories') && item.categories) { %> 
-<div class="listing-categories">
-<% for (const category of item.categories) { %>
-<div class="listing-category" onclick="window.quartoListingCategory('<%=utils.b64encode(category)%>'); return false;"><%= category %></div>
-<% } %>
-</div>
-<% } %> 
-<% if (fields.includes('description')) { %>
-<div class="delink listing-description"><a href="<%- item.path %>" class="no-external"><%= item.description %></a></div>
-<% } %>
-</div>
-<div class="metadata"><a href="<%- item.path %>" class="no-external">
-<% if (fields.includes('date') && item.date) { %><div class="listing-date"><%= item.date %></div><% } %>
-<% if (fields.includes('author') && item.author) { %><div class="listing-author"><%= item.author %></div><% } %>
-<% if (fields.includes('reading-time') && item['reading-time']) { %> <div class="listing-reading-time"><%= item['reading-time'] %></div> <% } %>
-<% for (const field of otherFields) { %>
-<% outputMetadata(item, field) %><% } %></a></div>
 
-</div>
+::: {.body}
+
+<% if (fields.includes('title')) { %>
+`<h3 class="no-anchor listing-title"><a href="<%- item.path %>" class="no-external">`{=html} <%= item.title %> `</a></h3>`{=html}
+<% if (fields.includes('subtitle')) { %>
+`<div class="listing-subtitle"><a href="<%- item.path %>" class="no-external">`{=html} <%= item.subtitle %> `</a></div>`{=html}
+<% } %>
+<% } %>
+
+<% if (fields.includes('categories') && item.categories) { %>
+`<div class="listing-categories">`{=html}
+<% for (const category of item.categories) { %>
+`<div class="listing-category" onclick="window.quartoListingCategory('<%- utils.b64encode(category) %>'); return false;">`{=html} <%= category %> `</div>`{=html}
+<% } %>
+`</div>`{=html}
+<% } %>
+
+<% if (fields.includes('description')) { %>
+`<div class="delink listing-description"><a href="<%- item.path %>" class="no-external">`{=html} <%= item.description %> `</a></div>`{=html}
+<% } %>
+
+:::
+
+::: {.metadata}
+`<a href="<%- item.path %>" class="no-external">`{=html}
+<% if (fields.includes('date') && item.date) { %>
+`<div class="listing-date">`{=html} <%= item.date %> `</div>`{=html}
+<% } %>
+
+<% if (fields.includes('author') && item.author) { %>
+`<div class="listing-author">`{=html} <%= item.author %> `</div>`{=html}
+<% } %>
+
+<% if (fields.includes('reading-time') && item['reading-time']) { %>
+`<div class="listing-reading-time">`{=html} <%= item['reading-time'] %> `</div>`{=html}
+<% } %>
+
+<% for (const field of otherFields) { %>
+<% outputMetadata(item, field) %>
+<% } %>
+`</a>`{=html}
+:::
+
+:::
