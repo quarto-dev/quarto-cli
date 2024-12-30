@@ -23,7 +23,7 @@ const sortUi = listing['sort-ui'];
       <option
         value="<%- sortData.listingSort.field %>"
         data-direction="<%- sortData.listingSort.direction %>">
-        <%- sortData.description %>
+        <%= sortData.description %>
       </option>
       <% } %>
     </select>
