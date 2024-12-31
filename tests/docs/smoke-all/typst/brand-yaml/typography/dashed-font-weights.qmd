@@ -1,0 +1,44 @@
+---
+title: "Dashed font weights"
+format:
+  typst:
+    keep-typ: true
+brand:
+  typography:
+    base:
+      weight: ultra-light
+    headings:
+      weight: ultra-bold
+    monospace-inline:
+      weight: light
+    monospace-block:
+      weight: semi-bold
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+      -
+        - '#set text\(weight: "extralight", \)'
+        - 'heading-weight: "extrabold",'
+        - '#show raw.where\(block: false\): set text\(weight: "light", \)'
+        - '#show raw.where\(block: true\): set text\(weight: "semibold", \)'
+      - []
+      ensurePdfRegexMatches:
+      -
+        - 'base is extralight'
+        - 'heading-2 is extrabold'
+      - []
+
+---
+
+## heading-2 is `#context text.weight`{=typst}
+
+```
+def fact n:
+  if n == 1:
+    return 1
+  return n * fact(n-1)
+```
+
+base is `#context text.weight`{=typst} \
+{{< lipsum 1 >}}
