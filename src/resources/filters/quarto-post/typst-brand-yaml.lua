@@ -51,6 +51,11 @@ function render_typst_brand_yaml()
     end
   end
 
+  local function quote_string(value)
+    if type(value) ~= 'string' then return value end
+    return '"' .. value .. '"'
+  end
+
   return {
     Pandoc = function(pandoc)
       local brand = param('brand')
@@ -82,10 +87,6 @@ function render_typst_brand_yaml()
           local decl = '// theme colors at opacity ' .. BACKGROUND_OPACITY .. '\n#let brand-color-background = ' .. to_typst_dict_indent(themebk)
           quarto.doc.include_text('in-header', decl)
         end
-        local function quote_string(value)
-          if type(value) ~= 'string' then return value end
-          return '"' .. value .. '"'
-        end
         local function conditional_entry(key, value, quote_strings)
           if quote_strings == null then quote_strings = true end
           if not value then return '' end
@@ -98,7 +99,7 @@ function render_typst_brand_yaml()
             quarto.doc.include_text('in-header', table.concat({
               '#set text(',
               -- '#show par: set text(', overrules #show heading!
-              conditional_entry('weight', base.weight),
+              conditional_entry('weight', _quarto.modules.typst.css.translate_font_weight(base.weight)),
               ')'
             }))
         end
@@ -117,7 +118,7 @@ function render_typst_brand_yaml()
             quarto.doc.include_text('in-header', table.concat({
               '#show heading: set text(',
               conditional_entry('font', headings.family),
-              conditional_entry('weight', headings.weight),
+              conditional_entry('weight', _quarto.modules.typst.css.translate_font_weight(headings.weight)),
               conditional_entry('style', headings.style),
               conditional_entry('fill', headings.color, false),
               ')'
@@ -138,7 +139,7 @@ function render_typst_brand_yaml()
             quarto.doc.include_text('in-header', table.concat({
               '#show raw.where(block: false): set text(',
               conditional_entry('font', monospaceInline.family),
-              conditional_entry('weight', monospaceInline.weight),
+              conditional_entry('weight', _quarto.modules.typst.css.translate_font_weight(monospaceInline.weight)),
               conditional_entry('size', monospaceInline.size, false),
               conditional_entry('fill', monospaceInline.color, false),
               ')'
@@ -157,7 +158,7 @@ function render_typst_brand_yaml()
           quarto.doc.include_text('in-header', table.concat({
             '#show raw.where(block: true): set text(',
             conditional_entry('font', monospaceBlock.family),
-            conditional_entry('weight', monospaceBlock.weight),
+            conditional_entry('weight', _quarto.modules.typst.css.translate_font_weight(monospaceBlock.weight)),
             conditional_entry('size', monospaceBlock.size, false),
             conditional_entry('fill', monospaceBlock.color, false),
             ')'
@@ -187,7 +188,7 @@ function render_typst_brand_yaml()
           link = link or {}
           quarto.doc.include_text('in-header', table.concat({
             '#show link: set text(',
-            conditional_entry('weight', link.weight),
+            conditional_entry('weight', _quarto.modules.typst.css.translate_font_weight(link.weight)),
             conditional_entry('fill', link.color or primaryColor, false),
             ')'
           }))
@@ -312,9 +313,11 @@ function render_typst_brand_yaml()
         headings = headings or {}
         local color = headings.color or foregroundColor
         color = color and pandoc.RawInline('typst', color)
+        local weight = _quarto.modules.typst.css.translate_font_weight(headings.weight or base.weight)
+        weight = weight and pandoc.RawInline('typst', tostring(quote_string(weight)))
         meta.brand.typography.headings = {
           family = headings.family or base.family,
-          weight = headings.weight or base.weight,
+          weight = weight,
           style = headings.style or base.style,
           decoration = headings.decoration or base.decoration,
           color = color,
