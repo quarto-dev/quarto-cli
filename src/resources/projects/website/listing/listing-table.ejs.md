@@ -82,13 +82,14 @@ return listing.utilities.outputLink(item, field, value, `listing-${field}`);
 %>
 
 <tr <%= listing.utilities.metadataAttrs(item) %><%= onclick(item) %>>
-<% for (const field of fields){ %>
-<td>
 ```
-<%= outputValue(itemNumber, field) %>
-```{=html}
-</td>
+
+<% for (const field of fields){ %>
+<td><%= outputValue(itemNumber, field) %></td>
 <% } %>
+
+```{=html}
+
 </tr>
 <% } %>
 </tbody>

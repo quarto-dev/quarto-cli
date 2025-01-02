@@ -141,8 +141,12 @@ const flexJustify = showField('author') && showField('date') ? "justify" : showF
 let value = readField(item, field);
 %>
 <tr>
+```
+
 <td><%= listing.utilities.fieldName(field) %></td>
 <td class="<%- field %>"><%= listing.utilities.outputLink(item, field, value) %></td>
+
+```{=html}
 </tr>
 <% } %>
 </table>
