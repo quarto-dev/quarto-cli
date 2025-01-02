@@ -41,7 +41,7 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 
 ```{=html}
 <a href="<%- item.path %>" class="quarto-grid-link">
-<div class="quarto-grid-item card h-100 <%- `card-${align}` %><%- hideBorders ? ' borderless' : '' %>">
+<div class="quarto-grid-item card h-100 <%= `card-${align}` %><%= hideBorders ? ' borderless' : '' %>">
 ```
 
 <% if (fields.includes('image')) { %>
