@@ -1,54 +1,52 @@
 import { expect, test } from "@playwright/test";
 import { getUrl } from "../src/utils";
 
-test('List.js is correctly patch to allow searching with lowercase and uppercase', 
-  async ({ page }) => {
-    await page.goto('./blog/simple-blog/_site/');
-    await page.getByPlaceholder('Filter').click();
-    await page.getByPlaceholder('Filter').fill('Code');
-    await page.getByPlaceholder('Filter').press('Enter');
-    await expect(page.getByRole('link', { name: 'Post With Code' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Welcome To My Blog' })).toBeHidden();
-    await page.getByPlaceholder('Filter').click();
-    await page.getByPlaceholder('Filter').fill('');
-    await page.getByPlaceholder('Filter').press('Enter');
-    await expect(page.getByRole('link', { name: 'Post With Code' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Welcome To My Blog' })).toBeVisible();
-    await page.getByPlaceholder('Filter').click();
-    await page.getByPlaceholder('Filter').fill('CODE');
-    await page.getByPlaceholder('Filter').press('Enter');
-    await expect(page.getByRole('link', { name: 'Post With Code' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Welcome To My Blog' })).toBeHidden();
-});
+const testPages = {
+  'posts': 'table.html',
+  'posts2': 'default.html',
+  'posts3': 'grid.html'
+};
 
-test('Categories link are clickable', async ({ page }) => {
-  await page.goto('./blog/simple-blog/_site/posts/welcome/');
-  await page.locator('div').filter({ hasText: /^news$/ }).click();
-  await expect(page).toHaveURL(/_site\/index\.html#category=news$/);
-  await expect(page.locator(`div.category[data-category="${btoa('news')}"]`)).toHaveClass(/active/);
-  await page.goto('./blog/simple-blog/_site/posts/welcome/#img-lst');
-  await page.locator('div').filter({ hasText: /^news$/ }).click();
-  await expect(page).toHaveURL(/_site\/index\.html#category=news$/);
-  await expect(page.locator(`div.category[data-category="${btoa('news')}"]`)).toHaveClass(/active/);
-});
+Object.entries(testPages).forEach(([postDir, pageName]) => {
+  test(`List.js is correctly patched to allow searching with lowercase and uppercase on ${pageName}`, 
+    async ({ page }) => {
+      await page.goto(`./blog/simple-blog/_site/${pageName}`);
+      await page.getByPlaceholder('Filter').click();
+      await page.getByPlaceholder('Filter').fill('Code');
+      await page.getByPlaceholder('Filter').press('Enter');
+      await expect(page.getByRole('link', { name: 'Post With Code' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Welcome To My Blog' })).toBeHidden();
+      await page.getByPlaceholder('Filter').click();
+      await page.getByPlaceholder('Filter').fill('');
+      await page.getByPlaceholder('Filter').press('Enter');
+      await expect(page.getByRole('link', { name: 'Post With Code' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Welcome To My Blog' })).toBeVisible();
+      await page.getByPlaceholder('Filter').click();
+      await page.getByPlaceholder('Filter').fill('CODE');
+      await page.getByPlaceholder('Filter').press('Enter');
+      await expect(page.getByRole('link', { name: 'Post With Code' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Welcome To My Blog' })).toBeHidden();
+  });
 
-test('Categories links are clickable', async ({ page }) => {
-  const checkCategoryLink = async (category: string) => {
-    await page.getByRole('link', { name: category }).click();
-    await expect(page).toHaveURL(getUrl(`blog/simple-blog/_site/index.html#category=${encodeURIComponent(category)}`));
-    await expect(page.locator(`div.category[data-category="${btoa(encodeURIComponent(category))}"]`)).toHaveClass(/active/);
-  };
-  // Checking link is working
-  await page.goto('./blog/simple-blog/_site/posts/welcome/');
-  await checkCategoryLink('news');
-  // Including for special characters
-  await page.getByRole('link', { name: 'Welcome To My Blog' }).click();
-  await checkCategoryLink('euros (€)');
-  await page.getByRole('link', { name: 'Welcome To My Blog' }).click();
-  await checkCategoryLink('免疫');
-  await page.goto('./blog/simple-blog/_site/posts/post-with-code/');
-  await checkCategoryLink("apos'trophe");
-  // special check for when a page is not loaded from non root path
-  await page.goto('./blog/simple-blog/_site/posts/welcome/#img-lst');
-  await checkCategoryLink('news');
+  test(`All Categories links are clickable ${postDir} pages`, 
+    async ({ page }) => {
+      const checkCategoryLink = async (category: string, pageName: string) => {
+        await page.getByRole('link', { name: category }).click();
+        await expect(page).toHaveURL(getUrl(`blog/simple-blog/_site/${pageName}#category=${encodeURIComponent(category)}`));
+        await expect(page.locator(`div.category[data-category="${btoa(encodeURIComponent(category))}"]`)).toHaveClass(/active/);
+      };
+      // Checking link is working
+      await page.goto(`./blog/simple-blog/_site/${postDir}/welcome/`);
+      await checkCategoryLink('news', pageName);
+      // Including for special characters
+      await page.getByRole('link', { name: 'Welcome To My Blog' }).click();
+      await checkCategoryLink('euros (€)', pageName);
+      await page.getByRole('link', { name: 'Welcome To My Blog' }).click();
+      await checkCategoryLink('免疫', pageName);
+      await page.goto(`./blog/simple-blog/_site/${postDir}/post-with-code/`);
+      await checkCategoryLink("apos'trophe", pageName);
+      // special check for when a page is not loaded from non root path
+      await page.goto(`./blog/simple-blog/_site/${postDir}/welcome/#img-lst`);
+      await checkCategoryLink('news', pageName);
+  });
 });
