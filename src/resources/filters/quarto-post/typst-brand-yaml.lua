@@ -278,9 +278,9 @@ function render_typst_brand_yaml()
               inset = _quarto.modules.typst.as_typst_dictionary(pads)
             end
           else
-            inset = '0.5in'
+            inset = '0.75in'
           end
-          logoOptions.width = _quarto.modules.typst.css.translate_length(logoOptions.width or '2in')
+          logoOptions.width = _quarto.modules.typst.css.translate_length(logoOptions.width or '1.5in')
           logoOptions.location = logoOptions.location and
             location_to_typst_align(logoOptions.location) or 'left+top'
           quarto.log.debug('logo options', logoOptions)
