@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, Page, test } from "@playwright/test";
 import { getUrl } from "../src/utils";
 
 const testPages = {
@@ -28,41 +28,39 @@ Object.entries(testPages).forEach(([postDir, pageName]) => {
       await expect(page.getByRole('link', { name: 'Welcome To My Blog' })).toBeHidden();
   });
 
+  const checkCategoryLink = async (page: Page, category: string, pageName: string) => {
+    await page.getByText(category, { exact: true }).click();
+    await expect(page).toHaveURL(getUrl(`blog/simple-blog/_site/${pageName}#category=${encodeURIComponent(category)}`));
+    await expect(page.locator(`div.category[data-category="${btoa(encodeURIComponent(category))}"]`)).toHaveClass(/active/);
+  };
+
   test(`All Categories links are clickable ${postDir} pages`, 
     async ({ page }) => {
-      const checkCategoryLink = async (category: string, pageName: string) => {
-        await page.getByRole('link', { name: category }).click();
-        await expect(page).toHaveURL(getUrl(`blog/simple-blog/_site/${pageName}#category=${encodeURIComponent(category)}`));
-        await expect(page.locator(`div.category[data-category="${btoa(encodeURIComponent(category))}"]`)).toHaveClass(/active/);
-      };
       // Checking link is working
       await page.goto(`./blog/simple-blog/_site/${postDir}/welcome/`);
-      await checkCategoryLink('news', pageName);
+      await checkCategoryLink(page, 'news', pageName);
       // Including for special characters
       await page.getByRole('link', { name: 'Welcome To My Blog' }).click();
-      await checkCategoryLink('euros (€)', pageName);
+      await checkCategoryLink(page, 'euros (€)', pageName);
       await page.getByRole('link', { name: 'Welcome To My Blog' }).click();
-      await checkCategoryLink('免疫', pageName);
+      await checkCategoryLink(page, '免疫', pageName);
       await page.goto(`./blog/simple-blog/_site/${postDir}/post-with-code/`);
-      await checkCategoryLink("apos'trophe", pageName);
+      await checkCategoryLink(page, "apos'trophe", pageName);
       // special check for when a page is not loaded from non root path
       await page.goto(`./blog/simple-blog/_site/${postDir}/welcome/#img-lst`);
-      await checkCategoryLink('news', pageName);
+      await checkCategoryLink(page, 'news', pageName);
   });
 
   if (pageName !== 'table.html') {
     test(`Categories link on listing page works for ${pageName}`, async ({ page }) => {
-      const checkCategoryLink = async (category: string, pageName: string) => {
-        await page.goto(`./blog/simple-blog/_site/${pageName}`);
-        await page.getByText(category, { exact: true }).click();
-        await expect(page).toHaveURL(getUrl(`blog/simple-blog/_site/${pageName}#category=${encodeURIComponent(category)}`));
-        await expect(page.locator(`div.category[data-category="${btoa(encodeURIComponent(category))}"]`)).toHaveClass(/active/);
-      };
-      await checkCategoryLink('apos\'trophe', pageName);
+      await page.goto(`./blog/simple-blog/_site/${pageName}`);
+      await checkCategoryLink(page, 'apos\'trophe', pageName);
       await expect(page.getByRole('link', { name: 'Post With Code' })).toBeVisible();
-      await checkCategoryLink('euros (€)', pageName);
+      await page.goto(`./blog/simple-blog/_site/${pageName}`);
+      await checkCategoryLink(page, 'euros (€)', pageName);
       await expect(page.getByRole('link', { name: 'Welcome To My Blog' })).toBeVisible();
-      await checkCategoryLink('免疫', pageName);
+      await page.goto(`./blog/simple-blog/_site/${pageName}`);
+      await checkCategoryLink(page, '免疫', pageName);
       await expect(page.getByRole('link', { name: 'Welcome To My Blog' })).toBeVisible();
     });
   }
