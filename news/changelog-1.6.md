@@ -3,6 +3,7 @@
 ## In this release
 
 - ([#11596](https://github.com/quarto-dev/quarto-cli/issues/11596)): Fix regression with h1 and title processing in non-website project, related to a fix for breadcrumbs in website projects ([#11224](https://github.com/quarto-dev/quarto-cli/issues/11596)).
+- ([#11752](https://github.com/quarto-dev/quarto-cli/issues/11752)): Fix regression with non-alphanumeric characters in `categories` preventing correct filtering of listing.
 
 ## In previous releases
 
