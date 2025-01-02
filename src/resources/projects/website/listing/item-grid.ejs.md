@@ -45,43 +45,68 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 ```
 
 <% if (fields.includes('image')) { %>
+
 <% if (item.image) { %>
-`<p class="card-img-top">`{=html}
+
+```{=html}
+<p class="card-img-top">
 <%= listing.utilities.img(itemNumber, item.image, "thumbnail-image card-img", item['image-alt'], item['image-lazy-loading'] ?? listing['image-lazy-loading']) %>
-`</p>`{=html}
+</p>
+```
+
 <% } else { %>
+
+```{=html}
 <%= listing.utilities.imgPlaceholder(listing.id, itemNumber, item.outputHref) %>
-<% } %>
+```
 
 <% } %>
+<% } %>
+
 <% if (showField('title') || showField('subtitle') || showField('description') || showField('author') || showField('date') || otherFields.length > 0) { %>
 
-`<div class="card-body post-contents">`{=html}
+::: {.card-body .post-contents}
 
 <% if (showField('title')) { %>
-`<h5 class="no-anchor card-title listing-title">`{=html} <%= item.title %> `</h5>`{=html}
+<h5 class="no-anchor card-title listing-title"><%= item.title %></h5>
 <% } %>
 
 <% if (showField('subtitle')) { %>
-`<div class="card-subtitle listing-subtitle">`{=html} <%= item.subtitle %> `</div>`{=html}
+<div class="card-subtitle listing-subtitle"><%= item.subtitle %></div>
 <% } %>
 
 <% if (showField('reading-time')) { %>
-`<div class="listing-reading-time card-text text-muted">`{=html} <%= item['reading-time'] %> `</div>`{=html}
+
+```{=html}
+<div class="listing-reading-time card-text text-muted"><%= item['reading-time'] %></div>
+```
+
 <% } %>
 
 <% if (fields.includes('categories') && item.categories) { %>
-`<div class="listing-categories">`{=html}
 
+```{=html}
+<div class="listing-categories">
 <% for (const category of item.categories) { %>
-`<div class="listing-category" onclick="window.quartoListingCategory('<%- utils.b64encode(category ) %>'); return false;">`{=html} <%= category %> `</div>`{=html}
+<div class="listing-category" onclick="window.quartoListingCategory('<%- utils.b64encode(category ) %>'); return false;"><%= category %></div>
 <% } %>
+</div>
+```
 
-`</div>`{=html}
 <% } %>
 
 <% if (showField('description')) { %>
-`<div class="card-text listing-description delink">`{=html} <%= item.description %> `</div>`{=html}
+
+```{=html}
+<div class="card-text listing-description delink">
+```
+
+<%= item.description %>
+
+```{=html}
+</div>
+```
+
 <% } %>
 
 <%
@@ -89,49 +114,70 @@ const flexJustify = showField('author') && showField('date') ? "justify" : showF
 %>
 
 <% if (showField('author') || showField('date')) { %>
-`<div class="card-attribution card-text-small <%- flexJustify %>">`{=html}
+
+```{=html}
+<div class="card-attribution card-text-small <%- flexJustify %>">
+```
 
 <% if (showField('author')) { %>
-`<div class="listing-author">`{=html} <%= item.author %> `</div>`{=html}
+<div class="listing-author"><%= item.author %></div>
 <% } %>
 
 <% if (showField('date')) { %>
-`<div class="listing-date">`{=html} <%= item.date %> `</div>`{=html}
+<div class="listing-date"><%= item.date %></div>
 <% } %>
 
-`</div>`{=html}
+```{=html}
+</div>
+```
+
 <% } %>
 
 <% if (otherFields.length > 0) { %>
-`<table class="card-other-values">`{=html}
+
+```{=html}
+<table class="card-other-values">
 <% for (const field of otherFields) {
 let value = readField(item, field);
 %>
-`<tr>`{=html}
-`<td>`{=html} <%= listing.utilities.fieldName(field) %> `</td>`{=html}
-`<td class="<%- field %>">`{=html} <%= listing.utilities.outputLink(item, field, value) %> `</td>`{=html}
-`</tr>`{=html}
+<tr>
+<td><%= listing.utilities.fieldName(field) %></td>
+<td class="<%- field %>"><%= listing.utilities.outputLink(item, field, value) %></td>
+</tr>
 <% } %>
-`</table>`{=html}
+</table>
+```
+
 <% } %>
 
-`</div>`{=html}
+:::
 <% } %>
 
 <% if (fields.includes('filename') || fields.includes('file-modified')) { %>
 
-`<div class="card-footer">`{=html}
+::: {.card-footer}
 
 <% if (fields.includes('filename')) { %>
-`<div class="card-filename listing-filename">`{=html} <%= item.filename ? item.filename : "&nbsp;" %> `</div>`{=html}
+
+```{=html}
+<div class="card-filename listing-filename"><%= item.filename ? item.filename : "&nbsp;" %></div>
+```
+
 <% } %>
 
 <% if (fields.includes('file-modified')) { %>
-`<div class="card-file-modified listing-file-modified">`{=html} <%= item['file-modified'] ? item['file-modified'] : "&nbsp;" %> `</div>`{=html}
+
+```{=html}
+<div class="card-file-modified listing-file-modified"><%= item['file-modified'] ? item['file-modified'] : "&nbsp;" %></div>
+```
+
 <% } %>
 
-`</div>`{=html}
+:::
 <% } %>
-`</div></a>`{=html}
+
+```{=html}
+</div></a>
+```
 
 :::
