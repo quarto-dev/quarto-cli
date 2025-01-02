@@ -65,11 +65,6 @@ function render_typst_brand_yaml()
           end
           local decl = '#let brand-color = ' .. to_typst_dict_indent(colors)
           quarto.doc.include_text('in-header', decl)
-          local BACKGROUND_OPACITY = 0.1
-          local themebk = {}
-          for name, _ in pairs(brandColor) do
-            themebk[name] = _quarto.modules.brand.get_background_color(name, BACKGROUND_OPACITY)
-          end
           if brandColor.background then
             quarto.doc.include_text('in-header', '#set page(fill: brand-color.background)')
           end
@@ -79,7 +74,11 @@ function render_typst_brand_yaml()
             quarto.doc.include_text('in-header', '#set line(stroke: (paint: brand-color.foreground))')
     
           end
-          local decl = '// theme colors at opacity ' .. BACKGROUND_OPACITY .. '\n#let brand-color-background = ' .. to_typst_dict_indent(themebk)
+          local themebk = {}
+          for name, _ in pairs(brandColor) do
+            themebk[name] = 'brand-color.' .. name .. '.lighten(85%)'
+          end
+          local decl = '#let brand-color-background = ' .. to_typst_dict_indent(themebk)
           quarto.doc.include_text('in-header', decl)
         end
         local function quote_string(value)
