@@ -49,4 +49,23 @@ Object.entries(testPages).forEach(([postDir, pageName]) => {
       await page.goto(`./blog/simple-blog/_site/${postDir}/welcome/#img-lst`);
       await checkCategoryLink('news', pageName);
   });
+
+  if (pageName !== 'table.html') {
+    test(`Categories link on listing page works for ${pageName}`, async ({ page }) => {
+      const checkCategoryLink = async (category: string, pageName: string) => {
+        await page.goto(`./blog/simple-blog/_site/${pageName}`);
+        await page.getByText(category, { exact: true }).click();
+        await expect(page).toHaveURL(getUrl(`blog/simple-blog/_site/${pageName}#category=${encodeURIComponent(category)}`));
+        await expect(page.locator(`div.category[data-category="${btoa(encodeURIComponent(category))}"]`)).toHaveClass(/active/);
+      };
+      await checkCategoryLink('apos\'trophe', pageName);
+      await expect(page.getByRole('link', { name: 'Post With Code' })).toBeVisible();
+      await checkCategoryLink('euros (€)', pageName);
+      await expect(page.getByRole('link', { name: 'Welcome To My Blog' })).toBeVisible();
+      await checkCategoryLink('免疫', pageName);
+      await expect(page.getByRole('link', { name: 'Welcome To My Blog' })).toBeVisible();
+    });
+  }
 });
+
+
