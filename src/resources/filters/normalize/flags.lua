@@ -107,8 +107,7 @@ function compute_flags()
         -- FIXME: are we actually triggering this with FloatRefTargets?
         -- table captions
         local kTblCap = "tbl-cap"
-        local tblCap = extractTblCapAttrib(node,kTblCap)
-        if hasTableRef(node) or tblCap then
+        if hasTableRef(node) or node.attr.attributes[kTblCap] then
           flags.has_table_captions = true
         end
 

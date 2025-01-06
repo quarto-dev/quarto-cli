@@ -594,7 +594,7 @@ export async function runPandoc(
     // or by the project as format extras
     if (extras[kNotebooks]) {
       const documentNotebooks = options.format.render[kNotebookView];
-      // False means taht the user has explicitely disabled notebooks
+      // False means that the user has explicitely disabled notebooks
       if (documentNotebooks !== false) {
         const userNotebooks = documentNotebooks === true
           ? []

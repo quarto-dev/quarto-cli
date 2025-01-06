@@ -79,7 +79,7 @@ const flexJustify = showField('author') && showField('date') ? "justify" : showF
 <% if (showField('author') || showField('date')) { %>
 <div class="card-attribution card-text-small <%-flexJustify%>">
 <% if (showField('author')) { %><div class="listing-author"><%= item.author %></div><% } %>
-<% if (showField('date')) { %><div class="listing-date">`<%= item.date %>`{=html}</div><% } %>
+<% if (showField('date')) { %><div class="listing-date"><%= item.date %></div><% } %>
 </div>
 <% } %>
 

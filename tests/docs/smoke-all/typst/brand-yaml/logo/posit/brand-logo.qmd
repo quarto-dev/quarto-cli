@@ -9,7 +9,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
       -
-        - '#set page\(background: align\(left\+top, box\(inset: 0.5in, image\("posit-logo-2024.svg", width: 2in, alt: "Posit Logo"\)\)\)\)'
+        - '#set page\(background: align\(left\+top, box\(inset: 0.75in, image\("posit-logo-2024.svg", width: 1.5in, alt: "Posit Logo"\)\)\)\)'
       - []
 ---
 

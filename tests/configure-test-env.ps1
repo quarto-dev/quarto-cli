@@ -8,8 +8,8 @@ If ($r) {
   Write-Host -ForegroundColor green "   > Restoring renv project"
   Rscript -e 'renv::restore()'
   Write-Host -ForegroundColor green "   > Installing dev knitr and rmarkdown"
-  Rscript -e "install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev'))"
-  Rscript -e "install.packages('knitr', repos = c('https://yihui.r-universe.dev'))"
+  Rscript -e "install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev', getOption('repos')))"
+  Rscript -e "install.packages('knitr', repos = c('https://yihui.r-universe.dev', getOption('repos')))"
 }
 
 # Check python test environment ---
@@ -33,7 +33,7 @@ try {$null = gcm julia -ea stop; $julia=$true } catch {
 If ($julia) {
   # TODO: Check to do equivalent of virtualenv
   Write-Host "Setting up Julia environment"
-  julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
+  uv run --frozen julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(`"IJulia`"); Pkg.precompile()"
 }
 
 # Check TinyTeX

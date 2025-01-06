@@ -173,7 +173,7 @@ export function bookPandocRenderer(
             const title = file.recipe.format.metadata[kTitle] || "";
             const alt = coverImageAlt ? ` fig-alt="${coverImageAlt}"` : "";
             file.executeResult.markdown =
-              `![](${coverImage} "${title}"){.quarto-cover-image${alt}}\n\n` +
+              `![](${coverImage} "${title}"){.quarto-cover-image .nolightbox${alt}}\n\n` +
               file.executeResult.markdown;
           }
 

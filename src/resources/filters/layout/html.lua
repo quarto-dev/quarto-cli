@@ -190,7 +190,7 @@ function renderHtmlFigure(el, render)
   end)
 
   -- remove identifier (it is now on the div)
-  el.identifier = ""
+  el.attr.identifier = ""
   
   if not figureDiv.classes:find_if(function(str) return str:match("quarto%-figure%-.+") end) then
     -- apply standalone figure css if not already set

@@ -95,7 +95,7 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   /* We use python for this but we could also try using another tool */
   webServer: {
-    command: 'python -m http.server 8080',
+    command: 'uv run python -m http.server 8080',
     url: 'http://127.0.0.1:8080',
     reuseExistingServer: !isCI,
     cwd: '../../docs/playwright',

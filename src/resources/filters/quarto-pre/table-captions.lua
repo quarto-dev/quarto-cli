@@ -140,7 +140,7 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           cap:insert(pandoc.Str("{#" .. tblLabels[idx] .. "}"))
         end
         idx = idx + 1
-        el.caption.long = pandoc.Plain(cap)
+        el.caption.long = pandoc.Blocks{pandoc.Plain(cap)}
         return el
       end
     end,
@@ -231,7 +231,7 @@ function extractTblCapAttrib(el, name, subcap)
     else
       value = pandoc.List({ value })
     end
-    el.attr.attributes[name] = nil
+    -- el.attr.attributes[name] = nil
     return value
   end
   return nil

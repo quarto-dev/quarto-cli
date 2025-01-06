@@ -1,0 +1,14 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['section#preface .quarto-cover-image']
+        - ['.ligtbox > .quarto-cover-image']
+---
+
+# Preface {.unnumbered}
+
+This is a Quarto book. Cover image should not have Lightbox treatment in books when `lightbox: true`
+
+To learn more about Quarto books visit <https://quarto.org/docs/books>.
