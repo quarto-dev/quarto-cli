@@ -853,6 +853,9 @@ async function logStatus() {
         ? undefined
         : new Date(worker.run_finished);
 
+      const secondsSinceStarted = runStarted !== undefined
+        ? (Date.now() - runStarted.getTime()) / 1000
+        : undefined;
       const runDurationSeconds =
         runStarted !== undefined && runFinished !== undefined
           ? (runFinished.getTime() - runStarted.getTime()) / 1000
@@ -868,7 +871,11 @@ async function logStatus() {
       info(
         `    worker ${index + 1}:
       path: ${worker.path}      
-      run started: ${runStarted ? simpleDateTimeString(runStarted) : "-"}    
+      run started: ${runStarted ? simpleDateTimeString(runStarted) : "-"}${
+          secondsSinceStarted
+            ? ` (${formatSeconds(secondsSinceStarted)} ago)`
+            : ""
+        }    
       run finished: ${runFinished ? simpleDateTimeString(runFinished) : "-"}${
           runDurationSeconds
             ? ` (took ${formatSeconds(runDurationSeconds)})`
