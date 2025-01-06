@@ -2,13 +2,12 @@
 
 ## In this release
 
+## In previous releases
+
 - ([#11726](https://github.com/quarto-dev/quarto-cli/issues/11726)) Typst Brand YAML: translate named CSS font weights to Typst.
 - ([#11485](https://github.com/quarto-dev/quarto-cli/issues/11485)) Typst Brand YAML: fix blurry title bars of callouts by using a lightened color instead of translucent.
 - ([#11777](https://github.com/quarto-dev/quarto-cli/pull/11777)) Typst Brand YAML: make default logo smaller and bring it in a little.
 - ([#11616)](https://github.com/quarto-dev/quarto-cli/discussions/11616)) Update Typst partials for `quarto create extension format:typst`
-
-## In previous releases
-
 - ([#11596](https://github.com/quarto-dev/quarto-cli/issues/11596)): Fix regression with h1 and title processing in non-website project, related to a fix for breadcrumbs in website projects ([#11224](https://github.com/quarto-dev/quarto-cli/issues/11596)).
 - ([#11752](https://github.com/quarto-dev/quarto-cli/issues/11752)): Fix regression with non-alphanumeric characters in `categories` preventing correct filtering of listing.
 - ([#11580](https://github.com/quarto-dev/quarto-cli/issues/11580)): Fix regression with non-string entries in the `categories` field of a listed document.
