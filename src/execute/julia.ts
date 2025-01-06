@@ -321,6 +321,8 @@ async function startOrReuseJuliaServer(
             resourcePath("julia/quartonotebookrunner.jl"),
             ",",
             transportFile,
+            ",",
+            juliaServerLogFile(),
             // end of string array
             "-WindowStyle",
             "Hidden",
