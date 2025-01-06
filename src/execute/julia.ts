@@ -486,7 +486,9 @@ async function getJuliaServerConnection(
       info(
         "No transport file was found after the timeout. This is the log from the server process:",
       );
+      info("#### BEGIN LOG ####");
       printJuliaServerLog();
+      info("#### END LOG ####");
     }
     throw err;
   }
@@ -941,9 +943,7 @@ function killJuliaServer() {
 
 function printJuliaServerLog() {
   if (existsSync(juliaServerLogFile())) {
-    info("#### BEGIN LOG ####");
     Deno.stdout.writeSync(Deno.readFileSync(juliaServerLogFile()));
-    info("#### END LOG ####");
   } else {
     info("Server log file doesn't exist");
   }
