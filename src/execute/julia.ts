@@ -46,11 +46,10 @@ import {
   executeResultIncludes,
 } from "./jupyter/jupyter.ts";
 import { isWindows } from "../deno_ral/platform.ts";
+import { Command } from "cliffy/command/mod.ts";
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
-  julia_cmd: string;
   oneShot: boolean; // if true, the file's worker process is closed before and after running
-  supervisor_pid?: number;
 }
 
 export const juliaEngine: ExecutionEngine = {
@@ -131,9 +130,7 @@ export const juliaEngine: ExecutionEngine = {
     };
 
     const juliaExecOptions: JuliaExecuteOptions = {
-      julia_cmd: Deno.env.get("QUARTO_JULIA") ?? "julia",
       oneShot: !executeDaemon,
-      supervisor_pid: options.previewServer ? Deno.pid : undefined,
       ...execOptions,
     };
 
@@ -246,7 +243,13 @@ export const juliaEngine: ExecutionEngine = {
     };
     return Promise.resolve(target);
   },
+
+  populateCommand: populateJuliaEngineCommand,
 };
+
+function juliaCmd() {
+  return Deno.env.get("QUARTO_JULIA") ?? "julia";
+}
 
 async function startOrReuseJuliaServer(
   options: JuliaExecuteOptions,
@@ -269,7 +272,7 @@ async function startOrReuseJuliaServer(
         options,
         `Custom julia project set via QUARTO_JULIA_PROJECT="${juliaProject}". Checking if QuartoNotebookRunner can be loaded.`,
       );
-      const qnrTestCommand = new Deno.Command(options.julia_cmd, {
+      const qnrTestCommand = new Deno.Command(juliaCmd(), {
         args: [
           "--startup-file=no",
           `--project=${juliaProject}`,
@@ -308,7 +311,7 @@ async function startOrReuseJuliaServer(
           args: [
             "-Command",
             "Start-Process",
-            options.julia_cmd,
+            juliaCmd(),
             "-ArgumentList",
             // string array argument list, each element but the last must have a "," element after
             "--startup-file=no",
@@ -318,6 +321,8 @@ async function startOrReuseJuliaServer(
             resourcePath("julia/quartonotebookrunner.jl"),
             ",",
             transportFile,
+            ",",
+            juliaServerLogFile(),
             // end of string array
             "-WindowStyle",
             "Hidden",
@@ -336,14 +341,15 @@ async function startOrReuseJuliaServer(
         throw new Error(new TextDecoder().decode(result.stderr));
       }
     } else {
-      const command = new Deno.Command(options.julia_cmd, {
+      const command = new Deno.Command(juliaCmd(), {
         args: [
           "--startup-file=no",
           resourcePath("julia/start_quartonotebookrunner_detached.jl"),
-          options.julia_cmd,
+          juliaCmd(),
           juliaProject,
           resourcePath("julia/quartonotebookrunner.jl"),
           transportFile,
+          juliaServerLogFile(),
         ],
         env: {
           "JULIA_LOAD_PATH": "@:@stdlib", // ignore the main env
@@ -374,7 +380,7 @@ async function ensureQuartoNotebookRunnerEnvironment(
   const projectTomlTemplate = juliaResourcePath("Project.toml");
   const projectToml = join(juliaRuntimeDir(), "Project.toml");
   Deno.copyFileSync(projectTomlTemplate, projectToml);
-  const command = new Deno.Command(options.julia_cmd, {
+  const command = new Deno.Command(juliaCmd(), {
     args: [
       "--startup-file=no",
       `--project=${juliaRuntimeDir()}`,
@@ -397,6 +403,9 @@ interface JuliaTransportFile {
   port: number;
   pid: number;
   key: string;
+  juliaVersion: string;
+  environment: string;
+  runnerVersion: string;
 }
 
 async function pollTransportFile(
@@ -404,11 +413,11 @@ async function pollTransportFile(
 ): Promise<JuliaTransportFile> {
   const transportFile = juliaTransportFile();
 
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 15; i++) {
     if (existsSync(transportFile)) {
-      const content = Deno.readTextFileSync(transportFile);
+      const transportOptions = readTransportFile(transportFile);
       trace(options, "Transport file read successfully.");
-      return JSON.parse(content) as JuliaTransportFile;
+      return transportOptions;
     }
     trace(options, "Transport file did not exist, yet.");
     await sleep(i * 100);
@@ -416,11 +425,75 @@ async function pollTransportFile(
   return Promise.reject();
 }
 
+function readTransportFile(transportFile: string): JuliaTransportFile {
+  // As we know the json file ends with \n but we might accidentally read
+  // it too quickly once it exists, for example when not the whole string
+  // has been written to it, yet, we just repeat reading until the string
+  // ends in a newline. The overhead doesn't matter as the file is so small.
+  let content = Deno.readTextFileSync(transportFile);
+  let i = 0;
+  while (i < 20 && !content.endsWith("\n")) {
+    sleep(100);
+    content = Deno.readTextFileSync(transportFile);
+    i += 1;
+  }
+  if (!content.endsWith("\n")) {
+    throw ("Read invalid transport file that did not end with a newline");
+  }
+  return JSON.parse(content) as JuliaTransportFile;
+}
+
+async function getReadyServerConnection(
+  transportOptions: JuliaTransportFile,
+  executeOptions: JuliaExecuteOptions,
+) {
+  const conn = await Deno.connect({
+    port: transportOptions.port,
+  });
+  const isready = writeJuliaCommand(
+    conn,
+    { type: "isready", content: {} },
+    transportOptions.key,
+    executeOptions,
+  ) as Promise<boolean>;
+  const timeoutMilliseconds = 10000;
+  const timeout = new Promise((accept, _) =>
+    setTimeout(() => {
+      accept(
+        `Timed out after getting no response for ${timeoutMilliseconds} milliseconds.`,
+      );
+    }, timeoutMilliseconds)
+  );
+  const result = await Promise.race([isready, timeout]);
+  if (typeof result === "string") {
+    return result;
+  } else if (result !== true) {
+    conn.close();
+    return `Expected isready command to return true, returned ${isready} instead. Closing connection.`;
+  } else {
+    return conn;
+  }
+}
+
 async function getJuliaServerConnection(
   options: JuliaExecuteOptions,
 ): Promise<Deno.TcpConn> {
   const { reused } = await startOrReuseJuliaServer(options);
-  const transportOptions = await pollTransportFile(options);
+
+  let transportOptions: JuliaTransportFile;
+  try {
+    transportOptions = await pollTransportFile(options);
+  } catch (err) {
+    if (!reused) {
+      info(
+        "No transport file was found after the timeout. This is the log from the server process:",
+      );
+      info("#### BEGIN LOG ####");
+      printJuliaServerLog();
+      info("#### END LOG ####");
+    }
+    throw err;
+  }
 
   if (!reused) {
     info("Julia server process started.");
@@ -432,35 +505,13 @@ async function getJuliaServerConnection(
   );
 
   try {
-    const conn = await Deno.connect({
-      port: transportOptions.port,
-    });
-    const isready = writeJuliaCommand(
-      conn,
-      "isready",
-      transportOptions.key,
-      options,
-    ) as Promise<boolean>;
-    const timeoutMilliseconds = 10000;
-    const timeout = new Promise((accept, _) =>
-      setTimeout(() => {
-        accept(
-          `Timed out after getting no response for ${timeoutMilliseconds} milliseconds.`,
-        );
-      }, timeoutMilliseconds)
-    );
-    const result = await Promise.race([isready, timeout]);
-    if (typeof result === "string") {
-      // timed out
-      throw new Error(result);
-    } else if (result !== true) {
-      error(
-        `Expected isready command to return true, returned ${isready} instead. Closing connection.`,
-      );
-      conn.close();
-      return Promise.reject();
+    const conn = await getReadyServerConnection(transportOptions, options);
+    if (typeof conn === "string") {
+      // timed out or otherwise not ready
+      throw new Error(conn);
+    } else {
+      return conn;
     }
-    return conn;
   } catch (e) {
     if (reused) {
       trace(
@@ -514,20 +565,26 @@ async function executeJulia(
 ): Promise<JupyterNotebook> {
   const conn = await getJuliaServerConnection(options);
   const transportOptions = await pollTransportFile(options);
+  const file = options.target.input;
   if (options.oneShot || options.format.execute[kExecuteDaemonRestart]) {
     const isopen = await writeJuliaCommand(
       conn,
-      "isopen",
+      { type: "isopen", content: { file } },
       transportOptions.key,
       options,
     ) as boolean;
     if (isopen) {
-      await writeJuliaCommand(conn, "close", transportOptions.key, options);
+      await writeJuliaCommand(
+        conn,
+        { type: "close", content: { file } },
+        transportOptions.key,
+        options,
+      );
     }
   }
   const response = await writeJuliaCommand(
     conn,
-    "run",
+    { type: "run", content: { file, options } },
     transportOptions.key,
     options,
     (update: ProgressUpdate) => {
@@ -546,7 +603,12 @@ async function executeJulia(
   );
 
   if (options.oneShot) {
-    await writeJuliaCommand(conn, "close", transportOptions.key, options);
+    await writeJuliaCommand(
+      conn,
+      { type: "close", content: { file } },
+      transportOptions.key,
+      options,
+    );
   }
 
   if (response.error !== undefined) {
@@ -564,26 +626,24 @@ interface ProgressUpdate {
   line: number;
 }
 
+type empty = Record<string | number | symbol, never>;
+
+type ServerCommand =
+  | { type: "run"; content: { file: string; options: JuliaExecuteOptions } }
+  | { type: "close"; content: { file: string } }
+  | { type: "isopen"; content: { file: string } }
+  | { type: "stop"; content: empty }
+  | { type: "isready"; content: empty }
+  | { type: "workers"; content: empty };
+
 async function writeJuliaCommand(
   conn: Deno.Conn,
-  command: "run" | "close" | "stop" | "isready" | "isopen",
+  command: ServerCommand,
   secret: string,
   options: JuliaExecuteOptions,
   onProgressUpdate?: (update: ProgressUpdate) => void,
 ) {
-  // send the options along with the "run" command
-  const content = command === "run"
-    ? { file: options.target.input, options }
-    : command === "stop" || command === "isready"
-    ? {}
-    : options.target.input;
-
-  const commandData = {
-    type: command,
-    content,
-  };
-
-  const payload = JSON.stringify(commandData);
+  const payload = JSON.stringify(command);
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
@@ -591,9 +651,7 @@ async function writeJuliaCommand(
     true,
     ["sign"],
   );
-  const canonicalRequestBytes = new TextEncoder().encode(
-    JSON.stringify(commandData),
-  );
+  const canonicalRequestBytes = new TextEncoder().encode(payload);
   const signatureArrayBuffer = await crypto.subtle.sign(
     "HMAC",
     key,
@@ -606,7 +664,7 @@ async function writeJuliaCommand(
 
   const messageBytes = new TextEncoder().encode(message);
 
-  trace(options, `write command "${command}" to socket server`);
+  trace(options, `write command "${command.type}" to socket server`);
   const bytesWritten = await conn.write(messageBytes);
   if (bytesWritten !== messageBytes.length) {
     throw new Error("Internal Error");
@@ -693,7 +751,7 @@ async function writeJuliaCommand(
     if (err !== undefined) {
       const juliaError = data.juliaError ?? "No julia error message available.";
       error(
-        `Julia server returned error after receiving "${command}" command:\n` +
+        `Julia server returned error after receiving "${command.type}" command:\n` +
           err,
       );
       error(juliaError);
@@ -726,8 +784,170 @@ function juliaTransportFile() {
   return join(juliaRuntimeDir(), "julia_transport.txt");
 }
 
+function juliaServerLogFile() {
+  return join(juliaRuntimeDir(), "julia_server_log.txt");
+}
+
 function trace(options: ExecuteOptions, msg: string) {
-  if (options.format.execute[kExecuteDebug]) {
+  if (options.format?.execute[kExecuteDebug] === true) {
     info("- " + msg, { bold: true });
   }
+}
+
+function populateJuliaEngineCommand(command: Command) {
+  command
+    .command("status", "Status")
+    .description(
+      "Get status information on the currently running Julia server process",
+    ).action(logStatus)
+    .command("kill", "Kill server")
+    .description("Kills the control server if it is currently running.")
+    .action(killJuliaServer)
+    .command("log", "Print julia server log")
+    .description(
+      "Prints the julia server log file if it exists which can be used to diagnose problems.",
+    )
+    .action(printJuliaServerLog);
+  return;
+}
+
+type WorkerStatus = {
+  path: string;
+  run_started?: string;
+  run_finished?: string;
+  timeout: number;
+};
+
+async function logStatus() {
+  const transportFile = juliaTransportFile();
+  if (!existsSync(transportFile)) {
+    info("Julia control server is not running.");
+    return;
+  }
+  const transportOptions = readTransportFile(transportFile);
+
+  const conn = await getReadyServerConnection(
+    transportOptions,
+    {} as JuliaExecuteOptions,
+  );
+  const successfullyConnected = typeof conn !== "string";
+
+  info(
+    `Julia server is${successfullyConnected ? "" : " not"} responding.
+  port: ${transportOptions.port}
+  pid: ${transportOptions.pid}
+  julia version: ${transportOptions.juliaVersion}
+  environment: ${transportOptions.environment}
+  runner version: ${transportOptions.runnerVersion}`,
+  );
+
+  if (successfullyConnected) {
+    const workers = await writeJuliaCommand(
+      conn,
+      { type: "workers", content: {} },
+      transportOptions.key,
+      {} as JuliaExecuteOptions,
+    ) as WorkerStatus[];
+    info(`  workers active: ${workers.length}`);
+    workers.forEach((worker, index) => {
+      const runStarted = !worker.run_started
+        ? undefined
+        : new Date(worker.run_started);
+      const runFinished = !worker.run_finished
+        ? undefined
+        : new Date(worker.run_finished);
+
+      const secondsSinceStarted = runStarted !== undefined
+        ? (Date.now() - runStarted.getTime()) / 1000
+        : undefined;
+      const runDurationSeconds =
+        runStarted !== undefined && runFinished !== undefined
+          ? (runFinished.getTime() - runStarted.getTime()) / 1000
+          : undefined;
+      const secondsSinceFinished = runFinished !== undefined
+        ? (Date.now() - runFinished.getTime()) / 1000
+        : undefined;
+      const timeUntilTimeout =
+        worker.timeout > 0 && secondsSinceFinished !== undefined
+          ? worker.timeout - secondsSinceFinished
+          : undefined;
+
+      info(
+        `    worker ${index + 1}:
+      path: ${worker.path}      
+      run started: ${runStarted ? simpleDateTimeString(runStarted) : "-"}${
+          secondsSinceStarted
+            ? ` (${formatSeconds(secondsSinceStarted)} ago)`
+            : ""
+        }    
+      run finished: ${runFinished ? simpleDateTimeString(runFinished) : "-"}${
+          runDurationSeconds
+            ? ` (took ${formatSeconds(runDurationSeconds)})`
+            : ""
+        }    
+      timeout: ${worker.timeout} seconds ${
+          timeUntilTimeout ? `(${formatSeconds(timeUntilTimeout)} left)` : ""
+        }
+`,
+      );
+    });
+    conn.close();
+  }
+}
+
+function isSameDay(date1: Date, date2: Date): boolean {
+  return (
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
+  );
+}
+
+function simpleDateTimeString(date: Date) {
+  const now = new Date();
+  return isSameDay(date, now)
+    ? date.toLocaleTimeString()
+    : `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+}
+
+function formatSeconds(seconds: number): string {
+  seconds = Math.round(seconds);
+  if (seconds < 60) {
+    const s = seconds == 1 ? "" : "s";
+    return `${seconds} second${s}`;
+  } else if (seconds < 3600) {
+    const rem_seconds = seconds % 60;
+    const full_minutes = (seconds - rem_seconds) / 60;
+    const s = full_minutes == 1 ? "" : "s";
+    const seconds_str = rem_seconds == 0
+      ? ""
+      : ` ${formatSeconds(rem_seconds)}`;
+    return `${full_minutes} minute${s}${seconds_str}`;
+  } else {
+    const rem_seconds = seconds % 3600;
+    const full_hours = (seconds - rem_seconds) / 3600;
+    const s = full_hours == 1 ? "" : "s";
+    const minutes_str = rem_seconds == 0 ? "" : ` formatSeconds(rem_seconds)`;
+    return `${full_hours} hour${s}${minutes_str}`;
+  }
+}
+
+function killJuliaServer() {
+  const transportFile = juliaTransportFile();
+  if (!existsSync(transportFile)) {
+    info("Julia control server is not running.");
+    return;
+  }
+  const transportOptions = readTransportFile(transportFile);
+  Deno.kill(transportOptions.pid, "SIGTERM");
+  info("Sent SIGTERM to server process");
+}
+
+function printJuliaServerLog() {
+  if (existsSync(juliaServerLogFile())) {
+    Deno.stdout.writeSync(Deno.readFileSync(juliaServerLogFile()));
+  } else {
+    info("Server log file doesn't exist");
+  }
+  return;
 }
