@@ -411,7 +411,7 @@ async function pollTransportFile(
 ): Promise<JuliaTransportFile> {
   const transportFile = juliaTransportFile();
 
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 15; i++) {
     if (existsSync(transportFile)) {
       const transportOptions = readTransportFile(transportFile);
       trace(options, "Transport file read successfully.");
@@ -477,7 +477,19 @@ async function getJuliaServerConnection(
   options: JuliaExecuteOptions,
 ): Promise<Deno.TcpConn> {
   const { reused } = await startOrReuseJuliaServer(options);
-  const transportOptions = await pollTransportFile(options);
+
+  let transportOptions: JuliaTransportFile;
+  try {
+    transportOptions = await pollTransportFile(options);
+  } catch (err) {
+    if (!reused) {
+      info(
+        "No transport file was found after the timeout. This is the log from the server process:",
+      );
+      printJuliaServerLog();
+    }
+    throw err;
+  }
 
   if (!reused) {
     info("Julia server process started.");
@@ -786,7 +798,12 @@ function populateJuliaEngineCommand(command: Command) {
     ).action(logStatus)
     .command("kill", "Kill server")
     .description("Kills the control server if it is currently running.")
-    .action(killJuliaServer);
+    .action(killJuliaServer)
+    .command("log", "Print julia server log")
+    .description(
+      "Prints the julia server log file if it exists which can be used to diagnose problems.",
+    )
+    .action(printJuliaServerLog);
   return;
 }
 
@@ -913,4 +930,15 @@ function killJuliaServer() {
   const transportOptions = readTransportFile(transportFile);
   Deno.kill(transportOptions.pid, "SIGTERM");
   info("Sent SIGTERM to server process");
+}
+
+function printJuliaServerLog() {
+  if (existsSync(juliaServerLogFile())) {
+    info("#### BEGIN LOG ####");
+    Deno.stdout.writeSync(Deno.readFileSync(juliaServerLogFile()));
+    info("#### END LOG ####");
+  } else {
+    info("Server log file doesn't exist");
+  }
+  return;
 }

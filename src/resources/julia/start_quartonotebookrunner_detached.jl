@@ -12,7 +12,6 @@ end
 
 env = copy(ENV)
 env["JULIA_LOAD_PATH"] = "@:@stdlib" # ignore the main env
-cmd = `$julia_bin --startup-file=no --project=$project $julia_file $transport_file`
+cmd = `$julia_bin --startup-file=no --project=$project $julia_file $transport_file $logfile`
 cmd = setenv(cmd, env)
-pl = pipeline(detach(cmd); stdout = logfile, stderr = logfile)
-run(pl, wait = false)
+run(detach(cmd), wait = false)
