@@ -347,6 +347,7 @@ async function startOrReuseJuliaServer(
           juliaProject,
           resourcePath("julia/quartonotebookrunner.jl"),
           transportFile,
+          juliaServerLogFile(),
         ],
         env: {
           "JULIA_LOAD_PATH": "@:@stdlib", // ignore the main env
@@ -765,6 +766,10 @@ function juliaRuntimeDir(): string {
 
 function juliaTransportFile() {
   return join(juliaRuntimeDir(), "julia_transport.txt");
+}
+
+function juliaServerLogFile() {
+  return join(juliaRuntimeDir(), "julia_server_log.txt");
 }
 
 function trace(options: ExecuteOptions, msg: string) {
