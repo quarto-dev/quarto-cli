@@ -1,0 +1,21 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["#tabset-1-2.active"]
+        - []
+---
+
+::: {.panel-tabset}
+
+### Tab A
+
+Content for `Tab A`
+
+### Tab B {.active}
+
+Content for `Tab B`
+
+:::
