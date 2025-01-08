@@ -1,4 +1,4 @@
-import { assertRejects } from "https://deno.land/std/assert/assert_rejects.ts";
+import { assertRejects } from "testing/asserts";
 import { quarto } from "../../../src/quarto.ts";
 import { test } from "../../test.ts";
 
