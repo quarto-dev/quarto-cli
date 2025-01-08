@@ -22,6 +22,12 @@ All changes included in 1.7:
   that allows to check whether a node is empty, i.e., whether it's an
   empty list, has no child nodes, and contains no text.
 
+## Engines
+
+### `julia`
+
+- ([#11659](https://github.com/quarto-dev/quarto-cli/pull/11659)): Fix escaping bug where paths containing spaces or backslashes break server startup on Windows.
+
 ## Other Fixes and Improvements
 
 - ([#11643](https://github.com/quarto-dev/quarto-cli/issues/11643)): Improve highlighting of nested code block inside markdown code block, i.e. using ` ```{{python}} ` or ` ```python ` inside ` ````markdown` fenced code block.
