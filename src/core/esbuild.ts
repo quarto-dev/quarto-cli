@@ -4,8 +4,61 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
+import { assert } from "testing/asserts";
 import { execProcess } from "./process.ts";
 import { architectureToolsPath } from "./resources.ts";
+import { TempContext } from "./temp-types.ts";
+import { createTempContext } from "./temp.ts";
+import { kQuartoVersion } from "../config/constants.ts";
+
+type ESBuildAnalysisImport = {
+  path: string;
+  kind: string;
+  external: boolean;
+};
+
+type ESBuildOutputValue = {
+  imports: ESBuildAnalysisImport[];
+  entryPoint: string;
+  inputs: Record<string, { bytesInOutput: number }>;
+  bytes: number;
+};
+
+export type ESBuildAnalysis = {
+  inputs: Record<string, { bytes: number; format: string }>;
+  outputs: Record<string, ESBuildOutputValue>;
+};
+
+export async function esbuildAnalyze(
+  input: string,
+  workingDir: string,
+  tempContext?: TempContext,
+): Promise<ESBuildAnalysis> {
+  let mustCleanup = false;
+  if (!tempContext) {
+    tempContext = createTempContext();
+    mustCleanup = true;
+  }
+
+  try {
+    const tempName = tempContext.createFile({ suffix: ".json" });
+    await esbuildCommand(
+      [
+        "--analyze=verbose",
+        `--metafile=${tempName}`,
+        "--outfile=/dev/null",
+        input,
+      ],
+      "",
+      workingDir,
+    );
+    return JSON.parse(Deno.readTextFileSync(tempName)) as ESBuildAnalysis;
+  } finally {
+    if (mustCleanup) {
+      tempContext.cleanup();
+    }
+  }
+}
 
 export async function esbuildCompile(
   input: string,
@@ -38,6 +91,7 @@ export async function esbuildCommand(
       cmd,
       cwd: workingDir,
       stdout: "piped",
+      stderr: "piped",
     },
     input,
   );
