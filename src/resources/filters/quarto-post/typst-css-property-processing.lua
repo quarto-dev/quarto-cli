@@ -32,14 +32,6 @@ function render_typst_css_property_processing()
     end
   end
 
-  local function dequote(s)
-    return s:gsub('^["\']', ''):gsub('["\']$', '')
-  end
-
-  local function quote(s)
-    return '"' .. s .. '"'
-  end
-
   local function translate_vertical_align(va)
     if va == 'top' then
       return 'top'
@@ -270,15 +262,6 @@ function render_typst_css_property_processing()
     end
     return span
   end
-
-  local function translate_string_list(sl)
-    local strings = {}
-    for s in sl:gmatch('([^,]+)') do
-      s = s:gsub('^%s+', '')
-      table.insert(strings, quote(dequote(s)))
-    end
-    return '(' .. table.concat(strings, ', ') ..')'
-  end
   
   return {
     Table = function(tab)
@@ -289,7 +272,7 @@ function render_typst_css_property_processing()
         for clause in tabstyle:gmatch('([^;]+)') do
           local k, v = to_kv(clause)
           if k == 'font-family' then
-            tab.attributes['typst:text:font'] = translate_string_list(v)
+            tab.attributes['typst:text:font'] = _quarto.format.typst.css.translate_font_family_list(v)
             has_typst_text = true
           end
           if k == 'font-size' then
