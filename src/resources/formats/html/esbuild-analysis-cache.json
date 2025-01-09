@@ -8,7 +8,7 @@
       }
     },
     "outputs": {
-      "../../../../../../../../../../dev/null": {
+      "<output>": {
         "imports": [
           {
             "path": "./tabsets/tabsets.js",
