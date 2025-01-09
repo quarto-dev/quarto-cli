@@ -14,7 +14,7 @@ export DENO_DOM=v0.1.41-alpha-artifacts
 export PANDOC=3.6
 export DARTSASS=1.70.0
 export ESBUILD=0.19.12
-export TYPST=0.11.0
+export TYPST=0.12.0
 
 
 # NB: we can't put comments in the same line as export statements because it
