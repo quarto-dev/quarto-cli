@@ -272,5 +272,12 @@ $link-weight: $font-weight-base !default;
 $link-decoration: null !default;
 
 // border colors
-$border-color: mix($body-contrast-color, $body-contrast-bg, 30%) !default;
+/// if a theme does not provide body-color or body-bg
+/// defaults to boostrap own default value for theses variables (in _variables.scss)
+$border-color: mix(
+  if(variable-exists(body-color), $body-color, $gray-900),
+  if(variable-exists(body-bg), $body-bg, $white),
+  15%
+) !default;
+/// Make sure table border are the same as the border color (in case change in bootstrap default)
 $table-border-color: $border-color !default;
