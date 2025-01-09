@@ -1,6 +1,6 @@
 Change version numbers in `./configuration` to correspond to new versions.
 
-Contact JJ so he uploads the binaries to the S3 bucket.
+Contact Carlos so he uploads the binaries to the S3 bucket.
 
 ## Upgrade deno
 
