@@ -9,7 +9,7 @@ import { execProcess } from "./process.ts";
 import { architectureToolsPath } from "./resources.ts";
 import { TempContext } from "./temp-types.ts";
 import { createTempContext } from "./temp.ts";
-import { kQuartoVersion } from "../config/constants.ts";
+import { nullDevice } from "./platform.ts";
 
 type ESBuildAnalysisImport = {
   path: string;
@@ -46,13 +46,20 @@ export async function esbuildAnalyze(
       [
         "--analyze=verbose",
         `--metafile=${tempName}`,
-        "--outfile=/dev/null",
+        `--outfile=${nullDevice()}`,
         input,
       ],
       "",
       workingDir,
     );
-    return JSON.parse(Deno.readTextFileSync(tempName)) as ESBuildAnalysis;
+    const result = JSON.parse(
+      Deno.readTextFileSync(tempName),
+    ) as ESBuildAnalysis;
+    assert(Object.entries(result.outputs).length === 1);
+    result.outputs = {
+      "<output>": Object.values(result.outputs)[0],
+    };
+    return result;
   } finally {
     if (mustCleanup) {
       tempContext.cleanup();
