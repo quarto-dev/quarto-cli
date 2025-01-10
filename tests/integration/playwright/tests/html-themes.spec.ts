@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { getCSSProperty } from '../src/utils';
+import { asRGB, checkBorderProperties, checkColor, getCSSProperty } from '../src/utils';
 
 test('Dark and light theme respect user themes', async ({ page }) => {
   // This document use a custom theme file that change the background color of the title banner
@@ -38,3 +38,38 @@ test('Mainfont can be set to multiple mainfont families', async ({ page }) => {
   await page.goto('./html/mainfont/mainfont-3.html');
   expect(await getCSSProperty(page.locator('body'), '--bs-body-font-family', false)).toEqual('Creepster, "Cascadia Code", Inter');
 })
+
+test('border color from default theme does not change (like disappearing)', async ({ page }) => {
+  await page.goto('./html/default-border-color.html');
+
+  // callout border
+  for (const side of ['bottom', 'right', 'top']) {
+    await checkBorderProperties(page.getByText('Note Content'), side, asRGB(0, 0, 0, 0.1), '1px');
+  }
+  
+  // tabset border
+  for (const side of ['bottom', 'right', 'left']) {
+    await checkBorderProperties(
+      page.getByText('This is a playground for Quarto. Another Tab'),
+      side,
+      asRGB(225, 225, 226),
+      '1px'
+    );
+  }
+
+  // table borders
+  const table = page.locator('table');
+  const headerColor = asRGB(154, 157, 160);
+  const borderColor = asRGB(214, 216, 217);
+  // table defines top and bottom borders
+  await checkBorderProperties(table, 'top', borderColor, '1px');
+  await checkBorderProperties(table, 'bottom', borderColor, '1px');
+    
+  // table header row have a specific bottom row, other are colorized but hidden (width 0)
+  const thead = table.locator('> thead');
+  await checkBorderProperties(thead, 'bottom', headerColor, '1px');
+  await checkBorderProperties(thead, 'top', borderColor, '0px');
+  await checkBorderProperties(thead, 'left', asRGB(0, 0, 0, 0.1), '0px');
+  await checkBorderProperties(thead, 'right', asRGB(0, 0, 0, 0.1), '0px');
+
+});
