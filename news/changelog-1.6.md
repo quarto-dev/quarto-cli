@@ -2,6 +2,8 @@
 
 ## In this release
 
+- ([#11561](https://github.com/quarto-dev/quarto-cli/issues/11561)): Fix a regression with `$border-color` that impacted, callouts borders, tabset borders, and table borders of the defaults themes. `$border-color` is now correctly a mixed of `$body-color` and `$body-bg` even for the default theme.
+
 ## In previous releases
 
 - ([#11726](https://github.com/quarto-dev/quarto-cli/issues/11726)) Typst Brand YAML: translate named CSS font weights to Typst.
