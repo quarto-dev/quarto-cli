@@ -43,19 +43,24 @@ test('border color from default theme does not change (like disappearing)', asyn
   await page.goto('./html/default-border-color.html');
 
   // callout border
-  for (const side of ['bottom', 'right', 'top']) {
-    await checkBorderProperties(page.getByText('Note Content'), side, asRGB(0, 0, 0, 0.1), '1px');
-  }
+  const calloutNote = page.locator('div.callout-note');
+  const calloutBorderColor = asRGB(0, 0, 0, 0.1);
+  await checkBorderProperties(calloutNote, 'bottom', calloutBorderColor, '1px');
+  await checkBorderProperties(calloutNote, 'right', calloutBorderColor, '1px');
+  await checkBorderProperties(calloutNote, 'top', calloutBorderColor, '1px');
   
   // tabset border
-  for (const side of ['bottom', 'right', 'left']) {
-    await checkBorderProperties(
-      page.getByText('This is a playground for Quarto. Another Tab'),
-      side,
-      asRGB(225, 225, 226),
-      '1px'
-    );
-  }
+  const tabContent = page.locator('div.tab-content');
+  const tabBorderColor = asRGB(225, 225, 226);
+  await checkBorderProperties(tabContent, 'bottom', tabBorderColor, '1px');
+  await checkBorderProperties(tabContent, 'right', tabBorderColor, '1px');
+  await checkBorderProperties(tabContent, 'left', tabBorderColor, '1px');
+
+  const activeNavLink = page.locator('li.nav-item > a.nav-link.active');
+  await checkBorderProperties(activeNavLink, 'top', tabBorderColor, '1px');
+  await checkBorderProperties(activeNavLink, 'right', tabBorderColor, '1px');
+  await checkBorderProperties(activeNavLink, 'left', tabBorderColor, '1px');
+  await checkBorderProperties(activeNavLink, 'bottom', asRGB(255, 255, 255), '1px');
 
   // table borders
   const table = page.locator('table');
