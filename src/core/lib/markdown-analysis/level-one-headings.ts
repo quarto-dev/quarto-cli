@@ -20,5 +20,5 @@ export async function hasLevelOneHeadings(markdown: string): Promise<boolean> {
     cmd: [path, "-f", "markdown", "-t", "markdown", "-L", filterPath],
     stdout: "piped",
   }, markdown);
-  return result.stdout === "true";
+  return result.stdout?.trim() === "true";
 }
