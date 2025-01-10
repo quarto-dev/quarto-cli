@@ -288,7 +288,7 @@ export function bookPandocRenderer(
             const format = files[0].context.format;
 
             // if it's not a multi-file book then we need to render from the
-            // accumulated exected files
+            // accumulated executed files
             if (!isMultiFileBookFormat(format)) {
               renderedFiles.push(
                 await renderSingleFileBook(
