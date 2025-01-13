@@ -37,6 +37,7 @@ export class Stats {
     if (this.count === 0) {
       return {
         count: 0,
+        total: 0,
       };
     }
     return {
@@ -45,6 +46,7 @@ export class Stats {
       count: this.count,
       mean: this.mean,
       variance: this.m2 / this.count,
+      total: this.mean * this.count,
     };
   }
 }

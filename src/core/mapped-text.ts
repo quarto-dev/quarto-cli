@@ -15,7 +15,7 @@ import { debug } from "../deno_ral/log.ts";
 
 import * as mt from "./lib/mapped-text.ts";
 import { withTiming } from "./timing.ts";
-import { makeTimedFunction } from "./performance/metrics.ts";
+import { makeTimedFunction } from "./performance/function-times.ts";
 
 export type EitherString = mt.EitherString;
 export type MappedString = mt.MappedString;
