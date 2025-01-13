@@ -10,7 +10,6 @@ import { InternalError } from "../lib/error.ts";
 import { md5Hash } from "../hash.ts";
 import { join } from "../../deno_ral/path.ts";
 import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
-import { dartCompile } from "../dart-sass.ts";
 import { TempContext } from "../temp.ts";
 import { safeRemoveIfExists } from "../path.ts";
 import * as log from "../../deno_ral/log.ts";
