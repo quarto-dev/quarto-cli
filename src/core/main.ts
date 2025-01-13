@@ -12,7 +12,9 @@ import { parse } from "flags";
 import { exitWithCleanup } from "./cleanup.ts";
 import {
   captureFileReads,
-  reportPeformanceMetrics,
+  makeTimedFunctionAsync,
+  type MetricsKeys,
+  reportPerformanceMetrics,
 } from "./performance/metrics.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 
@@ -33,7 +35,10 @@ export async function mainRunner(runner: Runner) {
       captureFileReads();
     }
 
-    await runner(args);
+    const main = makeTimedFunctionAsync("main", async () => {
+      return await runner(args);
+    });
+    await main();
 
     // if profiling, wait for 10 seconds before quitting
     if (Deno.env.get("QUARTO_TS_PROFILE") !== undefined) {
@@ -42,8 +47,13 @@ export async function mainRunner(runner: Runner) {
       await new Promise((resolve) => setTimeout(resolve, 10000));
     }
 
-    if (Deno.env.get("QUARTO_REPORT_PERFORMANCE_METRICS") !== undefined) {
-      reportPeformanceMetrics();
+    const metricEnv = Deno.env.get("QUARTO_REPORT_PERFORMANCE_METRICS");
+    if (metricEnv !== undefined) {
+      if (metricEnv !== "true") {
+        reportPerformanceMetrics(metricEnv.split(",") as MetricsKeys[]);
+      } else {
+        reportPerformanceMetrics();
+      }
     }
 
     exitWithCleanup(0);
