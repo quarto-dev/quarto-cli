@@ -32,15 +32,27 @@ await initState();
 
 // const promises = [];
 const fileNames: string[] = [];
+const extraOpts = [
+  {
+    pathSuffix: "docs/playwright/embed-resources/issue-11860/main.qmd",
+    options: ["--output-dir=inner"],
+  }
+]
 
 for (const { path: fileName } of globOutput) {
   const input = fileName;
+  const options: string[] = [];
+  for (const extraOpt of extraOpts) {
+    if (fileName.endsWith(extraOpt.pathSuffix)) {
+      options.push(...extraOpt.options);
+    }
+  }
 
   // sigh, we have a race condition somewhere in
   // mediabag inspection if we don't wait all renders
   // individually. This is very slow..
   await execProcess({
-    cmd: [quartoDevCmd(), "render", input],
+    cmd: [quartoDevCmd(), "render", input, ...options],
   });
   fileNames.push(fileName);
 }
