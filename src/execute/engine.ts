@@ -148,7 +148,6 @@ export function markdownExecutionEngine(
 }
 
 function reorderEngines(project: ProjectContext) {
-  // TODO: add `engines` to schema
   const userSpecifiedOrder: string[] =
     project.config?.engines as string[] | undefined ?? [];
 
