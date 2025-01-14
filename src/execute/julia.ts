@@ -118,7 +118,7 @@ export const juliaEngine: ExecutionEngine = {
   },
 
   markdownForFile(file: string): Promise<MappedString> {
-    if (isJupyterPercentScript(file)) {
+    if (isJuliaPercentScript(file)) {
       return Promise.resolve(
         asMappedString(markdownFromJupyterPercentScript(file)),
       );
