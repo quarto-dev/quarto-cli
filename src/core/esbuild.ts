@@ -106,6 +106,8 @@ export async function esbuildCommand(
   if (result.success) {
     return result.stdout;
   } else {
+    console.error(result.stderr);
+
     throw new Error("esbuild command failed");
   }
 }
