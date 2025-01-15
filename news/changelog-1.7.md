@@ -61,3 +61,4 @@ All changes included in 1.7:
 - ([#8613](https://github.com/quarto-dev/quarto-cli/issues/8613)): Fix `giscus` color on load to support dark mode (by @kv9898).
 - ([#11441](https://github.com/quarto-dev/quarto-cli/issues/11441)): Don't add newlines around shortcodes during processing.
 - ([#11643](https://github.com/quarto-dev/quarto-cli/issues/11643)): Improve highlighting of nested code block inside markdown code block, i.e. using ` ```{{python}} ` or ` ```python ` inside ` ````markdown` fenced code block.
+- ([fb38eb5](https://github.com/quarto-dev/quarto-cli/commit/fb38eb56c11e09f44cef58fd3b697ff24bb5a3f3)) Use the `latest` parser for Acorn when analyzing JS code imported from OJS blocks.
