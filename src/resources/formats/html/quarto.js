@@ -742,7 +742,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
     // See if there is an active child to this element
     let hasActiveChild = false;
-    for (child of el.children) {
+    for (const child of el.children) {
       hasActiveChild = walk(child, depth) || hasActiveChild;
     }
 

@@ -53,6 +53,7 @@ import { kTemplatePartials } from "../../command/render/template.ts";
 import { copyTo } from "../../core/copy.ts";
 import { kCodeAnnotations } from "../html/format-html-shared.ts";
 import { safeModeFromFile } from "../../deno_ral/fs.ts";
+import { hasLevelOneHeadings as hasL1Headings } from "../../core/lib/markdown-analysis/level-one-headings.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
@@ -138,7 +139,7 @@ function createPdfFormat(
       metadata: {
         ["block-headings"]: true,
       },
-      formatExtras: (
+      formatExtras: async (
         _input: string,
         markdown: string,
         flags: PandocFlags,
@@ -254,7 +255,7 @@ function createPdfFormat(
         };
 
         // Don't shift the headings if we see any H1s (we can't shift up any longer)
-        const hasLevelOneHeadings = !!markdown.match(/\n^#\s.*$/gm);
+        const hasLevelOneHeadings = await hasL1Headings(markdown);
 
         // pdfs with no other heading level oriented options get their heading level shifted by -1
         if (

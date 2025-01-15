@@ -9,20 +9,24 @@ import { debug } from "../deno_ral/log.ts";
 import { HTMLDocument, initParser } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { register } from "deno_dom/src/parser.ts";
 import { DOMParser } from "deno_dom/src/dom/dom-parser.ts";
+import { makeTimedFunctionAsync } from "./performance/function-times.ts";
 
 export async function getDomParser() {
   await initDenoDom();
   return new DOMParser();
 }
 
-export async function parseHtml(src: string): Promise<HTMLDocument> {
-  await initDenoDom();
-  const result = (new DOMParser()).parseFromString(src, "text/html");
-  if (!result) {
-    throw new Error("Couldn't parse string into HTML");
-  }
-  return result;
-}
+export const parseHtml = makeTimedFunctionAsync(
+  "parseHtml",
+  async function parseHtml(src: string): Promise<HTMLDocument> {
+    await initDenoDom();
+    const result = (new DOMParser()).parseFromString(src, "text/html");
+    if (!result) {
+      throw new Error("Couldn't parse string into HTML");
+    }
+    return result;
+  },
+);
 
 export async function writeDomToHtmlFile(
   doc: HTMLDocument,

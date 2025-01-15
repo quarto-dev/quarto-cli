@@ -12,8 +12,10 @@ import { parse } from "flags";
 import { exitWithCleanup } from "./cleanup.ts";
 import {
   captureFileReads,
-  reportPeformanceMetrics,
+  type MetricsKeys,
+  reportPerformanceMetrics,
 } from "./performance/metrics.ts";
+import { makeTimedFunctionAsync } from "./performance/function-times.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 
 type Runner = (args: Args) => Promise<unknown>;
@@ -29,11 +31,15 @@ export async function mainRunner(runner: Runner) {
       Deno.addSignalListener("SIGTERM", abend);
     }
 
-    if (Deno.env.get("QUARTO_REPORT_PERFORMANCE_METRICS") !== undefined) {
+    const metricEnv = Deno.env.get("QUARTO_REPORT_PERFORMANCE_METRICS");
+    if (metricEnv === "true" || metricEnv?.split(",").includes("fileReads")) {
       captureFileReads();
     }
 
-    await runner(args);
+    const main = makeTimedFunctionAsync("main", async () => {
+      return await runner(args);
+    });
+    await main();
 
     // if profiling, wait for 10 seconds before quitting
     if (Deno.env.get("QUARTO_TS_PROFILE") !== undefined) {
@@ -42,8 +48,12 @@ export async function mainRunner(runner: Runner) {
       await new Promise((resolve) => setTimeout(resolve, 10000));
     }
 
-    if (Deno.env.get("QUARTO_REPORT_PERFORMANCE_METRICS") !== undefined) {
-      reportPeformanceMetrics();
+    if (metricEnv !== undefined) {
+      if (metricEnv !== "true") {
+        reportPerformanceMetrics(metricEnv.split(",") as MetricsKeys[]);
+      } else {
+        reportPerformanceMetrics();
+      }
     }
 
     exitWithCleanup(0);

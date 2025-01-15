@@ -25,9 +25,18 @@ All changes included in 1.7:
 
 - ([#11608](https://github.com/quarto-dev/quarto-cli/pull/11608)): Do not issue error message when calling `quarto check info`.
 
-## `typst` Format
+## `html` format
+
+- ([#11860])(https://github.com/quarto-dev/quarto-cli/issues/11860)): ES6 modules that import other local JS modules in documents with `embed-resources: true` are now correctly embedded.
+
+## `pdf` format
+
+- ([#11835](https://github.com/quarto-dev/quarto-cli/issues/11835)): Take markdown structure into account when detecting minimum heading level.
+
+## `typst` format
 
 - ([#11578](https://github.com/quarto-dev/quarto-cli/issues/11578)): Typst column layout widths use fractional `fr` units instead of percent `%` units for unitless and default widths in order to fill the enclosing block and not spill outside it.
+- ([#11835](https://github.com/quarto-dev/quarto-cli/issues/11835)): Take markdown structure into account when detecting minimum heading level.
 
 ## Lua Filters and extensions
 
