@@ -71,7 +71,7 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass, profilin
       -- We don't seem to need coverage for profiling
       -- luacov: disable
       if profiling then
-        profiler.category = v.name
+        profiler.setcategory(v.name)
       end
       -- luacov: enable
 
