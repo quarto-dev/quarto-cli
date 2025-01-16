@@ -141,7 +141,7 @@ local function emulate_pandoc_filter(filters, afterFilterPass)
         profiler = require('profiler')
       end
       pandoc.system.with_temporary_directory("temp", function(tmpdir)
-        profiler.start(tmpdir .. "/prof.txt", tonumber(option("lua-profile-interval-ms", "5")))
+        profiler.start(tmpdir .. "/prof.txt", tonumber(option("lua-profiler-interval-ms", "5")))
         doc = run_emulated_filter_chain(doc, filters, afterFilterPass, profiling)
         profiler.stop()
         -- os.execute("cp " .. tmpdir .. "/prof.txt /tmp/prof.out")
