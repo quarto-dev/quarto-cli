@@ -181,12 +181,7 @@ import {
   processFormatResources,
   writeFormatResources,
 } from "./pandoc-dependencies-resources.ts";
-import {
-  ExplicitTimingEntry,
-  getLuaTiming,
-  insertExplicitTimingEntries,
-  withTiming,
-} from "../../core/timing.ts";
+import { withTiming } from "../../core/timing.ts";
 
 import {
   requiresShortcodeUnescapePostprocessor,
@@ -1186,9 +1181,6 @@ export async function runPandoc(
     );
   }
 
-  // workaround for our wonky Lua timing routines
-  const luaEpoch = await getLuaTiming();
-
   setupPandocEnv();
 
   // run beforePandoc hooks
@@ -1228,24 +1220,6 @@ export async function runPandoc(
       // Read any resource files
       const resourceFiles = filterResults.resourceFiles || [];
       resources.push(...resourceFiles);
-    }
-  }
-
-  if (existsSync(timingResultsFile)) {
-    const timingResultsJSON = Deno.readTextFileSync(timingResultsFile);
-    if (
-      timingResultsJSON.length > 0 && Deno.env.get("QUARTO_PROFILER_OUTPUT")
-    ) {
-      // workaround for our wonky Lua timing routines
-      const luaNow = await getLuaTiming();
-      const entries = JSON.parse(timingResultsJSON) as ExplicitTimingEntry[];
-
-      insertExplicitTimingEntries(
-        luaEpoch,
-        luaNow,
-        entries,
-        "pandoc",
-      );
     }
   }
 
