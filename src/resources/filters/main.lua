@@ -295,7 +295,8 @@ local quarto_pre_filters = {
   },
 
   { name = "pre-scope-resolution",
-    filter = resolve_scoped_elements()
+    filter = resolve_scoped_elements(),
+    flags = { "has_tables" }
   },
 
   { name = "pre-combined-figures-theorems-etc", filter = combineFilters({
