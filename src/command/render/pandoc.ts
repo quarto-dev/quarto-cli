@@ -879,7 +879,6 @@ export async function runPandoc(
     formatFilterParams,
     filterResultsFile,
     dependenciesFile,
-    timingResultsFile,
   );
 
   // remove selected args and defaults if we are handling some things on behalf of pandoc
