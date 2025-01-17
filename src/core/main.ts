@@ -17,6 +17,7 @@ import {
 } from "./performance/metrics.ts";
 import { makeTimedFunctionAsync } from "./performance/function-times.ts";
 import { isWindows } from "../deno_ral/platform.ts";
+import { convertCombinedLuaProfileToCSV } from "./performance/perfetto-utils.ts";
 
 type Runner = (args: Args) => Promise<unknown>;
 export async function mainRunner(runner: Runner) {
@@ -46,6 +47,11 @@ export async function mainRunner(runner: Runner) {
       console.log("Program finished. Turn off the Chrome profiler now!");
       console.log("Waiting for 10 seconds ...");
       await new Promise((resolve) => setTimeout(resolve, 10000));
+    }
+
+    const combinedLuaProfile = Deno.env.get("QUARTO_COMBINED_LUA_PROFILE");
+    if (combinedLuaProfile) {
+      convertCombinedLuaProfileToCSV(combinedLuaProfile);
     }
 
     if (metricEnv !== undefined) {

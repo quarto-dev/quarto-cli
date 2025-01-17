@@ -30,16 +30,23 @@ Clone the Pandoc repository, and then
 $ C_INCLUDE_PATH=<path-lua-fast-profiler> LIBRARY_PATH=<path-lua-fast-profiler> cabal build pandoc-cli --constraint 'lua +system-lua'
 ```
 
-## Use the custom Pandoc binary
+## Run Quarto with profiling
+
+To get Lua profiling output from Quarto, use the `lua-profiler-output` metadata option to provide an output file name, and ensure that Quarto uses the
+`pandoc` binary you just compiled.
 
 ```
 $ QUARTO_PANDOC=<path-to-built-pandoc> quarto render ...
 ```
 
-To get Lua profiling output from Quarto, use the `lua-profiler-output` metadata option to provide an output file name.
 The output will be written as JSON, in a format compatible with [Perfetto](https://ui.perfetto.dev).
 The default sampling interval is 5ms, but you can customize that by setting the `lua-profiler-interval-ms` metadata option.
 
-## Analyze profile
+### Analyze profile
 
 The resulting profile can be visualized and analyzed as a trace file at <https://ui.perfetto.dev>.
+
+### Profiling multiple-file projects
+
+In multiple-file projects, you can get a summary of the runtime of individual filter steps by providing the `QUARTO_COMBINED_LUA_PROFILE` environment variable.
+At the end of rendering a project, the name of the file pointed to `QUARTO_COMBINED_LUA_PROFILE` will contain a CSV file with the columns `filter`, `filename`, and `time`, corresponding to an estimate of time (in microseconds) taken by each stage of Quarto's filtering pipeline.

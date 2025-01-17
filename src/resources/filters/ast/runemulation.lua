@@ -131,7 +131,7 @@ local function emulate_pandoc_filter(filters, afterFilterPass)
   return {
     traverse = 'topdown',
     Pandoc = function(doc)
-      local profiling = option("lua-profiler-output", false)
+      local profiling = option("lua-profiler-output", false) or param("lua-profiler-output", false)
       if not profiling then
         return run_emulated_filter_chain(doc, filters, afterFilterPass), false
       end

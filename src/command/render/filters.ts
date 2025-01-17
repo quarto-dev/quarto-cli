@@ -130,7 +130,7 @@ export async function filterParamsJson(
   filterParams: Record<string, unknown>,
   resultsFile: string,
   dependenciesFile: string,
-) {
+): Promise<Record<string, unknown>> {
   // extract include params (possibly mutating it's arguments)
   const includes = options.format.render[kMergeIncludes] !== false
     ? extractIncludeParams(
@@ -195,7 +195,7 @@ export async function filterParamsJson(
     [kBrand]: options.format.render[kBrand],
     "quarto-environment": await quartoEnvironmentParams(options),
   };
-  return JSON.stringify(params);
+  return params;
 }
 
 async function quartoEnvironmentParams(_options: PandocOptions) {

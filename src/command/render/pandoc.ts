@@ -203,10 +203,39 @@ import {
 } from "../../resources/types/schema-types.ts";
 import { kFieldCategories } from "../../project/types/website/listing/website-listing-shared.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
+import { appendToCombinedLuaProfile } from "../../core/performance/perfetto-utils.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
 let traceCount = 0;
+
+const handleCombinedLuaProfiles = (
+  source: string,
+  paramsJson: Record<string, unknown>,
+  temp: TempContext,
+) => {
+  const beforePandocHooks: (() => unknown)[] = [];
+  const afterPandocHooks: (() => unknown)[] = [];
+  const tmp = temp.createFile();
+
+  const combinedProfile = Deno.env.get("QUARTO_COMBINED_LUA_PROFILE");
+  if (combinedProfile) {
+    beforePandocHooks.push(() => {
+      paramsJson["lua-profiler-output"] = tmp;
+    });
+    afterPandocHooks.push(() => {
+      appendToCombinedLuaProfile(
+        source,
+        tmp,
+        combinedProfile,
+      );
+    });
+  }
+  return {
+    before: beforePandocHooks,
+    after: afterPandocHooks,
+  };
+};
 
 export async function runPandoc(
   options: PandocOptions,
@@ -214,10 +243,19 @@ export async function runPandoc(
 ): Promise<RunPandocResult | null> {
   const beforePandocHooks: (() => unknown)[] = [];
   const afterPandocHooks: (() => unknown)[] = [];
+  const setupPandocHooks = (
+    hooks: { before: (() => unknown)[]; after: (() => unknown)[] },
+  ) => {
+    beforePandocHooks.push(...hooks.before);
+    afterPandocHooks.push(...hooks.after);
+  };
+
   const pandocEnv: { [key: string]: string } = {};
 
   const setupPandocEnv = () => {
-    pandocEnv["QUARTO_FILTER_PARAMS"] = encodeBase64(paramsJson);
+    pandocEnv["QUARTO_FILTER_PARAMS"] = encodeBase64(
+      JSON.stringify(paramsJson),
+    );
 
     const traceFilters = pandocMetadata?.["_quarto"]?.["trace-filters"] ||
       Deno.env.get("QUARTO_TRACE_FILTERS");
@@ -881,6 +919,14 @@ export async function runPandoc(
     dependenciesFile,
   );
 
+  setupPandocHooks(
+    handleCombinedLuaProfiles(
+      options.source,
+      paramsJson,
+      options.services.temp,
+    ),
+  );
+
   // remove selected args and defaults if we are handling some things on behalf of pandoc
   // (e.g. handling section numbering). note that section numbering is handled by the
   // crossref filter so we only do this if the user hasn't disabled the crossref filter
@@ -1180,12 +1226,12 @@ export async function runPandoc(
     );
   }
 
-  setupPandocEnv();
-
   // run beforePandoc hooks
   for (const hook of beforePandocHooks) {
     await hook();
   }
+
+  setupPandocEnv();
 
   // run pandoc
   const result = await execProcess(
