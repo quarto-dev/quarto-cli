@@ -24,15 +24,7 @@ function compute_flags()
     return false
   end
 
-  return {
-    Meta = function(el)
-      local lightbox_auto = lightbox_module.automatic(el)
-      if lightbox_auto then
-        flags.has_lightbox = true
-      elseif lightbox_auto == false then
-        flags.has_lightbox = false
-      end
-    end,
+  return {{
     Header = function(el)
       if find_shortcode_in_attributes(el) then
         flags.has_shortcodes = true
@@ -76,7 +68,6 @@ function compute_flags()
       if el.text:find("%{%{%<") then
         flags.has_shortcodes = true
       end
-        
     end,
     Div = function(node)
       if find_shortcode_in_attributes(node) then
@@ -187,5 +178,14 @@ function compute_flags()
     Figure = function(node)
       flags.has_pandoc3_figure = true
     end
-  }
+  }, {
+    Meta = function(el)
+      local lightbox_auto = lightbox_module.automatic(el)
+      if lightbox_auto then
+        flags.has_lightbox = true
+      elseif lightbox_auto == false then
+        flags.has_lightbox = false
+      end
+    end,
+  }}
 end

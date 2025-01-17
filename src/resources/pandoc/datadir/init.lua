@@ -1882,6 +1882,7 @@ _quarto = {
       latexTablePatterns = latexTablePatterns,
       latexCaptionPattern = latexCaptionPattern_table
    },
+   traverser = utils.walk,
    utils = utils,
    withScriptFile = function(file, callback)
       table.insert(scriptFile, file)
