@@ -268,24 +268,29 @@ async function checkInstall(services: RenderServices) {
     message: chromeHeadlessMessage,
     doneMessage: chromeHeadlessMessage + "OK",
   }, async () => {
-    const chromeSystemPath = await findChrome();
-    const chromiumQuartoPath = tools.installed.find((tool) =>
+    const chromeDetected = await findChrome();
+    const chromiumQuarto = tools.installed.find((tool) =>
       tool.name === "chromium"
     );
-    if (chromeSystemPath !== undefined) {
+    if (chromeDetected.path !== undefined) {
       chromeHeadlessOutput.push(`${kIndent}Using: Chrome found on system`);
-      chromeHeadlessOutput.push(`${kIndent}Path: ${dirname(chromeSystemPath)}`);
-    } else if (chromiumQuartoPath) {
+      chromeHeadlessOutput.push(
+        `${kIndent}Path: ${chromeDetected.path}`,
+      );
+      if (chromeDetected.source) {
+        chromeHeadlessOutput.push(`${kIndent}Source: ${chromeDetected.source}`);
+      }
+    } else if (chromiumQuarto !== undefined) {
       chromeHeadlessOutput.push(
         `${kIndent}Using: Chromium installed by Quarto`,
       );
-      if (chromiumQuartoPath?.binDir) {
+      if (chromiumQuarto?.binDir) {
         chromeHeadlessOutput.push(
-          `${kIndent}Path: ${chromiumQuartoPath?.binDir}`,
+          `${kIndent}Path: ${chromiumQuarto?.binDir}`,
         );
       }
       chromeHeadlessOutput.push(
-        `${kIndent}Version: ${chromiumQuartoPath.installedVersion}`,
+        `${kIndent}Version: ${chromiumQuarto.installedVersion}`,
       );
     } else {
       chromeHeadlessOutput.push(`${kIndent}Chrome:  (not detected)`);
