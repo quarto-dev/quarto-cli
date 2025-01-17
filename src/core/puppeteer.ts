@@ -200,7 +200,7 @@ export async function withHeadlessBrowser<T>(
   }
 }
 
-async function findChrome(): Promise<string | undefined> {
+export async function findChrome(): Promise<string | undefined> {
   let path;
   // First check env var and use this path if specified
   const envPath = Deno.env.get("QUARTO_CHROMIUM");
