@@ -16,7 +16,9 @@ export const makeTimedFunction = <T extends (...args: any[]) => any>(
   if (Deno.env.get("QUARTO_REPORT_PERFORMANCE_METRICS") === undefined) {
     return fn;
   }
-  functionTimes[name] = new Stats();
+  if (!functionTimes[name]) {
+    functionTimes[name] = new Stats();
+  }
   return function (...args: Parameters<T>): ReturnType<T> {
     const start = performance.now();
     try {
@@ -46,7 +48,9 @@ export const makeTimedFunctionAsync = <
   if (Deno.env.get("QUARTO_REPORT_PERFORMANCE_METRICS") === undefined) {
     return fn;
   }
-  functionTimes[name] = new Stats();
+  if (!functionTimes[name]) {
+    functionTimes[name] = new Stats();
+  }
   return async function (...args: Parameters<T>): Promise<ReturnType<T>> {
     const start = performance.now();
     try {

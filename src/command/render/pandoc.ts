@@ -181,12 +181,7 @@ import {
   processFormatResources,
   writeFormatResources,
 } from "./pandoc-dependencies-resources.ts";
-import {
-  ExplicitTimingEntry,
-  getLuaTiming,
-  insertExplicitTimingEntries,
-  withTiming,
-} from "../../core/timing.ts";
+import { withTiming } from "../../core/timing.ts";
 
 import {
   requiresShortcodeUnescapePostprocessor,
@@ -208,10 +203,39 @@ import {
 } from "../../resources/types/schema-types.ts";
 import { kFieldCategories } from "../../project/types/website/listing/website-listing-shared.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
+import { appendToCombinedLuaProfile } from "../../core/performance/perfetto-utils.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
 let traceCount = 0;
+
+const handleCombinedLuaProfiles = (
+  source: string,
+  paramsJson: Record<string, unknown>,
+  temp: TempContext,
+) => {
+  const beforePandocHooks: (() => unknown)[] = [];
+  const afterPandocHooks: (() => unknown)[] = [];
+  const tmp = temp.createFile();
+
+  const combinedProfile = Deno.env.get("QUARTO_COMBINED_LUA_PROFILE");
+  if (combinedProfile) {
+    beforePandocHooks.push(() => {
+      paramsJson["lua-profiler-output"] = tmp;
+    });
+    afterPandocHooks.push(() => {
+      appendToCombinedLuaProfile(
+        source,
+        tmp,
+        combinedProfile,
+      );
+    });
+  }
+  return {
+    before: beforePandocHooks,
+    after: afterPandocHooks,
+  };
+};
 
 export async function runPandoc(
   options: PandocOptions,
@@ -219,10 +243,19 @@ export async function runPandoc(
 ): Promise<RunPandocResult | null> {
   const beforePandocHooks: (() => unknown)[] = [];
   const afterPandocHooks: (() => unknown)[] = [];
+  const setupPandocHooks = (
+    hooks: { before: (() => unknown)[]; after: (() => unknown)[] },
+  ) => {
+    beforePandocHooks.push(...hooks.before);
+    afterPandocHooks.push(...hooks.after);
+  };
+
   const pandocEnv: { [key: string]: string } = {};
 
   const setupPandocEnv = () => {
-    pandocEnv["QUARTO_FILTER_PARAMS"] = encodeBase64(paramsJson);
+    pandocEnv["QUARTO_FILTER_PARAMS"] = encodeBase64(
+      JSON.stringify(paramsJson),
+    );
 
     const traceFilters = pandocMetadata?.["_quarto"]?.["trace-filters"] ||
       Deno.env.get("QUARTO_TRACE_FILTERS");
@@ -884,7 +917,14 @@ export async function runPandoc(
     formatFilterParams,
     filterResultsFile,
     dependenciesFile,
-    timingResultsFile,
+  );
+
+  setupPandocHooks(
+    handleCombinedLuaProfiles(
+      options.source,
+      paramsJson,
+      options.services.temp,
+    ),
   );
 
   // remove selected args and defaults if we are handling some things on behalf of pandoc
@@ -1186,15 +1226,12 @@ export async function runPandoc(
     );
   }
 
-  // workaround for our wonky Lua timing routines
-  const luaEpoch = await getLuaTiming();
-
-  setupPandocEnv();
-
   // run beforePandoc hooks
   for (const hook of beforePandocHooks) {
     await hook();
   }
+
+  setupPandocEnv();
 
   // run pandoc
   const result = await execProcess(
@@ -1228,24 +1265,6 @@ export async function runPandoc(
       // Read any resource files
       const resourceFiles = filterResults.resourceFiles || [];
       resources.push(...resourceFiles);
-    }
-  }
-
-  if (existsSync(timingResultsFile)) {
-    const timingResultsJSON = Deno.readTextFileSync(timingResultsFile);
-    if (
-      timingResultsJSON.length > 0 && Deno.env.get("QUARTO_PROFILER_OUTPUT")
-    ) {
-      // workaround for our wonky Lua timing routines
-      const luaNow = await getLuaTiming();
-      const entries = JSON.parse(timingResultsJSON) as ExplicitTimingEntry[];
-
-      insertExplicitTimingEntries(
-        luaEpoch,
-        luaNow,
-        entries,
-        "pandoc",
-      );
     }
   }
 
