@@ -4,9 +4,34 @@
  * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
-import { basename, dirname } from "../../deno_ral/path.ts";
+import { basename, dirname, join } from "../../deno_ral/path.ts";
 import { formatResourcePath, pandocBinaryPath } from "../../core/resources.ts";
 import { execProcess } from "../../core/process.ts";
+import { parseHtml } from "../deno-dom.ts";
+import { Element, HTMLDocument } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { esbuildCompile } from "../esbuild.ts";
+import { asDataUrl } from "../data-url.ts";
+
+const bundleModules = async (dom: HTMLDocument, workingDir: string) => {
+  const modules = dom.querySelectorAll("script[type='module']");
+  for (const module of modules) {
+    const src = (module as Element).getAttribute("src");
+    if (src) {
+      const srcName = join(workingDir, src);
+      const srcDir = dirname(srcName);
+      const jsSource = await esbuildCompile(
+        Deno.readTextFileSync(srcName),
+        srcDir,
+        [],
+        "esm",
+      );
+      (module as Element).setAttribute(
+        "src",
+        asDataUrl(jsSource!, "application/javascript"),
+      );
+    }
+  }
+};
 
 export const pandocIngestSelfContainedContent = async (
   file: string,
@@ -23,9 +48,12 @@ export const pandocIngestSelfContainedContent = async (
 
   // The raw html contents
   const contents = Deno.readTextFileSync(file);
+  const dom = await parseHtml(contents);
+  await bundleModules(dom, workingDir);
+
   const input: string[] = [];
   input.push("````````{=html}");
-  input.push(contents);
+  input.push(dom.documentElement!.outerHTML);
   input.push("````````");
 
   // Run pandoc to suck in dependencies

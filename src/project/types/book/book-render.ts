@@ -173,7 +173,7 @@ export function bookPandocRenderer(
             const title = file.recipe.format.metadata[kTitle] || "";
             const alt = coverImageAlt ? ` fig-alt="${coverImageAlt}"` : "";
             file.executeResult.markdown =
-              `![](${coverImage} "${title}"){.quarto-cover-image${alt}}\n\n` +
+              `![](${coverImage} "${title}"){.quarto-cover-image .nolightbox${alt}}\n\n` +
               file.executeResult.markdown;
           }
 
@@ -288,7 +288,7 @@ export function bookPandocRenderer(
             const format = files[0].context.format;
 
             // if it's not a multi-file book then we need to render from the
-            // accumulated exected files
+            // accumulated executed files
             if (!isMultiFileBookFormat(format)) {
               renderedFiles.push(
                 await renderSingleFileBook(

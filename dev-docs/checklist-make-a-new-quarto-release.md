@@ -45,6 +45,7 @@
   - [ ] publish the release blog post that should exist in https://github.com/quarto-dev/quarto-web/tree/main/docs/blog/posts
         by removing the `draft: true` line in the metadata and changing the date to match the release date. Do this on a branch off of `main` to trigger our PR automation to make the corresponding change to `prerelease`.
 
+- [ ] Update https://github.com/quarto-dev/quarto-cli/blob/main/CITATION.cff
 - [ ] Packaging and package managers, etc
   - TBD winget, etc?
   - [ ] chocolatey
