@@ -200,15 +200,21 @@ export async function withHeadlessBrowser<T>(
   }
 }
 
-async function findChrome(): Promise<string | undefined> {
+interface ChromeInfo {
+  path: string | undefined;
+  source: string | undefined;
+}
+
+export async function findChrome(): Promise<ChromeInfo> {
   let path;
+  let source;
   // First check env var and use this path if specified
   const envPath = Deno.env.get("QUARTO_CHROMIUM");
   if (envPath) {
     debug("[CHROMIUM] Using path specified in QUARTO_CHROMIUM");
     if (safeExistsSync(envPath)) {
       debug(`[CHROMIUM] Found at ${envPath}, and will be used.`);
-      return envPath;
+      return { path: envPath, source: "QUARTO_CHROMIUM" };
     } else {
       debug(
         `[CHROMIUM] Not found at ${envPath}. Check your environment variable valye. Searching now for another binary.`,
@@ -222,6 +228,7 @@ async function findChrome(): Promise<string | undefined> {
       "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
     ];
     path = programs.find(safeExistsSync);
+    source = "MacOS known location";
   } else if (isWindows) {
     // Try the HKLM key
     const programs = ["chrome.exe", "msedge.exe"];
@@ -231,7 +238,10 @@ async function findChrome(): Promise<string | undefined> {
           programs[i],
         "(Default)",
       );
-      if (path && safeExistsSync(path)) break;
+      if (path && safeExistsSync(path)) {
+        source = "Windows Registry";
+        break;
+      }
     }
 
     // Try the HKCR key
@@ -244,7 +254,10 @@ async function findChrome(): Promise<string | undefined> {
         );
         path = path?.match(/"(.*)"/);
         path = path ? path[1] : undefined;
-        if (path && existsSync(path)) break;
+        if (path && existsSync(path)) {
+          source = "Windows Registry";
+          break;
+        }
       }
     }
   } else {
@@ -254,6 +267,9 @@ async function findChrome(): Promise<string | undefined> {
     if (!path) {
       path = await which("chromium-browser");
     }
+    if (path && existsSync(path)) {
+      source = "PATH";
+    }
   }
   if (path) {
     debug("[CHROMIUM] Found Chromium on OS known location");
@@ -261,7 +277,7 @@ async function findChrome(): Promise<string | undefined> {
   } else {
     debug("[CHROMIUM] Chromium not found on OS known location");
   }
-  return path;
+  return { path: path, source: source };
 }
 
 export async function getBrowserExecutablePath() {
@@ -272,7 +288,7 @@ export async function getBrowserExecutablePath() {
   let executablePath: string | undefined = undefined;
 
   if (executablePath === undefined) {
-    executablePath = await findChrome();
+    executablePath = (await findChrome()).path;
   }
 
   if (executablePath === undefined && availableRevisions.length > 0) {
