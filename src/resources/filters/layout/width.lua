@@ -136,11 +136,15 @@ function widthsToFraction(layout, cols)
       widths[#widths+1] = 0
       local width = attribute(fig, "width", nil)
       if width then
+        local num = tonumber(width)
+        if num then
+          width = string.format("%.6f", num / PANDOC_WRITER_OPTIONS.dpi) .. "in"
+        end
         widths[#widths] = width
       end
     end
 
-    -- create virtual fig widths as needed and note the total width
+    -- default width
     local defaultWidth = "1fr"
     for i=1,cols do
       if (i > #widths) or widths[i] == 0 then
@@ -149,8 +153,7 @@ function widthsToFraction(layout, cols)
     end
     -- allocate widths
     for i,fig in ipairs(row) do
-      local width = widths[i];
-      fig.attr.attributes["width"] = width
+      fig.attr.attributes["width"] = widths[i]
       fig.attr.attributes["height"] = nil
     end
 
