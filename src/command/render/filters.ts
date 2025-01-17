@@ -104,8 +104,6 @@ const kMediabagDir = "mediabag-dir";
 
 const kResultsFile = "results-file";
 
-const kTimingFile = "timings-file";
-
 const kHasBootstrap = "has-bootstrap";
 
 const kActiveFilters = "active-filters";
@@ -132,7 +130,6 @@ export async function filterParamsJson(
   filterParams: Record<string, unknown>,
   resultsFile: string,
   dependenciesFile: string,
-  timingFile: string,
 ) {
   // extract include params (possibly mutating it's arguments)
   const includes = options.format.render[kMergeIncludes] !== false
@@ -185,7 +182,6 @@ export async function filterParamsJson(
     ...customFormatParams,
     ...typstFilterParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
-    [kTimingFile]: pandocMetadataPath(timingFile),
     [kQuartoFilters]: filterSpec,
     [kActiveFilters]: {
       normalization: metadataNormalizationFilterActive(options),
