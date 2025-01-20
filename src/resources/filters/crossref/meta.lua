@@ -6,7 +6,11 @@ function crossrefMetaInject()
   return {
     Meta = function(meta)
       local function as_latex(inlines)
-        return trim(pandoc.write(pandoc.Pandoc(inlines), "latex"))
+        local toConvert = inlines
+        if isInlineEl(inlines) then
+          toConvert = pandoc.Plain(inlines)
+        end
+        return trim(pandoc.write(pandoc.Pandoc(toConvert)))
       end
       metaInjectLatex(meta, function(inject)
         
