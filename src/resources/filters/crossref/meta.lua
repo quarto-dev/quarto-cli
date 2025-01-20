@@ -6,11 +6,7 @@ function crossrefMetaInject()
   return {
     Meta = function(meta)
       local function as_latex(inlines)
-        local toConvert = inlines
-        if isInlineEl(inlines) then
-          toConvert = pandoc.Plain(inlines)
-        end
-        return trim(pandoc.write(pandoc.Pandoc(toConvert), "latex"))
+        return trim(pandoc.write(pandoc.Pandoc(quarto.utils.as_blocks(inlines)), "latex"))
       end
       metaInjectLatex(meta, function(inject)
         
