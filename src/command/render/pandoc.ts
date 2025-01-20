@@ -204,6 +204,7 @@ import {
 import { kFieldCategories } from "../../project/types/website/listing/website-listing-shared.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { appendToCombinedLuaProfile } from "../../core/performance/perfetto-utils.ts";
+import { makeTimedFunctionAsync } from "../../core/performance/function-times.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -1233,14 +1234,18 @@ export async function runPandoc(
 
   setupPandocEnv();
 
+  const pandocRender = makeTimedFunctionAsync("pandoc-render", async () => {
+    return await execProcess(
+      {
+        cmd,
+        cwd,
+        env: pandocEnv,
+      },
+    );
+  });
+
   // run pandoc
-  const result = await execProcess(
-    {
-      cmd,
-      cwd,
-      env: pandocEnv,
-    },
-  );
+  const result = await pandocRender();
 
   // run afterPandoc hooks
   for (const hook of afterPandocHooks) {
