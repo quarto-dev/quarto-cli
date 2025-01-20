@@ -41,7 +41,7 @@ function is_regular_node(node, name)
   return node
 end
 
-function run_emulated_filter(doc, filter, traverse)
+function run_emulated_filter(doc, filter, traverser)
   if doc == nil then
     return nil
   end
@@ -82,10 +82,10 @@ function run_emulated_filter(doc, filter, traverse)
     elseif type(traverser) == 'function' then
       _quarto.traverser = traverser
     else
-      warn('Unknown traverse method: ' .. tostring(traverse))
+      warn('Unknown traverse method: ' .. tostring(traverser))
     end
     local result = _quarto.traverser(node, filter_param)
-    _quarto.traverse = old_traverse
+    _quarto.traverser = old_traverse
 
     return result
   end
