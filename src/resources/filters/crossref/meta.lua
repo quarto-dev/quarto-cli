@@ -10,7 +10,7 @@ function crossrefMetaInject()
         if isInlineEl(inlines) then
           toConvert = pandoc.Plain(inlines)
         end
-        return trim(pandoc.write(pandoc.Pandoc(toConvert)))
+        return trim(pandoc.write(pandoc.Pandoc(toConvert), "latex"))
       end
       metaInjectLatex(meta, function(inject)
         
