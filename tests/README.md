@@ -6,7 +6,7 @@ We run several type of tests
 
 - Unit tests, located in `unit/` folder
 - Integration tests, located in `integration/` folder
-- smoke tests localed in `smoke` folder
+- smoke tests located in `smoke` folder
 
 Tests are run in our CI workflow on GHA at each commit, and for each PR.
 
