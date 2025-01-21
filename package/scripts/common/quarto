@@ -52,12 +52,15 @@ if [ -f "$DEV_PATH" ]; then
   QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_PATH/import_map.json
 
   # Turn on type checking for dev version
-  QUARTO_DENO_OPTIONS=--check
+  if [ -z ${QUARTO_NO_TYPECHECK+x} ]; then
+    QUARTO_DENO_OPTIONS=--check
+  fi
 
   # Allow calls to override the target
   if [ -z ${QUARTO_TARGET+x} ]; then
     QUARTO_TARGET=$DEV_PATH
   fi
+  
   export QUARTO_BIN_PATH=$SCRIPT_PATH
   export QUARTO_SHARE_PATH="${QUARTO_SHARE_PATH=$QUARTO_SRC_PATH/resources/}"
   if [ -z ${QUARTO_DEBUG+x} ]; then
