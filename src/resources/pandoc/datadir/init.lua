@@ -1876,6 +1876,10 @@ _quarto = {
    processDependencies = processDependencies,
    format = format,
    patterns = {
+      latexTableEnvPatterns = pandoc.List({
+         latexTablePatternWithPos_table, 
+         latexTablePattern_table
+      }),
       latexTabularPattern = latexTabularPattern_table,
       latexTablePattern = latexTablePattern_table,
       latexLongtablePattern = latexLongtablePattern_table,

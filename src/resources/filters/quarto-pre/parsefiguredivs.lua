@@ -743,9 +743,8 @@ function parse_floatreftargets()
 
       -- finally, if the user passed a \\begin{table} float environment
       -- we just remove it because we'll re-emit later ourselves
-
-      local b, e, begin_table, table_body, end_table = raw.text:find(patterns.latex_table)
-      if b ~= nil then
+      local begin_table, table_body, _ = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexTableEnvPatterns)
+      if begin_table ~= nil then
         raw.text = table_body
       end
 
