@@ -62,22 +62,6 @@ function coalesce_raw()
         end
       end
       return blocks
-      -- local list_of_lists = collate(blocks, function(block, prev_block)
-      --   return block.t == "RawBlock" and block.format:match(".*-merge$") and 
-      --         prev_block.t == "RawBlock" and prev_block.format == block.format
-      -- end)
-      -- local result = pandoc.Blocks({})
-      -- for _, lst in ipairs(list_of_lists) do
-      --   local first_el = lst[1]
-      --   if first_el.t == "RawBlock" and first_el.format:match(".*-merge") then
-      --     local text = table.concat(lst:map(function(block) return block.text end), "%\n")
-      --     local new_block = pandoc.RawBlock(first_el.format:gsub("-merge$", ""), text)
-      --     result:insert(new_block)
-      --   else
-      --     result:insert(first_el)
-      --   end
-      -- end
-      -- return result
     end
   })
   return filters
