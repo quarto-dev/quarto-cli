@@ -50,9 +50,10 @@ function coalesce_raw()
     Blocks = function(blocks)
       local current_node = nil
       for i = 1, #blocks do
-        if blocks[i].t ~= "RawBlock" or not blocks[i].format:match(".*-merge") then
+        if blocks[i].t ~= "RawBlock" or not blocks[i].format:match(".*-merge$") then
           current_node = nil
         else
+          blocks[i].format = blocks[i].format:gsub("-merge$", "")
           if current_node and blocks[i].format == current_node.format then
             current_node.text = current_node.text .. blocks[i].text
             blocks[i].text = ""
