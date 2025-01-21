@@ -28,6 +28,6 @@ Pull requests are very welcome! Here's how to contribute via PR:
 
 2.  For significant changes (e.g more than small bug fixes), ensure that you have signed the [individual](https://posit.co/wp-content/uploads/2023/04/2023-03-13_TC_Indiv_contrib_agreement.pdf) or [corporate](https://posit.co/wp-content/uploads/2023/04/2023-03-13_TC_Corp_contrib_agreement.pdf) contributor agreement as appropriate. You can send the signed copy to [jj\@rstudio.com](mailto:jj@rstudio.com){.email}.
 
-3.  Submit the [pull request](https://help.github.com/articles/using-pull-requests). It is ok to submit as draft in your are still working on it but would like some feedback from us. It always good to share in the open that you are working on it.
+3.  Submit the [pull request](https://help.github.com/articles/using-pull-requests). It is ok to submit as draft if your are still working on it but would like some feedback from us. It is always good to share in the open that you are working on it.
 
 We'll try to be as responsive as possible in reviewing and accepting pull requests.
