@@ -31,6 +31,7 @@ function layout_meta_inject_latex_packages()
       -- Both options could be undefined, true / false or set to a color value
       local useCodeBlockBorder = (adaptiveTextHighlighting and meta[kCodeBlockBorderLeft] == nil and meta[kCodeBlockBackground] == nil) or (meta[kCodeBlockBorderLeft] ~= nil and meta[kCodeBlockBorderLeft] ~= false)
       local useCodeBlockBg = meta[kCodeBlockBackground] ~= nil and meta[kCodeBlockBackground] ~= false
+      local deactivateCodeBlockBg = meta[kCodeBlockBackground] ~= nil and meta[kCodeBlockBackground] == false
 
       -- if we're going to display a border or background
       -- we need to inject color handling as well as the 
@@ -100,6 +101,16 @@ function layout_meta_inject_latex_packages()
         end)
       end
 
+
+      -- if we're NOT going to display a border or background we need to inject
+      -- code to modify the pandoc behavior for fenced code blocks boxes.
+      -- This can be used to especially allow code blocks in other boxes like
+      -- callback
+      if (not useCodeBlockBorder and deactivateCodeBlockBg) then
+        metaInjectLatex(meta, function(inject)
+          inject("\\ifdefined\\Shaded\\renewenvironment{Shaded}{}\\fi")
+        end)
+      end
 
 
       -- enable column layout (packages and adjust geometry)
