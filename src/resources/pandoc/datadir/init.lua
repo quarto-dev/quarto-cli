@@ -1708,7 +1708,7 @@ local function resolveServiceWorkers(serviceworkers)
 end
 
 
-local latexTableWithOptionsPattern_table = { "\\begin{table}%[[^%]]+%]", ".*", "\\end{table}" }
+local latexTablePatternWithPos_table = { "\\begin{table}%[[^%]]+%]", ".*", "\\end{table}" }
 local latexTablePattern_table = { "\\begin{table}", ".*", "\\end{table}" }
 local latexLongtablePatternWithPosAndAlign_table = { "\\begin{longtable}%[[^%]]+%]{[^\n]*}", ".*", "\\end{longtable}" }
 local latexLongtablePatternWithPos_table = { "\\begin{longtable}%[[^%]]+%]", ".*", "\\end{longtable}" }
@@ -1721,16 +1721,16 @@ local latexTabularPattern_table = { "\\begin{tabular}", ".*", "\\end{tabular}" }
 local latexCaptionPattern_table = { "\\caption{", ".-", "}[^\n]*\n" }
 
 local latexTablePatterns = pandoc.List({
-  latexTableWithOptionsPattern_table,
-  latexTablePattern_table,
-  latexLongtablePatternWithPosAndAlign_table,
-  latexLongtablePatternWithPos_table,
-  latexLongtablePatternWithAlign_table,
-  latexLongtablePattern_table,
-  latexTabularPatternWithPosAndAlign_table,
-  latexTabularPatternWithPos_table,
-  latexTabularPatternWithAlign_table,
-  latexTabularPattern_table,
+   latexTablePatternWithPos_table,
+   latexTablePattern_table,
+   latexLongtablePatternWithPosAndAlign_table,
+   latexLongtablePatternWithPos_table,
+   latexLongtablePatternWithAlign_table,
+   latexLongtablePattern_table,
+   latexTabularPatternWithPosAndAlign_table,
+   latexTabularPatternWithPos_table,
+   latexTabularPatternWithAlign_table,
+   latexTabularPattern_table,
 })
 
 -- global quarto params
