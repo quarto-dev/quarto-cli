@@ -69,7 +69,7 @@ end
 local function match_in_list_of_patterns(raw_tex, list_of_patterns)
   for _,pattern in ipairs(list_of_patterns) do
     local matched =  { match_all_in_table(pattern)(raw_tex) }
-    if matched then
+    if matched and #matched > 0 then
       return table.unpack(matched)
     end
   end
