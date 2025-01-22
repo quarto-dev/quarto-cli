@@ -10,8 +10,9 @@ import { info } from "../../deno_ral/log.ts";
 
 import { ensureDir, existsSync, expandGlobSync } from "../../deno_ral/fs.ts";
 
-import { stringify } from "../../core/yaml.ts";
-import { encodeBase64 } from "encoding/base64";
+import { parse as parseYml, stringify } from "../../core/yaml.ts";
+import { copyTo } from "../../core/copy.ts";
+import { decodeBase64, encodeBase64 } from "encoding/base64";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -205,6 +206,7 @@ import { kFieldCategories } from "../../project/types/website/listing/website-li
 import { isWindows } from "../../deno_ral/platform.ts";
 import { appendToCombinedLuaProfile } from "../../core/performance/perfetto-utils.ts";
 import { makeTimedFunctionAsync } from "../../core/performance/function-times.ts";
+import { walkJson } from "../../core/json.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -237,6 +239,76 @@ const handleCombinedLuaProfiles = (
     after: afterPandocHooks,
   };
 };
+
+function captureRenderCommand(
+  args: Deno.RunOptions,
+  temp: TempContext,
+  outputDir: string,
+) {
+  Deno.mkdirSync(outputDir, { recursive: true });
+  const newArgs = [
+    args.cmd[0],
+    ...args.cmd.slice(1).map((_arg) => {
+      const arg = _arg as string; // we know it's a string, TypeScript doesn't somehow
+      if (!arg.startsWith(temp.baseDir)) {
+        return arg;
+      }
+      const newArg = join(outputDir, basename(arg));
+      if (arg.match(/^.*quarto\-defaults.*.yml$/)) {
+        // we need to correct the defaults YML because it contains a reference to a template in a temp directory
+        const ymlDefaults = Deno.readTextFileSync(arg);
+        const defaults = parseYml(ymlDefaults);
+
+        const templateDirectory = dirname(defaults.template);
+        const newTemplateDirectory = join(
+          outputDir,
+          basename(templateDirectory),
+        );
+        copyTo(templateDirectory, newTemplateDirectory);
+        defaults.template = join(
+          newTemplateDirectory,
+          basename(defaults.template),
+        );
+        const defaultsOutputFile = join(outputDir, basename(arg));
+        Deno.writeTextFileSync(defaultsOutputFile, stringify(defaults));
+        return defaultsOutputFile;
+      }
+      Deno.copyFileSync(arg, newArg);
+      return newArg;
+    }),
+  ] as typeof args.cmd;
+
+  // now we need to correct entries in filterParams
+  const filterParams = JSON.parse(
+    new TextDecoder().decode(decodeBase64(args.env!["QUARTO_FILTER_PARAMS"])),
+  );
+  walkJson(
+    filterParams,
+    (v: unknown) => typeof v === "string" && v.startsWith(temp.baseDir),
+    (_v: unknown) => {
+      const v = _v as string;
+      const newV = join(outputDir, basename(v));
+      Deno.copyFileSync(v, newV);
+      return newV;
+    },
+  );
+
+  Deno.writeTextFileSync(
+    join(outputDir, "render-command.json"),
+    JSON.stringify(
+      {
+        ...args,
+        args: newArgs,
+        env: {
+          ...args.env,
+          "QUARTO_FILTER_PARAMS": encodeBase64(JSON.stringify(filterParams)),
+        },
+      },
+      undefined,
+      2,
+    ),
+  );
+}
 
 export async function runPandoc(
   options: PandocOptions,
@@ -1234,14 +1306,18 @@ export async function runPandoc(
 
   setupPandocEnv();
 
+  const params = {
+    cmd,
+    cwd,
+    env: pandocEnv,
+    ourEnv: Deno.env.toObject(),
+  };
+  const captureCommand = Deno.env.get("QUARTO_CAPTURE_RENDER_COMMAND");
+  if (captureCommand) {
+    captureRenderCommand(params, options.services.temp, captureCommand);
+  }
   const pandocRender = makeTimedFunctionAsync("pandoc-render", async () => {
-    return await execProcess(
-      {
-        cmd,
-        cwd,
-        env: pandocEnv,
-      },
-    );
+    return await execProcess(params);
   });
 
   // run pandoc
