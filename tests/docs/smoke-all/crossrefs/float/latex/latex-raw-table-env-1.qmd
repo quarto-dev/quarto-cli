@@ -1,10 +1,11 @@
 ---
 title: Crossref Raw LaTeX table including table env
-format: latex
+format: pdf
+keep-tex: true
 _quarto:
   tests:
-    latex:
-      ensureFileRegexMatches:
+    pdf:
+      ensureLatexFileRegexMatches:
         - ['\n\\begin\{table\}\n', 'See Table~\\ref\{tbl-mod\}']
         - []
 ---
