@@ -74,3 +74,7 @@ function finalize_combined_1()
     end
   }
 end
+
+function make_scaffold(ctor, node)
+  return ctor(node or {}, pandoc.Attr("", {"quarto-scaffold", "hidden"}, {}))
+end
