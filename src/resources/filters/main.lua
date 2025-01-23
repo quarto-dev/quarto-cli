@@ -140,10 +140,10 @@ import("./quarto-pre/book-links.lua")
 import("./quarto-pre/book-numbering.lua")
 import("./quarto-pre/code-annotation.lua")
 import("./quarto-pre/code-filename.lua")
+import("./quarto-pre/combined-hidden.lua")
 import("./quarto-pre/contentsshortcode.lua")
 import("./quarto-pre/engine-escape.lua")
 import("./quarto-pre/figures.lua")
-import("./quarto-pre/hidden.lua")
 import("./quarto-pre/include-paths.lua")
 import("./quarto-pre/input-traits.lua")
 import("./quarto-pre/line-numbers.lua")
@@ -180,7 +180,6 @@ import("./customnodes/latexenv.lua")
 import("./customnodes/latexcmd.lua")
 import("./customnodes/htmltag.lua")
 import("./customnodes/shortcodes.lua")
-import("./customnodes/content-hidden.lua")
 import("./customnodes/decoratedcodeblock.lua")
 import("./customnodes/callout.lua")
 import("./customnodes/panel-tabset.lua")
@@ -297,10 +296,7 @@ local quarto_pre_filters = {
   },
 
   { name = "pre-combined-hidden",
-    filter = combineFilters({
-      hidden(),
-      content_hidden()
-    }),
+    filter = combined_hidden(),
     flags = { "has_hidden", "has_conditional_content" },
     traverser = 'jog',
   },
