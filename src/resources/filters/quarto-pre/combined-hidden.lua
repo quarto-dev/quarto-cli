@@ -201,6 +201,9 @@ function propertiesMatch(properties, profiles)
     local invert = test[3]
     if properties[key] ~= nil then
       match = match and (invert ~= check_property(key, f))
+      if not match then
+        return match
+      end
     end
   end
   return match
@@ -228,14 +231,9 @@ function combined_hidden()
 
   local profiles = pandoc.List(param("quarto_profile", {}))
 
-  local function clearHiddenClasses(el) 
-    local val, idx = el.attr.classes:find("hidden") 
-    if idx then
-      el.attr.classes:remove(idx);
-      return el
-    else
-      return nil
-    end
+  local function clearHiddenClasses(el)
+    el.attr.classes:remove("hidden")
+    return el
   end
   
   local function isWarning(el)
@@ -274,42 +272,25 @@ function combined_hidden()
   }
 
   if removeHidden ~= kNone or clearHiddenClz ~= kNone then
-    result.Div = clearOrRemoveEl
-    result.CodeBlock = function(block)
-      return clearOrRemoveEl(handle(block) or block)
-    end
     return {
+      Span = handle,
       Div = clearOrRemoveEl,
-      CodeBlock = clearOrRemoveEl
+      CodeBlock = function(block)
+        return clearOrRemoveEl(handle(block) or block)
+      end
     }
   elseif keepHidden and not _quarto.format.isHtmlOutput() then
-    local stripHiddenCellFilter = {
+    return {
+      Span = handle,
       Div = stripHidden,
-      CodeBlock = stripHidden
+      CodeBlock = function(block)
+        return stripHidden(handle(block) or block)
+      end
     }
-    result.Div = stripHidden
-    result.CodeBlock = function(block)
-      return stripHidden(handle(block) or block)
-    end
-  end
-  return result
-end
-
-function hidden()
-
-  -- Allow additional control of what to do with hidden code and warnings
-  -- in the output. This allows rendering with echo/warning=false and keep-hidden=true
-  -- to do some additional custom processing (for example, marking all as hidden, but
-  -- but then removing the hidden elements from the output). 
-  if removeHidden ~= kNone or clearHiddenClz ~= kNone then
-
-    return {
-      Div = clearOrRemoveEl,
-      CodeBlock = clearOrRemoveEl
-    }
-  elseif keepHidden and not _quarto.format.isHtmlOutput() then
-    return stripHiddenCellFilter
   else
-    return {}
+    return {
+      CodeBlock = handle,
+      Span = handle  
+    }
   end
 end
