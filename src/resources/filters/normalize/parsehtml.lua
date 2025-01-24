@@ -80,7 +80,7 @@ function parse_html_tables()
         return htmltext
       else
         local index = 1
-        content = content:gsub(data_uri_uuid:gsub('-', '--'), function(_)
+        content = content:gsub(data_uri_uuid:gsub('-', '%%-'), function(_)
           local data_uri = data_uris[index]
           index = index + 1
           return data_uri
