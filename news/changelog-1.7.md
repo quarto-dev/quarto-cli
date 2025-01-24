@@ -37,6 +37,7 @@ All changes included in 1.7:
 
 - ([#11835](https://github.com/quarto-dev/quarto-cli/issues/11835)): Take markdown structure into account when detecting minimum heading level.
 - ([#11903](https://github.com/quarto-dev/quarto-cli/issues/11903)): `crossref` configuration like `fig-title` or `tbl-title` now correctly supports multi word values, e.g. `fig-title: 'Supplementary Figure'`.
+- ([#11878](https://github.com/quarto-dev/quarto-cli/issues/11878)): Correctly fixup raw LaTeX table having an unexpected table env with options (e.g `\begin{table}[c]`) to be handled as crossref table.
 
 ## `typst` format
 
