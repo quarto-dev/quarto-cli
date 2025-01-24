@@ -573,11 +573,13 @@ function render_latex_fixups()
   return {{
     RawBlock = function(raw)
       if _quarto.format.isRawLatex(raw) then
-        local longtable_match, longtable_pattern = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexLongtableEnvPatterns)
+        local longtable_match, _ = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexLongtableEnvPatterns)
         if longtable_match then
           local caption_match = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexCaptionPatterns)
           if not caption_match then
-            -- FIXME: this star addition to the longtable env does not support keeping any possible option or alignement (i.e `\begin{longtable}[c*]{ll}`)
+            -- We need to use the most generic pattern (last of the list) as we want to replace the environment and keep any options 
+            -- (e.g. `\begin{longtable}[c]{ll}` -> \begin{longtable*}[c]{ll} in flextable)
+            local longtable_pattern = _quarto.patterns.latexLongtableEnvPatterns[#_quarto.patterns.latexLongtableEnvPatterns]
             raw.text = raw.text:gsub(_quarto.modules.patterns.combine_patterns(longtable_pattern), "\\begin{longtable*}%2\\end{longtable*}", 1)
             return raw
           end
