@@ -1883,7 +1883,6 @@ _quarto = {
       latexTabularEnvPatterns = pandoc.List({
          latexTabularPattern_table
       }),
-      latexTablePattern = latexTablePattern_table,
       latexLongtablePattern = latexLongtablePattern_table,
       latexTablePatterns = latexTablePatterns,
       latexCaptionPattern = latexCaptionPattern_table
