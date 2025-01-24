@@ -57,10 +57,9 @@ function compute_flags()
       end
 
       if _quarto.format.isRawLatex(el) then
-        local long_table_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexLongtablePattern)
+        local long_table_match, _ = _quarto.modules.patterns.match_in_list_of_patterns(el.text, _quarto.patterns.latexLongtableEnvPatterns)
         local caption_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexCaptionPattern)
-        if (long_table_match(el.text) and
-            not caption_match(el.text)) then
+        if (long_table_match and not caption_match(el.text)) then
             flags.has_longtable_no_caption_fixup = true
         end
       end
