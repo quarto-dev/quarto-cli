@@ -1886,7 +1886,9 @@ _quarto = {
          latexTabularPatternWithAlign_table,
          latexTabularPattern_table,
       }),
-      latexCaptionPattern = latexCaptionPattern_table
+      latexCaptionPatterns = pandoc.List({
+         latexCaptionPattern_table
+      })
    },
    traverser = utils.walk,
    utils = utils,

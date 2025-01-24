@@ -199,24 +199,31 @@ end
 
 
 function applyLatexTableCaption(latex, tblCaption, tblLabel, tablePattern)
-  local latexCaptionPattern = _quarto.patterns.latexCaptionPattern
-  local latex_caption_match = _quarto.modules.patterns.match_all_in_table(latexCaptionPattern)
+  local latex_caption_match, _ = _quarto.modules.patterns.match_in_list_of_patterns(latex, _quarto.patterns.latexCaptionPatterns)
   -- insert caption if there is none
-  local beginCaption, caption = latex_caption_match(latex)
-  if not beginCaption then
+  if not latex_caption_match then
     latex = latex:gsub(tablePattern, "%1" .. "\n\\caption{ }\\tabularnewline\n" .. "%2%3", 1)
   end
+  -- caption will be matched
+  latex_caption_match, latex_caption_pattern = _quarto.modules.patterns.match_in_list_of_patterns(latex, _quarto.patterns.latexCaptionPatterns)
   -- apply table caption and label
-  local beginCaption, captionText, endCaption = latex_caption_match(latex)
-  if #tblCaption > 0 then
-    captionText = stringEscape(tblCaption, "latex")
+  if not latex_caption_match then
+    -- should never happen as we add the caption command to latex string above
+    -- added to make linter happy too.
+    fatal("Internal Error: \\caption not correctly added in " .. latex)
+  else
+    -- caption text is second element of matched pattern
+    local captionText = latex_caption_match[2]
+    if #tblCaption > 0 then
+      captionText = stringEscape(tblCaption, "latex")
+    end
+    if #tblLabel > 0 then
+      captionText = captionText .. " {#" .. tblLabel .. "}"
+    end
+    assert(captionText)
+    latex = latex:gsub(_quarto.modules.patterns.combine_patterns(latex_caption_pattern), "%1" .. captionText:gsub("%%", "%%%%") .. "%3", 1)
+    return latex
   end
-  if #tblLabel > 0 then
-    captionText = captionText .. " {#" .. tblLabel .. "}"
-  end
-  assert(captionText)
-  latex = latex:gsub(_quarto.modules.patterns.combine_patterns(latexCaptionPattern), "%1" .. captionText:gsub("%%", "%%%%") .. "%3", 1)
-  return latex
 end
 
 
