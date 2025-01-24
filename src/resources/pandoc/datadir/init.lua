@@ -1720,19 +1720,6 @@ local latexTabularPatternWithAlign_table = { "\\begin{tabular}{[^\n]*}", ".*", "
 local latexTabularPattern_table = { "\\begin{tabular}", ".*", "\\end{tabular}" }
 local latexCaptionPattern_table = { "\\caption{", ".-", "}[^\n]*\n" }
 
-local latexTablePatterns = pandoc.List({
-   latexTablePatternWithPos_table,
-   latexTablePattern_table,
-   latexLongtablePatternWithPosAndAlign_table,
-   latexLongtablePatternWithPos_table,
-   latexLongtablePatternWithAlign_table,
-   latexLongtablePattern_table,
-   latexTabularPatternWithPosAndAlign_table,
-   latexTabularPatternWithPos_table,
-   latexTabularPatternWithAlign_table,
-   latexTabularPattern_table,
-})
-
 -- global quarto params
 local paramsJson = base64.decode(os.getenv("QUARTO_FILTER_PARAMS"))
 local quartoParams = json.decode(paramsJson)
@@ -1886,7 +1873,19 @@ _quarto = {
       latexLongtableEnvPatterns = pandoc.List({
          latexLongtablePattern_table
       }),
-      latexTablePatterns = latexTablePatterns,
+      -- This is all table env patterns
+      latexAllTableEnvPatterns = pandoc.List({
+         latexTablePatternWithPos_table,
+         latexTablePattern_table,
+         latexLongtablePatternWithPosAndAlign_table,
+         latexLongtablePatternWithPos_table,
+         latexLongtablePatternWithAlign_table,
+         latexLongtablePattern_table,
+         latexTabularPatternWithPosAndAlign_table,
+         latexTabularPatternWithPos_table,
+         latexTabularPatternWithAlign_table,
+         latexTabularPattern_table,
+      }),
       latexCaptionPattern = latexCaptionPattern_table
    },
    traverser = utils.walk,

@@ -171,13 +171,10 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           raw.text = raw.text:gsub(captionPattern, "%1" .. captionText:gsub("%%", "%%%%") .. "%3", 1)
           idx = idx + 1
         elseif hasRawLatexTable(raw) then
-          for i,pattern in ipairs(_quarto.patterns.latexTablePatterns) do
-            local match_fun = _quarto.modules.patterns.match_all_in_table(pattern)
-            if match_fun(raw.text) then
-              local combined_pattern = _quarto.modules.patterns.combine_patterns(pattern)
+          local matched_env, pattern_env = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexAllTableEnvPatterns)
+          if matched_env then
+              local combined_pattern = _quarto.modules.patterns.combine_patterns(pattern_env)
               raw.text = applyLatexTableCaption(raw.text, tblCaptions[idx], tblLabels[idx], combined_pattern)
-              break
-            end
           end
           idx = idx + 1
         elseif hasPagedHtmlTable(raw) then
