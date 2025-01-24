@@ -266,11 +266,6 @@ function combined_hidden()
 
   local handle = handleHiddenVisible(profiles)
 
-  local result = {
-    CodeBlock = handle,
-    Span = handle
-  }
-
   if removeHidden ~= kNone or clearHiddenClz ~= kNone then
     return {
       Span = handle,
