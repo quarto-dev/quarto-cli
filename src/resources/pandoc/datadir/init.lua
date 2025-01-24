@@ -1707,17 +1707,29 @@ local function resolveServiceWorkers(serviceworkers)
    end
 end
 
+-- Lua Patterns for LaTeX Table Environment
 
+--    1. \begin{table}[h] ... \end{table}
 local latexTablePatternWithPos_table = { "\\begin{table}%[[^%]]+%]", ".*", "\\end{table}" }
 local latexTablePattern_table = { "\\begin{table}", ".*", "\\end{table}" }
+
+--    2. \begin{longtable}[c*]{l|r|r} 
+--       FIXME: These two patterns with longtable align options do no account for newlines in options,
+--       however pandoc will break align options over lines. This leads to specific treatment needed
+--       as latexLongtablePattern_table will be the pattern, matching options in content.
+--       see split_longtable_start() usage in src\resources\filters\customnodes\floatreftarget.lua
 local latexLongtablePatternWithPosAndAlign_table = { "\\begin{longtable}%[[^%]]+%]{[^\n]*}", ".*", "\\end{longtable}" }
-local latexLongtablePatternWithPos_table = { "\\begin{longtable}%[[^%]]+%]", ".*", "\\end{longtable}" }
 local latexLongtablePatternWithAlign_table = { "\\begin{longtable}{[^\n]*}", ".*", "\\end{longtable}" }
+local latexLongtablePatternWithPos_table = { "\\begin{longtable}%[[^%]]+%]", ".*", "\\end{longtable}" }
 local latexLongtablePattern_table = { "\\begin{longtable}", ".*", "\\end{longtable}" }
+
+--    3. \begin{tabular}[c]{l|r|r}
 local latexTabularPatternWithPosAndAlign_table = { "\\begin{tabular}%[[^%]]+%]{[^\n]*}", ".*", "\\end{tabular}" }
 local latexTabularPatternWithPos_table = { "\\begin{tabular}%[[^%]]+%]", ".*", "\\end{tabular}" }
 local latexTabularPatternWithAlign_table = { "\\begin{tabular}{[^\n]*}", ".*", "\\end{tabular}" }
 local latexTabularPattern_table = { "\\begin{tabular}", ".*", "\\end{tabular}" }
+
+-- Lua Pattern for Caption environment
 local latexCaptionPattern_table = { "\\caption{", ".-", "}[^\n]*\n" }
 
 -- global quarto params
@@ -1874,6 +1886,9 @@ _quarto = {
          latexTabularPattern_table
       }),
       latexLongtableEnvPatterns = pandoc.List({
+         latexLongtablePatternWithPosAndAlign_table,
+         latexLongtablePatternWithPos_table,
+         latexLongtablePatternWithAlign_table,
          latexLongtablePattern_table
       }),
       -- This is all table env patterns
