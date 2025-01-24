@@ -29,14 +29,16 @@ function table_captions()
           el = _quarto.ast.walk(el, {
             RawBlock = function(raw)
               if _quarto.format.isRawLatex(raw) then
-                local tabular_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexTabularPattern)
-                local table_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexTablePattern)
-                if tabular_match(raw.text) and not table_match(raw.text) then
-                  raw.text = raw.text:gsub(
-                    _quarto.modules.patterns.combine_patterns(_quarto.patterns.latexTabularPattern),
-                    "\\begin{table}\n\\centering\n%1%2%3\n\\end{table}\n",
-                    1)
-                  return raw
+                local tabular_match, tabular_pattern = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexTabularEnvPatterns)
+                if tabular_match then 
+                  local table_match, _ = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexTableEnvPatterns)
+                  if not table_match then
+                    raw.text = raw.text:gsub(
+                      _quarto.modules.patterns.combine_patterns(tabular_pattern),
+                      "\\begin{table}\n\\centering\n%1%2%3\n\\end{table}\n",
+                      1)
+                    return raw
+                  end
                 end
               end
             end
