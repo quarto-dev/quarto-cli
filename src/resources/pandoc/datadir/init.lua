@@ -1874,6 +1874,9 @@ local function file_exists(name)
 _quarto = {   
    processDependencies = processDependencies,
    format = format,
+   -- Each list in patterns below contains Lua pattern as table,
+   -- where elements are ordered from more specific match to more generic one.
+   -- They are meant to be used with _quarto.modules.patterns.match_in_list_of_patterns()
    patterns = {
       latexTableEnvPatterns = pandoc.List({
          latexTablePatternWithPos_table, 
