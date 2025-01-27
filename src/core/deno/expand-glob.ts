@@ -1,17 +1,16 @@
 /*
-* expand-glob.ts
-*
-* Copyright (C) 2023 Posit Software, PBC
-*
-* Fixed version of expandGlob, expandGlobSync (https://github.com/denoland/deno_std/issues/3099)
-*
-*/
+ * expand-glob.ts
+ *
+ * Copyright (C) 2023 Posit Software, PBC
+ *
+ * Fixed version of expandGlob, expandGlobSync (https://github.com/denoland/deno_std/issues/3099)
+ */
 
 import {
   expandGlob as badExpandGlob,
   ExpandGlobOptions,
   expandGlobSync as badExpandGlobSync,
-} from "fs/mod.ts";
+} from "../../deno_ral/fs.ts";
 
 export function expandGlobSync(
   glob: string,

@@ -564,7 +564,7 @@ export function readRenderedContents(
 
   // Find a preview image, if present
   const computePreviewImage = (): PreviewImage | undefined => {
-    const previewImageEl = findPreviewImgEl(doc, false);
+    const previewImageEl = findPreviewImgEl(doc);
     if (previewImageEl) {
       const previewImageSrc = getDecodedAttribute(previewImageEl, "src");
       if (previewImageSrc !== null) {

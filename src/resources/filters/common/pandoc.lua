@@ -84,12 +84,14 @@ function inlinesToString(inlines)
   return pandoc.utils.stringify(pandoc.Span(inlines))
 end
 
+local InlinesMT = getmetatable(pandoc.Inlines{})
+
 -- lua string to pandoc inlines
 function stringToInlines(str)
   if str then
-    return pandoc.Inlines({pandoc.Str(str)})
+    return setmetatable({pandoc.Str(str)}, InlinesMT)
   else
-    return pandoc.Inlines({})
+    return setmetatable({}, InlinesMT)
   end
 end
 
@@ -98,27 +100,24 @@ end
 function markdownToInlines(str)
   if str then
     local doc = pandoc.read(str)
-    if #doc.blocks == 0 then
-      return pandoc.List({})
-    else
-      return doc.blocks[1].content
-    end
+    return pandoc.utils.blocks_to_inlines(doc.blocks)
   else
-    return pandoc.List()
+    return setmetatable({}, InlinesMT)
   end
 end
 
+
 function stripTrailingSpace(inlines)
-  -- we always convert to pandoc.List to ensure a uniform
+  -- we always convert to pandoc.Inlines to ensure a uniform
   -- return type (and its associated methods)
   if #inlines > 0 then
     if inlines[#inlines].t == "Space" then
-      return pandoc.List(tslice(inlines, 1, #inlines - 1))
+      return setmetatable(tslice(inlines, 1, #inlines - 1), InlinesMT)
     else
-      return pandoc.List(inlines)
+      return setmetatable(inlines, InlinesMT)
     end
   else
-    return pandoc.List(inlines)
+    return setmetatable(inlines, InlinesMT)
   end
 end
 
@@ -217,11 +216,11 @@ function string_to_quarto_ast_blocks(text, opts)
   
   -- run the whole normalization pipeline here to get extended AST nodes, etc.
   for _, filter in ipairs(quarto_ast_pipeline()) do
-    doc = doc:walk(filter.filter)
+    doc = _quarto.traverser(doc, filter.filter)
   end
 
   -- compute flags so we don't skip filters that depend on them
-  doc:walk(compute_flags())
+  _quarto.traverser(doc, compute_flags())
   return doc.blocks
 end
 

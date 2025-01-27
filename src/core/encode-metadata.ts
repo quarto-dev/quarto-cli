@@ -1,10 +1,9 @@
 /*
-* encode-metadata.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
-import { encode as base64Encode } from "encoding/base64.ts";
+ * encode-metadata.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
+import { encode as base64Encode } from "encoding/base64";
 
 export function encodeMetadata(
   metadata: Record<string, unknown>,

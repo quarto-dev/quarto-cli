@@ -6,12 +6,11 @@
 
 // deno-lint-ignore-file camelcase
 
-import { ensureDirSync } from "fs/ensure_dir.ts";
+import { ensureDirSync, walkSync } from "../../deno_ral/fs.ts";
 import { dirname, extname, join, relative } from "../../deno_ral/path.ts";
-import { walkSync } from "fs/walk.ts";
-import * as colors from "fmt/colors.ts";
-import { decodeBase64 as base64decode } from "encoding/base64.ts";
-import { DumpOptions as StringifyOptions, stringify } from "yaml/mod.ts";
+import * as colors from "fmt/colors";
+import { decodeBase64 as base64decode } from "encoding/base64";
+import { stringify } from "../yaml.ts";
 import { partitionCellOptions } from "../lib/partition-cell-options.ts";
 import * as ld from "../lodash.ts";
 
@@ -156,7 +155,7 @@ import {
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
 import { kProjectType, ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
-import { encodeBase64 } from "encoding/base64.ts";
+import { encodeBase64 } from "encoding/base64";
 import {
   isHtmlOutput,
   isIpynbOutput,
@@ -934,7 +933,8 @@ export function jupyterCellWithOptions(
 export function jupyterCellOptionsAsComment(
   language: string,
   options: Record<string, unknown>,
-  stringifyOptions?: StringifyOptions,
+  // deno-lint-ignore no-explicit-any
+  stringifyOptions?: any,
 ) {
   if (Object.keys(options).length > 0) {
     const cellYaml = stringify(options, {
@@ -1464,7 +1464,7 @@ async function mdFromCodeCell(
     let source = ld.cloneDeep(cell.source);
     if (fenced) {
       const optionsSource = cell.optionsSource.filter((line) =>
-        line.search(/echo:\s+fenced/) === -1
+        line.search(/\|\s+echo:\s+fenced\s*$/) === -1
       );
       if (optionsSource.length > 0) {
         source = trimEmptyLines(source, "trailing");

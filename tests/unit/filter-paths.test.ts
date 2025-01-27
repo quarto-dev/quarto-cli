@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 import { filterPaths } from "../../src/core/path.ts";
 import { unitTest } from "../test.ts";
 

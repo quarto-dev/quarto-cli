@@ -110,8 +110,11 @@ end, function(proof_tbl)
       preamble:insert(pandoc.RawInline("latex", "]"))
     end
     preamble:insert(pandoc.RawInline("latex", "\n"))
-    -- https://github.com/quarto-dev/quarto-cli/issues/6077
-    if el.content[1].t == "Para" then
+    if #el.content == 0 then
+      warn("Proof block has no content; skipping")
+      return pandoc.Null()
+      -- https://github.com/quarto-dev/quarto-cli/issues/6077
+    elseif el.content[1].t == "Para" then
       preamble:extend(el.content[1].content)
       el.content[1].content = preamble
     else

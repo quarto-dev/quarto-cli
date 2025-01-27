@@ -1,0 +1,27 @@
+---
+title: "Untitled"
+format:
+  html: default
+  typst:
+    keep-typ: true
+  revealjs:
+    output-file: base-reveal.html
+brand:
+  typography:
+    fonts:
+      - family: Tiny5
+        source: google
+    base: Tiny5
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+      -
+        - 'font: \("Tiny5",\),'
+        - 'heading-family: \("Tiny5",\)'
+
+---
+
+## Section
+
+{{< lipsum 1 >}}

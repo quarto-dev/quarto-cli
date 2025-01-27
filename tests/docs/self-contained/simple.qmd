@@ -1,0 +1,7 @@
+---
+format:
+  html:
+    self-contained: true
+---
+
+## Hello

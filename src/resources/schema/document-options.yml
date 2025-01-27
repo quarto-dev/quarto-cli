@@ -6,6 +6,17 @@
     Use the specified file as a style reference in producing a docx, 
     pptx, or odt file.
 
+- name: brand
+  schema:
+    anyOf:
+      - string # a file path
+      - boolean # if false, don't use branding on this document
+      - ref: brand # an inline brand object definition
+  description: |
+    Branding information to use for this document. If a string, the path to a brand file.
+    If false, don't use branding on this document. If an object, an inline brand
+    definition.
+
 - name: theme
   tags:
     formats: [$html-doc, revealjs, beamer, dashboard]

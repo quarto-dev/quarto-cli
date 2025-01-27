@@ -4,15 +4,15 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { crypto } from "crypto/mod.ts";
+import { crypto } from "crypto/crypto";
 import blueimpMd5 from "blueimpMd5";
 
 export function md5Hash(content: string) {
   return blueimpMd5(content);
 }
 
-export function md5HashBytes(content: Uint8Array) {
-  const buffer = crypto.subtle.digestSync(
+export async function md5HashBytes(content: Uint8Array) {
+  const buffer = await crypto.subtle.digest(
     "MD5",
     content,
   );

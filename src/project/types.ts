@@ -7,13 +7,14 @@
 import { RenderServices } from "../command/render/types.ts";
 import { Metadata, PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
+import { Brand } from "../core/brand/brand.ts";
 import { MappedString } from "../core/mapped-text.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { ExecutionEngine, ExecutionTarget } from "../execute/types.ts";
 import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import {
-  Brand,
+  Brand as BrandJson,
   NavigationItem as NavItem,
   NavigationItemObject,
   NavigationItemObject as SidebarTool,
@@ -49,6 +50,10 @@ export type FileInformation = {
   fullMarkdown?: MappedString;
   includeMap?: FileInclusion[];
   codeCells?: InspectedMdCell[];
+  engine?: ExecutionEngine;
+  target?: ExecutionTarget;
+  metadata?: Metadata;
+  brand?: Brand;
 };
 
 export interface ProjectContext {
@@ -59,17 +64,11 @@ export interface ProjectContext {
   notebookContext: NotebookContext;
   outputNameIndex?: Map<string, { file: string; format: Format } | undefined>;
 
-  // This is a cache of the engine and target for a given filename
-  engineAndTargetCache?: Map<
-    string,
-    { engine: ExecutionEngine; target: ExecutionTarget }
-  >;
-
   fileInformationCache: Map<string, FileInformation>;
 
   // This is a cache of _brand.yml for a project
   brandCache?: { brand?: Brand };
-  resolveBrand: () => Promise<Brand | undefined>;
+  resolveBrand: (fileName?: string) => Promise<Brand | undefined>;
 
   // expands markdown for a file
   // input file doesn't have to be markdown; it can be, for example, a knitr spin file
@@ -86,6 +85,11 @@ export interface ProjectContext {
     file: string,
     force?: boolean,
   ) => Promise<{ engine: ExecutionEngine; target: ExecutionTarget }>;
+
+  fileMetadata: (
+    file: string,
+    force?: boolean,
+  ) => Promise<Metadata>;
 
   formatExtras?: (
     source: string,

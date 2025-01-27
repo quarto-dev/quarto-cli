@@ -8,10 +8,10 @@
 # deno_dom should match release at https://github.com/b-fuze/deno-dom/releases
 
 # Binary dependencies
-export DENO=v1.41.0
+export DENO=v1.46.3
 # TODO figure out where 0.1.41 apple silicon libs are available
-export DENO_DOM=v0.1.35-alpha-artifacts
-export PANDOC=3.2
+export DENO_DOM=v0.1.41-alpha-artifacts
+export PANDOC=3.4
 export DARTSASS=1.70.0
 export ESBUILD=0.19.12
 export TYPST=0.11.0
@@ -35,10 +35,12 @@ export POPPER_JS=2.11.7
 export CLIPBOARD_JS=2.0.11
 export TIPPY_JS=6.3.7
 export PDF_JS=2.8.335
-# Using commit to fix https://github.com/quarto-dev/quarto-cli/issues/2430 - revert to using a release tag when included
-export REVEAL_JS=e281b3234e7991283ce4dcca705dd9a6a9ebe5d2
+export REVEAL_JS=5.1.0
 export REVEAL_JS_MENU=2.1.0
-export REVEAL_JS_CHALKBOARD=a88c134e2cf3c7780448db003e7329c3cbd8cfb4
+# unrelease version needed for fixes with Reveal.js 5
+# https://github.com/rajgoel/reveal.js-plugins/pull/180
+# https://github.com/rajgoel/reveal.js-plugins/pull/184
+export REVEAL_JS_CHALKBOARD=217142176341e24628db2908cae38221ef13d639
 export REVEAL_JS_PDFEXPORT=2.0.1
 export LIST_JS=2.3.1
 export DAY_JS=1.11.7
@@ -56,7 +58,7 @@ export ALGOLIA_SEARCH_INSIGHTS_JS=2.0.3
 
 
 # Quarto Info Version
-export QUARTO_VERSION=1.6
+export QUARTO_VERSION=1.7
 export QUARTO_NAME=Quarto
 
 # Folder names. These are not the same as paths (those variable names end in _PATH).

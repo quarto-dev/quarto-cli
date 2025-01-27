@@ -1,0 +1,30 @@
+---
+title: Translate brand named color references from CSS to Typst
+format:
+  typst:
+    keep-typ: true
+brand:
+  color:
+    palette:
+      dark-grey: "#222"
+      blue: "#82aeef"
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '#block\(fill: brand-color\.dark-grey\)\[\s*#set text\(fill: brand-color\.blue\);'
+        - []
+---
+
+
+```{=typst}
+// stopgap to make this look ok
+#set block(inset: 6pt)
+```
+
+:::{style="background-color: var(--brand-dark-grey); color: var(--brand-blue)"}
+This div is blue on dark grey.
+:::
+
+{{< lipsum 2 >}}

@@ -12,7 +12,13 @@ import {
   join,
   relative,
 } from "../../deno_ral/path.ts";
-import { ensureDirSync, EOL, existsSync, format, LF } from "fs/mod.ts";
+import {
+  ensureDirSync,
+  EOL,
+  existsSync,
+  format,
+  LF,
+} from "../../deno_ral/fs.ts";
 
 import { cloneDeep } from "../../core/lodash.ts";
 

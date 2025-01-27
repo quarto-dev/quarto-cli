@@ -1,10 +1,24 @@
-name: "Cache Typst package"
+name: "Restore any Typst package cache"
 description: "Configures the caching for Typst packages"
+outputs:
+  cache-hit:
+    description: "Was a cache found with primary key ?"
+    value: ${{ steps.cache-typst-restore.outputs.cache-hit }}
+  cache-primary-key:
+    description: "Key of the cache to find and save"
+    value: ${{ steps.cache-typst-restore.outputs.cache-primary-key }}
+  cache-matched-key:
+    description: "Key of the cache found and used."
+    value: ${{ steps.cache-typst-restore.outputs.cache-primary-key }}
+  cache-path:
+    description: "where is the packages cache for typst ?"
+    value: ${{ steps.cache-typst-path.outputs.TYPST_CACHE }}
 
 runs:
   using: "composite"
   steps:
     - name: Typst Cache path
+      id: cache-typst-path
       run: |
         case $RUNNER_OS in
           "Linux")
@@ -21,13 +35,14 @@ runs:
               exit 1
               ;;
         esac
+        echo "TYPST_CACHE=${TYPST_CACHE}" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Cache Typst package folder
-      uses: actions/cache@v4
+      id: cache-typst-restore
+      uses: actions/cache/restore@v4
       with:
         path: ${{ env.TYPST_CACHE }}
-        key: ${{ runner.os }}-typst-1-${{ github.run_id }}
+        key: ${{ runner.os }}-typst-1
         restore-keys: |
-          ${{ runner.os }}-typst-1-
-        save-always: true
+          ${{ runner.os }}-typst-

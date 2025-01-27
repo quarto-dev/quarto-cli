@@ -1,0 +1,13 @@
+color:
+  palette:
+    orange: "#F96302"
+    white: "#FFFFFF"
+    black: "#000000"
+    warm-gray-dark: "#747474"
+    warm-gray-light: "#f5f5f5"
+    warm-gray-medium: "#c4c4c4"
+  primary: "#F96302"
+  secondary: "#747474"
+  tertiary: "#C4C4C4"
+  light: "#F5F5F5"
+  dark: "#747474"

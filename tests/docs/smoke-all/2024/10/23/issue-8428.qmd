@@ -1,0 +1,32 @@
+---
+title: "Test"
+format: html
+keep-md: true
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - ['{#test}']
+---
+
+
+::: {#test .cell tbl-cap='Test caption' execution_count=1}
+``` {.python .cell-code}
+import pandas as pd
+from IPython.display import display, Markdown
+penguins = pd.read_csv("https://pos.it/palmer-penguins-github-csv")
+markdown_result = penguins.groupby("species").size().to_markdown(index=False, tablefmt="pipe", stralign="right")
+display(Markdown(markdown_result))
+```
+
+::: {.cell-output .cell-output-display .cell-output-markdown}
+|   0 |
+|----:|
+| 152 |
+|  68 |
+| 124 |
+:::
+:::
+
+

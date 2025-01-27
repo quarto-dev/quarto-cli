@@ -1,0 +1,17 @@
+---
+format: latex
+number-sections: true
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - ["subsection{Section}"]
+---
+
+## Section
+
+```r
+# this is a comment that shouldn't break quarto
+print("Hello, world")
+```

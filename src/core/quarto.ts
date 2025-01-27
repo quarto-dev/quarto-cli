@@ -3,11 +3,11 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { existsSync } from "fs/exists.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { extname, join } from "../deno_ral/path.ts";
 import { info } from "../deno_ral/log.ts";
-import * as colors from "fmt/colors.ts";
-import { load as config, LoadOptions as ConfigOptions } from "dotenv/mod.ts";
+import * as colors from "fmt/colors";
+import { load as config, LoadOptions as ConfigOptions } from "dotenv";
 
 import { getenv } from "./env.ts";
 import { exitWithCleanup } from "./cleanup.ts";
@@ -15,6 +15,7 @@ import { onActiveProfileChanged } from "../project/project-profile.ts";
 import { onDotenvChanged } from "../quarto-core/dotenv.ts";
 import { normalizePath, safeExistsSync } from "./path.ts";
 import { buildQuartoPreviewJs } from "./previewjs.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export const kLocalDevelopment = "99.9.9";
 
@@ -46,7 +47,7 @@ export const quartoConfig = {
   cliPath: () => {
     // full path to quarto, quarto.cmd or quarto.exe depending on OS
     const binPath = quartoConfig.binPath();
-    if (Deno.build.os !== "windows") {
+    if (!isWindows) {
       return join(binPath, "quarto");
     }
     // WINDOWS

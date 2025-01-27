@@ -47,7 +47,7 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
         with:
-          version: pre-release
+          version: ${{ github.ref == 'refs/heads/main' && 'pre-release' || 'release' }}
 
       - name: Create Job for tests
         id: tests-buckets

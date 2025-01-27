@@ -1,0 +1,61 @@
+---
+title: "Code font size"
+format: revealjs
+---
+
+## Callouts
+
+:::{.callout-tip}
+
+## Example test file
+
+- Every test is a call to `testthat::test_that()` function.
+
+````{.python}
+1 + 1
+````
+
+:::
+
+## No callout inline 
+
+Every test is a call to `testthat::test_that()` function.
+
+- And inside a list : `1+1`
+
+## Highlighted Cell
+
+````{.python}
+1 + 1
+````
+
+## Non Highligted
+
+````
+1 + 1
+````
+
+## Smaller slide {.smaller}
+
+### With a h3 
+
+Some inline code: `1 + 1`
+
+And block code:
+
+```{.r}
+1 + 1
+```
+
+## Smaller slide with callouts {#smaller-slide2 .smaller}
+
+::: {.callout-note}
+
+Some inline code: `1 + 1`
+
+And block code:
+
+```{.r}
+2 + 2
+```
+:::

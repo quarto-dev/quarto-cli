@@ -13,7 +13,7 @@ import { runningInCI } from "../../core/ci-info.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { prompt, Select, SelectValueOptions } from "cliffy/prompt/mod.ts";
-import { readLines } from "io/mod.ts";
+import { readLines } from "../../deno_ral/io.ts";
 import { info } from "../../deno_ral/log.ts";
 import { ArtifactCreator, CreateDirective, CreateResult } from "./cmd-types.ts";
 
@@ -30,7 +30,7 @@ export const createCommand = new Command()
   .option(
     "--open [editor:string]",
     `Open new artifact in this editor (${
-      kEditorInfos.map((info) => info.id).join(",")
+      kEditorInfos.map((info) => info.id).join(", ")
     })`,
   )
   .option("--no-open", "Do not open in an editor")

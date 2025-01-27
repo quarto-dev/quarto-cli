@@ -21,6 +21,7 @@ import { QuartoJSONSchema } from "./js-yaml-schema.ts";
 import { createSourceContext } from "../yaml-validation/errors.ts";
 import { tidyverseInfo } from "../errors.ts";
 import { InternalError } from "../error.ts";
+import { isCircular } from "../is-circular.ts";
 
 // deno-lint-ignore no-explicit-any
 type TreeSitterParse = any;
@@ -268,7 +269,11 @@ export function buildJsYamlAnnotation(mappedYaml: MappedString) {
     );
   }
 
-  JSON.stringify(results[0]); // this is here so that we throw on circular structures
+  if (isCircular(results[0])) {
+    throw new InternalError(
+      `Circular structure detected in yaml`,
+    );
+  }
   return postProcessAnnotation(results[0]);
 }
 

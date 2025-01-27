@@ -3,66 +3,66 @@
 
 local patterns = require("modules/patterns")
 
-kTblCap = "tbl-cap"
-kTblSubCap = "tbl-subcap"
-
-function table_captions() 
-  return {   
+function table_captions()
+  local kTblCap = "tbl-cap"
+  local kTblSubCap = "tbl-subcap"
+  return {
     Div = function(el)
       if tcontains(el.attr.classes, "cell") then
         -- extract table attributes
-        local tblCap = extractTblCapAttrib(el,kTblCap)
+        local tblCap = extractTblCapAttrib(el, kTblCap)
         local tblSubCap = extractTblCapAttrib(el, kTblSubCap, true)
-        if hasTableRef(el) or tblCap then
-          local tables = countTables(el)
-          if tables > 0 then
-           
-            -- apply captions and labels if we have a tbl-cap or tbl-subcap
-            if tblCap or tblSubCap then
-  
-              -- special case: knitr::kable will generate a \begin{tablular} without
-              -- a \begin{table} wrapper -- put the wrapper in here if need be
-              if _quarto.format.isLatexOutput() then
-                el = _quarto.ast.walk(el, {
-                  RawBlock = function(raw)
-                    if _quarto.format.isRawLatex(raw) then
-                      local tabular_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexTabularPattern)
-                      local table_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexTablePattern)
-                      if tabular_match(raw.text) and not table_match(raw.text) then
-                        raw.text = raw.text:gsub(
-                          _quarto.modules.patterns.combine_patterns(_quarto.patterns.latexTabularPattern),
-                          "\\begin{table}\n\\centering\n%1%2%3\n\\end{table}\n",
-                          1)
-                        return raw
-                      end
-                    end
-                  end
-                })
-              end
-  
-              -- compute all captions and labels
-              local label = el.attr.identifier
-              local mainCaption, tblCaptions, mainLabel, tblLabels = table_captionsAndLabels(
-                label,
-                tables,
-                tblCap,
-                tblSubCap
-              )              
-              -- apply captions and label
-              el.attr.identifier = mainLabel
-              if mainCaption then
-                el.content:insert(pandoc.Para(mainCaption))
-              end
-              if #tblCaptions > 0 then
-                el = applyTableCaptions(el, tblCaptions, tblLabels)
-              end
-              return el
-            end
-          end
+        if not (tblCap or hasTableRef(el)) then
+          return
         end
+        if not (tblCap or tblSubCap) then
+          return
+        end
+        local tables = countTables(el)
+        if tables <= 0 then
+          return
+        end
+          
+        -- special case: knitr::kable will generate a \begin{tabular} without
+        -- a \begin{table} wrapper -- put the wrapper in here if need be
+        if _quarto.format.isLatexOutput() then
+          el = _quarto.ast.walk(el, {
+            RawBlock = function(raw)
+              if _quarto.format.isRawLatex(raw) then
+                local tabular_match, tabular_pattern = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexTabularEnvPatterns)
+                if tabular_match then 
+                  local table_match, _ = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexTableEnvPatterns)
+                  if not table_match then
+                    raw.text = raw.text:gsub(
+                      _quarto.modules.patterns.combine_patterns(tabular_pattern),
+                      "\\begin{table}\n\\centering\n%1%2%3\n\\end{table}\n",
+                      1)
+                    return raw
+                  end
+                end
+              end
+            end
+          })
+        end
+
+        -- compute all captions and labels
+        local label = el.attr.identifier
+        local mainCaption, tblCaptions, mainLabel, tblLabels = table_captionsAndLabels(
+          label,
+          tables,
+          tblCap,
+          tblSubCap
+        )              
+        -- apply captions and label
+        el.attr.identifier = mainLabel
+        if mainCaption then
+          el.content:insert(pandoc.Para(mainCaption))
+        end
+        if #tblCaptions > 0 then
+          el = applyTableCaptions(el, tblCaptions, tblLabels)
+        end
+        return el
       end
-      
-      
     end
   }
 
@@ -138,11 +138,11 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           cap:extend(tblCaptions[idx])
           cap:insert(pandoc.Space())
         end
-        if #tblLabels[idx] > 0 then
+        if #tblLabels[idx] > 0 and tblLabels[idx]:match("^tbl%-") then
           cap:insert(pandoc.Str("{#" .. tblLabels[idx] .. "}"))
         end
         idx = idx + 1
-        el.caption.long = pandoc.Plain(cap)
+        el.caption.long = pandoc.Blocks{pandoc.Plain(cap)}
         return el
       end
     end,
@@ -171,13 +171,10 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           raw.text = raw.text:gsub(captionPattern, "%1" .. captionText:gsub("%%", "%%%%") .. "%3", 1)
           idx = idx + 1
         elseif hasRawLatexTable(raw) then
-          for i,pattern in ipairs(_quarto.patterns.latexTablePatterns) do
-            local match_fun = _quarto.modules.patterns.match_all_in_table(pattern)
-            if match_fun(raw.text) then
-              local combined_pattern = _quarto.modules.patterns.combine_patterns(pattern)
+          local matched_env, pattern_env = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexAllTableEnvPatterns)
+          if matched_env then
+              local combined_pattern = _quarto.modules.patterns.combine_patterns(pattern_env)
               raw.text = applyLatexTableCaption(raw.text, tblCaptions[idx], tblLabels[idx], combined_pattern)
-              break
-            end
           end
           idx = idx + 1
         elseif hasPagedHtmlTable(raw) then
@@ -202,24 +199,31 @@ end
 
 
 function applyLatexTableCaption(latex, tblCaption, tblLabel, tablePattern)
-  local latexCaptionPattern = _quarto.patterns.latexCaptionPattern
-  local latex_caption_match = _quarto.modules.patterns.match_all_in_table(latexCaptionPattern)
+  local latex_caption_match, _ = _quarto.modules.patterns.match_in_list_of_patterns(latex, _quarto.patterns.latexCaptionPatterns)
   -- insert caption if there is none
-  local beginCaption, caption = latex_caption_match(latex)
-  if not beginCaption then
+  if not latex_caption_match then
     latex = latex:gsub(tablePattern, "%1" .. "\n\\caption{ }\\tabularnewline\n" .. "%2%3", 1)
   end
+  -- caption will be matched
+  latex_caption_match, latex_caption_pattern = _quarto.modules.patterns.match_in_list_of_patterns(latex, _quarto.patterns.latexCaptionPatterns)
   -- apply table caption and label
-  local beginCaption, captionText, endCaption = latex_caption_match(latex)
-  if #tblCaption > 0 then
-    captionText = stringEscape(tblCaption, "latex")
+  if not latex_caption_match then
+    -- should never happen as we add the caption command to latex string above
+    -- added to make linter happy too.
+    fatal("Internal Error: \\caption not correctly added in " .. latex)
+  else
+    -- caption text is second element of matched pattern
+    local captionText = latex_caption_match[2]
+    if #tblCaption > 0 then
+      captionText = stringEscape(tblCaption, "latex")
+    end
+    if #tblLabel > 0 then
+      captionText = captionText .. " {#" .. tblLabel .. "}"
+    end
+    assert(captionText)
+    latex = latex:gsub(_quarto.modules.patterns.combine_patterns(latex_caption_pattern), "%1" .. captionText:gsub("%%", "%%%%") .. "%3", 1)
+    return latex
   end
-  if #tblLabel > 0 then
-    captionText = captionText .. " {#" .. tblLabel .. "}"
-  end
-  assert(captionText)
-  latex = latex:gsub(_quarto.modules.patterns.combine_patterns(latexCaptionPattern), "%1" .. captionText:gsub("%%", "%%%%") .. "%3", 1)
-  return latex
 end
 
 
@@ -233,7 +237,7 @@ function extractTblCapAttrib(el, name, subcap)
     else
       value = pandoc.List({ value })
     end
-    el.attr.attributes[name] = nil
+    -- el.attr.attributes[name] = nil
     return value
   end
   return nil

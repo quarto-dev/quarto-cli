@@ -4,9 +4,9 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { stringify } from "yaml/mod.ts";
+import { stringify } from "../../../src/core/yaml.ts";
 import { dirname, join } from "../../../src/deno_ral/path.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 
 import { Metadata } from "../../../src/config/types.ts";
 import { removeIfEmptyDir } from "../../../src/core/path.ts";

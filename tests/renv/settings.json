@@ -2,17 +2,13 @@
   "bioconductor.version": null,
   "external.libraries": [],
   "ignored.packages": [],
-  "package.dependency.fields": [
-    "Imports",
-    "Depends",
-    "LinkingTo"
-  ],
+  "package.dependency.fields": ["Imports", "Depends", "LinkingTo"],
   "ppm.enabled": true,
   "ppm.ignored.urls": [
     "https://yihui.r-universe.dev",
     "https://rstudio.r-universe.dev"
   ],
-  "r.version": "4.3.2",
+  "r.version": "4.4.2",
   "snapshot.type": "explicit",
   "use.cache": true,
   "vcs.ignore.cellar": true,

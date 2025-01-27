@@ -17,7 +17,7 @@ import { convertFromYaml } from "../../../src/core/lib/yaml-schema/from-yaml.ts"
 import { setSchemaDefinition } from "../../../src/core/lib/yaml-validation/schema.ts";
 import { ValidationError } from "../../../src/core/lib/yaml-schema/validated-yaml.ts";
 import { isEqual } from "../../../src/core/lodash.ts";
-import { assertRejects } from "testing/asserts.ts";
+import { assertRejects } from "testing/asserts";
 import { readYamlFromString } from "../../../src/core/yaml.ts";
 import { readAnnotatedYamlFromMappedString } from "../../../src/core/schema/annotated-yaml.ts";
 import {

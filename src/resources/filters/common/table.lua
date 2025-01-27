@@ -40,7 +40,7 @@ end
 
 -- map elements of a table
 function tmap(tbl, f)
-  local t = {}
+  local t = pandoc.List({})
   for k,v in pairs(tbl) do
       t[k] = f(v)
   end

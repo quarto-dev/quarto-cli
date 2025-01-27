@@ -114,7 +114,7 @@ export function inputFileHref(href: string) {
   return pathWithForwardSlashes(htmlHref);
 }
 
-export function websiteNavigationConfig(project: ProjectContext) {
+export async function websiteNavigationConfig(project: ProjectContext) {
   // read navbar
   let navbar = websiteConfig(kSiteNavbar, project.config) as
     | Navbar
@@ -161,6 +161,33 @@ export function websiteNavigationConfig(project: ProjectContext) {
           sb.contents = [sb.contents as SidebarItem];
         }
       }
+    }
+  }
+
+  const projectBrand = await project.resolveBrand();
+  if (
+    projectBrand?.processedData.logo && sidebars?.[0]
+  ) {
+    if (sidebars[0].logo === undefined) {
+      const logo = projectBrand.processedData.logo.medium ??
+        projectBrand.processedData.logo.small ??
+        projectBrand.processedData.logo.large;
+      if (logo) {
+        sidebars[0].logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
+        sidebars[0]["logo-alt"] = logo.light.alt;
+      }
+    }
+  }
+
+  if (
+    projectBrand?.processedData && navbar
+  ) {
+    const logo = projectBrand.processedData.logo.small ??
+      projectBrand.processedData.logo.medium ??
+      projectBrand.processedData.logo.large;
+    if (logo) {
+      navbar.logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
+      navbar["logo-alt"] = logo.light.alt;
     }
   }
 

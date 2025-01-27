@@ -8,10 +8,11 @@ import { basename, dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 
 import { info } from "../../deno_ral/log.ts";
 
-import { existsSync, expandGlobSync } from "fs/mod.ts";
+import { ensureDir, existsSync, expandGlobSync } from "../../deno_ral/fs.ts";
 
-import { stringify } from "yaml/mod.ts";
-import { encodeBase64 } from "encoding/base64.ts";
+import { parse as parseYml, stringify } from "../../core/yaml.ts";
+import { copyTo } from "../../core/copy.ts";
+import { decodeBase64, encodeBase64 } from "encoding/base64";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -30,7 +31,6 @@ import {
   kHtmlFinalizers,
   kHtmlPostprocessors,
   kMarkdownAfterBody,
-  kSassBundles,
   kTextHighlightingMode,
 } from "../../config/types.ts";
 import {
@@ -94,6 +94,7 @@ import {
   kEmbedResources,
   kFigResponsive,
   kFilterParams,
+  kFontPaths,
   kFormatResources,
   kFrom,
   kHighlightStyle,
@@ -181,12 +182,7 @@ import {
   processFormatResources,
   writeFormatResources,
 } from "./pandoc-dependencies-resources.ts";
-import {
-  ExplicitTimingEntry,
-  getLuaTiming,
-  insertExplicitTimingEntries,
-  withTiming,
-} from "../../core/timing.ts";
+import { withTiming } from "../../core/timing.ts";
 
 import {
   requiresShortcodeUnescapePostprocessor,
@@ -201,10 +197,118 @@ import {
   MarkdownPipelineHandler,
 } from "../../core/markdown-pipeline.ts";
 import { getEnv } from "../../../package/src/util/utils.ts";
+import {
+  BrandFontBunny,
+  BrandFontFile,
+  BrandFontGoogle,
+} from "../../resources/types/schema-types.ts";
+import { kFieldCategories } from "../../project/types/website/listing/website-listing-shared.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
+import { appendToCombinedLuaProfile } from "../../core/performance/perfetto-utils.ts";
+import { makeTimedFunctionAsync } from "../../core/performance/function-times.ts";
+import { walkJson } from "../../core/json.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
 let traceCount = 0;
+
+const handleCombinedLuaProfiles = (
+  source: string,
+  paramsJson: Record<string, unknown>,
+  temp: TempContext,
+) => {
+  const beforePandocHooks: (() => unknown)[] = [];
+  const afterPandocHooks: (() => unknown)[] = [];
+  const tmp = temp.createFile();
+
+  const combinedProfile = Deno.env.get("QUARTO_COMBINED_LUA_PROFILE");
+  if (combinedProfile) {
+    beforePandocHooks.push(() => {
+      paramsJson["lua-profiler-output"] = tmp;
+    });
+    afterPandocHooks.push(() => {
+      appendToCombinedLuaProfile(
+        source,
+        tmp,
+        combinedProfile,
+      );
+    });
+  }
+  return {
+    before: beforePandocHooks,
+    after: afterPandocHooks,
+  };
+};
+
+function captureRenderCommand(
+  args: Deno.RunOptions,
+  temp: TempContext,
+  outputDir: string,
+) {
+  Deno.mkdirSync(outputDir, { recursive: true });
+  const newArgs = [
+    args.cmd[0],
+    ...args.cmd.slice(1).map((_arg) => {
+      const arg = _arg as string; // we know it's a string, TypeScript doesn't somehow
+      if (!arg.startsWith(temp.baseDir)) {
+        return arg;
+      }
+      const newArg = join(outputDir, basename(arg));
+      if (arg.match(/^.*quarto\-defaults.*.yml$/)) {
+        // we need to correct the defaults YML because it contains a reference to a template in a temp directory
+        const ymlDefaults = Deno.readTextFileSync(arg);
+        const defaults = parseYml(ymlDefaults);
+
+        const templateDirectory = dirname(defaults.template);
+        const newTemplateDirectory = join(
+          outputDir,
+          basename(templateDirectory),
+        );
+        copyTo(templateDirectory, newTemplateDirectory);
+        defaults.template = join(
+          newTemplateDirectory,
+          basename(defaults.template),
+        );
+        const defaultsOutputFile = join(outputDir, basename(arg));
+        Deno.writeTextFileSync(defaultsOutputFile, stringify(defaults));
+        return defaultsOutputFile;
+      }
+      Deno.copyFileSync(arg, newArg);
+      return newArg;
+    }),
+  ] as typeof args.cmd;
+
+  // now we need to correct entries in filterParams
+  const filterParams = JSON.parse(
+    new TextDecoder().decode(decodeBase64(args.env!["QUARTO_FILTER_PARAMS"])),
+  );
+  walkJson(
+    filterParams,
+    (v: unknown) => typeof v === "string" && v.startsWith(temp.baseDir),
+    (_v: unknown) => {
+      const v = _v as string;
+      const newV = join(outputDir, basename(v));
+      Deno.copyFileSync(v, newV);
+      return newV;
+    },
+  );
+
+  Deno.writeTextFileSync(
+    join(outputDir, "render-command.json"),
+    JSON.stringify(
+      {
+        ...args,
+        args: newArgs,
+        env: {
+          ...args.env,
+          "QUARTO_FILTER_PARAMS": encodeBase64(JSON.stringify(filterParams)),
+        },
+      },
+      undefined,
+      2,
+    ),
+  );
+}
 
 export async function runPandoc(
   options: PandocOptions,
@@ -212,10 +316,19 @@ export async function runPandoc(
 ): Promise<RunPandocResult | null> {
   const beforePandocHooks: (() => unknown)[] = [];
   const afterPandocHooks: (() => unknown)[] = [];
+  const setupPandocHooks = (
+    hooks: { before: (() => unknown)[]; after: (() => unknown)[] },
+  ) => {
+    beforePandocHooks.push(...hooks.before);
+    afterPandocHooks.push(...hooks.after);
+  };
+
   const pandocEnv: { [key: string]: string } = {};
 
   const setupPandocEnv = () => {
-    pandocEnv["QUARTO_FILTER_PARAMS"] = encodeBase64(paramsJson);
+    pandocEnv["QUARTO_FILTER_PARAMS"] = encodeBase64(
+      JSON.stringify(paramsJson),
+    );
 
     const traceFilters = pandocMetadata?.["_quarto"]?.["trace-filters"] ||
       Deno.env.get("QUARTO_TRACE_FILTERS");
@@ -404,9 +517,22 @@ export async function runPandoc(
       ))
       : {};
 
-    const extras = await resolveExtras(
+    // start with the merge
+    const inputExtras = mergeConfigs(
       projectExtras,
       formatExtras,
+      {
+        metadata: projectExtras.metadata?.[kDocumentClass]
+          ? {
+            [kDocumentClass]: projectExtras.metadata?.[kDocumentClass],
+          }
+          : undefined,
+      },
+    );
+
+    const extras = await resolveExtras(
+      options.source,
+      inputExtras,
       options.format,
       cwd,
       options.libDir,
@@ -574,7 +700,7 @@ export async function runPandoc(
     // or by the project as format extras
     if (extras[kNotebooks]) {
       const documentNotebooks = options.format.render[kNotebookView];
-      // False means taht the user has explicitely disabled notebooks
+      // False means that the user has explicitely disabled notebooks
       if (documentNotebooks !== false) {
         const userNotebooks = documentNotebooks === true
           ? []
@@ -830,7 +956,7 @@ export async function runPandoc(
   // Attempt to cache the code page, if this windows.
   // We cache the code page to prevent looking it up
   // in the registry repeatedly (which triggers MS Defender)
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     await cacheCodePage();
   }
 
@@ -864,7 +990,14 @@ export async function runPandoc(
     formatFilterParams,
     filterResultsFile,
     dependenciesFile,
-    timingResultsFile,
+  );
+
+  setupPandocHooks(
+    handleCombinedLuaProfiles(
+      options.source,
+      paramsJson,
+      options.services.temp,
+    ),
   );
 
   // remove selected args and defaults if we are handling some things on behalf of pandoc
@@ -994,6 +1127,10 @@ export async function runPandoc(
       // don't process some format specific metadata that may have been processed already
       // - theme is handled specifically already for revealjs with a metadata override and should not be overridden by user input
       if (key === kTheme && isRevealjsOutput(options.format.pandoc)) {
+        continue;
+      }
+      // - categories are handled specifically already for website projects with a metadata override and should not be overridden by user input
+      if (key === kFieldCategories && projectIsWebsite(options.project)) {
         continue;
       }
       // perform the override
@@ -1162,24 +1299,29 @@ export async function runPandoc(
     );
   }
 
-  // workaround for our wonky Lua timing routines
-  const luaEpoch = await getLuaTiming();
-
-  setupPandocEnv();
-
   // run beforePandoc hooks
   for (const hook of beforePandocHooks) {
     await hook();
   }
 
+  setupPandocEnv();
+
+  const params = {
+    cmd,
+    cwd,
+    env: pandocEnv,
+    ourEnv: Deno.env.toObject(),
+  };
+  const captureCommand = Deno.env.get("QUARTO_CAPTURE_RENDER_COMMAND");
+  if (captureCommand) {
+    captureRenderCommand(params, options.services.temp, captureCommand);
+  }
+  const pandocRender = makeTimedFunctionAsync("pandoc-render", async () => {
+    return await execProcess(params);
+  });
+
   // run pandoc
-  const result = await execProcess(
-    {
-      cmd,
-      cwd,
-      env: pandocEnv,
-    },
-  );
+  const result = await pandocRender();
 
   // run afterPandoc hooks
   for (const hook of afterPandocHooks) {
@@ -1207,24 +1349,6 @@ export async function runPandoc(
     }
   }
 
-  if (existsSync(timingResultsFile)) {
-    const timingResultsJSON = Deno.readTextFileSync(timingResultsFile);
-    if (
-      timingResultsJSON.length > 0 && Deno.env.get("QUARTO_PROFILER_OUTPUT")
-    ) {
-      // workaround for our wonky Lua timing routines
-      const luaNow = await getLuaTiming();
-      const entries = JSON.parse(timingResultsJSON) as ExplicitTimingEntry[];
-
-      insertExplicitTimingEntries(
-        luaEpoch,
-        luaNow,
-        entries,
-        "pandoc",
-      );
-    }
-  }
-
   if (result.success) {
     return {
       inputMetadata: pandocMetadata,
@@ -1242,7 +1366,7 @@ export async function runPandoc(
     // Since this render wasn't successful, clear the code page cache
     // (since the code page could've changed and we could be caching the
     // wrong value)
-    if (Deno.build.os === "windows") {
+    if (isWindows) {
       clearCodePageCache();
     }
 
@@ -1268,24 +1392,15 @@ function cleanupPandocMetadata(metadata: Metadata) {
 }
 
 async function resolveExtras(
-  projectExtras: FormatExtras,
-  formatExtras: FormatExtras,
+  input: string,
+  extras: FormatExtras, // input format extras (project, format, brand)
   format: Format,
   inputDir: string,
   libDir: string,
   temp: TempContext,
   dependenciesFile: string,
-  project?: ProjectContext,
+  project: ProjectContext,
 ) {
-  // start with the merge
-  let extras = mergeConfigs(projectExtras, formatExtras);
-
-  // project documentclass always wins
-  if (projectExtras.metadata?.[kDocumentClass]) {
-    extras.metadata = extras.metadata || {};
-    extras.metadata[kDocumentClass] = projectExtras.metadata?.[kDocumentClass];
-  }
-
   // resolve format resources
   await writeFormatResources(
     inputDir,
@@ -1301,8 +1416,6 @@ async function resolveExtras(
       extras,
       format,
       temp,
-      formatExtras.html?.[kSassBundles],
-      projectExtras.html?.[kSassBundles],
       project,
     );
 
@@ -1338,6 +1451,150 @@ async function resolveExtras(
     delete extras.html?.[kDependencies];
   } else {
     delete extras.html;
+  }
+
+  // perform typst-specific merging
+  if (isTypstOutput(format.pandoc)) {
+    const brand = await project.resolveBrand(input);
+    const fontdirs: Set<string> = new Set();
+    const base_urls = {
+      google: "https://fonts.googleapis.com/css",
+      bunny: "https://fonts.bunny.net/css",
+    };
+    const ttf_urls = [], woff_urls: Array<string> = [];
+    if (brand?.data.typography) {
+      const fonts = brand.data.typography.fonts || [];
+      for (const _font of fonts) {
+        // if font lacks a source, we assume google in typst output
+
+        // deno-lint-ignore no-explicit-any
+        const source: string = (_font as any).source ?? "google";
+        if (source === "file") {
+          const font = _font as BrandFontFile;
+          for (const file of font.files || []) {
+            const path = typeof file === "object" ? file.path : file;
+            fontdirs.add(dirname(join(brand.brandDir, path)));
+          }
+        } else if (source === "bunny") {
+          const font = _font as BrandFontBunny;
+          console.log(
+            "Font bunny is not yet supported for Typst, skipping",
+            font.family,
+          );
+        } else if (source === "google" /* || font.source === "bunny" */) {
+          const font = _font as BrandFontGoogle;
+          let { family, style, weight } = font;
+          const parts = [family!];
+          if (style) {
+            style = Array.isArray(style) ? style : [style];
+            parts.push(style.join(","));
+          }
+          if (weight) {
+            weight = Array.isArray(weight) ? weight : [weight];
+            parts.push(weight.join(","));
+          }
+          const response = await fetch(
+            `${base_urls[source]}?family=${parts.join(":")}`,
+          );
+          const lines = (await response.text()).split("\n");
+          for (const line of lines) {
+            const sourcelist = line.match(/^ *src: (.*); *$/);
+            if (sourcelist) {
+              const sources = sourcelist[1].split(",").map((s) => s.trim());
+              let found = false;
+              const failed_formats = [];
+              for (const source of sources) {
+                const match = source.match(
+                  /url\(([^)]*)\) *format\('([^)]*)'\)/,
+                );
+                if (match) {
+                  const [_, url, format] = match;
+                  if (["truetype", "opentype"].includes(format)) {
+                    ttf_urls.push(url);
+                    found = true;
+                    break;
+                  }
+                  //  else if (["woff", "woff2"].includes(format)) {
+                  //   woff_urls.push(url);
+                  //   break;
+                  // }
+                  failed_formats.push(format);
+                }
+              }
+              if (!found) {
+                console.log(
+                  "skipping",
+                  family,
+                  "\nnot currently able to use formats",
+                  failed_formats.join(", "),
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+    if (ttf_urls.length || woff_urls.length) {
+      const font_cache = join(brand!.projectDir, ".quarto", "typst-font-cache");
+      const url_to_path = (url: string) => url.replace(/^https?:\/\//, "");
+      const cached = async (url: string) => {
+        const path = url_to_path(url);
+        try {
+          await Deno.lstat(join(font_cache, path));
+          return true;
+        } catch (err) {
+          if (!(err instanceof Deno.errors.NotFound)) {
+            throw err;
+          }
+          return false;
+        }
+      };
+      const download = async (url: string) => {
+        const path = url_to_path(url);
+        await ensureDir(
+          join(font_cache, dirname(path)),
+        );
+
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const buffer = await blob.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        await Deno.writeFile(join(font_cache, path), bytes);
+      };
+      const woff2ttf = async (url: string) => {
+        const path = url_to_path(url);
+        await Deno.run({ cmd: ["ttx", join(font_cache, path)] });
+        await Deno.run({
+          cmd: ["ttx", join(font_cache, path.replace(/woff2?$/, "ttx"))],
+        });
+      };
+      const ttf_urls2: Array<string> = [], woff_urls2: Array<string> = [];
+      await Promise.all(ttf_urls.map(async (url) => {
+        if (!await cached(url)) {
+          ttf_urls2.push(url);
+        }
+      }));
+
+      await woff_urls.reduce((cur, next) => {
+        return cur.then(() => woff2ttf(next));
+      }, Promise.resolve());
+      // await Promise.all(woff_urls.map(async (url) => {
+      //   if (!await cached(url)) {
+      //     woff_urls2.push(url);
+      //   }
+      // }));
+      await Promise.all(ttf_urls2.concat(woff_urls2).map(download));
+      if (woff_urls2.length) {
+        await Promise.all(woff_urls2.map(woff2ttf));
+      }
+      fontdirs.add(font_cache);
+    }
+    let fontPaths = format.metadata[kFontPaths] as Array<string> || [];
+    if (typeof fontPaths === "string") {
+      fontPaths = [fontPaths];
+    }
+    fontPaths.push(...fontdirs);
+    format.metadata[kFontPaths] = fontPaths;
   }
 
   // Process format resources

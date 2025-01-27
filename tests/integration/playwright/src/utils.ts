@@ -1,3 +1,5 @@
+import { expect, Locator } from "@playwright/test";
+
 export const getUrl = (path: string) => {
   return `http://127.0.0.1:8080/${path}`;
 };
@@ -118,3 +120,49 @@ export const checkClick = async (page: any, locator: any) => {
   }
   return !error;
 };
+
+export type RGBColor = {
+  red: number;
+  green: number;
+  blue: number;
+  alpha?: number;
+};
+
+export async function checkColor(element, cssProperty, rgbColors: RGBColor) {
+  const colorString = rgbColors.alpha !== undefined 
+    ? `rgba(${rgbColors.red}, ${rgbColors.green}, ${rgbColors.blue}, ${rgbColors.alpha})`
+    : `rgb(${rgbColors.red}, ${rgbColors.green}, ${rgbColors.blue})`;
+  await expect(element).toHaveCSS(cssProperty, colorString);
+}
+
+export function asRGB(red: number, green: number, blue: number, alpha?: number): RGBColor {
+  return { red, green, blue, alpha };
+}
+
+export async function getCSSProperty(loc: Locator, variable: string, asNumber = false): Promise<string | number> {
+  const property = await loc.evaluate((element, variable) =>
+    window.getComputedStyle(element).getPropertyValue(variable),
+    variable
+  );
+  if (asNumber) {
+    return parseFloat(property);
+  } else {
+    return property;
+  }
+}
+
+export async function checkFontSizeIdentical(loc1: Locator, loc2: Locator) {
+  const loc1FontSize = await getCSSProperty(loc1, 'font-size', false) as string;
+  await expect(loc2).toHaveCSS('font-size', loc1FontSize);
+}
+
+export async function checkFontSizeSimilar(loc1: Locator, loc2: Locator, factor: number = 1) {
+  const loc1FontSize = await getCSSProperty(loc1, 'font-size', true) as number;
+  const loc2FontSize = await getCSSProperty(loc2, 'font-size', true) as number;
+  await expect(loc1FontSize).toBeCloseTo(loc2FontSize * factor);
+}
+
+export async function checkBorderProperties(element: Locator, side: string, color: RGBColor, width: string) {
+  await checkColor(element, `border-${side}-color`, color);
+  await expect(element).toHaveCSS(`border-${side}-width`, width);
+}

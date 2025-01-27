@@ -4,10 +4,16 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, isAbsolute, join, relative, SEP } from "../deno_ral/path.ts";
-import { globToRegExp } from "path/glob_to_regexp.ts";
+import {
+  dirname,
+  globToRegExp,
+  isAbsolute,
+  join,
+  relative,
+  SEP,
+} from "../deno_ral/path.ts";
 
-import { existsSync, walkSync } from "fs/mod.ts";
+import { existsSync, walkSync } from "../deno_ral/fs.ts";
 import * as ld from "../core/lodash.ts";
 
 import { ProjectType } from "./types/types.ts";
@@ -66,6 +72,7 @@ import {
   ignoreFieldsForProjectType,
   normalizeFormatYaml,
   projectConfigFile,
+  projectFileMetadata,
   projectResolveBrand,
   projectResolveFullMarkdownForFile,
   projectVarsFile,
@@ -92,6 +99,8 @@ import { computeProjectEnvironment } from "./project-environment.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import { MappedString } from "../core/mapped-text.ts";
+import { timeCall } from "../core/performance/function-times.ts";
+import { assertEquals } from "testing/asserts";
 
 export async function projectContext(
   path: string,
@@ -255,7 +264,8 @@ export async function projectContext(
         }
 
         const result: ProjectContext = {
-          resolveBrand: async () => projectResolveBrand(result),
+          resolveBrand: async (fileName?: string) =>
+            projectResolveBrand(result, fileName),
           resolveFullMarkdownForFile: (
             engine: ExecutionEngine | undefined,
             file: string,
@@ -290,6 +300,9 @@ export async function projectContext(
               flags,
               result,
             );
+          },
+          fileMetadata: async (file: string, force?: boolean) => {
+            return projectFileMetadata(result, file, force);
           },
           isSingleFile: false,
         };
@@ -335,7 +348,8 @@ export async function projectContext(
       } else {
         debug(`projectContext: Found Quarto project in ${dir}`);
         const result: ProjectContext = {
-          resolveBrand: async () => projectResolveBrand(result),
+          resolveBrand: async (fileName?: string) =>
+            projectResolveBrand(result, fileName),
           resolveFullMarkdownForFile: (
             engine: ExecutionEngine | undefined,
             file: string,
@@ -368,6 +382,9 @@ export async function projectContext(
               result,
             );
           },
+          fileMetadata: async (file: string, force?: boolean) => {
+            return projectFileMetadata(result, file, force);
+          },
           notebookContext,
           isSingleFile: false,
         };
@@ -393,7 +410,8 @@ export async function projectContext(
           configResolvers.shift();
         } else if (force) {
           const context: ProjectContext = {
-            resolveBrand: async () => projectResolveBrand(context),
+            resolveBrand: async (fileName?: string) =>
+              projectResolveBrand(context, fileName),
             resolveFullMarkdownForFile: (
               engine: ExecutionEngine | undefined,
               file: string,
@@ -430,6 +448,9 @@ export async function projectContext(
                 flags,
                 context,
               );
+            },
+            fileMetadata: async (file: string, force?: boolean) => {
+              return projectFileMetadata(context, file, force);
             },
             isSingleFile: false,
           };
@@ -477,7 +498,7 @@ function quartoYamlProjectConfigResolver(
     if (configFile) {
       // read config file
       const files = [configFile];
-      const errMsg = "Project _quarto.yml validation failed.";
+      const errMsg = `Project ${configFile} validation failed.`;
       let config = (await readAndValidateYamlFromFile(
         configFile,
         configSchema,
@@ -705,9 +726,6 @@ export async function projectInputFiles(
   metadata?: ProjectConfig,
 ): Promise<{ files: string[]; engines: string[] }> {
   const { dir } = project;
-  const files: string[] = [];
-  const engines: string[] = [];
-  const intermediateFiles: string[] = [];
 
   const outputDir = metadata?.project[kProjectOutputDir];
 
@@ -719,88 +737,100 @@ export async function projectInputFiles(
     globToRegExp(glob, { extended: true, globstar: true })
   );
 
-  const addFile = async (file: string) => {
+  type FileInclusion = {
+    file: string;
+    engineName: string;
+    engineIntermediates: string[];
+  };
+
+  const addFile = async (file: string): Promise<FileInclusion[]> => {
+    // ignore the file if it is in the output directory
     if (
-      // no output dir to worry about
-      !outputDir ||
-      // crawled file is not inside the output directory
-      !ensureTrailingSlash(dirname(file)).startsWith(
+      outputDir &&
+      ensureTrailingSlash(dirname(file)).startsWith(
         ensureTrailingSlash(join(dir, outputDir)),
-      ) ||
-      // output directory is not in the project directory
-      // so we don't need to worry about crawling outputs
-      !ensureTrailingSlash(join(dir, outputDir)).startsWith(
+      ) &&
+      ensureTrailingSlash(join(dir, outputDir)).startsWith(
         ensureTrailingSlash(dir),
       )
     ) {
-      const engine = await fileExecutionEngine(file, undefined, project);
-      if (engine) {
-        if (!engines.includes(engine.name)) {
-          engines.push(engine.name);
-        }
-        files.push(file);
-        const engineIntermediates = executionEngineIntermediateFiles(
-          engine,
-          file,
-        );
-        if (engineIntermediates) {
-          intermediateFiles.push(...engineIntermediates);
-        }
-      }
+      return [];
     }
-  };
 
-  const addDir = async (dir: string) => {
+    const engine = await fileExecutionEngine(file, undefined, project);
+    // ignore the file if there's no engine to handle it
+    if (!engine) {
+      return [];
+    }
+    const engineIntermediates = executionEngineIntermediateFiles(
+      engine,
+      file,
+    );
+    return [{
+      file,
+      engineName: engine.name,
+      engineIntermediates: engineIntermediates,
+    }];
+  };
+  const addDir = async (dir: string): Promise<FileInclusion[]> => {
     // ignore selected other globs
-
-    for (
-      const walk of walkSync(
-        dir,
-        {
-          includeDirs: false,
-          // this was done b/c some directories e.g. renv/packrat and potentially python
-          // virtualenvs include symblinks to R or Python libraries that are in turn
-          // circular. much safer to not follow symlinks!
-          followSymlinks: false,
-          skip: [kSkipHidden].concat(
-            engineIgnoreDirs().map((ignore) =>
-              globToRegExp(join(dir, ignore) + SEP)
-            ),
+    const walkIterator = walkSync(
+      dir,
+      {
+        includeDirs: false,
+        // this was done b/c some directories e.g. renv/packrat and potentially python
+        // virtualenvs include symblinks to R or Python libraries that are in turn
+        // circular. much safer to not follow symlinks!
+        followSymlinks: false,
+        skip: [kSkipHidden].concat(
+          engineIgnoreDirs().map((ignore) =>
+            globToRegExp(join(dir, ignore) + SEP)
           ),
-        },
-      )
-    ) {
-      const pathRelative = pathWithForwardSlashes(relative(dir, walk.path));
-      if (!projectIgnores.some((regex) => regex.test(pathRelative))) {
-        await addFile(walk.path);
-      }
+        ),
+      },
+    );
+    return Promise.all(
+      Array.from(walkIterator)
+        .filter((walk) => {
+          const pathRelative = pathWithForwardSlashes(relative(dir, walk.path));
+          return !projectIgnores.some((regex) => regex.test(pathRelative));
+        })
+        .map(async (walk) => addFile(walk.path)),
+    ).then((fileInclusions) => fileInclusions.flat());
+  };
+  const addEntry = async (entry: string) => {
+    if (Deno.statSync(entry).isDirectory) {
+      return addDir(entry);
+    } else {
+      return addFile(entry);
     }
   };
-
   const renderFiles = metadata?.project[kProjectRender];
+
+  let inclusions: FileInclusion[];
   if (renderFiles) {
     const exclude = projIgnoreGlobs.concat(outputDir ? [outputDir] : []);
     const resolved = resolvePathGlobs(dir, renderFiles, exclude, {
       mode: "auto",
     });
-    await Promise.all(
-      (ld.difference(resolved.include, resolved.exclude) as string[])
-        .map((file) => {
-          if (Deno.statSync(file).isDirectory) {
-            return addDir(file);
-          } else {
-            return addFile(file);
-          }
-        }),
-    );
+    const toInclude = ld.difference(
+      resolved.include,
+      resolved.exclude,
+    ) as string[];
+    inclusions = (await Promise.all(toInclude.map(addEntry))).flat();
   } else {
-    await addDir(dir);
+    inclusions = await addDir(dir);
   }
 
-  const inputFiles = ld.difference(
-    ld.uniq(files),
-    ld.uniq(intermediateFiles),
-  ) as string[];
+  const files = inclusions.map((inclusion) => inclusion.file);
+  const engines = ld.uniq(inclusions.map((inclusion) => inclusion.engineName));
+  const intermediateFiles = inclusions.map((inclusion) =>
+    inclusion.engineIntermediates
+  ).flat();
+
+  const inputFiles = Array.from(
+    new Set(files).difference(new Set(intermediateFiles)),
+  );
 
   return { files: inputFiles, engines };
 }

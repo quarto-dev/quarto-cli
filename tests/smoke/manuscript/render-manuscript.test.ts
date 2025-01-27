@@ -63,6 +63,7 @@ const qmdSingleOutputs = [
   "images/reservoirs.png",
   "index-preview.html",
   "index.out.ipynb",
+  "dummy resource with space in name.txt"
 ];
 
 testManuscriptRender(

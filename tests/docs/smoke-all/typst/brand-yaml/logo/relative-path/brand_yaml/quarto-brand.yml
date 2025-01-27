@@ -1,0 +1,13 @@
+logo:
+  images:
+    large-light: resources/quarto.png
+  large: large-light
+defaults:
+  quarto:
+    format:
+      typst:
+        logo:
+          src: large
+          location: center-top
+          width: 300px
+          padding: 1in

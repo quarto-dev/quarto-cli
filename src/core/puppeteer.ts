@@ -6,10 +6,11 @@
 
 import { readRegistryKey } from "./windows.ts";
 import { safeExistsSync, which } from "./path.ts";
-import { error, info } from "../deno_ral/log.ts";
-import { existsSync } from "fs/mod.ts";
+import { debug, error, info } from "../deno_ral/log.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { UnreachableError } from "./lib/error.ts";
 import { quartoDataDir } from "./appdirs.ts";
+import { isMac, isWindows } from "../deno_ral/platform.ts";
 
 // deno-lint-ignore no-explicit-any
 let puppeteerImport: any = undefined;
@@ -199,17 +200,36 @@ export async function withHeadlessBrowser<T>(
   }
 }
 
-async function findChrome(): Promise<string | undefined> {
+interface ChromeInfo {
+  path: string | undefined;
+  source: string | undefined;
+}
+
+export async function findChrome(): Promise<ChromeInfo> {
   let path;
-  if (Deno.build.os === "darwin") {
+  let source;
+  // First check env var and use this path if specified
+  const envPath = Deno.env.get("QUARTO_CHROMIUM");
+  if (envPath) {
+    debug("[CHROMIUM] Using path specified in QUARTO_CHROMIUM");
+    if (safeExistsSync(envPath)) {
+      debug(`[CHROMIUM] Found at ${envPath}, and will be used.`);
+      return { path: envPath, source: "QUARTO_CHROMIUM" };
+    } else {
+      debug(
+        `[CHROMIUM] Not found at ${envPath}. Check your environment variable valye. Searching now for another binary.`,
+      );
+    }
+  }
+  // Otherwise, try to find the path based on OS.
+  if (isMac) {
     const programs = [
       "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
       "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
     ];
-    return programs.find((p) => {
-      safeExistsSync(p);
-    });
-  } else if (Deno.build.os === "windows") {
+    path = programs.find(safeExistsSync);
+    source = "MacOS known location";
+  } else if (isWindows) {
     // Try the HKLM key
     const programs = ["chrome.exe", "msedge.exe"];
     for (let i = 0; i < programs.length; i++) {
@@ -218,7 +238,10 @@ async function findChrome(): Promise<string | undefined> {
           programs[i],
         "(Default)",
       );
-      if (path && existsSync(path)) break;
+      if (path && safeExistsSync(path)) {
+        source = "Windows Registry";
+        break;
+      }
     }
 
     // Try the HKCR key
@@ -231,18 +254,30 @@ async function findChrome(): Promise<string | undefined> {
         );
         path = path?.match(/"(.*)"/);
         path = path ? path[1] : undefined;
-        if (path && existsSync(path)) break;
+        if (path && existsSync(path)) {
+          source = "Windows Registry";
+          break;
+        }
       }
     }
   } else {
-    // in 1.28.2, this is (Deno.build.os === "linux")
+    // in 1.28.2, this is (isLinux)
     // in 1.32, there's other non-linux unixes
     path = await which("google-chrome");
     if (!path) {
       path = await which("chromium-browser");
     }
+    if (path && existsSync(path)) {
+      source = "PATH";
+    }
   }
-  return path;
+  if (path) {
+    debug("[CHROMIUM] Found Chromium on OS known location");
+    debug(`[CHROMIUM] Path: ${path}`);
+  } else {
+    debug("[CHROMIUM] Chromium not found on OS known location");
+  }
+  return { path: path, source: source };
 }
 
 export async function getBrowserExecutablePath() {
@@ -253,7 +288,7 @@ export async function getBrowserExecutablePath() {
   let executablePath: string | undefined = undefined;
 
   if (executablePath === undefined) {
-    executablePath = await findChrome();
+    executablePath = (await findChrome()).path;
   }
 
   if (executablePath === undefined && availableRevisions.length > 0) {

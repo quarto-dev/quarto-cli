@@ -19,6 +19,7 @@ import {
   pandocBinaryPath,
   textHighlightThemePath,
 } from "../core/resources.ts";
+import { safeRemoveSync } from "../deno_ral/fs.ts";
 
 import { basename, extname, join } from "../deno_ral/path.ts";
 
@@ -254,6 +255,6 @@ async function gfmPreview(file: string, request: Request) {
       );
     }
   } finally {
-    Deno.removeSync(workingDir, { recursive: true });
+    safeRemoveSync(workingDir, { recursive: true });
   }
 }

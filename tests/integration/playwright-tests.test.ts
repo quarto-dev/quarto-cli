@@ -14,6 +14,8 @@ import {
 import { cleanoutput } from "../smoke/render/render.ts";
 import { execProcess } from "../../src/core/process.ts";
 import { quartoDevCmd } from "../utils.ts";
+import { fail } from "testing/asserts";
+import { isWindows } from "../../src/deno_ral/platform.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -29,43 +31,55 @@ setInitializer(fullInit);
 await initState();
 
 // const promises = [];
-const fileNames = [];
+const fileNames: string[] = [];
+const extraOpts = [
+  {
+    pathSuffix: "docs/playwright/embed-resources/issue-11860/main.qmd",
+    options: ["--output-dir=inner"],
+  }
+]
 
 for (const { path: fileName } of globOutput) {
   const input = fileName;
+  const options: string[] = [];
+  for (const extraOpt of extraOpts) {
+    if (fileName.endsWith(extraOpt.pathSuffix)) {
+      options.push(...extraOpt.options);
+    }
+  }
 
   // sigh, we have a race condition somewhere in
   // mediabag inspection if we don't wait all renders
   // individually. This is very slow..
   await execProcess({
-    cmd: [quartoDevCmd(), "render", input, "--to", "html"],
+    cmd: [quartoDevCmd(), "render", input, ...options],
   });
   fileNames.push(fileName);
 }
 
-// start a web server
-// This is attempt #3
-// attempt #1 through Deno.server causes hangs on repeated requests
-// attempt #2 through http/server causes a deno vendor crash: https://github.com/denoland/deno/issues/16861
-
-// we'll just use python :facepalm:
-
-const proc = Deno.run({
-  cmd: ["python", "-m", "http.server", "8080"],
-  cwd: "docs/playwright",
-});
-
-try {
-  // run playwright
-  await execProcess({
-    cmd: [Deno.build.os == "windows" ? "npx.cmd" : "npx", "playwright", "test"],
-    cwd: "integration/playwright",
-  });
-} finally {
-  // cleanup
-  proc.kill();
-  proc.close();
-  for (const fileName of fileNames) {
-    cleanoutput(fileName, "html");
+Deno.test({
+  name: "Playwright tests are passing", 
+  // currently we run playwright tests only on Linux
+  ignore: isWindows,
+  fn: async () => {
+    try {
+      // run playwright
+      const res = await execProcess({
+        cmd: [isWindows ? "npx.cmd" : "npx", "playwright", "test", "--ignore-snapshots"],
+        cwd: "integration/playwright",
+      });
+      if (!res.success) {
+        if (Deno.env.get("GITHUB_ACTIONS") && Deno.env.get("GITHUB_REPOSITORY") && Deno.env.get("GITHUB_RUN_ID")) {
+          const runUrl = `https://github.com/${Deno.env.get("GITHUB_REPOSITORY")}/actions/runs/${Deno.env.get("GITHUB_RUN_ID")}`;
+          console.log(`::error file=playwright-tests.test.ts, title=Playwright tests::Some tests failed. Download report uploaded as artifact at ${runUrl}`);
+        }
+        fail("Failed tests with playwright. Look at playwright report for more details.")
+      }
+      
+    } finally {
+      for (const fileName of fileNames) {
+        cleanoutput(fileName, "html");
+      }
+    }
   }
-}
+});

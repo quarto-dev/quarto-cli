@@ -10,10 +10,10 @@ import { InternalError } from "../lib/error.ts";
 import { md5Hash } from "../hash.ts";
 import { join } from "../../deno_ral/path.ts";
 import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
-import { dartCompile } from "../dart-sass.ts";
 import { TempContext } from "../temp.ts";
 import { safeRemoveIfExists } from "../path.ts";
 import * as log from "../../deno_ral/log.ts";
+import { onCleanup } from "../cleanup.ts";
 
 class SassCache {
   kv: Deno.Kv;
@@ -76,22 +76,13 @@ class SassCache {
   async setFromHash(
     identifierHash: string,
     inputHash: string,
-    input: string,
-    loadPaths: string[],
-    temp: TempContext,
     cacheIdentifier: string,
-    compressed?: boolean,
+    compilationThunk: (outputFilePath: string) => Promise<void>,
   ): Promise<string> {
     log.debug(`SassCache.setFromHash(${identifierHash}, ${inputHash}), ...`);
     const outputFilePath = join(this.path, `${identifierHash}.css`);
     try {
-      await dartCompile(
-        input,
-        outputFilePath,
-        temp,
-        loadPaths,
-        compressed,
-      );
+      await compilationThunk(outputFilePath);
     } catch (error) {
       // Compilation failed, so clear out the output file (if exists)
       // which will be invalid CSS
@@ -111,30 +102,23 @@ class SassCache {
 
   async set(
     input: string,
-    loadPaths: string[],
-    temp: TempContext,
     cacheIdentifier: string,
-    compressed?: boolean,
+    compilationThunk: (outputFilePath: string) => Promise<void>,
   ): Promise<string> {
     const identifierHash = md5Hash(cacheIdentifier);
     const inputHash = md5Hash(input);
     return this.setFromHash(
       identifierHash,
       inputHash,
-      input,
-      loadPaths,
-      temp,
       cacheIdentifier,
-      compressed,
+      compilationThunk,
     );
   }
 
   async getOrSet(
     input: string,
-    loadPaths: string[],
-    temp: TempContext,
     cacheIdentifier: string,
-    compressed?: boolean,
+    compilationThunk: (outputFilePath: string) => Promise<void>,
   ): Promise<string> {
     log.debug(`SassCache.getOrSet(...)`);
     const identifierHash = md5Hash(cacheIdentifier);
@@ -148,12 +132,24 @@ class SassCache {
     return this.setFromHash(
       identifierHash,
       inputHash,
-      input,
-      loadPaths,
-      temp,
       cacheIdentifier,
-      compressed,
+      compilationThunk,
     );
+  }
+
+  // add a cleanup method to register a cleanup handler
+  cleanup(temp: TempContext | undefined) {
+    const registerCleanup = temp ? temp.onCleanup : onCleanup;
+    registerCleanup(() => {
+      try {
+        this.kv.close();
+        if (temp) safeRemoveIfExists(this.path);
+      } catch (error) {
+        log.info(
+          `Error occurred during sass cache cleanup for ${this.path}: ${error}`,
+        );
+      }
+    });
   }
 }
 
@@ -192,7 +188,11 @@ async function checkVersion(kv: Deno.Kv, path: string) {
 }
 
 const _sassCache: Record<string, SassCache> = {};
-export async function sassCache(path: string): Promise<SassCache> {
+
+export async function sassCache(
+  path: string,
+  temp: TempContext | undefined,
+): Promise<SassCache> {
   if (!_sassCache[path]) {
     log.debug(`Creating SassCache at ${path}`);
     ensureDirSync(path);
@@ -200,6 +200,8 @@ export async function sassCache(path: string): Promise<SassCache> {
     const kv = await Deno.openKv(kvFile);
     await checkVersion(kv, kvFile);
     _sassCache[path] = new SassCache(kv, path);
+    // register cleanup for this cache
+    _sassCache[path].cleanup(temp);
   }
   log.debug(`Returning SassCache at ${path}`);
   const result = _sassCache[path];

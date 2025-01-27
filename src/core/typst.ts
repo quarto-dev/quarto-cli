@@ -6,7 +6,7 @@
 
 import { error, info } from "../deno_ral/log.ts";
 import { basename } from "../deno_ral/path.ts";
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 
 import { satisfies } from "semver/mod.ts";
 

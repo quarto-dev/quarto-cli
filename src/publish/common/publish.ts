@@ -5,15 +5,15 @@
  */
 
 import { info } from "../../deno_ral/log.ts";
-import * as colors from "fmt/colors.ts";
-import { ensureDirSync, walkSync } from "fs/mod.ts";
+import * as colors from "fmt/colors";
+import { ensureDirSync, walkSync } from "../../deno_ral/fs.ts";
 
 import { Input } from "cliffy/prompt/input.ts";
 import { Select } from "cliffy/prompt/select.ts";
 
 import { dirname, join, relative } from "../../deno_ral/path.ts";
-import { crypto } from "crypto/mod.ts";
-import { encodeHex } from "encoding/hex.ts";
+import { crypto } from "crypto/crypto";
+import { encodeHex } from "encoding/hex";
 
 import { sleep } from "../../core/wait.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
@@ -267,7 +267,7 @@ function stageDocumentPublish(title: string, publishFiles: PublishFiles) {
   const publishDir = globalTempContext().createDir();
 
   // copy all files to it
-  const stagedFiles = window.structuredClone(publishFiles) as PublishFiles;
+  const stagedFiles = globalThis.structuredClone(publishFiles) as PublishFiles;
   stagedFiles.baseDir = publishDir;
   for (const file of publishFiles.files) {
     const src = join(publishFiles.baseDir, file);

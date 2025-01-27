@@ -1,0 +1,17 @@
+---
+title: BulletList in Blockquote should not be fragment 
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - ['blockquote > ul > li:not([class])']
+        - ['blockquote > ul > li.fragment', 'div.blockquote-list-scaffold']
+---
+
+## Blockquote and incremental
+
+> * Foo
+> * Bar
+
+Using blockquote should not create incremental like Pandoc (https://pandoc.org/MANUAL.html#incremental-lists)

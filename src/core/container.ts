@@ -4,10 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { walkSync } from "fs/walk.ts";
-
+import { existsSync, walkSync } from "../deno_ral/fs.ts";
 import { basename, join } from "../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
 
 // REES Compatible execution files
 // from https://repo2docker.readthedocs.io/en/latest/config_files.html#config-files

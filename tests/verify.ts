@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync, walkSync} from "fs/mod.ts";
+import { existsSync, walkSync } from "../src/deno_ral/fs.ts";
 import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 import { basename, dirname, join, relative, resolve } from "../src/deno_ral/path.ts";
 import { parseXmlDocument } from "slimdom";
 import xpath from "fontoxpath";
@@ -18,7 +18,7 @@ import { ExecuteOutput, Verify } from "./test.ts";
 import { outputForInput } from "./utils.ts";
 import { unzip } from "../src/core/zip.ts";
 import { dirAndStem, which } from "../src/core/path.ts";
-import { isWindows } from "../src/core/platform.ts";
+import { isWindows } from "../src/deno_ral/platform.ts";
 import { execProcess } from "../src/core/process.ts";
 import { canonicalizeSnapshot, checkSnapshot } from "./verify-snapshot.ts";
 
@@ -111,7 +111,7 @@ export const noErrorsOrWarnings: Verify = {
   name: "No Errors or Warnings",
   verify: (outputs: ExecuteOutput[]) => {
     const isErrorOrWarning = (output: ExecuteOutput) => {
-      return output.levelName.toLowerCase() === "warning" ||
+      return output.levelName.toLowerCase() === "warn" ||
         output.levelName.toLowerCase() === "error";
     };
 
@@ -456,7 +456,7 @@ export const ensureTypstFileRegexMatches = (
   return(verifyKeepFileRegexMatches("pdf", "typ")(file, matchesUntyped, noMatchesUntyped));
 };
 
-// FIXME: do this properly without resorting on file having keep-typ
+// FIXME: do this properly without resorting on file having keep-tex
 export const ensureLatexFileRegexMatches = (
   file: string,
   matchesUntyped: (string | RegExp)[],
@@ -871,7 +871,7 @@ export const ensureXmlValidatesWithXsd = (
   return {
     name: "Validating XML",
     verify: async (_output: ExecuteOutput[]) => {
-      if (!isWindows()) {
+      if (!isWindows) {
         const cmd = ["xmllint", "--noout", "--valid", file, "--path", xsdPath];
         const runOptions: Deno.RunOptions = {
           cmd,
@@ -894,7 +894,7 @@ export const ensureMECAValidates = (
   return {
     name: "Validating MECA Archive",
     verify: async (_output: ExecuteOutput[]) => {
-      if (Deno.build.os !== "windows") {
+      if (!isWindows) {
         const hasNpm = await which("npm");
         if (hasNpm) {
           const hasMeca = await which("meca");

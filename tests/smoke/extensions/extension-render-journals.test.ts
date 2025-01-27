@@ -6,7 +6,7 @@
 
 import { join } from "../../../src/deno_ral/path.ts";
 import { quarto } from "../../../src/quarto.ts";
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "../../../src/deno_ral/fs.ts";
 import { testRender } from "../render/render.ts";
 import { removeIfEmptyDir } from "../../../src/core/path.ts";
 

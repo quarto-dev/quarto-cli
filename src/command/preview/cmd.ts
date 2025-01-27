@@ -4,10 +4,10 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 import { dirname, extname, join, relative } from "../../deno_ral/path.ts";
 
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 
 import { Command } from "cliffy/command/mod.ts";
 
@@ -53,6 +53,7 @@ import { serve } from "../serve/serve.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
+import { exitWithCleanup } from "../../core/cleanup.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -314,7 +315,8 @@ export const previewCommand = new Command()
               pandocArgs: args,
               watchInputs: options.watchInputs!,
             });
-            Deno.exit(result.code);
+            exitWithCleanup(result.code);
+            throw new Error(); // unreachable
           } else {
             const result = await serve({
               input: file,
@@ -328,7 +330,8 @@ export const previewCommand = new Command()
               projectDir: project?.dir,
               tempDir: Deno.makeTempDirSync(),
             });
-            Deno.exit(result.code);
+            exitWithCleanup(result.code);
+            throw new Error(); // unreachable
           }
         }
       }

@@ -1,0 +1,11 @@
+---
+title: Tutorial topmatter title (working)
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["header.quarto-title-block ol.breadcrumb"]
+        - []
+---
+
+abc

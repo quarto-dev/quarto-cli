@@ -1,0 +1,16 @@
+---
+format: typst
+title: Hello
+---
+
+## This is a section
+
+This is a paragraph.
+
+## This is another section
+
+This is another paragraph.
+
+```
+some code.
+```

@@ -1,0 +1,26 @@
+---
+title: Explain my SCSS variables pls ok thx
+keep-ipynb: true
+---
+
+````{python}
+#| echo: false
+#| output: asis
+import re
+import subprocess
+import json
+import tempfile
+
+filename = "hello-1.scss"
+
+output = subprocess.run(
+  ["deno", "run", "--allow-all", "print-dependency-graph.ts", filename], 
+  capture_output = True).stdout.decode('utf-8')
+
+print(output)
+
+## Our DOT svg engine is a bit broken in determining good sizes, so we will help it here.
+print("""\n\n```{=html}
+<script src="./fix-dot-svg.js" type="module"></script>
+```""")
+````

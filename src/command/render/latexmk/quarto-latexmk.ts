@@ -4,7 +4,7 @@ import {
   CompletionsCommand,
   HelpCommand,
 } from "cliffy/command/mod.ts";
-import { parse } from "flags/mod.ts";
+import { parse } from "flags";
 
 import {
   appendLogOptions,

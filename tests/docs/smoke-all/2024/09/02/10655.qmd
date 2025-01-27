@@ -1,0 +1,19 @@
+---
+format:
+  pdf:
+    fontfamily: libertinus
+_quarto:
+  tests:
+    pdf: default
+---
+
+```{r}
+#| include: false
+
+# Remove font that is supposed to be installed automatically
+if (tinytex::check_installed("libertinus-fonts")) {
+  tinytex::tlmgr_remove("libertinus-fonts")
+}
+```
+
+Quarto LaTeX engine should correctly detect the missing font package and install it to render the PDF. 
