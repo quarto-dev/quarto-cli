@@ -1,0 +1,4 @@
+project:
+  output-dir: _site_with_filter
+  post-render:
+    - check-index-with-filter.ts
