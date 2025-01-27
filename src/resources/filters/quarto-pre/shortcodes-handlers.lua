@@ -309,6 +309,8 @@ function handlePagebreak()
 
   if FORMAT == 'docx' then
     return pandoc.RawBlock('openxml', pagebreak.ooxml)
+  elseif FORMAT == 'pptx' then
+    return {}
   elseif FORMAT:match 'latex' then
     return pandoc.RawBlock('tex', pagebreak.latex)
   elseif FORMAT:match 'odt' then
