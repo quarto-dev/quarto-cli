@@ -93,6 +93,10 @@
     long: |
       Specifies to apply a background color on code blocks. Provide a hex color to specify that the background color is
       enabled as well as the color of the background.
+
+      For PDF output, if you specify `false`  and `code-block-border-left` is `false` or not set, the code block is not
+      enclosed in a floating LaTeX environment. This is especially useful for long code blocks nested inside a callout block,
+      as it allows correct page breaks to occur. Line numbering and annotations are not affected.
 - name: highlight-style
   tags:
     formats: [$html-all, docx, ms, $pdf-all]
