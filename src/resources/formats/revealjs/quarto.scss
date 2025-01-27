@@ -672,9 +672,6 @@ $panel-sidebar-padding: 0.5em;
   quarto-color.blackness($backgroundColor) > $code-block-theme-dark-threshhold
 ) {
   /*! dark */
-  .reveal div.callout.callout-style-default .callout-title {
-    color: #222;
-  }
 } @else {
   /*! light */
 }
@@ -900,15 +897,14 @@ kbd {
       }
 
       &.callout-title {
+        display: flex;
+        align-items: center;
+
         p {
           margin-top: 0.5em;
           margin-bottom: 0.5em;
+          color: var(--r-main-color);
         }
-      }
-
-      &.callout-title {
-        display: flex;
-        align-items: center;
       }
     }
 
