@@ -4,7 +4,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { md5Hash, md5HashAsync } from "../../../../core/hash.ts";
+import { md5HashAsync } from "../../../../core/hash.ts";
 import { projectScratchPath } from "../../../../project/project-scratch.ts";
 
 import { info, warning } from "../../../../deno_ral/log.ts";

@@ -12,7 +12,7 @@ import { sleep } from "../../core/async.ts";
 import { quartoDataDir, quartoRuntimeDir } from "../../core/appdirs.ts";
 import { execProcess } from "../../core/process.ts";
 import { ProcessResult } from "../../core/process-types.ts";
-import { md5Hash } from "../../core/hash.ts";
+import { md5HashSync } from "../../core/hash.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
 import {
@@ -327,7 +327,7 @@ function kernelTransportFile(target: string) {
     throw e;
   }
   const targetFile = normalizePath(target);
-  const hash = md5Hash(targetFile).slice(0, 20);
+  const hash = md5HashSync(targetFile).slice(0, 20);
   return join(transportsDir, hash);
 }
 
