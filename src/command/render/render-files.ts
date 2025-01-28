@@ -48,7 +48,7 @@ import { outputRecipe } from "./output.ts";
 
 import { renderPandoc } from "./render.ts";
 import { PandocRenderCompletion, RenderServices } from "./types.ts";
-import { renderContexts } from "./render-contexts.ts";
+import { copyRenderContext, renderContexts } from "./render-contexts.ts";
 import { renderProgress } from "./render-info.ts";
 import {
   ExecutedFile,
@@ -503,7 +503,7 @@ async function renderFileInternal(
 
   for (const format of Object.keys(contexts)) {
     pushTiming("render-context");
-    const context = ld.cloneDeep(contexts[format]) as RenderContext; // since we're going to mutate it...
+    const context = copyRenderContext(contexts[format]); // since we're going to mutate it...
 
     // disquality some documents from server: shiny
     if (isServerShiny(context.format) && context.project) {
