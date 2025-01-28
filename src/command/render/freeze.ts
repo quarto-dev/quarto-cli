@@ -24,7 +24,7 @@ import { cloneDeep } from "../../core/lodash.ts";
 
 import { inputFilesDir } from "../../core/render.ts";
 import { TempContext } from "../../core/temp.ts";
-import { md5Hash } from "../../core/hash.ts";
+import { md5HashSync } from "../../core/hash.ts";
 import {
   normalizePath,
   removeIfEmptyDir,
@@ -310,7 +310,7 @@ export function removeFreezeResults(filesDir: string) {
 function freezeInputHash(input: string) {
   // Calculate the hash on a content with LF line ending to avoid
   // different hash on different OS (#3599)
-  return md5Hash(format(Deno.readTextFileSync(input), LF));
+  return md5HashSync(format(Deno.readTextFileSync(input), LF));
 }
 
 // don't use _files suffix in freezer

@@ -13,7 +13,7 @@ import {
   SEP,
 } from "../deno_ral/path.ts";
 
-import { existsSync, walkSync } from "../deno_ral/fs.ts";
+import { existsSync, walk, walkSync } from "../deno_ral/fs.ts";
 import * as ld from "../core/lodash.ts";
 
 import { ProjectType } from "./types/types.ts";
@@ -99,8 +99,7 @@ import { computeProjectEnvironment } from "./project-environment.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import { MappedString } from "../core/mapped-text.ts";
-import { timeCall } from "../core/performance/function-times.ts";
-import { assertEquals } from "testing/asserts";
+import { makeTimedFunctionAsync } from "../core/performance/function-times.ts";
 
 export async function projectContext(
   path: string,
@@ -721,7 +720,12 @@ function projectHiddenIgnoreGlob(dir: string) {
     .concat(["**/README.?([Rrq])md"]); // README
 }
 
-export async function projectInputFiles(
+export const projectInputFiles = makeTimedFunctionAsync(
+  "projectInputFiles",
+  projectInputFilesInternal,
+);
+
+async function projectInputFilesInternal(
   project: ProjectContext,
   metadata?: ProjectConfig,
 ): Promise<{ files: string[]; engines: string[] }> {
@@ -773,10 +777,9 @@ export async function projectInputFiles(
     }];
   };
   const addDir = async (dir: string): Promise<FileInclusion[]> => {
-    // ignore selected other globs
-    const walkIterator = walkSync(
-      dir,
-      {
+    const promises: Promise<FileInclusion[]>[] = [];
+    for await (
+      const walkEntry of walk(dir, {
         includeDirs: false,
         // this was done b/c some directories e.g. renv/packrat and potentially python
         // virtualenvs include symblinks to R or Python libraries that are in turn
@@ -787,16 +790,18 @@ export async function projectInputFiles(
             globToRegExp(join(dir, ignore) + SEP)
           ),
         ),
-      },
-    );
-    return Promise.all(
-      Array.from(walkIterator)
-        .filter((walk) => {
-          const pathRelative = pathWithForwardSlashes(relative(dir, walk.path));
-          return !projectIgnores.some((regex) => regex.test(pathRelative));
-        })
-        .map(async (walk) => addFile(walk.path)),
-    ).then((fileInclusions) => fileInclusions.flat());
+      })
+    ) {
+      const pathRelative = pathWithForwardSlashes(
+        relative(dir, walkEntry.path),
+      );
+      if (projectIgnores.some((regex) => regex.test(pathRelative))) {
+        continue;
+      }
+      promises.push(addFile(walkEntry.path));
+    }
+    const inclusions = await Promise.all(promises);
+    return inclusions.flat();
   };
   const addEntry = async (entry: string) => {
     if (Deno.statSync(entry).isDirectory) {
