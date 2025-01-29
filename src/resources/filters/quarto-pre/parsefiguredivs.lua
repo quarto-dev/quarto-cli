@@ -742,11 +742,11 @@ function parse_floatreftargets()
       end
 
       -- finally, if the user passed a \\begin{table} float environment
-      -- we just remove it because we'll re-emit later ourselves
-
-      local b, e, begin_table, table_body, end_table = raw.text:find(patterns.latex_table)
-      if b ~= nil then
-        raw.text = table_body
+      -- we just remove it because we'll re-emit later ourselves  
+      local matched, _ = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexTableEnvPatterns)
+      if matched then
+        -- table_body is second matched element.
+        raw.text = matched[2]
       end
 
       return quarto.FloatRefTarget({

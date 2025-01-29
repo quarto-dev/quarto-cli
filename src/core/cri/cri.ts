@@ -85,7 +85,7 @@ export async function criClient(appPath?: string, port?: number) {
   const app: string = appPath || await getBrowserExecutablePath();
 
   // Allow to adapt the headless mode depending on the Chrome version
-  const headlessMode = getenv("QUARTO_CHROMIUM_HEADLESS_MODE", "old");
+  const headlessMode = getenv("QUARTO_CHROMIUM_HEADLESS_MODE", "none");
 
   const cmd = [
     app,
@@ -97,6 +97,9 @@ export async function criClient(appPath?: string, port?: number) {
     // move to the new mode. We'll use `--headless=old` as the default for now
     // until the new mode is more stable, or until we really pin a version as default to be used.
     // This is also impacting in chromote and pagedown R packages and we could keep syncing with them.
+    // EDIT: 17/01/2025 - old mode is gone in Chrome 132. Let's default to new mode to unbreak things.
+    // Best course of action is to pin a version of Chrome and use the chrome-headless-shell more adapted to our need.
+    // ref: https://developer.chrome.com/blog/chrome-headless-shell
     `--headless${headlessMode == "none" ? "" : "=" + headlessMode}`,
     "--no-sandbox",
     "--disable-gpu",

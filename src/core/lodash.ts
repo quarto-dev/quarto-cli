@@ -1,11 +1,10 @@
 /*
-* lodash.ts
-*
-* piecemeal exports of lodash to make the tree-shaker happier
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * lodash.ts
+ *
+ * piecemeal exports of lodash to make the tree-shaker happier
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import ld_cloneDeep from "lodash/cloneDeep.js";
 import ld_debounce from "lodash/debounce.js";
@@ -23,8 +22,9 @@ import ld_isObject from "lodash/isObject.js";
 import ld_isEqual from "lodash/isEqual.js";
 import ld_orderBy from "lodash/orderBy.js";
 import ld_escape from "lodash/escape.js";
+import { makeTimedFunction } from "./performance/function-times.ts";
 
-export const cloneDeep = ld_cloneDeep;
+export const cloneDeep = makeTimedFunction("ld_cloneDeep", ld_cloneDeep);
 export const debounce = ld_debounce;
 export const difference = ld_difference;
 export const each = ld_each;

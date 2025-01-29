@@ -21,6 +21,7 @@ import { QuartoJSONSchema } from "./js-yaml-schema.ts";
 import { createSourceContext } from "../yaml-validation/errors.ts";
 import { tidyverseInfo } from "../errors.ts";
 import { InternalError } from "../error.ts";
+import { isCircular } from "../is-circular.ts";
 
 // deno-lint-ignore no-explicit-any
 type TreeSitterParse = any;
@@ -268,23 +269,10 @@ export function buildJsYamlAnnotation(mappedYaml: MappedString) {
     );
   }
 
-  // console.log(results[0]);
-  try {
-    JSON.stringify(results[0]); // this is here so that we throw on circular structures
-  } catch (e) {
-    if (e.message.match("invalid string length")) {
-      // https://github.com/quarto-dev/quarto-cli/issues/10504
-      // It seems to be relatively easy to hit string length limits in
-      // JSON.stringify. Since this call is only here to check for circular
-      // structures, we chose to ignore this error, even though it's not
-      // ideal
-    } else if (e.message.match(/circular structure/)) {
-      throw new InternalError(
-        `Circular structure detected in parsed yaml: ${e.message}`,
-      );
-    } else {
-      
-    }
+  if (isCircular(results[0])) {
+    throw new InternalError(
+      `Circular structure detected in yaml`,
+    );
   }
   return postProcessAnnotation(results[0]);
 }

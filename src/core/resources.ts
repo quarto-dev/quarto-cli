@@ -181,7 +181,9 @@ export async function rBinaryPath(
   }
 
   // We couldn't find R, just pass the binary itself and hope it works out!
-  debug(`Quarto did no found ${binary} and will try to use it directly.`);
+  debug(
+    `Quarto did not find ${binary} and will try to use it directly from the path.`,
+  );
   return setPath(binary);
 }
 

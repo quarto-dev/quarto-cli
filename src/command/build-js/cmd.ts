@@ -6,9 +6,13 @@
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { esbuildCompile } from "../../core/esbuild.ts";
+import {
+  ESBuildAnalysis,
+  esbuildAnalyze,
+  esbuildCompile,
+} from "../../core/esbuild.ts";
 import { buildIntelligenceResources } from "../../core/schema/build-schema-file.ts";
-import { resourcePath } from "../../core/resources.ts";
+import { formatResourcePath, resourcePath } from "../../core/resources.ts";
 import { simple } from "acorn/walk";
 import { Parser } from "acorn/acorn";
 import classFields from "acorn-class-fields";
@@ -16,6 +20,7 @@ import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/u
 
 // initialize language handlers
 import "../../core/handlers/handlers.ts";
+import { join } from "../../deno_ral/path.ts";
 
 function ensureAllowableIDESyntax(src: string, filename: string) {
   const ast = Parser.extend(classFields).parse(src, {
@@ -126,11 +131,29 @@ async function buildYAMLJS() {
   );
 }
 
+async function buildEsbuildAnalysisCache() {
+  // build the necessary esbuild analysis cache
+  const inputFiles = [
+    "quarto.js",
+  ];
+  const analysisCache: Record<string, ESBuildAnalysis> = {};
+  for (const file of inputFiles) {
+    analysisCache[file] = await esbuildAnalyze(
+      formatResourcePath("html", file),
+      resourcePath(join("formats", "html")),
+    );
+  }
+  Deno.writeTextFileSync(
+    formatResourcePath("html", "esbuild-analysis-cache.json"),
+    JSON.stringify(analysisCache, null, 2),
+  );
+}
+
 export async function buildAssets() {
   // this has to come first because buildYAMLJS depends on it.
   await buildIntelligenceResources();
-
   await buildYAMLJS();
+  await buildEsbuildAnalysisCache();
 }
 
 export const buildJsCommand = new Command()

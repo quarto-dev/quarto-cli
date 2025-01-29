@@ -238,6 +238,7 @@ function inlineFilters(config: Configuration) {
     { name: "crossref" },
     { name: "customwriter" },
     { name: "qmd-reader", dir: "." },
+    { name: "leveloneanalysis", dir: "quarto-internals"}
   ];
 
   filtersToInline.forEach((filter) => {

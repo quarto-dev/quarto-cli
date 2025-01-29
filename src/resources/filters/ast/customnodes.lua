@@ -41,7 +41,7 @@ function is_regular_node(node, name)
   return node
 end
 
-function run_emulated_filter(doc, filter)
+function run_emulated_filter(doc, filter, traverser)
   if doc == nil then
     return nil
   end
@@ -73,7 +73,21 @@ function run_emulated_filter(doc, filter)
         -- luacov: enable
       end
     end
-    return node:walk(filter_param)
+
+    local old_traverse = _quarto.traverser
+    if traverser == nil or traverser == 'pandoc' or traverser == 'walk' then
+      _quarto.traverser = _quarto.utils.walk
+    elseif traverser == 'jog' then
+      _quarto.traverser = _quarto.modules.jog
+    elseif type(traverser) == 'function' then
+      _quarto.traverser = traverser
+    else
+      warn('Unknown traverse method: ' .. tostring(traverser))
+    end
+    local result = _quarto.traverser(node, filter_param)
+    _quarto.traverser = old_traverse
+
+    return result
   end
 
   -- performance: if filter is empty, do nothing

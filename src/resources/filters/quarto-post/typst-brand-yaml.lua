@@ -57,7 +57,7 @@ function render_typst_brand_yaml()
   end
 
   return {
-    Pandoc = function(pandoc)
+    Pandoc = function(pandoc0)
       local brand = param('brand')
       local raw_block_shown = false
       if brand and brand.processedData then
@@ -285,9 +285,16 @@ function render_typst_brand_yaml()
             location_to_typst_align(logoOptions.location) or 'left+top'
           quarto.log.debug('logo options', logoOptions)
           local altProp = logoOptions.alt and (', alt: "' .. logoOptions.alt .. '"') or ''
-          local dblbackslash = string.gsub(logoOptions.path, '\\', '\\\\') -- double backslash?
+          local imageFilename = logoOptions.path
+          if _quarto.modules.mediabag.should_mediabag(imageFilename) then
+            imageFilename = _quarto.modules.mediabag.resolved_url_cache[logoOptions.path] or _quarto.modules.mediabag.fetch_and_store_image(logoOptions.path)
+            imageFilename = _quarto.modules.mediabag.write_mediabag_entry(imageFilename) or imageFilename
+          else
+            -- backslashes need to be doubled for Windows
+            imageFilename = string.gsub(imageFilename, '\\', '\\\\')
+          end
           quarto.doc.include_text('in-header',
-            '#set page(background: align(' .. logoOptions.location .. ', box(inset: ' .. inset .. ', image("' .. dblbackslash .. '", width: ' .. logoOptions.width .. altProp .. '))))')
+            '#set page(background: align(' .. logoOptions.location .. ', box(inset: ' .. inset .. ', image("' .. imageFilename .. '", width: ' .. logoOptions.width .. altProp .. '))))')
         end  
       end
     end,

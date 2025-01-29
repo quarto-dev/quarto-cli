@@ -9,16 +9,8 @@ function mediabag_filter()
     Image = function(el)
       if not _quarto.format.isWordProcessorOutput() and
          not _quarto.format.isPowerPointOutput() then
-        local mt, contents = pandoc.mediabag.lookup(el.src)
-        if contents ~= nil then
-          
-          local mediabagDir = param("mediabag-dir", nil)
-          local mediaFile = pandoc.path.join{mediabagDir, el.src}
-
-          local file = _quarto.file.write(mediaFile, contents)
-          if not file then
-            warn('failed to write mediabag entry: ' .. mediaFile)
-          end
+        local mediaFile = _quarto.modules.mediabag.write_mediabag_entry(el.src)
+        if mediaFile then
           el.src = mediaFile
           return el
         end

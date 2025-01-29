@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { join } from "../../deno_ral/path.ts";
+import { dirname, join, relative } from "../../deno_ral/path.ts";
 import { warning } from "../../deno_ral/log.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -14,7 +14,7 @@ import { Document, Element } from "../../core/deno-dom.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { formatResourcePath } from "../../core/resources.ts";
+import { formatResourcePath, resourcePath } from "../../core/resources.ts";
 import { TempContext } from "../../core/temp.ts";
 import { asCssSize } from "../../core/css.ts";
 
@@ -114,6 +114,53 @@ import {
 import { kQuartoHtmlDependency } from "./format-html-constants.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { brandSassFormatExtras } from "../../core/sass/brand.ts";
+import { ESBuildAnalysis, esbuildAnalyze } from "../../core/esbuild.ts";
+import { assert } from "testing/asserts";
+
+let esbuildAnalysisCache: Record<string, ESBuildAnalysis> | undefined;
+export function esbuildCachedAnalysis(
+  input: string,
+): ESBuildAnalysis {
+  if (!esbuildAnalysisCache) {
+    esbuildAnalysisCache = JSON.parse(
+      Deno.readTextFileSync(
+        formatResourcePath("html", "esbuild-analysis-cache.json"),
+      ),
+    ) as Record<string, ESBuildAnalysis>;
+  }
+  const result = esbuildAnalysisCache[input];
+  assert(result, `Cached analysis not found for ${input}`);
+  return result;
+}
+
+function recursiveModuleDependencies(
+  path: string,
+): DependencyHtmlFile[] {
+  const result: DependencyHtmlFile[] = [];
+  const inpRelPath = relative(join(resourcePath("formats"), "html"), path);
+
+  result.push({
+    name: inpRelPath,
+    path: formatResourcePath("html", inpRelPath),
+    attribs: { type: "module" },
+  });
+
+  const analysis = esbuildCachedAnalysis(inpRelPath);
+  // console.log(JSON.stringify(analysis, null, 2));
+  for (const [_key, value] of Object.entries(analysis.outputs)) {
+    for (const imp of value.imports) {
+      if (imp.external) {
+        const relPath = relative(path, join(path, imp.path));
+        result.push({
+          name: relPath,
+          path: formatResourcePath("html", relPath),
+          attribs: { type: "module" },
+        });
+      }
+    }
+  }
+  return result;
+}
 
 export function htmlFormat(
   figwidth: number,
@@ -313,10 +360,10 @@ export async function htmlFormatExtras(
 
   // quarto.js helpers
   if (bootstrap) {
-    scripts.push({
-      name: "quarto.js",
-      path: formatResourcePath("html", "quarto.js"),
-    });
+    const deps = recursiveModuleDependencies(
+      formatResourcePath("html", "quarto.js"),
+    );
+    scripts.push(...deps);
   }
 
   // tabby if required

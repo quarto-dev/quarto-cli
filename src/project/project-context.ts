@@ -99,6 +99,8 @@ import { computeProjectEnvironment } from "./project-environment.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import { MappedString } from "../core/mapped-text.ts";
+import { timeCall } from "../core/performance/function-times.ts";
+import { assertEquals } from "testing/asserts";
 
 export async function projectContext(
   path: string,
@@ -826,10 +828,9 @@ export async function projectInputFiles(
     inclusion.engineIntermediates
   ).flat();
 
-  const inputFiles = ld.difference(
-    ld.uniq(files),
-    ld.uniq(intermediateFiles),
-  ) as string[];
+  const inputFiles = Array.from(
+    new Set(files).difference(new Set(intermediateFiles)),
+  );
 
   return { files: inputFiles, engines };
 }

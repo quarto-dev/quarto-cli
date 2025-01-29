@@ -407,7 +407,7 @@ function render_latex()
         end,
         Note = function(el)
           tappend(noteContents, {el.content})
-          el.content:walk({
+          _quarto.traverser(el.content, {
             CodeBlock = function(el)
               hasVerbatimInNotes = true
             end
@@ -570,27 +570,19 @@ function render_latex_fixups()
       return emit_color("{rgb}{0,0,0}")
     end
   end
-  return {
-    Meta = function(meta)
-      if not need_inject then
-        return
-      end
-      metaInjectLatex(meta, function(inject)
-        for v, i in pairs(emitted_colors) do
-          local def = "\\definecolor{QuartoInternalColor" .. i .. "}" .. v
-          inject(def)
-        end
-      end)
-      return meta
-    end,
+  return {{
     RawBlock = function(raw)
       if _quarto.format.isRawLatex(raw) then
-        local long_table_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexLongtablePattern)
-        local caption_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexCaptionPattern)
-        if long_table_match(raw.text) and not caption_match(raw.text) then
-          raw.text = raw.text:gsub(
-            _quarto.modules.patterns.combine_patterns(_quarto.patterns.latexLongtablePattern), "\\begin{longtable*}%2\\end{longtable*}", 1)
-          return raw
+        local longtable_match, _ = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexLongtableEnvPatterns)
+        if longtable_match then
+          local caption_match = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexCaptionPatterns)
+          if not caption_match then
+            -- We need to use the most generic pattern (last of the list) as we want to replace the environment and keep any options 
+            -- (e.g. `\begin{longtable}[c]{ll}` -> \begin{longtable*}[c]{ll} in flextable)
+            local longtable_pattern = _quarto.patterns.latexLongtableEnvPatterns[#_quarto.patterns.latexLongtableEnvPatterns]
+            raw.text = raw.text:gsub(_quarto.modules.patterns.combine_patterns(longtable_pattern), "\\begin{longtable*}%2\\end{longtable*}", 1)
+            return raw
+          end
         end
       end
     end,
@@ -615,5 +607,18 @@ function render_latex_fixups()
         return pandoc.RawBlock('latex', table.concat(new_lines, "\n"))
       end
     end
-  }
+  }, {
+    Meta = function(meta)
+      if not need_inject then
+        return
+      end
+      metaInjectLatex(meta, function(inject)
+        for v, i in pairs(emitted_colors) do
+          local def = "\\definecolor{QuartoInternalColor" .. i .. "}" .. v
+          inject(def)
+        end
+      end)
+      return meta
+    end,
+  }}
 end

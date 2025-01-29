@@ -92,8 +92,9 @@ import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
 import("./quarto-finalize/mediabag.lua")
 import("./quarto-finalize/meta-cleanup.lua")
-import("./quarto-finalize/coalesceraw.lua")
-import("./quarto-finalize/descaffold.lua")
+-- import("./quarto-finalize/coalesceraw.lua")
+-- import("./quarto-finalize/descaffold.lua")
+import("./quarto-finalize/finalize-combined-1.lua")
 import("./quarto-finalize/typst.lua")
 
 import("./normalize/flags.lua")
@@ -233,72 +234,113 @@ local quarto_init_filters = {
 
 local quarto_normalize_filters = {
   { name = "normalize-draft", 
-    filter = normalize_draft() },
+    filter = normalize_draft(),
+    traverser = 'jog',
+  },
 
-  { name = "normalize", filter = filterIf(function()
-    if quarto_global_state.active_filters == nil then
-      return false
-    end
-    return quarto_global_state.active_filters.normalization
-  end, normalize_filter()) },
+  { name = "normalize",
+    filter = filterIf(
+      function()
+        if quarto_global_state.active_filters == nil then
+          return false
+        end
+        return quarto_global_state.active_filters.normalization
+      end,
+      normalize_filter()),
+    traverser = 'jog',
+  },
 
-  { name = "normalize-capture-reader-state", filter = normalize_capture_reader_state() }
+  { name = "normalize-capture-reader-state",
+    filter = normalize_capture_reader_state(),
+    traverser = 'jog',
+  }
 }
 
 tappend(quarto_normalize_filters, quarto_ast_pipeline())
 
 local quarto_pre_filters = {
   -- quarto-pre
-  { name = "flags", filter = compute_flags() },
+  { name = "flags",
+    filters = compute_flags(),
+    traverser = 'jog',
+  },
 
-  { name = "pre-server-shiny", filter = server_shiny() },
+  { name = "pre-server-shiny",
+    filter = server_shiny(),
+    traverser = 'jog',
+  },
 
   -- https://github.com/quarto-dev/quarto-cli/issues/5031
   -- recompute options object in case user filters have changed meta
   -- this will need to change in the future; users will have to indicate
   -- when they mutate options
-  { name = "pre-read-options-again", filter = init_options() },
+  { name = "pre-read-options-again",
+    filter = init_options(),
+    traverser = 'jog',
+  },
 
-  { name = "pre-bibliography-formats", filter = bibliography_formats() }, 
-  
+  { name = "pre-bibliography-formats",
+    filter = bibliography_formats(),
+    traverser = 'jog',
+  },
+
   { name = "pre-shortcodes-filter", 
     filter = shortcodes_filter(),
-    flags = { "has_shortcodes" } },
+    flags = { "has_shortcodes" },
+    traverser = 'jog',
+  },
 
   { name = "pre-contents-shortcode-filter",
     filter = contents_shortcode_filter(),
-    flags = { "has_contents_shortcode" } },
+    flags = { "has_contents_shortcode" },
+    traverser = 'jog',
+  },
 
   { name = "pre-combined-hidden",
     filter = combineFilters({
       hidden(),
       content_hidden()
     }),
-    flags = { "has_hidden", "has_conditional_content" } },
+    flags = { "has_hidden", "has_conditional_content" },
+    traverser = 'jog',
+  },
 
-  { name = "pre-table-captions", 
+  { name = "pre-table-captions",
     filter = table_captions(),
-    flags = { "has_table_captions" } },
- 
-  { name = "pre-code-annotations", 
+    flags = { "has_table_captions" },
+    traverser = 'jog',
+  },
+
+  { name = "pre-code-annotations",
     filter = code_annotations(),
-    flags = { "has_code_annotations" } },
-  
-  { name = "pre-code-annotations-meta", filter = code_meta() },
+    flags = { "has_code_annotations" },
+    traverser = 'jog',
+  },
 
-  { name = "pre-unroll-cell-outputs", 
+  { name = "pre-code-annotations-meta",
+    filter = code_meta(),
+    traverser = 'jog',
+  },
+
+  { name = "pre-unroll-cell-outputs",
     filter = unroll_cell_outputs(),
-    flags = { "needs_output_unrolling" } },
+    flags = { "needs_output_unrolling" },
+    traverser = 'jog',
+  },
 
-  { name = "pre-output-location", 
-    filter = output_location()
+  { name = "pre-output-location",
+    filter = output_location(),
+    traverser = 'jog',
   },
 
   { name = "pre-scope-resolution",
-    filter = resolve_scoped_elements()
+    filter = resolve_scoped_elements(),
+    traverser = 'jog',
+    flags = { "has_tables" }
   },
 
-  { name = "pre-combined-figures-theorems-etc", filter = combineFilters({
+  { name = "pre-combined-figures-theorems-etc",
+    filter = combineFilters({
     file_metadata(),
     index_book_file_targets(),
     book_numbering(),
@@ -313,143 +355,300 @@ local quarto_pre_filters = {
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
     table_respecify_gt_css(),
-    -- table_colwidth(), 
+    -- table_colwidth(),
     table_classes(),
     input_traits(),
     resolve_book_file_targets(),
     project_paths()
-  }) },
+  }),
+    traverser = 'jog',
+  },
 
-  { name = "pre-quarto-pre-meta-inject", filter = quarto_pre_meta_inject() },
-  { name = "pre-write-results", filter = write_results() },
+  { name = "pre-quarto-pre-meta-inject",
+    filter = quarto_pre_meta_inject(),
+    traverser = 'jog',
+  },
+  { name = "pre-write-results",
+    filter = write_results(),
+    traverser = 'jog',
+  },
 }
 
 local quarto_post_filters = {
-  { name = "post-cell-cleanup", 
+  { name = "post-cell-cleanup",
     filter = cell_cleanup(),
-    flags = { "has_output_cells" }
+    flags = { "has_output_cells" },
+    traverser = 'jog',
   },
-  { name = "post-combined-cites-bibliography", 
-    filter = combineFilters({
+  { name = "post-combined-cites-bibliography",
+    filter = combineFilters{
       indexCites(),
       bibliography()
-    })
+    },
+    traverser = 'jog',
   },
-  { name = "post-landscape-div", 
+  { name = "post-landscape-div",
     filter = landscape_div(),
-    flags = { "has_landscape" }
+    flags = { "has_landscape" },
+    traverser = 'jog',
   },
-  { name = "post-ipynb", filters = ipynb()},
-  { name = "post-figureCleanupCombined", filter = combineFilters({
-    latexDiv(),
-    responsive(),
-    quartoBook(),
-    reveal(),
-    tikz(),
-    pdfImages(),
-    delink(),
-    figCleanup(),
-    responsive_table(),
-  }) },
-
-  { name = "post-postMetaInject", filter = quartoPostMetaInject() },
-  
-  { name = "post-render-jats", filter = filterIf(function()
-    return quarto_global_state.active_filters.jats_subarticle == nil or not quarto_global_state.active_filters.jats_subarticle
-  end, jats()) },
-  { name = "post-render-jats-subarticle", filter = filterIf(function()
-    return quarto_global_state.active_filters.jats_subarticle ~= nil and quarto_global_state.active_filters.jats_subarticle
-  end, jatsSubarticle()) },
-
-  { name = "post-code-options", filter = filterIf(function() 
-    return param("clear-cell-options", false) == true
-  end, removeCodeOptions()) },
+  { name = "post-ipynb",
+    filters = ipynb(),
+    traverser = 'jog',
+  },
+  { name = "post-figureCleanupCombined",
+    filter = combineFilters{
+      latexDiv(),
+      responsive(),
+      quartoBook(),
+      reveal(),
+      tikz(),
+      pdfImages(),
+      delink(),
+      figCleanup(),
+      responsive_table(),
+    },
+    traverser = 'jog',
+  },
+  { name = "post-postMetaInject",
+    filter = quartoPostMetaInject(),
+    traverser = 'jog',
+  },
+  { name = "post-render-jats",
+    filter = filterIf(
+      function()
+        return quarto_global_state.active_filters.jats_subarticle == nil or
+          not quarto_global_state.active_filters.jats_subarticle
+      end,
+      jats()
+    ),
+    traverser = 'jog',
+  },
+  { name = "post-render-jats-subarticle",
+    filter = filterIf(
+      function()
+        return quarto_global_state.active_filters.jats_subarticle ~= nil and
+          quarto_global_state.active_filters.jats_subarticle
+      end,
+      jatsSubarticle()
+    ),
+    traverser = 'jog',
+  },
+  { name = "post-code-options",
+    filter = filterIf(
+      function() return param("clear-cell-options", false) == true end,
+      removeCodeOptions()
+    ),
+    traverser = 'jog',
+  },
 
   -- format-specific rendering
-  { name = "post-render-asciidoc", filter = render_asciidoc() },
-  { name = "post-render-latex", filter = render_latex() },
-  { name = "post-render-typst", filters = render_typst() },
-  { name = "post-render-dashboard", filters = render_dashboard() },
+  { name = "post-render-asciidoc", filter = render_asciidoc(),
+    traverser = 'jog',
+  },
+  { name = "post-render-latex", filter = render_latex(),
+    traverser = 'jog',
+  },
+  { name = "post-render-typst", filters = render_typst(),
+    traverser = 'jog',
+  },
+  { name = "post-render-dashboard", filters = render_dashboard(),
+    traverser = 'jog',
+  },
 
-  { name = "post-ojs", filter = ojs() },
+  { name = "post-ojs", filter = ojs(),
+    traverser = 'jog',
+  },
 
-  { name = "post-render-pandoc3-figure", filter = render_pandoc3_figure(),
-    flags = { "has_pandoc3_figure" } },
+  { name = "post-render-pandoc3-figure",
+    filter = render_pandoc3_figure(),
+    flags = { "has_pandoc3_figure" },
+    traverser = 'jog',
+  },
 
   -- extensible rendering
-  { name = "post-render_extended_nodes", filter = render_extended_nodes() },
+  { name = "post-render_extended_nodes",
+    filter = render_extended_nodes(),
+    traverser = 'jog',
+  },
 
   -- inject required packages post-rendering
-  { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() },
+  { name = "layout-meta-inject-latex-packages",
+    filter = layout_meta_inject_latex_packages(),
+    traverser = 'jog',
+  },
 
   -- format fixups post rendering
-  { name = "post-render-latex-fixups", filter = render_latex_fixups() },
-  { name = "post-render-html-fixups", filter = render_html_fixups() },
-  { name = "post-render-ipynb-fixups", filter = render_ipynb_fixups() },
-  { name = "post-render-typst-fixups", filter = render_typst_fixups() },
-  { name = "post-render-typst-css-to-props", filter = render_typst_css_property_processing() },
-  { name = "post-render-typst-brand-yaml", filter = render_typst_brand_yaml() },
-  { name = "post-render-gfm-fixups", filter = render_gfm_fixups() },
-  { name = "post-render-hugo-fixups", filter = render_hugo_fixups() },
-  { name = "post-render-email", filters = render_email() },
-  { name = "post-render-pptx-fixups", filter = render_pptx_fixups() },
-  { name = "post-render-revealjs-fixups", filter = render_reveal_fixups() }
+  { name = "post-render-latex-fixups",
+    filters = render_latex_fixups(),
+    traverser = 'jog',
+  },
+  { name = "post-render-html-fixups",
+    filter = render_html_fixups(),
+    traverser = 'jog',
+  },
+  { name = "post-render-ipynb-fixups",
+    filter = render_ipynb_fixups(),
+    traverser = 'jog',
+  },
+  { name = "post-render-typst-fixups",
+    filter = render_typst_fixups(),
+    traverser = 'jog',
+  },
+  { name = "post-render-typst-css-to-props",
+    filter = render_typst_css_property_processing(),
+    traverser = 'jog',
+  },
+  { name = "post-render-typst-brand-yaml",
+    filter = render_typst_brand_yaml(),
+    traverser = 'jog',
+  },
+  { name = "post-render-gfm-fixups",
+    filter = render_gfm_fixups(),
+    traverser = 'jog',
+  },
+  { name = "post-render-hugo-fixups",
+    filter = render_hugo_fixups(),
+    traverser = 'jog',
+  },
+  { name = "post-render-email",
+    filters = render_email(),
+    traverser = 'jog',
+  },
+  { name = "post-render-pptx-fixups",
+    filter = render_pptx_fixups(),
+    traverser = 'jog',
+  },
+  { name = "post-render-revealjs-fixups",
+    filter = render_reveal_fixups(),
+    traverser = 'jog',
+  }
 }
 
 local quarto_finalize_filters = {
   -- quarto-finalize
-  { name = "finalize-combined", filter =
-    combineFilters({
+  { name = "finalize-combined",
+    filter = combineFilters{
       file_metadata(),
       mediabag_filter(),
       inject_vault_content_into_rawlatex(),
-    })},
-  { name = "finalize-bookCleanup", filter = bookCleanup() },
-  { name = "finalize-cites", filter = writeCites() },
-  { name = "finalize-metaCleanup", filter = metaCleanup() },
-  { name = "finalize-dependencies", filter = dependencies() },
-  { name = "finalize-coalesce-raw", filters = coalesce_raw() },
-  { name = "finalize-descaffold", filter = descaffold() },
-  { name = "finalize-wrapped-writer", filter = wrapped_writer() },
-  { name = "finalize-typst-state", filter = setup_typst_state() },
+    },
+    traverser = 'jog',
+  },
+  { name = "finalize-bookCleanup",
+    filter = bookCleanup(),
+    traverser = 'jog',
+  },
+  { name = "finalize-cites",
+    filter = writeCites(),
+    traverser = 'jog',
+  },
+  { name = "finalize-metaCleanup",
+    filter = metaCleanup(),
+    traverser = 'jog',
+  },
+  { name = "finalize-dependencies",
+    filter = dependencies(),
+    traverser = 'jog',
+  },
+  { name = "finalize-combined-1",
+    filter = finalize_combined_1(),
+    traverser = 'jog',
+  },
+  -- { name = "finalize-coalesce-raw",
+  --   filters = coalesce_raw(),
+  --   traverser = 'jog',
+  -- },
+  -- { name = "finalize-descaffold",
+  --   filter = descaffold(),
+  --   traverser = 'jog',
+  -- },
+  { name = "finalize-wrapped-writer",
+    filter = wrapped_writer(),
+    traverser = 'jog',
+  },
+  -- { name = "finalize-typst-state",
+  --   filter = setup_typst_state(),
+  --   traverser = 'jog',
+  -- },
 }
 
 local quarto_layout_filters = {
-  { name = "manuscript filtering", filter = manuscript() },
-  { name = "manuscript filtering", filter = manuscriptUnroll() },
-  { name = "layout-lightbox", filters = lightbox(), flags = { "has_lightbox" }},
-  { name = "layout-columns-preprocess", filter = columns_preprocess() },
-  { name = "layout-columns", filter = columns() },
-  { name = "layout-cites-preprocess", filter = cites_preprocess() },
-  { name = "layout-cites", filter = cites() },
-  { name = "layout-panels", filter = layout_panels() },
-  { name = "post-fold-code-and-lift-codeblocks-from-floats", filter = fold_code_and_lift_codeblocks() },
+  { name = "manuscript filtering",
+    filter = manuscript(),
+    traverser = 'jog',
+  },
+  { name = "manuscript filtering",
+    filter = manuscriptUnroll(),
+    traverser = 'jog',
+  },
+  { name = "layout-lightbox",
+    filters = lightbox(),
+    flags = { "has_lightbox" },
+    traverser = 'jog',
+  },
+  { name = "layout-columns-preprocess",
+    filter = columns_preprocess(),
+    traverser = 'jog',
+  },
+  { name = "layout-columns",
+    filter = columns(),
+    traverser = 'jog',
+  },
+  { name = "layout-cites-preprocess",
+    filter = cites_preprocess(),
+    traverser = 'jog',
+  },
+  { name = "layout-cites",
+    filter = cites(),
+    traverser = 'jog',
+  },
+  { name = "layout-panels",
+    filter = layout_panels(),
+    traverser = 'jog',
+  },
+  { name = "post-fold-code-and-lift-codeblocks-from-floats",
+    filter = fold_code_and_lift_codeblocks(),
+    traverser = 'jog',
+  },
 }
 
 local quarto_crossref_filters = {
 
-  { name = "crossref-preprocess-floats", filter = crossref_mark_subfloats(),
+  { name = "crossref-preprocess-floats",
+    filter = crossref_mark_subfloats(),
+    traverser = 'jog',
   },
-
   { name = "crossref-preprocessTheorems", 
     filter = crossref_preprocess_theorems(),
-    flags = { "has_theorem_refs" } },
-
-  { name = "crossref-combineFilters", filter = combineFilters({
-    file_metadata(),
-    qmd(),
-    sections(),
-    crossref_figures(),
-    equations(),
-    crossref_theorems(),
-    crossref_callouts(),
-  })},
-
-  { name = "crossref-resolveRefs", filter = resolveRefs(),
-    flags = { "has_cites" } },
-    
-  { name = "crossref-crossrefMetaInject", filter = crossrefMetaInject() },
-  { name = "crossref-writeIndex", filter = writeIndex() },
+    flags = { "has_theorem_refs" },
+    traverser = 'jog',
+  },
+  { name = "crossref-combineFilters",
+    filter = combineFilters{
+      file_metadata(),
+      qmd(),
+      sections(),
+      crossref_figures(),
+      equations(),
+      crossref_theorems(),
+      crossref_callouts(),
+    },
+    traverser = 'jog',
+  },
+  { name = "crossref-resolveRefs",
+    filter = resolveRefs(),
+    flags = { "has_cites" },
+    traverser = 'jog',
+  },
+  { name = "crossref-crossrefMetaInject",
+    filter = crossrefMetaInject(),
+    traverser = 'jog',
+  },
+  { name = "crossref-writeIndex",
+    filter = writeIndex(),
+    traverser = 'jog',
+  },
 }
 
 local quarto_filter_list = {}
@@ -471,7 +670,11 @@ tappend(quarto_filter_list, quarto_post_filters)
 table.insert(quarto_filter_list, { name = "post-render", filter = {} }) -- entry point for user filters
 table.insert(quarto_filter_list, { name = "pre-finalize", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_finalize_filters)
-table.insert(quarto_filter_list, { name = "post-finalize", filter = {} }) -- entry point for user filters
+table.insert(quarto_filter_list, { name = "post-finalize", filter = {
+  -- Pandoc = function(doc)
+  --   quarto_prof.stop()
+  -- end
+} }) -- entry point for user filters
 
 -- now inject user-defined filters on appropriate positions
 inject_user_filters_at_entry_points(quarto_filter_list)

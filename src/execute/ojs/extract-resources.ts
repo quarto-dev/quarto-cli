@@ -446,11 +446,17 @@ quarto will only generate javascript files in ${
   }
 
   let fixedSource = jsSource;
-
-  const ast = parseES6(jsSource, {
-    ecmaVersion: "2020",
-    sourceType: "module",
-  });
+  let ast: any = undefined;
+  try {
+    ast = parseES6(jsSource, {
+      ecmaVersion: "latest",
+      sourceType: "module",
+    });
+  } catch (e) {
+    console.error(jsSource);
+    console.error("Error parsing compiled typescript file.");
+    throw e;
+  }
   const recursionList: string[] = [];
   // deno-lint-ignore no-explicit-any
   const patchDeclaration = (node: any) => {

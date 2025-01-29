@@ -34,7 +34,7 @@ import {
 } from "../config/format.ts";
 import { resourcePath } from "../core/resources.ts";
 import { quartoRuntimeDir } from "../core/appdirs.ts";
-import { normalizePath } from "../core/path.ts";
+import { normalizePath, pathWithForwardSlashes } from "../core/path.ts";
 import { isInteractiveSession } from "../core/platform.ts";
 import { runningInCI } from "../core/ci-info.ts";
 import { sleep } from "../core/async.ts";
@@ -251,6 +251,12 @@ function juliaCmd() {
   return Deno.env.get("QUARTO_JULIA") ?? "julia";
 }
 
+function powershell_argument_list_to_string(...args: string[]): string {
+  // formats as '"arg 1" "arg 2" "arg 3"'
+  const inner = args.map((arg) => `"${arg}"`).join(" ");
+  return `'${inner}'`;
+}
+
 async function startOrReuseJuliaServer(
   options: JuliaExecuteOptions,
 ): Promise<{ reused: boolean }> {
@@ -268,6 +274,7 @@ async function startOrReuseJuliaServer(
       await ensureQuartoNotebookRunnerEnvironment(options);
       juliaProject = juliaRuntimeDir();
     } else {
+      juliaProject = pathWithForwardSlashes(juliaProject);
       trace(
         options,
         `Custom julia project set via QUARTO_JULIA_PROJECT="${juliaProject}". Checking if QuartoNotebookRunner can be loaded.`,
@@ -313,17 +320,13 @@ async function startOrReuseJuliaServer(
             "Start-Process",
             juliaCmd(),
             "-ArgumentList",
-            // string array argument list, each element but the last must have a "," element after
-            "--startup-file=no",
-            ",",
-            `--project=${juliaProject}`,
-            ",",
-            resourcePath("julia/quartonotebookrunner.jl"),
-            ",",
-            transportFile,
-            ",",
-            juliaServerLogFile(),
-            // end of string array
+            powershell_argument_list_to_string(
+              "--startup-file=no",
+              `--project=${juliaProject}`,
+              resourcePath("julia/quartonotebookrunner.jl"),
+              transportFile,
+              juliaServerLogFile(),
+            ),
             "-WindowStyle",
             "Hidden",
           ],

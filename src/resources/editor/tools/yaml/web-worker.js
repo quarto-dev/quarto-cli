@@ -21652,7 +21652,7 @@ try {
           "Short/abbreviated form of container-title;",
           "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
           "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
-          "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
+          "Physical (e.g.&nbsp;size) or temporal (e.g.\uFFFD\uFFFDrunning time) dimensions of\nthe item.",
           "Director (e.g.&nbsp;of a film).",
           "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
           "(Container) edition holding the item (e.g.&nbsp;\u201C3\u201D when citing a chapter\nin the third edition of a book).",
@@ -23617,6 +23617,14 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
+          {
+            short: "Include an automatically generated table of contents",
+            long: ""
+          },
+          {
+            short: "Use smart quotes in document output. Defaults to true.",
+            long: ""
+          },
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -24189,12 +24197,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 193535,
+          _internalId: 194269,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 193527,
+              _internalId: 194261,
               type: "enum",
               enum: [
                 "png",
@@ -24210,7 +24218,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 193534,
+              _internalId: 194268,
               type: "anyOf",
               anyOf: [
                 {
@@ -24250,7 +24258,42 @@ try {
             "case-detection": true
           },
           $id: "handlers/mermaid"
-        }
+        },
+        "schema/document-typst.yml": [
+          {
+            name: "page-numbering",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "string",
+                {
+                  enum: [
+                    false
+                  ]
+                }
+              ]
+            },
+            description: {
+              short: "Include an automatically generated table of contents"
+            }
+          },
+          {
+            name: "smart",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: "boolean",
+            description: {
+              short: "Use smart quotes in document output. Defaults to true."
+            }
+          }
+        ]
       };
     }
   });
@@ -24788,8 +24831,8 @@ ${heading}`;
     };
   }
   function mappedLines(str2, keepNewLines = false) {
-    const lines2 = rangedLines(str2.value, keepNewLines);
-    return lines2.map((v) => mappedString(str2, [v.range]));
+    const lines3 = rangedLines(str2.value, keepNewLines);
+    return lines3.map((v) => mappedString(str2, [v.range]));
   }
 
   // parsing.ts
@@ -33589,9 +33632,7 @@ ${tidyverseInfo(
         } else if (cell_type === "directive") {
           cell.source = mappedString(src, mappedChunks.slice(1, -1), fileName);
         }
-        if (mdTrimEmptyLines(lines(cell.sourceVerbatim.value)).length > 0 || cell.options !== void 0) {
-          nb.cells.push(cell);
-        }
+        nb.cells.push(cell);
         lineBuffer.splice(0, lineBuffer.length);
       }
     };
@@ -33652,24 +33693,6 @@ ${tidyverseInfo(
     }
     await flushLineBuffer("markdown", srcLines.length);
     return nb;
-  }
-  function mdTrimEmptyLines(lines2) {
-    const firstNonEmpty = lines2.findIndex((line) => line.trim().length > 0);
-    if (firstNonEmpty === -1) {
-      return [];
-    }
-    lines2 = lines2.slice(firstNonEmpty);
-    let lastNonEmpty = -1;
-    for (let i = lines2.length - 1; i >= 0; i--) {
-      if (lines2[i].trim().length > 0) {
-        lastNonEmpty = i;
-        break;
-      }
-    }
-    if (lastNonEmpty > -1) {
-      lines2 = lines2.slice(0, lastNonEmpty + 1);
-    }
-    return lines2;
   }
 
   // ../yaml-schema/format-aliases.ts

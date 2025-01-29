@@ -48,6 +48,7 @@ import { typstBinaryPath } from "../../core/typst.ts";
 import { quartoCacheDir } from "../../core/appdirs.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { makeStringEnumTypeEnforcer } from "../../typing/dynamic.ts";
+import { findChrome } from "../../core/puppeteer.ts";
 
 export const kTargets = [
   "install",
@@ -212,11 +213,12 @@ async function checkInstall(services: RenderServices) {
   info("");
   const toolsMessage = "Checking tools....................";
   const toolsOutput: string[] = [];
+  let tools: Awaited<ReturnType<typeof allTools>>;
   await withSpinner({
     message: toolsMessage,
     doneMessage: toolsMessage + "OK",
   }, async () => {
-    const tools = await allTools();
+    tools = await allTools();
 
     for (const tool of tools.installed) {
       const version = await tool.installedVersion() || "(external install)";
@@ -258,6 +260,43 @@ async function checkInstall(services: RenderServices) {
     }
   });
   latexOutput.forEach((out) => info(out));
+  info("");
+
+  const chromeHeadlessMessage = "Checking Chrome Headless....................";
+  const chromeHeadlessOutput: string[] = [];
+  await withSpinner({
+    message: chromeHeadlessMessage,
+    doneMessage: chromeHeadlessMessage + "OK",
+  }, async () => {
+    const chromeDetected = await findChrome();
+    const chromiumQuarto = tools.installed.find((tool) =>
+      tool.name === "chromium"
+    );
+    if (chromeDetected.path !== undefined) {
+      chromeHeadlessOutput.push(`${kIndent}Using: Chrome found on system`);
+      chromeHeadlessOutput.push(
+        `${kIndent}Path: ${chromeDetected.path}`,
+      );
+      if (chromeDetected.source) {
+        chromeHeadlessOutput.push(`${kIndent}Source: ${chromeDetected.source}`);
+      }
+    } else if (chromiumQuarto !== undefined) {
+      chromeHeadlessOutput.push(
+        `${kIndent}Using: Chromium installed by Quarto`,
+      );
+      if (chromiumQuarto?.binDir) {
+        chromeHeadlessOutput.push(
+          `${kIndent}Path: ${chromiumQuarto?.binDir}`,
+        );
+      }
+      chromeHeadlessOutput.push(
+        `${kIndent}Version: ${chromiumQuarto.installedVersion}`,
+      );
+    } else {
+      chromeHeadlessOutput.push(`${kIndent}Chrome:  (not detected)`);
+    }
+  });
+  chromeHeadlessOutput.forEach((out) => info(out));
   info("");
 
   const kMessage = "Checking basic markdown render....";
