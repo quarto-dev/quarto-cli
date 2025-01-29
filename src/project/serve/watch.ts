@@ -10,7 +10,7 @@ import { existsSync } from "../../deno_ral/fs.ts";
 import * as ld from "../../core/lodash.ts";
 
 import { normalizePath, pathWithForwardSlashes } from "../../core/path.ts";
-import { md5Hash } from "../../core/hash.ts";
+import { md5HashAsync, md5HashSync } from "../../core/hash.ts";
 
 import { logError } from "../../core/log.ts";
 import { isRevealjsOutput } from "../../config/format.ts";
@@ -64,6 +64,7 @@ export function watchProject(
   const flags = renderOptions.flags;
   // helper to refresh project config
   const refreshProjectConfig = async () => {
+    project.cleanup();
     project =
       (await projectContext(project.dir, nbContext, renderOptions, false))!;
   };
@@ -147,7 +148,8 @@ export function watchProject(
           const inputs = paths.filter(isInputFile).filter(existsSync1).filter(
             (input: string) => {
               return !rendered.has(input) ||
-                rendered.get(input) !== md5Hash(Deno.readTextFileSync(input));
+                rendered.get(input) !==
+                  md5HashSync(Deno.readTextFileSync(input));
             },
           );
           if (inputs.length) {
@@ -182,10 +184,12 @@ export function watchProject(
                 renderManager.onRenderError(result.error);
                 return undefined;
               }
-
               // record rendered hash
               for (const input of inputs.filter(existsSync1)) {
-                rendered.set(input, md5Hash(Deno.readTextFileSync(input)));
+                rendered.set(
+                  input,
+                  await md5HashAsync(Deno.readTextFileSync(input)),
+                );
               }
               renderManager.onRenderResult(
                 result,

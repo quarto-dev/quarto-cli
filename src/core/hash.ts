@@ -7,8 +7,13 @@
 import { crypto } from "crypto/crypto";
 import blueimpMd5 from "blueimpMd5";
 
-export function md5Hash(content: string) {
+export function md5HashSync(content: string) {
   return blueimpMd5(content);
+}
+
+export async function md5HashAsync(content: string) {
+  const buffer = new TextEncoder().encode(content);
+  return md5HashBytes(buffer);
 }
 
 export async function md5HashBytes(content: Uint8Array) {
