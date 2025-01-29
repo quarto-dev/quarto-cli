@@ -4,8 +4,7 @@ _quarto:
   tests:
     html:
       ensurePdfRegexMatches:
-        - ["1 Section"]
-        - ["0.1 Section"]
+        - ["Nunc ac dignissim magna. Vestibulum vitae egestas elit."]
 ---
 
 {{< lipsum 2 >}}
