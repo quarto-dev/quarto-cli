@@ -99,8 +99,8 @@ import { computeProjectEnvironment } from "./project-environment.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import { MappedString } from "../core/mapped-text.ts";
-import { timeCall } from "../core/performance/function-times.ts";
-import { assertEquals } from "testing/asserts";
+import { createProjectCache } from "../core/cache/cache.ts";
+import { createTempContext, globalTempContext } from "../core/temp.ts";
 
 export async function projectContext(
   path: string,
@@ -263,6 +263,9 @@ export async function projectContext(
           );
         }
 
+        const temp = createTempContext({
+          dir: join(dir, ".quarto", "temp"),
+        });
         const result: ProjectContext = {
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
@@ -305,6 +308,11 @@ export async function projectContext(
             return projectFileMetadata(result, file, force);
           },
           isSingleFile: false,
+          diskCache: await createProjectCache(join(dir, ".quarto")),
+          temp,
+          cleanup: () => {
+            result.diskCache.close();
+          },
         };
 
         // see if the project [kProjectType] wants to filter the project config
@@ -347,6 +355,9 @@ export async function projectContext(
         return result;
       } else {
         debug(`projectContext: Found Quarto project in ${dir}`);
+        const temp = createTempContext({
+          dir: join(dir, ".quarto", "temp"),
+        });
         const result: ProjectContext = {
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
@@ -387,6 +398,11 @@ export async function projectContext(
           },
           notebookContext,
           isSingleFile: false,
+          diskCache: await createProjectCache(join(dir, ".quarto")),
+          temp,
+          cleanup: () => {
+            result.diskCache.close();
+          },
         };
         const { files, engines } = await projectInputFiles(
           result,
@@ -409,6 +425,7 @@ export async function projectContext(
           dir = originalDir;
           configResolvers.shift();
         } else if (force) {
+          const temp = globalTempContext();
           const context: ProjectContext = {
             resolveBrand: async (fileName?: string) =>
               projectResolveBrand(context, fileName),
@@ -453,6 +470,11 @@ export async function projectContext(
               return projectFileMetadata(context, file, force);
             },
             isSingleFile: false,
+            diskCache: await createProjectCache(join(temp.baseDir, ".quarto")),
+            temp,
+            cleanup: () => {
+              context.diskCache.close();
+            },
           };
           if (Deno.statSync(path).isDirectory) {
             const { files, engines } = await projectInputFiles(context);
@@ -640,11 +662,18 @@ async function resolveProjectExtension(
   return projectConfig;
 }
 
+// migrate 'site' to 'website'
+// TODO make this a deprecation warning
 function migrateProjectConfig(projectConfig: ProjectConfig) {
-  projectConfig = ld.cloneDeep(projectConfig);
-
-  // migrate 'site' to 'website'
   const kSite = "site";
+  if (
+    projectConfig.project[kProjectType] !== kSite &&
+    projectConfig[kSite] === undefined
+  ) {
+    return projectConfig;
+  }
+
+  projectConfig = ld.cloneDeep(projectConfig);
   if (projectConfig.project[kProjectType] === kSite) {
     projectConfig.project[kProjectType] = kWebsite;
   }

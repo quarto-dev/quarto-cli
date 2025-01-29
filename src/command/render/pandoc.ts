@@ -536,7 +536,6 @@ export async function runPandoc(
       options.format,
       cwd,
       options.libDir,
-      options.services.temp,
       dependenciesFile,
       options.project,
     );
@@ -962,9 +961,6 @@ export async function runPandoc(
 
   // filter results json file
   const filterResultsFile = options.services.temp.createFile();
-
-  // timing results json file
-  const timingResultsFile = options.services.temp.createFile();
 
   const writerKeys: ("to" | "writer")[] = ["to", "writer"];
   for (const key of writerKeys) {
@@ -1397,7 +1393,6 @@ async function resolveExtras(
   format: Format,
   inputDir: string,
   libDir: string,
-  temp: TempContext,
   dependenciesFile: string,
   project: ProjectContext,
 ) {
@@ -1415,7 +1410,6 @@ async function resolveExtras(
       inputDir,
       extras,
       format,
-      temp,
       project,
     );
 

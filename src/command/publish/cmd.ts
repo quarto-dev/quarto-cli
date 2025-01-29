@@ -339,7 +339,7 @@ async function createPublishOptions(
 
   // check for directory (either website or single-file project)
   const project = (await projectContext(path, nbContext)) ||
-    singleFileProjectContext(path, nbContext);
+    (await singleFileProjectContext(path, nbContext));
   if (Deno.statSync(path).isDirectory) {
     if (projectIsWebsite(project)) {
       input = project;

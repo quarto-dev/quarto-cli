@@ -824,6 +824,7 @@ function previewControlChannelRequestHandler(
             })
           ).then((result) => {
             if (result.error) {
+              result.context.cleanup();
               renderManager.onRenderError(result.error);
             } else {
               // print output created
@@ -844,6 +845,7 @@ function previewControlChannelRequestHandler(
                 resourceFiles,
                 watcher.project(),
               );
+              result.context.cleanup();
 
               info("Output created: " + finalOutput + "\n");
 

@@ -178,40 +178,42 @@ export function watchProject(
               });
 
               if (result.error) {
+                result.context.cleanup();
                 renderManager.onRenderError(result.error);
                 return undefined;
-              } else {
-                // record rendered hash
-                for (const input of inputs.filter(existsSync1)) {
-                  rendered.set(input, md5Hash(Deno.readTextFileSync(input)));
-                }
-                renderManager.onRenderResult(
-                  result,
-                  extensionDirs,
-                  resourceFiles,
-                  project!,
-                );
-
-                // Filter out supplmental files (e.g. files that were injected as supplements)
-                // to the render. Instead, we should return the first non-supplemental file.
-                // Example of supplemental file is a user rendering a post that appears in a listing
-                // - the listing will be added as a supplement since changes in the post may change the
-                // listing itself
-                const nonSupplementalFiles = result.files.filter(
-                  (renderResultFile) => {
-                    return !renderResultFile.supplemental;
-                  },
-                );
-
-                return {
-                  config: false,
-                  output: true,
-                  reloadTarget: (nonSupplementalFiles.length &&
-                      !isPdfContent(nonSupplementalFiles[0].file))
-                    ? join(outputDir, nonSupplementalFiles[0].file)
-                    : undefined,
-                };
               }
+
+              // record rendered hash
+              for (const input of inputs.filter(existsSync1)) {
+                rendered.set(input, md5Hash(Deno.readTextFileSync(input)));
+              }
+              renderManager.onRenderResult(
+                result,
+                extensionDirs,
+                resourceFiles,
+                project!,
+              );
+
+              // Filter out supplmental files (e.g. files that were injected as supplements)
+              // to the render. Instead, we should return the first non-supplemental file.
+              // Example of supplemental file is a user rendering a post that appears in a listing
+              // - the listing will be added as a supplement since changes in the post may change the
+              // listing itself
+              const nonSupplementalFiles = result.files.filter(
+                (renderResultFile) => {
+                  return !renderResultFile.supplemental;
+                },
+              );
+              result.context.cleanup();
+
+              return {
+                config: false,
+                output: true,
+                reloadTarget: (nonSupplementalFiles.length &&
+                    !isPdfContent(nonSupplementalFiles[0].file))
+                  ? join(outputDir, nonSupplementalFiles[0].file)
+                  : undefined,
+              };
             } finally {
               services.cleanup();
             }
