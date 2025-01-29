@@ -3,7 +3,7 @@ format: html
 _quarto:
   tests:
     html:
-      ensurePdfRegexMatches:
+      ensureFileRegexMatches:
         - ["Nunc ac dignissim magna. Vestibulum vitae egestas elit."]
 ---
 
