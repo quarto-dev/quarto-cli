@@ -212,7 +212,6 @@ export function revealjsFormat() {
           format,
           input,
           libDir,
-          services.temp,
           project,
         );
 
