@@ -1,0 +1,11 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensurePdfRegexMatches:
+        - ["1 Section"]
+        - ["0.1 Section"]
+---
+
+{{< lipsum 2 >}}
