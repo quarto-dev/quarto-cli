@@ -471,7 +471,12 @@ export function removePandocToArg(args: string[]) {
 }
 
 export function removePandocTo(renderOptions: RenderOptions) {
-  renderOptions = ld.cloneDeep(renderOptions);
+  renderOptions = {
+    ...renderOptions,
+    flags: {
+      ...(renderOptions.flags || {}),
+    },
+  } as RenderOptions;
   delete renderOptions.flags?.to;
   if (renderOptions.pandocArgs) {
     renderOptions.pandocArgs = removePandocToArg(renderOptions.pandocArgs);
