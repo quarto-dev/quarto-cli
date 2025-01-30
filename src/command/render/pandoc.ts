@@ -1687,7 +1687,10 @@ function resolveTextHighlightStyle(
   extras: FormatExtras,
   pandoc: FormatPandoc,
 ): FormatExtras {
-  extras = ld.cloneDeep(extras);
+  extras = {
+    ...extras,
+    pandoc: extras.pandoc ? { ...extras.pandoc } : {},
+  } as FormatExtras;
 
   // Get the user selected theme or choose a default
   const highlightTheme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
