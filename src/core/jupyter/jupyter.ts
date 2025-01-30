@@ -963,7 +963,9 @@ export function mdFromContentCell(
   const contentCellEnvelope = createCellEnvelope(["cell", "markdown"], options);
 
   // clone source for manipulation
-  const source = ld.cloneDeep(cell.source) as string[];
+  const source = typeof cell.source === "string"
+    ? [cell.source]
+    : [...cell.source];
 
   // handle user expressions (if any)
   if (options && source) {
@@ -1461,7 +1463,9 @@ async function mdFromCodeCell(
       }
     }
     md.push("}\n");
-    let source = ld.cloneDeep(cell.source);
+    let source = typeof cell.source === "string"
+      ? [cell.source]
+      : [...cell.source];
     if (fenced) {
       const optionsSource = cell.optionsSource.filter((line) =>
         line.search(/\|\s+echo:\s+fenced\s*$/) === -1
