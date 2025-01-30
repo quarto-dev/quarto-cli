@@ -243,7 +243,15 @@ export const jupyterEngine: ExecutionEngine = {
       isServerShinyPython(format, kJupyterEngine) &&
       format.render[kKeepHidden] !== true
     ) {
-      format = ld.cloneDeep(format);
+      format = {
+        ...format,
+        render: {
+          ...format.render,
+        },
+        metadata: {
+          ...format.metadata,
+        },
+      };
       format.render[kKeepHidden] = true;
       format.metadata[kRemoveHidden] = "all";
     }

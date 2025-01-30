@@ -20,8 +20,6 @@ import {
   LF,
 } from "../../deno_ral/fs.ts";
 
-import { cloneDeep } from "../../core/lodash.ts";
-
 import { inputFilesDir } from "../../core/render.ts";
 import { TempContext } from "../../core/temp.ts";
 import { md5HashSync } from "../../core/hash.ts";
@@ -55,13 +53,15 @@ export function freezeExecuteResult(
   result: ExecuteResult,
 ) {
   // resolve includes within executeResult
-  result = cloneDeep(result) as ExecuteResult;
+  const innerResult = {
+    ...result,
+  } as ExecuteResult;
   const resolveIncludes = (
     name: "include-in-header" | "include-before-body" | "include-after-body",
   ) => {
-    if (result.includes) {
-      if (result.includes[name]) {
-        result.includes[name] = result.includes[name]!.map((file) =>
+    if (innerResult.includes) {
+      if (innerResult.includes[name]) {
+        innerResult.includes[name] = innerResult.includes[name]!.map((file) =>
           // Storing file content using LF line ending
           format(Deno.readTextFileSync(file), LF)
         );
@@ -73,7 +73,7 @@ export function freezeExecuteResult(
   resolveIncludes(kIncludeAfterBody);
 
   // make the supporting dirs relative to the input file dir
-  result.supporting = result.supporting.map((file) => {
+  innerResult.supporting = innerResult.supporting.map((file) => {
     if (isAbsolute(file)) {
       return relative(normalizePath(dirname(input)), file);
     } else {
@@ -88,7 +88,7 @@ export function freezeExecuteResult(
   const freezeJsonFile = freezeResultFile(input, output, true);
   Deno.writeTextFileSync(
     freezeJsonFile,
-    JSON.stringify({ hash, result }, undefined, 2),
+    JSON.stringify({ hash, result: innerResult }, undefined, 2),
   );
 
   // return the file

@@ -39,9 +39,12 @@ export async function generateDefaults(
   let allDefaults: FormatPandoc | undefined;
 
   if (options.format.pandoc) {
-    allDefaults = (options.format.pandoc
-      ? ld.cloneDeep(options.format.pandoc)
-      : {}) as FormatPandoc;
+    allDefaults = {
+      ...(options.format.pandoc || {}),
+      variables: {
+        ...(options.format.pandoc?.variables || {}),
+      },
+    } as FormatPandoc;
 
     // resolve filters
     const resolvedFilters = await resolveFilters(

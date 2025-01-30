@@ -391,9 +391,12 @@ export async function runPandoc(
   // save args and metadata so we can print them (we may subsequently edit them)
   const printArgs = [...args];
   let printMetadata = {
-    ...ld.cloneDeep(options.format.metadata),
+    ...options.format.metadata,
+    crossref: {
+      ...(options.format.metadata.crossref || {}),
+    },
     ...options.flags?.metadata,
-  };
+  } as Metadata;
 
   // remove some metadata that are used as parameters to our lua filters
   const cleanMetadataForPrinting = (metadata: Metadata) => {
@@ -691,7 +694,7 @@ export async function runPandoc(
         ),
         ...extras.metadataOverride || {},
       };
-      printMetadata = mergeConfigs(extras.metadata, printMetadata);
+      printMetadata = mergeConfigs(extras.metadata || {}, printMetadata);
       cleanMetadataForPrinting(printMetadata);
     }
 
@@ -820,7 +823,9 @@ export async function runPandoc(
     }
 
     // more cleanup
-    options.format.metadata = cleanupPandocMetadata(options.format.metadata);
+    options.format.metadata = cleanupPandocMetadata({
+      ...options.format.metadata,
+    });
     printMetadata = cleanupPandocMetadata(printMetadata);
 
     if (extras[kIncludeInHeader]) {
@@ -1370,13 +1375,12 @@ export async function runPandoc(
   }
 }
 
+// this mutates metadata[kClassOption]
 function cleanupPandocMetadata(metadata: Metadata) {
-  const cleaned = ld.cloneDeep(metadata);
-
   // pdf classoption can end up with duplicaed options
-  const classoption = cleaned[kClassOption];
+  const classoption = metadata[kClassOption];
   if (Array.isArray(classoption)) {
-    cleaned[kClassOption] = ld.uniqBy(
+    metadata[kClassOption] = ld.uniqBy(
       classoption.reverse(),
       (option: string) => {
         return option.replace(/=.+$/, "");
@@ -1384,7 +1388,7 @@ function cleanupPandocMetadata(metadata: Metadata) {
     ).reverse();
   }
 
-  return cleaned;
+  return metadata;
 }
 
 async function resolveExtras(
@@ -1687,7 +1691,10 @@ function resolveTextHighlightStyle(
   extras: FormatExtras,
   pandoc: FormatPandoc,
 ): FormatExtras {
-  extras = ld.cloneDeep(extras);
+  extras = {
+    ...extras,
+    pandoc: extras.pandoc ? { ...extras.pandoc } : {},
+  } as FormatExtras;
 
   // Get the user selected theme or choose a default
   const highlightTheme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
