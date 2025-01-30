@@ -20,8 +20,6 @@ import {
   LF,
 } from "../../deno_ral/fs.ts";
 
-import { cloneDeep } from "../../core/lodash.ts";
-
 import { inputFilesDir } from "../../core/render.ts";
 import { TempContext } from "../../core/temp.ts";
 import { md5HashSync } from "../../core/hash.ts";
