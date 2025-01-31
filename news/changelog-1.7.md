@@ -17,6 +17,7 @@ All changes included in 1.7:
 ## Website projects
 
 - ([#11701](https://github.com/quarto-dev/quarto-cli/issues/11701)): Wrap HTML emitted by EJS templates in `{=html}` blocks to avoid memory blowup issues with Pandoc's parser.
+- ([#10501](https://github.com/quarto-dev/quarto-cli/issues/10501)): add possible option to `repo-actions` option.
 
 ## Blog projects
 
