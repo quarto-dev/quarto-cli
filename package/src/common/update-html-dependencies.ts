@@ -1123,7 +1123,9 @@ async function updateGithubSourceCodeDependency(
     await unzip(zipFile, working);
 
     await onDownload(working, version);
-    if (patches) await applyGitPatches(patches);
+    if (patches) {
+      await applyGitPatches(patches);
+    }
   } else {
     throw new Error(`${versionEnvVar} is not defined`);
   }

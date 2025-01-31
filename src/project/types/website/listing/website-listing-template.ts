@@ -318,7 +318,9 @@ export function reshapeListing(
   listing: Listing,
   format: Format,
 ): ReshapedListing {
-  const reshaped = cloneDeep(listing) as Listing;
+  const reshaped = {
+    ...listing,
+  } as Listing;
 
   // Add template utilities
   const utilities = {} as Record<string, unknown>;

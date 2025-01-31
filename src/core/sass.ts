@@ -21,6 +21,8 @@ import { md5HashBytes } from "./hash.ts";
 import { kSourceMappingRegexes } from "../config/constants.ts";
 import { quartoConfig } from "../core/quarto.ts";
 import { safeModeFromFile } from "../deno_ral/fs.ts";
+import { ProjectContext } from "../project/types.ts";
+import { memoizeStringFunction } from "./cache/cache.ts";
 
 export interface SassVariable {
   name: string;
@@ -49,7 +51,7 @@ export function outputVariable(
 let counter: number = 1;
 export async function compileSass(
   bundles: SassBundleLayers[],
-  temp: TempContext,
+  project: ProjectContext,
   minified = true,
 ) {
   // Gather the inputs for the framework
@@ -159,7 +161,7 @@ export async function compileSass(
   const result = await compileWithCache(
     scssInput,
     loadPaths,
-    temp,
+    project,
     {
       compressed: minified,
       cacheIdentifier: await md5HashBytes(new TextEncoder().encode(scssInput)),
@@ -355,24 +357,32 @@ type CompileWithCacheOptions = {
   addVarsBlock?: boolean;
 };
 
+const memoizedGetVarsBlock = memoizeStringFunction([
+  "core",
+  "sass",
+  "cssVarsBlock",
+], (input: string) => Promise.resolve(cssVarsBlock(input)));
+
 export async function compileWithCache(
   input: string,
   loadPaths: string[],
-  temp: TempContext,
+  project: ProjectContext,
   options?: CompileWithCacheOptions,
 ) {
+  const { temp } = project;
   const {
     compressed,
     cacheIdentifier,
     addVarsBlock,
   } = options || {};
 
-  const handleVarsBlock = (input: string) => {
+  const handleVarsBlock = async (input: string) => {
     if (!addVarsBlock) {
       return input;
     }
     try {
-      input += "\n" + cssVarsBlock(input);
+      const result = await memoizedGetVarsBlock(project, input);
+      return input + "\n" + result;
     } catch (e) {
       console.warn("Error adding css vars block", e);
       console.warn(
@@ -402,12 +412,12 @@ export async function compileWithCache(
       input,
       cacheIdentifier,
       async (outputFilePath: string) => {
-        input = handleVarsBlock(input);
+        input = await handleVarsBlock(input);
         await dartCompile(input, outputFilePath, temp, loadPaths, compressed);
       },
     );
   } else {
-    input = handleVarsBlock(input);
+    input = await handleVarsBlock(input);
     const outputFilePath = temp.createFile({ suffix: ".css" });
     // Skip the cache and just compile
     await dartCompile(

@@ -4,7 +4,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { md5Hash } from "../../../../core/hash.ts";
+import { md5HashAsync } from "../../../../core/hash.ts";
 import { projectScratchPath } from "../../../../project/project-scratch.ts";
 
 import { info, warning } from "../../../../deno_ral/log.ts";
@@ -36,11 +36,11 @@ export const safeFileWriter = (projectDir: string, prompt = true) => {
       info(`[✓] ${projRelativePath}`);
     };
 
-    const hash = md5Hash(contents);
+    const hash = await md5HashAsync(contents);
     if (existsSync(absPath)) {
       const lastHash = fileIndex[projRelativePath];
       const currentContents = Deno.readTextFileSync(absPath);
-      const currentHash = md5Hash(currentContents);
+      const currentHash = await md5HashAsync(currentContents);
 
       let writeFile = true;
       if (!lastHash || lastHash !== currentHash) {

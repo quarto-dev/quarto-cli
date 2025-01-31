@@ -278,7 +278,7 @@ export const previewCommand = new Command()
       // get project and preview format
       const nbContext = notebookContext();
       const project = (await projectContext(dirname(file), nbContext)) ||
-        singleFileProjectContext(file, nbContext);
+        (await singleFileProjectContext(file, nbContext));
       const formats = await (async () => {
         const services = renderServices(nbContext);
         try {

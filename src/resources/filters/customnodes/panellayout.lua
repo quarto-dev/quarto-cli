@@ -76,7 +76,7 @@ _quarto.ast.add_handler({
         tbl.attributes = as_plain_table(tbl.attr.attributes)
         tbl.attr = nil
       end
-      tbl.preamble = pandoc.Div(tbl.preamble)
+      tbl.preamble = not _quarto.utils.is_empty_node(tbl.preamble) and pandoc.Div(tbl.preamble) or nil
     end
     -- compute vertical alignment and remove attribute
     if tbl.attributes == nil then

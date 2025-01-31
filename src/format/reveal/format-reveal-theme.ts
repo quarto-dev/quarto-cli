@@ -68,7 +68,6 @@ export async function revealTheme(
   format: Format,
   input: string,
   libDir: string,
-  temp: TempContext,
   project: ProjectContext,
 ) {
   // metadata override to return
@@ -196,7 +195,7 @@ export async function revealTheme(
   };
 
   // compile sass
-  const css = await compileSass([bundleLayers], temp);
+  const css = await compileSass([bundleLayers], project);
   // Remove sourcemap information
   cleanSourceMappingUrl(css);
   // convert from string to bytes
