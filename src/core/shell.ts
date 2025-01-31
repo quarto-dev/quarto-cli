@@ -7,6 +7,7 @@
 import { which } from "./path.ts";
 import { requireQuoting, safeWindowsExec } from "./windows.ts";
 import { execProcess } from "./process.ts";
+import { isWindows, os as platformOs } from "../deno_ral/platform.ts";
 
 export async function openUrl(url: string) {
   const shellOpen: Record<string, string> = {
@@ -23,12 +24,12 @@ export async function openUrl(url: string) {
     // case "freebsd":
   };
 
-  const cmd = shellOpen[Deno.build.os] || "xdg-open";
+  const cmd = shellOpen[platformOs] || "xdg-open";
 
   // Because URLs may contain characters like '&' that need to be escaped
   // on Windoww, we need to check whether the url is one of those
   // and use our special windows indirection in that case
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     const safeArgs = requireQuoting([url]);
     if (safeArgs.status) {
       await safeWindowsExec(

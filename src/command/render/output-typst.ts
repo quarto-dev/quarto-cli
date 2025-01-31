@@ -5,7 +5,7 @@
  */
 
 import { dirname, join, normalize, relative } from "../../deno_ral/path.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 
 import {
   kFontPaths,
@@ -65,8 +65,7 @@ export function typstPdfOutputRecipe(
     const pdfOutput = join(inputDir, inputStem + ".pdf");
     const typstOptions: TypstCompileOptions = {
       quiet: options.flags?.quiet,
-      // use recipe that may have been modified, not format which has not
-      fontPaths: asArray(recipe.format.metadata?.[kFontPaths]) as string[],
+      fontPaths: asArray(format.metadata?.[kFontPaths]) as string[],
     };
     if (project?.dir) {
       typstOptions.rootDir = project.dir;
@@ -82,14 +81,14 @@ export function typstPdfOutputRecipe(
 
     // keep typ if requested
     if (!format.render[kKeepTyp]) {
-      Deno.removeSync(input);
+      safeRemoveSync(input);
     }
 
     // copy (or write for stdout) compiled pdf to final output location
     if (finalOutput) {
       if (finalOutput === kStdOut) {
         writeFileToStdout(pdfOutput);
-        Deno.removeSync(pdfOutput);
+        safeRemoveSync(pdfOutput);
       } else {
         const outputPdf = expandPath(finalOutput);
 

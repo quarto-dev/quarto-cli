@@ -1,0 +1,15 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["38ea19c4-c121-43c3-9f6c-632e938d9332"]
+        - []
+---
+
+::: {.content-visible when-format="html" when-format="pdf"}
+
+38ea19c4-c121-43c3-9f6c-632e938d9332
+
+:::

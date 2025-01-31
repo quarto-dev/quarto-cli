@@ -4,7 +4,6 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { existsSync } from "fs/mod.ts";
 import { basename, join } from "../../../src/deno_ral/path.ts";
 
 import { outputForInput } from "../../utils.ts";
@@ -17,7 +16,7 @@ import {
 } from "../../verify.ts";
 import { safeRemoveSync } from "../../../src/core/path.ts";
 import { safeExistsSync } from "../../../src/core/path.ts";
-import { assert } from "../../../src/vendor/deno.land/std@0.217.0/assert/assert.ts";
+import { assert } from "testing/asserts";
 
 export function testSimpleIsolatedRender(
   file: string,

@@ -14,7 +14,7 @@ import {
   TestDescriptor,
   Verify,
 } from "../../test.ts";
-import { assert, fail } from "testing/asserts.ts";
+import { assert, fail } from "testing/asserts";
 import { quarto } from "../../../src/quarto.ts";
 
 const syntaxQmd = crossref("syntax.qmd", "html");

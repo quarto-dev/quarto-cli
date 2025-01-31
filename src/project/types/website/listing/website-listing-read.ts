@@ -15,7 +15,7 @@ import {
   relative,
 } from "../../../../deno_ral/path.ts";
 import { cloneDeep, orderBy, uniq } from "../../../../core/lodash.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../../deno_ral/fs.ts";
 
 import { Format, Metadata } from "../../../../config/types.ts";
 import {
@@ -108,7 +108,7 @@ import {
   projectOutputDir,
 } from "../../../project-shared.ts";
 import { mergeConfigs } from "../../../../core/config.ts";
-import { globToRegExp } from "path/glob_to_regexp.ts";
+import { globToRegExp } from "../../../../deno_ral/path.ts";
 import { cslNames } from "../../../../core/csl.ts";
 import { isHttpUrl } from "../../../../core/url.ts";
 import { InternalError } from "../../../../core/lib/error.ts";

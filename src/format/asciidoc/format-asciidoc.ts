@@ -32,7 +32,7 @@ import {
   kSectionTitleReferences,
   kShiftHeadingLevelBy,
 } from "../../config/constants.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 import { ProjectOutputFile } from "../../project/types/types.ts";
 import { lines } from "../../core/text.ts";
 import {
@@ -328,7 +328,7 @@ function partsAndChapters(
   include: (path: string) => string,
 ) {
   return entries.map((entry) => {
-    if (typeof (entry) === "string") {
+    if (typeof entry === "string") {
       return include(entry);
     } else {
       const partOutput: string[] = [];
@@ -419,7 +419,7 @@ async function resolveBookInputs(
 
   const outputs: AsciiDocBookPart[] = [];
   for (const input of inputs) {
-    if (typeof (input) === "string") {
+    if (typeof input === "string") {
       const chapterOutput = await resolveChapter(input);
       if (chapterOutput) {
         outputs.push(chapterOutput);

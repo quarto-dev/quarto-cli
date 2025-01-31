@@ -1,0 +1,18 @@
+---
+title: Multi word fig title should be one line
+format: latex
+crossref: 
+  fig-title: 'Supplementary Figure'
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - ['\\figurename\{Supplementary Figure\}']
+        - []
+---
+
+## Unresolved Crossref Figure
+
+![Elephant](img/surus.jpg){#fig-elephant}
+
+See @fig-elephant for examples. 

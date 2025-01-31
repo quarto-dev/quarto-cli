@@ -7,7 +7,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { lineOffsets, lines } from "./text.ts";
+import { lineOffsets } from "./text.ts";
 import { Range, rangedLines, RangedSubstring } from "./ranged-text.ts";
 import {
   asMappedString,
@@ -76,7 +76,6 @@ export async function breakQuartoMd(
         mappedChunks,
         fileName,
       );
-
       const makeCellType = () => {
         if (cell_type === "code") {
           return { language };
@@ -148,13 +147,7 @@ export async function breakQuartoMd(
         // directives only carry tag source in sourceVerbatim, analogously to code
         cell.source = mappedString(src, mappedChunks.slice(1, -1), fileName);
       }
-      // if the source is empty then don't add it
-      if (
-        mdTrimEmptyLines(lines(cell.sourceVerbatim.value)).length > 0 ||
-        cell.options !== undefined
-      ) {
-        nb.cells.push(cell);
-      }
+      nb.cells.push(cell);
 
       lineBuffer.splice(0, lineBuffer.length);
     }
@@ -253,28 +246,4 @@ export async function breakQuartoMd(
   await flushLineBuffer("markdown", srcLines.length);
 
   return nb;
-}
-
-function mdTrimEmptyLines(lines: string[]) {
-  // trim leading lines
-  const firstNonEmpty = lines.findIndex((line) => line.trim().length > 0);
-  if (firstNonEmpty === -1) {
-    return [];
-  }
-  lines = lines.slice(firstNonEmpty);
-
-  // trim trailing lines
-  let lastNonEmpty = -1;
-  for (let i = lines.length - 1; i >= 0; i--) {
-    if (lines[i].trim().length > 0) {
-      lastNonEmpty = i;
-      break;
-    }
-  }
-
-  if (lastNonEmpty > -1) {
-    lines = lines.slice(0, lastNonEmpty + 1);
-  }
-
-  return lines;
 }

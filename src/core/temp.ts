@@ -6,9 +6,10 @@
 
 import { debug, info } from "../deno_ral/log.ts";
 import { join } from "../deno_ral/path.ts";
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "../deno_ral/fs.ts";
 import { normalizePath, removeIfExists, safeRemoveIfExists } from "./path.ts";
 import { TempContext } from "./temp-types.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export type { TempContext } from "./temp-types.ts";
 
@@ -97,7 +98,7 @@ export function systemTempDir(name: string) {
 }
 
 function rootTempDir() {
-  const tempDir = Deno.build.os === "windows"
+  const tempDir = isWindows
     ? Deno.env.get("TMP") || Deno.env.get("TEMP") ||
       Deno.env.get("USERPROFILE") || ""
     : Deno.env.get("TMPDIR") || "/tmp";

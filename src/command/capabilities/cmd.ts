@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { writeAllSync } from "io/write_all.ts";
+import { writeAllSync } from "io/write-all";
 import { Command } from "cliffy/command/mod.ts";
 import { capabilities } from "./capabilities.ts";
 

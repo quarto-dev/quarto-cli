@@ -24,15 +24,7 @@ function compute_flags()
     return false
   end
 
-  return {
-    Meta = function(el)
-      local lightbox_auto = lightbox_module.automatic(el)
-      if lightbox_auto then
-        flags.has_lightbox = true
-      elseif lightbox_auto == false then
-        flags.has_lightbox = false
-      end
-    end,
+  return {{
     Header = function(el)
       if find_shortcode_in_attributes(el) then
         flags.has_shortcodes = true
@@ -65,18 +57,18 @@ function compute_flags()
       end
 
       if _quarto.format.isRawLatex(el) then
-        local long_table_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexLongtablePattern)
-        local caption_match = _quarto.modules.patterns.match_all_in_table(_quarto.patterns.latexCaptionPattern)
-        if (long_table_match(el.text) and
-            not caption_match(el.text)) then
-            flags.has_longtable_no_caption_fixup = true
+        local long_table_match, _ = _quarto.modules.patterns.match_in_list_of_patterns(el.text, _quarto.patterns.latexLongtableEnvPatterns)
+        if long_table_match then
+            local caption_match, _= _quarto.modules.patterns.match_in_list_of_patterns(el.text, _quarto.patterns.latexCaptionPatterns)
+            if not caption_match then
+              flags.has_longtable_no_caption_fixup = true
+            end
         end
       end
 
       if el.text:find("%{%{%<") then
         flags.has_shortcodes = true
       end
-        
     end,
     Div = function(node)
       if find_shortcode_in_attributes(node) then
@@ -106,8 +98,8 @@ function compute_flags()
 
         -- FIXME: are we actually triggering this with FloatRefTargets?
         -- table captions
-        local tblCap = extractTblCapAttrib(node,kTblCap)
-        if hasTableRef(node) or tblCap then
+        local kTblCap = "tbl-cap"
+        if hasTableRef(node) or node.attr.attributes[kTblCap] then
           flags.has_table_captions = true
         end
 
@@ -187,5 +179,14 @@ function compute_flags()
     Figure = function(node)
       flags.has_pandoc3_figure = true
     end
-  }
+  }, {
+    Meta = function(el)
+      local lightbox_auto = lightbox_module.automatic(el)
+      if lightbox_auto then
+        flags.has_lightbox = true
+      elseif lightbox_auto == false then
+        flags.has_lightbox = false
+      end
+    end,
+  }}
 end

@@ -17,7 +17,7 @@ itself run.
 
 */
 
-import { parse } from "yaml/mod.ts";
+import { parse } from "../yaml.ts";
 import { toCapitalizationCase } from "../lib/text.ts";
 import { capitalizeWord as capitalize } from "../text.ts";
 import { join } from "../../deno_ral/path.ts";
@@ -38,11 +38,11 @@ export const generatedSrcMessage =
 // If you find yourself trying to rebuild types and \`quarto build-js\` won't run because
 // of bad type definitions, run the following:
 // $ cd $QUARTO_ROOT
-// $ ./package/dist/bin/tools/deno run --importmap=./src/dev_import_map.json --allow-all ./package/src/common/create-schema-types.ts ./src/resources
+// $ ./package/dist/bin/tools/deno run --importmap=./src/import_map.json --allow-all ./package/src/common/create-schema-types.ts ./src/resources
 
 export type MaybeArrayOf<T> = (T | T[]);
 export type JsonObject = { [key: string]: unknown };
-export type SchemaObject = { [key: string]: string };
+// export type SchemaObject = { [key: string]: string };
 
 `;
 
@@ -221,9 +221,9 @@ export function schemaToType(schema: any): string {
       );
     }
     if (schema.object) {
-      const mainType = (schema.object.properties === undefined)
-        ? "JsonObject"
-        : ("{" +
+      let mainType: string = "";
+      if (schema.object.properties) {
+        mainType = "{" +
           Object.entries(schema.object.properties).map(([key, value]) => {
             const optionalFlag = schema.object.required === "all"
               ? false
@@ -234,7 +234,13 @@ export function schemaToType(schema: any): string {
               schemaToType(value)
             }`;
           }).sort(([k1, _v1], [k2, _v2]) => k1.localeCompare(k2)).join("; ") +
-          "}");
+          "}";
+      } else if (schema.object.additionalProperties) {
+        mainType = "{ [key: string]: " +
+          schemaToType(schema.object.additionalProperties) + " }";
+      } else {
+        mainType = "JsonObject";
+      }
       if (schema.object?.super?.resolveRef) {
         return document(
           "(" + mainType + " & " +

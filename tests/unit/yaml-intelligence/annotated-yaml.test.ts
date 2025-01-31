@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 
 import { readAnnotatedYamlFromString } from "../../../src/core/lib/yaml-intelligence/annotated-yaml.ts";
 import { yamlValidationUnitTest } from "../schema-validation/utils.ts";

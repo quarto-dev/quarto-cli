@@ -2,7 +2,7 @@
 
 #let article(
   title: none,
-  title-font: none,
+  subtitle: none,
   authors: none,
   date: none,
   abstract: none,
@@ -14,6 +14,13 @@
   region: "US",
   font: "linux libertine",
   fontsize: 11pt,
+  title-size: 1.5em,
+  subtitle-size: 1.25em,
+  heading-family: "linux libertine",
+  heading-weight: "bold",
+  heading-style: "normal",
+  heading-color: black,
+  heading-line-height: 0.65em,
   sectionnumbering: none,
   toc: false,
   toc_title: none,
@@ -34,11 +41,22 @@
   set heading(numbering: sectionnumbering)
   if title != none {
     align(center)[#block(inset: 2em)[
-      // = #title
-      #if title-font != none {
-        text(weight: "bold", size: 1.5em, font: title-font)[#title]
+      #set par(leading: heading-line-height)
+      #if (heading-family != none or heading-weight != "bold" or heading-style != "normal"
+           or heading-color != black or heading-decoration == "underline"
+           or heading-background-color != none) {
+        set text(font: heading-family, weight: heading-weight, style: heading-style, fill: heading-color)
+        text(size: title-size)[#title]
+        if subtitle != none {
+          parbreak()
+          text(size: subtitle-size)[#subtitle]
+        }
       } else {
-        text(weight: "bold", size: 1.5em)[#title]
+        text(weight: "bold", size: title-size)[#title]
+        if subtitle != none {
+          parbreak()
+          text(weight: "bold", size: subtitle-size)[#subtitle]
+        }
       }
     ]]
   }

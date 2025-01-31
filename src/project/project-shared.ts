@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/exists.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import {
   dirname,
   isAbsolute,
@@ -41,7 +41,7 @@ import { ExecutionEngine } from "../execute/types.ts";
 import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
 import { breakQuartoMd, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
 import { partitionCellOptionsText } from "../core/lib/partition-cell-options.ts";
-import { parse } from "yaml/mod.ts";
+import { parse } from "../core/yaml.ts";
 import { mappedIndexToLineCol } from "../core/lib/mapped-text.ts";
 import { normalizeNewlines } from "../core/lib/text.ts";
 import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
@@ -50,6 +50,7 @@ import { refSchema } from "../core/lib/yaml-schema/common.ts";
 import { Brand as BrandJson } from "../resources/types/schema-types.ts";
 import { Brand } from "../core/brand/brand.ts";
 import { warnOnce } from "../core/log.ts";
+import { assert } from "testing/asserts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -349,7 +350,7 @@ export async function directoryMetadataForInputFile(
 }
 
 const mdForFile = async (
-  project: ProjectContext,
+  _project: ProjectContext,
   engine: ExecutionEngine | undefined,
   file: string,
 ): Promise<MappedString> => {
@@ -537,7 +538,11 @@ export async function projectResolveBrand(
         refSchema("brand", "Format-independent brand configuration."),
         "Brand validation failed for " + brandPath + ".",
       ) as BrandJson;
-      project.brandCache.brand = new Brand(brand);
+      project.brandCache.brand = new Brand(
+        brand,
+        dirname(brandPath),
+        project.dir,
+      );
     }
     return project.brandCache.brand;
   } else {
@@ -552,25 +557,28 @@ export async function projectResolveBrand(
     if (fileInformation.brand) {
       return fileInformation.brand;
     }
-    if (typeof metadata.brand !== "string") {
-      warnOnce(
-        `Brand metadata must be a filename, but is of type ${typeof metadata
-          .brand} in file ${fileName}. Will ignore brand information`,
-      );
-      return project.resolveBrand();
-    }
-    let brandPath: string = "";
-    if (brandPath.startsWith("/")) {
-      brandPath = join(project.dir, metadata.brand);
+    if (typeof metadata.brand === "string") {
+      let brandPath: string = "";
+      if (brandPath.startsWith("/")) {
+        brandPath = join(project.dir, metadata.brand);
+      } else {
+        brandPath = join(dirname(fileName), metadata.brand);
+      }
+      const brand = await readAndValidateYamlFromFile(
+        brandPath,
+        refSchema("brand", "Format-independent brand configuration."),
+        "Brand validation failed for " + brandPath + ".",
+      ) as BrandJson;
+      fileInformation.brand = new Brand(brand, dirname(brandPath), project.dir);
+      return fileInformation.brand;
     } else {
-      brandPath = join(dirname(fileName), metadata.brand);
+      assert(typeof metadata.brand === "object");
+      fileInformation.brand = new Brand(
+        metadata.brand as BrandJson,
+        dirname(fileName),
+        project.dir,
+      );
+      return fileInformation.brand;
     }
-    const brand = await readAndValidateYamlFromFile(
-      brandPath,
-      refSchema("brand", "Format-independent brand configuration."),
-      "Brand validation failed for " + brandPath + ".",
-    ) as BrandJson;
-    fileInformation.brand = new Brand(brand);
-    return fileInformation.brand;
   }
 }

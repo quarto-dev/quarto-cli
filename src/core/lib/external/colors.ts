@@ -11,7 +11,7 @@
 
 /**
  * ```ts
- * import { bgBlue, red, bold } from "https://deno.land/std@$STD_VERSION/fmt/colors.ts";
+ * import { bgBlue, red, bold } from "https://deno.land/std@$STD_VERSION/fmt/colors";
  * console.log(bgBlue(red(bold("Hello world!"))));
  * ```
  *

@@ -1,0 +1,30 @@
+{
+  "quarto.js": {
+    "inputs": {
+      "quarto.js": {
+        "bytes": 26327,
+        "imports": [],
+        "format": "esm"
+      }
+    },
+    "outputs": {
+      "<output>": {
+        "imports": [
+          {
+            "path": "./tabsets/tabsets.js",
+            "kind": "import-statement",
+            "external": true
+          }
+        ],
+        "exports": [],
+        "entryPoint": "quarto.js",
+        "inputs": {
+          "quarto.js": {
+            "bytesInOutput": 21890
+          }
+        },
+        "bytes": 21890
+      }
+    }
+  }
+}

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { dirname, join, relative } from "../deno_ral/path.ts";
 
 import * as ld from "../core/lodash.ts";
@@ -126,15 +126,16 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
     }
   } else {
     const project = await projectContext(path, nbContext) ||
-      singleFileProjectContext(path, nbContext);
+      (await singleFileProjectContext(path, nbContext));
     const engine = await fileExecutionEngine(path, undefined, project);
     if (engine) {
       // partition markdown
       const partitioned = await engine.partitionedMarkdown(path);
 
+      // FIXME Why are we doing this twice? See "const project..." above
       // get formats
       const context = (await projectContext(path, nbContext)) ||
-        singleFileProjectContext(path, nbContext);
+        (await singleFileProjectContext(path, nbContext));
       const src = await context.resolveFullMarkdownForFile(engine, path);
       if (engine) {
         const errors = await validateDocumentFromSource(

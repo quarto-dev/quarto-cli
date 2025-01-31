@@ -47,7 +47,7 @@ jobs:
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
-          r-version: "4.3.2"
+          r-version: "4.4.2"
           use-public-rspm: true
           # required to avoid rtools bin in path
           windows-path-include-rtools: false
@@ -114,18 +114,17 @@ jobs:
         env:
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Install uv for Python
+        uses: astral-sh/setup-uv@v3
         with:
-          python-version: "3.12"
-          cache: "pipenv"
-          cache-dependency-path: "./tests/Pipfile.lock"
+          version: "0.4.30"
+          enable-cache: true
+          cache-dependency-glob: "tests/uv.lock"
 
-      - name: Restore Python Dependencies
+      - name: Install Python and Dependencies
         working-directory: tests
         run: |
-          python -m pip install pipenv
-          pipenv install
+          uv sync --frozen
 
       - uses: ./.github/workflows/actions/quarto-dev
 
@@ -157,8 +156,8 @@ jobs:
         run: |
           # Setup IJulia with the jupyter from the Python environment
           # https://julialang.github.io/IJulia.jl/stable/manual/installation/
-          export JUPYTER=$(find $(dirname $(pipenv run which jupyter))/ -type f -name "jupyter.exe" -o -name "jupyter")
-          pipenv run julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
+          export JUPYTER=$(find $(dirname $(uv run --frozen which jupyter))/ -type f -name "jupyter.exe" -o -name "jupyter")
+          uv run --frozen julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
           echo "Julia Jupyter:"
           julia --project=. -e "import IJulia;println(IJulia.JUPYTER);println(IJulia.find_jupyter_subcommand(\"notebook\"))"
 

@@ -1,0 +1,13 @@
+---
+title: "About"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['<meta property="og:image:alt" content="Quarto logo">']
+        - []
+---
+
+About this site
+
+![](https://quarto.org/quarto.png){fig-alt="Quarto logo" .preview-image}

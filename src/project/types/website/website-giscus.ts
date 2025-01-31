@@ -1,11 +1,10 @@
 /*
-* website-giscus.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-giscus.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync } from "../../../deno_ral/fs.ts";
 import { join } from "../../../deno_ral/path.ts";
 import { Format } from "../../../config/types.ts";
 import {

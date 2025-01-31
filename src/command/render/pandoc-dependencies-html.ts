@@ -31,7 +31,7 @@ import {
 } from "./pandoc-dependencies.ts";
 import { fixupCssReferences, isCssFile } from "../../core/css.ts";
 
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync } from "../../deno_ral/fs.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { insecureHash } from "../../core/hash.ts";
@@ -136,25 +136,6 @@ export function readAndInjectDependencies(
     resources: [],
     supporting: [],
   });
-}
-
-// this should be resolveMetadata returning an object
-// like {'output-recipe': metadata}
-export function resolveTypstFontPaths(
-  dependenciesFile: string,
-) {
-  const dependencyJsonStream = Deno.readTextFileSync(dependenciesFile);
-  const fontPaths: string[] = [];
-  lines(dependencyJsonStream).forEach((json) => {
-    if (json) {
-      const dependency = JSON.parse(json);
-      if (dependency.type === "typst-font-path") {
-        const path = dependency?.content?.path;
-        fontPaths.push(path);
-      }
-    }
-  });
-  return fontPaths;
 }
 
 export function resolveDependencies(

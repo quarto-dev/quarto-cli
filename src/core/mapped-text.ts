@@ -15,6 +15,7 @@ import { debug } from "../deno_ral/log.ts";
 
 import * as mt from "./lib/mapped-text.ts";
 import { withTiming } from "./timing.ts";
+import { makeTimedFunction } from "./performance/function-times.ts";
 
 export type EitherString = mt.EitherString;
 export type MappedString = mt.MappedString;
@@ -33,7 +34,7 @@ export {
 // uses a diff algorithm to map on a line-by-line basis target lines
 // for `target` to `source`, allowing us to somewhat recover
 // MappedString information from third-party tools like knitr.
-export function mappedDiff(
+function mappedDiffInner(
   source: MappedString,
   target: string,
 ) {
@@ -82,6 +83,7 @@ export function mappedDiff(
     return mappedString(source, resultChunks, source.fileName);
   });
 }
+export const mappedDiff = makeTimedFunction("mappedDiff", mappedDiffInner);
 
 export function mappedStringFromFile(filename: string): MappedString {
   const value = Deno.readTextFileSync(filename);

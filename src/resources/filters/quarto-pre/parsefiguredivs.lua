@@ -236,7 +236,7 @@ function parse_floatreftargets()
     end
     local caption = refCaptionFromDiv(div)
     if caption ~= nil then
-      div.content:remove(#div.content)
+      div.content:remove()  -- drop the last element
     elseif div.attributes[caption_attr_key] ~= nil then
       caption = pandoc.Plain(string_to_quarto_ast_inlines(div.attributes[caption_attr_key]))
       div.attributes[caption_attr_key] = nil
@@ -246,10 +246,10 @@ function parse_floatreftargets()
       local found_caption = false
       content = _quarto.ast.walk(content, {
         Table = function(table)
-          if table.caption.long ~= nil then
+          -- check if caption is non-empty
+          if table.caption.long and next(table.caption.long) then
             found_caption = true
             caption = table.caption.long[1] -- what if there's more than one entry here?
-            table.caption.long = nil
             return table
           end
         end
@@ -458,7 +458,7 @@ function parse_floatreftargets()
               fig_attr.classes:insert(v)
             end
           end
-          image.caption = {}
+          image.caption = pandoc.Inlines{}
           return image
         end
       }) or fig.content[1] -- this shouldn't be needed but the lua analyzer doesn't know it
@@ -494,7 +494,7 @@ function parse_floatreftargets()
       end
       
       -- we've parsed the caption, so we can remove it from the table
-      el.caption.long = pandoc.List({})
+      el.caption.long = pandoc.Blocks({})
 
       if label == "" then
         return nil
@@ -602,7 +602,7 @@ function parse_floatreftargets()
         if img.identifier == "" then
           local caption = img.caption
           if #caption > 0 then
-            img.caption = nil
+            img.caption = pandoc.Inlines{}
             return pandoc.Figure(link, { long = { caption } })
           else
             return nil
@@ -742,11 +742,11 @@ function parse_floatreftargets()
       end
 
       -- finally, if the user passed a \\begin{table} float environment
-      -- we just remove it because we'll re-emit later ourselves
-
-      local b, e, begin_table, table_body, end_table = raw.text:find(patterns.latex_table)
-      if b ~= nil then
-        raw.text = table_body
+      -- we just remove it because we'll re-emit later ourselves  
+      local matched, _ = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexTableEnvPatterns)
+      if matched then
+        -- table_body is second matched element.
+        raw.text = matched[2]
       end
 
       return quarto.FloatRefTarget({

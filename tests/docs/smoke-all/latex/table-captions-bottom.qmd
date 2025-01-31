@@ -1,0 +1,104 @@
+---
+title: Document With a Variety of Table Captions
+subtitle: Designed to exercise any special logic or processing of table captions
+tbl-cap-location: bottom
+format: pdf
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - 
+          # Document should not be broken
+          - '\\end\{document\}'
+          # Any table with T1 - T6 caption
+          - '\\begin\{longtable\}[\s\S]+\\caption\{T([1-6]|8)[\s\S]+\\endlastfoot'
+          # Special table with endlastfoot 
+          - '\\begin\{longtable\}[\s\S]+\\caption\{.*T7[^}]+\}[\s\S]+\\tabularnewline\s+\\end\{longtable\}'
+        - 
+          # checking caption is moved 
+          - '\\begin\{longtable\}.*\s+\\caption\{.*T7[^}]+\}'
+          # checking that all caption are correctly not place after endlastfoot (using +? is important in regex)
+          - '\\begin\{longtable\}[\s\S]+?\\endlastfoot[\s\S]+?\\caption\{T1'
+          - '\\caption\{T1[\s\S]+?\\begin\{longtable\}[\s\S]+?\\endlastfoot[\s\S]+?\\caption\{T2'
+          - '\\caption\{T2[\s\S]+?\\begin\{longtable\}[\s\S]+?\\endlastfoot[\s\S]+?\\caption\{T3'
+          - '\\caption\{T3[\s\S]+?\\begin\{longtable\}[\s\S]+?\\endlastfoot[\s\S]+?\\caption\{T4'
+          - '\\caption\{T4[\s\S]+?\\begin\{longtable\}[\s\S]+?\\endlastfoot[\s\S]+?\\caption\{T5'
+          - '\\caption\{T5[\s\S]+?\\begin\{longtable\}[\s\S]+?\\endlastfoot[\s\S]+?\\caption\{T6'
+          - '\\caption\{T7[\s\S]+?\\begin\{longtable\}[\s\S]+?\\endlastfoot[\s\S]+?\\caption\{T8'
+---
+
+
+## Markdown tables
+
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+: T1 Demonstration of pipe table syntax
+
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+: T2 Demonstration of pipe table syntax that is very long and will probably wrap in the LaTeX output.
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+: T3 Demonstration of pipe table syntax that is very long and will probably wrap in the LaTeX output. As a result this could cause issues when we try to read the caption.
+
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| A    | B    | C    |
+| E    | F    | G    |
+| A    | G    | G    |
+
+: T4 Demonstration of pipe table syntax that is very long and will probably wrap in the LaTeX output. As a result this could cause issues when we try to read the caption. {#tbl-letters}
+
+See @tbl-letters.
+
+
+```{r}
+#| tbl-cap: "T5 Demonstration of pipe table syntax that is very long and will probably wrap in the LaTeX output."
+#| tbl-colwidths: [60,40]
+library(knitr)
+kable(head(cars))
+```
+
+
+```{r}
+#| tbl-cap: "T6 Demonstration of pipe table syntax that is very long and will probably wrap in the LaTeX output. As a result this could cause issues when we try to read the caption."
+#| tbl-colwidths: [60,40]
+
+kable(head(cars))
+```
+
+```{r}
+#| label: tbl-cars
+kable(head(cars), format = "latex", longtable = TRUE, caption = "T7 HELLO CARS")
+```
+
+::: {#tbl-1}
+
+| X       | Y    | 
+|---------|:-----|
+| 12      | 12   |
+| 123     | 123  | 
+| 1       | 1    |
+
+T8 Table caption
+:::
+
+See @tbl-1

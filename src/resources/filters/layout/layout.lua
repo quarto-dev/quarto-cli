@@ -86,8 +86,16 @@ function partition_cells(float)
   end
 
   local function handle_preamble_codeblock(block)
-    if block.t == "CodeBlock" and #preamble > 0 and preamble[#preamble].t == "CodeBlock" then
-      preamble[#preamble].text = preamble[#preamble].text .. "\n" .. block.text
+    if #preamble == 0 then
+      preamble:insert(block)
+      return
+    end
+    local last = preamble[#preamble]
+    if block.t == "CodeBlock" and 
+      last.t == "CodeBlock" and
+      -- https://pandoc.org/lua-filters.html#pandoc.list:__eq
+      last.classes == block.classes then
+      last.text = last.text .. "\n" .. block.text
     else
       preamble:insert(block)
     end
@@ -195,9 +203,13 @@ function layout_cells(float_or_div, cells)
       end
       rows[#rows]:insert(cell)
     end
-    -- convert width units to percentages
-    widthsToPercent(rows, layoutCols)
-    
+    if _quarto.format.isTypstOutput() then
+      widthsToFraction(rows, layoutCols)
+    else
+      -- convert width units to percentages
+      widthsToPercent(rows, layoutCols)
+    end
+
   -- check for layout
   elseif layout ~= nil then
     -- parse the layout

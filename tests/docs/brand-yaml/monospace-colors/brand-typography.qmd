@@ -1,0 +1,30 @@
+---
+title: monospace colors
+format:
+  typst:
+    keep-typ: true
+    include-in-header:
+      text: |
+        #set text(fallback: false, weight: 100)
+  dashboard: default
+  html: default
+  revealjs: default
+---
+
+We're using only `brand.typography.monospace.color` and `.background-color`.
+
+Raw inlines `3 * fib(5)` and raw blocks will inherit the same colors, off-white and green.
+
+:::{.sourceCode}
+```
+const fib = num => num < 2 ? num : fib(num-1) + fib(num - 2);
+console.log(fib(12))
+```
+:::
+
+Syntax highlighting complicates things.
+
+```javascript
+const fib = num => num < 2 ? num : fib(num-1) + fib(num - 2);
+console.log(fib(12))
+```

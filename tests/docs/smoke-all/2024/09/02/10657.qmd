@@ -17,8 +17,6 @@ _quarto:
         - []
 ---
 
-<!-- TODO: Add test with puppeteer about link working -->
-
 ## Quarto Figure
 
 ![Elephant](https://quarto.org/docs/authoring/images/crossref-figure.png){#fig-elephant}

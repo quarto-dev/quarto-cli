@@ -12,7 +12,7 @@ import { rBinaryPath, resourcePath } from "../../../../core/resources.ts";
 import SemVer from "semver/mod.ts";
 import { extname, join } from "../../../../deno_ral/path.ts";
 import { info, warning } from "../../../../deno_ral/log.ts";
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "../../../../deno_ral/fs.ts";
 import {
   EnvironmentConfiguration,
   PythonConfiguration,
@@ -206,7 +206,7 @@ const createPostBuild = (
   pythonConfig: PythonConfiguration,
 ) => {
   const postBuildScript: string[] = [];
-  postBuildScript.push("#!/usr/bin/env bash -v");
+  postBuildScript.push("#!/usr/bin/env -S bash -v");
   postBuildScript.push("");
   postBuildScript.push(`# determine which version of Quarto to install`);
   postBuildScript.push(`QUARTO_VERSION=${quartoConfig.version}`);

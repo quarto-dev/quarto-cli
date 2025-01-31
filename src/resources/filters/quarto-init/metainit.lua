@@ -8,6 +8,7 @@ function quarto_meta_init()
       read_includes(meta)
       init_crossref_options(meta)
       initialize_custom_crossref_categories(meta)
+      return meta
     end
   }
 end

@@ -5,7 +5,7 @@
  */
 
 import { dirname, join, relative } from "../../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 
 import { kTheme } from "../../config/constants.ts";
 import {
@@ -13,12 +13,13 @@ import {
   kTextHighlightingMode,
   Metadata,
   SassBundleLayers,
+  SassBundleLayersWithBrand,
   SassLayer,
 } from "../../config/types.ts";
 
 import { isFileRef } from "../../core/http.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
-import { formatResourcePath } from "../../core/resources.ts";
+import { formatResourcePath, resourcePath } from "../../core/resources.ts";
 import {
   cleanSourceMappingUrl,
   compileSass,
@@ -40,7 +41,7 @@ import { asCssFont, asCssNumber } from "../../core/css.ts";
 import { cssHasDarkModeSentinel } from "../../core/pandoc/css.ts";
 import { pandocNativeStr } from "../../core/pandoc/codegen.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { brandRevealSassBundleLayers } from "../../core/sass/brand.ts";
+import { brandRevealSassLayers } from "../../core/sass/brand.ts";
 import { md5HashBytes } from "../../core/hash.ts";
 
 export const kRevealLightThemes = [
@@ -67,7 +68,6 @@ export async function revealTheme(
   format: Format,
   input: string,
   libDir: string,
-  temp: TempContext,
   project: ProjectContext,
 ) {
   // metadata override to return
@@ -108,18 +108,28 @@ export async function revealTheme(
     join(cssThemeDir, "template"),
   ];
 
+  const brandLayers: SassLayer[] = await brandRevealSassLayers(
+    input,
+    format,
+    project,
+  );
+
   // theme is either user provided scss or something in our 'themes' dir
   // (note that standard reveal scss themes must be converted to quarto
   // theme format so they can participate in the pipeline)
   const themeConfig =
     (format.metadata?.[kTheme] as string | string[] | undefined) || "default";
+  let usedBrandLayers = false;
   const themeLayers = (Array.isArray(themeConfig) ? themeConfig : [themeConfig])
     .map(
       (theme) => {
         const themePath = join(relative(Deno.cwd(), dirname(input)), theme);
-        if (existsSync(themePath)) {
+        if (themePath === "brand") {
+          usedBrandLayers = true;
+          return brandLayers;
+        } else if (existsSync(themePath)) {
           loadPaths.unshift(join(dirname(input), dirname(theme)));
-          return themeLayer(themePath);
+          return [themeLayer(themePath)];
         } else {
           // alias revealjs theme names
           if (theme === "white") {
@@ -132,11 +142,13 @@ export async function revealTheme(
             "revealjs",
             join("themes", `${theme}.scss`),
           );
-          return themeLayer(theme);
+          return [themeLayer(theme)];
         }
       },
-    );
-
+    ).flat();
+  if (!usedBrandLayers) {
+    themeLayers.unshift(...brandLayers);
+  }
   // get any variables defined in yaml
   const yamlLayer: SassLayer = {
     uses: "",
@@ -164,6 +176,7 @@ export async function revealTheme(
   const quartoLayers = [
     quartoBaseLayer(format, true, true, false, true),
     quartoLayer(),
+    quartoRevealBrandLayer(),
   ];
   const titleSlideLayer = titleSlideScss(format);
   if (titleSlideLayer) {
@@ -173,7 +186,7 @@ export async function revealTheme(
   // create sass bundle layers
   const bundleLayers: SassBundleLayers = {
     key: "reveal-theme",
-    user: mergeLayers(...userLayers),
+    user: userLayers,
     quarto: mergeLayers(
       ...quartoLayers,
     ),
@@ -181,18 +194,12 @@ export async function revealTheme(
     loadPaths,
   };
 
-  const brandLayers: SassBundleLayers[] = await brandRevealSassBundleLayers(
-    input,
-    format,
-    project,
-  );
-
   // compile sass
-  const css = await compileSass([bundleLayers, ...brandLayers], temp);
+  const css = await compileSass([bundleLayers], project);
   // Remove sourcemap information
   cleanSourceMappingUrl(css);
   // convert from string to bytes
-  const hash = md5HashBytes(Deno.readFileSync(css));
+  const hash = await md5HashBytes(Deno.readFileSync(css));
   const fileName = `quarto-${hash}`;
   copyTo(
     css,
@@ -283,4 +290,10 @@ function quartoLayer(): SassLayer {
 
 function themeLayer(theme: string): SassLayer {
   return sassLayerFile(theme);
+}
+
+function quartoRevealBrandLayer(): SassLayer {
+  return sassLayerFile(
+    resourcePath(join("formats", "revealjs", "brand", "brand.scss")),
+  );
 }

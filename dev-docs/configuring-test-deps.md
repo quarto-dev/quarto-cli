@@ -16,16 +16,20 @@
 
 ## Python
 
-- Install `pyenv`
-- Install a specic version e.g `pyenv install 3.12.1`
-- Configure `tests` to use a specific version
+- Install `uv`
+
+  About uv: https://docs.astral.sh/uv/
+
+  `uv` will handle the python versions and virtual environments based on the `.python-version` we have in `tests/` folder.
+
+  To set the version to use to
 
   ```
   cd tests
-  pyenv local 3.12.1
+  echo '3.12.7' > .python-version
   ```
 
-  This way when calling `python` in `tests` folder it will always be Python 3.12.1 version
+  This `uv run` and `uv sync` will create the right virtual environment and use it.
 
 ## R
 
@@ -43,4 +47,35 @@
 
 # Installing the dependencies in each languages packages
 
-- From `tests` folder, run `configure-test-env` scripts to restore dependencies for each tools
+- From `tests` folder, run `configure-test-env.sh` or `configure-test-env.ps1` scripts to restore dependencies for each tools
+
+# Adding some tests dependencies
+
+## Python
+
+- Use `uv add` to add the deps to `pyproject.toml`, install related dependencies in the virtual environment and lock the versions in `uv.lock`.
+  Example:
+  ```
+  cd tests
+  uv add jupyter
+  ```
+
+## R
+
+- Add the dependencies in `DESCRIPTION` file
+- Run `renv::install(<package>)` to install the dependencies
+- Run `renv::snapshot()` to lock the versions in `renv.lock`
+
+## Julia
+
+- Run Julia in the `tests/` project and add the dependencies
+  Example:
+  ```bash
+  cd tests
+  julia --project=.
+  ```
+  then in Julia console
+  ```julia
+  using Pkg
+  Pkg.add("DataFrames")
+  ```

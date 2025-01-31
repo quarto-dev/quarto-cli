@@ -6,12 +6,12 @@
 
 import { isAbsolute, join, relative } from "../../../deno_ral/path.ts";
 import { ProjectContext } from "../../types.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../deno_ral/fs.ts";
 import {
   ManuscriptConfig,
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
-import { readLines } from "io/mod.ts";
+import { readLines } from "../../../deno_ral/io.ts";
 import { Format } from "../../../config/types.ts";
 import { kNotebookViewStyle } from "../../../config/constants.ts";
 

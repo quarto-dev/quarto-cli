@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { join } from "../deno_ral/path.ts";
 
 import { quartoCacheDir } from "./appdirs.ts";
@@ -16,9 +16,13 @@ import { dartCompile } from "./dart-sass.ts";
 import * as ld from "./lodash.ts";
 import { lines } from "./text.ts";
 import { sassCache } from "./sass/cache.ts";
+import { cssVarsBlock } from "./sass/add-css-vars.ts";
 import { md5HashBytes } from "./hash.ts";
 import { kSourceMappingRegexes } from "../config/constants.ts";
-import { writeTextFileSyncPreserveMode } from "./write.ts";
+import { quartoConfig } from "../core/quarto.ts";
+import { safeModeFromFile } from "../deno_ral/fs.ts";
+import { ProjectContext } from "../project/types.ts";
+import { memoizeStringFunction } from "./cache/cache.ts";
 
 export interface SassVariable {
   name: string;
@@ -44,9 +48,10 @@ export function outputVariable(
   return `$${variable.name}: ${variable.value}${isDefault ? " !default" : ""};`;
 }
 
+let counter: number = 1;
 export async function compileSass(
   bundles: SassBundleLayers[],
-  temp: TempContext,
+  project: ProjectContext,
   minified = true,
 ) {
   // Gather the inputs for the framework
@@ -78,15 +83,18 @@ export async function compileSass(
   );
   const quartoDefaults = bundles.map((bundle) => bundle.quarto?.defaults || "");
   const quartoRules = bundles.map((bundle) => bundle.quarto?.rules || "");
-
   const quartoMixins = bundles.map((bundle) => bundle.quarto?.mixins || "");
 
+  const userLayers = mergeLayers(
+    ...bundles.map((bundle) => bundle.user || []).flat(),
+  );
+
   // Gather sasslayer for the user
-  const userUses = bundles.map((bundle) => bundle.user?.uses || "");
-  const userFunctions = bundles.map((bundle) => bundle.user?.functions || "");
-  const userDefaults = bundles.map((bundle) => bundle.user?.defaults || "");
-  const userRules = bundles.map((bundle) => bundle.user?.rules || "");
-  const userMixins = bundles.map((bundle) => bundle.user?.mixins || "");
+  const userUses = userLayers.uses; //bundles.map((bundle) => bundle.user?.uses || "");
+  const userFunctions = userLayers.functions; // bundles.map((bundle) => bundle.user?.functions || "");
+  const userDefaults = userLayers.defaults; // bundles.map((bundle) => bundle.user?.defaults || "");
+  const userRules = userLayers.rules; // bundles.map((bundle) => bundle.user?.rules || "");
+  const userMixins = userLayers.mixins; // bundles.map((bundle) => bundle.user?.mixins || "");
 
   // Set any load paths used to resolve imports
   const loadPaths: string[] = [];
@@ -104,39 +112,86 @@ export async function compileSass(
   // * Mixins are available to rules as well
   // * Rules may use functions, variables, and mixins
   //   (theme follows framework so it can override the framework rules)
-  const scssInput = [
+  let scssInput = [
+    `// quarto-scss-analysis-annotation { "quarto-version": "${quartoConfig.version()}" }`,
+    '// quarto-scss-analysis-annotation { "origin": "\'use\' section from format" }',
     ...frameWorkUses,
+    '// quarto-scss-analysis-annotation { "origin": "\'use\' section from Quarto" }',
     ...quartoUses,
-    ...userUses,
+    '// quarto-scss-analysis-annotation { "origin": "\'use\' section from user-defined SCSS" }',
+    userUses,
+    '// quarto-scss-analysis-annotation { "origin": "\'functions\' section from format" }',
     ...frameworkFunctions,
+    '// quarto-scss-analysis-annotation { "origin": "\'functions\' section from Quarto" }',
     ...quartoFunctions,
-    ...userFunctions,
-    ...userDefaults.reverse(),
+    '// quarto-scss-analysis-annotation { "origin": "\'functions\' section from user-defined SCSS" }',
+    userFunctions,
+    '// quarto-scss-analysis-annotation { "origin": "Defaults from user-defined SCSS" }',
+    userDefaults,
+    '// quarto-scss-analysis-annotation { "origin": "Defaults from Quarto\'s SCSS" }',
     ...quartoDefaults.reverse(),
+    '// quarto-scss-analysis-annotation { "origin": "Defaults from the format SCSS" }',
     ...frameworkDefaults.reverse(),
+    '// quarto-scss-analysis-annotation { "origin": "\'mixins\' section from format" }',
     ...frameworkMixins,
+    '// quarto-scss-analysis-annotation { "origin": "\'mixins\' section from Quarto" }',
     ...quartoMixins,
-    ...userMixins,
+    '// quarto-scss-analysis-annotation { "origin": "\'mixins\' section from user-defined SCSS" }',
+    userMixins,
+    '// quarto-scss-analysis-annotation { "origin": "\'rules\' section from format" }',
     ...frameworkRules,
+    '// quarto-scss-analysis-annotation { "origin": "\'rules\' section from Quarto" }',
     ...quartoRules,
-    ...userRules,
+    '// quarto-scss-analysis-annotation { "origin": "\'rules\' section from user-defined SCSS" }',
+    userRules,
+    '// quarto-scss-analysis-annotation { "origin": null }',
   ].join("\n\n");
 
-  const hash = md5HashBytes(new TextEncoder().encode(scssInput));
+  const saveScssPrefix = Deno.env.get("QUARTO_SAVE_SCSS");
+  if (saveScssPrefix) {
+    // Save the SCSS before compilation
+    const counterValue = counter++;
+    Deno.writeTextFileSync(
+      `${saveScssPrefix}-${counterValue}.scss`,
+      scssInput,
+    );
+  }
 
   // Compile the scss
-  // Note that you can set this to undefined to bypass the cache entirely
-  const cacheKey = hash;
-  // bundles.map((bundle) => bundle.key).join("|") + "-" +
-  //   (minified ? "min" : "nomin");
-
-  return await compileWithCache(
+  const result = await compileWithCache(
     scssInput,
     loadPaths,
-    temp,
-    minified,
-    cacheKey,
+    project,
+    {
+      compressed: minified,
+      cacheIdentifier: await md5HashBytes(new TextEncoder().encode(scssInput)),
+      addVarsBlock: true,
+    },
   );
+
+  if (saveScssPrefix) {
+    // The compilation succeeded, we can update the file with additional info
+    const partialOutput = Deno.readTextFileSync(result);
+    // now we attempt to find the SCSS variables in the output
+    // and inject them back in the SCSS file so that our debug tooling can use them.
+    const scssToWrite = [scssInput];
+    const internalVars = Array.from(
+      partialOutput.matchAll(/(--quarto-scss-export-[^;}]+;?)/g),
+    ).map((m) => m[0]);
+    const annotation = {
+      "css-vars": internalVars,
+    };
+    scssToWrite.push(
+      `// quarto-scss-analysis-annotation ${JSON.stringify(annotation)}`,
+    );
+    scssInput = scssToWrite.join("\n");
+    Deno.writeTextFileSync(
+      `${saveScssPrefix}-${counter}.scss`,
+      scssInput,
+    );
+  }
+
+  return result;
 }
 
 /*-- scss:uses --*/
@@ -149,7 +204,7 @@ const layoutBoundary =
 const kLayerBoundaryLine = RegExp(layoutBoundary);
 const kLayerBoundaryTest = RegExp(layoutBoundary, "m");
 
-export function mergeLayers(...layers: SassLayer[]) {
+export function mergeLayers(...layers: SassLayer[]): SassLayer {
   const themeUses: string[] = [];
   const themeDefaults: string[] = [];
   const themeRules: string[] = [];
@@ -160,10 +215,7 @@ export function mergeLayers(...layers: SassLayer[]) {
       themeUses.push(theme.uses);
     }
     if (theme.defaults) {
-      // We need to reverse the order of defaults
-      // since defaults override one another by being
-      // set first
-      themeDefaults.unshift(theme.defaults);
+      themeDefaults.push(theme.defaults);
     }
 
     if (theme.rules) {
@@ -181,7 +233,10 @@ export function mergeLayers(...layers: SassLayer[]) {
 
   return {
     uses: themeUses.join("\n"),
-    defaults: themeDefaults.join("\n"),
+    // We need to reverse the order of defaults
+    // since defaults override one another by being
+    // set first
+    defaults: themeDefaults.reverse().join("\n"),
     functions: themeFunctions.join("\n"),
     mixins: themeMixins.join("\n"),
     rules: themeRules.join("\n"),
@@ -296,13 +351,51 @@ export function sassLayerDir(
   };
 }
 
+type CompileWithCacheOptions = {
+  compressed?: boolean;
+  cacheIdentifier?: string;
+  addVarsBlock?: boolean;
+};
+
+const memoizedGetVarsBlock = memoizeStringFunction([
+  "core",
+  "sass",
+  "cssVarsBlock",
+], (input: string) => Promise.resolve(cssVarsBlock(input)));
+
 export async function compileWithCache(
   input: string,
   loadPaths: string[],
-  temp: TempContext,
-  compressed?: boolean,
-  cacheIdentifier?: string,
+  project: ProjectContext,
+  options?: CompileWithCacheOptions,
 ) {
+  const { temp } = project;
+  const {
+    compressed,
+    cacheIdentifier,
+    addVarsBlock,
+  } = options || {};
+
+  const handleVarsBlock = async (input: string) => {
+    if (!addVarsBlock) {
+      return input;
+    }
+    try {
+      const result = await memoizedGetVarsBlock(project, input);
+      return input + "\n" + result;
+    } catch (e) {
+      console.warn("Error adding css vars block", e);
+      console.warn(
+        "The resulting CSS file will not have SCSS color variables exported as CSS.",
+      );
+      Deno.writeTextFileSync("_quarto_internal_scss_error.scss", input);
+      console.warn(
+        "This is likely a Quarto bug.\nPlease consider reporting it at https://github.com/quarto-dev/quarto-cli,\nalong with the _quarto_internal_scss_error.scss file that can be found in the current working directory.",
+      );
+    }
+    return input;
+  };
+
   if (cacheIdentifier) {
     // If there are imports, the computed input Hash is incorrect
     // so we should be using a session cache which will cache
@@ -315,8 +408,16 @@ export async function compileWithCache(
       : quartoCacheDir("sass");
     // when using quarto session cache, we ensure to cleanup the cache files at TempContext cleanup
     const cache = await sassCache(cacheDir, useSessionCache ? temp : undefined);
-    return cache.getOrSet(input, loadPaths, temp, cacheIdentifier, compressed);
+    return cache.getOrSet(
+      input,
+      cacheIdentifier,
+      async (outputFilePath: string) => {
+        input = await handleVarsBlock(input);
+        await dartCompile(input, outputFilePath, temp, loadPaths, compressed);
+      },
+    );
   } else {
+    input = await handleVarsBlock(input);
     const outputFilePath = temp.createFile({ suffix: ".css" });
     // Skip the cache and just compile
     await dartCompile(
@@ -339,5 +440,7 @@ export function cleanSourceMappingUrl(cssPath: string): void {
     kSourceMappingRegexes[1],
     "",
   );
-  writeTextFileSyncPreserveMode(cssPath, cleaned);
+  Deno.writeTextFileSync(cssPath, cleaned.trim(), {
+    mode: safeModeFromFile(cssPath),
+  });
 }

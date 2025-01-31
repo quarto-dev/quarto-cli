@@ -1,11 +1,10 @@
 /*
-* utils.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * utils.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
-import { toFileUrl, join } from "../../deno_ral/path.ts";
+import { join, toFileUrl } from "../../deno_ral/path.ts";
 import { resourcePath } from "../resources.ts";
 import { initTreeSitter } from "./deno-init-tree-sitter.ts";
 import { initYamlIntelligence } from "../lib/yaml-intelligence/yaml-intelligence.ts";
@@ -21,7 +20,7 @@ export async function initYamlIntelligenceResourcesFromFilesystem() {
       resourcePath("editor/tools/yaml/yaml-intelligence-resources.json"),
     ).href,
     {
-      assert: { type: "json" },
+      with: { type: "json" },
     }
   )).default as Record<string, unknown>;
 

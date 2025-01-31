@@ -65,6 +65,17 @@ local function match_all_in_table(pattern_table)
   return inner
 end
 
+-- return the pattern, and matched content for the first pattern in the list that matches
+local function match_in_list_of_patterns(raw_tex, list_of_patterns)
+  for _, pattern in ipairs(list_of_patterns) do
+    local matched =  { match_all_in_table(pattern)(raw_tex) }
+    if matched and #matched > 0 then
+      return matched, pattern
+    end
+  end
+  return nil
+end
+
 return {
   attr_identifier = attr_identifier,
   engine_escape = engine_escape,
@@ -93,5 +104,6 @@ return {
   latex_table_star = latex_table_star,
 
   match_all_in_table = match_all_in_table,
+  match_in_list_of_patterns = match_in_list_of_patterns,
   combine_patterns = combine_patterns
 }

@@ -1,0 +1,61 @@
+---
+title: callout colors
+format: 
+  revealjs:
+    theme: custom.scss
+---
+
+## Note
+
+::: {.callout-note}
+
+Content with inline code `1 + 1` and block
+
+```{.python}
+1 + 1
+```
+:::
+
+## Warning 
+
+::: {.callout-warning}
+
+Content with inline code `1 + 1` and block
+
+```{.python}
+1 + 1
+```
+:::
+
+## Important 
+
+::: {.callout-important}
+
+Content with inline code `1 + 1` and block
+
+```{.python}
+1 + 1
+```
+:::
+
+## Tip
+
+::: {.callout-tip}
+
+Content with inline code `1 + 1` and block
+
+```{.python}
+1 + 1
+```
+:::
+
+## caution
+
+::: {.callout-caution}
+
+Content with inline code `1 + 1` and block
+
+```{.python}
+1 + 1
+```
+:::

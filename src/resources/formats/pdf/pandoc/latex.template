@@ -23,6 +23,9 @@ $endif$
 $if(aspectratio)$
   aspectratio=$aspectratio$,
 $endif$
+$if(babel-lang)$
+  $babel-lang$,
+$endif$
 $endif$
 $for(classoption)$
   $classoption$$sep$,
@@ -57,13 +60,13 @@ $if(section-titles)$
 }
 \setbeamertemplate{section page}{
   \centering
-  \begin{beamercolorbox}[sep=12pt,center]{part title}
+  \begin{beamercolorbox}[sep=12pt,center]{section title}
     \usebeamerfont{section title}\insertsection\par
   \end{beamercolorbox}
 }
 \setbeamertemplate{subsection page}{
   \centering
-  \begin{beamercolorbox}[sep=8pt,center]{part title}
+  \begin{beamercolorbox}[sep=8pt,center]{subsection title}
     \usebeamerfont{subsection title}\insertsubsection\par
   \end{beamercolorbox}
 }
@@ -299,15 +302,17 @@ $endif$
 $if(graphics)$
 \usepackage{graphicx}
 \makeatletter
-\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
-\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
-\makeatother
-% Scale images if necessary, so that they will not overflow the page
-% margins by default, and it is still possible to overwrite the defaults
-% using explicit options in \includegraphics[width, height, ...]{}
-\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
 % Set default figure placement to htbp
-\makeatletter
 \def\fps@figure{htbp}
 \makeatother
 $endif$
@@ -440,13 +445,15 @@ $endfor$
 % get rid of language-specific shorthands (see #6817):
 \let\LanguageShortHands\languageshorthands
 \def\languageshorthands#1{}
+$if(selnolig-langs)$
+\ifLuaTeX
+  \usepackage[$for(selnolig-langs)$$it$$sep$,$endfor$]{selnolig} % disable illegal ligatures
+\fi
+$endif$
 $endif$
 $for(header-includes)$
 $header-includes$
 $endfor$
-\ifLuaTeX
-  \usepackage{selnolig}  % disable illegal ligatures
-\fi
 $if(dir)$
 \ifPDFTeX
   \TeXXeTstate=1
@@ -534,7 +541,7 @@ $if(institute)$
 \institute{$for(institute)$$institute$$sep$ \and $endfor$}
 $endif$
 $if(titlegraphic)$
-\titlegraphic{\includegraphics{$titlegraphic$}}
+\titlegraphic{\includegraphics$if(titlegraphicoptions)$[$for(titlegraphicoptions)$$titlegraphicoptions$$sep$, $endfor$]$endif${$titlegraphic$}}
 $endif$
 $if(logo)$
 \logo{\includegraphics{$logo$}}
@@ -571,7 +578,8 @@ $if(beamer)$
 $if(toc-title)$
   \frametitle{$toc-title$}
 $endif$
-  \tableofcontents[hideallsubsections]
+  \setcounter{tocdepth}{$toc-depth$}
+  \tableofcontents
 \end{frame}
 $else$
 {

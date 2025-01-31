@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2023 Posit Software, PBC
  */
 import { info } from "../../deno_ral/log.ts";
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 
 import { Input } from "cliffy/prompt/input.ts";
 import { Secret } from "cliffy/prompt/secret.ts";
@@ -238,7 +238,7 @@ async function publish(
     }, async () => {
       const bundleBytes = Deno.readFileSync(bundlePath);
       const bundleSize = bundleBytes.length;
-      const bundleHash = md5HashBytes(bundleBytes);
+      const bundleHash = await md5HashBytes(bundleBytes);
 
       const bundle = await client.createBundle(
         applicationId,

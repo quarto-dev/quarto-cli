@@ -6,7 +6,7 @@
 
 import { Command } from "cliffy/command/mod.ts";
 
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 import { error } from "../../deno_ral/log.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { projectContext } from "../../project/project-context.ts";
@@ -69,7 +69,7 @@ export const serveCommand = new Command()
 
     const nbContext = notebookContext();
     const context = (await projectContext(input, nbContext)) ||
-      singleFileProjectContext(input, nbContext);
+      (await singleFileProjectContext(input, nbContext));
     const formats = await withRenderServices(
       nbContext,
       (services: RenderServices) =>

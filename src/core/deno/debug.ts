@@ -7,7 +7,6 @@
  */
 
 import * as colors from "colors";
-import { warn } from "log/mod.ts";
 
 type StackEntry = {
   pos: string;
@@ -48,7 +47,7 @@ export const getStackAsArray = (
     /^.*at async (.*)src\/quarto.ts:\d+:\d+$/,
   );
   if (!m) {
-    warn(
+    console.log(
       "Could not find quarto.ts in stack trace, is QUARTO_DENO_V8_OPTIONS set with a sufficiently-large stack size?",
     );
   }
@@ -107,6 +106,33 @@ export const getStackAsArray = (
           line: m3[4],
           // if async, move the column to the start of the actual function name
           col: m3[5] + (m3[1] ? 6 : 0),
+        };
+      }
+
+      // at async Command.execute (https://deno.land/x/cliffy@v1.0.0-rc.3/command/command.ts:1948:7)
+      const m4 = s.match(
+        /^.*at (async )?(.*) \((http.+):(\d+):(\d+)*\)$/,
+      );
+      if (m4) {
+        return {
+          pos: m4[3],
+          name: `${m4[2]}`,
+          line: m4[4],
+          // if async, move the column to the start of the actual function name
+          col: m4[5] + (m4[1] ? 6 : 0),
+        };
+      }
+
+      // at Array.map (<anonymous>)
+      const m5 = s.match(
+        /^.*at (.*)\(<anonymous>\)$/,
+      );
+      if (m5) {
+        return {
+          pos: "",
+          name: `${m5[1]}`,
+          line: "",
+          col: "",
         };
       }
       throw new Error(`Unexpected stack entry: ${s}`);

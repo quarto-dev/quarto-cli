@@ -98,7 +98,7 @@ The plugin has several configuration options:
 - ```chalkEffect```: a float in the range ```[0.0, 1.0]```, the intesity of the chalk effect on the chalk board. Full effect (default) ```1.0```, no effect ```0.0```.
 - ```storage```: Optional variable name for session storage of drawings.
 - ```src```: Optional filename for pre-recorded drawings.
-- ```readOnly```: Configuation option allowing to prevent changes to existing drawings. If set to ```true``` no changes can be made, if set to false ```false``` changes can be made, if unset or set to ```undefined``` no changes to the drawings can be made after returning to a slide or fragment for which drawings had been recorded before. In any case the recorded drawings for a slide or fragment can be cleared by pressing the 'DEL' key (i.e. by using the ```RevealChalkboard.clear()``` function).
+- ```readOnly```: Configuation option allowing to prevent changes to existing drawings. If set to ```true``` no changes can be made, if set to ```false``` changes can be made, if unset or set to ```undefined``` no changes to the drawings can be made after returning to a slide or fragment for which drawings had been recorded before. In any case the recorded drawings for a slide or fragment can be cleared by pressing the 'DEL' key (i.e. by using the ```RevealChalkboard.clear()``` function).
 - ```transition```: Gives the duration (in milliseconds) of the transition for a slide change, so that the notes canvas is drawn after the transition is completed.
 - ```theme```: Can be set to either ```"chalkboard"``` or ```"whiteboard"```.
 

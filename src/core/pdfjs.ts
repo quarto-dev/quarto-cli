@@ -5,7 +5,7 @@
  */
 
 import { basename, join } from "../deno_ral/path.ts";
-import { md5Hash } from "./hash.ts";
+import { md5HashAsync } from "./hash.ts";
 import { viewerIFrameURL } from "./http-devserver.ts";
 import { FileResponse } from "./http-types.ts";
 import { contentType } from "./mime.ts";
@@ -100,7 +100,7 @@ export function pdfJsFileHandler(
       // (preserve user viewer prefs across reloads)
     } else if (file === previewPath("build", "pdf.worker.js")) {
       const filePathHash = "quarto-preview-pdf-" +
-        md5Hash(pdfFile());
+        await md5HashAsync(pdfFile());
       const workerJs = Deno.readTextFileSync(file).replace(
         /(key: "fingerprint",\s+get: function get\(\) {\s+)(var hash;)/,
         `$1return "${filePathHash}"; $2`,

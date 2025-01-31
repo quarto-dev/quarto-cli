@@ -65,7 +65,7 @@ function fold_code_and_lift_codeblocks()
       local prev_annotated_code_block_scaffold = nil
       local prev_annotated_code_block = nil
       -- ok to lift codeblocks
-      float.content = _quarto.ast.walk(float.content, {
+      float.content = _quarto.ast.walk(float.content or pandoc.Blocks{}, {
         traverse = "topdown",
         DecoratedCodeBlock = function(block)
           -- defer the folding of code blocks to the DecoratedCodeBlock renderer

@@ -3,11 +3,11 @@
 // If you find yourself trying to rebuild types and `quarto build-js` won't run because
 // of bad type definitions, run the following:
 // $ cd $QUARTO_ROOT
-// $ ./package/dist/bin/tools/deno run --importmap=./src/dev_import_map.json --allow-all ./package/src/common/create-schema-types.ts ./src/resources
+// $ ./package/dist/bin/tools/deno run --importmap=./src/import_map.json --allow-all ./package/src/common/create-schema-types.ts ./src/resources
 
 export type MaybeArrayOf<T> = T | T[];
 export type JsonObject = { [key: string]: unknown };
-export type SchemaObject = { [key: string]: string };
+// export type SchemaObject = { [key: string]: string };
 
 export type Date = string | { format?: string; value: string };
 
@@ -45,6 +45,7 @@ export type PageColumn =
   | "page"
   | "page-left"
   | "page-right"
+  | "page-inset"
   | "page-inset-left"
   | "page-inset-right"
   | "screen"
@@ -1266,6 +1267,7 @@ export type ManuscriptSchema = {
 
 export type BrandMeta = {
   link?: string | {
+    bluesky?: string /* The brand's Bluesky URL. */;
     facebook?: string /* The brand's Facebook URL. */;
     github?: string /* The brand's GitHub URL. */;
     home?: string /* The brand's home page or website. */;
@@ -1283,11 +1285,15 @@ export type BrandMeta = {
 
 export type BrandStringLightDark = string | { dark?: string; light?: string };
 
+export type BrandLogoExplicitResource = { alt?: string; path: string };
+
+export type BrandLogoResource = string | BrandLogoExplicitResource;
+
 export type BrandLogo = {
+  images?: { [key: string]: BrandLogoResource };
   large?: BrandStringLightDark;
   medium?: BrandStringLightDark;
   small?: BrandStringLightDark;
-  with?: JsonObject;
 }; /* Provide definitions and defaults for brand's logo in various formats and sizes. */
 
 export type BrandNamedLogo =
@@ -1297,28 +1303,21 @@ export type BrandNamedLogo =
 
 export type BrandColorValue = string;
 
-export type LogoStringLayout = string | {
-  location?: string;
-  padding?: string;
-  src?: string;
-  width?: string;
-}; /* Source path or source path with layout options for logo */
-
 export type BrandColor = {
   background?: BrandColorValue;
   danger?: BrandColorValue;
   dark?: BrandColorValue;
-  emphasis?: BrandColorValue;
   foreground?: BrandColorValue;
   info?: BrandColorValue;
   light?: BrandColorValue;
   link?: BrandColorValue;
+  palette?: {
+    [key: string]: BrandColorValue;
+  } /* The brand's custom color palette. Any number of colors can be defined, each color having a custom name. */;
   primary?: BrandColorValue;
   secondary?: BrandColorValue;
   success?: BrandColorValue;
   tertiary?: BrandColorValue;
-  with?:
-    JsonObject /* The brand's custom color palette. Any number of colors can be defined, each color having a custom name. */;
   warning?: BrandColorValue;
 }; /* The brand's custom color palette and theme. */
 
@@ -1338,59 +1337,78 @@ export type BrandNamedThemeColor =
   | "danger"
   | "light"
   | "dark"
-  | "emphasis"
   | "link"; /* A named brand color, taken either from `color.theme` or `color.palette` (in that order). */
 
 export type BrandTypography = {
-  base?: BrandTypographyOptions;
-  emphasis?: {
-    "background-color"?: BrandMaybeNamedColor;
-    color?: BrandMaybeNamedColor;
-    weight?: BrandFontWeight;
-  } /* The text properties used for emphasized (or emboldened) text. */;
-  headings?: BrandTypographyOptionsNoSize;
-  link?: {
-    "background-color"?: BrandMaybeNamedColor;
-    color?: BrandMaybeNamedColor;
-    decoration?: string;
-    weight?: BrandFontWeight;
-  } /* The text properties used for hyperlinks. */;
-  monospace?: BrandTypographyOptions;
-  with?: BrandFontWith;
+  "monospace-inline"?: BrandTypographyOptionsMonospaceInline;
+  "monospace-block"?: BrandTypographyOptionsMonospaceBlock;
+  base?: BrandTypographyOptionsBase;
+  fonts?: (BrandFont)[] /* Font files and definitions for the brand. */;
+  headings?: BrandTypographyOptionsHeadings;
+  link?: BrandTypographyOptionsLink;
+  monospace?: BrandTypographyOptionsMonospace;
 }; /* Typography definitions for the brand. */
 
-export type BrandTypographyOptions = {
-  "line-height"?: string;
+export type BrandTypographyOptionsBase = string | {
+  "line-height"?: LineHeightNumberString;
+  family?: string;
+  size?: string;
+  weight?: BrandFontWeight;
+}; /* Base typographic options. */
+
+export type BrandTypographyOptionsHeadings = string | {
+  "line-height"?: LineHeightNumberString;
+  color?: BrandMaybeNamedColor;
+  family?: string;
+  style?: BrandFontStyle;
+  weight?: BrandFontWeight;
+}; /* Typographic options for headings. */
+
+export type BrandTypographyOptionsMonospace = string | {
   "background-color"?: BrandMaybeNamedColor;
   color?: BrandMaybeNamedColor;
   family?: string;
-  files?: MaybeArrayOf<(string | string)> /* Resolved local paths. */;
   size?: string;
-  style?: BrandFontStyle;
   weight?: BrandFontWeight;
-}; /* Typographic options. */
+}; /* Typographic options for monospace elements. */
+
+export type BrandTypographyOptionsMonospaceInline = string | {
+  "background-color"?: BrandMaybeNamedColor;
+  color?: BrandMaybeNamedColor;
+  family?: string;
+  size?: string;
+  weight?: BrandFontWeight;
+}; /* Typographic options for inline monospace elements. */
+
+export type LineHeightNumberString = number | string; /* Line height */
+
+export type BrandTypographyOptionsMonospaceBlock = string | {
+  "background-color"?: BrandMaybeNamedColor;
+  "line-height"?: LineHeightNumberString;
+  color?: BrandMaybeNamedColor;
+  family?: string;
+  size?: string;
+  weight?: BrandFontWeight;
+}; /* Typographic options for block monospace elements. */
+
+export type BrandTypographyOptionsLink = string | {
+  "background-color"?: BrandMaybeNamedColor;
+  color?: BrandMaybeNamedColor;
+  decoration?: string;
+  weight?: BrandFontWeight;
+}; /* Typographic options for inline monospace elements. */
 
 export type BrandNamedFont =
   | "base"
   | "headings"
   | "monospace"; /* Names of customizeable fonts */
 
-export type BrandTypographyOptionsNoSize = {
-  "line-height"?: string;
-  "background-color"?: BrandMaybeNamedColor;
-  color?: BrandMaybeNamedColor;
-  family?: string;
-  style?: BrandFontStyle;
-  weight?: BrandFontWeight;
-}; /* Typographic options without a font size. */
-
-export type BrandFontWith =
-  JsonObject; /* Font files and definitions for the brand. */
-
 export type BrandFont =
   | BrandFontGoogle
+  | BrandFontBunny
   | BrandFontFile
-  | BrandFontFamily; /* Font files and definitions for the brand. */
+  | BrandFontSystem
+  | BrandFontCommon; /* Font files and definitions for the brand. */
 
 export type BrandFontWeight =
   | 100
@@ -1401,47 +1419,77 @@ export type BrandFontWeight =
   | 600
   | 700
   | 800
-  | 900; /* A font weight. */
+  | 900
+  | "thin"
+  | "extra-light"
+  | "ultra-light"
+  | "light"
+  | "normal"
+  | "regular"
+  | "medium"
+  | "semi-bold"
+  | "demi-bold"
+  | "bold"
+  | "extra-bold"
+  | "ultra-bold"
+  | "black"; /* A font weight. */
 
-export type BrandFontStyle = "normal" | "italic"; /* A font style. */
+export type BrandFontStyle =
+  | "normal"
+  | "italic"
+  | "oblique"; /* A font style. */
 
-export type BrandFontGoogle = {
-  google: string | {
-    display?:
-      | "auto"
-      | "block"
-      | "swap"
-      | "fallback"
-      | "optional" /* The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use. */;
-    family?: string;
-    style?: MaybeArrayOf<BrandFontStyle> /* The font styles to include. */;
-    weight?: MaybeArrayOf<BrandFontWeight>; /* The font weights to include. */
-  };
-}; /* A Google Font definition. */
-
-export type BrandFontFile = {
+export type BrandFontCommon = {
   display?:
     | "auto"
     | "block"
     | "swap"
     | "fallback"
-    | "optional" /* The font display method, determines how a font face is font face is shown  depending on its download status and readiness for use. */;
+    | "optional" /* The font display method, determines how a font face is font face is shown depending on its download status and readiness for use. */;
   family?: string;
-  files: MaybeArrayOf<
-    (string | string)
-  > /* The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs. */;
   style?: MaybeArrayOf<BrandFontStyle> /* The font styles to include. */;
   weight?: MaybeArrayOf<BrandFontWeight>; /* The font weights to include. */
+};
+
+export type BrandFontSystem =
+  & { source?: "system" }
+  & BrandFontCommon; /* A system font definition. */
+
+export type BrandFontGoogle =
+  & { source?: "google" }
+  & BrandFontCommon; /* A font definition from Google Fonts. */
+
+export type BrandFontBunny =
+  & { source?: "bunny" }
+  & BrandFontCommon; /* A font definition from fonts.bunny.net. */
+
+export type BrandFontFile = {
+  family: string;
+  files: ((string | {
+    path: string;
+    style?: BrandFontStyle;
+    weight?: BrandFontWeight;
+  }))[] /* The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs. */;
+  source: "file";
 }; /* A method for providing font files directly, either locally or from an online location. */
 
 export type BrandFontFamily = string;
 
 export type Brand = {
   color?: BrandColor;
-  defaults?: JsonObject;
+  defaults?: BrandDefaults;
   logo?: BrandLogo;
   meta?: BrandMeta;
   typography?: BrandTypography;
+};
+
+export type BrandDefaults = {
+  bootstrap?: BrandDefaultsBootstrap;
+  quarto?: JsonObject;
+};
+
+export type BrandDefaultsBootstrap = {
+  defaults?: { [key: string]: string | boolean | number };
 };
 
 export type ProjectConfig = {

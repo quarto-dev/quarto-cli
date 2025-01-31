@@ -10,7 +10,7 @@ import { join } from "../../../src/deno_ral/path.ts";
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { testQuartoCmd } from "../../test.ts";
 import { fileExists, noErrors, printsMessage, verifyNoPath, verifyPath } from "../../verify.ts";
-import { safeRemoveIfExists } from "../../../src/core/path.ts";
+import { normalizePath, safeRemoveIfExists } from "../../../src/core/path.ts";
 
 const renderDir = docs("project/prepost/mutate-render-list");
 const dir = join(Deno.cwd(), renderDir);
@@ -77,3 +77,23 @@ testQuartoCmd(
       safeRemoveIfExists(path);
     }
   });
+
+  testQuartoCmd(
+    "render",
+    [docs("project/prepost/issue-10828")],
+    [],
+    {
+      env: {
+        "QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES": normalizePath(docs("project/prepost/issue-10828/input-files.txt")),
+        "QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES": normalizePath(docs("project/prepost/issue-10828/output-files.txt"))
+      },
+      teardown: async () => {
+        const inputPath = normalizePath(docs("project/prepost/issue-10828/input-files.txt"));
+        const outputPath = normalizePath(docs("project/prepost/issue-10828/output-files.txt"));
+        verifyPath(inputPath);
+        safeRemoveIfExists(inputPath);
+        verifyPath(outputPath);
+        safeRemoveIfExists(outputPath);
+      }
+    }
+  )

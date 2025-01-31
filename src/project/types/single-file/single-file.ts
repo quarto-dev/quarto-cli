@@ -10,7 +10,7 @@
 // Currently, this file houses utilities to make the
 // single-file path look closer to a project.
 
-import { dirname } from "path/dirname.ts";
+import { dirname } from "../../../deno_ral/path.ts";
 import { normalizePath } from "../../../core/path.ts";
 import { NotebookContext } from "../../../render/notebook/notebook-types.ts";
 import { makeProjectEnvironmentMemoizer } from "../../project-environment.ts";
@@ -25,13 +25,17 @@ import {
   projectResolveFullMarkdownForFile,
 } from "../../project-shared.ts";
 import { ExecutionEngine } from "../../../execute/types.ts";
+import { createProjectCache } from "../../../core/cache/cache.ts";
+import { globalTempContext } from "../../../core/temp.ts";
 
-export function singleFileProjectContext(
+export async function singleFileProjectContext(
   source: string,
   notebookContext: NotebookContext,
   flags?: RenderFlags,
-): ProjectContext {
+): Promise<ProjectContext> {
   const environmentMemoizer = makeProjectEnvironmentMemoizer(notebookContext);
+  const temp = globalTempContext();
+  const projectCacheBaseDir = temp.createDir();
 
   const result: ProjectContext = {
     resolveBrand: (fileName?: string) => projectResolveBrand(result, fileName),
@@ -71,6 +75,12 @@ export function singleFileProjectContext(
       return projectFileMetadata(result, file, force);
     },
     isSingleFile: true,
+    diskCache: await createProjectCache(projectCacheBaseDir),
+    temp,
+    cleanup: () => {
+      result.diskCache.close();
+    },
   };
+  temp.onCleanup(result.cleanup);
   return result;
 }

@@ -1,5 +1,16 @@
 ---
 format: pptx
+_quarto:
+  tests:
+    pptx:
+      ensurePptxXpath:
+      - 
+        - 1
+        - 
+          - '//p:pic'
+          - '//p:cNvPr[contains(@descr, "existing-image.jpg")]'
+          - '//a:t[contains(text(),"Figure 1")]'
+        - []
 ---
 
 ## Slide Title
