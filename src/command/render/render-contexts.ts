@@ -89,6 +89,21 @@ import {
 import { ExtensionContext } from "../../extension/types.ts";
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
 
+// we can't naively ld.cloneDeep everything
+// because that destroys class instances
+// with private members
+//
+// Currently, that's ProjectContext.
+//
+// TODO: Ideally, we shouldn't be copying the RenderContext at all.
+export function copyRenderContext(
+  context: RenderContext,
+): RenderContext {
+  return {
+    ...ld.cloneDeep(context),
+    project: context.project,
+  };
+}
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
   input: string,
@@ -741,9 +756,6 @@ export async function projectMetadataForInputFile(
   input: string,
   project: ProjectContext,
 ): Promise<Metadata> {
-  // don't mutate caller
-  project = ld.cloneDeep(project) as ProjectContext;
-
   if (project.dir && project.config) {
     // If there is directory and configuration information
     // process paths
@@ -751,10 +763,10 @@ export async function projectMetadataForInputFile(
       projectType(project.config?.project?.[kProjectType]),
       project.dir,
       dirname(input),
-      project.config,
+      ld.cloneDeep(project.config),
     ) as Metadata;
   } else {
     // Just return the config or empty metadata
-    return project.config || {};
+    return ld.cloneDeep(project.config) || {};
   }
 }

@@ -8,6 +8,7 @@ All changes included in 1.7:
 - ([#11580](https://github.com/quarto-dev/quarto-cli/issues/11580)): Fix regression with documents containing `categories` fields that are not strings.
 - ([#11752](https://github.com/quarto-dev/quarto-cli/issues/11752)): Fix regression with non-alphanumeric characters in `categories` preventing correct filtering of listing.
 - ([#11561](https://github.com/quarto-dev/quarto-cli/issues/11561)): Fix a regression with `$border-color` that impacted, callouts borders, tabset borders, and table borders of the defaults themes. `$border-color` is now correctly a mixed of `$body-color` and `$body-bg` even for the default theme.
+- ([#11943](https://github.com/quarto-dev/quarto-cli/issues/11943)): Fix callout title color on dark theme in revealjs following Revealjs update in quarto 1.6.
 
 ## YAML validation
 
@@ -44,6 +45,7 @@ All changes included in 1.7:
 - ([#11578](https://github.com/quarto-dev/quarto-cli/issues/11578)): Typst column layout widths use fractional `fr` units instead of percent `%` units for unitless and default widths in order to fill the enclosing block and not spill outside it.
 - ([#11676](https://github.com/quarto-dev/quarto-cli/pull/11676)): Convert unitless image widths from pixels to inches for column layouts.
 - ([#11835](https://github.com/quarto-dev/quarto-cli/issues/11835)): Take markdown structure into account when detecting minimum heading level.
+- ([#11964](https://github.com/quarto-dev/quarto-cli/issues/11964)): Using panel layout without a crossref label now correctly do not add an empty `#block[]` that was leading to an unnecessary space in output.
 
 ## Lua Filters and extensions
 
