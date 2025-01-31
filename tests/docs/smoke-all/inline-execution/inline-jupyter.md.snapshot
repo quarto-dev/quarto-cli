@@ -1,11 +1,12 @@
 ---
 _quarto: {}
-title: inline knitr expressions
+title: inline jupyter expressions
 toc-title: Table of contents
 ---
 
-::: cell
-``` {.r .cell-code}
+::: {.cell execution_count="1"}
+``` {.python .cell-code}
+from IPython.display import Markdown
 x = 1
 y = "foo"
 z = '"foo"'
@@ -14,11 +15,10 @@ b = '*foo*'
 c = "*foo*"
 d = "'foo"
 e = "1"
-f = FALSE
-g = TRUE
-h = NULL
-i = "*foo*"
-class(i) <- c("character", "asis")
+f = False
+g = True
+h = None
+i = Markdown("*foo*")
 ```
 :::
 
@@ -32,7 +32,7 @@ Here's inline output:
 -   \*foo\*
 -   'foo
 -   1
--   FALSE
--   TRUE
--   NULL
--   \*foo\*
+-   False
+-   True
+-   None
+-   *foo*
