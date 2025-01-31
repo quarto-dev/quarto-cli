@@ -18,8 +18,8 @@
     short: "A regular expression that can be used to determine whether a link is an internal link."
     long: |
       A regular expression that can be used to determine whether a link is an internal link. For example, 
-      the following will treat links that start with http://www.quarto.org as internal links (and others
-      will be considered external):
+      the following will treat links that start with `http://www.quarto.org/custom` or `https://www.quarto.org/custom`
+      as internal links (and others will be considered external):
 
       ```
       ^(?:http:|https:)\/\/www\.quarto\.org\/custom
