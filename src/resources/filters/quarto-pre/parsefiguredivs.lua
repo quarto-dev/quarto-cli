@@ -12,33 +12,11 @@ local classes_to_not_merge = pandoc.List({
   "border"
 })
 
-function handle_subfloatreftargets()
-  -- #7045: pull fig-pos and fig-env attributes from subfloat to parent
-  return {
-    FloatRefTarget = function(float)
-      local pulled_attrs = {}
-      local attrs_to_pull = {
-        "fig-pos",
-        "fig-env",
-      }
-      local result = _quarto.ast.walk(float, {
-        FloatRefTarget = function(subfloat)
-          for _, attr in ipairs(attrs_to_pull) do
-            if subfloat.attributes[attr] then
-              pulled_attrs[attr] = subfloat.attributes[attr]
-              subfloat.attributes[attr] = nil
-            end
-          end
-          return subfloat
-        end,
-      }) or pandoc.Div({}) -- won't happen but the lua analyzer doesn't know that
-      for k, v in pairs(pulled_attrs) do
-        float.attributes[k] = v
-      end
-      return float
-    end
-  }
-end
+-- function handle_subfloatreftargets()
+--   return {
+--     FloatRefTarget = 
+--   }
+-- end
 
 local function process_div_caption_classes(div)
   -- knitr forwards "cap-location: top" as `.caption-top`...
@@ -136,6 +114,11 @@ local function kable_raw_latex_fixups(content, identifier)
 
       -- we found a table, a label, and a caption. This is a FloatRefTarget.
       matches = matches + 1
+
+      -- other FloatRefTarget constructions below go through
+      -- a recursion step to identify subfloats, but we don't have
+      -- to do that here, since we know that the content of this FloatRefTarget
+      -- is a single table.
       return quarto.FloatRefTarget({
         identifier = label_identifier,
         type = "Table",
@@ -165,6 +148,39 @@ end
 
 function parse_floatreftargets()
 
+  local filter
+
+  local function construct(tbl)
+    local new_content = _quarto.ast.walk(tbl.content, filter)
+
+    -- #7045: pull fig-pos and fig-env attributes from subfloat to parent
+    local pulled_attrs = {}
+    local attrs_to_pull = {
+      "fig-pos",
+      "fig-env",
+    }
+    new_content = _quarto.ast.walk(new_content, {
+      FloatRefTarget = function(subfloat)
+        for _, attr in ipairs(attrs_to_pull) do
+          if subfloat.attributes[attr] then
+            pulled_attrs[attr] = subfloat.attributes[attr]
+            subfloat.attributes[attr] = nil
+          end
+        end
+        return subfloat
+      end      
+    })
+    local inner_tbl = {}
+    for k, v in pairs(tbl) do
+      inner_tbl[k] = v
+    end
+    for k, v in pairs(pulled_attrs) do
+      inner_tbl.attr.attributes[k] = v
+    end
+    inner_tbl.content = new_content
+    return quarto.FloatRefTarget(inner_tbl)
+  end
+
   local function handle_subcells_as_subfloats(params)  
     local identifier = params.identifier
     local div = params.div
@@ -182,10 +198,10 @@ function parse_floatreftargets()
           return nil
         end
         subcap_index = subcap_index + 1
-        local subfloat = quarto.FloatRefTarget({
+        local subfloat = construct({
           attr = pandoc.Attr(identifier .. "-" .. tostring(subcap_index), {}, {}),
           type = category.name,
-          content = {subdiv},
+          content = pandoc.Blocks{subdiv},
           caption_long = {pandoc.Plain(string_to_quarto_ast_inlines(subcaps[subcap_index]))},
         })
         subcells:insert(subfloat)
@@ -274,6 +290,7 @@ function parse_floatreftargets()
 
     local identifier = div.identifier
     local attr = pandoc.Attr(identifier, div.classes, div.attributes)
+    assert(content)
     if (#content == 1 and content[1].t == "Para" and
         content[1].content[1].t == "Image") then
       -- if the div contains a single image, then we simply use the image as
@@ -367,7 +384,7 @@ function parse_floatreftargets()
         return_cell.content = coalesce_code_blocks(return_cell.content)
         return_cell.classes = div.classes
         return_cell.attributes = div.attributes
-        local reftarget = quarto.FloatRefTarget({
+        local reftarget = construct({
           attr = attr,
           type = category.name,
           content = final_content.content,
@@ -416,7 +433,7 @@ function parse_floatreftargets()
       }
     end
 
-    return quarto.FloatRefTarget({
+    return construct({
       attr = attr,
       type = category.name,
       content = content,
@@ -424,7 +441,7 @@ function parse_floatreftargets()
     }), false
   end
 
-  return {
+  filter = {
     traverse = "topdown",
     Figure = function(fig)
       local key_prefix = refType(fig.identifier)
@@ -463,7 +480,7 @@ function parse_floatreftargets()
         end
       }) or fig.content[1] -- this shouldn't be needed but the lua analyzer doesn't know it
 
-      return quarto.FloatRefTarget({
+      return construct({
         attr = fig_attr,
         type = category.name,
         content = new_content.content,
@@ -502,7 +519,7 @@ function parse_floatreftargets()
 
       local combined = merge_attrs(el.attr, attr)
 
-      return quarto.FloatRefTarget({
+      return construct({
         identifier = label,
         classes = combined.classes,
         attributes = as_plain_table(combined.attributes),
@@ -586,7 +603,7 @@ function parse_floatreftargets()
           -- warn("Figure with invalid crossref category: " .. identifier .. "\nWon't be able to cross-reference this figure.")
           return nil
         end
-        return quarto.FloatRefTarget({
+        return construct({
           identifier = identifier,
           classes = {}, 
           attributes = as_plain_table(img.attributes),
@@ -617,7 +634,7 @@ function parse_floatreftargets()
           return
         end
         local combined = merge_attrs(img.attr, link.attr)
-        return quarto.FloatRefTarget({
+        return construct({
           identifier = identifier,
           classes = combined.classes,
           attributes = as_plain_table(combined.attributes),
@@ -642,10 +659,10 @@ function parse_floatreftargets()
       
       local attr = code.attr
       -- code.attr = pandoc.Attr("", {}, {})
-      return quarto.FloatRefTarget({
+      return construct({
         attr = attr,
         type = "Listing",
-        content = { decorated_code.__quarto_custom_node }, -- this custom AST impedance mismatch here is unfortunate
+        content = pandoc.Blocks{ decorated_code.__quarto_custom_node }, -- this custom AST impedance mismatch here is unfortunate
         caption_long = caption,
       }), false
     end,
@@ -671,10 +688,10 @@ function parse_floatreftargets()
       
       local attr = code.attr
       code.attr = pandoc.Attr("", {}, {})
-      return quarto.FloatRefTarget({
+      return construct({
         attr = attr,
         type = "Listing",
-        content = { content },
+        content = pandoc.Blocks({ content }),
         caption_long = caption_inlines,
       }), false
     end,
@@ -749,15 +766,17 @@ function parse_floatreftargets()
         raw.text = matched[2]
       end
 
-      return quarto.FloatRefTarget({
+      return construct({
         attr = pandoc.Attr(identifier, {}, {}),
         type = "Table",
-        content = { raw },
+        content = pandoc.Blocks({ raw }),
         caption_long = quarto.utils.as_blocks(caption)
       }), false
     end
     
   }
+
+  return filter
 end
 
 function forward_cell_subcaps()
