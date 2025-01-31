@@ -53,7 +53,6 @@ export async function resolveSassBundles(
   inputDir: string,
   extras: FormatExtras,
   format: Format,
-  temp: TempContext,
   project: ProjectContext,
 ) {
   extras = cloneDeep(extras);
@@ -159,11 +158,11 @@ export async function resolveSassBundles(
 
     for (const target of targets) {
       let cssPath: string | undefined;
-      cssPath = await compileSass(target.bundles, temp);
+      cssPath = await compileSass(target.bundles, project);
       // First, Clean CSS
       cleanSourceMappingUrl(cssPath);
       // look for a sentinel 'dark' value, extract variables
-      const cssResult = await processCssIntoExtras(cssPath, extras, temp);
+      const cssResult = await processCssIntoExtras(cssPath, extras, project);
       cssPath = cssResult.path;
 
       // it can happen that processing generate an empty css file (e.g quarto-html deps with Quarto CSS variables)
@@ -261,7 +260,7 @@ export async function resolveSassBundles(
     inputDir,
     extras,
     format,
-    temp,
+    project,
     hasDarkStyles ? "light" : "default",
     defaultStyle,
   );
@@ -272,7 +271,7 @@ export async function resolveSassBundles(
       inputDir,
       extras,
       format,
-      temp,
+      project,
       "dark",
       defaultStyle,
     );
@@ -291,7 +290,7 @@ async function resolveQuartoSyntaxHighlighting(
   inputDir: string,
   extras: FormatExtras,
   format: Format,
-  temp: TempContext,
+  project: ProjectContext,
   style: "dark" | "light" | "default",
   defaultStyle?: "dark" | "light",
 ) {
@@ -381,7 +380,7 @@ async function resolveQuartoSyntaxHighlighting(
             rules: rules.join("\n"),
           },
         }],
-        temp,
+        project,
         false,
       );
 
@@ -500,8 +499,9 @@ interface CSSResult {
 async function processCssIntoExtras(
   cssPath: string,
   extras: FormatExtras,
-  temp: TempContext,
+  project: ProjectContext,
 ): Promise<CSSResult> {
+  const { temp } = project;
   extras.html = extras.html || {};
 
   const css = Deno.readTextFileSync(cssPath);

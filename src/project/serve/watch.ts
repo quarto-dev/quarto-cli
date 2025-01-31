@@ -10,7 +10,7 @@ import { existsSync } from "../../deno_ral/fs.ts";
 import * as ld from "../../core/lodash.ts";
 
 import { normalizePath, pathWithForwardSlashes } from "../../core/path.ts";
-import { md5Hash } from "../../core/hash.ts";
+import { md5HashAsync, md5HashSync } from "../../core/hash.ts";
 
 import { logError } from "../../core/log.ts";
 import { isRevealjsOutput } from "../../config/format.ts";
@@ -64,6 +64,7 @@ export function watchProject(
   const flags = renderOptions.flags;
   // helper to refresh project config
   const refreshProjectConfig = async () => {
+    project.cleanup();
     project =
       (await projectContext(project.dir, nbContext, renderOptions, false))!;
   };
@@ -147,7 +148,8 @@ export function watchProject(
           const inputs = paths.filter(isInputFile).filter(existsSync1).filter(
             (input: string) => {
               return !rendered.has(input) ||
-                rendered.get(input) !== md5Hash(Deno.readTextFileSync(input));
+                rendered.get(input) !==
+                  md5HashSync(Deno.readTextFileSync(input));
             },
           );
           if (inputs.length) {
@@ -178,40 +180,44 @@ export function watchProject(
               });
 
               if (result.error) {
+                result.context.cleanup();
                 renderManager.onRenderError(result.error);
                 return undefined;
-              } else {
-                // record rendered hash
-                for (const input of inputs.filter(existsSync1)) {
-                  rendered.set(input, md5Hash(Deno.readTextFileSync(input)));
-                }
-                renderManager.onRenderResult(
-                  result,
-                  extensionDirs,
-                  resourceFiles,
-                  project!,
-                );
-
-                // Filter out supplmental files (e.g. files that were injected as supplements)
-                // to the render. Instead, we should return the first non-supplemental file.
-                // Example of supplemental file is a user rendering a post that appears in a listing
-                // - the listing will be added as a supplement since changes in the post may change the
-                // listing itself
-                const nonSupplementalFiles = result.files.filter(
-                  (renderResultFile) => {
-                    return !renderResultFile.supplemental;
-                  },
-                );
-
-                return {
-                  config: false,
-                  output: true,
-                  reloadTarget: (nonSupplementalFiles.length &&
-                      !isPdfContent(nonSupplementalFiles[0].file))
-                    ? join(outputDir, nonSupplementalFiles[0].file)
-                    : undefined,
-                };
               }
+              // record rendered hash
+              for (const input of inputs.filter(existsSync1)) {
+                rendered.set(
+                  input,
+                  await md5HashAsync(Deno.readTextFileSync(input)),
+                );
+              }
+              renderManager.onRenderResult(
+                result,
+                extensionDirs,
+                resourceFiles,
+                project!,
+              );
+
+              // Filter out supplmental files (e.g. files that were injected as supplements)
+              // to the render. Instead, we should return the first non-supplemental file.
+              // Example of supplemental file is a user rendering a post that appears in a listing
+              // - the listing will be added as a supplement since changes in the post may change the
+              // listing itself
+              const nonSupplementalFiles = result.files.filter(
+                (renderResultFile) => {
+                  return !renderResultFile.supplemental;
+                },
+              );
+              result.context.cleanup();
+
+              return {
+                config: false,
+                output: true,
+                reloadTarget: (nonSupplementalFiles.length &&
+                    !isPdfContent(nonSupplementalFiles[0].file))
+                  ? join(outputDir, nonSupplementalFiles[0].file)
+                  : undefined,
+              };
             } finally {
               services.cleanup();
             }

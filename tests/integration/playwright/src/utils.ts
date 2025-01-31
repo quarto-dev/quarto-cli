@@ -151,15 +151,26 @@ export async function getCSSProperty(loc: Locator, variable: string, asNumber = 
   }
 }
 
+export async function checkCSSproperty(loc1: Locator, loc2: Locator, property: string, asNumber: false | true, checkType: 'identical' | 'similar', factor: number = 1) {
+  let loc1Property = await getCSSProperty(loc1, property, asNumber);
+  let loc2Property = await getCSSProperty(loc2, property, asNumber);
+  if (checkType === 'identical') {
+    await expect(loc2).toHaveCSS(property, loc1Property as string);
+  } else {
+    await expect(loc1Property).toBeCloseTo(loc2Property as number * factor);
+  }
+}
+
 export async function checkFontSizeIdentical(loc1: Locator, loc2: Locator) {
-  const loc1FontSize = await getCSSProperty(loc1, 'font-size', false) as string;
-  await expect(loc2).toHaveCSS('font-size', loc1FontSize);
+  await checkCSSproperty(loc1, loc2, 'font-size', false, 'identical');
 }
 
 export async function checkFontSizeSimilar(loc1: Locator, loc2: Locator, factor: number = 1) {
-  const loc1FontSize = await getCSSProperty(loc1, 'font-size', true) as number;
-  const loc2FontSize = await getCSSProperty(loc2, 'font-size', true) as number;
-  await expect(loc1FontSize).toBeCloseTo(loc2FontSize * factor);
+  await checkCSSproperty(loc1, loc2, 'font-size', true, 'similar', factor);
+}
+
+export async function checkColorIdentical(loc1: Locator, loc2: Locator, property: string) {
+  await checkCSSproperty(loc1, loc2, property, false, 'identical');
 }
 
 export async function checkBorderProperties(element: Locator, side: string, color: RGBColor, width: string) {

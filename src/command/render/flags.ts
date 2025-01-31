@@ -27,8 +27,6 @@ import {
 import { isQuartoMetadata } from "../../config/metadata.ts";
 import { RenderFlags, RenderOptions } from "./types.ts";
 
-import * as ld from "../../core/lodash.ts";
-
 import { isAbsolute, SEP_PATTERN } from "../../deno_ral/path.ts";
 import { normalizePath } from "../../core/path.ts";
 import { removeFlags } from "../../core/flags.ts";
@@ -471,7 +469,12 @@ export function removePandocToArg(args: string[]) {
 }
 
 export function removePandocTo(renderOptions: RenderOptions) {
-  renderOptions = ld.cloneDeep(renderOptions);
+  renderOptions = {
+    ...renderOptions,
+    flags: {
+      ...(renderOptions.flags || {}),
+    },
+  } as RenderOptions;
   delete renderOptions.flags?.to;
   if (renderOptions.pandocArgs) {
     renderOptions.pandocArgs = removePandocToArg(renderOptions.pandocArgs);

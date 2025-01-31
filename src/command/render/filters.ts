@@ -713,6 +713,7 @@ function initFilterParams(dependenciesFile: string) {
 const kQuartoFilterMarker = "quarto";
 const kQuartoCiteProcMarker = "citeproc";
 
+// NB: this mutates `pandoc.citeproc`
 export async function resolveFilters(
   filters: QuartoFilter[],
   options: PandocOptions,

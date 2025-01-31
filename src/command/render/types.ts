@@ -102,7 +102,7 @@ export interface RenderResourceFiles {
 }
 
 export interface RenderResult {
-  context?: ProjectContext;
+  context: ProjectContext;
   baseDir?: string;
   outputDir?: string;
   files: RenderResultFile[];

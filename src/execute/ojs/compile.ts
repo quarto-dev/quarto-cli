@@ -892,7 +892,9 @@ export async function ojsExecuteResult(
   executeResult: MappedExecuteResult,
   ojsBlockLineNumbers: number[],
 ) {
-  executeResult = ld.cloneDeep(executeResult);
+  executeResult = {
+    ...executeResult,
+  };
 
   // evaluate ojs chunks
   const { markdown, includes, filters, resourceFiles } = await ojsCompile({
