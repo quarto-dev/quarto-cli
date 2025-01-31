@@ -164,8 +164,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   }
   
   # special internal function for rendering inline code using Quarto syntax
-  local({
-    quarto_inline_render <- function(v) {
+  .quarto_tools_env$.QuartoInlineRender <- function(v) {
       if (is.null(v)) {
         "NULL"
       } else if (inherits(v, "AsIs")) {
@@ -176,12 +175,6 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
         v
       }
     }
-    assign(
-      ".QuartoInlineRender",
-      quarto_inline_render,
-      envir = .quarto_tools_env
-    )
-  })
 
   render_output <- rmarkdown::render(
     input = input,
