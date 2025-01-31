@@ -22,7 +22,12 @@ import {
   relative,
   SEP,
 } from "../../../deno_ral/path.ts";
-import { copySync, ensureDirSync, moveSync, walkSync } from "fs/mod.ts";
+import {
+  copySync,
+  ensureDirSync,
+  moveSync,
+  walkSync,
+} from "../../../deno_ral/fs.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
 import {

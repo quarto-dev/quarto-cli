@@ -1,0 +1,29 @@
+---
+format: revealjs
+toc: true
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - 
+          - 'nav[role="doc-toc"] ul > li:nth-child(1) > a[href$="section-1"]'
+          - 'nav[role="doc-toc"] ul > li:nth-child(2) > a[href$="section-2"]'
+        - 
+          - 'nav[role="doc-toc"] ul > li:nth-child(3)'
+---
+
+## Section 1
+
+Should show up in the TOC as a bullet point.
+
+---
+
+No title and should not be
+
+## Section 2
+
+Should show up in the TOC as a bullet point.
+
+## 
+
+No title and should not be in the TOC

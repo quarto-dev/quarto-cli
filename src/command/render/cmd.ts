@@ -5,7 +5,7 @@
  */
 
 import { dirname, relative } from "../../deno_ral/path.ts";
-import { expandGlobSync } from "fs/expand_glob.ts";
+import { expandGlobSync } from "../../deno_ral/fs.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { debug, info, warning } from "../../deno_ral/log.ts";
 
@@ -245,6 +245,9 @@ export const renderCommand = new Command()
         const services = renderServices(notebookContext());
         try {
           renderResultInput = relative(Deno.cwd(), walk.path) || ".";
+          if (renderResult) {
+            renderResult.context.cleanup();
+          }
           renderResult = await render(renderResultInput, {
             services,
             flags,
@@ -255,6 +258,7 @@ export const renderCommand = new Command()
 
           // check for error
           if (renderResult.error) {
+            renderResult.context.cleanup();
             throw renderResult.error;
           }
         } finally {
@@ -274,6 +278,10 @@ export const renderCommand = new Command()
 
         if (finalOutput) {
           info("Output created: " + finalOutput + "\n");
+        }
+
+        if (renderResult) {
+          renderResult.context.cleanup();
         }
       }
     } else {

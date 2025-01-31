@@ -38,10 +38,12 @@ function var(name, def)
   end
 end
 
-function parseOption(name, options, def) 
+function parseOption(name, options, def)
+  name = name:gsub("%\\%.", string.char(1))
   local keys = split(name, ".")
   local value = nil
   for i, key in ipairs(keys) do
+    key = key:gsub(string.char(1), "."):gsub("%\\(.)", "%1")
     if value == nil then
       value = readOption(options, key, nil)
     else

@@ -1,0 +1,53 @@
+color:
+  palette:
+    red: "#FF0000"
+    black: "#002040"
+    white: "#FFE0C0"
+  primary: red
+  foreground: "#080180"
+  background: white
+
+typography:
+  fonts:
+    - source: google
+      family: Aguafina Script
+      weight: [200, 400]
+      style: [normal, italic]
+    - source: google
+      family: Montserrat
+      weight: [400, 700, 900]
+      style: [normal, italic]
+    - source: google
+      family: Inconsolata
+      style: [normal, italic] # there is no italic
+      weight: [400, 600]
+    - source: google
+      family: Roboto Slab
+      weight: [400]
+  base:
+    family: Aguafina Script
+    size: 14pt
+    weight: 200
+    line-height: 1.5
+  headings:
+    family: Montserrat
+    weight: 800
+    style: normal
+    color: "#0b8005"
+    line-height: 1
+  monospace:
+    family: Inconsolata
+  monospace-inline:
+    weight: 600
+    size: 0.57rem
+    color: rgb(8, 111, 15)
+    background-color: rgb(255, 250, 224)
+  monospace-block:
+    color: mintcream
+    size: 18pt
+    background-color: "#77aae1"
+    line-height: 2
+  link:
+    color: maroon
+    decoration: underline
+    background-color: "#adf8"

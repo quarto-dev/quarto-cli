@@ -1,0 +1,11 @@
+color: 
+  palette: 
+    white: "#eeddcc"
+    black: "#112233"
+  foreground: black
+  background: white
+typography:
+  fonts:
+    - family: "Roboto Slab"
+      source: google
+  base: "Roboto Slab"

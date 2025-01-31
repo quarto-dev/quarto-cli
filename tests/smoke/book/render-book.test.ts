@@ -1,7 +1,7 @@
 import { testQuartoCmd } from "../../test.ts";
 import { fileExists, noErrorsOrWarnings } from "../../verify.ts";
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { docs } from "../../utils.ts";
 

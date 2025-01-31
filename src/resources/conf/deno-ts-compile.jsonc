@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "lib": ["DOM", "ES2020"],
+    "lib": ["DOM", "ES2021"],
     "strict": true,
 
     /* these are strictly for deno check; we never use deno to emit */

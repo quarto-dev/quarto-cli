@@ -10,8 +10,8 @@ _quarto:
         - []
     typst:
       ensureTypstFileRegexMatches:
-        - ['<test-table>[\s]*#figure\(']
-        - ['<test-table>[\s]*#block\[[\s]*#figure\(']
+        - ['<test-table>[\s]*#table\(']
+        - ['<test-table>[\s]*#block\[[\s]*#table\(']
 ---
 
 # Test table {#test-table}

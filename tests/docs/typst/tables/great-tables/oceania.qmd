@@ -13,6 +13,7 @@ references:
 ---
 
 ```{python}
+#| classes: plain
 from great_tables import GT
 from great_tables.data import countrypops
 import polars as pl

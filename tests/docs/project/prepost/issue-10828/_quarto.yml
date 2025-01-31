@@ -1,0 +1,21 @@
+project:
+  type: website
+  pre-render: check-input.ts
+  post-render: check-output.ts
+
+website:
+  title: "issue-10828"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+
+

@@ -16,8 +16,11 @@ authors:
 - family-names: "Dervieux"
   given-names: "Christophe"
   orcid: "https://orcid.org/0000-0003-4474-2498"
+- family-names: "Woodhull"
+  given-names: "Gordon"
+  orcid: "https://orcid.org/0009-0005-1809-8936"
 title: "Quarto"
-version: 1.4
+version: 1.6
 doi: 10.5281/zenodo.5960048
-date-released: 2024-02-15
+date-released: 2024-11-27
 url: "https://github.com/quarto-dev/quarto-cli"

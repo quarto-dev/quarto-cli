@@ -17,13 +17,13 @@ DENO_ARCH_DIR=$DENO_DIR
 DENO_DIR="$QUARTO_ROOT/package/dist/bin/"
 
 # Local import map
-QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_DIR/dev_import_map.json
+QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_DIR/import_map.json
 
 export QUARTO_BIN_PATH=$DENO_DIR
 export QUARTO_SHARE_PATH="`cd "$QUARTO_ROOT/src/resources/";pwd`"
 export QUARTO_DEBUG=true
 
-QUARTO_DENO_OPTIONS="--config test-conf.json --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192 --unstable-kv --unstable-ffi --allow-read --allow-write --allow-run --allow-env --allow-net"
+QUARTO_DENO_OPTIONS="--config test-conf.json --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192 --unstable-kv --unstable-ffi --no-lock --allow-all"
 
 
 if [[ -z $GITHUB_ACTION ]] && [[ -z $QUARTO_TESTS_NO_CONFIG ]]
@@ -33,13 +33,17 @@ then
 fi
 
 # Activating python virtualenv
-# set QUARTO_TESTS_FORCE_NO_PIPENV env var to not activate the virtualenv managed by pipenv for the project
-if [[ -z $QUARTO_TESTS_FORCE_NO_PIPENV ]]
+# set QUARTO_TESTS_FORCE_NO_VENV env var to not activate the virtualenv located in the project
+# QUARTO_TESTS_FORCE_NO_PIPENV is there for backward compatibility
+if [[ -z $QUARTO_TESTS_FORCE_NO_VENV && -n $QUARTO_TESTS_FORCE_NO_PIPENV ]]; then
+  export QUARTO_TESTS_FORCE_NO_VENV=$QUARTO_TESTS_FORCE_NO_PIPENV
+fi
+if [[ -z $QUARTO_TESTS_FORCE_NO_VENV ]]
 then
   # Save possible activated virtualenv for later restauration
   OLD_VIRTUAL_ENV=$VIRTUAL_ENV
-  echo "> Activating virtualenv for Python tests in Quarto"
-  source "$(pipenv --venv)/bin/activate"
+  echo "> Activating virtualenv from .venv for Python tests in Quarto"
+  source "${QUARTO_ROOT}/tests/.venv/bin/activate"
   echo "> Using Python from $(which python)"
   echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
   quarto_venv_activated="true"

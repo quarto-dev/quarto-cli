@@ -5,7 +5,7 @@
  */
 
 import { join } from "../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { resolvePathGlobs } from "../core/path.ts";
 import { lines } from "../core/text.ts";
 import { warning } from "../deno_ral/log.ts";

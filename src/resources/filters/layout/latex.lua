@@ -81,7 +81,11 @@ function latexPanelEnv(layout)
   
   -- defaults
   local env = latexFigureEnv(layout)
-  local pos = attribute(layout.float or { attributes = layout.attributes or {} }, kFigPos)
+  local attr_key = kFigPos
+  if layout.float then
+    attr_key = ref_type_from_float(layout.float) .. "-pos"
+  end
+  local pos = attribute(layout.float or { attributes = layout.attributes or {} }, attr_key)
   
   return env, pos
 end

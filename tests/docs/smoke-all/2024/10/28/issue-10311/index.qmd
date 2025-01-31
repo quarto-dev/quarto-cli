@@ -1,0 +1,12 @@
+---
+title: "Home"
+listing:
+  contents:
+    - "posts.qmd"
+  type: grid 
+  sort: false
+_quarto:
+  render-project: true
+---
+
+

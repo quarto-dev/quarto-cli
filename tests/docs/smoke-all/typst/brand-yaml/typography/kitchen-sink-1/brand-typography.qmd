@@ -1,0 +1,70 @@
+---
+title: title is `#context text.fill`{=typst} `#context text.font`{=typst} `#context text.weight`{=typst} `#context text.style`{=typst} `#context text.size`{=typst}
+subtitle: subtitle is the same except `#context text.size`{=typst}
+format:
+  typst:
+    keep-typ: true
+include-in-header:
+  text: |
+    #set text(fallback: false, weight: 100)
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+      -
+        - 'title is\s*rgb\("#0b8005"\)\s*montserrat extra-?bold\s*normal\s21pt'
+        - 'subtitle is the same except 17\.5pt'
+        - 'heading-2 is rgb\("#0b8005"\) montserrat extrabold\s*normal 19\.6pt'
+        - 'Paragraph\s*is\s*rgb\("#080180"\)\s*aguafina\s*script\s*extra-?light\s*normal[\s,]*14pt'
+        - 'fib = num => num < 2' # unable to reflect raw
+        - 'a link in aguafina script extralight normal\s*14pt'
+      - []
+      ensureTypstFileRegexMatches:
+      -
+        - 'font: \("Aguafina Script",\),$'
+        - 'fontsize: 14pt,$'
+        - '^#set text\(weight: 200, \)$'
+        - '^#set text\(fill: brand-color.foreground\)'
+        - '^#set par\(leading: 0\.75em\)$'
+
+        - 'heading-family: \("Montserrat",\),$'
+        - 'heading-weight: 800,$'
+        - 'heading-style: "normal",$'
+        - 'heading-color: rgb\("#0b8005"\),$'
+        - 'heading-line-height: 0\.25em,$'
+        - '^#show heading: set text\(font: "Montserrat", weight: 800, style: "normal", fill: rgb\("#0b8005"\), \)$'
+        - '^#show heading: set par\(leading: 0.25em\)$'
+
+        - '^#show raw.where\(block: false\): set text\(font: "Inconsolata", weight: 600, size: 0.57\*14pt, fill: rgb\(8, 111, 15\), \)$'
+        - '^#show raw.where\(block: false\): content => highlight\(fill: rgb\(255, 250, 224\), content\)$'
+
+        - '^#show raw.where\(block: true\): set text\(font: "Inconsolata", size: 18pt, fill: rgb\(245, 255, 250\), \)$'
+        - '^#show raw.where\(block: true\): set block\(fill: rgb\("#77aae1"\)\)$'
+        - '^#show raw.where\(block: true\): set par\(leading: 1\.25em\)$'
+
+        - '^#show link: set text\(fill: maroon, \)$'
+        - '^#show link: content => underline\(content\)$'
+        - '^#show link: content => highlight\(fill: rgb\("#adf8"\), content\)$'
+
+      -
+        - '^#show heading: content => underline\(content\)$'
+        - '^#show heading: set block'
+        - 'heading-decoration: "underline",$'
+        - '^#show raw.where\(block: false\): content => underline\(content\)$'
+        - 'heading-background-color: unescape-eval'
+---
+
+## heading-2 is `#context text.fill #context text.font #context text.weight #context text.style #context text.size`{=typst}
+
+Paragraph is `#context text.fill #context text.font #context text.weight #context text.style #context text.size`{=typst}, \
+and here's an inline code block `{js} fib(90)` (lorem ipsum dolor).
+
+```
+const fib = num => num < 2 ? num : fib(num-1) + fib(num - 2);
+console.log(fib(12))
+```
+
+Now let's throw in a [link in `#context text.font`{=typst} `#context text.weight`{=typst} `#context text.style`{=typst} `#context text.size`{=typst}](https://www.example.com) before hitting a wall of text.
+
+{{< lipsum 3 >}}
+

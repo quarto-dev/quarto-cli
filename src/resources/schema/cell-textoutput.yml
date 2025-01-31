@@ -72,9 +72,15 @@
 - name: message
   tags:
     engine: knitr
-  schema: boolean
+  schema:
+    enum: [true, false, NA]
   default: true
-  description: Include messages in rendered output.
+  description:
+    short: Include messages in rendered output.
+    long: |
+      Include messages in rendered output. Possible values are `true`, `false`, or `NA`. 
+      If `true`, messages are included in the output. If `false`, messages are not included. 
+      If `NA`, messages are not included in output but shown in the knitr log to console.
 
 - name: results
   tags:

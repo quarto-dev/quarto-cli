@@ -6,8 +6,7 @@
 */
 
 import { dirname, join } from "../../../src/deno_ral/path.ts";
-import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { copySync } from "fs/copy.ts";
+import { copySync, ensureDirSync, existsSync } from "../../../src/deno_ral/fs.ts";
 
 import { Configuration } from "../common/config.ts";
 import { buildFilter } from "./package-filters.ts";
@@ -239,6 +238,7 @@ function inlineFilters(config: Configuration) {
     { name: "crossref" },
     { name: "customwriter" },
     { name: "qmd-reader", dir: "." },
+    { name: "leveloneanalysis", dir: "quarto-internals"}
   ];
 
   filtersToInline.forEach((filter) => {

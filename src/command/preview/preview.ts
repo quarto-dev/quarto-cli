@@ -12,7 +12,7 @@ import {
   join,
   relative,
 } from "../../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -373,7 +373,7 @@ export async function previewFormat(
     return format;
   }
   const nbContext = notebookContext();
-  project = project || singleFileProjectContext(file, nbContext);
+  project = project || (await singleFileProjectContext(file, nbContext));
   formats = formats ||
     await withRenderServices(
       nbContext,
@@ -484,6 +484,8 @@ export async function renderForPreview(
     },
     [],
   ));
+
+  renderResult.context.cleanup();
 
   return {
     file,

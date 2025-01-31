@@ -3,7 +3,10 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
+import { base } from "acorn/walk";
+import { decodeBase64, encodeBase64 } from "encoding/base64";
 import { Document, Element, Node } from "./deno-dom.ts";
+import { decode } from "https://deno.land/std@0.93.0/encoding/base64.ts";
 
 export interface PipelineMarkdown {
   blocks?: Record<string, string>;
@@ -98,10 +101,12 @@ export function processMarkdownRenderEnvelope(
 const markdownEnvelopeWriter = (envelopeId: string) => {
   const renderList: string[] = [];
   const hiddenSpan = (id: string, contents: string) => {
+    id = encodeBase64(id);
     return `[${contents}]{.hidden .quarto-markdown-envelope-contents render-id="${id}"}`;
   };
 
   const hiddenDiv = (id: string, contents: string) => {
+    id = encodeBase64(id);
     return `\n:::{.hidden .quarto-markdown-envelope-contents render-id="${id}"}\n${contents}\n:::\n`;
   };
 
@@ -126,7 +131,8 @@ const readEnvelope = (doc: Document, envelopeId: string) => {
     const el = node as Element;
     const id = el.getAttribute("data-render-id");
     if (id) {
-      contents[id] = el;
+      // convert the array to a string
+      contents[new TextDecoder().decode(decodeBase64(id))] = el;
     }
   };
 

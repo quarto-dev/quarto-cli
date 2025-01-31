@@ -20,8 +20,7 @@ $if(institute)$
 \institute{$for(institute)$$institute$$sep$ \and $endfor$}
 $endif$
 $if(titlegraphic)$
-\titlegraphic{\includegraphics{$titlegraphic$}}
-$endif$
+\titlegraphic{\includegraphics$if(titlegraphicoptions)$[$for(titlegraphicoptions)$$titlegraphicoptions$$sep$, $endfor$]$endif${$titlegraphic$}}$endif$
 $if(logo)$
 \logo{\includegraphics{$logo$}}
 $endif$

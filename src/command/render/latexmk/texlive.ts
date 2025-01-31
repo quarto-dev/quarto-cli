@@ -11,6 +11,7 @@ import { requireQuoting, safeWindowsExec } from "../../../core/windows.ts";
 import { hasTinyTex, tinyTexBinDir } from "../../../tools/impl/tinytex-info.ts";
 import { join } from "../../../deno_ral/path.ts";
 import { logProgress } from "../../../core/log.ts";
+import { isWindows } from "../../../deno_ral/platform.ts";
 
 export interface TexLiveContext {
   preferTinyTex: boolean;
@@ -438,7 +439,7 @@ function tlmgrCommand(
 
   // On windows, we always want to call tlmgr through the 'safe'
   // cmd /c approach since it is a bat file
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     const quoted = requireQuoting(args);
     return safeWindowsExec(
       tlmgr.fullPath,

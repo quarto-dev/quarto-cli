@@ -1,5 +1,5 @@
-import { error, info } from "log/mod.ts";
-import { join } from "path/mod.ts";
+import { error, info } from "../deno_ral/log.ts";
+import { join } from "../deno_ral/path.ts";
 import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { readYamlFromMarkdown } from "../core/yaml.ts";
@@ -34,17 +34,18 @@ import {
 } from "../config/format.ts";
 import { resourcePath } from "../core/resources.ts";
 import { quartoRuntimeDir } from "../core/appdirs.ts";
-import { normalizePath } from "../core/path.ts";
+import { normalizePath, pathWithForwardSlashes } from "../core/path.ts";
 import { isInteractiveSession } from "../core/platform.ts";
 import { runningInCI } from "../core/ci-info.ts";
 import { sleep } from "../core/async.ts";
 import { JupyterNotebook } from "../core/jupyter/types.ts";
-import { existsSync } from "fs/mod.ts";
-import { encodeBase64 } from "encoding/base64.ts";
+import { existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
+import { encodeBase64 } from "encoding/base64";
 import {
   executeResultEngineDependencies,
   executeResultIncludes,
 } from "./jupyter/jupyter.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
   julia_cmd: string;
@@ -247,6 +248,12 @@ export const juliaEngine: ExecutionEngine = {
   },
 };
 
+function powershell_argument_list_to_string(...args: string[]): string {
+  // formats as '"arg 1" "arg 2" "arg 3"'
+  const inner = args.map((arg) => `"${arg}"`).join(" ");
+  return `'${inner}'`;
+}
+
 async function startOrReuseJuliaServer(
   options: JuliaExecuteOptions,
 ): Promise<{ reused: boolean }> {
@@ -264,6 +271,7 @@ async function startOrReuseJuliaServer(
       await ensureQuartoNotebookRunnerEnvironment(options);
       juliaProject = juliaRuntimeDir();
     } else {
+      juliaProject = pathWithForwardSlashes(juliaProject);
       trace(
         options,
         `Custom julia project set via QUARTO_JULIA_PROJECT="${juliaProject}". Checking if QuartoNotebookRunner can be loaded.`,
@@ -277,9 +285,7 @@ async function startOrReuseJuliaServer(
         ],
         env: {
           // ignore the main env
-          "JULIA_LOAD_PATH": Deno.build.os === "windows"
-            ? "@;@stdlib"
-            : "@:@stdlib",
+          "JULIA_LOAD_PATH": isWindows ? "@;@stdlib" : "@:@stdlib",
         },
       });
       const qnrTestProc = qnrTestCommand.spawn();
@@ -302,7 +308,7 @@ async function startOrReuseJuliaServer(
     // tests on windows hang forever if we use the same launching mechanism as for Unix systems.
     // So we utilize powershell instead which can start completely detached processes with
     // the Start-Process commandlet.
-    if (Deno.build.os === "windows") {
+    if (isWindows) {
       const command = new Deno.Command(
         "PowerShell",
         {
@@ -311,15 +317,12 @@ async function startOrReuseJuliaServer(
             "Start-Process",
             options.julia_cmd,
             "-ArgumentList",
-            // string array argument list, each element but the last must have a "," element after
-            "--startup-file=no",
-            ",",
-            `--project=${juliaProject}`,
-            ",",
-            resourcePath("julia/quartonotebookrunner.jl"),
-            ",",
-            transportFile,
-            // end of string array
+            powershell_argument_list_to_string(
+              "--startup-file=no",
+              `--project=${juliaProject}`,
+              resourcePath("julia/quartonotebookrunner.jl"),
+              transportFile,
+            ),
             "-WindowStyle",
             "Hidden",
           ],
@@ -468,7 +471,7 @@ async function getJuliaServerConnection(
         options,
         "Connecting to server failed, a transport file was reused so it might be stale. Delete transport file and retry.",
       );
-      Deno.removeSync(juliaTransportFile());
+      safeRemoveSync(juliaTransportFile());
       return await getJuliaServerConnection(options);
     } else {
       error(

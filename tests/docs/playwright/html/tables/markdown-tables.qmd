@@ -1,0 +1,47 @@
+---
+title: Markdown Tables
+tbl-cap-location: bottom
+---
+
+They should be styled by Quarto 
+
+## labelled {#labelled}
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| A    | B    | C    |
+| E    | F    | G    |
+| A    | G    | G    |
+
+: My Caption {#tbl-letters}
+
+See @tbl-letters.
+
+## non-labelled table {#non-labelled}
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| A    | B    | C    |
+| E    | F    | G    |
+
+: A non-labelled table with a caption
+
+## Computational table {#computation}
+
+<!-- This is equivalent to intermediate markdown from a `knitr::kable()` output with `echo: false` -->
+
+:::: {.cell}
+::: {.cell-output-display}
+
+Table: A caption
+
+| Sepal.Length | Sepal.Width | Petal.Length | Petal.Width | Species |
+|-------------:|------------:|-------------:|------------:|:--------|
+|          5.1 |         3.5 |          1.4 |         0.2 | setosa  |
+|          4.9 |         3.0 |          1.4 |         0.2 | setosa  |
+|          4.7 |         3.2 |          1.3 |         0.2 | setosa  |
+|          4.6 |         3.1 |          1.5 |         0.2 | setosa  |
+|          5.0 |         3.6 |          1.4 |         0.2 | setosa  |
+|          5.4 |         3.9 |          1.7 |         0.4 | setosa  |
+:::
+::::

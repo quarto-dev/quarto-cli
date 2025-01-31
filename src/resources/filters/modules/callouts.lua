@@ -10,7 +10,11 @@ local function callout_title_prefix(callout, withDelimiter)
     return
   end
 
-  return titlePrefix(category.ref_type, category.name, callout.order, withDelimiter)
+  -- https://github.com/quarto-dev/quarto-cli/issues/10894
+  -- honor custom callout title if it exists
+  local default = param("callout-" .. callout.type .. "-title", category.name)
+
+  return titlePrefix(category.ref_type, default, callout.order, withDelimiter)
 end
 
 local function decorate_callout_title_with_crossref(callout)

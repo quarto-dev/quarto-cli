@@ -1,6 +1,7 @@
 ---@meta
 
 ---@module 'pandoc.mediabag'
+pandoc.mediabag = {}
 
 --[[
 Removes a single entry from the media bag.

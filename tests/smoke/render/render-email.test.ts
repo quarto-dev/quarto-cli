@@ -5,7 +5,7 @@
 *
 */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { TestContext, Verify } from "../../test.ts";
 import { docs } from "../../utils.ts";
 import { dirname, join } from "../../../src/deno_ral/path.ts";

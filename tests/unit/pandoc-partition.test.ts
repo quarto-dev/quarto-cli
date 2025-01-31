@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 import { Metadata } from "../../src/config/types.ts";
 import { partitionMarkdown } from "../../src/core/pandoc/pandoc-partition.ts";
 import { unitTest } from "../test.ts";

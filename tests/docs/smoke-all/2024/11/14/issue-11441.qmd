@@ -1,0 +1,14 @@
+---
+format: html
+hello: world
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["main p:nth-child(3)"]
+---
+
+1
+{{< meta hello >}}
+3

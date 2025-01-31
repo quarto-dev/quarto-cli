@@ -1,20 +1,26 @@
 ---
 title: "Untitled"
-format: typst
+format:
+  typst:
+    keep-typ: true
+    include-in-header:
+      text: |
+        #set page(flipped: true)
+        #show table: set text(size: 10pt)
+        #show figure: set block(breakable: true)
+    include-before-body:
+      text: |
+        #set par(justify: false)
+    margin:
+      x: 0.5cm
+      y: 0.5cm
 execute:
   echo: false
 keep-md: true
-keep-typ: true
 ---
 
-```{=typst}
-#set page(flipped: true, margin: 0.5cm)
-#set par(justify: false)
-#show table: set text(size: 10pt)
-#show figure: set block(breakable: true)
-```
-
 ```{python}
+#| classes: plain
 from great_tables import GT, md, html, system_fonts
 import pandas as pd
 

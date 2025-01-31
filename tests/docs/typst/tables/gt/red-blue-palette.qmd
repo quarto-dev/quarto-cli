@@ -10,6 +10,7 @@ example-source: https://themockup.blog/static/resources/gt-cookbook.html#red-blu
 ---
 
 ```{r}
+#| classes: plain
 library(dplyr)
 library(gt)
 

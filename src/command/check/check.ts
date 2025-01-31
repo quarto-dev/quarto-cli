@@ -45,15 +45,31 @@ import { which } from "../../core/path.ts";
 import { dirname } from "../../deno_ral/path.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { typstBinaryPath } from "../../core/typst.ts";
+import { quartoCacheDir } from "../../core/appdirs.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
+import { makeStringEnumTypeEnforcer } from "../../typing/dynamic.ts";
+import { findChrome } from "../../core/puppeteer.ts";
+
+export const kTargets = [
+  "install",
+  "info",
+  "jupyter",
+  "knitr",
+  "versions",
+  "all",
+] as const;
+export type Target = typeof kTargets[number];
+export const enforceTargetType = makeStringEnumTypeEnforcer(...kTargets);
 
 const kIndent = "      ";
-
-export type Target = "install" | "jupyter" | "knitr" | "versions" | "all";
 
 export async function check(target: Target): Promise<void> {
   const services = renderServices(notebookContext());
   try {
     info(`Quarto ${quartoConfig.version()}`);
+    if (target === "info" || target === "all") {
+      await checkInfo(services);
+    }
     if (target === "versions" || target === "all") {
       await checkVersions(services);
     }
@@ -69,6 +85,15 @@ export async function check(target: Target): Promise<void> {
   } finally {
     services.cleanup();
   }
+}
+
+// Currently this doesn't check anything
+// but it's a placeholder for future checks
+// and the message is useful for troubleshooting
+async function checkInfo(_services: RenderServices) {
+  const cacheDir = quartoCacheDir();
+  completeMessage("Checking environment information...");
+  info(kIndent + "Quarto cache location: " + cacheDir);
 }
 
 async function checkVersions(_services: RenderServices) {
@@ -159,7 +184,7 @@ async function checkInstall(services: RenderServices) {
     }
   }
   info(`${kIndent}Path: ${quartoConfig.binPath()}`);
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     try {
       const codePage = readCodePage();
       clearCodePageCache();
@@ -188,11 +213,12 @@ async function checkInstall(services: RenderServices) {
   info("");
   const toolsMessage = "Checking tools....................";
   const toolsOutput: string[] = [];
+  let tools: Awaited<ReturnType<typeof allTools>>;
   await withSpinner({
     message: toolsMessage,
     doneMessage: toolsMessage + "OK",
   }, async () => {
-    const tools = await allTools();
+    tools = await allTools();
 
     for (const tool of tools.installed) {
       const version = await tool.installedVersion() || "(external install)";
@@ -234,6 +260,43 @@ async function checkInstall(services: RenderServices) {
     }
   });
   latexOutput.forEach((out) => info(out));
+  info("");
+
+  const chromeHeadlessMessage = "Checking Chrome Headless....................";
+  const chromeHeadlessOutput: string[] = [];
+  await withSpinner({
+    message: chromeHeadlessMessage,
+    doneMessage: chromeHeadlessMessage + "OK",
+  }, async () => {
+    const chromeDetected = await findChrome();
+    const chromiumQuarto = tools.installed.find((tool) =>
+      tool.name === "chromium"
+    );
+    if (chromeDetected.path !== undefined) {
+      chromeHeadlessOutput.push(`${kIndent}Using: Chrome found on system`);
+      chromeHeadlessOutput.push(
+        `${kIndent}Path: ${chromeDetected.path}`,
+      );
+      if (chromeDetected.source) {
+        chromeHeadlessOutput.push(`${kIndent}Source: ${chromeDetected.source}`);
+      }
+    } else if (chromiumQuarto !== undefined) {
+      chromeHeadlessOutput.push(
+        `${kIndent}Using: Chromium installed by Quarto`,
+      );
+      if (chromiumQuarto?.binDir) {
+        chromeHeadlessOutput.push(
+          `${kIndent}Path: ${chromiumQuarto?.binDir}`,
+        );
+      }
+      chromeHeadlessOutput.push(
+        `${kIndent}Version: ${chromiumQuarto.installedVersion}`,
+      );
+    } else {
+      chromeHeadlessOutput.push(`${kIndent}Chrome:  (not detected)`);
+    }
+  });
+  chromeHeadlessOutput.forEach((out) => info(out));
   info("");
 
   const kMessage = "Checking basic markdown render....";

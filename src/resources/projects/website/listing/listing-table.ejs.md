@@ -64,12 +64,13 @@ return listing.utilities.outputLink(item, field, value, `listing-${field}`);
 }
 %>
 
+```{=html}
 <table class="quarto-listing-table table<%- stripedCls %><%- hoverCls %>">
 <thead>
 <tr>
 <% for (const field of fields) { %>
 <th>
-<% if (sortUi && hasSort(field)) { %><a class="sort" data-sort="<%-listing.utilities.sortTarget(field)%>" onclick="if (this.classList.contains('sort-asc')) { this.classList.add('sort-desc'); this.classList.remove('sort-asc') } else { this.classList.add('sort-asc'); this.classList.remove('sort-desc')} return false;"><% } %><%= listing.utilities.fieldName(field) %><% if (sortUi && hasSort(field)) { %></a><% } %>
+<% if (sortUi && hasSort(field)) { %><a class="sort" data-sort="<%- listing.utilities.sortTarget(field) %>" onclick="if (this.classList.contains('sort-asc')) { this.classList.add('sort-desc'); this.classList.remove('sort-asc') } else { this.classList.add('sort-asc'); this.classList.remove('sort-desc')} return false;"><% } %><%= listing.utilities.fieldName(field) %><% if (sortUi && hasSort(field)) { %></a><% } %>
 </th>
 <% } %>
 </tr>
@@ -81,12 +82,16 @@ return listing.utilities.outputLink(item, field, value, `listing-${field}`);
 %>
 
 <tr <%= listing.utilities.metadataAttrs(item) %><%= onclick(item) %>>
+```
+
 <% for (const field of fields){ %>
-<td>
-<%= outputValue(itemNumber, field) %>
-</td>
+<td><%= outputValue(itemNumber, field) %></td>
 <% } %>
+
+```{=html}
+
 </tr>
 <% } %>
 </tbody>
 </table>
+```

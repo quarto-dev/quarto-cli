@@ -45,7 +45,21 @@ end
 
 function parse_html_tables()
   local function juice(htmltext)
+    -- return htmltext
     return pandoc.system.with_temporary_directory('juice', function(tmpdir)
+      -- replace any long data uris with uuids
+      local data_uri_uuid = '273dae7e-3633-4385-9b0c-203d2d7a2d37'
+      local data_uris = {}
+      local data_uri_regex = 'data:image/[a-z]+;base64,[a-zA-Z0-9+/]+=*'
+      htmltext = htmltext:gsub(data_uri_regex, function(data_uri)
+        -- juice truncates around 15k characters; let's guard any over 2000 characters
+        if #data_uri > 2000 then
+          table.insert(data_uris, data_uri)
+          return data_uri_uuid
+        else
+          return data_uri
+        end
+      end)
       local juice_in = pandoc.path.join({tmpdir, 'juice-in.html'})
       local jin = assert(io.open(juice_in, 'w'))
       jin:write(htmltext)
@@ -65,6 +79,12 @@ function parse_html_tables()
         quarto.log.error("Running juice failed with exit code: " .. (exitCode or "unknown exit code"))
         return htmltext
       else
+        local index = 1
+        content = content:gsub(data_uri_uuid:gsub('-', '%%-'), function(_)
+          local data_uri = data_uris[index]
+          index = index + 1
+          return data_uri
+        end)
         return content
       end
     end)

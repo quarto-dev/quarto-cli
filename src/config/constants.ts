@@ -248,6 +248,11 @@ export const kCalloutNoteCaption = "callout-note-title";
 export const kCalloutWarningCaption = "callout-warning-title";
 export const kCalloutImportantCaption = "callout-important-title";
 export const kCalloutCautionCaption = "callout-caution-title";
+export const kCalloutTipPrefix = "callout-tip-prefix";
+export const kCalloutNotePrefix = "callout-note-prefix";
+export const kCalloutWarningPrefix = "callout-warning-prefix";
+export const kCalloutImportantPrefix = "callout-important-prefix";
+export const kCalloutCautionPrefix = "callout-caution-prefix";
 export const kSectionTitleAbstract = "section-title-abstract";
 export const kSectionTitleFootnotes = "section-title-footnotes";
 export const kSectionTitleReferences = "section-title-references";
@@ -376,6 +381,11 @@ export const kLanguageDefaultsKeys = [
   kCalloutWarningCaption,
   kCalloutImportantCaption,
   kCalloutCautionCaption,
+  kCalloutTipPrefix,
+  kCalloutNotePrefix,
+  kCalloutWarningPrefix,
+  kCalloutImportantPrefix,
+  kCalloutCautionPrefix,
   kSectionTitleAbstract,
   kSectionTitleFootnotes,
   kSectionTitleReferences,
@@ -528,6 +538,7 @@ export const kPaperSize = "papersize";
 export const kLogFile = "log-file";
 export const kHighlightStyle = "highlight-style";
 export const kDefaultImageExtension = "default-image-extension";
+export const kLogo = "logo";
 export const kLinkColor = "linkcolor";
 export const kColorLinks = "colorlinks";
 export const kVariables = "variables";

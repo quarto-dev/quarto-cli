@@ -28,7 +28,7 @@ IF EXIST "!QUARTO_TS_PATH!" (
 	IF NOT DEFINED QUARTO_ACTION (
 		SET QUARTO_ACTION=run
 	)
-	SET "QUARTO_IMPORT_MAP_ARG=--importmap=""!QUARTO_SRC_PATH!\dev_import_map.json"""
+	SET "QUARTO_IMPORT_MAP_ARG=--importmap=""!QUARTO_SRC_PATH!\import_map.json"""
 
 	IF NOT DEFINED QUARTO_TARGET (
 		SET "QUARTO_TARGET=!QUARTO_TS_PATH!"
@@ -57,6 +57,11 @@ IF EXIST "!QUARTO_TS_PATH!" (
 		echo !DENO!>"!DENO_VERSION_FILE!"
 	)
 
+	SET QUARTO_CACHE_OPTIONS=
+
+	REM Turn on type checking for dev version
+  SET QUARTO_DENO_OPTIONS=--check
+
 ) ELSE (
 
 	IF NOT DEFINED QUARTO_SHARE_PATH (
@@ -78,6 +83,7 @@ IF EXIST "!QUARTO_TS_PATH!" (
 	SET "QUARTO_TARGET=%SCRIPT_PATH%\quarto.js"
 	SET "QUARTO_BIN_PATH=%SCRIPT_PATH%"
 	SET "QUARTO_IMPORT_MAP_ARG=--importmap=""%SCRIPT_PATH%\vendor\import_map.json"""
+	SET QUARTO_CACHE_OPTIONS="--cached-only"
 )
 
 IF "%1"=="--paths" (
@@ -99,7 +105,9 @@ IF NOT DEFINED QUARTO_DENO (
 
 SET "DENO_TLS_CA_STORE=system,mozilla"
 SET "DENO_NO_UPDATE_CHECK=1"
-SET "QUARTO_DENO_OPTIONS=--unstable-kv --unstable-ffi --no-config --cached-only --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi"
+REM Using --allow-all as there is otherwise an issue in Deno 1.46.3 with --allow-read and --allow-write with network drives
+REM https://github.com/quarto-dev/quarto-cli/issues/11332
+SET "QUARTO_DENO_OPTIONS=--unstable-kv --unstable-ffi --no-config --no-lock --allow-all !QUARTO_DENO_OPTIONS!"
 
 REM Add expected V8 options to QUARTO_DENO_V8_OPTIONS
 IF DEFINED QUARTO_DENO_V8_OPTIONS (
@@ -128,7 +136,7 @@ IF NOT DEFINED QUARTO_DENO_EXTRA_OPTIONS (
 	)
 )
 
-!QUARTO_DENO! !QUARTO_ACTION! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! !QUARTO_IMPORT_MAP_ARG! !QUARTO_TARGET! %*
+!QUARTO_DENO! !QUARTO_ACTION! !QUARTO_CACHE_OPTIONS! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! !QUARTO_IMPORT_MAP_ARG! !QUARTO_TARGET! %*
 
 
 :end

@@ -215,5 +215,11 @@ Usage:
 ---@return string # Type of the given value
 function pandoc.utils.type(value) end
 
+--[[
+Filter the given doc by passing it through a Lua filter.
+]]
+---@param doc pandoc.Pandoc Document to filter
+---@param filter table Filter to use
+function pandoc.utils.run_lua_filter(doc, filter) end
 
 return pandoc.utils

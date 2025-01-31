@@ -76,7 +76,7 @@ function pandoc.walk_block(element, filter) end
 
 --[[
 -- Apply a filter inside an inline element, walking its contents.
--- Returns a (deep) copy on which the fislter has been applied:
+-- Returns a (deep) copy on which the filter has been applied:
 -- the original element is left untouched.
 ]]
 ---@generic T

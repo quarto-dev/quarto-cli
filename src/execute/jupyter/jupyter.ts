@@ -7,7 +7,7 @@
 import { basename, dirname, join, relative } from "../../deno_ral/path.ts";
 import { satisfies } from "semver/mod.ts";
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 
 import { error } from "../../deno_ral/log.ts";
 
@@ -110,7 +110,7 @@ import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import { runExternalPreviewServer } from "../../preview/preview-server.ts";
 import { onCleanup } from "../../core/cleanup.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -243,7 +243,15 @@ export const jupyterEngine: ExecutionEngine = {
       isServerShinyPython(format, kJupyterEngine) &&
       format.render[kKeepHidden] !== true
     ) {
-      format = ld.cloneDeep(format);
+      format = {
+        ...format,
+        render: {
+          ...format.render,
+        },
+        metadata: {
+          ...format.metadata,
+        },
+      };
       format.render[kKeepHidden] = true;
       format.metadata[kRemoveHidden] = "all";
     }
