@@ -116,10 +116,6 @@ All changes included in 1.6:
 
 - Fix an issue on Windows when creating MECA bundles containing special file name like space in the path ([quarto-ext/manuscript-template-rstudio#3](https://github.com/quarto-ext/manuscript-template-rstudio/issues/3)).
 
-## Website
-
-- ([#10251](https://github.com/quarto-dev/quarto-cli/issues/10251)): EJS template for website now uses proper object to get alt text for logo in sidebar.
-
 ## Engines
 
 ### `julia`
