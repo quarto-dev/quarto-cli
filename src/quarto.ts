@@ -51,6 +51,7 @@ import "./format/imports.ts";
 
 import { kCliffyImplicitCwd } from "./config/constants.ts";
 import { mainRunner } from "./core/main.ts";
+import { engineCommand } from "./execute/engine.ts";
 
 const checkVersionRequirement = () => {
   const versionReq = Deno.env.get("QUARTO_VERSION_REQUIREMENT");
