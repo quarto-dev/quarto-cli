@@ -32,7 +32,7 @@ All changes included in 1.7:
 
 ## `html` format
 
-- ([#11860])(https://github.com/quarto-dev/quarto-cli/issues/11860)): ES6 modules that import other local JS modules in documents with `embed-resources: true` are now correctly embedded.
+- ([#11860](https://github.com/quarto-dev/quarto-cli/issues/11860)): ES6 modules that import other local JS modules in documents with `embed-resources: true` are now correctly embedded.
 
 ## `pdf` format
 
@@ -57,6 +57,7 @@ All changes included in 1.7:
 - ([#11699](https://github.com/quarto-dev/quarto-cli/issues/11699)): Fix crash with `video` shortcode inside HTML comments.
 - Expose new `quarto.paths.tinytex_bin_dir` in Quarto's Lua API. If TinyTeX is found by Quarto, this will be set to the path to the `bin` directory of the TinyTeX installation where command line tool are located (e.g., `pdflatex`, `tlmgr`, etc.). If TinyTeX is not found, this will be `nil`, meaning Quarto will use the system PATH to find the command line tools.
 - Fix `pandoc.mediabag` Lua typings so autocompletions work with the Lua LSP integration.
+- ([#11896](https://github.com/quarto-dev/quarto-cli/pull/11896)): fix `\f` (`{{< pagebreak >}}`) form feed character not valid in PowerPoint (`pptx`).
 
 ## Engines
 
