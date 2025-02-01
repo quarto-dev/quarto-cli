@@ -20,6 +20,10 @@ a.external:after:hover {
   cursor: pointer;
 }
 
+.quarto-listing-default a.external:after {
+  content: none;
+}
+
 .quarto-ext-icon {
   display: inline-block;
   font-size: 0.75em;
