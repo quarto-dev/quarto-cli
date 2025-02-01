@@ -549,7 +549,7 @@ local function output_length(length, warnings)
   if not csf then
     output_warning(warnings, 'unit ' .. length.unit .. ' is not supported in ' .. length.csslen )
     return nil
-  end 
+  end
   return csf(length.value, length.unit, length.csslen, warnings)
 end
 
@@ -593,6 +593,10 @@ local function quote(s)
   return '"' .. s .. '"'
 end
 
+local function dequote(s)
+  return s:gsub('^["\']', ''):gsub('["\']$', '')
+end
+
 local same_weights = {
   'thin',
   'light',
@@ -633,6 +637,36 @@ local function translate_font_weight(w, warnings)
     return nil
   end
 end
+
+local generic_font_families = {
+  ['sans-serif'] = 'Roboto',
+  serif = 'Linux Libertine', -- would be Libertinus Serif in Typst 0.12 but we also need to choose our own
+  math = 'New Computer Modern Math',
+  monospace = 'DejaVu Sans Mono',
+}
+
+local gff_synonyms = {
+  ['ui-sans-serif'] = 'sans-serif',
+  ['system-ui'] = 'sans-serif',
+  ['ui-serif'] = 'serif',
+  ['ui-monospace'] = 'monospace'
+}
+
+local function translate_font_family(ff)
+  ff = gff_synonyms[ff] or ff
+  return generic_font_families[ff] or ff
+end
+
+local function translate_font_family_list(sl)
+  local strings = {}
+  for s in sl:gmatch('([^,]+)') do
+    s = dequote(trim(s))
+    s = translate_font_family(s)
+    table.insert(strings, quote(s))
+  end
+  return '(' .. table.concat(strings, ', ') ..')'
+end
+
 
 local function translate_border_style(v, _warnings)
   local dash
@@ -760,6 +794,8 @@ return {
   translate_border_style = translate_border_style,
   translate_border_color = translate_border_color,
   translate_font_weight = translate_font_weight,
+  translate_font_family = translate_font_family,
+  translate_font_family_list = translate_font_family_list,
   consume_width = consume_width,
   consume_style = consume_style,
   consume_color = consume_color
