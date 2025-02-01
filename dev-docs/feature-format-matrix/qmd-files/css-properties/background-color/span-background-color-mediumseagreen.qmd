@@ -1,0 +1,26 @@
+---
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: na
+  typst:
+    quality: 2
+    comment: "td, span only"
+  dashboard:
+    quality: 1
+  docx:
+    quality: na
+  pptx:
+    quality: na
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+
+        -
+          - '#highlight\(fill: rgb\(60, 179, 113\)\)\[text with a green background\]'
+        - []
+---
+This is some [text with a green background]{style="background-color:mediumseagreen"}.

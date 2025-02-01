@@ -1,5 +1,5 @@
 -- LPEG parsing and handling for shortcodes
--- Copyright (C) 2020-2023 Posit Software, PBC
+-- Copyright (C) 2020-2024 Posit Software, PBC
 
 local lpeg = require('lpeg')
 
@@ -194,7 +194,7 @@ md_shortcode = make_shortcode_parser({
   keyvalue = md_keyvalue_param,
   shortcode = md_shortcode,
 
-  ignore_pattern = lpeg.P("{.hidden render-id=\"") * (lpeg.P(1) - lpeg.P("\"}"))^1 * lpeg.P("\"}")
+  ignore_pattern = lpeg.P("{.hidden .quarto-markdown-envelope-contents render-id=\"") * (lpeg.P(1) - lpeg.P("\"}"))^1 * lpeg.P("\"}")
 })
 
 local escaped_string = into_string(

@@ -13,6 +13,7 @@ import base64
 from pathlib import Path
 
 from yaml import safe_load as parse_string
+from yaml import safe_dump
 
 from log import trace
 import nbformat
@@ -112,7 +113,7 @@ def set_env_vars(options):
       os.environ["QUARTO_FIG_DPI"] = str(options["fig_dpi"])
       os.environ["QUARTO_FIG_FORMAT"] = options["fig_format"]
 
-def retrieve_nb_from_cache(nb, status, **kwargs):
+def retrieve_nb_from_cache(nb, status, input, **kwargs):
    cache = kwargs["cache"]
    # are we using the cache, if so connect to the cache, and then if we aren't in 'refresh'
    # (forced re-execution) mode then try to satisfy the execution request from the cache
@@ -464,11 +465,14 @@ def nb_language_cell(name, kernelspec, resource_dir, allow_empty, **args):
 
 def nb_from_cache(nb, nb_cache, nb_meta = ("kernelspec", "language_info", "widgets")):
    try:
+      trace("nb_from_cache match")
       cache_record = nb_cache.match_cache_notebook(nb)
+      trace("nb_from_cache get buncle")
       cache_bundle = nb_cache.get_cache_bundle(cache_record.pk)
       cache_nb = cache_bundle.nb
       nb = copy.deepcopy(nb)
       # selected (execution-oriented) metadata
+      trace("nb_from_cache processing metadata")
       if nb_meta is None:
          nb.metadata = cache_nb.metadata
       else:
@@ -476,10 +480,12 @@ def nb_from_cache(nb, nb_cache, nb_meta = ("kernelspec", "language_info", "widge
             if key in cache_nb.metadata:
                nb.metadata[key] = cache_nb.metadata[key]
       # code cells
+      trace("nb_from_cache processing cells")
       for idx in range(len(nb.cells)):
          if nb.cells[idx].cell_type == "code":
             cache_cell = cache_nb.cells.pop(0)    
             nb.cells[idx] = cache_cell
+      trace("nb_from_cache returning")
       return nb
    except KeyError:
       return None
@@ -636,6 +642,20 @@ def nb_parameterize(nb, params):
 
    # prepend options
    if len(params_cell_yaml):
+      # https://github.com/quarto-dev/quarto-cli/issues/10097
+      # We need to find and drop `label: ` from the yaml options
+      # to avoid label duplication
+      # The only way to do this robustly is to parse the yaml
+      # and then re-encode it
+      try:
+         params_cell_yaml = parse_string("\n".join(params_cell_yaml))
+         del params_cell_yaml['label']
+         params_cell_yaml = safe_dump(params_cell_yaml).strip().splitlines()
+      except Exception as e:
+         sys.stderr.write("\nWARNING: Invalid YAML option format in cell:\n" + "\n".join(params_cell_yaml) + "\n")
+         sys.stderr.flush()
+         params_cell_yaml = []
+      
       comment_chars = nb_language_comment_chars(language)
       option_prefix = comment_chars[0] + "| "
       option_suffix = comment_chars[1] if len(comment_chars) > 1 else None

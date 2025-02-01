@@ -14,16 +14,16 @@ function parse_md_in_html_rawblocks()
   return {
     Div = function(div)
       if div.attributes.qmd ~= nil or div.attributes["qmd-base64"] ~= nil then
-        return _quarto.ast.make_scaffold(pandoc.Div, process_quarto_markdown_input_element(div))
+        return _quarto.ast.scaffold_element(process_quarto_markdown_input_element(div))
       end
     end,
     Span = function(span)
       if span.attributes.qmd ~= nil or span.attributes["qmd-base64"] ~= nil then
         local inlines = quarto.utils.as_inlines(process_quarto_markdown_input_element(span))
         if #inlines < 1 then
-          return _quarto.ast.make_scaffold(pandoc.Span, {})
+          return _quarto.ast.scaffold_element(pandoc.Inlines({}))
         end
-        return _quarto.ast.make_scaffold(pandoc.Span, inlines)
+        return _quarto.ast.scaffold_element(inlines)
       end
     end,
     RawBlock = function(raw)
@@ -49,11 +49,6 @@ function parse_md_in_html_rawblocks()
       end
       return result
     end,
-    -- Meta = function(meta)
-    --   local filter = parse_md_in_html_rawblocks()
-    --   local result = _quarto.ast.walk_meta(meta, filter)
-    --   return result
-    -- end,
   }
 end
 
@@ -72,6 +67,12 @@ function extract_latex_quartomarkdown_commands()
           return nil
         end
         local text = el.text
+        -- provide an early exit if the text does not contain the pattern
+        -- because Lua's pattern matching apparently takes a long time
+        -- to fail: https://github.com/quarto-dev/quarto-cli/issues/9729
+        if text:match("\\QuartoMarkdownBase64{") == nil then
+          return nil
+        end
         local pattern = "(.*)(\\QuartoMarkdownBase64{)([^}]*)(})(.*)"
         local pre, _, content, _, post = text:match(pattern)
         if pre == nil then
@@ -103,11 +104,16 @@ function inject_vault_content_into_rawlatex()
         return nil
         -- luacov: enable
       end
+      local text = el.text
+      -- provide an early exit if the text does not contain the pattern
+      -- because Lua's pattern matching apparently takes a long time
+      -- to fail: https://github.com/quarto-dev/quarto-cli/issues/9729
+      if el.text:match("3ab579b5%-63b4%-445d%-bc1d%-85bf6c4c04de") == nil then
+        return nil
+      end
   
       local pattern = "(.*)(3ab579b5%-63b4%-445d%-bc1d%-85bf6c4c04de%-[0-9]+)(.*)"
-      local text = el.text
       local pre, content_id, post = text:match(pattern)
-
 
       while pre do
         local found = false

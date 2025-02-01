@@ -1,13 +1,11 @@
-import { info, warning } from "../../../src/deno_ral/log.ts";
+import { info } from "../../../src/deno_ral/log.ts";
 import { basename, dirname, join } from "../../../src/deno_ral/path.ts";
-import { emptyDirSync, ensureDirSync, existsSync, moveSync } from "fs/mod.ts";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
-import { download, getEnv, unzip } from "../util/utils.ts";
-import { signtool } from "./signtool.ts";
+import { download, unzip } from "../util/utils.ts";
 import { execProcess } from "../../../src/core/process.ts";
-import { copySync } from "fs/copy.ts";
+import { emptyDirSync, ensureDirSync, existsSync, moveSync, copySync } from "../../../src/deno_ral/fs.ts";
 
 export async function makeInstallerWindows(configuration: Configuration) {
   const packageName = `quarto-${configuration.version}-win.msi`;
@@ -24,16 +22,6 @@ export async function makeInstallerWindows(configuration: Configuration) {
   const heatCmd = join(wixDir, "heat");
   const candleCmd = join(wixDir, "candle");
   const lightCmd = join(wixDir, "light");
-
-  // Extract the PFX file that will be used for signing
-  const encodedPfx = getEnv("QUARTO_WIN_PFX", "");
-  const pfxPw = getEnv("QUARTO_WIN_PFX_PW", "");
-  const sign = encodedPfx.length > 0 && pfxPw.length > 0;
-  if (!sign) {
-    warning(
-      "No Signing information available in environment, skipping signing",
-    );
-  }
 
   // Download tools, if necessary
   if (
@@ -69,33 +57,6 @@ export async function makeInstallerWindows(configuration: Configuration) {
   const workingToolsPath = join(workingBinPath, "tools", );
   const archToolsPath = join(workingToolsPath, "x86_64");
   copySync(configuration.directoryInfo.pkgWorking.root, workingDistPath);
-
-  if (sign) {
-    info("Signing application files");
-
-    const filesToSign = [
-      { file: join(workingBinPath, "quarto.exe") },
-      { file: join(archToolsPath, "deno.exe") },
-      { file: join(archToolsPath, "esbuild.exe") },
-      { file: join(workingToolsPath, "pandoc.exe") },
-      {
-        file: join(
-          archToolsPath,
-          "dart-sass",
-          "src",
-          "dart.exe",
-        ),
-      },
-      { file: join(archToolsPath, "deno_dom", "plugin.dll") },
-      { file: join(workingBinPath, "quarto.js") },
-    ];
-    await signtool(
-      filesToSign,
-      encodedPfx,
-      pfxPw,
-      workingDir,
-    );
-  }
 
   // Create a zip file
   info("Creating zip installer");
@@ -179,17 +140,6 @@ export async function makeInstallerWindows(configuration: Configuration) {
   await runCmd(lightCmd, lightArgs);
 
   Deno.env.delete("QUARTO_INSTALLER_VERSION");
-
-  // Use signtool to sign the MSI
-  if (sign) {
-    info("Signing installer");
-    await signtool(
-      [{ file: lightOutput, desc: "Quarto CLI" }],
-      encodedPfx,
-      pfxPw,
-      workingDir,
-    );
-  }
 
   info(
     `Moving ${lightOutput} to ${configuration.directoryInfo.out}`,

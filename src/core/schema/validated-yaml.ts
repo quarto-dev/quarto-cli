@@ -6,7 +6,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/exists.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 import { asMappedString } from "../mapped-text.ts";
 import { Schema } from "../lib/yaml-schema/types.ts";
 import { relative } from "../../deno_ral/path.ts";

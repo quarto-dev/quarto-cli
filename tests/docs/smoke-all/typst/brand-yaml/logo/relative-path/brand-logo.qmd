@@ -1,0 +1,19 @@
+---
+title: logo background
+brand: brand_yaml/quarto-brand.yml
+format:
+  typst:
+    keep-typ: true
+logo:
+  padding: 2rem
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+      -
+        - '#set page\(background: align\(center\+top, box\(inset: 2em, image\("brand_yaml(/|\\\\)resources(/|\\\\)quarto.png", width: 225pt\)\)\)\)'
+      - []
+---
+
+{{< lipsum 4 >}}
+

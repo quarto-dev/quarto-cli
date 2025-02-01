@@ -146,7 +146,8 @@ main.quarto-banner-title-block > section:first-child > h4 {
 #title-block-header.quarto-title-block.default {
   .quarto-title-meta {
     display: grid;
-    grid-template-columns: minmax(max-content, 1fr) 1fr;
+    // See https://github.com/quarto-dev/quarto-cli/issues/9539
+    grid-template-columns: repeat(2, 1fr);
     grid-column-gap: 1em;
   }
 

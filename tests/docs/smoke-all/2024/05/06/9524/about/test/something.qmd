@@ -1,0 +1,11 @@
+---
+title: "Untitled"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['link[rel="canonical"][href="https://index.html.com/about/test/something.html"]']
+        - []
+---
+
+Another file inside a nested directory.

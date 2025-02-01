@@ -5,15 +5,15 @@
  */
 
 import { dirname, join } from "../../deno_ral/path.ts";
-import { copy } from "io/copy.ts";
-import { ensureDirSync } from "fs/mod.ts";
-
-import { Tar } from "archive/tar.ts";
+import { ensureDirSync } from "../../deno_ral/fs.ts";
 
 import { PublishFiles } from "../provider-types.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { md5HashBytes } from "../../core/hash.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
+
+import { copy } from "io/copy";
+import { Tar } from "archive/tar";
 
 interface ManifestMetadata {
   appmode: string;
@@ -55,7 +55,7 @@ export async function createBundle(
     const filePath = join(files.baseDir, file);
     if (Deno.statSync(filePath).isFile) {
       const fileBytes = Deno.readFileSync(filePath);
-      const checksum = md5HashBytes(fileBytes);
+      const checksum = await md5HashBytes(fileBytes);
       manifestFiles[file] = { checksum };
     }
   }

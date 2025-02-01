@@ -5,10 +5,10 @@
  */
 
 import { error, info, warning } from "../deno_ral/log.ts";
-import { existsSync } from "fs/exists.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { basename, extname } from "../deno_ral/path.ts";
 
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 
 import { execProcess } from "../core/process.ts";
 import { rBinaryPath, resourcePath } from "../core/resources.ts";
@@ -16,6 +16,7 @@ import { readYamlFromMarkdown } from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
 import { kCodeLink } from "../config/constants.ts";
+import { isServerShiny } from "../core/render.ts";
 
 import {
   checkRBinary,
@@ -129,7 +130,7 @@ export const knitrEngine: ExecutionEngine = {
         markdown: resolveInlineExecute(options.target.markdown.value),
       },
       options.tempDir,
-      options.projectDir,
+      options.project?.isSingleFile ? undefined : options.projectDir,
       options.quiet,
       // fixup .rmarkdown file references
       (output) => {
@@ -179,6 +180,15 @@ export const knitrEngine: ExecutionEngine = {
 
     // see if we can code link
     if (options.format.render?.[kCodeLink]) {
+      // When using shiny document, code-link proceesing is not supported
+      // https://github.com/quarto-dev/quarto-cli/issues/9208
+      if (isServerShiny(options.format)) {
+        warning(
+          `'code-link' option will be ignored as it is not supported for 'server: shiny' due to 'downlit' R package limitation (https://github.com/quarto-dev/quarto-cli/issues/9208).`,
+        );
+        return Promise.resolve();
+      }
+      // Current knitr engine postprocess is all about applying downlit processing to the HTML output
       await callR<void>(
         "postprocess",
         {
@@ -262,11 +272,19 @@ async function callR<T>(
     wd: cwd,
   });
 
+  // QUARTO_KNITR_RSCRIPT_ARGS allows to pass additional arguments to Rscript as comma separated values
+  // e.g. QUARTO_KNITR_RSCRIPT_ARGS="--vanilla,--no-init-file,--max-connections=258"
+  const rscriptArgs = Deno.env.get("QUARTO_KNITR_RSCRIPT_ARGS") || "";
+  const rscriptArgsArray = rscriptArgs.split(",").filter((a) =>
+    a.trim() !== ""
+  );
+
   try {
     const result = await execProcess(
       {
         cmd: [
           await rBinaryPath("Rscript"),
+          ...rscriptArgsArray,
           resourcePath("rmd/rmd.R"),
         ],
         cwd,

@@ -2,6 +2,7 @@
 import sys
 import logging
 import os
+import inspect
 
 TRACE = 25
 
@@ -40,4 +41,5 @@ def log_error(msg, exc_info = False):
    logging.getLogger().log(logging.ERROR, msg, exc_info = exc_info, stack_info = not exc_info)
 
 def trace(msg):
-   log(TRACE, msg)
+   prev_frame = inspect.stack()[1]
+   log(TRACE, "%s:%s - %s" % (prev_frame.filename, prev_frame.lineno, msg))

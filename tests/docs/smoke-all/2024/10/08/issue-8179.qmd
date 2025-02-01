@@ -1,0 +1,76 @@
+---
+title: "Block layout"
+format: html
+engine: knitr
+keep-md: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "pre.r"
+          - "pre.python"
+        - []
+---
+
+
+
+
+# Code chunk block layout
+
+:::: {layout="[48,-4,48]"}
+
+::: {}
+
+### R
+
+
+
+::: {.cell}
+
+```{.r .cell-code}
+sqrt(2)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+[1] 1.414214
+```
+
+
+:::
+:::
+
+
+
+:::
+
+::: {}
+
+### Python
+
+
+
+::: {.cell}
+
+```{.python .cell-code}
+import math
+math.sqrt(2)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+1.4142135623730951
+```
+
+
+:::
+:::
+
+
+
+:::
+
+::::

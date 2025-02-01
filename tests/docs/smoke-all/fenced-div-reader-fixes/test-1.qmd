@@ -1,0 +1,40 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "div#id"
+          - "div#id-2"
+          - "div#id-3"
+          - "div#id-4"
+          - "div#id-5"
+          - 'div#id-6[data-key2="key = value"]'
+---
+
+::: {#id key= value}
+Some content inside a malformed Pandoc div that we decided to fix ourselves.
+:::
+
+::: {#id-2 key = value}
+Some content inside a malformed Pandoc div that we decided to fix ourselves.
+:::
+
+::: {#id-3 key =value}
+Some content inside a malformed Pandoc div that we decided to fix ourselves.
+:::
+
+::: {#id-4 key =  value}
+Some content inside a malformed Pandoc div that we decided to fix ourselves.
+This case works but is obnoxiously inefficient, because our code eats one whitespace character at a time.
+I'm not sure it's worth fixing.
+:::
+
+::: {#id-5 key =  value key2 = value2}
+Some content inside a malformed Pandoc div that we decided to fix ourselves.
+:::
+
+::: {#id-6 key2='key = value'}
+An equals sign that we shouldn't touch.
+:::

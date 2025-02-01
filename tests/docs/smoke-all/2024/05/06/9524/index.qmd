@@ -1,0 +1,13 @@
+---
+title: "Quarto 9524"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['link[rel="canonical"][href="https://index.html.com/"]']
+        - []
+---
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.

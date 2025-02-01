@@ -1,9 +1,10 @@
 -- read qmd with quarto syntax extensions and produce quarto's extended AST
--- Copyright (C) 2023 Posit Software, PBC
+-- Copyright (C) 2023-2024 Posit Software, PBC
 --
 -- Originally by Albert Krewinkel
 
 local md_shortcode = require("lpegshortcode")
+local md_fenced_div = require("lpegfenceddiv")
 
 -- Support the same format extensions as pandoc's Markdown reader
 Extensions = pandoc.format.extensions 'markdown'
@@ -125,6 +126,8 @@ local function urldecode(url)
 end
 
 local function readqmd(txt, opts)
+  local tags
+  txt = md_fenced_div.attempt_to_fix_fenced_div(txt)
   txt, tags = escape_invalid_tags(txt)
   txt = md_shortcode.parse_md_shortcode(txt)
   local flavor = {
@@ -154,6 +157,16 @@ local function readqmd(txt, opts)
     return c
   end
 
+  local function filter_attrs(el)
+    for k,v in pairs(el.attributes) do
+      if type(v) == "string" and v:match("data%-is%-shortcode%=%\"1%\"") then
+        local new_v = md_shortcode.unparse_md_shortcode(v)
+        el.attributes[k] = new_v
+      end
+    end
+    return el
+  end
+
   local doc = pandoc.read(txt or "", flavor, opts):walk {
     CodeBlock = function (cb)
       cb.classes = cb.classes:map(restore_invalid_tags)
@@ -166,17 +179,24 @@ local function readqmd(txt, opts)
     Code = unshortcode_text,
     RawInline = unshortcode_text,
     RawBlock = unshortcode_text,
+    Header = filter_attrs,
+    Span = filter_attrs,
+    Div = filter_attrs,
     Link = function (l)
+      l = filter_attrs(l)
       if l.target:match("data%-is%-shortcode%=%%221%%22") then
         l.target = md_shortcode.unparse_md_shortcode(urldecode(l.target))
         return l
       end
+      return l
     end,
     Image = function (i)
+      i = filter_attrs(i)
       if i.src:match("data%-is%-shortcode%=%%221%%22") then
         i.src = md_shortcode.unparse_md_shortcode(urldecode(i.src))
         return i
       end
+      return i
     end,
   }
   return doc

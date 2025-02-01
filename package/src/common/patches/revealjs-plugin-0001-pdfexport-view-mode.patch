@@ -1,0 +1,28 @@
+diff --git a/src/resources/formats/revealjs/plugins/pdfexport/pdfexport.js b/src/resources/formats/revealjs/plugins/pdfexport/pdfexport.js
+index 93c92eae6..0cf0bd787 100644
+--- a/src/resources/formats/revealjs/plugins/pdfexport/pdfexport.js
++++ b/src/resources/formats/revealjs/plugins/pdfexport/pdfexport.js
+@@ -53,16 +53,20 @@ var PdfExport = ( function( _Reveal ){
+ 	}
+ 	
+ 	function isPrintingPDF(){
+-		return ( /print-pdf/gi ).test( window.location.search );
++		return /print-pdf/gi.test(window.location.search) || /view=print/gi.test(window.location.search);
+ 	}
+ 
+ 	function togglePdfExport(){
+ 		var url_doc = new URL( document.URL );
+ 		var query_doc = new URLSearchParams( url_doc.searchParams );
+ 		if( isPrintingPDF() ){
+-			query_doc.delete( 'print-pdf' );
++			if (query_doc.has('print-pdf')) {
++				query_doc.delete('print-pdf');
++			} else if (query_doc.has('view')) {
++				query_doc.delete('view');
++			}
+ 		}else{
+-			query_doc.set( 'print-pdf', '' );
++			query_doc.set( 'view', 'print' );
+ 		}
+ 		url_doc.search = ( query_doc.toString() ? '?' + query_doc.toString() : '' );
+ 		window.location.href = url_doc.toString();

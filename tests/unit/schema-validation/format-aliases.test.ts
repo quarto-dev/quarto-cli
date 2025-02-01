@@ -1,6 +1,6 @@
 import { yamlValidationUnitTest } from "./utils.ts";
 import { getExpandedFormatAliases } from "../../../src/core/lib/yaml-schema/format-aliases.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 
 // deno-lint-ignore require-await
 yamlValidationUnitTest("format-alias-expansion", async () => {

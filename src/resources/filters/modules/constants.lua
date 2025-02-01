@@ -39,6 +39,8 @@ local kDataCodeCellLines = 'data-code-lines'
 local kDataCodeCellAnnotation = 'data-code-annotation'
 local kDataCodeAnnonationClz = 'code-annotation-code'
 local kCodeAnnotationStyleNone = "none"
+local kCodeAnnotationStyleHover = "hover"
+local kCodeAnnotationStyleSelect = "select"
 local kCodeLine = "code-line"
 local kCodeLines = "code-lines"
 local kCellAnnotationClass = "cell-annotation"
@@ -67,6 +69,8 @@ local kIncludeInHeader = "include-in-header"
 local kCopyright = "copyright"
 local kLicense = "license"
 local kHtmlTableProcessing = "html-table-processing"
+local kHtmlPreTagProcessing = "html-pre-tag-processing"
+local kCssPropertyProcessing = "css-property-processing"
 
 -- for a given language, the comment character(s)
 local kLangCommentChars = {
@@ -130,6 +134,33 @@ local kLangCommentChars = {
 }
 local kDefaultCodeAnnotationComment =  {"#"}
 
+-- These colors are used as background colors with an opacity of 0.75
+local kColorUnknown = "909090"
+local kColorNote = "0758E5"
+local kColorImportant = "CC1914"
+local kColorWarning = "EB9113"
+local kColorTip = "00A047"
+local kColorCaution = "FC5300"
+
+-- these colors are used with no-opacity
+local kColorUnknownFrame = "acacac"
+local kColorNoteFrame = "4582ec"
+local kColorImportantFrame = "d9534f"
+local kColorWarningFrame = "f0ad4e"
+local kColorTipFrame = "02b875"
+local kColorCautionFrame = "fd7e14"
+
+local kBackgroundColorUnknown = "e6e6e6"
+local kBackgroundColorNote = "dae6fb"
+local kBackgroundColorImportant = "f7dddc"
+local kBackgroundColorWarning = "fcefdc"
+local kBackgroundColorTip = "ccf1e3"
+local kBackgroundColorCaution = "ffe5d0"
+
+-- Pandoc classes for incremental flag
+local kIncremental = "incremental"
+local kNonIncremental = "nonincremental"
+
 return {
   kCitation = kCitation,
   kContainerId = kContainerId,
@@ -168,6 +199,8 @@ return {
   kDataCodeCellAnnotation = kDataCodeCellAnnotation,
   kDataCodeAnnonationClz = kDataCodeAnnonationClz,
   kCodeAnnotationStyleNone = kCodeAnnotationStyleNone,
+  kCodeAnnotationStyleHover = kCodeAnnotationStyleHover,
+  kCodeAnnotationStyleSelect = kCodeAnnotationStyleSelect,
   kCodeLine = kCodeLine,
   kCodeLines = kCodeLines,
   kCellAnnotationClass = kCellAnnotationClass,
@@ -197,5 +230,29 @@ return {
 
   kLangCommentChars = kLangCommentChars,
   kDefaultCodeAnnotationComment = kDefaultCodeAnnotationComment,
-  kHtmlTableProcessing = kHtmlTableProcessing
+  kHtmlTableProcessing = kHtmlTableProcessing,
+  kHtmlPreTagProcessing = kHtmlPreTagProcessing,
+  kCssPropertyProcessing = kCssPropertyProcessing,
+
+  kColorUnknown = kColorUnknown,
+  kColorNote = kColorNote,
+  kColorImportant = kColorImportant,
+  kColorWarning = kColorWarning,
+  kColorTip = kColorTip,
+  kColorCaution = kColorCaution,
+  kColorUnknownFrame = kColorUnknownFrame,
+  kColorNoteFrame = kColorNoteFrame,
+  kColorImportantFrame = kColorImportantFrame,
+  kColorWarningFrame = kColorWarningFrame,
+  kColorTipFrame = kColorTipFrame,
+  kColorCautionFrame = kColorCautionFrame,
+  kBackgroundColorUnknown = kBackgroundColorUnknown,
+  kBackgroundColorNote = kBackgroundColorNote,
+  kBackgroundColorImportant = kBackgroundColorImportant,
+  kBackgroundColorWarning = kBackgroundColorWarning,
+  kBackgroundColorTip = kBackgroundColorTip,
+  kBackgroundColorCaution = kBackgroundColorCaution,
+
+  kIncremental = kIncremental,
+  kNonIncremental = kNonIncremental
 }

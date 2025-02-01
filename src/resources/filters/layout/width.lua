@@ -40,12 +40,16 @@ function parseLayoutWidths(figLayout, figureCount)
     return cols:map(function(width)
       figureLayoutCount = figureLayoutCount + 1
       if type(width) == "number" then
-        if numericTotal ~= 0 then
-          width = round((width / numericTotal) * 100, 2)
-        elseif width <= 1 then
-          width = round(width * 100, 2)
+        if _quarto.format.isTypstOutput() then
+          width = tostring(width) .. "fr"
+        else
+          if numericTotal ~= 0 then
+            width = round((width / numericTotal) * 100, 2)
+          elseif width <= 1 then
+            width = round(width * 100, 2)
+          end
+          width = tostring(width) .. "%"
         end
-        width = tostring(width) .. "%"
       end
       -- negative widths are "spacers" so we need to bump our total fig count
       if isSpacerWidth(width) then
@@ -115,6 +119,44 @@ function widthsToPercent(layout, cols)
       fig.attr.attributes["height"] = nil
     end
     
+  end
+end
+
+
+-- convert widths to typst fractions
+function widthsToFraction(layout, cols)
+
+  -- for each row
+  for _,row in ipairs(layout) do
+
+    -- initialize widths with 0 or length string
+    -- currently we assume the width unit is appropriate for the output format
+    local widths = pandoc.List()
+    for _,fig in ipairs(row) do
+      widths[#widths+1] = 0
+      local width = attribute(fig, "width", nil)
+      if width then
+        local num = tonumber(width)
+        if num then
+          width = string.format("%.6f", num / PANDOC_WRITER_OPTIONS.dpi) .. "in"
+        end
+        widths[#widths] = width
+      end
+    end
+
+    -- default width
+    local defaultWidth = "1fr"
+    for i=1,cols do
+      if (i > #widths) or widths[i] == 0 then
+        widths[i] = defaultWidth
+      end
+    end
+    -- allocate widths
+    for i,fig in ipairs(row) do
+      fig.attr.attributes["width"] = widths[i]
+      fig.attr.attributes["height"] = nil
+    end
+
   end
 end
 

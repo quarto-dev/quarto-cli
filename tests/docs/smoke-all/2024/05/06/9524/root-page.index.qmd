@@ -1,0 +1,11 @@
+---
+title: root page
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['link[rel="canonical"][href="https://index.html.com/root-page.index.html"]']
+        - []
+---
+
+Root page with "index." pattern.

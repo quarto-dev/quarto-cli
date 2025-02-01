@@ -1,15 +1,15 @@
 /*
-* account.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * account.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
 import { join } from "../../deno_ral/path.ts";
 import { info } from "../../deno_ral/log.ts";
-import * as colors from "fmt/colors.ts";
-import { isServerSession, isWindows } from "../../core/platform.ts";
+import * as colors from "fmt/colors";
+import { isServerSession } from "../../core/platform.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 import { openUrl } from "../../core/shell.ts";
 import { sleep } from "../../core/wait.ts";
 import { accountsDataDir } from "./data.ts";
@@ -96,7 +96,7 @@ export function writeAccessTokens<T>(
   );
 
   // set file permissions
-  if (!isWindows()) {
+  if (!isWindows) {
     Deno.chmod(tokensPath, 0o600);
   }
 }

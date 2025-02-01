@@ -1,0 +1,78 @@
+---
+validate-yaml: false
+format: 
+  html: &tested
+    quality: 2
+  dashboard: 
+    quality: 1
+  markdown: 
+    quality: 1
+  revealjs:
+    quality: 1
+    comment: We have tests but they apparently don't work in deno-dom?
+  ipynb:
+    quality: 0
+    comment: We just emit inline Markdown in this case. Is that good enough?
+  docusaurus-md:
+    quality: 0
+    comment: We just emit inline Markdown in this case. Is that good enough?
+  pdf:
+    quality: -1
+    comment: SVG data URIs appear to break latex
+  beamer: 
+    quality: -1
+    output-ext: tex
+    comment: SVG data URIs appear to break latex
+  typst:
+    quality: -1
+    comment: data URIs appear to break typst
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - "section#case-1 img[src*=\"svg\"]"
+          - "section#case-2 img[src*=\"svg\"]"
+          - "section#case-3 img[src*=\"svg\"]"
+          - "section#case-4 img[src*=\"png\"]"
+          - "section#case-5 img[src*=\"png\"]"
+          - "section#case-6 img[src*=\"png\"]"
+    # these work on the browser but not in deno-dom?
+    # revealjs:
+    #   ensureHtmlElements:
+    #     -
+    #       - "h3#case-1 ~ p > img[src*=\"svg\"]"
+    #       - "h3#case-2 ~ p > img[src*=\"svg\"]"
+    #       - "h3#case-3 ~ p > img[src*=\"svg\"]"
+    #       - "h3#case-4 ~ p > img[src*=\"png\"]"
+    #       - "h3#case-5 ~ p > img[src*=\"png\"]"
+    #       - "h3#case-6 ~ p > img[src*=\"png\"]"
+---
+
+## Row
+
+### Column {#case-1}
+
+{{< placeholder format=svg >}}
+
+### Column {#case-2}
+
+{{< placeholder 200 format=svg >}}
+
+### Column {#case-3}
+
+{{< placeholder 400 200 format=svg >}}
+
+## Row
+
+### Column {#case-4}
+
+{{< placeholder >}}
+
+### Column {#case-5}
+
+{{< placeholder 200 >}}
+
+### Column {#case-6}
+
+{{< placeholder 400 200 >}}

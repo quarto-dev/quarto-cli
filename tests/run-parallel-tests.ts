@@ -1,6 +1,21 @@
-import { expandGlobSync } from "https://deno.land/std/fs/mod.ts";
-import { basename, relative } from "https://deno.land/std/path/mod.ts";
-import { parse } from "https://deno.land/std/flags/mod.ts";
+// horrendous hack to get us out of the CI deadlock
+let parse, expandGlobSync, basename: any, relative: any;
+try {
+  const path = await import("stdlib/path");
+  basename = path.basename;
+  relative = path.relative;
+  expandGlobSync = (await import("stdlib/fs")).expandGlobSync;  
+  // let { expandGlobSync } = await import("stdlib/fs");
+  // let { basename, relative } = await import("stdlib/path");
+  // let { parse } = await import("stdlib/flags");
+  parse = (await import("stdlib/flags")).parse;
+} catch (_e) {
+  const path = await import("https://deno.land/std/path/mod.ts");
+  basename = path.basename;
+  relative = path.relative;
+  expandGlobSync = (await import("https://deno.land/std/fs/mod.ts")).expandGlobSync;
+  parse = (await import("https://deno.land/std/flags/mod.ts")).parse;
+}
 
 // Command line flags to use when calling `run-paralell-tests.sh`.
 const flags = parse(Deno.args, {

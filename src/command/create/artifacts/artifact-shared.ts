@@ -12,7 +12,7 @@ import { gfmAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 import { coerce } from "semver/mod.ts";
 import { info } from "../../../deno_ral/log.ts";
 import { basename, dirname, join, relative } from "../../../deno_ral/path.ts";
-import { ensureDirSync, walkSync } from "fs/mod.ts";
+import { ensureDirSync, walkSync } from "../../../deno_ral/fs.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { safeExistsSync } from "../../../core/path.ts";
 import { CreateDirective, CreateDirectiveData } from "../cmd-types.ts";

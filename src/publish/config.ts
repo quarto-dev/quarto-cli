@@ -5,11 +5,8 @@
  */
 
 import { warning } from "../deno_ral/log.ts";
-import { stringify } from "yaml/mod.ts";
+import { stringify } from "../core/yaml.ts";
 import { basename, dirname, join } from "../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
-
-import * as ld from "../core/lodash.ts";
 
 import { Metadata } from "../config/types.ts";
 import { readYaml, readYamlFromString } from "../core/yaml.ts";
@@ -70,7 +67,9 @@ export function writePublishDeployment(
   publish: PublishRecord,
 ) {
   // don't write 'code' field if false
-  publish = ld.cloneDeep(publish) as PublishRecord;
+  publish = {
+    ...publish,
+  } as PublishRecord;
   if (publish.code === false) {
     delete (publish as Record<string, unknown>).code;
   }

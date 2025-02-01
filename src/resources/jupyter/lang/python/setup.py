@@ -21,7 +21,7 @@ try:
   import matplotlib.pyplot as plt
   plt.rcParams['figure.figsize'] = (fig_width, fig_height)
   plt.rcParams['figure.dpi'] = fig_dpi
-  plt.rcParams['savefig.dpi'] = fig_dpi
+  plt.rcParams['savefig.dpi'] = "figure"
   from IPython.display import set_matplotlib_formats
   set_matplotlib_formats(fig_format)
 except Exception:
@@ -270,4 +270,4 @@ def ojs_define(**kwargs):
   v = dict(contents=list(dict(name=key, value=convert(value)) for (key, value) in kwargs.items()))
   display(HTML('<script type="ojs-define">' + json.dumps(v) + '</script>'), metadata=dict(ojs_define = True))
 globals()["ojs_define"] = ojs_define
-# globals()["__spec__"] = None
+globals()["__spec__"] = None

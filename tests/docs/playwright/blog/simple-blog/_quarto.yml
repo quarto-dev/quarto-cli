@@ -1,0 +1,17 @@
+project:
+  type: website
+
+website:
+  title: "Testing listing search"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: default.qmd
+        text: Default
+      - href: grid.qmd
+        text: Grid
+      - href: table.qmd
+        text: Table
+
+format: html

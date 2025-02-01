@@ -14,14 +14,18 @@
       "runtimeExecutable": "${workspaceFolder}/package/dist/bin/tools/deno",
       "runtimeArgs": [
         "run",
+        "--unstable-kv",
         "--unstable-ffi",
         "--importmap=${workspaceFolder}/src/import_map.json",
         "--inspect-brk",
-        "--allow-all"
+        "--allow-all",
+        "--v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192"
       ],
       "env": {
         "QUARTO_BIN_PATH": "${workspaceFolder}/package/dist/bin",
-        "QUARTO_SHARE_PATH": "${workspaceFolder}/src/resources"
+        "QUARTO_SHARE_PATH": "${workspaceFolder}/src/resources",
+        "QUARTO_ROOT": "${workspaceFolder}",
+        "QUARTO_DEBUG": "true"
       },
       "attachSimplePort": 9229,
       "windows": {
@@ -39,11 +43,13 @@
       "runtimeArgs": [
         "test",
         "--config=test-conf.json",
+        "--unstable-kv",
         "--unstable-ffi",
         "--allow-all",
         "--check",
         "--importmap=${workspaceFolder}/src/import_map.json",
-        "--inspect-brk"
+        "--inspect-brk",
+        "--v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192"
       ],
       "env": {
         "QUARTO_ROOT": "${workspaceFolder}",

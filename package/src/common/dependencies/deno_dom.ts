@@ -5,7 +5,7 @@
 *
 */
 
-import { ensureDir } from "fs/mod.ts";
+import { ensureDir } from "../../../../src/deno_ral/fs.ts";
 import { basename, dirname, join } from "../../../../src/deno_ral/path.ts";
 import { Configuration } from "../config.ts";
 
@@ -34,8 +34,8 @@ export function deno_dom(version: string): Dependency {
     };
   };
 
-  const deno_dom_release_dragonstyle = (filename: string, targetFileName: string) => {
-    return deno_dom_release(filename, "https://github.com/dragonstyle/deno-dom", targetFileName)
+  const deno_dom_release_quarto_dev = (filename: string, targetFileName: string) => {
+    return deno_dom_release(filename, "https://github.com/quarto-dev/deno-dom-apple-silicon", targetFileName)
   }
 
   return {
@@ -50,7 +50,7 @@ export function deno_dom(version: string): Dependency {
       },
       "aarch64": {
         linux: deno_dom_release("libplugin-linux-aarch64.so"),
-        darwin: deno_dom_release_dragonstyle("libplugin-aarch64.dylib", "libplugin.dylib")
+        darwin: deno_dom_release_quarto_dev("libplugin-aarch64.dylib", "libplugin.dylib")
       },
     },
   };

@@ -1,0 +1,16 @@
+---
+nested:
+  a.b.c:
+    key: cb593803d9d65583347959fd848b5536
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['cb593803d9d65583347959fd848b5536']
+---
+
+I would like to show the "Show me" using a shortcode.
+
+E.g. {{< meta nested.a\\.b\\.c.key >}}
+
+but it fails.

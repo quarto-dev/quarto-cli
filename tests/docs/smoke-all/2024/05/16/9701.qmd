@@ -1,0 +1,16 @@
+---
+title: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - ["Note"]
+---
+
+::: {.callout-note icon=false}
+## {{< fa quote-right >}}
+
+Some text.
+
+:::

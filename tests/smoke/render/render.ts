@@ -4,7 +4,6 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { existsSync } from "fs/mod.ts";
 import { basename, join } from "../../../src/deno_ral/path.ts";
 
 import { outputForInput } from "../../utils.ts";
@@ -15,6 +14,9 @@ import {
   noSupportingFiles,
   outputCreated,
 } from "../../verify.ts";
+import { safeRemoveSync } from "../../../src/core/path.ts";
+import { safeExistsSync } from "../../../src/core/path.ts";
+import { assert } from "testing/asserts";
 
 export function testSimpleIsolatedRender(
   file: string,
@@ -64,6 +66,12 @@ export function testRender(
     verify,
     {
       ...context,
+      setup: async () => {
+        if (context?.setup) {
+          await context?.setup();
+        }
+        assert(safeExistsSync(input), `Input file ${input} does not exist. Test could not be ran.`);
+      },
       teardown: async () => {
         if (context?.teardown) {
           await context?.teardown();
@@ -78,15 +86,16 @@ export function cleanoutput(
   input: string, 
   to: string, 
   projectOutDir?: string,
+  projectRoot?: string,
   // deno-lint-ignore no-explicit-any
   metadata?: Record<string, any>,
 ) {
-  const out = outputForInput(input, to, projectOutDir, metadata);
-  if (existsSync(out.outputPath)) {
-    Deno.removeSync(out.outputPath);
+  const out = outputForInput(input, to, projectOutDir, projectRoot, metadata);
+  if (safeExistsSync(out.outputPath)) {
+    safeRemoveSync(out.outputPath);
   }
-  if (existsSync(out.supportPath)) {
-    Deno.removeSync(out.supportPath, { recursive: true });
+  if (safeExistsSync(out.supportPath)) {
+    safeRemoveSync(out.supportPath, { recursive: true });
   }
 }
 

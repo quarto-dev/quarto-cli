@@ -44,6 +44,7 @@ import { formatDate, parsePandocDate } from "../../../../core/date.ts";
 import { truncateText } from "../../../../core/text.ts";
 import { encodeAttributeValue } from "../../../../core/html.ts";
 import { imagePlaceholder, isPlaceHolder } from "./website-listing-read.ts";
+import { b64EncodeUnicode, unicodeDecodeB64 } from "../../../../core/base64.ts";
 
 export const kDateFormat = "date-format";
 
@@ -160,6 +161,12 @@ export function templateMarkdownHandler(
       ejsParams["metadataAttrs"] = reshapedListing.utilities.metadataAttrs;
       ejsParams["templateParams"] = reshapedListing["template-params"];
     }
+    // some custom utils function
+    ejsParams["utils"] = {
+      b64encode: b64EncodeUnicode,
+      b64decode: unicodeDecodeB64,
+    };
+
     return ejsParams;
   };
 
@@ -311,7 +318,9 @@ export function reshapeListing(
   listing: Listing,
   format: Format,
 ): ReshapedListing {
-  const reshaped = cloneDeep(listing) as Listing;
+  const reshaped = {
+    ...listing,
+  } as Listing;
 
   // Add template utilities
   const utilities = {} as Record<string, unknown>;
@@ -435,11 +444,13 @@ export function reshapeListing(
     return `<img ${lazyAttr}${srcAttr}="${src}" ${classAttr} ${styleAttr} ${altAttr}>`;
   };
   utilities.imgPlaceholder = (
+    listingId: string,
     itemNumber: number,
     itemPath: string,
   ) => {
     const pageSize = listing[kPageSize];
     return imagePlaceholder(
+      listingId,
       itemPath,
       itemNumber > pageSize,
       listing[kImageHeight] as string,
@@ -452,7 +463,8 @@ export function reshapeListing(
 
     attr["index"] = (index++).toString();
     if (item.categories) {
-      attr["categories"] = (item.categories as string[]).join(",");
+      const str = (item.categories as string[]).join(",");
+      attr["categories"] = b64EncodeUnicode(str);
     }
 
     // Add magic attributes for the sortable values

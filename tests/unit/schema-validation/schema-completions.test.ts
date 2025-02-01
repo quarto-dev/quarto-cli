@@ -7,7 +7,7 @@
 
 import { unitTest } from "../../test.ts";
 
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../src/core/schema/utils.ts";
 import {

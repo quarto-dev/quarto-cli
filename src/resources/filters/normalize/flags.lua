@@ -15,19 +15,20 @@ function compute_flags()
   local table_pattern = patterns.html_table
   local table_tag_pattern = patterns.html_table_tag_name
   local gt_table_pattern = patterns.html_gt_table
-  local html_table_caption_pattern = patterns.html_table_caption
-  local latex_caption_pattern = "(\\caption{)(.*)" .. refLabelPattern("tbl") .. "([^}]*})"
-
-  return {
-    Meta = function(el)
-      local lightbox_auto = lightbox_module.automatic(el)
-      if lightbox_auto then
-        flags.has_lightbox = true
-      elseif lightbox_auto == false then
-        flags.has_lightbox = false
+  local function find_shortcode_in_attributes(el)
+    for k, v in pairs(el.attributes) do
+      if type(v) == "string" and v:find("%{%{%<") then
+        return true
       end
-    end,
+    end
+    return false
+  end
+
+  return {{
     Header = function(el)
+      if find_shortcode_in_attributes(el) then
+        flags.has_shortcodes = true
+      end
       crossref.maxHeading = math.min(crossref.maxHeading, el.level)
     end,
 
@@ -56,18 +57,23 @@ function compute_flags()
       end
 
       if _quarto.format.isRawLatex(el) then
-        if (el.text:match(_quarto.patterns.latexLongtablePattern) and
-            not el.text:match(_quarto.patterns.latexCaptionPattern)) then
-            flags.has_longtable_no_caption_fixup = true
+        local long_table_match, _ = _quarto.modules.patterns.match_in_list_of_patterns(el.text, _quarto.patterns.latexLongtableEnvPatterns)
+        if long_table_match then
+            local caption_match, _= _quarto.modules.patterns.match_in_list_of_patterns(el.text, _quarto.patterns.latexCaptionPatterns)
+            if not caption_match then
+              flags.has_longtable_no_caption_fixup = true
+            end
         end
       end
 
       if el.text:find("%{%{%<") then
         flags.has_shortcodes = true
       end
-        
     end,
     Div = function(node)
+      if find_shortcode_in_attributes(node) then
+        flags.has_shortcodes = true
+      end
       local type = refType(node.attr.identifier)
       if theorem_types[type] ~= nil or proof_type(node) ~= nil then
         flags.has_theorem_refs = true
@@ -76,6 +82,10 @@ function compute_flags()
       local has_lightbox = lightbox_module.el_has_lightbox(node)
       if has_lightbox then
         flags.has_lightbox = true
+      end
+
+      if node.attr.classes:find("landscape") then
+        flags.has_landscape = true
       end
 
       if node.attr.classes:find("hidden") then
@@ -88,8 +98,8 @@ function compute_flags()
 
         -- FIXME: are we actually triggering this with FloatRefTargets?
         -- table captions
-        local tblCap = extractTblCapAttrib(node,kTblCap)
-        if hasTableRef(node) or tblCap then
+        local kTblCap = "tbl-cap"
+        if hasTableRef(node) or node.attr.attributes[kTblCap] then
           flags.has_table_captions = true
         end
 
@@ -121,12 +131,24 @@ function compute_flags()
       end
     end,
     RawInline = function(el)
-      if el.text:find("%{%{%<") then
+      if el.format == "quarto-internal" then
+        local result, data = pcall(function() 
+          local data = quarto.json.decode(el.text)
+          return data.type
+        end)
+        if result == false then
+          warn("[Malformed document] Failed to decode quarto-internal JSON: " .. el.text)
+          return
+        end
+        if data == "contents-shortcode" then
+          flags.has_contents_shortcode = true
+        end
+      elseif el.text:find("%{%{%<") then
         flags.has_shortcodes = true
       end
     end,
     Image = function(node)
-      if node.src:find("%{%{%<") then
+      if find_shortcode_in_attributes(node) or node.src:find("%{%{%<") then
         flags.has_shortcodes = true
       end
 
@@ -139,11 +161,17 @@ function compute_flags()
       flags.has_shortcodes = true
     end,
     Link = function(node)
+      if find_shortcode_in_attributes(node) then
+        flags.has_shortcodes = true
+      end
       if node.target:find("%{%{%<") then
         flags.has_shortcodes = true
       end
     end,
     Span = function(node)
+      if find_shortcode_in_attributes(node) then
+        flags.has_shortcodes = true
+      end
       if node.attr.classes:find("content-hidden") or node.attr.classes:find("content-visible") then
         flags.has_conditional_content = true
       end
@@ -151,5 +179,14 @@ function compute_flags()
     Figure = function(node)
       flags.has_pandoc3_figure = true
     end
-  }
+  }, {
+    Meta = function(el)
+      local lightbox_auto = lightbox_module.automatic(el)
+      if lightbox_auto then
+        flags.has_lightbox = true
+      elseif lightbox_auto == false then
+        flags.has_lightbox = false
+      end
+    end,
+  }}
 end

@@ -5,7 +5,7 @@ runs:
   using: "composite"
   steps:
     - name: Cache deno std deps
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ./src/resources/deno_std/cache
         key: ${{ runner.os }}-deno_std-1-${{ hashFiles('./src/resources/deno_std/deno_std.lock', './package/scripts/deno_std/deno_std.ts') }}
@@ -42,14 +42,32 @@ runs:
           echo "Unexpected package/dist/share path detected: $(quarto --paths)"
           Exit 1 
         }
-        If ( "$(git status --porcelain)" -ne "" ) {
-          echo "Uncommitted changes detected:"
-          git status --porcelain
-          Exit 1 
+        # check if configure is modifying some files as it should not
+        $modifiedFiles = git diff --name-only
+        If ($modifiedFiles -ne "") {
+
+          # Convert the list to an array
+          $modifiedFilesArray = $modifiedFiles -split "`n" | ForEach-Object { $_.Trim() }
+
+          If ($modifiedFilesArray -contains "tests/uv.lock") {
+            Write-Output "::warning::test/uv.lock has been modified."
+            $modifiedFilesArray = $modifiedFilesArray | Where-Object { $_ -notmatch "uv.lock" }
+          }
+
+          # Count the number of modified files
+          $modifiedFilesCount = $modifiedFilesArray.Count
+
+          If ($modifiedFilesCount -ge 1) {
+            Write-Output "::error::Uncommitted changes detected."
+            foreach ($file in $modifiedFilesArray) {
+              Write-Output $file
+            }
+            Exit 1
+          }
         }
 
     - name: Quarto Check
-      if:  runner.debug == '1'
+      if: runner.debug == '1'
       working-directory: tests
       shell: pwsh
       run: quarto check

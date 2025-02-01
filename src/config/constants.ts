@@ -109,6 +109,7 @@ export const kPreferHtml = "prefer-html";
 export const kSelfContainedMath = "self-contained-math";
 export const kBiblioConfig = "biblio-config";
 export const kBodyClasses = "body-classes";
+export const kBrand = "brand";
 
 export const kLatexAutoMk = "latex-auto-mk";
 export const kLatexAutoInstall = "latex-auto-install";
@@ -136,6 +137,8 @@ export const kPreviewModeRaw = "raw";
 export const kFontPaths = "font-paths";
 
 export const kHtmlTableProcessing = "html-table-processing";
+export const kHtmlPreTagProcessing = "html-pre-tag-processing";
+export const kCssPropertyProcessing = "css-property-processing";
 export const kUseRsvgConvert = "use-rsvg-convert";
 export const kValidateYaml = "validate-yaml";
 
@@ -245,6 +248,11 @@ export const kCalloutNoteCaption = "callout-note-title";
 export const kCalloutWarningCaption = "callout-warning-title";
 export const kCalloutImportantCaption = "callout-important-title";
 export const kCalloutCautionCaption = "callout-caution-title";
+export const kCalloutTipPrefix = "callout-tip-prefix";
+export const kCalloutNotePrefix = "callout-note-prefix";
+export const kCalloutWarningPrefix = "callout-warning-prefix";
+export const kCalloutImportantPrefix = "callout-important-prefix";
+export const kCalloutCautionPrefix = "callout-caution-prefix";
 export const kSectionTitleAbstract = "section-title-abstract";
 export const kSectionTitleFootnotes = "section-title-footnotes";
 export const kSectionTitleReferences = "section-title-references";
@@ -373,6 +381,11 @@ export const kLanguageDefaultsKeys = [
   kCalloutWarningCaption,
   kCalloutImportantCaption,
   kCalloutCautionCaption,
+  kCalloutTipPrefix,
+  kCalloutNotePrefix,
+  kCalloutWarningPrefix,
+  kCalloutImportantPrefix,
+  kCalloutCautionPrefix,
   kSectionTitleAbstract,
   kSectionTitleFootnotes,
   kSectionTitleReferences,
@@ -525,6 +538,7 @@ export const kPaperSize = "papersize";
 export const kLogFile = "log-file";
 export const kHighlightStyle = "highlight-style";
 export const kDefaultImageExtension = "default-image-extension";
+export const kLogo = "logo";
 export const kLinkColor = "linkcolor";
 export const kColorLinks = "colorlinks";
 export const kVariables = "variables";
@@ -629,7 +643,7 @@ export const kCapBottom = "bottom";
 // Pandoc Input Traits
 export const kPositionedRefs = "positioned-refs";
 
-// https://pandoc.org/MANUAL.html#default-files
+// https://pandoc.org/MANUAL.html#defaults-files
 // note: we are keeping some things out of 'defaults' b/ca
 // they are known to be valid in metadata. this includes:
 //    "csl",
@@ -750,6 +764,8 @@ export const kCellColumn = "column";
 export const kCellOutWidth = "out-width";
 export const kCellOutHeight = "out-height";
 export const kCellMdIndent = "md-indent";
+export const kCellWidth = "width";
+export const kCellHeight = "height";
 
 export const kCellColab = "colab";
 export const kCellColabType = "colab_type";

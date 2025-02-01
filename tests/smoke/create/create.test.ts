@@ -8,7 +8,7 @@
 import { execProcess } from "../../../src/core/process.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { CreateResult } from "../../../src/command/create/cmd-types.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 import { quartoDevCmd } from "../../utils.ts";
 
 const kCreateTypes: Record<string, string[]> = {

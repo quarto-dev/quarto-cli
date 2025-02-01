@@ -1546,9 +1546,9 @@ local function processTextDependency(dependency, meta)
    local textLoc = rawText.location
 
    if meta[textLoc] == nil then
-      meta[textLoc] = {}
+      meta[textLoc] = pandoc.List{}
    end
-   meta[textLoc]:insert(pandoc.RawBlock(FORMAT, rawText.text))
+   meta[textLoc]:insert(pandoc.Blocks{pandoc.RawBlock(FORMAT, rawText.text)})
  end
 
  -- make the usePackage statement
@@ -1568,9 +1568,9 @@ local function usePackage(package, option)
    
    local headerLoc = resolveLocation(kInHeader)
    if meta[headerLoc] == nil then
-      meta[headerLoc] = {}
+      meta[headerLoc] = pandoc.List{}
    end
-   table.insert(meta[headerLoc], usePackage(rawPackage.package, rawPackage.options))
+   meta[headerLoc]:insert(usePackage(rawPackage.package, rawPackage.options))
  end
  
  
@@ -1584,28 +1584,28 @@ local function processDependencies(meta)
    -- holds a list of hashes for dependencies that
    -- have been processed. Process each dependency
    -- only once
-   local injectedText = {}
-   local injectedFile = {}
-   local injectedPackage = {}
+   local injectedText = pandoc.List{}
+   local injectedFile = pandoc.List{}
+   local injectedPackage = pandoc.List{}
 
   -- each line was written as a dependency.
   -- process them and contribute the appropriate headers
-  for line in io.lines(dependenciesFile) do 
+  for line in io.lines(dependenciesFile) do
     local dependency = json.decode(line)
     if dependency.type == 'text' then
       if not utils.table.contains(injectedText, dependency.content) then
          processTextDependency(dependency, meta)
-         injectedText[#injectedText + 1] = dependency.content   
+         injectedText:insert(dependency.content)
       end
     elseif dependency.type == "file" then
       if not utils.table.contains(injectedFile, dependency.content.path) then
          processFileDependency(dependency, meta)
-         injectedFile[#injectedFile + 1] = dependency.content.path
+         injectedFile:insert(dependency.content.path)
       end
     elseif dependency.type == "usepackage" then
       if not utils.table.contains(injectedPackage, dependency.content.package) then
          processUsePackageDependency(dependency, meta)
-         injectedPackage[#injectedPackage + 1] = dependency.content.package
+         injectedPackage:insert(dependency.content.package)
       end
     end
   end
@@ -1705,33 +1705,32 @@ local function resolveServiceWorkers(serviceworkers)
    else
      return nil
    end
- end
+end
 
+-- Lua Patterns for LaTeX Table Environment
 
-local latexTableWithOptionsPattern = "(\\begin{table}%[[^%]]+%])(.*)(\\end{table})"
-local latexTablePattern = "(\\begin{table})(.*)(\\end{table})"
-local latexLongtablePatternwWithPosAndAlign = "(\\begin{longtable}%[[^%]]+%]{[^\n]*})(.*)(\\end{longtable})"
-local latexLongtablePatternWithPos = "(\\begin{longtable}%[[^%]]+%])(.*)(\\end{longtable})"
-local latexLongtablePatternWithAlign = "(\\begin{longtable}{[^\n]*})(.*)(\\end{longtable})"
-local latexLongtablePattern = "(\\begin{longtable})(.*)(\\end{longtable})"
-local latexTabularPatternWithPosAndAlign = "(\\begin{tabular}%[[^%]]+%]{[^\n]*})(.*)(\\end{tabular})"
-local latexTabularPatternWithPos = "(\\begin{tabular}%[[^%]]+%])(.*)(\\end{tabular})"
-local latexTabularPatternWithAlign = "(\\begin{tabular}{[^\n]*})(.*)(\\end{tabular})"
-local latexTabularPattern = "(\\begin{tabular})(.*)(\\end{tabular})"
-local latexCaptionPattern =  "(\\caption{)(.-)(}[^\n]*\n)"
+--    1. \begin{table}[h] ... \end{table}
+local latexTablePatternWithPos_table = { "\\begin{table}%[[^%]]+%]", ".*", "\\end{table}" }
+local latexTablePattern_table = { "\\begin{table}", ".*", "\\end{table}" }
 
-local latexTablePatterns = pandoc.List({
-  latexTableWithOptionsPattern,
-  latexTablePattern,
-  latexLongtablePatternwWithPosAndAlign,
-  latexLongtablePatternWithPos,
-  latexLongtablePatternWithAlign,
-  latexLongtablePattern,
-  latexTabularPatternWithPosAndAlign,
-  latexTabularPatternWithPos,
-  latexTabularPatternWithAlign,
-  latexTabularPattern,
-})
+--    2. \begin{longtable}[c*]{l|r|r} 
+--       FIXME: These two patterns with longtable align options do no account for newlines in options,
+--       however pandoc will break align options over lines. This leads to specific treatment needed
+--       as latexLongtablePattern_table will be the pattern, matching options in content.
+--       see split_longtable_start() usage in src\resources\filters\customnodes\floatreftarget.lua
+local latexLongtablePatternWithPosAndAlign_table = { "\\begin{longtable}%[[^%]]+%]{[^\n]*}", ".*", "\\end{longtable}" }
+local latexLongtablePatternWithAlign_table = { "\\begin{longtable}{[^\n]*}", ".*", "\\end{longtable}" }
+local latexLongtablePatternWithPos_table = { "\\begin{longtable}%[[^%]]+%]", ".*", "\\end{longtable}" }
+local latexLongtablePattern_table = { "\\begin{longtable}", ".*", "\\end{longtable}" }
+
+--    3. \begin{tabular}[c]{l|r|r}
+local latexTabularPatternWithPosAndAlign_table = { "\\begin{tabular}%[[^%]]+%]{[^\n]*}", ".*", "\\end{tabular}" }
+local latexTabularPatternWithPos_table = { "\\begin{tabular}%[[^%]]+%]", ".*", "\\end{tabular}" }
+local latexTabularPatternWithAlign_table = { "\\begin{tabular}{[^\n]*}", ".*", "\\end{tabular}" }
+local latexTabularPattern_table = { "\\begin{tabular}", ".*", "\\end{tabular}" }
+
+-- Lua Pattern for Caption environment
+local latexCaptionPattern_table = { "\\caption{", ".-", "}[^\n]*\n" }
 
 -- global quarto params
 local paramsJson = base64.decode(os.getenv("QUARTO_FILTER_PARAMS"))
@@ -1875,13 +1874,44 @@ local function file_exists(name)
 _quarto = {   
    processDependencies = processDependencies,
    format = format,
+   -- Each list in patterns below contains Lua pattern as table,
+   -- where elements are ordered from more specific match to more generic one.
+   -- They are meant to be used with _quarto.modules.patterns.match_in_list_of_patterns()
    patterns = {
-      latexTabularPattern = latexTabularPattern,
-      latexTablePattern = latexTablePattern,
-      latexLongtablePattern = latexLongtablePattern,
-      latexTablePatterns = latexTablePatterns,
-      latexCaptionPattern = latexCaptionPattern
+      latexTableEnvPatterns = pandoc.List({
+         latexTablePatternWithPos_table, 
+         latexTablePattern_table
+      }),
+      latexTabularEnvPatterns = pandoc.List({
+         latexTabularPatternWithPosAndAlign_table,
+         latexTabularPatternWithPos_table,
+         latexTabularPatternWithAlign_table,
+         latexTabularPattern_table
+      }),
+      latexLongtableEnvPatterns = pandoc.List({
+         latexLongtablePatternWithPosAndAlign_table,
+         latexLongtablePatternWithPos_table,
+         latexLongtablePatternWithAlign_table,
+         latexLongtablePattern_table
+      }),
+      -- This is all table env patterns
+      latexAllTableEnvPatterns = pandoc.List({
+         latexTablePatternWithPos_table,
+         latexTablePattern_table,
+         latexLongtablePatternWithPosAndAlign_table,
+         latexLongtablePatternWithPos_table,
+         latexLongtablePatternWithAlign_table,
+         latexLongtablePattern_table,
+         latexTabularPatternWithPosAndAlign_table,
+         latexTabularPatternWithPos_table,
+         latexTabularPatternWithAlign_table,
+         latexTabularPattern_table,
+      }),
+      latexCaptionPatterns = pandoc.List({
+         latexCaptionPattern_table
+      })
    },
+   traverser = utils.walk,
    utils = utils,
    withScriptFile = function(file, callback)
       table.insert(scriptFile, file)
@@ -1920,6 +1950,7 @@ end
 
 -- The main exports of the quarto module
 quarto = {
+  format = format,
   doc = {
     add_html_dependency = function(htmlDependency)
    
@@ -2023,6 +2054,11 @@ quarto = {
       writeToDependencyFile(dependency("usepackage", {package = package, options = options }))
     end,
 
+    -- could be add_metadata(namespace, {stuff})
+    add_typst_font_path = function(path)
+      writeToDependencyFile(dependency("typst-font-path", {path = path}))
+    end,
+
     add_format_resource = function(path)
       writeToDependencyFile(dependency("format-resources", { file = resolvePathExt(path)}))
     end,
@@ -2066,29 +2102,44 @@ quarto = {
     crossref = {}
   },
   project = {
-   directory = projectDirectory(),
-   offset = projectOffset(),
-   profile = pandoc.List(projectProfiles()),
-   output_directory = projectOutputDirectory()
+    directory = projectDirectory(),
+    offset = projectOffset(),
+    profile = pandoc.List(projectProfiles()),
+    output_directory = projectOutputDirectory()
   },
   utils = {
-   dump = utils.dump,
-   table = utils.table,
-   type = utils.type,
-   resolve_path = resolvePathExt,
-   resolve_path_relative_to_document = resolvePath,
-   as_inlines = utils.as_inlines,
-   as_blocks = utils.as_blocks,
-   string_to_blocks = utils.string_to_blocks,
-   string_to_inlines = utils.string_to_inlines,
-   render = utils.render,
-   match = utils.match,
-   add_to_blocks = utils.add_to_blocks
+    dump = utils.dump,
+    table = utils.table,
+    type = utils.type,
+    resolve_path = resolvePathExt,
+    resolve_path_relative_to_document = resolvePath,
+    as_inlines = utils.as_inlines,
+    as_blocks = utils.as_blocks,
+    is_empty_node = utils.is_empty_node,
+    string_to_blocks = utils.string_to_blocks,
+    string_to_inlines = utils.string_to_inlines,
+    render = utils.render,
+    match = utils.match,
+    add_to_blocks = utils.add_to_blocks,
+  },
+  paths = {
+     -- matches the path from `quartoEnvironmentParams` from src/command/render/filters.ts
+    rscript = function()
+      return param('quarto-environment', nil).paths.Rscript
+    end,
+    tinytex_bin_dir = function()
+      return param('quarto-environment', nil).paths.TinyTexBinDir
+    end,
   },
   json = json,
   base64 = base64,
   log = logging,
-  version = version()
+  version = version(),
+  -- map to quartoConfig information on TS side
+  config = {
+    cli_path = function() return param('quarto-cli-path', nil) end,
+    version = function() return version() end
+  }
 }
 
 -- alias old names for backwards compatibility

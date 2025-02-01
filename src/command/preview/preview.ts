@@ -5,8 +5,14 @@
  */
 
 import { info, warning } from "../../deno_ral/log.ts";
-import { basename, dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+} from "../../deno_ral/path.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -367,7 +373,7 @@ export async function previewFormat(
     return format;
   }
   const nbContext = notebookContext();
-  project = project || singleFileProjectContext(file, nbContext);
+  project = project || (await singleFileProjectContext(file, nbContext));
   formats = formats ||
     await withRenderServices(
       nbContext,
@@ -479,6 +485,8 @@ export async function renderForPreview(
     [],
   ));
 
+  renderResult.context.cleanup();
+
   return {
     file,
     format: renderResult.files[0].format,
@@ -571,8 +579,13 @@ export function createChangeHandler(
         ? "/" + kPdfJsInitialPath
         : "";
 
+      // https://github.com/quarto-dev/quarto-cli/issues/9547
+      // ... this fix means we'll never be able to support files
+      // fix question marks or octothorpes in their names
+      const removeUrlFragment = (file: string) =>
+        file.replace(/#.*$/, "").replace(/\?.*$/, "");
       watches.push({
-        files: reloadFiles.filter(reloadFileFilter),
+        files: reloadFiles.filter(reloadFileFilter).map(removeUrlFragment),
         handler: ld.debounce(async () => {
           await renderQueue.enqueue(async () => {
             await reloader.reloadClients(reloadTarget);

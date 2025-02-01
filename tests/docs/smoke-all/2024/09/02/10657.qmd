@@ -1,0 +1,56 @@
+---
+title: Links to nested elements works
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - 
+          - 'img.r-stretch#fig-elephant'
+          - 'a[href="#/fig-elephant"]'
+          - 'img.r-stretch#elephant'
+          - 'a[href="#/elephant"]'
+          - 'span#eq-EEE > span.math'
+          - 'a[href="#/eq-EEE"]'
+          - 'div.theorem#thm-TTT'
+          - 'a[href="#/thm-TTT"]'
+        - []
+---
+
+## Quarto Figure
+
+![Elephant](https://quarto.org/docs/authoring/images/crossref-figure.png){#fig-elephant}
+
+## Link to the figure
+
+See [Figure Element](#fig-elephant)
+
+## Image
+
+![Elephant](https://quarto.org/docs/authoring/images/crossref-figure.png){#elephant}
+
+## Link to the image
+
+See [Figure Element](#elephant)
+
+## Equation
+
+$$
+\begin{aligned}
+  f(X) = y.
+\end{aligned}
+$$ {#eq-EEE}
+
+## Link to equation
+  
+See @eq-EEE.
+
+## Theorem
+
+::: {#thm-TTT}
+Lorem ipsum dolor sit amet, qui minim labore adipisicing minim sint cillum sint consectetur cupidatat.
+:::
+
+## Link to theorem
+
+See @thm-TTT.

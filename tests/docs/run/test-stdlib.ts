@@ -1,1 +1,1 @@
-import { readLines } from "https://deno.land/std/io/mod.ts";
+import { readLines } from "stdlib/io";

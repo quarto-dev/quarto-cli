@@ -22,6 +22,9 @@ import { quartoConfig } from "./core/quarto.ts";
 import { execProcess } from "./core/process.ts";
 import { pandocBinaryPath } from "./core/resources.ts";
 import { appendProfileArg, setProfileFromArg } from "./quarto-core/profile.ts";
+import { logError } from "./core/log.ts";
+import { CommandError } from "cliffy/command/_errors.ts";
+import { satisfies } from "semver/mod.ts";
 
 import {
   devConfigsEqual,
@@ -30,7 +33,7 @@ import {
   reconfigureQuarto,
 } from "./core/devconfig.ts";
 import { typstBinaryPath } from "./core/typst.ts";
-import { onCleanup } from "./core/cleanup.ts";
+import { exitWithCleanup, onCleanup } from "./core/cleanup.ts";
 
 import { runScript } from "./command/run/run.ts";
 
@@ -49,11 +52,19 @@ import "./format/imports.ts";
 import { kCliffyImplicitCwd } from "./config/constants.ts";
 import { mainRunner } from "./core/main.ts";
 
-export async function quarto(
-  args: string[],
-  cmdHandler?: (command: Command) => Command,
-  env?: Record<string, string>,
-) {
+const checkVersionRequirement = () => {
+  const versionReq = Deno.env.get("QUARTO_VERSION_REQUIREMENT");
+  if (versionReq) {
+    if (!satisfies(quartoConfig.version(), versionReq)) {
+      error(
+        `Quarto version ${quartoConfig.version()} does not meet semver requirement ${versionReq}`,
+      );
+      Deno.exit(1);
+    }
+  }
+};
+
+const checkReconfiguration = async () => {
   // check for need to reconfigure
   if (quartoConfig.isDebug()) {
     const installed = readInstalledDevConfig();
@@ -63,35 +74,60 @@ export async function quarto(
       Deno.exit(1);
     }
   }
+};
 
-  // passthrough to pandoc
-  if (args[0] === "pandoc" && args[1] !== "help") {
-    const result = await execProcess({
+const passThroughPandoc = async (
+  args: string[],
+  env?: Record<string, string>,
+) => {
+  const result = await execProcess(
+    {
       cmd: [pandocBinaryPath(), ...args.slice(1)],
       env,
-    });
-    Deno.exit(result.code);
-  }
+    },
+    undefined,
+    undefined,
+    undefined,
+    true,
+  );
+  Deno.exit(result.code);
+};
 
-  // passthrough to typst
+const passThroughTypst = async (
+  args: string[],
+  env?: Record<string, string>,
+) => {
+  if (args[1] === "update") {
+    error(
+      "The 'typst update' command is not supported.\n" +
+        "Please install the latest version of Quarto from http://quarto.org to get the latest supported typst features.",
+    );
+    Deno.exit(1);
+  }
+  const result = await execProcess({
+    cmd: [typstBinaryPath(), ...args.slice(1)],
+    env,
+  });
+  Deno.exit(result.code);
+};
+
+export async function quarto(
+  args: string[],
+  cmdHandler?: (command: Command) => Command,
+  env?: Record<string, string>,
+) {
+  await checkReconfiguration();
+  checkVersionRequirement();
+  if (args[0] === "pandoc" && args[1] !== "help") {
+    await passThroughPandoc(args, env);
+  }
   if (args[0] === "typst") {
-    if (args[1] === "update") {
-      error(
-        "The 'typst update' command is not supported.\n" +
-          "Please install the latest version of Quarto from http://quarto.org to get the latest supported typst features.",
-      );
-      Deno.exit(1);
-    }
-    const result = await execProcess({
-      cmd: [typstBinaryPath(), ...args.slice(1)],
-      env,
-    });
-    Deno.exit(result.code);
+    await passThroughTypst(args, env);
   }
 
   // passthrough to run handlers
   if (args[0] === "run" && args[1] !== "help" && args[1] !== "--help") {
-    const result = await runScript(args.slice(1));
+    const result = await runScript(args.slice(1), env);
     Deno.exit(result.code);
   }
 
@@ -139,21 +175,34 @@ export async function quarto(
     );
   });
 
+  // From here on, we have a temp dir that we need to clean up.
+  // The calls to Deno.exit() above are fine, but no further
+  // ones should be made
+  //
   // init temp dir
   initSessionTempDir();
   onCleanup(cleanupSessionTempDir);
 
   const promise = quartoCommand.command("help", new HelpCommand().global())
     .command("completions", new CompletionsCommand()).hidden().parse(args);
-  for (const [key, value] of Object.entries(oldEnv)) {
-    if (value === undefined) {
-      Deno.env.delete(key);
+
+  try {
+    await promise;
+    for (const [key, value] of Object.entries(oldEnv)) {
+      if (value === undefined) {
+        Deno.env.delete(key);
+      } else {
+        Deno.env.set(key, value);
+      }
+    }
+  } catch (e) {
+    if (e instanceof CommandError) {
+      logError(e, false);
+      exitWithCleanup(1);
     } else {
-      Deno.env.set(key, value);
+      throw e;
     }
   }
-
-  await promise;
 }
 
 if (import.meta.main) {

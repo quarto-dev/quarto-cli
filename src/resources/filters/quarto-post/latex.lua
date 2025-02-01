@@ -3,8 +3,6 @@
 --
 -- renders AST nodes to LaTeX
 
-local constants = require("modules/constants")
-
 local callout_counters = {}
 
 local function ensure_callout_counter(ref)
@@ -25,19 +23,21 @@ local function ensure_callout_counter(ref)
   quarto.doc.include_text('in-header', newcommand)
 end
 
-function latexCalloutBoxDefault(title, callout_type, icon, callout) 
+function latexCalloutBoxDefault(title, callout_type, icon, callout)
+  title = title or ""
 
   -- callout dimensions
   local leftBorderWidth = '.75mm'
   local borderWidth = '.15mm'
   local borderRadius = '.35mm'
   local leftPad = '2mm'
-  local color = latexColorForType(callout_type)
-  local frameColor = latexFrameColorForType(callout_type)
+  local color = _quarto.modules.callouts.latexColorForType(callout_type)
+  local display_title = _quarto.modules.callouts.displayName(callout_type)
+  local frameColor = _quarto.modules.callouts.latexFrameColorForType(callout_type)
 
-  local iconForType = iconForType(callout_type)
+  local iconForType = _quarto.modules.callouts.iconForType(callout_type)
 
-  local calloutContents = pandoc.List({});
+  local calloutContents = pandoc.List({})
 
   if is_valid_ref_type(refType(callout.attr.identifier)) then
     local ref = refType(callout.attr.identifier)
@@ -45,12 +45,18 @@ function latexCalloutBoxDefault(title, callout_type, icon, callout)
     -- ensure that front matter includes the correct new counter types
     ensure_callout_counter(ref)
 
-    local delim = ""
+    local suffix = ""
     if title:len() > 0 then
-       delim = pandoc.utils.stringify(titleDelim())
+       suffix = pandoc.utils.stringify(titleDelim()) .. " " .. title
     end
-    title = crossref_info.prefix .. " \\ref*{" .. callout.attr.identifier .. "}" .. delim .. " " .. title
+    title = display_title .. " \\ref*{" .. callout.attr.identifier .. "}" .. suffix
     calloutContents:insert(pandoc.RawInline('latex', '\\quartocallout' .. crossref_info.ref_type .. '{' .. callout.attr.identifier .. '} '))
+  else
+    if title:len() > 0 then
+      title = title
+    else
+      title = display_title
+    end
   end
 
   -- generate options
@@ -101,8 +107,8 @@ function latexCalloutBoxSimple(title, type, icon, callout)
   local borderWidth = '.15mm'
   local borderRadius = '.35mm'
   local leftPad = '2mm'
-  local color = latexColorForType(type)
-  local colorFrame = latexFrameColorForType(type)
+  local color = _quarto.modules.callouts.latexColorForType(type)
+  local colorFrame = _quarto.modules.callouts.latexFrameColorForType(type)
 
   if title == nil then
     title = ""
@@ -145,7 +151,7 @@ function latexCalloutBoxSimple(title, type, icon, callout)
   local endInlines = { pandoc.RawInline('latex', '\n\\end{tcolorbox}') }
 
   -- generate the icon and use a minipage to position it
-  local iconForCat = iconForType(type)
+  local iconForCat = _quarto.modules.callouts.iconForType(type)
   if icon ~= false and iconForCat ~= nil then
     local iconName = '\\' .. iconForCat
     local iconColSize = '5.5mm'
@@ -185,7 +191,7 @@ function render_latex()
     return pandoc.RawBlock("latex", "% quarto-tables-in-margin-AB1927C9:end")
   end
   
-  function handle_table_columns(table) 
+  function handle_table_columns(table)
     local useMargin = table.classes:find_if(isStarEnv)
     if useMargin then
       return {
@@ -223,8 +229,31 @@ function render_latex()
       noteHasColumns()
       local is_block = pandoc.utils.type(el) == "Block"
       el.content = strip(el.content, "column-margin")
-      tprepend(el.content, {latexBeginSidenote(is_block)})
-      tappend(el.content, {latexEndSidenote(el, is_block)})
+      local found_table = false
+      local found_something_else = false
+      local function tag_something_else()
+        found_something_else = true
+      end
+      el = _quarto.ast.walk(el, {
+        traverse = "topdown",
+        Block = found_something_else,
+        Inline = found_something_else,
+        Table = function(t)
+          local result = handle_table_columns(t)
+          found_table = true
+          return result,false
+        end
+      }) or pandoc.Div({}) -- unnecessary, but the type checker doesn't know
+
+      if found_table and found_something_else then
+        warn("Cannot mix tables and other content in a column-margin environment. Results may be unpredictable.")
+      end
+      if not found_table then
+        -- marginnote doesn't work well with margintable
+        -- so we only add marginnote if there's no table
+        tprepend(el.content, {latexBeginSidenote(is_block)})
+        tappend(el.content, {latexEndSidenote(el, is_block)})
+      end
       return el, false
     else
       local f = el.classes:find_if(isStarEnv)
@@ -291,6 +320,22 @@ function render_latex()
             return nil, false
           end,
         })
+      elseif float.type == "Listing" then
+        float.content = _quarto.ast.walk(float.content, {
+          traverse = "topdown",
+          -- A Listing float with a decoratedcodeblock inside it needs
+          -- to be deconstructed
+          DecoratedCodeBlock = function(block)
+            if block.filename ~= nil then
+              if float.caption_long == nil then
+                float.caption_long = pandoc.Div({})
+              end
+              float.caption_long.content:insert(1, pandoc.Space())
+              float.caption_long.content:insert(1, pandoc.Code(block.filename))
+            end
+            return block.code_block
+          end
+        })
       end
       float.content = _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
         PanelLayout = function(panel)
@@ -309,12 +354,25 @@ function render_latex()
         return nil
       end
       img.attributes[kFigAlign] = nil
-      -- \\centering doesn't work consistently here...
-      return pandoc.Inlines({
-        pandoc.RawInline('latex', '\\begin{center}\n'),
-        img,
-        pandoc.RawInline('latex', '\n\\end{center}\n')
-      })
+
+      if align == "left" then
+        return pandoc.Inlines({
+          img,
+          pandoc.RawInline('latex', '\\hfill\n'),
+        })
+      elseif align == "right" then
+        return pandoc.Inlines({
+          pandoc.RawInline('latex', '\\hfill\n'),
+          img,
+        })
+      else
+        -- \\centering doesn't work consistently here...
+        return pandoc.Inlines({
+          pandoc.RawInline('latex', '\\begin{center}\n'),
+          img,
+          pandoc.RawInline('latex', '\n\\end{center}\n')
+        })
+      end
     end,
     Callout = function(node)
       -- read and clear attributes
@@ -349,7 +407,7 @@ function render_latex()
         end,
         Note = function(el)
           tappend(noteContents, {el.content})
-          el.content:walk({
+          _quarto.traverser(el.content, {
             CodeBlock = function(el)
               hasVerbatimInNotes = true
             end
@@ -360,10 +418,8 @@ function render_latex()
     
       -- generate the callout box
       local callout
-      if calloutAppearance == constants.kCalloutAppearanceDefault then
-        if title == nil then
-          title = displayName(type)
-        else
+      if calloutAppearance == _quarto.modules.constants.kCalloutAppearanceDefault then
+        if title ~= nil then
           title = pandoc.write(pandoc.Pandoc(title), 'latex')
         end
         callout = latexCalloutBoxDefault(title, type, icon, node)
@@ -417,7 +473,6 @@ function render_latex()
         quarto.doc.use_latex_package('fancyvrb')
         quarto.doc.include_text('in-header', '\\VerbatimFootnotes')
       end
-      
       return pandoc.Div(calloutContents)
     end,
     Note = function(n)
@@ -434,17 +489,136 @@ function render_latex_fixups()
   if not _quarto.format.isLatexOutput() then
     return {}
   end
+  local hex_to_rgb = function(hex)
+    local r = tonumber(hex:sub(2, 3), 16) / 255
+    local g = tonumber(hex:sub(4, 5), 16) / 255
+    local b = tonumber(hex:sub(6, 7), 16) / 255
+    return ("{rgb}{%.2f,%.2f,%.2f}"):format(r, g, b)
+  end
 
-  return {
-    RawBlock = function(raw)
-      if _quarto.format.isRawLatex(raw) then
-        if (raw.text:match(_quarto.patterns.latexLongtablePattern) and
-            not raw.text:match(_quarto.patterns.latexCaptionPattern)) then
-          raw.text = raw.text:gsub(
-            _quarto.patterns.latexLongtablePattern, "\\begin{longtable*}%2\\end{longtable*}", 1)
-          return raw
+  local n_emitted_colors = 0
+  local emitted_colors = {}
+  local need_inject = false
+
+  local function emit_color(code)
+    need_inject = true
+    local n = emitted_colors[code]
+    if n == nil then
+      n_emitted_colors = n_emitted_colors + 1
+      emitted_colors[code] = n_emitted_colors
+      n = n_emitted_colors
+    end
+    return "{QuartoInternalColor" .. n .. "}"
+  end
+  -- these are currently copied from _quarto-rules.scss
+  -- which itself copies from IPython's ansi color scheme
+  -- TODO we should allow users to customize these
+  local dark_ansi_fg_colors = {
+    [30] = hex_to_rgb("#282c36"),
+    [31] = hex_to_rgb("#b22b31"),
+    [32] = hex_to_rgb("#007427"),
+    [33] = hex_to_rgb("#b27d12"),
+    [34] = hex_to_rgb("#0065ca"),
+    [35] = hex_to_rgb("#a03196"),
+    [36] = hex_to_rgb("#258f8f"),
+    [37] = hex_to_rgb("#a1a6b2"),
+  }
+  local bright_ansi_fg_colors = {
+    [30] = hex_to_rgb("#3e424d"),
+    [31] = hex_to_rgb("#e75c58"),
+    [32] = hex_to_rgb("#00a250"),
+    [33] = hex_to_rgb("#208ffb"),
+    [34] = hex_to_rgb("#ddb62b"),
+    [35] = hex_to_rgb("#d160c4"),
+    [36] = hex_to_rgb("#60c6c8"),
+    [37] = hex_to_rgb("#c5c1b4"),
+  }
+  local function emit_quarto_ansi_color(n)
+    local vs = pandoc.List(split(n, ";")):map(function (v) return tonumber(v) or 0 end)
+    if #vs == 0 then
+      return emit_color("{rgb}{0,0,0}")
+    elseif #vs == 1 then
+      return emit_color(dark_ansi_fg_colors[vs[1]] or "{rgb}{0,0,0}")
+    elseif #vs == 2 then
+      if vs[1] == 0 then
+        return emit_color(dark_ansi_fg_colors[vs[2]] or "{rgb}{0,0,0}")
+      elseif vs[1] == 1 then
+        return emit_color(bright_ansi_fg_colors[vs[2]] or "{rgb}{0,0,0}")
+      else
+        return emit_color("{rgb}{0,0,0}")
+      end
+    else
+      -- here we'll ignore the 4th entry in 38,5,color,??? codes
+      -- because we don't know what to do with it
+      if vs[1] == 38 and vs[2] == 5 then
+        local color = vs[3]
+        if color >= 0 and color <= 7 then
+          return emit_color(dark_ansi_fg_colors[color + 23] or "{rgb}{0,0,0}")
+        elseif color >= 8 and color <= 15 then
+          return emit_color(bright_ansi_fg_colors[color + 15] or "{rgb}{0,0,0}")
+        elseif color >= 16 and color <= 231 then
+          local r = math.floor((color - 16) / 36)
+          local g = math.floor(((color - 16) % 36) / 6)
+          local b = (color - 16) % 6
+          return emit_color(("{rgb}{%.2f,%.2f,%.2f}"):format(r / 5, g / 5, b / 5))
+        elseif color >= 232 and color <= 255 then
+          local v = (color - 232) * 10 + 8
+          return emit_color(("{rgb}{%.2f,%.2f,%.2f}"):format(v / 255, v / 255, v / 255))
         end
       end
+      print("Unknown ANSI color code: " .. n)
+      return emit_color("{rgb}{0,0,0}")
     end
-  }
+  end
+  return {{
+    RawBlock = function(raw)
+      if _quarto.format.isRawLatex(raw) then
+        local longtable_match, _ = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexLongtableEnvPatterns)
+        if longtable_match then
+          local caption_match = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexCaptionPatterns)
+          if not caption_match then
+            -- We need to use the most generic pattern (last of the list) as we want to replace the environment and keep any options 
+            -- (e.g. `\begin{longtable}[c]{ll}` -> \begin{longtable*}[c]{ll} in flextable)
+            local longtable_pattern = _quarto.patterns.latexLongtableEnvPatterns[#_quarto.patterns.latexLongtableEnvPatterns]
+            raw.text = raw.text:gsub(_quarto.modules.patterns.combine_patterns(longtable_pattern), "\\begin{longtable*}%2\\end{longtable*}", 1)
+            return raw
+          end
+        end
+      end
+    end,
+    CodeBlock = function(code)
+      if code.text:match("\027%[[0-9;]+m") and #code.classes == 0 then
+        local lines = split(code.text, "\n")
+        local new_lines = pandoc.List({
+          '\\begin{Highlighting}'
+        })
+        local cur_color = "\\textcolor{black}"
+        for _, line in ipairs(lines) do
+          local start_color = cur_color
+          line = line:gsub("\027%[([0-9;]+)m", function(n)
+            local this_color = "\\textcolor" .. emit_quarto_ansi_color(n)
+            cur_color = this_color
+            return "}" .. this_color .. "{"
+          end)
+          line = start_color .. "{" .. line .. "}"
+          new_lines:insert(line)
+        end
+        new_lines:insert('\\end{Highlighting}')
+        return pandoc.RawBlock('latex', table.concat(new_lines, "\n"))
+      end
+    end
+  }, {
+    Meta = function(meta)
+      if not need_inject then
+        return
+      end
+      metaInjectLatex(meta, function(inject)
+        for v, i in pairs(emitted_colors) do
+          local def = "\\definecolor{QuartoInternalColor" .. i .. "}" .. v
+          inject(def)
+        end
+      end)
+      return meta
+    end,
+  }}
 end

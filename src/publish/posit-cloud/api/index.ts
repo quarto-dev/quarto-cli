@@ -15,15 +15,14 @@ import {
   User,
 } from "./types.ts";
 
-import { md5Hash } from "../../../core/hash.ts";
+import { md5HashAsync } from "../../../core/hash.ts";
 import { quartoConfig } from "../../../core/quarto.ts";
 
-import { crypto } from "crypto/mod.ts";
-
+import { crypto } from "crypto/crypto";
 import {
   decodeBase64 as base64Decode,
   encodeBase64 as base64Encode,
-} from "encoding/base64.ts";
+} from "encoding/base64";
 
 interface FetchOpts {
   body?: string;
@@ -202,7 +201,7 @@ export class PositCloudClient {
     body?: string,
   ): Promise<HeadersInit> => {
     const date = new Date().toUTCString();
-    const checksum = md5Hash(body || "");
+    const checksum = await md5HashAsync(body || "");
 
     const canonicalRequest = [
       method,

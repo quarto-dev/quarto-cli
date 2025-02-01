@@ -18,9 +18,6 @@ function reveal()
         Span = applyPosition,
         Image = applyPosition
       },
-      {
-        Div = fencedDivFix
-      }
     }
   else
     return {}
@@ -56,15 +53,18 @@ function asCssSize(size)
   end
 end
 
-function fencedDivFix(el)
-  -- to solve https://github.com/quarto-dev/quarto-cli/issues/976
-  -- until Pandoc may deal with it https://github.com/jgm/pandoc/issues/8098
-  if el.content[1] and el.content[1].t == "Header" and el.attr.classes:includes("fragment") then
-    level = PANDOC_WRITER_OPTIONS.slide_level
-    if level and el.content[1].level > level then
-      -- This will prevent Pandoc to create a <section>
-      el.content:insert(1, pandoc.RawBlock("html", "<!-- -->"))
-    end
+function render_reveal_fixups()
+  if not _quarto.format.isRevealJsOutput() then
+    return {}
   end
-  return el
+  return {
+    -- Prevent BulletList in blockquote to be made incremental with .fragment class
+    -- https://github.com/quarto-dev/quarto-cli/issues/7715
+    BlockQuote = function(b)
+      if #b.content and b.content[1].t == "BulletList" then
+        b.content = pandoc.Div(b.content, pandoc.Attr('', {'blockquote-list-scaffold'}))
+        return b
+      end
+    end
+  }
 end

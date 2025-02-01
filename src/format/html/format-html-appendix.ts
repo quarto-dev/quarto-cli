@@ -46,6 +46,8 @@ const kAppendixCreativeCommonsLic = [
   "CC BY-NC-ND",
 ];
 
+const kAppendixCCZero = "CC0";
+
 const kStylePlain = "plain";
 const kStyleDefault = "default";
 
@@ -455,9 +457,13 @@ function creativeCommonsLicense(
             | "CC BY-NC-SA",
           version: version || "4.0",
         };
-      } else {
-        return undefined;
       }
+    } else if (license === kAppendixCCZero) {
+      // special case for this creative commons license
+      return {
+        base: kAppendixCCZero,
+        version: "1.0",
+      };
     } else {
       return undefined;
     }
@@ -467,6 +473,14 @@ function creativeCommonsLicense(
 }
 
 function creativeCommonsUrl(license: string, lang?: string, version?: string) {
+  // Special case for CC0 as different URL
+  if (license === kAppendixCCZero) {
+    return {
+      url: `https://creativecommons.org/publicdomain/zero/${version}/`,
+      text: `CC0 ${version}`,
+      inlineLink: true,
+    };
+  }
   const licenseType = license.substring(3);
   if (lang && lang !== "en") {
     return {

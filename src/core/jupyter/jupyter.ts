@@ -6,12 +6,11 @@
 
 // deno-lint-ignore-file camelcase
 
-import { ensureDirSync } from "fs/ensure_dir.ts";
+import { ensureDirSync, walkSync } from "../../deno_ral/fs.ts";
 import { dirname, extname, join, relative } from "../../deno_ral/path.ts";
-import { walkSync } from "fs/walk.ts";
-import * as colors from "fmt/colors.ts";
-import { decodeBase64 as base64decode } from "encoding/base64.ts";
-import { DumpOptions as StringifyOptions, stringify } from "yaml/mod.ts";
+import * as colors from "fmt/colors";
+import { decodeBase64 as base64decode } from "encoding/base64";
+import { stringify } from "../yaml.ts";
 import { partitionCellOptions } from "../lib/partition-cell-options.ts";
 import * as ld from "../lodash.ts";
 
@@ -86,6 +85,7 @@ import {
   kCellFigScap,
   kCellFigSubCap,
   kCellFormat,
+  kCellHeight,
   kCellId,
   kCellLabel,
   kCellLanguage,
@@ -101,6 +101,7 @@ import {
   kCellSlideshow,
   kCellSlideshowSlideType,
   kCellTblColumn,
+  kCellWidth,
   kCodeFold,
   kCodeLineNumbers,
   kCodeOverflow,
@@ -154,7 +155,7 @@ import {
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
 import { kProjectType, ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
-import { encodeBase64 } from "encoding/base64.ts";
+import { encodeBase64 } from "encoding/base64";
 import {
   isHtmlOutput,
   isIpynbOutput,
@@ -932,7 +933,8 @@ export function jupyterCellWithOptions(
 export function jupyterCellOptionsAsComment(
   language: string,
   options: Record<string, unknown>,
-  stringifyOptions?: StringifyOptions,
+  // deno-lint-ignore no-explicit-any
+  stringifyOptions?: any,
 ) {
   if (Object.keys(options).length > 0) {
     const cellYaml = stringify(options, {
@@ -961,7 +963,9 @@ export function mdFromContentCell(
   const contentCellEnvelope = createCellEnvelope(["cell", "markdown"], options);
 
   // clone source for manipulation
-  const source = ld.cloneDeep(cell.source) as string[];
+  const source = typeof cell.source === "string"
+    ? [cell.source]
+    : [...cell.source];
 
   // handle user expressions (if any)
   if (options && source) {
@@ -1265,7 +1269,7 @@ async function mdFromCodeCell(
     }
 
     // filter matplotlib intermediate vars
-    if (isDiscadableTextExecuteResult(output, haveImage)) {
+    if (isDiscardableTextExecuteResult(output, haveImage)) {
       return false;
     }
 
@@ -1324,7 +1328,12 @@ async function mdFromCodeCell(
   }
 
   // resolve caption (main vs. sub)
-  const { cellCaption, outputCaptions } = resolveCaptions(cell);
+  let { cellCaption, outputCaptions } = resolveCaptions(cell);
+
+  // https://github.com/quarto-dev/quarto-cli/issues/5413
+  outputCaptions = outputCaptions.map((caption) =>
+    caption.trim().replaceAll("\n", " ")
+  );
 
   // cell_type classes
   divMd.push(`.cell `);
@@ -1454,10 +1463,12 @@ async function mdFromCodeCell(
       }
     }
     md.push("}\n");
-    let source = ld.cloneDeep(cell.source);
+    let source = typeof cell.source === "string"
+      ? [cell.source]
+      : [...cell.source];
     if (fenced) {
       const optionsSource = cell.optionsSource.filter((line) =>
-        line.search(/echo:\s+fenced/) === -1
+        line.search(/\|\s+echo:\s+fenced\s*$/) === -1
       );
       if (optionsSource.length > 0) {
         source = trimEmptyLines(source, "trailing");
@@ -1699,7 +1710,7 @@ async function mdFromCodeCell(
   return md;
 }
 
-function isDiscadableTextExecuteResult(
+function isDiscardableTextExecuteResult(
   output: JupyterOutput,
   haveImage: boolean,
 ) {
@@ -1784,14 +1795,26 @@ async function mdOutputError(
   output: JupyterOutputError,
   options: JupyterToMarkdownOptions,
 ) {
-  if (!options.toHtml || !hasAnsiEscapeCodes(output.evalue)) {
-    return mdCodeOutput([output.ename + ": " + output.evalue]);
+  const traceback = output.traceback.join("\n");
+  if (
+    !options.toHtml ||
+    (!hasAnsiEscapeCodes(output.evalue) && !hasAnsiEscapeCodes(traceback))
+  ) {
+    if (output.traceback.length > 0) {
+      return mdCodeOutput([
+        output.ename + ": " + output.evalue + "\n" + traceback,
+      ]);
+    } else {
+      return mdCodeOutput([
+        output.ename + ": " + output.evalue,
+      ]);
+    }
   }
-  const html = await convertToHtmlSpans(output.evalue);
+  const tracebackHtml = await convertToHtmlSpans(traceback);
   return mdMarkdownOutput(
     [
       "\n::: {.ansi-escaped-output}\n```{=html}\n<pre>",
-      html,
+      tracebackHtml,
       "</pre>\n```\n:::\n",
     ],
   );
@@ -1897,11 +1920,14 @@ function mdImageOutput(
   const metadata = output.metadata[mimeType];
 
   // attributes (e.g. width/height/alt)
-  function metadataValue<T>(key: string, defaultValue: T) {
-    return metadata && metadata[key] ? metadata["key"] as T : defaultValue;
+  function metadataValue<T>(key: string, defaultValue?: T) {
+    if (metadata) {
+      return metadata[key] ? metadata[key] as T : defaultValue;
+    }
+    return defaultValue;
   }
-  let width = metadataValue(kCellOutWidth, 0);
-  let height = metadataValue(kCellOutHeight, 0);
+  let width = metadataValue(kCellOutWidth) ?? metadataValue(kCellWidth, 0);
+  let height = metadataValue(kCellOutHeight) ?? metadataValue(kCellHeight, 0);
   const alt = caption || "";
 
   // calculate output file name
@@ -1913,9 +1939,15 @@ function mdImageOutput(
     ? (data as string[]).join("")
     : data as string;
 
-  // base64 decode if it's not svg
   const outputFile = join(options.assets.base_dir, imageFile);
-  if (mimeType !== kImageSvg) {
+  if (
+    // base64 decode if it's not svg
+    mimeType !== kImageSvg ||
+    // or if it is encoded svg; this could happen when used in embed context,
+    // as Pandoc will generate ipynb with base64 encoded svg data
+    // https://github.com/quarto-dev/quarto-cli/issues/9793
+    !/<svg/.test(imageText)
+  ) {
     const imageData = base64decode(imageText);
 
     // if we are in retina mode, then derive width and height from the image

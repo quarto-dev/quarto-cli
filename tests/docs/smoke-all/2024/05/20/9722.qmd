@@ -1,0 +1,11 @@
+---
+format: typst
+---
+
+{{< placeholder >}}
+
+Now with a caption:
+
+![A caption]({{< placeholder >}}){#fig-1}
+
+See @fig-1.

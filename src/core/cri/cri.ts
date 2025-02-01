@@ -6,7 +6,7 @@
  * Copyright (c) 2022 Posit Software, PBC.
  */
 
-import { decodeBase64 as decode } from "encoding/base64.ts";
+import { decodeBase64 as decode } from "encoding/base64";
 import cdp from "./deno-cri/index.js";
 import { getBrowserExecutablePath } from "../puppeteer.ts";
 import { Semaphore } from "../lib/semaphore.ts";
@@ -14,7 +14,13 @@ import { findOpenPort } from "../port.ts";
 import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
 import { sleep } from "../async.ts";
 import { InternalError } from "../lib/error.ts";
+import { getenv } from "../env.ts";
 import { kRenderFileLifetime } from "../../config/constants.ts";
+import { debug } from "../../deno_ral/log.ts";
+import {
+  registerForExitCleanup,
+  unregisterForExitCleanup,
+} from "../process.ts";
 
 async function waitForServer(port: number, timeout = 3000) {
   const interval = 50;
@@ -78,20 +84,39 @@ export async function criClient(appPath?: string, port?: number) {
   }
   const app: string = appPath || await getBrowserExecutablePath();
 
+  // Allow to adapt the headless mode depending on the Chrome version
+  const headlessMode = getenv("QUARTO_CHROMIUM_HEADLESS_MODE", "none");
+
   const cmd = [
     app,
-    "--headless",
+    // TODO: Chrome v128 changed the default from --headless=old to --headless=new
+    // in 2024-08. Old headless mode was effectively a separate browser render,
+    // and while more performant did not share the same browser implementation as
+    // headful Chrome. New headless mode will likely be useful to some, but in Quarto use cases
+    // like printing to PDF or screenshoting, we need more work to
+    // move to the new mode. We'll use `--headless=old` as the default for now
+    // until the new mode is more stable, or until we really pin a version as default to be used.
+    // This is also impacting in chromote and pagedown R packages and we could keep syncing with them.
+    // EDIT: 17/01/2025 - old mode is gone in Chrome 132. Let's default to new mode to unbreak things.
+    // Best course of action is to pin a version of Chrome and use the chrome-headless-shell more adapted to our need.
+    // ref: https://developer.chrome.com/blog/chrome-headless-shell
+    `--headless${headlessMode == "none" ? "" : "=" + headlessMode}`,
     "--no-sandbox",
-    "--single-process",
     "--disable-gpu",
+    "--renderer-process-limit=1",
     `--remote-debugging-port=${port}`,
   ];
   const browser = Deno.run({ cmd, stdout: "piped", stderr: "piped" });
+
+  // Register for cleanup inside exitWithCleanup() in case something goes wrong
+  const thisProcessId = registerForExitCleanup(browser);
 
   if (!(await waitForServer(port as number))) {
     let msg = "Couldn't find open server.";
     // Printing more error information if chrome process errored
     if (!(await browser.status()).success) {
+      debug(`[CHROMIUM path]   : ${app}`);
+      debug(`[CHROMIUM cmd]   : ${cmd}`);
       const rawError = await browser.stderrOutput();
       const errorString = new TextDecoder().decode(rawError);
       msg = msg + "\n" + `Chrome process error: ${errorString}`;
@@ -106,7 +131,13 @@ export async function criClient(appPath?: string, port?: number) {
   const result = {
     close: async () => {
       await client.close();
-      browser.close();
+      // FIXME: 2024-10
+      // We have a bug where `client.close()` doesn't return properly and we don't go below
+      // meaning the `browser` process is not killed here, and it will be handled in exitWithCleanup().
+
+      browser.kill(); // Chromium headless won't terminate on its own, so we need to send kill signal
+      browser.close(); // Closing the browser Deno process
+      unregisterForExitCleanup(thisProcessId); // All went well so not need to cleanup on quarto exit
     },
 
     rawClient: () => client,

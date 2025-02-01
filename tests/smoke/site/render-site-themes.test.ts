@@ -5,7 +5,7 @@
 *
 */
 
-import { copySync } from "fs/copy.ts";
+import { copySync } from "../../../src/deno_ral/fs.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { testQuartoCmd, Verify } from "../../test.ts";
 import { docs } from "../../utils.ts";

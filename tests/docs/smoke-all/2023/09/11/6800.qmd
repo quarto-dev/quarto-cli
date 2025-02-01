@@ -3,12 +3,11 @@ title: "test"
 format:
     revealjs:
         footer: "hello world"
-keep-md: true
 _quarto:
   tests:
     revealjs:
       ensureHtmlElements:
-        - ["div.footer"]
+        - ["div.footer", "div.footer-default"]
 ---
 
 ## Quarto

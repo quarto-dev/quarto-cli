@@ -1,0 +1,16 @@
+--- 
+title: "foo"
+format: pdf
+keep-tex: true
+keep-ipynb: true
+---
+
+```{python}
+#| error: true
+
+def myfun(val):
+    if val <= 0:
+        raise ValueError()
+
+myfun(-3)
+```

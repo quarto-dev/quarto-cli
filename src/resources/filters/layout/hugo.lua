@@ -125,6 +125,12 @@ function render_hugo_fixups()
   end
   return {
     Div = function(div)
+      -- https://github.com/quarto-dev/quarto-cli/issues/8372
+      if div.classes:includes("cell-output") or div.classes:includes("cell") then
+        div.content:insert(1, pandoc.RawBlock("markdown", "<div class=\"" .. table.concat(div.classes, " ") .. "\">"))
+        div.content:insert(pandoc.RawBlock("markdown", "</div>"))
+        return div.content
+      end
       if div.identifier:match("ojs%-cell%-") then
         return pandoc.RawBlock("markdown", '<div id="' .. div.identifier .. '"></div>')
       end

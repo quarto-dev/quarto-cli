@@ -14,6 +14,8 @@ end
 
 import("../mainstateinit.lua")
 
+import("../modules/import_all.lua")
+
 import("../ast/scopedwalk.lua")
 import("../ast/customnodes.lua")
 import("../ast/emulatedfilter.lua")
@@ -84,6 +86,7 @@ import("../quarto-pre/book-links.lua")
 import("../quarto-pre/book-numbering.lua")
 import("../quarto-pre/code-annotation.lua")
 import("../quarto-pre/code-filename.lua")
+import("../quarto-pre/contentsshortcode.lua")
 import("../quarto-pre/engine-escape.lua")
 import("../quarto-pre/figures.lua")
 import("../quarto-pre/hidden.lua")
