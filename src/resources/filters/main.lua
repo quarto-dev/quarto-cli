@@ -92,8 +92,9 @@ import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
 import("./quarto-finalize/mediabag.lua")
 import("./quarto-finalize/meta-cleanup.lua")
-import("./quarto-finalize/coalesceraw.lua")
-import("./quarto-finalize/descaffold.lua")
+-- import("./quarto-finalize/coalesceraw.lua")
+-- import("./quarto-finalize/descaffold.lua")
+import("./quarto-finalize/finalize-combined-1.lua")
 import("./quarto-finalize/typst.lua")
 
 import("./normalize/flags.lua")
@@ -550,22 +551,26 @@ local quarto_finalize_filters = {
     filter = dependencies(),
     traverser = 'jog',
   },
-  { name = "finalize-coalesce-raw",
-    filters = coalesce_raw(),
+  { name = "finalize-combined-1",
+    filter = finalize_combined_1(),
     traverser = 'jog',
   },
-  { name = "finalize-descaffold",
-    filter = descaffold(),
-    traverser = 'jog',
-  },
+  -- { name = "finalize-coalesce-raw",
+  --   filters = coalesce_raw(),
+  --   traverser = 'jog',
+  -- },
+  -- { name = "finalize-descaffold",
+  --   filter = descaffold(),
+  --   traverser = 'jog',
+  -- },
   { name = "finalize-wrapped-writer",
     filter = wrapped_writer(),
     traverser = 'jog',
   },
-  { name = "finalize-typst-state",
-    filter = setup_typst_state(),
-    traverser = 'jog',
-  },
+  -- { name = "finalize-typst-state",
+  --   filter = setup_typst_state(),
+  --   traverser = 'jog',
+  -- },
 }
 
 local quarto_layout_filters = {
@@ -665,7 +670,11 @@ tappend(quarto_filter_list, quarto_post_filters)
 table.insert(quarto_filter_list, { name = "post-render", filter = {} }) -- entry point for user filters
 table.insert(quarto_filter_list, { name = "pre-finalize", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_finalize_filters)
-table.insert(quarto_filter_list, { name = "post-finalize", filter = {} }) -- entry point for user filters
+table.insert(quarto_filter_list, { name = "post-finalize", filter = {
+  -- Pandoc = function(doc)
+  --   quarto_prof.stop()
+  -- end
+} }) -- entry point for user filters
 
 -- now inject user-defined filters on appropriate positions
 inject_user_filters_at_entry_points(quarto_filter_list)

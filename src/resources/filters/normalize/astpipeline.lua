@@ -46,10 +46,5 @@ function quarto_ast_pipeline()
           parse_blockreftargets()
       }),
     },
-    {
-      name = "normalize-3",
-      filter = handle_subfloatreftargets(),
-      traverser = 'jog',
-    }
   }
 end

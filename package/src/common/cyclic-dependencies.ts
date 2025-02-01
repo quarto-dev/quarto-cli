@@ -11,7 +11,7 @@ import { runCmd } from "../util/cmd.ts";
 import { Configuration, readConfiguration } from "./config.ts";
 import { error, info } from "../../../src/deno_ral/log.ts";
 import { progressBar } from "../../../src/core/console.ts";
-import { md5Hash } from "../../../src/core/hash.ts";
+import { md5HashSync } from "../../../src/core/hash.ts";
 
 export function cycleDependenciesCommand() {
   return new Command()
@@ -186,7 +186,7 @@ function findCyclicDependencies(
   // creates a hash for a set of paths (a cycle)
   const hash = (paths: string[]) => {
     const string = paths.join(" ");
-    return md5Hash(string);
+    return md5HashSync(string);
   };
 
   // The current import stack

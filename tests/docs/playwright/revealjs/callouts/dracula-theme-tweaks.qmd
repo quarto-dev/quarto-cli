@@ -1,0 +1,19 @@
+---
+title: callout title in dracula theme is tweak
+format: 
+  revealjs:
+    theme: dracula
+---
+
+`dracula` theme in revealjs does use a color for `<strong>` and `<b>` element. We don't want that to apply on Callout title which are using this HTML element. 
+So we tweaked dracula theme et this test checks that color of title is like in other themes => the same as the body color. 
+
+## Note
+
+::: {.callout-note}
+
+## Title of the callout
+
+Content
+
+:::

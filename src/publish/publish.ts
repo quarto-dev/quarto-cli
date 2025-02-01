@@ -88,6 +88,7 @@ export async function publishSite(
           {},
         );
 
+        result.context.cleanup();
         if (result.error) {
           throw result.error;
         }
@@ -169,6 +170,7 @@ export async function publishDocument(
           flags,
         });
         if (result.error) {
+          result.context.cleanup();
           throw result.error;
         }
 
@@ -258,6 +260,7 @@ export async function publishDocument(
             relBasePath,
           );
         }
+        result.context.cleanup();
 
         return normalizePublishFiles({
           baseDir: finalBaseDir,

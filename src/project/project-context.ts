@@ -13,7 +13,7 @@ import {
   SEP,
 } from "../deno_ral/path.ts";
 
-import { existsSync, walkSync } from "../deno_ral/fs.ts";
+import { existsSync, walk, walkSync } from "../deno_ral/fs.ts";
 import * as ld from "../core/lodash.ts";
 
 import { ProjectType } from "./types/types.ts";
@@ -99,8 +99,9 @@ import { computeProjectEnvironment } from "./project-environment.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import { MappedString } from "../core/mapped-text.ts";
-import { timeCall } from "../core/performance/function-times.ts";
-import { assertEquals } from "testing/asserts";
+import { makeTimedFunctionAsync } from "../core/performance/function-times.ts";
+import { createProjectCache } from "../core/cache/cache.ts";
+import { createTempContext, globalTempContext } from "../core/temp.ts";
 
 export async function projectContext(
   path: string,
@@ -263,6 +264,9 @@ export async function projectContext(
           );
         }
 
+        const temp = createTempContext({
+          dir: join(dir, ".quarto", "temp"),
+        });
         const result: ProjectContext = {
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
@@ -305,6 +309,11 @@ export async function projectContext(
             return projectFileMetadata(result, file, force);
           },
           isSingleFile: false,
+          diskCache: await createProjectCache(join(dir, ".quarto")),
+          temp,
+          cleanup: () => {
+            result.diskCache.close();
+          },
         };
 
         // see if the project [kProjectType] wants to filter the project config
@@ -347,6 +356,9 @@ export async function projectContext(
         return result;
       } else {
         debug(`projectContext: Found Quarto project in ${dir}`);
+        const temp = createTempContext({
+          dir: join(dir, ".quarto", "temp"),
+        });
         const result: ProjectContext = {
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
@@ -387,6 +399,11 @@ export async function projectContext(
           },
           notebookContext,
           isSingleFile: false,
+          diskCache: await createProjectCache(join(dir, ".quarto")),
+          temp,
+          cleanup: () => {
+            result.diskCache.close();
+          },
         };
         const { files, engines } = await projectInputFiles(
           result,
@@ -409,6 +426,7 @@ export async function projectContext(
           dir = originalDir;
           configResolvers.shift();
         } else if (force) {
+          const temp = globalTempContext();
           const context: ProjectContext = {
             resolveBrand: async (fileName?: string) =>
               projectResolveBrand(context, fileName),
@@ -453,6 +471,11 @@ export async function projectContext(
               return projectFileMetadata(context, file, force);
             },
             isSingleFile: false,
+            diskCache: await createProjectCache(join(temp.baseDir, ".quarto")),
+            temp,
+            cleanup: () => {
+              context.diskCache.close();
+            },
           };
           if (Deno.statSync(path).isDirectory) {
             const { files, engines } = await projectInputFiles(context);
@@ -640,11 +663,18 @@ async function resolveProjectExtension(
   return projectConfig;
 }
 
+// migrate 'site' to 'website'
+// TODO make this a deprecation warning
 function migrateProjectConfig(projectConfig: ProjectConfig) {
-  projectConfig = ld.cloneDeep(projectConfig);
-
-  // migrate 'site' to 'website'
   const kSite = "site";
+  if (
+    projectConfig.project[kProjectType] !== kSite &&
+    projectConfig[kSite] === undefined
+  ) {
+    return projectConfig;
+  }
+
+  projectConfig = ld.cloneDeep(projectConfig);
   if (projectConfig.project[kProjectType] === kSite) {
     projectConfig.project[kProjectType] = kWebsite;
   }
@@ -721,7 +751,12 @@ function projectHiddenIgnoreGlob(dir: string) {
     .concat(["**/README.?([Rrq])md"]); // README
 }
 
-export async function projectInputFiles(
+export const projectInputFiles = makeTimedFunctionAsync(
+  "projectInputFiles",
+  projectInputFilesInternal,
+);
+
+async function projectInputFilesInternal(
   project: ProjectContext,
   metadata?: ProjectConfig,
 ): Promise<{ files: string[]; engines: string[] }> {
@@ -773,10 +808,9 @@ export async function projectInputFiles(
     }];
   };
   const addDir = async (dir: string): Promise<FileInclusion[]> => {
-    // ignore selected other globs
-    const walkIterator = walkSync(
-      dir,
-      {
+    const promises: Promise<FileInclusion[]>[] = [];
+    for await (
+      const walkEntry of walk(dir, {
         includeDirs: false,
         // this was done b/c some directories e.g. renv/packrat and potentially python
         // virtualenvs include symblinks to R or Python libraries that are in turn
@@ -787,16 +821,18 @@ export async function projectInputFiles(
             globToRegExp(join(dir, ignore) + SEP)
           ),
         ),
-      },
-    );
-    return Promise.all(
-      Array.from(walkIterator)
-        .filter((walk) => {
-          const pathRelative = pathWithForwardSlashes(relative(dir, walk.path));
-          return !projectIgnores.some((regex) => regex.test(pathRelative));
-        })
-        .map(async (walk) => addFile(walk.path)),
-    ).then((fileInclusions) => fileInclusions.flat());
+      })
+    ) {
+      const pathRelative = pathWithForwardSlashes(
+        relative(dir, walkEntry.path),
+      );
+      if (projectIgnores.some((regex) => regex.test(pathRelative))) {
+        continue;
+      }
+      promises.push(addFile(walkEntry.path));
+    }
+    const inclusions = await Promise.all(promises);
+    return inclusions.flat();
   };
   const addEntry = async (entry: string) => {
     if (Deno.statSync(entry).isDirectory) {
