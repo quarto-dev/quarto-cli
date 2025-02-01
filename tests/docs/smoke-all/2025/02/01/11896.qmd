@@ -1,16 +1,14 @@
 ---
-title: Pagebreak should have no effect on slide count
 format: pptx
 _quarto:
   tests:
     pptx:
       ensurePptxMaxSlides:
-        - 2
+        - 1
       ensurePptxXpath:
         - 
-          - 2
+          - 1
           - 
-            - 
             - '<a:t>Before<//a:t><//a:r><//a:p><a:p><a:pPr lvl="0" indent="0" marL="0"><a:buNone //><//a:pPr><a:r><a:rPr //><a:t>After<//a:t>'
           - []
 ---
