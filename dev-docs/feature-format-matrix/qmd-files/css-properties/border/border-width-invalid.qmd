@@ -1,0 +1,32 @@
+---
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: na
+  typst:
+    quality: 2
+    comment: "td only"
+  dashboard:
+    quality: 1
+  docx:
+    quality: na
+  pptx:
+    quality: na
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '\[A\], \[B\]'
+        -
+          - 'table\.cell'
+---
+
+```{=html}
+<table>
+    <tr><td style="border-width: dotted dashed dashed none">A</td><td>B</td></tr>
+</table>
+```
+

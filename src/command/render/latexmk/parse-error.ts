@@ -5,7 +5,7 @@
  */
 
 import { basename, join } from "../../../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../deno_ral/fs.ts";
 import * as ld from "../../../core/lodash.ts";
 
 import { lines } from "../../../core/text.ts";
@@ -111,6 +111,14 @@ const resolvingMatchers = [
 export function findMissingHyphenationFiles(logText: string) {
   //ngerman gets special cased
   const filterLang = (lang: string) => {
+    // It seems some languages have no hyphenation files, so we just filter them out
+    // e.g. `lang: zh` has no hyphenation files
+    // https://github.com/quarto-dev/quarto-cli/issues/10291
+    const noHyphen = ["chinese-hans", "chinese"];
+    if (noHyphen.includes(lang)) {
+      return;
+    }
+
     // NOTE Although the names of the corresponding lfd files match those in this list,
     // there are some exceptions, particularly in German and Serbian. So, ngerman is
     // called here german, which is the name in the CLDR and, actually, the most logical.
@@ -233,7 +241,11 @@ const packageMatchers = [
     regex: /.*Unable to find TFM file "([^"]+)".*/g,
     filter: formatFontFilter,
   },
-
+  {
+    regex:
+      /.*! Package fontspec Error:\s+\(fontspec\)\s+The font "([^"]+)" cannot be\s+\(fontspec\)\s+found;+/g,
+    filter: formatFontFilter,
+  },
   { regex: /.* File `(.+eps-converted-to.pdf)'.*/g, filter: estoPdfFilter },
   { regex: /.*xdvipdfmx:fatal: pdf_ref_obj.*/g, filter: estoPdfFilter },
 

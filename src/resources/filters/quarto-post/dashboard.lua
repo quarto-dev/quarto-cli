@@ -156,7 +156,9 @@ function render_dashboard()
       end,
       Div = function(el) 
 
-        if el.attributes["output"] == "asis" then
+        if el.classes:includes("cell") and el.classes:includes("markdown") then
+          return el.content
+        elseif el.attributes["output"] == "asis" then
           return nil
 
         elseif dashboard.card_sidebar.isCardSidebar(el) then
@@ -734,6 +736,44 @@ function render_dashboard()
           doc.blocks:extend(dashboardState.protectedBlocks)
           return doc
         end
+      end
+    }, {
+      -- todo: dark mode
+      Meta = function(meta)
+        local logo = meta.logo
+        local resolved
+        if logo then
+          local which
+          if pandoc.utils.type(logo) == 'Inlines' then 
+            which = logo[1].text
+            local brandLogo = _quarto.modules.brand.get_logo(logo[1].text)
+            resolved = brandLogo and brandLogo.light
+          elseif type(logo) == 'table' then
+            local brandLogo = _quarto.modules.brand.get_logo(logo.path[1].text)
+            if brandLogo then
+              resolved = brandLogo.light
+              if logo.alt then
+                resolved.alt = logo.alt
+              end
+            else
+              resolved = {
+                path = logo.path,
+                alt = logo.alt
+              }
+            end
+          end
+        else
+          logo = _quarto.modules.brand.get_logo('small')
+            or _quarto.modules.brand.get_logo('medium')
+            or _quarto.modules.brand.get_logo('large')
+          resolved = logo and logo.light
+        end
+        if resolved then
+          meta.logo = resolved.path
+          meta['logo-alt'] = resolved.alt
+        end
+
+        return meta
       end
     }
   }

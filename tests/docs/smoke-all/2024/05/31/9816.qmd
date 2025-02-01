@@ -1,0 +1,17 @@
+---
+format: typst
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+        - ["Title", "Content"]
+        - ['\[']
+---
+
+::: {.callout-note}
+
+## Title
+
+Content
+
+:::

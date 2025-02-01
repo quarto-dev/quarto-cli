@@ -4,7 +4,7 @@ $if(logo)$    <a href="#"><img src="$logo$" alt="$logo-alt$" class="navbar-logo 
       <div class="navbar-title">
         $if(title)$<div class="navbar-title-text"><a href="#">$title$</a></div>$endif$
         $if(subtitle)$<div class="navbar-subtitle">$subtitle$</div>$endif$
-        $if(author)$<div class="navbar-author">$author$</div>$endif$
+        $if(author)$<div class="navbar-author">$for(author)$$author$$sep$, $endfor$</div>$endif$
       </div>
     </div>
 </div>

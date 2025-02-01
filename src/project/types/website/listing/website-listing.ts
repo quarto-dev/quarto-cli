@@ -6,9 +6,14 @@
 *
 */
 
-import { basename, dirname, join, relative } from "../../../../deno_ral/path.ts";
+import {
+  basename,
+  dirname,
+  join,
+  relative,
+} from "../../../../deno_ral/path.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../../deno_ral/fs.ts";
 
 import {
   Format,

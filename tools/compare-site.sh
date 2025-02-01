@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Uses https://github.com/cscheid/quarto-regress to render two versions of a website as
 # a simple snapshot test. Usage
 

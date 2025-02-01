@@ -1,0 +1,59 @@
+---
+title: HTML table parsed by Quarto does not modify slides 
+format: html
+_quarto:
+  tests:
+    pptx: 
+      ensurePptxLayout:
+        - 
+          - 2
+          - "Title and Content"
+        - 
+          - 3
+          - "Title and Content"
+        - 
+          - 4
+          - "Title and Content"
+---
+
+## Test Table {#table-raw-html}
+
+```{=html}
+<div id="table-div">
+<table>
+<thead>
+  <tr>
+    <th>Sepal.Length</th>
+    <th>Sepal.Width</th>
+  </tr>
+</thead>
+<tbody>
+<tr>
+  <td>5.1</td>
+  <td>3.5</td>
+</tr>
+<tr>
+  <td>4.9</td>
+  <td>3.0</td>
+</tr>
+</tbody>
+</table>
+</div>
+```
+
+## Test Table {#table-gt}
+
+```{r}
+#| label: test
+head(iris, 1) |>  
+    gt::gt() |> 
+    gt::as_raw_html()
+```
+
+## Test table Md {#table-md}
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| a    | a    | a    |
+| a    | a    | a    |
+| a    | a    | a    |

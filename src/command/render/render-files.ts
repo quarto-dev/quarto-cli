@@ -48,7 +48,7 @@ import { outputRecipe } from "./output.ts";
 
 import { renderPandoc } from "./render.ts";
 import { PandocRenderCompletion, RenderServices } from "./types.ts";
-import { renderContexts } from "./render-contexts.ts";
+import { copyRenderContext, renderContexts } from "./render-contexts.ts";
 import { renderProgress } from "./render-info.ts";
 import {
   ExecutedFile,
@@ -164,7 +164,7 @@ export async function renderExecute(
     (context.format.execute[kExecuteEnabled] !== false);
 
   // use previous frozen results if they are available
-  if (context.project && !alwaysExecute) {
+  if (context.project && !context.project.isSingleFile && !alwaysExecute) {
     // check if we are using the freezer
 
     const thaw = canFreeze &&
@@ -233,7 +233,7 @@ export async function renderExecute(
   popTiming();
 
   // write the freeze file if we are in a project
-  if (context.project && canFreeze) {
+  if (context.project && !context.project.isSingleFile && canFreeze) {
     // write the freezer file
     const freezeFile = freezeExecuteResult(
       context.target.source,
@@ -503,7 +503,7 @@ async function renderFileInternal(
 
   for (const format of Object.keys(contexts)) {
     pushTiming("render-context");
-    const context = ld.cloneDeep(contexts[format]) as RenderContext; // since we're going to mutate it...
+    const context = copyRenderContext(contexts[format]); // since we're going to mutate it...
 
     // disquality some documents from server: shiny
     if (isServerShiny(context.format) && context.project) {

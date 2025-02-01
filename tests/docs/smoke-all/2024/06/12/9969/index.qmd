@@ -1,0 +1,18 @@
+---
+title: "Sidebar-target"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - 'nav#quarto-sidebar a[target="_blank"].sidebar-link'
+          - 'nav#quarto-sidebar a[rel="external"].sidebar-link'
+        - 
+          - "nav#quarto-sidebar a[target='\"_blank\"']"
+          - "nav#quarto-sidebar a[rel='\"external\"']"
+          - "nav#quarto-sidebar a.sidebar-link:not([rel])"
+---
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.

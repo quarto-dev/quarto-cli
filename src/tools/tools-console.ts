@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 import { Confirm, Select } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
 import { info, warning } from "../deno_ral/log.ts";

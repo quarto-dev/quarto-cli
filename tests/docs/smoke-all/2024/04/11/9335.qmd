@@ -1,0 +1,32 @@
+---
+title: "Example"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - '<span class="in">```{{julia}}</span>'
+        - []
+format: 
+   html: default
+---
+
+```` markdown
+---
+title: "A julia engine notebook"
+engine: julia
+---
+
+```{{{julia}}}
+1 + 2
+```
+
+and now some inline julia code to be escaped: `{{julia}} 1 + 2`
+````
+
+More hard cases: an inline code element with enough backticks to make it look like
+a code block, but it's not:
+
+``````
+````{{julia}} code with a single backtick ``` ````
+``````

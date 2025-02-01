@@ -293,6 +293,13 @@ function code_annotations()
   -- an id counter to provide nice numeric ids to cell
   local idCounter = 1
 
+  -- the user request code annotations value
+  local codeAnnotations = param(constants.kCodeAnnotationsParam)
+
+  local requireNonIncremental = PANDOC_WRITER_OPTIONS[constants.kIncremental] and (
+    codeAnnotations == constants.kCodeAnnotationStyleSelect or codeAnnotations == constants.kCodeAnnotationStyleHover
+  )
+
   -- walk the blocks and look for annotated code
   -- process the list top down so that we see the outer
   -- code divs first
@@ -300,13 +307,10 @@ function code_annotations()
     traverse = 'topdown',
     Blocks = function(blocks) 
 
-      -- the user request code annotations value
-      local codeAnnotations = param(constants.kCodeAnnotationsParam)
-
       -- if code annotations is false, then shut it down
       if codeAnnotations ~= false then
 
-        local outputs = pandoc.List()
+        local outputs = pandoc.Blocks{}
 
         -- annotations[annotation-number] = {list of line numbers}
         local pendingAnnotations = nil
@@ -540,7 +544,7 @@ function code_annotations()
             if codeAnnotations ~= constants.kCodeAnnotationStyleNone then
               if pendingCodeCell ~= nil then
                 -- wrap the definition list in a cell
-                local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {constants.kCellAnnotationClass}))
+                local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {constants.kCellAnnotationClass, requireNonIncremental and constants.kNonIncremental or nil }))
                 if is_custom_node(pendingCodeCell) then
                   local custom = _quarto.ast.resolve_custom_data(pendingCodeCell) or pandoc.Div({}) -- won't happen but the Lua analyzer doesn't know it
                   custom.content:insert(2, dlDiv)
@@ -549,7 +553,12 @@ function code_annotations()
                 end
                 flushPending()
               else
-                outputBlockClearPending(dl)
+                if requireNonIncremental then
+                  -- wrap in Non Incremental Div to prevent automatique 
+                  outputBlockClearPending(pandoc.Div({dl}, pandoc.Attr("", {constants.kNonIncremental})))
+                else 
+                  outputBlockClearPending(dl)
+                end
               end
             else
               flushPending()

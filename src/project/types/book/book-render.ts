@@ -6,7 +6,7 @@
 
 import { dirname, isAbsolute, join, relative } from "../../../deno_ral/path.ts";
 
-import { encodeBase64 } from "encoding/base64.ts";
+import { encodeBase64 } from "encoding/base64";
 
 import * as ld from "../../../core/lodash.ts";
 
@@ -90,7 +90,7 @@ import { kDateFormat } from "../website/listing/website-listing-template.ts";
 import { removePandocTo } from "../../../command/render/flags.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { PandocAttr, PartitionedMarkdown } from "../../../core/pandoc/types.ts";
-import { stringify } from "yaml/mod.ts";
+import { stringify } from "../../../core/yaml.ts";
 import { waitUntilNamedLifetime } from "../../../core/lifetimes.ts";
 
 export function bookPandocRenderer(
@@ -173,7 +173,7 @@ export function bookPandocRenderer(
             const title = file.recipe.format.metadata[kTitle] || "";
             const alt = coverImageAlt ? ` fig-alt="${coverImageAlt}"` : "";
             file.executeResult.markdown =
-              `![](${coverImage} "${title}"){.quarto-cover-image${alt}}\n\n` +
+              `![](${coverImage} "${title}"){.quarto-cover-image .nolightbox${alt}}\n\n` +
               file.executeResult.markdown;
           }
 
@@ -288,7 +288,7 @@ export function bookPandocRenderer(
             const format = files[0].context.format;
 
             // if it's not a multi-file book then we need to render from the
-            // accumulated exected files
+            // accumulated executed files
             if (!isMultiFileBookFormat(format)) {
               renderedFiles.push(
                 await renderSingleFileBook(
@@ -681,6 +681,7 @@ function cleanupExecutedFile(
     file.context.target.input,
     finalOutput,
     file.recipe.format,
+    file.context.project,
     file.executeResult.supporting,
     executionEngineKeepMd(file.context),
   );

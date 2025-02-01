@@ -1,0 +1,17 @@
+---
+title: "test-01"
+filters:
+  - test_brand.lua
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['<span style="color: #ff0000">a span</span>']
+        - []
+---
+
+This is a Quarto website.
+
+[a span]{style='color: {{< brand color primary >}}'}
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.

@@ -9,7 +9,7 @@ import { kDefaultHighlightStyle } from "../command/render/constants.ts";
 import { kHighlightStyle } from "../config/constants.ts";
 import { FormatPandoc } from "../config/types.ts";
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { resourcePath } from "../core/resources.ts";
 import { normalizePath } from "../core/path.ts";
 import { warnOnce } from "../core/log.ts";

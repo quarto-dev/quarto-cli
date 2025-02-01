@@ -1,0 +1,32 @@
+---
+title: Unitless image widths in column layout
+format: typst
+keep-md: true
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          ['#grid\((\r\n?|\n)columns: \(1fr, 1fr, 1.041667in, 1fr, 0.260417in\), gutter: 1em, rows: 1,']
+
+---
+
+::: {.callout-note}
+
+## Plots
+
+::: {layout-ncol=5}
+
+![]({{< placeholder format=svg >}})
+
+![]({{< placeholder format=svg >}})
+
+![]({{< placeholder format=svg >}}){width=100}
+
+![]({{< placeholder format=svg >}})
+
+![]({{< placeholder format=svg >}}){width=25}
+
+:::
+:::

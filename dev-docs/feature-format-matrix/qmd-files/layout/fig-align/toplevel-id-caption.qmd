@@ -1,0 +1,34 @@
+---
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: 2
+  typst:
+    quality: 0
+  dashboard:
+    quality: -1
+  docx:
+    quality: 1
+  pptx:
+    quality: -1
+keep-typ: true
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        -
+          - '\\hfill\\includegraphics\{100.png\}'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        - []
+        - []
+        # testable but not working yet
+        # -
+        #   - "#align\\(right\\)\\[(\r\n?|\n)#box"
+        # -
+        #   - "#block\\[(\r\n?|\n)#align\\(right\\)\\["
+---
+
+![caption](100.png){#fig-1 fig-align="right"}

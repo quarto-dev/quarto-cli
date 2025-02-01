@@ -5,6 +5,22 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+export class DynamicTypeCheckError extends Error {
+  constructor(
+    message: string,
+    printName = true,
+    printStack = true,
+  ) {
+    super(message);
+    this.name = "Dynamic Type-Checking Error";
+    this.printName = printName;
+    this.printStack = printStack;
+  }
+
+  public readonly printName: boolean;
+  public readonly printStack: boolean;
+}
+
 export class InternalError extends Error {
   constructor(
     message: string,
@@ -44,7 +60,7 @@ export class ErrorEx extends Error {
   public readonly printStack: boolean;
 }
 
-export function asErrorEx(e: unknown) {
+export function asErrorEx(e: unknown, defaultShowStack = true) {
   if (e instanceof ErrorEx) {
     return e;
   } else if (e instanceof Error) {
@@ -52,7 +68,7 @@ export function asErrorEx(e: unknown) {
     // so that the stack trace survives
 
     (e as any).printName = e.name !== "Error";
-    (e as any).printStack = !!e.message;
+    (e as any).printStack = defaultShowStack && !!e.message;
     return e as ErrorEx;
   } else {
     return new ErrorEx("Error", String(e), false, true);

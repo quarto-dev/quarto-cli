@@ -1,11 +1,10 @@
 /*
-* website-listing-project.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-listing-project.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync, safeRemoveSync } from "../../../../deno_ral/fs.ts";
 import { dirname, join } from "../../../../deno_ral/path.ts";
 
 import { projectScratchPath } from "../../../project-scratch.ts";
@@ -34,7 +33,7 @@ export function cacheListingProjectData(
   const listingContents = descriptors.flatMap((descriptor) => {
     const contentItems = descriptor.listing.contents;
     return contentItems.filter((item) => {
-      return typeof (item) === "string";
+      return typeof item === "string";
     });
   }) as string[];
 
@@ -67,7 +66,7 @@ export function clearListingProjectData(project: ProjectContext) {
 function clearListingMap(project: ProjectContext) {
   const file = projectListingMapFile(project.dir);
   try {
-    Deno.removeSync(file);
+    safeRemoveSync(file);
   } catch {
     // No op
   }

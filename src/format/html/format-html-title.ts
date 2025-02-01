@@ -4,15 +4,21 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 import { dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 import { kDateFormat, kTocLocation } from "../../config/constants.ts";
 import { Format, Metadata, PandocFlags } from "../../config/types.ts";
-import { Document } from "../../core/deno-dom.ts";
+import { Document, Element } from "../../core/deno-dom.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { sassLayer } from "../../core/sass.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { MarkdownPipeline } from "../../core/markdown-pipeline.ts";
+import {
+  HtmlPostProcessResult,
+  PandocInputTraits,
+  RenderedFormat,
+} from "../../command/render/types.ts";
+import { InternalError } from "../../core/lib/error.ts";
 
 export const kTitleBlockStyle = "title-block-style";
 const kTitleBlockBanner = "title-block-banner";
@@ -31,6 +37,9 @@ export function documentTitleScssLayer(format: Format) {
   ) {
     return undefined;
   } else if (format.metadata[kTitleBlockStyle] === "manuscript") {
+    // TODO: Tweak style for manuscript
+    // This code path is here so that we can add manuscript-specific styles
+    // For now it is just identical to non-manuscript
     const titleBlockScss = formatResourcePath(
       "html",
       join("templates", "title-block.scss"),
@@ -172,6 +181,69 @@ export function documentTitlePartial(
       templateParams,
     };
   }
+}
+
+export async function canonicalizeTitlePostprocessor(
+  doc: Document,
+  _options: {
+    inputMetadata: Metadata;
+    inputTraits: PandocInputTraits;
+    renderedFormats: RenderedFormat[];
+    quiet?: boolean;
+  },
+): Promise<HtmlPostProcessResult> {
+  // https://github.com/quarto-dev/quarto-cli/issues/10567
+  // this fix cannot happen in `processDocumentTitle` because
+  // that's too late in the postprocessing order
+  const titleBlock = doc.querySelector("header.quarto-title-block");
+
+  const main = doc.querySelector("main");
+  // if no main element exists, this is likely a revealjs presentation
+  // which will generally have a title slide instead of a title block
+  // so we don't need to do anything
+
+  if (!titleBlock && main) {
+    const header = doc.createElement("header");
+    header.id = "title-block-header";
+    header.classList.add("quarto-title-block");
+    main.insertBefore(header, main.firstChild);
+    const h1s = Array.from(doc.querySelectorAll("h1"));
+    for (const h1n of h1s) {
+      const h1 = h1n as Element;
+      if (h1.classList.contains("quarto-secondary-nav-title")) {
+        continue;
+      }
+
+      // Now we need to check whether this is a plausible title element.
+      if (h1.parentElement?.tagName === "SECTION") {
+        // If the parent element is a section, then we need to check if there's
+        // any content before the section. If there is, then this is not a title
+        if (
+          h1.parentElement?.parentElement?.firstElementChild !==
+            h1.parentElement
+        ) {
+          continue;
+        }
+      } else {
+        // If the parent element is not a section, then we need to check if there's
+        // any content before the h1. If there is, then this is not a title
+        if (h1.parentElement?.firstElementChild !== h1) {
+          continue;
+        }
+      }
+
+      const div = doc.createElement("div");
+      div.classList.add("quarto-title-banner");
+      h1.classList.add("title");
+      header.appendChild(h1);
+      break;
+    }
+  }
+
+  return {
+    resources: [],
+    supporting: [],
+  };
 }
 
 export function processDocumentTitle(

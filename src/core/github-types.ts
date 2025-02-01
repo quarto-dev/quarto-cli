@@ -9,7 +9,8 @@ export type GitHubContext = {
   repo: boolean;
   originUrl?: string;
   repoUrl?: string;
-  ghPages?: boolean;
+  ghPagesRemote?: boolean;
+  ghPagesLocal?: boolean;
   siteUrl?: string;
   browse?: boolean;
   organization?: string;

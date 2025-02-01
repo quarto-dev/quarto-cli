@@ -1,0 +1,9 @@
+---
+title: A test chapter
+---
+
+Please find me.
+
+## A section
+
+More stuff.

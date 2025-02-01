@@ -5,18 +5,22 @@
  */
 
 import * as ld from "./lodash.ts";
+import { makeTimedFunction } from "./performance/function-times.ts";
 
-export function mergeConfigs<T>(config: T, ...configs: Array<unknown>): T {
-  // copy all configs so we don't mutate them
-  config = ld.cloneDeep(config);
-  configs = ld.cloneDeep(configs);
+export const mergeConfigs = makeTimedFunction(
+  "mergeConfigs",
+  function mergeConfigs<T>(config: T, ...configs: Array<unknown>): T {
+    // copy all configs so we don't mutate them
+    config = ld.cloneDeep(config);
+    configs = ld.cloneDeep(configs);
 
-  return ld.mergeWith(
-    config,
-    ...configs,
-    mergeArrayCustomizer,
-  );
-}
+    return ld.mergeWith(
+      config,
+      ...configs,
+      mergeArrayCustomizer,
+    );
+  },
+);
 
 export function mergeArrayCustomizer(objValue: unknown, srcValue: unknown) {
   if (ld.isArray(objValue) || ld.isArray(srcValue)) {

@@ -1,0 +1,21 @@
+---
+format: html
+filters:
+  - topanel.lua
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.panel-tabset"]
+---
+
+
+::: {.to-panel}
+
+```{r}
+#| echo: true
+
+print("Hello, world")
+```
+
+:::

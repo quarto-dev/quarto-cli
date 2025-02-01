@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { join, dirname } from "../../../src/deno_ral/path.ts";
 import { Verify, testQuartoCmd } from "../../test.ts";
 import { outputForInput } from "../../utils.ts";
@@ -21,14 +21,15 @@ export async function cleanWorking() {
 
 export type OutputVerify = (outputDir: string) => Verify[];
 
+// This is similar to testSite.
+// It tests a project render, and allow to verify output directory assertions
 export const testProjectRender = (
   input: string,
   to: string,
-  outputDir: string,
-  outputVerify: OutputVerify
+  outputVerify: OutputVerify = (_outDir: string): Verify[] => [],
 ) => {
 
-  const output = outputForInput(input, to, outputDir);
+  const output = outputForInput(input, to);
   const outDir = dirname(output.outputPath);
   const outVerify = outputVerify(outDir);
 

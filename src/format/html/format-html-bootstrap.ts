@@ -457,9 +457,15 @@ function bootstrapHtmlPostprocessor(
       if (th.parentNode?.parentNode) {
         const table = th.parentNode.parentNode as Element;
         table.removeAttribute("style");
+        // see https://github.com/quarto-dev/quarto-cli/issues/6945
+        // for a why we want to check for 'plain' here
         addTableClasses(
           table,
-          !!findParent(table, (el) => el.classList.contains("cell")),
+          !!findParent(
+            table,
+            (el) =>
+              el.classList.contains("cell") && !el.classList.contains("plain"),
+          ),
         );
       }
     }
@@ -1461,6 +1467,13 @@ const figCapInCalloutMarginProcessor: MarginNodeProcessor = {
 
 const kPreviewFigColumnForwarding = [".grid"];
 
+const isInsideAbout = (el: Element) =>
+  !!findParent(
+    el,
+    (parent) =>
+      Array.from(parent.classList).some((x) => x.startsWith("quarto-about-")),
+  );
+
 const processFigureOutputs = (doc: Document) => {
   // For any non-margin figures, we want to actually place the figure itself
   // into the column, and leave the caption as is, if possible
@@ -1497,13 +1510,19 @@ const processFigureOutputs = (doc: Document) => {
 
     // If there is a single figure, then forward the column class onto that
     const figures = columnEl.querySelectorAll("figure img.figure-img");
-    if (figures && figures.length === 1) {
+
+    if (
+      figures && figures.length === 1 && !isInsideAbout(figures[0] as Element)
+    ) {
       moveColumnClasses(columnEl, figures[0] as Element);
     } else {
       const layoutFigures = columnEl.querySelectorAll(
         ".quarto-layout-panel > figure.figure .quarto-layout-row",
       );
-      if (layoutFigures && layoutFigures.length === 1) {
+      if (
+        layoutFigures && layoutFigures.length === 1 &&
+        !isInsideAbout(layoutFigures[0] as Element)
+      ) {
         moveColumnClasses(columnEl, layoutFigures[0] as Element);
       }
     }

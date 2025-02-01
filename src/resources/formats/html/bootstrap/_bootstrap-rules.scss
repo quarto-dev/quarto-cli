@@ -624,7 +624,7 @@ h2 {
   );
   margin-top: 2rem;
   margin-bottom: 1rem;
-  font-weight: 600;
+  font-weight: $h1h2h3-font-weight;
 }
 
 h1.title {
@@ -641,7 +641,7 @@ h2 {
 }
 
 h3 {
-  font-weight: 600;
+  font-weight: $h1h2h3-font-weight;
 }
 
 h3,
@@ -835,7 +835,9 @@ div.sourceCode {
   @if $code-block-bg {
     background-color: $code-block-bg-color;
     border: 1px solid $code-block-bg-color;
-    border-radius: $border-radius;
+    @if $enable-rounded {
+      border-radius: $border-radius;
+    }
   } @else {
     background-color: $body-bg !important;
     border: none;
@@ -881,11 +883,6 @@ pre.sourceCode > code.sourceCode {
   @if not $code-block-bg {
     padding: 0;
   }
-}
-
-// no border inside callouts
-.callout pre.sourceCode {
-  padding-left: 0;
 }
 
 div.sourceCode {
@@ -1301,7 +1298,11 @@ $indent: 1.2em;
 kbd,
 .kbd {
   color: $body-color;
-  background-color: $gray-100;
+  @if (quarto-color.blackness($body-bg) > $code-block-theme-dark-threshhold) {
+    background-color: shift-color($gray-100, 70%);
+  } @else {
+    background-color: $gray-100;
+  }
   border: 1px solid;
   border-radius: 5px;
   border-color: $table-border-color;
@@ -2142,4 +2143,43 @@ code.sourceCode a.code-annotation-anchor {
   i {
     margin-right: 0.3em;
   }
+}
+
+#quarto-back-to-top {
+  z-index: 1000;
+}
+
+// override _reboot.scss
+
+// code blocks
+pre {
+  font-family: $font-family-monospace-block;
+  // I'm really not confident that this is correct
+  @include font-size($code-block-font-size);
+  font-weight: $font-weight-monospace-block;
+
+  // adding these inherit overrides here
+  // is what `_reboot.scss` does.
+  // we mirror it here for consistency
+  //
+  // Account for some code outputs that place code tags in pre tags
+  code {
+    font-family: inherit;
+    @include font-size(inherit);
+    font-weight: inherit;
+  }
+}
+
+// code inlines
+code {
+  font-family: $font-family-monospace-inline;
+  @include font-size($code-inline-font-size);
+  font-weight: $font-weight-monospace-inline;
+}
+
+// link styling
+a {
+  background-color: $link-color-bg;
+  font-weight: $link-weight;
+  text-decoration: $link-decoration;
 }

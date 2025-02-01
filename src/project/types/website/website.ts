@@ -86,6 +86,10 @@ import { formatDate } from "../../../core/date.ts";
 import { projectExtensionPathResolver } from "../../../extension/extension.ts";
 import { websiteDraftPostProcessor } from "./website-draft.ts";
 import { projectDraftMode } from "./website-utils.ts";
+import { kFieldCategories } from "./listing/website-listing-shared.ts";
+import { pandocNativeStr } from "../../../core/pandoc/codegen.ts";
+import { asArray } from "../../../core/array.ts";
+import { canonicalizeTitlePostprocessor } from "../../../format/html/format-html-title.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -136,197 +140,213 @@ export const websiteProjectType: ProjectType = {
     format: Format,
     services: RenderServices,
   ): Promise<FormatExtras> => {
-    if (isHtmlFileOutput(format.pandoc)) {
-      // navigation extras for bootstrap enabled formats
-      const extras = formatHasBootstrap(format)
-        ? await websiteNavigationExtras(
-          project,
-          source,
-          flags,
-          format,
-          services.temp,
-        )
-        : await websiteNoThemeExtras(
-          project,
-          source,
-          flags,
-          format,
-          services.temp,
-        );
-
-      // add some title related variables
-      extras.pandoc = extras.pandoc || {};
-      extras.metadata = extras.metadata || {};
-
-      // Resolve any giscus information
-      resolveFormatForGiscus(project, format);
-
-      // title prefix if the project has a title and this isn't the home page
-      const title = websiteTitle(project.config);
-      if (title) {
-        extras.pandoc = {
-          [kTitlePrefix]: title,
-        };
-      }
-
-      // dependency for favicon if we have one
-      const favicon = websiteConfigString(kSiteFavicon, project.config);
-      if (favicon) {
-        const offset = projectOffset(project, source);
-        extras.html = extras.html || {};
-        extras.html.dependencies = extras.html.dependencies || [];
-        extras.html.dependencies.push({
-          name: kSiteFavicon,
-          links: [{
-            rel: "icon",
-            href: offset + "/" + favicon,
-            type: contentType(favicon),
-          }],
-        });
-      }
-
-      // pagetitle for home page if it has no title
-      const offset = projectOffset(project, source);
-      const [_dir, stem] = dirAndStem(source);
-      const home = stem === "index" && offset === ".";
-      if (
-        home && !format.metadata[kTitle] && !format.metadata[kPageTitle] &&
-        title
-      ) {
-        extras.metadata[kPageTitle] = title;
-      }
-
-      // html metadata
-      extras.html = extras.html || {};
-      extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] || [];
-      extras.html[kHtmlFinalizers] = extras.html[kHtmlFinalizers] || [];
-      extras.html[kMarkdownAfterBody] = extras.html[kMarkdownAfterBody] || [];
-      extras.html[kHtmlPostprocessors]?.push(...[
-        htmlResourceResolverPostprocessor(
-          source,
-          project,
-          projectExtensionPathResolver(
-            project.config?.project[kProjectLibDir] || "",
-            project.dir,
-          ),
-        ),
-      ]);
-      extras.html[kHtmlPostprocessors].unshift(websiteDraftPostProcessor);
-
-      // listings extras
-      const hasBootstrap = formatHasBootstrap(format);
-
-      const htmlListingDependencies = await listingHtmlDependencies(
-        source,
-        project,
-        format,
-        services.temp,
-        extras,
-      );
-      if (htmlListingDependencies) {
-        const listingPostProcessor =
-          htmlListingDependencies[kHtmlPostprocessors];
-        if (listingPostProcessor) {
-          // Process listings early so if we inject content div, navigation and other
-          // elements will wrap around
-          extras.html[kHtmlPostprocessors]?.unshift(listingPostProcessor);
-        }
-
-        const listingAfterBody = htmlListingDependencies[kMarkdownAfterBody];
-        if (listingAfterBody) {
-          extras.html[kMarkdownAfterBody]?.push(listingAfterBody);
-        }
-        extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
-        extras[kIncludeInHeader]!.push(
-          ...htmlListingDependencies[kIncludeInHeader],
-        );
-        extras.html[kSassBundles] = extras.html[kSassBundles] || [];
-        extras.html[kSassBundles]!.push(
-          ...htmlListingDependencies[kSassBundles],
-        );
-
-        extras.html[kDependencies] = extras.html[kDependencies] || [];
-        extras.html[kDependencies]?.push(
-          ...htmlListingDependencies[kDependencies],
-        );
-      }
-
-      if (hasBootstrap) {
-        // about extras
-        const aboutDependencies = await aboutHtmlDependencies(
-          source,
-          project,
-          format,
-          services.temp,
-          extras,
-        );
-        if (aboutDependencies) {
-          const aboutPostProcessor = aboutDependencies[kHtmlPostprocessors];
-          if (aboutPostProcessor) {
-            extras.html[kHtmlPostprocessors]?.push(aboutPostProcessor);
-          }
-
-          extras.html[kSassBundles] = extras.html[kSassBundles] || [];
-          extras.html[kSassBundles]!.push(
-            ...aboutDependencies[kSassBundles],
-          );
-          extras.html[kMarkdownAfterBody] = extras.html[kMarkdownAfterBody] ||
-            [];
-          extras.html[kMarkdownAfterBody]!.push(
-            ...aboutDependencies[kMarkdownAfterBody],
-          );
-        }
-      }
-
-      // metadata html dependencies
-      const htmlMetadataDependencies = metadataHtmlDependencies(
-        source,
-        project,
-        format,
-        extras,
-      );
-      extras.html[kHtmlPostprocessors]?.push(
-        htmlMetadataDependencies[kHtmlPostprocessors],
-      );
-      extras.html[kMarkdownAfterBody]?.push(
-        htmlMetadataDependencies[kMarkdownAfterBody],
-      );
-
-      // Add html analytics extras, if any
-      const analyticsDependency = websiteAnalyticsScriptFile(
-        project,
-        services.temp,
-      );
-      if (analyticsDependency) {
-        extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
-        extras[kIncludeInHeader]?.push(analyticsDependency);
-      }
-      const cookieDep = cookieConsentDependencies(
-        project,
-        format,
-        services.temp,
-      );
-      if (cookieDep) {
-        // Inline script
-        extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
-        extras[kIncludeInHeader]?.push(
-          cookieDep.scriptFile,
-        );
-
-        // dependency
-        extras.html = extras.html || {};
-        extras.html[kDependencies] = extras.html[kDependencies] || [];
-        extras.html[kDependencies]?.push(cookieDep.dependency);
-
-        extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] ||
-          [];
-        extras.html[kHtmlPostprocessors]?.push(cookieDep.htmlPostProcessor);
-      }
-
-      return Promise.resolve(extras);
-    } else {
+    if (!isHtmlFileOutput(format.pandoc)) {
       return Promise.resolve({});
     }
+
+    // navigation extras for bootstrap enabled formats
+    const extras = formatHasBootstrap(format)
+      ? await websiteNavigationExtras(
+        project,
+        source,
+        flags,
+        format,
+        services.temp,
+      )
+      : await websiteNoThemeExtras(
+        project,
+        source,
+        flags,
+        format,
+        services.temp,
+      );
+
+    // add some title related variables
+    extras.pandoc = extras.pandoc || {};
+    extras.metadata = extras.metadata || {};
+    extras.metadataOverride = extras.metadataOverride || {};
+
+    // Resolve any giscus information
+    resolveFormatForGiscus(project, format);
+
+    // title prefix if the project has a title and this isn't the home page
+    const title = websiteTitle(project.config);
+    if (title) {
+      extras.pandoc = {
+        [kTitlePrefix]: title,
+      };
+    }
+
+    // dependency for favicon if we have one
+    const favicon = websiteConfigString(kSiteFavicon, project.config);
+    if (favicon) {
+      const offset = projectOffset(project, source);
+      extras.html = extras.html || {};
+      extras.html.dependencies = extras.html.dependencies || [];
+      extras.html.dependencies.push({
+        name: kSiteFavicon,
+        links: [{
+          rel: "icon",
+          href: offset + "/" + favicon,
+          type: contentType(favicon),
+        }],
+      });
+    }
+
+    // pagetitle for home page if it has no title
+    const offset = projectOffset(project, source);
+    const [_dir, stem] = dirAndStem(source);
+    const home = stem === "index" && offset === ".";
+    if (
+      home && !format.metadata[kTitle] && !format.metadata[kPageTitle] &&
+      title
+    ) {
+      extras.metadata[kPageTitle] = title;
+    }
+
+    // categories metadata needs to be escaped from Markdown processing to
+    // avoid +smart applying to it. Categories are expected to be non markdown.
+    // So we provide an override to ensure they are not processed.
+    if (format.metadata[kFieldCategories]) {
+      extras.metadataOverride[kFieldCategories] = asArray(
+        format.metadata[kFieldCategories],
+      ).map(
+        (category) => {
+          const strCategory: string = typeof category === "string"
+            ? category
+            : category.toString();
+          return pandocNativeStr(strCategory).mappedString().value;
+        },
+      );
+    }
+
+    // html metadata
+    extras.html = extras.html || {};
+    extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] || [];
+    extras.html[kHtmlFinalizers] = extras.html[kHtmlFinalizers] || [];
+    extras.html[kMarkdownAfterBody] = extras.html[kMarkdownAfterBody] || [];
+
+    extras.html[kHtmlPostprocessors].push(...[
+      htmlResourceResolverPostprocessor(
+        source,
+        project,
+        projectExtensionPathResolver(
+          project.config?.project[kProjectLibDir] || "",
+          project.dir,
+        ),
+      ),
+    ]);
+    // add postprocessors that needs to be before other extras.html
+    extras.html[kHtmlPostprocessors].unshift(
+      websiteDraftPostProcessor,
+      // Fix H1 title inconsistency
+      canonicalizeTitlePostprocessor,
+    );
+
+    // listings extras
+    const hasBootstrap = formatHasBootstrap(format);
+
+    const htmlListingDependencies = await listingHtmlDependencies(
+      source,
+      project,
+      format,
+      services.temp,
+      extras,
+    );
+    if (htmlListingDependencies) {
+      const listingPostProcessor = htmlListingDependencies[kHtmlPostprocessors];
+      if (listingPostProcessor) {
+        // Process listings early so if we inject content div, navigation and other
+        // elements will wrap around
+        extras.html[kHtmlPostprocessors]?.unshift(listingPostProcessor);
+      }
+
+      const listingAfterBody = htmlListingDependencies[kMarkdownAfterBody];
+      if (listingAfterBody) {
+        extras.html[kMarkdownAfterBody]?.push(listingAfterBody);
+      }
+      extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
+      extras[kIncludeInHeader]!.push(
+        ...htmlListingDependencies[kIncludeInHeader],
+      );
+      extras.html[kSassBundles] = extras.html[kSassBundles] || [];
+      extras.html[kSassBundles]!.push(
+        ...htmlListingDependencies[kSassBundles],
+      );
+
+      extras.html[kDependencies] = extras.html[kDependencies] || [];
+      extras.html[kDependencies]?.push(
+        ...htmlListingDependencies[kDependencies],
+      );
+    }
+
+    if (hasBootstrap) {
+      // about extras
+      const aboutDependencies = await aboutHtmlDependencies(
+        source,
+        project,
+        format,
+        services.temp,
+        extras,
+      );
+      if (aboutDependencies) {
+        const aboutPostProcessor = aboutDependencies[kHtmlPostprocessors];
+        if (aboutPostProcessor) {
+          extras.html[kHtmlPostprocessors]?.push(aboutPostProcessor);
+        }
+
+        extras.html[kSassBundles] = extras.html[kSassBundles] || [];
+        extras.html[kSassBundles]!.push(
+          ...aboutDependencies[kSassBundles],
+        );
+        extras.html[kMarkdownAfterBody].push(
+          ...aboutDependencies[kMarkdownAfterBody],
+        );
+      }
+    }
+
+    // metadata html dependencies
+    const htmlMetadataDependencies = metadataHtmlDependencies(
+      source,
+      project,
+      format,
+      extras,
+    );
+    extras.html[kHtmlPostprocessors].push(
+      htmlMetadataDependencies[kHtmlPostprocessors],
+    );
+    extras.html[kMarkdownAfterBody].push(
+      htmlMetadataDependencies[kMarkdownAfterBody],
+    );
+
+    // Add html analytics extras, if any
+    const analyticsDependency = websiteAnalyticsScriptFile(
+      project,
+      services.temp,
+    );
+    if (analyticsDependency) {
+      extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
+      extras[kIncludeInHeader]?.push(analyticsDependency);
+    }
+    const cookieDep = cookieConsentDependencies(
+      project,
+      format,
+      services.temp,
+    );
+    if (cookieDep) {
+      // Inline script
+      extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
+      extras[kIncludeInHeader]?.push(
+        cookieDep.scriptFile,
+      );
+
+      // dependency
+      extras.html[kDependencies] = extras.html[kDependencies] || [];
+      extras.html[kDependencies].push(cookieDep.dependency);
+      extras.html[kHtmlPostprocessors].push(cookieDep.htmlPostProcessor);
+    }
+
+    return Promise.resolve(extras);
   },
 
   postRender: async (

@@ -6,6 +6,7 @@
 
 import {
   HandlerContextResults,
+  IncludeState,
   LanguageCellHandlerContext,
   LanguageCellHandlerOptions,
   LanguageHandler,
@@ -74,7 +75,7 @@ import {
   resolve,
 } from "../../deno_ral/path.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync } from "../../deno_ral/fs.ts";
 import { mappedStringFromFile } from "../mapped-text.ts";
 import { error } from "../../deno_ral/log.ts";
 import { withCriClient } from "../cri/cri.ts";
@@ -341,14 +342,21 @@ const processMarkdownIncludes = async (
     includeHandler.context.options.state = {};
   }
   if (!includeHandler.context.options.state.include) {
-    includeHandler.context.options.state.include = {};
+    includeHandler.context.options.state.include = {
+      includes: [],
+    };
   }
-  const includeState: Record<string, string> = includeHandler.context.options
+  const includeState = includeHandler.context.options
     .state
-    .include as Record<string, string>;
+    .include as IncludeState;
 
   // search for include shortcodes in the cell content
   for (let i = 0; i < newCells.length; ++i) {
+    if (
+      newCells[i].value.search(/\s*```\s*{\s*shortcodes\s*=\s*false\s*}/) !== -1
+    ) {
+      continue;
+    }
     const lines = mappedLines(newCells[i], true);
     let foundShortcodes = false;
     for (let j = 0; j < lines.length; ++j) {
@@ -361,7 +369,7 @@ const processMarkdownIncludes = async (
             throw new Error("Include directive needs filename as a parameter");
           }
           if (filename) {
-            includeState[filename] = param;
+            includeState.includes.push({ source: filename, target: param });
           }
           lines[j] = await standaloneInclude(includeHandler.context, param);
         }
@@ -397,9 +405,7 @@ export async function expandIncludes(
   const newCells: MappedString[] = [];
   for (let i = 0; i < mdCells.length; ++i) {
     const cell = mdCells[i];
-    newCells.push(
-      i === 0 ? cell.sourceVerbatim : mappedConcat(["\n", cell.sourceVerbatim]),
-    );
+    newCells.push(cell.sourceVerbatim);
   }
 
   await processMarkdownIncludes(newCells, options, filename);
@@ -429,9 +435,7 @@ export async function handleLanguageCells(
 
   for (let i = 0; i < mdCells.length; ++i) {
     const cell = mdCells[i];
-    newCells.push(
-      i === 0 ? cell.sourceVerbatim : mappedConcat(["\n", cell.sourceVerbatim]),
-    );
+    newCells.push(cell.sourceVerbatim);
     if (
       cell.cell_type === "raw" ||
       cell.cell_type === "markdown"
@@ -475,7 +479,6 @@ export async function handleLanguageCells(
           (innerLanguageHandler.stage !== "any" &&
             innerLanguageHandler.stage !== options.stage)
         ) { // we're in the wrong stage, so we don't actually do anything
-          newCells[cell.index] = mappedConcat([newCells[cell.index], "\n"]);
           continue;
         }
         if (
@@ -484,7 +487,6 @@ export async function handleLanguageCells(
         ) {
           // if no handler is present (or a directive was included for something
           // that responds to cells instead), we're a no-op
-          newCells[cell.index] = mappedConcat([newCells[cell.index], "\n"]);
           continue;
         }
         if (innerLanguageHandler.directive === undefined) {

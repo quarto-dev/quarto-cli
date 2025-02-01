@@ -1,0 +1,56 @@
+---
+title: "gt - mtcars"
+format:
+  typst:
+    quality: 1
+  html:
+    quality: 1
+    format-links: false
+---
+
+```{=typst}
+// this example is a little large for a standard page, at least at 0.75px = 1pt
+// and we don't have
+#set page(margin: 0cm)
+
+// striped
+// #set table(fill: (_,y) => if calc.odd(y) {luma(240)} else {white})
+```
+
+
+```{r}
+library(dplyr)
+library(gt)
+
+gtcars_8 <-
+  gtcars |>
+  group_by(ctry_origin) |>
+  slice_head(n = 2) |>
+  ungroup() |>
+  filter(ctry_origin != "United Kingdom")
+
+
+# Define our preferred order for `ctry_origin`
+order_countries <- c("Germany", "Italy", "United States", "Japan")
+
+```
+
+
+```{r}
+#| classes: plain
+# Reorder the table rows by our specific ordering of groups
+tab <-
+  gtcars_8 |>
+  arrange(
+    factor(ctry_origin, levels = order_countries),
+    mfr, desc(msrp)
+  ) |>
+  mutate(car = paste(mfr, model)) |>
+  select(-mfr, -model) |>
+  group_by(ctry_origin) |>
+  gt(rowname_col = "car")
+
+# Show the table
+tab
+
+```

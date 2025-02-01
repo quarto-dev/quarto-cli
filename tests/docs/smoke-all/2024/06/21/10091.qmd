@@ -1,0 +1,24 @@
+---
+title: Test
+subtitle: test
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - 
+          - "hfill"
+---
+
+# Left
+
+![](./dummy.png){width=50 fig-align="left"}
+
+# Right
+
+![](./dummy.png){width=50 fig-align="right"}
+
+# Center
+
+![](./dummy.png){width=50 fig-align="center"}
+

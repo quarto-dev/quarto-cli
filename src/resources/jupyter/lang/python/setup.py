@@ -4,23 +4,24 @@ import os
 import sys
 import types
 import json
+import base64
 
 # figure size/format
-fig_width = {0}
-fig_height = {1}
-fig_format = '{2}'
-fig_dpi = {3}
-interactivity = '{5}'
-is_shiny = {6}
-is_dashboard = {7}
-plotly_connected = {8}
+fig_width = {fig_width}
+fig_height = {fig_height}
+fig_format = '{fig_format}'
+fig_dpi = {fig_dpi}
+interactivity = '{interactivity}'
+is_shiny = {is_shiny}
+is_dashboard = {is_dashboard}
+plotly_connected = {plotly_connected}
 
 # matplotlib defaults / format
 try:
   import matplotlib.pyplot as plt
   plt.rcParams['figure.figsize'] = (fig_width, fig_height)
   plt.rcParams['figure.dpi'] = fig_dpi
-  plt.rcParams['savefig.dpi'] = fig_dpi
+  plt.rcParams['savefig.dpi'] = "figure"
   from IPython.display import set_matplotlib_formats
   set_matplotlib_formats(fig_format)
 except Exception:
@@ -183,16 +184,19 @@ for module in list(sys.modules.values()):
 print(json.dumps(kernel_deps))
 
 # set run_path if requested
-if r'{4}':
-  os.chdir(r'{4}')
+run_path = '{run_path}'
+if run_path:
+  # hex-decode the path
+  run_path = base64.b64decode(run_path.encode("utf-8")).decode("utf-8")
+  os.chdir(run_path)
 
 # reset state
 %reset
 
 # shiny
-# Checking for shiny by using {6} directly because we're after the %reset. We don't want
+# Checking for shiny by using {is_shiny} directly because we're after the %reset. We don't want
 # to set a variable that stays in global scope.
-if {6}:
+if {is_shiny}:
   try:
     import htmltools as _htmltools
     import ast as _ast
@@ -266,3 +270,4 @@ def ojs_define(**kwargs):
   v = dict(contents=list(dict(name=key, value=convert(value)) for (key, value) in kwargs.items()))
   display(HTML('<script type="ojs-define">' + json.dumps(v) + '</script>'), metadata=dict(ojs_define = True))
 globals()["ojs_define"] = ojs_define
+globals()["__spec__"] = None

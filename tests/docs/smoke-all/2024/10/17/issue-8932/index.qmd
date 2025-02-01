@@ -1,0 +1,9 @@
+---
+title: "issue-8932"
+filters:
+  - check_stray_div.lua
+---
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.

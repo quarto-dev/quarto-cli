@@ -1,0 +1,25 @@
+---
+title: "Ojs Test"
+format: hugo-md
+_quarto:
+  tests:
+    hugo-md:
+      ensureFileRegexMatches:
+        - ["cell-output cell-output-display hidden"]
+        - []
+---
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+```{ojs}
+//| echo: false
+//| output: false
+//| include: false
+a = 5;
+```
+
+```{ojs}
+b = 6;
+```
+
+Nulla at varius turpis. Ut nec purus efficitur, dictum urna eget, molestie ante.

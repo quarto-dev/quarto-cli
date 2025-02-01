@@ -1,0 +1,20 @@
+---
+title: "Test Dashboard"
+format: dashboard
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        - []
+        - 
+          - "div.card-header > span.math.inline"
+          - "div.card-header > em"
+          - "div.card-header > strong"
+---
+
+##
+::: {.card title="Math $y=mx+b$ between *emphasized* and **bold** words"}
+
+Math $y=mx+b$ between words
+
+:::

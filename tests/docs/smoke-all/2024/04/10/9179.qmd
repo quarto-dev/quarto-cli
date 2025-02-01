@@ -1,0 +1,14 @@
+---
+title: Broken Tables
+_quarto:
+  tests:
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - ["dangerouslySetInnerHTML"]
+---
+
+# Broken Markdown Tables
+
++-------+
+| # ad  |
++-------+

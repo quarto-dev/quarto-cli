@@ -76,9 +76,9 @@
     short: |
       Target page width for output (used to compute columns widths for `layout` divs)
     long: |
-      Target page width for output (used to compute columns widths for `layout` divs).
+      Target body page width for output (used to compute columns widths for `layout` divs).
       Defaults to 6.5 inches, which corresponds to default letter page settings in 
-      docx and odt.
+      docx and odt (8.5 inches with 1 inch for each margins).
 
 - name: grid
   schema:

@@ -57,4 +57,16 @@ to [Doc] values.
 ---@return table<string,any> # Template context
 function pandoc.template.meta_to_context(meta, blocks_writer, inlines_writer) end
 
+--[[
+Retrieve text for a template.
+
+This function first checks the resource paths for a file of this
+name; if none is found, the `templates` directory in the user data
+directory is checked. Returns the content of the file, or throws
+an error if no file is found.
+]]
+---@param filename string name of the template
+---@return string # content of the template
+function pandoc.template.get(filename) end
+
 return pandoc.template

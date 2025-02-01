@@ -1,0 +1,9 @@
+---
+title: "Video embedding in an HTML comment"
+---
+
+<!--
+
+{{< video https://www.youtube.com/watch?v=Sq1QZB5baNw title="Figure Status Update - OpenAI Speech-to-Speech Reasoning" aspect-ratio="21x9" width="100%" height="100%" >}}
+
+-->

@@ -81,7 +81,11 @@ function latexPanelEnv(layout)
   
   -- defaults
   local env = latexFigureEnv(layout)
-  local pos = attribute(layout.float or { attributes = layout.attributes or {} }, kFigPos)
+  local attr_key = kFigPos
+  if layout.float then
+    attr_key = ref_type_from_float(layout.float) .. "-pos"
+  end
+  local pos = attribute(layout.float or { attributes = layout.attributes or {} }, attr_key)
   
   return env, pos
 end
@@ -128,7 +132,7 @@ function create_latex_caption(layout)
   end
   local caption_node, caption = quarto.LatexInlineCommand({
     name = caption_env,
-    arg = scaffold(cap_inlines),
+    arg = _quarto.ast.scaffold_element(cap_inlines),
   })
   if layout.caption_short ~= nil then
     caption.opt_arg = quarto.utils.as_inlines(layout.caption_short)
@@ -351,13 +355,16 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
       content:insert(pandoc.Para(caption))
       cellOutput = true
     elseif isFigure then
-      local caption = refCaptionFromDiv(cell).content
-      markupLatexCaption(cell, caption)
-      content:insert(pandoc.RawBlock("latex", "\\raisebox{-\\height}{"))
-      tappend(content, tslice(cell.content, 1, #cell.content-1))
-      content:insert(pandoc.RawBlock("latex", "}"))
-      content:insert(pandoc.Para(caption)) 
-      cellOutput = true
+      local caption_el = refCaptionFromDiv(cell)
+      if caption_el ~= nil then
+        local caption = caption_el.content
+        markupLatexCaption(cell, caption)
+        content:insert(pandoc.RawBlock("latex", "\\raisebox{-\\height}{"))
+        tappend(content, tslice(cell.content, 1, #cell.content-1))
+        content:insert(pandoc.RawBlock("latex", "}"))
+        content:insert(pandoc.Para(caption)) 
+        cellOutput = true
+      end
     end
   end
   
@@ -513,7 +520,12 @@ function latexFigurePosition(el, env)
   if env == kMarginFigureEnv then
     return attribute(el, kOffset, nil)
   else
-    local prefix = refType(el.identifier) or "fig"
+    local prefix
+    if el.t == "FloatRefTarget" then
+      prefix = ref_type_from_float(el)
+    else
+      prefix = refType(el.identifier) or "fig"
+    end
     return attribute(el, prefix .. "-pos", nil)
   end
 end

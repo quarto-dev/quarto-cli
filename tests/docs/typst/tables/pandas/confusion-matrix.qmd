@@ -1,0 +1,59 @@
+---
+title: "Pandas - Confusion Matrix"
+format:
+  typst:
+    quality: 1
+  html:
+    quality: 1
+    format-links: false
+references:
+  - type: website
+    id: pandas-user-guide
+    url: https://pandas.pydata.org/pandas-docs/version/2.2.2/user_guide/style.html#Tooltips-and-Captions
+---
+
+```{python}
+#| classes: plain
+import pandas as pd
+import numpy as np
+
+df = pd.DataFrame([[38.0, 2.0, 18.0, 22.0, 21, np.nan],[19, 439, 6, 452, 226,232]],
+                  index=pd.Index(['Tumour (Positive)', 'Non-Tumour (Negative)'], name='Actual Label:'),
+                  columns=pd.MultiIndex.from_product([['Decision Tree', 'Regression', 'Random'],['Tumour', 'Non-Tumour']], names=['Model:', 'Predicted:']))
+
+s = df.style.format('{:.0f}').hide([('Random', 'Tumour'), ('Random', 'Non-Tumour')], axis="columns")
+
+cell_hover = {  # for row hover use <tr> instead of <td>
+    'selector': 'td:hover',
+    'props': [('background-color', '#ffffb3')]
+}
+index_names = {
+    'selector': '.index_name',
+    # darkgr[ae]y
+    'props': 'font-style: italic; color: #a9a9a9; font-weight:normal;'
+}
+headers = {
+    'selector': 'th:not(.index_name)',
+    'props': 'background-color: #000066; color: white;'
+}
+s.set_table_styles([cell_hover, index_names, headers])
+
+s.set_table_styles([  # create internal CSS classes
+    {'selector': '.true', 'props': 'background-color: #e6ffe6;'},
+    {'selector': '.false', 'props': 'background-color: #ffe6e6;'},
+], overwrite=False)
+cell_color = pd.DataFrame([['true ', 'false ', 'true ', 'false '],
+                           ['false ', 'true ', 'false ', 'true ']],
+                          index=df.index,
+                          columns=df.columns[:4])
+s.set_td_classes(cell_color)
+s.set_table_styles([  # create internal CSS classes
+    {'selector': '.border-red', 'props': 'border: 2px dashed red;'},
+    {'selector': '.border-green', 'props': 'border: 2px dashed green;'},
+], overwrite=False)
+cell_border = pd.DataFrame([['border-green ', ' ', ' ', 'border-red '],
+                           [' ', ' ', ' ', ' ']],
+                          index=df.index,
+                          columns=df.columns[:4])
+s.set_td_classes(cell_color + cell_border)
+```

@@ -9,8 +9,8 @@ import { RenderServices } from "../../command/render/types.ts";
 import { JatsRenderSubArticle, xmlPlaceholder } from "./format-jats-types.ts";
 
 import { dirname, join, relative } from "../../deno_ral/path.ts";
-import { copySync } from "fs/copy.ts";
-import { readLines } from "io/mod.ts";
+import { copySync } from "../../deno_ral/fs.ts";
+import { readLines } from "io/read-lines";
 import { ProjectContext } from "../../project/types.ts";
 import { logProgress } from "../../core/log.ts";
 import { kJatsSubarticle } from "../../render/notebook/notebook-types.ts";

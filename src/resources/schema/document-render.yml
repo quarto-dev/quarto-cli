@@ -31,12 +31,6 @@
   description: |
     Include the specified files as partials accessible to the template for the generated content.
 
-- name: standalone
-  schema: boolean
-  default: true
-  description: |
-    Produce output with an appropriate header and footer (e.g. a standalone HTML, LaTeX, TEI, or RTF file, not a fragment)
-
 - name: embed-resources
   tags:
     formats: [$html-files]
@@ -214,6 +208,23 @@
   schema:
     enum: [none]
   description: If `none`, do not process tables in HTML input.
+
+- name: html-pre-tag-processing
+  tags:
+    formats: [typst]
+  schema:
+    enum: [none, parse]
+  description: If `none`, ignore any divs with `html-pre-tag-processing=parse` enabled.
+
+- name: css-property-processing
+  tags:
+    formats: [typst]
+  schema:
+    enum: [none, translate]
+  default: translate
+  description:
+    short: CSS property translation
+    long: If `translate`, translate CSS properties into output format properties. If `none`, do not process css properties.
 
 - name: use-rsvg-convert
   schema: boolean

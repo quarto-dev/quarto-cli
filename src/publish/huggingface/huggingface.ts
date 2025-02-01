@@ -6,7 +6,7 @@
 
 import { info } from "../../deno_ral/log.ts";
 import { dirname, join } from "../../deno_ral/path.ts";
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 import { ProjectContext } from "../../project/types.ts";
 import {
   AccountToken,
@@ -23,7 +23,7 @@ import {
 } from "../common/git.ts";
 import { throwUnableToPublish } from "../common/errors.ts";
 import { Input } from "cliffy/prompt/input.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 import { Secret } from "cliffy/prompt/secret.ts";
 
 export const kHuggingFace = "huggingface";
@@ -70,7 +70,7 @@ async function publishRecord(
   input: string | ProjectContext,
 ): Promise<PublishRecord | undefined> {
   const ghContext = await gitHubContextForPublish(input);
-  if (ghContext.ghPages) {
+  if (ghContext.ghPagesRemote) {
     return {
       id: kHuggingFace,
       url: ghContext.siteUrl || ghContext.originUrl,
@@ -104,6 +104,7 @@ async function publish(
 
   // get context
   const ghContext = await gitHubContextForPublish(options.input);
+  verifyContext(ghContext, "Hugging Face Spaces");
 
   if (
     !ghContext.originUrl!.match(/^https:\/\/.*:.*@huggingface.co\/spaces\//)
@@ -179,8 +180,12 @@ async function publish(
   // warn users about latency between push and remote publish
   info(colors.yellow(
     "NOTE: Hugging Face Space sites build the content remotely and use caching.\n" +
-      "You might need to wait a moment for Hugging Face to rebuild your site, and\n" +
-      "then click the refresh button within your web browser to see changes after deployment.\n",
+      "You will need to wait a moment for Hugging Face to rebuild your site, and\n" +
+      "then click the refresh button within your web browser to see changes after deployment.\n\n" +
+      "Specifically, you need to:\n" +
+      "- wait for your space's status to go from 'Building' to 'Running'\n" +
+      "  (this is visible in the status bar above the space)\n" +
+      "- force-reload the web page by holding Shift and hitting the reload button in your browser.\n",
   ));
   await new Promise((resolve) => setTimeout(resolve, 3000));
 

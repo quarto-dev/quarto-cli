@@ -1,0 +1,14 @@
+---
+title: Display a regular PNG Image using the IPython `display` method
+
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['img.img-fluid.figure-img']
+---
+
+```{python}
+from IPython.display import Image, display
+display(Image("images/websites-quarto.png"))
+```

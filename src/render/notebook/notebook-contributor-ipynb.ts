@@ -32,7 +32,7 @@ import { error } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
 import { ipynbTitleTemplatePath } from "../../format/ipynb/format-ipynb.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 import { dirname, join, relative } from "../../deno_ral/path.ts";
 
 export const outputNotebookContributor: NotebookContributor = {

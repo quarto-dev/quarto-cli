@@ -1,0 +1,13 @@
+---
+title: "Untitled"
+format: html
+execute:
+  echo: false
+---
+
+```{r}
+#| eval: false
+#| label: tbl-t2
+#| tbl-cap: hggfh
+mtcars |> head() |> knitr::kable()
+```

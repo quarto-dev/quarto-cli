@@ -1,0 +1,35 @@
+---
+title: Foreground and background colors
+format:
+  typst:
+    keep-typ: true
+brand:
+  color:
+    foreground: "#ccd2b2"
+    background: "#30104f"
+
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '#set page\(fill: brand-color\.background\)'
+          - '#set text\(fill: brand-color\.foreground\)'
+          - 'heading-color: rgb\("#ccd2b2"\)'
+          - '#set table.hline\(stroke: \(paint: brand-color\.foreground\)\)'
+          - '#set line\(stroke: \(paint: brand-color\.foreground\)\)'
+
+        - []
+---
+
+
+
+| Col1 | Col2 |
+|------|------|
+| A    | B    |
+
+------------------------------------------------------------------------
+
+See footnote [^1]
+
+[^1]: Here's a footnote

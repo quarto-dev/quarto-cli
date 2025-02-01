@@ -1,9 +1,8 @@
 /*
-* website-listing-categories.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-listing-categories.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kListingPageCategoryAll,
@@ -18,6 +17,7 @@ import {
   ListingDescriptor,
   ListingSharedOptions,
 } from "./website-listing-shared.ts";
+import { b64EncodeUnicode } from "../../../../core/base64.ts";
 
 export function categorySidebar(
   doc: Document,
@@ -118,7 +118,7 @@ function categoryElement(
   categoryEl.classList.add("category");
   categoryEl.setAttribute(
     "data-category",
-    value !== undefined ? value : category,
+    value !== undefined ? b64EncodeUnicode(value) : b64EncodeUnicode(category),
   );
   categoryEl.innerHTML = contents;
   return categoryEl;

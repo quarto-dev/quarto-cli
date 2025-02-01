@@ -31,6 +31,13 @@ _quarto:
       ensureFileRegexMatches:
         - [] 
         - []
+    revealjs:
+      ensureHtmlElements:
+        - []
+        - []
+      ensureFileRegexMatches:
+        - [] 
+        - []
     latex:
       ensureFileRegexMatches:
         - []
@@ -39,14 +46,36 @@ _quarto:
       noErrors: default
       fileExists: 
         supportPath: mediabag/lter_penguins.png
+      ensureLatexFileRegexMatches:
+        - []
+        - []
+    typst:
+      ensureFileRegexMatches:
+        - []
+        - []
+      ensureTypstFileRegexMatches:
+        - []
+        - []
     docx:
       ensureDocxRegexMatches:
+        - []
+        - []
+      ensureDocxXPath:
         - []
         - []
     pptx:
       ensurePptxRegexMatches:
         - []
         - []
+      ensurePptxXPath:
+      - 
+        - 2
+        - []
+        - []
+      ensurePptxLayout:
+        - 
+          - 2
+          - "Title and Content"
     asciidoc: default
 ---
 EOF
