@@ -27,7 +27,7 @@ pandoc.Inlines = {}
 Create an inlines list 
 ]]
 ---@param inlines any Inline elements
----@return pandoc.List
+---@return pandoc.Inlines
 function pandoc.Inlines(inlines) end
 
 

@@ -1,0 +1,38 @@
+---
+title: Parsed HTML table in PPTX
+keep-typ: true
+_quarto:
+  tests:
+    pptx: 
+      ensurePptxXpath:
+        - 2
+        - ['//a:tbl']
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['<test-table>[\s]*#table\(']
+        - ['<test-table>[\s]*#block\[[\s]*#table\(']
+---
+
+# Test table {#test-table}
+
+```{=html}
+<table>
+<thead>
+  <tr>
+    <th>Sepal.Length</th>
+    <th>Sepal.Width</th>
+  </tr>
+</thead>
+<tbody>
+<tr>
+  <td>5.1</td>
+  <td>3.5</td>
+</tr>
+<tr>
+  <td>4.9</td>
+  <td>3.0</td>
+</tr>
+</tbody>
+</table>
+```

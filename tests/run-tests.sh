@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Determine the path to this script (we'll use this to figure out relative positions of other files)
 SOURCE="${BASH_SOURCE[0]}"
@@ -17,13 +17,13 @@ DENO_ARCH_DIR=$DENO_DIR
 DENO_DIR="$QUARTO_ROOT/package/dist/bin/"
 
 # Local import map
-QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_DIR/dev_import_map.json
+QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_DIR/import_map.json
 
 export QUARTO_BIN_PATH=$DENO_DIR
 export QUARTO_SHARE_PATH="`cd "$QUARTO_ROOT/src/resources/";pwd`"
 export QUARTO_DEBUG=true
 
-QUARTO_DENO_OPTIONS="--config test-conf.json --unstable-ffi --allow-read --allow-write --allow-run --allow-env --allow-net --check"
+QUARTO_DENO_OPTIONS="--config test-conf.json --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192 --unstable-kv --unstable-ffi --no-lock --allow-all"
 
 
 if [[ -z $GITHUB_ACTION ]] && [[ -z $QUARTO_TESTS_NO_CONFIG ]]
@@ -33,13 +33,17 @@ then
 fi
 
 # Activating python virtualenv
-# set QUARTO_TESTS_FORCE_NO_PIPENV env var to not activate the virtualenv managed by pipenv for the project
-if [[ -z $QUARTO_TESTS_FORCE_NO_PIPENV ]]
+# set QUARTO_TESTS_FORCE_NO_VENV env var to not activate the virtualenv located in the project
+# QUARTO_TESTS_FORCE_NO_PIPENV is there for backward compatibility
+if [[ -z $QUARTO_TESTS_FORCE_NO_VENV && -n $QUARTO_TESTS_FORCE_NO_PIPENV ]]; then
+  export QUARTO_TESTS_FORCE_NO_VENV=$QUARTO_TESTS_FORCE_NO_PIPENV
+fi
+if [[ -z $QUARTO_TESTS_FORCE_NO_VENV ]]
 then
   # Save possible activated virtualenv for later restauration
   OLD_VIRTUAL_ENV=$VIRTUAL_ENV
-  echo "> Activating virtualenv for Python tests in Quarto"
-  source "$(pipenv --venv)/bin/activate"
+  echo "> Activating virtualenv from .venv for Python tests in Quarto"
+  source "${QUARTO_ROOT}/tests/.venv/bin/activate"
   echo "> Using Python from $(which python)"
   echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
   quarto_venv_activated="true"
@@ -53,7 +57,6 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
     QUARTO_TEST_TIMING="timing.txt"
   fi
   echo "> Running tests with timing and writing to ${QUARTO_TEST_TIMING}"
-  QUARTO_DENO_OPTIONS="--config test-conf.json --unstable-ffi --allow-read --allow-write --allow-run --allow-env --allow-net --no-check"
   rm -f $QUARTO_TEST_TIMING
   FILES=$@
   if [ "$FILES" == "" ]; then
@@ -70,13 +73,13 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
       SMOKE_ALL_FILES=`find docs/smoke-all/ -type f -regextype "posix-extended" -regex ".*/[^_][^/]*[.]qmd" -o -regex ".*/[^_][^/]*[.]md" -o -regex ".*/[^_][^/]*[.]ipynb"`
       for j in $SMOKE_ALL_FILES; do
         echo "${SMOKE_ALL_TEST_FILE} -- ${j}" >> "$QUARTO_TEST_TIMING"
-        /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" ${SMOKE_ALL_TEST_FILE} -- ${j}
+        /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" ${SMOKE_ALL_TEST_FILE} -- ${j}
       done
       continue
     fi
     # Otherwise we time the individual test.ts test
     echo $i >> "$QUARTO_TEST_TIMING"
-    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $i
+    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $i
   done
   # exit the script with an error code if the timing file shows error
   grep -q 'Command exited with non-zero status' $QUARTO_TEST_TIMING && SUCCESS=1 || SUCCESS=0
@@ -119,7 +122,7 @@ else
       TESTS_TO_RUN="${SMOKE_ALL_TEST_FILE} -- ${SMOKE_ALL_FILES}"
     fi
   fi
-  "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $TESTS_TO_RUN
+  "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $TESTS_TO_RUN
   SUCCESS=$?
 fi
 
@@ -147,7 +150,7 @@ if [[ $@ == *"--coverage"* ]]; then
   [[ $@ =~ .*--coverage=(.+) ]] && export COV="${BASH_REMATCH[1]}"
 
   echo Generating coverage report...
-  ${DENO_DIR}/deno coverage --unstable-ffi ${COV} --lcov > ${COV}.lcov
+  ${DENO_DIR}/deno coverage --unstable-kv --unstable-ffi ${COV} --lcov > ${COV}.lcov
   genhtml -o ${COV}/html ${COV}.lcov
   open ${COV}/html/index.html
 fi

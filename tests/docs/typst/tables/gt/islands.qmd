@@ -1,0 +1,45 @@
+---
+title: "gt - Islands"
+format:
+  typst:
+    quality: 1
+  html:
+    quality: 1
+    format-links: false
+---
+
+```{r}
+#| classes: plain
+library(gt)
+library(dplyr)
+
+islands_tbl <-
+  tibble(
+    name = names(islands),
+    size = islands
+  ) |>
+  arrange(desc(size)) |>
+  slice(1:10)
+
+gt_tbl <- gt(islands_tbl)
+
+gt_tbl <-
+  gt_tbl |>
+  tab_header(
+    title = "Large Landmasses of the World",
+    subtitle = "The top ten largest are presented"
+  )
+
+gt_tbl <-
+  gt_tbl |>
+  tab_source_note(
+    source_note = "Source: The World Almanac and Book of Facts, 1975, page 406."
+  ) |>
+  tab_source_note(
+    source_note = md("Reference: McNeil, D. R. (1977) *Interactive Data Analysis*. Wiley.")
+  )
+
+# Show the gt table
+gt_tbl
+
+```

@@ -10,7 +10,7 @@ import { Shortcode } from "./parse-shortcode-types.ts";
 import { MappedString } from "./text-types.ts";
 
 export interface CodeCellType {
-  language: string;
+  language: string; // I'd like to say "string but not '_directive'" but I don't know how
 }
 
 export interface DirectiveCell {

@@ -44,15 +44,32 @@ import { texLiveContext, tlVersion } from "../render/latexmk/texlive.ts";
 import { which } from "../../core/path.ts";
 import { dirname } from "../../deno_ral/path.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { typstBinaryPath } from "../../core/typst.ts";
+import { quartoCacheDir } from "../../core/appdirs.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
+import { makeStringEnumTypeEnforcer } from "../../typing/dynamic.ts";
+import { findChrome } from "../../core/puppeteer.ts";
+
+export const kTargets = [
+  "install",
+  "info",
+  "jupyter",
+  "knitr",
+  "versions",
+  "all",
+] as const;
+export type Target = typeof kTargets[number];
+export const enforceTargetType = makeStringEnumTypeEnforcer(...kTargets);
 
 const kIndent = "      ";
-
-export type Target = "install" | "jupyter" | "knitr" | "versions" | "all";
 
 export async function check(target: Target): Promise<void> {
   const services = renderServices(notebookContext());
   try {
     info(`Quarto ${quartoConfig.version()}`);
+    if (target === "info" || target === "all") {
+      await checkInfo(services);
+    }
     if (target === "versions" || target === "all") {
       await checkVersions(services);
     }
@@ -70,8 +87,17 @@ export async function check(target: Target): Promise<void> {
   }
 }
 
+// Currently this doesn't check anything
+// but it's a placeholder for future checks
+// and the message is useful for troubleshooting
+async function checkInfo(_services: RenderServices) {
+  const cacheDir = quartoCacheDir();
+  completeMessage("Checking environment information...");
+  info(kIndent + "Quarto cache location: " + cacheDir);
+}
+
 async function checkVersions(_services: RenderServices) {
-  const checkVersion = (
+  const checkVersion = async (
     version: string | undefined,
     constraint: string,
     name: string,
@@ -127,24 +153,48 @@ async function checkVersions(_services: RenderServices) {
     info(`      Deno version ${Deno.version.deno}: OK`);
   }
 
+  let typstVersion = lines(
+    (await execProcess({
+      cmd: [typstBinaryPath(), "--version"],
+      stdout: "piped",
+    })).stdout!,
+  )[0].split(" ")[1];
+  checkVersion(typstVersion, ">=0.10.0", "Typst");
+
   completeMessage("Checking versions of quarto dependencies......OK");
 }
 
 async function checkInstall(services: RenderServices) {
   completeMessage("Checking Quarto installation......OK");
-  info(`      Version: ${quartoConfig.version()}`);
-  info(`      Path: ${quartoConfig.binPath()}`);
-  if (Deno.build.os === "windows") {
+  info(`${kIndent}Version: ${quartoConfig.version()}`);
+  if (quartoConfig.version() === "99.9.9") {
+    // if they're running a dev version, we assume git is installed
+    // and QUARTO_ROOT is set to the root of the quarto-cli repo
+    // print the output of git rev-parse HEAD
+    const quartoRoot = Deno.env.get("QUARTO_ROOT");
+    if (quartoRoot) {
+      const gitHead = await execProcess({
+        cmd: ["git", "-C", quartoRoot, "rev-parse", "HEAD"],
+        stdout: "piped",
+        stderr: "piped", // to not show error if not in a git repo
+      });
+      if (gitHead.success && gitHead.stdout) {
+        info(`${kIndent}commit: ${gitHead.stdout.trim()}`);
+      }
+    }
+  }
+  info(`${kIndent}Path: ${quartoConfig.binPath()}`);
+  if (isWindows) {
     try {
       const codePage = readCodePage();
       clearCodePageCache();
       await cacheCodePage();
       const codePage2 = readCodePage();
 
-      info(`      CodePage: ${codePage2 || "unknown"}`);
+      info(`${kIndent}CodePage: ${codePage2 || "unknown"}`);
       if (codePage && codePage !== codePage2) {
         info(
-          `      NOTE: Code page updated from ${codePage} to ${codePage2}. Previous rendering may have been affected.`,
+          `${kIndent}NOTE: Code page updated from ${codePage} to ${codePage2}. Previous rendering may have been affected.`,
         );
       }
       // if non-standard code page, check for non-ascii characters in path
@@ -152,29 +202,30 @@ async function checkInstall(services: RenderServices) {
       const nonAscii = /[^\x00-\x7F]+/;
       if (nonAscii.test(quartoConfig.binPath())) {
         info(
-          `      ERROR: Non-ASCII characters in Quarto path causes rendering problems.`,
+          `${kIndent}ERROR: Non-ASCII characters in Quarto path causes rendering problems.`,
         );
       }
     } catch {
-      info(`      CodePage: Unable to read code page`);
+      info(`${kIndent}CodePage: Unable to read code page`);
     }
   }
 
   info("");
   const toolsMessage = "Checking tools....................";
   const toolsOutput: string[] = [];
+  let tools: Awaited<ReturnType<typeof allTools>>;
   await withSpinner({
     message: toolsMessage,
     doneMessage: toolsMessage + "OK",
   }, async () => {
-    const tools = await allTools();
+    tools = await allTools();
 
     for (const tool of tools.installed) {
       const version = await tool.installedVersion() || "(external install)";
-      toolsOutput.push(`      ${tool.name}: ${version}`);
+      toolsOutput.push(`${kIndent}${tool.name}: ${version}`);
     }
     for (const tool of tools.notInstalled) {
-      toolsOutput.push(`      ${tool.name}: (not installed)`);
+      toolsOutput.push(`${kIndent}${tool.name}: (not installed)`);
     }
   });
   toolsOutput.forEach((out) => info(out));
@@ -193,22 +244,59 @@ async function checkInstall(services: RenderServices) {
       if (tlContext.usingGlobal) {
         const tlMgrPath = await which("tlmgr");
 
-        latexOutput.push(`      Using: Installation From Path`);
+        latexOutput.push(`${kIndent}Using: Installation From Path`);
         if (tlMgrPath) {
-          latexOutput.push(`      Path: ${dirname(tlMgrPath)}`);
+          latexOutput.push(`${kIndent}Path: ${dirname(tlMgrPath)}`);
         }
       } else {
-        latexOutput.push(`      Using: TinyTex`);
+        latexOutput.push(`${kIndent}Using: TinyTex`);
         if (tlContext.binDir) {
-          latexOutput.push(`      Path: ${tlContext.binDir}`);
+          latexOutput.push(`${kIndent}Path: ${tlContext.binDir}`);
         }
       }
-      latexOutput.push(`      Version: ${version}`);
+      latexOutput.push(`${kIndent}Version: ${version}`);
     } else {
-      latexOutput.push(`      Tex:  (not detected)`);
+      latexOutput.push(`${kIndent}Tex:  (not detected)`);
     }
   });
   latexOutput.forEach((out) => info(out));
+  info("");
+
+  const chromeHeadlessMessage = "Checking Chrome Headless....................";
+  const chromeHeadlessOutput: string[] = [];
+  await withSpinner({
+    message: chromeHeadlessMessage,
+    doneMessage: chromeHeadlessMessage + "OK",
+  }, async () => {
+    const chromeDetected = await findChrome();
+    const chromiumQuarto = tools.installed.find((tool) =>
+      tool.name === "chromium"
+    );
+    if (chromeDetected.path !== undefined) {
+      chromeHeadlessOutput.push(`${kIndent}Using: Chrome found on system`);
+      chromeHeadlessOutput.push(
+        `${kIndent}Path: ${chromeDetected.path}`,
+      );
+      if (chromeDetected.source) {
+        chromeHeadlessOutput.push(`${kIndent}Source: ${chromeDetected.source}`);
+      }
+    } else if (chromiumQuarto !== undefined) {
+      chromeHeadlessOutput.push(
+        `${kIndent}Using: Chromium installed by Quarto`,
+      );
+      if (chromiumQuarto?.binDir) {
+        chromeHeadlessOutput.push(
+          `${kIndent}Path: ${chromiumQuarto?.binDir}`,
+        );
+      }
+      chromeHeadlessOutput.push(
+        `${kIndent}Version: ${chromiumQuarto.installedVersion}`,
+      );
+    } else {
+      chromeHeadlessOutput.push(`${kIndent}Chrome:  (not detected)`);
+    }
+  });
+  chromeHeadlessOutput.forEach((out) => info(out));
   info("");
 
   const kMessage = "Checking basic markdown render....";

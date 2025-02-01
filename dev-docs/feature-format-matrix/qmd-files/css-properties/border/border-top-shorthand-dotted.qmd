@@ -1,0 +1,31 @@
+---
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: na
+  typst:
+    quality: 2
+    comment: "td only"
+  dashboard:
+    quality: 1
+  docx:
+    quality: na
+  pptx:
+    quality: na
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'table\.cell\(stroke: \(top: \(dash: "dotted", paint: rgb\(173, 255, 47\), thickness: 3.75pt\)\)\)\[A\]'
+        - []
+---
+
+```{=html}
+<table>
+    <tr><td style="border-top: greenyellow dotted thick">A</td><td>B</td></tr>
+</table>
+```
+

@@ -7,7 +7,7 @@
 
 import { findMissingFontsAndPackages } from "../../../src/command/render/latexmk/parse-error.ts"
 import { unitTest } from "../../test.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 
 unitTest("findMissingPackages", async () => {
   const logText = Deno.readTextFileSync("expl3-aborted.log")

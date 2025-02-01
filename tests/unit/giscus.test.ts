@@ -1,6 +1,6 @@
 import { unitTest } from "../test.ts";
 import {buildGiscusThemeKeys, GiscusThemeToggleRecord} from "../../src/core/giscus.ts";
-import { assertEquals } from "testing/asserts.ts";
+import { assertEquals } from "testing/asserts";
 
 
 const l = (label:string):string => `"Giscus buildThemeKeys: ${label}`;

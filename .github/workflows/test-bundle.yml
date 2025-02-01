@@ -13,7 +13,7 @@ on:
 jobs:
   test-bundle:
     runs-on: ubuntu-latest
-
+    if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -43,4 +43,3 @@ jobs:
         run: |
           pushd package/src
           ./quarto-bld validate-bundle
-     

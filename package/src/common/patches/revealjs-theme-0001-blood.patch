@@ -1,0 +1,125 @@
+diff --git a/src/resources/formats/revealjs/themes/blood.scss b/src/resources/formats/revealjs/themes/blood.scss
+index c64acd1b7..fe4addaf4 100644
+--- a/src/resources/formats/revealjs/themes/blood.scss
++++ b/src/resources/formats/revealjs/themes/blood.scss
+@@ -6,82 +6,73 @@
+  * "monokai_sublime.css" available from
+  * https://github.com/isagalaev/highlight.js/
+  *
+- * For other themes, change $code-bg accordingly.
++ * For other themes, change $codeBackground accordingly.
+  *
++ * Adapted for Quarto by Posit, PBC
++ * Copyright (C) 2024 Posit, PBC
+  */
+ 
+- // Default mixins and settings -----------------
+-@import "../template/mixins";
+-@import "../template/settings";
+-// ---------------------------------------------
++/*-- scss:defaults --*/
+ 
+ // Include theme-specific fonts
+-
+ @import url(https://fonts.googleapis.com/css?family=Ubuntu:300,700,300italic,700italic);
+ 
+ // Colors used in the theme
+ $blood: #a23;
+ $coal: #222;
+-$codeBackground: #23241f;
++$code-bg: #23241f !default;
+ 
+-$body-bg: $coal;
++$body-bg: $coal !default;
+ 
+ // Main text
+-$font-family-sans-serif: Ubuntu, 'sans-serif';
+-$body-color: #eee;
++$font-family-sans-serif: Ubuntu, "sans-serif" !default;
++$body-color: #eee !default;
+ 
+ // Headings
+-$presentation-heading-font: Ubuntu, 'sans-serif';
+-$presentation-heading-text-shadow: 2px 2px 2px $coal;
++$presentation-heading-font: Ubuntu, "sans-serif" !default;
++$presentation-heading-text-shadow: 2px 2px 2px $body-bg !default;
++$presentation-heading-font-weight: 700 !default;
++$presentation-h1-font-size: 3.77em !default;
+ 
+-// h1 shadow, borrowed humbly from 
++// h1 shadow, borrowed humbly from
+ // (c) Default theme by Hakim El Hattab
+-$presentation-h1-text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaa, 0 6px 1px rgba(0,0,0,.1), 0 0 5px rgba(0,0,0,.1), 0 1px 3px rgba(0,0,0,.3), 0 3px 5px rgba(0,0,0,.2), 0 5px 10px rgba(0,0,0,.25), 0 20px 20px rgba(0,0,0,.15);
++$presentation-h1-text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb,
++  0 4px 0 #b9b9b9, 0 5px 0 #aaa, 0 6px 1px rgba(0, 0, 0, 0.1),
++  0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3),
++  0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25),
++  0 20px 20px rgba(0, 0, 0, 0.15) !default;
++$presentation-heading-text-transform: uppercase !default;
+ 
+ // Links
+-$link-color: $blood;
+-$link-color-hover: lighten( $linkColor, 20% );
++$link-color: $blood !default;
+ 
+ // Text selection
+-$selection-bg: $blood;
+-$selection-color: #fff;
+-
+-// Change text colors against dark slide backgrounds
+-@include light-bg-text-color(#222);
+-
+-
+-// Theme template ------------------------------
+-@import "../template/theme";
+-// ---------------------------------------------
++$selection-bg: $link-color !default;
++$selection-color: #fff !default;
+ 
+-// some overrides after theme template import
++/*-- scss:rules --*/
+ 
+ .reveal p {
+-    font-weight: 300;
+-    text-shadow: 1px 1px $coal;
++  font-weight: 300;
++  text-shadow: 1px 1px $body-bg;
+ }
+ 
+ section.has-light-background {
+-	p, h1, h2, h3, h4 {
+-		text-shadow: none;
+-	}
+-}
+-
+-.reveal h1,
+-.reveal h2,
+-.reveal h3,
+-.reveal h4,
+-.reveal h5,
+-.reveal h6 {
+-    font-weight: 700;
++  p,
++  h1,
++  h2,
++  h3,
++  h4 {
++    text-shadow: none;
++  }
+ }
+ 
+ .reveal p code {
+-    background-color: $codeBackground;
+-    display: inline-block;
+-    border-radius: 7px;
++  background-color: $code-bg;
++  display: inline-block;
++  border-radius: 7px;
+ }
+ 
+ .reveal small code {
+-    vertical-align: baseline;
+-}
+\ No newline at end of file
++  vertical-align: baseline;
++}

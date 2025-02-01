@@ -1,0 +1,21 @@
+---
+listing:
+  type: default
+  contents: post-*.qmd
+  fields:
+    - title
+    - image
+  image-lazy-loading: false
+_quarto:
+  html:
+    ensureHtmlElements:
+      - 
+        - "img[src='https://placeholder.co/100/100.png']"
+        - "img[src='https://placeholder.co/200/200.png']"
+        - "img[loading='lazy'][src='https://placeholder.co/300/300.png']"
+      -
+        - "img[loading='lazy'][src='https://placeholder.co/100/100.png']"
+        - "img[loading='lazy'][src='https://placeholder.co/200/200.png']"
+---
+
+## Hello, here's some listings with `image-lazy-loading: false`

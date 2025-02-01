@@ -1,0 +1,23 @@
+---
+format: typst
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+        - 
+            - 'Paragraph text before is 11pt'
+            - 'Paragraph text after is 11pt'
+        -
+            - 'Paragraph text after is 6pt'
+
+---
+
+Paragraph text before is `#context text.size`{=typst}.
+
+```{=html}
+<table style="font-size: 8px;">
+    <tr><td>A</td><td>B</td></tr>
+</table>
+```
+
+Paragraph text after is `#context text.size`{=typst}.

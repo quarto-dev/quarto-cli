@@ -60,7 +60,7 @@ function render_asciidoc()
       local admonitionPre
       local admonitionPost = "====\n\n" 
 
-      if el.title then
+      if el.title and #pandoc.utils.stringify(el.title) > 0 then
         -- A titled admonition
         local admonitionTitle = pandoc.write(pandoc.Pandoc({el.title}), "asciidoc")
         admonitionPre = "[" .. admonitionType .. "]\n." .. admonitionTitle .. "====\n"
@@ -89,7 +89,7 @@ function render_asciidoc()
             local noteEl = el[i+1]
             -- if the note contains a code inline, we need to add a space
             local hasCode = false
-            pandoc.walk_inline(noteEl, {
+            _quarto.traverser(noteEl, {
               Code = function(_el)
                 hasCode = true
               end

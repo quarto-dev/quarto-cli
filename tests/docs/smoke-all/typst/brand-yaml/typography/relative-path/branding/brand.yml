@@ -1,0 +1,27 @@
+typography:
+  fonts:
+    - family: "Open Sans"
+      source: file
+      files:
+        - resources/fonts/opensans/OpenSans-VariableFont_wdth,wght.ttf
+    - family: "Fira Code"
+      source: file
+      files:
+        - resources/fonts/firacode/FiraCode-VF.ttf
+    - family: "Roboto Slab"
+      source: file
+      files:
+        - path: resources/fonts/robotoslab/RobotoSlab-VariableFont_wght.ttf
+          weight: 600
+          style: normal
+  base:
+    family: Open Sans
+    line-height: 1.25em
+    size: 1rem
+  headings:
+    family: Roboto Slab
+    color: primary
+    weight: 600
+  monospace:
+    family: Fira Code
+    size: 0.9em

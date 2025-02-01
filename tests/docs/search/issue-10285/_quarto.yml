@@ -1,0 +1,25 @@
+project:
+  type: book
+  post-render:
+    - check-index.ts
+
+book:
+  title: "issue-10285"
+  author: "Norah Jones"
+  date: "10/24/2024"
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - search-test.qmd
+    - search-test-2.qmd
+    - search-test-3.qmd
+    - summary.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt

@@ -34,6 +34,8 @@ citation:
 draft: false
 bibliography: references.bib
 echo: false
+resources: 
+  - "dummy resource with space in name.txt"
 ---
 
 ## Introduction

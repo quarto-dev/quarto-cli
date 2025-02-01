@@ -7,7 +7,7 @@
 import { docs } from "../../utils.ts";
 
 import { join } from "../../../src/deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { testQuartoCmd } from "../../test.ts";
 import { noErrorsOrWarnings } from "../../verify.ts";
 import { hasContentLinksToDrafts,hasEnvelopeLinksToDrafts,draftPostHasContent,doesntHaveContentLinksToDrafts,doesntHaveEnvelopeLinksToDrafts,draftPostIsEmpty, searchDoesntHaveDraft, searchHasDraft, siteMapDoesntHaveDraft, siteMapHasDraft } from "./draft-utils.ts";

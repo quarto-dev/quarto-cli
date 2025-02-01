@@ -8,7 +8,10 @@ format:
 #    code-fold: true
 #    code-line-numbers: true
     highlight-style: asa
-
+_quarto:
+  tests:
+    html:
+      noErrors: true
 ---
 
 ```r

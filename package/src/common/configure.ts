@@ -4,8 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 import { dirname, join, SEP } from "../../../src/deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { existsSync, ensureDirSync } from "../../../src/deno_ral/fs.ts";
 import { info, warning } from "../../../src/deno_ral/log.ts";
 
 import { expandPath } from "../../../src/core/path.ts";
@@ -21,6 +20,7 @@ import {
 } from "./dependencies/dependencies.ts";
 import { suggestUserBinPaths } from "../../../src/core/path.ts";
 import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
+import { isWindows } from "../../../src/deno_ral/platform.ts";
 
 export async function configure(
   config: Configuration,
@@ -161,7 +161,7 @@ export function copyPandocScript(config: Configuration, targetDir: string) {
     Deno.removeSync(pandocFile);
   }
 
-  if (Deno.build.os !== "windows") {
+  if (!isWindows) {
     info("> creating pandoc symlink");
     Deno.run({
       cwd: targetDir,

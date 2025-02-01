@@ -1,0 +1,6 @@
+---
+title: Post 1
+image: https://placeholder.co/100/100.png
+---
+
+This is 1.

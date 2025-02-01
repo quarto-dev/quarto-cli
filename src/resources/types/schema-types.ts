@@ -3,10 +3,11 @@
 // If you find yourself trying to rebuild types and `quarto build-js` won't run because
 // of bad type definitions, run the following:
 // $ cd $QUARTO_ROOT
-// $ ./package/dist/bin/tools/deno run --importmap=./src/dev_import_map.json --allow-all ./package/src/common/create-schema-types.ts ./src/resources
+// $ ./package/dist/bin/tools/deno run --importmap=./src/import_map.json --allow-all ./package/src/common/create-schema-types.ts ./src/resources
 
 export type MaybeArrayOf<T> = T | T[];
-export type SchemaObject = { [key: string]: string };
+export type JsonObject = { [key: string]: unknown };
+// export type SchemaObject = { [key: string]: string };
 
 export type Date = string | { format?: string; value: string };
 
@@ -44,6 +45,7 @@ export type PageColumn =
   | "page"
   | "page-left"
   | "page-right"
+  | "page-inset"
   | "page-inset-left"
   | "page-inset-right"
   | "screen"
@@ -155,8 +157,9 @@ the discussions feature must be enabled. */;
 website:
   comments:
     giscus:
-      light: light # giscus theme used for light website theme
-      dark: dark_dimmed # giscus theme used for dark website theme
+      theme:
+        light: light # giscus theme used for light website theme
+        dark: dark_dimmed # giscus theme used for dark website theme
 ``` */
   };
   hypothesis?: boolean | {
@@ -293,7 +296,7 @@ export type ProjectServe = {
   args?: string /* Additional command line arguments for preview command. */;
   cmd: string /* Serve project preview using the specified command.
 Interpolate the `--port` into the command using `{port}`. */;
-  env?: SchemaObject /* Environment variables to set for preview command. */;
+  env?: JsonObject /* Environment variables to set for preview command. */;
   ready:
     string; /* Regular expression for detecting when the server is ready. */
 };
@@ -529,7 +532,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
         text?: string;
       };
       params?:
-        SchemaObject; /* Additional parameters to pass when executing a search */
+        JsonObject; /* Additional parameters to pass when executing a search */
     } /* Use external Algolia search index */;
     location?:
       | "navbar"
@@ -611,7 +614,7 @@ export type BookSchema = {
   "cover-image-alt"?:
     string /* Alternative text for cover image (used in HTML format) */;
   author?: MaybeArrayOf<
-    (string | SchemaObject) /* Author or authors of the book */
+    (string | JsonObject) /* Author or authors of the book */
   > /* Author or authors of the book */;
   abstract?: string /* Book abstract */;
   appendices?: ChapterList;
@@ -763,7 +766,7 @@ and appended to the end of the page. */;
     string /* The path to the main image on the about page. If not specified,
 the `image` provided for the document itself will be used. */;
   links?: (NavigationItem)[];
-  template?:
+  template:
     | ("jolla" | "trestles" | "solana" | "marquee" | "broadside")
     | string; /* The template to use to layout this about page. Choose from:
 
@@ -797,6 +800,8 @@ Learn more about supported date formatting values [here](https://deno.land/std@0
 Defaults to 175. */;
   "image-placeholder"?:
     string /* The default image to use if an item in the listing doesn't have an image. */;
+  "image-lazy-loading"?:
+    boolean /* If false, images in the listing will be loaded immediately. If true, images will be loaded as they come into view. */;
   "image-align"?:
     | "left"
     | "right" /* In `default` type listings, whether to place the image on the right or left side of the post content (`left` or `right`). */;
@@ -819,9 +824,9 @@ Defaults to `false`. */;
   "table-hover"?:
     boolean /* In table type listings, highlight rows of the table when the user hovers the mouse over them.
 Defaults to false. */;
-  "template-params"?: SchemaObject;
+  "template-params"?: JsonObject;
   "field-display-names"?:
-    SchemaObject /* A mapping that provides display names for specific fields. For example, to display the title column as ‘Report’ in a table listing you would write:
+    JsonObject /* A mapping that provides display names for specific fields. For example, to display the title column as ‘Report’ in a table listing you would write:
 
 ```yaml
 listing:
@@ -829,7 +834,7 @@ listing:
   title: "Report"
 ``` */;
   "field-types"?:
-    SchemaObject /* Provides the date type for the field of a listing item. Unknown fields are treated
+    JsonObject /* Provides the date type for the field of a listing item. Unknown fields are treated
 as strings unless a type is provided. Valid types are `date`, `number`. */;
   "field-links"?:
     (string)[] /* The list of fields to display as hyperlinks to the source document
@@ -854,7 +859,7 @@ is missing a required field, an error will occur and the render will. */;
   - `unnumbered`: Category list
   - `cloud`: Word cloud style categories */;
   exclude?: MaybeArrayOf<
-    SchemaObject
+    JsonObject
   > /* Items with matching field values will be excluded from the listing. */;
   feed?: boolean | {
     "xml-stylesheet"?:
@@ -893,7 +898,7 @@ page, a `div` with this id will be created and appended to the end of the page.
 
 If no `id` is provided for a listing, Quarto will synthesize one when rendering the page. */;
   include?: MaybeArrayOf<
-    SchemaObject
+    JsonObject
   > /* Items with matching field values will be included in the listing. */;
   sort?:
     | boolean
@@ -1217,10 +1222,10 @@ export type ProjectProfile = {
   >; /* Define a profile group for which at least one profile is always active. */
 };
 
-export type BadParseSchema = SchemaObject;
+export type BadParseSchema = JsonObject;
 
 export type QuartoDevSchema = {
-  _quarto?: { "trace-filters"?: string; tests?: SchemaObject };
+  _quarto?: { "trace-filters"?: string; tests?: JsonObject };
 };
 
 export type NotebookViewSchema = {
@@ -1260,6 +1265,233 @@ export type ManuscriptSchema = {
   >; /* Additional file resources to be copied to output directory */
 };
 
+export type BrandMeta = {
+  link?: string | {
+    bluesky?: string /* The brand's Bluesky URL. */;
+    facebook?: string /* The brand's Facebook URL. */;
+    github?: string /* The brand's GitHub URL. */;
+    home?: string /* The brand's home page or website. */;
+    linkedin?: string /* The brand's LinkedIn URL. */;
+    mastodon?: string /* The brand's Mastodon URL. */;
+    twitter?: string; /* The brand's Twitter URL. */
+  } /* Important links for the brand, including social media links. If a single string, it is the brand's home page or website. Additional fields are allowed for internal use. */;
+  name?: string | {
+    full?:
+      string /* The full, official or legal name of the company or brand. */;
+    short?:
+      string; /* The short, informal, or common name of the company or brand. */
+  }; /* The brand name. */
+}; /* Metadata for a brand, including the brand name and important links. */
+
+export type BrandStringLightDark = string | { dark?: string; light?: string };
+
+export type BrandLogoExplicitResource = { alt?: string; path: string };
+
+export type BrandLogoResource = string | BrandLogoExplicitResource;
+
+export type BrandLogo = {
+  images?: { [key: string]: BrandLogoResource };
+  large?: BrandStringLightDark;
+  medium?: BrandStringLightDark;
+  small?: BrandStringLightDark;
+}; /* Provide definitions and defaults for brand's logo in various formats and sizes. */
+
+export type BrandNamedLogo =
+  | "small"
+  | "medium"
+  | "large"; /* Names of customizeable logos */
+
+export type BrandColorValue = string;
+
+export type BrandColor = {
+  background?: BrandColorValue;
+  danger?: BrandColorValue;
+  dark?: BrandColorValue;
+  foreground?: BrandColorValue;
+  info?: BrandColorValue;
+  light?: BrandColorValue;
+  link?: BrandColorValue;
+  palette?: {
+    [key: string]: BrandColorValue;
+  } /* The brand's custom color palette. Any number of colors can be defined, each color having a custom name. */;
+  primary?: BrandColorValue;
+  secondary?: BrandColorValue;
+  success?: BrandColorValue;
+  tertiary?: BrandColorValue;
+  warning?: BrandColorValue;
+}; /* The brand's custom color palette and theme. */
+
+export type BrandMaybeNamedColor =
+  | BrandNamedThemeColor
+  | string; /* A color, which may be a named brand color. */
+
+export type BrandNamedThemeColor =
+  | "foreground"
+  | "background"
+  | "primary"
+  | "secondary"
+  | "tertiary"
+  | "success"
+  | "info"
+  | "warning"
+  | "danger"
+  | "light"
+  | "dark"
+  | "link"; /* A named brand color, taken either from `color.theme` or `color.palette` (in that order). */
+
+export type BrandTypography = {
+  "monospace-inline"?: BrandTypographyOptionsMonospaceInline;
+  "monospace-block"?: BrandTypographyOptionsMonospaceBlock;
+  base?: BrandTypographyOptionsBase;
+  fonts?: (BrandFont)[] /* Font files and definitions for the brand. */;
+  headings?: BrandTypographyOptionsHeadings;
+  link?: BrandTypographyOptionsLink;
+  monospace?: BrandTypographyOptionsMonospace;
+}; /* Typography definitions for the brand. */
+
+export type BrandTypographyOptionsBase = string | {
+  "line-height"?: LineHeightNumberString;
+  family?: string;
+  size?: string;
+  weight?: BrandFontWeight;
+}; /* Base typographic options. */
+
+export type BrandTypographyOptionsHeadings = string | {
+  "line-height"?: LineHeightNumberString;
+  color?: BrandMaybeNamedColor;
+  family?: string;
+  style?: BrandFontStyle;
+  weight?: BrandFontWeight;
+}; /* Typographic options for headings. */
+
+export type BrandTypographyOptionsMonospace = string | {
+  "background-color"?: BrandMaybeNamedColor;
+  color?: BrandMaybeNamedColor;
+  family?: string;
+  size?: string;
+  weight?: BrandFontWeight;
+}; /* Typographic options for monospace elements. */
+
+export type BrandTypographyOptionsMonospaceInline = string | {
+  "background-color"?: BrandMaybeNamedColor;
+  color?: BrandMaybeNamedColor;
+  family?: string;
+  size?: string;
+  weight?: BrandFontWeight;
+}; /* Typographic options for inline monospace elements. */
+
+export type LineHeightNumberString = number | string; /* Line height */
+
+export type BrandTypographyOptionsMonospaceBlock = string | {
+  "background-color"?: BrandMaybeNamedColor;
+  "line-height"?: LineHeightNumberString;
+  color?: BrandMaybeNamedColor;
+  family?: string;
+  size?: string;
+  weight?: BrandFontWeight;
+}; /* Typographic options for block monospace elements. */
+
+export type BrandTypographyOptionsLink = string | {
+  "background-color"?: BrandMaybeNamedColor;
+  color?: BrandMaybeNamedColor;
+  decoration?: string;
+  weight?: BrandFontWeight;
+}; /* Typographic options for inline monospace elements. */
+
+export type BrandNamedFont =
+  | "base"
+  | "headings"
+  | "monospace"; /* Names of customizeable fonts */
+
+export type BrandFont =
+  | BrandFontGoogle
+  | BrandFontBunny
+  | BrandFontFile
+  | BrandFontSystem
+  | BrandFontCommon; /* Font files and definitions for the brand. */
+
+export type BrandFontWeight =
+  | 100
+  | 200
+  | 300
+  | 400
+  | 500
+  | 600
+  | 700
+  | 800
+  | 900
+  | "thin"
+  | "extra-light"
+  | "ultra-light"
+  | "light"
+  | "normal"
+  | "regular"
+  | "medium"
+  | "semi-bold"
+  | "demi-bold"
+  | "bold"
+  | "extra-bold"
+  | "ultra-bold"
+  | "black"; /* A font weight. */
+
+export type BrandFontStyle =
+  | "normal"
+  | "italic"
+  | "oblique"; /* A font style. */
+
+export type BrandFontCommon = {
+  display?:
+    | "auto"
+    | "block"
+    | "swap"
+    | "fallback"
+    | "optional" /* The font display method, determines how a font face is font face is shown depending on its download status and readiness for use. */;
+  family?: string;
+  style?: MaybeArrayOf<BrandFontStyle> /* The font styles to include. */;
+  weight?: MaybeArrayOf<BrandFontWeight>; /* The font weights to include. */
+};
+
+export type BrandFontSystem =
+  & { source?: "system" }
+  & BrandFontCommon; /* A system font definition. */
+
+export type BrandFontGoogle =
+  & { source?: "google" }
+  & BrandFontCommon; /* A font definition from Google Fonts. */
+
+export type BrandFontBunny =
+  & { source?: "bunny" }
+  & BrandFontCommon; /* A font definition from fonts.bunny.net. */
+
+export type BrandFontFile = {
+  family: string;
+  files: ((string | {
+    path: string;
+    style?: BrandFontStyle;
+    weight?: BrandFontWeight;
+  }))[] /* The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs. */;
+  source: "file";
+}; /* A method for providing font files directly, either locally or from an online location. */
+
+export type BrandFontFamily = string;
+
+export type Brand = {
+  color?: BrandColor;
+  defaults?: BrandDefaults;
+  logo?: BrandLogo;
+  meta?: BrandMeta;
+  typography?: BrandTypography;
+};
+
+export type BrandDefaults = {
+  bootstrap?: BrandDefaultsBootstrap;
+  quarto?: JsonObject;
+};
+
+export type BrandDefaultsBootstrap = {
+  defaults?: { [key: string]: string | boolean | number };
+};
+
 export type ProjectConfig = {
   "execute-dir"?:
     | "file"
@@ -1282,4 +1514,4 @@ export type ProjectConfig = {
     string; /* Project type (`default`, `website`, `book`, or `manuscript`) */
 };
 
-export type BookProject = SchemaObject;
+export type BookProject = JsonObject;

@@ -1,5 +1,5 @@
-const frameSkip = 3;
 const filename = Deno.args[0];
+const frameSkip = Deno.args[1] === undefined ? 3 : Number(Deno.args[1]);
 const file = Deno.readTextFileSync(filename);
 
 let longestCommonPrefix: string | undefined = undefined;
@@ -110,9 +110,10 @@ let prevStack: LuaStackFrame[] = [];
 let prevCat: string = "";
 const perfettoStack: number[] = [];
 
+let now = 0;
 for (const stack of stacks) {
-  const thisStackFrames = stack.frames;
-  thisStackFrames.reverse();
+  debugger;
+  const thisStackFrames = stack.frames.toReversed().slice(frameSkip);
 
   let overlappingI = 0;
   while (overlappingI < thisStackFrames.length && overlappingI < prevStack.length) {
@@ -123,20 +124,31 @@ for (const stack of stacks) {
     overlappingI++;
   }
   // pop off the stack
-  for (let i = prevStack.length - 1; i >= Math.max(frameSkip, overlappingI); --i) {
+  for (let i = prevStack.length - 1; i >= overlappingI; --i) {
     const prevFrame = prevStack[i];
+    let newNow = stack.time * 1000000;
+    if (newNow <= now) {
+      newNow = now + 1;
+    }
+    now = newNow;
+
     traceEvents.push({
       ph: "E",
       name: prevFrame.location,
       sf: String(perfettoStack.pop()),
-      ts: stack.time * 1000000,
+      ts: now,
       cat: prevCat !== "" ? prevCat : undefined
     });
   }
 
   // push on the stack
-  for (let i = Math.max(frameSkip, overlappingI); i < thisStackFrames.length; ++i) {
+  for (let i = overlappingI; i < thisStackFrames.length; ++i) {
     const nextFrame = thisStackFrames[i];
+    let newNow = stack.time * 1000000;
+    if (newNow <= now) {
+      newNow = now + 1;
+    }
+    now = newNow;
     stackFrames[stackNo] = {
       name: nextFrame.location,
       parent: perfettoStack.length ? String(perfettoStack[perfettoStack.length - 1]) : undefined
@@ -145,7 +157,7 @@ for (const stack of stacks) {
       ph: "B",
       name: nextFrame.location,
       sf: String(stackNo),
-      ts: stack.time * 1000000,
+      ts: newNow,
       cat: stack.category !== "" ? stack.category : undefined
     });
     perfettoStack.push(stackNo++);

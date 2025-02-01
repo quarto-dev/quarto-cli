@@ -1,0 +1,32 @@
+---
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: na
+  typst:
+    quality: 2
+    comment: "td, span only"
+  dashboard:
+    quality: 1
+  docx:
+    quality: na
+  pptx:
+    quality: na
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+
+        -
+          - '\[#set text\(fill: rgb\(60, 179, 113, 50%\)\); B\]'
+        - []
+---
+
+```{=html}
+<table>
+    <tr><td>A</td><td style="color: mediumseagreen; opacity: 0.5">B</td></tr>
+</table>
+```
+

@@ -1,0 +1,166 @@
+
+
+/*--scss:defaults --*/
+$yellow:  #ffc627 !default;
+$gold:    #ffc627 !default;
+$red:     #8c1d40 !default;
+$maroon:  #8c1d40 !default;
+$orange:  #ff7f32 !default;
+$blue:    #00a3e0 !default;
+$green:   #78be20 !default;
+$grey:    #747474 !default;
+
+// fonts
+// $font-family-sans-serif: "Arial" !default;
+
+// main colors
+$link-color: $maroon !default;
+
+// font sizes and margins
+$presentation-font-size-root: 46px !default;
+$presentation-h1-font-size: 2.3em !default;
+$presentation-h2-font-size: 1.5em !default;
+$presentation-h3-font-size: 1.2em !default;
+$presentation-h4-font-size: 1.1em !default;
+$presentation-heading-color: $maroon !default;
+
+// inline code
+$code-color: $blue !default;
+
+/*-- scss:mixins --*/
+
+// Generates the presentation background, can be overridden
+// to return a background image or gradient
+@mixin bodyBackground() {
+  background: $backgroundColor;
+}
+
+/*-- scss:rules --*/
+
+// Change text colors against dark slide backgrounds
+
+.reveal .title {
+  line-height: 100px;
+  margin-top: 0.5em;
+}
+
+.reveal .subtitle {
+  background: $gold;
+  font-size: $presentation-h2-font-size;
+  font-weight: bold;
+  margin-bottom: 1.5em;
+}
+
+.reveal .author {
+  font-size: $presentation-h3-font-size;
+  font-weight: bold;
+  color: $maroon;
+}
+
+.reveal .institute {
+  font-size: $presentation-h4-font-size;
+}
+
+.reveal .date {
+  font-family: $font-family-monospace;
+  font-size: 0.8em;
+}
+
+// This is a sentinel value that renderers can use to determine
+// whether the theme is dark or light
+// @if (color.blackness($backgroundColor) > $code-block-theme-dark-threshhold) {
+//   /*! dark */
+// } @else {
+//   /*! light */
+// }
+
+/*--Custom classes --*/
+.alert {
+  background: #FFC627;
+}
+
+.center {
+  text-align: center;
+  display: block;
+}
+
+.large {font-size: 150%}
+
+.small {font-size: 80%}
+
+.gold {color: #FFC627}
+.maroon {color: #8C1D40}
+.green {color: #78BE20}
+.blue {color: #00A3E0}
+.orange {color: #FF7F32}
+.grey {color: #747474}
+.fade { 
+  opacity: 0.5; 
+}
+
+/* Two-column layout */
+.left-column {
+  width: 20%;
+  height: 93%;
+  float: left;
+}
+.left-column h2, .left-column h3 {
+  color: var(--inverse-link-color);
+}
+.left-column h2:last-of-type, .left-column h3:last-child {
+  color: var(--inverse-text-color);
+}
+.right-column {
+  width: 75%;
+  float: right;
+}
+.pull-left {
+  float: left;
+  width: 48%;
+}
+.pull-right {
+  float: right;
+  width: 48%;
+}
+.pull-right + * {
+  clear: both;
+}
+
+hr {
+  content:            none;
+  display:            block;
+  border:             none;
+  background-color:   $gold;
+  height:             0.1em;
+}
+
+blockquote {
+  border-left: solid 5px $gold;
+  padding-left: 1em;
+}
+
+.container{
+  display: flex;
+}
+.col{
+  flex:1;
+}
+
+.reveal.reveal img
+{
+    border: none;
+    box-shadow: none;
+    max-height: calc(75vh);
+    margin: auto;
+    display: flex;
+}
+
+.rotated {
+  transform: rotate(270deg)
+}
+
+.reveal .slide figure>figcaption, .reveal .slide img.stretch+p.caption, .reveal .slide img.r-stretch+p.caption {
+    font-size: 0.7em;
+    text-align: center;
+    color: $grey;
+}

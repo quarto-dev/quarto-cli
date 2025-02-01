@@ -1,0 +1,24 @@
+---
+title: "feature-11192"
+brand:
+  color:
+    palette:
+      white: '#eeddcc' 
+      black: '#112233'
+    primary: red
+    background: black
+    foreground: white
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['<p>#eeddcc</p>']
+        - []
+---
+
+{{< brand color white >}}
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.

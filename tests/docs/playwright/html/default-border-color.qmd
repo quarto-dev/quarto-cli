@@ -1,0 +1,33 @@
+---
+title: "Checking that border color for default does not change"
+format: 
+  html:
+    theme: litera
+---
+
+::: callout-note
+
+Content
+
+:::
+
+::: {.panel-tabset}
+
+## Tab 1
+
+This is a playground for Quarto.
+
+## Tab 2
+
+Another Tab
+
+## Tab 3
+
+![An image]({{< placeholder 600 400 >}}){#fig-placeholder}
+
+:::
+
+|              | mpg| cyl|
+|:-------------|---:|---:|
+|Mazda RX4     |  21|   6|
+|Mazda RX4 Wag |  21|   6|

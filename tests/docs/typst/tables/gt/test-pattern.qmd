@@ -1,0 +1,24 @@
+---
+title: "gt - Test Pattern"
+format:
+  typst:
+    quality: 1
+  html:
+    quality: 1
+    format-links: false
+---
+
+```{=typst}
+#set page(margin: 0.5cm)
+```
+
+```{r}
+#| classes: plain
+library(dplyr)
+library(gt)
+
+exibble |>
+  gt() |>
+  data_color()
+
+```

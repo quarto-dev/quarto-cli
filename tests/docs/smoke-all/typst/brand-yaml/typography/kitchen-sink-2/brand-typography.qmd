@@ -1,0 +1,70 @@
+---
+title: title is `#context text.fill`{=typst} `#context text.font`{=typst} `#context text.weight`{=typst} `#context text.style`{=typst} `#context text.size`{=typst}
+subtitle: subtitle is the same except `#context text.size`{=typst}
+format:
+  typst:
+    keep-typ: true
+include-in-header:
+  text: |
+    #set text(fallback: false, weight: 100)
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+      -
+        - 'title is\s*rgb\("#042f02"\)\s*raleway medium normal\s*18pt'
+        - 'subtitle is the same except 15pt'
+        - 'heading-2 is rgb\("#042f02"\) raleway medium normal\s*16\.8pt'
+        - 'Paragraph is rgb\("#27262e"\) eb garamond light normal 12pt'
+        - 'fib = num => num < 2' # unable to reflect raw
+        - 'a link in eb garamond extralight normal\s*12pt'
+      - []
+      ensureTypstFileRegexMatches:
+      -
+        - 'font: \("EB Garamond",\),$'
+        - 'fontsize: 12pt,$'
+        - '^#set text\(weight: 300, \)$'
+        - '^#set text\(fill: brand-color.foreground\)'
+        - 'heading-family: \("Raleway",\),$'
+        - 'heading-weight: 500,$'
+        - 'heading-style: "normal",$'
+        - 'heading-color: rgb\("#042f02"\),$'
+        - 'heading-line-height: 0\.25em,$'
+        - '^#show heading: set text\(font: "Raleway", weight: 500, style: "normal", fill: rgb\("#042f02"\), \)$'
+        - '^#show heading: set par\(leading: 0.25em\)$'
+
+        - '^#show raw.where\(block: false\): set text\(font: "Space Mono", weight: 400, size: 0.75\*12pt, fill: rgb\(8, 111, 15\), \)$'
+        - '^#show raw.where\(block: false\): content => highlight\(fill: rgb\(255, 250, 224\), content\)$'
+
+        - '^#show raw.where\(block: true\): set text\(font: "Space Mono", weight: 400, size: 0.75\*12pt, fill: rgb\("#eee"\), \)$'
+        - '^#show raw.where\(block: true\): set block\(fill: rgb\("#0a3c07"\)\)$'
+
+        - '^#show link: set text\(weight: 200, fill: maroon, \)$'
+        - '^#show link: content => underline\(content\)$'
+        - '^#show link: content => highlight\(fill: rgb\("#adf8"\), content\)$'
+
+      -
+        - '^#set par\(leading: 0\.75em\)$'
+        - 'heading-background-color: unescape-eval'
+        - 'heading-decoration: "underline",$'
+        - '^#show raw.where\(block: false\): content => underline\(content\)$'
+        - '^#show heading: content => underline\(content\)$'
+        - '^#show heading: set block'
+        - '^#show raw.where\(block: true\): set par\(leading'
+        - '^#show raw.where\(block: true\): content => underline\(content\)$'
+---
+
+## heading-2 is `#context text.fill #context text.font #context text.weight #context text.style #context text.size`{=typst}
+
+Paragraph is `#context text.fill #context text.font #context text.weight #context text.style #context text.size`{=typst}, \
+and here's an inline code block `fib(90)` (lorem ipsum dolor).
+
+```
+const fib = num => num < 2 ? num : fib(num-1) + fib(num - 2);
+console.log(fib(12))
+```
+
+Now let's throw in a [link in `#context text.font`{=typst} `#context text.weight`{=typst} `#context text.style`{=typst} `#context text.size`{=typst}](https://www.example.com) before hitting a wall of text.
+
+{{< lipsum 3 >}}
+

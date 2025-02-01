@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { MuxAsyncIterator } from "async/mod.ts";
-import { iterateReader } from "streams/mod.ts";
-import { isWindows } from "../core/platform.ts";
+import { MuxAsyncIterator } from "async/mux-async-iterator";
+import { iterateReader } from "io/iterate-reader";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export interface PreviewServer {
   // returns path to browse to
@@ -68,7 +68,7 @@ export function runExternalPreviewServer(options: {
       await process.status();
     },
     stop: () => {
-      if (!isWindows()) {
+      if (!isWindows) {
         Deno.kill(-process.pid, "SIGTERM");
       } else {
         process.kill();

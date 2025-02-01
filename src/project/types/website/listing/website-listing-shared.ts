@@ -73,6 +73,9 @@ export const kImageAlign = "image-align";
 // Alt text for the item's image
 export const kImageAlt = "image-alt";
 
+// Lazy loading for the item's image. If unset, the default is true.
+export const kImageLazyLoading = "image-lazy-loading";
+
 // The placeholder image for the item
 export const kImagePlaceholder = "image-placeholder";
 
@@ -101,6 +104,7 @@ export const kFieldFileModified = "file-modified";
 export const kFieldDate = "date";
 export const kFieldImage = "image";
 export const kFieldImageAlt = "image-alt";
+export const kFieldImageLazyLoading = "image-lazy-loading";
 export const kFieldDescription = "description";
 export const kFieldReadingTime = "reading-time";
 export const kFieldWordCount = "word-count";
@@ -211,6 +215,7 @@ export interface ListingItem extends Record<string, unknown> {
   date?: Date;
   image?: string;
   [kImageAlt]?: string;
+  [kImageLazyLoading]?: boolean;
   path?: string;
   filename?: string;
   [kFieldFileModified]?: Date;
@@ -559,7 +564,7 @@ export function readRenderedContents(
 
   // Find a preview image, if present
   const computePreviewImage = (): PreviewImage | undefined => {
-    const previewImageEl = findPreviewImgEl(doc, false);
+    const previewImageEl = findPreviewImgEl(doc);
     if (previewImageEl) {
       const previewImageSrc = getDecodedAttribute(previewImageEl, "src");
       if (previewImageSrc !== null) {

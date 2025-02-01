@@ -1,0 +1,11 @@
+---
+title: "Untitled"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['link[rel="canonical"][href="https://index.html.com/about/file.html"]']
+        - []
+---
+
+A non `index` file at the root of a subdirectory.

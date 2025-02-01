@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import { dirname, join, relative } from "../deno_ral/path.ts";
 
 import * as ld from "../core/lodash.ts";
@@ -22,9 +22,12 @@ import {
 } from "../command/render/resources.ts";
 import { kLocalDevelopment, quartoConfig } from "../core/quarto.ts";
 
-import { ProjectConfig, ProjectFiles } from "../project/types.ts";
 import { cssFileResourceReferences } from "../core/css.ts";
-import { projectExcludeDirs } from "../project/project-shared.ts";
+import {
+  projectExcludeDirs,
+  projectFileMetadata,
+  projectResolveCodeCellsForFile,
+} from "../project/project-shared.ts";
 import { normalizePath, safeExistsSync } from "../core/path.ts";
 import { kExtensionDir } from "../extension/constants.ts";
 import { extensionFilesFromDirs } from "../extension/extension.ts";
@@ -32,31 +35,16 @@ import { withRenderServices } from "../command/render/render-services.ts";
 import { notebookContext } from "../render/notebook/notebook-context.ts";
 import { RenderServices } from "../command/render/types.ts";
 import { singleFileProjectContext } from "../project/types/single-file/single-file.ts";
-import { debugPrint, getStack } from "../core/deno/debug.ts";
 
-export interface FileInspection {
-  includeMap: Record<string, string>;
-}
-
-export interface InspectedConfig {
-  quarto: {
-    version: string;
-  };
-  engines: string[];
-  fileInformation: Record<string, FileInspection>;
-}
-
-export interface InspectedProjectConfig extends InspectedConfig {
-  dir: string;
-  config: ProjectConfig;
-  files: ProjectFiles;
-}
-
-export interface InspectedDocumentConfig extends InspectedConfig {
-  formats: Record<string, Format>;
-  resources: string[];
-  project?: InspectedProjectConfig;
-}
+import {
+  InspectedConfig,
+  InspectedDocumentConfig,
+  InspectedFile,
+  InspectedProjectConfig,
+} from "./inspect-types.ts";
+import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
+import { validateDocumentFromSource } from "../core/schema/validate-document.ts";
+import { error } from "../deno_ral/log.ts";
 
 export function isProjectConfig(
   config: InspectedConfig,
@@ -89,12 +77,27 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
 
   const inspectedProjectConfig = async () => {
     if (context?.config) {
-      const fileInformation: Record<string, FileInspection> = {};
+      const fileInformation: Record<string, InspectedFile> = {};
       for (const file of context.files.input) {
         const engine = await fileExecutionEngine(file, undefined, context);
-        await context.resolveFullMarkdownForFile(engine, file);
+        const src = await context.resolveFullMarkdownForFile(engine, file);
+        if (engine) {
+          const errors = await validateDocumentFromSource(
+            src,
+            engine.name,
+            error,
+          );
+          if (errors.length) {
+            throw new Error(`${path} is not a valid Quarto input document`);
+          }
+        }
+
+        await projectResolveCodeCellsForFile(context, engine, file);
+        await projectFileMetadata(context, file);
         fileInformation[file] = {
-          includeMap: context.fileInformationCache.get(file)?.includeMap ?? {},
+          includeMap: context.fileInformationCache.get(file)?.includeMap ?? [],
+          codeCells: context.fileInformationCache.get(file)?.codeCells ?? [],
+          metadata: context.fileInformationCache.get(file)?.metadata ?? {},
         };
       }
       const config: InspectedProjectConfig = {
@@ -119,19 +122,31 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
     if (config) {
       return config;
     } else {
-      throw new Error(`${path} is not a quarto project.`);
+      throw new Error(`${path} is not a Quarto project.`);
     }
   } else {
     const project = await projectContext(path, nbContext) ||
-      singleFileProjectContext(path, nbContext);
+      (await singleFileProjectContext(path, nbContext));
     const engine = await fileExecutionEngine(path, undefined, project);
     if (engine) {
       // partition markdown
       const partitioned = await engine.partitionedMarkdown(path);
 
+      // FIXME Why are we doing this twice? See "const project..." above
       // get formats
       const context = (await projectContext(path, nbContext)) ||
-        singleFileProjectContext(path, nbContext);
+        (await singleFileProjectContext(path, nbContext));
+      const src = await context.resolveFullMarkdownForFile(engine, path);
+      if (engine) {
+        const errors = await validateDocumentFromSource(
+          src,
+          engine.name,
+          error,
+        );
+        if (errors.length) {
+          throw new Error(`${path} is not a valid Quarto input document`);
+        }
+      }
       const formats = await withRenderServices(
         nbContext,
         (services: RenderServices) =>
@@ -179,6 +194,9 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
       }
 
       await context.resolveFullMarkdownForFile(engine, path);
+      await projectResolveCodeCellsForFile(context, engine, path);
+      await projectFileMetadata(context, path);
+      const fileInformation = context.fileInformationCache.get(path);
 
       // data to write
       const config: InspectedDocumentConfig = {
@@ -190,8 +208,9 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
         resources,
         fileInformation: {
           [path]: {
-            includeMap: context.fileInformationCache.get(path)?.includeMap ??
-              {},
+            includeMap: fileInformation?.includeMap ?? [],
+            codeCells: fileInformation?.codeCells ?? [],
+            metadata: fileInformation?.metadata ?? {},
           },
         },
       };

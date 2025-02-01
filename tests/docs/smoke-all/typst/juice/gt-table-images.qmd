@@ -1,0 +1,40 @@
+---
+format:
+    typst:
+        keep-typ: true
+        keep-md: true
+
+---
+
+```{=typst}
+#show figure: set block(breakable: true)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+plot_timeline <- function(T){
+    tibble(x = seq(1,5), y = x^2) |>
+        ggplot(aes(
+            x = x,
+            y = y
+        )) +
+            geom_line()
+}
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+#| label: tbl-example
+#| tbl-cap: This is an example table
+
+library(gt)
+library(tidyverse)
+
+tibble(Things= seq(1,5)) |>
+    mutate(trans = Things) |>
+    gt() |>
+    text_transform(
+        locations = cells_body(columns="trans"),
+        fn = function(col){
+            local_image(test_image("png"))
+        }
+    )
+```

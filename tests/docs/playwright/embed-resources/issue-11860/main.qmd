@@ -1,0 +1,11 @@
+---
+format:
+  html:
+    embed-resources: true
+---
+
+```{=html}
+<script type="module" src="./main.js"></script>
+```
+
+## oh oh

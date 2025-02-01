@@ -167,9 +167,9 @@ function renderHtmlFigure(el, render)
     end
   end
 
-  local keys = tkeys(el.attr.attributes)
-  for _,k in pairs(keys) do
-    if isFigAttribute(k) then
+  for _, k in pairs(tkeys(el.attr.attributes)) do
+    -- can't strip fig-alt here
+    if isFigAttribute(k) and k ~= kFigAlt then
       el.attr.attributes[k] = nil
     end
   end
@@ -190,7 +190,7 @@ function renderHtmlFigure(el, render)
   end)
 
   -- remove identifier (it is now on the div)
-  el.identifier = ""
+  el.attr.identifier = ""
   
   if not figureDiv.classes:find_if(function(str) return str:match("quarto%-figure%-.+") end) then
     -- apply standalone figure css if not already set

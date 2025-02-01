@@ -216,3 +216,10 @@
   schema: boolean
   default: false
   description: "Play a subtle sound when changing slides"
+
+- name: jump-to-slide
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: "Deactivate jump to slide feature."

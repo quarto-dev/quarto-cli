@@ -1,17 +1,53 @@
-<script src="https://giscus.app/client.js"
-        data-repo="<%- giscus.repo %>"
-        data-repo-id="<%- giscus['repo-id'] %>"
-        data-category="<%- giscus.category %>"
-        data-category-id="<%- giscus['category-id'] %>"
-        data-mapping="<%- giscus.mapping %>"
-        data-reactions-enabled="<%- giscus['reactions-enabled'] ? 1 : 0 %>"
-        data-emit-metadata="0"
-        data-input-position="<%- giscus['input-position'] %>"
-        data-theme="<%- giscus.theme %>"
-        data-lang="<%- giscus.language %>"
-        crossorigin="anonymous"
-        <%- giscus.loading ? `data-loading=${giscus.loading}` : '' %>
-        async>
-</script>
 <input type="hidden" id="giscus-base-theme" value="<%- giscus.baseTheme %>">
 <input type="hidden" id="giscus-alt-theme" value="<%- giscus.altTheme %>">
+<script>
+function loadGiscusWhenReady() {
+  // Function to get the theme based on body class
+  const getTheme = () => {
+    const baseTheme = document.getElementById('giscus-base-theme').value;
+    const altTheme = document.getElementById('giscus-alt-theme').value;
+    return document.body.classList.contains('quarto-dark') ? altTheme : baseTheme;
+  };
+
+  // Create the Giscus script and add it to the desired location
+  const loadGiscus = () => {
+    const script = document.createElement("script");
+    script.src = "https://giscus.app/client.js";
+    script.async = true;
+    script.dataset.repo = "<%- giscus.repo %>";
+    script.dataset.repoId = "<%- giscus['repo-id'] %>";
+    script.dataset.category = "<%- giscus.category %>";
+    script.dataset.categoryId = "<%- giscus['category-id'] %>";
+    script.dataset.mapping = "<%- giscus.mapping %>";
+    script.dataset.reactionsEnabled = "<%- giscus['reactions-enabled'] ? 1 : 0 %>";
+    script.dataset.emitMetadata = "0";
+    script.dataset.inputPosition = "<%- giscus['input-position'] %>";
+    script.dataset.theme = getTheme();
+    script.dataset.lang = "<%- giscus.language %>";
+    script.crossOrigin = "anonymous";
+
+    // Append the script to the desired div instead of at the end of the body
+    document.getElementById("quarto-content").appendChild(script);
+  };
+
+  // MutationObserver to detect when the 'quarto-light' or 'quarto-dark' class is added to the body
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === "attributes" && mutation.attributeName === "class") {
+        if (document.body.classList.contains('quarto-light') || document.body.classList.contains('quarto-dark')) {
+          loadGiscus();
+          observer.disconnect(); // Stop observing once Giscus is loaded
+          break;
+        }
+      }
+    }
+  });
+
+  // Start observing the body for class attribute changes
+  observer.observe(document.body, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+}
+loadGiscusWhenReady();
+</script>

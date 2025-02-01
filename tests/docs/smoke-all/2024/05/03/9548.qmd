@@ -1,0 +1,19 @@
+---
+title: theme at top level
+format: revealjs
+theme: beige
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - []
+        - ['head > link[rel="stylesheet"][href$="beige.css"]']
+      ensureFileRegexMatches:
+        - ['<link .* href=.+revealjs/dist/theme/quarto-([a-f0-9]{32})\.css']
+---
+
+# Revealjs theme handling
+
+User provided theme should be used to build a `quarto-<hash>.css` using SASS and the `theme: beige` should internally by overridden to `theme: quarto` so that the later is added in Pandoc's template
+
+2024-08-26: `quarto.css` now carries the MD5 hash of the content to allow different revealjs themes to work on the same website.

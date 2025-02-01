@@ -1,0 +1,111 @@
+---
+title: "Untitled"
+format:
+  typst:
+    keep-typ: true
+    include-in-header:
+      text: |
+        #set page(flipped: true)
+        #show table: set text(size: 10pt)
+        #show figure: set block(breakable: true)
+    include-before-body:
+      text: |
+        #set par(justify: false)
+    margin:
+      x: 0.5cm
+      y: 0.5cm
+execute:
+  echo: false
+keep-md: true
+---
+
+```{python}
+#| classes: plain
+from great_tables import GT, md, html, system_fonts
+import pandas as pd
+
+power_cie_prepared_tbl = pd.read_csv("2023_cie_power_cons.csv")
+
+# Create a Great Tables object
+ciep_gt_tbl = GT(data=power_cie_prepared_tbl)
+
+# Apply wider color ranges & formatting
+gt_tbl = ciep_gt_tbl \
+    .fmt_percent(columns=['Hydro', 'Nuclear', 'Wind', 'Solar', 'Geothermal', 'Biomass', 'Gas',
+                        'Coal', 'Oil', 'Unknown', 'Hydro Discharge', 'Battery Discharge'],
+                decimals=1) \
+    .fmt_number(columns=['CO2 Intensity'],
+                decimals=0) \
+    .data_color(
+        columns=['CO2 Intensity'],
+        palette=[
+            "#00A600", "#E6E600", "#E8C32E", "#D69C4E", "#Dc863B", "sienna", "sienna4", "tomato4", "brown"],
+        domain=[0, 900]
+        ) \
+    .data_color(
+        columns=['Hydro', 'Nuclear', 'Wind', 'Solar','Geothermal'],
+        palette=["#00A600", "chartreuse3", "chartreuse4", "snow"][::-1],
+        domain=[0, 1]
+        ) \
+    .data_color(
+        columns=['Hydro', 'Geothermal'],
+        palette=["#00A600", "chartreuse3", "chartreuse4", "snow"][::-1],
+        domain=[0, 1]
+        ) \
+    .data_color(
+        columns=['Biomass'],
+        palette=["snow", "#EEC900", "#E8C32E", "#D69C4E"],
+        domain=[0, 0.3]
+        ) \
+    .data_color(
+        columns=['Gas', 'Coal', 'Oil'],
+        palette=["tomato4", "sienna4", "#D69C4E", "#Dc863B", "snow"][::-1],
+        domain=[0, 1]
+        ) \
+    .data_color(
+        columns=['Zone','Unknown', 'Hydro Discharge', 'Battery Discharge'],
+        palette=["snow", "snow", "snow", 'snow']
+        ) \
+    .cols_width(
+        {'Zone': '106px', 'CO2 Intensity': '58px','Hydro': '58px', 'Nuclear': '58px', 'Wind': '58px', 'Solar': '58px',
+        'Geothermal': '58px', 'Biomass': '58px', 'Gas': '58px', 'Coal': '58px',
+        'Oil': '58px', 'Unknown': '58px', 'Hydro Discharge': '58px',
+        'Battery Discharge': '58px'}
+        ) \
+    .tab_header(
+        title=md("2023 Mean **Carbon Intensity** (gCO2eq/kWh) and **Power Consumption** Breakdown (%)")
+        ) \
+    .tab_source_note(
+        md(
+            '<br><div style="text-align: left;">'
+            "**Source**: api.electricitymap.org"
+            " | **Methodology**: https://www.electricitymaps.com/methodology."
+            " Some emissions factors are based on IPCC 2014 defaults, while some are based on more accurate regional factors."
+            " <br>All zones are publicly available on the *Carbon intensity and emission factors* tab via Google docs link<br>"
+            "</div>"
+            "<br>"
+            )
+        ) \
+    .tab_options(
+        source_notes_font_size='x-small',
+        source_notes_padding=3,
+        table_font_names=system_fonts("humanist"),
+        data_row_padding='1px',
+        heading_background_color='antiquewhite',
+        source_notes_background_color='antiquewhite',
+        column_labels_background_color='antiquewhite',
+        table_background_color='snow',
+        data_row_padding_horizontal=3,
+        column_labels_padding_horizontal=58
+        ) \
+    .cols_align(
+        align='center'
+        ) \
+    .cols_align(
+        align='left',
+        columns=['Zone']
+        )
+
+gt_tbl
+
+```
