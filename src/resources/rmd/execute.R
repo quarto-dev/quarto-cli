@@ -145,6 +145,17 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   # create a hidden environment to store specific objects
   # Beware to use non conflicted name as this will be in second position right after globalenv.
   .quarto_tools_env <- attach(NULL, name = "tools:quarto")
+  .quarto_tools_env$.assignToQuartoToolsEnv <- function(name, value) {
+    assign(name, value, envir = .quarto_tools_env)
+  }
+  .quarto_tools_env$.getFromQuartoToolsEnv <- function(name) {
+    get0(name, envir = .quarto_tools_env)
+  }
+  .quarto_tools_env$.rmFromQuartoToolsEnv <- function(name) {
+    if (exists(name, envir = .quarto_tools_env)) {
+      rm(name, envir = .quarto_tools_env)
+    }
+  }
 
   # we need ojs only if markdown has ojs code cells
   # inspect code cells for spaces after line breaks
