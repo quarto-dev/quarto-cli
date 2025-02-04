@@ -167,11 +167,11 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     !is_shiny_prerendered(knitr::opts_knit$get("rmarkdown.runtime")) &&
       needs_ojs
   ) {
-    local({
-      # source ojs_define() function and save it in the tools environment
-      source(file.path(resourceDir, "rmd", "ojs_static.R"), local = TRUE)
-      assign("ojs_define", ojs_define, envir = .quarto_tools_env)
-    })
+    # source ojs_define() function into the tools environment
+    source(
+      file = file.path(resourceDir, "rmd", "ojs_static.R"),
+      local = .quarto_tools_env
+    )
   }
   
   # special internal function for rendering inline code using Quarto syntax
