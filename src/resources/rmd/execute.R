@@ -157,9 +157,24 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     }
   }
 
+  # special internal function for rendering inline code using Quarto syntax
+  .assignToQuartoToolsEnv(".QuartoInlineRender",  function(v) { # nolint: object_usage_linter, line_length_linter.
+    if (is.null(v)) {
+      "NULL"
+    } else if (inherits(v, "AsIs")) {
+      v
+    } else if (is.character(v)) {
+      gsub(
+        pattern = "(\\[|\\]|[`*_{}()>#+-.!])",
+        x = v, replacement = "\\\\\\1"
+      )
+    } else {
+      v
+    }
+  })
+
   # we need ojs only if markdown has ojs code cells
   # inspect code cells for spaces after line breaks
-
   needs_ojs <- grepl("(\n|^)[[:space:]]*```+\\{ojs[^}]*\\}", markdown)
   # FIXME this test isn't failing in shiny mode, but it doesn't look to be
   # breaking quarto-shiny-ojs. We should make sure this is right.
@@ -173,19 +188,6 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
       local = .quarto_tools_env
     )
   }
-  
-  # special internal function for rendering inline code using Quarto syntax
-  .quarto_tools_env$.QuartoInlineRender <- function(v) {
-      if (is.null(v)) {
-        "NULL"
-      } else if (inherits(v, "AsIs")) {
-        v
-      } else if (is.character(v)) {
-        gsub(pattern="(\\[|\\]|[`*_{}()>#+-.!])", x=v, replacement="\\\\\\1")
-      } else {
-        v
-      }
-    }
 
   render_output <- rmarkdown::render(
     input = input,
