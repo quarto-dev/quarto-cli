@@ -165,6 +165,16 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
   }
   delegating_output_hook = function(type, classes) {
     delegating_hook(type, function(x, options) {
+      ### START Knitr hack:
+      # since knitr 1.49, we can detect if output: asis
+      # was set by an R function itself (not cell option)
+      # We save the information for our other processing 
+      # after output hook (i.e after sew method is called)
+      if (identical(options[["results"]], "asis")) {
+        .assignToQuartoToolsEnv("cell_options", list(asis_output = TRUE)) # nolint: object_usage_linter, line_length_linter.
+      }
+      ### END
+
       if (identical(options[["results"]], "asis") ||
           isTRUE(options[["collapse"]])) {
         x
@@ -181,6 +191,16 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
 
   # entire chunk
   knit_hooks$chunk <- delegating_hook("chunk", function(x, options) {
+
+    ## START knitr hack:
+    ## catch knit_asis output from save output hook state 
+    asis_output <- .getFromQuartoToolsEnv("cell_options")$asis_output # nolint: object_usage_linter, line_length_linter.
+    if (isTRUE(asis_output)) {
+      options[["results"]] <- "asis"
+    }
+    # chunk hook is called last and we can clean the cell storage
+    on.exit(.rmFromQuartoToolsEnv("cell_options"), add = TRUE) # nolint: object_usage_linter, line_length_linter.
+    ## END
 
     # Do nothing more for some specific chunk content -----
 

@@ -152,6 +152,13 @@ if (utils::packageVersion("knitr") >= "1.32.8") {
       } else {
         knitr:::sew.knit_asis(x, options, ...)
       }
+      ## START knitr hack: 
+      ## catch knit_asis output from save output hook state
+      asis_output <- .getFromQuartoToolsEnv("cell_options")$asis_output # nolint: object_usage_linter, line_length_linter
+      if (isTRUE(asis_output)) {
+        options[["results"]] <- "asis"
+      }
+      ## END
 
       # if it's an html widget then it was already wrapped
       # by add_html_caption
