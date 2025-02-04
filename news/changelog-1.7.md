@@ -64,7 +64,7 @@ All changes included in 1.7:
 ### `julia`
 
 - ([#11659](https://github.com/quarto-dev/quarto-cli/pull/11659)): Fix escaping bug where paths containing spaces or backslashes break server startup on Windows.
-- ([#11928](https://github.com/quarto-dev/quarto-cli/pull/11928)): Update QuartoNotebookRunner to 0.12.0.
+- ([#12020](https://github.com/quarto-dev/quarto-cli/pull/12020)): Update QuartoNotebookRunner to 0.12.1.
 
 ## Other Fixes and Improvements
 
