@@ -420,7 +420,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     # if there is a label, additional classes, a forwardAttr, or a cell.cap 
     # then the user is deemed to have implicitly overridden results = "asis"
     # (as those features don't work w/o an enclosing div)
-    needCell <- isTRUE(nzchar(label)) || 
+    needCell <- isTRUE(nzchar(label)) ||
                 length(classes) > 1 ||
                 isTRUE(nzchar(forwardAttr)) ||
                 isTRUE(nzchar(cell.cap))
@@ -429,7 +429,8 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     } else {
       paste0(
         options[["indent"]], "::: {", 
-        labelId(label), paste(classes, collapse = " ") ,forwardAttr, "}\n", x, "\n", cell.cap ,
+        labelId(label), paste(classes, collapse = " "),
+        forwardAttr, "}\n", x, "\n", cell.cap,
         options[["indent"]], ":::"
       )
     }
