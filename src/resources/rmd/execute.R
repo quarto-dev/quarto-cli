@@ -153,7 +153,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   }
   .quarto_tools_env$.rmFromQuartoToolsEnv <- function(name) {
     if (exists(name, envir = .quarto_tools_env)) {
-      rm(name, envir = .quarto_tools_env)
+      rm(list = c(name), envir = .quarto_tools_env)
     }
   }
 
