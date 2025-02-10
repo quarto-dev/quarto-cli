@@ -103,7 +103,7 @@ wrap_asis_output <- function(options, x) {
   if (identical(options[["html-table-processing"]], "none")) {
     attrs <- paste(attrs, "html-table-processing=none")
   }
-  
+
   # if this is an html table then wrap it further in ```{=html}
   # (necessary b/c we no longer do this by overriding kable_html,
   # which is in turn necessary to allow kableExtra to parse
@@ -112,9 +112,17 @@ wrap_asis_output <- function(options, x) {
       !grepl('^<div class="kable-table">', x)) {
     x <- paste0("`````{=html}\n", x, "\n`````")
   }
-  
-  # If asis output, don't include the output div
-  if (identical(options[["results"]], "asis")) return(x)
+
+  # If asis output, don't include the output div,
+  # unless a feature requiring it is used
+  # if there additional classes, some added attr,
+  # then the user is deemed to have implicitly overridden results = "asis"
+  # (as those features don't work w/o an enclosing div)
+  needCell <- length(classes) > 1 || isTRUE(nzchar(attrs)) # nolint: object_name_linter, line_length_linter.
+
+  if (identical(options[["results"]], "asis") && !needCell) {
+    return(x)
+  }
 
   output_div(x, output_label_placeholder(options), classes, attrs)
 }
@@ -152,6 +160,13 @@ if (utils::packageVersion("knitr") >= "1.32.8") {
       } else {
         knitr:::sew.knit_asis(x, options, ...)
       }
+      ## START knitr hack: 
+      ## catch knit_asis output from save output hook state
+      asis_output <- .getFromQuartoToolsEnv("cell_options")$asis_output # nolint: object_usage_linter, line_length_linter
+      if (isTRUE(asis_output)) {
+        options[["results"]] <- "asis"
+      }
+      ## END
 
       # if it's an html widget then it was already wrapped
       # by add_html_caption
