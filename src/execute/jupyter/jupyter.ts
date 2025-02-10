@@ -150,8 +150,10 @@ export const jupyterEngine: ExecutionEngine = {
       isJupyterPercentScript(file);
   },
 
-  claimsLanguage: (_language: string) => {
-    return false;
+  claimsLanguage: (language: string) => {
+    // jupyter has to claim julia so that julia may also claim it without changing the old behavior
+    // of preferring jupyter over julia engine by default
+    return language.toLowerCase() === "julia";
   },
 
   markdownForFile(file: string): Promise<MappedString> {
