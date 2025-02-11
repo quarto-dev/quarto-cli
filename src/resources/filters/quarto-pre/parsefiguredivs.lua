@@ -802,7 +802,7 @@ function forward_cell_subcaps()
       if type(subcaps) == "table" then
         nsubcaps = #subcaps
       end
-      div.content = _quarto.ast.walk(div.content, {
+      div.content = _quarto.traverser(div.content, {
         Div = function(subdiv)
           if type(nsubcaps) == "number" and index > nsubcaps or not subdiv.classes:includes("cell-output-display") then
             return nil
@@ -815,7 +815,7 @@ function forward_cell_subcaps()
             end
           end
           -- now we attempt to insert subcaptions where it makes sense for them to be inserted
-          subdiv.content = _quarto.ast.walk(subdiv.content, {
+          subdiv.content = _quarto.traverser(subdiv.content, {
             Table = function(pandoc_table)
               pandoc_table.caption.long = quarto.utils.as_blocks(get_subcap())
               pandoc_table.identifier = div.identifier .. "-" .. tostring(index)
