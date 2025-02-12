@@ -96,13 +96,13 @@ body:
 
   - type: textarea
     attributes:
-      label: Expected behavior
-      description: Tell us what should happen.
+      label: Actual behavior
+      description: Tell us what happens instead.
 
   - type: textarea
     attributes:
-      label: Actual behavior
-      description: Tell us what happens instead.
+      label: Expected behavior
+      description: Tell us what should happen.
 
   - type: textarea
     attributes:
