@@ -3077,7 +3077,7 @@
             },
             "output-file": {
               "path": {
-                "description": "Base name for single-file output (e.g. PDF, ePub)"
+                "description": "Base name for single-file output (e.g. PDF, ePub, docx)"
               }
             },
             "cover-image": {
@@ -14623,7 +14623,7 @@
     "Short/abbreviated form of container-title;",
     "A minor contributor to the item; typically cited using “with” before\nthe name when listed in a bibliography.",
     "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
-    "Physical (e.g.&nbsp;size) or temporal (e.g.��running time) dimensions of\nthe item.",
+    "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
     "Director (e.g.&nbsp;of a film).",
     "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
     "(Container) edition holding the item (e.g.&nbsp;“3” when citing a chapter\nin the third edition of a book).",

@@ -1203,7 +1203,7 @@
             description: "Book references file"
         output-file:
           path:
-            description: "Base name for single-file output (e.g. PDF, ePub)"
+            description: "Base name for single-file output (e.g. PDF, ePub, docx)"
         cover-image:
           path:
             description: "Cover image (used in HTML and ePub formats)"
