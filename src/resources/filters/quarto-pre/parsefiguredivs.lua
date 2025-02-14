@@ -702,36 +702,39 @@ function parse_floatreftargets()
         return nil
       end
 
+      -- prevent raw mutation
+      local rawText = raw.text
+
       -- first we check if all of the expected bits are present
 
       -- check for {#...} or \label{...}
-      if raw.text:find(patterns.latex_label) == nil and 
-         raw.text:find(patterns.attr_identifier) == nil then
+      if rawText:find(patterns.latex_label) == nil and 
+         rawText:find(patterns.attr_identifier) == nil then
         return nil
       end
 
       -- check for \caption{...}
-      if raw.text:find(patterns.latex_caption) == nil then
+      if rawText:find(patterns.latex_caption) == nil then
         return nil
       end
 
       -- check for tabular or longtable
-      if raw.text:find(patterns.latex_long_table) == nil and
-         raw.text:find(patterns.latex_tabular) == nil then
+      if rawText:find(patterns.latex_long_table) == nil and
+         rawText:find(patterns.latex_tabular) == nil then
         return nil
       end
       
       -- if we're here, then we're going to parse this as a FloatRefTarget
       -- and we need to remove the label and caption from the raw block
       local identifier = ""
-      local b, e, match1, label_identifier = raw.text:find(patterns.latex_label)
+      local b, e, _ , label_identifier = rawText:find(patterns.latex_label)
       if b ~= nil then
-        raw.text = raw.text:sub(1, b - 1) .. raw.text:sub(e + 1)
+        rawText = rawText:sub(1, b - 1) .. rawText:sub(e + 1)
         identifier = label_identifier
       else
-        local b, e, match2, attr_identifier = raw.text:find(patterns.attr_identifier)
+        local b, e, _ , attr_identifier = rawText:find(patterns.attr_identifier)
         if b ~= nil then
-          raw.text = raw.text:sub(1, b - 1) .. raw.text:sub(e + 1)
+          rawText = rawText:sub(1, b - 1) .. rawText:sub(e + 1)
           identifier = attr_identifier
         else
           internal_error()
@@ -749,9 +752,9 @@ function parse_floatreftargets()
       end
 
       local caption
-      local b, e, match3, caption_content = raw.text:find(patterns.latex_caption)
+      local b, e, _, caption_content = rawText:find(patterns.latex_caption)
       if b ~= nil then
-        raw.text = raw.text:sub(1, b - 1) .. raw.text:sub(e + 1)
+        rawText = rawText:sub(1, b - 1) .. rawText:sub(e + 1)
         caption = pandoc.RawBlock("latex", caption_content)
       else
         internal_error()
@@ -760,16 +763,16 @@ function parse_floatreftargets()
 
       -- finally, if the user passed a \\begin{table} float environment
       -- we just remove it because we'll re-emit later ourselves  
-      local matched, _ = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexTableEnvPatterns)
+      local matched, _ = _quarto.modules.patterns.match_in_list_of_patterns(rawText, _quarto.patterns.latexTableEnvPatterns)
       if matched then
         -- table_body is second matched element.
-        raw.text = matched[2]
+        rawText = matched[2]
       end
 
       return construct({
         attr = pandoc.Attr(identifier, {}, {}),
         type = "Table",
-        content = pandoc.Blocks({ raw }),
+        content = pandoc.Blocks({ pandoc.RawBlock(raw.format, rawText) }),
         caption_long = quarto.utils.as_blocks(caption)
       }), false
     end
