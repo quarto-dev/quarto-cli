@@ -419,6 +419,7 @@ export async function runPandoc(
     delete metadata[kRevealJsScripts];
     deleteProjectMetadata(metadata);
     deleteCrossrefMetadata(metadata);
+    removeFilterParams(metadata);
 
     // Don't print empty reveal-js plugins
     if (
@@ -1681,8 +1682,6 @@ function runPandocMessage(
     const printMetadata = ld.cloneDeep(metadata) as Metadata;
     delete printMetadata.format;
 
-    // remove filter params
-    removeFilterParams(printMetadata);
     // print message
     if (Object.keys(printMetadata).length > 0) {
       info("metadata", { bold: true });
