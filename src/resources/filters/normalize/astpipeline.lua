@@ -250,7 +250,7 @@ function quarto_ast_pipeline()
     end
     
     local filter = {
-      traversal = 'topdown',
+      traverse = 'topdown',
       Div = function(div)
         if div.attributes[constants.kHtmlTableProcessing] and not disable_html_table_processing then
           -- catch and remove attributes
