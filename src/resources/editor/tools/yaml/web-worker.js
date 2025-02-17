@@ -8217,6 +8217,24 @@ try {
             }
           },
           {
+            name: "warning",
+            tags: {
+              engine: "knitr"
+            },
+            schema: {
+              enum: [
+                true,
+                false,
+                "NA"
+              ]
+            },
+            default: true,
+            description: {
+              short: "Include warning in rendered output.",
+              long: "Include warnings in rendered output. Possible values are `true`, `false`, or `NA`. \nIf `true`, messages are included in the output. If `false`, messages are not included. \nIf `NA`, messages are not included in output but shown in the knitr log to console.\n"
+            }
+          },
+          {
             name: "message",
             tags: {
               engine: "knitr"
@@ -24197,12 +24215,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 194269,
+          _internalId: 194272,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 194261,
+              _internalId: 194264,
               type: "enum",
               enum: [
                 "png",
@@ -24218,7 +24236,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 194268,
+              _internalId: 194271,
               type: "anyOf",
               anyOf: [
                 {
