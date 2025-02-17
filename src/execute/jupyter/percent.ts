@@ -20,9 +20,10 @@ export const kJupyterPercentScriptExtensions = [
   ".r",
 ];
 
-export function isJupyterPercentScript(file: string) {
+export function isJupyterPercentScript(file: string, extensions?: string[]) {
   const ext = extname(file).toLowerCase();
-  if (kJupyterPercentScriptExtensions.includes(ext)) {
+  const availableExtensions = extensions ?? kJupyterPercentScriptExtensions;
+  if (availableExtensions.includes(ext)) {
     const text = Deno.readTextFileSync(file);
     return !!text.match(/^\s*#\s*%%+\s+\[markdown|raw\]/);
   } else {
@@ -77,10 +78,10 @@ export function markdownFromJupyterPercentScript(file: string) {
       let rawContent = cellContent(cellLines);
       const format = cell.header?.metadata?.["format"];
       const mimeType = cell.header.metadata?.[kCellRawMimeType];
-      if (typeof (mimeType) === "string") {
+      if (typeof mimeType === "string") {
         const rawBlock = mdRawOutput(mimeType, lines(rawContent));
         rawContent = rawBlock || rawContent;
-      } else if (typeof (format) === "string") {
+      } else if (typeof format === "string") {
         rawContent = mdFormatOutput(format, lines(rawContent));
       }
       markdown += rawContent;
