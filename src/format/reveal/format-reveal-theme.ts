@@ -278,7 +278,7 @@ function pandocVariablesToRevealDefaults(
     asCssNumber,
   );
   add(explicitVars, "code-block-bg", metadata["monobackgroundcolor"]);
-
+  add(explicitVars, "code-block-color", metadata["monoforegroundcolor"]);
   // Non-pandoc options from front matter
   add(explicitVars, "code-block-height", metadata[kCodeBlockHeight]);
   return explicitVars;
