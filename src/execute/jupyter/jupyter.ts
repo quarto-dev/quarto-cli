@@ -515,8 +515,7 @@ export const jupyterEngine: ExecutionEngine = {
     ];
     if (options.reload) {
       cmd.push("--reload");
-      cmd.push(`--reload-includes`);
-      cmd.push(`*.py`);
+      cmd.push(`--reload-includes=*.py`);
     }
 
     // start server
