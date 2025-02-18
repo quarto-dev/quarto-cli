@@ -2160,5 +2160,5 @@ quarto.utils.resolvePath = quarto.utils.resolve_path
 -- this workaround makes it so that our users extensions which use pandoc.Null 
 -- still work, assuming they call pandoc.Null() in a "simple" way.
 pandoc.Null = function()
-   return {}
+   return pandoc.RawBlock("never", "") -- a hack to avoid resizing arrays in the AST. this has (minor) performance benefits.
 end
