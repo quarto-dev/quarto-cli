@@ -137,7 +137,7 @@ local function readqmd(txt, opts)
   if param("user-defined-from") then
     flavor = _quarto.format.parse_format(param("user-defined-from"))
   else 
-    for k, v in pairs(opts.extensions) do
+    for k, v in pairs(opts.extensions or {}) do
       flavor.extensions[v] = true
     end
   end

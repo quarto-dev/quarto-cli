@@ -10,7 +10,7 @@ function Reader (inputs, opts)
   -- other filters, so we cannot use global state to share the options.
   -- as a result, we'll inject the options into the document metadata
   -- and extract it later.
-  local result = readqmd.readqmd(tostring(inputs), opts)
+  local result = readqmd.readqmd("", opts)
 
   result.meta.quarto_pandoc_reader_opts = readqmd.options_to_meta(opts)
 
