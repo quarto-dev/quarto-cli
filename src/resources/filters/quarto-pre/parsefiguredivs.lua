@@ -66,9 +66,10 @@ local function remove_latex_crossref_envs(content, name)
         if not _quarto.format.isRawLatex(raw) then
           return nil
         end
-        local b, e, begin_table, table_body, end_table = raw.text:find(patterns.latex_table)
-        if b ~= nil then
-          raw.text = table_body
+        local matched, _ = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexTableEnvPatterns)
+        if matched then
+          -- table_body is second matched element.
+          raw.text = matched[2]
           return raw
         else
           return nil
@@ -548,6 +549,8 @@ function parse_floatreftargets()
         })
         return parse_float_div(div)
       elseif isTableDiv(div) then
+        -- FIXUP: We don't go here for a `#tbl-` id as it is matched as a FigureDiv above
+        -- TO REMOVE ? 
         return parse_float_div(div)
       end
 
