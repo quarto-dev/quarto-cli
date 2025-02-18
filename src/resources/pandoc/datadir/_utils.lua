@@ -608,6 +608,13 @@ local function walk(node, filter)
 end
 
 return {
+  null_node = function(type)
+     if type == "Inline" then
+        return pandoc.RawInline("never", "")
+     else
+        return pandoc.RawBlock("never", "")
+     end
+  end,
   dump = dump,
   type = get_type,
   table = {
