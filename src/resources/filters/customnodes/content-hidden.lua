@@ -132,7 +132,7 @@ function combined_hidden()
 
   local function stripHidden(el)
     if el.attr.classes:find("hidden") then
-      return {}
+      return pandoc.RawBlock("never", "")
     end
   end
   local function clearHiddenClasses(el) 
@@ -177,7 +177,7 @@ function combined_hidden()
         if isWarning(el) then
           if remove(kWarning) then
             if el.attr.classes:find("hidden") then
-              return {}
+              return pandoc.RawBlock("never", "")
             end
           elseif clear(kWarning) then
             el.attr.classes = el.attr.classes:filter(function(clz) return clz ~= "hidden" end)
@@ -185,7 +185,7 @@ function combined_hidden()
         else
           if remove(kCode) then
             if el.attr.classes:find("hidden") then
-              return {}
+              return pandoc.RawBlock("never", "")
             end
           elseif clear(kCode) then
             el.attr.classes = el.attr.classes:filter(function(clz) return clz ~= "hidden" end)
@@ -200,7 +200,7 @@ function combined_hidden()
       Div = stripHidden,
       CodeBlock = function(code)
         if code.attr.classes:find("hidden") then
-          return {}
+          return pandoc.RawBlock("never", "")
         end
         return hhv(code)
       end,
@@ -212,15 +212,6 @@ function combined_hidden()
     }
   end
 end
-
--- function content_hidden()
---   local profiles = pandoc.List(param("quarto_profile", {}))
---   return {
---     -- Div = handleHiddenVisible(profiles),
---     CodeBlock = handleHiddenVisible(profiles),
---     Span = handleHiddenVisible(profiles)
---   }
--- end
 
 function handleHiddenVisible(profiles)
   return function(el)
@@ -239,7 +230,7 @@ function handleHiddenVisible(profiles)
     if visible then
       return el
     else
-      return {}
+      return pandoc.RawBlock("never", "")
     end
   end
 end
