@@ -225,8 +225,7 @@ function handleHiddenVisible(profiles)
     else
       return el
     end
-    -- this is only called on spans and codeblocks, so here we keep the scaffolding element
-    -- as opposed to in the Div where we return the inlined content
+    -- this code is called on codeblock elements, so we can't assume el.content
     if visible then
       return el
     else
@@ -246,8 +245,7 @@ function propertiesMatch(properties, profiles)
   local function check_profile(value)
     return profiles:includes(value)
   end
-  local function check_property(key, f)
-    local v = properties[key]
+  local function check_property(v, f)
     if type(v) == "string" then
       return f(v)
     elseif type(v) == "table" then
@@ -275,8 +273,9 @@ function propertiesMatch(properties, profiles)
     local key = test[1]
     local f = test[2]
     local invert = test[3]
-    if properties[key] ~= nil then
-      match = match and (invert ~= check_property(key, f))
+    local v = properties[key]
+    if v ~= nil then
+      match = match and (invert ~= check_property(v, f))
     end
   end
   return match
