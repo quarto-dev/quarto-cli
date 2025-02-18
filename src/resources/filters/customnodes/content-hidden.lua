@@ -103,12 +103,7 @@ local _content_hidden_meta = nil
 -- we capture a copy of meta here for convenience;
 -- 
 function content_hidden_meta(meta)
-  -- return {
-  --   Meta = function(meta)
-  -- The call to `pandoc.Meta` ensures that we hold a copy.
   _content_hidden_meta = pandoc.Meta(meta)
-  --   end
-  -- }
 end
 
 local function get_meta(key)
@@ -122,14 +117,110 @@ local function get_meta(key)
   return obj
 end
 
-function content_hidden()
+function combined_hidden()
+  local kNone = "none"
+  local kCode = "code"
+  local kWarning = "warning"
+  local kAll = "all"
+  local kKeepHidden = "keep-hidden"
+  local kRemoveHidden = "remove-hidden"
+  local kClearHiddenClasses = "clear-hidden-classes"
   local profiles = pandoc.List(param("quarto_profile", {}))
-  return {
-    -- Div = handleHiddenVisible(profiles),
-    CodeBlock = handleHiddenVisible(profiles),
-    Span = handleHiddenVisible(profiles)
-  }
+  local keepHidden = param(kKeepHidden, false)
+  local removeHidden = param(kRemoveHidden, "none")
+  local clearHiddenClz = param(kClearHiddenClasses, "none")
+
+  local function stripHidden(el)
+    if el.attr.classes:find("hidden") then
+      return {}
+    end
+  end
+  local function clearHiddenClasses(el) 
+    el.attr.classes = el.attr.classes:filter(function(clz) return clz ~= "hidden" end)
+    return el
+  end
+  local function isWarning(el)
+    return el.attr.classes:find("cell-output-stderr")
+  end
+  local function remove(thing) 
+    return removeHidden == kAll or removeHidden == thing
+  end
+  local function clear(thing)
+    return clearHiddenClz == kAll or clearHiddenClz == thing
+  end
+  local function clearOrRemoveEl(el)
+    if isWarning(el) then
+      if remove(kWarning) then
+        return stripHidden(el)
+      elseif clear(kWarning) then
+        return clearHiddenClasses(el)
+      end
+    else
+      if remove(kCode) then
+        return stripHidden(el)
+      elseif clear(kCode) then
+        return clearHiddenClasses(el)
+      end
+    end
+  end
+
+  -- Allow additional control of what to do with hidden code and warnings
+  -- in the output. This allows rendering with echo/warning=false and keep-hidden=true
+  -- to do some additional custom processing (for example, marking all as hidden, but
+  -- but then removing the hidden elements from the output). 
+  local hhv = handleHiddenVisible(profiles)
+
+  if removeHidden ~= kNone or clearHiddenClz ~= kNone then
+    return {
+      Div = clearOrRemoveEl,
+      CodeBlock = function(el)
+        if isWarning(el) then
+          if remove(kWarning) then
+            if el.attr.classes:find("hidden") then
+              return {}
+            end
+          elseif clear(kWarning) then
+            el.attr.classes = el.attr.classes:filter(function(clz) return clz ~= "hidden" end)
+          end
+        else
+          if remove(kCode) then
+            if el.attr.classes:find("hidden") then
+              return {}
+            end
+          elseif clear(kCode) then
+            el.attr.classes = el.attr.classes:filter(function(clz) return clz ~= "hidden" end)
+          end
+        end
+        return hhv(el)
+      end,
+      Span = hhv
+    }
+  elseif keepHidden and not _quarto.format.isHtmlOutput() then
+    return {
+      Div = stripHidden,
+      CodeBlock = function(code)
+        if code.attr.classes:find("hidden") then
+          return {}
+        end
+        return hhv(code)
+      end,
+      Span = hhv
+    }
+  else
+    return {
+      Span = hhv
+    }
+  end
 end
+
+-- function content_hidden()
+--   local profiles = pandoc.List(param("quarto_profile", {}))
+--   return {
+--     -- Div = handleHiddenVisible(profiles),
+--     CodeBlock = handleHiddenVisible(profiles),
+--     Span = handleHiddenVisible(profiles)
+--   }
+-- end
 
 function handleHiddenVisible(profiles)
   return function(el)

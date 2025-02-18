@@ -303,10 +303,7 @@ local quarto_pre_filters = {
   },
 
   { name = "pre-combined-hidden",
-    filter = combineFilters({
-      hidden(),
-      content_hidden()
-    }),
+    filter = combined_hidden(),
     flags = { "has_hidden", "has_conditional_content" },
     traverser = 'jog',
   },
