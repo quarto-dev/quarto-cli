@@ -293,7 +293,7 @@ jobs:
           path: tests/timing-for-ci.txt
 
       - name: Save Typst cache
-        if: always()
+        if: always() && steps.cache-typst.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           key: ${{ steps.cache-typst.outputs.cache-primary-key }}
