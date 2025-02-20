@@ -175,8 +175,6 @@ jobs:
           version: "1.11.3"
 
       - name: Cache Julia Packages
-        # FIXME: deactivate julia cache for now
-        if: false
         uses: julia-actions/cache@v2
 
       - name: Restore Julia Packages
