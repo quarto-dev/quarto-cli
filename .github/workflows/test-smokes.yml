@@ -105,14 +105,16 @@ jobs:
           cat("r-version=", R.Version()$version.string, "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
         shell: Rscript {0}
 
-      - name: Cache R packages
-        uses: actions/cache@v4
+      - name: Restore Renv package cache
+        id: cache-renv-packages-restore
+        uses: actions/cache/restore@v4
         with:
-          path: ${{ env.RENV_PATHS_ROOT }}
-          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-${{ hashFiles('tests/renv.lock') }}
+          path: |
+            ${{ env.RENV_PATHS_ROOT }}
+            renv/library
+          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-3-${{ hashFiles('tests/renv.lock') }}
           restore-keys: |
-            ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-
-          save-always: ${{ inputs.extra-r-packages == '' }} # don't save cache if we have extra R packages
+            ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-3-
 
       - name: Install missing system deps
         if: runner.os == 'Linux'
@@ -291,15 +293,25 @@ jobs:
           path: tests/timing-for-ci.txt
 
       - name: Save Typst cache
-        if: always()
+        if: always() && steps.cache-typst.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           key: ${{ steps.cache-typst.outputs.cache-primary-key }}
           path: ${{ steps.cache-typst.outputs.cache-path }}
 
+      - name: Save Renv package cache
+        # don't save cache if we have extra R packages
+        if: ${{ always() && steps.cache-renv-packages-restore.outputs.cache-hit != 'true' && inputs.extra-r-packages == '' }}
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ${{ env.RENV_PATHS_ROOT }}
+            renv/library
+          key: ${{ steps.cache-renv-packages-restore.outputs.cache-primary-key }}
+
       - uses: actions/upload-artifact@v4
-        # PLaywright test only runs on Linux for now
-        if: ${{ !cancelled() && runner.os != 'Windows' }}
+        # Upload pLaywright test report if they exists (playwright is only running on Linux for now)
+        if: ${{ !cancelled() && runner.os != 'Windows' && hashFiles('tests/integration/playwright/playwright-report/**/*') != '' }}
         with:
           name: playwright-report
           path: ./tests/integration/playwright/playwright-report/
