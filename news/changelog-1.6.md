@@ -2,12 +2,11 @@
 
 ## In this release
 
+## In previous releases
+
 - ([#11561](https://github.com/quarto-dev/quarto-cli/issues/11561)): Fix a regression with `$border-color` that impacted, callouts borders, tabset borders, and table borders of the defaults themes. `$border-color` is now correctly a mixed of `$body-color` and `$body-bg` even for the default theme.
 - ([#11943](https://github.com/quarto-dev/quarto-cli/issues/11943)): Fix callout title color on dark theme in revealjs following Revealjs update in quarto 1.6.
 - ([#10532](https://github.com/quarto-dev/quarto-cli/issues/10532)): Quarto changed default of `--headless=old` to `--headless` as [Chrome 132 has removed old headless mode](https://developer.chrome.com/blog/removing-headless-old-from-chrome) and only support new mode. For using old mode, `QUARTO_CHROMIUM` could be set to a [new `chrome-headless-shell` binary](https://developer.chrome.com/blog/chrome-headless-shell) or too an older chrome version (between 128 and 132) and `QUARTO_CHROMIUM_HEADLESS_MODE` set to `old` for using old headless mode with that compatabitle version.
-
-## In previous releases
-
 - ([#11726](https://github.com/quarto-dev/quarto-cli/issues/11726)) Typst Brand YAML: translate named CSS font weights to Typst.
 - ([#11485](https://github.com/quarto-dev/quarto-cli/issues/11485)) Typst Brand YAML: fix blurry title bars of callouts by using a lightened color instead of translucent.
 - ([#11777](https://github.com/quarto-dev/quarto-cli/pull/11777)) Typst Brand YAML: make default logo smaller and bring it in a little.
