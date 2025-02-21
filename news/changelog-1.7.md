@@ -17,6 +17,7 @@ All changes included in 1.7:
 ## Website projects
 
 - ([#11701](https://github.com/quarto-dev/quarto-cli/issues/11701)): Wrap HTML emitted by EJS templates in `{=html}` blocks to avoid memory blowup issues with Pandoc's parser.
+- ([#12134](https://github.com/quarto-dev/quarto-cli/issues/12134)): Forward `logo.small` images in `_brand.yml` files to a website `favicon`.
 
 ## Blog projects
 
@@ -25,6 +26,7 @@ All changes included in 1.7:
 ## Book projects
 
 - ([#11520](https://github.com/quarto-dev/quarto-cli/issues/11520)): Book's cover image now escapes lightbox treatment, which was incorrectly applied to it when `lightbox: true` was set in the book's configuration.
+- ([#12134](https://github.com/quarto-dev/quarto-cli/issues/12134)): Forward `logo.small` images in `_brand.yml` files to the `favicon` of the book's website.
 
 ## `quarto check`
 
