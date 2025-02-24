@@ -2,6 +2,8 @@
 
 ## In this release
 
+- ([#12148](https://github.com/quarto-dev/quarto-cli/issues/12148)): Don't import libraries outside of `core/lib` into `core/lib`, to avoid pulling in Deno-specific requirements into browser environments.
+
 ## In previous releases
 
 - ([#11561](https://github.com/quarto-dev/quarto-cli/issues/11561)): Fix a regression with `$border-color` that impacted, callouts borders, tabset borders, and table borders of the defaults themes. `$border-color` is now correctly a mixed of `$body-color` and `$body-bg` even for the default theme.
