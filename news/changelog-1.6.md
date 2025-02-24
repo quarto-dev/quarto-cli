@@ -2,10 +2,9 @@
 
 ## In this release
 
-- ([#12148](https://github.com/quarto-dev/quarto-cli/issues/12148)): Don't import libraries outside of `core/lib` into `core/lib`, to avoid pulling in Deno-specific requirements into browser environments.
-
 ## In previous releases
 
+- ([#12148](https://github.com/quarto-dev/quarto-cli/issues/12148)): Don't import libraries outside of `core/lib` into `core/lib`, to avoid pulling in Deno-specific requirements into browser environments.
 - ([#11561](https://github.com/quarto-dev/quarto-cli/issues/11561)): Fix a regression with `$border-color` that impacted, callouts borders, tabset borders, and table borders of the defaults themes. `$border-color` is now correctly a mixed of `$body-color` and `$body-bg` even for the default theme.
 - ([#11943](https://github.com/quarto-dev/quarto-cli/issues/11943)): Fix callout title color on dark theme in revealjs following Revealjs update in quarto 1.6.
 - ([#10532](https://github.com/quarto-dev/quarto-cli/issues/10532)): Quarto changed default of `--headless=old` to `--headless` as [Chrome 132 has removed old headless mode](https://developer.chrome.com/blog/removing-headless-old-from-chrome) and only support new mode. For using old mode, `QUARTO_CHROMIUM` could be set to a [new `chrome-headless-shell` binary](https://developer.chrome.com/blog/chrome-headless-shell) or too an older chrome version (between 128 and 132) and `QUARTO_CHROMIUM_HEADLESS_MODE` set to `old` for using old headless mode with that compatabitle version.
