@@ -71,7 +71,7 @@ All changes included in 1.7:
 ### `julia`
 
 - ([#11659](https://github.com/quarto-dev/quarto-cli/pull/11659)): Fix escaping bug where paths containing spaces or backslashes break server startup on Windows.
-- ([#12092](https://github.com/quarto-dev/quarto-cli/pull/12092)): Update QuartoNotebookRunner to 0.12.3.
+- ([#12121](https://github.com/quarto-dev/quarto-cli/pull/12121)): Update QuartoNotebookRunner to 0.13.1. Support for evaluating Python cells via [PythonCall.jl](https://github.com/JuliaPy/PythonCall.jl) added.
 
 ## Other Fixes and Improvements
 
