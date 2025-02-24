@@ -82,9 +82,10 @@ export function fixupBokehCells(nb: JupyterNotebook): JupyterNotebook {
         throw new Error("");
       };
 
-      // bokeh emits one 'initialization' cell once per notebook,
-      // and then two cells per plot. So we merge the three first cells into
-      // one, and then merge every two cells after that.
+      // bokeh emits one or two 'initialization' cell once per notebook,
+      // and then two cells per plot. So we merge the first three or four cells into
+      // one, depending if the total count is odd or even, and then merge
+      // every two cells after that.
       //
       // Some .ipynb files in the wild have application/vnd.bokehjs_load.v0+json type
       // but cells with no outputs, so we need to check
@@ -95,21 +96,22 @@ export function fixupBokehCells(nb: JupyterNotebook): JupyterNotebook {
 
       try {
         const oldOutputs = cell.outputs!;
-
+        const nextra = oldOutputs.length % 2 ? 1 : 2
+        const outputData = [];
+        let i;
+        for (i = 0; i < nextra + 2; ++i) {
+          outputData.push(asTextHtml(oldOutputs[i].data!));
+        }
         const newOutputs: JupyterOutput[] = [
           {
             metadata: {},
             output_type: "display_data",
             data: {
-              "text/html": [
-                asTextHtml(oldOutputs[0].data!),
-                asTextHtml(oldOutputs[1].data!),
-                asTextHtml(oldOutputs[2].data!),
-              ].flat(),
+              "text/html": outputData.flat(),
             },
           },
         ];
-        for (let i = 3; i < oldOutputs.length; i += 2) {
+        for (; i < oldOutputs.length; i += 2) {
           newOutputs.push({
             metadata: {},
             output_type: "display_data",
