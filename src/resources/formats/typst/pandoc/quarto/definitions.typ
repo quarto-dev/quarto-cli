@@ -35,17 +35,17 @@
   if fields.at("below", default: none) != none {
     // TODO: this is a hack because below is a "synthesized element"
     // according to the experts in the typst discord...
-    fields.below = fields.below.amount
+    fields.below = fields.below.abs
   }
   return block.with(..fields)(new_content)
 }
 
 #let empty(v) = {
-  if type(v) == "string" {
+  if type(v) == str {
     // two dollar signs here because we're technically inside
     // a Pandoc template :grimace:
     v.matches(regex("^\\s*$$")).at(0, default: none) != none
-  } else if type(v) == "content" {
+  } else if type(v) == content {
     if v.at("text", default: none) != none {
       return empty(v.text)
     }
@@ -108,7 +108,7 @@
 // callout rendering
 // this is a figure show rule because callouts are crossreferenceable
 #show figure: it => {
-  if type(it.kind) != "string" {
+  if type(it.kind) != str {
     return it
   }
   let kind_match = it.kind.matches(regex("^quarto-callout-(.*)")).at(0, default: none)
