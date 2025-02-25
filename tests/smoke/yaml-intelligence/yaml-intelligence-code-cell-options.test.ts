@@ -17,9 +17,8 @@ const files = [
   "fail-validation-knitr-backticks.qmd",
   "fail-validation-jupyter.qmd",
   "fail-validation-jupyter-backticks.qmd",
-  // FIXME: Activate this when Quarto schema for Julia engine
-  //"fail-validation-julia.qmd",
-  //"fail-validation-julia-backticks.qmd",
+  "fail-validation-julia.qmd",
+  "fail-validation-julia-backticks.qmd",
 ];
 
 files.forEach(testYamlValidationFails);
