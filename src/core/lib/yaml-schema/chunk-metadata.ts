@@ -132,6 +132,16 @@ const jupyterEngineSchema = defineCached(
   },
   "engine-jupyter",
 );
+const juliaEnginesSchema = defineCached(
+  // deno-lint-ignore require-await
+  async () => {
+    return {
+      schema: makeEngineSchema("julia"),
+      errorHandlers: [],
+    };
+  },
+  "engine-julia",
+);
 
 export async function getEngineOptionsSchema(): Promise<
   Record<string, ConcreteSchema>
@@ -140,6 +150,7 @@ export async function getEngineOptionsSchema(): Promise<
     markdown: await markdownEngineSchema(),
     knitr: await knitrEngineSchema(),
     jupyter: await jupyterEngineSchema(),
+    julia: await juliaEnginesSchema(),
   };
 
   return obj;

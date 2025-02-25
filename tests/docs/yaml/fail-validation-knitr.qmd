@@ -1,0 +1,8 @@
+---
+title: "YAML intelligence should fail with knitr engine"
+---
+
+```{r}
+#| echo: 123
+1 + 1
+```
