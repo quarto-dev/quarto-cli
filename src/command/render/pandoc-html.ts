@@ -570,9 +570,6 @@ function attribForThemeStyle(
         mode === "dark" ? " quarto-color-alternate" : ""
       }`,
     };
-    if (disabled) {
-      attr.rel = "prefetch";
-    }
     return attr;
   };
 
