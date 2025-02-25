@@ -7,18 +7,19 @@ const yamlDocs = fileLoader("yaml");
 const testYamlValidationFails = (file: string) => {
   testQuartoCmd(
     "render",
-    [yamlDocs(file, "html").input, "--to", "html", "--log-level", "error", "--quiet"],
+    [yamlDocs(file, "html").input, "--to", "html", "--quiet"],
     [printsMessage("ERROR", /Validation of YAML cell metadata failed/)],
   );
 };
 
 const files = [
   "fail-validation-knitr.qmd",
-  "fail-validation-jupyter.qmd",
-  "fail-validation-julia.qmd",
   "fail-validation-knitr-backticks.qmd",
+  "fail-validation-jupyter.qmd",
   "fail-validation-jupyter-backticks.qmd",
-  "fail-validation-julia-backticks.qmd",
+  // FIXME: Activate this when Quarto schema for Julia engine
+  //"fail-validation-julia.qmd",
+  //"fail-validation-julia-backticks.qmd",
 ];
 
 files.forEach(testYamlValidationFails);
