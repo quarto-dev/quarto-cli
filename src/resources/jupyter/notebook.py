@@ -122,7 +122,9 @@ def retrieve_nb_from_cache(nb, status, input, **kwargs):
       if not get_cache:
           raise ImportError('The jupyter-cache package is required for cached execution')
       trace('getting cache')
-      nb_cache = get_cache(".jupyter_cache")
+      # Respect env var used to modify default cache dir
+      # https://jupyter-cache.readthedocs.io/en/latest/using/cli.html
+      nb_cache = get_cache(os.getenv('JUPYTERCACHE', '.jupyter_cache'))
       if not cache == "refresh":
          cached_nb = nb_from_cache(nb, nb_cache)
          if cached_nb:
