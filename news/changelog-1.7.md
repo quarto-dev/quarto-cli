@@ -73,6 +73,10 @@ All changes included in 1.7:
 - ([#11659](https://github.com/quarto-dev/quarto-cli/pull/11659)): Fix escaping bug where paths containing spaces or backslashes break server startup on Windows.
 - ([#12121](https://github.com/quarto-dev/quarto-cli/pull/12121)): Update QuartoNotebookRunner to 0.13.1. Support for evaluating Python cells via [PythonCall.jl](https://github.com/JuliaPy/PythonCall.jl) added.
 
+### `jupyter`
+
+- ([#12114](https://github.com/quarto-dev/quarto-cli/issues/12114)): `JUPYTERCACHE` environment variable from [Jupyter cache CLI](https://jupyter-cache.readthedocs.io/en/latest/using/cli.html) is now respected by Quarto when `cache: true` is used. This environment variable allows to change the path of the cache directory.
+
 ## Other Fixes and Improvements
 
 - ([#7260](https://github.com/quarto-dev/quarto-cli/issues/7260)): Add support for `active` class in tabsets so the `.active` tab shows up by default.
