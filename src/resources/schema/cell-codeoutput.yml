@@ -12,7 +12,7 @@
       - `true` (default): evaluate code cell
       - `false`: don't evaluate code cell
       - `[...]`: A list of positive or negative numbers to selectively include or exclude expressions 
-        (explicit inclusion/excusion of expressions is available only when using the knitr engine)
+        (explicit inclusion/exclusion of expressions is available only when using the knitr engine)
 
 - name: echo
   tags:
