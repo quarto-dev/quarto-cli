@@ -28,7 +28,7 @@ index 62a52b782..2debff7bc 100644
 +$font-family-sans-serif: "Open Sans", sans-serif !default;
 +$body-color: #333 !default;
 +$presentation-heading-font: "Quicksand", sans-serif !default;
-+$presentation-heading-color: #333 !default;
++$presentation-heading-color: $body-color !default;
 +$presentation-heading-letter-spacing: -0.08em !default;
 +$presentation-heading-text-shadow: none !default;
 +$body-bg: #f7fbfc !default;

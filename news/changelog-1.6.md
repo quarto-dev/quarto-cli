@@ -2,6 +2,8 @@
 
 ## In this release
 
+- ([#12147](https://github.com/quarto-dev/quarto-cli/issues/12147)): `serif` and `simple` themes defaults back to have their heading color (`$presentation-heading-color`) to be the same as the body color (`$body-color`) as in Quarto 1.5.
+
 ## In previous releases
 
 - ([#12148](https://github.com/quarto-dev/quarto-cli/issues/12148)): Don't import libraries outside of `core/lib` into `core/lib`, to avoid pulling in Deno-specific requirements into browser environments.
