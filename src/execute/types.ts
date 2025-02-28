@@ -15,6 +15,7 @@ import { RenderOptions, RenderResultFile } from "../command/render/types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
 import { HandlerContextResults } from "../core/handlers/types.ts";
 import { ProjectContext } from "../project/types.ts";
+import { Command } from "cliffy/command/mod.ts";
 
 export const kQmdExtensions = [".qmd"];
 
@@ -61,6 +62,7 @@ export interface ExecutionEngine {
     file: RenderResultFile,
     project?: ProjectContext,
   ) => Promise<void>;
+  populateCommand?: (command: Command) => void;
 }
 
 // execution target (filename and context 'cookie')
