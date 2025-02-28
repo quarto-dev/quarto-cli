@@ -7329,7 +7329,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: true,
           description: {
             short: "Evaluate code cells (if `false` just echos the code into output).",
-            long: "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines \n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
+            long: "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative numbers to selectively include or exclude expressions \n  (explicit inclusion/exclusion of expressions is available only when using the knitr engine)\n"
           }
         },
         {
@@ -21138,7 +21138,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Book part and chapter files",
         "Book appendix files",
         "Book references file",
-        "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+        "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
         "Cover image (used in HTML and ePub formats)",
         "Alternative text for cover image (used in HTML format)",
         "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -23458,7 +23458,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Book part and chapter files",
         "Book appendix files",
         "Book references file",
-        "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+        "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
         "Cover image (used in HTML and ePub formats)",
         "Alternative text for cover image (used in HTML format)",
         "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -23810,7 +23810,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Book part and chapter files",
         "Book appendix files",
         "Book references file",
-        "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+        "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
         "Cover image (used in HTML and ePub formats)",
         "Alternative text for cover image (used in HTML format)",
         "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
