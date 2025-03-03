@@ -41,6 +41,10 @@ All changes included in 1.7:
 - ([#11835](https://github.com/quarto-dev/quarto-cli/issues/11835)): Take markdown structure into account when detecting minimum heading level.
 - ([#11903](https://github.com/quarto-dev/quarto-cli/issues/11903)): `crossref` configuration like `fig-title` or `tbl-title` now correctly supports multi word values, e.g. `fig-title: 'Supplementary Figure'`.
 - ([#11878](https://github.com/quarto-dev/quarto-cli/issues/11878), [#12085](https://github.com/quarto-dev/quarto-cli/issues/12085)): Correctly fixup raw LaTeX table having an unexpected table env with options (e.g `\begin{table}[!ht]`) to be handled as crossref table.
+- Update to Pandoc's LaTeX template following Pandoc 3.6.3 support:
+  - Improved Babel support:
+    - New `babeloptions` variable in the template to allow for more flexible Babel options.
+    - `doc-class.tex` Quarto's partial has been updated as Babel options have been moved to `documentclass` definition in `doc-class.tex` Quarto's partial.
 
 ## `typst` format
 
