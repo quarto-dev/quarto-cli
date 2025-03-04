@@ -44,6 +44,10 @@ All changes included in 1.7:
 - ([#11903](https://github.com/quarto-dev/quarto-cli/issues/11903)): `crossref` configuration like `fig-title` or `tbl-title` now correctly supports multi word values, e.g. `fig-title: 'Supplementary Figure'`.
 - ([#11878](https://github.com/quarto-dev/quarto-cli/issues/11878), [#12085](https://github.com/quarto-dev/quarto-cli/issues/12085)): Correctly fixup raw LaTeX table having an unexpected table env with options (e.g `\begin{table}[!ht]`) to be handled as crossref table.
 
+### Quarto PDF engine
+
+- ([#12194](https://github.com/quarto-dev/quarto-cli/issues/12194)): More specific checks added in log parsing to automatically find missing fonts.
+
 ## `typst` format
 
 - ([#11578](https://github.com/quarto-dev/quarto-cli/issues/11578)): Typst column layout widths use fractional `fr` units instead of percent `%` units for unitless and default widths in order to fill the enclosing block and not spill outside it.

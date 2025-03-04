@@ -209,8 +209,11 @@ function findMissingFonts(dir: string): string[] {
 }
 
 const formatFontFilter = (match: string, _text: string) => {
-  const base = basename(match);
-  return fontSearchTerm(base);
+  // Remove special prefix / suffix e.g. 'file:HaranoAjiMincho-Regular.otf:-kern;jfm=ujis'
+  // https://github.com/quarto-dev/quarto-cli/issues/12194
+  const base = basename(match).replace(/^.*?:|:.*$/g, "");
+  // return found file directly if it has an extension
+  return /[.]/.test(base) ? base : fontSearchTerm(base);
 };
 
 const estoPdfFilter = (_match: string, _text: string) => {
@@ -232,19 +235,18 @@ const packageMatchers = [
     filter: formatFontFilter,
   },
   {
-    regex: /.*Package widetext error: Install the ([^ ]+) package.*/g,
-    filter: (match: string, _text: string) => {
-      return `${match}.sty`;
-    },
-  },
-  {
     regex: /.*Unable to find TFM file "([^"]+)".*/g,
     filter: formatFontFilter,
   },
   {
-    regex:
-      /.*! Package fontspec Error:\s+\(fontspec\)\s+The font "([^"]+)" cannot be\s+\(fontspec\)\s+found;+/g,
+    regex: /.*\(fontspec\)\s+The font "([^"]+)" cannot be.*/g,
     filter: formatFontFilter,
+  },
+  {
+    regex: /.*Package widetext error: Install the ([^ ]+) package.*/g,
+    filter: (match: string, _text: string) => {
+      return `${match}.sty`;
+    },
   },
   { regex: /.* File `(.+eps-converted-to.pdf)'.*/g, filter: estoPdfFilter },
   { regex: /.*xdvipdfmx:fatal: pdf_ref_obj.*/g, filter: estoPdfFilter },
@@ -303,7 +305,7 @@ function findMissingPackages(logFileText: string): string[] {
     packageMatcher.regex.lastIndex = 0;
   });
 
-  // dedpulicated list of packages to attempt to install
+  // dedulicated list of packages to attempt to install
   return ld.uniq(toInstall);
 }
 
