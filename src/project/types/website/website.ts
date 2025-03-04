@@ -90,6 +90,7 @@ import { kFieldCategories } from "./listing/website-listing-shared.ts";
 import { pandocNativeStr } from "../../../core/pandoc/codegen.ts";
 import { asArray } from "../../../core/array.ts";
 import { canonicalizeTitlePostprocessor } from "../../../format/html/format-html-title.ts";
+import { getFavicon } from "../../../core/brand/brand.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -178,7 +179,13 @@ export const websiteProjectType: ProjectType = {
     }
 
     // dependency for favicon if we have one
-    const favicon = websiteConfigString(kSiteFavicon, project.config);
+    let favicon = websiteConfigString(kSiteFavicon, project.config);
+    if (!favicon) {
+      const brand = await project.resolveBrand();
+      if (brand) {
+        favicon = getFavicon(brand);
+      }
+    }
     if (favicon) {
       const offset = projectOffset(project, source);
       extras.html = extras.html || {};

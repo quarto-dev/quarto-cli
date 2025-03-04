@@ -19,7 +19,7 @@
 $font-family-sans-serif: "Lato", sans-serif !default;
 $body-color: #000 !default;
 $presentation-heading-font: "News Cycle", sans-serif !default;
-$presentation-heading-color: #000 !default;
+$presentation-heading-color: $body-color !default;
 $presentation-heading-text-shadow: none !default;
 $presentation-heading-text-transform: none !default;
 $body-bg: #fff !default;

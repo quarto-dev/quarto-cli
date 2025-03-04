@@ -1,0 +1,44 @@
+---
+title: Raw LaTeX table with not `tbl` in label id
+format: pdf
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['[\s\S]+\\begin\{table\}\[htbp\][\s\S]+', '[\s\S]+\\caption\{\\label\{mod\}']
+        - []
+      printsMessage:
+        - INFO
+        - 'WARNING(.*)Raw LaTeX table found with non-tbl label:' 
+---
+
+This document has a raw LaTeX table with no intent to use quarto crossref. It uses a label with `tbl-` id.
+
+Table will be identified by floatreftarget processing but raw TeX should be left untouched in the output, while a warning still is emitted. 
+
+```{=latex}
+\begin{table}[htbp]
+   \caption{\label{mod} no title}
+   \centering
+   \begin{tabular}{lc}
+      \tabularnewline \midrule \midrule
+      Dependent Variable: & disp\\  
+      Model:              & (1)\\  
+      \midrule
+      \emph{Variables}\\
+      Constant            & 580.9$^{***}$\\   
+                          & (41.74)\\   
+      mpg                 & -17.43$^{***}$\\   
+                          & (1.993)\\   
+      \midrule
+      \emph{Fit statistics}\\
+      Observations        & 32\\  
+      R$^2$               & 0.71834\\  
+      Adjusted R$^2$      & 0.70895\\  
+      \midrule \midrule
+      \multicolumn{2}{l}{\emph{IID standard-errors in parentheses}}\\
+      \multicolumn{2}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
+   \end{tabular}
+\end{table}
+```
