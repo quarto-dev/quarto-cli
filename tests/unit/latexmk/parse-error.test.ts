@@ -16,7 +16,7 @@ function fontSearchTerm(font: string): string {
 function assertFound(logText: string, expected: string, file?: string) {
   assert(
     findMissingFontsAndPackages(logText, ".")[0] === expected,
-    `Expected \`${expected}\` in ${file ?? logText} but not found.`
+    `Expected \`${expected}\` in \"${file ?? logText}\" but not found.`
   )
 }
 
@@ -28,7 +28,7 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
   // fonts
   assertFound("! Font U/psy/m/n/10=psyr at 10.0pt not loadable: Metric (TFM) file not found", fontSearchTerm("psyr"));
   assertFound('! The font "FandolSong-Regular" cannot be found.', fontSearchTerm("FandolSong-Regular"));
-  assertFound('! Package fontspec Error: The font "Caladea" cannot be found.', fontSearchTerm("caladea"));
+  assertFound('! Package fontspec Error: The font "Caladea" cannot be found.', fontSearchTerm("Caladea"));
   assertFound('!pdfTeX error: /usr/local/bin/pdflatex (file tcrm0700): Font tcrm0700 at 600 not found', fontSearchTerm("tcrm0700"))
   assertFound('(fontspec)                The font "LibertinusSerif-Regular" cannot be', fontSearchTerm("LibertinusSerif-Regular"));
   assertFound('! Font \\JY3/mc/m/n/10=file:HaranoAjiMincho-Regular.otf:-kern;jfm=ujis at 9.24713pt not loadable: metric data not found or bad.', "HaranoAjiMincho-Regular.otf");
