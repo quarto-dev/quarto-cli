@@ -133,20 +133,26 @@ export const noErrorsOrWarnings: Verify = {
   },
 };
 
-export const printsMessage = (
-  level: "DEBUG" | "INFO" | "WARN" | "ERROR",
-  regex: RegExp | string,
-): Verify => {
+export const printsMessage = (options: {
+  level: "DEBUG" | "INFO" | "WARN" | "ERROR";
+  regex: string | RegExp;
+  negate?: boolean;
+}): Verify => {
+  const { level, regex: regexPattern, negate = false } = options;  // Set default here
   return {
-    name: `${level} matches ${String(regex)}`,
+    name: `${level} matches ${String(regexPattern)}`,
     verify: (outputs: ExecuteOutput[]) => {
-      if (typeof regex === "string") {
-        regex = new RegExp(regex);
-      }
+      const regex = typeof regexPattern === "string" 
+      ? new RegExp(regexPattern) 
+      : regexPattern;
+
       const printedMessage = outputs.some((output) => {
         return output.levelName === level && output.msg.match(regex);
       });
-      assert(printedMessage, `Missing ${level} ${String(regex)}`);
+      assert(
+        negate ? !printedMessage : printedMessage, 
+        `${negate ? "Found" : "Missing"} ${level} ${String(regex)}`
+      );
       return Promise.resolve();
     },
   };
