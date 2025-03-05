@@ -13,6 +13,7 @@ All changes included in 1.7:
 ## YAML validation
 
 - ([#11654](https://github.com/quarto-dev/quarto-cli/issues/11654)): Allow `page-inset` as value in `column` key for code cells.
+- ([#10251](https://github.com/quarto-dev/quarto-cli/issues/10251)): EJS template for website now uses proper object to get alt text for logo in sidebar.
 - ([#12151](https://github.com/quarto-dev/quarto-cli/issues/12151)): Fix YAML validation in computations cell on Windows.
 - ([#12151](https://github.com/quarto-dev/quarto-cli/pull/12151)): Basic YAML validation is now active in cell for document using Julia engine.
 
