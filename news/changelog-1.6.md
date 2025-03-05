@@ -3,6 +3,7 @@
 ## In this release
 
 - ([#12147](https://github.com/quarto-dev/quarto-cli/issues/12147)): `serif` and `simple` themes defaults back to have their heading color (`$presentation-heading-color`) to be the same as the body color (`$body-color`) as in Quarto 1.5.
+- ([#11659](https://github.com/quarto-dev/quarto-cli/pull/11659)): Julia engine: Fix escaping bug where paths containing spaces or backslashes break server startup on Windows.
 
 ## In previous releases
 
