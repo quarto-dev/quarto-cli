@@ -9,6 +9,7 @@ All changes included in 1.7:
 - ([#11752](https://github.com/quarto-dev/quarto-cli/issues/11752)): Fix regression with non-alphanumeric characters in `categories` preventing correct filtering of listing.
 - ([#11561](https://github.com/quarto-dev/quarto-cli/issues/11561)): Fix a regression with `$border-color` that impacted, callouts borders, tabset borders, and table borders of the defaults themes. `$border-color` is now correctly a mixed of `$body-color` and `$body-bg` even for the default theme.
 - ([#11943](https://github.com/quarto-dev/quarto-cli/issues/11943)): Fix callout title color on dark theme in revealjs following Revealjs update in quarto 1.6.
+- ([#12147](https://github.com/quarto-dev/quarto-cli/issues/12147)): for RevealJS format, `serif` and `simple` themes defaults back to have their heading color (`$presentation-heading-color`) to be the same as the body color (`$body-color`) as in Quarto 1.5.
 
 ## YAML validation
 
@@ -55,10 +56,6 @@ All changes included in 1.7:
 - ([#11676](https://github.com/quarto-dev/quarto-cli/pull/11676)): Convert unitless image widths from pixels to inches for column layouts.
 - ([#11835](https://github.com/quarto-dev/quarto-cli/issues/11835)): Take markdown structure into account when detecting minimum heading level.
 - ([#11964](https://github.com/quarto-dev/quarto-cli/issues/11964)): Using panel layout without a crossref label now correctly do not add an empty `#block[]` that was leading to an unnecessary space in output.
-
-## `revealjs` format
-
-- ([#12147](https://github.com/quarto-dev/quarto-cli/issues/12147)): `serif` and `simple` themes defaults back to have their heading color (`$presentation-heading-color`) to be the same as the body color (`$body-color`) as in Quarto 1.5.
 
 ## Interactive Shiny Document
 
