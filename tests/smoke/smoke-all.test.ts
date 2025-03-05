@@ -325,7 +325,7 @@ Promise.all(testFilesPromises).then(() => {
   for (const project of testedProjects) {
     // Clean project output directory
     const projectOutDir = join(project, findProjectOutputDir(project));
-    if (safeExistsSync(projectOutDir)) {
+    if (projectOutDir !== project && safeExistsSync(projectOutDir)) {
       safeRemoveSync(projectOutDir, { recursive: true });
     }
     // Clean hidden .quarto directory
