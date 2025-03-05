@@ -41,7 +41,7 @@ test({
   verify: [
     folderExists(cacheFolder),
     // this will check only for the second render that should be read from cache
-    printsMessage("INFO", /Notebook read from cache/)
+    printsMessage({ level: "INFO", regex: /Notebook read from cache/})
   ],
   type: "smoke",
 });
@@ -82,7 +82,7 @@ test({
   verify: [
     folderExists(cacheFolder2),
     // this will check only for the second render that should be read from cache
-    printsMessage("INFO", /Notebook read from cache/)
+    printsMessage({level: "INFO", regex: /Notebook read from cache/})
   ],
   type: "smoke",
 });

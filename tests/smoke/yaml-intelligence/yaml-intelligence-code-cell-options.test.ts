@@ -8,7 +8,7 @@ const testYamlValidationFails = (file: string) => {
   testQuartoCmd(
     "render",
     [yamlDocs(file, "html").input, "--to", "html", "--quiet"],
-    [printsMessage("ERROR", /Validation of YAML cell metadata failed/)],
+    [printsMessage({level: "ERROR", regex: /Validation of YAML cell metadata failed/})],
   );
 };
 
