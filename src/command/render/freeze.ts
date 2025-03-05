@@ -53,18 +53,23 @@ export function freezeExecuteResult(
   result: ExecuteResult,
 ) {
   // resolve includes within executeResult
+  // nb: Beware to not modify the original result object
   const innerResult = {
     ...result,
+    includes: result.includes ? { ...result.includes } : undefined,
+    supporting: [...result.supporting],
   } as ExecuteResult;
   const resolveIncludes = (
     name: "include-in-header" | "include-before-body" | "include-after-body",
   ) => {
     if (innerResult.includes) {
       if (innerResult.includes[name]) {
-        innerResult.includes[name] = innerResult.includes[name]!.map((file) =>
-          // Storing file content using LF line ending
-          format(Deno.readTextFileSync(file), LF)
-        );
+        innerResult.includes[name] = [
+          ...innerResult.includes[name]!.map((file) =>
+            // Storing file content using LF line ending
+            format(Deno.readTextFileSync(file), LF)
+          ),
+        ];
       }
     }
   };
