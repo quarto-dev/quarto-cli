@@ -8,8 +8,8 @@ _quarto:
     html:
       noErrors: true
       printsMessage:
-        - WARN
-        - 'code-link.*ignored'
+        level: WARN
+        regex: 'code-link.*ignored'
       ensureHtmlElements:
         - []
         - ['pre.downlit']
