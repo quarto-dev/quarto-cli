@@ -367,9 +367,7 @@ $for(bibliography)$
 $endfor$
 $endif$
 $endif$
-$if(nocite-ids)$
-\nocite{$for(nocite-ids)$$it$$sep$, $endfor$}
-$endif$
+
 $if(csquotes)$
 \usepackage{csquotes}
 $endif$
@@ -439,6 +437,9 @@ $before-bib.tex()$
 
 $if(has-frontmatter)$
 \backmatter
+$endif$
+$if(nocite-ids)$
+\nocite{$for(nocite-ids)$$it$$sep$, $endfor$}
 $endif$
 $biblio.tex()$
 
