@@ -12,8 +12,8 @@ testQuartoCmd(
   ["list"],
   [
     noErrorsOrWarnings,
-    printsMessage("INFO", /tinytex\s+/),
-    // printsMessage("INFO", /chromium\s+/),
+    printsMessage({level: "INFO", regex: /tinytex\s+/}),
+    // printsMessage({level: "INFO", regex: /chromium\s+/}),
     // temporarily disabled until we get puppeteer back
   ],
 );

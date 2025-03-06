@@ -53,8 +53,10 @@ export function freezeExecuteResult(
   result: ExecuteResult,
 ) {
   // resolve includes within executeResult
+  // nb: Beware to not modify the original result object
   const innerResult = {
     ...result,
+    includes: result.includes ? { ...result.includes } : undefined,
   } as ExecuteResult;
   const resolveIncludes = (
     name: "include-in-header" | "include-before-body" | "include-after-body",

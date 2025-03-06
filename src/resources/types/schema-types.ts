@@ -609,7 +609,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
 export type BookSchema = {
   "date-format"?: string /* Format string for dates in the book */;
   "output-file"?:
-    string /* Base name for single-file output (e.g. PDF, ePub) */;
+    string /* Base name for single-file output (e.g. PDF, ePub, docx) */;
   "cover-image"?: string /* Cover image (used in HTML and ePub formats) */;
   "cover-image-alt"?:
     string /* Alternative text for cover image (used in HTML format) */;
