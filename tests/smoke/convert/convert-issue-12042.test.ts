@@ -27,8 +27,8 @@ import { assert } from "testing/asserts";
     ],
     {
       teardown: async () => {
-        if (existsSync("docs/convert/backticks.qmd")) {
-          Deno.removeSync("docs/convert/backticks.qmd");
+        if (existsSync("docs/convert/issue-12042.qmd")) {
+          Deno.removeSync("docs/convert/issue-12042.qmd");
         }
       }
     },
