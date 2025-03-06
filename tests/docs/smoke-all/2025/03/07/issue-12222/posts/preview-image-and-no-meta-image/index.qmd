@@ -7,8 +7,8 @@ _quarto:
     html:
       ensureFileRegexMatches:
         - 
-          - '\<meta name="twitter:image" content="../../posts/post-with-code/image.jpg'
-          - '\<meta property="og:image" content="../../posts/post-with-code/image.jpg'
+          - '\<meta name="twitter:image" content="../..[/|\\]posts/post-with-code/image.jpg'
+          - '\<meta property="og:image" content="../..[/|\\]posts/post-with-code/image.jpg'
         - []
 ---
 

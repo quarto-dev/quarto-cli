@@ -9,7 +9,7 @@ _quarto:
     html:
       ensureFileRegexMatches:
         - 
-          - '\<img src="posts/post-with-code/image.jpg'
-          - '\<img src="posts/welcome/thumbnail.jpg'
+          - '\<img src="posts[/|\\]post-with-code[/|\\]image.jpg'
+          - '\<img src="posts[/|\\]welcome[/|\\]thumbnail.jpg'
         - []
 ---
