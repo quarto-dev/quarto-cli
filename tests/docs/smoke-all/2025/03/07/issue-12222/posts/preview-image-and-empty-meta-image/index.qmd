@@ -1,6 +1,6 @@
 ---
-date: '2025-03-06T14:39:55+09:00'
-title: "Yes, meta image"
+date: '2025-03-06T14:38:55+09:00'
+title: "Yes, meta image but empty"
 _quarto:
   render-project: true
   tests:
