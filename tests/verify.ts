@@ -345,31 +345,33 @@ export const ensureHtmlElements = (
 };
 
 export const ensureHtmlElementContents = (
-  file: string,
-  selectors: string[],
-  matches: (string | RegExp)[],
-  noMatches: (string | RegExp)[]
+  file: string, 
+  options : {
+    selectors: string[],
+    matches: (string | RegExp)[],
+    noMatches?: (string | RegExp)[]
+  }
 ) => {
   return {
     name: "Inspecting HTML for Selector Contents",
     verify: async (_output: ExecuteOutput[]) => {
       const htmlInput = await Deno.readTextFile(file);
       const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
-      selectors.forEach((sel) => {
+      options.selectors.forEach((sel) => {
         const el = doc.querySelector(sel);
         if (el !== null) {
           const contents = el.innerText;
-          matches.forEach((regex) => {
+          options.matches.forEach((regex) => {
             assert(
               asRegexp(regex).test(contents),
-              `Required match ${String(regex)} is missing from selector ${sel}.`,
+              `Required match ${String(regex)} is missing from selector ${sel} content: ${contents}.`,
             );
           });
 
-          noMatches.forEach((regex) => {
+          options.noMatches?.forEach((regex) => {
             assert(
               !asRegexp(regex).test(contents),
-              `Unexpected match ${String(regex)} is present from selector ${sel}.`,
+              `Unexpected match ${String(regex)} is present from selector ${sel} content: ${contents}.`,
             );
           });
   
