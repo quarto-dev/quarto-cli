@@ -34,6 +34,7 @@ import {
   ensurePptxMaxSlides,
   ensureLatexFileRegexMatches,
   printsMessage,
+  shouldError
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
@@ -134,7 +135,10 @@ function resolveTestSpecs(
         // deno-lint-ignore no-explicit-any
         const [key, value] of Object.entries(testObj as Record<string, any>)
       ) {
-        if (key === "noErrors") {
+        if (key == "shouldError") {
+          checkWarnings = false;
+          verifyFns.push(shouldError);
+        } else if (key === "noErrors") {
           checkWarnings = false;
           verifyFns.push(noErrors);
         } else {
