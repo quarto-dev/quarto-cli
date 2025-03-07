@@ -391,8 +391,21 @@ export async function runPandoc(
   // save args and metadata so we can print them (we may subsequently edit them)
   const printArgs = [...args];
   let printMetadata = {
-    ...ld.cloneDeep(options.format.metadata),
+    ...options.format.metadata,
+    crossref: {
+      ...(options.format.metadata.crossref || {}),
+    },
     ...options.flags?.metadata,
+  } as Metadata;
+
+  const cleanQuartoTestsMetadata = (metadata: Metadata) => {
+    // remove any metadata that is only used for testing
+    if (metadata["_quarto"] && typeof metadata["_quarto"] === "object") {
+      delete (metadata._quarto as { [key: string]: unknown })?.tests;
+      if (Object.keys(metadata._quarto).length === 0) {
+        delete metadata._quarto;
+      }
+    }
   };
 
   // remove some metadata that are used as parameters to our lua filters
@@ -406,6 +419,7 @@ export async function runPandoc(
     delete metadata[kRevealJsScripts];
     deleteProjectMetadata(metadata);
     deleteCrossrefMetadata(metadata);
+    removeFilterParams(metadata);
 
     // Don't print empty reveal-js plugins
     if (
@@ -414,7 +428,12 @@ export async function runPandoc(
     ) {
       delete metadata[kRevealJSPlugins];
     }
+
+    // Don't print _quarto.tests
+    // This can cause issue on regex test for printed output
+    cleanQuartoTestsMetadata(metadata);
   };
+
   cleanMetadataForPrinting(printMetadata);
 
   // Forward flags metadata into the format
@@ -536,7 +555,6 @@ export async function runPandoc(
       options.format,
       cwd,
       options.libDir,
-      options.services.temp,
       dependenciesFile,
       options.project,
     );
@@ -692,7 +710,7 @@ export async function runPandoc(
         ),
         ...extras.metadataOverride || {},
       };
-      printMetadata = mergeConfigs(extras.metadata, printMetadata);
+      printMetadata = mergeConfigs(extras.metadata || {}, printMetadata);
       cleanMetadataForPrinting(printMetadata);
     }
 
@@ -821,7 +839,9 @@ export async function runPandoc(
     }
 
     // more cleanup
-    options.format.metadata = cleanupPandocMetadata(options.format.metadata);
+    options.format.metadata = cleanupPandocMetadata({
+      ...options.format.metadata,
+    });
     printMetadata = cleanupPandocMetadata(printMetadata);
 
     if (extras[kIncludeInHeader]) {
@@ -962,9 +982,6 @@ export async function runPandoc(
 
   // filter results json file
   const filterResultsFile = options.services.temp.createFile();
-
-  // timing results json file
-  const timingResultsFile = options.services.temp.createFile();
 
   const writerKeys: ("to" | "writer")[] = ["to", "writer"];
   for (const key of writerKeys) {
@@ -1269,11 +1286,9 @@ export async function runPandoc(
   delete pandocPassedMetadata.project;
   delete pandocPassedMetadata.website;
   delete pandocPassedMetadata.about;
-  if (pandocPassedMetadata._quarto) {
-    // these shouldn't be visible because they are emitted on markdown output
-    // and it breaks ensureFileRegexMatches
-    delete pandocPassedMetadata._quarto.tests;
-  }
+  // these shouldn't be visible because they are emitted on markdown output
+  // and it breaks ensureFileRegexMatches
+  cleanQuartoTestsMetadata(pandocPassedMetadata);
 
   Deno.writeTextFileSync(
     metadataTemp,
@@ -1374,13 +1389,12 @@ export async function runPandoc(
   }
 }
 
+// this mutates metadata[kClassOption]
 function cleanupPandocMetadata(metadata: Metadata) {
-  const cleaned = ld.cloneDeep(metadata);
-
-  // pdf classoption can end up with duplicaed options
-  const classoption = cleaned[kClassOption];
+  // pdf classoption can end up with duplicated options
+  const classoption = metadata[kClassOption];
   if (Array.isArray(classoption)) {
-    cleaned[kClassOption] = ld.uniqBy(
+    metadata[kClassOption] = ld.uniqBy(
       classoption.reverse(),
       (option: string) => {
         return option.replace(/=.+$/, "");
@@ -1388,7 +1402,7 @@ function cleanupPandocMetadata(metadata: Metadata) {
     ).reverse();
   }
 
-  return cleaned;
+  return metadata;
 }
 
 async function resolveExtras(
@@ -1397,7 +1411,6 @@ async function resolveExtras(
   format: Format,
   inputDir: string,
   libDir: string,
-  temp: TempContext,
   dependenciesFile: string,
   project: ProjectContext,
 ) {
@@ -1415,7 +1428,6 @@ async function resolveExtras(
       inputDir,
       extras,
       format,
-      temp,
       project,
     );
 
@@ -1670,8 +1682,6 @@ function runPandocMessage(
     const printMetadata = ld.cloneDeep(metadata) as Metadata;
     delete printMetadata.format;
 
-    // remove filter params
-    removeFilterParams(printMetadata);
     // print message
     if (Object.keys(printMetadata).length > 0) {
       info("metadata", { bold: true });
@@ -1693,7 +1703,10 @@ function resolveTextHighlightStyle(
   extras: FormatExtras,
   pandoc: FormatPandoc,
 ): FormatExtras {
-  extras = ld.cloneDeep(extras);
+  extras = {
+    ...extras,
+    pandoc: extras.pandoc ? { ...extras.pandoc } : {},
+  } as FormatExtras;
 
   // Get the user selected theme or choose a default
   const highlightTheme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;

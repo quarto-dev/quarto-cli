@@ -150,8 +150,10 @@ export const jupyterEngine: ExecutionEngine = {
       isJupyterPercentScript(file);
   },
 
-  claimsLanguage: (_language: string) => {
-    return false;
+  claimsLanguage: (language: string) => {
+    // jupyter has to claim julia so that julia may also claim it without changing the old behavior
+    // of preferring jupyter over julia engine by default
+    return language.toLowerCase() === "julia";
   },
 
   markdownForFile(file: string): Promise<MappedString> {
@@ -243,7 +245,15 @@ export const jupyterEngine: ExecutionEngine = {
       isServerShinyPython(format, kJupyterEngine) &&
       format.render[kKeepHidden] !== true
     ) {
-      format = ld.cloneDeep(format);
+      format = {
+        ...format,
+        render: {
+          ...format.render,
+        },
+        metadata: {
+          ...format.metadata,
+        },
+      };
       format.render[kKeepHidden] = true;
       format.metadata[kRemoveHidden] = "all";
     }
@@ -507,8 +517,7 @@ export const jupyterEngine: ExecutionEngine = {
     ];
     if (options.reload) {
       cmd.push("--reload");
-      cmd.push(`--reload-includes`);
-      cmd.push(`*.py`);
+      cmd.push(`--reload-includes=*.py`);
     }
 
     // start server

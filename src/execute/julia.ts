@@ -3,6 +3,7 @@ import { join } from "../deno_ral/path.ts";
 import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { readYamlFromMarkdown } from "../core/yaml.ts";
+import { asMappedString } from "../core/lib/mapped-text.ts";
 import { ProjectContext } from "../project/types.ts";
 import {
   DependenciesOptions,
@@ -47,9 +48,17 @@ import {
 } from "./jupyter/jupyter.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 import { Command } from "cliffy/command/mod.ts";
+import {
+  isJupyterPercentScript,
+  markdownFromJupyterPercentScript,
+} from "./jupyter/percent.ts";
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
   oneShot: boolean; // if true, the file's worker process is closed before and after running
+}
+
+function isJuliaPercentScript(file: string) {
+  return isJupyterPercentScript(file, [".jl"]);
 }
 
 export const juliaEngine: ExecutionEngine = {
@@ -67,12 +76,12 @@ export const juliaEngine: ExecutionEngine = {
 
   validExtensions: () => [],
 
-  claimsFile: (file: string, ext: string) => false,
+  claimsFile: (file: string, _ext: string) => {
+    return isJuliaPercentScript(file);
+  },
 
   claimsLanguage: (language: string) => {
-    // we don't claim `julia` so the old behavior of using the jupyter
-    // backend by default stays intact
-    return false; // language.toLowerCase() === "julia";
+    return language.toLowerCase() === "julia";
   },
 
   partitionedMarkdown: async (file: string) => {
@@ -108,7 +117,13 @@ export const juliaEngine: ExecutionEngine = {
   },
 
   markdownForFile(file: string): Promise<MappedString> {
-    return Promise.resolve(mappedStringFromFile(file));
+    if (isJuliaPercentScript(file)) {
+      return Promise.resolve(
+        asMappedString(markdownFromJupyterPercentScript(file)),
+      );
+    } else {
+      return Promise.resolve(mappedStringFromFile(file));
+    }
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {

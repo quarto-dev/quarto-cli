@@ -1,0 +1,25 @@
+---
+title: No empty preamble in layout panel
+format: 
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - [] 
+        - ['<div>\s*</div>\s*<div class="quarto-layout-panel"']
+    typst:
+      ensureTypstFileRegexMatches:
+        - []
+        - ['#block\[\s*\]']
+---
+
+:::{layout-ncol=2}
+
+Test 1
+
+Test 2
+
+:::

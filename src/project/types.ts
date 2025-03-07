@@ -21,6 +21,9 @@ import {
   ProjectConfig as ProjectConfig_Project,
 } from "../resources/types/schema-types.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
+import { ProjectCache } from "../core/cache/cache-types.ts";
+import { TempContext } from "../core/temp-types.ts";
+
 export {
   type NavigationItem as NavItem,
   type NavigationItemObject,
@@ -110,6 +113,11 @@ export interface ProjectContext {
   environment: () => Promise<ProjectEnvironment>;
 
   isSingleFile: boolean;
+
+  diskCache: ProjectCache;
+  temp: TempContext;
+
+  cleanup: () => void;
 }
 
 export interface ProjectFiles {

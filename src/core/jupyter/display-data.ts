@@ -123,8 +123,13 @@ export function displayDataWithMarkdownMath(output: JupyterOutputDisplayData) {
   if (Array.isArray(output.data[kTextLatex]) && !output.data[kTextMarkdown]) {
     const latex = output.data[kTextLatex] as string[];
     if (displayDataLatexIsMath(latex)) {
-      output = ld.cloneDeep(output);
-      output.data[kTextMarkdown] = output.data[kTextLatex];
+      output = {
+        ...output,
+        data: {
+          ...output.data,
+          [kTextMarkdown]: latex,
+        },
+      };
       return output;
     }
   }

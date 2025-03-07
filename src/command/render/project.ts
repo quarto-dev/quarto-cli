@@ -144,7 +144,7 @@ const computeProjectRenderConfig = async (
 
   // force execution for any incremental files (unless options.useFreezer is set)
   let alwaysExecuteFiles = incremental && !inputs.options.useFreezer
-    ? ld.cloneDeep(inputs.files) as string[]
+    ? [...(inputs.files!)]
     : undefined;
 
   // file normaliation

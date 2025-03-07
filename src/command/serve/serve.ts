@@ -48,7 +48,7 @@ export async function serve(options: RunOptions): Promise<ProcessResult> {
   const { host, port } = await resolveHostAndPort(options);
   const nbContext = notebookContext();
   const project = (await projectContext(options.input, nbContext)) ||
-    singleFileProjectContext(options.input, nbContext);
+    (await singleFileProjectContext(options.input, nbContext));
 
   const engine = await fileExecutionEngine(options.input, undefined, project);
   if (engine?.run) {

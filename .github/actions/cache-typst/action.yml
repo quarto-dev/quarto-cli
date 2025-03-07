@@ -9,7 +9,7 @@ outputs:
     value: ${{ steps.cache-typst-restore.outputs.cache-primary-key }}
   cache-matched-key:
     description: "Key of the cache found and used."
-    value: ${{ steps.cache-typst-restore.outputs.cache-primary-key }}
+    value: ${{ steps.cache-typst-restore.outputs.cache-matched-key }}
   cache-path:
     description: "where is the packages cache for typst ?"
     value: ${{ steps.cache-typst-path.outputs.TYPST_CACHE }}
@@ -22,20 +22,21 @@ runs:
       run: |
         case $RUNNER_OS in
           "Linux")
-              echo "TYPST_CACHE=${XDG_CACHE_HOME:-~/.cache}/typst/packages/" >> $GITHUB_ENV
+              typst_cache="${XDG_CACHE_HOME:-~/.cache}/typst/packages/"
               ;;
           "macOS")
-              echo "TYPST_CACHE=~/Library/Caches/typst/packages/" >> $GITHUB_ENV
+              typst_cache="~/Library/Caches/typst/packages/"
               ;;
           "Windows")
-              echo "TYPST_CACHE=$LOCALAPPDATA/typst/packages/" >> $GITHUB_ENV
+              typst_cache="$LOCALAPPDATA/typst/packages/"
               ;;
             *)
               echo "$RUNNER_OS not supported"
               exit 1
               ;;
         esac
-        echo "TYPST_CACHE=${TYPST_CACHE}" >> $GITHUB_OUTPUT
+        echo "TYPST_CACHE=${typst_cache}" >> $GITHUB_ENV
+        echo "TYPST_CACHE=${typst_cache}" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Cache Typst package folder

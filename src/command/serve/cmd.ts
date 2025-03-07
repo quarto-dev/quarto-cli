@@ -69,7 +69,7 @@ export const serveCommand = new Command()
 
     const nbContext = notebookContext();
     const context = (await projectContext(input, nbContext)) ||
-      singleFileProjectContext(input, nbContext);
+      (await singleFileProjectContext(input, nbContext));
     const formats = await withRenderServices(
       nbContext,
       (services: RenderServices) =>
