@@ -34,6 +34,7 @@ import {
   ensurePptxMaxSlides,
   ensureLatexFileRegexMatches,
   printsMessage,
+  shouldError
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
@@ -91,6 +92,20 @@ interface QuartoInlineTestSpec {
   verifyFns: Verify[];
 }
 
+// Functions to cleanup leftover testing
+const postRenderCleanupFiles: string[] = [];
+function registerPostRenderCleanupFile(file: string): void {
+  postRenderCleanupFiles.push(file);
+}
+const postRenderCleanup = () => {
+  for (const file of postRenderCleanupFiles) {
+    console.log(`Cleaning up ${file} in ${Deno.cwd()}`);
+    if (safeExistsSync(file)) {
+      Deno.removeSync(file);
+    }
+  }
+}
+
 function resolveTestSpecs(
   input: string,
   // deno-lint-ignore no-explicit-any
@@ -126,7 +141,23 @@ function resolveTestSpecs(
         // deno-lint-ignore no-explicit-any
         const [key, value] of Object.entries(testObj as Record<string, any>)
       ) {
-        if (key === "noErrors") {
+        if (key == "postRenderCleanup") {
+          // This is a special key to register cleanup operations
+          // each entry is a file to cleanup relative to the input file
+          for (let file of value) {
+            // if value has `${input_stem}` in the string, replace by input_stem value (input file name without extension)
+            if (file.includes("${input_stem}")) {
+              const extension = input.endsWith('.qmd') ? '.qmd' : '.ipynb';
+              const inputStem = basename(input, extension);
+              file = file.replace("${input_stem}", inputStem);
+            }
+            // file is registered for cleanup in testQuartoCmd teardown step
+            registerPostRenderCleanupFile(join(dirname(input), file));
+          }
+        } else if (key == "shouldError") {
+          checkWarnings = false;
+          verifyFns.push(shouldError);
+        } else if (key === "noErrors") {
           checkWarnings = false;
           verifyFns.push(noErrors);
         } else {
@@ -172,7 +203,9 @@ function resolveTestSpecs(
                 throw new Error(`Using ensureLatexFileRegexMatches requires setting 'keep-tex: true' in file ${input}`);
               }
             }
-            if (typeof value === "object") {
+            
+            if (typeof value === "object" && Array.isArray(value)) {
+              // Only use spread operator for arrays
               verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
             } else {
               verifyFns.push(verifyMap[key](outputFile.outputPath, value));
@@ -294,6 +327,7 @@ for (const { path: fileName } of files) {
                 },
                 teardown: () => {
                   cleanoutput(input, format, undefined, undefined, metadata);
+                  postRenderCleanup()
                   testSpecResolve(); // Resolve the promise for the testSpec
                   return Promise.resolve();
                 },
