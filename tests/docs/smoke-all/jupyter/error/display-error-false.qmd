@@ -5,6 +5,8 @@ _quarto:
   tests:
     html:
       shouldError: default
+      postRenderCleanup:
+        - '${input_stem}.quarto_ipynb'
 ---
 
 With default setting, this document should error at rendering because of Exception at IPython.display level. 

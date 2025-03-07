@@ -100,6 +100,20 @@ interface QuartoInlineTestSpec {
   verifyFns: Verify[];
 }
 
+// Functions to cleanup leftover testing
+const postRenderCleanupFiles: string[] = [];
+function registerPostRenderCleanupFile(file: string): void {
+  postRenderCleanupFiles.push(file);
+}
+const postRenderCleanup = () => {
+  for (const file of postRenderCleanupFiles) {
+    console.log(`Cleaning up ${file} in ${Deno.cwd()}`);
+    if (safeExistsSync(file)) {
+      Deno.removeSync(file);
+    }
+  }
+}
+
 function resolveTestSpecs(
   input: string,
   // deno-lint-ignore no-explicit-any
@@ -135,7 +149,20 @@ function resolveTestSpecs(
         // deno-lint-ignore no-explicit-any
         const [key, value] of Object.entries(testObj as Record<string, any>)
       ) {
-        if (key == "shouldError") {
+        if (key == "postRenderCleanup") {
+          // This is a special key to register cleanup operations
+          // each entry is a file to cleanup relative to the input file
+          for (let file of value) {
+            // if value has `${input_stem}` in the string, replace by input_stem value (input file name without extension)
+            if (file.includes("${input_stem}")) {
+              const extension = input.endsWith('.qmd') ? '.qmd' : '.ipynb';
+              const inputStem = basename(input, extension);
+              file = file.replace("${input_stem}", inputStem);
+            }
+            // file is registered for cleanup in testQuartoCmd teardown step
+            registerPostRenderCleanupFile(join(dirname(input), file));
+          }
+        } else if (key == "shouldError") {
           checkWarnings = false;
           verifyFns.push(shouldError);
         } else if (key === "noErrors") {
@@ -306,6 +333,7 @@ for (const { path: fileName } of files) {
                 },
                 teardown: () => {
                   cleanoutput(input, format, undefined, undefined, metadata);
+                  postRenderCleanup()
                   testSpecResolve(); // Resolve the promise for the testSpec
                   return Promise.resolve();
                 },
