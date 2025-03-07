@@ -652,7 +652,7 @@ type ServerCommand =
   | { type: "isopen"; content: { file: string } }
   | { type: "stop"; content: empty }
   | { type: "isready"; content: empty }
-  | { type: "workers"; content: empty };
+  | { type: "status"; content: empty };
 
 async function writeJuliaCommand(
   conn: Deno.Conn,
@@ -829,13 +829,6 @@ function populateJuliaEngineCommand(command: Command) {
   return;
 }
 
-type WorkerStatus = {
-  path: string;
-  run_started?: string;
-  run_finished?: string;
-  timeout: number;
-};
-
 async function logStatus() {
   const transportFile = juliaTransportFile();
   if (!existsSync(transportFile)) {
@@ -850,103 +843,19 @@ async function logStatus() {
   );
   const successfullyConnected = typeof conn !== "string";
 
-  info(
-    `Julia server is${successfullyConnected ? "" : " not"} responding.
-  port: ${transportOptions.port}
-  pid: ${transportOptions.pid}
-  julia version: ${transportOptions.juliaVersion}
-  environment: ${transportOptions.environment}
-  runner version: ${transportOptions.runnerVersion}`,
-  );
-
   if (successfullyConnected) {
-    const workers = await writeJuliaCommand(
+    const status: string = await writeJuliaCommand(
       conn,
-      { type: "workers", content: {} },
+      { type: "status", content: {} },
       transportOptions.key,
       {} as JuliaExecuteOptions,
-    ) as WorkerStatus[];
-    info(`  workers active: ${workers.length}`);
-    workers.forEach((worker, index) => {
-      const runStarted = !worker.run_started
-        ? undefined
-        : new Date(worker.run_started);
-      const runFinished = !worker.run_finished
-        ? undefined
-        : new Date(worker.run_finished);
+    );
 
-      const secondsSinceStarted = runStarted !== undefined
-        ? (Date.now() - runStarted.getTime()) / 1000
-        : undefined;
-      const runDurationSeconds =
-        runStarted !== undefined && runFinished !== undefined
-          ? (runFinished.getTime() - runStarted.getTime()) / 1000
-          : undefined;
-      const secondsSinceFinished = runFinished !== undefined
-        ? (Date.now() - runFinished.getTime()) / 1000
-        : undefined;
-      const timeUntilTimeout =
-        worker.timeout > 0 && secondsSinceFinished !== undefined
-          ? worker.timeout - secondsSinceFinished
-          : undefined;
+    Deno.stdout.writeSync((new TextEncoder()).encode(status));
 
-      info(
-        `    worker ${index + 1}:
-      path: ${worker.path}      
-      run started: ${runStarted ? simpleDateTimeString(runStarted) : "-"}${
-          secondsSinceStarted
-            ? ` (${formatSeconds(secondsSinceStarted)} ago)`
-            : ""
-        }    
-      run finished: ${runFinished ? simpleDateTimeString(runFinished) : "-"}${
-          runDurationSeconds
-            ? ` (took ${formatSeconds(runDurationSeconds)})`
-            : ""
-        }    
-      timeout: ${worker.timeout} seconds ${
-          timeUntilTimeout ? `(${formatSeconds(timeUntilTimeout)} left)` : ""
-        }
-`,
-      );
-    });
     conn.close();
-  }
-}
-
-function isSameDay(date1: Date, date2: Date): boolean {
-  return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  );
-}
-
-function simpleDateTimeString(date: Date) {
-  const now = new Date();
-  return isSameDay(date, now)
-    ? date.toLocaleTimeString()
-    : `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
-}
-
-function formatSeconds(seconds: number): string {
-  seconds = Math.round(seconds);
-  if (seconds < 60) {
-    const s = seconds == 1 ? "" : "s";
-    return `${seconds} second${s}`;
-  } else if (seconds < 3600) {
-    const rem_seconds = seconds % 60;
-    const full_minutes = (seconds - rem_seconds) / 60;
-    const s = full_minutes == 1 ? "" : "s";
-    const seconds_str = rem_seconds == 0
-      ? ""
-      : ` ${formatSeconds(rem_seconds)}`;
-    return `${full_minutes} minute${s}${seconds_str}`;
   } else {
-    const rem_seconds = seconds % 3600;
-    const full_hours = (seconds - rem_seconds) / 3600;
-    const s = full_hours == 1 ? "" : "s";
-    const minutes_str = rem_seconds == 0 ? "" : ` formatSeconds(rem_seconds)`;
-    return `${full_hours} hour${s}${minutes_str}`;
+    info(`Found transport file but can't connect to control server.`);
   }
 }
 
