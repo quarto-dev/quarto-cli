@@ -553,6 +553,26 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
          if len(cell["metadata"]["tags"]) == 0:
             del cell["metadata"]["tags"]
 
+      # Check for display errors in output (respecting both global and cell settings)
+      cell_allows_errors = client.allow_errors or allow_errors
+      if not cell_allows_errors:
+         for output in cell.outputs:
+            if output.get('output_type') == 'error':
+               trace("Uncaught error found in output")
+               from nbclient.exceptions import CellExecutionError
+               error_name = output.get('ename', 'Error')
+               error_value = output.get('evalue', '')
+               traceback = output.get('traceback', [])
+               # Use same error raising mechanism as nbclient
+               raise CellExecutionError.from_cell_and_msg(
+                  cell,
+                  {
+                     'ename': error_name,
+                     'evalue': error_value,
+                     'traceback': traceback
+                  }
+               )
+
    # return cell
    return cell
    
