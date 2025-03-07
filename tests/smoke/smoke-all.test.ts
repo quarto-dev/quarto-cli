@@ -211,7 +211,9 @@ function resolveTestSpecs(
                 throw new Error(`Using ensureLatexFileRegexMatches requires setting 'keep-tex: true' in file ${input}`);
               }
             }
-            if (typeof value === "object") {
+            
+            if (typeof value === "object" && Array.isArray(value)) {
+              // Only use spread operator for arrays
               verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
             } else {
               verifyFns.push(verifyMap[key](outputFile.outputPath, value));
