@@ -7,8 +7,8 @@ _quarto:
     pdf:
       noErrors: true 
       printsMessage:
-        - WARN
-        - 'missing hyphenation.*hyphen-spanish'
+        level: WARN
+        regex: 'missing hyphenation.*hyphen-spanish'
 ---
 
 ```{r}

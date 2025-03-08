@@ -36,7 +36,7 @@ testQuartoCmd(
 
 
 
-// Tests that if the pre-renderf script mutates the output directory
+// Tests that if the pre-render script mutates the output directory
 // we throw an error that complains about this.
 const mutateRenderDir = docs("project/prepost/invalid-mutate");
 const mutateRenderDirAbs = join(Deno.cwd(), mutateRenderDir);
@@ -45,7 +45,7 @@ const mutateRenderOutDir = join(mutateRenderDirAbs, "_site");
 testQuartoCmd(
   "render",
   [mutateRenderDir],
-  [printsMessage("ERROR", /output-dir may not be mutated/gm)],
+  [printsMessage({level: "ERROR", regex: /output-dir may not be mutated/gm})],
   {
     teardown: async () => {
       const mdClean = join(mutateRenderDirAbs, "_metadata.yml");

@@ -296,6 +296,12 @@ local quarto_pre_filters = {
     traverser = 'jog',
   },
 
+  { name = "strip-notes-from-hidden",
+    filter = strip_notes_from_hidden(),
+    flags = { "has_notes" },
+    traverser = 'jog',
+  },
+
   { name = "pre-combined-hidden",
     filter = combineFilters({
       hidden(),

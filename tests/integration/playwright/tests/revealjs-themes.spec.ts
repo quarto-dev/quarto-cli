@@ -79,3 +79,18 @@ test('Callout title color in dracula theme is correctly tweaked to use same as b
   const calloutContentLoc = page.getByText('Content', { exact: true });
   await checkColorIdentical(calloutTitleLoc, calloutContentLoc, 'color');
 });
+
+test('Headings color in simple and serif theme are correctly defaulting to $body-bg', async ({ page }) => {
+  await page.goto('./revealjs/heading-color/simple.html#/slide-1');
+  await checkColorIdentical(
+    page.getByText('Text for slide 1', { exact: true }), 
+    page.getByRole('heading', { name: 'slide' }), 
+    'color'
+  );
+  await page.goto('./revealjs/heading-color/serif.html#/slide-1');
+  await checkColorIdentical(
+    page.getByText('Text for slide 1', { exact: true }), 
+    page.getByRole('heading', { name: 'slide' }), 
+    'color'
+  );
+});

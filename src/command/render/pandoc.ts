@@ -398,6 +398,16 @@ export async function runPandoc(
     ...options.flags?.metadata,
   } as Metadata;
 
+  const cleanQuartoTestsMetadata = (metadata: Metadata) => {
+    // remove any metadata that is only used for testing
+    if (metadata["_quarto"] && typeof metadata["_quarto"] === "object") {
+      delete (metadata._quarto as { [key: string]: unknown })?.tests;
+      if (Object.keys(metadata._quarto).length === 0) {
+        delete metadata._quarto;
+      }
+    }
+  };
+
   // remove some metadata that are used as parameters to our lua filters
   const cleanMetadataForPrinting = (metadata: Metadata) => {
     delete metadata.params;
@@ -409,6 +419,7 @@ export async function runPandoc(
     delete metadata[kRevealJsScripts];
     deleteProjectMetadata(metadata);
     deleteCrossrefMetadata(metadata);
+    removeFilterParams(metadata);
 
     // Don't print empty reveal-js plugins
     if (
@@ -417,7 +428,12 @@ export async function runPandoc(
     ) {
       delete metadata[kRevealJSPlugins];
     }
+
+    // Don't print _quarto.tests
+    // This can cause issue on regex test for printed output
+    cleanQuartoTestsMetadata(metadata);
   };
+
   cleanMetadataForPrinting(printMetadata);
 
   // Forward flags metadata into the format
@@ -1270,11 +1286,9 @@ export async function runPandoc(
   delete pandocPassedMetadata.project;
   delete pandocPassedMetadata.website;
   delete pandocPassedMetadata.about;
-  if (pandocPassedMetadata._quarto) {
-    // these shouldn't be visible because they are emitted on markdown output
-    // and it breaks ensureFileRegexMatches
-    delete pandocPassedMetadata._quarto.tests;
-  }
+  // these shouldn't be visible because they are emitted on markdown output
+  // and it breaks ensureFileRegexMatches
+  cleanQuartoTestsMetadata(pandocPassedMetadata);
 
   Deno.writeTextFileSync(
     metadataTemp,
@@ -1377,7 +1391,7 @@ export async function runPandoc(
 
 // this mutates metadata[kClassOption]
 function cleanupPandocMetadata(metadata: Metadata) {
-  // pdf classoption can end up with duplicaed options
+  // pdf classoption can end up with duplicated options
   const classoption = metadata[kClassOption];
   if (Array.isArray(classoption)) {
     metadata[kClassOption] = ld.uniqBy(
@@ -1668,8 +1682,6 @@ function runPandocMessage(
     const printMetadata = ld.cloneDeep(metadata) as Metadata;
     delete printMetadata.format;
 
-    // remove filter params
-    removeFilterParams(printMetadata);
     // print message
     if (Object.keys(printMetadata).length > 0) {
       info("metadata", { bold: true });
