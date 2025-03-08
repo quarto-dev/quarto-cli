@@ -178,7 +178,10 @@ function compute_flags()
     end,
     Figure = function(node)
       flags.has_pandoc3_figure = true
-    end
+    end,
+    Note = function(node)
+      flags.has_notes = true
+    end,
   }, {
     Meta = function(el)
       local lightbox_auto = lightbox_module.automatic(el)

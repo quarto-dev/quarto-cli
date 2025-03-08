@@ -39,7 +39,7 @@ ensureDirSync(nonEmptyWorkingDir);
 testQuartoCmd(
   "use",
   ["template", "quarto-journals/jasa", "--no-prompt"],
-  [printsMessage("ERROR", /directory isn't empty/), directoryContainsOnlyAllowedPaths(nonEmptyWorkingDir, [nonEmptyFileName])],
+  [printsMessage({level: "ERROR", regex: /directory isn't empty/}), directoryContainsOnlyAllowedPaths(nonEmptyWorkingDir, [nonEmptyFileName])],
   {
     setup: () => {
       Deno.writeTextFileSync(join(nonEmptyWorkingDir, nonEmptyFileName), "Just making a non-empty file!");

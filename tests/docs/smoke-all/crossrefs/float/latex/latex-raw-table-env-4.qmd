@@ -1,0 +1,68 @@
+---
+title: Crossref Raw LaTeX table with table env and position when produced by cell computation
+format: pdf
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['\n\\begin\{table\}\n', 'See Table~\\ref\{tbl-test\}']
+        - ['\\begin\{table\}[\!ht]']
+---
+
+`\begin{table}` should be catched and remove as Quarto does add its own, including when option position are used and when this produced from a cell
+
+## Example with Julia Cell
+
+From https://github.com/quarto-dev/quarto-cli/issues/12085
+
+::: {#tbl-test .cell execution_count=1}
+```` { .cell-code}
+```{{julia}}
+#| label: tbl-test
+#| output: asis
+struct Latex
+    s::String
+end
+
+Base.show(io::IO, m::MIME"text/latex", l::Latex) = print(io, l.s)
+
+Latex(raw"""
+\begin{table}[!ht]
+\setlength\tabcolsep{0pt}
+\centering
+\begin{tabular}{@{\extracolsep{2ex}}*{5}{ccccc}}
+\toprule
+$\theta 1$ & $\theta 1$ & $\theta 1$ & $\theta 1$ & $\theta 1$ \\
+\midrule
+$\theta 2$ & $\theta 2$ & $\theta 2$ & $\theta 2$ & $\theta 2$ \\
+$\theta 3$ & $\theta 3$ & $\theta 3$ & $\theta 3$ & $\theta 3$ \\
+$\theta 4$ & $\theta 4$ & $\theta 4$ & $\theta 4$ & $\theta 4$ \\
+$\theta 5$ & $\theta 5$ & $\theta 5$ & $\theta 5$ & $\theta 5$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+""")
+```
+
+````
+```{=tex}
+\begin{table}[!ht]
+\setlength\tabcolsep{0pt}
+\centering
+\begin{tabular}{@{\extracolsep{2ex}}*{5}{ccccc}}
+\toprule
+$\theta 1$ & $\theta 1$ & $\theta 1$ & $\theta 1$ & $\theta 1$ \\
+\midrule
+$\theta 2$ & $\theta 2$ & $\theta 2$ & $\theta 2$ & $\theta 2$ \\
+$\theta 3$ & $\theta 3$ & $\theta 3$ & $\theta 3$ & $\theta 3$ \\
+$\theta 4$ & $\theta 4$ & $\theta 4$ & $\theta 4$ & $\theta 4$ \\
+$\theta 5$ & $\theta 5$ & $\theta 5$ & $\theta 5$ & $\theta 5$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+```
+:::
+
+
+See @tbl-test

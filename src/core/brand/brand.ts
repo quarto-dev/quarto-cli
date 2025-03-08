@@ -283,3 +283,11 @@ export class Brand {
     }
   }
 }
+
+export const getFavicon = (brand: Brand): string | undefined => {
+  const logoInfo = brand.getLogo("small");
+  if (!logoInfo) {
+    return undefined;
+  }
+  return logoInfo.light.path;
+};
