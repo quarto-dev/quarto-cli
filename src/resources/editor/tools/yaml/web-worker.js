@@ -7330,7 +7330,7 @@ try {
             default: true,
             description: {
               short: "Evaluate code cells (if `false` just echos the code into output).",
-              long: "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines \n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
+              long: "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative numbers to selectively include or exclude expressions \n  (explicit inclusion/exclusion of expressions is available only when using the knitr engine)\n"
             }
           },
           {
@@ -10106,7 +10106,7 @@ try {
                   },
                   "output-file": {
                     path: {
-                      description: "Base name for single-file output (e.g. PDF, ePub)"
+                      description: "Base name for single-file output (e.g. PDF, ePub, docx)"
                     }
                   },
                   "cover-image": {
@@ -21144,7 +21144,7 @@ try {
           "Book part and chapter files",
           "Book appendix files",
           "Book references file",
-          "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+          "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
           "Cover image (used in HTML and ePub formats)",
           "Alternative text for cover image (used in HTML format)",
           "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -21657,7 +21657,7 @@ try {
           "Short/abbreviated form of container-title;",
           "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
           "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
-          "Physical (e.g.&nbsp;size) or temporal (e.g.\uFFFD\uFFFDrunning time) dimensions of\nthe item.",
+          "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
           "Director (e.g.&nbsp;of a film).",
           "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
           "(Container) edition holding the item (e.g.&nbsp;\u201C3\u201D when citing a chapter\nin the third edition of a book).",
@@ -23464,7 +23464,7 @@ try {
           "Book part and chapter files",
           "Book appendix files",
           "Book references file",
-          "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+          "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
           "Cover image (used in HTML and ePub formats)",
           "Alternative text for cover image (used in HTML format)",
           "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -23816,7 +23816,7 @@ try {
           "Book part and chapter files",
           "Book appendix files",
           "Book references file",
-          "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+          "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
           "Cover image (used in HTML and ePub formats)",
           "Alternative text for cover image (used in HTML format)",
           "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -24836,8 +24836,8 @@ ${heading}`;
     };
   }
   function mappedLines(str2, keepNewLines = false) {
-    const lines3 = rangedLines(str2.value, keepNewLines);
-    return lines3.map((v) => mappedString(str2, [v.range]));
+    const lines2 = rangedLines(str2.value, keepNewLines);
+    return lines2.map((v) => mappedString(str2, [v.range]));
   }
 
   // parsing.ts
@@ -30814,6 +30814,27 @@ ${reindented}
     };
   }
 
+  // ../is-circular.ts
+  var isCircular = (obj) => {
+    const objectSet = /* @__PURE__ */ new WeakSet();
+    const detect = (obj2) => {
+      if (obj2 && typeof obj2 === "object") {
+        if (objectSet.has(obj2)) {
+          return true;
+        }
+        objectSet.add(obj2);
+        for (const key in obj2) {
+          if (Object.hasOwn(obj2, key) && detect(obj2[key])) {
+            return true;
+          }
+        }
+        objectSet.delete(obj2);
+      }
+      return false;
+    };
+    return detect(obj);
+  };
+
   // annotated-yaml.ts
   function postProcessAnnotation(parse) {
     if (parse.components.length === 1 && parse.start === parse.components[0].start && parse.end === parse.components[0].end) {
@@ -30964,16 +30985,10 @@ ${tidyverseInfo(
         `Expected a single result, got ${results.length} instead`
       );
     }
-    try {
-      JSON.stringify(results[0]);
-    } catch (e) {
-      if (e.message.match("invalid string length")) {
-      } else if (e.message.match(/circular structure/)) {
-        throw new InternalError(
-          `Circular structure detected in parsed yaml: ${e.message}`
-        );
-      } else {
-      }
+    if (isCircular(results[0])) {
+      throw new InternalError(
+        `Circular structure detected in yaml`
+      );
     }
     return postProcessAnnotation(results[0]);
   }

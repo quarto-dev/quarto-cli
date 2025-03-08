@@ -1,0 +1,15 @@
+---
+format: html
+engine: julia
+_quarto:
+  tests: 
+    html:
+      printsMessage:
+        level: INFO
+        regex: 'FATAL[\s\S]*Error resolving header-includes'
+        negate: true
+---
+
+```{julia}
+?for
+```

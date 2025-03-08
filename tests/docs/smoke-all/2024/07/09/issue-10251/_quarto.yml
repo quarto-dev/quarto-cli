@@ -1,0 +1,19 @@
+project:
+  type: website
+
+website:
+  title: "issue-10251"
+  navbar:
+    logo: "https://quarto.org/quarto.png"
+    logo-alt: "this is the alt text that for the logo in the navbar"
+    left:
+      - href: index.qmd
+        text: Home
+  sidebar: 
+    logo: "https://quarto.org/quarto.png"
+    logo-alt: "this is the alt text that for the logo in the sidebar"
+
+format:
+  html:
+    theme: cosmo
+    toc: true

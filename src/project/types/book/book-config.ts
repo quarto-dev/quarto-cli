@@ -125,6 +125,7 @@ import {
 import { projectType } from "../project-types.ts";
 import { BookRenderItem, BookRenderItemType } from "./book-types.ts";
 import { isAbsoluteRef } from "../../../core/http.ts";
+import { getFavicon } from "../../../core/brand/brand.ts";
 
 export async function bookProjectConfig(
   project: ProjectContext,
@@ -141,6 +142,12 @@ export async function bookProjectConfig(
   if (book) {
     site[kSiteTitle] = book[kSiteTitle];
     site[kSiteFavicon] = book[kSiteFavicon];
+    if (!site[kSiteFavicon]) {
+      const brand = await project.resolveBrand();
+      if (brand) {
+        site[kSiteFavicon] = getFavicon(brand);
+      }
+    }
     site[kSiteUrl] = book[kSiteUrl];
     site[kSitePath] = book[kSitePath];
     site[kSiteRepoUrl] = book[kSiteRepoUrl];
