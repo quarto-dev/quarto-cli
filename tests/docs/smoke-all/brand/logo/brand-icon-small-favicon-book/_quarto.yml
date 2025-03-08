@@ -1,0 +1,25 @@
+project:
+  type: book
+
+book:
+  title: "brand-icon-small-favicon-book"
+  author: "Norah Jones"
+  date: "2/21/2025"
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - summary.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+  pdf:
+    documentclass: scrreprt
+
+
+
