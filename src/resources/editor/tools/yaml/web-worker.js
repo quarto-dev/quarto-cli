@@ -16060,7 +16060,7 @@ try {
             schema: "string",
             description: {
               short: "A regular expression that can be used to determine whether a link is an internal link.",
-              long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
+              long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with `http://www.quarto.org/custom` or `https://www.quarto.org/custom`\nas internal links (and others will be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
             }
           },
           {
