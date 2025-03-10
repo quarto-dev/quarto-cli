@@ -798,7 +798,7 @@ function juliaRuntimeDir(): string {
   }
 }
 
-function juliaTransportFile() {
+export function juliaTransportFile() {
   return join(juliaRuntimeDir(), "julia_transport.txt");
 }
 
