@@ -187,6 +187,7 @@ jobs:
 
       - name: Instantiate QuartoNotebookRunner
         run: julia --project=$GITHUB_WORKSPACE/qnr -e 'using Pkg; Pkg.update()'
+        shell: bash
 
       - name: Cache Julia Packages
         uses: julia-actions/cache@v2
