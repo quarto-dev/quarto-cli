@@ -49,8 +49,11 @@ Deno.test("status with server and worker running", () => {
     quartoDevCmd(),
     {args: ["call", "engine", "julia", "status"]}
   ).outputSync();
-  assert(status_output.success);
   const stdout = new TextDecoder().decode(status_output.stdout);
+  console.log(stdout);
+  const stderr = new TextDecoder().decode(status_output.stderr);
+  console.log(stderr);
+  assert(status_output.success);
   assertStringIncludes(stdout, "workers active: 1");
 });
 
