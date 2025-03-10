@@ -182,7 +182,7 @@ jobs:
           path: qnr
 
       - name: Set QUARTO_JULIA_PROJECT environment variable
-        run: echo "QUARTO_JULIA_PROJECT=$(GITHUB_WORKSPACE)/qnr" >> $GITHUB_ENV
+        run: echo "QUARTO_JULIA_PROJECT=$GITHUB_WORKSPACE/qnr" >> $GITHUB_ENV
 
       - name: Instantiate QuartoNotebookRunner
         run: julia --project=$GITHUB_WORKSPACE/qnr -e 'using Pkg; Pkg.update()'
