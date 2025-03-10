@@ -198,6 +198,7 @@ async function writePandocTemplates(
   );
   const latexOutdir = join(formatSrcDir, "pdf", "pandoc");
   const revealOutdir = join(formatSrcDir, "revealjs", "pandoc");
+  const beamerOutdir = join(formatSrcDir, "beamer", "pandoc");
   const asciidocOutdir = join(formatSrcDir, "asciidoc", "pandoc");
   const typstOutdir = join(formatSrcDir, "typst", "pandoc");
 
@@ -219,12 +220,25 @@ async function writePandocTemplates(
       ],
       [latexOutdir]: [
         { from: "default.latex", to: "latex.template" },
+        // Template we need to tweak
         { from: "common.latex", to: "latex.common" },
-        { from: "after-header-includes.latex", to: "latex.after-header-includes" },
-        { from: "font-settings.latex", to: "latex.font-settings" },
-        { from: "fonts.latex", to: "latex.fonts" },
-        { from: "hypersetup.latex", to: "latex.hypersetup" },
-        { from: "passoptions.latex", to: "latex.passoptions" },
+        // Template kept unchanged
+        { from: "after-header-includes.latex" },
+        { from: "hypersetup.latex" },
+        { from: "font-settings.latex" },
+        { from: "fonts.latex" },
+        { from: "passoptions.latex" },
+      ],
+      [beamerOutdir]: [
+        { from: "default.beamer", to: "beamer.template" },
+        // Template we need to tweak
+        { from: "common.latex", to: "latex.common" },
+        // Template kept unchanged
+        { from: "after-header-includes.latex" },
+        { from: "hypersetup.latex" },
+        { from: "font-settings.latex" },
+        { from: "fonts.latex" },
+        { from: "passoptions.latex" },
       ],
       [asciidocOutdir]: [
         { from: "default.asciidoc", to: "asciidoc.template" },
