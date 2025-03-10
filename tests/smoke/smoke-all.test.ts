@@ -34,7 +34,8 @@ import {
   ensurePptxMaxSlides,
   ensureLatexFileRegexMatches,
   printsMessage,
-  shouldError
+  shouldError,
+  ensureHtmlElementContents
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
@@ -125,6 +126,7 @@ function resolveTestSpecs(
   // deno-lint-ignore no-explicit-any
   const verifyMap: Record<string, any> = {
     ensureHtmlElements,
+    ensureHtmlElementContents,
     ensureFileRegexMatches,
     ensureLatexFileRegexMatches,
     ensureTypstFileRegexMatches,
