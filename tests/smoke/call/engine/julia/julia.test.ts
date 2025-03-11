@@ -81,6 +81,22 @@ Deno.test("status with server and worker running", () => {
   assertStdoutIncludes(status_output, "workers active: 1");
 });
 
+Deno.test("closing a running worker", () => {
+  const close_output = new Deno.Command(
+    quartoDevCmd(),
+    {args: ["call", "engine", "julia", "close", sleepQmd]}
+  ).outputSync();
+  assertSuccess(close_output);
+  assertStderrIncludes(close_output, "Worker closed successfully");
+
+  const status_output = new Deno.Command(
+    quartoDevCmd(),
+    {args: ["call", "engine", "julia", "status"]}
+  ).outputSync();
+  assertSuccess(status_output);
+  assertStdoutIncludes(status_output, "workers active: 0");
+});
+
 Deno.test("log exists", () => {
   const log_output = new Deno.Command(
     quartoDevCmd(),
