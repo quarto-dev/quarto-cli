@@ -1,7 +1,7 @@
 import { assert, assertStringIncludes } from "testing/asserts";
 import { docs, quartoDevCmd } from "../../../../utils.ts";
 import { existsSync } from "fs/exists";
-import { juliaTransportFile } from "../../../../../src/execute/julia.ts";
+import { juliaServerLogFile, juliaTransportFile } from "../../../../../src/execute/julia.ts";
 
 const sleepQmd = docs("call/engine/julia/sleep.qmd");
 assert(existsSync(sleepQmd));
@@ -13,6 +13,13 @@ function assertSuccess(output: Deno.CommandOutput) {
     console.error("stderr:\n" + new TextDecoder().decode(output.stderr));
     throw new Error("Command execution was not successful");
   }
+}
+
+function assertStdoutIncludes(output: Deno.CommandOutput, str: string) {
+  assertStringIncludes(new TextDecoder().decode(output.stdout), str);
+}
+function assertStderrIncludes(output: Deno.CommandOutput, str: string) {
+  assertStringIncludes(new TextDecoder().decode(output.stderr), str);
 }
 
 // make sure we don't have a server process running by sending a kill command
@@ -33,8 +40,7 @@ Deno.test("kill without server running", () => {
     {args: ["call", "engine", "julia", "kill"]}
   ).outputSync();
   assertSuccess(output);
-  const stderr = new TextDecoder().decode(output.stderr);
-  assertStringIncludes(stderr, "Julia control server is not running.");
+  assertStderrIncludes(output, "Julia control server is not running.");
 });
 
 Deno.test("status without server running", () => {
@@ -43,8 +49,21 @@ Deno.test("status without server running", () => {
     {args: ["call", "engine", "julia", "status"]}
   ).outputSync();
   assertSuccess(output);
-  const stderr = new TextDecoder().decode(output.stderr);
-  assertStringIncludes(stderr, "Julia control server is not running.");
+  assertStderrIncludes(output, "Julia control server is not running.");
+});
+
+try {
+  await Deno.remove(juliaServerLogFile());
+} catch {
+}
+
+Deno.test("log file doesn't exist", () => {
+  const log_output = new Deno.Command(
+    quartoDevCmd(),
+    {args: ["call", "engine", "julia", "log"]}
+  ).outputSync();
+  assertSuccess(log_output);
+  assertStderrIncludes(log_output, "Server log file doesn't exist");
 });
 
 Deno.test("status with server and worker running", () => {
@@ -59,10 +78,7 @@ Deno.test("status with server and worker running", () => {
     {args: ["call", "engine", "julia", "status"]}
   ).outputSync();
   assertSuccess(status_output);
-  const stdout = new TextDecoder().decode(status_output.stdout);
-  assert(status_output.success);
-
-  assertStringIncludes(stdout, "workers active: 1");
+  assertStdoutIncludes(status_output, "workers active: 1");
 });
 
 Deno.test("log exists", () => {
@@ -71,6 +87,5 @@ Deno.test("log exists", () => {
     {args: ["call", "engine", "julia", "log"]}
   ).outputSync();
   assertSuccess(log_output);
-  const stdout_log = new TextDecoder().decode(log_output.stdout);
-  assertStringIncludes(stdout_log, "Log started at");
+  assertStdoutIncludes(log_output, "Log started at");
 });
