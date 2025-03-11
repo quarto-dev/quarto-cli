@@ -848,7 +848,7 @@ function populateJuliaEngineCommand(command: Command) {
   command
     .command("status", "Status")
     .description(
-      "Get status information on the currently running Julia server process",
+      "Get status information on the currently running Julia server process.",
     ).action(logStatus)
     .command("kill", "Kill server")
     .description("Kills the control server if it is currently running.")
