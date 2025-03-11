@@ -1076,6 +1076,7 @@ end, function(float)
     insert_content()
     result:insert(pandoc.RawBlock("markdown", "\n"))
     insert_caption()
+    result:insert(pandoc.RawBlock("markdown", "\n"))
     result:insert(close_block)
   end
   return result
