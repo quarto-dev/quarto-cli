@@ -1,15 +1,12 @@
 ---
 title: Callouts
 format: docusaurus-md
-_quarto:
-  tests:
-    docusaurus-md:
-      ensureSnapshotMatches: true
 ---
 
-::: {.callout-note}
 
-## A small note
+
+
+:::note[A small note]
 
 You should note that this is a note.
 
@@ -17,9 +14,8 @@ You should note that this is a note.
 
 Another one without title
 
-::: {.callout-warning}
+:::warning
 
 You should note that this is a note.
 
 :::
-
