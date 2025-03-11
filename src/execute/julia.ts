@@ -834,7 +834,7 @@ export function juliaTransportFile() {
   return join(juliaRuntimeDir(), "julia_transport.txt");
 }
 
-function juliaServerLogFile() {
+export function juliaServerLogFile() {
   return join(juliaRuntimeDir(), "julia_server_log.txt");
 }
 
@@ -857,7 +857,12 @@ function populateJuliaEngineCommand(command: Command) {
     .description(
       "Prints the julia server log file if it exists which can be used to diagnose problems.",
     )
-    .action(printJuliaServerLog);
+    .action(printJuliaServerLog)
+    .command("close", "Close the worker for a given notebook")
+    .arguments("<file:string>")
+    .action(async (_, file) => {
+      await closeWorker(file);
+    });
   return;
 }
 
@@ -909,4 +914,50 @@ function printJuliaServerLog() {
     info("Server log file doesn't exist");
   }
   return;
+}
+
+// todo: this could use a refactor with the other functions that make
+// server connections or execute commands, this one is just supposed to
+// simplify the pattern where a running server is expected (there will be an error if there is none)
+// and we want to get the API response out quickly
+async function connectAndWriteJuliaCommandToRunningServer<
+  T extends ServerCommand["type"],
+>(
+  command: Extract<ServerCommand, { type: T }>,
+): Promise<ServerCommandResponse<T>> {
+  const transportFile = juliaTransportFile();
+  if (!existsSync(transportFile)) {
+    throw new Error("Julia control server is not running.");
+  }
+  const transportOptions = readTransportFile(transportFile);
+
+  const conn = await getReadyServerConnection(
+    transportOptions,
+    {} as JuliaExecuteOptions,
+  );
+  const successfullyConnected = typeof conn !== "string";
+
+  if (successfullyConnected) {
+    const result = await writeJuliaCommand(
+      conn,
+      command,
+      transportOptions.key,
+      {} as JuliaExecuteOptions,
+    );
+    conn.close();
+    return result;
+  } else {
+    throw new Error(
+      `Found transport file but can't connect to control server.`,
+    );
+  }
+}
+
+async function closeWorker(file: string) {
+  const absfile = normalizePath(file);
+  await connectAndWriteJuliaCommandToRunningServer({
+    type: "close",
+    content: { file: absfile },
+  });
+  info("Worker closed successfully.");
 }
