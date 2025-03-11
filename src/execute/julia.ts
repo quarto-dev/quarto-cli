@@ -473,7 +473,7 @@ async function getReadyServerConnection(
     { type: "isready", content: {} },
     transportOptions.key,
     executeOptions,
-  ) as Promise<boolean>;
+  );
   const timeoutMilliseconds = 10000;
   const timeout = new Promise((accept, _) =>
     setTimeout(() => {
@@ -590,7 +590,7 @@ async function executeJulia(
       { type: "isopen", content: { file } },
       transportOptions.key,
       options,
-    ) as boolean;
+    );
     if (isopen) {
       await writeJuliaCommand(
         conn,
@@ -629,11 +629,7 @@ async function executeJulia(
     );
   }
 
-  if (response.error !== undefined) {
-    throw new Error("Running notebook failed:\n" + response.juliaError);
-  }
-
-  return response.notebook as JupyterNotebook;
+  return response.notebook;
 }
 
 interface ProgressUpdate {
@@ -654,13 +650,38 @@ type ServerCommand =
   | { type: "isready"; content: empty }
   | { type: "status"; content: empty };
 
-async function writeJuliaCommand(
+type ServerCommandResponseMap = {
+  run: { notebook: JupyterNotebook };
+  close: { status: true };
+  stop: { message: "Server stopped." };
+  isopen: boolean;
+  isready: true;
+  status: string;
+};
+
+type ServerCommandError = {
+  error: string;
+  juliaError?: string;
+};
+
+type ServerCommandResponse<T extends ServerCommand["type"]> =
+  ServerCommandResponseMap[T];
+
+function isProgressUpdate(data: any): data is ProgressUpdate {
+  return data && data.type === "progress_update";
+}
+
+function isServerCommandError(data: any): data is ServerCommandError {
+  return data && typeof (data.error) === "string";
+}
+
+async function writeJuliaCommand<T extends ServerCommand["type"]>(
   conn: Deno.Conn,
-  command: ServerCommand,
+  command: Extract<ServerCommand, { type: T }>,
   secret: string,
   options: JuliaExecuteOptions,
   onProgressUpdate?: (update: ProgressUpdate) => void,
-) {
+): Promise<ServerCommandResponse<T>> {
   const payload = JSON.stringify(command);
   const key = await crypto.subtle.importKey(
     "raw",
@@ -752,28 +773,39 @@ async function writeJuliaCommand(
     // one command should be sent, ended by a newline, currently just throwing away anything else because we don't
     // expect multiple commmands at once
     const json = response.split("\n")[0];
-    const data = JSON.parse(json);
+    const responseData = JSON.parse(json);
 
-    if (data.type === "progress_update") {
-      trace(
-        options,
-        "received progress update response, listening for further responses",
-      );
-      if (onProgressUpdate !== undefined) {
-        onProgressUpdate(data as ProgressUpdate);
-      }
-      continue; // wait for the next message
-    }
-
-    const err = data.error;
-    if (err !== undefined) {
-      const juliaError = data.juliaError ?? "No julia error message available.";
+    if (isServerCommandError(responseData)) {
+      const data = responseData;
       error(
         `Julia server returned error after receiving "${command.type}" command:\n` +
-          err,
+          data.error,
       );
-      error(juliaError);
+      if (data.juliaError) {
+        error(data.juliaError);
+      }
       throw new Error("Internal julia server error");
+    }
+
+    let data: ServerCommandResponse<T>;
+    if (command.type === "run") {
+      const data_or_update: ServerCommandResponse<T> | ProgressUpdate =
+        responseData;
+      if (isProgressUpdate(data_or_update)) {
+        const update = data_or_update;
+        trace(
+          options,
+          "received progress update response, listening for further responses",
+        );
+        if (onProgressUpdate !== undefined) {
+          onProgressUpdate(update);
+        }
+        continue; // wait for the next message
+      } else {
+        data = data_or_update;
+      }
+    } else {
+      data = responseData;
     }
 
     return data;
