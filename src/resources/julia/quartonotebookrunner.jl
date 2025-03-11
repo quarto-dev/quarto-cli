@@ -93,5 +93,6 @@ open(transport_file, "w") do io
   println(io, json)
 end
 
-@info "Starting server"
+@info "Starting server at $(now())"
 wait(server)
+@info "Server stopped at $(now())"
