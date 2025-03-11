@@ -2,6 +2,7 @@ import { assert, assertStringIncludes } from "testing/asserts";
 import { docs, quartoDevCmd } from "../../../../utils.ts";
 import { existsSync } from "fs/exists";
 import { juliaServerLogFile, juliaTransportFile } from "../../../../../src/execute/julia.ts";
+import { sleep } from "../../../../../src/core/wait.ts";
 
 const sleepQmd = docs("call/engine/julia/sleep.qmd");
 assert(existsSync(sleepQmd));
@@ -104,4 +105,22 @@ Deno.test("log exists", () => {
   ).outputSync();
   assertSuccess(log_output);
   assertStdoutIncludes(log_output, "Log started at");
+});
+
+Deno.test("stop the idling server", async () => {
+  const stop_output = new Deno.Command(
+    quartoDevCmd(),
+    {args: ["call", "engine", "julia", "stop"]}
+  ).outputSync();
+  assertSuccess(stop_output);
+  assertStderrIncludes(stop_output, "Server stopped");
+
+  await sleep(2000); // allow a little bit of time for the server to stop and the log message to be written
+
+  const log_output = new Deno.Command(
+    quartoDevCmd(),
+    {args: ["call", "engine", "julia", "log"]}
+  ).outputSync();
+  assertSuccess(log_output);
+  assertStdoutIncludes(log_output, "Server stopped");
 });

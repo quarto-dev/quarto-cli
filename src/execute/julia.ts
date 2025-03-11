@@ -858,11 +858,19 @@ function populateJuliaEngineCommand(command: Command) {
       "Prints the julia server log file if it exists which can be used to diagnose problems.",
     )
     .action(printJuliaServerLog)
-    .command("close", "Close the worker for a given notebook")
+    .command(
+      "close",
+      "Close the worker for a given notebook. If it is currently running, it will not be interrupted.",
+    )
     .arguments("<file:string>")
     .action(async (_, file) => {
       await closeWorker(file);
-    });
+    })
+    .command("stop", "Stop the server")
+    .description(
+      "Sends a message to the server that it should stop all notebooks and itself. Running notebooks will not be interrupted.",
+    )
+    .action(stopServer);
   return;
 }
 
@@ -960,4 +968,12 @@ async function closeWorker(file: string) {
     content: { file: absfile },
   });
   info("Worker closed successfully.");
+}
+
+async function stopServer() {
+  const result = await connectAndWriteJuliaCommandToRunningServer({
+    type: "stop",
+    content: {},
+  });
+  info(result.message);
 }
