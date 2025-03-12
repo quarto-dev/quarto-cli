@@ -12499,7 +12499,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     }
                   ]
                 },
-                description: "The font files to include as an array (*i.e.*, `- path: <path>`). These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs.\n"
+                description: "The font files to include as an array (`- path: <path>` or `- <path>`). These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs.\n"
               }
             },
             required: [
@@ -21900,7 +21900,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
         "A method for providing font files directly, either locally or from an\nonline location.",
         "The font family name.",
-        "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
+        "The font files to include as an array (<em>i.e.</em>,\n<code>- path: &lt;path&gt;</code>). These can be local or online. Local\nfile paths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
         "The path to the font file. This can be a local path or a URL.",
         "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
         {
@@ -23623,6 +23623,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
         {
           short: "Include an automatically generated table of contents",
           long: ""
@@ -24204,12 +24205,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 194322,
+        _internalId: 194332,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 194314,
+            _internalId: 194324,
             type: "enum",
             enum: [
               "png",
@@ -24225,7 +24226,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 194321,
+            _internalId: 194331,
             type: "anyOf",
             anyOf: [
               {
