@@ -82,7 +82,7 @@ Deno.test("status with server and worker running", () => {
   assertStdoutIncludes(status_output, "workers active: 1");
 });
 
-Deno.test("closing a running worker", () => {
+Deno.test("closing an idling worker", () => {
   const close_output = new Deno.Command(
     quartoDevCmd(),
     {args: ["call", "engine", "julia", "close", sleepQmd]}
@@ -96,6 +96,46 @@ Deno.test("closing a running worker", () => {
   ).outputSync();
   assertSuccess(status_output);
   assertStdoutIncludes(status_output, "workers active: 0");
+});
+
+Deno.test("force-closing a running worker", async () => {
+  // spawn a long-running command
+  const render_cmd = new Deno.Command(
+    quartoDevCmd(),
+    {args: ["render", sleepQmd, "-P", "sleep_duration:30"]}
+  ).output();
+
+  await sleep(3000);
+
+  const close_output = new Deno.Command(
+    quartoDevCmd(),
+    {args: ["call", "engine", "julia", "close", sleepQmd]}
+  ).outputSync();
+  assertStderrIncludes(close_output, "worker is busy");
+
+  const status_output = new Deno.Command(
+    quartoDevCmd(),
+    {args: ["call", "engine", "julia", "status"]}
+  ).outputSync();
+  assertSuccess(status_output);
+  assertStdoutIncludes(status_output, "workers active: 1");
+
+  const force_close_output = new Deno.Command(
+    quartoDevCmd(),
+    {args: ["call", "engine", "julia", "close", "--force", sleepQmd]}
+  ).outputSync();
+  assertSuccess(force_close_output);
+  assertStderrIncludes(force_close_output, "Worker force-closed successfully");
+
+  const status_output_2 = new Deno.Command(
+    quartoDevCmd(),
+    {args: ["call", "engine", "julia", "status"]}
+  ).outputSync();
+  assertSuccess(status_output_2);
+  assertStdoutIncludes(status_output_2, "workers active: 0");
+
+  const render_output = await render_cmd;
+  assertStderrIncludes(render_output, "File was force-closed during run")
 });
 
 Deno.test("log exists", () => {
