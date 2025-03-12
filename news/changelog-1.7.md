@@ -35,7 +35,6 @@ All changes included in 1.7:
 ## `html` format
 
 - ([#11860](https://github.com/quarto-dev/quarto-cli/issues/11860)): ES6 modules that import other local JS modules in documents with `embed-resources: true` are now correctly embedded.
--
 
 ## `pdf` format
 
