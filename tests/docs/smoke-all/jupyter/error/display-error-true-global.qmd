@@ -22,11 +22,12 @@ class BuggyDisplay:
         self.data = "This works fine"
     
     def _repr_html_(self):
-        # This error happens during display, not execution
+        # HTML representation used for `format: html`
         return "<b>HTML fallback:</b> " + self.data
 
     def _repr_markdown_(self):
-        # Markdown representation as fallback when HTML fails
+        # This error happens during display, not execution
+        # even if the markdown reprensentation is not used
         raise ValueError("Display phase error for Markdown!")
     
     def __repr__(self):
