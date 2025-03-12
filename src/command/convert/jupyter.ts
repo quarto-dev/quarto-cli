@@ -30,6 +30,7 @@ import {
   jupyterCellSrcAsLines,
   jupyterCellSrcAsStr,
 } from "../../core/jupyter/jupyter-shared.ts";
+import { assert } from "testing/asserts";
 
 export async function markdownToJupyterNotebook(
   file: string,
@@ -71,11 +72,15 @@ export async function jupyterNotebookToMarkdown(
         case "raw":
           // see if this is the front matter
           if (frontMatter === undefined) {
-            frontMatter = partitionYamlFrontMatter(
-              jupyterCellSrcAsStr(cell),
-            )?.yaml;
-            if (!frontMatter) {
-              md.push(...mdFromRawCell(cellWithOptions));
+            const { yaml: cellYaml, markdown: cellMarkdown } =
+              partitionYamlFrontMatter(
+                jupyterCellSrcAsStr(cell),
+              ) || {};
+            if (cellYaml) {
+              frontMatter = cellYaml;
+            }
+            if (cellMarkdown) {
+              md.push(cellMarkdown);
             }
           } else {
             md.push(...mdFromRawCell(cellWithOptions));
@@ -130,6 +135,14 @@ export async function jupyterNotebookToMarkdown(
     }
   }
 
+  // if we found front matter, then the markdown source will start with enough
+  // newlines for the front matter to have been detected in the first place.
+  // So we only need to add newlines if there was no front matter.
+  //
+  // If this invariant breaks, we have a bug of some kind, so let's just assert it
+  assert(frontMatter || !mdSource.match(/^\n\n/));
+  const maybeYamlMdBreak = frontMatter ? "" : "\n\n";
+
   // return yaml + markdown
   const yamlText = stringify(yaml, {
     indent: 2,
@@ -137,7 +150,7 @@ export async function jupyterNotebookToMarkdown(
     sortKeys: false,
     skipInvalid: true,
   });
-  return `---\n${yamlText}---\n\n${mdSource}`;
+  return `---\n${yamlText}---${maybeYamlMdBreak}${mdSource}`;
 }
 
 async function mdFromCodeCell(

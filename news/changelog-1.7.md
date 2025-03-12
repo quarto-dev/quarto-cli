@@ -37,6 +37,10 @@ All changes included in 1.7:
 
 - ([#11608](https://github.com/quarto-dev/quarto-cli/pull/11608)): Do not issue error message when calling `quarto check info`.
 
+## `quarto convert`
+
+- ([#12042](https://github.com/quarto-dev/quarto-cli/issues/12042)): Preserve Markdown content that follows YAML metadata in a `raw` .ipynb cell.
+
 ## `html` format
 
 - ([#11860](https://github.com/quarto-dev/quarto-cli/issues/11860)): ES6 modules that import other local JS modules in documents with `embed-resources: true` are now correctly embedded.
