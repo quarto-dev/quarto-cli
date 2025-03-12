@@ -1,0 +1,33 @@
+---
+title: "Testing env var available in execution in project context"
+format: markdown
+_quarto:
+  tests:
+    markdown:
+      ensureFileRegexMatches:
+      -   
+        - 'QUARTO_PROJECT_ROOT: \S+smoke-all[\\/]julia[\\/]execution-env-project'
+        - 'QUARTO_DOCUMENT_PATH: \S+smoke-all[\\/]julia[\\/]execution-env-project'
+        - 'QUARTO_DOCUMENT_FILE: execution-env-var.qmd'
+      - ['UNDEFINED']
+---
+
+#### Show execution env var
+
+````{julia}
+#| echo: false
+#| output: asis
+function get_env(name, default)
+    haskey(ENV, name) ? ENV[name] : default
+end
+
+# Create the markdown output with the same formatting
+env_vars = """```{=markdown}
+QUARTO_PROJECT_ROOT: $(get_env("QUARTO_PROJECT_ROOT", "UNDEFINED"))
+QUARTO_DOCUMENT_PATH: $(get_env("QUARTO_DOCUMENT_PATH", "UNDEFINED"))
+QUARTO_DOCUMENT_FILE: $(get_env("QUARTO_DOCUMENT_FILE", "UNDEFINED"))
+```
+"""
+
+print(env_vars)
+````
