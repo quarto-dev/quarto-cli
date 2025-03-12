@@ -645,6 +645,7 @@ type empty = Record<string | number | symbol, never>;
 type ServerCommand =
   | { type: "run"; content: { file: string; options: JuliaExecuteOptions } }
   | { type: "close"; content: { file: string } }
+  | { type: "forceclose"; content: { file: string } }
   | { type: "isopen"; content: { file: string } }
   | { type: "stop"; content: empty }
   | { type: "isready"; content: empty }
@@ -653,6 +654,7 @@ type ServerCommand =
 type ServerCommandResponseMap = {
   run: { notebook: JupyterNotebook };
   close: { status: true };
+  forceclose: { status: true };
   stop: { message: "Server stopped." };
   isopen: boolean;
   isready: true;
@@ -863,8 +865,13 @@ function populateJuliaEngineCommand(command: Command) {
       "Close the worker for a given notebook. If it is currently running, it will not be interrupted.",
     )
     .arguments("<file:string>")
-    .action(async (_, file) => {
-      await closeWorker(file);
+    .option(
+      "-f, --force",
+      "Force closing. This will terminate the worker if it is running.",
+      { default: false },
+    )
+    .action(async (options, file) => {
+      await closeWorker(file, options.force);
     })
     .command("stop", "Stop the server")
     .description(
@@ -961,13 +968,13 @@ async function connectAndWriteJuliaCommandToRunningServer<
   }
 }
 
-async function closeWorker(file: string) {
+async function closeWorker(file: string, force: boolean) {
   const absfile = normalizePath(file);
   await connectAndWriteJuliaCommandToRunningServer({
-    type: "close",
+    type: force ? "forceclose" : "close",
     content: { file: absfile },
   });
-  info("Worker closed successfully.");
+  info(`Worker ${force ? "force-" : ""}closed successfully.`);
 }
 
 async function stopServer() {
