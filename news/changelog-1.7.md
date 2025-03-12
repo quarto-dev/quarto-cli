@@ -35,6 +35,7 @@ All changes included in 1.7:
 ## `html` format
 
 - ([#11860](https://github.com/quarto-dev/quarto-cli/issues/11860)): ES6 modules that import other local JS modules in documents with `embed-resources: true` are now correctly embedded.
+-
 
 ## `pdf` format
 
@@ -42,9 +43,19 @@ All changes included in 1.7:
 - ([#11903](https://github.com/quarto-dev/quarto-cli/issues/11903)): `crossref` configuration like `fig-title` or `tbl-title` now correctly supports multi word values, e.g. `fig-title: 'Supplementary Figure'`.
 - ([#11878](https://github.com/quarto-dev/quarto-cli/issues/11878), [#12085](https://github.com/quarto-dev/quarto-cli/issues/12085)): Correctly fixup raw LaTeX table having an unexpected table env with options (e.g `\begin{table}[!ht]`) to be handled as crossref table.
 - Update to Pandoc's LaTeX template following Pandoc 3.6.3 support:
+  - `format: beamer` now uses its own template. The main template for latex does not use `$if(beamer)$` anymore, and the new template for beamer uses the same partials as latex one.
   - Improved Babel support:
     - New `babeloptions` variable in the template to allow for more flexible Babel options.
     - `doc-class.tex` Quarto's partial has been updated as Babel options have been moved to `documentclass` definition in `doc-class.tex` Quarto's partial.
+  - New partials available for `format: latex` and `format: beamer`:
+    - Pandoc now uses partials for its latex templates, and they are available through `template-partials`. Pandoc's partials uses `.latex` extension: `passoptions.latex`, `common.latex`, `font-settings.latex`, `fonts.latex`, `hypersetup.latex`, `after-header-includes.latex`
+    - New Quarto partials: `babel-lang.tex`, `biblio-config.tex`. Quarto's partials uses `.tex` extension.
+  - BREAKING CHANGE for templates authors: `common.latex` does now uses `pandoc.tex` partial from Quarto, which include now part of the content that was in main `template.tex`. If you modify `pandoc.tex` as part of a custom format, it should be updated to new content.
+
+## `jats` format
+
+- Update to Pandoc's template following Pandoc 3.6.3 support:
+  - `article.jats_publishing` partials now support `author.roles`
 
 ## `typst` format
 
