@@ -9,10 +9,15 @@ All changes included in 1.7:
 - ([#11752](https://github.com/quarto-dev/quarto-cli/issues/11752)): Fix regression with non-alphanumeric characters in `categories` preventing correct filtering of listing.
 - ([#11561](https://github.com/quarto-dev/quarto-cli/issues/11561)): Fix a regression with `$border-color` that impacted, callouts borders, tabset borders, and table borders of the defaults themes. `$border-color` is now correctly a mixed of `$body-color` and `$body-bg` even for the default theme.
 - ([#11943](https://github.com/quarto-dev/quarto-cli/issues/11943)): Fix callout title color on dark theme in revealjs following Revealjs update in quarto 1.6.
+- ([#12147](https://github.com/quarto-dev/quarto-cli/issues/12147)): for RevealJS format, `serif` and `simple` themes defaults back to have their heading color (`$presentation-heading-color`) to be the same as the body color (`$body-color`) as in Quarto 1.5.
+- ([#11659](https://github.com/quarto-dev/quarto-cli/pull/11659)): Julia engine: Fix escaping bug where paths containing spaces or backslashes break server startup on Windows.
 
 ## YAML validation
 
 - ([#11654](https://github.com/quarto-dev/quarto-cli/issues/11654)): Allow `page-inset` as value in `column` key for code cells.
+- ([#10251](https://github.com/quarto-dev/quarto-cli/issues/10251)): EJS template for website now uses proper object to get alt text for logo in sidebar.
+- ([#12151](https://github.com/quarto-dev/quarto-cli/issues/12151)): Fix YAML validation in computations cell on Windows.
+- ([#12151](https://github.com/quarto-dev/quarto-cli/pull/12151)): Basic YAML validation is now active in cell for document using Julia engine.
 
 ## Website projects
 
@@ -31,6 +36,10 @@ All changes included in 1.7:
 ## `quarto check`
 
 - ([#11608](https://github.com/quarto-dev/quarto-cli/pull/11608)): Do not issue error message when calling `quarto check info`.
+
+## `quarto convert`
+
+- ([#12042](https://github.com/quarto-dev/quarto-cli/issues/12042)): Preserve Markdown content that follows YAML metadata in a `raw` .ipynb cell.
 
 ## `html` format
 
@@ -55,6 +64,10 @@ All changes included in 1.7:
 
 - Update to Pandoc's template following Pandoc 3.6.3 support:
   - `article.jats_publishing` partials now support `author.roles`
+
+### Quarto PDF engine
+
+- ([#12194](https://github.com/quarto-dev/quarto-cli/issues/12194)): More specific checks added in log parsing to automatically find missing fonts.
 
 ## `typst` format
 
@@ -84,8 +97,12 @@ All changes included in 1.7:
 
 ### `julia`
 
-- ([#11659](https://github.com/quarto-dev/quarto-cli/pull/11659)): Fix escaping bug where paths containing spaces or backslashes break server startup on Windows.
-- ([#12121](https://github.com/quarto-dev/quarto-cli/pull/12121)): Update QuartoNotebookRunner to 0.13.1. Support for evaluating Python cells via [PythonCall.jl](https://github.com/JuliaPy/PythonCall.jl) added.
+- ([#12121](https://github.com/quarto-dev/quarto-cli/pull/12121)): Update QuartoNotebookRunner to 0.14.0. Support for evaluating Python cells via [PythonCall.jl](https://github.com/JuliaPy/PythonCall.jl) added. Support for notebook caching via `execute.cache` added.
+- ([#12151](https://github.com/quarto-dev/quarto-cli/pull/12151)): Basic YAML validation is now active for document using Julia engine.
+
+### `jupyter`
+
+- ([#12114](https://github.com/quarto-dev/quarto-cli/issues/12114)): `JUPYTERCACHE` environment variable from [Jupyter cache CLI](https://jupyter-cache.readthedocs.io/en/latest/using/cli.html) is now respected by Quarto when `cache: true` is used. This environment variable allows to change the path of the cache directory.
 
 ## Other Fixes and Improvements
 
@@ -97,3 +114,4 @@ All changes included in 1.7:
 - ([#10532](https://github.com/quarto-dev/quarto-cli/issues/10532)): Quarto changed default of `--headless=old` to `--headless` as [Chrome 132 has removed old headless mode](https://developer.chrome.com/blog/removing-headless-old-from-chrome) and only support new mode. For using old mode, `QUARTO_CHROMIUM` could be set to a [new `chrome-headless-shell` binary](https://developer.chrome.com/blog/chrome-headless-shell) or too an older chrome version (between 128 and 132) and `QUARTO_CHROMIUM_HEADLESS_MODE` set to `old` for using old headless mode with that compatabitle version.
 - ([#10961](https://github.com/quarto-dev/quarto-cli/issues/10961)): Add more information on which Chrome Headless will be used in `quarto check install`. This is helpful to help debug mermaid issues.
 - ([#11951](https://github.com/quarto-dev/quarto-cli/issues/11951)): Raw LaTeX table without `tbl-` prefix label for using Quarto crossref are now correctly passed through unmodified.
+- ([#12117](https://github.com/quarto-dev/quarto-cli/issues/12117)): Color output to stdout and stderr is now correctly rendered for `html` format in the Jupyter and Julia engines.

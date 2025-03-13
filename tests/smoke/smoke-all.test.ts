@@ -160,7 +160,7 @@ function resolveTestSpecs(
               verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
             }
           } else if (key === "printsMessage") {
-            verifyFns.push(verifyMap[key](...value));
+            verifyFns.push(verifyMap[key](value));
           } else if (verifyMap[key]) {
             // FIXME: We should find another way that having this requirement of keep-* in the metadata
             if (key === "ensureTypstFileRegexMatches") {
@@ -325,7 +325,7 @@ Promise.all(testFilesPromises).then(() => {
   for (const project of testedProjects) {
     // Clean project output directory
     const projectOutDir = join(project, findProjectOutputDir(project));
-    if (safeExistsSync(projectOutDir)) {
+    if (projectOutDir !== project && safeExistsSync(projectOutDir)) {
       safeRemoveSync(projectOutDir, { recursive: true });
     }
     // Clean hidden .quarto directory

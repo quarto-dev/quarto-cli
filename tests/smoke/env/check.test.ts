@@ -12,6 +12,6 @@ testQuartoCmd(
   [],
   [
     noErrorsOrWarnings,
-    printsMessage("INFO", /Version: 99\.9\.9/),
+    printsMessage({level: "INFO", regex: /Version: 99\.9\.9/}),
   ],
 );

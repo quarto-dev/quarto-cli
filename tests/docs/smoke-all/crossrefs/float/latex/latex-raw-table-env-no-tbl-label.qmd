@@ -9,8 +9,8 @@ _quarto:
         - ['[\s\S]+\\begin\{table\}\[htbp\][\s\S]+', '[\s\S]+\\caption\{\\label\{mod\}']
         - []
       printsMessage:
-        - INFO
-        - 'WARNING(.*)Raw LaTeX table found with non-tbl label:' 
+        level: INFO
+        regex: 'WARNING(.*)Raw LaTeX table found with non-tbl label:' 
 ---
 
 This document has a raw LaTeX table with no intent to use quarto crossref. It uses a label with `tbl-` id.

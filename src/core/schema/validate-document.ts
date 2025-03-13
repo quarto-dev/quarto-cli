@@ -97,11 +97,11 @@ export async function validateDocumentFromSource(
   } else {
     firstContentCellIndex = 0;
   }
-
   for (const cell of nb.cells.slice(firstContentCellIndex)) {
     if (
       cell.cell_type === "markdown" ||
-      cell.cell_type === "raw"
+      cell.cell_type === "raw" ||
+      cell.cell_type?.language === "_directive"
     ) {
       // not a language chunk
       continue;
@@ -110,21 +110,19 @@ export async function validateDocumentFromSource(
     const lang = cell.cell_type.language;
 
     try {
-      const fullCell = mappedString(cell.sourceVerbatim, [{
-        start: lang.length + 6,
-        end: cell.sourceVerbatim.value.length - 3,
-      }]);
-      await partitionCellOptionsMapped(
-        lang,
-        fullCell,
-        true,
-        engine,
-      );
+      if (cell.sourceWithYaml) {
+        await partitionCellOptionsMapped(
+          lang,
+          cell.sourceWithYaml,
+          true,
+          engine,
+        );
+      }
     } catch (e) {
       if (e instanceof ValidationError) {
         error("Validation of YAML cell metadata failed.");
         for (const err of e.validationErrors) {
-          console.log(tidyverseFormatError(err.niceError));
+          error(tidyverseFormatError(err.niceError), { colorize: false });
         }
         result.push(...e.validationErrors);
       } else {
