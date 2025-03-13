@@ -10,6 +10,11 @@
   schema: string
   description: "Classes to apply to cell container"
 
+- name: renderings
+  schema:
+    arrayOf: string
+  description: "Array of rendering names"
+
 - name: tags
   tags:
     engine: jupyter

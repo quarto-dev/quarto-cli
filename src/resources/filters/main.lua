@@ -61,6 +61,7 @@ import("./quarto-init/knitr-fixup.lua")
 import("./quarto-post/render-asciidoc.lua")
 import("./quarto-post/book.lua")
 import("./quarto-post/cites.lua")
+import("./quarto-post/cell-renderings.lua")
 import("./quarto-post/delink.lua")
 import("./quarto-post/docx.lua")
 import("./quarto-post/fig-cleanup.lua")
@@ -392,6 +393,10 @@ local quarto_post_filters = {
       bibliography()
     },
     traverser = 'jog',
+  },
+  { name = "post-choose-cell_renderings",
+    filter = choose_cell_renderings(),
+    flags = { "has_renderings" },
   },
   { name = "post-landscape-div",
     filter = landscape_div(),
