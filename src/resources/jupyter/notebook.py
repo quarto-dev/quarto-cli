@@ -517,7 +517,7 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
 
    # check options for eval and error
    eval = cell_options.get('eval', eval_default)
-   allow_errors = cell_options.get('error', False)
+   allow_errors = cell_options.get('error')
      
    trace(f"cell_execute with eval={eval}")
 
@@ -554,7 +554,7 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
             del cell["metadata"]["tags"]
 
       # Check for display errors in output (respecting both global and cell settings)
-      cell_allows_errors = client.allow_errors or allow_errors
+      cell_allows_errors = allow_errors if allow_errors is not None else client.allow_errors
       if not cell_allows_errors:
          for output in cell.outputs:
             if output.get('output_type') == 'error':
