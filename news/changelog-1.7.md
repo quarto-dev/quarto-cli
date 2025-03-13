@@ -101,3 +101,4 @@ All changes included in 1.7:
 - ([#10961](https://github.com/quarto-dev/quarto-cli/issues/10961)): Add more information on which Chrome Headless will be used in `quarto check install`. This is helpful to help debug mermaid issues.
 - ([#11951](https://github.com/quarto-dev/quarto-cli/issues/11951)): Raw LaTeX table without `tbl-` prefix label for using Quarto crossref are now correctly passed through unmodified.
 - ([#12117](https://github.com/quarto-dev/quarto-cli/issues/12117)): Color output to stdout and stderr is now correctly rendered for `html` format in the Jupyter and Julia engines.
+- ([#12264](https://github.com/quarto-dev/quarto-cli/issues/12264)): Upgrade `dart-sass` to 1.85.1.
