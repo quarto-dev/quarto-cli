@@ -38,12 +38,9 @@ buggy = BuggyDisplay()
 
 ```{python}
 #| error: true
-# Second cell - display the object (triggers error in _repr_html_)
-# This will show an error in the output but won't stop execution
 buggy
 ```
 
 ```{python}
-# Third cell - proves execution continues
 print("Execution continued despite display error")
 ```
