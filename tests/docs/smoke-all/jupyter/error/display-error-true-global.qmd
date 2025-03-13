@@ -16,7 +16,7 @@ With `error: true` this document should not error at rendering and Exception at 
 By default `nbconvert` does not throw exception for error thrown by IPython display, on purpose as document output is still valid as there are other representation. 
 
 ```{python}
-# First cell - create an object with a buggy _repr_html_ method
+# First cell - create an object with a buggy _repr_markdown_ method
 class BuggyDisplay:
     def __init__(self):
         self.data = "This works fine"
@@ -39,12 +39,9 @@ buggy = BuggyDisplay()
 ```
 
 ```{python}
-# Second cell - display the object (triggers error in _repr_html_)
-# This will show an error in the output but won't stop execution
 buggy
 ```
 
 ```{python}
-# Third cell - proves execution continues
 print("Execution continued despite display error")
 ```
