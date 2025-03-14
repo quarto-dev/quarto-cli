@@ -130,7 +130,7 @@ export async function resolveSassBundles(
       // Note that the other bundle provides light
       targets[0].attribs = {
         ...targets[0].attribs,
-        ...attribForThemeStyle("light", defaultStyle),
+        ...attribForThemeStyle("light"),
       };
 
       // Provide a dark bundle for this
@@ -144,14 +144,19 @@ export async function resolveSassBundles(
         bundle.key = bundle.key + "-dark";
         return bundle;
       });
-      targets.push({
+      const darkTarget = {
         name: `${dependency}-dark.min.css`,
         bundles: darkBundles as any,
         attribs: {
           "append-hash": "true",
-          ...attribForThemeStyle("dark", defaultStyle),
+          ...attribForThemeStyle("dark"),
         },
-      });
+      };
+      if (defaultStyle === "dark") {
+        targets.push(darkTarget);
+      } else {
+        targets.unshift(darkTarget);
+      }
 
       hasDarkStyles = true;
     }
@@ -256,6 +261,18 @@ export async function resolveSassBundles(
   }
 
   // Resolve generated quarto css variables
+  if (hasDarkStyles && defaultStyle !== "dark") {
+    // Put dark stylesheet first if light is default (for NoJS)
+    extras = await resolveQuartoSyntaxHighlighting(
+      inputDir,
+      extras,
+      format,
+      project,
+      "dark",
+      defaultStyle,
+    );
+  }
+
   extras = await resolveQuartoSyntaxHighlighting(
     inputDir,
     extras,
@@ -265,8 +282,8 @@ export async function resolveSassBundles(
     defaultStyle,
   );
 
-  if (hasDarkStyles) {
-    // Provide dark variables for this
+  if (hasDarkStyles && defaultStyle === "dark") {
+    // Put dark stylesheet second if dark is default (for NoJS)
     extras = await resolveQuartoSyntaxHighlighting(
       inputDir,
       extras,
@@ -303,7 +320,7 @@ async function resolveQuartoSyntaxHighlighting(
   extras = cloneDeep(extras);
 
   // If we're using default highlighting, use theme darkness to select highlight style
-  const mediaAttr = attribForThemeStyle(style, defaultStyle);
+  const mediaAttr = attribForThemeStyle(style);
   if (style === "default") {
     if (extras.html?.[kTextHighlightingMode] === "dark") {
       style = "dark";
@@ -559,28 +576,23 @@ const kVariablesRegex =
   /\/\*\! quarto-variables-start \*\/([\S\s]*)\/\*\! quarto-variables-end \*\//g;
 
 // Attributes for the style tag
-// Note that we default disable the dark mode and rely on JS to enable it
 function attribForThemeStyle(
   style: "dark" | "light" | "default",
-  defaultStyle?: "dark" | "light",
 ): Record<string, string> {
-  const colorModeAttrs = (mode: string, disabled: boolean) => {
+  const colorModeAttrs = (mode: string) => {
     const attr: Record<string, string> = {
       class: `quarto-color-scheme${
         mode === "dark" ? " quarto-color-alternate" : ""
       }`,
     };
-    if (disabled) {
-      attr.rel = "prefetch";
-    }
     return attr;
   };
 
   switch (style) {
     case "dark":
-      return colorModeAttrs("dark", defaultStyle !== "dark");
+      return colorModeAttrs("dark");
     case "light":
-      return colorModeAttrs("light", false);
+      return colorModeAttrs("light");
     case "default":
     default:
       return {};

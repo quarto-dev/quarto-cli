@@ -344,8 +344,14 @@ Please consider reporting it at https://github.com/quarto-dev/quarto-cli. Thank 
     if (!message) {
       message = err.stack;
     } else {
-      message = message + "\n\nStack trace:\n" +
-        err.stack.split("\n").slice(1).join("\n");
+      const stackLines = err.stack.split("\n");
+      const firstAtLineIndex = stackLines.findIndex((line) =>
+        /^\s*at /.test(line)
+      );
+      if (firstAtLineIndex !== -1) {
+        const stackTrace = stackLines.slice(firstAtLineIndex).join("\n");
+        message = message + "\n\nStack trace:\n" + stackTrace;
+      }
     }
   }
 
