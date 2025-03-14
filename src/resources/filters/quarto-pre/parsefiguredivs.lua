@@ -548,10 +548,6 @@ function parse_floatreftargets()
           end
         })
         return parse_float_div(div)
-      elseif isTableDiv(div) then
-        -- FIXUP: We don't go here for a `#tbl-` id as it is matched as a FigureDiv above
-        -- TO REMOVE ? 
-        return parse_float_div(div)
       end
 
       if div.classes:includes("cell") then

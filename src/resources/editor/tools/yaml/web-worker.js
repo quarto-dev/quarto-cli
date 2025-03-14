@@ -243,7 +243,7 @@ var TreeSitter = (function () {
                   xhr.responseType = "arraybuffer";
                   xhr.send(null);
                   return new Uint8Array(
-                    /** @type{!ArrayBuffer} */ (xhr.response)
+                    /** @type{!ArrayBuffer} */(xhr.response)
                   );
                 } catch (err) {
                   var data = tryParseAsDataURI(url);
@@ -746,18 +746,18 @@ var TreeSitter = (function () {
               (tempI64 = [
                 value >>> 0,
                 ((tempDouble = value),
-                +Math.abs(tempDouble) >= 1.0
-                  ? tempDouble > 0.0
-                    ? (Math.min(
+                  +Math.abs(tempDouble) >= 1.0
+                    ? tempDouble > 0.0
+                      ? (Math.min(
                         +Math.floor(tempDouble / 4294967296.0),
                         4294967295.0
                       ) |
                         0) >>>
                       0
-                    : ~~+Math.ceil(
+                      : ~~+Math.ceil(
                         (tempDouble - +(~~tempDouble >>> 0)) / 4294967296.0
                       ) >>> 0
-                  : 0),
+                    : 0),
               ]),
                 (HEAP32[ptr >> 2] = tempI64[0]),
                 (HEAP32[(ptr + 4) >> 2] = tempI64[1]);
@@ -831,8 +831,8 @@ var TreeSitter = (function () {
           assert(
             func,
             "Cannot call unknown function " +
-              ident +
-              ", make sure it is exported"
+            ident +
+            ", make sure it is exported"
           );
           return func;
         }
@@ -932,7 +932,7 @@ var TreeSitter = (function () {
           }
 
           if (slab.subarray || slab.slice) {
-            HEAPU8.set(/** @type {!Uint8Array} */ (slab), ret);
+            HEAPU8.set(/** @type {!Uint8Array} */(slab), ret);
           } else {
             HEAPU8.set(new Uint8Array(slab), ret);
           }
@@ -991,8 +991,8 @@ var TreeSitter = (function () {
                 if ((u0 & 0xf8) != 0xf0)
                   warnOnce(
                     "Invalid UTF-8 leading byte 0x" +
-                      u0.toString(16) +
-                      " encountered when deserializing a UTF-8 string in wasm memory to a JS string!"
+                    u0.toString(16) +
+                    " encountered when deserializing a UTF-8 string in wasm memory to a JS string!"
                   );
                 u0 =
                   ((u0 & 7) << 18) |
@@ -1080,8 +1080,8 @@ var TreeSitter = (function () {
               if (u >= 0x200000)
                 warnOnce(
                   "Invalid Unicode code point 0x" +
-                    u.toString(16) +
-                    " encountered when serializing a JS string to a UTF-8 string in wasm memory! (Valid unicode code points should be in range 0-0x1FFFFF)."
+                  u.toString(16) +
+                  " encountered when serializing a JS string to a UTF-8 string in wasm memory! (Valid unicode code points should be in range 0-0x1FFFFF)."
                 );
               heap[outIdx++] = 0xf0 | (u >> 18);
               heap[outIdx++] = 0x80 | ((u >> 12) & 63);
@@ -1448,18 +1448,18 @@ var TreeSitter = (function () {
         assert(
           INITIAL_MEMORY >= TOTAL_STACK,
           "INITIAL_MEMORY should be larger than TOTAL_STACK, was " +
-            INITIAL_MEMORY +
-            "! (TOTAL_STACK=" +
-            TOTAL_STACK +
-            ")"
+          INITIAL_MEMORY +
+          "! (TOTAL_STACK=" +
+          TOTAL_STACK +
+          ")"
         );
 
         // check for full engine support (use string 'subarray' to avoid closure compiler confusion)
         assert(
           typeof Int32Array !== "undefined" &&
-            typeof Float64Array !== "undefined" &&
-            Int32Array.prototype.subarray !== undefined &&
-            Int32Array.prototype.set !== undefined,
+          typeof Float64Array !== "undefined" &&
+          Int32Array.prototype.subarray !== undefined &&
+          Int32Array.prototype.set !== undefined,
           "JS engine does not provide full typed array support"
         );
 
@@ -1523,9 +1523,9 @@ var TreeSitter = (function () {
           if (cookie1 != 0x2135467 || cookie2 != 0x89bacdfe) {
             abort(
               "Stack overflow! Stack cookie has been overwritten, expected hex dwords 0x89BACDFE and 0x2135467, but received 0x" +
-                cookie2.toString(16) +
-                " " +
-                cookie1.toString(16)
+              cookie2.toString(16) +
+              " " +
+              cookie1.toString(16)
             );
           }
           // Also test the global address 0 for integrity.
@@ -1614,7 +1614,7 @@ var TreeSitter = (function () {
           __ATMAIN__.unshift(cb);
         }
 
-        function addOnExit(cb) {}
+        function addOnExit(cb) { }
 
         function addOnPostRun(cb) {
           __ATPOSTRUN__.unshift(cb);
@@ -1837,14 +1837,14 @@ var TreeSitter = (function () {
             assert(
               runtimeInitialized,
               "native function `" +
-                displayName +
-                "` called before runtime initialization"
+              displayName +
+              "` called before runtime initialization"
             );
             assert(
               !runtimeExited,
               "native function `" +
-                displayName +
-                "` called after runtime exit (use NO_EXIT_RUNTIME to keep it alive after main() exits)"
+              displayName +
+              "` called after runtime exit (use NO_EXIT_RUNTIME to keep it alive after main() exits)"
             );
             if (!asm[name]) {
               assert(
@@ -1912,7 +1912,7 @@ var TreeSitter = (function () {
                     wasmBinaryFile,
                     function (response) {
                       resolve(
-                        new Uint8Array(/** @type{!ArrayBuffer} */ (response))
+                        new Uint8Array(/** @type{!ArrayBuffer} */(response))
                       );
                     },
                     reject
@@ -1992,8 +1992,8 @@ var TreeSitter = (function () {
                 if (isFileURI(wasmBinaryFile)) {
                   err(
                     "warning: Loading from a file URI (" +
-                      wasmBinaryFile +
-                      ") is not supported in most browsers. See https://emscripten.org/docs/getting_started/FAQ.html#how-do-i-run-a-local-webserver-for-testing-why-does-my-program-stall-in-downloading-or-preparing"
+                    wasmBinaryFile +
+                    ") is not supported in most browsers. See https://emscripten.org/docs/getting_started/FAQ.html#how-do-i-run-a-local-webserver-for-testing-why-does-my-program-stall-in-downloading-or-preparing"
                   );
                 }
                 abort(reason);
@@ -2422,8 +2422,8 @@ var TreeSitter = (function () {
               assert(
                 resolved,
                 "undefined symbol `" +
-                  sym +
-                  "`. perhaps a side module was not linked in? if this global was expected to arrive from a system library, try to build the MAIN_MODULE with EMCC_FORCE_STDLIBS=1 in the environment"
+                sym +
+                "`. perhaps a side module was not linked in? if this global was expected to arrive from a system library, try to build the MAIN_MODULE with EMCC_FORCE_STDLIBS=1 in the environment"
               );
               return resolved;
             }
@@ -2672,8 +2672,8 @@ var TreeSitter = (function () {
               assert(
                 value,
                 "undefined symbol `" +
-                  symName +
-                  "`. perhaps a side module was not linked in? if this global was expected to arrive from a system library, try to build the MAIN_MODULE with EMCC_FORCE_STDLIBS=1 in the environment"
+                symName +
+                "`. perhaps a side module was not linked in? if this global was expected to arrive from a system library, try to build the MAIN_MODULE with EMCC_FORCE_STDLIBS=1 in the environment"
               );
               if (typeof value === "function") {
                 GOT[symName].value = addFunctionWasm(value, value.sig);
@@ -2798,11 +2798,11 @@ var TreeSitter = (function () {
           } catch (e) {
             console.error(
               "emscripten_realloc_buffer: Attempted to grow heap from " +
-                buffer.byteLength +
-                " bytes to " +
-                size +
-                " bytes, but got error: " +
-                e
+              buffer.byteLength +
+              " bytes to " +
+              size +
+              " bytes, but got error: " +
+              e
             );
           }
           // implicit 0 return to save code size (caller will cast "undefined" into 0
@@ -2833,10 +2833,10 @@ var TreeSitter = (function () {
           if (requestedSize > maxHeapSize) {
             err(
               "Cannot enlarge memory, asked to go up to " +
-                requestedSize +
-                " bytes, but the limit is " +
-                maxHeapSize +
-                " bytes!"
+              requestedSize +
+              " bytes, but the limit is " +
+              maxHeapSize +
+              " bytes!"
             );
             return false;
           }
@@ -2863,10 +2863,10 @@ var TreeSitter = (function () {
           }
           err(
             "Failed to grow the heap from " +
-              oldSize +
-              " bytes to " +
-              newSize +
-              " bytes, not enough memory!"
+            oldSize +
+            " bytes to " +
+            newSize +
+            " bytes, not enough memory!"
           );
           return false;
         }
@@ -2929,18 +2929,18 @@ var TreeSitter = (function () {
             (tempI64 = [
               stat.size >>> 0,
               ((tempDouble = stat.size),
-              +Math.abs(tempDouble) >= 1.0
-                ? tempDouble > 0.0
-                  ? (Math.min(
+                +Math.abs(tempDouble) >= 1.0
+                  ? tempDouble > 0.0
+                    ? (Math.min(
                       +Math.floor(tempDouble / 4294967296.0),
                       4294967295.0
                     ) |
                       0) >>>
                     0
-                  : ~~+Math.ceil(
+                    : ~~+Math.ceil(
                       (tempDouble - +(~~tempDouble >>> 0)) / 4294967296.0
                     ) >>> 0
-                : 0),
+                  : 0),
             ]),
               (HEAP32[(buf + 40) >> 2] = tempI64[0]),
               (HEAP32[(buf + 44) >> 2] = tempI64[1]);
@@ -2955,18 +2955,18 @@ var TreeSitter = (function () {
             (tempI64 = [
               stat.ino >>> 0,
               ((tempDouble = stat.ino),
-              +Math.abs(tempDouble) >= 1.0
-                ? tempDouble > 0.0
-                  ? (Math.min(
+                +Math.abs(tempDouble) >= 1.0
+                  ? tempDouble > 0.0
+                    ? (Math.min(
                       +Math.floor(tempDouble / 4294967296.0),
                       4294967295.0
                     ) |
                       0) >>>
                     0
-                  : ~~+Math.ceil(
+                    : ~~+Math.ceil(
                       (tempDouble - +(~~tempDouble >>> 0)) / 4294967296.0
                     ) >>> 0
-                : 0),
+                  : 0),
             ]),
               (HEAP32[(buf + 80) >> 2] = tempI64[0]),
               (HEAP32[(buf + 84) >> 2] = tempI64[1]);
@@ -3116,18 +3116,18 @@ var TreeSitter = (function () {
             (tempI64 = [
               stream.position >>> 0,
               ((tempDouble = stream.position),
-              +Math.abs(tempDouble) >= 1.0
-                ? tempDouble > 0.0
-                  ? (Math.min(
+                +Math.abs(tempDouble) >= 1.0
+                  ? tempDouble > 0.0
+                    ? (Math.min(
                       +Math.floor(tempDouble / 4294967296.0),
                       4294967295.0
                     ) |
                       0) >>>
                     0
-                  : ~~+Math.ceil(
+                    : ~~+Math.ceil(
                       (tempDouble - +(~~tempDouble >>> 0)) / 4294967296.0
                     ) >>> 0
-                : 0),
+                  : 0),
             ]),
               (HEAP32[newOffset >> 2] = tempI64[0]),
               (HEAP32[(newOffset + 4) >> 2] = tempI64[1]);
@@ -3216,12 +3216,12 @@ var TreeSitter = (function () {
                 assert(
                   false,
                   "Character code " +
-                    chr +
-                    " (" +
-                    String.fromCharCode(chr) +
-                    ")  at offset " +
-                    i +
-                    " not in 0x00-0xFF."
+                  chr +
+                  " (" +
+                  String.fromCharCode(chr) +
+                  ")  at offset " +
+                  i +
+                  " not in 0x00-0xFF."
                 );
               }
               chr &= 0xff;
@@ -3245,36 +3245,36 @@ var TreeSitter = (function () {
           typeof atob === "function"
             ? atob
             : function (input) {
-                var keyStr =
-                  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+              var keyStr =
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
-                var output = "";
-                var chr1, chr2, chr3;
-                var enc1, enc2, enc3, enc4;
-                var i = 0;
-                // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
-                input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-                do {
-                  enc1 = keyStr.indexOf(input.charAt(i++));
-                  enc2 = keyStr.indexOf(input.charAt(i++));
-                  enc3 = keyStr.indexOf(input.charAt(i++));
-                  enc4 = keyStr.indexOf(input.charAt(i++));
+              var output = "";
+              var chr1, chr2, chr3;
+              var enc1, enc2, enc3, enc4;
+              var i = 0;
+              // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
+              input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+              do {
+                enc1 = keyStr.indexOf(input.charAt(i++));
+                enc2 = keyStr.indexOf(input.charAt(i++));
+                enc3 = keyStr.indexOf(input.charAt(i++));
+                enc4 = keyStr.indexOf(input.charAt(i++));
 
-                  chr1 = (enc1 << 2) | (enc2 >> 4);
-                  chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
-                  chr3 = ((enc3 & 3) << 6) | enc4;
+                chr1 = (enc1 << 2) | (enc2 >> 4);
+                chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+                chr3 = ((enc3 & 3) << 6) | enc4;
 
-                  output = output + String.fromCharCode(chr1);
+                output = output + String.fromCharCode(chr1);
 
-                  if (enc3 !== 64) {
-                    output = output + String.fromCharCode(chr2);
-                  }
-                  if (enc4 !== 64) {
-                    output = output + String.fromCharCode(chr3);
-                  }
-                } while (i < input.length);
-                return output;
-              };
+                if (enc3 !== 64) {
+                  output = output + String.fromCharCode(chr2);
+                }
+                if (enc4 !== 64) {
+                  output = output + String.fromCharCode(chr3);
+                }
+              } while (i < input.length);
+              return output;
+            };
 
         // Converts a string of base64 into a byte array.
         // Throws error on invalid input.
@@ -3744,9 +3744,9 @@ var TreeSitter = (function () {
             "_emscripten_stack_set_limits"
           ] =
             Module["asm"]["emscripten_stack_set_limits"]).apply(
-            null,
-            arguments
-          );
+              null,
+              arguments
+            );
         });
 
         /** @type {function(...*):?} */
@@ -3756,9 +3756,9 @@ var TreeSitter = (function () {
               "_emscripten_stack_get_free"
             ] =
               Module["asm"]["emscripten_stack_get_free"]).apply(
-              null,
-              arguments
-            );
+                null,
+                arguments
+              );
           });
 
         /** @type {function(...*):?} */
@@ -5578,7 +5578,7 @@ var TreeSitter = (function () {
             // it doesn't matter if it fails
             var flush = Module["_fflush"];
             if (flush) flush(0);
-          } catch (e) {}
+          } catch (e) { }
           out = oldOut;
           err = oldErr;
           if (has) {
@@ -5694,7 +5694,7 @@ var TreeSitter = (function () {
               if (version < MIN_COMPATIBLE_VERSION || VERSION < version) {
                 throw new Error(
                   `Incompatible language version ${version}. ` +
-                    `Compatibility range ${MIN_COMPATIBLE_VERSION} through ${VERSION}.`
+                  `Compatibility range ${MIN_COMPATIBLE_VERSION} through ${VERSION}.`
                 );
               }
             } else {
@@ -6462,8 +6462,7 @@ var TreeSitter = (function () {
                     case "eq?":
                       if (steps.length !== 3)
                         throw new Error(
-                          `Wrong number of arguments to \`#eq?\` predicate. Expected 2, got ${
-                            steps.length - 1
+                          `Wrong number of arguments to \`#eq?\` predicate. Expected 2, got ${steps.length - 1
                           }`
                         );
                       if (steps[1].type !== "capture")
@@ -6504,8 +6503,7 @@ var TreeSitter = (function () {
                     case "match?":
                       if (steps.length !== 3)
                         throw new Error(
-                          `Wrong number of arguments to \`#match?\` predicate. Expected 2, got ${
-                            steps.length - 1
+                          `Wrong number of arguments to \`#match?\` predicate. Expected 2, got ${steps.length - 1
                           }.`
                         );
                       if (steps[1].type !== "capture")
@@ -6530,8 +6528,7 @@ var TreeSitter = (function () {
                     case "set!":
                       if (steps.length < 2 || steps.length > 3)
                         throw new Error(
-                          `Wrong number of arguments to \`#set!\` predicate. Expected 1 or 2. Got ${
-                            steps.length - 1
+                          `Wrong number of arguments to \`#set!\` predicate. Expected 1 or 2. Got ${steps.length - 1
                           }.`
                         );
                       if (steps.some((s) => s.type !== "string"))
@@ -6548,8 +6545,7 @@ var TreeSitter = (function () {
                     case "is-not?":
                       if (steps.length < 2 || steps.length > 3)
                         throw new Error(
-                          `Wrong number of arguments to \`#${operator}\` predicate. Expected 1 or 2. Got ${
-                            steps.length - 1
+                          `Wrong number of arguments to \`#${operator}\` predicate. Expected 1 or 2. Got ${steps.length - 1
                           }.`
                         );
                       if (steps.some((s) => s.type !== "string"))
@@ -7041,6 +7037,13 @@ try {
             name: "classes",
             schema: "string",
             description: "Classes to apply to cell container"
+          },
+          {
+            name: "renderings",
+            schema: {
+              arrayOf: "string"
+            },
+            description: "Array of rendering names"
           },
           {
             name: "tags",
@@ -23981,6 +23984,7 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
+          "Array of rendering names",
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
         ],
         "schema/external-schemas.yml": [
@@ -24210,12 +24214,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 194322,
+          _internalId: 194327,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 194314,
+              _internalId: 194319,
               type: "enum",
               enum: [
                 "png",
@@ -24231,7 +24235,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 194321,
+              _internalId: 194326,
               type: "anyOf",
               anyOf: [
                 {
@@ -24330,7 +24334,7 @@ try {
 
   // web-worker-manager.ts
   function workerCallback(calls) {
-    return async function(e) {
+    return async function (e) {
       const { callName, args, id } = e.data;
       try {
         const result = await calls[callName](...args);
@@ -24498,7 +24502,7 @@ ${heading}`;
   }
   function indexToLineCol(text) {
     const offsets = Array.from(lineOffsets(text));
-    return function(offset) {
+    return function (offset) {
       if (offset === 0) {
         return {
           line: 0,
@@ -24514,7 +24518,7 @@ ${heading}`;
   }
   function lineColToIndex(text) {
     const offsets = Array.from(lineOffsets(text));
-    return function(position) {
+    return function (position) {
       return offsets[position.line] + position.column;
     };
   }
@@ -24770,7 +24774,7 @@ ${heading}`;
       return {
         value: str2,
         fileName,
-        map: function(index, closest) {
+        map: function (index, closest) {
           if (closest) {
             index = Math.min(str2.length - 1, Math.max(0, index));
           }
@@ -24834,7 +24838,7 @@ ${heading}`;
   }
   function mappedIndexToLineCol(eitherText) {
     const text = asMappedString(eitherText);
-    return function(offset) {
+    return function (offset) {
       const mapResult = text.map(offset, true);
       if (mapResult === void 0) {
         throw new InternalError("bad offset in mappedIndexRowCol");
@@ -25220,8 +25224,8 @@ ${heading}`;
   function compileStyleAliases(map2) {
     var result = {};
     if (map2 !== null) {
-      Object.keys(map2).forEach(function(style) {
-        map2[style].forEach(function(alias) {
+      Object.keys(map2).forEach(function (style) {
+        map2[style].forEach(function (alias) {
           result[String(alias)] = style;
         });
       });
@@ -25230,7 +25234,7 @@ ${heading}`;
   }
   function Type$1(tag, options) {
     options = options || {};
-    Object.keys(options).forEach(function(name) {
+    Object.keys(options).forEach(function (name) {
       if (TYPE_CONSTRUCTOR_OPTIONS.indexOf(name) === -1) {
         throw new exception(
           'Unknown option "' + name + '" is met in definition of "' + tag + '" YAML type.'
@@ -25240,10 +25244,10 @@ ${heading}`;
     this.options = options;
     this.tag = tag;
     this.kind = options["kind"] || null;
-    this.resolve = options["resolve"] || function() {
+    this.resolve = options["resolve"] || function () {
       return true;
     };
-    this.construct = options["construct"] || function(data) {
+    this.construct = options["construct"] || function (data) {
       return data;
     };
     this.instanceOf = options["instanceOf"] || null;
@@ -25262,9 +25266,9 @@ ${heading}`;
   var type = Type$1;
   function compileList(schema2, name) {
     var result = [];
-    schema2[name].forEach(function(currentType) {
+    schema2[name].forEach(function (currentType) {
       var newIndex = result.length;
-      result.forEach(function(previousType, previousIndex) {
+      result.forEach(function (previousType, previousIndex) {
         if (previousType.tag === currentType.tag && previousType.kind === currentType.kind && previousType.multi === currentType.multi) {
           newIndex = previousIndex;
         }
@@ -25319,7 +25323,7 @@ ${heading}`;
         "Schema.extend argument should be a Type, [ Type ], or a schema definition ({ implicit: [...], explicit: [...] })"
       );
     }
-    implicit.forEach(function(type$1) {
+    implicit.forEach(function (type$1) {
       if (!(type$1 instanceof type)) {
         throw new exception(
           "Specified list of YAML types (or a single Type object) contains a non-Type object."
@@ -25336,7 +25340,7 @@ ${heading}`;
         );
       }
     });
-    explicit.forEach(function(type$1) {
+    explicit.forEach(function (type$1) {
       if (!(type$1 instanceof type)) {
         throw new exception(
           "Specified list of YAML types (or a single Type object) contains a non-Type object."
@@ -25357,19 +25361,19 @@ ${heading}`;
   var schema = Schema$1;
   var str = new type("tag:yaml.org,2002:str", {
     kind: "scalar",
-    construct: function(data) {
+    construct: function (data) {
       return data !== null ? data : "";
     }
   });
   var seq = new type("tag:yaml.org,2002:seq", {
     kind: "sequence",
-    construct: function(data) {
+    construct: function (data) {
       return data !== null ? data : [];
     }
   });
   var map = new type("tag:yaml.org,2002:map", {
     kind: "mapping",
-    construct: function(data) {
+    construct: function (data) {
       return data !== null ? data : {};
     }
   });
@@ -25394,19 +25398,19 @@ ${heading}`;
     construct: constructYamlNull,
     predicate: isNull,
     represent: {
-      canonical: function() {
+      canonical: function () {
         return "~";
       },
-      lowercase: function() {
+      lowercase: function () {
         return "null";
       },
-      uppercase: function() {
+      uppercase: function () {
         return "NULL";
       },
-      camelcase: function() {
+      camelcase: function () {
         return "Null";
       },
-      empty: function() {
+      empty: function () {
         return "";
       }
     },
@@ -25430,13 +25434,13 @@ ${heading}`;
     construct: constructYamlBoolean,
     predicate: isBoolean,
     represent: {
-      lowercase: function(object) {
+      lowercase: function (object) {
         return object ? "true" : "false";
       },
-      uppercase: function(object) {
+      uppercase: function (object) {
         return object ? "TRUE" : "FALSE";
       },
-      camelcase: function(object) {
+      camelcase: function (object) {
         return object ? "True" : "False";
       }
     },
@@ -25550,16 +25554,16 @@ ${heading}`;
     construct: constructYamlInteger,
     predicate: isInteger,
     represent: {
-      binary: function(obj) {
+      binary: function (obj) {
         return obj >= 0 ? "0b" + obj.toString(2) : "-0b" + obj.toString(2).slice(1);
       },
-      octal: function(obj) {
+      octal: function (obj) {
         return obj >= 0 ? "0o" + obj.toString(8) : "-0o" + obj.toString(8).slice(1);
       },
-      decimal: function(obj) {
+      decimal: function (obj) {
         return obj.toString(10);
       },
-      hexadecimal: function(obj) {
+      hexadecimal: function (obj) {
         return obj >= 0 ? "0x" + obj.toString(16).toUpperCase() : "-0x" + obj.toString(16).toUpperCase().slice(1);
       }
     },
@@ -27426,7 +27430,7 @@ ${heading}`;
     return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE;
   }
   function writeScalar(state, string, level, iskey, inblock) {
-    state.dump = function() {
+    state.dump = function () {
       if (string.length === 0) {
         return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''";
       }
@@ -27478,7 +27482,7 @@ ${heading}`;
   }
   function foldString(string, width) {
     var lineRe = /(\n+)([^\n]*)/g;
-    var result = function() {
+    var result = function () {
       var nextLF = string.indexOf("\n");
       nextLF = nextLF !== -1 ? nextLF : string.length;
       lineRe.lastIndex = nextLF;
@@ -27813,7 +27817,7 @@ ${heading}`;
     dump: dump_1
   };
   function renamed(from, to) {
-    return function() {
+    return function () {
       throw new Error(
         "Function yaml." + from + " is removed in js-yaml 4. Use yaml." + to + " instead, which is now safe by default."
       );
@@ -28601,7 +28605,7 @@ ${heading}`;
       const start = this.index;
       let inClass = false;
       let escaped = false;
-      for (; ; ) {
+      for (; ;) {
         const cp = this.currentCodePoint;
         if (cp === -1 || isLineTerminator(cp)) {
           const kind = inClass ? "character class" : "regular expression";
@@ -29002,7 +29006,7 @@ ${heading}`;
     }
     consumeClassRanges() {
       const strict = this.strict || this._uFlag;
-      for (; ; ) {
+      for (; ;) {
         const rangeStart = this.index;
         if (!this.consumeClassAtom()) {
           break;
@@ -32401,7 +32405,7 @@ ${tidyverseInfo(
       ;
     glob = glob.slice(0, newLength);
     let regExpString = "";
-    for (let j = 0; j < glob.length; ) {
+    for (let j = 0; j < glob.length;) {
       let segment = "";
       const groupStack = [];
       let inRange = false;
@@ -33418,7 +33422,7 @@ ${tidyverseInfo(
       sourceStartLine
     } = partitionCellOptionsText(language, outerSource);
     if (language !== "r" || // only skip validation when language === 'r' and guessChunkOptionsFormat == "knitr"
-    guessChunkOptionsFormat((mappedYaml || asMappedString("")).value) === "yaml") {
+      guessChunkOptionsFormat((mappedYaml || asMappedString("")).value) === "yaml") {
       const yaml = await parseAndValidateCellOptions(
         mappedYaml || asMappedString(""),
         language,
