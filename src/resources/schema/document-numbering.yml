@@ -34,7 +34,7 @@
   description: The numbering depth for sections. (Use `number-depth` instead).
 
 - name: number-offset
-  ags:
+  tags:
     formats: [$html-all]
   schema:
     maybeArrayOf: number
