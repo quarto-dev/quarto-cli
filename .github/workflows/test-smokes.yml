@@ -174,23 +174,8 @@ jobs:
         with:
           version: "1.11.3"
 
-      - name: Checkout dev branch of QuartoNotebookRunner
-        uses: actions/checkout@v4
-        with:
-          repository: PumasAI/QuartoNotebookRunner.jl
-          ref: jk/workers-status
-          path: qnr
-
-      - name: Set QUARTO_JULIA_PROJECT environment variable
-        run: echo "QUARTO_JULIA_PROJECT=$GITHUB_WORKSPACE/qnr" >> $GITHUB_ENV
-        shell: bash
-
       - name: Cache Julia Packages
         uses: julia-actions/cache@v2
-
-      - name: Instantiate QuartoNotebookRunner
-        run: julia --project=$GITHUB_WORKSPACE/qnr -e 'using Pkg; Pkg.update()'
-        shell: bash
 
       - name: Restore Julia Packages
         working-directory: tests
