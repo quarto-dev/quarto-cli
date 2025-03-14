@@ -278,35 +278,6 @@ export function projectIgnoreGlobs(dir: string) {
   );
 }
 
-// export async function engineCommand(
-//   args: string[],
-//   env?: Record<string, string>,
-// ) {
-//   if (args.length === 0) {
-//     throw ("No engine name given");
-//   }
-//   const engineKey = args[0];
-//   const engine = kEngines.get(engineKey);
-//   if (engine === undefined) {
-//     throw (`No engine with the name \"${engineKey}\" is registered. Available engines are ${
-//       Array.from(kEngines.keys()).map((key) => `"${key}"`).join(", ")
-//     }`);
-//   }
-
-//   if (args.length < 2) {
-//     throw ("No engine command specified");
-//   }
-//   const commandName = args[1];
-
-//   const commandFunction = engine.commands?.[commandName];
-//   if (commandFunction === undefined) {
-//     throw (`No command with the name \"${commandName}\" is registered for the engine \"${engineKey}\".`);
-//   }
-//   await commandFunction(args.slice(2), env);
-
-//   Deno.exit(0);
-// }
-
 export const engineCommand = new Command()
   .name("engine")
   .description(
