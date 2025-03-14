@@ -1,0 +1,6 @@
+title: Version
+author: Posit, PBC
+organization: quarto
+contributes:
+  shortcodes:
+    - version.lua
