@@ -185,12 +185,12 @@ jobs:
         run: echo "QUARTO_JULIA_PROJECT=$GITHUB_WORKSPACE/qnr" >> $GITHUB_ENV
         shell: bash
 
+      - name: Cache Julia Packages
+        uses: julia-actions/cache@v2
+
       - name: Instantiate QuartoNotebookRunner
         run: julia --project=$GITHUB_WORKSPACE/qnr -e 'using Pkg; Pkg.update()'
         shell: bash
-
-      - name: Cache Julia Packages
-        uses: julia-actions/cache@v2
 
       - name: Restore Julia Packages
         working-directory: tests
