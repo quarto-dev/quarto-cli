@@ -854,11 +854,11 @@ function populateJuliaEngineCommand(command: Command) {
       "Get status information on the currently running Julia server process.",
     ).action(logStatus)
     .command("kill", "Kill server")
-    .description("Kills the control server if it is currently running.")
+    .description("Kill the control server if it is currently running. This will also kill all notebook worker processes.")
     .action(killJuliaServer)
     .command("log", "Print julia server log")
     .description(
-      "Prints the julia server log file if it exists which can be used to diagnose problems.",
+      "Print the content of the julia server log file if it exists which can be used to diagnose problems.",
     )
     .action(printJuliaServerLog)
     .command(
@@ -876,7 +876,7 @@ function populateJuliaEngineCommand(command: Command) {
     })
     .command("stop", "Stop the server")
     .description(
-      "Sends a message to the server that it should stop all notebooks and itself. Running notebooks will not be interrupted.",
+      "Send a message to the server that it should close all notebooks and exit. This will fail if any notebooks are not idle.",
     )
     .action(stopServer);
   return;
