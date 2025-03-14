@@ -1,0 +1,21 @@
+---
+title: Callouts
+format: docusaurus-md
+---
+
+
+
+
+:::note[A small note]
+
+You should note that this is a note.
+
+:::
+
+Another one without title
+
+:::warning
+
+You should note that this is a note.
+
+:::

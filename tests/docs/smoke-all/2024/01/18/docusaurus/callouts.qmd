@@ -4,9 +4,7 @@ format: docusaurus-md
 _quarto:
   tests:
     docusaurus-md:
-      ensureFileRegexMatches:
-        - [":::note\\[A small note\\]"]
-        - []
+      ensureSnapshotMatches: true
 ---
 
 ::: {.callout-note}
@@ -16,3 +14,12 @@ _quarto:
 You should note that this is a note.
 
 :::
+
+Another one without title
+
+::: {.callout-warning}
+
+You should note that this is a note.
+
+:::
+
