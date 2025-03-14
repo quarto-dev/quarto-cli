@@ -779,14 +779,15 @@ async function writeJuliaCommand<T extends ServerCommand["type"]>(
 
     if (isServerCommandError(responseData)) {
       const data = responseData;
-      error(
-        `Julia server returned error after receiving "${command.type}" command:\n` +
-          data.error,
-      );
+      let errorMessage =
+        `Julia server returned error after receiving "${command.type}" command:\n\n${data.error}`;
+
       if (data.juliaError) {
-        error(data.juliaError);
+        errorMessage +=
+          `\n\nThe underlying Julia error was:\n\n${data.juliaError}`;
       }
-      throw new Error("Internal julia server error");
+
+      throw new Error(errorMessage);
     }
 
     let data: ServerCommandResponse<T>;
