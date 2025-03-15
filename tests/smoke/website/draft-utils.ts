@@ -26,11 +26,11 @@ export const hasContentLinksToDrafts = (siteDir: string) => {
 }
 
 export const hasEnvelopeLinksToDrafts = (siteDir: string) => {
-  return ensureHtmlElementContents(join(siteDir, "index.html"), ["#quarto-sidebar", "#quarto-header", ".quarto-listing-default"], ["Draft!!"], []);
+  return ensureHtmlElementContents(join(siteDir, "index.html"), { selectors: ["#quarto-sidebar", "#quarto-header", ".quarto-listing-default"], matches: ["Draft!!"], noMatches: [] });
 }
 
 export const doesntHaveEnvelopeLinksToDrafts = (siteDir: string) => {
-  return ensureHtmlElementContents(join(siteDir, "index.html"), ["#quarto-sidebar", "#quarto-header", ".quarto-listing-default"], [], ["Draft!!"]);
+  return ensureHtmlElementContents(join(siteDir, "index.html"), { selectors: ["#quarto-sidebar", "#quarto-header", ".quarto-listing-default"], matches: [], noMatches: ["Draft!!"] });
 }
 
 export const siteMapHasDraft = (siteDir: string) => {
