@@ -88,28 +88,45 @@ export async function resolveSassBundles(
     // the brand bundle itself doesn't have any 'brand' entries;
     // those are used to specify where the brand-specific layers should be inserted
     // in the final bundle.
-    const brandLayersMaybeBrand = bundlesWithBrand.find((bundle) =>
+    const maybeBrandBundle = bundlesWithBrand.find((bundle) =>
       bundle.key === "brand"
-    )?.user || [];
-    assert(!brandLayersMaybeBrand.find((v) => v === "brand"));
-    const brandLayers = brandLayersMaybeBrand as SassLayer[];
-    let foundBrand = false;
+    );
+    assert(!maybeBrandBundle ||
+      !maybeBrandBundle.user?.find((v) => v === "brand") &&
+      !maybeBrandBundle.dark?.user?.find((v) => v === "brand"));
+    let foundBrand = {light: false, dark: false};
     const bundles: SassBundle[] = bundlesWithBrand.filter((bundle) =>
       bundle.key !== "brand"
     ).map((bundle) => {
       const userBrand = bundle.user?.findIndex((layer) => layer === "brand");
+      let cloned = false;
       if (userBrand && userBrand !== -1) {
+        // console.log('light brand order specified', userBrand, cloned);
         bundle = cloneDeep(bundle);
-        bundle.user!.splice(userBrand, 1, ...brandLayers);
-        foundBrand = true;
+        cloned = true;
+        bundle.user!.splice(userBrand, 1, ...(maybeBrandBundle?.user || []));
+        foundBrand.light = true;
+      }
+      const darkBrand = bundle.dark?.user?.findIndex((layer) => layer === "brand");
+      if (darkBrand && darkBrand !== -1) {
+        // console.log('dark brand order specified', darkBrand, cloned);
+        if (!cloned) {
+          bundle = cloneDeep(bundle);
+        }
+        bundle.dark!.user!.splice(darkBrand, 1, ...(maybeBrandBundle?.dark?.user || []))
+        foundBrand.dark = true;
       }
       return bundle as SassBundle;
     });
-    if (!foundBrand) {
+    if (!foundBrand.light || !foundBrand.dark) {
       bundles.unshift({
         dependency,
         key: "brand",
-        user: brandLayers,
+        user: !foundBrand.light && maybeBrandBundle?.user as SassLayer[] || [],
+        dark: !foundBrand.dark && maybeBrandBundle?.dark?.user && {
+          user: maybeBrandBundle.dark.user as SassLayer[],
+          default: maybeBrandBundle.dark.default
+        } || undefined
       });
     }
 

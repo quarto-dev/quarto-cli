@@ -22,6 +22,10 @@ import {
   BrandFontWeight,
 } from "../../resources/types/schema-types.ts";
 import { Brand } from "../brand/brand.ts";
+import {
+  darkModeDefault,
+} from "../../format/html/format-html-info.ts";
+
 
 const defaultColorNameMap: Record<string, string> = {
   "link-color": "link",
@@ -75,7 +79,10 @@ export async function brandBootstrapSassBundles(
   return [{
     key,
     dependency: "bootstrap",
-    user: layers,
+    user: layers.light,
+    dark: {
+      user: layers.dark
+    }
   }];
 }
 
@@ -559,16 +566,24 @@ const brandTypographyLayer = (
   };
 };
 
+export interface LightDarkSassLayers {
+  light: SassLayer[];
+  dark: SassLayer[];
+}
+
 export async function brandSassLayers(
   fileName: string | undefined,
   project: ProjectContext,
   nameMap: Record<string, string> = {},
-): Promise<SassLayer[]> {
+): Promise<LightDarkSassLayers> {
   const brand = await project.resolveBrand(fileName);
-  const sassLayers: SassLayer[] = [];
+  const sassLayers: LightDarkSassLayers = {
+    light: [],
+    dark: []
+  };
 
-  if (brand) {
-    sassLayers.push({
+  for (const layer of [sassLayers.light, sassLayers.dark]) {
+    layer.push({
       defaults: '$theme: "brand" !default;',
       uses: "",
       functions: "",
@@ -576,12 +591,17 @@ export async function brandSassLayers(
       rules: "",
     });
   }
-  if (brand?.data.color) {
-    sassLayers.push(brandColorLayer(brand, nameMap));
+  if (brand?.light?.data.color) {
+    sassLayers.light.push(brandColorLayer(brand?.light, nameMap));
   }
-
-  if (brand?.data.typography) {
-    sassLayers.push(brandTypographyLayer(brand));
+  if (brand?.dark?.data.color) {
+    sassLayers.dark.push(brandColorLayer(brand?.dark, nameMap));
+  }
+  if (brand?.light?.data.typography) {
+    sassLayers.light.push(brandTypographyLayer(brand?.light));
+  }
+  if (brand?.dark?.data.typography) {
+    sassLayers.dark.push(brandTypographyLayer(brand?.dark));
   }
 
   return sassLayers;
@@ -591,7 +611,7 @@ export async function brandBootstrapSassLayers(
   fileName: string | undefined,
   project: ProjectContext,
   nameMap: Record<string, string> = {},
-): Promise<SassLayer[]> {
+): Promise<LightDarkSassLayers> {
   const layers = await brandSassLayers(
     fileName,
     project,
@@ -599,8 +619,11 @@ export async function brandBootstrapSassLayers(
   );
 
   const brand = await project.resolveBrand(fileName);
-  if (brand?.data?.defaults?.bootstrap) {
-    layers.unshift(brandDefaultsBootstrapLayer(brand));
+  if (brand?.light?.data?.defaults?.bootstrap) {
+    layers.light.unshift(brandDefaultsBootstrapLayer(brand.light));
+  }
+  if (brand?.dark?.data?.defaults?.bootstrap) {
+    layers.dark.unshift(brandDefaultsBootstrapLayer(brand.dark));
   }
 
   return layers;
@@ -611,16 +634,16 @@ export async function brandRevealSassLayers(
   _format: Format,
   project: ProjectContext,
 ): Promise<SassLayer[]> {
-  return brandSassLayers(
+  return (await brandSassLayers(
     input,
     project,
     defaultColorNameMap,
-  );
+  )).light;
 }
 
 export async function brandSassFormatExtras(
   input: string | undefined,
-  _format: Format,
+  format: Format,
   project: ProjectContext,
 ): Promise<FormatExtras> {
   const htmlSassBundleLayers = await brandBootstrapSassLayers(
@@ -634,7 +657,11 @@ export async function brandSassFormatExtras(
         {
           key: "brand",
           dependency: "bootstrap",
-          user: htmlSassBundleLayers,
+          user: htmlSassBundleLayers.light,
+          dark: {
+            user: htmlSassBundleLayers.dark,
+            default: darkModeDefault(format.metadata)
+          }
         },
       ],
     },
