@@ -53,6 +53,10 @@ All changes included in 1.7:
 - ([#11903](https://github.com/quarto-dev/quarto-cli/issues/11903)): `crossref` configuration like `fig-title` or `tbl-title` now correctly supports multi word values, e.g. `fig-title: 'Supplementary Figure'`.
 - ([#11878](https://github.com/quarto-dev/quarto-cli/issues/11878), [#12085](https://github.com/quarto-dev/quarto-cli/issues/12085)): Correctly fixup raw LaTeX table having an unexpected table env with options (e.g `\begin{table}[!ht]`) to be handled as crossref table.
 
+## `revealjs` format
+
+- ([#12307](https://github.com/quarto-dev/quarto-cli/issues/12307)): Tabset in Revealjs now correctly render reactive content when `server: shiny` is used.
+
 ### Quarto PDF engine
 
 - ([#12194](https://github.com/quarto-dev/quarto-cli/issues/12194)): More specific checks added in log parsing to automatically find missing fonts.
