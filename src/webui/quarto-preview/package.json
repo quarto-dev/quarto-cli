@@ -23,7 +23,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "ansi-output": "^0.0.1",
-    "vite": ">=4.5.6"
+    "vite": ">=4.5.6",
+    "esbuild": ">=0.25.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
@@ -37,6 +38,7 @@
     "vite": "^3.0.0",
     "vite-plugin-css-injected-by-js": "^3.1.0",
     "vite-plugin-static-copy": "^0.13.0",
-    "vite": ">=4.5.6" 
+    "vite": ">=4.5.6",
+    "esbuild": ">=0.25.0"
   }
 }
