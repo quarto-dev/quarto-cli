@@ -1,0 +1,9 @@
+{
+  "name": "esbuild-test",
+  "scripts": {
+    "watch": "esbuild src/app.ts --bundle --sourcemap --outdir=www --servedir=www --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2"
+  }
+}
