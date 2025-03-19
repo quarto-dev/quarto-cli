@@ -1,0 +1,26 @@
+/*
+    Compile and Catalog Configuration
+*/
+{
+  // For UniVerse, catalog types can be: global, local, or normal.
+  // For UniData, catalog types can be: local or direct.
+  "catalog": "local",
+
+  //Catalog arguments
+  "arguments": "",
+
+  // For the catalog type "global" in UniVerse, the initial characters can be: Asterisk (*), Exclamation mark (!), Minus sign (-), or Dollar sign ($).
+  "initialCharacter": "",
+  // "initialCharacter": "*",
+  // "initialCharacter": "!",
+  // "initialCharacter": "-",
+  // "initialCharacter": "$"
+
+  // If the datasource is Unidata, provide the `ud_compile_flavor`.
+  // The default flavor is Unibasic.
+  "ud_compile_flavor": ""
+  // "ud_compile_flavor": "Pick",
+  // "ud_compile_flavor": "Unibasic",
+  // "ud_compile_flavor": "revelation",
+  // "ud_compile_flavor": "douglas"
+}
