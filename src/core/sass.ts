@@ -186,7 +186,7 @@ export async function compileSass(
     );
     scssInput = scssToWrite.join("\n");
     Deno.writeTextFileSync(
-      `${saveScssPrefix}-${counter}.scss`,
+      `${saveScssPrefix}-${counter - 1}.scss`,
       scssInput,
     );
   }
