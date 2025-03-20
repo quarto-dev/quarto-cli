@@ -265,7 +265,8 @@ export async function projectContext(
         }
 
         const temp = createTempContext({
-          dir: join(dir, ".quarto", "temp"),
+          dir: join(dir, ".quarto"),
+          prefix: "quarto-session-temp",
         });
         const result: ProjectContext = {
           resolveBrand: async (fileName?: string) =>
@@ -313,6 +314,7 @@ export async function projectContext(
           temp,
           cleanup: () => {
             result.diskCache.close();
+            temp.cleanup();
           },
         };
 

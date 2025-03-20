@@ -56,8 +56,8 @@ export function globalTempContext() {
 
 export function createTempContext(options?: Deno.MakeTempOptions): TempContext {
   let dir: string | undefined = Deno.makeTempDirSync({
-    ...options,
     dir: tempDir,
+    ...options,
   });
 
   const tempContextCleanupHandlers: VoidFunction[] = [];
