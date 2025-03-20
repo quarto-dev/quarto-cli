@@ -55,6 +55,9 @@ export function globalTempContext() {
 }
 
 export function createTempContext(options?: Deno.MakeTempOptions): TempContext {
+  if (options?.dir) {
+    ensureDirSync(options?.dir);
+  }
   let dir: string | undefined = Deno.makeTempDirSync({
     dir: tempDir,
     ...options,
