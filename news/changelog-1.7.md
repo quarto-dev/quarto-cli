@@ -41,6 +41,10 @@ All changes included in 1.7:
 
 - ([#12042](https://github.com/quarto-dev/quarto-cli/issues/12042)): Preserve Markdown content that follows YAML metadata in a `raw` .ipynb cell.
 
+## `quarto inspect`
+
+- ([#12336](https://github.com/quarto-dev/quarto-cli/issues/12336)): Clean up transient files created by `quarto inspect`.
+
 ## `html` format
 
 - ([#12277](https://github.com/quarto-dev/quarto-cli/pull/12277)): Provide light and dark plot and table renderings with `renderings: [light,dark]`
