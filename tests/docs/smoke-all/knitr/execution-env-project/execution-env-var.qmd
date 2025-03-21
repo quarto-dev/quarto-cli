@@ -1,0 +1,25 @@
+---
+title: "Testing env var available in execution in project context"
+format: markdown
+_quarto:
+  tests:
+    markdown:
+      ensureFileRegexMatches:
+      -   
+        - 'QUARTO_PROJECT_ROOT: \S+smoke-all[\\/]knitr[\\/]execution-env-project'
+        - 'QUARTO_DOCUMENT_PATH: \S+smoke-all[\\/]knitr[\\/]execution-env-project'
+        - 'QUARTO_DOCUMENT_FILE: execution-env-var.qmd'
+      - ['UNDEFINED']
+---
+
+#### Show execution env var
+
+```{r}
+#| echo: false
+#| output: asis
+knitr::raw_block(c(
+  sprintf("QUARTO_PROJECT_ROOT: %s;\n",Sys.getenv('QUARTO_PROJECT_ROOT', 'UNDEFINED')),
+  sprintf("QUARTO_DOCUMENT_PATH: %s\n",Sys.getenv('QUARTO_DOCUMENT_PATH', 'UNDEFINED')),
+  sprintf("QUARTO_DOCUMENT_FILE: %s\n",Sys.getenv('QUARTO_DOCUMENT_FILE', 'UNDEFINED'))
+), type = "markdown")
+```
