@@ -139,7 +139,7 @@ end, function(node)
     start.content:insert(pandoc.RawInline("markdown", "]\n"))
     admonition:insert(start)
   else
-    admonition:insert(pandoc.RawBlock("markdown", "\n:::" .. node.type))
+    admonition:insert(pandoc.RawBlock("markdown", ":::" .. node.type))
   end
   local content = node.content
   if type(content) == "table" then

@@ -10,9 +10,9 @@ _quarto:
     typst:
       ensurePdfRegexMatches:
       -
-        - 'brand font - title is linux libertine 16.5pt'
-        - 'heading-2 is linux libertine 15.4pt'
-        - 'paragraph is linux libertine 11pt'
+        - 'brand font - title is libertinus serif 16.5pt'
+        - 'heading-2 is libertinus serif 15.4pt'
+        - 'paragraph is libertinus serif 11pt'
         - 'fib = num => num < 2'
       -
         - 'text with font set'
