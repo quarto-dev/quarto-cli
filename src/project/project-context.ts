@@ -406,6 +406,7 @@ export async function projectContext(
           temp,
           cleanup: () => {
             result.diskCache.close();
+            temp.cleanup();
           },
         };
         const { files, engines } = await projectInputFiles(
@@ -478,6 +479,7 @@ export async function projectContext(
             temp,
             cleanup: () => {
               context.diskCache.close();
+              temp.cleanup();
             },
           };
           if (Deno.statSync(path).isDirectory) {
