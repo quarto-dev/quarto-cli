@@ -40,7 +40,7 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 ::: {.g-col-1 <%= listing.utilities.metadataAttrs(item) %> }
 
 ```{=html}
-<a href="<%- item.path %>" class="quarto-grid-link">
+<a href="<%- item.path %>" <%= item.target ? `target="${item.target}"` : "" %> class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 <%= `card-${align}` %><%= hideBorders ? ' borderless' : '' %>">
 ```
 
@@ -68,10 +68,12 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 ::: {.card-body .post-contents}
 
 <% if (showField('title')) { %>
+
 <h5 class="no-anchor card-title listing-title"><%= item.title %></h5>
 <% } %>
 
 <% if (showField('subtitle')) { %>
+
 <div class="card-subtitle listing-subtitle"><%= item.subtitle %></div>
 <% } %>
 
@@ -120,10 +122,12 @@ const flexJustify = showField('author') && showField('date') ? "justify" : showF
 ```
 
 <% if (showField('author')) { %>
+
 <div class="listing-author"><%= item.author %></div>
 <% } %>
 
 <% if (showField('date')) { %>
+
 <div class="listing-date"><%= item.date %></div>
 <% } %>
 
