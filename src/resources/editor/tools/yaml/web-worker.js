@@ -16590,6 +16590,11 @@ try {
           },
           {
             name: "number-offset",
+            tags: {
+              formats: [
+                "$html-all"
+              ]
+            },
             schema: {
               maybeArrayOf: "number"
             },
@@ -21916,6 +21921,7 @@ try {
             long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
           },
           "Classes to apply to cell container",
+          "Array of rendering names",
           "Array of tags for notebook cell",
           {
             short: "Notebook cell identifier",
@@ -23631,6 +23637,7 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
           {
             short: "Include an automatically generated table of contents",
             long: ""
@@ -23983,7 +23990,6 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "Array of rendering names",
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
         ],
         "schema/external-schemas.yml": [
@@ -24213,12 +24219,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 194327,
+          _internalId: 194642,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 194319,
+              _internalId: 194634,
               type: "enum",
               enum: [
                 "png",
@@ -24234,7 +24240,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 194326,
+              _internalId: 194641,
               type: "anyOf",
               anyOf: [
                 {
