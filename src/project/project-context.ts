@@ -69,6 +69,7 @@ import { ExecutionEngine, kMarkdownEngine } from "../execute/types.ts";
 import { projectResourceFiles } from "./project-resources.ts";
 
 import {
+  cleanupFileInformationCache,
   ignoreFieldsForProjectType,
   normalizeFormatYaml,
   projectConfigFile,
@@ -268,6 +269,7 @@ export async function projectContext(
           dir: join(dir, ".quarto"),
           prefix: "quarto-session-temp",
         });
+        const fileInformationCache = new Map();
         const result: ProjectContext = {
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
@@ -287,7 +289,7 @@ export async function projectContext(
           },
           dir,
           engines: [],
-          fileInformationCache: new Map(),
+          fileInformationCache,
           files: {
             input: [],
           },
@@ -313,6 +315,7 @@ export async function projectContext(
           diskCache: await createProjectCache(join(dir, ".quarto")),
           temp,
           cleanup: () => {
+            cleanupFileInformationCache(result);
             result.diskCache.close();
             temp.cleanup();
           },
@@ -361,6 +364,7 @@ export async function projectContext(
         const temp = createTempContext({
           dir: join(dir, ".quarto", "temp"),
         });
+        const fileInformationCache = new Map();
         const result: ProjectContext = {
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
@@ -381,7 +385,7 @@ export async function projectContext(
           dir,
           config: projectConfig,
           engines: [],
-          fileInformationCache: new Map(),
+          fileInformationCache,
           files: {
             input: [],
           },
@@ -404,6 +408,7 @@ export async function projectContext(
           diskCache: await createProjectCache(join(dir, ".quarto")),
           temp,
           cleanup: () => {
+            cleanupFileInformationCache(result);
             result.diskCache.close();
           },
         };
@@ -429,6 +434,7 @@ export async function projectContext(
           configResolvers.shift();
         } else if (force) {
           const temp = globalTempContext();
+          const fileInformationCache = new Map();
           const context: ProjectContext = {
             resolveBrand: async (fileName?: string) =>
               projectResolveBrand(context, fileName),
@@ -453,7 +459,7 @@ export async function projectContext(
                 [kProjectOutputDir]: flags?.outputDir,
               },
             },
-            fileInformationCache: new Map(),
+            fileInformationCache,
             files: {
               input: [],
             },
@@ -476,6 +482,7 @@ export async function projectContext(
             diskCache: await createProjectCache(join(temp.baseDir, ".quarto")),
             temp,
             cleanup: () => {
+              cleanupFileInformationCache(context);
               context.diskCache.close();
             },
           };
