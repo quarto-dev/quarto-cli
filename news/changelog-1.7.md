@@ -46,6 +46,7 @@ All changes included in 1.7:
 - ([#12277](https://github.com/quarto-dev/quarto-cli/pull/12277)): Provide light and dark plot and table renderings with `renderings: [light,dark]`
 - ([#11860](https://github.com/quarto-dev/quarto-cli/issues/11860)): ES6 modules that import other local JS modules in documents with `embed-resources: true` are now correctly embedded.
 - ([#1325](https://github.com/quarto-dev/quarto-cli/issues/1325)): Dark Mode pages should not flash light on reload. (Nor should Light Mode pages flash dark.)
+- ([#12307](https://github.com/quarto-dev/quarto-cli/issues/12307)): Tabsets using `tabby.js` in non-boostrap html (`theme: pandoc`, `theme: none` or `minimal: true`) now correctly render reactive content when `server: shiny` is used.
 
 ## `pdf` format
 
@@ -55,7 +56,7 @@ All changes included in 1.7:
 
 ## `revealjs` format
 
-- ([#12307](https://github.com/quarto-dev/quarto-cli/issues/12307)): Tabset in Revealjs now correctly render reactive content when `server: shiny` is used.
+- ([#12307](https://github.com/quarto-dev/quarto-cli/issues/12307)): Tabsets using `tabby.js` in Revealjs now correctly render reactive content when `server: shiny` is used.
 
 ### Quarto PDF engine
 
