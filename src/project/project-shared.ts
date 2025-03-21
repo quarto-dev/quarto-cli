@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
 import {
   dirname,
   isAbsolute,
@@ -580,5 +580,29 @@ export async function projectResolveBrand(
       );
       return fileInformation.brand;
     }
+  }
+}
+
+export function cleanupFileInformationCache(project: ProjectContext) {
+  project.fileInformationCache.forEach((entry) => {
+    if (entry?.target?.data) {
+      const data = entry.target.data as {
+        transient?: boolean;
+      };
+      if (data.transient && entry.target?.input) {
+        safeRemoveSync(entry.target?.input);
+      }
+    }
+  });
+}
+
+export async function withProjectCleanup<T>(
+  project: ProjectContext,
+  fn: (project: ProjectContext) => Promise<T>,
+): Promise<T> {
+  try {
+    return await fn(project);
+  } finally {
+    project.cleanup();
   }
 }
