@@ -24,7 +24,7 @@ async function fullInit() {
 const globOutput = Deno.args.length
   ? expandGlobSync(Deno.args[0])
   : expandGlobSync(
-    "docs/playwright/**/*.qmd",
+    "docs/playwright/!(serve|shiny)/**/*.qmd",
   );
 
 setInitializer(fullInit);
