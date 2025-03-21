@@ -430,7 +430,10 @@ export async function projectContext(
           dir = originalDir;
           configResolvers.shift();
         } else if (force) {
-          const temp = globalTempContext();
+          const temp = createTempContext({
+            dir: join(originalDir, ".quarto"),
+            prefix: "quarto-session-temp",
+          });
           const context: ProjectContext = {
             resolveBrand: async (fileName?: string) =>
               projectResolveBrand(context, fileName),
