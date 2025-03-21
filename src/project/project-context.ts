@@ -359,7 +359,8 @@ export async function projectContext(
       } else {
         debug(`projectContext: Found Quarto project in ${dir}`);
         const temp = createTempContext({
-          dir: join(dir, ".quarto", "temp"),
+          dir: join(dir, ".quarto"),
+          prefix: "quarto-session-temp",
         });
         const result: ProjectContext = {
           resolveBrand: async (fileName?: string) =>
