@@ -31,6 +31,7 @@ import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
 import { gitignoreEntries } from "../project/project-gitignore.ts";
 import { juliaEngine } from "./julia.ts";
 import { ensureFileInformationCache } from "../project/project-shared.ts";
+import { Command } from "cliffy/command/mod.ts";
 
 const kEngines: Map<string, ExecutionEngine> = new Map();
 
@@ -276,3 +277,30 @@ export function projectIgnoreGlobs(dir: string) {
     gitignoreEntries(dir).map((ignore) => `**/${ignore}**`),
   );
 }
+
+export const engineCommand = new Command()
+  .name("engine")
+  .description(
+    `Access functionality specific to quarto's different rendering engines.`,
+  )
+  .action(() => {
+    engineCommand.showHelp();
+    Deno.exit(1);
+  });
+
+kEngines.forEach((engine, name) => {
+  if (engine.populateCommand) {
+    const engineSubcommand = new Command();
+    // fill in some default behavior for each engine command
+    engineSubcommand
+      .description(
+        `Access functionality specific to the ${name} rendering engine.`,
+      )
+      .action(() => {
+        engineSubcommand.showHelp();
+        Deno.exit(1);
+      });
+    engine.populateCommand(engineSubcommand);
+    engineCommand.command(name, engineSubcommand);
+  }
+});

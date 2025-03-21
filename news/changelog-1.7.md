@@ -88,6 +88,7 @@ All changes included in 1.7:
 
 - ([#12121](https://github.com/quarto-dev/quarto-cli/pull/12121)): Update QuartoNotebookRunner to 0.14.0. Support for evaluating Python cells via [PythonCall.jl](https://github.com/JuliaPy/PythonCall.jl) added. Support for notebook caching via `execute.cache` added.
 - ([#12151](https://github.com/quarto-dev/quarto-cli/pull/12151)): Basic YAML validation is now active for document using Julia engine.
+- ([#11803](https://github.com/quarto-dev/quarto-cli/pull/11803)): Added subcommands `status`, `kill`, `close [--force]` and `log` under the new CLI command `quarto call engine julia`.
 
 ### `jupyter`
 
@@ -105,3 +106,4 @@ All changes included in 1.7:
 - ([#11951](https://github.com/quarto-dev/quarto-cli/issues/11951)): Raw LaTeX table without `tbl-` prefix label for using Quarto crossref are now correctly passed through unmodified.
 - ([#12117](https://github.com/quarto-dev/quarto-cli/issues/12117)): Color output to stdout and stderr is now correctly rendered for `html` format in the Jupyter and Julia engines.
 - ([#12264](https://github.com/quarto-dev/quarto-cli/issues/12264)): Upgrade `dart-sass` to 1.85.1.
+- ([#11803](https://github.com/quarto-dev/quarto-cli/pull/11803)): Added a new CLI command `quarto call`. First users of this interface are the new `quarto call engine julia ...` subcommands.
