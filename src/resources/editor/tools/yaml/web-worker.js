@@ -12546,6 +12546,42 @@ try {
             }
           },
           {
+            id: "brand-path-bool-light-dark",
+            anyOf: [
+              "string",
+              "boolean",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: {
+                      anyOf: [
+                        "string",
+                        {
+                          ref: "brand"
+                        }
+                      ],
+                      description: "The path to a light brand file or an inline light brand definition.\n"
+                    },
+                    dark: {
+                      anyOf: [
+                        "string",
+                        {
+                          ref: "brand"
+                        }
+                      ],
+                      description: "The path to a dark brand file or an inline dark brand definition.\n"
+                    }
+                  }
+                }
+              },
+              {
+                ref: "brand"
+              }
+            ],
+            description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
+          },
+          {
             id: "brand-defaults",
             object: {
               properties: {
@@ -16690,15 +16726,9 @@ try {
           {
             name: "brand",
             schema: {
-              anyOf: [
-                "string",
-                "boolean",
-                {
-                  ref: "brand"
-                }
-              ]
+              ref: "brand-path-bool-light-dark"
             },
-            description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition.\n"
+            description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
           },
           {
             name: "theme",
@@ -21911,11 +21941,15 @@ try {
           "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
           "The path to the font file. This can be a local path or a URL.",
           "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
+          "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
+          "The path to a light brand file or an inline light brand\ndefinition.",
+          "The path to a dark brand file or an inline dark brand definition.",
           {
             short: "Unique label for code cell",
             long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
           },
           "Classes to apply to cell container",
+          "Array of rendering names",
           "Array of tags for notebook cell",
           {
             short: "Notebook cell identifier",
@@ -22880,7 +22914,9 @@ try {
           },
           "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
           "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
-          "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition.",
+          "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
+          "The path to a light brand file or an inline light brand\ndefinition.",
+          "The path to a dark brand file or an inline dark brand definition.",
           "Theme name, theme scss file, or a mix of both.",
           "The light theme name, theme scss file, or a mix of both.",
           "The light theme name, theme scss file, or a mix of both.",
@@ -23631,6 +23667,7 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
           {
             short: "Include an automatically generated table of contents",
             long: ""
@@ -23983,7 +24020,6 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "Array of rendering names",
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
         ],
         "schema/external-schemas.yml": [
@@ -24213,12 +24249,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 194327,
+          _internalId: 196120,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 194319,
+              _internalId: 196112,
               type: "enum",
               enum: [
                 "png",
@@ -24234,7 +24270,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 194326,
+              _internalId: 196119,
               type: "anyOf",
               anyOf: [
                 {
