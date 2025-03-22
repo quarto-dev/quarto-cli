@@ -1483,6 +1483,21 @@ export type Brand = {
   typography?: BrandTypography;
 };
 
+export type BrandPathBoolLightDark =
+  | string
+  | boolean
+  | {
+    dark?:
+      | string
+      | Brand /* The path to a dark brand file or an inline dark brand definition. */;
+    light?:
+      | string
+      | Brand; /* The path to a light brand file or an inline light brand definition. */
+  }
+  | Brand; /* Branding information to use for this document. If a string, the path to a brand file.
+If false, don't use branding on this document. If an object, an inline brand
+definition, or an object with light and dark brand paths or definitions. */
+
 export type BrandDefaults = {
   bootstrap?: BrandDefaultsBootstrap;
   quarto?: JsonObject;

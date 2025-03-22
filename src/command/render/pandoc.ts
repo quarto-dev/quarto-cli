@@ -1467,7 +1467,7 @@ async function resolveExtras(
 
   // perform typst-specific merging
   if (isTypstOutput(format.pandoc)) {
-    const brand = await project.resolveBrand(input);
+    const brand = (await project.resolveBrand(input))?.light;
     const fontdirs: Set<string> = new Set();
     const base_urls = {
       google: "https://fonts.googleapis.com/css",

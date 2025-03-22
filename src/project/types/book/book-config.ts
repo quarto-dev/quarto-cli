@@ -144,8 +144,8 @@ export async function bookProjectConfig(
     site[kSiteFavicon] = book[kSiteFavicon];
     if (!site[kSiteFavicon]) {
       const brand = await project.resolveBrand();
-      if (brand) {
-        site[kSiteFavicon] = getFavicon(brand);
+      if (brand?.light) {
+        site[kSiteFavicon] = getFavicon(brand.light); // 
       }
     }
     site[kSiteUrl] = book[kSiteUrl];

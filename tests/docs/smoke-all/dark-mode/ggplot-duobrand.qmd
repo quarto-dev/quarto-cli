@@ -1,11 +1,8 @@
 ---
 title: "knitr dark mode - ggplot"
-format:
-  html:
-    theme:
-      light: united
-      dark: slate
-    keep-md: true
+brand:
+  light: united-brand.yml
+  dark: slate-brand.yml
 execute:
   echo: false
   warning: false
@@ -43,8 +40,13 @@ ggplot_theme <- function(bgcolor, fgcolor) {
   )
 }
 
-united_theme <- ggplot_theme("#ffffff", "#333333")
-slate_theme <- ggplot_theme("#282B30", "#aaaaaa")
+brand_ggplot <- function(brand_yml) {
+  brand <- yaml::yaml.load_file(brand_yml)
+  ggplot_theme(brand$color$background, brand$color$foreground)
+}
+
+united_theme <- brand_ggplot("united-brand.yml")
+slate_theme <- brand_ggplot("slate-brand.yml")
 
 colour_scale <- scale_colour_manual(values = c("darkorange", "purple", "cyan4"))
 ```
@@ -53,12 +55,10 @@ colour_scale <- scale_colour_manual(values = c("darkorange", "purple", "cyan4"))
 
 ```{r}
 #| renderings: [light, dark]
-theme_set(united_theme)
 ggplot(mtcars, aes(mpg, wt)) +
-  geom_point(aes(colour = factor(cyl))) + colour_scale
-theme_set(slate_theme)
+  geom_point(aes(colour = factor(cyl))) + united_theme + colour_scale
 ggplot(mtcars, aes(mpg, wt)) +
-  geom_point(aes(colour = factor(cyl))) + colour_scale
+  geom_point(aes(colour = factor(cyl))) + slate_theme + colour_scale
 ```
 
 ### with crossref but no caption
@@ -69,24 +69,23 @@ ggplot(mtcars, aes(mpg, wt)) +
 #| renderings:
 #|   - dark
 #|   - light
-theme_set(slate_theme)
 ggplot(mtcars, aes(mpg, disp)) +
-  geom_point(aes(colour = factor(cyl))) + colour_scale
-theme_set(united_theme)
+  geom_point(aes(colour = factor(cyl))) + slate_theme + colour_scale
 ggplot(mtcars, aes(mpg, disp)) +
-  geom_point(aes(colour = factor(cyl))) + colour_scale
+  geom_point(aes(colour = factor(cyl))) + united_theme + colour_scale
 ```
 :::
 
 ### with caption but no crossref
 
+dark rendering only
+
 <div>
 
 ```{r}
 #| renderings: [dark]
-theme_set(slate_theme)
 ggplot(mtcars, aes(mpg, disp)) +
-  geom_point(aes(colour = factor(cyl))) + colour_scale
+  geom_point(aes(colour = factor(cyl))) + slate_theme + colour_scale
 ```
 
 thematic - base r graphics
@@ -100,12 +99,10 @@ thematic - base r graphics
 ::: {#fig-thematic-patchwork}
 ```{r}
 #| renderings: [light, dark]
-theme_set(united_theme)
 ggplot(mtcars, aes(mpg, hp)) +
-  geom_point(aes(colour = factor(cyl))) + colour_scale
-theme_set(slate_theme)
+  geom_point(aes(colour = factor(cyl))) + united_theme + colour_scale
 ggplot(mtcars, aes(mpg, hp)) +
-  geom_point(aes(colour = factor(cyl))) + colour_scale
+  geom_point(aes(colour = factor(cyl))) + slate_theme + colour_scale
 ```
 
 mtcars - mpg vs hp

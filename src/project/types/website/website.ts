@@ -182,8 +182,8 @@ export const websiteProjectType: ProjectType = {
     let favicon = websiteConfigString(kSiteFavicon, project.config);
     if (!favicon) {
       const brand = await project.resolveBrand();
-      if (brand) {
-        favicon = getFavicon(brand);
+      if (brand?.light) {
+        favicon = getFavicon(brand.light);
       }
     }
     if (favicon) {

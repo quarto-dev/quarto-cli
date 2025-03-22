@@ -47,7 +47,7 @@ import { normalizeNewlines } from "../core/lib/text.ts";
 import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
 import { QuartoJSONSchema, readYamlFromMarkdown } from "../core/yaml.ts";
 import { refSchema } from "../core/lib/yaml-schema/common.ts";
-import { Brand as BrandJson } from "../resources/types/schema-types.ts";
+import { Brand as BrandJson, BrandPathBoolLightDark } from "../resources/types/schema-types.ts";
 import { Brand } from "../core/brand/brand.ts";
 import { warnOnce } from "../core/log.ts";
 import { assert } from "testing/asserts";
@@ -512,7 +512,24 @@ export const ensureFileInformationCache = (
 export async function projectResolveBrand(
   project: ProjectContext,
   fileName?: string,
-) {
+) : Promise<{light?: Brand, dark?: Brand} | undefined> {
+  async function loadBrand(brandPath: string) : Promise<Brand> {
+    const brand = await readAndValidateYamlFromFile(
+      brandPath,
+      refSchema("brand", "Format-independent brand configuration."),
+      "Brand validation failed for " + brandPath + ".",
+    ) as BrandJson;
+    return new Brand(brand, dirname(brandPath), project.dir);
+  }
+  async function loadLocalBrand(brandPath: string) : Promise<Brand> {
+    let resolved: string = "";
+    if (brandPath.startsWith("/")) {
+      resolved = join(project.dir, brandPath);
+    } else {
+      resolved = join(dirname(fileName!), brandPath);
+    }
+    return await loadBrand(resolved);
+  }
   if (fileName === undefined) {
     if (project.brandCache) {
       return project.brandCache.brand;
@@ -538,46 +555,59 @@ export async function projectResolveBrand(
         refSchema("brand", "Format-independent brand configuration."),
         "Brand validation failed for " + brandPath + ".",
       ) as BrandJson;
-      project.brandCache.brand = new Brand(
+      project.brandCache.brand = {light: new Brand(
         brand,
         dirname(brandPath),
         project.dir,
-      );
+      )};
     }
     return project.brandCache.brand;
   } else {
     const metadata = await project.fileMetadata(fileName);
-    if (metadata.brand === false) {
+    const brand = metadata.brand as BrandPathBoolLightDark;
+    if (brand === false) {
       return undefined;
     }
-    if (metadata.brand === true || metadata.brand === undefined) {
+    if (brand === true || brand === undefined) {
       return project.resolveBrand();
     }
     const fileInformation = ensureFileInformationCache(project, fileName);
     if (fileInformation.brand) {
       return fileInformation.brand;
     }
-    if (typeof metadata.brand === "string") {
-      let brandPath: string = "";
-      if (brandPath.startsWith("/")) {
-        brandPath = join(project.dir, metadata.brand);
-      } else {
-        brandPath = join(dirname(fileName), metadata.brand);
-      }
-      const brand = await readAndValidateYamlFromFile(
-        brandPath,
-        refSchema("brand", "Format-independent brand configuration."),
-        "Brand validation failed for " + brandPath + ".",
-      ) as BrandJson;
-      fileInformation.brand = new Brand(brand, dirname(brandPath), project.dir);
+    if (typeof brand === "string") {
+      fileInformation.brand = {light: await loadLocalBrand(brand)};
       return fileInformation.brand;
     } else {
-      assert(typeof metadata.brand === "object");
-      fileInformation.brand = new Brand(
-        metadata.brand as BrandJson,
-        dirname(fileName),
-        project.dir,
-      );
+      assert(typeof brand === "object");
+      if ("light" in brand || "dark" in brand) {
+        let light, dark;
+        if (typeof brand.light === "string") {
+          light = await loadLocalBrand(brand.light)
+        } else {
+          light = new Brand(
+            brand.light!,
+            dirname(fileName),
+            project.dir
+          );
+        }
+        if (typeof brand.dark === "string") {
+          dark = await loadLocalBrand(brand.dark)
+        } else {
+          dark = new Brand(
+            brand.dark!,
+            dirname(fileName),
+            project.dir
+          );
+        }
+        fileInformation.brand = {light, dark};
+      } else {
+        fileInformation.brand = {light: new Brand(
+          brand as BrandJson,
+          dirname(fileName),
+          project.dir,
+        )};
+      }
       return fileInformation.brand;
     }
   }
