@@ -134,8 +134,12 @@ function initShortcodeHandlers()
     end
 
     if brandCommand == "color" then 
+      local brandMode = 'light'
+      if #args > 2 then
+        brandMode = read_arg(args, 3) or brandMode
+      end
       local color_name = read_arg(args, 2)
-      local color_value = brand.get_color(color_name)
+      local color_value = brand.get_color(brandMode, color_name)
       if color_value == nil then
         return warn_bad_brand_command()
       else

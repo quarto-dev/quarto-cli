@@ -63,7 +63,10 @@ ggplot(mtcars, aes(mpg, wt)) +
 
 ### with crossref but no caption
 
+and `echo: true`
+
 ::: {#fig-thematic-ggplot}
+
 ```{r}
 #| echo: true
 #| renderings:
@@ -74,7 +77,9 @@ ggplot(mtcars, aes(mpg, disp)) +
 ggplot(mtcars, aes(mpg, disp)) +
   geom_point(aes(colour = factor(cyl))) + united_theme + colour_scale
 ```
+
 :::
+
 
 ### with caption but no crossref
 
