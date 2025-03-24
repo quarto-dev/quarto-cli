@@ -116,3 +116,4 @@ All changes included in 1.7:
 - ([#12117](https://github.com/quarto-dev/quarto-cli/issues/12117)): Color output to stdout and stderr is now correctly rendered for `html` format in the Jupyter and Julia engines.
 - ([#12264](https://github.com/quarto-dev/quarto-cli/issues/12264)): Upgrade `dart-sass` to 1.85.1.
 - ([#11803](https://github.com/quarto-dev/quarto-cli/pull/11803)): Added a new CLI command `quarto call`. First users of this interface are the new `quarto call engine julia ...` subcommands.
+- A new folder `quarto-session-temp` can be created in `.quarto` to store temporary files created by Quarto during a rendering. Reminder: `.quarto` is for internal use of Quarto and should not be versioned (thus added to `.gitignore`).
