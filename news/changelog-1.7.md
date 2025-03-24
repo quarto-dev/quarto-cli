@@ -72,6 +72,7 @@ All changes included in 1.7:
 - ([#11676](https://github.com/quarto-dev/quarto-cli/pull/11676)): Convert unitless image widths from pixels to inches for column layouts.
 - ([#11835](https://github.com/quarto-dev/quarto-cli/issues/11835)): Take markdown structure into account when detecting minimum heading level.
 - ([#11964](https://github.com/quarto-dev/quarto-cli/issues/11964)): Using panel layout without a crossref label now correctly do not add an empty `#block[]` that was leading to an unnecessary space in output.
+- ([#12354](https://github.com/quarto-dev/quarto-cli/issues/12354)): CodeBlock in Listing with `#lst-` prefix are now correctly highlighted.
 
 ## Interactive Shiny Document
 
