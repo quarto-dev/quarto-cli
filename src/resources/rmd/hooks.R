@@ -165,6 +165,16 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
   }
   delegating_output_hook = function(type, classes) {
     delegating_hook(type, function(x, options) {
+      ### START Knitr hack:
+      # since knitr 1.49, we can detect if output: asis
+      # was set by an R function itself (not cell option)
+      # We save the information for our other processing 
+      # after output hook (i.e after sew method is called)
+      if (identical(options[["results"]], "asis")) {
+        .assignToQuartoToolsEnv("cell_options", list(asis_output = TRUE)) # nolint: object_usage_linter, line_length_linter.
+      }
+      ### END
+
       if (identical(options[["results"]], "asis") ||
           isTRUE(options[["collapse"]])) {
         x
@@ -181,6 +191,16 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
 
   # entire chunk
   knit_hooks$chunk <- delegating_hook("chunk", function(x, options) {
+
+    ## START knitr hack:
+    ## catch knit_asis output from save output hook state 
+    asis_output <- .getFromQuartoToolsEnv("cell_options")$asis_output # nolint: object_usage_linter, line_length_linter.
+    if (isTRUE(asis_output)) {
+      options[["results"]] <- "asis"
+    }
+    # chunk hook is called last and we can clean the cell storage
+    on.exit(.rmFromQuartoToolsEnv("cell_options"), add = TRUE) # nolint: object_usage_linter, line_length_linter.
+    ## END
 
     # Do nothing more for some specific chunk content -----
 
@@ -400,7 +420,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     # if there is a label, additional classes, a forwardAttr, or a cell.cap 
     # then the user is deemed to have implicitly overridden results = "asis"
     # (as those features don't work w/o an enclosing div)
-    needCell <- isTRUE(nzchar(label)) || 
+    needCell <- isTRUE(nzchar(label)) ||
                 length(classes) > 1 ||
                 isTRUE(nzchar(forwardAttr)) ||
                 isTRUE(nzchar(cell.cap))
@@ -409,7 +429,8 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     } else {
       paste0(
         options[["indent"]], "::: {", 
-        labelId(label), paste(classes, collapse = " ") ,forwardAttr, "}\n", x, "\n", cell.cap ,
+        labelId(label), paste(classes, collapse = " "),
+        forwardAttr, "}\n", x, "\n", cell.cap,
         options[["indent"]], ":::"
       )
     }

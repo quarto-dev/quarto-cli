@@ -142,9 +142,39 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     df_print = df_print
   )
 
+  # create a hidden environment to store specific objects
+  # Beware to use non conflicted name as this will be in second position right after globalenv.
+  .quarto_tools_env <- attach(NULL, name = "tools:quarto")
+  .quarto_tools_env$.assignToQuartoToolsEnv <- function(name, value) {
+    assign(name, value, envir = .quarto_tools_env)
+  }
+  .quarto_tools_env$.getFromQuartoToolsEnv <- function(name) {
+    get0(name, envir = .quarto_tools_env)
+  }
+  .quarto_tools_env$.rmFromQuartoToolsEnv <- function(name) {
+    if (exists(name, envir = .quarto_tools_env)) {
+      rm(list = c(name), envir = .quarto_tools_env)
+    }
+  }
+
+  # special internal function for rendering inline code using Quarto syntax
+  .assignToQuartoToolsEnv(".QuartoInlineRender",  function(v) { # nolint: object_usage_linter, line_length_linter.
+    if (is.null(v)) {
+      "NULL"
+    } else if (inherits(v, "AsIs")) {
+      v
+    } else if (is.character(v)) {
+      gsub(
+        pattern = "(\\[|\\]|[`*_{}()>#+-.!])",
+        x = v, replacement = "\\\\\\1"
+      )
+    } else {
+      v
+    }
+  })
+
   # we need ojs only if markdown has ojs code cells
   # inspect code cells for spaces after line breaks
-
   needs_ojs <- grepl("(\n|^)[[:space:]]*```+\\{ojs[^}]*\\}", markdown)
   # FIXME this test isn't failing in shiny mode, but it doesn't look to be
   # breaking quarto-shiny-ojs. We should make sure this is right.
@@ -152,26 +182,11 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     !is_shiny_prerendered(knitr::opts_knit$get("rmarkdown.runtime")) &&
       needs_ojs
   ) {
-    local({
-      # create a hidden environment to store specific objects
-      .quarto_tools_env <- attach(NULL, name = "tools:quarto")
-      # source ojs_define() function and save it in the tools environment
-      source(file.path(resourceDir, "rmd", "ojs_static.R"), local = TRUE)
-      assign("ojs_define", ojs_define, envir = .quarto_tools_env)
-    })
-  }
-
-  env <- globalenv()
-  env$.QuartoInlineRender <- function(v) {
-    if (is.null(v)) {
-      "NULL"
-    } else if (inherits(v, "AsIs")) {
-      v
-    } else if (is.character(v)) {
-      gsub(pattern="(\\[|\\]|[`*_{}()>#+-.!])", x=v, replacement="\\\\\\1")
-    } else {
-      v
-    }
+    # source ojs_define() function into the tools environment
+    source(
+      file = file.path(resourceDir, "rmd", "ojs_static.R"),
+      local = .quarto_tools_env
+    )
   }
 
   render_output <- rmarkdown::render(
@@ -180,7 +195,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     knit_root_dir = knit_root_dir,
     params = params,
     run_pandoc = FALSE,
-    envir = env
+    envir = globalenv()
   )
   knit_meta <-  attr(render_output, "knit_meta")
   files_dir <- attr(render_output, "files_dir")
