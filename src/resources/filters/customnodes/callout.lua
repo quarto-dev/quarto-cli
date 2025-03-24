@@ -252,6 +252,8 @@ function _callout_main()
       icon = attrs.fa_icon_typst
     end
     local brand = param("brand")
+    local brandMode = 'light'
+    brand = brand and brand[brandMode]
     if brand then
       local color = brand.processedData and brand.processedData.color
       if color and callout_theme_color_map[callout.type] and

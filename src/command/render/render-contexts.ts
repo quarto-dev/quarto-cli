@@ -614,7 +614,7 @@ async function resolveFormats(
 
     // resolve brand in project and forward it to format
     const brand = await project.resolveBrand(target.source);
-    mergedFormats[format].render.brand = brand?.light;
+    mergedFormats[format].render.brand = brand;
 
     // apply defaults from brand yaml under the metadata of the current format
     const brandFormatDefaults: Metadata =

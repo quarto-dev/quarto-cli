@@ -176,6 +176,8 @@ local typst_named_colors = {
   lime = '#01ff70',
 }
 
+local brandMode = 'light' --- ugh
+
 -- css can have fraction or percent
 -- typst can have int or percent
 -- what goes for opacity also goes for alpha
@@ -346,7 +348,7 @@ local function output_color(color, opacity, warnings)
       end
       color = parse_color(typst_named_colors[color.value] or css_named_colors[color.value])
     elseif color.type == 'brand' then
-      local cssColor = _quarto.modules.brand.get_color_css(color.value)
+      local cssColor = _quarto.modules.brand.get_color_css(brandMode, color.value)
       if not cssColor then
         output_warning(warnings, 'unknown brand color ' .. color.value)
         return nil
@@ -384,7 +386,7 @@ local function output_color(color, opacity, warnings)
         return nil
       end
     elseif color.type == 'brand' then
-      local cssColor = _quarto.modules.brand.get_color_css(color.value)
+      local cssColor = _quarto.modules.brand.get_color_css(brandMode, color.value)
       if not cssColor then
         output_warning(warnings, 'unknown brand color ' .. color.value)
         return nil
@@ -488,7 +490,7 @@ local css_lengths = {
   mm = passthrough,
   em = passthrough,
   rem = function(val, _, _, warnings)
-    local base = _quarto.modules.brand.get_typography('base')
+    local base = _quarto.modules.brand.get_typography(brandMode, 'base')
     if base and base.size then
       local base_size = parse_length(base.size)
       if not base_size then
