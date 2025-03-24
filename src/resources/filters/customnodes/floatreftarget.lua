@@ -1017,6 +1017,13 @@ end, function(float)
     -- Listings shouldn't emit centered blocks. 
     -- We don't know how to disable that right now using #show rules for #figures in template.
     content:insert(1, pandoc.RawBlock("typst", "#set align(left)"))
+
+    -- Classes and attributes for the CodeBlocks needs to be set from the parsed floats to the CodeBlock
+    local found_listing = get_node_from_float_and_type(float, "CodeBlock")
+    if found_listing then
+      found_listing.attr = merge_attrs(found_listing.attr, pandoc.Attr("", float.classes or {}, float.attributes or {}))
+    end
+
   end
 
   if float.has_subfloats then
