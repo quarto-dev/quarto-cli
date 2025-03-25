@@ -118,3 +118,4 @@ All changes included in 1.7:
 - ([#12264](https://github.com/quarto-dev/quarto-cli/issues/12264)): Upgrade `dart-sass` to 1.85.1.
 - ([#11803](https://github.com/quarto-dev/quarto-cli/pull/11803)): Added a new CLI command `quarto call`. First users of this interface are the new `quarto call engine julia ...` subcommands.
 - A new folder `quarto-session-temp` can be created in `.quarto` to store temporary files created by Quarto during a rendering. Reminder: `.quarto` is for internal use of Quarto and should not be versioned (thus added to `.gitignore`).
+- ([#12369](https://github.com/quarto-dev/quarto-cli/pull/12369)): `quarto preview` correctly throws a YAML validation error when a `format` key does not conform.
