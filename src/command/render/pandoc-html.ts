@@ -101,7 +101,6 @@ export async function resolveSassBundles(
       const userBrand = bundle.user?.findIndex((layer) => layer === "brand");
       let cloned = false;
       if (userBrand && userBrand !== -1) {
-        // console.log('light brand order specified', userBrand, cloned);
         bundle = cloneDeep(bundle);
         cloned = true;
         bundle.user!.splice(userBrand, 1, ...(maybeBrandBundle?.user || []));
@@ -109,7 +108,6 @@ export async function resolveSassBundles(
       }
       const darkBrand = bundle.dark?.user?.findIndex((layer) => layer === "brand");
       if (darkBrand && darkBrand !== -1) {
-        // console.log('dark brand order specified', darkBrand, cloned);
         if (!cloned) {
           bundle = cloneDeep(bundle);
         }
