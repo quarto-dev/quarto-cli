@@ -89,8 +89,23 @@ _quarto.ast.add_handler({
     -- construct a minimal rows-cells div scaffolding
     -- so contents are properly stored in the cells slot
 
+    -- #12344: if there are decoratedcodeblocks inside the layout,
+    -- we need to ask them to render themselves as [H] or we'll get outer par mode errors.
+    local layout = tbl.layout
+    if quarto.format.isLatexOutput() then
+      layout = pandoc.List(tbl.layout):map(function(lst)
+        return pandoc.List(lst):map(function(cell)
+          return _quarto.ast.walk(cell, {
+            DecoratedCodeBlock = function(decorated)
+              decorated.hold = true
+              return decorated
+            end
+          })
+        end)
+      end)
+    end
     local rows_div = pandoc.Div({})
-    for i, row in ipairs(tbl.layout) do
+    for i, row in ipairs(layout) do
       local row_div = pandoc.Div(row)
       if tbl.is_float_reftarget then
         row_div = _quarto.ast.walk(row_div, {
