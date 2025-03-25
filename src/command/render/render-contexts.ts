@@ -362,6 +362,7 @@ function mergeQuartoConfigs(
 
   // bibliography needs to always be an array so it can be merged
   const fixupMergeableScalars = (metadata: Metadata) => {
+    if (metadata === null) return metadata;
     [
       kBibliography,
       kCss,
