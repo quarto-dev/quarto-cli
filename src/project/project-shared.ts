@@ -521,12 +521,12 @@ export async function projectResolveBrand(
     ) as BrandJson;
     return new Brand(brand, dirname(brandPath), project.dir);
   }
-  async function loadLocalBrand(brandPath: string) : Promise<Brand> {
+  async function loadRelativeBrand(brandPath: string, dir: string = dirname(fileName!)) : Promise<Brand> {
     let resolved: string = "";
     if (brandPath.startsWith("/")) {
       resolved = join(project.dir, brandPath);
     } else {
-      resolved = join(dirname(fileName!), brandPath);
+      resolved = join(dir, brandPath);
     }
     return await loadBrand(resolved);
   }
@@ -538,28 +538,28 @@ export async function projectResolveBrand(
     let fileNames = ["_brand.yml", "_brand.yaml"].map((file) =>
       join(project.dir, file)
     );
-    if (project?.config?.brand === false) {
+    let brand = project?.config?.brand as Boolean | string | {light?: string, dark?: string};
+    if (brand === false) {
       project.brandCache.brand = undefined;
       return project.brandCache.brand;
     }
-    if (typeof project?.config?.brand === "string") {
-      fileNames = [join(project.dir, project.config.brand)];
+    if (typeof brand === "object" && brand &&
+      ("light" in brand || "dark" in brand)) {
+      project.brandCache.brand = {
+        light: brand.light ? await loadRelativeBrand(brand.light, project.dir) : undefined,
+        dark: brand.dark ? await loadRelativeBrand(brand.dark, project.dir) : undefined,
+      };
+      return project.brandCache.brand;        
+    }
+    if (typeof brand === "string") {
+      fileNames = [join(project.dir, brand)];
     }
 
     for (const brandPath of fileNames) {
       if (!existsSync(brandPath)) {
         continue;
       }
-      const brand = await readAndValidateYamlFromFile(
-        brandPath,
-        refSchema("brand", "Format-independent brand configuration."),
-        "Brand validation failed for " + brandPath + ".",
-      ) as BrandJson;
-      project.brandCache.brand = {light: new Brand(
-        brand,
-        dirname(brandPath),
-        project.dir,
-      )};
+      project.brandCache.brand = {light: await loadBrand(brandPath)};
     }
     return project.brandCache.brand;
   } else {
@@ -576,14 +576,14 @@ export async function projectResolveBrand(
       return fileInformation.brand;
     }
     if (typeof brand === "string") {
-      fileInformation.brand = {light: await loadLocalBrand(brand)};
+      fileInformation.brand = {light: await loadRelativeBrand(brand)};
       return fileInformation.brand;
     } else {
       assert(typeof brand === "object");
       if ("light" in brand || "dark" in brand) {
         let light, dark;
         if (typeof brand.light === "string") {
-          light = await loadLocalBrand(brand.light)
+          light = await loadRelativeBrand(brand.light)
         } else {
           light = new Brand(
             brand.light!,
@@ -592,7 +592,7 @@ export async function projectResolveBrand(
           );
         }
         if (typeof brand.dark === "string") {
-          dark = await loadLocalBrand(brand.dark)
+          dark = await loadRelativeBrand(brand.dark)
         } else {
           dark = new Brand(
             brand.dark!,
