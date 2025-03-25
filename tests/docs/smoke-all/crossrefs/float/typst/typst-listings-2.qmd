@@ -14,8 +14,13 @@ _quarto:
         - []
 ---
 
-```{#lst-customers .sql lst-cap="Customers Query"}
+::: {#lst-customers}
+
+```{.sql}
 SELECT * FROM Customers
 ```
+Customers Query
+
+:::
 
 Then we query the customers database (@lst-customers).
