@@ -409,7 +409,8 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     } else {
       # Newline first and after to ensure Pandoc Fenced Div is correctly parsed
       paste0(
-        options[["indent"]], "\n::: {", 
+        "\n",
+        options[["indent"]], "::: {", 
         labelId(label), paste(classes, collapse = " ") ,forwardAttr, "}\n", x, "\n", cell.cap ,
         options[["indent"]], ":::\n"
       )
