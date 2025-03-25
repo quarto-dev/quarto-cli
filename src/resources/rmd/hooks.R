@@ -407,10 +407,12 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     if (identical(options[["results"]], "asis") && !needCell) {
       x
     } else {
+      # Newline first and after to ensure Pandoc Fenced Div is correctly parsed
       paste0(
+        "\n",
         options[["indent"]], "::: {", 
         labelId(label), paste(classes, collapse = " ") ,forwardAttr, "}\n", x, "\n", cell.cap ,
-        options[["indent"]], ":::"
+        options[["indent"]], ":::\n"
       )
     }
   })
