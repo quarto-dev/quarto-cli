@@ -216,7 +216,7 @@ export async function renderContexts(
     // we make it optional because some of the callers have
     // actually just cloned it themselves and don't need to preserve
     // the original
-    options = safeCloneDeep(options) as RenderOptions;
+    options = safeCloneDeep(options);
   }
 
   const { engine, target } = await fileExecutionEngineAndTarget(

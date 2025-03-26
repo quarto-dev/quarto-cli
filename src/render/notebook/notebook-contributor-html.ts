@@ -84,7 +84,7 @@ function resolveHtmlNotebook(
   executedFile: ExecutedFile,
   notebookMetadata?: NotebookMetadata,
 ) {
-  const resolved = safeCloneDeep(executedFile) as ExecutedFile;
+  const resolved = safeCloneDeep(executedFile);
 
   // Set the output file
   resolved.recipe.format.pandoc[kOutputFile] = `${outputFile(nbAbsPath)}`;

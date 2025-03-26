@@ -449,7 +449,7 @@ export async function runPandoc(
 
   // generate defaults and capture defaults to be printed
   let allDefaults = (await generateDefaults(options)) || {};
-  let printAllDefaults = safeCloneDeep(allDefaults) as FormatPandoc;
+  let printAllDefaults = safeCloneDeep(allDefaults);
 
   // capture any filterParams in the FormatExtras
   const formatFilterParams = {} as Record<string, unknown>;
@@ -1689,7 +1689,7 @@ function runPandocMessage(
 
   const keys = Object.keys(metadata);
   if (keys.length > 0) {
-    const printMetadata = safeCloneDeep(metadata) as Metadata;
+    const printMetadata = safeCloneDeep(metadata);
     delete printMetadata.format;
 
     // print message
