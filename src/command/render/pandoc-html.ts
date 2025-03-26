@@ -5,7 +5,7 @@
  */
 
 import { join } from "../../deno_ral/path.ts";
-import { cloneDeep, uniqBy } from "../../core/lodash.ts";
+import { uniqBy } from "../../core/lodash.ts";
 
 import {
   Format,
@@ -19,7 +19,6 @@ import {
 } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
-import { TempContext } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 import { cleanSourceMappingUrl, compileSass } from "../../core/sass.ts";
 
@@ -40,6 +39,7 @@ import { md5HashBytes } from "../../core/hash.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { assert } from "testing/asserts";
 import { safeModeFromFile } from "../../deno_ral/fs.ts";
+import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -55,7 +55,7 @@ export async function resolveSassBundles(
   format: Format,
   project: ProjectContext,
 ) {
-  extras = cloneDeep(extras);
+  extras = safeCloneDeep(extras);
 
   const mergedBundles: Record<string, SassBundleWithBrand[]> = {};
 
@@ -91,27 +91,35 @@ export async function resolveSassBundles(
     const maybeBrandBundle = bundlesWithBrand.find((bundle) =>
       bundle.key === "brand"
     );
-    assert(!maybeBrandBundle ||
-      !maybeBrandBundle.user?.find((v) => v === "brand") &&
-      !maybeBrandBundle.dark?.user?.find((v) => v === "brand"));
-    let foundBrand = {light: false, dark: false};
+    assert(
+      !maybeBrandBundle ||
+        !maybeBrandBundle.user?.find((v) => v === "brand") &&
+          !maybeBrandBundle.dark?.user?.find((v) => v === "brand"),
+    );
+    let foundBrand = { light: false, dark: false };
     const bundles: SassBundle[] = bundlesWithBrand.filter((bundle) =>
       bundle.key !== "brand"
     ).map((bundle) => {
       const userBrand = bundle.user?.findIndex((layer) => layer === "brand");
       let cloned = false;
       if (userBrand && userBrand !== -1) {
-        bundle = cloneDeep(bundle);
+        bundle = safeCloneDeep(bundle);
         cloned = true;
         bundle.user!.splice(userBrand, 1, ...(maybeBrandBundle?.user || []));
         foundBrand.light = true;
       }
-      const darkBrand = bundle.dark?.user?.findIndex((layer) => layer === "brand");
+      const darkBrand = bundle.dark?.user?.findIndex((layer) =>
+        layer === "brand"
+      );
       if (darkBrand && darkBrand !== -1) {
         if (!cloned) {
-          bundle = cloneDeep(bundle);
+          bundle = safeCloneDeep(bundle);
         }
-        bundle.dark!.user!.splice(darkBrand, 1, ...(maybeBrandBundle?.dark?.user || []))
+        bundle.dark!.user!.splice(
+          darkBrand,
+          1,
+          ...(maybeBrandBundle?.dark?.user || []),
+        );
         foundBrand.dark = true;
       }
       return bundle as SassBundle;
@@ -122,18 +130,19 @@ export async function resolveSassBundles(
         key: "brand",
         user: !foundBrand.light && maybeBrandBundle?.user as SassLayer[] || [],
         dark: !foundBrand.dark && maybeBrandBundle?.dark?.user && {
-          user: maybeBrandBundle.dark.user as SassLayer[],
-          default: maybeBrandBundle.dark.default
-        } || undefined
+              user: maybeBrandBundle.dark.user as SassLayer[],
+              default: maybeBrandBundle.dark.default,
+            } || undefined,
       });
     }
 
     // See if any bundles are providing dark specific css
     const hasDark = bundles.some((bundle) => bundle.dark !== undefined);
-    defaultStyle =
-      bundles.some((bundle) => bundle.dark !== undefined && bundle.dark.default)
-        ? "dark"
-        : "light";
+    defaultStyle = bundles.some((bundle) =>
+        bundle.dark !== undefined && bundle.dark.default
+      )
+      ? "dark"
+      : "light";
     const targets: SassTarget[] = [{
       name: `${dependency}.min.css`,
       bundles: (bundles as any),
@@ -150,7 +159,7 @@ export async function resolveSassBundles(
 
       // Provide a dark bundle for this
       const darkBundles = bundles.map((bundle) => {
-        bundle = cloneDeep(bundle);
+        bundle = safeCloneDeep(bundle);
         bundle.user = bundle.dark?.user || bundle.user;
         bundle.quarto = bundle.dark?.quarto || bundle.quarto;
         bundle.framework = bundle.dark?.framework || bundle.framework;
@@ -332,7 +341,7 @@ async function resolveQuartoSyntaxHighlighting(
     return extras;
   }
 
-  extras = cloneDeep(extras);
+  extras = safeCloneDeep(extras);
 
   // If we're using default highlighting, use theme darkness to select highlight style
   const mediaAttr = attribForThemeStyle(style);

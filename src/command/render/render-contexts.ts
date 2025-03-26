@@ -88,22 +88,8 @@ import {
 } from "../../core/pandoc/pandoc-formats.ts";
 import { ExtensionContext } from "../../extension/types.ts";
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
+import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 
-// we can't naively ld.cloneDeep everything
-// because that destroys class instances
-// with private members
-//
-// Currently, that's ProjectContext.
-//
-// TODO: Ideally, we shouldn't be copying the RenderContext at all.
-export function copyRenderContext(
-  context: RenderContext,
-): RenderContext {
-  return {
-    ...ld.cloneDeep(context),
-    project: context.project,
-  };
-}
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
   input: string,
@@ -230,7 +216,7 @@ export async function renderContexts(
     // we make it optional because some of the callers have
     // actually just cloned it themselves and don't need to preserve
     // the original
-    options = ld.cloneDeep(options) as RenderOptions;
+    options = safeCloneDeep(options) as RenderOptions;
   }
 
   const { engine, target } = await fileExecutionEngineAndTarget(
@@ -357,8 +343,8 @@ function mergeQuartoConfigs(
   ...configs: Array<Metadata>
 ): Metadata {
   // copy all configs so we don't mutate them
-  config = ld.cloneDeep(config);
-  configs = ld.cloneDeep(configs);
+  config = safeCloneDeep(config);
+  configs = safeCloneDeep(configs);
 
   // bibliography needs to always be an array so it can be merged
   const fixupMergeableScalars = (metadata: Metadata) => {
@@ -460,7 +446,7 @@ async function resolveFormats(
 
     // Remove any 'to' information that will force the
     // rendering to a particular format
-    options = ld.cloneDeep(options);
+    options = safeCloneDeep(options);
     delete options.flags?.to;
   }
 
@@ -763,10 +749,10 @@ export async function projectMetadataForInputFile(
       projectType(project.config?.project?.[kProjectType]),
       project.dir,
       dirname(input),
-      ld.cloneDeep(project.config),
+      safeCloneDeep(project.config),
     ) as Metadata;
   } else {
     // Just return the config or empty metadata
-    return ld.cloneDeep(project.config) || {};
+    return safeCloneDeep(project.config) || {};
   }
 }
