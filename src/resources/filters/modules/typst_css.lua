@@ -176,7 +176,7 @@ local typst_named_colors = {
   lime = '#01ff70',
 }
 
-local brandMode = 'light' --- ugh
+local brandMode = param('brand-mode') or 'light'
 
 -- css can have fraction or percent
 -- typst can have int or percent
@@ -748,6 +748,7 @@ local function expand_side_shorthand(items, context, warnings)
 end
 
 return {
+  set_brand_mode = set_brand_mode,
   parse_color = parse_color,
   parse_opacity = parse_opacity,
   output_color = output_color,

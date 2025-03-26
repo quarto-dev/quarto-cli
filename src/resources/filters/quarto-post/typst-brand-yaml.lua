@@ -59,7 +59,7 @@ function render_typst_brand_yaml()
   return {
     Pandoc = function(pandoc0)
       local brand = param('brand')
-      local brandMode = 'light'
+      local brandMode = param('brand-mode') or 'light'
       brand = brand and brand[brandMode]
       if brand and brand.processedData then
         -- color
@@ -300,7 +300,7 @@ function render_typst_brand_yaml()
       end
     end,
     Meta = function(meta)
-      local brandMode = 'light'
+      local brandMode = param('brand-mode') or 'light'
       -- it can contain the path but we want to store an object here
       if not meta.brand or pandoc.utils.type(meta.brand) == 'Inlines' then
         meta.brand = {}
