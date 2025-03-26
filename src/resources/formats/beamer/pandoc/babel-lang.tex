@@ -1,0 +1,29 @@
+$--
+$-- Babel language support
+$--
+$if(lang)$
+\ifLuaTeX
+\usepackage[bidi=basic$for(babeloptions)$,$babeloptions$$endfor$]{babel}
+\else
+\usepackage[bidi=default$for(babeloptions)$,$babeloptions$$endfor$]{babel}
+\fi
+$if(babel-lang)$
+$if(mainfont)$
+\ifPDFTeX
+\else
+\babelfont{rm}[$for(mainfontoptions)$$mainfontoptions$$sep$,$endfor$$if(mainfontfallback)$,RawFeature={fallback=mainfontfallback}$endif$]{$mainfont$}
+\fi
+$endif$
+$endif$
+$for(babelfonts/pairs)$
+\babelfont[$babelfonts.key$]{rm}{$babelfonts.value$}
+$endfor$
+% get rid of language-specific shorthands (see #6817):
+\let\LanguageShortHands\languageshorthands
+\def\languageshorthands#1{}
+$if(selnolig-langs)$
+\ifLuaTeX
+  \usepackage[$for(selnolig-langs)$$it$$sep$,$endfor$]{selnolig} % disable illegal ligatures
+\fi
+$endif$
+$endif$

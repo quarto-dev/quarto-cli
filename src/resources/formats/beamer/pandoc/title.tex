@@ -1,0 +1,22 @@
+$-- Specific title partial for Beamer presentations
+$if(title)$
+\title$if(shorttitle)$[$shorttitle$]$endif${$title$$if(thanks)$\thanks{$thanks$}$endif$}
+$endif$
+$if(subtitle)$
+\subtitle$if(shortsubtitle)$[$shortsubtitle$]$endif${$subtitle$}
+$endif$
+$-- This supports QUarto's authors normalization
+\author$if(shortauthor)$[$shortauthor$]$endif${$for(authors)$$it.name.literal$$sep$ \and $endfor$}
+\date$if(shortdate)$[$shortdate$]$endif${$date$}
+$if(institute)$
+\institute$if(shortinstitute)$[$shortinstitute$]$endif${$for(institute)$$institute$$sep$ \and $endfor$}
+$endif$
+$if(titlegraphic)$
+\titlegraphic{
+$for(titlegraphic)$
+  \includegraphics$if(titlegraphicoptions)$[$for(titlegraphicoptions)$$titlegraphicoptions$$sep$, $endfor$]$endif${$titlegraphic$}$sep$\enspace
+$endfor$}
+$endif$
+$if(logo)$
+\logo{\includegraphics{$logo$}}
+$endif$

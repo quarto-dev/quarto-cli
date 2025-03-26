@@ -1026,7 +1026,7 @@ end, function(float)
   local caption_location = cap_location(float)
 
   local open_block = pandoc.RawBlock("markdown", "<div id=\"" .. float.identifier .. "\">\n")
-  local close_block = pandoc.RawBlock("markdown", "\n</div>")
+  local close_block = pandoc.RawBlock("markdown", "</div>")
   local result = pandoc.Blocks({open_block})
   local insert_content = function()
     if pandoc.utils.type(float.content) == "Block" then
@@ -1051,6 +1051,7 @@ end, function(float)
     insert_content()
     result:insert(pandoc.RawBlock("markdown", "\n"))
     insert_caption()
+    result:insert(pandoc.RawBlock("markdown", "\n"))
     result:insert(close_block)
   end
   return result

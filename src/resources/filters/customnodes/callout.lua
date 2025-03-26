@@ -224,7 +224,7 @@ function _callout_main()
       return
     end
     included_font_awesome = true
-    quarto.doc.include_text("in-header", "#import \"@preview/fontawesome:0.1.0\": *")
+    quarto.doc.include_text("in-header", "#import \"@preview/fontawesome:0.5.0\": *")
   end
 
   _quarto.ast.add_renderer("Callout", function(_)
