@@ -51,6 +51,7 @@ import { isQmdFile } from "../../execute/qmd.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { existsSync } from "../../deno_ral/fs.ts";
+import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 
 export const htmlNotebookContributor: NotebookContributor = {
   resolve: resolveHtmlNotebook,
@@ -85,7 +86,7 @@ function resolveHtmlNotebook(
   executedFile: ExecutedFile,
   notebookMetadata?: NotebookMetadata,
 ) {
-  const resolved = ld.cloneDeep(executedFile) as ExecutedFile;
+  const resolved = safeCloneDeep(executedFile) as ExecutedFile;
 
   // Set the output file
   resolved.recipe.format.pandoc[kOutputFile] = `${outputFile(nbAbsPath)}`;

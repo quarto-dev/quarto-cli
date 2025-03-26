@@ -37,6 +37,7 @@ import * as ld from "../../core/lodash.ts";
 
 import { error } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
+import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 
 export const jatsContributor: NotebookContributor = {
   resolve: resolveJats,
@@ -56,7 +57,7 @@ function resolveJats(
   executedFile: ExecutedFile,
   _notebookMetadata?: NotebookMetadata,
 ) {
-  const resolved = ld.cloneDeep(executedFile);
+  const resolved = safeCloneDeep(executedFile);
   const to =
     resolved.recipe.format.render[kVariant]?.includes("+element_citations")
       ? "jats+element_citations"
