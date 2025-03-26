@@ -89,21 +89,6 @@ import {
 import { ExtensionContext } from "../../extension/types.ts";
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
 
-// we can't naively ld.cloneDeep everything
-// because that destroys class instances
-// with private members
-//
-// Currently, that's ProjectContext.
-//
-// TODO: Ideally, we shouldn't be copying the RenderContext at all.
-export function copyRenderContext(
-  context: RenderContext,
-): RenderContext {
-  return {
-    ...ld.cloneDeep(context),
-    project: context.project,
-  };
-}
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
   input: string,
