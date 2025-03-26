@@ -32,9 +32,6 @@ import {
 import { subarticleTemplatePath } from "../../format/jats/format-jats-paths.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { NotebookContributor, NotebookMetadata } from "./notebook-types.ts";
-
-import * as ld from "../../core/lodash.ts";
-
 import { error } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
 import { safeCloneDeep } from "../../core/safe-clone-deep.ts";

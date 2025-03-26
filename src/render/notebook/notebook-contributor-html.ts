@@ -39,8 +39,6 @@ import {
   NotebookTemplateMetadata,
 } from "./notebook-types.ts";
 
-import * as ld from "../../core/lodash.ts";
-
 import { error } from "../../deno_ral/log.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { kNotebookViewStyleNotebook } from "../../format/html/format-html-constants.ts";
