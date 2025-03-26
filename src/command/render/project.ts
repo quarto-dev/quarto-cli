@@ -81,7 +81,6 @@ import { fileExecutionEngine } from "../../execute/engine.ts";
 import { projectContextForDirectory } from "../../project/project-context.ts";
 import { ProjectType } from "../../project/types/types.ts";
 import { ProjectConfig as ProjectConfig_Project } from "../../resources/types/schema-types.ts";
-import { Extension } from "../../extension/types.ts";
 
 const noMutationValidations = (
   projType: ProjectType,
