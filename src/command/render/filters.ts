@@ -9,6 +9,7 @@ import { existsSync } from "../../deno_ral/fs.ts";
 import {
   kBibliography,
   kBrand,
+  kChooseBrand,
   kCitationLocation,
   kCiteMethod,
   kClearCellOptions,
@@ -909,6 +910,7 @@ const extractTypstFilterParams = (format: Format) => {
     [kTocIndent]: format.metadata[kTocIndent],
     [kLogo]: format.metadata[kLogo],
     [kCssPropertyProcessing]: format.metadata[kCssPropertyProcessing],
+    [kChooseBrand]: format.metadata[kChooseBrand],
     [kHtmlPreTagProcessing]: format.metadata[kHtmlPreTagProcessing],
   };
 };
