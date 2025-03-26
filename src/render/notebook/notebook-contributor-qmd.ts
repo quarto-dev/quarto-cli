@@ -29,9 +29,6 @@ import {
   NotebookMetadata,
   NotebookOutput,
 } from "./notebook-types.ts";
-
-import * as ld from "../../core/lodash.ts";
-
 import { error } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
 import { ipynbTitleTemplatePath } from "../../format/ipynb/format-ipynb.ts";

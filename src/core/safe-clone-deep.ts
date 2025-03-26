@@ -24,6 +24,24 @@ export function safeCloneDeep<T>(obj: T): T {
     return obj.clone();
   }
 
+  // Handle Maps
+  if (obj instanceof Map) {
+    const clonedMap = new Map();
+    for (const [key, value] of obj.entries()) {
+      clonedMap.set(key, safeCloneDeep(value));
+    }
+    return clonedMap as T;
+  }
+
+  // Handle Sets
+  if (obj instanceof Set) {
+    const clonedSet = new Set();
+    for (const value of obj.values()) {
+      clonedSet.add(safeCloneDeep(value));
+    }
+    return clonedSet as T;
+  }
+
   // Handle regular objects
   const result = {} as T;
   for (const key in obj) {

@@ -25,9 +25,6 @@ import { InternalError } from "../../core/lib/error.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { NotebookContributor, NotebookMetadata } from "./notebook-types.ts";
-
-import * as ld from "../../core/lodash.ts";
-
 import { error } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
 import { ipynbTitleTemplatePath } from "../../format/ipynb/format-ipynb.ts";

@@ -96,7 +96,7 @@ export async function resolveSassBundles(
         !maybeBrandBundle.user?.find((v) => v === "brand") &&
           !maybeBrandBundle.dark?.user?.find((v) => v === "brand"),
     );
-    let foundBrand = { light: false, dark: false };
+    const foundBrand = { light: false, dark: false };
     const bundles: SassBundle[] = bundlesWithBrand.filter((bundle) =>
       bundle.key !== "brand"
     ).map((bundle) => {

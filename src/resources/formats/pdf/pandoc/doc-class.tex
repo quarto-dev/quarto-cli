@@ -1,21 +1,15 @@
 \documentclass[
+$for(babel-otherlangs)$
+  $babel-otherlangs$,
+$endfor$
+$if(babel-lang)$
+  $babel-lang$,
+$endif$
 $if(fontsize)$
   $fontsize$,
 $endif$
 $if(papersize)$
   $papersize$paper,
-$endif$
-$if(beamer)$
-  ignorenonframetext,
-$if(handout)$
-  handout,
-$endif$
-$if(aspectratio)$
-  aspectratio=$aspectratio$,
-$endif$
-$if(babel-lang)$
-  $babel-lang$,
-$endif$
 $endif$
 $for(classoption)$
   $classoption$$sep$,
