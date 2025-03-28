@@ -1602,9 +1602,7 @@ async function resolveExtras(
       }
       fontdirs.add(font_cache);
     }
-    const srcDir = Deno.env.get("QUARTO_SRC_PATH") ||
-        join(quartoConfig.sharePath(), "../../src");
-    fontdirs.add(join(srcDir,'resources/fonts'));
+    fontdirs.add(join(quartoConfig.srcPath(), "resources/fonts"));
     let fontPaths = format.metadata[kFontPaths] as Array<string> || [];
     if (typeof fontPaths === "string") {
       fontPaths = [fontPaths];

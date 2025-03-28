@@ -31,6 +31,9 @@ export const quartoConfig = {
   binPath: () => getenv("QUARTO_BIN_PATH"),
   toolsPath: () => join(getenv("QUARTO_BIN_PATH"), "tools"),
   sharePath: () => getenv("QUARTO_SHARE_PATH"),
+  srcPath: () =>
+    getenv("QUARTO_SRC_PATH", "") ||
+    normalizePath(join(quartoConfig.sharePath(), "../../src")),
   isDebug: () => getenv("QUARTO_DEBUG", "false") === "true",
   version: () => {
     const forceVersion = getenv("QUARTO_FORCE_VERSION", "");
