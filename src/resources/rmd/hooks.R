@@ -124,6 +124,12 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     options
   }
 
+  # coalesce echos so that all code is displayed for renderings: [light, dark]
+  opts_hooks[["renderings"]] <- function(options){
+    options$fig.show = 'hold'
+    options
+  }
+
   opts_hooks[["collapse"]] <- function(options) {
     if (isTRUE(options[["collapse"]])) {
       comment <- options[["comment"]]
