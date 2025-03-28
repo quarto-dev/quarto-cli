@@ -119,6 +119,9 @@ code {
 $if(monobackgroundcolor)$
   background-color: $monobackgroundcolor$;
   padding: .2em .4em;
+  $endif$
+$if(monoforegroundcolor)$
+  color: $monoforegroundcolor$;
 $endif$
   font-size: 85%;
   margin: 0;
@@ -129,6 +132,9 @@ pre {
 $if(monobackgroundcolor)$
   background-color: $monobackgroundcolor$;
   padding: 1em;
+$endif$
+$if(monoforegroundcolor)$
+  color: $monoforegroundcolor$;
 $endif$
   overflow: auto;
 }
