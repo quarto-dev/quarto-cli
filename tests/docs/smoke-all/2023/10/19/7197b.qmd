@@ -20,7 +20,7 @@ _quarto:
 ```{r}
 #| label: tbl-example
 #| tbl-cap: "Example"
-#| tbl-subcap: 
+#| tbl-subcap:
 #|   - "Cars"
 #|   - "Pressure"
 #| echo: fenced

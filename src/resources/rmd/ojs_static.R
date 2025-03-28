@@ -2,7 +2,8 @@ ojs_define <- function(...) {
   # validate that we aren't in a cached chunk
   cache <- knitr:::opts_current$get("cache")
   if (is.numeric(cache) && cache > 0) {
-    stop("ojs_define() cannot be cached\n",
+    stop(
+      "ojs_define() cannot be cached\n",
       "Add cache: false to this cell's options to disable caching",
       call. = FALSE
     )
@@ -14,25 +15,37 @@ ojs_define <- function(...) {
     nm <- rep_len("", length(vars))
   }
   contents <- jsonlite::toJSON(
-    list(contents = I(mapply(
-      function(q, nm, val) {
-        # Infer name, if possible
-        if (nm == "") {
-          tryCatch(
-            {
-              nm <- rlang::as_name(q)
-            },
-            error = function(e) {
-              code <- paste(collapse = "\n", deparse(rlang::f_rhs(q)))
-              stop("ojs_define() could not create a name for the argument: ", code)
-            }
-          )
-        }
-        list(name = nm, value = val)
-      }, quos, nm, vars,
-      SIMPLIFY = FALSE, USE.NAMES = FALSE
-    ))),
-    dataframe = "columns", null = "null", na = "null", auto_unbox = TRUE
+    list(
+      contents = I(mapply(
+        function(q, nm, val) {
+          # Infer name, if possible
+          if (nm == "") {
+            tryCatch(
+              {
+                nm <- rlang::as_name(q)
+              },
+              error = function(e) {
+                code <- paste(collapse = "\n", deparse(rlang::f_rhs(q)))
+                stop(
+                  "ojs_define() could not create a name for the argument: ",
+                  code
+                )
+              }
+            )
+          }
+          list(name = nm, value = val)
+        },
+        quos,
+        nm,
+        vars,
+        SIMPLIFY = FALSE,
+        USE.NAMES = FALSE
+      ))
+    ),
+    dataframe = "columns",
+    null = "null",
+    na = "null",
+    auto_unbox = TRUE
   )
   script_string <- c(
     "<script type=\"ojs-define\">",

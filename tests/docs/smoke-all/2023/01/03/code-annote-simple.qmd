@@ -26,7 +26,8 @@ _quarto:
 #| label: fig-air
 #| fig-cap: "Air Quality"
 library(ggplot2) # <1>
-ggplot(airquality, aes(Temp, Ozone)) + geom_point() + # <2> 
+ggplot(airquality, aes(Temp, Ozone)) + # <2>
+  geom_point() + # <2>
   geom_smooth(method = "loess", se = FALSE) # <2>
 ```
 

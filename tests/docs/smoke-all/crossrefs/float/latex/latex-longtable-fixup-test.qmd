@@ -26,11 +26,12 @@ df <- tibble(
   y = rnorm(20),
   z = rnorm(20)
 )
-kable(df, 
-  format = "latex", 
-  longtable = TRUE, 
-  booktabs = TRUE, 
-  caption = "A long table with a caption")
+kable(df,
+  format = "latex",
+  longtable = TRUE,
+  booktabs = TRUE,
+  caption = "A long table with a caption"
+)
 ```
 
 See @tbl-test.
