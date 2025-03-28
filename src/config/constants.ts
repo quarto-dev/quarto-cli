@@ -141,6 +141,7 @@ export const kFontPaths = "font-paths";
 export const kHtmlTableProcessing = "html-table-processing";
 export const kHtmlPreTagProcessing = "html-pre-tag-processing";
 export const kCssPropertyProcessing = "css-property-processing";
+export const kChooseBrand = "choose-brand"
 export const kUseRsvgConvert = "use-rsvg-convert";
 export const kValidateYaml = "validate-yaml";
 

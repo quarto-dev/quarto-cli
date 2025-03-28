@@ -15617,6 +15617,20 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "The paper size for the document.\n"
         },
         {
+          name: "choose-brand",
+          schema: {
+            enum: [
+              "light",
+              "dark"
+            ]
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          }
+        },
+        {
           name: "layout",
           schema: {
             maybeArrayOf: "string"
@@ -22914,8 +22928,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
         "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
         "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
-        "The path to a light brand file or an inline light brand\ndefinition.",
-        "The path to a dark brand file or an inline dark brand definition.",
         "Theme name, theme scss file, or a mix of both.",
         "The light theme name, theme scss file, or a mix of both.",
         "The light theme name, theme scss file, or a mix of both.",
@@ -24248,12 +24260,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 196120,
+        _internalId: 194469,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 196112,
+            _internalId: 194461,
             type: "enum",
             enum: [
               "png",
@@ -24269,7 +24281,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 196119,
+            _internalId: 194468,
             type: "anyOf",
             anyOf: [
               {
