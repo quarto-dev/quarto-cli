@@ -935,6 +935,9 @@
                     "copy-button": {
                       "type": "boolean"
                     },
+                    "merge-navbar-crumbs": {
+                      "type": "boolean"
+                    },
                     "keyboard-shortcut": {
                       "anyOf": [
                         {
