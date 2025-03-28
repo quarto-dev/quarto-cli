@@ -3,8 +3,8 @@
 
 # inline knitr:::merge_list()
 merge_list <- function(x, y) {
-    x[names(y)] <- y
-    x
+  x[names(y)] <- y
+  x
 }
 
 # inline from knitr:::create_fence() from version 1.38
@@ -19,8 +19,13 @@ create_fence <- function(x, char = "`") {
 # convert some engine names to language names
 eng2lang <- function(x) {
   d <- c(
-    asy = "cpp", mysql = "sql", node = "javascript", 
-    psql = "sql", rscript = "r", rcpp = "cpp", tikz = "tex"
+    asy = "cpp",
+    mysql = "sql",
+    node = "javascript",
+    psql = "sql",
+    rscript = "r",
+    rcpp = "cpp",
+    tikz = "tex"
   )
   x <- tolower(x)
   if (x %in% names(d)) d[x] else x
@@ -28,10 +33,9 @@ eng2lang <- function(x) {
 
 
 knitr_hooks <- function(format, resourceDir, handledLanguages) {
-
   knit_hooks <- list()
   opts_hooks <- list()
-  
+
   # options in yaml (save last yaml.code for source hook)
   lastYamlCode <- NULL
   opts_hooks[["code"]] <- function(options) {
@@ -41,10 +45,9 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       lastYamlCode <<- options[["yaml.code"]]
     }
     options
-  } 
+  }
 
-
-   # force eval to 'FALSE' for all chunks if execute: enabled: false
+  # force eval to 'FALSE' for all chunks if execute: enabled: false
   executeEnabled <- format$execute[["enabled"]]
   if (!is.null(executeEnabled) && executeEnabled == FALSE) {
     opts_hooks[["eval"]] <- function(options) {
@@ -90,42 +93,51 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       options[["results"]] <- "asis"
     } else {
       if (identical(options[["results"]], "hide")) {
-         options[["results"]] <- "markup"
+        options[["results"]] <- "markup"
       }
       if (identical(options[["fig.show"]], "hide")) {
-         options[["fig.show"]] <- "asis"
+        options[["fig.show"]] <- "asis"
       }
     }
-    options[["message"]] <- ifelse(!isFALSE(output), knitr::opts_chunk$get("message"), FALSE)
-    options[["warning"]] <- ifelse(!isFALSE(output), knitr::opts_chunk$get("warning"), FALSE)
+    options[["message"]] <- ifelse(
+      !isFALSE(output),
+      knitr::opts_chunk$get("message"),
+      FALSE
+    )
+    options[["warning"]] <- ifelse(
+      !isFALSE(output),
+      knitr::opts_chunk$get("warning"),
+      FALSE
+    )
     options
   }
 
   # automatically set gifski hook for fig.animate
   opts_hooks[["fig.show"]] <- function(options) {
-    
     # get current value of fig.show
     fig.show <- options[["fig.show"]]
-    
+
     # use gifski as default animation hook for non-latex output
     if (identical(fig.show, "animate")) {
-      if (!is_pandoc_latex_output(format) && is.null(options[["animation.hook"]])) {
+      if (
+        !is_pandoc_latex_output(format) && is.null(options[["animation.hook"]])
+      ) {
         options[["animation.hook"]] <- "gifski"
       }
-      
-    # fig.show "asis" -> "hold" for fig: labeled chunks
+
+      # fig.show "asis" -> "hold" for fig: labeled chunks
     } else if (identical(fig.show, "asis")) {
       if (is_figure_label(output_label(options))) {
         options[["fig.show"]] <- "hold"
       }
     }
-    
+
     # return options
     options
   }
 
   # coalesce echos so that all code is displayed for renderings: [light, dark]
-  opts_hooks[["renderings"]] <- function(options){
+  opts_hooks[["renderings"]] <- function(options) {
     options$fig.show = 'hold'
     options
   }
@@ -137,7 +149,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
         options[["comment"]] <- "##"
       }
     }
-   
+
     # return options
     options
   }
@@ -147,8 +159,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     opts_hooks[[option]] <<- function(options) {
       if (identical(options[[option]], FALSE)) {
         options[[option]] <- TRUE
-        for (hide in hidden)
-          options[[paste0(hide,".hidden")]] <- TRUE
+        for (hide in hidden) options[[paste0(hide, ".hidden")]] <- TRUE
       }
       options
     }
@@ -171,14 +182,16 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
   }
   delegating_output_hook = function(type, classes) {
     delegating_hook(type, function(x, options) {
-      if (identical(options[["results"]], "asis") ||
-          isTRUE(options[["collapse"]])) {
+      if (
+        identical(options[["results"]], "asis") ||
+          isTRUE(options[["collapse"]])
+      ) {
         x
       } else {
         # prefix for classes
         classes <- c("cell-output", paste0("cell-output-", classes))
         # add .hidden class if keep-hidden hook injected an option
-        if (isTRUE(options[[paste0(type,".hidden")]]))
+        if (isTRUE(options[[paste0(type, ".hidden")]]))
           classes <- c(classes, "hidden")
         output_div(x, NULL, classes)
       }
@@ -187,14 +200,16 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
 
   # entire chunk
   knit_hooks$chunk <- delegating_hook("chunk", function(x, options) {
-
     # Do nothing more for some specific chunk content -----
 
     # Quarto language handler
-    if (any(as.logical(lapply(handledLanguages, function(lang) {
-      prefix <- paste0("```{", lang, "}")
-      startsWith(x, prefix)
-    }))) && endsWith(x, "```")) {
+    if (
+      any(as.logical(lapply(handledLanguages, function(lang) {
+        prefix <- paste0("```{", lang, "}")
+        startsWith(x, prefix)
+      }))) &&
+        endsWith(x, "```")
+    ) {
       return(x)
     }
 
@@ -211,7 +226,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     # For any other, adding a cell output div -----
 
     # read some options
-    
+
     label <- output_label(options)
     fig.cap <- options[["fig.cap"]]
     cell.cap <- NULL
@@ -222,7 +237,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     if (isTRUE(format$render$`notebook-preserve-cells`) && !is.null(label)) {
       cellId <- paste0("cell-", label)
     }
-    
+
     # fixup duplicate figure labels
     placeholder <- output_label_placeholder(options)
     if (!is.null(placeholder)) {
@@ -236,7 +251,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     # caption output
     if (!is.null(fig.cap) && !is.null(fig.subcap)) {
       cell.cap <- paste0("\n", fig.cap, "\n")
-    }  else {
+    } else {
       label <- NULL
     }
 
@@ -244,18 +259,17 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     fig.sep <- options[["fig.sep"]]
     fig.ncol <- options[["fig.ncol"]]
     if (!is.null(fig.sep)) {
-      
       # recycle fig.sep
       fig.num <- options[["fig.num"]] %||% 1L
       fig.sep <- rep_len(fig.sep, fig.num)
-      
+
       # recyle out.width
-      out.width <- options[["out.width"]] 
+      out.width <- options[["out.width"]]
       if (is.null(out.width)) {
         out.width <- 1
-      } 
+      }
       out.width <- rep_len(out.width, fig.num)
-      
+
       # build fig.layout
       fig.layout <- list()
       fig.row <- c()
@@ -270,12 +284,12 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
         fig.layout[[length(fig.layout) + 1]] <- fig.row
       }
       options[["layout"]] <- fig.layout
-      
-    # populate layout-ncol from fig.ncol
+
+      # populate layout-ncol from fig.ncol
     } else if (!is.null(fig.ncol)) {
       options[["layout-ncol"]] = fig.ncol
     }
-    
+
     # alias fig.align to layout-align
     fig.align = options[["fig.align"]]
     if (!is.null(fig.align) && !identical(fig.align, "default")) {
@@ -289,7 +303,13 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     }
 
     # forward selected attributes
-    forward <- c("layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign")
+    forward <- c(
+      "layout",
+      "layout-nrow",
+      "layout-ncol",
+      "layout-align",
+      "layout-valign"
+    )
     forwardAttr <- character()
     for (attr in forward) {
       value = options[[attr]]
@@ -307,16 +327,21 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
 
     # forward any other unknown attributes
     # From knitr 1.44, knitr:::opts_chunk_attr and knitr::opts_chunk$get()
-    # should cover all options and knitr will only normalize 
-    # to their . version the known knitr options. 
+    # should cover all options and knitr will only normalize
+    # to their . version the known knitr options.
     # Other options (like quarto specific ones) will keep there original values
     # with - separator.
-    knitr_default_opts <- unique(c(names(knitr:::opts_chunk_attr), names(knitr::opts_chunk$get())))
-    # quarto options common with knitr and that will be normalized to .
+    knitr_default_opts <- unique(c(
+      names(knitr:::opts_chunk_attr),
+      names(knitr::opts_chunk$get())
+    ))
+    # quarto options common with knitr and that will be normalized to
+    # fmt: skip
     quarto_knitr_opts <- c(
       "fig.cap", "fig.subcap", "fig.scap", "fig.link", "fig.alt",
       "fig.align", "fig.env", "fig.pos", "fig.num", "out.width"
     )
+    # fmt: skip
     quarto_opts <- c(
       "label", "lst-cap", "lst-label", "classes", "panel", "column",
       "tbl-column", "tbl-cap-location", "cap-location", "code-fold",
@@ -332,6 +357,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       "output.hidden", "warning.hidden", "message.hidden"
     )
     # Other knitr option possibly not in knitr_default_opts
+    # fmt: skip
     other_opts <- c(
       "eval", "yaml.code", "code", "file", "params.src", "original.params.src",
       "fenced.echo", "chunk.echo", "lang", "out.width.px", "out.height.px",
@@ -339,27 +365,35 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       "class.warning", "class.error", "attr.source", "attr.output",
       "attr.message", "attr.warning", "attr.error", "connection", "hash"
     )
-    known_opts <- c(knitr_default_opts, quarto_knitr_opts, quarto_opts, other_opts)
+    known_opts <- c(
+      knitr_default_opts,
+      quarto_knitr_opts,
+      quarto_opts,
+      other_opts
+    )
     unknown_opts <- setdiff(names(options), known_opts)
     unknown_opts <- Filter(Negate(is.null), unknown_opts)
     unknown_opts <- Filter(function(opt) !startsWith(opt, "."), unknown_opts)
     # json encode if necessary
-    unknown_values <- lapply(options[unknown_opts],
-                             function(value) {
-                               if (!is.character(value) || length(value) > 1) {
-                                 value <- jsonlite::toJSON(value, auto_unbox = TRUE)
-                               } 
-                               # will be enclosed in single quotes so escape
-                               gsub("'", "\\\'", value, fixed = TRUE)
-                            })
+    unknown_values <- lapply(
+      options[unknown_opts],
+      function(value) {
+        if (!is.character(value) || length(value) > 1) {
+          value <- jsonlite::toJSON(value, auto_unbox = TRUE)
+        }
+        # will be enclosed in single quotes so escape
+        gsub("'", "\\\'", value, fixed = TRUE)
+      }
+    )
     # append to forward list
-    forwardAttr <- c(forwardAttr, 
-                     sprintf("%s='%s'", unknown_opts, unknown_values))
+    forwardAttr <- c(
+      forwardAttr,
+      sprintf("%s='%s'", unknown_opts, unknown_values)
+    )
     if (length(forwardAttr) > 0)
-      forwardAttr <- paste0(" ", paste(forwardAttr, collapse = " "))
-    else
+      forwardAttr <- paste0(" ", paste(forwardAttr, collapse = " ")) else
       forwardAttr <- ""
-   
+
     # handle classes
     classes <- c("cell", options[["classes"]])
     if (is.character(options[["panel"]]))
@@ -377,23 +411,35 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     if (is.character(options[["cap-location"]]))
       classes <- c(classes, paste0("caption-", options[["cap-location"]]))
     if (is.character(options[["fig-cap-location"]])) {
-      classes <- c(classes, paste0("fig-cap-location-", options[["fig-cap-location"]]))
+      classes <- c(
+        classes,
+        paste0("fig-cap-location-", options[["fig-cap-location"]])
+      )
     } else if (is.character(options[["fig.cap-location"]])) {
       # knitr < 1.44 compatibility where fig- -> fig.
-      classes <- c(classes, paste0("fig-cap-location-", options[["fig.cap-location"]]))
+      classes <- c(
+        classes,
+        paste0("fig-cap-location-", options[["fig.cap-location"]])
+      )
     }
     if (is.character(options[["tbl-cap-location"]]))
-      classes <- c(classes, paste0("tbl-cap-location-", options[["tbl-cap-location"]]))
+      classes <- c(
+        classes,
+        paste0("tbl-cap-location-", options[["tbl-cap-location"]])
+      )
 
     if (isTRUE(options[["include.hidden"]])) {
       classes <- c(classes, "hidden")
     }
-    classes <- sapply(classes, function(clz) ifelse(startsWith(clz, "."), clz, paste0(".", clz)))
+    classes <- sapply(
+      classes,
+      function(clz) ifelse(startsWith(clz, "."), clz, paste0(".", clz))
+    )
 
     # allow table label through
     if (is_table_label(options[["label"]])) {
       label <- options[["label"]]
-    } 
+    }
 
     if (is.null(label) && !is.null(cellId)) {
       label <- cellId
@@ -403,27 +449,34 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       label <- paste0(label, " ")
     }
 
-    # if there is a label, additional classes, a forwardAttr, or a cell.cap 
+    # if there is a label, additional classes, a forwardAttr, or a cell.cap
     # then the user is deemed to have implicitly overridden results = "asis"
     # (as those features don't work w/o an enclosing div)
-    needCell <- isTRUE(nzchar(label)) || 
-                length(classes) > 1 ||
-                isTRUE(nzchar(forwardAttr)) ||
-                isTRUE(nzchar(cell.cap))
+    needCell <- isTRUE(nzchar(label)) ||
+      length(classes) > 1 ||
+      isTRUE(nzchar(forwardAttr)) ||
+      isTRUE(nzchar(cell.cap))
     if (identical(options[["results"]], "asis") && !needCell) {
       x
     } else {
       # Newline first and after to ensure Pandoc Fenced Div is correctly parsed
       paste0(
         "\n",
-        options[["indent"]], "::: {", 
-        labelId(label), paste(classes, collapse = " ") ,forwardAttr, "}\n", x, "\n", cell.cap ,
-        options[["indent"]], ":::\n"
+        options[["indent"]],
+        "::: {",
+        labelId(label),
+        paste(classes, collapse = " "),
+        forwardAttr,
+        "}\n",
+        x,
+        "\n",
+        cell.cap,
+        options[["indent"]],
+        ":::\n"
       )
     }
   })
   knit_hooks$source <- function(x, options) {
-
     # How knitr handles the prompt option for R chunks
     x <- knitr:::hilight_source(x, "markdown", options)
     x <- knitr:::one_string(c('', x))
@@ -433,7 +486,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     id <- NULL
 
     # leave some specific engine alone
-    if (! options[["engine"]] %in% c("verbatim", "embed")) {
+    if (!options[["engine"]] %in% c("verbatim", "embed")) {
       # Add classes and attributes required for quarto specific features
       class <- paste(class, "cell-code")
       if (isTRUE(options[["source.hidden"]])) {
@@ -446,12 +499,16 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
         }
       }
       if (identical(options[["code-overflow"]], "wrap"))
-        class <- paste(class, "code-overflow-wrap")
-      else if (identical(options[["code-overflow"]], "scroll"))
+        class <- paste(class, "code-overflow-wrap") else if (
+        identical(options[["code-overflow"]], "scroll")
+      )
         class <- paste(class, "code-overflow-scroll")
       fold <- options[["code-fold"]]
       if (!is.null(fold)) {
-        attr <- paste(attr, paste0('code-fold="', tolower(as.character(fold)), '"'))
+        attr <- paste(
+          attr,
+          paste0('code-fold="', tolower(as.character(fold)), '"')
+        )
       }
       fold <- options[["code-summary"]]
       if (!is.null(fold)) {
@@ -459,7 +516,10 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       }
       lineNumbers <- options[["code-line-numbers"]]
       if (!is.null(lineNumbers)) {
-        attr <- paste(attr, paste0('code-line-numbers="', tolower(as.character(lineNumbers)), '"'))
+        attr <- paste(
+          attr,
+          paste0('code-line-numbers="', tolower(as.character(lineNumbers)), '"')
+        )
       }
     }
 
@@ -470,7 +530,10 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       lang <- NULL
       yamlCode <- lastYamlCode
       if (!is.null(yamlCode)) {
-        yamlCode <- Filter(function(line) !grepl("\\|\\s+echo:\\s+fenced\\s*$", line), yamlCode)
+        yamlCode <- Filter(
+          function(line) !grepl("\\|\\s+echo:\\s+fenced\\s*$", line),
+          yamlCode
+        )
         yamlCode <- paste(yamlCode, collapse = "\n")
         if (!nzchar(yamlCode)) {
           x <- trimws(x, "left")
@@ -479,7 +542,17 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
         x <- trimws(x, "left")
       }
       ticks <- create_fence(x, "`")
-      x <- paste0("\n", ticks, "{{", options[["original.params.src"]], "}}\n", yamlCode, x, "\n", ticks)
+      x <- paste0(
+        "\n",
+        ticks,
+        "{{",
+        options[["original.params.src"]],
+        "}}\n",
+        yamlCode,
+        x,
+        "\n",
+        ticks
+      )
     } else {
       # If requested, preserve the code yaml and emit it into the code blocks
       if (isTRUE(format$render$`produce-source-notebook`)) {
@@ -503,14 +576,13 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     )
 
     paste0("\n\n", ticks, attrs, x, "\n", ticks, "\n\n")
-   
   }
   knit_hooks$output <- delegating_output_hook("output", c("stdout"))
   knit_hooks$warning <- delegating_output_hook("warning", c("stderr"))
   knit_hooks$message <- delegating_output_hook("message", c("stderr"))
   knit_hooks$plot <- knitr_plot_hook(format)
   knit_hooks$error <- delegating_output_hook("error", c("error"))
-  
+
   list(
     knit = knit_hooks,
     opts = opts_hooks
@@ -518,13 +590,11 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
 }
 
 knitr_plot_hook <- function(format) {
-
   htmlOutput <- knitr:::is_html_output(format$pandoc$to)
   latexOutput <- is_pandoc_latex_output(format)
   defaultFigPos <- format$render[["fig-pos"]]
 
   function(x, options) {
-    
     # are we using animation (if we are then ignore all but the last fig)
     fig.num <- options[["fig.num"]] %||% 1L
     fig.cur = options$fig.cur %||% 1L
@@ -532,21 +602,20 @@ knitr_plot_hook <- function(format) {
     animate = fig.num > 1 && options$fig.show == 'animate' && !tikz
     if (animate) {
       if (fig.cur < fig.num) {
-        return ('')
-      } else  {
-        # if it's the gifski hook then call it directly (it will call 
+        return('')
+      } else {
+        # if it's the gifski hook then call it directly (it will call
         # this function back with the composed animated gif)
         hook <- knitr:::hook_animation(options)
         if (identical(hook, knitr:::hook_gifski)) {
-          return (hook(x, options))
+          return(hook(x, options))
         }
       }
     }
-  
+
     # classes
     classes <- paste0("cell-output-display")
-    if (isTRUE(options[["plot.hidden"]]))
-      classes <- c(classes, "hidden")
+    if (isTRUE(options[["plot.hidden"]])) classes <- c(classes, "hidden")
 
     # label
     placeholder <- output_label_placeholder(options)
@@ -556,7 +625,7 @@ knitr_plot_hook <- function(format) {
       ""
     )
     attr <- label
-    
+
     # knitr::fix_options will convert out.width and out.height to their
     # latex equivalents, reverse this transformation so our figure layout
     # code can deal directly with percentages
@@ -572,21 +641,23 @@ knitr_plot_hook <- function(format) {
     if (!identical(fig.env, "figure")) {
       keyvalue <- c(keyvalue, sprintf("fig-env='%s'", fig.env))
     }
-    fig.pos <- options[['fig.pos']] 
+    fig.pos <- options[['fig.pos']]
     if (nzchar(fig.pos)) {
       keyvalue <- c(keyvalue, sprintf("fig-pos='%s'", fig.pos))
-    # if we are echoing code, there is no default fig-pos, and
-    # we are not using a layout then automatically set fig-pos to 'H'
-    } else if (latexOutput &&
-               isTRUE(options[["echo"]]) &&
-               length(names(options)[startsWith(names(options), "layout")]) == 0 &&
-               is.null(defaultFigPos)) {
+      # if we are echoing code, there is no default fig-pos, and
+      # we are not using a layout then automatically set fig-pos to 'H'
+    } else if (
+      latexOutput &&
+        isTRUE(options[["echo"]]) &&
+        length(names(options)[startsWith(names(options), "layout")]) == 0 &&
+        is.null(defaultFigPos)
+    ) {
       keyvalue <- c(keyvalue, "fig-pos='H'")
     }
     fig.alt <- options[["fig.alt"]]
     escapeAttr <- function(x) gsub("'", "\\'", x, fixed = TRUE)
     if (!is.null(fig.alt) && nzchar(fig.alt)) {
-       keyvalue <- c(keyvalue, sprintf("fig-alt='%s'", escapeAttr(fig.alt)))
+      keyvalue <- c(keyvalue, sprintf("fig-alt='%s'", escapeAttr(fig.alt)))
     }
     fig.scap <- options[['fig.scap']]
     if (!is.null(fig.scap)) {
@@ -600,7 +671,7 @@ knitr_plot_hook <- function(format) {
     if (!is.null(resize.height)) {
       keyvalue <- c(keyvalue, sprintf("resize.height='%s'", resize.height))
     }
-    
+
     # add keyvalue
     keyvalue <- paste(
       c(
@@ -622,74 +693,68 @@ knitr_plot_hook <- function(format) {
 
     # special handling for animations
     if (animate) {
-      
       # get the caption (then remove it so the hook doesn't include it)
       caption <- figure_cap(options)
       options[["fig.cap"]] <- NULL
       options[["fig.subcap"]] <- NULL
-      
+
       # check for latex
       if (is_pandoc_latex_output(format)) {
-        
         # include dependency on animate package
         knitr::knit_meta_add(list(
           rmarkdown::latex_dependency("animate")
         ))
-        
+
         latexOutput <- paste(
           "```{=latex}",
           latex_animation(x, options),
           "```",
           sep = "\n"
         )
-        
+
         # add the caption if we have one
         if (nzchar(caption)) {
           latexOutput <- paste0(latexOutput, "\n\n", caption, "\n")
         }
-        
+
         # enclose in output div
         output_div(latexOutput, label, classes)
-        
-      # otherwise assume html
+
+        # otherwise assume html
       } else {
         # render the animation
         hook <- knitr:::hook_animation(options)
         htmlOutput <- hook(x, options)
         htmlOutput <- htmlPreserve(htmlOutput)
-        
+
         # add the caption if we have one
         if (nzchar(caption)) {
           htmlOutput <- paste0(htmlOutput, "\n\n", caption, "\n")
         }
-        
+
         # enclose in output div
         output_div(htmlOutput, label, classes)
       }
-     
     } else {
-      
       # generate markdown for image
       md <- sprintf("![%s](%s)%s", figure_cap(options), x, attr)
-      
+
       # enclose in link if requested
       link <- options[["fig.link"]]
       if (!is.null(link)) {
         md <- sprintf("[%s](%s)", md, link)
       }
-      
+
       # result = "asis" specific
       if (identical(options[["results"]], "asis")) return(md)
-      
-      # enclose in output div 
+
+      # enclose in output div
       output_div(md, NULL, classes)
     }
-
   }
 }
 
 knitr_options_hook <- function(options) {
-
   if (!knitr_has_yaml_chunk_options()) {
     # partition yaml options
     results <- partition_yaml_options(options$engine, options$code)
@@ -707,14 +772,13 @@ knitr_options_hook <- function(options) {
       options <- merge_list(options, results$yaml)
       # set code
       options$code <- results$code
-    } 
+    }
     options[["yaml.code"]] <- results$yamlSource
-    
   } else {
     # from knitr 1.44 onwards the normalization is done at parsing time by knitr
     # for all known options c(names(opts_chunk_attr), names(opts_chunk$get()))
     # so normalization here should not be necessary anymore at some point
-    # TODO: remove normalization here in a few years 
+    # TODO: remove normalization here in a few years
     #       when 1.44 is widely used version
     options <- normalize_options(options)
   }
@@ -729,33 +793,31 @@ knitr_options_hook <- function(options) {
   if (!is.null(options[["fig-dpi"]])) {
     options[["dpi"]] <- options[["fig-dpi"]]
   }
-  
-  # if there are line annotations in the code then we need to 
+
+  # if there are line annotations in the code then we need to
   # force disable messages/warnings
   comment_chars <- engine_comment_chars(options$engine)
-  pattern <- paste0(".*\\Q", comment_chars[[1]], "\\E\\s*",
-                    "<[0-9]+>\\s*")
+  pattern <- paste0(".*\\Q", comment_chars[[1]], "\\E\\s*", "<[0-9]+>\\s*")
   if (length(comment_chars) > 1) {
     pattern <- paste0(pattern, ".*\\Q", comment_chars[[2]], "\\E\\s*")
   }
   pattern <- paste0(pattern, "$")
   if (any(grepl(pattern, options$code))) {
     options$warning <- FALSE
-    options$results <- "hold" 
+    options$results <- "hold"
   }
 
-
-  # fig.subcap: TRUE means fig.subcap: "" (more natural way 
+  # fig.subcap: TRUE means fig.subcap: "" (more natural way
   # to specify that empty subcaps are okay)
   if (isTRUE(options[["fig.subcap"]])) {
     options[["fig.subcap"]] <- ""
   }
-  
-  # return options  
+
+  # return options
   options
 }
 
-# convert any option with e.g. fig- into fig. 
+# convert any option with e.g. fig- into fig.
 # we do this so that all downstream code can consume a single
 # variation of these functions. We support both syntaxes because
 # quarto/pandoc generally uses - as a delimeter everywhere,
@@ -765,13 +827,13 @@ knitr_options_hook <- function(options) {
 # from knitr 1.44 onwards the normalization is done at parsing time by knitr
 # for all known options c(names(opts_chunk_attr), names(opts_chunk$get()))
 # so normalization here should not be necessary anymore at some point
-# TODO: remove normalization here in a few years 
+# TODO: remove normalization here in a few years
 #       when 1.44 is widely used version
 normalize_options <- function(options) {
   # TODO: knitr 1.44 store all known options as it does the normalization
   #       they are in `c(names(opts_chunk_attr), names(opts_chunk$get()))`
   knitr_options_dashed <- c(
-    # Text output 
+    # Text output
     "strip-white",
     "class-output",
     "class-message",
@@ -867,15 +929,14 @@ partition_yaml_options <- function(engine, code) {
   comment_chars <- engine_comment_chars(engine)
   comment_start <- paste0(comment_chars[[1]], "| ")
   comment_end <- ifelse(length(comment_chars) > 1, comment_chars[[2]], "")
-  
+
   # check for option comments
   match_start <- startsWith(code, comment_start)
   match_end <- endsWith(trimws(code, "right"), comment_end)
   matched_lines <- match_start & match_end
-  
+
   # has to have at least one matched line at the beginning
   if (isTRUE(matched_lines[[1]])) {
-    
     # divide into yaml and code
     if (all(matched_lines)) {
       yamlSource <- code
@@ -883,30 +944,36 @@ partition_yaml_options <- function(engine, code) {
     } else {
       last_match <- which.min(matched_lines) - 1
       yamlSource <- code[1:last_match]
-      code <- code[(last_match+1):length(code)]
+      code <- code[(last_match + 1):length(code)]
     }
-    
+
     # trim right
     if (any(match_end)) {
       yamlSource <- trimws(yamlSource, "right")
     }
-  
+
     # extract yaml from comments, then parse it
-    yaml <- substr(yamlSource, 
-                   nchar(comment_start) + 1, 
-                   nchar(yamlSource) - nchar(comment_end))
+    yaml <- substr(
+      yamlSource,
+      nchar(comment_start) + 1,
+      nchar(yamlSource) - nchar(comment_end)
+    )
     yaml_options <- yaml::yaml.load(yaml, eval.expr = TRUE)
     if (!is.list(yaml_options) || length(names(yaml_options)) == 0) {
-      warning("Invalid YAML option format in chunk: \n", paste(yaml, collapse = "\n"), "\n")
+      warning(
+        "Invalid YAML option format in chunk: \n",
+        paste(yaml, collapse = "\n"),
+        "\n"
+      )
       yaml_options <- list()
     }
-    
+
     # extract code
     if (length(code) > 0 && knitr:::is_blank(code[[1]])) {
       code <- code[-1]
       yamlSource <- c(yamlSource, "")
     }
-    
+
     list(
       yaml = yaml_options,
       yamlSource = yamlSource,
@@ -930,8 +997,8 @@ engine_comment_chars <- function(engine) {
     matlab = "%",
     csharp = "//",
     fsharp = "//",
-    c = c("/*",  "*/"),
-    css = c("/*",  "*/"),
+    c = c("/*", "*/"),
+    css = c("/*", "*/"),
     sas = c("*", ";"),
     powershell = "#",
     bash = "#",
@@ -988,10 +1055,7 @@ output_div <- function(x, label, classes, attr = NULL) {
 }
 
 labelId <- function(label) {
-  if (!is.null(label) && !startsWith(label, "#"))
-    paste0("#", label)
-  else
-    label
+  if (!is.null(label) && !startsWith(label, "#")) paste0("#", label) else label
 }
 
 figure_cap <- function(options) {
@@ -999,12 +1063,8 @@ figure_cap <- function(options) {
   if (is.null(output_label) || is_figure_label(output_label)) {
     fig.cap <- options[["fig.cap"]]
     fig.subcap <- options[["fig.subcap"]]
-    if (length(fig.subcap) != 0)
-      fig.subcap
-    else if (length(fig.cap) != 0)
-      fig.cap
-    else
-      ""
+    if (length(fig.subcap) != 0) fig.subcap else if (length(fig.cap) != 0)
+      fig.cap else ""
   } else {
     ""
   }
@@ -1023,10 +1083,7 @@ output_label <- function(options) {
 output_label_placeholder <- function(options) {
   kPlaceholder <- "D08295A6-16DC-499D-85A8-8BA656E013A2"
   label <- output_label(options)
-  if (is_figure_label(label))
-    paste0(label, kPlaceholder)
-  else
-    NULL
+  if (is_figure_label(label)) paste0(label, kPlaceholder) else NULL
 }
 
 is_figure_label <- function(label) {
@@ -1052,10 +1109,7 @@ block_attr <- function(id = NULL, lang = NULL, class = NULL, attr = NULL) {
   }
   attributes <- c(id, lang, class, attr)
   attributes <- paste(attributes[!is.null(attributes)], collapse = " ")
-  if (nzchar(attributes))
-    paste0("{", attributes, "}")
-  else
-    ""
+  if (nzchar(attributes)) paste0("{", attributes, "}") else ""
 }
 
 block_class <- function(x) {
@@ -1066,7 +1120,10 @@ latex_sizes_to_percent <- function(options) {
   #  \linewidth
   width <- options[["out.width"]]
   if (!is.null(width)) {
-    latex_width <- regmatches(width, regexec("^([0-9\\.]+)\\\\linewidth$", width))
+    latex_width <- regmatches(
+      width,
+      regexec("^([0-9\\.]+)\\\\linewidth$", width)
+    )
     if (length(latex_width[[1]]) > 1) {
       width <- paste0(as.numeric(latex_width[[1]][[2]]) * 100, "%")
       options[["out.width"]] <- width
@@ -1075,7 +1132,10 @@ latex_sizes_to_percent <- function(options) {
   # \textheight
   height <- options[["out.height"]]
   if (!is.null(height)) {
-    latex_height <- regmatches(height, regexec("^([0-9\\.]+)\\\\textheight$", height))
+    latex_height <- regmatches(
+      height,
+      regexec("^([0-9\\.]+)\\\\textheight$", height)
+    )
     if (length(latex_height[[1]]) > 1) {
       height <- paste0(as.numeric(latex_height[[1]][[2]]) * 100, "%")
       options[["out.height"]] <- height
@@ -1087,23 +1147,33 @@ latex_sizes_to_percent <- function(options) {
 # ported from:
 # https://github.com/yihui/knitr/blob/f8f90baad99d873202b8dc8042eab7a88fac232f/R/hooks-latex.R#L151-L171
 latex_animation <- function(x, options) {
-  
   fig.num = options$fig.num %||% 1L
-  
+
   ow = options$out.width
   # maxwidth does not work with animations
   if (identical(ow, '\\maxwidth')) ow = NULL
   if (is.numeric(ow)) ow = paste0(ow, 'px')
-  size = paste(c(sprintf('width=%s', ow),
-                 sprintf('height=%s', options$out.height),
-                 options$out.extra), collapse = ',')
-  
+  size = paste(
+    c(
+      sprintf('width=%s', ow),
+      sprintf('height=%s', options$out.height),
+      options$out.extra
+    ),
+    collapse = ','
+  )
+
   aniopts = options$aniopts
   aniopts = if (is.na(aniopts)) NULL else gsub(';', ',', aniopts)
   size = paste(c(size, sprintf('%s', aniopts)), collapse = ',')
   if (nzchar(size)) size = sprintf('[%s]', size)
-  sprintf('\\animategraphics%s{%s}{%s}{%s}{%s}', size, 1 / options$interval,
-          sub(sprintf('%d$', fig.num), '', xfun::sans_ext(x)), 1L, fig.num)
+  sprintf(
+    '\\animategraphics%s{%s}{%s}{%s}{%s}',
+    size,
+    1 / options$interval,
+    sub(sprintf('%d$', fig.num), '', xfun::sans_ext(x)),
+    1L,
+    fig.num
+  )
 }
 
 is_ipynb_output <- function(to) {
