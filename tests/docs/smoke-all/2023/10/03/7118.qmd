@@ -5,7 +5,7 @@ title: Layout test
 ```{r}
 #| label: fig-charts
 #| fig-cap: "Charts"
-#| fig-subcap: 
+#| fig-subcap:
 #|   - "Cars"
 #|   - "Pressure"
 #| layout: "[1, 1]"

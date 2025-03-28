@@ -18,7 +18,7 @@ Without stretch feature
 ![revealjs logo](https://revealjs.com/images/logo/reveal-black-text.svg)
 
 ```{r, echo = TRUE}
-1 + 1 
+1 + 1
 ```
 
 ## Insert an image with no caption {#no-caption}

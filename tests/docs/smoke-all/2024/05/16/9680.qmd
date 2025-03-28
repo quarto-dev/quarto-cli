@@ -45,9 +45,9 @@ _quarto:
 
 ```{r}
 #| label: test
-head(iris, 1) |>  
-    gt::gt() |> 
-    gt::as_raw_html()
+head(iris, 1) |>
+  gt::gt() |>
+  gt::as_raw_html()
 ```
 
 ## Test table Md {#table-md}

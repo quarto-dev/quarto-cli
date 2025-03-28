@@ -11,7 +11,7 @@ See @tbl-cars-gt
 #| echo: false
 mtcars |>
   head() |>
-  gt::gt() |> 
+  gt::gt() |>
   gt::tab_footnote(
     footnote = "Here's a note",
     locations = gt::cells_body(columns = cyl, rows = 2)

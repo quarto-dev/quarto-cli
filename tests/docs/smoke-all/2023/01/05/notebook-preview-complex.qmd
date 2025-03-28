@@ -38,17 +38,17 @@ _quarto:
 ## Sample Code. Cool!
 
 ```{r}
-num = 47
-factorial = 1
-if(num < 0) { # <2>
+num <- 47
+factorial <- 1
+if (num < 0) { # <2>
   print("Sorry, factorial does not exist for negative numbers")
-} else if(num == 0) {
+} else if (num == 0) {
   print("The factorial of 0 is 1")
 } else {
-  for(i in 1:num) {             # <3>
-    factorial = factorial * i   # <3>
-  }                             # <3>
-  print(paste("The factorial of", num ,"is",format(factorial)))
+  for (i in 1:num) { # <3>
+    factorial <- factorial * i # <3>
+  } # <3>
+  print(paste("The factorial of", num, "is", format(factorial)))
 }
 ```
 
@@ -65,17 +65,17 @@ Also, see the figure below, which shows something cool.
 3. foo
 
 ```{r}
-num = 47
-factorial = 1
-if(num < 0) { # <2>
+num <- 47
+factorial <- 1
+if (num < 0) { # <2>
   print("Sorry, factorial does not exist for negative numbers")
-} else if(num == 0) {
+} else if (num == 0) {
   print("The factorial of 0 is 1")
 } else {
-  for(i in 1:num) {             # <3>
-    factorial = factorial * i   # <3>
-  }                             # <3>
-  print(paste("The factorial of", num ,"is",format(factorial)))
+  for (i in 1:num) { # <3>
+    factorial <- factorial * i # <3>
+  } # <3>
+  print(paste("The factorial of", num, "is", format(factorial)))
 }
 ```
 
