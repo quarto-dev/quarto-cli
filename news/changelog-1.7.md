@@ -123,6 +123,7 @@ All changes included in 1.7:
 ### `jupyter`
 
 - ([#12114](https://github.com/quarto-dev/quarto-cli/issues/12114)): `JUPYTERCACHE` environment variable from [Jupyter cache CLI](https://jupyter-cache.readthedocs.io/en/latest/using/cli.html) is now respected by Quarto when `cache: true` is used. This environment variable allows to change the path of the cache directory.
+- ([#12228](https://github.com/quarto-dev/quarto-cli/issues/12228)): `quarto render` will now fails if errors are detected at IPython display level. Setting `error: true` globally or at cell level will keep the error to show in output and not stop the rendering.
 
 ## Other Fixes and Improvements
 
