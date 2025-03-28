@@ -602,18 +602,18 @@ export async function projectResolveBrand(
         let light, dark;
         if (typeof brand.light === "string") {
           light = await loadRelativeBrand(brand.light);
-        } else {
+        } else if (brand.light) {
           light = new Brand(
-            brand.light!,
+            brand.light,
             dirname(fileName),
             project.dir,
           );
         }
         if (typeof brand.dark === "string") {
           dark = await loadRelativeBrand(brand.dark);
-        } else {
+        } else if(brand.dark) {
           dark = new Brand(
-            brand.dark!,
+            brand.dark,
             dirname(fileName),
             project.dir,
           );

@@ -123,12 +123,12 @@ export async function resolveSassBundles(
       }
       return bundle as SassBundle;
     });
-    if (!foundBrand.light || !foundBrand.dark) {
+    if (maybeBrandBundle && (!foundBrand.light || !foundBrand.dark)) {
       bundles.unshift({
         dependency,
         key: "brand",
-        user: !foundBrand.light && maybeBrandBundle?.user as SassLayer[] || [],
-        dark: !foundBrand.dark && maybeBrandBundle?.dark?.user && {
+        user: !foundBrand.light && maybeBrandBundle.user as SassLayer[] || [],
+        dark: !foundBrand.dark && maybeBrandBundle.dark?.user && {
               user: maybeBrandBundle.dark.user as SassLayer[],
               default: maybeBrandBundle.dark.default,
             } || undefined,
