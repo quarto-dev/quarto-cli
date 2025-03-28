@@ -19388,7 +19388,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-doc"
             ]
           },
-          description: "Setting this to false prevents the `repo-actions` from appearing on this page."
+          description: "Setting this to false prevents the `repo-actions` from appearing on this page.\nPossible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
         },
         {
           name: "aliases",
@@ -23304,7 +23304,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Print a list of figures in the document.",
         "Print a list of tables in the document.",
         "Setting this to false prevents this document from being included in\nsearches.",
-        "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
+        "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page. Possible values are <code>none</code> or one or\nmore of <code>edit</code>, <code>source</code>, and <code>issue</code>,\n<em>e.g.</em> <code>[edit, source, issue]</code>.",
         {
           short: "Links to source repository actions",
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
