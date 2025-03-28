@@ -1,0 +1,25 @@
+---
+title: "Untitled"
+format: typst
+keep-typ: true
+---
+
+```{=typst}
+#text(font: "Noto Sans")[Noto Sans]
+
+#text(font: "Libertinus Serif")[Libertinus Serif]
+
+#text(font: "New Computer Modern Math")[New Computer Modern Math]
+
+#text(font: "DejaVu Sans Mono")[DejaVu Sans Mono]
+```
+
+```{r}
+library(gt)
+df <- data.frame(a = c("aa111bbb", "abcdef"), b = c(1, 2))
+tab <- gt::gt(df)
+# reliably recreate fonts failure from https://github.com/quarto-dev/quarto-cli/issues/11683
+opt_table_font(tab,
+ font = c("InvalidFontName", "system-ui", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"),
+ add = FALSE)
+```
