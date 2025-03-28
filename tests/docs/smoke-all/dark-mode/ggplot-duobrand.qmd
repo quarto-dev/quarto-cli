@@ -65,7 +65,7 @@ ggplot(mtcars, aes(mpg, wt)) +
 
 and `echo: true`
 
-::: {#fig-thematic-ggplot}
+::: {#fig-ggplot}
 
 ```{r}
 #| echo: true
@@ -83,8 +83,6 @@ ggplot(mtcars, aes(mpg, disp)) +
 
 ### with caption but no crossref
 
-dark rendering only
-
 <div>
 
 ```{r}
@@ -93,15 +91,14 @@ ggplot(mtcars, aes(mpg, disp)) +
   geom_point(aes(colour = factor(cyl))) + slate_theme + colour_scale
 ```
 
-thematic - base r graphics
+ggplot - dark only
 
 </div>
 
-## patchwork
 
 ### with crossref and caption
 
-::: {#fig-thematic-patchwork}
+::: {#fig-ggplot-mpg-hp}
 ```{r}
 #| renderings: [light, dark]
 ggplot(mtcars, aes(mpg, hp)) +
