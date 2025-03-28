@@ -20,6 +20,9 @@
         }
       ]
     },
+    "DateFormat": {
+      "type": "string"
+    },
     "MathMethods": {
       "enum": {
         "values": [

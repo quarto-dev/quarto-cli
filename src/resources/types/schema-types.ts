@@ -11,6 +11,8 @@ export type JsonObject = { [key: string]: unknown };
 
 export type Date = string | { format?: string; value: string };
 
+export type DateFormat = string;
+
 export type MathMethods =
   | "plain"
   | "webtex"

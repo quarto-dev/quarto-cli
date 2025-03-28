@@ -457,7 +457,7 @@ export interface Format {
 
 export interface LightDarkBrand {
   [kLight]?: Brand;
-  [kDark]?: Brand
+  [kDark]?: Brand;
 }
 
 export interface FormatRender {
