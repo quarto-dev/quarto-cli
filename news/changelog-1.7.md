@@ -123,6 +123,7 @@ All changes included in 1.7:
 ### `jupyter`
 
 - ([#12114](https://github.com/quarto-dev/quarto-cli/issues/12114)): `JUPYTERCACHE` environment variable from [Jupyter cache CLI](https://jupyter-cache.readthedocs.io/en/latest/using/cli.html) is now respected by Quarto when `cache: true` is used. This environment variable allows to change the path of the cache directory.
+- ([#12374](https://github.com/quarto-dev/quarto-cli/issues/12374)): Detect language properly in Jupyter notebooks that lack the `language` field in their `kernelspec`s.
 
 ## Other Fixes and Improvements
 
