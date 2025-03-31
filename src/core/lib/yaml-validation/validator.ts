@@ -620,7 +620,7 @@ function validateObject(
     }
     if (
       value.result && typeof value.result === "object" &&
-      !Array.isArray(value.result) && value.result?.tag === "!expr"
+      !Array.isArray(value.result) && value.result.tag === "!expr"
     ) {
       throw new NoExprTag(value, value.source);
     }
