@@ -1,0 +1,5 @@
+---
+title: "Some title"
+format: html
+brand: !expr 'c("demo/_brand.yml")'
+---
