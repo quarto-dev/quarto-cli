@@ -188,6 +188,7 @@ export const jupyterEngine: ExecutionEngine = {
       // so we need to check for it and if not present
       // use the language_info.name field
       if (
+        nbRaw.metadata.kernelspec &&
         nbRaw.metadata.kernelspec.language === undefined &&
         nbRaw.metadata.language_info?.name
       ) {
