@@ -36,6 +36,11 @@ except ImportError:
 
 NB_FORMAT_VERSION = 4
 
+def get_language_from_nb_metadata(metadata):
+   ks_lang = metadata.kernelspec.get("language", None)
+   li_name = metadata.language_info.get("name", None)
+   return ks_lang or li_name
+
 # exception to indicate the kernel needs restarting
 class RestartKernel(Exception):
    pass
@@ -254,7 +259,7 @@ def notebook_execute(options, status):
       if cell.cell_type == 'code':
          total_code_cells += 1
       # map cells to their labels
-      language = client.nb.metadata.kernelspec.get("language", client.nb.metadata.language_info.name)
+      language = get_language_from_nb_metadata(client.nb.metadata)
       label = nb_cell_yaml_options(language, cell).get('label', '')
       cell_labels.append(label)
       # find max label length
@@ -436,7 +441,7 @@ def nb_cleanup_cell(nb, resource_dir):
 
 def nb_language_cell(name, nb, resource_dir, allow_empty, **args):
    kernelspec = nb.metadata.kernelspec
-   language = nb.metadata.kernelspec.get("language", nb.metadata.language_info.name)
+   language = get_language_from_nb_metadata(nb.metadata)
    trace(json.dumps(nb.metadata, indent=2))
    source = ''
    lang_dir = os.path.join(resource_dir, 'jupyter', 'lang', language)
@@ -503,7 +508,7 @@ def nb_kernel_dependencies(setup_cell):
 
 def cell_execute(client, cell, index, execution_count, eval_default, store_history):
 
-   language = client.nb.metadata.kernelspec.get("language", client.nb.metadata.language_info.name)
+   language = get_language_from_nb_metadata(client.nb.metadata)
    # read cell options
    cell_options = nb_cell_yaml_options(language, cell)
 
@@ -564,7 +569,7 @@ def cell_execute_inline(client, cell):
             del metadata["user_expressions"]
    
    # find expressions in source
-   language = client.nb.metadata.kernelspec.get("language", client.nb.metadata.language_info.name)
+   language = get_language_from_nb_metadata(client.nb.metadata)
    source = ''.join(cell.source)
    expressions = re.findall(
       fr'(?:^|[^`])`{{{language}}}[ \t]([^`]+)`',
@@ -627,7 +632,7 @@ def nb_parameterize(nb, params):
 
    # alias kernel name and language
    kernel_name = nb.metadata.kernelspec.name
-   language = nb.metadata.kernelspec.get("language", nb.metadata.language_info.name)
+   language = get_language_from_nb_metadata(nb.metadata)
 
    # find params index and note any tags/yaml on it (exit if no params)
    params_index = find_first_tagged_cell_index(nb, "parameters")
@@ -705,7 +710,7 @@ def find_first_tagged_cell_index(nb, tag):
    return parameters_indices[0]
 
 def nb_strip_yaml_options(client, source):
-   yaml_lines = nb_cell_yaml_lines(client.nb.metadata.kernelspec.get("language", client.nb.metadata.language_info.name), source)  
+   yaml_lines = nb_cell_yaml_lines(get_language_from_nb_metadata(client.nb.metadata), source)  
    num_yaml_lines = len(yaml_lines)
    if num_yaml_lines > 0:
       return "\n".join(source.splitlines()[num_yaml_lines:])
