@@ -47,7 +47,23 @@ export async function jupyterNotebookToMarkdown(
 ) {
   // read notebook & alias kernelspec
   const notebook = fixupFrontMatter(jupyterFromFile(file));
-  const kernelspec = notebook.metadata.kernelspec;
+  let kernelspec = notebook.metadata.kernelspec;
+
+  // https://github.com/quarto-dev/quarto-cli/issues/12374
+  // narrow fix for .ipynbs that have a language_info field but no kernelspec.language
+  if (
+    kernelspec.language === undefined && notebook.metadata.language_info?.name
+  ) {
+    kernelspec = {
+      ...kernelspec,
+      language: notebook.metadata.language_info?.name,
+    };
+  }
+  if (kernelspec.language === undefined) {
+    throw new Error(
+      "No language found in kernelspec for notebook " + file,
+    );
+  }
 
   // generate markdown
   const md: string[] = [];

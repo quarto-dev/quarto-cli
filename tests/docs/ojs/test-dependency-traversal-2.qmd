@@ -4,7 +4,7 @@ format: html
 ---
 
 ```{r}
-print(c(1,2,3))
+print(c(1, 2, 3))
 ```
 
 ```{ojs}

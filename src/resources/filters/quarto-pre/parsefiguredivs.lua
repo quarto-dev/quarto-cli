@@ -656,8 +656,8 @@ function parse_floatreftargets()
       end
       code.attr.attributes['lst-cap'] = nil
       
-      local attr = code.attr
-      -- code.attr = pandoc.Attr("", {}, {})
+      local attr = pandoc.Attr(code.identifier, code.attr.classes, code.attr.attributes)
+      code.attr = pandoc.Attr("", code.classes, code.attr.attributes)
       return construct({
         attr = attr,
         type = "Listing",
@@ -686,7 +686,7 @@ function parse_floatreftargets()
       end
       
       local attr = code.attr
-      code.attr = pandoc.Attr("", {}, {})
+      code.attr = pandoc.Attr("", code.classes, code.attr.attributes)
       return construct({
         attr = attr,
         type = "Listing",

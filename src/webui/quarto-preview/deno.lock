@@ -203,11 +203,11 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
-        "npm:@fluentui/react-components@~9.60.0",
+        "npm:@fluentui/react-components@~9.48.0",
         "npm:@fluentui/react-icons@^2.0.201",
         "npm:@types/react-dom@^18.2.0",
         "npm:@types/react@^18.2.0",
-        "npm:ansi-output@^0.0.1",
+        "npm:ansi-output@^0.0.9",
         "npm:esbuild@^0.15.9",
         "npm:has@^1.0.3",
         "npm:postcss@^8.4.18",

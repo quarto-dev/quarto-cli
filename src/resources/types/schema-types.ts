@@ -513,6 +513,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   search?: boolean | {
     "collapse-after"?: number;
     "copy-button"?: boolean;
+    "merge-navbar-crumbs"?: boolean;
     "keyboard-shortcut"?: MaybeArrayOf<
       string /* One or more keys that will act as a shortcut to launch search (single characters) */
     >;
@@ -1482,6 +1483,21 @@ export type Brand = {
   meta?: BrandMeta;
   typography?: BrandTypography;
 };
+
+export type BrandPathBoolLightDark =
+  | string
+  | boolean
+  | {
+    dark?:
+      | string
+      | Brand /* The path to a dark brand file or an inline dark brand definition. */;
+    light?:
+      | string
+      | Brand; /* The path to a light brand file or an inline light brand definition. */
+  }
+  | Brand; /* Branding information to use for this document. If a string, the path to a brand file.
+If false, don't use branding on this document. If an object, an inline brand
+definition, or an object with light and dark brand paths or definitions. */
 
 export type BrandDefaults = {
   bootstrap?: BrandDefaultsBootstrap;

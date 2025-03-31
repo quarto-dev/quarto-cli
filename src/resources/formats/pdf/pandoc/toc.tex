@@ -2,15 +2,6 @@ $if(toc)$
 $if(toc-title)$
 \renewcommand*\contentsname{$toc-title$}
 $endif$
-$if(beamer)$
-\begin{frame}[allowframebreaks]
-$if(toc-title)$
-  \frametitle{$toc-title$}
-$endif$
-  \setcounter{tocdepth}{$toc-depth$}
-  \tableofcontents
-\end{frame}
-$else$
 {
 $if(colorlinks)$
 \hypersetup{linkcolor=$if(toccolor)$$toccolor$$else$$endif$}
@@ -18,7 +9,6 @@ $endif$
 \setcounter{tocdepth}{$toc-depth$}
 \tableofcontents
 }
-$endif$
 $endif$
 $if(lof)$
 \listoffigures

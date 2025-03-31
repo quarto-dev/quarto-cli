@@ -14,7 +14,8 @@ vec_prob <- c(
 )
 vec_df <- 1:10
 
-tmp <- mapply(FUN = qt,
+tmp <- mapply(
+  FUN = qt,
   p = vec_prob,
   MoreArgs = list(df = vec_df), SIMPLIFY = TRUE
 )

@@ -166,12 +166,12 @@ export async function websiteNavigationConfig(project: ProjectContext) {
 
   const projectBrand = await project.resolveBrand();
   if (
-    projectBrand?.processedData.logo && sidebars?.[0]
+    projectBrand?.light?.processedData.logo && sidebars?.[0]
   ) {
     if (sidebars[0].logo === undefined) {
-      const logo = projectBrand.processedData.logo.medium ??
-        projectBrand.processedData.logo.small ??
-        projectBrand.processedData.logo.large;
+      const logo = projectBrand.light.processedData.logo.medium ??
+        projectBrand.light.processedData.logo.small ??
+        projectBrand.light.processedData.logo.large;
       if (logo) {
         sidebars[0].logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
         sidebars[0]["logo-alt"] = logo.light.alt;
@@ -180,11 +180,11 @@ export async function websiteNavigationConfig(project: ProjectContext) {
   }
 
   if (
-    projectBrand?.processedData && navbar
+    projectBrand?.light?.processedData && navbar
   ) {
-    const logo = projectBrand.processedData.logo.small ??
-      projectBrand.processedData.logo.medium ??
-      projectBrand.processedData.logo.large;
+    const logo = projectBrand.light.processedData.logo.small ??
+      projectBrand.light.processedData.logo.medium ??
+      projectBrand.light.processedData.logo.large;
     if (logo) {
       navbar.logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
       navbar["logo-alt"] = logo.light.alt;
