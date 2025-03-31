@@ -137,6 +137,7 @@ All changes included in 1.7:
 - ([#11606](https://github.com/quarto-dev/quarto-cli/discussions/11606)): Added a new `QUARTO_DOCUMENT_FILE` env var available to computation engine to the name of the file currently being rendered.
 - ([#11803](https://github.com/quarto-dev/quarto-cli/pull/11803)): Added a new CLI command `quarto call`. First users of this interface are the new `quarto call engine julia ...` subcommands.
 - ([#11951](https://github.com/quarto-dev/quarto-cli/issues/11951)): Raw LaTeX table without `tbl-` prefix label for using Quarto crossref are now correctly passed through unmodified.
+- ([#11967](https://github.com/quarto-dev/quarto-cli/issues/11967)): Produce a better error message when YAML metadata with `!expr` tags are used outside of `knitr` code cells.
 - ([#12117](https://github.com/quarto-dev/quarto-cli/issues/12117)): Color output to stdout and stderr is now correctly rendered for `html` format in the Jupyter and Julia engines.
 - ([#12264](https://github.com/quarto-dev/quarto-cli/issues/12264)): Upgrade `dart-sass` to 1.85.1.
 - ([#11803](https://github.com/quarto-dev/quarto-cli/pull/11803)): Added a new CLI command `quarto call`. First users of this interface are the new `quarto call engine julia ...` subcommands.
