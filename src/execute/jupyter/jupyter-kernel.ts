@@ -55,7 +55,8 @@ export async function executeKernelOneshot(
   }
 
   trace(options, "Executing notebook with oneshot kernel");
-  const debug = !!options.format.execute[kExecuteDebug];
+  const debug = !!options.format.execute[kExecuteDebug] ||
+    (!!Deno.env.get("QUARTO_JUPYTER_DEBUG"));
   const result = await execJupyter(
     "execute",
     { ...options, debug },
