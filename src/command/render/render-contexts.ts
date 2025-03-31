@@ -347,6 +347,11 @@ function mergeQuartoConfigs(
 
   // bibliography needs to always be an array so it can be merged
   const fixupMergeableScalars = (metadata: Metadata) => {
+    // see https://github.com/quarto-dev/quarto-cli/pull/12372
+    // and https://github.com/quarto-dev/quarto-cli/pull/12369
+    // for more details on why we need this check, as a consequence of an unintuitive
+    // ordering of YAML validation operations
+    if (metadata === null) return metadata;
     [
       kBibliography,
       kCss,
