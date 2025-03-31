@@ -55,7 +55,15 @@ async function guessFormat(fileName: string): Promise<string[]> {
   for (const cell of cells) {
     if (cell.cell_type === "raw") {
       const src = cell.source.value.replaceAll(/^---$/mg, "");
-      const yaml = parse(src);
+      let yaml;
+      try {
+        yaml = parse(src);
+      } catch (e) {
+        if (e.message.includes("unknown tag")) {
+          // assume it's not necessary to guess the format
+          continue;
+        }
+      }
       if (yaml && typeof yaml === "object") {
         // deno-lint-ignore no-explicit-any
         const format = (yaml as Record<string, any>).format;
