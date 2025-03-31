@@ -102,7 +102,7 @@ import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import { MappedString } from "../core/mapped-text.ts";
 import { makeTimedFunctionAsync } from "../core/performance/function-times.ts";
 import { createProjectCache } from "../core/cache/cache.ts";
-import { createTempContext, globalTempContext } from "../core/temp.ts";
+import { createTempContext } from "../core/temp.ts";
 
 export async function projectContext(
   path: string,

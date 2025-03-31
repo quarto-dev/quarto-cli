@@ -11,6 +11,6 @@ _quarto:
 
 ```{r}
 #| label: tbl-problem
-gt::gtcars[1:5, 1:5] |> 
-    gt::gt()
+gt::gtcars[1:5, 1:5] |>
+  gt::gt()
 ```

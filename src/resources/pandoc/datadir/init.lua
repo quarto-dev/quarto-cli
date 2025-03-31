@@ -2082,7 +2082,7 @@ quarto = {
     is_format = format.isFormat,
 
     cite_method = function() 
-      local citeMethod = param('cite-method', 'citeproc')
+      local citeMethod = param('cite-method', nil)
       return citeMethod
     end,
     pdf_engine = function() 

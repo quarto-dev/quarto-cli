@@ -16,15 +16,15 @@ Values of this type can be created with the`pandoc.Pandoc` constructor. Pandoc v
 equal in Lua if and only if they are equal in Haskell.
 ]]
 ---@class pandoc.Pandoc
----@field blocks pandoc.List Document content 
----@field meta pandoc.Meta Meta information
+---@field blocks pandoc.Blocks document contents 
+---@field meta pandoc.Meta document metadata
 pandoc.Pandoc = {}
 
 --[[
 Create a complete pandoc document
 ]]
----@param blocks pandoc.Block|pandoc.List Document content 
----@param meta? pandoc.Meta Meta information
+---@param blocks pandoc.Blocks document contents 
+---@param meta? pandoc.Meta document metadata
 ---@return pandoc.Pandoc
 function pandoc.Pandoc(blocks, meta) end
 

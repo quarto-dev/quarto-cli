@@ -110,6 +110,8 @@ export const kSelfContainedMath = "self-contained-math";
 export const kBiblioConfig = "biblio-config";
 export const kBodyClasses = "body-classes";
 export const kBrand = "brand";
+export const kLight = "light";
+export const kDark = "dark";
 
 export const kLatexAutoMk = "latex-auto-mk";
 export const kLatexAutoInstall = "latex-auto-install";

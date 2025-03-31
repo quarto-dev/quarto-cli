@@ -9,5 +9,7 @@ execute:
 #| eval: false
 #| label: tbl-t2
 #| tbl-cap: hggfh
-mtcars |> head() |> knitr::kable()
+mtcars |>
+  head() |>
+  knitr::kable()
 ```

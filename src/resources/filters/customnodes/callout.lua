@@ -224,7 +224,7 @@ function _callout_main()
       return
     end
     included_font_awesome = true
-    quarto.doc.include_text("in-header", "#import \"@preview/fontawesome:0.1.0\": *")
+    quarto.doc.include_text("in-header", "#import \"@preview/fontawesome:0.5.0\": *")
   end
 
   _quarto.ast.add_renderer("Callout", function(_)
@@ -252,6 +252,8 @@ function _callout_main()
       icon = attrs.fa_icon_typst
     end
     local brand = param("brand")
+    local brandMode = 'light'
+    brand = brand and brand[brandMode]
     if brand then
       local color = brand.processedData and brand.processedData.color
       if color and callout_theme_color_map[callout.type] and

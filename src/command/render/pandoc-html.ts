@@ -19,7 +19,6 @@ import {
 } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
-import { TempContext } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 import { cleanSourceMappingUrl, compileSass } from "../../core/sass.ts";
 
@@ -91,51 +90,58 @@ export async function resolveSassBundles(
     const maybeBrandBundle = bundlesWithBrand.find((bundle) =>
       bundle.key === "brand"
     );
-    assert(!maybeBrandBundle ||
-      !maybeBrandBundle.user?.find((v) => v === "brand") &&
-      !maybeBrandBundle.dark?.user?.find((v) => v === "brand"));
-    let foundBrand = {light: false, dark: false};
+    assert(
+      !maybeBrandBundle ||
+        !maybeBrandBundle.user?.find((v) => v === "brand") &&
+          !maybeBrandBundle.dark?.user?.find((v) => v === "brand"),
+    );
+    const foundBrand = { light: false, dark: false };
     const bundles: SassBundle[] = bundlesWithBrand.filter((bundle) =>
       bundle.key !== "brand"
     ).map((bundle) => {
       const userBrand = bundle.user?.findIndex((layer) => layer === "brand");
       let cloned = false;
       if (userBrand && userBrand !== -1) {
-        // console.log('light brand order specified', userBrand, cloned);
         bundle = cloneDeep(bundle);
         cloned = true;
         bundle.user!.splice(userBrand, 1, ...(maybeBrandBundle?.user || []));
         foundBrand.light = true;
       }
-      const darkBrand = bundle.dark?.user?.findIndex((layer) => layer === "brand");
+      const darkBrand = bundle.dark?.user?.findIndex((layer) =>
+        layer === "brand"
+      );
       if (darkBrand && darkBrand !== -1) {
-        // console.log('dark brand order specified', darkBrand, cloned);
         if (!cloned) {
           bundle = cloneDeep(bundle);
         }
-        bundle.dark!.user!.splice(darkBrand, 1, ...(maybeBrandBundle?.dark?.user || []))
+        bundle.dark!.user!.splice(
+          darkBrand,
+          1,
+          ...(maybeBrandBundle?.dark?.user || []),
+        );
         foundBrand.dark = true;
       }
       return bundle as SassBundle;
     });
-    if (!foundBrand.light || !foundBrand.dark) {
+    if (maybeBrandBundle && (!foundBrand.light || !foundBrand.dark)) {
       bundles.unshift({
         dependency,
         key: "brand",
-        user: !foundBrand.light && maybeBrandBundle?.user as SassLayer[] || [],
-        dark: !foundBrand.dark && maybeBrandBundle?.dark?.user && {
-          user: maybeBrandBundle.dark.user as SassLayer[],
-          default: maybeBrandBundle.dark.default
-        } || undefined
+        user: !foundBrand.light && maybeBrandBundle.user as SassLayer[] || [],
+        dark: !foundBrand.dark && maybeBrandBundle.dark?.user && {
+              user: maybeBrandBundle.dark.user as SassLayer[],
+              default: maybeBrandBundle.dark.default,
+            } || undefined,
       });
     }
 
     // See if any bundles are providing dark specific css
     const hasDark = bundles.some((bundle) => bundle.dark !== undefined);
-    defaultStyle =
-      bundles.some((bundle) => bundle.dark !== undefined && bundle.dark.default)
-        ? "dark"
-        : "light";
+    defaultStyle = bundles.some((bundle) =>
+        bundle.dark !== undefined && bundle.dark.default
+      )
+      ? "dark"
+      : "light";
     const targets: SassTarget[] = [{
       name: `${dependency}.min.css`,
       bundles: (bundles as any),

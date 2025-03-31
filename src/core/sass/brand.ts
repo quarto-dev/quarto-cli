@@ -582,14 +582,16 @@ export async function brandSassLayers(
     dark: []
   };
 
-  for (const layer of [sassLayers.light, sassLayers.dark]) {
-    layer.push({
-      defaults: '$theme: "brand" !default;',
-      uses: "",
-      functions: "",
-      mixins: "",
-      rules: "",
-    });
+  for (const mode of ["light", "dark"] as Array<"dark" | "light">) {
+    if (brand && brand[mode]) {
+      sassLayers[mode].push({
+        defaults: '$theme: "brand" !default;',
+        uses: "",
+        functions: "",
+        mixins: "",
+        rules: "",
+      });
+    }
   }
   if (brand?.light?.data.color) {
     sassLayers.light.push(brandColorLayer(brand?.light, nameMap));
@@ -658,10 +660,10 @@ export async function brandSassFormatExtras(
           key: "brand",
           dependency: "bootstrap",
           user: htmlSassBundleLayers.light,
-          dark: {
+          dark: htmlSassBundleLayers.dark.length ? {
             user: htmlSassBundleLayers.dark,
             default: darkModeDefault(format.metadata)
-          }
+          } : undefined
         },
       ],
     },

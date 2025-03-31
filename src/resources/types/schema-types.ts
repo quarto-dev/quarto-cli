@@ -513,6 +513,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   search?: boolean | {
     "collapse-after"?: number;
     "copy-button"?: boolean;
+    "merge-navbar-crumbs"?: boolean;
     "keyboard-shortcut"?: MaybeArrayOf<
       string /* One or more keys that will act as a shortcut to launch search (single characters) */
     >;
