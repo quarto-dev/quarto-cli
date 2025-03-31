@@ -38,7 +38,10 @@ NB_FORMAT_VERSION = 4
 
 def get_language_from_nb_metadata(metadata):
    ks_lang = metadata.kernelspec.get("language", None)
-   li_name = metadata.language_info.get("name", None)
+   li_name = None
+   li = metadata.get("language_info", None)
+   if li:
+      li_name = metadata.language_info.get("name", None)
    return ks_lang or li_name
 
 # exception to indicate the kernel needs restarting
