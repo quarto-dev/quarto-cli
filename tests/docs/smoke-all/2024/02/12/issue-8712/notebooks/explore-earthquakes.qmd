@@ -11,6 +11,7 @@ Create spatial plot:
 #| fig-alt: "A scatterplot of earthquake locations plotting latitude
 #|   against longitude."
 library(ggplot2)
-mtcars |> ggplot(aes(mpg, cyl)) + geom_point()
+mtcars |> ggplot(aes(mpg, cyl)) +
+  geom_point()
 ```
 
