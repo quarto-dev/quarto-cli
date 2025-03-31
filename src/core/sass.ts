@@ -8,7 +8,6 @@ import { existsSync } from "../deno_ral/fs.ts";
 import { join } from "../deno_ral/path.ts";
 
 import { quartoCacheDir } from "./appdirs.ts";
-import { TempContext } from "./temp.ts";
 
 import { SassBundleLayers, SassLayer } from "../config/types.ts";
 import { dartCompile } from "./dart-sass.ts";
@@ -384,6 +383,9 @@ export async function compileWithCache(
       const result = await memoizedGetVarsBlock(project, input);
       return input + "\n" + result;
     } catch (e) {
+      if (e.name !== "SCSSParsingError") {
+        throw e;
+      }
       console.warn("Error adding css vars block", e);
       console.warn(
         "The resulting CSS file will not have SCSS color variables exported as CSS.",

@@ -232,9 +232,12 @@ function createPdfFormat(
         }
 
         // Provide a custom template for this format
-        const partialNames = [
+        // Partials can be the one from Quarto division
+        const partialNamesQuarto: string[] = [
+          "babel-lang",
           "before-bib",
           "biblio",
+          "biblio-config",
           "citations",
           "doc-class",
           "graphics",
@@ -247,12 +250,38 @@ function createPdfFormat(
           "title",
           "toc",
         ];
-        extras.templateContext = {
-          template: formatResourcePath("pdf", "pandoc/template.tex"),
-          partials: partialNames.map((name) => {
-            return formatResourcePath("pdf", `pandoc/${name}.tex`);
-          }),
+        // or the one from Pandoc division (since Pandoc 3.6.3)
+        const partialNamesPandoc: string[] = [
+          "after-header-includes",
+          "common",
+          "font-settings",
+          "fonts",
+          "hypersetup",
+          "passoptions",
+        ];
+
+        const createTemplateContext = function (
+          to: string,
+          partialNamesQuarto: string[],
+          partialNamesPandoc: string[],
+        ) {
+          return {
+            template: formatResourcePath(to, "pandoc/template.tex"),
+            partials: [
+              ...partialNamesQuarto.map((name) => {
+                return formatResourcePath(to, `pandoc/${name}.tex`);
+              }),
+              ...partialNamesPandoc.map((name) => {
+                return formatResourcePath(to, `pandoc/${name}.latex`);
+              }),
+            ],
+          };
         };
+        extras.templateContext = createTemplateContext(
+          displayName === "Beamer" ? "beamer" : "pdf",
+          partialNamesQuarto,
+          partialNamesPandoc,
+        );
 
         // Don't shift the headings if we see any H1s (we can't shift up any longer)
         const hasLevelOneHeadings = await hasL1Headings(markdown);

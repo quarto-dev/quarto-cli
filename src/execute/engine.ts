@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { extname, join, resolve } from "../deno_ral/path.ts";
+import { extname, join } from "../deno_ral/path.ts";
 
 import * as ld from "../core/lodash.ts";
 
@@ -23,7 +23,6 @@ import { kMdExtensions, markdownEngine } from "./markdown.ts";
 import { ExecutionEngine, kQmdExtensions } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
 import { languages as handlerLanguages } from "../core/handlers/base.ts";
-import { MappedString } from "../core/lib/text-types.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { ProjectContext } from "../project/types.ts";

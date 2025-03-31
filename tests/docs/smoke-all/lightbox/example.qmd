@@ -46,7 +46,7 @@ description="The Edgartown Lighthouse is a short walk from downtown and has beau
 Options for lightbox can be passed using chunk options.
 
 ```{r}
-#| fig-cap: Simple demo R plot 
+#| fig-cap: Simple demo R plot
 #| lightbox:
 #|   group: r-graph
 #|   description: This is 1 to 10 plot
@@ -63,12 +63,12 @@ plot(cars)
 
 It is possible to create several plots, and group them in a lightbox gallery. Use list in YAML for options when you have several plots, on per plot.
 ```{r}
-#| fig-cap: 
+#| fig-cap:
 #|   - Caption for first plot
 #|   - Caption for second plot
-#| lightbox: 
+#| lightbox:
 #|   group: cars
-#|   description: 
+#|   description:
 #|     - This is the decription for first graph
 #|     - This is the decription for second graph
 plot(mtcars)
@@ -102,7 +102,7 @@ plot(iris)
 #|   provided.
 #| fig-subcap:
 #|   - "Clowning Fools Up In Here: This chart shows me clowning on fools up in this piece. It's embarrassing!"
-#|   - "A Graph of Cool Stuff: This chart shows some cool things, most frequently in the form of a visualization which makes a pretty strong point." 
+#|   - "A Graph of Cool Stuff: This chart shows some cool things, most frequently in the form of a visualization which makes a pretty strong point."
 #| layout-ncol: 2
 plot(ToothGrowth)
 plot(PlantGrowth)
