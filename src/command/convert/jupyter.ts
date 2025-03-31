@@ -31,6 +31,7 @@ import {
   jupyterCellSrcAsStr,
 } from "../../core/jupyter/jupyter-shared.ts";
 import { assert } from "testing/asserts";
+import { getEndingNewlineCount } from "../../core/lib/text.ts";
 
 export async function markdownToJupyterNotebook(
   file: string,
@@ -64,9 +65,17 @@ export async function jupyterNotebookToMarkdown(
         cell,
       );
 
+      const endingNewLineCount = getEndingNewlineCount(md);
+      if (i > 0 && endingNewLineCount < 2) {
+        md.push("\n\n");
+      }
+
       // write markdown
       switch (cell.cell_type) {
         case "markdown":
+          // does the previous line have enough newlines?
+          // if not, add sufficient newlines so we have at least two
+          // between the last cell and this one
           md.push(...mdFromContentCell(cellWithOptions));
           break;
         case "raw":
@@ -106,6 +115,8 @@ export async function jupyterNotebookToMarkdown(
       }
     }
   }
+
+  console.log({ md });
 
   // join into source
   const mdSource = md.join("");
