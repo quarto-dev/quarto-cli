@@ -5,7 +5,6 @@
     }
   ],
   "settings": {
-    "editor.tabSize": 2,
     "debug.javascript.unmapMissingSources": true,
     "julia.format.indent": 2,
     "julia.format.indents": false,

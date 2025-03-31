@@ -9,6 +9,27 @@
   "[html]": {
     "editor.formatOnSave": false
   },
+  "[ejs]": {
+    "editor.formatOnSave": false
+  },
+  "[lua]": {
+    "editor.defaultFormatter": "sumneko.lua",
+    "editor.formatOnSave": false
+  },
+  "[julia]": {
+    "editor.formatOnSave": false,
+    "editor.wordBasedSuggestions": "off",
+    "editor.defaultFormatter": "julialang.language-julia",
+    "editor.wordSeparators": "`~#$%^&*()-=+[{]}\\|;:'\",.<>/?"
+  },
+  "[python]": {
+    "diffEditor.ignoreTrimWhitespace": false,
+    "gitlens.codeLens.symbolScopes": ["!Module"],
+    "editor.formatOnSave": false,
+    "editor.formatOnType": false,
+    "editor.wordBasedSuggestions": "off",
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
@@ -16,5 +37,16 @@
   "deno.lint": true,
   "deno.unstable": true,
   "deno.importMap": "./src/import_map.json",
+  "deno.suggest.imports.hosts": {
+    "https://deno.land": true,
+    "https://den.o.land": false
+  },
+  "deno.inlayHints.enumMemberValues.enabled": false,
+  "deno.inlayHints.functionLikeReturnTypes.enabled": false,
+  "deno.inlayHints.parameterNames.enabled": "none",
+  "deno.inlayHints.parameterTypes.enabled": false,
+  "deno.inlayHints.propertyDeclarationTypes.enabled": false,
+  "deno.inlayHints.variableTypes.enabled": false,
+  "deno.inlayHints.variableTypes.suppressWhenTypeMatchesName": false,
   "deno.disablePaths": ["tests/integration/playwright/"]
 }
