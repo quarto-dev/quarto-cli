@@ -63,7 +63,7 @@ export const enforceTargetType = makeStringEnumTypeEnforcer(...kTargets);
 
 const kIndent = "      ";
 
-export async function check(target: Target): Promise<void> {
+export async function check(target: Target, strict?: boolean): Promise<void> {
   const services = renderServices(notebookContext());
   try {
     info(`Quarto ${quartoConfig.version()}`);
@@ -71,7 +71,7 @@ export async function check(target: Target): Promise<void> {
       await checkInfo(services);
     }
     if (target === "versions" || target === "all") {
-      await checkVersions(services);
+      await checkVersions(services, strict);
     }
     if (target === "install" || target === "all") {
       await checkInstall(services);
@@ -96,8 +96,8 @@ async function checkInfo(_services: RenderServices) {
   info(kIndent + "Quarto cache location: " + cacheDir);
 }
 
-async function checkVersions(_services: RenderServices) {
-  const checkVersion = async (
+async function checkVersions(_services: RenderServices, strict?: boolean) {
+  const checkVersion = (
     version: string | undefined,
     constraint: string,
     name: string,
@@ -116,6 +116,20 @@ async function checkVersions(_services: RenderServices) {
     }
   };
 
+  const strictCheckVersion = (
+    version: string,
+    constraint: string,
+    name: string,
+  ) => {
+    if (version !== constraint) {
+      info(
+        `      NOTE: ${name} version ${version} does not strictly match ${constraint} and strict checking is enabled. Please use ${constraint}.`,
+      );
+    } else {
+      info(`      ${name} version ${version}: OK`);
+    }
+  };
+
   completeMessage("Checking versions of quarto binary dependencies...");
 
   let pandocVersion = lines(
@@ -124,6 +138,15 @@ async function checkVersions(_services: RenderServices) {
       stdout: "piped",
     })).stdout!,
   )[0]?.split(" ")[1];
+  const sassVersion = (await dartCommand(["--version"]))?.trim();
+  const denoVersion = Deno.version.deno;
+  const typstVersion = lines(
+    (await execProcess({
+      cmd: [typstBinaryPath(), "--version"],
+      stdout: "piped",
+    })).stdout!,
+  )[0].split(" ")[1];
+
   // We hack around pandocVersion to build a sem-verish string
   // that satisfies the semver package
   // if pandoc reports more than three version numbers, pick the first three
@@ -138,28 +161,32 @@ async function checkVersions(_services: RenderServices) {
       ).join(".");
     }
   }
-  checkVersion(pandocVersion, ">=2.19.2", "Pandoc");
 
-  const sassVersion = (await dartCommand(["--version"]))?.trim();
-  checkVersion(sassVersion, ">=1.32.8", "Dart Sass");
-
-  // manually check Deno version without shelling out
-  // because we're actually running in Deno right now
-  if (!satisfies(Deno.version.deno, ">=1.33.1")) {
-    info(
-      `      NOTE: Deno version ${Deno.version.deno} is too old. Please upgrade to 1.33.1 or later.`,
-    );
-  } else {
-    info(`      Deno version ${Deno.version.deno}: OK`);
+  // FIXME: all of these strict checks should be done by
+  // loading the configuration file directly, but that
+  // file is in an awkward format and it is not packaged
+  // with our installers
+  const checkData: [string | undefined, string, string][] = strict
+    ? [
+      [pandocVersion, "3.6.3", "Pandoc"],
+      [sassVersion, "1.85.1", "Dart Sass"],
+      [denoVersion, "1.46.3", "Deno"],
+      [typstVersion, "0.13.0", "Typst"],
+    ]
+    : [
+      [pandocVersion, ">=2.19.2", "Pandoc"],
+      [sassVersion, ">=1.32.8", "Dart Sass"],
+      [denoVersion, ">=1.33.1", "Deno"],
+      [typstVersion, ">=0.10.0", "Typst"],
+    ];
+  const fun = strict ? strictCheckVersion : checkVersion;
+  for (const [version, constraint, name] of checkData) {
+    if (version === undefined) {
+      info(`      ${name} version: (not detected)`);
+    } else {
+      fun(version, constraint, name);
+    }
   }
-
-  let typstVersion = lines(
-    (await execProcess({
-      cmd: [typstBinaryPath(), "--version"],
-      stdout: "piped",
-    })).stdout!,
-  )[0].split(" ")[1];
-  checkVersion(typstVersion, ">=0.10.0", "Typst");
 
   completeMessage("Checking versions of quarto dependencies......OK");
 }

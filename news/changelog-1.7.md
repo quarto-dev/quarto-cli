@@ -35,6 +35,7 @@ All changes included in 1.7:
 
 ## `quarto check`
 
+- ([#10047](https://github.com/quarto-dev/quarto-cli/issues/10047)): `quarto check` will now check binary dependency versions strictly by default. Use `quarto check --no-strict` to revert to old behavior.
 - ([#11608](https://github.com/quarto-dev/quarto-cli/pull/11608)): Do not issue error message when calling `quarto check info`.
 
 ## `quarto convert`
