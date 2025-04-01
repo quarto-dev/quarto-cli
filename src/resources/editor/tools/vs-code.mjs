@@ -15622,6 +15622,22 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "The paper size for the document.\n"
         },
         {
+          name: "brand-mode",
+          schema: {
+            enum: [
+              "light",
+              "dark"
+            ]
+          },
+          default: "light",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: "The brand mode to use for rendering the Typst document, `light` or `dark`.\n"
+        },
+        {
           name: "layout",
           schema: {
             maybeArrayOf: "string"
@@ -20935,6 +20951,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -21095,6 +21112,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -23419,6 +23437,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -23772,6 +23791,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -24022,7 +24042,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+        "The brand mode to use for rendering the Typst document,\n<code>light</code> or <code>dark</code>."
       ],
       "schema/external-schemas.yml": [
         {
@@ -24251,12 +24272,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 194252,
+        _internalId: 194259,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 194244,
+            _internalId: 194251,
             type: "enum",
             enum: [
               "png",
@@ -24272,7 +24293,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 194251,
+            _internalId: 194258,
             type: "anyOf",
             anyOf: [
               {
@@ -31402,6 +31423,51 @@ function guessChunkOptionsFormat(options) {
 }
 
 // ../yaml-validation/validator.ts
+function createNiceError(obj) {
+  const {
+    violatingObject,
+    source,
+    message
+  } = obj;
+  const locF = mappedIndexToLineCol(source);
+  let location;
+  try {
+    location = {
+      start: locF(violatingObject.start),
+      end: locF(violatingObject.end)
+    };
+  } catch (_e) {
+    location = {
+      start: { line: 0, column: 0 },
+      end: { line: 0, column: 0 }
+    };
+  }
+  const mapResult = source.map(violatingObject.start);
+  const fileName = mapResult ? mapResult.originalString.fileName : void 0;
+  return {
+    heading: message,
+    error: [],
+    info: {},
+    fileName,
+    location,
+    sourceContext: createSourceContext(violatingObject.source, {
+      start: violatingObject.start,
+      end: violatingObject.end
+    })
+  };
+}
+var NoExprTag = class extends Error {
+  constructor(violatingObject, source) {
+    super(`Unexpected !expr tag`);
+    this.name = "NoExprTag";
+    this.niceError = createNiceError({
+      violatingObject,
+      source,
+      message: "!expr tags are not allowed in Quarto outside of knitr code cells."
+    });
+  }
+  niceError;
+};
 var ValidationContext = class {
   instancePath;
   root;
@@ -31792,6 +31858,9 @@ function validateObject(value, schema2, context) {
           return value.components[i];
         }
       }
+    }
+    if (value.result && typeof value.result === "object" && !Array.isArray(value.result) && value.result.tag === "!expr") {
+      throw new NoExprTag(value, value.source);
     }
     throw new InternalError(`Couldn't locate key ${key}`);
   };
