@@ -82,7 +82,16 @@ function render_typst_brand_yaml()
           end
           local themebk = {}
           for name, _ in pairs(brandColor) do
-            themebk[name] = 'brand-color.' .. name .. '.lighten(85%)'
+            if brandColor.background then
+              local brandPercent = 15
+              if brandMode == 'dark' then
+                brandPercent = 50
+              end
+              local bkPercent = 100 - brandPercent
+              themebk[name] = 'color.mix((brand-color.' .. name .. ', ' .. brandPercent .. '%), (brand-color.background, ' .. bkPercent .. '%))'
+            else
+              themebk[name] = 'brand-color.' .. name .. '.lighten(85%)'
+            end
           end
           local decl = '#let brand-color-background = ' .. to_typst_dict_indent(themebk)
           quarto.doc.include_text('in-header', decl)
