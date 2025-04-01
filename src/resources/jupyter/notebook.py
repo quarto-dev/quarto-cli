@@ -520,6 +520,8 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
    allow_errors = cell_options.get('error')
      
    trace(f"cell_execute with eval={eval}")
+   if (allow_errors == True):
+      trace(f"cell_execute with allow_errors={allow_errors}")
 
    # execute if eval is active
    if eval == True:
@@ -556,9 +558,10 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
       # Check for display errors in output (respecting both global and cell settings)
       cell_allows_errors = allow_errors if allow_errors is not None else client.allow_errors
       if not cell_allows_errors:
+         trace("Cell does not allow errors: checking for uncaught errors")
          for output in cell.outputs:
             if output.get('output_type') == 'error':
-               trace("Uncaught error found in output")
+               trace("   Uncaught error found in output")
                from nbclient.exceptions import CellExecutionError
                error_name = output.get('ename', 'Error')
                error_value = output.get('evalue', '')

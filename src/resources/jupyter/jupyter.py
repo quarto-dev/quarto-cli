@@ -226,19 +226,21 @@ def run_server_subprocess(options, status):
 # run a notebook directly (not a server)
 def run_notebook(options, status):
 
-   # run notebook w/ some special exception handling. note that we don't 
+   # run notebook w/ some special exception handling. note that we don't
    # log exceptions here b/c they are considered normal course of execution
    # for errors that occur in notebook cells
-   try:   
+   try:
+      trace('Running notebook_execute')
       notebook_execute(options, status)
    except Exception as e:
+      trace(f'run_notebook caught exception: {type(e).__name__}')
       # CellExecutionError for execution at the terminal includes a bunch
       # of extra stack frames internal to this script. remove them
       msg = str(e)
       kCellExecutionError = "nbclient.exceptions.CellExecutionError: "
       loc = msg.find(kCellExecutionError)
       if loc != -1:
-         msg = msg[loc + len(kCellExecutionError)]
+         msg = msg[loc + len(kCellExecutionError):]
       sys.stderr.write("\n\n" + msg + "\n")
       sys.stderr.flush()
       sys.exit(1)
