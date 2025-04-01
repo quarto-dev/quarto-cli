@@ -9,6 +9,10 @@ import { check, enforceTargetType } from "./check.ts";
 
 export const checkCommand = new Command()
   .name("check")
+  .option(
+    "--no-strict",
+    "When set, will not fail if dependency versions don't match precisely",
+  )
   .arguments("[target:string]")
   .description(
     "Verify correct functioning of Quarto installation.\n\n" +
@@ -18,7 +22,8 @@ export const checkCommand = new Command()
   .example("Check Jupyter engine", "quarto check jupyter")
   .example("Check Knitr engine", "quarto check knitr")
   .example("Check installation and all engines", "quarto check all")
-  .action(async (_options: unknown, targetStr?: string) => {
+  // deno-lint-ignore no-explicit-any
+  .action(async (options: any, targetStr?: string) => {
     targetStr = targetStr || "all";
-    await check(enforceTargetType(targetStr));
+    await check(enforceTargetType(targetStr), options.strict);
   });
