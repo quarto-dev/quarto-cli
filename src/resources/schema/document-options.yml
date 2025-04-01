@@ -84,6 +84,18 @@
     formats: [$html-doc]
   description: Enables smooth scrolling within the page.
 
+- name: respect-user-color-scheme
+  schema: boolean
+  default: false
+  tags:
+    formats: [$html-doc]
+  description:
+    short: "Whether the `prefers-color-scheme` media query controls dark mode."
+    long: |
+      Whether to use the `prefers-color-scheme` media query to determine whether to show
+      the user a dark or light page. Otherwise the author preference (order of `light`
+      and `dark` in `theme` or `brand`) determines what is shown to the user at first visit.
+
 - name: html-math-method
   tags:
     formats: [$html-doc, $epub-all, gfm]

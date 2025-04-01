@@ -128,7 +128,12 @@
         return localAlternateSentinel;
       }
     }
-    const darkModeDefault = <%= darkModeDefault %>;
+    <% if (respectUserColorScheme) { %>
+      const darkModeDefault = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    <% } else { %>
+      const darkModeDefault = <%= darkModeDefault %>;
+    <% } %>
+      
     let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
 
     // Dark / light mode switch
