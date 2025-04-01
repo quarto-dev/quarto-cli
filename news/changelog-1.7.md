@@ -12,6 +12,13 @@ All changes included in 1.7:
 - ([#12147](https://github.com/quarto-dev/quarto-cli/issues/12147)): for RevealJS format, `serif` and `simple` themes defaults back to have their heading color (`$presentation-heading-color`) to be the same as the body color (`$body-color`) as in Quarto 1.5.
 - ([#11659](https://github.com/quarto-dev/quarto-cli/pull/11659)): Julia engine: Fix escaping bug where paths containing spaces or backslashes break server startup on Windows.
 
+## Dependencies
+
+- Update `typst` to `0.13.0`.
+- Update `pandoc` to `3.6.3`.
+- Update `dart-sass` to `1.85.1`.
+- Update `esbuild` to `0.19.12`.
+
 ## YAML validation
 
 - ([#11654](https://github.com/quarto-dev/quarto-cli/issues/11654)): Allow `page-inset` as value in `column` key for code cells.
