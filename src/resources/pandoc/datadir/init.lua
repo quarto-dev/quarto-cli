@@ -2139,7 +2139,38 @@ quarto = {
   config = {
     cli_path = function() return param('quarto-cli-path', nil) end,
     version = function() return version() end
-  }
+  },
+  shortcode = {
+      read_arg = function (args, n)
+         local arg = args[n or 1]
+         local varName
+         if arg == nil then
+            return nil
+         end
+         if type(arg) ~= "string" then
+            varName = inlinesToString(arg)
+         else
+            varName = arg --[[@as string]]
+         end
+         return varName
+      end,
+      error_output = function (shortcode, message_or_args, context)
+         if type(message_or_args) == "table" then
+            message_or_args = table.concat(message_or_args, " ")
+         end
+         local message = "?" .. shortcode .. ":" .. message_or_args
+         if context == "block" then
+            return pandoc.Blocks { pandoc.Strong( pandoc.Inlines { pandoc.Str(message) } ) }
+          elseif context == "inline" then
+            return pandoc.Inlines { pandoc.Strong( pandoc.Inlines { pandoc.Str(message) } ) }
+          elseif context == "text" then
+            return message
+          else
+            warn("Unknown context for " .. shortcode .. " shortcode error: " .. context)
+            return { }
+          end
+      end,
+  },
 }
 
 -- alias old names for backwards compatibility
