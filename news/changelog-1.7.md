@@ -40,6 +40,7 @@ All changes included in 1.7:
 ## `quarto convert`
 
 - ([#12042](https://github.com/quarto-dev/quarto-cli/issues/12042)): Preserve Markdown content that follows YAML metadata in a `raw` .ipynb cell.
+- ([#12318](https://github.com/quarto-dev/quarto-cli/issues/12318)): Ensure enough line breaks between cells that might be trimmed.
 
 ## `quarto inspect`
 
