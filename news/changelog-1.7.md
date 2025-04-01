@@ -161,6 +161,7 @@ All changes included in 1.7:
 - ([#11803](https://github.com/quarto-dev/quarto-cli/pull/11803)): Added a new CLI command `quarto call`. First users of this interface are the new `quarto call engine julia ...` subcommands.
 - ([#12338](https://github.com/quarto-dev/quarto-cli/issues/12338)): Add an additional workaround for the SCSS parser used in color variable extraction.
 - ([#12369](https://github.com/quarto-dev/quarto-cli/pull/12369)): `quarto preview` correctly throws a YAML validation error when a `format` key does not conform.
+- ([#12238](https://gijit.com/quarto-dev/quarto-cli/issues/12238)): Very long error (e.g. in Jupyter Notenook with backtrace) are now no more truncated in the console.
 
 ## Languages
 
