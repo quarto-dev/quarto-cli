@@ -37,6 +37,7 @@ export interface LogMessageOptions {
   indent?: number;
   format?: (line: string) => string;
   colorize?: boolean;
+  stripAnsiCode?: boolean;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -229,6 +230,7 @@ export class LogFileHandler extends FileHandler {
         ...logRecord.args[0] as LogMessageOptions,
         bold: false,
         dim: false,
+        stripAnsiCode: true,
         format: undefined,
       };
       let msg = applyMsgOptions(logRecord.msg, options);
@@ -417,7 +419,9 @@ function applyMsgOptions(msg: string, options: LogMessageOptions) {
   if (options.format) {
     msg = options.format(msg);
   }
-
+  if (options.stripAnsiCode) {
+    msg = colors.stripAnsiCode(msg);
+  }
   return msg;
 }
 
