@@ -1,0 +1,54 @@
+---
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: na
+  typst:
+    quality: 2
+    comment: "table only"
+    include-in-header:
+      text: |
+        #set text(fallback: false)
+  dashboard:
+    quality: 1
+  docx:
+    quality: na
+  pptx:
+    quality: na
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '#{set text\(font: \("Libertinus Serif"\)\); table\('
+          - '#show heading: set text\(font: "Noto Sans", \)'
+          - '#show raw.where\(block: true\): set text\(font: "DejaVu Sans Mono", \)'
+        - []
+      ensurePdfRegexMatches:
+        -
+          - 'heading is noto sans'
+          - 'base is libertinus serif'
+          - 'code should appear in a monospace font'
+        - []
+brand:
+  typography:
+    base: serif
+    headings: sans-serif
+    monospace: monospace
+---
+# heading is `#context text.font`{=typst}
+
+base is `#context text.font`{=typst}
+
+```{=html}
+<table style="font-family: serif;">
+    <tr><td>A</td><td>B</td></tr>
+</table>
+```
+
+```
+// This code should appear in a monospace font
+```
+

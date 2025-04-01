@@ -21,6 +21,7 @@ import { Document } from "../../core/deno-dom.ts";
 import { execProcess } from "../../core/process.ts";
 import { dirAndStem, normalizePath } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
+import { quartoConfig } from "../../core/quarto.ts";
 
 import {
   Format,
@@ -1601,6 +1602,7 @@ async function resolveExtras(
       }
       fontdirs.add(font_cache);
     }
+    fontdirs.add(join(quartoConfig.srcPath(), "resources/fonts"));
     let fontPaths = format.metadata[kFontPaths] as Array<string> || [];
     if (typeof fontPaths === "string") {
       fontPaths = [fontPaths];

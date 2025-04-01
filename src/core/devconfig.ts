@@ -38,8 +38,7 @@ export function createDevConfig(
   scriptDir: string,
 ): DevConfig {
   const scriptPath = join(scriptDir, "quarto" + (isWindows ? ".cmd" : ""));
-  const srcDir = Deno.env.get("QUARTO_SRC_PATH") ||
-    join(quartoConfig.sharePath(), "../../src");
+  const srcDir = quartoConfig.srcPath();
   return {
     deno,
     deno_dom,
