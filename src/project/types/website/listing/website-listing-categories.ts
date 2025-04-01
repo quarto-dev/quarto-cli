@@ -72,7 +72,6 @@ export function categorySidebar(
     categoriesEl.appendChild(allEl);
   }
 
-  console.log("HERE");
   for (
     const cat of Object.keys(cats).sort((a: string, b: string) =>
       a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase())
