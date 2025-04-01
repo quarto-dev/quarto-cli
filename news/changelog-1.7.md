@@ -21,6 +21,7 @@ All changes included in 1.7:
 
 ## Website projects
 
+- ([#8238](https://github.com/quarto-dev/quarto-cli/issues/8238)): Listing categories are now sorted case-insensitively.
 - ([#11701](https://github.com/quarto-dev/quarto-cli/issues/11701)): Wrap HTML emitted by EJS templates in `{=html}` blocks to avoid memory blowup issues with Pandoc's parser.
 - ([#12134](https://github.com/quarto-dev/quarto-cli/issues/12134)): Forward `logo.small` images in `_brand.yml` files to a website `favicon`.
 
