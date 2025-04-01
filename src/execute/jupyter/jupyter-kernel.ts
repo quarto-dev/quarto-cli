@@ -64,6 +64,11 @@ export async function executeKernelOneshot(
   );
 
   if (!result.success) {
+    trace(options, "Error executing notebook with oneshot kernel");
+    if (result.stderr) {
+      error(result.stderr, { colorize: false });
+    }
+    printExecDiagnostics(options.kernelspec, result.stderr);
     return Promise.reject();
   }
 }
@@ -209,6 +214,7 @@ async function execJupyter(
           "PYDEVD_DISABLE_FILE_VALIDATION": "1",
         },
         stdout: "piped",
+        stderr: "piped",
       },
       kernelCommand(command, "", options),
     );
@@ -443,6 +449,9 @@ async function connectToKernel(
     debug,
   }, options.kernelspec);
   if (!result.success) {
+    if (result.stderr) {
+      error(result.stderr, { colorize: false });
+    }
     return Promise.reject();
   }
 
