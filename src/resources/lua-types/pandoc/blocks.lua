@@ -33,7 +33,7 @@ pandoc.Blocks = {}
 Create a blocks list 
 ]]
 ---@param blocks pandoc.Block|pandoc.List Block or list of blocks
----@return pandoc.List 
+---@return pandoc.Blocks 
 function pandoc.Blocks(blocks) end
 
 
