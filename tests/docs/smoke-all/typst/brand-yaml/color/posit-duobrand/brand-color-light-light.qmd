@@ -1,5 +1,8 @@
 ---
 title: Branding - Colors
+brand:
+  light: posit-light.yml
+  dark: posit-dark.yml
 format:
   typst:
     keep-typ: true
@@ -11,12 +14,10 @@ _quarto:
           - 'burgundy: rgb\("#9a4665"\),'
           - 'primary: rgb\("#447099"\),'
           - 'primary: color\.mix\(\(brand-color\.primary, 15%\), \(brand-color\.background, 85%\)\),'
+          - 'background_color: (\r\n?|\n)color\.mix\(\(rgb\("#FC5300"\), 15%\), \(brand-color\.background, 85%\)\)'
           - 'title: (\r\n?|\n)\[(\r\n?|\n)Note(\r\n?|\n)\](\r\n?|\n), (\r\n?|\n)background_color: (\r\n?|\n)brand-color-background.primary'
           - 'title: (\r\n?|\n)\[(\r\n?|\n)Warning(\r\n?|\n)\](\r\n?|\n), (\r\n?|\n)background_color: (\r\n?|\n)brand-color-background.warning'
-        -
-        -
-          - '#set page\(fill: brand-color'
-          - '#set text\(fill: brand-color'
+        - []
 ---
 
 ::: {.callout-note}
