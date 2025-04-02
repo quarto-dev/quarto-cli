@@ -19,6 +19,7 @@ except:
 
 from log import log_init, log, log_error, trace
 from notebook import notebook_execute, RestartKernel
+from nbclient.exceptions import CellExecutionError
 
 import asyncio
 if sys.platform == 'win32':
@@ -241,8 +242,7 @@ def run_notebook(options, status):
       loc = msg.find(kCellExecutionError)
       if loc != -1:
          msg = msg[loc + len(kCellExecutionError):]
-      sys.stderr.write("\n\n" + msg + "\n")
-      sys.stderr.flush()
+      status("\n\n" + msg + "\n")
       sys.exit(1)
 
 
