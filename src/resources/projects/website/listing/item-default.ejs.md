@@ -96,12 +96,10 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 ```
 
 <% if (fields.includes('date') && item.date) { %>
-
 <div class="listing-date"><%= item.date %></div>
 <% } %>
 
 <% if (fields.includes('author') && item.author) { %>
-
 <div class="listing-author"><%= item.author %></div>
 <% } %>
 
