@@ -1,0 +1,38 @@
+---
+title: Test brand light/dark shortcodes
+format: html
+brand:
+  light:
+    color:
+      palette:
+        blue: "#82aeef"
+      background: '#fff8ee'
+      foreground: '#116423'
+  dark:
+    color:
+      palette:
+        blue: "#415777"
+      background: '#071217'
+      foreground: '#ffeecc'
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'div#default-brand[style="background-color: #82aeef"]'
+          - 'div#light-brand[style="background-color: #82aeef"]'
+          - 'div#dark-brand[style="background-color: #415777"]'
+        - []
+---
+
+::: {#default-brand style='background-color: {{< brand color blue >}}'}
+Default brand blue background.
+:::
+
+::: {#light-brand style='background-color: {{< brand color blue light >}}'}
+Light brand blue background.
+:::
+
+::: {#dark-brand style='background-color: {{< brand color blue dark >}}'}
+Dark brand blue background.
+:::
