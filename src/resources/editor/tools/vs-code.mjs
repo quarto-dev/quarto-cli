@@ -16870,6 +16870,20 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Enables smooth scrolling within the page."
         },
         {
+          name: "respect-user-color-scheme",
+          schema: "boolean",
+          default: false,
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: {
+            short: "Whether the `prefers-color-scheme` media query controls dark mode.",
+            long: "Whether to use the `prefers-color-scheme` media query to determine whether to show\nthe user a dark or light page. Otherwise the author preference (order of `light`\nand `dark` in `theme` or `brand`) determines what is shown to the user at first visit.\n"
+          }
+        },
+        {
           name: "html-math-method",
           tags: {
             formats: [
@@ -22751,6 +22765,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Control the <code>\\pagestyle{}</code> for the document.",
         "The paper size for the document.",
+        "The brand mode to use for rendering the Typst document,\n<code>light</code> or <code>dark</code>.",
         {
           short: "The options for margins and text layout for this document.",
           long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.'
@@ -24043,7 +24058,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Manuscript configuration",
         "internal-schema-hack",
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        "The brand mode to use for rendering the Typst document,\n<code>light</code> or <code>dark</code>."
+        {
+          short: "Whether the <code>prefers-color-scheme</code> media query controls\ndark mode.",
+          long: "Whether to use the <code>prefers-color-scheme</code> media query to\ndetermine whether to show the user a dark or light page. Otherwise the\nauthor preference (order of <code>light</code> and <code>dark</code> in\n<code>theme</code> or <code>brand</code>) determines what is shown to\nthe user at first visit."
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -24272,12 +24290,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 194259,
+        _internalId: 194479,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 194251,
+            _internalId: 194471,
             type: "enum",
             enum: [
               "png",
@@ -24293,7 +24311,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 194258,
+            _internalId: 194478,
             type: "anyOf",
             anyOf: [
               {
