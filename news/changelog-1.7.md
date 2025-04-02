@@ -45,6 +45,7 @@ All changes included in 1.7:
 - ([#10047](https://github.com/quarto-dev/quarto-cli/issues/10047)): `quarto check` will now check binary dependency versions strictly by default. Use `quarto check --no-strict` to revert to old behavior.
 - ([#10561](https://github.com/quarto-dev/quarto-cli/issues/10561)): `quarto check` will now report paths of binary dependencies.
 - ([#11608](https://github.com/quarto-dev/quarto-cli/pull/11608)): Do not issue error message when calling `quarto check info`.
+- ([#12433](https://github.com/quarto-dev/quarto-cli/pull/12433)): Add `--output` option to `quarto check` to produce structured JSON output.
 
 ## `quarto convert`
 
