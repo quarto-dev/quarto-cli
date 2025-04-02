@@ -20,8 +20,8 @@ _quarto:
       ensureHtmlElements:
         -
           - 'div#default-brand[style="background-color: #82aeef"]'
-          - 'div#light-brand[style="background-color: #82aeef"]'
-          - 'div#dark-brand[style="background-color: #415777"]'
+          - 'div#light-brand[style="color: #116423; background-color: #82aeef"]'
+          - 'div#dark-brand[style="color: #ffeecc; background-color: #415777"]'
         - []
 ---
 
@@ -29,10 +29,12 @@ _quarto:
 Default brand blue background.
 :::
 
-::: {#light-brand style='background-color: {{< brand color blue light >}}'}
+We use `.light-content` and `.dark-content` to make content that switches in light and dark mode:
+
+::: {#light-brand .light-content style='color: {{< brand color foreground light >}}; background-color: {{< brand color blue light >}}'}
 Light brand blue background.
 :::
 
-::: {#dark-brand style='background-color: {{< brand color blue dark >}}'}
+::: {#dark-brand .dark-content style='color: {{< brand color foreground dark >}}; background-color: {{< brand color blue dark >}}'}
 Dark brand blue background.
 :::
