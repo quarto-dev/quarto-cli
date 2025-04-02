@@ -563,14 +563,14 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
             if output.get('output_type') == 'error':
                trace("   Uncaught error found in output")
                from nbclient.exceptions import CellExecutionError
-               error_name = output.get('ename', 'Error')
+               error_name = output.get('ename', 'UnnamedError')
                error_value = output.get('evalue', '')
                traceback = output.get('traceback', [])
                # Use same error raising mechanism as nbclient
                raise CellExecutionError.from_cell_and_msg(
                   cell,
                   {
-                     'ename': error_name,
+                     'ename': 'UncaughtCellError:' + error_name,
                      'evalue': error_value,
                      'traceback': traceback
                   }
