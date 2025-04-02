@@ -23,16 +23,17 @@
   paper: "us-letter",
   lang: "en",
   region: "US",
-  font: "linux libertine",
+  font: "libertinus serif",
   fontsize: 11pt,
   title-size: 1.5em,
   subtitle-size: 1.25em,
-  heading-family: "linux libertine",
+  heading-family: "libertinus serif",
   heading-weight: "bold",
   heading-style: "normal",
   heading-color: black,
   heading-line-height: 0.65em,
   sectionnumbering: none,
+  pagenumbering: "1",
   toc: false,
   toc_title: none,
   toc_depth: none,
@@ -42,7 +43,7 @@
   set page(
     paper: paper,
     margin: margin,
-    numbering: "1",
+    numbering: pagenumbering,
   )
   set par(justify: true)
   set text(lang: lang,
