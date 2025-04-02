@@ -375,7 +375,7 @@ export function revealjsFormat() {
 }
 
 const determineRevealLogo = (format: Format): string | undefined => {
-  const brandData = format.render.brand?.processedData;
+  const brandData = format.render.brand?.light?.processedData;
   if (brandData?.logo) {
     const keys: ("medium" | "small" | "large")[] = ["medium", "small", "large"];
     // add slide logo if we have one
@@ -404,7 +404,7 @@ function revealMarkdownAfterBody(format: Format) {
       revealLogo = revealLogo.path;
     }
     if (["small", "medium", "large"].includes(revealLogo)) {
-      const brandData = format.render.brand?.processedData;
+      const brandData = format.render.brand?.light?.processedData;
       const logoInfo = brandData?.logo
         ?.[revealLogo as ("medium" | "small" | "large")];
       if (typeof logoInfo === "string") {

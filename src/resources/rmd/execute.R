@@ -6,10 +6,21 @@
 # requiring backticks (because we'll use it in inline code that is itself wrapped in backticks)
 
 # execute rmarkdown::render
-execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, resourceDir, handledLanguages, markdown) {
-
+execute <- function(
+  input,
+  format,
+  tempDir,
+  libDir,
+  dependencies,
+  cwd,
+  params,
+  resourceDir,
+  handledLanguages,
+  markdown
+) {
   # calculate knit_root_dir (before we setwd below)
-  knit_root_dir <- if (!is.null(cwd)) tools::file_path_as_absolute(cwd) else NULL
+  knit_root_dir <- if (!is.null(cwd)) tools::file_path_as_absolute(cwd) else
+    NULL
 
   # change to input dir and make input relative (matches
   # behavior/expectations of rmarkdown::render code)
@@ -19,7 +30,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
 
   # rmd input filename
   rmd_input <- paste0(xfun::sans_ext(input), ".rmarkdown")
-      
+
   # swap out the input by reading then writing content.
   # This handles `\r\n` EOL on windows in `markdown` string
   # by spliting in lines
@@ -28,7 +39,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     rmd_input
   )
   input <- rmd_input
-      
+
   # remove the rmd input on exit
   rmd_input_path <- rmarkdown:::abs_path(rmd_input)
   on.exit(unlink(rmd_input_path), add = TRUE)
@@ -40,17 +51,17 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   #  if (!tolower(xfun::file_ext(input)) %in% c("r", "rmd", "rmarkdown")) {
   #    # rmd input filename
   #    rmd_input <- paste0(xfun::sans_ext(input), ".Rmd")
-  #    
+  #
   #    # swap out the input
   #    write(markdown, rmd_input)
   #    input <- rmd_input
-  #    
+  #
   #    # remove the rmd input on exit
   #    rmd_input_path <- rmarkdown:::abs_path(rmd_input)
   #    on.exit(unlink(rmd_input_path))
   #  }
   #}
-  
+
   # pass through ojs chunks
   knitr::knit_engines$set(ojs = function(options) {
     knitr:::one_string(c(
@@ -86,11 +97,13 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   # set some default DT options for dashboards (if not otherwise specified)
   if (is_dashboard_output(format)) {
     if (is.na(getOption("DT.options", NA))) {
-      options(DT.options = list(
-        bPaginate = FALSE, 
-        dom = "ifrt", 
-        language = list(info = "Showing _TOTAL_ entries")
-      ))
+      options(
+        DT.options = list(
+          bPaginate = FALSE,
+          dom = "ifrt",
+          language = list(info = "Showing _TOTAL_ entries")
+        )
+      )
     }
   }
 
@@ -109,7 +122,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
       code <- readLines(file.path(resourceDir, "rmd", "ojs.R"))
       rmarkdown::shiny_prerendered_chunk("server-extras", code, TRUE)
     }
-    
+
     # This truly awful hack ensures that rmarkdown doesn't tell us we're
     # producing HTML widgets when targeting a non-html format (doing this
     # is triggered by the "prefer-html" options)
@@ -117,7 +130,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
       render_env <- parent.env(parent.frame())
       render_env$front_matter$always_allow_html <- TRUE
     }
-    
+
     # return no new pandoc args
     NULL
   }
@@ -126,8 +139,8 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   df_print <- format$execute$`df-print`
   if (
     df_print == "paged" &&
-    !is_pandoc_html_format(format) &&
-    !is_html_prefered(format)
+      !is_pandoc_html_format(format) &&
+      !is_html_prefered(format)
   ) {
     df_print <- "kable"
   }
@@ -168,7 +181,11 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     } else if (inherits(v, "AsIs")) {
       v
     } else if (is.character(v)) {
-      gsub(pattern="(\\[|\\]|[`*_{}()>#+-.!])", x=v, replacement="\\\\\\1")
+      gsub(
+        pattern = "(\\[|\\]|[`*_{}()>#+-.!])",
+        x = v,
+        replacement = "\\\\\\1"
+      )
     } else {
       v
     }
@@ -182,7 +199,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     run_pandoc = FALSE,
     envir = env
   )
-  knit_meta <-  attr(render_output, "knit_meta")
+  knit_meta <- attr(render_output, "knit_meta")
   files_dir <- attr(render_output, "files_dir")
   intermediates_dir <- attr(render_output, "intermediates_dir")
 
@@ -191,35 +208,40 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   preserved <- extract_preserve_chunks(output_file, format)
 
   # include supporting files
-  supporting <- if (!is.null(intermediates_dir) && file_test("-d", intermediates_dir))
-    rmarkdown:::abs_path(intermediates_dir)
-  else
-    character()
+  supporting <- if (
+    !is.null(intermediates_dir) && file_test("-d", intermediates_dir)
+  )
+    rmarkdown:::abs_path(intermediates_dir) else character()
 
   # ammend knit_meta with paged table if df_print == "paged"
   if (df_print == "paged") {
-    knit_meta <- append(knit_meta, list(rmarkdown::html_dependency_pagedtable()))
+    knit_meta <- append(
+      knit_meta,
+      list(rmarkdown::html_dependency_pagedtable())
+    )
   }
 
-  # see if we are going to resolve knit_meta now or later 
+  # see if we are going to resolve knit_meta now or later
   if (dependencies) {
     engineDependencies <- NULL
     includes <- pandoc_includes(
-      input, 
+      input,
       format,
-      output_file, 
-      ifelse(!is.null(libDir), libDir, files_dir), 
-      knit_meta, 
+      output_file,
+      ifelse(!is.null(libDir), libDir, files_dir),
+      knit_meta,
       tempDir
     )
   } else {
     includes <- NULL
-    engineDependencies = list(knitr = I(list(jsonlite::serializeJSON(knit_meta))))
+    engineDependencies = list(
+      knitr = I(list(jsonlite::serializeJSON(knit_meta)))
+    )
   }
 
   # include postprocessing if required
   if (!is.null(preserved)) {
-    preserve <- split(unname(preserved),names(preserved))
+    preserve <- split(unname(preserved), names(preserved))
   } else {
     preserve <- NA
   }
@@ -232,7 +254,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   # results
   list(
     engine = "knitr",
-    markdown = paste(markdown, collapse="\n"),
+    markdown = paste(markdown, collapse = "\n"),
     supporting = I(supporting),
     filters = I("rmarkdown/pagebreak.lua"),
     includes = includes,
@@ -260,14 +282,12 @@ pandoc_options <- function(format) {
 
 # knitr options for format
 knitr_options <- function(format, resourceDir, handledLanguages) {
-
   # may need some knit hooks
   knit_hooks <- list()
 
   # opt_knit for compatibility w/ rmarkdown::render
   to <- format$pandoc$to
-  if (identical(to, "pdf"))
-    to <- "latex"
+  if (identical(to, "pdf")) to <- "latex"
   opts_knit <- list(
     quarto.version = 1,
     rmarkdown.pandoc.from = format$pandoc$from,
@@ -304,15 +324,13 @@ knitr_options <- function(format, resourceDir, handledLanguages) {
     opts_chunk$results <- "asis"
   }
 
-
   # add screenshot force if prefer-html specified
   if (is_html_prefered(format)) {
     opts_chunk$screenshot.force <- FALSE
   }
 
-
   # add fig.retina if requested
-  if (opts_chunk$dev == "retina"){
+  if (opts_chunk$dev == "retina") {
     opts_chunk$dev <- "png"
     opts_chunk$fig.retina = 2
   }
@@ -361,7 +379,7 @@ knitr_options_with_cache <- function(input, format, opts) {
       }
       cache <- TRUE
     }
- 
+
     # set the glocal cache option
     opts$opts_chunk$cache <- isTRUE(cache)
 
@@ -386,9 +404,15 @@ knitr_cache_dir <- function(input, format) {
 }
 
 # produce pandoc format (e.g. includes from knit_meta)
-pandoc_includes <- function(input, format, output, files_dir, knit_meta, tempDir) {
-
-  # get dependencies from render 
+pandoc_includes <- function(
+  input,
+  format,
+  output,
+  files_dir,
+  knit_meta,
+  tempDir
+) {
+  # get dependencies from render
   dependencies <- dependencies_from_render(input, files_dir, knit_meta, format)
 
   # embed shiny_prerendered dependencies
@@ -397,7 +421,8 @@ pandoc_includes <- function(input, format, output, files_dir, knit_meta, tempDir
       output,
       dependencies$shiny,
       files_dir,
-      dirname(input))
+      dirname(input)
+    )
   }
 
   # apply any required patches
@@ -409,7 +434,6 @@ pandoc_includes <- function(input, format, output, files_dir, knit_meta, tempDir
 
 # get dependencies implied by the result of render (e.g. html dependencies)
 dependencies_from_render <- function(input, files_dir, knit_meta, format) {
-
   # check for runtime
   front_matter <- rmarkdown::yaml_front_matter(input)
   runtime <- front_matter$runtime
@@ -431,7 +455,7 @@ dependencies_from_render <- function(input, files_dir, knit_meta, format) {
     resolver <- function(deps) {
       dependencies$shiny <<- list(
         deps = deps,
-        packages =  rmarkdown:::get_loaded_packages()
+        packages = rmarkdown:::get_loaded_packages()
       )
       list()
     }
@@ -450,17 +474,30 @@ dependencies_from_render <- function(input, files_dir, knit_meta, format) {
       list() # format deps
     )
 
-    
-    # We explicitly will inject dependencies for bslib (bootstrap and supporting 
-    # js / css) so we block those dependencies from making their way into the 
+    # We explicitly will inject dependencies for bslib (bootstrap and supporting
+    # js / css) so we block those dependencies from making their way into the
     # document
     filteredDependencies = c("bootstrap")
     if (is_dashboard_output(format)) {
-      bslibDepNames <- c("bootstrap", "bslib-webComponents-js", "bslib-tag-require", "bslib-card-js", "bslib-card-styles", "htmltools-fill", "bslib-value_box-styles", "bs3compat", "bslib-sidebar-js", "bslib-sidebar-styles", "bslib-page_fillable-styles", "bslib-page_navbar-styles", "bslib-component-js", "bslib-component-css")
+      bslibDepNames <- c(
+        "bootstrap",
+        "bslib-webComponents-js",
+        "bslib-tag-require",
+        "bslib-card-js",
+        "bslib-card-styles",
+        "htmltools-fill",
+        "bslib-value_box-styles",
+        "bs3compat",
+        "bslib-sidebar-js",
+        "bslib-sidebar-styles",
+        "bslib-page_fillable-styles",
+        "bslib-page_navbar-styles",
+        "bslib-component-js",
+        "bslib-component-css"
+      )
       append(filteredDependencies, bslibDepNames)
     }
-    
-    
+
     # filter out bootstrap
     extras$dependencies <- Filter(
       function(dependency) !(dependency$name %in% filteredDependencies),
@@ -475,24 +512,29 @@ dependencies_from_render <- function(input, files_dir, knit_meta, format) {
     # extract static ojs definitions for HTML only (not prefer-html)
     if (is_pandoc_html_format(format)) {
       ojs_defines <- rmarkdown:::flatten_dependencies(
-        knit_meta, function(dep) inherits(dep, "ojs-define")
+        knit_meta,
+        function(dep) inherits(dep, "ojs-define")
       )
       ojs_define_str <- knitr:::one_string(unlist(ojs_defines))
       if (ojs_define_str != "") {
-        dependencies$includes$in_header <- knitr:::one_string(c(dependencies$includes$in_header, ojs_define_str))
+        dependencies$includes$in_header <- knitr:::one_string(c(
+          dependencies$includes$in_header,
+          ojs_define_str
+        ))
       }
     }
   } else if (
     is_pandoc_latex_output(format) &&
-    rmarkdown:::has_latex_dependencies(knit_meta)
+      rmarkdown:::has_latex_dependencies(knit_meta)
   ) {
     latex_dependencies <- rmarkdown:::flatten_latex_dependencies(knit_meta)
-    dependencies$includes$in_header <- rmarkdown:::latex_dependencies_as_string(latex_dependencies)
+    dependencies$includes$in_header <- rmarkdown:::latex_dependencies_as_string(
+      latex_dependencies
+    )
   }
 
   # return dependencies
   dependencies
-
 }
 
 # return the html dependencies as an HTML string suitable for inclusion
@@ -501,19 +543,33 @@ html_dependencies_as_string <- function(dependencies, files_dir) {
   if (!rmarkdown:::dir_exists(files_dir)) {
     dir.create(files_dir, showWarnings = FALSE, recursive = TRUE)
   }
-  dependencies <- lapply(dependencies, htmltools::copyDependencyToDir, files_dir)
+  dependencies <- lapply(
+    dependencies,
+    htmltools::copyDependencyToDir,
+    files_dir
+  )
   dependencies <- lapply(dependencies, function(dependency) {
     dir <- dependency$src$file
     if (!is.null(dir)) {
-      dependency$src$file <- gsub("\\\\", "/", paste(files_dir, basename(dir), sep = "/"))
+      dependency$src$file <- gsub(
+        "\\\\",
+        "/",
+        paste(files_dir, basename(dir), sep = "/")
+      )
     }
     dependency
   })
-  return(htmltools::renderDependencies(dependencies, "file", encodeFunc = identity))
+  return(htmltools::renderDependencies(
+    dependencies,
+    "file",
+    encodeFunc = identity
+  ))
 }
 
 is_shiny_prerendered <- function(runtime, server = NULL) {
-  if (identical(runtime, "shinyrmd") || identical(runtime, "shiny_prerendered")) {
+  if (
+    identical(runtime, "shinyrmd") || identical(runtime, "shiny_prerendered")
+  ) {
     TRUE
   } else if (identical(server, "shiny")) {
     TRUE
@@ -537,7 +593,7 @@ create_pandoc_includes <- function(includes, tempDir) {
   write_includes("in_header", "include-in-header")
   write_includes("before_body", "include-before-body")
   write_includes("after_body", "include-after-body")
-  
+
   pandoc
 }
 
@@ -597,16 +653,14 @@ is_pandoc_markdown_output <- function(format) {
   is_pandoc_to_format(format, markdown_formats)
 }
 
-# should be equivalent of TS function: 
+# should be equivalent of TS function:
 # isHtmlCompatible() in src/config/format.ts
 is_html_prefered <- function(format) {
   # `prefer-html: true` can be set in markdown format that supports HTML outputs
-  (
-    is_pandoc_markdown_output(format) &&
-    isTRUE(format$render$`prefer-html`)
-  ) ||
-  # this could happen when using embed shortcode which convert to ipynb output format.
-  is_pandoc_ipynb_output(format)
+  (is_pandoc_markdown_output(format) &&
+    isTRUE(format$render$`prefer-html`)) ||
+    # this could happen when using embed shortcode which convert to ipynb output format.
+    is_pandoc_ipynb_output(format)
 }
 
 is_dashboard_output <- function(format) {
@@ -622,7 +676,6 @@ apply_patches <- function(format, includes) {
 
 # patch to ensure that htmlwidgets size correctly when slide changes
 apply_slides_patch <- function(includes) {
-
   slides_js <- '
 <script>
   // htmlwidgets need to know to resize themselves when slides are shown/hidden.
@@ -668,25 +721,31 @@ apply_slides_patch <- function(includes) {
 
 apply_responsive_patch <- function(format) {
   if (isTRUE(format$metadata[["fig-responsive"]])) {
-
     # tweak sizing for htmlwidget figures (use 100% to be responsive)
     if (requireNamespace("htmlwidgets", quietly = TRUE)) {
-      htmlwidgets_resolveSizing <- htmlwidgets:::resolveSizing 
+      htmlwidgets_resolveSizing <- htmlwidgets:::resolveSizing
       resolveSizing <- function(x, sp, standalone, knitrOptions = NULL) {
-          # default sizing resolution
-          sizing <- htmlwidgets_resolveSizing(x, sp, standalone, knitrOptions)
-            
-          # if this is a knitr figure then set width to 100% and height
-          # to an appropriately proportioned value based on the assumption
-          # that the display width will be ~650px
-          if (isTRUE(sp$knitr$figure) && is.numeric(sizing$height) && is.numeric(sizing$width)) {
-            sizing$height <- paste0(as.integer(sizing$height / sizing$width * 650), "px")
-            sizing$width <- "100%"
-          }
-          
-          # return sizing
-          sizing
+        # default sizing resolution
+        sizing <- htmlwidgets_resolveSizing(x, sp, standalone, knitrOptions)
+
+        # if this is a knitr figure then set width to 100% and height
+        # to an appropriately proportioned value based on the assumption
+        # that the display width will be ~650px
+        if (
+          isTRUE(sp$knitr$figure) &&
+            is.numeric(sizing$height) &&
+            is.numeric(sizing$width)
+        ) {
+          sizing$height <- paste0(
+            as.integer(sizing$height / sizing$width * 650),
+            "px"
+          )
+          sizing$width <- "100%"
         }
+
+        # return sizing
+        sizing
+      }
 
       assignInNamespace("resolveSizing", resolveSizing, ns = "htmlwidgets")
     }
@@ -698,14 +757,14 @@ apply_responsive_patch <- function(format) {
   if (is.null(x)) y else x
 }
 
-# from rmarkdown 
+# from rmarkdown
 # https://github.com/rstudio/rmarkdown/blob/0951a2fea7e317f77d27969c25f3194ead38805e/R/util.R#L318-L331
 has_crop_tools <- function(warn = TRUE) {
   if (packageVersion("knitr") >= "1.44") {
     return(knitr:::has_crop_tools(warn))
   }
   # for older version we do inline the function from rmarkdown
-  # but it does not have the knitr improvment for windows 
+  # but it does not have the knitr improvment for windows
   # https://github.com/yihui/knitr/issues/2246
   tools <- c(
     pdfcrop = unname(rmarkdown:::find_program("pdfcrop")),
@@ -714,9 +773,10 @@ has_crop_tools <- function(warn = TRUE) {
   missing <- tools[tools == ""]
   if (length(missing) == 0) return(TRUE)
   x <- paste0(names(missing), collapse = ", ")
-  if (warn) warning(
-    sprintf("\nTool(s) not installed or not in PATH: %s", x),
-    "\n-> As a result, figure cropping will be disabled."
-  )
+  if (warn)
+    warning(
+      sprintf("\nTool(s) not installed or not in PATH: %s", x),
+      "\n-> As a result, figure cropping will be disabled."
+    )
   FALSE
 }

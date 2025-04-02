@@ -14,10 +14,15 @@ import { TempContext } from "../temp.ts";
 import { safeRemoveIfExists } from "../path.ts";
 import * as log from "../../deno_ral/log.ts";
 import { onCleanup } from "../cleanup.ts";
+import { Cloneable } from "../safe-clone-deep.ts";
 
-class SassCache {
+class SassCache implements Cloneable<SassCache> {
   kv: Deno.Kv;
   path: string;
+
+  clone() {
+    return this;
+  }
 
   constructor(kv: Deno.Kv, path: string) {
     this.kv = kv;

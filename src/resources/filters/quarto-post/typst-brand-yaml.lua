@@ -59,14 +59,15 @@ function render_typst_brand_yaml()
   return {
     Pandoc = function(pandoc0)
       local brand = param('brand')
-      local raw_block_shown = false
+      local brandMode = param('brand-mode') or 'light'
+      brand = brand and brand[brandMode]
       if brand and brand.processedData then
         -- color
         if brand.processedData.color and next(brand.processedData.color) then
           local brandColor = brand.processedData.color
           local colors = {}
           for name, _ in pairs(brandColor) do
-            colors[name] = _quarto.modules.brand.get_color(name)
+            colors[name] = _quarto.modules.brand.get_color(brandMode, name)
           end
           local decl = '#let brand-color = ' .. to_typst_dict_indent(colors)
           quarto.doc.include_text('in-header', decl)
@@ -93,7 +94,7 @@ function render_typst_brand_yaml()
           return key .. ': ' .. value .. ', '
         end
         -- typography
-        local base = _quarto.modules.brand.get_typography('base')
+        local base = _quarto.modules.brand.get_typography(brandMode, 'base')
         if base and next(base) then
             quarto.doc.include_text('in-header', table.concat({
               '#set text(',
@@ -112,7 +113,7 @@ function render_typst_brand_yaml()
           end
         end
 
-        local headings = _quarto.modules.brand.get_typography('headings')
+        local headings = _quarto.modules.brand.get_typography(brandMode, 'headings')
         if headings and next(headings) then
             quarto.doc.include_text('in-header', table.concat({
               '#show heading: set text(',
@@ -133,7 +134,7 @@ function render_typst_brand_yaml()
           end
         end
 
-        local monospaceInline = _quarto.modules.brand.get_typography('monospace-inline')
+        local monospaceInline = _quarto.modules.brand.get_typography(brandMode, 'monospace-inline')
         if monospaceInline and next(monospaceInline) then
             quarto.doc.include_text('in-header', table.concat({
               '#show raw.where(block: false): set text(',
@@ -152,7 +153,7 @@ function render_typst_brand_yaml()
           }))
         end
     
-        local monospaceBlock = _quarto.modules.brand.get_typography('monospace-block')
+        local monospaceBlock = _quarto.modules.brand.get_typography(brandMode, 'monospace-block')
         if monospaceBlock and next(monospaceBlock) then
           quarto.doc.include_text('in-header', table.concat({
             '#show raw.where(block: true): set text(',
@@ -181,8 +182,8 @@ function render_typst_brand_yaml()
           end
         end
 
-        local link = _quarto.modules.brand.get_typography('link')
-        local primaryColor = _quarto.modules.brand.get_color('primary')
+        local link = _quarto.modules.brand.get_typography(brandMode, 'link')
+        local primaryColor = _quarto.modules.brand.get_color(brandMode, 'primary')
         if link and next(link) or primaryColor then
           link = link or {}
           quarto.doc.include_text('in-header', table.concat({
@@ -209,21 +210,21 @@ function render_typst_brand_yaml()
         local foundLogo = null
          if logo then
           if type(logo) == 'string' then
-            foundLogo = _quarto.modules.brand.get_logo(logo) or {light={path=logo}}
+            foundLogo = _quarto.modules.brand.get_logo(brandMode, logo) or {light={path=logo}}
           elseif type(logo) == 'table' then
             for k, v in pairs(logo) do
               logoOptions[k] = v
             end
             if logo.path then
-              foundLogo =  _quarto.modules.brand.get_logo(logo.path) or {light={path=logo}}
+              foundLogo =  _quarto.modules.brand.get_logo(brandMode, logo.path) or {light={path=logo}}
             end
           end
         end
         if not foundLogo and brand.processedData.logo then
           local tries = {'large', 'small', 'medium'} -- low to high priority
-          foundLogo = _quarto.modules.brand.get_logo('medium')
-            or _quarto.modules.brand.get_logo('small')
-            or _quarto.modules.brand.get_logo('large')
+          foundLogo = _quarto.modules.brand.get_logo(brandMode, 'medium')
+            or _quarto.modules.brand.get_logo(brandMode, 'small')
+            or _quarto.modules.brand.get_logo(brandMode, 'large')
         end
         if foundLogo then
           if foundLogo.light then
@@ -299,12 +300,13 @@ function render_typst_brand_yaml()
       end
     end,
     Meta = function(meta)
+      local brandMode = param('brand-mode') or 'light'
       -- it can contain the path but we want to store an object here
       if not meta.brand or pandoc.utils.type(meta.brand) == 'Inlines' then
         meta.brand = {}
       end
       meta.brand.typography = meta.brand.typography or {}
-      local base = _quarto.modules.brand.get_typography('base')
+      local base = _quarto.modules.brand.get_typography(brandMode, 'base')
       if base and next(base) then
         meta.brand.typography.base = {
           family = base.family,
@@ -312,8 +314,8 @@ function render_typst_brand_yaml()
         }
       end
 
-      local headings = _quarto.modules.brand.get_typography('headings')
-      local foregroundColor = _quarto.modules.brand.get_color('foreground')
+      local headings = _quarto.modules.brand.get_typography(brandMode, 'headings')
+      local foregroundColor = _quarto.modules.brand.get_color(brandMode, 'foreground')
       if headings and next(headings) or base and next(base) or foregroundColor then
         base = base or {}
         headings = headings or {}

@@ -1,5 +1,5 @@
 ---
-title: "knitr dark mode - thematic"
+title: "knitr dark mode - ggplot"
 format:
   html:
     theme:
@@ -63,7 +63,7 @@ ggplot(mtcars, aes(mpg, wt)) +
 
 ### with crossref but no caption
 
-::: {#fig-thematic-ggplot}
+::: {#fig-ggplot}
 ```{r}
 #| echo: true
 #| renderings:
@@ -89,15 +89,13 @@ ggplot(mtcars, aes(mpg, disp)) +
   geom_point(aes(colour = factor(cyl))) + colour_scale
 ```
 
-thematic - base r graphics
+ggplot - dark only
 
 </div>
 
-## patchwork
-
 ### with crossref and caption
 
-::: {#fig-thematic-patchwork}
+::: {#fig-ggplot-mpg-hp}
 ```{r}
 #| renderings: [light, dark]
 theme_set(united_theme)

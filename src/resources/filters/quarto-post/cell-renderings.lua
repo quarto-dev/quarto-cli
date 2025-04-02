@@ -47,6 +47,13 @@ function choose_cell_renderings()
       if quarto.format.isHtmlOutput() and lightDiv and darkDiv then
         blocks:insert(pandoc.Div(lightDiv.content, pandoc.Attr("", {'light-content'}, {})))
         blocks:insert(pandoc.Div(darkDiv.content, pandoc.Attr("", {'dark-content'}, {})))
+      elseif quarto.format.isTypstOutput() and lightDiv and darkDiv then
+        local brandMode = param('brand-mode') or 'light'
+        if brandMode == 'light' then
+          blocks:insert(lightDiv)
+        elseif brandMode == 'dark' then
+          blocks:insert(darkDiv)
+        end
       else
         blocks:insert(lightDiv or darkDiv)
       end
