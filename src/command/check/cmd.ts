@@ -9,6 +9,7 @@ import { check, enforceTargetType } from "./check.ts";
 
 export const checkCommand = new Command()
   .name("check")
+  .option("--output <path>", "Output as JSON to a file")
   .option(
     "--no-strict",
     "When set, will not fail if dependency versions don't match precisely",
@@ -25,5 +26,9 @@ export const checkCommand = new Command()
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, targetStr?: string) => {
     targetStr = targetStr || "all";
-    await check(enforceTargetType(targetStr), options.strict);
+    await check(
+      enforceTargetType(targetStr),
+      options.strict,
+      options.output,
+    );
   });
