@@ -55,7 +55,6 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 ::: {.body}
 
 <% if (fields.includes('title')) { %>
-
 <h3 class="no-anchor listing-title"><a href="<%- item.path %>" <%= item.target ? `target="${item.target}"` : "" %> class="no-external"><%= item.title %></a></h3>
 <% if (fields.includes('subtitle')) { %>
 <div class="listing-subtitle"><a href="<%- item.path %>" <%= item.target ? `target="${item.target}"` : "" %> class="no-external"><%= item.subtitle %></a></div>
