@@ -4,6 +4,7 @@
     "esbenp.prettier-vscode",
     "sumneko.lua",
     "nvarner.typst-lsp",
-    "Posit.air-vscode"
+    "Posit.air-vscode",
+    "charliermarsh.ruff"
   ]
 }
