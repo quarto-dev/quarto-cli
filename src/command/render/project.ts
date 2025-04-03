@@ -269,10 +269,8 @@ export async function renderProject(
   await ensureGitignore(context.dir);
 
   // determine whether pre and post render steps should show progress
-  const progress = (
-    !!projectRenderConfig.options.progress ||
-    (projectRenderConfig.filesToRender.length > 1)
-  ) && !projectRenderConfig.options.flags?.quiet;
+  const progress = !!projectRenderConfig.options.progress ||
+    (projectRenderConfig.filesToRender.length > 1);
 
   // if there is an output dir then remove it if clean is specified
   if (
@@ -305,7 +303,6 @@ export async function renderProject(
     ...(projectRenderConfig.behavior.renderAll
       ? { QUARTO_PROJECT_RENDER_ALL: "1" }
       : {}),
-    "QUARTO_PROJECT_SCRIPT_PROGRESS": progress ? "1" : "0",
   };
 
   // run pre-render step if we are rendering all files
@@ -940,24 +937,27 @@ async function runScripts(
   quiet: boolean,
   env?: { [key: string]: string },
 ) {
+  // initialize the environment if needed
+  if (env) {
+    env = {
+      ...env,
+    };
+  } else {
+    env = {};
+  }
+  if (!env) throw new Error("should never get here");
+
   for (let i = 0; i < scripts.length; i++) {
     const args = parseShellRunCommand(scripts[i]);
     const script = args[0];
 
-    if (progress) {
+    if (progress && !quiet) {
       info(colors.bold(colors.blue(`Running script '${script}'`)));
+      env["QUARTO_PROJECT_SCRIPT_PROGRESS"] = "1";
     }
 
     const handler = handlerForScript(script);
     if (handler) {
-      if (env) {
-        env = {
-          ...env,
-        };
-      } else {
-        env = {};
-      }
-      if (!env) throw new Error("should never get here");
       const input = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES");
       const output = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES");
       if (input) {
