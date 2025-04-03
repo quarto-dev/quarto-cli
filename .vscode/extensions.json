@@ -5,6 +5,7 @@
     "sumneko.lua",
     "nvarner.typst-lsp",
     "Posit.air-vscode",
-    "charliermarsh.ruff"
+    "charliermarsh.ruff",
+    "tamasfe.even-better-toml"
   ]
 }
