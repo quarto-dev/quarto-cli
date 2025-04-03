@@ -38,5 +38,5 @@
     "deno.inlayHints.variableTypes.suppressWhenTypeMatchesName": false
   },
   "typst-lsp.exportPdf": "never",
-  "notebook.formatOnSave.enabled": true
+  "notebook.formatOnSave.enabled": false
 }

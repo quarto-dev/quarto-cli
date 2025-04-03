@@ -2,7 +2,7 @@
   "[typescript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
   },
-  "notebook.formatOnSave.enabled": true,
+  "notebook.formatOnSave.enabled": false,
   "notebook.codeActionsOnSave": {
     "notebook.source.organizeImports": "explicit"
   },
