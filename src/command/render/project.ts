@@ -942,7 +942,7 @@ async function runScripts(
     const script = args[0];
 
     if (progress && !quiet) {
-      info(colors.bold(colors.blue(`${script}`)));
+      info(colors.bold(colors.blue(`Running script '${script}'`)));
     }
 
     const handler = handlerForScript(script);
