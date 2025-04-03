@@ -303,6 +303,8 @@ export async function renderProject(
     ...(projectRenderConfig.behavior.renderAll
       ? { QUARTO_PROJECT_RENDER_ALL: "1" }
       : {}),
+    "QUARTO_PROJECT_SCRIPT_PROGRESS":
+      progress && !projectRenderConfig.options.flags?.quiet ? "1" : "0",
   };
 
   // run pre-render step if we are rendering all files
