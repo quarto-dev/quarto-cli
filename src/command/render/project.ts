@@ -269,8 +269,10 @@ export async function renderProject(
   await ensureGitignore(context.dir);
 
   // determine whether pre and post render steps should show progress
-  const progress = !!projectRenderConfig.options.progress ||
-    (projectRenderConfig.filesToRender.length > 1);
+  const progress = (
+    !!projectRenderConfig.options.progress ||
+    (projectRenderConfig.filesToRender.length > 1)
+  ) && !projectRenderConfig.options.flags?.quiet;
 
   // if there is an output dir then remove it if clean is specified
   if (
@@ -303,8 +305,7 @@ export async function renderProject(
     ...(projectRenderConfig.behavior.renderAll
       ? { QUARTO_PROJECT_RENDER_ALL: "1" }
       : {}),
-    "QUARTO_PROJECT_SCRIPT_PROGRESS":
-      progress && !projectRenderConfig.options.flags?.quiet ? "1" : "0",
+    "QUARTO_PROJECT_SCRIPT_PROGRESS": progress ? "1" : "0",
   };
 
   // run pre-render step if we are rendering all files
@@ -943,7 +944,7 @@ async function runScripts(
     const args = parseShellRunCommand(scripts[i]);
     const script = args[0];
 
-    if (progress && !quiet) {
+    if (progress) {
       info(colors.bold(colors.blue(`Running script '${script}'`)));
     }
 
