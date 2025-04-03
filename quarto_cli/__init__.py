@@ -1,8 +1,8 @@
-import sys
-import subprocess
 import glob
-from pathlib import Path
+import subprocess
 import sys
+from pathlib import Path
+
 
 def find_version():
     g = str((Path(__file__).parent / "quarto-*").resolve())
@@ -12,8 +12,10 @@ def find_version():
         g += ".exe"
     return g
 
+
 def call_quarto(*args, **kwargs):
     return subprocess.run([find_version(), *sys.argv[1:], *args], **kwargs)
+
 
 def run_quarto(*args, **kwargs):
     call_quarto(*args, **kwargs)
