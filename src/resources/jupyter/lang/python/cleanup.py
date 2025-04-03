@@ -1,11 +1,10 @@
-
 # reset state
 %reset
 
+import json
+import os
 import sys
 import types
-import os
-import json
 
 # NOTE: the kernel_deps code is repeated in the setup.py file
 # (we can't easily share this code b/c of the way it is run).
