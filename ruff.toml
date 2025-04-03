@@ -1,1 +1,3 @@
 extend-exclude = ["**/renv", "**/.venv", ".github", ".vscode", "**/node_modules", "**/__pycache__", "**/build"]
+# don't format .ipynb files as quarto cell comment 
+include = ["**/*.py"]
