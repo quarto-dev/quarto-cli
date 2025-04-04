@@ -2,12 +2,11 @@
 
 ## In this release
 
+## In previous releases
+
 - ([#12147](https://github.com/quarto-dev/quarto-cli/issues/12147)): `serif` and `simple` themes defaults back to have their heading color (`$presentation-heading-color`) to be the same as the body color (`$body-color`) as in Quarto 1.5.
 - ([#11659](https://github.com/quarto-dev/quarto-cli/pull/11659)): Julia engine: Fix escaping bug where paths containing spaces or backslashes break server startup on Windows.
 - ([#12042](https://github.com/quarto-dev/quarto-cli/issues/12042)): Preserve Markdown content that follows YAML metadata in a `raw` .ipynb cell.
-
-## In previous releases
-
 - ([#12148](https://github.com/quarto-dev/quarto-cli/issues/12148)): Don't import libraries outside of `core/lib` into `core/lib`, to avoid pulling in Deno-specific requirements into browser environments.
 - ([#11561](https://github.com/quarto-dev/quarto-cli/issues/11561)): Fix a regression with `$border-color` that impacted, callouts borders, tabset borders, and table borders of the defaults themes. `$border-color` is now correctly a mixed of `$body-color` and `$body-bg` even for the default theme.
 - ([#11943](https://github.com/quarto-dev/quarto-cli/issues/11943)): Fix callout title color on dark theme in revealjs following Revealjs update in quarto 1.6.
