@@ -140,6 +140,7 @@ All changes included in 1.7:
 
 - ([#12114](https://github.com/quarto-dev/quarto-cli/issues/12114)): `JUPYTERCACHE` environment variable from [Jupyter cache CLI](https://jupyter-cache.readthedocs.io/en/latest/using/cli.html) is now respected by Quarto when `cache: true` is used. This environment variable allows to change the path of the cache directory.
 - ([#12374](https://github.com/quarto-dev/quarto-cli/issues/12374)): Detect language properly in Jupyter notebooks that lack the `language` field in their `kernelspec`s.
+- ([#12228](https://github.com/quarto-dev/quarto-cli/issues/12228)): `quarto render` will now fails if errors are detected at IPython display level. Setting `error: true` globally or at cell level will keep the error to show in output and not stop the rendering.
 
 ## Other Fixes and Improvements
 
@@ -160,6 +161,7 @@ All changes included in 1.7:
 - ([#11803](https://github.com/quarto-dev/quarto-cli/pull/11803)): Added a new CLI command `quarto call`. First users of this interface are the new `quarto call engine julia ...` subcommands.
 - ([#12338](https://github.com/quarto-dev/quarto-cli/issues/12338)): Add an additional workaround for the SCSS parser used in color variable extraction.
 - ([#12369](https://github.com/quarto-dev/quarto-cli/pull/12369)): `quarto preview` correctly throws a YAML validation error when a `format` key does not conform.
+- ([#12238](https://gijit.com/quarto-dev/quarto-cli/issues/12238)): Very long error (e.g. in Jupyter Notenook with backtrace) are now no more truncated in the console.
 
 ## Languages
 
