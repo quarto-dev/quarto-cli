@@ -111,6 +111,7 @@ import { runExternalPreviewServer } from "../../preview/preview-server.ts";
 import { onCleanup } from "../../core/cleanup.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { assert } from "testing/asserts";
+import { warn } from "log";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -379,6 +380,12 @@ export const jupyterEngine: ExecutionEngine = {
 
     const nb = jupyterFromJSON(nbContents);
 
+    if (!execute && nb.cells.some((cell) => cell.execution_count === null)) {
+      // warn users that the notebook was not executed
+      warn(
+        `${options.target.input} contains unexecuted code cells. Use 'execute: true' to execute the notebook.`,
+      );
+    }
     // cells tagged 'shinylive' should be emmited as markdown
     fixupShinyliveCodeCells(nb);
 
