@@ -74,7 +74,7 @@ _quarto:
         - ['Only visible in IPYNB']
         - ['Only visible in (?!IPYNB)']
     beamer:
-      ensureFileRegexMatches:
+      ensureLatexFileRegexMatches:
         - ['Only visible in BEAMER', 'Only visible in LATEX', 'Only visible in PDF']
         - ['Only visible in (?!BEAMER|LATEX|PDF)']
 ---
