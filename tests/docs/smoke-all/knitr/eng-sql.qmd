@@ -2,7 +2,6 @@
 title: cell output display wrapping for sql engine
 engine: knitr
 format: html
-keep-md: true
 filters:
   - at: pre-quarto
     path: check-output-display.lua
