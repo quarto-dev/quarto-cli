@@ -957,24 +957,27 @@ async function runScripts(
   quiet: boolean,
   env?: { [key: string]: string },
 ) {
+  // initialize the environment if needed
+  if (env) {
+    env = {
+      ...env,
+    };
+  } else {
+    env = {};
+  }
+  if (!env) throw new Error("should never get here");
+
   for (let i = 0; i < scripts.length; i++) {
     const args = parseShellRunCommand(scripts[i]);
     const script = args[0];
 
     if (progress && !quiet) {
-      info(colors.bold(colors.blue(`${script}`)));
+      info(colors.bold(colors.blue(`Running script '${script}'`)));
+      env["QUARTO_PROJECT_SCRIPT_PROGRESS"] = "1";
     }
 
     const handler = handlerForScript(script);
     if (handler) {
-      if (env) {
-        env = {
-          ...env,
-        };
-      } else {
-        env = {};
-      }
-      if (!env) throw new Error("should never get here");
       const input = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES");
       const output = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES");
       if (input) {
