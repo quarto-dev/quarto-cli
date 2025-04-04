@@ -48,6 +48,7 @@ export const pandocIngestSelfContainedContent = async (
 
   // The raw html contents
   const contents = Deno.readTextFileSync(file);
+  const doctypeMatch = contents.match(/^<!DOCTYPE.*?>/);
   const dom = await parseHtml(contents);
   await bundleModules(dom, workingDir);
 
@@ -63,6 +64,9 @@ export const pandocIngestSelfContainedContent = async (
   cmd.push("--template", template);
   cmd.push("--output", filename);
   cmd.push("--metadata", "title=placeholder");
+  if (doctypeMatch) {
+    cmd.push("--variable", `doctype=${doctypeMatch[0]}`);
+  }
   cmd.push("--embed-resources");
   if (resourcePath && resourcePath.length) {
     cmd.push("--resource-path", resourcePath.join(":"));
