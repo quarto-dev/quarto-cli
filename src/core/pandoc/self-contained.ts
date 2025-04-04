@@ -54,6 +54,9 @@ export const pandocIngestSelfContainedContent = async (
 
   const input: string[] = [];
   input.push("````````{=html}");
+  if (doctypeMatch) {
+    input.push(doctypeMatch[0]);
+  }
   input.push(dom.documentElement!.outerHTML);
   input.push("````````");
 
@@ -64,9 +67,6 @@ export const pandocIngestSelfContainedContent = async (
   cmd.push("--template", template);
   cmd.push("--output", filename);
   cmd.push("--metadata", "title=placeholder");
-  if (doctypeMatch) {
-    cmd.push("--variable", `doctype=${doctypeMatch[0]}`);
-  }
   cmd.push("--embed-resources");
   if (resourcePath && resourcePath.length) {
     cmd.push("--resource-path", resourcePath.join(":"));
