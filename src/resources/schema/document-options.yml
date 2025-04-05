@@ -90,11 +90,10 @@
   tags:
     formats: [$html-doc]
   description:
-    short: "Whether the `prefers-color-scheme` media query controls dark mode."
+    short: "Enables setting dark mode based on the `prefers-color-scheme` media query."
     long: |
-      Whether to use the `prefers-color-scheme` media query to determine whether to show
-      the user a dark or light page. Otherwise the author preference (order of `light`
-      and `dark` in `theme` or `brand`) determines what is shown to the user at first visit.
+      If set. Quarto reads the `prefers-color-scheme` media query to determine whether to show
+      to show the user a dark or light page. Otherwise the author preference will be shown.
 
 - name: html-math-method
   tags:
