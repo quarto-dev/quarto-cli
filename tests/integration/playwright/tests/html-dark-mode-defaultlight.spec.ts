@@ -47,3 +47,26 @@ test('Project specifies dark and light brands and respect-user-color-scheme', as
   await page.goto('./html/dark-brand/project-dark/simple-respect-color-scheme.html');
   await check_backgrounds(page, 'quarto-light', blue, red);
 });
+
+
+test('Project specifies light and dark brands, dynamic respect-user-color-scheme', async ({ page }) => {
+  await page.goto('./html/dark-brand/project-light/simple-respect-color-scheme.html');
+  const locatr = await page.locator('body').first();
+  await expect(locatr).toHaveClass(`fullcontent quarto-light`);
+  await expect(locatr).toHaveCSS('background-color', blue);
+
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(locatr).toHaveClass(`fullcontent quarto-dark`);
+  await expect(locatr).toHaveCSS('background-color', red);
+});
+
+test('Project specifies dark and light brands, dynamic respect-user-color-scheme', async ({ page }) => {
+  await page.goto('./html/dark-brand/project-dark/simple-respect-color-scheme.html');
+  const locatr = await page.locator('body').first();
+  await expect(locatr).toHaveClass(`fullcontent quarto-light`);
+  await expect(locatr).toHaveCSS('background-color', blue);
+
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(locatr).toHaveClass(`fullcontent quarto-dark`);
+  await expect(locatr).toHaveCSS('background-color', red);
+});

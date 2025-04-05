@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 
+async function check_background(page, class_, bkcolor) {
+  const locatr = await page.locator('body').first();
+  await expect(locatr).toHaveClass(`fullcontent ${class_}`);
+  await expect(locatr).toHaveCSS('background-color', bkcolor);
+}
+
 async function check_backgrounds(page, class_, primary, secondary) {
   const locatr = await page.locator('body').first();
   await expect(locatr).toHaveClass(`fullcontent ${class_}`);
@@ -15,7 +21,6 @@ test.use({
 
 const blue = 'rgb(204, 221, 255)';
 const red = 'rgb(66, 7, 11)';
-
 
 // brands used in these documents have background colors
 
@@ -44,8 +49,24 @@ test('Project specifies light and dark brands and respect-user-color-scheme', as
   await check_backgrounds(page, 'quarto-dark', red, blue);
 });
 
+test('Project specifies light and dark brands, dynamic respect-user-color-scheme', async ({ page }) => {
+  await page.goto('./html/dark-brand/project-light/simple-respect-color-scheme.html');
+  const locatr = await page.locator('body').first();
+  await expect(locatr).toHaveClass(`fullcontent quarto-dark`);
+  await expect(locatr).toHaveCSS('background-color', red);
 
-test('Project specifies dark and light brands and respect-user-color-scheme', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await expect(locatr).toHaveClass(`fullcontent quarto-light`);
+  await expect(locatr).toHaveCSS('background-color', blue);
+});
+
+test('Project specifies dark and light brands, dynamic respect-user-color-scheme', async ({ page }) => {
   await page.goto('./html/dark-brand/project-dark/simple-respect-color-scheme.html');
-  await check_backgrounds(page, 'quarto-dark', red, blue);
+  const locatr = await page.locator('body').first();
+  await expect(locatr).toHaveClass(`fullcontent quarto-dark`);
+  await expect(locatr).toHaveCSS('background-color', red);
+
+  await page.emulateMedia({ colorScheme: 'light' });
+  await expect(locatr).toHaveClass(`fullcontent quarto-light`);
+  await expect(locatr).toHaveCSS('background-color', blue);
 });
