@@ -7046,7 +7046,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: {
             arrayOf: "string"
           },
-          description: "Array of rendering names"
+          description: "Array of rendering names, e.g. `[light, dark]`"
         },
         {
           name: "tags",
@@ -16879,8 +16879,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: {
-            short: "Whether the `prefers-color-scheme` media query controls dark mode.",
-            long: "Whether to use the `prefers-color-scheme` media query to determine whether to show\nthe user a dark or light page. Otherwise the author preference (order of `light`\nand `dark` in `theme` or `brand`) determines what is shown to the user at first visit.\n"
+            short: "Enables setting dark mode based on the `prefers-color-scheme` media query.",
+            long: "If set, Quarto reads the `prefers-color-scheme` media query to determine whether to show\nthe user a dark or light page. Otherwise the author-preferred color scheme is shown.\n"
           }
         },
         {
@@ -22965,6 +22965,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Enables tabsets to present content.",
         "Enables smooth scrolling within the page.",
         {
+          short: "Whether the <code>prefers-color-scheme</code> media query controls\ndark mode.",
+          long: "Whether to use the <code>prefers-color-scheme</code> media query to\ndetermine whether to show the user a dark or light page. Otherwise the\nauthor preference (order of <code>light</code> and <code>dark</code> in\n<code>theme</code> or <code>brand</code>) determines what is shown to\nthe user at first visit."
+        },
+        {
           short: "Method use to render math in HTML output",
           long: 'Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href="https://pandoc.org/MANUAL.html#math-rendering-in-html">Math\nRendering in HTML</a> for additional details.'
         },
@@ -24057,11 +24061,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        {
-          short: "Whether the <code>prefers-color-scheme</code> media query controls\ndark mode.",
-          long: "Whether to use the <code>prefers-color-scheme</code> media query to\ndetermine whether to show the user a dark or light page. Otherwise the\nauthor preference (order of <code>light</code> and <code>dark</code> in\n<code>theme</code> or <code>brand</code>) determines what is shown to\nthe user at first visit."
-        }
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
       ],
       "schema/external-schemas.yml": [
         {
@@ -24290,12 +24290,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 194479,
+        _internalId: 194627,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 194471,
+            _internalId: 194619,
             type: "enum",
             enum: [
               "png",
@@ -24311,7 +24311,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 194478,
+            _internalId: 194626,
             type: "anyOf",
             anyOf: [
               {
