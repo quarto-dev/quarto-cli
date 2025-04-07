@@ -25,17 +25,20 @@ All changes included in 1.7:
 - ([#11654](https://github.com/quarto-dev/quarto-cli/issues/11654)): Allow `page-inset` as value in `column` key for code cells.
 - ([#12151](https://github.com/quarto-dev/quarto-cli/issues/12151)): Fix YAML validation in computations cell on Windows. Validate YAML in documents in `julia` engine.
 
-## Website projects
+## Projects
+
+### `website`
 
 - ([#8238](https://github.com/quarto-dev/quarto-cli/issues/8238)): Listing categories are now sorted case-insensitively.
+- ([#10501](https://github.com/quarto-dev/quarto-cli/issues/10501)): Improve documentation of `repo-actions` option.
 - ([#11701](https://github.com/quarto-dev/quarto-cli/issues/11701)): Wrap HTML emitted by EJS templates in `{=html}` blocks to avoid memory blowup issues with Pandoc's parser.
 - ([#12134](https://github.com/quarto-dev/quarto-cli/issues/12134)): Forward `logo.small` images in `_brand.yml` files to a website `favicon`.
 
-## Blog projects
+### `blog`
 
 - ([#11745](https://github.com/quarto-dev/quarto-cli/issues/11745)): Fix categories links under post title in post with url encoded path (e.g. with space or other special characters).
 
-## Book projects
+### `book`
 
 - ([#11520](https://github.com/quarto-dev/quarto-cli/issues/11520)): Book's cover image now escapes lightbox treatment, which was incorrectly applied to it when `lightbox: true` was set in the book's configuration.
 - ([#12134](https://github.com/quarto-dev/quarto-cli/issues/12134)): Forward `logo.small` images in `_brand.yml` files to the `favicon` of the book's website.

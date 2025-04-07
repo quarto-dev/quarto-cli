@@ -19418,7 +19418,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-doc"
             ]
           },
-          description: "Setting this to false prevents the `repo-actions` from appearing on this page."
+          description: "Setting this to false prevents the `repo-actions` from appearing on this page.\nOther possible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
         },
         {
           name: "aliases",
@@ -22858,7 +22858,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Open external links in a new browser window or tab (rather than\nnavigating the current tab).",
         {
           short: "A regular expression that can be used to determine whether a link is\nan internal link.",
-          long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith http://www.quarto.org as internal links (and others will be\nconsidered external):"
+          long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith <code>http://www.quarto.org/custom</code> or\n<code>https://www.quarto.org/custom</code> as internal links (and others\nwill be considered external):"
         },
         {
           short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
