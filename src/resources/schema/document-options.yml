@@ -34,6 +34,11 @@
                   description: The dark theme name, theme scss file, or a mix of both.
   description: Theme name, theme scss file, or a mix of both.
 
+- name: renderings
+  schema:
+    arrayOf: string
+  description: "Array of rendering names, e.g. `[light, dark]`"
+
 - name: body-classes
   tags:
     formats: [$html-doc]
@@ -83,6 +88,17 @@
   tags:
     formats: [$html-doc]
   description: Enables smooth scrolling within the page.
+
+- name: respect-user-color-scheme
+  schema: boolean
+  default: false
+  tags:
+    formats: [$html-doc]
+  description:
+    short: "Enables setting dark mode based on the `prefers-color-scheme` media query."
+    long: |
+      If set, Quarto reads the `prefers-color-scheme` media query to determine whether to show
+      the user a dark or light page. Otherwise the author-preferred color scheme is shown.
 
 - name: html-math-method
   tags:

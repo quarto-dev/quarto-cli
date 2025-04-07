@@ -7046,7 +7046,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: {
             arrayOf: "string"
           },
-          description: "Array of rendering names"
+          description: "Array of rendering names, e.g. `[light, dark]`"
         },
         {
           name: "tags",
@@ -16123,7 +16123,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           description: {
             short: "A regular expression that can be used to determine whether a link is an internal link.",
-            long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
+            long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with `http://www.quarto.org/custom` or `https://www.quarto.org/custom`\nas internal links (and others will be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
           }
         },
         {
@@ -16792,6 +16792,13 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Theme name, theme scss file, or a mix of both."
         },
         {
+          name: "renderings",
+          schema: {
+            arrayOf: "string"
+          },
+          description: "Array of rendering names, e.g. `[light, dark]`"
+        },
+        {
           name: "body-classes",
           tags: {
             formats: [
@@ -16868,6 +16875,20 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "Enables smooth scrolling within the page."
+        },
+        {
+          name: "respect-user-color-scheme",
+          schema: "boolean",
+          default: false,
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: {
+            short: "Enables setting dark mode based on the `prefers-color-scheme` media query.",
+            long: "If set, Quarto reads the `prefers-color-scheme` media query to determine whether to show\nthe user a dark or light page. Otherwise the author-preferred color scheme is shown.\n"
+          }
         },
         {
           name: "html-math-method",
@@ -19404,7 +19425,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-doc"
             ]
           },
-          description: "Setting this to false prevents the `repo-actions` from appearing on this page."
+          description: "Setting this to false prevents the `repo-actions` from appearing on this page.\nOther possible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
         },
         {
           name: "aliases",
@@ -21971,7 +21992,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
         },
         "Classes to apply to cell container",
-        "Array of rendering names",
+        "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
         "Array of tags for notebook cell",
         {
           short: "Notebook cell identifier",
@@ -22751,6 +22772,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Control the <code>\\pagestyle{}</code> for the document.",
         "The paper size for the document.",
+        "The brand mode to use for rendering the Typst document,\n<code>light</code> or <code>dark</code>.",
         {
           short: "The options for margins and text layout for this document.",
           long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.'
@@ -22843,7 +22865,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Open external links in a new browser window or tab (rather than\nnavigating the current tab).",
         {
           short: "A regular expression that can be used to determine whether a link is\nan internal link.",
-          long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith http://www.quarto.org as internal links (and others will be\nconsidered external):"
+          long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith <code>http://www.quarto.org/custom</code> or\n<code>https://www.quarto.org/custom</code> as internal links (and others\nwill be considered external):"
         },
         {
           short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
@@ -22949,6 +22971,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Enables hover over a section title to see an anchor link.",
         "Enables tabsets to present content.",
         "Enables smooth scrolling within the page.",
+        {
+          short: "Enables setting dark mode based on the\n<code>prefers-color-scheme</code> media query.",
+          long: "If set, Quarto reads the <code>prefers-color-scheme</code> media\nquery to determine whether to show the user a dark or light page.\nOtherwise the author-preferred color scheme is shown."
+        },
         {
           short: "Method use to render math in HTML output",
           long: 'Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href="https://pandoc.org/MANUAL.html#math-rendering-in-html">Math\nRendering in HTML</a> for additional details.'
@@ -23322,7 +23348,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Print a list of figures in the document.",
         "Print a list of tables in the document.",
         "Setting this to false prevents this document from being included in\nsearches.",
-        "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
+        "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page. Other possible values are <code>none</code> or\none or more of <code>edit</code>, <code>source</code>, and\n<code>issue</code>, <em>e.g.</em>\n<code>[edit, source, issue]</code>.",
         {
           short: "Links to source repository actions",
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -24043,7 +24069,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Manuscript configuration",
         "internal-schema-hack",
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        "The brand mode to use for rendering the Typst document,\n<code>light</code> or <code>dark</code>."
+        "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>"
       ],
       "schema/external-schemas.yml": [
         {
@@ -24272,12 +24298,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 194259,
+        _internalId: 194632,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 194251,
+            _internalId: 194624,
             type: "enum",
             enum: [
               "png",
@@ -24293,7 +24319,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 194258,
+            _internalId: 194631,
             type: "anyOf",
             anyOf: [
               {

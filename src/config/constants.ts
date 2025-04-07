@@ -142,6 +142,7 @@ export const kHtmlTableProcessing = "html-table-processing";
 export const kHtmlPreTagProcessing = "html-pre-tag-processing";
 export const kCssPropertyProcessing = "css-property-processing";
 export const kBrandMode = "brand-mode";
+export const kRespectUserColorScheme = "respect-user-color-scheme";
 export const kUseRsvgConvert = "use-rsvg-convert";
 export const kValidateYaml = "validate-yaml";
 

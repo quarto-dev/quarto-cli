@@ -37,6 +37,7 @@ export interface LogMessageOptions {
   indent?: number;
   format?: (line: string) => string;
   colorize?: boolean;
+  stripAnsiCode?: boolean;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -156,9 +157,23 @@ export class StdErrOutputHandler extends BaseHandler {
     return msg;
   }
   log(msg: string): void {
-    Deno.stderr.writeSync(
-      new TextEncoder().encode(msg),
-    );
+    const encoder = new TextEncoder();
+    const data = encoder.encode(msg);
+
+    let bytesWritten = 0;
+    while (bytesWritten < data.length) {
+      // Write the remaining portion of the buffer
+      const remaining = data.subarray(bytesWritten);
+      const written = Deno.stderr.writeSync(remaining);
+
+      // If we wrote 0 bytes, something is wrong - avoid infinite loop
+      if (written === 0) {
+        // Could add fallback handling here if needed
+        break;
+      }
+
+      bytesWritten += written;
+    }
   }
 }
 
@@ -215,6 +230,7 @@ export class LogFileHandler extends FileHandler {
         ...logRecord.args[0] as LogMessageOptions,
         bold: false,
         dim: false,
+        stripAnsiCode: true,
         format: undefined,
       };
       let msg = applyMsgOptions(logRecord.msg, options);
@@ -403,7 +419,9 @@ function applyMsgOptions(msg: string, options: LogMessageOptions) {
   if (options.format) {
     msg = options.format(msg);
   }
-
+  if (options.stripAnsiCode) {
+    msg = colors.stripAnsiCode(msg);
+  }
   return msg;
 }
 

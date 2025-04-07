@@ -517,9 +517,11 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
 
    # check options for eval and error
    eval = cell_options.get('eval', eval_default)
-   allow_errors = cell_options.get('error', False)
+   allow_errors = cell_options.get('error')
      
    trace(f"cell_execute with eval={eval}")
+   if (allow_errors == True):
+      trace(f"cell_execute with allow_errors={allow_errors}")
 
    # execute if eval is active
    if eval == True:
@@ -552,6 +554,27 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
          cell["metadata"]["tags"].remove('raises-exception')
          if len(cell["metadata"]["tags"]) == 0:
             del cell["metadata"]["tags"]
+
+      # Check for display errors in output (respecting both global and cell settings)
+      cell_allows_errors = allow_errors if allow_errors is not None else client.allow_errors
+      if not cell_allows_errors:
+         trace("Cell does not allow errors: checking for uncaught errors")
+         for output in cell.outputs:
+            if output.get('output_type') == 'error':
+               trace("   Uncaught error found in output")
+               from nbclient.exceptions import CellExecutionError
+               error_name = output.get('ename', 'UnnamedError')
+               error_value = output.get('evalue', '')
+               traceback = output.get('traceback', [])
+               # Use same error raising mechanism as nbclient
+               raise CellExecutionError.from_cell_and_msg(
+                  cell,
+                  {
+                     'ename': 'UncaughtCellError:' + error_name,
+                     'evalue': error_value,
+                     'traceback': traceback
+                  }
+               )
 
    # return cell
    return cell
