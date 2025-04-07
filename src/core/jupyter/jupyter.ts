@@ -923,14 +923,17 @@ export function jupyterCellWithOptions(
     }
   };
 
-  const validMetadata: Record<string, string | number | boolean | null> = {};
+  const validMetadata: Record<
+    string,
+    string | number | boolean | null | Array<unknown>
+  > = {};
   for (const key of Object.keys(cell.metadata)) {
     const value = cell.metadata[key];
     let jsonEncodedKeyIndex = 0;
     if (value !== undefined) {
       if (!value && typeof value === "object") {
         validMetadata[key] = null;
-      } else if (value && typeof value === "object") {
+      } else if (value && typeof value === "object" && !Array.isArray(value)) {
         // https://github.com/quarto-dev/quarto-cli/issues/9089
         // we need to json-encode this and signal the encoding in the key
         // we can't use the key as is since it may contain invalid characters
@@ -944,7 +947,7 @@ export function jupyterCellWithOptions(
         ] = JSON.stringify({ key, value });
       } else if (
         typeof value === "string" || typeof value === "number" ||
-        typeof value === "boolean"
+        typeof value === "boolean" || Array.isArray(value)
       ) {
         validMetadata[key] = value;
       } else {
