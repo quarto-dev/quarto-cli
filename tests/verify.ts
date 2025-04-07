@@ -83,25 +83,45 @@ export const withPptxContent = async <T>(
   }
 };
 
+const checkErrors = (outputs: ExecuteOutput[]): { errors: boolean, messages: string | undefined } => {
+  const isError = (output: ExecuteOutput) => {
+    return output.levelName.toLowerCase() === "error";
+  };
+  const errors = outputs.some(isError);
+
+  const messages = errors ? outputs.filter(isError).map((outputs) => outputs.msg).join("\n") : undefined
+
+  return({
+    errors,
+    messages
+  })
+}
+
 export const noErrors: Verify = {
   name: "No Errors",
   verify: (outputs: ExecuteOutput[]) => {
-    const isError = (output: ExecuteOutput) => {
-      return output.levelName.toLowerCase() === "error";
-    };
+    
+    const { errors, messages } = checkErrors(outputs);
 
-    const errors = outputs.some(isError);
+    assert(
+      !errors,
+      `Errors During Execution\n|${messages}|`,
+    );
 
-    // Output an error or warning if it exists
-    if (errors) {
-      const messages = outputs.filter(isError).map((outputs) => outputs.msg)
-        .join("\n");
+    return Promise.resolve();
+  },
+};
 
-      assert(
-        !errors,
-        `Errors During Execution\n|${messages}|`,
-      );
-    }
+export const shouldError: Verify = {
+  name: "Should Error",
+  verify: (outputs: ExecuteOutput[]) => {
+
+    const { errors } = checkErrors(outputs);
+
+    assert(
+      errors,
+      `No errors during execution while rendering was expected to fail.`,
+    );
 
     return Promise.resolve();
   },
@@ -325,31 +345,33 @@ export const ensureHtmlElements = (
 };
 
 export const ensureHtmlElementContents = (
-  file: string,
-  selectors: string[],
-  matches: (string | RegExp)[],
-  noMatches: (string | RegExp)[]
+  file: string, 
+  options : {
+    selectors: string[],
+    matches: (string | RegExp)[],
+    noMatches?: (string | RegExp)[]
+  }
 ) => {
   return {
     name: "Inspecting HTML for Selector Contents",
     verify: async (_output: ExecuteOutput[]) => {
       const htmlInput = await Deno.readTextFile(file);
       const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
-      selectors.forEach((sel) => {
+      options.selectors.forEach((sel) => {
         const el = doc.querySelector(sel);
         if (el !== null) {
           const contents = el.innerText;
-          matches.forEach((regex) => {
+          options.matches.forEach((regex) => {
             assert(
               asRegexp(regex).test(contents),
-              `Required match ${String(regex)} is missing from selector ${sel}.`,
+              `Required match ${String(regex)} is missing from selector ${sel} content: ${contents}.`,
             );
           });
 
-          noMatches.forEach((regex) => {
+          options.noMatches?.forEach((regex) => {
             assert(
               !asRegexp(regex).test(contents),
-              `Unexpected match ${String(regex)} is present from selector ${sel}.`,
+              `Unexpected match ${String(regex)} is present from selector ${sel} content: ${contents}.`,
             );
           });
   

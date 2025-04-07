@@ -548,10 +548,6 @@ function parse_floatreftargets()
           end
         })
         return parse_float_div(div)
-      elseif isTableDiv(div) then
-        -- FIXUP: We don't go here for a `#tbl-` id as it is matched as a FigureDiv above
-        -- TO REMOVE ? 
-        return parse_float_div(div)
       end
 
       if div.classes:includes("cell") then
@@ -660,8 +656,8 @@ function parse_floatreftargets()
       end
       code.attr.attributes['lst-cap'] = nil
       
-      local attr = code.attr
-      -- code.attr = pandoc.Attr("", {}, {})
+      local attr = pandoc.Attr(code.identifier, code.attr.classes, code.attr.attributes)
+      code.attr = pandoc.Attr("", code.classes, code.attr.attributes)
       return construct({
         attr = attr,
         type = "Listing",
@@ -690,7 +686,7 @@ function parse_floatreftargets()
       end
       
       local attr = code.attr
-      code.attr = pandoc.Attr("", {}, {})
+      code.attr = pandoc.Attr("", code.classes, code.attr.attributes)
       return construct({
         attr = attr,
         type = "Listing",

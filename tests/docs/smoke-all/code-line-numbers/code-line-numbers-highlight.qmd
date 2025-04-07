@@ -75,5 +75,5 @@ plt.show()
 #| results: hold
 1 + 1
 2 + 2
-3 + 3 
+3 + 3
 ```

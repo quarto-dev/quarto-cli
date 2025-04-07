@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { extname, join, resolve } from "../deno_ral/path.ts";
+import { extname, join } from "../deno_ral/path.ts";
 
 import * as ld from "../core/lodash.ts";
 
@@ -23,7 +23,6 @@ import { kMdExtensions, markdownEngine } from "./markdown.ts";
 import { ExecutionEngine, kQmdExtensions } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
 import { languages as handlerLanguages } from "../core/handlers/base.ts";
-import { MappedString } from "../core/lib/text-types.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { ProjectContext } from "../project/types.ts";
@@ -31,6 +30,7 @@ import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
 import { gitignoreEntries } from "../project/project-gitignore.ts";
 import { juliaEngine } from "./julia.ts";
 import { ensureFileInformationCache } from "../project/project-shared.ts";
+import { Command } from "cliffy/command/mod.ts";
 
 const kEngines: Map<string, ExecutionEngine> = new Map();
 
@@ -276,3 +276,30 @@ export function projectIgnoreGlobs(dir: string) {
     gitignoreEntries(dir).map((ignore) => `**/${ignore}**`),
   );
 }
+
+export const engineCommand = new Command()
+  .name("engine")
+  .description(
+    `Access functionality specific to quarto's different rendering engines.`,
+  )
+  .action(() => {
+    engineCommand.showHelp();
+    Deno.exit(1);
+  });
+
+kEngines.forEach((engine, name) => {
+  if (engine.populateCommand) {
+    const engineSubcommand = new Command();
+    // fill in some default behavior for each engine command
+    engineSubcommand
+      .description(
+        `Access functionality specific to the ${name} rendering engine.`,
+      )
+      .action(() => {
+        engineSubcommand.showHelp();
+        Deno.exit(1);
+      });
+    engine.populateCommand(engineSubcommand);
+    engineCommand.command(name, engineSubcommand);
+  }
+});

@@ -17,5 +17,5 @@ _quarto:
 #| label: tbl-res1
 #| tbl-cap: "mtcars using colwidths doesn't work."
 #| tbl-colwidths: [25, 25, 25, 25]
-knitr::kable(mtcars[,1:3])
+knitr::kable(mtcars[, 1:3])
 ```

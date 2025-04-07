@@ -19,7 +19,6 @@ import {
 } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
-import { TempContext } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 import { cleanSourceMappingUrl, compileSass } from "../../core/sass.ts";
 
@@ -88,37 +87,61 @@ export async function resolveSassBundles(
     // the brand bundle itself doesn't have any 'brand' entries;
     // those are used to specify where the brand-specific layers should be inserted
     // in the final bundle.
-    const brandLayersMaybeBrand = bundlesWithBrand.find((bundle) =>
+    const maybeBrandBundle = bundlesWithBrand.find((bundle) =>
       bundle.key === "brand"
-    )?.user || [];
-    assert(!brandLayersMaybeBrand.find((v) => v === "brand"));
-    const brandLayers = brandLayersMaybeBrand as SassLayer[];
-    let foundBrand = false;
+    );
+    assert(
+      !maybeBrandBundle ||
+        !maybeBrandBundle.user?.find((v) => v === "brand") &&
+          !maybeBrandBundle.dark?.user?.find((v) => v === "brand"),
+    );
+    const foundBrand = { light: false, dark: false };
     const bundles: SassBundle[] = bundlesWithBrand.filter((bundle) =>
       bundle.key !== "brand"
     ).map((bundle) => {
       const userBrand = bundle.user?.findIndex((layer) => layer === "brand");
+      let cloned = false;
       if (userBrand && userBrand !== -1) {
         bundle = cloneDeep(bundle);
-        bundle.user!.splice(userBrand, 1, ...brandLayers);
-        foundBrand = true;
+        cloned = true;
+        bundle.user!.splice(userBrand, 1, ...(maybeBrandBundle?.user || []));
+        foundBrand.light = true;
+      }
+      const darkBrand = bundle.dark?.user?.findIndex((layer) =>
+        layer === "brand"
+      );
+      if (darkBrand && darkBrand !== -1) {
+        if (!cloned) {
+          bundle = cloneDeep(bundle);
+        }
+        bundle.dark!.user!.splice(
+          darkBrand,
+          1,
+          ...(maybeBrandBundle?.dark?.user || []),
+        );
+        foundBrand.dark = true;
       }
       return bundle as SassBundle;
     });
-    if (!foundBrand) {
+    if (maybeBrandBundle && (!foundBrand.light || !foundBrand.dark)) {
       bundles.unshift({
         dependency,
         key: "brand",
-        user: brandLayers,
+        user: !foundBrand.light && maybeBrandBundle.user as SassLayer[] || [],
+        dark: !foundBrand.dark && maybeBrandBundle.dark?.user && {
+              user: maybeBrandBundle.dark.user as SassLayer[],
+              default: maybeBrandBundle.dark.default,
+            } || undefined,
       });
     }
 
     // See if any bundles are providing dark specific css
     const hasDark = bundles.some((bundle) => bundle.dark !== undefined);
-    defaultStyle =
-      bundles.some((bundle) => bundle.dark !== undefined && bundle.dark.default)
-        ? "dark"
-        : "light";
+    defaultStyle = bundles.some((bundle) =>
+        bundle.dark !== undefined && bundle.dark.default
+      )
+      ? "dark"
+      : "light";
     const targets: SassTarget[] = [{
       name: `${dependency}.min.css`,
       bundles: (bundles as any),
@@ -130,7 +153,7 @@ export async function resolveSassBundles(
       // Note that the other bundle provides light
       targets[0].attribs = {
         ...targets[0].attribs,
-        ...attribForThemeStyle("light", defaultStyle),
+        ...attribForThemeStyle("light"),
       };
 
       // Provide a dark bundle for this
@@ -144,14 +167,19 @@ export async function resolveSassBundles(
         bundle.key = bundle.key + "-dark";
         return bundle;
       });
-      targets.push({
+      const darkTarget = {
         name: `${dependency}-dark.min.css`,
         bundles: darkBundles as any,
         attribs: {
           "append-hash": "true",
-          ...attribForThemeStyle("dark", defaultStyle),
+          ...attribForThemeStyle("dark"),
         },
-      });
+      };
+      if (defaultStyle === "dark") {
+        targets.push(darkTarget);
+      } else {
+        targets.unshift(darkTarget);
+      }
 
       hasDarkStyles = true;
     }
@@ -256,6 +284,18 @@ export async function resolveSassBundles(
   }
 
   // Resolve generated quarto css variables
+  if (hasDarkStyles && defaultStyle !== "dark") {
+    // Put dark stylesheet first if light is default (for NoJS)
+    extras = await resolveQuartoSyntaxHighlighting(
+      inputDir,
+      extras,
+      format,
+      project,
+      "dark",
+      defaultStyle,
+    );
+  }
+
   extras = await resolveQuartoSyntaxHighlighting(
     inputDir,
     extras,
@@ -265,8 +305,8 @@ export async function resolveSassBundles(
     defaultStyle,
   );
 
-  if (hasDarkStyles) {
-    // Provide dark variables for this
+  if (hasDarkStyles && defaultStyle === "dark") {
+    // Put dark stylesheet second if dark is default (for NoJS)
     extras = await resolveQuartoSyntaxHighlighting(
       inputDir,
       extras,
@@ -303,7 +343,7 @@ async function resolveQuartoSyntaxHighlighting(
   extras = cloneDeep(extras);
 
   // If we're using default highlighting, use theme darkness to select highlight style
-  const mediaAttr = attribForThemeStyle(style, defaultStyle);
+  const mediaAttr = attribForThemeStyle(style);
   if (style === "default") {
     if (extras.html?.[kTextHighlightingMode] === "dark") {
       style = "dark";
@@ -559,28 +599,23 @@ const kVariablesRegex =
   /\/\*\! quarto-variables-start \*\/([\S\s]*)\/\*\! quarto-variables-end \*\//g;
 
 // Attributes for the style tag
-// Note that we default disable the dark mode and rely on JS to enable it
 function attribForThemeStyle(
   style: "dark" | "light" | "default",
-  defaultStyle?: "dark" | "light",
 ): Record<string, string> {
-  const colorModeAttrs = (mode: string, disabled: boolean) => {
+  const colorModeAttrs = (mode: string) => {
     const attr: Record<string, string> = {
       class: `quarto-color-scheme${
         mode === "dark" ? " quarto-color-alternate" : ""
       }`,
     };
-    if (disabled) {
-      attr.rel = "prefetch";
-    }
     return attr;
   };
 
   switch (style) {
     case "dark":
-      return colorModeAttrs("dark", defaultStyle !== "dark");
+      return colorModeAttrs("dark");
     case "light":
-      return colorModeAttrs("light", false);
+      return colorModeAttrs("light");
     case "default":
     default:
       return {};

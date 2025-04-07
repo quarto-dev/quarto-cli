@@ -935,6 +935,9 @@
                     "copy-button": {
                       "type": "boolean"
                     },
+                    "merge-navbar-crumbs": {
+                      "type": "boolean"
+                    },
                     "keyboard-shortcut": {
                       "anyOf": [
                         {
@@ -3775,6 +3778,45 @@
           }
         }
       }
+    },
+    "BrandPathBoolLightDark": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "object": {
+            "properties": {
+              "light": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/Brand"
+                  }
+                ]
+              },
+              "dark": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/Brand"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/Brand"
+        }
+      ]
     },
     "BrandDefaults": {
       "object": {

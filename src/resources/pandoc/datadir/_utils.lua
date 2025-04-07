@@ -97,7 +97,7 @@ function tdump (tbl, raw)
     for k, v in pairsByKeys(tbl, typesThenValues) do
       if shouldPrint(k, v, tbl) then
         empty = false
-        formatting = indentStr .. "  " .. k .. ": "
+        local formatting = indentStr .. "  " .. k .. ": "
         v = asLua(v)
         if type(v) == "table" or type(v) == "userdata" and v.is_emulated then
           printInner(formatting)
