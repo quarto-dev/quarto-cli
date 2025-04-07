@@ -335,18 +335,6 @@ end, function(float)
     float.content.caption.long = float.caption_long
     float.content.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
     return float.content
-  elseif float_type == "lst" then
-    local handle_code_block = function(codeblock)
-      codeblock.attr = merge_attrs(codeblock.attr, pandoc.Attr("", float.classes or {}, float.attributes or {}))
-      return codeblock
-    end
-    if float.content.t == "CodeBlock" then
-      float.content = handle_code_block(float.content)
-    else
-      float.content = _quarto.ast.walk(float.content, {
-        CodeBlock = handle_code_block
-      })
-    end
   end
 
   local fig_scap = attribute(float, kFigScap, nil)
@@ -630,19 +618,6 @@ _quarto.ast.add_renderer("FloatRefTarget", function(_)
   return _quarto.format.isHtmlOutput()
 end, function(float)
   decorate_caption_with_crossref(float)
-
-  ------------------------------------------------------------------------------------
-  -- Special handling for listings
-  local found_listing = get_node_from_float_and_type(float, "CodeBlock")
-  if found_listing then
-    found_listing.attr = merge_attrs(found_listing.attr, pandoc.Attr("", float.classes or {}, float.attributes or {}))
-    -- FIXME this seems to be necessary for our postprocessor to kick in
-    -- check this out later
-    found_listing.identifier = float.identifier
-  end
-
-  ------------------------------------------------------------------------------------
-  
   return float_reftarget_render_html_figure(float)
 end)
 
@@ -1051,7 +1026,7 @@ end, function(float)
   local caption_location = cap_location(float)
 
   local open_block = pandoc.RawBlock("markdown", "<div id=\"" .. float.identifier .. "\">\n")
-  local close_block = pandoc.RawBlock("markdown", "\n</div>")
+  local close_block = pandoc.RawBlock("markdown", "</div>")
   local result = pandoc.Blocks({open_block})
   local insert_content = function()
     if pandoc.utils.type(float.content) == "Block" then
@@ -1076,6 +1051,7 @@ end, function(float)
     insert_content()
     result:insert(pandoc.RawBlock("markdown", "\n"))
     insert_caption()
+    result:insert(pandoc.RawBlock("markdown", "\n"))
     result:insert(close_block)
   end
   return result

@@ -67,7 +67,7 @@ export function esBuild(version: string): Dependency {
   };
 
   return {
-    name: "esbuild javscript bundler",
+    name: "esbuild javascript bundler",
     bucket: "esbuild",
     version,
     architectureDependencies: {

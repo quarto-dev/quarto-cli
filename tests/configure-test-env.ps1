@@ -33,7 +33,7 @@ try {$null = gcm julia -ea stop; $julia=$true } catch {
 If ($julia) {
   # TODO: Check to do equivalent of virtualenv
   Write-Host "Setting up Julia environment"
-  uv run --frozen julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(`"IJulia`"); Pkg.precompile()"
+  uv run --frozen julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("""IJulia"""); Pkg.precompile()'
 }
 
 # Check TinyTeX

@@ -41,11 +41,11 @@ library(bslib)
 library(bsicons)
 library(shiny)
 value_box(
-    title = "3rd value",
-    value = "789",
-    showcase = bs_icon("pie-chart"),
-    theme = "pink",
-  )
+  title = "3rd value",
+  value = "789",
+  showcase = bs_icon("pie-chart"),
+  theme = "pink",
+)
 ```
 
 ## Row

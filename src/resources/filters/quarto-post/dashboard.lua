@@ -746,10 +746,10 @@ function render_dashboard()
           local which
           if pandoc.utils.type(logo) == 'Inlines' then 
             which = logo[1].text
-            local brandLogo = _quarto.modules.brand.get_logo(logo[1].text)
+            local brandLogo = _quarto.modules.brand.get_logo('light', logo[1].text)
             resolved = brandLogo and brandLogo.light
           elseif type(logo) == 'table' then
-            local brandLogo = _quarto.modules.brand.get_logo(logo.path[1].text)
+            local brandLogo = _quarto.modules.brand.get_logo('light', logo.path[1].text)
             if brandLogo then
               resolved = brandLogo.light
               if logo.alt then
@@ -763,9 +763,9 @@ function render_dashboard()
             end
           end
         else
-          logo = _quarto.modules.brand.get_logo('small')
-            or _quarto.modules.brand.get_logo('medium')
-            or _quarto.modules.brand.get_logo('large')
+          logo = _quarto.modules.brand.get_logo('light', 'small')
+            or _quarto.modules.brand.get_logo('light', 'medium')
+            or _quarto.modules.brand.get_logo('light', 'large')
           resolved = logo and logo.light
         end
         if resolved then

@@ -8,14 +8,11 @@
 
 - name: brand
   schema:
-    anyOf:
-      - string # a file path
-      - boolean # if false, don't use branding on this document
-      - ref: brand # an inline brand object definition
+    ref: brand-path-bool-light-dark
   description: |
     Branding information to use for this document. If a string, the path to a brand file.
     If false, don't use branding on this document. If an object, an inline brand
-    definition.
+    definition, or an object with light and dark brand paths or definitions.
 
 - name: theme
   tags:
@@ -36,6 +33,11 @@
                 string:
                   description: The dark theme name, theme scss file, or a mix of both.
   description: Theme name, theme scss file, or a mix of both.
+
+- name: renderings
+  schema:
+    arrayOf: string
+  description: "Array of rendering names, e.g. `[light, dark]`"
 
 - name: body-classes
   tags:
@@ -86,6 +88,17 @@
   tags:
     formats: [$html-doc]
   description: Enables smooth scrolling within the page.
+
+- name: respect-user-color-scheme
+  schema: boolean
+  default: false
+  tags:
+    formats: [$html-doc]
+  description:
+    short: "Enables setting dark mode based on the `prefers-color-scheme` media query."
+    long: |
+      If set, Quarto reads the `prefers-color-scheme` media query to determine whether to show
+      the user a dark or light page. Otherwise the author-preferred color scheme is shown.
 
 - name: html-math-method
   tags:

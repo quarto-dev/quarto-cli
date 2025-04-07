@@ -9,6 +9,7 @@ import { existsSync } from "../../deno_ral/fs.ts";
 import {
   kBibliography,
   kBrand,
+  kBrandMode,
   kCitationLocation,
   kCiteMethod,
   kClearCellOptions,
@@ -838,7 +839,7 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
 
 function pdfEngine(options: PandocOptions): string {
   const pdfEngine = options.flags?.pdfEngine ||
-    options.metadata?.[kPdfEngine] as string ||
+    options.format.pandoc?.[kPdfEngine] as string ||
     "pdflatex";
   return pdfEngine;
 }
@@ -909,6 +910,7 @@ const extractTypstFilterParams = (format: Format) => {
     [kTocIndent]: format.metadata[kTocIndent],
     [kLogo]: format.metadata[kLogo],
     [kCssPropertyProcessing]: format.metadata[kCssPropertyProcessing],
+    [kBrandMode]: format.metadata[kBrandMode],
     [kHtmlPreTagProcessing]: format.metadata[kHtmlPreTagProcessing],
   };
 };

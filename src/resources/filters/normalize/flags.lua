@@ -109,6 +109,11 @@ function compute_flags()
             flags.needs_output_unrolling = true
           end
         end
+
+        -- cell-renderings.lua
+        if node.attributes["renderings"] then
+          flags.has_renderings = true
+        end
       end
     end,
     CodeBlock = function(node)
@@ -189,6 +194,9 @@ function compute_flags()
         flags.has_lightbox = true
       elseif lightbox_auto == false then
         flags.has_lightbox = false
+      end
+      if el.renderings then
+        flags.has_renderings = true
       end
     end,
   }}
