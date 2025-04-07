@@ -34,6 +34,11 @@
                   description: The dark theme name, theme scss file, or a mix of both.
   description: Theme name, theme scss file, or a mix of both.
 
+- name: renderings
+  schema:
+    arrayOf: string
+  description: "Array of rendering names, e.g. `[light, dark]`"
+
 - name: body-classes
   tags:
     formats: [$html-doc]
