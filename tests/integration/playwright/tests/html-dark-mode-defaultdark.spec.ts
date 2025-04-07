@@ -87,3 +87,21 @@ test('Project specifies dark and light brands, dynamic respect-user-color-scheme
   await expect(locatr).toHaveCSS('background-color', blue);
   await check_toggle(page, false);
 });
+
+
+test('Project specifies dark and light brands, do not respect-user-color-scheme after toggling', async ({ page }) => {
+  await page.goto('./html/dark-brand/project-dark/simple-respect-color-scheme.html');
+  const locatr = await page.locator('body').first();
+  await expect(locatr).toHaveClass(`fullcontent quarto-dark`);
+  await expect(locatr).toHaveCSS('background-color', red);
+  await check_toggle(page, true);
+
+  await check_backgrounds(page, 'quarto-dark', red, blue);
+  await check_backgrounds(page, 'quarto-light', blue, red);
+  await check_toggle(page, true);
+
+  await page.emulateMedia({ colorScheme: 'light' });
+  await expect(locatr).toHaveClass(`fullcontent quarto-dark`);
+  await expect(locatr).toHaveCSS('background-color', red);
+  await check_toggle(page, true);
+});
