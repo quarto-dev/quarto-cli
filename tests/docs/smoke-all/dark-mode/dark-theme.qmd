@@ -1,0 +1,17 @@
+---
+format: revealjs
+theme:
+  dark: slate
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["link[href*=\"-dark-\"]"]
+        - []
+---
+
+## Hello
+
+```markdown
+![asdf](asd.png)
+```
