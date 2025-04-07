@@ -925,11 +925,19 @@ export function jupyterCellWithOptions(
   const validMetadata: Record<string, string | number | boolean> = {};
   for (const key of Object.keys(cell.metadata)) {
     const value = cell.metadata[key];
+    let jsonEncodedKeyIndex = 0;
     if (value !== undefined) {
       if (value && typeof value === "object") {
+        // https://github.com/quarto-dev/quarto-cli/issues/9089
         // we need to json-encode this and signal the encoding in the key
+        // we can't use the key as is since it may contain invalid characters
+        // and modifying the key might introduce collisions
+        // we ensure the key is unique with a counter, and assume
+        // "quarto-private-*" to be a private namespace for quarto.
+        // we'd prefer to use _quarto-* instead, but Pandoc doesn't allow keys to start
+        // with an underscore.
         validMetadata[
-          `quarto-json-encoded-${key.replaceAll(/[^A-Za-z]/g, "_")}`
+          `quarto-private-${++jsonEncodedKeyIndex}`
         ] = JSON.stringify({ key, value });
       } else if (
         typeof value === "string" || typeof value === "number" ||
