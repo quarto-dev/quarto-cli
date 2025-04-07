@@ -158,7 +158,9 @@
     {
       "name": "title",
       "tags": {
-        "formats": ["dashboard"]
+        "formats": [
+          "dashboard"
+        ]
       },
       "schema": "string",
       "description": {
@@ -168,10 +170,15 @@
     {
       "name": "padding",
       "tags": {
-        "formats": ["dashboard"]
+        "formats": [
+          "dashboard"
+        ]
       },
       "schema": {
-        "anyOf": ["string", "number"]
+        "anyOf": [
+          "string",
+          "number"
+        ]
       },
       "description": {
         "short": "Padding around dashboard card content (default `8px`)"
@@ -180,7 +187,9 @@
     {
       "name": "expandable",
       "tags": {
-        "formats": ["dashboard"]
+        "formats": [
+          "dashboard"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -191,10 +200,15 @@
     {
       "name": "width",
       "tags": {
-        "formats": ["dashboard"]
+        "formats": [
+          "dashboard"
+        ]
       },
       "schema": {
-        "anyOf": ["string", "number"]
+        "anyOf": [
+          "string",
+          "number"
+        ]
       },
       "description": {
         "short": "Percentage or absolute pixel width for dashboard card (defaults to evenly spaced across row)"
@@ -203,10 +217,15 @@
     {
       "name": "height",
       "tags": {
-        "formats": ["dashboard"]
+        "formats": [
+          "dashboard"
+        ]
       },
       "schema": {
-        "anyOf": ["string", "number"]
+        "anyOf": [
+          "string",
+          "number"
+        ]
       },
       "description": {
         "short": "Percentage or absolute pixel height for dashboard card (defaults to evenly spaced across column)"
@@ -215,8 +234,12 @@
     {
       "name": "context",
       "tags": {
-        "formats": ["dashboard"],
-        "engine": ["jupyter"]
+        "formats": [
+          "dashboard"
+        ],
+        "engine": [
+          "jupyter"
+        ]
       },
       "schema": "string",
       "description": {
@@ -226,7 +249,9 @@
     {
       "name": "content",
       "tags": {
-        "formats": ["dashboard"]
+        "formats": [
+          "dashboard"
+        ]
       },
       "schema": {
         "enum": [
@@ -244,7 +269,9 @@
     {
       "name": "color",
       "tags": {
-        "formats": ["dashboard"]
+        "formats": [
+          "dashboard"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -272,7 +299,9 @@
     {
       "name": "eval",
       "tags": {
-        "contexts": ["document-execute"],
+        "contexts": [
+          "document-execute"
+        ],
         "execute-only": true
       },
       "schema": "boolean",
@@ -285,14 +314,18 @@
     {
       "name": "echo",
       "tags": {
-        "contexts": ["document-execute"],
+        "contexts": [
+          "document-execute"
+        ],
         "execute-only": true
       },
       "schema": {
         "anyOf": [
           "boolean",
           {
-            "enum": ["fenced"]
+            "enum": [
+              "fenced"
+            ]
           }
         ],
         "errorDescription": "be `true`, `false`, or `fenced`"
@@ -305,14 +338,20 @@
     {
       "name": "code-fold",
       "tags": {
-        "contexts": ["document-code"],
-        "formats": ["$html-all"]
+        "contexts": [
+          "document-code"
+        ],
+        "formats": [
+          "$html-all"
+        ]
       },
       "schema": {
         "anyOf": [
           "boolean",
           {
-            "enum": ["show"]
+            "enum": [
+              "show"
+            ]
           }
         ]
       },
@@ -325,8 +364,12 @@
     {
       "name": "code-summary",
       "tags": {
-        "contexts": ["document-code"],
-        "formats": ["$html-all"]
+        "contexts": [
+          "document-code"
+        ],
+        "formats": [
+          "$html-all"
+        ]
       },
       "schema": "string",
       "default": "Code",
@@ -335,11 +378,18 @@
     {
       "name": "code-overflow",
       "tags": {
-        "contexts": ["document-code"],
-        "formats": ["$html-all"]
+        "contexts": [
+          "document-code"
+        ],
+        "formats": [
+          "$html-all"
+        ]
       },
       "schema": {
-        "enum": ["scroll", "wrap"]
+        "enum": [
+          "scroll",
+          "wrap"
+        ]
       },
       "default": "scroll",
       "description": {
@@ -350,11 +400,20 @@
     {
       "name": "code-line-numbers",
       "tags": {
-        "contexts": ["document-code"],
-        "formats": ["$html-all", "ms", "$pdf-all"]
+        "contexts": [
+          "document-code"
+        ],
+        "formats": [
+          "$html-all",
+          "ms",
+          "$pdf-all"
+        ]
       },
       "schema": {
-        "anyOf": ["boolean", "string"],
+        "anyOf": [
+          "boolean",
+          "string"
+        ],
         "tags": {
           "doNotNarrowError": true
         },
@@ -385,7 +444,10 @@
         "anyOf": [
           "boolean",
           {
-            "enum": ["styler", "formatR"]
+            "enum": [
+              "styler",
+              "formatR"
+            ]
           }
         ]
       },
@@ -483,7 +545,9 @@
       "schema": {
         "anyOf": [
           {
-            "enum": [true]
+            "enum": [
+              true
+            ]
           },
           {
             "maybeArrayOf": "string"
@@ -502,12 +566,25 @@
     {
       "name": "fig-align",
       "tags": {
-        "contexts": ["document-figures"],
-        "formats": ["docx", "rtf", "$odt-all", "$pdf-all", "$html-all"]
+        "contexts": [
+          "document-figures"
+        ],
+        "formats": [
+          "docx",
+          "rtf",
+          "$odt-all",
+          "$pdf-all",
+          "$html-all"
+        ]
       },
       "schema": {
         "maybeArrayOf": {
-          "enum": ["default", "left", "right", "center"]
+          "enum": [
+            "default",
+            "left",
+            "right",
+            "center"
+          ]
         }
       },
       "default": "default",
@@ -516,7 +593,9 @@
     {
       "name": "fig-alt",
       "tags": {
-        "formats": ["$html-all"]
+        "formats": [
+          "$html-all"
+        ]
       },
       "schema": {
         "maybeArrayOf": "string"
@@ -526,8 +605,12 @@
     {
       "name": "fig-env",
       "tags": {
-        "formats": ["$pdf-all"],
-        "contexts": ["document-figures"]
+        "formats": [
+          "$pdf-all"
+        ],
+        "contexts": [
+          "document-figures"
+        ]
       },
       "schema": {
         "maybeArrayOf": "string"
@@ -537,8 +620,12 @@
     {
       "name": "fig-pos",
       "tags": {
-        "formats": ["$pdf-all"],
-        "contexts": ["document-figures"]
+        "formats": [
+          "$pdf-all"
+        ],
+        "contexts": [
+          "document-figures"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -546,7 +633,9 @@
             "maybeArrayOf": "string"
           },
           {
-            "enum": [false]
+            "enum": [
+              false
+            ]
           }
         ]
       },
@@ -558,7 +647,9 @@
     {
       "name": "fig-scap",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "schema": {
         "maybeArrayOf": "string"
@@ -574,7 +665,13 @@
         "engine": "knitr"
       },
       "schema": {
-        "enum": ["retina", "png", "jpeg", "svg", "pdf"]
+        "enum": [
+          "retina",
+          "png",
+          "jpeg",
+          "svg",
+          "pdf"
+        ]
       },
       "description": "Default output format for figures (`retina`, `png`, `jpeg`, `svg`, or `pdf`)"
     },
@@ -635,7 +732,13 @@
       "schema": {
         "anyOf": [
           {
-            "enum": ["high", "none", "all", "first", "last"]
+            "enum": [
+              "high",
+              "none",
+              "all",
+              "first",
+              "last"
+            ]
           },
           {
             "maybeArrayOf": "number"
@@ -654,7 +757,12 @@
         "engine": "knitr"
       },
       "schema": {
-        "enum": ["asis", "hold", "animate", "hide"]
+        "enum": [
+          "asis",
+          "hold",
+          "animate",
+          "hide"
+        ]
       },
       "default": "asis",
       "description": {
@@ -674,7 +782,9 @@
       "name": "external",
       "tags": {
         "engine": "knitr",
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -684,7 +794,9 @@
       "name": "sanitize",
       "tags": {
         "engine": "knitr",
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -718,7 +830,10 @@
       },
       "schema": {
         "string": {
-          "completions": ["ffmpeg", "gifski"]
+          "completions": [
+            "ffmpeg",
+            "gifski"
+          ]
         }
       },
       "default": "ffmpeg",
@@ -796,7 +911,12 @@
     {
       "name": "layout-align",
       "schema": {
-        "enum": ["default", "left", "center", "right"]
+        "enum": [
+          "default",
+          "left",
+          "center",
+          "right"
+        ]
       },
       "default": "center",
       "description": "Horizontal alignment for layout content (`default`, `left`, `right`, or `center`)"
@@ -804,7 +924,12 @@
     {
       "name": "layout-valign",
       "schema": {
-        "enum": ["default", "top", "center", "bottom"]
+        "enum": [
+          "default",
+          "top",
+          "center",
+          "bottom"
+        ]
       },
       "default": "top",
       "description": "Vertical alignment for layout content (`default`, `top`, `center`, or `bottom`)"
@@ -844,11 +969,20 @@
     {
       "name": "cap-location",
       "tags": {
-        "contexts": ["document-layout"],
-        "formats": ["$html-files", "$pdf-all"]
+        "contexts": [
+          "document-layout"
+        ],
+        "formats": [
+          "$html-files",
+          "$pdf-all"
+        ]
       },
       "schema": {
-        "enum": ["top", "bottom", "margin"]
+        "enum": [
+          "top",
+          "bottom",
+          "margin"
+        ]
       },
       "default": "bottom",
       "description": "Where to place figure and table captions (`top`, `bottom`, or `margin`)"
@@ -856,11 +990,21 @@
     {
       "name": "fig-cap-location",
       "tags": {
-        "contexts": ["document-layout", "document-figures"],
-        "formats": ["$html-files", "$pdf-all"]
+        "contexts": [
+          "document-layout",
+          "document-figures"
+        ],
+        "formats": [
+          "$html-files",
+          "$pdf-all"
+        ]
       },
       "schema": {
-        "enum": ["top", "bottom", "margin"]
+        "enum": [
+          "top",
+          "bottom",
+          "margin"
+        ]
       },
       "default": "bottom",
       "description": "Where to place figure captions (`top`, `bottom`, or `margin`)"
@@ -868,11 +1012,21 @@
     {
       "name": "tbl-cap-location",
       "tags": {
-        "contexts": ["document-layout", "document-tables"],
-        "formats": ["$html-files", "$pdf-all"]
+        "contexts": [
+          "document-layout",
+          "document-tables"
+        ],
+        "formats": [
+          "$html-files",
+          "$pdf-all"
+        ]
       },
       "schema": {
-        "enum": ["top", "bottom", "margin"]
+        "enum": [
+          "top",
+          "bottom",
+          "margin"
+        ]
       },
       "default": "top",
       "description": "Where to place table captions (`top`, `bottom`, or `margin`)"
@@ -891,7 +1045,9 @@
       "schema": {
         "anyOf": [
           {
-            "enum": [true]
+            "enum": [
+              true
+            ]
           },
           {
             "maybeArrayOf": "string"
@@ -903,15 +1059,25 @@
     {
       "name": "tbl-colwidths",
       "tags": {
-        "contexts": ["document-tables"],
-        "engine": ["knitr", "jupyter"],
-        "formats": ["$pdf-all", "$html-all"]
+        "contexts": [
+          "document-tables"
+        ],
+        "engine": [
+          "knitr",
+          "jupyter"
+        ],
+        "formats": [
+          "$pdf-all",
+          "$html-all"
+        ]
       },
       "schema": {
         "anyOf": [
           "boolean",
           {
-            "enum": ["auto"]
+            "enum": [
+              "auto"
+            ]
           },
           {
             "arrayOf": "number"
@@ -926,7 +1092,9 @@
     {
       "name": "html-table-processing",
       "schema": {
-        "enum": ["none"]
+        "enum": [
+          "none"
+        ]
       },
       "description": "If `none`, do not process raw HTML table in cell output and leave it as-is"
     }
@@ -935,14 +1103,18 @@
     {
       "name": "output",
       "tags": {
-        "contexts": ["document-execute"],
+        "contexts": [
+          "document-execute"
+        ],
         "execute-only": true
       },
       "schema": {
         "anyOf": [
           "boolean",
           {
-            "enum": ["asis"]
+            "enum": [
+              "asis"
+            ]
           },
           "string",
           "object"
@@ -956,7 +1128,9 @@
     {
       "name": "warning",
       "tags": {
-        "contexts": ["document-execute"],
+        "contexts": [
+          "document-execute"
+        ],
         "execute-only": true
       },
       "schema": "boolean",
@@ -965,7 +1139,9 @@
     {
       "name": "error",
       "tags": {
-        "contexts": ["document-execute"],
+        "contexts": [
+          "document-execute"
+        ],
         "execute-only": true
       },
       "schema": "boolean",
@@ -975,7 +1151,9 @@
     {
       "name": "include",
       "tags": {
-        "contexts": ["document-execute"],
+        "contexts": [
+          "document-execute"
+        ],
         "execute-only": true
       },
       "schema": "boolean",
@@ -985,17 +1163,31 @@
     {
       "name": "panel",
       "schema": {
-        "enum": ["tabset", "input", "sidebar", "fill", "center"]
+        "enum": [
+          "tabset",
+          "input",
+          "sidebar",
+          "fill",
+          "center"
+        ]
       },
       "description": "Panel type for cell output (`tabset`, `input`, `sidebar`, `fill`, `center`)"
     },
     {
       "name": "output-location",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
-        "enum": ["default", "fragment", "slide", "column", "column-fragment"]
+        "enum": [
+          "default",
+          "fragment",
+          "slide",
+          "column",
+          "column-fragment"
+        ]
       },
       "description": {
         "short": "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
@@ -1008,7 +1200,11 @@
         "engine": "knitr"
       },
       "schema": {
-        "enum": [true, false, "NA"]
+        "enum": [
+          true,
+          false,
+          "NA"
+        ]
       },
       "default": true,
       "description": {
@@ -1022,7 +1218,13 @@
         "engine": "knitr"
       },
       "schema": {
-        "enum": ["markup", "asis", "hold", "hide", false]
+        "enum": [
+          "markup",
+          "asis",
+          "hold",
+          "hide",
+          false
+        ]
       },
       "default": "markup",
       "description": {
@@ -1134,7 +1336,9 @@
               "value": "string",
               "format": "string"
             },
-            "required": ["value"]
+            "required": [
+              "value"
+            ]
           }
         }
       ]
@@ -1142,7 +1346,14 @@
     {
       "id": "math-methods",
       "enum": {
-        "values": ["plain", "webtex", "gladtex", "mathml", "mathjax", "katex"]
+        "values": [
+          "plain",
+          "webtex",
+          "gladtex",
+          "mathml",
+          "mathjax",
+          "katex"
+        ]
       }
     },
     {
@@ -1160,7 +1371,9 @@
         "path",
         {
           "enum": {
-            "values": [null],
+            "values": [
+              null
+            ],
             "hidden": true
           }
         }
@@ -1177,7 +1390,9 @@
                 "type": "string",
                 "path": "path"
               },
-              "required": ["path"]
+              "required": [
+                "path"
+              ]
             }
           },
           {
@@ -1196,13 +1411,18 @@
                   ]
                 }
               },
-              "required": ["path", "at"]
+              "required": [
+                "path",
+                "at"
+              ]
             }
           },
           {
             "record": {
               "type": {
-                "enum": ["citeproc"]
+                "enum": [
+                  "citeproc"
+                ]
               }
             }
           }
@@ -1355,7 +1575,9 @@
       "id": "comments",
       "anyOf": [
         {
-          "enum": [false]
+          "enum": [
+            false
+          ]
         },
         {
           "object": {
@@ -1399,11 +1621,18 @@
                           "short": "How posts should be mapped to Github issues",
                           "long": "How posts should be mapped to Github issues\n(`pathname`, `url`, `title` or `og:title`)\n"
                         },
-                        "completions": ["pathname", "url", "title", "og:title"]
+                        "completions": [
+                          "pathname",
+                          "url",
+                          "title",
+                          "og:title"
+                        ]
                       }
                     }
                   },
-                  "required": ["repo"]
+                  "required": [
+                    "repo"
+                  ]
                 }
               },
               "giscus": {
@@ -1445,7 +1674,12 @@
                     "mapping": {
                       "anyOf": [
                         {
-                          "enum": ["pathname", "url", "title", "og:title"]
+                          "enum": [
+                            "pathname",
+                            "url",
+                            "title",
+                            "og:title"
+                          ]
                         },
                         "string"
                       ],
@@ -1460,11 +1694,16 @@
                       }
                     },
                     "loading": {
-                      "enum": ["lazy"],
+                      "enum": [
+                        "lazy"
+                      ],
                       "description": "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
                     },
                     "input-position": {
-                      "enum": ["top", "bottom"],
+                      "enum": [
+                        "top",
+                        "bottom"
+                      ],
                       "description": "Place the comment input box above or below the comments."
                     },
                     "theme": {
@@ -1510,7 +1749,9 @@
                       }
                     }
                   },
-                  "required": ["repo"]
+                  "required": [
+                    "repo"
+                  ]
                 }
               },
               "hypothesis": {
@@ -1535,14 +1776,21 @@
                           "anyOf": [
                             "boolean",
                             {
-                              "enum": ["always", "whenSidebarOpen", "never"]
+                              "enum": [
+                                "always",
+                                "whenSidebarOpen",
+                                "never"
+                              ]
                             }
                           ],
                           "default": "always",
                           "description": "Controls whether the in-document highlights are shown by default (`always`, `whenSidebarOpen` or `never`)"
                         },
                         "theme": {
-                          "enum": ["classic", "clean"],
+                          "enum": [
+                            "classic",
+                            "clean"
+                          ],
                           "default": "classic",
                           "description": "Controls the overall look of the sidebar (`classic` or `clean`)"
                         },
@@ -1590,7 +1838,9 @@
                                 "groups": {
                                   "anyOf": [
                                     {
-                                      "enum": ["$rpc:requestGroups"]
+                                      "enum": [
+                                        "$rpc:requestGroups"
+                                      ]
                                     },
                                     {
                                       "arrayOf": "string"
@@ -1604,7 +1854,11 @@
                                   }
                                 }
                               },
-                              "required": ["apiUrl", "authority", "grantToken"]
+                              "required": [
+                                "apiUrl",
+                                "authority",
+                                "grantToken"
+                              ]
                             },
                             "description": "Alternative annotation services which the client should \nconnect to instead of connecting to the public Hypothesis \nservice at hypothes.is.\n"
                           }
@@ -1671,7 +1925,9 @@
                                 }
                               }
                             },
-                            "required": ["user"]
+                            "required": [
+                              "user"
+                            ]
                           },
                           "description": "Defines a focused filter set for the available annotations on a page."
                         },
@@ -1792,7 +2048,10 @@
                   "closed": true,
                   "properties": {
                     "section": {
-                      "anyOf": ["string", null]
+                      "anyOf": [
+                        "string",
+                        null
+                      ]
                     },
                     "contents": {
                       "ref": "sidebar-contents"
@@ -1878,7 +2137,10 @@
             }
           }
         },
-        "required": ["cmd", "ready"]
+        "required": [
+          "cmd",
+          "ready"
+        ]
       }
     },
     {
@@ -1925,7 +2187,10 @@
         "closed": true,
         "properties": {
           "card-style": {
-            "enum": ["summary", "summary_large_image"],
+            "enum": [
+              "summary",
+              "summary_large_image"
+            ],
             "description": {
               "short": "Card style",
               "long": "Card style (`summary` or `summary_large_image`).\n\nIf this is not provided, the best style will automatically\nselected based upon other metadata. You can learn more about Twitter Card\nstyles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).\n"
@@ -1985,7 +2250,10 @@
             "description": "Footer center content"
           },
           "border": {
-            "anyOf": ["boolean", "string"],
+            "anyOf": [
+              "boolean",
+              "string"
+            ],
             "description": "Footer border (`true`, `false`, or a border color)"
           },
           "background": {
@@ -2062,7 +2330,12 @@
           },
           "repo-actions": {
             "maybeArrayOf": {
-              "enum": ["none", "edit", "source", "issue"],
+              "enum": [
+                "none",
+                "edit",
+                "source",
+                "issue"
+              ],
               "description": {
                 "short": "Links to source repository actions",
                 "long": "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)"
@@ -2085,7 +2358,10 @@
                       "description": "The Google tracking Id or measurement Id of this website."
                     },
                     "storage": {
-                      "enum": ["cookies", "none"],
+                      "enum": [
+                        "cookies",
+                        "none"
+                      ],
                       "description": {
                         "short": "Storage options for Google Analytics data",
                         "long": "Storage option for Google Analytics data using on of these two values:\n\n`cookies`: Use cookies to store unique user and session identification (default).\n\n`none`: Do not use cookies to store unique user and session identification.\n\nFor more about choosing storage options see [Storage](https://quarto.org/docs/websites/website-tools.html#storage).\n"
@@ -2099,7 +2375,10 @@
                       }
                     },
                     "version": {
-                      "enum": [3, 4],
+                      "enum": [
+                        3,
+                        4
+                      ],
                       "description": {
                         "short": "The version number of Google Analytics to use.",
                         "long": "The version number of Google Analytics to use. \n\n- `3`: Use analytics.js\n- `4`: use gtag. \n\nThis is automatically detected based upon the `tracking-id`, but you may specify it.\n"
@@ -2134,7 +2413,10 @@
                     },
                     "position": {
                       "schema": {
-                        "enum": ["above-navbar", "below-navbar"]
+                        "enum": [
+                          "above-navbar",
+                          "below-navbar"
+                        ]
                       },
                       "description": {
                         "short": "The position of the announcement.",
@@ -2168,14 +2450,20 @@
           "cookie-consent": {
             "anyOf": [
               {
-                "enum": ["express", "implied"]
+                "enum": [
+                  "express",
+                  "implied"
+                ]
               },
               "boolean",
               {
                 "object": {
                   "properties": {
                     "type": {
-                      "enum": ["implied", "express"],
+                      "enum": [
+                        "implied",
+                        "express"
+                      ],
                       "description": {
                         "short": "The type of consent that should be requested",
                         "long": "The type of consent that should be requested, using one of these two values:\n\n- `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n\n- `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).\n"
@@ -2194,7 +2482,10 @@
                       }
                     },
                     "palette": {
-                      "enum": ["light", "dark"],
+                      "enum": [
+                        "light",
+                        "dark"
+                      ],
                       "description": "Whether to use a dark or light appearance for the consent banner (`light` or `dark`)."
                     },
                     "policy-url": {
@@ -2230,11 +2521,17 @@
                 "object": {
                   "properties": {
                     "location": {
-                      "enum": ["navbar", "sidebar"],
+                      "enum": [
+                        "navbar",
+                        "sidebar"
+                      ],
                       "description": "Location for search widget (`navbar` or `sidebar`)"
                     },
                     "type": {
-                      "enum": ["overlay", "textbox"],
+                      "enum": [
+                        "overlay",
+                        "textbox"
+                      ],
                       "description": "Type of search UI (`overlay` or `textbox`)"
                     },
                     "limit": {
@@ -2265,7 +2562,11 @@
                       "schema": {
                         "anyOf": [
                           {
-                            "enum": ["tree", "parent", "root"]
+                            "enum": [
+                              "tree",
+                              "parent",
+                              "root"
+                            ]
                           },
                           "boolean"
                         ]
@@ -2344,7 +2645,10 @@
                 "object": {
                   "properties": {
                     "title": {
-                      "anyOf": ["string", "boolean"],
+                      "anyOf": [
+                        "string",
+                        "boolean"
+                      ],
                       "description": "The navbar title. Uses the project title if none is specified."
                     },
                     "logo": {
@@ -2416,7 +2720,13 @@
                       }
                     },
                     "collapse-below": {
-                      "enum": ["sm", "md", "lg", "xl", "xxl"],
+                      "enum": [
+                        "sm",
+                        "md",
+                        "lg",
+                        "xl",
+                        "xxl"
+                      ],
                       "description": "The responsive breakpoint below which the navbar will collapse into a menu (`sm`, `md`, `lg` (default), `xl`, `xxl`).",
                       "default": "lg"
                     },
@@ -2434,7 +2744,10 @@
                     },
                     "toggle-position": {
                       "schema": {
-                        "enum": ["left", "right"]
+                        "enum": [
+                          "left",
+                          "right"
+                        ]
                       },
                       "description": "The position of the collapsed navbar toggle when in responsive mode",
                       "default": "left"
@@ -2464,7 +2777,10 @@
                         }
                       },
                       "title": {
-                        "anyOf": ["string", "boolean"],
+                        "anyOf": [
+                          "string",
+                          "boolean"
+                        ],
                         "description": "The sidebar title. Uses the project title if none is specified."
                       },
                       "logo": {
@@ -2498,7 +2814,10 @@
                         "description": "List of items for the sidebar"
                       },
                       "style": {
-                        "enum": ["docked", "floating"],
+                        "enum": [
+                          "docked",
+                          "floating"
+                        ],
                         "description": "The style of sidebar (`docked` or `floating`).",
                         "default": "floating"
                       },
@@ -2544,7 +2863,11 @@
                         }
                       },
                       "alignment": {
-                        "enum": ["left", "right", "center"],
+                        "enum": [
+                          "left",
+                          "right",
+                          "center"
+                        ],
                         "description": "Alignment of the items within the sidebar (`left`, `right`, or `center`)"
                       },
                       "collapse-level": {
@@ -2653,7 +2976,9 @@
               "ref": "other-links"
             },
             "tags": {
-              "formats": ["$html-doc"]
+              "formats": [
+                "$html-doc"
+              ]
             },
             "description": "A list of other links to appear below the TOC."
           },
@@ -2667,7 +2992,9 @@
               ]
             },
             "tags": {
-              "formats": ["$html-doc"]
+              "formats": [
+                "$html-doc"
+              ]
             },
             "description": "A list of code links to appear with this document."
           },
@@ -2679,7 +3006,11 @@
           },
           "draft-mode": {
             "schema": {
-              "enum": ["visible", "unlinked", "gone"]
+              "enum": [
+                "visible",
+                "unlinked",
+                "gone"
+              ]
             },
             "description": {
               "short": "How to handle drafts that are encountered.",
@@ -2710,7 +3041,10 @@
             },
             "author": {
               "maybeArrayOf": {
-                "anyOf": ["string", "object"],
+                "anyOf": [
+                  "string",
+                  "object"
+                ],
                 "description": "Author or authors of the book"
               }
             },
@@ -2770,13 +3104,21 @@
             },
             "sharing": {
               "maybeArrayOf": {
-                "enum": ["twitter", "facebook", "linkedin"],
+                "enum": [
+                  "twitter",
+                  "facebook",
+                  "linkedin"
+                ],
                 "description": "Sharing buttons to include on navbar or sidebar\n(one or more of `twitter`, `facebook`, `linkedin`)\n"
               }
             },
             "downloads": {
               "maybeArrayOf": {
-                "enum": ["pdf", "epub", "docx"],
+                "enum": [
+                  "pdf",
+                  "epub",
+                  "docx"
+                ],
                 "description": "Download buttons for other formats to include on navbar or sidebar\n(one or more of `pdf`, `epub`, and `docx`)\n"
               }
             },
@@ -2791,7 +3133,9 @@
             "doi": {
               "string": {
                 "tags": {
-                  "formats": ["$html-doc"]
+                  "formats": [
+                    "$html-doc"
+                  ]
                 },
                 "description": "The Digital Object Identifier for this book."
               }
@@ -2821,7 +3165,9 @@
                 "description": "Path to chapter input file"
               }
             },
-            "required": ["part"]
+            "required": [
+              "part"
+            ]
           }
         }
       ]
@@ -2863,14 +3209,21 @@
               }
             }
           },
-          "required": ["text", "href"]
+          "required": [
+            "text",
+            "href"
+          ]
         }
       }
     },
     {
       "id": "crossref-labels-schema",
       "string": {
-        "completions": ["alpha", "arabic", "roman"]
+        "completions": [
+          "alpha",
+          "arabic",
+          "roman"
+        ]
       }
     },
     {
@@ -2980,7 +3333,9 @@
       "id": "website-about",
       "object": {
         "closed": true,
-        "required": ["template"],
+        "required": [
+          "template"
+        ],
         "properties": {
           "id": {
             "string": {
@@ -2993,7 +3348,13 @@
           "template": {
             "anyOf": [
               {
-                "enum": ["jolla", "trestles", "solana", "marquee", "broadside"]
+                "enum": [
+                  "jolla",
+                  "trestles",
+                  "solana",
+                  "marquee",
+                  "broadside"
+                ]
               },
               "path"
             ],
@@ -3029,7 +3390,11 @@
             }
           },
           "image-shape": {
-            "enum": ["rectangle", "round", "rounded"],
+            "enum": [
+              "rectangle",
+              "round",
+              "rounded"
+            ],
             "description": {
               "short": "The shape of the image on the about page.",
               "long": "The shape of the image on the about page.\n\n- `rectangle`\n- `round`\n- `rounded`\n"
@@ -3057,7 +3422,12 @@
             }
           },
           "type": {
-            "enum": ["default", "table", "grid", "custom"],
+            "enum": [
+              "default",
+              "table",
+              "grid",
+              "custom"
+            ],
             "description": {
               "short": "The type of listing to create.",
               "long": "The type of listing to create. Choose one of:\n\n- `default`: A blog style list of items\n- `table`: A table of items\n- `grid`: A grid of item cards\n- `custom`: A custom template, provided by the `template` field\n"
@@ -3124,7 +3494,11 @@
             "anyOf": [
               "boolean",
               {
-                "enum": ["numbered", "unnumbered", "cloud"]
+                "enum": [
+                  "numbered",
+                  "unnumbered",
+                  "cloud"
+                ]
               }
             ],
             "description": {
@@ -3145,7 +3519,11 @@
                       }
                     },
                     "type": {
-                      "enum": ["full", "partial", "metadata"],
+                      "enum": [
+                        "full",
+                        "partial",
+                        "metadata"
+                      ],
                       "description": {
                         "short": "Whether to include full or partial content in the feed.",
                         "long": "Whether to include full or partial content in the feed.\n\n- `full` (default): Include the complete content of the document in the feed.\n- `partial`: Include only the first paragraph of the document in the feed.\n- `metadata`: Use only the title, description, and other document metadata in the feed.\n"
@@ -3229,7 +3607,10 @@
             }
           },
           "image-align": {
-            "enum": ["left", "right"],
+            "enum": [
+              "left",
+              "right"
+            ],
             "description": "In `default` type listings, whether to place the image on the right or left side of the post content (`left` or `right`)."
           },
           "image-height": {
@@ -3257,7 +3638,11 @@
             }
           },
           "grid-item-align": {
-            "enum": ["left", "right", "center"],
+            "enum": [
+              "left",
+              "right",
+              "center"
+            ],
             "description": {
               "short": "In `grid` type listings, the alignment of the content within the card.",
               "long": "In grid type listings, the alignment of the content within the card (`left` (default), `right`, or `center`).\n"
@@ -3410,7 +3795,10 @@
     },
     {
       "id": "csl-number",
-      "anyOf": ["number", "string"]
+      "anyOf": [
+        "number",
+        "string"
+      ]
     },
     {
       "id": "csl-item-shared",
@@ -3647,7 +4035,10 @@
             "description": "Host of the item (e.g. of a TV show or podcast)."
           },
           "id": {
-            "anyOf": ["string", "number"],
+            "anyOf": [
+              "string",
+              "number"
+            ],
             "description": "A value which uniquely identifies this item."
           },
           "illustrator": {
@@ -4035,7 +4426,10 @@
             }
           },
           "id": {
-            "anyOf": ["string", "number"],
+            "anyOf": [
+              "string",
+              "number"
+            ],
             "description": "Citation identifier for the item (e.g. \"item1\"). Will be autogenerated if not provided."
           }
         }
@@ -4186,7 +4580,9 @@
               "format": "string",
               "value": "string"
             },
-            "required": ["value"]
+            "required": [
+              "value"
+            ]
           }
         }
       ]
@@ -4254,7 +4650,10 @@
             },
             "title": {
               "description": "The title of the notebook when viewed.",
-              "anyOf": ["string", "boolean"]
+              "anyOf": [
+                "string",
+                "boolean"
+              ]
             },
             "url": {
               "string": {
@@ -4267,7 +4666,9 @@
               }
             }
           },
-          "required": ["notebook"]
+          "required": [
+            "notebook"
+          ]
         }
       }
     },
@@ -4311,7 +4712,11 @@
                   }
                 },
                 {
-                  "enum": ["repo", "binder", "devcontainer"]
+                  "enum": [
+                    "repo",
+                    "binder",
+                    "devcontainer"
+                  ]
                 }
               ]
             }
@@ -4342,7 +4747,10 @@
               }
             },
             "meca-bundle": {
-              "anyOf": ["boolean", "string"],
+              "anyOf": [
+                "boolean",
+                "string"
+              ],
               "description": "Whether to generate a MECA bundle for this manuscript"
             },
             "notebooks": {
@@ -4481,7 +4889,9 @@
             "description": "Alternative text for the logo, used for accessibility.\n"
           }
         },
-        "required": ["path"]
+        "required": [
+          "path"
+        ]
       }
     },
     {
@@ -4535,7 +4945,11 @@
     {
       "id": "brand-named-logo",
       "description": "Names of customizeable logos",
-      "enum": ["small", "medium", "large"]
+      "enum": [
+        "small",
+        "medium",
+        "large"
+      ]
     },
     {
       "id": "brand-color-value",
@@ -4805,7 +5219,10 @@
     {
       "id": "line-height-number-string",
       "description": "Line height",
-      "anyOf": ["number", "string"]
+      "anyOf": [
+        "number",
+        "string"
+      ]
     },
     {
       "id": "brand-typography-options-monospace-block",
@@ -4862,7 +5279,11 @@
     {
       "id": "brand-named-font",
       "description": "Names of customizeable fonts",
-      "enum": ["base", "headings", "monospace"]
+      "enum": [
+        "base",
+        "headings",
+        "monospace"
+      ]
     },
     {
       "id": "brand-font",
@@ -4917,7 +5338,11 @@
     {
       "id": "brand-font-style",
       "description": "A font style.",
-      "enum": ["normal", "italic", "oblique"],
+      "enum": [
+        "normal",
+        "italic",
+        "oblique"
+      ],
       "default": "normal"
     },
     {
@@ -4935,18 +5360,30 @@
               "maybeArrayOf": {
                 "ref": "brand-font-weight"
               },
-              "default": [400, 700]
+              "default": [
+                400,
+                700
+              ]
             },
             "style": {
               "description": "The font styles to include.",
               "maybeArrayOf": {
                 "ref": "brand-font-style"
               },
-              "default": ["normal", "italic"]
+              "default": [
+                "normal",
+                "italic"
+              ]
             },
             "display": {
               "description": "The font display method, determines how a font face is font face is shown depending on its download status and readiness for use.\n",
-              "enum": ["auto", "block", "swap", "fallback", "optional"],
+              "enum": [
+                "auto",
+                "block",
+                "swap",
+                "fallback",
+                "optional"
+              ],
               "default": "swap"
             }
           }
@@ -4963,7 +5400,9 @@
         "closed": true,
         "properties": {
           "source": {
-            "enum": ["system"]
+            "enum": [
+              "system"
+            ]
           }
         }
       }
@@ -4978,7 +5417,9 @@
         "closed": true,
         "properties": {
           "source": {
-            "enum": ["google"]
+            "enum": [
+              "google"
+            ]
           }
         }
       }
@@ -4993,7 +5434,9 @@
         "closed": true,
         "properties": {
           "source": {
-            "enum": ["bunny"]
+            "enum": [
+              "bunny"
+            ]
           }
         }
       }
@@ -5005,7 +5448,9 @@
         "closed": true,
         "properties": {
           "source": {
-            "enum": ["file"]
+            "enum": [
+              "file"
+            ]
           },
           "family": {
             "description": "The font family name.",
@@ -5030,7 +5475,9 @@
                           "ref": "brand-font-style"
                         }
                       },
-                      "required": ["path"]
+                      "required": [
+                        "path"
+                      ]
                     }
                   }
                 }
@@ -5039,7 +5486,11 @@
             "description": "The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs.\n"
           }
         },
-        "required": ["files", "family", "source"]
+        "required": [
+          "files",
+          "family",
+          "source"
+        ]
       }
     },
     {
@@ -5128,7 +5579,11 @@
               "object": {
                 "additionalProperties": {
                   "schema": {
-                    "anyOf": ["string", "boolean", "number"]
+                    "anyOf": [
+                      "string",
+                      "boolean",
+                      "number"
+                    ]
                   }
                 }
               }
@@ -5142,12 +5597,20 @@
     {
       "name": "about",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": {
         "anyOf": [
           {
-            "enum": ["jolla", "trestles", "solana", "marquee", "broadside"]
+            "enum": [
+              "jolla",
+              "trestles",
+              "solana",
+              "marquee",
+              "broadside"
+            ]
           },
           {
             "ref": "website-about"
@@ -5170,7 +5633,14 @@
       "name": "subtitle",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all", "$html-all", "context", "muse", "odt", "docx"]
+        "formats": [
+          "$pdf-all",
+          "$html-all",
+          "context",
+          "muse",
+          "odt",
+          "docx"
+        ]
       },
       "description": "Identifies the subtitle of the document."
     },
@@ -5184,7 +5654,9 @@
     {
       "name": "date-modified",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": {
         "ref": "date"
@@ -5195,7 +5667,10 @@
       "name": "author",
       "schema": {
         "maybeArrayOf": {
-          "anyOf": ["object", "string"]
+          "anyOf": [
+            "object",
+            "string"
+          ]
         }
       },
       "description": "Author or authors of the document"
@@ -5204,11 +5679,16 @@
       "name": "affiliation",
       "schema": {
         "maybeArrayOf": {
-          "anyOf": ["object", "string"]
+          "anyOf": [
+            "object",
+            "string"
+          ]
         }
       },
       "tags": {
-        "formats": ["$jats-all"]
+        "formats": [
+          "$jats-all"
+        ]
       },
       "description": {
         "short": "The list of organizations with which contributors are affiliated.",
@@ -5219,7 +5699,9 @@
       "name": "copyright",
       "schema": "object",
       "tags": {
-        "formats": ["$jats-all"]
+        "formats": [
+          "$jats-all"
+        ]
       },
       "description": {
         "short": "Licensing and copyright information.",
@@ -5230,7 +5712,9 @@
       "name": "article",
       "schema": "object",
       "tags": {
-        "formats": ["$jats-all"]
+        "formats": [
+          "$jats-all"
+        ]
       },
       "description": {
         "short": "Information concerning the article that identifies or describes it.",
@@ -5241,7 +5725,9 @@
       "name": "journal",
       "schema": "object",
       "tags": {
-        "formats": ["$jats-all"]
+        "formats": [
+          "$jats-all"
+        ]
       },
       "description": {
         "short": "Information on the journal in which the article is published.",
@@ -5252,11 +5738,17 @@
       "name": "institute",
       "schema": {
         "maybeArrayOf": {
-          "anyOf": ["object", "string"]
+          "anyOf": [
+            "object",
+            "string"
+          ]
         }
       },
       "tags": {
-        "formats": ["$html-pres", "beamer"]
+        "formats": [
+          "$html-pres",
+          "beamer"
+        ]
       },
       "description": "Author affiliations for the presentation."
     },
@@ -5282,7 +5774,12 @@
       "name": "abstract-title",
       "schema": "string",
       "tags": {
-        "formats": ["$html-doc", "$epub-all", "docx", "typst"]
+        "formats": [
+          "$html-doc",
+          "$epub-all",
+          "docx",
+          "typst"
+        ]
       },
       "description": "Title used to label document abstract"
     },
@@ -5290,7 +5787,9 @@
       "name": "notes",
       "schema": "string",
       "tags": {
-        "formats": ["$jats-all"]
+        "formats": [
+          "$jats-all"
+        ]
       },
       "description": "Additional notes concerning the whole article. Added to the\narticle's frontmatter via the [`<notes>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/notes.html) element.\n"
     },
@@ -5300,7 +5799,9 @@
         "arrayOf": "string"
       },
       "tags": {
-        "formats": ["$jats-all"]
+        "formats": [
+          "$jats-all"
+        ]
       },
       "description": "List of keywords. Items are used as contents of the [`<kwd>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/kwd.html) element; the elements are grouped in a [`<kwd-group>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/kwd-group.html) with the [`kwd-group-type`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/kwd-group-type.html) value `author`."
     },
@@ -5308,7 +5809,9 @@
       "name": "doi",
       "schema": "string",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": "Displays the document Digital Object Identifier in the header."
     },
@@ -5316,7 +5819,9 @@
       "name": "thanks",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": "The contents of an acknowledgments footnote after the document title."
     },
@@ -5349,13 +5854,17 @@
       "schema": {
         "anyOf": [
           {
-            "enum": ["hover"]
+            "enum": [
+              "hover"
+            ]
           },
           "boolean"
         ]
       },
       "tags": {
-        "formats": ["$html-all"]
+        "formats": [
+          "$html-all"
+        ]
       },
       "default": "hover",
       "description": {
@@ -5368,7 +5877,9 @@
       "schema": "boolean",
       "tags": {
         "engine": "knitr",
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "default": false,
       "description": {
@@ -5382,7 +5893,12 @@
         "anyOf": [
           "boolean",
           {
-            "enum": ["hover", "select", "below", "none"]
+            "enum": [
+              "hover",
+              "select",
+              "below",
+              "none"
+            ]
           }
         ]
       },
@@ -5395,7 +5911,9 @@
     {
       "name": "code-tools",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -5405,7 +5923,10 @@
               "closed": true,
               "properties": {
                 "source": {
-                  "anyOf": ["boolean", "string"]
+                  "anyOf": [
+                    "boolean",
+                    "string"
+                  ]
                 },
                 "toggle": "boolean",
                 "caption": "string"
@@ -5423,10 +5944,16 @@
     {
       "name": "code-block-border-left",
       "tags": {
-        "formats": ["$html-doc", "$pdf-all"]
+        "formats": [
+          "$html-doc",
+          "$pdf-all"
+        ]
       },
       "schema": {
-        "anyOf": ["string", "boolean"]
+        "anyOf": [
+          "string",
+          "boolean"
+        ]
       },
       "description": {
         "short": "Show a thick left border on code blocks.",
@@ -5436,10 +5963,16 @@
     {
       "name": "code-block-bg",
       "tags": {
-        "formats": ["$html-doc", "$pdf-all"]
+        "formats": [
+          "$html-doc",
+          "$pdf-all"
+        ]
       },
       "schema": {
-        "anyOf": ["string", "boolean"]
+        "anyOf": [
+          "string",
+          "boolean"
+        ]
       },
       "description": {
         "short": "Show a background color for code blocks.",
@@ -5449,7 +5982,12 @@
     {
       "name": "highlight-style",
       "tags": {
-        "formats": ["$html-all", "docx", "ms", "$pdf-all"]
+        "formats": [
+          "$html-all",
+          "docx",
+          "ms",
+          "$pdf-all"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -5501,7 +6039,12 @@
     {
       "name": "syntax-definition",
       "tags": {
-        "formats": ["$html-all", "docx", "ms", "$pdf-all"]
+        "formats": [
+          "$html-all",
+          "docx",
+          "ms",
+          "$pdf-all"
+        ]
       },
       "schema": "path",
       "hidden": true,
@@ -5510,7 +6053,12 @@
     {
       "name": "syntax-definitions",
       "tags": {
-        "formats": ["$html-all", "docx", "ms", "$pdf-all"]
+        "formats": [
+          "$html-all",
+          "docx",
+          "ms",
+          "$pdf-all"
+        ]
       },
       "schema": {
         "arrayOf": "path"
@@ -5520,7 +6068,9 @@
     {
       "name": "listings",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "schema": "boolean",
       "description": {
@@ -5531,7 +6081,12 @@
     {
       "name": "indented-code-classes",
       "tags": {
-        "formats": ["$html-all", "docx", "ms", "$pdf-all"]
+        "formats": [
+          "$html-all",
+          "docx",
+          "ms",
+          "$pdf-all"
+        ]
       },
       "schema": {
         "arrayOf": "string"
@@ -5544,7 +6099,9 @@
       "name": "fontcolor",
       "schema": "string",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": "Sets the CSS `color` property."
     },
@@ -5552,7 +6109,11 @@
       "name": "linkcolor",
       "schema": "string",
       "tags": {
-        "formats": ["$html-doc", "context", "$pdf-all"]
+        "formats": [
+          "$html-doc",
+          "context",
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "Sets the color of hyperlinks in the document.",
@@ -5579,7 +6140,9 @@
       "name": "backgroundcolor",
       "schema": "string",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": "Sets the CSS `background-color` property on the html element.\n"
     },
@@ -5587,7 +6150,9 @@
       "name": "filecolor",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "The color used for external links using color options allowed by `xcolor`",
@@ -5598,7 +6163,9 @@
       "name": "citecolor",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "The color used for citation links using color options allowed by `xcolor`",
@@ -5609,7 +6176,9 @@
       "name": "urlcolor",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "The color used for linked URLs using color options allowed by `xcolor`",
@@ -5620,7 +6189,9 @@
       "name": "toccolor",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "The color used for links in the Table of Contents using color options allowed by `xcolor`",
@@ -5631,7 +6202,9 @@
       "name": "colorlinks",
       "schema": "boolean",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "default": true,
       "description": "Add color to link text, automatically enabled if any of \n`linkcolor`, `filecolor`, `citecolor`, `urlcolor`, or `toccolor` are set.\n"
@@ -5640,7 +6213,9 @@
       "name": "contrastcolor",
       "schema": "string",
       "tags": {
-        "formats": ["context"]
+        "formats": [
+          "context"
+        ]
       },
       "description": {
         "short": "Color for links to other content within the document.",
@@ -5652,7 +6227,9 @@
     {
       "name": "comments",
       "tags": {
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "schema": {
         "ref": "comments"
@@ -5670,7 +6247,9 @@
       "schema": {
         "anyOf": [
           {
-            "enum": [false]
+            "enum": [
+              false
+            ]
           },
           {
             "object": {
@@ -5681,10 +6260,16 @@
                     "object": {
                       "description": "A custom cross reference type. See [Custom](https://quarto.org/docs/reference/metadata/crossref.html#custom) for more details.",
                       "closed": true,
-                      "required": ["kind", "reference-prefix", "key"],
+                      "required": [
+                        "kind",
+                        "reference-prefix",
+                        "key"
+                      ],
                       "properties": {
                         "kind": {
-                          "enum": ["float"],
+                          "enum": [
+                            "float"
+                          ],
                           "description": "The kind of cross reference (currently only \"float\" is supported)."
                         },
                         "reference-prefix": {
@@ -5724,7 +6309,11 @@
                           }
                         },
                         "caption-location": {
-                          "enum": ["top", "bottom", "margin"],
+                          "enum": [
+                            "top",
+                            "bottom",
+                            "margin"
+                          ],
                           "default": "bottom",
                           "description": "The location of the caption relative to the crossreferenceable content."
                         }
@@ -5969,7 +6558,9 @@
       "name": "crossrefs-hover",
       "schema": "boolean",
       "tags": {
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "default": true,
       "description": "Enables a hover popup for cross references that shows the item being referenced."
@@ -5979,7 +6570,9 @@
     {
       "name": "logo",
       "tags": {
-        "formats": ["dashboard"]
+        "formats": [
+          "dashboard"
+        ]
       },
       "schema": "path",
       "description": "Logo image (placed on the left side of the navigation bar)"
@@ -5987,17 +6580,24 @@
     {
       "name": "orientation",
       "tags": {
-        "formats": ["dashboard"]
+        "formats": [
+          "dashboard"
+        ]
       },
       "schema": {
-        "enum": ["rows", "columns"]
+        "enum": [
+          "rows",
+          "columns"
+        ]
       },
       "description": "Default orientation for dashboard content (default `rows`)"
     },
     {
       "name": "scrolling",
       "tags": {
-        "formats": ["dashboard"]
+        "formats": [
+          "dashboard"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -6006,7 +6606,9 @@
     {
       "name": "expandable",
       "tags": {
-        "formats": ["dashboard"]
+        "formats": [
+          "dashboard"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -6015,7 +6617,9 @@
     {
       "name": "nav-buttons",
       "tags": {
-        "formats": ["dashboard"]
+        "formats": [
+          "dashboard"
+        ]
       },
       "schema": {
         "maybeArrayOf": {
@@ -6046,14 +6650,20 @@
       "schema": {
         "anyOf": [
           {
-            "enum": ["source", "visual"]
+            "enum": [
+              "source",
+              "visual"
+            ]
           },
           {
             "object": {
               "hidden": true,
               "properties": {
                 "mode": {
-                  "enum": ["source", "visual"],
+                  "enum": [
+                    "source",
+                    "visual"
+                  ],
                   "description": "Default editing mode for document"
                 },
                 "markdown": {
@@ -6062,7 +6672,10 @@
                       "wrap": {
                         "anyOf": [
                           {
-                            "enum": ["sentence", "none"]
+                            "enum": [
+                              "sentence",
+                              "none"
+                            ]
                           },
                           "number"
                         ],
@@ -6078,7 +6691,11 @@
                           "properties": {
                             "location": {
                               "schema": {
-                                "enum": ["block", "section", "document"],
+                                "enum": [
+                                  "block",
+                                  "section",
+                                  "document"
+                                ],
                                 "description": "Location to write references (`block`, `section`, or `document`)"
                               }
                             },
@@ -6102,7 +6719,9 @@
                 },
                 "render-on-save": {
                   "tags": {
-                    "engine": ["jupyter"]
+                    "engine": [
+                      "jupyter"
+                    ]
                   },
                   "schema": "boolean",
                   "description": "Automatically re-render for preview whenever document is saved (note that this requires a preview\nfor the saved document be already running). This option currently works only within VS Code.\n"
@@ -6131,7 +6750,9 @@
     {
       "name": "identifier",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -6175,7 +6796,9 @@
     {
       "name": "creator",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": {
         "ref": "epub-contributor"
@@ -6185,7 +6808,9 @@
     {
       "name": "contributor",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": {
         "ref": "epub-contributor"
@@ -6195,7 +6820,9 @@
     {
       "name": "subject",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -6229,7 +6856,9 @@
     {
       "name": "type",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": "string",
       "description": {
@@ -6240,7 +6869,9 @@
     {
       "name": "format",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": "string",
       "description": "Text describing the format of this publication."
@@ -6248,7 +6879,9 @@
     {
       "name": "relation",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": "string",
       "description": "Text describing the relation of this publication."
@@ -6256,7 +6889,9 @@
     {
       "name": "coverage",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": "string",
       "description": "Text describing the coverage of this publication."
@@ -6264,7 +6899,9 @@
     {
       "name": "rights",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": "string",
       "description": "Text describing the rights of this publication."
@@ -6272,7 +6909,9 @@
     {
       "name": "belongs-to-collection",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": "string",
       "description": "Identifies the name of a collection to which the EPUB Publication belongs."
@@ -6280,7 +6919,9 @@
     {
       "name": "group-position",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": "number",
       "description": "Indicates the numeric position in which this publication \nbelongs relative to other works belonging to the same \n`belongs-to-collection` field.\n"
@@ -6288,10 +6929,15 @@
     {
       "name": "page-progression-direction",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": {
-        "enum": ["ltr", "rtl"]
+        "enum": [
+          "ltr",
+          "rtl"
+        ]
       },
       "description": "Sets the global direction in which content flows (`ltr` or `rtl`)"
     },
@@ -6299,7 +6945,9 @@
       "name": "ibooks",
       "description": "iBooks specific metadata options.",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": {
         "object": {
@@ -6316,7 +6964,11 @@
               }
             },
             "scroll-axis": {
-              "enum": ["vertical", "horizontal", "default"],
+              "enum": [
+                "vertical",
+                "horizontal",
+                "default"
+              ],
               "description": "The scroll direction for this book (`vertical`, `horizontal`, or `default`)"
             }
           }
@@ -6326,7 +6978,9 @@
     {
       "name": "epub-metadata",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": "path",
       "description": {
@@ -6337,10 +6991,15 @@
     {
       "name": "epub-subdirectory",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": {
-        "anyOf": ["path", null]
+        "anyOf": [
+          "path",
+          null
+        ]
       },
       "default": "EPUB",
       "description": "Specify the subdirectory in the OCF container that is to hold the\nEPUB-specific contents. The default is `EPUB`. To put the EPUB \ncontents in the top level, use an empty string.\n"
@@ -6348,7 +7007,9 @@
     {
       "name": "epub-fonts",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": {
         "arrayOf": "path"
@@ -6361,7 +7022,9 @@
     {
       "name": "epub-chapter-level",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": "number",
       "default": 1,
@@ -6373,7 +7036,9 @@
     {
       "name": "epub-cover-image",
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "schema": "path",
       "description": "Use the specified image as the EPUB cover. It is recommended\nthat the image be less than 1000px in width and height.\n"
@@ -6383,7 +7048,9 @@
       "schema": "boolean",
       "default": true,
       "tags": {
-        "formats": ["$epub-all"]
+        "formats": [
+          "$epub-all"
+        ]
       },
       "description": "If false, disables the generation of a title page."
     }
@@ -6393,7 +7060,10 @@
       "name": "engine",
       "schema": {
         "string": {
-          "completions": ["jupyter", "knitr"]
+          "completions": [
+            "jupyter",
+            "knitr"
+          ]
         }
       },
       "description": "Engine used for executable code blocks."
@@ -6494,7 +7164,9 @@
         "anyOf": [
           "boolean",
           {
-            "enum": ["refresh"]
+            "enum": [
+              "refresh"
+            ]
           }
         ]
       },
@@ -6513,7 +7185,9 @@
         "anyOf": [
           "boolean",
           {
-            "enum": ["auto"]
+            "enum": [
+              "auto"
+            ]
           }
         ]
       },
@@ -6529,13 +7203,17 @@
       "schema": {
         "anyOf": [
           {
-            "enum": ["shiny"]
+            "enum": [
+              "shiny"
+            ]
           },
           {
             "object": {
               "properties": {
                 "type": {
-                  "enum": ["shiny"],
+                  "enum": [
+                    "shiny"
+                  ],
                   "description": "Type of server to run behind the document (e.g. `shiny`)"
                 },
                 "ojs-export": {
@@ -6557,7 +7235,10 @@
       "name": "daemon",
       "hidden": true,
       "schema": {
-        "anyOf": ["number", "boolean"]
+        "anyOf": [
+          "number",
+          "boolean"
+        ]
       },
       "default": 300,
       "description": {
@@ -6614,7 +7295,13 @@
     {
       "name": "fig-format",
       "schema": {
-        "enum": ["retina", "png", "jpeg", "svg", "pdf"]
+        "enum": [
+          "retina",
+          "png",
+          "jpeg",
+          "svg",
+          "pdf"
+        ]
       },
       "description": "Default format for figures generated by Matplotlib or R graphics (`retina`, `png`, `jpeg`, `svg`, or `pdf`)"
     },
@@ -6640,7 +7327,9 @@
     {
       "name": "fig-responsive",
       "tags": {
-        "formats": ["$html-all"]
+        "formats": [
+          "$html-all"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -6652,7 +7341,12 @@
       "name": "mainfont",
       "schema": "string",
       "tags": {
-        "formats": ["$html-doc", "context", "$pdf-all", "typst"]
+        "formats": [
+          "$html-doc",
+          "context",
+          "$pdf-all",
+          "typst"
+        ]
       },
       "description": {
         "short": "Sets the main font for the document.",
@@ -6663,7 +7357,11 @@
       "name": "monofont",
       "schema": "string",
       "tags": {
-        "formats": ["$html-doc", "context", "$pdf-all"]
+        "formats": [
+          "$html-doc",
+          "context",
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "Sets the font used for when displaying code.",
@@ -6674,7 +7372,12 @@
       "name": "fontsize",
       "schema": "string",
       "tags": {
-        "formats": ["$html-doc", "context", "$pdf-all", "typst"]
+        "formats": [
+          "$html-doc",
+          "context",
+          "$pdf-all",
+          "typst"
+        ]
       },
       "description": {
         "short": "Sets the main font size for the document.",
@@ -6685,7 +7388,9 @@
       "name": "fontenc",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "default": "T1",
       "description": {
@@ -6697,7 +7402,10 @@
       "name": "fontfamily",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all", "ms"]
+        "formats": [
+          "$pdf-all",
+          "ms"
+        ]
       },
       "default": "Latin Modern",
       "description": {
@@ -6711,7 +7419,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "Options for the package used as `fontfamily`.",
@@ -6722,7 +7432,9 @@
       "name": "sansfont",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "The sans serif font family for use with `xelatex` or `lualatex`.",
@@ -6733,7 +7445,9 @@
       "name": "mathfont",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "The math font family for use with `xelatex` or `lualatex`.",
@@ -6744,7 +7458,9 @@
       "name": "CJKmainfont",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "The CJK main font family for use with `xelatex` or `lualatex`.",
@@ -6757,7 +7473,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "The main font options for use with `xelatex` or `lualatex`.",
@@ -6770,7 +7488,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "The sans serif font options for use with `xelatex` or `lualatex`.",
@@ -6783,7 +7503,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "The monospace font options for use with `xelatex` or `lualatex`.",
@@ -6796,7 +7518,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "The math font options for use with `xelatex` or `lualatex`.",
@@ -6809,7 +7533,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["typst"]
+        "formats": [
+          "typst"
+        ]
       },
       "description": {
         "short": "Adds additional directories to search for fonts when compiling with Typst.",
@@ -6822,7 +7548,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "The CJK font options for use with `xelatex` or `lualatex`.",
@@ -6835,7 +7563,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "Options to pass to the microtype package.",
@@ -6846,7 +7576,9 @@
       "name": "pointsize",
       "schema": "string",
       "tags": {
-        "formats": ["ms"]
+        "formats": [
+          "ms"
+        ]
       },
       "description": "The point size, for example, `10p`."
     },
@@ -6854,17 +7586,26 @@
       "name": "lineheight",
       "schema": "string",
       "tags": {
-        "formats": ["ms"]
+        "formats": [
+          "ms"
+        ]
       },
       "description": "The line height, for example, `12p`."
     },
     {
       "name": "linestretch",
       "schema": {
-        "anyOf": ["string", "number"]
+        "anyOf": [
+          "string",
+          "number"
+        ]
       },
       "tags": {
-        "formats": ["$html-doc", "context", "$pdf-all"]
+        "formats": [
+          "$html-doc",
+          "context",
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "Sets the line height or spacing for text in the document.",
@@ -6877,7 +7618,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["context"]
+        "formats": [
+          "context"
+        ]
       },
       "description": "Adjusts line spacing using the `\\setupinterlinespace` command."
     },
@@ -6897,7 +7640,9 @@
         }
       },
       "tags": {
-        "formats": ["context"]
+        "formats": [
+          "context"
+        ]
       },
       "description": "The typeface style for links in the document."
     },
@@ -6905,7 +7650,9 @@
       "name": "whitespace",
       "schema": "string",
       "tags": {
-        "formats": ["context"]
+        "formats": [
+          "context"
+        ]
       },
       "description": {
         "short": "Set the spacing between paragraphs, for example `none`, `small.",
@@ -6918,7 +7665,9 @@
       "name": "footnotes-hover",
       "schema": "boolean",
       "tags": {
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "default": true,
       "description": "Enables a hover popup for footnotes that shows the footnote contents."
@@ -6927,7 +7676,9 @@
       "name": "links-as-notes",
       "schema": "boolean",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "default": false,
       "description": "Causes links to be printed as footnotes."
@@ -6935,10 +7686,20 @@
     {
       "name": "reference-location",
       "tags": {
-        "formats": ["$markdown-all", "muse", "$html-files", "pdf"]
+        "formats": [
+          "$markdown-all",
+          "muse",
+          "$html-files",
+          "pdf"
+        ]
       },
       "schema": {
-        "enum": ["block", "section", "margin", "document"]
+        "enum": [
+          "block",
+          "section",
+          "margin",
+          "document"
+        ]
       },
       "default": "document",
       "description": {
@@ -6970,7 +7731,9 @@
         }
       },
       "tags": {
-        "formats": ["context"]
+        "formats": [
+          "context"
+        ]
       },
       "description": {
         "short": "Set the indentation of paragraphs with one or more options.",
@@ -6980,10 +7743,17 @@
     {
       "name": "adjusting",
       "schema": {
-        "enum": ["l", "r", "c", "b"]
+        "enum": [
+          "l",
+          "r",
+          "c",
+          "b"
+        ]
       },
       "tags": {
-        "formats": ["man"]
+        "formats": [
+          "man"
+        ]
       },
       "description": "Adjusts text to the left, right, center, or both margins (`l`, `r`, `c`, or `b`)."
     },
@@ -6992,7 +7762,9 @@
       "schema": "boolean",
       "default": true,
       "tags": {
-        "formats": ["man"]
+        "formats": [
+          "man"
+        ]
       },
       "description": {
         "short": "Whether to hyphenate text at line breaks even in words that do not contain hyphens.",
@@ -7004,14 +7776,19 @@
       "schema": "boolean",
       "default": false,
       "tags": {
-        "formats": ["rst"]
+        "formats": [
+          "rst"
+        ]
       },
       "description": "If true, tables are formatted as RST list tables."
     },
     {
       "name": "split-level",
       "tags": {
-        "formats": ["$epub-all", "chunkedhtml"]
+        "formats": [
+          "$epub-all",
+          "chunkedhtml"
+        ]
       },
       "schema": "number",
       "default": 1,
@@ -7122,7 +7899,10 @@
                                     "closed": true,
                                     "properties": {
                                       "institution": {
-                                        "anyOf": ["string", "object"],
+                                        "anyOf": [
+                                          "string",
+                                          "object"
+                                        ],
                                         "description": "The institution that was the recipient of the funding."
                                       }
                                     }
@@ -7165,7 +7945,10 @@
                                     "closed": true,
                                     "properties": {
                                       "institution": {
-                                        "anyOf": ["string", "object"],
+                                        "anyOf": [
+                                          "string",
+                                          "object"
+                                        ],
                                         "description": "The institution that was responsible for the intellectual content of the work reported in the document."
                                       }
                                     }
@@ -7284,7 +8067,11 @@
     {
       "name": "verbosity",
       "schema": {
-        "enum": ["ERROR", "WARNING", "INFO"]
+        "enum": [
+          "ERROR",
+          "WARNING",
+          "INFO"
+        ]
       },
       "default": "WARNING",
       "hidden": true,
@@ -7299,11 +8086,17 @@
     {
       "name": "track-changes",
       "tags": {
-        "formats": ["docx"]
+        "formats": [
+          "docx"
+        ]
       },
       "hidden": true,
       "schema": {
-        "enum": ["accept", "reject", "all"]
+        "enum": [
+          "accept",
+          "reject",
+          "all"
+        ]
       },
       "default": "accept",
       "description": {
@@ -7314,7 +8107,9 @@
     {
       "name": "keep-source",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -7327,7 +8122,9 @@
     {
       "name": "keep-hidden",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -7337,7 +8134,9 @@
     {
       "name": "prefer-html",
       "tags": {
-        "formats": ["$markdown-all"]
+        "formats": [
+          "$markdown-all"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -7365,7 +8164,11 @@
   "schema/document-includes.yml": [
     {
       "name": "header-includes",
-      "disabled": ["$office-all", "$jats-all", "ipynb"],
+      "disabled": [
+        "$office-all",
+        "$jats-all",
+        "ipynb"
+      ],
       "hidden": true,
       "schema": {
         "maybeArrayOf": "string"
@@ -7374,7 +8177,11 @@
     },
     {
       "name": "include-before",
-      "disabled": ["$office-all", "$jats-all", "ipynb"],
+      "disabled": [
+        "$office-all",
+        "$jats-all",
+        "ipynb"
+      ],
       "hidden": true,
       "schema": {
         "maybeArrayOf": "string"
@@ -7383,7 +8190,11 @@
     },
     {
       "name": "include-after",
-      "disabled": ["$office-all", "$jats-all", "ipynb"],
+      "disabled": [
+        "$office-all",
+        "$jats-all",
+        "ipynb"
+      ],
       "hidden": true,
       "schema": {
         "maybeArrayOf": "string"
@@ -7392,7 +8203,11 @@
     },
     {
       "name": "include-before-body",
-      "disabled": ["$office-all", "$jats-all", "ipynb"],
+      "disabled": [
+        "$office-all",
+        "$jats-all",
+        "ipynb"
+      ],
       "schema": {
         "maybeArrayOf": {
           "anyOf": [
@@ -7407,7 +8222,11 @@
     },
     {
       "name": "include-after-body",
-      "disabled": ["$office-all", "$jats-all", "ipynb"],
+      "disabled": [
+        "$office-all",
+        "$jats-all",
+        "ipynb"
+      ],
       "schema": {
         "maybeArrayOf": {
           "anyOf": [
@@ -7422,7 +8241,11 @@
     },
     {
       "name": "include-in-header",
-      "disabled": ["$office-all", "$jats-all", "ipynb"],
+      "disabled": [
+        "$office-all",
+        "$jats-all",
+        "ipynb"
+      ],
       "schema": {
         "maybeArrayOf": {
           "anyOf": [
@@ -7441,7 +8264,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["$html-all"]
+        "formats": [
+          "$html-all"
+        ]
       },
       "description": "Path (or glob) to files to publish with this document."
     },
@@ -7451,7 +8276,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["context"]
+        "formats": [
+          "context"
+        ]
       },
       "description": {
         "short": "Text to be in a running header.",
@@ -7464,7 +8291,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["context"]
+        "formats": [
+          "context"
+        ]
       },
       "description": {
         "short": "Text to be in a running footer.",
@@ -7475,7 +8304,9 @@
       "name": "includesource",
       "schema": "boolean",
       "tags": {
-        "formats": ["context"]
+        "formats": [
+          "context"
+        ]
       },
       "default": false,
       "description": "Whether to include all source documents as file attachments in the PDF file."
@@ -7484,7 +8315,9 @@
       "name": "footer",
       "schema": "string",
       "tags": {
-        "formats": ["man"]
+        "formats": [
+          "man"
+        ]
       },
       "description": "The footer for man pages."
     },
@@ -7492,7 +8325,9 @@
       "name": "header",
       "schema": "string",
       "tags": {
-        "formats": ["man"]
+        "formats": [
+          "man"
+        ]
       },
       "description": "The header for man pages."
     },
@@ -7528,14 +8363,20 @@
     {
       "name": "language",
       "schema": {
-        "anyOf": ["path", "object"]
+        "anyOf": [
+          "path",
+          "object"
+        ]
       },
       "description": "YAML file containing custom language translations"
     },
     {
       "name": "dir",
       "schema": {
-        "enum": ["rtl", "ltr"]
+        "enum": [
+          "rtl",
+          "ltr"
+        ]
       },
       "description": {
         "short": "The base script direction for the document (`rtl` or `ltr`).",
@@ -7547,7 +8388,10 @@
     {
       "name": "latex-auto-mk",
       "tags": {
-        "formats": ["pdf", "beamer"]
+        "formats": [
+          "pdf",
+          "beamer"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -7559,7 +8403,10 @@
     {
       "name": "latex-auto-install",
       "tags": {
-        "formats": ["pdf", "beamer"]
+        "formats": [
+          "pdf",
+          "beamer"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -7568,7 +8415,10 @@
     {
       "name": "latex-min-runs",
       "tags": {
-        "formats": ["pdf", "beamer"]
+        "formats": [
+          "pdf",
+          "beamer"
+        ]
       },
       "schema": "number",
       "default": 1,
@@ -7577,7 +8427,10 @@
     {
       "name": "latex-max-runs",
       "tags": {
-        "formats": ["pdf", "beamer"]
+        "formats": [
+          "pdf",
+          "beamer"
+        ]
       },
       "schema": "number",
       "default": 10,
@@ -7586,7 +8439,10 @@
     {
       "name": "latex-clean",
       "tags": {
-        "formats": ["pdf", "beamer"]
+        "formats": [
+          "pdf",
+          "beamer"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -7595,7 +8451,10 @@
     {
       "name": "latex-makeindex",
       "tags": {
-        "formats": ["pdf", "beamer"]
+        "formats": [
+          "pdf",
+          "beamer"
+        ]
       },
       "schema": "string",
       "default": "makeindex",
@@ -7604,7 +8463,10 @@
     {
       "name": "latex-makeindex-opts",
       "tags": {
-        "formats": ["pdf", "beamer"]
+        "formats": [
+          "pdf",
+          "beamer"
+        ]
       },
       "schema": {
         "arrayOf": "string"
@@ -7614,7 +8476,10 @@
     {
       "name": "latex-tlmgr-opts",
       "tags": {
-        "formats": ["pdf", "beamer"]
+        "formats": [
+          "pdf",
+          "beamer"
+        ]
       },
       "schema": {
         "arrayOf": "string"
@@ -7624,7 +8489,10 @@
     {
       "name": "latex-output-dir",
       "tags": {
-        "formats": ["pdf", "beamer"]
+        "formats": [
+          "pdf",
+          "beamer"
+        ]
       },
       "schema": "string",
       "description": "Output directory for intermediates and PDF."
@@ -7632,7 +8500,10 @@
     {
       "name": "latex-tinytex",
       "tags": {
-        "formats": ["pdf", "beamer"]
+        "formats": [
+          "pdf",
+          "beamer"
+        ]
       },
       "schema": "boolean",
       "description": "Set to `false` to prevent an installation of TinyTex from being used to compile PDF documents."
@@ -7640,7 +8511,10 @@
     {
       "name": "latex-input-paths",
       "tags": {
-        "formats": ["pdf", "beamer"]
+        "formats": [
+          "pdf",
+          "beamer"
+        ]
       },
       "schema": {
         "arrayOf": "string"
@@ -7666,7 +8540,9 @@
         }
       },
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "default": "scrartcl",
       "description": "The document class."
@@ -7677,7 +8553,10 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["$html-files", "$pdf-all"]
+        "formats": [
+          "$html-files",
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "Options for the document class,",
@@ -7688,11 +8567,17 @@
       "name": "pagestyle",
       "schema": {
         "string": {
-          "completions": ["plain", "empty", "headings"]
+          "completions": [
+            "plain",
+            "empty",
+            "headings"
+          ]
         }
       },
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "default": "plain",
       "description": "Control the `\\pagestyle{}` for the document."
@@ -7701,18 +8586,26 @@
       "name": "papersize",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all", "typst"]
+        "formats": [
+          "$pdf-all",
+          "typst"
+        ]
       },
       "description": "The paper size for the document.\n"
     },
     {
       "name": "brand-mode",
       "schema": {
-        "enum": ["light", "dark"]
+        "enum": [
+          "light",
+          "dark"
+        ]
       },
       "default": "light",
       "tags": {
-        "formats": ["typst"]
+        "formats": [
+          "typst"
+        ]
       },
       "description": "The brand mode to use for rendering the Typst document, `light` or `dark`.\n"
     },
@@ -7722,7 +8615,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["context"]
+        "formats": [
+          "context"
+        ]
       },
       "description": {
         "short": "The options for margins and text layout for this document.",
@@ -7732,18 +8627,27 @@
     {
       "name": "page-layout",
       "schema": {
-        "enum": ["article", "full", "custom"]
+        "enum": [
+          "article",
+          "full",
+          "custom"
+        ]
       },
       "default": "article",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": "The page layout to use for this document (`article`, `full`, or `custom`)"
     },
     {
       "name": "page-width",
       "tags": {
-        "formats": ["docx", "$odt-all"]
+        "formats": [
+          "docx",
+          "$odt-all"
+        ]
       },
       "schema": "number",
       "description": {
@@ -7758,7 +8662,12 @@
           "closed": true,
           "properties": {
             "content-mode": {
-              "enum": ["auto", "standard", "full", "slim"],
+              "enum": [
+                "auto",
+                "standard",
+                "full",
+                "slim"
+              ],
               "description": "Defines whether to use the standard, slim, or full content grid or to automatically select the most appropriate content grid."
             },
             "sidebar-width": {
@@ -7793,13 +8702,19 @@
       "schema": {
         "anyOf": [
           {
-            "enum": ["default", "plain", "none"]
+            "enum": [
+              "default",
+              "plain",
+              "none"
+            ]
           }
         ]
       },
       "default": "default",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": {
         "short": "The layout of the appendix for this document (`none`, `plain`, or `default`)",
@@ -7813,13 +8728,18 @@
           "boolean",
           {
             "maybeArrayOf": {
-              "enum": ["display", "bibtex"]
+              "enum": [
+                "display",
+                "bibtex"
+              ]
             }
           }
         ]
       },
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": {
         "short": "Controls the formats which are provided in the citation section of the appendix (`false`, `display`, or `bibtex`).",
@@ -7831,13 +8751,20 @@
       "schema": {
         "anyOf": [
           {
-            "enum": ["default", "plain", "manuscript", "none"]
+            "enum": [
+              "default",
+              "plain",
+              "manuscript",
+              "none"
+            ]
           }
         ]
       },
       "default": "default",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": {
         "short": "The layout of the title block for this document (`none`, `plain`, or `default`).",
@@ -7847,10 +8774,15 @@
     {
       "name": "title-block-banner",
       "schema": {
-        "anyOf": ["string", "boolean"]
+        "anyOf": [
+          "string",
+          "boolean"
+        ]
       },
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": {
         "short": "Apply a banner style treatment to the title block.",
@@ -7861,7 +8793,9 @@
       "name": "title-block-banner-color",
       "schema": "string",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": {
         "short": "Sets the color of text elements in a banner style title block.",
@@ -7873,7 +8807,9 @@
       "schema": "boolean",
       "default": true,
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": {
         "short": "Enables or disables the display of categories in the title block."
@@ -7883,7 +8819,9 @@
       "name": "max-width",
       "schema": "string",
       "tags": {
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "description": "Adds a css `max-width` to the body Element."
     },
@@ -7891,7 +8829,11 @@
       "name": "margin-left",
       "schema": "string",
       "tags": {
-        "formats": ["$html-files", "context", "$pdf-all"]
+        "formats": [
+          "$html-files",
+          "context",
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "Sets the left margin of the document.",
@@ -7902,7 +8844,11 @@
       "name": "margin-right",
       "schema": "string",
       "tags": {
-        "formats": ["$html-files", "context", "$pdf-all"]
+        "formats": [
+          "$html-files",
+          "context",
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "Sets the right margin of the document.",
@@ -7913,7 +8859,11 @@
       "name": "margin-top",
       "schema": "string",
       "tags": {
-        "formats": ["$html-files", "context", "$pdf-all"]
+        "formats": [
+          "$html-files",
+          "context",
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "Sets the top margin of the document.",
@@ -7924,7 +8874,11 @@
       "name": "margin-bottom",
       "schema": "string",
       "tags": {
-        "formats": ["$html-files", "context", "$pdf-all"]
+        "formats": [
+          "$html-files",
+          "context",
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "Sets the bottom margin of the document.",
@@ -7937,7 +8891,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "Options for the geometry package.",
@@ -7950,7 +8906,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "Additional non-color options for the hyperref package.",
@@ -7960,10 +8918,16 @@
     {
       "name": "indent",
       "schema": {
-        "anyOf": ["boolean", "string"]
+        "anyOf": [
+          "boolean",
+          "string"
+        ]
       },
       "tags": {
-        "formats": ["$pdf-all", "ms"]
+        "formats": [
+          "$pdf-all",
+          "ms"
+        ]
       },
       "default": false,
       "description": {
@@ -7975,7 +8939,9 @@
       "name": "block-headings",
       "schema": "boolean",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": {
         "short": "Make `\\paragraph` and `\\subparagraph` free-standing rather than run-in.",
@@ -7988,7 +8954,9 @@
       "name": "revealjs-url",
       "schema": "path",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "description": "Directory containing reveal.js files."
     },
@@ -7996,7 +8964,9 @@
       "name": "s5-url",
       "schema": "string",
       "tags": {
-        "formats": ["s5"]
+        "formats": [
+          "s5"
+        ]
       },
       "description": "The base url for s5 presentations."
     },
@@ -8004,7 +8974,9 @@
       "name": "slidy-url",
       "schema": "string",
       "tags": {
-        "formats": ["slidy"]
+        "formats": [
+          "slidy"
+        ]
       },
       "description": "The base url for Slidy presentations."
     },
@@ -8012,7 +8984,9 @@
       "name": "slideous-url",
       "schema": "string",
       "tags": {
-        "formats": ["slideous"]
+        "formats": [
+          "slideous"
+        ]
       },
       "description": "The base url for Slideous presentations."
     }
@@ -8024,7 +8998,9 @@
         "anyOf": [
           "boolean",
           {
-            "enum": ["auto"]
+            "enum": [
+              "auto"
+            ]
           },
           {
             "object": {
@@ -8032,7 +9008,9 @@
               "properties": {
                 "match": {
                   "schema": {
-                    "enum": ["auto"]
+                    "enum": [
+                      "auto"
+                    ]
                   },
                   "description": {
                     "short": "Set this to `auto` if you'd like any image to be given lightbox treatment.",
@@ -8041,13 +9019,22 @@
                 },
                 "effect": {
                   "schema": {
-                    "enum": ["fade", "zoom", "none"]
+                    "enum": [
+                      "fade",
+                      "zoom",
+                      "none"
+                    ]
                   },
                   "description": "The effect that should be used when opening and closing the lightbox. One of `fade`, `zoom`, `none`. Defaults to `zoom`."
                 },
                 "desc-position": {
                   "schema": {
-                    "enum": ["top", "bottom", "left", "right"]
+                    "enum": [
+                      "top",
+                      "bottom",
+                      "left",
+                      "right"
+                    ]
                   },
                   "description": "The position of the title and description when displaying a lightbox. One of `top`, `bottom`, `left`, `right`. Defaults to `bottom`."
                 },
@@ -8067,7 +9054,9 @@
         ]
       },
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": "Enable or disable lightbox treatment for images in this document. See [Lightbox Figures](https://quarto.org/docs/output-formats/html-lightbox-figures.html) for more details."
     }
@@ -8076,7 +9065,10 @@
     {
       "name": "link-external-icon",
       "tags": {
-        "formats": ["$html-doc", "revealjs"]
+        "formats": [
+          "$html-doc",
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "description": "Show a special icon next to links that leave the current site."
@@ -8084,7 +9076,10 @@
     {
       "name": "link-external-newwindow",
       "tags": {
-        "formats": ["$html-doc", "revealjs"]
+        "formats": [
+          "$html-doc",
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "description": "Open external links in a new browser window or tab (rather than navigating the current tab)."
@@ -8092,7 +9087,10 @@
     {
       "name": "link-external-filter",
       "tags": {
-        "formats": ["$html-doc", "revealjs"]
+        "formats": [
+          "$html-doc",
+          "revealjs"
+        ]
       },
       "schema": "string",
       "description": {
@@ -8103,7 +9101,9 @@
     {
       "name": "format-links",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -8131,7 +9131,10 @@
                         }
                       }
                     },
-                    "required": ["text", "href"]
+                    "required": [
+                      "text",
+                      "href"
+                    ]
                   }
                 },
                 {
@@ -8153,7 +9156,10 @@
                         }
                       }
                     },
-                    "required": ["text", "format"]
+                    "required": [
+                      "text",
+                      "format"
+                    ]
                   }
                 }
               ]
@@ -8169,13 +9175,18 @@
     {
       "name": "notebook-links",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": {
         "anyOf": [
           "boolean",
           {
-            "enum": ["inline", "global"]
+            "enum": [
+              "inline",
+              "global"
+            ]
           }
         ]
       },
@@ -8187,12 +9198,16 @@
     {
       "name": "other-links",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": {
         "anyOf": [
           {
-            "enum": [false]
+            "enum": [
+              false
+            ]
           },
           {
             "ref": "other-links"
@@ -8204,12 +9219,16 @@
     {
       "name": "code-links",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": {
         "anyOf": [
           {
-            "enum": [false]
+            "enum": [
+              false
+            ]
           },
           {
             "ref": "code-links-schema"
@@ -8221,7 +9240,9 @@
     {
       "name": "notebook-subarticles",
       "tags": {
-        "formats": ["$jats-all"]
+        "formats": [
+          "$jats-all"
+        ]
       },
       "schema": "boolean",
       "description": {
@@ -8232,7 +9253,9 @@
     {
       "name": "notebook-view",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -8254,10 +9277,15 @@
     {
       "name": "notebook-view-style",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": {
-        "enum": ["document", "notebook"]
+        "enum": [
+          "document",
+          "notebook"
+        ]
       },
       "hidden": true,
       "description": "The style of document to render. Setting this to `notebook` will create additional notebook style affordances."
@@ -8265,7 +9293,9 @@
     {
       "name": "notebook-preview-options",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": {
         "object": {
@@ -8283,10 +9313,15 @@
     {
       "name": "canonical-url",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": {
-        "anyOf": ["boolean", "string"]
+        "anyOf": [
+          "boolean",
+          "string"
+        ]
       },
       "description": {
         "short": "Include a canonical link tag in website pages",
@@ -8298,7 +9333,9 @@
     {
       "name": "listing",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -8322,13 +9359,20 @@
     {
       "name": "mermaid",
       "tags": {
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "schema": {
         "object": {
           "properties": {
             "theme": {
-              "enum": ["default", "dark", "forest", "neutral"],
+              "enum": [
+                "default",
+                "dark",
+                "forest",
+                "neutral"
+              ],
               "description": "The mermaid built-in theme to use."
             }
           }
@@ -8359,7 +9403,11 @@
       "name": "subject",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all", "$office-all", "odt"]
+        "formats": [
+          "$pdf-all",
+          "$office-all",
+          "odt"
+        ]
       },
       "description": "The document subject"
     },
@@ -8367,7 +9415,10 @@
       "name": "description",
       "schema": "string",
       "tags": {
-        "formats": ["odt", "$office-all"]
+        "formats": [
+          "odt",
+          "$office-all"
+        ]
       },
       "description": "The document description. Some applications show this as `Comments` metadata."
     },
@@ -8375,7 +9426,9 @@
       "name": "category",
       "schema": "string",
       "tags": {
-        "formats": ["$office-all"]
+        "formats": [
+          "$office-all"
+        ]
       },
       "description": "The document category."
     },
@@ -8388,7 +9441,10 @@
               "properties": {
                 "year": {
                   "maybeArrayOf": {
-                    "anyOf": ["string", "number"]
+                    "anyOf": [
+                      "string",
+                      "number"
+                    ]
                   },
                   "description": "The year for this copyright"
                 },
@@ -8413,7 +9469,10 @@
         ]
       },
       "tags": {
-        "formats": ["$html-doc", "$jats-all"]
+        "formats": [
+          "$html-doc",
+          "$jats-all"
+        ]
       },
       "description": "The copyright for this document, if any."
     },
@@ -8448,7 +9507,10 @@
         }
       },
       "tags": {
-        "formats": ["$html-doc", "$jats-all"]
+        "formats": [
+          "$html-doc",
+          "$jats-all"
+        ]
       },
       "description": {
         "short": "The License for this document, if any. (e.g. `CC BY`)",
@@ -8459,14 +9521,18 @@
       "name": "title-meta",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": "Sets the title metadata for the document"
     },
     {
       "name": "pagetitle",
       "tags": {
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "schema": "string",
       "description": "Sets the title metadata for the document"
@@ -8474,7 +9540,9 @@
     {
       "name": "title-prefix",
       "tags": {
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "schema": "string",
       "description": "Specify STRING as a prefix at the beginning of the title that appears in \nthe HTML header (but not in the title as it appears at the beginning of the body)\n"
@@ -8483,7 +9551,9 @@
       "name": "description-meta",
       "schema": "string",
       "tags": {
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "description": "Sets the description metadata for the document"
     },
@@ -8491,7 +9561,10 @@
       "name": "author-meta",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all", "$html-files"]
+        "formats": [
+          "$pdf-all",
+          "$html-files"
+        ]
       },
       "description": "Sets the author metadata for the document"
     },
@@ -8499,7 +9572,10 @@
       "name": "date-meta",
       "schema": "string",
       "tags": {
-        "formats": ["$html-all", "$pdf-all"]
+        "formats": [
+          "$html-all",
+          "$pdf-all"
+        ]
       },
       "description": "Sets the date metadata for the document"
     }
@@ -8518,7 +9594,11 @@
       "name": "number-depth",
       "schema": "number",
       "tags": {
-        "formats": ["$html-all", "$pdf-all", "docx"]
+        "formats": [
+          "$html-all",
+          "$pdf-all",
+          "docx"
+        ]
       },
       "description": {
         "short": "The depth to which sections should be numbered.",
@@ -8530,19 +9610,30 @@
       "schema": "number",
       "hidden": true,
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": "The numbering depth for sections. (Use `number-depth` instead)."
     },
     {
       "name": "number-offset",
       "tags": {
-        "formats": ["$html-all"]
+        "formats": [
+          "$html-all"
+        ]
       },
       "schema": {
         "maybeArrayOf": "number"
       },
-      "default": [0, 0, 0, 0, 0, 0],
+      "default": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
       "description": {
         "short": "Offset for section headings in output (offsets are 0 by default)",
         "long": "Offset for section headings in output (offsets are 0 by default)\nThe first number is added to the section number for\ntop-level headings, the second for second-level headings, and so on.\nSo, for example, if you want the first top-level heading in your\ndocument to be numbered \"6\", specify `number-offset: 5`. If your\ndocument starts with a level-2 heading which you want to be numbered\n\"1.5\", specify `number-offset: [1,4]`. Implies `number-sections`\n"
@@ -8551,7 +9642,9 @@
     {
       "name": "section-numbering",
       "tags": {
-        "formats": ["typst"]
+        "formats": [
+          "typst"
+        ]
       },
       "schema": "string",
       "description": "Schema to use for numbering sections, e.g. `1.A.1`"
@@ -8570,7 +9663,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["context"]
+        "formats": [
+          "context"
+        ]
       },
       "description": {
         "short": "Sets the page numbering style and location for the document.",
@@ -8580,10 +9675,20 @@
     {
       "name": "top-level-division",
       "tags": {
-        "formats": ["$pdf-all", "context", "$docbook-all", "tei"]
+        "formats": [
+          "$pdf-all",
+          "context",
+          "$docbook-all",
+          "tei"
+        ]
       },
       "schema": {
-        "enum": ["default", "section", "chapter", "part"]
+        "enum": [
+          "default",
+          "section",
+          "chapter",
+          "part"
+        ]
       },
       "description": {
         "short": "Treat top-level headings as the given division type (`default`, `section`, `chapter`, or `part`). The hierarchy\norder is part, chapter, then section; all headings are shifted such \nthat the top-level heading becomes the specified type.\n",
@@ -8595,7 +9700,9 @@
     {
       "name": "ojs-engine",
       "tags": {
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "schema": "boolean",
       "description": "If `true`, force the presence of the OJS runtime. If `false`, force the absence instead.\nIf unset, the OJS runtime is included only if OJS cells are present in the document.\n"
@@ -8605,7 +9712,10 @@
     {
       "name": "reference-doc",
       "tags": {
-        "formats": ["$office-all", "odt"]
+        "formats": [
+          "$office-all",
+          "odt"
+        ]
       },
       "schema": "path",
       "description": "Use the specified file as a style reference in producing a docx, \npptx, or odt file.\n"
@@ -8620,7 +9730,12 @@
     {
       "name": "theme",
       "tags": {
-        "formats": ["$html-doc", "revealjs", "beamer", "dashboard"]
+        "formats": [
+          "$html-doc",
+          "revealjs",
+          "beamer",
+          "dashboard"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -8663,7 +9778,9 @@
     {
       "name": "body-classes",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": "string",
       "description": "Classes to apply to the body of the document.\n"
@@ -8673,7 +9790,9 @@
       "schema": "boolean",
       "default": false,
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": "Disables the built in html features like theming, anchor sections, code block behavior, and more."
     },
@@ -8683,14 +9802,18 @@
       "hidden": true,
       "default": true,
       "tags": {
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "description": "Enables inclusion of Pandoc default CSS for this document."
     },
     {
       "name": "css",
       "tags": {
-        "formats": ["$html-all"]
+        "formats": [
+          "$html-all"
+        ]
       },
       "schema": {
         "maybeArrayOf": "path"
@@ -8702,7 +9825,9 @@
       "schema": "boolean",
       "default": true,
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": "Enables hover over a section title to see an anchor link."
     },
@@ -8711,7 +9836,9 @@
       "schema": "boolean",
       "default": true,
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": "Enables tabsets to present content."
     },
@@ -8720,7 +9847,9 @@
       "schema": "boolean",
       "default": false,
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": "Enables smooth scrolling within the page."
     },
@@ -8729,7 +9858,9 @@
       "schema": "boolean",
       "default": false,
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": {
         "short": "Enables setting dark mode based on the `prefers-color-scheme` media query.",
@@ -8739,7 +9870,11 @@
     {
       "name": "html-math-method",
       "tags": {
-        "formats": ["$html-doc", "$epub-all", "gfm"]
+        "formats": [
+          "$html-doc",
+          "$epub-all",
+          "gfm"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -8754,7 +9889,9 @@
                 },
                 "url": "string"
               },
-              "required": ["method"]
+              "required": [
+                "method"
+              ]
             }
           }
         ]
@@ -8767,7 +9904,9 @@
     {
       "name": "section-divs",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -8776,7 +9915,12 @@
     {
       "name": "identifier-prefix",
       "tags": {
-        "formats": ["$html-files", "$docbook-all", "$markdown-all", "haddock"]
+        "formats": [
+          "$html-files",
+          "$docbook-all",
+          "$markdown-all",
+          "haddock"
+        ]
       },
       "schema": "string",
       "description": {
@@ -8787,10 +9931,16 @@
     {
       "name": "email-obfuscation",
       "tags": {
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "schema": {
-        "enum": ["none", "references", "javascript"]
+        "enum": [
+          "none",
+          "references",
+          "javascript"
+        ]
       },
       "default": "none",
       "description": {
@@ -8801,7 +9951,9 @@
     {
       "name": "html-q-tags",
       "tags": {
-        "formats": ["$html-all"]
+        "formats": [
+          "$html-all"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -8810,7 +9962,11 @@
     {
       "name": "pdf-engine",
       "tags": {
-        "formats": ["$pdf-all", "ms", "context"]
+        "formats": [
+          "$pdf-all",
+          "ms",
+          "context"
+        ]
       },
       "schema": {
         "enum": [
@@ -8836,7 +9992,11 @@
     {
       "name": "pdf-engine-opt",
       "tags": {
-        "formats": ["$pdf-all", "ms", "context"]
+        "formats": [
+          "$pdf-all",
+          "ms",
+          "context"
+        ]
       },
       "schema": "string",
       "description": {
@@ -8847,7 +10007,11 @@
     {
       "name": "pdf-engine-opts",
       "tags": {
-        "formats": ["$pdf-all", "ms", "context"]
+        "formats": [
+          "$pdf-all",
+          "ms",
+          "context"
+        ]
       },
       "schema": {
         "arrayOf": "string"
@@ -8861,7 +10025,9 @@
       "name": "beamerarticle",
       "schema": "boolean",
       "tags": {
-        "formats": ["pdf"]
+        "formats": [
+          "pdf"
+        ]
       },
       "description": "Whether to produce a Beamer article from this presentation."
     },
@@ -8871,17 +10037,29 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["beamer"]
+        "formats": [
+          "beamer"
+        ]
       },
       "description": "Add an extra Beamer option using `\\setbeameroption{}`."
     },
     {
       "name": "aspectratio",
       "schema": {
-        "enum": [43, 169, 1610, 149, 141, 54, 32]
+        "enum": [
+          43,
+          169,
+          1610,
+          149,
+          141,
+          54,
+          32
+        ]
       },
       "tags": {
-        "formats": ["beamer"]
+        "formats": [
+          "beamer"
+        ]
       },
       "description": "The aspect ratio for this presentation."
     },
@@ -8889,7 +10067,9 @@
       "name": "logo",
       "schema": "path",
       "tags": {
-        "formats": ["beamer"]
+        "formats": [
+          "beamer"
+        ]
       },
       "description": "The logo image."
     },
@@ -8897,17 +10077,26 @@
       "name": "titlegraphic",
       "schema": "path",
       "tags": {
-        "formats": ["beamer"]
+        "formats": [
+          "beamer"
+        ]
       },
       "description": "The image for the title slide."
     },
     {
       "name": "navigation",
       "schema": {
-        "enum": ["empty", "frame", "vertical", "horizontal"]
+        "enum": [
+          "empty",
+          "frame",
+          "vertical",
+          "horizontal"
+        ]
       },
       "tags": {
-        "formats": ["beamer"]
+        "formats": [
+          "beamer"
+        ]
       },
       "description": "Controls navigation symbols for the presentation (`empty`, `frame`, `vertical`, or `horizontal`)"
     },
@@ -8915,7 +10104,9 @@
       "name": "section-titles",
       "schema": "boolean",
       "tags": {
-        "formats": ["beamer"]
+        "formats": [
+          "beamer"
+        ]
       },
       "default": true,
       "description": "Whether to enable title pages for new sections."
@@ -8924,7 +10115,9 @@
       "name": "colortheme",
       "schema": "string",
       "tags": {
-        "formats": ["beamer"]
+        "formats": [
+          "beamer"
+        ]
       },
       "description": "The Beamer color theme for this presentation."
     },
@@ -8932,7 +10125,9 @@
       "name": "fonttheme",
       "schema": "string",
       "tags": {
-        "formats": ["beamer"]
+        "formats": [
+          "beamer"
+        ]
       },
       "description": "The Beamer font theme for this presentation."
     },
@@ -8940,7 +10135,9 @@
       "name": "innertheme",
       "schema": "string",
       "tags": {
-        "formats": ["beamer"]
+        "formats": [
+          "beamer"
+        ]
       },
       "description": "The Beamer inner theme for this presentation."
     },
@@ -8948,7 +10145,9 @@
       "name": "outertheme",
       "schema": "string",
       "tags": {
-        "formats": ["beamer"]
+        "formats": [
+          "beamer"
+        ]
       },
       "description": "The Beamer outer theme for this presentation."
     },
@@ -8958,7 +10157,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["beamer"]
+        "formats": [
+          "beamer"
+        ]
       },
       "description": "Options passed to LaTeX Beamer themes."
     },
@@ -8966,14 +10167,18 @@
       "name": "section",
       "schema": "number",
       "tags": {
-        "formats": ["man"]
+        "formats": [
+          "man"
+        ]
       },
       "description": "The section number in man pages."
     },
     {
       "name": "variant",
       "tags": {
-        "formats": ["$markdown-all"]
+        "formats": [
+          "$markdown-all"
+        ]
       },
       "schema": "string",
       "description": "Enable and disable extensions for markdown output (e.g. \"+emoji\")\n"
@@ -8981,10 +10186,16 @@
     {
       "name": "markdown-headings",
       "tags": {
-        "formats": ["$markdown-all", "ipynb"]
+        "formats": [
+          "$markdown-all",
+          "ipynb"
+        ]
       },
       "schema": {
-        "enum": ["setext", "atx"]
+        "enum": [
+          "setext",
+          "atx"
+        ]
       },
       "default": "atx",
       "description": "Specify whether to use `atx` (`#`-prefixed) or\n`setext` (underlined) headings for level 1 and 2\nheadings (`atx` or `setext`).\n"
@@ -8992,10 +10203,16 @@
     {
       "name": "ipynb-output",
       "tags": {
-        "formats": ["ipynb"]
+        "formats": [
+          "ipynb"
+        ]
       },
       "schema": {
-        "enum": ["none", "all", "best"]
+        "enum": [
+          "none",
+          "all",
+          "best"
+        ]
       },
       "default": "best",
       "description": {
@@ -9015,7 +10232,10 @@
       "name": "preview-mode",
       "schema": "string",
       "tags": {
-        "formats": ["$jats-all", "gfm"]
+        "formats": [
+          "$jats-all",
+          "gfm"
+        ]
       },
       "description": {
         "short": "The mode to use when previewing this document.",
@@ -9027,10 +10247,15 @@
     {
       "name": "pdfa",
       "schema": {
-        "anyOf": ["boolean", "string"]
+        "anyOf": [
+          "boolean",
+          "string"
+        ]
       },
       "tags": {
-        "formats": ["context"]
+        "formats": [
+          "context"
+        ]
       },
       "description": {
         "short": "Adds the necessary setup to the document preamble to generate PDF/A of the type specified.",
@@ -9043,7 +10268,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["context"]
+        "formats": [
+          "context"
+        ]
       },
       "description": {
         "short": "When used in conjunction with `pdfa`, specifies the ICC profile to use \nin the PDF, e.g. `default.cmyk`.\n",
@@ -9054,7 +10281,9 @@
       "name": "pdfaintent",
       "schema": "string",
       "tags": {
-        "formats": ["context"]
+        "formats": [
+          "context"
+        ]
       },
       "description": {
         "short": "When used in conjunction with `pdfa`, specifies the output intent for the colors.",
@@ -9079,7 +10308,9 @@
       "name": "citations-hover",
       "schema": "boolean",
       "tags": {
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "default": true,
       "description": "Enables a hover popup for citation that shows the reference information."
@@ -9087,10 +10318,15 @@
     {
       "name": "citation-location",
       "schema": {
-        "enum": ["document", "margin"]
+        "enum": [
+          "document",
+          "margin"
+        ]
       },
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "default": "document",
       "description": "Where citation information should be displayed (`document` or `margin`)"
@@ -9098,10 +10334,16 @@
     {
       "name": "cite-method",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "schema": {
-        "enum": ["citeproc", "natbib", "biblatex"]
+        "enum": [
+          "citeproc",
+          "natbib",
+          "biblatex"
+        ]
       },
       "default": "citeproc",
       "description": "Method used to format citations (`citeproc`, `natbib`, or `biblatex`).\n"
@@ -9121,7 +10363,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": "A list of options for BibLaTeX."
     },
@@ -9131,7 +10375,9 @@
         "maybeArrayOf": "string"
       },
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": "One or more options to provide for `natbib` when generating a bibliography."
     },
@@ -9139,7 +10385,9 @@
       "name": "biblio-style",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": "The bibliography style to use (e.g. `\\bibliographystyle{dinat}`) when using `natbib` or `biblatex`."
     },
@@ -9147,7 +10395,9 @@
       "name": "bibliographystyle",
       "schema": "string",
       "tags": {
-        "formats": ["typst"]
+        "formats": [
+          "typst"
+        ]
       },
       "description": "The bibliography style to use (e.g. `#set bibliography(style: \"apa\")`) when using typst built-in citation system (e.g when not `citeproc: true`)."
     },
@@ -9155,7 +10405,9 @@
       "name": "biblio-title",
       "schema": "string",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": "The bibliography title to use when using `natbib` or `biblatex`."
     },
@@ -9163,7 +10415,9 @@
       "name": "biblio-config",
       "schema": "boolean",
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": "Controls whether to output bibliography configuration for `natbib` or `biblatex` when cite method is not `citeproc`."
     },
@@ -9179,7 +10433,10 @@
       "name": "link-citations",
       "schema": "boolean",
       "tags": {
-        "formats": ["$pdf-all", "docx"]
+        "formats": [
+          "$pdf-all",
+          "docx"
+        ]
       },
       "description": "If true, citations will be hyperlinked to the corresponding bibliography entries (for author-date and numerical styles only). Defaults to false."
     },
@@ -9187,7 +10444,10 @@
       "name": "link-bibliography",
       "schema": "boolean",
       "tags": {
-        "formats": ["$pdf-all", "docx"]
+        "formats": [
+          "$pdf-all",
+          "docx"
+        ]
       },
       "description": {
         "short": "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be rendered as hyperlinks.",
@@ -9198,7 +10458,10 @@
       "name": "notes-after-punctuation",
       "schema": "boolean",
       "tags": {
-        "formats": ["$pdf-all", "docx"]
+        "formats": [
+          "$pdf-all",
+          "docx"
+        ]
       },
       "description": {
         "short": "Places footnote references or superscripted numerical citations after following punctuation.",
@@ -9232,13 +10495,19 @@
     },
     {
       "name": "template",
-      "disabled": ["$office-all", "ipynb"],
+      "disabled": [
+        "$office-all",
+        "ipynb"
+      ],
       "schema": "path",
       "description": "Use the specified file as a custom template for the generated document.\n"
     },
     {
       "name": "template-partials",
-      "disabled": ["$office-all", "ipynb"],
+      "disabled": [
+        "$office-all",
+        "ipynb"
+      ],
       "schema": {
         "maybeArrayOf": "path"
       },
@@ -9247,7 +10516,9 @@
     {
       "name": "embed-resources",
       "tags": {
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -9259,7 +10530,9 @@
     {
       "name": "self-contained",
       "tags": {
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -9272,7 +10545,9 @@
     {
       "name": "self-contained-math",
       "tags": {
-        "formats": ["$html-files"]
+        "formats": [
+          "$html-files"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -9300,7 +10575,9 @@
       "schema": "boolean",
       "default": false,
       "tags": {
-        "contexts": ["document-execute"]
+        "contexts": [
+          "document-execute"
+        ]
       },
       "description": "Keep the markdown file generated by executing code"
     },
@@ -9309,7 +10586,9 @@
       "schema": "boolean",
       "default": false,
       "tags": {
-        "contexts": ["document-execute"]
+        "contexts": [
+          "document-execute"
+        ]
       },
       "description": "Keep the notebook file generated from executing code."
     },
@@ -9319,7 +10598,9 @@
         "arrayOf": "string"
       },
       "tags": {
-        "contexts": ["document-execute"]
+        "contexts": [
+          "document-execute"
+        ]
       },
       "description": "Filters to pre-process ipynb files before rendering to markdown"
     },
@@ -9336,7 +10617,9 @@
         ]
       },
       "tags": {
-        "contexts": ["document-execute"],
+        "contexts": [
+          "document-execute"
+        ],
         "engine": "jupyter"
       },
       "description": "Specify which nodes should be run interactively (displaying output from expressions)\n"
@@ -9346,7 +10629,9 @@
       "schema": "boolean",
       "default": false,
       "tags": {
-        "contexts": ["document-execute"],
+        "contexts": [
+          "document-execute"
+        ],
         "engine": "jupyter"
       },
       "description": "If true, use the \"notebook_connected\" plotly renderer, which downloads\nits dependencies from a CDN and requires an internet connection to view.\n"
@@ -9354,7 +10639,9 @@
     {
       "name": "keep-typ",
       "tags": {
-        "formats": ["typst"]
+        "formats": [
+          "typst"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -9363,7 +10650,10 @@
     {
       "name": "keep-tex",
       "tags": {
-        "formats": ["pdf", "beamer"]
+        "formats": [
+          "pdf",
+          "beamer"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -9382,7 +10672,9 @@
       "schema": {
         "arrayOf": "path"
       },
-      "default": ["."],
+      "default": [
+        "."
+      ],
       "description": "List of paths to search for images and other resources.\n"
     },
     {
@@ -9413,27 +10705,39 @@
     {
       "name": "html-table-processing",
       "schema": {
-        "enum": ["none"]
+        "enum": [
+          "none"
+        ]
       },
       "description": "If `none`, do not process tables in HTML input."
     },
     {
       "name": "html-pre-tag-processing",
       "tags": {
-        "formats": ["typst"]
+        "formats": [
+          "typst"
+        ]
       },
       "schema": {
-        "enum": ["none", "parse"]
+        "enum": [
+          "none",
+          "parse"
+        ]
       },
       "description": "If `none`, ignore any divs with `html-pre-tag-processing=parse` enabled."
     },
     {
       "name": "css-property-processing",
       "tags": {
-        "formats": ["typst"]
+        "formats": [
+          "typst"
+        ]
       },
       "schema": {
-        "enum": ["none", "translate"]
+        "enum": [
+          "none",
+          "translate"
+        ]
       },
       "default": "translate",
       "description": {
@@ -9446,7 +10750,9 @@
       "schema": "boolean",
       "default": true,
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": "If `true`, attempt to use `rsvg-convert` to convert SVG images to PDF."
     }
@@ -9455,17 +10761,25 @@
     {
       "name": "logo",
       "tags": {
-        "formats": ["revealjs", "typst"]
+        "formats": [
+          "revealjs",
+          "typst"
+        ]
       },
       "schema": {
-        "anyOf": ["string", "object"]
+        "anyOf": [
+          "string",
+          "object"
+        ]
       },
       "description": "Logo image (placed in bottom right corner of slides)"
     },
     {
       "name": "footer",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "string",
       "description": {
@@ -9476,7 +10790,9 @@
     {
       "name": "scrollable",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -9488,7 +10804,9 @@
     {
       "name": "smaller",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -9500,10 +10818,18 @@
     {
       "name": "output-location",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
-        "enum": ["default", "fragment", "slide", "column", "column-fragment"]
+        "enum": [
+          "default",
+          "fragment",
+          "slide",
+          "column",
+          "column-fragment"
+        ]
       },
       "description": {
         "short": "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
@@ -9515,7 +10841,9 @@
     {
       "name": "embedded",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "hidden": true,
@@ -9525,7 +10853,9 @@
     {
       "name": "display",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "string",
       "hidden": true,
@@ -9537,7 +10867,9 @@
     {
       "name": "auto-stretch",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -9546,10 +10878,15 @@
     {
       "name": "width",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
-        "anyOf": ["number", "string"]
+        "anyOf": [
+          "number",
+          "string"
+        ]
       },
       "default": 1050,
       "description": {
@@ -9560,10 +10897,15 @@
     {
       "name": "height",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
-        "anyOf": ["number", "string"]
+        "anyOf": [
+          "number",
+          "string"
+        ]
       },
       "default": 700,
       "description": {
@@ -9574,7 +10916,10 @@
     {
       "name": "margin",
       "tags": {
-        "formats": ["revealjs", "typst"]
+        "formats": [
+          "revealjs",
+          "typst"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -9624,7 +10969,9 @@
     {
       "name": "min-scale",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "number",
       "default": 0.2,
@@ -9633,7 +10980,9 @@
     {
       "name": "max-scale",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "number",
       "default": 2,
@@ -9642,7 +10991,9 @@
     {
       "name": "center",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -9651,7 +11002,9 @@
     {
       "name": "disable-layout",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -9660,7 +11013,9 @@
     {
       "name": "code-block-height",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "string",
       "default": "500px",
@@ -9671,12 +11026,16 @@
     {
       "name": "preview-links",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
         "anyOf": [
           {
-            "enum": ["auto"]
+            "enum": [
+              "auto"
+            ]
           },
           "boolean"
         ]
@@ -9690,10 +11049,16 @@
     {
       "name": "auto-play-media",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
-        "enum": [null, true, false]
+        "enum": [
+          null,
+          true,
+          false
+        ]
       },
       "default": null,
       "description": "Autoplay embedded media (`null`, `true`, or `false`). Default is `null` (only when `autoplay` \nattribute is specified)\n"
@@ -9701,10 +11066,16 @@
     {
       "name": "preload-iframes",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
-        "enum": [null, true, false]
+        "enum": [
+          null,
+          true,
+          false
+        ]
       },
       "default": null,
       "description": {
@@ -9715,7 +11086,9 @@
     {
       "name": "view-distance",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "number",
       "default": 3,
@@ -9724,7 +11097,9 @@
     {
       "name": "mobile-view-distance",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "number",
       "default": 2,
@@ -9733,7 +11108,9 @@
     {
       "name": "parallax-background-image",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "path",
       "description": "Parallax background image"
@@ -9741,7 +11118,9 @@
     {
       "name": "parallax-background-size",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "string",
       "description": "Parallax background size (e.g. '2100px 900px')"
@@ -9749,7 +11128,9 @@
     {
       "name": "parallax-background-horizontal",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "number",
       "default": 200,
@@ -9758,7 +11139,9 @@
     {
       "name": "parallax-background-vertical",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "number",
       "default": 50,
@@ -9769,7 +11152,9 @@
     {
       "name": "progress",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -9778,7 +11163,9 @@
     {
       "name": "history",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -9787,10 +11174,16 @@
     {
       "name": "navigation-mode",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
-        "enum": ["linear", "vertical", "grid"]
+        "enum": [
+          "linear",
+          "vertical",
+          "grid"
+        ]
       },
       "default": "linear",
       "description": {
@@ -9801,7 +11194,9 @@
     {
       "name": "touch",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -9810,7 +11205,9 @@
     {
       "name": "keyboard",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -9819,7 +11216,9 @@
     {
       "name": "mouse-wheel",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -9828,7 +11227,9 @@
     {
       "name": "hide-inactive-cursor",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -9837,7 +11238,9 @@
     {
       "name": "hide-cursor-time",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "number",
       "default": 5000,
@@ -9846,7 +11249,9 @@
     {
       "name": "loop",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -9855,7 +11260,9 @@
     {
       "name": "shuffle",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -9864,13 +11271,17 @@
     {
       "name": "controls",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
         "anyOf": [
           "boolean",
           {
-            "enum": ["auto"]
+            "enum": [
+              "auto"
+            ]
           }
         ]
       },
@@ -9883,10 +11294,15 @@
     {
       "name": "controls-layout",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
-        "enum": ["edges", "bottom-right"]
+        "enum": [
+          "edges",
+          "bottom-right"
+        ]
       },
       "default": "edges",
       "description": "Location for navigation controls (`edges` or `bottom-right`)"
@@ -9894,7 +11310,9 @@
     {
       "name": "controls-tutorial",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -9903,10 +11321,16 @@
     {
       "name": "controls-back-arrows",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
-        "enum": ["faded", "hidden", "visible"]
+        "enum": [
+          "faded",
+          "hidden",
+          "visible"
+        ]
       },
       "default": "faded",
       "description": "Visibility rule for backwards navigation arrows (`faded`, `hidden`, or `visible`).\n"
@@ -9914,13 +11338,17 @@
     {
       "name": "auto-slide",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
         "anyOf": [
           "number",
           {
-            "enum": [false]
+            "enum": [
+              false
+            ]
           }
         ]
       },
@@ -9930,7 +11358,9 @@
     {
       "name": "auto-slide-stoppable",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -9939,7 +11369,9 @@
     {
       "name": "auto-slide-method",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "string",
       "default": "navigateNext",
@@ -9948,7 +11380,9 @@
     {
       "name": "default-timing",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "number",
       "description": "Expected average seconds per slide (used by pacing timer in speaker view)"
@@ -9956,7 +11390,9 @@
     {
       "name": "pause",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -9965,7 +11401,9 @@
     {
       "name": "help",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -9974,7 +11412,9 @@
     {
       "name": "hash",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -9983,10 +11423,15 @@
     {
       "name": "hash-type",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
-        "enum": ["number", "title"]
+        "enum": [
+          "number",
+          "title"
+        ]
       },
       "default": "title",
       "description": "URL hash type (`number` or `title`)"
@@ -9994,7 +11439,9 @@
     {
       "name": "hash-one-based-index",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -10003,7 +11450,9 @@
     {
       "name": "respond-to-hash-changes",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -10012,7 +11461,9 @@
     {
       "name": "fragment-in-url",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -10021,7 +11472,9 @@
     {
       "name": "slide-tone",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -10030,7 +11483,9 @@
     {
       "name": "jump-to-slide",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -10041,7 +11496,9 @@
     {
       "name": "pdf-max-pages-per-slide",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "number",
       "description": {
@@ -10052,7 +11509,9 @@
     {
       "name": "pdf-separate-fragments",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -10061,7 +11520,9 @@
     {
       "name": "pdf-page-height-offset",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "number",
       "default": -1,
@@ -10075,7 +11536,9 @@
     {
       "name": "overview",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -10085,7 +11548,9 @@
       "name": "menu",
       "description": "Configuration for revealjs menu.",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -10094,13 +11559,22 @@
             "object": {
               "properties": {
                 "side": {
-                  "enum": ["left", "right"],
+                  "enum": [
+                    "left",
+                    "right"
+                  ],
                   "default": "left",
                   "description": "Side of the presentation where the menu will be shown (`left` or `right`)"
                 },
                 "width": {
                   "string": {
-                    "completions": ["normal", "wide", "third", "half", "full"]
+                    "completions": [
+                      "normal",
+                      "wide",
+                      "third",
+                      "half",
+                      "full"
+                    ]
                   },
                   "default": "normal",
                   "description": "Width of the menu"
@@ -10127,7 +11601,9 @@
       "name": "chalkboard",
       "description": "Configuration for revealjs chalkboard.",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -10136,7 +11612,10 @@
             "object": {
               "properties": {
                 "theme": {
-                  "enum": ["chalkboard", "whiteboard"],
+                  "enum": [
+                    "chalkboard",
+                    "whiteboard"
+                  ],
                   "default": "chalkboard",
                   "description": "Visual theme for drawing surface (`chalkboard` or `whiteboard`)"
                 },
@@ -10184,7 +11663,9 @@
       "name": "multiplex",
       "description": "Configuration for reveal presentation multiplexing.",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -10218,7 +11699,9 @@
       "name": "scroll-view",
       "description": "Control the scroll view feature of Revealjs",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
         "anyOf": [
@@ -10236,19 +11719,28 @@
                   "anyOf": [
                     "boolean",
                     {
-                      "enum": ["auto"]
+                      "enum": [
+                        "auto"
+                      ]
                     }
                   ],
                   "default": "auto",
                   "description": "Show the scrollbar while scrolling, hide while idle (default `auto`). Set to 'true' to always show, `false` to always hide."
                 },
                 "snap": {
-                  "enum": ["mandatory", "proximity", false],
+                  "enum": [
+                    "mandatory",
+                    "proximity",
+                    false
+                  ],
                   "default": "mandatory",
                   "description": "When scrolling, it will automatically snap to the closest slide. Only snap when close to the top of a slide using `proximity`. Disable snapping altogether by setting to `false`.\n"
                 },
                 "layout": {
-                  "enum": ["compact", "full"],
+                  "enum": [
+                    "compact",
+                    "full"
+                  ],
                   "default": "full",
                   "description": "By default each slide will be sized to be as tall as the viewport. If you prefer a more dense layout with multiple slides visible in parallel, set to `compact`.\n"
                 },
@@ -10268,10 +11760,19 @@
     {
       "name": "transition",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
-        "enum": ["none", "fade", "slide", "convex", "concave", "zoom"]
+        "enum": [
+          "none",
+          "fade",
+          "slide",
+          "convex",
+          "concave",
+          "zoom"
+        ]
       },
       "default": "none",
       "description": {
@@ -10282,10 +11783,16 @@
     {
       "name": "transition-speed",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
-        "enum": ["default", "fast", "slow"]
+        "enum": [
+          "default",
+          "fast",
+          "slow"
+        ]
       },
       "default": "default",
       "description": "Slide transition speed (`default`, `fast`, or `slow`)"
@@ -10293,10 +11800,19 @@
     {
       "name": "background-transition",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
-        "enum": ["none", "fade", "slide", "convex", "concave", "zoom"]
+        "enum": [
+          "none",
+          "fade",
+          "slide",
+          "convex",
+          "concave",
+          "zoom"
+        ]
       },
       "default": "none",
       "description": {
@@ -10307,7 +11823,9 @@
     {
       "name": "fragments",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -10316,7 +11834,9 @@
     {
       "name": "auto-animate",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -10325,7 +11845,9 @@
     {
       "name": "auto-animate-easing",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "string",
       "default": "ease",
@@ -10337,7 +11859,9 @@
     {
       "name": "auto-animate-duration",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "number",
       "default": 1,
@@ -10349,7 +11873,9 @@
     {
       "name": "auto-animate-unmatched",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -10361,7 +11887,9 @@
     {
       "name": "auto-animate-styles",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
         "arrayOf": {
@@ -10390,7 +11918,11 @@
     {
       "name": "incremental",
       "tags": {
-        "formats": ["pptx", "beamer", "$html-pres"]
+        "formats": [
+          "pptx",
+          "beamer",
+          "$html-pres"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -10399,7 +11931,11 @@
     {
       "name": "slide-level",
       "tags": {
-        "formats": ["pptx", "beamer", "$html-pres"]
+        "formats": [
+          "pptx",
+          "beamer",
+          "$html-pres"
+        ]
       },
       "schema": "number",
       "default": 2,
@@ -10411,13 +11947,20 @@
     {
       "name": "slide-number",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
         "anyOf": [
           "boolean",
           {
-            "enum": ["h.v", "h/v", "c", "c/t"]
+            "enum": [
+              "h.v",
+              "h/v",
+              "c",
+              "c/t"
+            ]
           }
         ]
       },
@@ -10430,10 +11973,16 @@
     {
       "name": "show-slide-number",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
-        "enum": ["all", "print", "speaker"]
+        "enum": [
+          "all",
+          "print",
+          "speaker"
+        ]
       },
       "default": "all",
       "description": "Contexts in which the slide number appears (`all`, `print`, or `speaker`)"
@@ -10477,7 +12026,9 @@
         }
       },
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "description": {
         "short": "Additional attributes for the title slide of a reveal.js presentation.",
@@ -10487,10 +12038,15 @@
     {
       "name": "title-slide-style",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
-        "enum": ["pandoc", "default"]
+        "enum": [
+          "pandoc",
+          "default"
+        ]
       },
       "default": "default",
       "description": "The title slide style. Use `pandoc` to select the Pandoc default title slide style."
@@ -10498,7 +12054,9 @@
     {
       "name": "center-title-slide",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": true,
@@ -10507,13 +12065,17 @@
     {
       "name": "show-notes",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": {
         "anyOf": [
           "boolean",
           {
-            "enum": ["separate-page"]
+            "enum": [
+              "separate-page"
+            ]
           }
         ]
       },
@@ -10523,7 +12085,9 @@
     {
       "name": "rtl",
       "tags": {
-        "formats": ["revealjs"]
+        "formats": [
+          "revealjs"
+        ]
       },
       "schema": "boolean",
       "default": false,
@@ -10534,7 +12098,12 @@
     {
       "name": "df-print",
       "schema": {
-        "enum": ["default", "kable", "tibble", "paged"]
+        "enum": [
+          "default",
+          "kable",
+          "tibble",
+          "paged"
+        ]
       },
       "tags": {
         "engine": "knitr"
@@ -10559,7 +12128,11 @@
         ]
       },
       "schema": {
-        "enum": ["auto", "none", "preserve"]
+        "enum": [
+          "auto",
+          "none",
+          "preserve"
+        ]
       },
       "default": "auto",
       "description": {
@@ -10632,7 +12205,11 @@
         ]
       },
       "schema": {
-        "enum": ["lf", "crlf", "native"]
+        "enum": [
+          "lf",
+          "crlf",
+          "native"
+        ]
       },
       "description": {
         "short": "Manually specify line endings (`lf`, `crlf`, or `native`).",
@@ -10643,7 +12220,11 @@
       "name": "strip-comments",
       "schema": "boolean",
       "tags": {
-        "formats": ["$markdown-all", "textile", "$html-files"]
+        "formats": [
+          "$markdown-all",
+          "textile",
+          "$html-files"
+        ]
       },
       "description": {
         "short": "Strip out HTML comments in source, rather than passing them on to output.",
@@ -10653,7 +12234,12 @@
     {
       "name": "ascii",
       "tags": {
-        "formats": ["$html-all", "$pdf-all", "$markdown-all", "ms"]
+        "formats": [
+          "$html-all",
+          "$pdf-all",
+          "$markdown-all",
+          "ms"
+        ]
       },
       "schema": "boolean",
       "description": {
@@ -10667,7 +12253,11 @@
       "name": "toc",
       "alias": "table-of-contents",
       "tags": {
-        "formats": ["!man", "!$docbook-all", "!$jats-all"]
+        "formats": [
+          "!man",
+          "!$docbook-all",
+          "!$jats-all"
+        ]
       },
       "schema": "boolean",
       "description": {
@@ -10678,7 +12268,9 @@
     {
       "name": "toc-indent",
       "tags": {
-        "formats": ["typst"]
+        "formats": [
+          "typst"
+        ]
       },
       "schema": "string",
       "description": "The amount of indentation to use for each level of the table of contents.\nThe default is \"1.5em\".\n"
@@ -10686,7 +12278,12 @@
     {
       "name": "toc-depth",
       "tags": {
-        "formats": ["!man", "!$docbook-all", "!$jats-all", "!beamer"]
+        "formats": [
+          "!man",
+          "!$docbook-all",
+          "!$jats-all",
+          "!beamer"
+        ]
       },
       "schema": "number",
       "description": "Specify the number of section levels to include in the table of contents.\nThe default is 3\n"
@@ -10694,11 +12291,19 @@
     {
       "name": "toc-location",
       "schema": {
-        "enum": ["body", "left", "right", "left-body", "right-body"]
+        "enum": [
+          "body",
+          "left",
+          "right",
+          "left-body",
+          "right-body"
+        ]
       },
       "default": "right",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": {
         "short": "Location for table of contents (`body`, `left`, `right` (default), `left-body`, `right-body`).\n",
@@ -10723,11 +12328,16 @@
     {
       "name": "toc-expand",
       "schema": {
-        "anyOf": ["number", "boolean"]
+        "anyOf": [
+          "number",
+          "boolean"
+        ]
       },
       "default": 1,
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": "Specifies the depth of items in the table of contents that should be displayed as expanded in HTML output. Use `true` to expand all or `false` to collapse all.\n"
     },
@@ -10736,7 +12346,9 @@
       "schema": "boolean",
       "default": false,
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": "Print a list of figures in the document."
     },
@@ -10745,7 +12357,9 @@
       "schema": "boolean",
       "default": false,
       "tags": {
-        "formats": ["$pdf-all"]
+        "formats": [
+          "$pdf-all"
+        ]
       },
       "description": "Print a list of tables in the document."
     }
@@ -10755,7 +12369,9 @@
       "name": "search",
       "schema": "boolean",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "default": true,
       "description": "Setting this to false prevents this document from being included in searches."
@@ -10767,7 +12383,12 @@
           "boolean",
           {
             "maybeArrayOf": {
-              "enum": ["none", "edit", "source", "issue"],
+              "enum": [
+                "none",
+                "edit",
+                "source",
+                "issue"
+              ],
               "description": {
                 "short": "Links to source repository actions",
                 "long": "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)"
@@ -10777,7 +12398,9 @@
         ]
       },
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": "Setting this to false prevents the `repo-actions` from appearing on this page.\nOther possible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
     },
@@ -10787,17 +12410,24 @@
         "arrayOf": "string"
       },
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": "URLs that alias this document, when included in a website."
     },
     {
       "name": "image",
       "schema": {
-        "anyOf": ["path", "boolean"]
+        "anyOf": [
+          "path",
+          "boolean"
+        ]
       },
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": {
         "short": "The path to a preview image for this document.",
@@ -10808,7 +12438,9 @@
       "name": "image-height",
       "schema": "string",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": "The height of the preview image for this document."
     },
@@ -10816,7 +12448,9 @@
       "name": "image-width",
       "schema": "string",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": "The width of the preview image for this document."
     },
@@ -10824,7 +12458,9 @@
       "name": "image-alt",
       "schema": "string",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": "The alt text for preview image on this page."
     },
@@ -10832,7 +12468,9 @@
       "name": "image-lazy-loading",
       "schema": "boolean",
       "tags": {
-        "formats": ["$html-doc"]
+        "formats": [
+          "$html-doc"
+        ]
       },
       "description": {
         "short": "If true, the preview image will only load when it comes into view.",
@@ -10885,8 +12523,16 @@
   ],
   "schema/format-aliases.yml": {
     "aliases": {
-      "epub-all": ["epub", "epub2", "epub3"],
-      "pdf-all": ["latex", "pdf", "beamer"],
+      "epub-all": [
+        "epub",
+        "epub2",
+        "epub3"
+      ],
+      "pdf-all": [
+        "latex",
+        "pdf",
+        "beamer"
+      ],
       "markdown-all": [
         "markdown",
         "gfm",
@@ -10895,15 +12541,49 @@
         "markua",
         "md"
       ],
-      "office-all": ["docx", "pptx"],
-      "docbook-all": ["docbook", "docbook4", "docbook5"],
-      "odt-all": ["odt", "opendocument"],
-      "html-doc": ["html", "html4", "html5"],
-      "html-pres": ["slidy", "slideous", "s5", "revealjs", "dzslides"],
-      "pres-all": ["pptx", "beamer", "$html-pres"],
-      "html-files": ["$html-doc", "$html-pres", "dashboard"],
-      "html-all": ["$html-files", "$epub-all"],
-      "asciidoc-all": ["asciidoc", "asciidoctor"],
+      "office-all": [
+        "docx",
+        "pptx"
+      ],
+      "docbook-all": [
+        "docbook",
+        "docbook4",
+        "docbook5"
+      ],
+      "odt-all": [
+        "odt",
+        "opendocument"
+      ],
+      "html-doc": [
+        "html",
+        "html4",
+        "html5"
+      ],
+      "html-pres": [
+        "slidy",
+        "slideous",
+        "s5",
+        "revealjs",
+        "dzslides"
+      ],
+      "pres-all": [
+        "pptx",
+        "beamer",
+        "$html-pres"
+      ],
+      "html-files": [
+        "$html-doc",
+        "$html-pres",
+        "dashboard"
+      ],
+      "html-all": [
+        "$html-files",
+        "$epub-all"
+      ],
+      "asciidoc-all": [
+        "asciidoc",
+        "asciidoctor"
+      ],
       "jats-all": [
         "jats",
         "jats_archiving",
@@ -11153,7 +12833,12 @@
             },
             "type": {
               "string": {
-                "completions": ["default", "website", "book", "manuscript"],
+                "completions": [
+                  "default",
+                  "website",
+                  "book",
+                  "manuscript"
+                ],
                 "description": "Project type (`default`, `website`, `book`, or `manuscript`)"
               }
             },
@@ -11162,7 +12847,10 @@
               "description": "Files to render (defaults to all files)"
             },
             "execute-dir": {
-              "enum": ["file", "project"],
+              "enum": [
+                "file",
+                "project"
+              ],
               "description": {
                 "short": "Working directory for computations",
                 "long": "Control the working directory for computations. \n\n- `file`: Use the directory of the file that is currently executing.\n- `project`: Use the root directory of the project.\n"
@@ -11249,7 +12937,9 @@
       "name": "type",
       "hidden": true,
       "schema": {
-        "enum": ["cd93424f-d5ba-4e95-91c6-1890eab59fc7"]
+        "enum": [
+          "cd93424f-d5ba-4e95-91c6-1890eab59fc7"
+        ]
       },
       "errorMessage": "type key not supported at project type-level. Use `project: type: ...` instead.",
       "description": "internal-schema-hack"
@@ -11270,7 +12960,9 @@
         "boolean",
         "string",
         {
-          "enum": [null]
+          "enum": [
+            null
+          ]
         }
       ]
     },
@@ -11318,7 +13010,9 @@
         "super": {
           "resolveRef": "schema/base"
         },
-        "required": ["enum"],
+        "required": [
+          "enum"
+        ],
         "properties": {
           "enum": {
             "anyOf": [
@@ -11351,12 +13045,16 @@
       "id": "schema/null",
       "anyOf": [
         {
-          "enum": ["null"]
+          "enum": [
+            "null"
+          ]
         },
         {
           "object": {
             "closed": true,
-            "required": ["null"],
+            "required": [
+              "null"
+            ],
             "properties": {
               "null": {
                 "anyOf": [
@@ -11374,7 +13072,9 @@
       "id": "schema/explicit-schema",
       "object": {
         "closed": true,
-        "required": ["schema"],
+        "required": [
+          "schema"
+        ],
         "super": {
           "resolveRef": "schema/base"
         },
@@ -11392,7 +13092,9 @@
         "super": {
           "resolveRef": "schema/base"
         },
-        "required": ["pattern"],
+        "required": [
+          "pattern"
+        ],
         "properties": {
           "pattern": "string"
         }
@@ -11402,7 +13104,10 @@
       "id": "schema/string",
       "anyOf": [
         {
-          "enum": ["string", "path"]
+          "enum": [
+            "string",
+            "path"
+          ]
         },
         {
           "ref": "schema/explicit-pattern-string"
@@ -11413,7 +13118,9 @@
             "super": {
               "resolveRef": "schema/base"
             },
-            "required": ["path"],
+            "required": [
+              "path"
+            ],
             "properties": {
               "path": {
                 "anyOf": [
@@ -11434,7 +13141,9 @@
             "super": {
               "resolveRef": "schema/base"
             },
-            "required": ["string"],
+            "required": [
+              "string"
+            ],
             "properties": {
               "string": {
                 "anyOf": [
@@ -11455,7 +13164,9 @@
       "id": "schema/number",
       "anyOf": [
         {
-          "enum": ["number"]
+          "enum": [
+            "number"
+          ]
         },
         {
           "object": {
@@ -11463,7 +13174,9 @@
             "super": {
               "resolveRef": "schema/base"
             },
-            "required": ["number"],
+            "required": [
+              "number"
+            ],
             "properties": {
               "number": {
                 "anyOf": [
@@ -11484,12 +13197,16 @@
       "id": "schema/boolean",
       "anyOf": [
         {
-          "enum": ["boolean"]
+          "enum": [
+            "boolean"
+          ]
         },
         {
           "object": {
             "closed": true,
-            "required": ["boolean"],
+            "required": [
+              "boolean"
+            ],
             "super": {
               "resolveRef": "schema/base"
             },
@@ -11513,7 +13230,9 @@
       "id": "schema/resolve-ref",
       "object": {
         "closed": true,
-        "required": ["resolveRef"],
+        "required": [
+          "resolveRef"
+        ],
         "properties": {
           "resolveRef": "string"
         }
@@ -11523,7 +13242,9 @@
       "id": "schema/ref",
       "object": {
         "closed": true,
-        "required": ["ref"],
+        "required": [
+          "ref"
+        ],
         "properties": {
           "ref": "string",
           "description": {
@@ -11536,7 +13257,9 @@
       "id": "schema/maybe-array-of",
       "object": {
         "closed": true,
-        "required": ["maybeArrayOf"],
+        "required": [
+          "maybeArrayOf"
+        ],
         "super": {
           "resolveRef": "schema/base"
         },
@@ -11554,7 +13277,9 @@
         "super": {
           "resolveRef": "schema/base"
         },
-        "required": ["arrayOf"],
+        "required": [
+          "arrayOf"
+        ],
         "properties": {
           "arrayOf": {
             "anyOf": [
@@ -11587,7 +13312,9 @@
         "super": {
           "resolveRef": "schema/base"
         },
-        "required": ["allOf"],
+        "required": [
+          "allOf"
+        ],
         "properties": {
           "allOf": {
             "anyOf": [
@@ -11622,7 +13349,9 @@
         "super": {
           "resolveRef": "schema/base"
         },
-        "required": ["anyOf"],
+        "required": [
+          "anyOf"
+        ],
         "properties": {
           "anyOf": {
             "anyOf": [
@@ -11657,7 +13386,9 @@
         "super": {
           "resolveRef": "schema/base"
         },
-        "required": ["record"],
+        "required": [
+          "record"
+        ],
         "properties": {
           "record": {
             "anyOf": [
@@ -11683,7 +13414,9 @@
                       }
                     }
                   },
-                  "required": ["properties"]
+                  "required": [
+                    "properties"
+                  ]
                 }
               }
             ]
@@ -11695,7 +13428,9 @@
       "id": "schema/object",
       "anyOf": [
         {
-          "enum": ["object"]
+          "enum": [
+            "object"
+          ]
         },
         {
           "object": {
@@ -11703,7 +13438,9 @@
             "super": {
               "resolveRef": "schema/base"
             },
-            "required": ["object"],
+            "required": [
+              "object"
+            ],
             "properties": {
               "object": {
                 "object": {
@@ -11715,7 +13452,9 @@
                     "namingConvention": {
                       "anyOf": [
                         {
-                          "enum": ["ignore"]
+                          "enum": [
+                            "ignore"
+                          ]
                         },
                         {
                           "arrayOf": {
@@ -11771,7 +13510,9 @@
                     "required": {
                       "anyOf": [
                         {
-                          "enum": ["all"]
+                          "enum": [
+                            "all"
+                          ]
                         },
                         {
                           "arrayOf": "string"
@@ -11839,7 +13580,10 @@
           "ref": "schema/object"
         },
         {
-          "enum": [null, "any"]
+          "enum": [
+            null,
+            "any"
+          ]
         }
       ],
       "description": "be a yaml schema"
@@ -11867,7 +13611,11 @@
           "errorMessage": "string"
         },
         "namingConvention": "ignore",
-        "required": ["name", "schema", "description"],
+        "required": [
+          "name",
+          "schema",
+          "description"
+        ],
         "propertyNames": {
           "enum": [
             "name",
@@ -14193,6 +15941,7 @@
     "The light theme name, theme scss file, or a mix of both.",
     "The dark theme name, theme scss file, or a mix of both.",
     "The dark theme name, theme scss file, or a mix of both.",
+    "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
     "Classes to apply to the body of the document.",
     "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
     "Enables inclusion of Pandoc default CSS for this document.",
@@ -15297,7 +17046,6 @@
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "Manuscript configuration",
     "internal-schema-hack",
-    "Array of rendering names",
     "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’."
   ],
   "schema/external-schemas.yml": [
@@ -15317,7 +17065,10 @@
         "register": {
           "type": "boolean",
           "description": "be `true` or `false`",
-          "completions": ["true", "false"],
+          "completions": [
+            "true",
+            "false"
+          ],
           "exhaustiveCompletions": true
         },
         "script": {
@@ -15344,12 +17095,17 @@
                     "async": {
                       "type": "boolean",
                       "description": "be `true` or `false`",
-                      "completions": ["true", "false"],
+                      "completions": [
+                        "true",
+                        "false"
+                      ],
                       "exhaustiveCompletions": true
                     }
                   },
                   "patternProperties": {},
-                  "required": ["path"]
+                  "required": [
+                    "path"
+                  ]
                 }
               ],
               "description": "be at least one of: a string, an object"
@@ -15378,12 +17134,17 @@
                       "async": {
                         "type": "boolean",
                         "description": "be `true` or `false`",
-                        "completions": ["true", "false"],
+                        "completions": [
+                          "true",
+                          "false"
+                        ],
                         "exhaustiveCompletions": true
                       }
                     },
                     "patternProperties": {},
-                    "required": ["path"]
+                    "required": [
+                      "path"
+                    ]
                   }
                 ],
                 "description": "be at least one of: a string, an object"
@@ -15415,31 +17176,43 @@
         "self-contained": {
           "type": "boolean",
           "description": "be `true` or `false`",
-          "completions": ["true", "false"],
+          "completions": [
+            "true",
+            "false"
+          ],
           "exhaustiveCompletions": true
         }
       },
       "patternProperties": {},
-      "required": ["name"],
+      "required": [
+        "name"
+      ],
       "propertyNames": {
         "errorMessage": "property ${value} does not match case convention path,name,register,script,stylesheet,self-contained",
         "type": "string",
         "pattern": "(?!(^self_contained$|^selfContained$))",
         "tags": {
-          "case-convention": ["dash-case"],
+          "case-convention": [
+            "dash-case"
+          ],
           "error-importance": -5,
           "case-detection": true
         }
       },
       "tags": {
-        "case-convention": ["dash-case"],
+        "case-convention": [
+          "dash-case"
+        ],
         "error-importance": -5,
         "case-detection": true
       },
       "$id": "plugin-reveal"
     }
   ],
-  "handlers/languages.yml": ["mermaid", "dot"],
+  "handlers/languages.yml": [
+    "mermaid",
+    "dot"
+  ],
   "handlers/lang-comment-chars.yml": {
     "r": "#",
     "python": "#",
@@ -15448,9 +17221,18 @@
     "matlab": "%",
     "csharp": "//",
     "fsharp": "//",
-    "c": ["/*", "*/"],
-    "css": ["/*", "*/"],
-    "sas": ["*", ";"],
+    "c": [
+      "/*",
+      "*/"
+    ],
+    "css": [
+      "/*",
+      "*/"
+    ],
+    "sas": [
+      "*",
+      ";"
+    ],
     "powershell": "#",
     "bash": "#",
     "sql": "--",
@@ -15485,31 +17267,44 @@
     "dot": "//",
     "ojs": "//",
     "apl": "⍝",
-    "ocaml": ["(*", "*)"],
+    "ocaml": [
+      "(*",
+      "*)"
+    ],
     "rust": "//",
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 194327,
+    "_internalId": 195005,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 194319,
+        "_internalId": 194997,
         "type": "enum",
-        "enum": ["png", "svg", "js"],
+        "enum": [
+          "png",
+          "svg",
+          "js"
+        ],
         "description": "be one of: `png`, `svg`, `js`",
-        "completions": ["png", "svg", "js"],
+        "completions": [
+          "png",
+          "svg",
+          "js"
+        ],
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 194326,
+        "_internalId": 195004,
         "type": "anyOf",
         "anyOf": [
           {
             "type": "null",
             "description": "be the null value",
-            "completions": ["null"],
+            "completions": [
+              "null"
+            ],
             "exhaustiveCompletions": true
           },
           {
@@ -15526,13 +17321,17 @@
       "type": "string",
       "pattern": "(?!(^mermaid_format$|^mermaidFormat$))",
       "tags": {
-        "case-convention": ["dash-case"],
+        "case-convention": [
+          "dash-case"
+        ],
         "error-importance": -5,
         "case-detection": true
       }
     },
     "tags": {
-      "case-convention": ["dash-case"],
+      "case-convention": [
+        "dash-case"
+      ],
       "error-importance": -5,
       "case-detection": true
     },
@@ -15542,13 +17341,17 @@
     {
       "name": "page-numbering",
       "tags": {
-        "formats": ["typst"]
+        "formats": [
+          "typst"
+        ]
       },
       "schema": {
         "anyOf": [
           "string",
           {
-            "enum": [false]
+            "enum": [
+              false
+            ]
           }
         ]
       },
@@ -15559,7 +17362,9 @@
     {
       "name": "smart",
       "tags": {
-        "formats": ["typst"]
+        "formats": [
+          "typst"
+        ]
       },
       "schema": "boolean",
       "description": {
