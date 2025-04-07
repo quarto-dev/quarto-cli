@@ -1,7 +1,7 @@
 /*
  * website-listing-categories.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2025 Posit Software, PBC
  */
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
@@ -72,7 +72,11 @@ export function categorySidebar(
     categoriesEl.appendChild(allEl);
   }
 
-  for (const cat of Object.keys(cats).sort()) {
+  for (
+    const cat of Object.keys(cats).sort((a: string, b: string) =>
+      a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase())
+    )
+  ) {
     const count = cats[cat];
     const catEl = categoryElement(doc, cat, formatFn(cat, count), cat);
     categoriesEl.appendChild(catEl);

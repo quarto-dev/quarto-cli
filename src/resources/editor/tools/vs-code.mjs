@@ -7046,7 +7046,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: {
             arrayOf: "string"
           },
-          description: "Array of rendering names"
+          description: "Array of rendering names, e.g. `[light, dark]`"
         },
         {
           name: "tags",
@@ -9573,6 +9573,11 @@ var require_yaml_intelligence_resources = __commonJS({
                         "copy-button": {
                           schema: "boolean",
                           description: "Provide button for copying search link"
+                        },
+                        "merge-navbar-crumbs": {
+                          schema: "boolean",
+                          default: true,
+                          description: "When false, do not merge navbar crumbs into the crumbs in `search.json`."
                         },
                         "keyboard-shortcut": {
                           maybeArrayOf: {
@@ -12543,6 +12548,42 @@ var require_yaml_intelligence_resources = __commonJS({
               }
             }
           }
+        },
+        {
+          id: "brand-path-bool-light-dark",
+          anyOf: [
+            "string",
+            "boolean",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "brand"
+                      }
+                    ],
+                    description: "The path to a light brand file or an inline light brand definition.\n"
+                  },
+                  dark: {
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "brand"
+                      }
+                    ],
+                    description: "The path to a dark brand file or an inline dark brand definition.\n"
+                  }
+                }
+              }
+            },
+            {
+              ref: "brand"
+            }
+          ],
+          description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
         },
         {
           id: "brand-defaults",
@@ -15581,6 +15622,22 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "The paper size for the document.\n"
         },
         {
+          name: "brand-mode",
+          schema: {
+            enum: [
+              "light",
+              "dark"
+            ]
+          },
+          default: "light",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: "The brand mode to use for rendering the Typst document, `light` or `dark`.\n"
+        },
+        {
           name: "layout",
           schema: {
             maybeArrayOf: "string"
@@ -16694,15 +16751,9 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "brand",
           schema: {
-            anyOf: [
-              "string",
-              "boolean",
-              {
-                ref: "brand"
-              }
-            ]
+            ref: "brand-path-bool-light-dark"
           },
-          description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition.\n"
+          description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
         },
         {
           name: "theme",
@@ -16822,6 +16873,20 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "Enables smooth scrolling within the page."
+        },
+        {
+          name: "respect-user-color-scheme",
+          schema: "boolean",
+          default: false,
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: {
+            short: "Enables setting dark mode based on the `prefers-color-scheme` media query.",
+            long: "If set, Quarto reads the `prefers-color-scheme` media query to determine whether to show\nthe user a dark or light page. Otherwise the author-preferred color scheme is shown.\n"
+          }
         },
         {
           name: "html-math-method",
@@ -20905,6 +20970,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -21065,6 +21131,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -21915,12 +21982,15 @@ var require_yaml_intelligence_resources = __commonJS({
         "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
         "The path to the font file. This can be a local path or a URL.",
         "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
+        "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
+        "The path to a light brand file or an inline light brand\ndefinition.",
+        "The path to a dark brand file or an inline dark brand definition.",
         {
           short: "Unique label for code cell",
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
         },
         "Classes to apply to cell container",
-        "Array of rendering names",
+        "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
         "Array of tags for notebook cell",
         {
           short: "Notebook cell identifier",
@@ -22700,6 +22770,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Control the <code>\\pagestyle{}</code> for the document.",
         "The paper size for the document.",
+        "The brand mode to use for rendering the Typst document,\n<code>light</code> or <code>dark</code>.",
         {
           short: "The options for margins and text layout for this document.",
           long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.'
@@ -22885,7 +22956,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
         "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
-        "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition.",
+        "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
         "Theme name, theme scss file, or a mix of both.",
         "The light theme name, theme scss file, or a mix of both.",
         "The light theme name, theme scss file, or a mix of both.",
@@ -22898,6 +22969,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Enables hover over a section title to see an anchor link.",
         "Enables tabsets to present content.",
         "Enables smooth scrolling within the page.",
+        {
+          short: "Enables setting dark mode based on the\n<code>prefers-color-scheme</code> media query.",
+          long: "If set, Quarto reads the <code>prefers-color-scheme</code> media\nquery to determine whether to show the user a dark or light page.\nOtherwise the author-preferred color scheme is shown."
+        },
         {
           short: "Method use to render math in HTML output",
           long: 'Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href="https://pandoc.org/MANUAL.html#math-rendering-in-html">Math\nRendering in HTML</a> for additional details.'
@@ -23386,6 +23461,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -23739,6 +23815,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -24218,12 +24295,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 194642,
+        _internalId: 194627,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 194634,
+            _internalId: 194619,
             type: "enum",
             enum: [
               "png",
@@ -24239,7 +24316,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 194641,
+            _internalId: 194626,
             type: "anyOf",
             anyOf: [
               {
@@ -31369,6 +31446,51 @@ function guessChunkOptionsFormat(options) {
 }
 
 // ../yaml-validation/validator.ts
+function createNiceError(obj) {
+  const {
+    violatingObject,
+    source,
+    message
+  } = obj;
+  const locF = mappedIndexToLineCol(source);
+  let location;
+  try {
+    location = {
+      start: locF(violatingObject.start),
+      end: locF(violatingObject.end)
+    };
+  } catch (_e) {
+    location = {
+      start: { line: 0, column: 0 },
+      end: { line: 0, column: 0 }
+    };
+  }
+  const mapResult = source.map(violatingObject.start);
+  const fileName = mapResult ? mapResult.originalString.fileName : void 0;
+  return {
+    heading: message,
+    error: [],
+    info: {},
+    fileName,
+    location,
+    sourceContext: createSourceContext(violatingObject.source, {
+      start: violatingObject.start,
+      end: violatingObject.end
+    })
+  };
+}
+var NoExprTag = class extends Error {
+  constructor(violatingObject, source) {
+    super(`Unexpected !expr tag`);
+    this.name = "NoExprTag";
+    this.niceError = createNiceError({
+      violatingObject,
+      source,
+      message: "!expr tags are not allowed in Quarto outside of knitr code cells."
+    });
+  }
+  niceError;
+};
 var ValidationContext = class {
   instancePath;
   root;
@@ -31759,6 +31881,9 @@ function validateObject(value, schema2, context) {
           return value.components[i];
         }
       }
+    }
+    if (value.result && typeof value.result === "object" && !Array.isArray(value.result) && value.result.tag === "!expr") {
+      throw new NoExprTag(value, value.source);
     }
     throw new InternalError(`Couldn't locate key ${key}`);
   };

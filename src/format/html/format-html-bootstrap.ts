@@ -78,6 +78,10 @@ import {
   documentTitleScssLayer,
   processDocumentTitle,
 } from "./format-html-title.ts";
+import {
+  darkModeDefault,
+} from "./format-html-info.ts";
+
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { isHtmlOutput } from "../../config/format.ts";
 import { emplaceNotebookPreviews } from "./format-html-notebook.ts";
@@ -1062,13 +1066,8 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
 
     // start body with light or dark class for proper display when JS is disabled
     let initialLightDarkClass = "quarto-light";
-    // some logic duplicated from resolveThemeLayer
-    const theme = format.metadata.theme;
-    if (theme && !Array.isArray(theme) && typeof theme === "object") {
-      const keys = Object.keys(theme);
-      if(keys.length > 1 && keys[0] === "dark") {
-        initialLightDarkClass = "quarto-dark";
-      }
+    if (darkModeDefault(format.metadata)) {
+      initialLightDarkClass = "quarto-dark";
     }
     doc.body.classList.add(initialLightDarkClass);
 
