@@ -1,0 +1,18 @@
+---
+title: "Hello, Quarto"
+format:
+  docusaurus-md:
+    code-fold: true
+    code-summary: "this is the summary, {{< meta key >}}"
+key: value
+_quarto:
+  tests:
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - ["summary, value"]
+        - []
+---
+
+```{r}
+1 + 2
+```

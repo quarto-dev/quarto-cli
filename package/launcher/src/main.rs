@@ -82,15 +82,14 @@ fn main() {
 
     // Define the base deno options
     let mut deno_options: Vec<String> = vec![
+        String::from("--unstable-kv"),
         String::from("--unstable-ffi"),
         String::from("--no-config"),
         String::from("--cached-only"),
-        String::from("--allow-read"),
-        String::from("--allow-write"),
-        String::from("--allow-run"),
-        String::from("--allow-env"),
-        String::from("--allow-net"),
-        String::from("--allow-ffi"),      
+        String::from("--no-lock"),
+        // Using --allow-all as there is otherwise an issue in Deno 1.46.3 with --allow-read and --allow-write with network drives
+        // https://github.com/quarto-dev/quarto-cli/issues/11332
+        String::from("--allow-all"),    
     ];
 
     // # --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737

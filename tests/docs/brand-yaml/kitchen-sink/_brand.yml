@@ -1,0 +1,52 @@
+color:
+  palette:
+    red: "#FF0000"
+    black: "#002040"
+
+  primary: red
+  foreground: "#21f"
+  background: "#e6f8ff"
+
+typography:
+  fonts:
+    - source: google
+      family: EB Garamond
+      weight: [400, 700]
+      style: [normal, italic]
+    - source: google
+      family: PT Sans
+      weight: [700]
+      style: [normal, italic]
+    - source: google
+      family: Space Mono
+      style: [normal, italic]
+      weight: [400, 700]
+  base:
+    family: EB Garamond
+    # sass fails to typecheck
+    size: 12pt
+    weight: 400
+    line-height: 0.9
+  headings:
+    family: PT Sans
+    weight: 700
+    style: italic
+    color: "#2c2"
+  monospace:
+    family: Space Mono
+  monospace-inline:
+    size: 20px
+    weight: 700
+    color: "#f32"
+    background-color: white
+  monospace-block:
+    weight: 400
+    size: 8pt
+    line-height: 2
+    color: "#eee"
+    background-color: "#0a3c07"
+  link:
+    color: "#a2f"
+    weight: 700
+    decoration: underline
+    background-color: "#cfd"

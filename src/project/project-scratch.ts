@@ -5,7 +5,7 @@
  */
 
 import { dirname, join } from "../deno_ral/path.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync } from "../deno_ral/fs.ts";
 import { normalizePath } from "../core/path.ts";
 
 export const kQuartoScratch = ".quarto";

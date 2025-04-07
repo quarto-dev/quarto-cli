@@ -28,7 +28,11 @@ body:
         print("Hello, world!")
         ```
 
-        ![A placeholder image](https://placehold.co/600x400.png)
+        ![An image]({{< placeholder 600 400 >}}){#fig-placeholder}
+
+        {{< lipsum 1 >}}
+
+        A reference to @fig-placeholder.
 
         The end.
         ````
@@ -49,16 +53,31 @@ body:
       placeholder: |
         You can include Quarto document code which includes code blocks like this:
 
+        `````md
         ````qmd
         ---
-        title: "Hello Quarto!"
+        title: "Reproducible Quarto Document"
         format: html
+        engine: jupyter
         ---
 
-        ```py
-        print("Hello Quarto!")
+        This is a reproducible Quarto document using `format: html`.
+        It is written in Markdown and contains embedded Python code.
+        When you run the code, it will produce a message.
+
+        ```{python}
+        print("Hello, world!")
         ```
+
+        ![An image]({{< placeholder 600 400 >}}){#fig-placeholder}
+
+        {{< lipsum 1 >}}
+
+        A reference to @fig-placeholder.
+
+        The end.
         ````
+        `````
 
         ---
 

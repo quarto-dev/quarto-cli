@@ -8,8 +8,9 @@
 import { basename, dirname, extname, join, relative } from "../src/deno_ral/path.ts";
 import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
 import { kMetadataFormat, kOutputExt } from "../src/config/constants.ts";
-import { safeExistsSync } from "../src/core/path.ts";
+import { pathWithForwardSlashes, safeExistsSync } from "../src/core/path.ts";
 import { readYaml } from "../src/core/yaml.ts";
+import { isWindows } from "../src/deno_ral/platform.ts";
 
 // caller is responsible for cleanup!
 export function inTempDirectory(fn: (dir: string) => unknown): unknown {
@@ -22,7 +23,7 @@ export function findProjectDir(input: string, until?: RegExp | undefined): strin
   let dir = dirname(input);
   // This is used for smoke-all tests and should stop there 
   // to avoid side effect of _quarto.yml outside of Quarto tests folders
-  while (dir !== "" && dir !== "." && (until ? !until.test(dir) : true)) {
+  while (dir !== "" && dir !== "." && (until ? !until.test(pathWithForwardSlashes(dir)) : true)) {
     const filename = ["_quarto.yml", "_quarto.yaml"].find((file) => {
       const yamlPath = join(dir, file);
       if (safeExistsSync(yamlPath)) {
@@ -114,7 +115,7 @@ export function outputForInput(
     if (baseFormat === "revealjs") {
       outputExt = "html";
     }
-    if (["commonmark", "gfm", "markdown"].some((f) => f === baseFormat)) {
+    if (["commonmark", "gfm", "markdown", "markdown_strict"].some((f) => f === baseFormat)) {
       outputExt = "md";
     }
     if (baseFormat === "csljson") {
@@ -188,5 +189,6 @@ export function fileLoader(...path: string[]) {
 
 // On Windows, `quarto.cmd` needs to be explicit in `execProcess()`
 export function quartoDevCmd(): string {
-  return Deno.build.os === "windows" ? "quarto.cmd" : "quarto";
+  return isWindows ? "quarto.cmd" : "quarto";
 }
+

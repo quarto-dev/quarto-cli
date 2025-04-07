@@ -1,7 +1,7 @@
 /*
  * render-contexts.ts
  *
- * Copyright (C) 2021-2023 Posit Software, PBC
+ * Copyright (C) 2021-2024 Posit Software, PBC
  */
 
 import { Format, FormatExecute, Metadata } from "../../config/types.ts";
@@ -51,7 +51,6 @@ import {
   kOutputFile,
   kServer,
   kTargetFormat,
-  kTheme,
   kWarning,
 } from "../../config/constants.ts";
 import {
@@ -348,6 +347,11 @@ function mergeQuartoConfigs(
 
   // bibliography needs to always be an array so it can be merged
   const fixupMergeableScalars = (metadata: Metadata) => {
+    // see https://github.com/quarto-dev/quarto-cli/pull/12372
+    // and https://github.com/quarto-dev/quarto-cli/pull/12369
+    // for more details on why we need this check, as a consequence of an unintuitive
+    // ordering of YAML validation operations
+    if (metadata === null) return metadata;
     [
       kBibliography,
       kCss,
@@ -394,7 +398,7 @@ async function resolveFormats(
   engine: ExecutionEngine,
   options: RenderOptions,
   _notebookContext: NotebookContext,
-  project?: ProjectContext,
+  project: ProjectContext,
   enforceProjectFormats: boolean = true,
 ): Promise<Record<string, { format: Format; active: boolean }>> {
   // input level metadata
@@ -506,31 +510,31 @@ async function resolveFormats(
       (isHtmlOutput(format, true) || isHtmlDashboardOutput(format)) &&
       formatHasBootstrap(projFormat) && projectTypeIsWebsite(projType)
     ) {
-      if (formatHasBootstrap(inputFormat)) {
-        if (
-          inputFormat.metadata[kTheme] !== undefined &&
-          !ld.isEqual(inputFormat.metadata[kTheme], projFormat.metadata[kTheme])
-        ) {
-          warnOnce(
-            `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
-          );
-        }
-        delete inputFormat.metadata[kTheme];
-      }
-      if (formatHasBootstrap(directoryFormat)) {
-        if (
-          directoryFormat.metadata[kTheme] !== undefined &&
-          !ld.isEqual(
-            directoryFormat.metadata[kTheme],
-            projFormat.metadata[kTheme],
-          )
-        ) {
-          warnOnce(
-            `The file ${file.path} contains a theme provided by a metadata file. This theme metadata is being ignored. Website projects do not support per directory themes since all pages within a website share the website's theme.`,
-          );
-        }
-        delete directoryFormat.metadata[kTheme];
-      }
+      // if (formatHasBootstrap(inputFormat)) {
+      //   if (
+      //     inputFormat.metadata[kTheme] !== undefined &&
+      //     !ld.isEqual(inputFormat.metadata[kTheme], projFormat.metadata[kTheme])
+      //   ) {
+      //     warnOnce(
+      //       `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
+      //     );
+      //   }
+      //   delete inputFormat.metadata[kTheme];
+      // }
+      // if (formatHasBootstrap(directoryFormat)) {
+      //   if (
+      //     directoryFormat.metadata[kTheme] !== undefined &&
+      //     !ld.isEqual(
+      //       directoryFormat.metadata[kTheme],
+      //       projFormat.metadata[kTheme],
+      //     )
+      //   ) {
+      //     warnOnce(
+      //       `The file ${file.path} contains a theme provided by a metadata file. This theme metadata is being ignored. Website projects do not support per directory themes since all pages within a website share the website's theme.`,
+      //     );
+      //   }
+      //   delete directoryFormat.metadata[kTheme];
+      // }
     }
 
     // combine user formats
@@ -597,6 +601,24 @@ async function resolveFormats(
         userFormat,
       );
     };
+
+    // resolve brand in project and forward it to format
+    const brand = await project.resolveBrand(target.source);
+    mergedFormats[format].render.brand = brand;
+
+    // apply defaults from brand yaml under the metadata of the current format
+    const brandFormatDefaults: Metadata =
+      (brand?.light?.data?.defaults?.quarto as unknown as Record<
+        string,
+        Record<string, Metadata>
+      >)?.format
+        ?.[format as string];
+    if (brandFormatDefaults) {
+      mergedFormats[format].metadata = mergeConfigs(
+        brandFormatDefaults,
+        mergedFormats[format].metadata,
+      );
+    }
 
     // ensure that we have a valid forma
     const formatIsValid = isValidFormat(
@@ -724,9 +746,6 @@ export async function projectMetadataForInputFile(
   input: string,
   project: ProjectContext,
 ): Promise<Metadata> {
-  // don't mutate caller
-  project = ld.cloneDeep(project) as ProjectContext;
-
   if (project.dir && project.config) {
     // If there is directory and configuration information
     // process paths
@@ -734,10 +753,10 @@ export async function projectMetadataForInputFile(
       projectType(project.config?.project?.[kProjectType]),
       project.dir,
       dirname(input),
-      project.config,
+      ld.cloneDeep(project.config),
     ) as Metadata;
   } else {
     // Just return the config or empty metadata
-    return project.config || {};
+    return ld.cloneDeep(project.config) || {};
   }
 }

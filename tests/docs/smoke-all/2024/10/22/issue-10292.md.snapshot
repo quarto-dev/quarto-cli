@@ -1,0 +1,7 @@
+---
+title: Test
+format: hugo-md
+---
+
+
+{{< vimeo id="146022717" class="my-vimeo-wrapper-class" title="My vimeo video" >}}

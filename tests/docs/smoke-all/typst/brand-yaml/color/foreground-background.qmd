@@ -1,0 +1,36 @@
+---
+title: Foreground and background colors
+format:
+  typst:
+    keep-typ: true
+brand:
+  color:
+    foreground: "#ccd2b2"
+    background: "#0d0519"
+  typography:
+    monospace-block:
+      background-color: "#ccd2b250"
+
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '#set page\(fill: brand-color\.background\)'
+          - '#set text\(fill: brand-color\.foreground\)'
+          - 'heading-color: rgb\("#ccd2b2"\)'
+        - []
+---
+
+# Just double checking...
+
+That simple background and foreground colors work everywhere.
+
+Here is some `inline code`.
+
+```
+You are going to need to customize
+your code blocks for dark mode!
+```
+
+{{< lipsum 2 >}}

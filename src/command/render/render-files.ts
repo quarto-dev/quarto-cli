@@ -114,6 +114,7 @@ import {
 } from "../../project/project-shared.ts";
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
 import { setExecuteEnvironment } from "../../execute/environment.ts";
+import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -164,7 +165,7 @@ export async function renderExecute(
     (context.format.execute[kExecuteEnabled] !== false);
 
   // use previous frozen results if they are available
-  if (context.project && !alwaysExecute) {
+  if (context.project && !context.project.isSingleFile && !alwaysExecute) {
     // check if we are using the freezer
 
     const thaw = canFreeze &&
@@ -503,7 +504,7 @@ async function renderFileInternal(
 
   for (const format of Object.keys(contexts)) {
     pushTiming("render-context");
-    const context = ld.cloneDeep(contexts[format]) as RenderContext; // since we're going to mutate it...
+    const context = safeCloneDeep(contexts[format]); // since we're going to mutate it...
 
     // disquality some documents from server: shiny
     if (isServerShiny(context.format) && context.project) {

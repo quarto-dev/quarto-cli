@@ -5,7 +5,7 @@
  */
 
 import { dirname, join } from "../../../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync, safeRemoveSync } from "../../../deno_ral/fs.ts";
 
 import { PdfEngine } from "../../../config/types.ts";
 import { LatexmkOptions } from "./types.ts";
@@ -26,6 +26,7 @@ import {
 } from "./parse-error.ts";
 import { error, info, warning } from "../../../deno_ral/log.ts";
 import { logProgress } from "../../../core/log.ts";
+import { isWindows } from "../../../deno_ral/platform.ts";
 
 export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
   if (!mkOptions.quiet) {
@@ -180,13 +181,21 @@ async function initialCompileLatex(
       const logText = Deno.readTextFileSync(response.log);
       const missingHyphenationFile = findMissingHyphenationFiles(logText);
       if (missingHyphenationFile) {
-        if (await pkgMgr.installPackages([missingHyphenationFile])) {
-          // We installed hyphenation files, retry
-          continue;
-        } else {
-          writeError("missing hyphenation file", "", response.log);
-          return Promise.reject();
+        // try to install it, unless auto install is opted out
+        if (pkgMgr.autoInstall) {
+          logProgress("Installing missing hyphenation file...");
+          if (await pkgMgr.installPackages([missingHyphenationFile])) {
+            // We installed hyphenation files, retry
+            continue;
+          } else {
+            logProgress("Installing missing hyphenation file failed.");
+          }
         }
+        // Let's just through a warning, but it may not be fatal for the compilation
+        // and we can end normally
+        warning(
+          `Possibly missing hyphenation file: '${missingHyphenationFile}'. See more in logfile (by setting 'latex-clean: false').\n`,
+        );
       }
     } else if (pkgMgr.autoInstall) {
       // try autoinstalling
@@ -204,8 +213,6 @@ async function initialCompileLatex(
         await pkgMgr.updatePackages(true, false);
         packagesUpdated = true;
       }
-
-      const logText = Deno.readTextFileSync(response.log);
 
       // Try to find and install packages
       const packagesInstalled = await findAndInstallPackages(
@@ -363,7 +370,7 @@ async function makeBibliographyIntermediates(
         // If we're on windows and auto-install isn't enabled,
         // fix up the aux file
         //
-        if (Deno.build.os === "windows") {
+        if (isWindows) {
           if (bibCommand !== "biber" && !hasTexLive()) {
             // See https://github.com/rstudio/tinytex/blob/b2d1bae772f3f979e77fca9fb5efda05855b39d2/R/latex.R#L284
             // Strips the '.bib' from any match and returns the string without the bib extension
@@ -588,7 +595,7 @@ function cleanup(workingDir: string, stem: string) {
 
   auxFiles.forEach((auxFile) => {
     if (existsSync(auxFile)) {
-      Deno.removeSync(auxFile);
+      safeRemoveSync(auxFile);
     }
   });
 }

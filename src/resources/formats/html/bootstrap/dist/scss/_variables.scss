@@ -1164,8 +1164,8 @@ $zindex-levels: (
 // Navs
 
 // scss-docs-start nav-variables
-$nav-link-padding-y:                .5rem !default;
-$nav-link-padding-x:                1rem !default;
+$nav-link-padding-y:                ($font-size-base * 0.5) !default;
+$nav-link-padding-x:                $font-size-base !default;
 $nav-link-font-size:                null !default;
 $nav-link-font-weight:              null !default;
 $nav-link-color:                    $link-color !default;
@@ -1773,3 +1773,4 @@ $nested-kbd-font-weight:            null !default; // Deprecated in v5.2.0, remo
 
 $pre-bg:                            $code-bg  !default;
 $pre-color:                         $body-emphasis-color !default;
+$pre-line-height:                   $line-height-base !default;

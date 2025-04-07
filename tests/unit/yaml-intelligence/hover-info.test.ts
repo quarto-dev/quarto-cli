@@ -4,7 +4,7 @@
 * Copyright (C) 2022 Posit Software, PBC
 *
 */
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 
 import {
   createVirtualDocument,

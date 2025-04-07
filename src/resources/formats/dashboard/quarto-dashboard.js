@@ -145,8 +145,20 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const linkEls = document.querySelectorAll(
     ".quarto-dashboard-content a:not(.nav-link)"
   );
+  const currentUrl = new URL(window.location.href);
   for (const linkEl of linkEls) {
     const linkHref = linkEl.getAttribute("href");
+    // https://github.com/quarto-dev/quarto-cli/issues/9411
+    // only add the event listener for internal links
+    try {
+      const linkUrl = new URL(linkHref);
+      if (linkUrl.origin !== currentUrl.origin) {
+        continue;
+      }
+    } catch (_e) {
+      // if the link is not a valid URL, skip it
+      continue;
+    }
     linkEl.addEventListener("click", () => {
       QuartoDashboardUtils.showPage(linkHref);
       return false;

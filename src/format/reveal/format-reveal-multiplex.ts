@@ -4,7 +4,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 import { join } from "../../deno_ral/path.ts";
 import { isSelfContainedOutput } from "../../command/render/render-info.ts";
 import { kResourcePath } from "../../config/constants.ts";
@@ -113,7 +113,7 @@ async function revealMultiplexToken(
   // is it provided in config?
   const multiplex = format.metadata[kRevealJsMultiplex] as RevealMultiplexToken;
   if (
-    typeof (multiplex) === "object" && typeof (multiplex.secret) === "string" &&
+    typeof multiplex === "object" && typeof (multiplex.secret) === "string" &&
     typeof (multiplex.id) === "string"
   ) {
     multiplex.url = multiplex.url || kDefaultMultiplexUrl;
@@ -146,7 +146,7 @@ async function revealMultiplexToken(
   }
 
   // provision a new token
-  const url = typeof (multiplex) === "object"
+  const url = typeof multiplex === "object"
     ? (multiplex.url || kDefaultMultiplexUrl)
     : kDefaultMultiplexUrl;
   try {

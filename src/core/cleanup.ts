@@ -1,9 +1,8 @@
 /*
-* cleanup.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * cleanup.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { info } from "../deno_ral/log.ts";
 
@@ -14,7 +13,9 @@ export function onCleanup(handler: VoidFunction) {
 }
 
 export function exitWithCleanup(code: number) {
-  for (const handler of cleanupHandlers) {
+  // Not using cleanupHandlers.reverse() to not mutate the original array
+  for (let i = cleanupHandlers.length - 1; i >= 0; i--) {
+    const handler = cleanupHandlers[i];
     try {
       handler();
     } catch (error) {

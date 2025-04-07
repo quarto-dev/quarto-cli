@@ -36,6 +36,14 @@ local barePattern = '^(%d+)$'
 return {
   ['lipsum'] = function(args, kwargs, meta)
 
+    local isRandom = false
+    if kwargs and kwargs["random"] then
+      local randomVal = pandoc.utils.stringify(kwargs["random"])
+      if randomVal == "true" then
+        isRandom = true
+      end
+    end
+
     local paraStart = 1
     local paraEnd = 5
 
@@ -58,7 +66,9 @@ return {
         -- a number of paragraphs is specified, like 10
         local _,_,bareVal = range:find(barePattern)
         if bareVal then
-          paraStart = math.random(1, 17)
+          if isRandom then
+            paraStart = math.random(1, 17)
+          end
           local endNumber = tonumber(bareVal)
           if endNumber ~= nil then
             paraEnd = paraStart + endNumber - 1

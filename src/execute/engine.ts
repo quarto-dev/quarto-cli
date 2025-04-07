@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { extname, join, resolve } from "../deno_ral/path.ts";
+import { extname, join } from "../deno_ral/path.ts";
 
 import * as ld from "../core/lodash.ts";
 
@@ -23,13 +23,14 @@ import { kMdExtensions, markdownEngine } from "./markdown.ts";
 import { ExecutionEngine, kQmdExtensions } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
 import { languages as handlerLanguages } from "../core/handlers/base.ts";
-import { MappedString } from "../core/lib/text-types.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { ProjectContext } from "../project/types.ts";
 import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
 import { gitignoreEntries } from "../project/project-gitignore.ts";
 import { juliaEngine } from "./julia.ts";
+import { ensureFileInformationCache } from "../project/project-shared.ts";
+import { Command } from "cliffy/command/mod.ts";
 
 const kEngines: Map<string, ExecutionEngine> = new Map();
 
@@ -95,7 +96,11 @@ export function engineValidExtensions(): string[] {
   );
 }
 
-export function markdownExecutionEngine(markdown: string, flags?: RenderFlags) {
+export function markdownExecutionEngine(
+  markdown: string,
+  reorderedEngines: Map<string, ExecutionEngine>,
+  flags?: RenderFlags,
+) {
   // read yaml and see if the engine is declared in yaml
   // (note that if the file were a non text-file like ipynb
   //  it would have already been claimed via extension)
@@ -105,7 +110,7 @@ export function markdownExecutionEngine(markdown: string, flags?: RenderFlags) {
     if (yaml) {
       // merge in command line fags
       yaml = mergeConfigs(yaml, flags?.metadata);
-      for (const [_, engine] of kEngines) {
+      for (const [_, engine] of reorderedEngines) {
         if (yaml[engine.name]) {
           return engine;
         }
@@ -122,7 +127,7 @@ export function markdownExecutionEngine(markdown: string, flags?: RenderFlags) {
 
   // see if there is an engine that claims this language
   for (const language of languages) {
-    for (const [_, engine] of kEngines) {
+    for (const [_, engine] of reorderedEngines) {
       if (engine.claimsLanguage(language)) {
         return engine;
       }
@@ -142,6 +147,37 @@ export function markdownExecutionEngine(markdown: string, flags?: RenderFlags) {
   return markdownEngine;
 }
 
+function reorderEngines(project: ProjectContext) {
+  const userSpecifiedOrder: string[] =
+    project.config?.engines as string[] | undefined ?? [];
+
+  for (const key of userSpecifiedOrder) {
+    if (!kEngines.has(key)) {
+      throw new Error(
+        `'${key}' was specified in the list of engines in the project settings but it is not a valid engine. Available engines are ${
+          Array.from(kEngines.keys()).join(", ")
+        }`,
+      );
+    }
+  }
+
+  const reorderedEngines = new Map<string, ExecutionEngine>();
+
+  // Add keys in the order of userSpecifiedOrder first
+  for (const key of userSpecifiedOrder) {
+    reorderedEngines.set(key, kEngines.get(key)!); // Non-null assertion since we verified the keys are in the map
+  }
+
+  // Add the rest of the keys from the original map
+  for (const [key, value] of kEngines) {
+    if (!reorderedEngines.has(key)) {
+      reorderedEngines.set(key, value);
+    }
+  }
+
+  return reorderedEngines;
+}
+
 export async function fileExecutionEngine(
   file: string,
   flags: RenderFlags | undefined,
@@ -157,8 +193,10 @@ export async function fileExecutionEngine(
     return undefined;
   }
 
+  const reorderedEngines = reorderEngines(project);
+
   // try to find an engine that claims this extension outright
-  for (const [_, engine] of kEngines) {
+  for (const [_, engine] of reorderedEngines) {
     if (engine.claimsFile(file, ext)) {
       return engine;
     }
@@ -174,6 +212,7 @@ export async function fileExecutionEngine(
     try {
       return markdownExecutionEngine(
         markdown ? markdown.value : Deno.readTextFileSync(file),
+        reorderedEngines,
         flags,
       );
     } catch (error) {
@@ -193,9 +232,9 @@ export async function fileExecutionEngineAndTarget(
   // markdown: MappedString | undefined,
   project: ProjectContext,
 ) {
-  const cached = project.engineAndTargetCache?.get(file);
-  if (cached) {
-    return cached;
+  const cached = ensureFileInformationCache(project, file);
+  if (cached && cached.engine && cached.target) {
+    return { engine: cached.engine, target: cached.target };
   }
 
   const engine = await fileExecutionEngine(file, flags, project);
@@ -209,11 +248,9 @@ export async function fileExecutionEngineAndTarget(
     throw new Error("Can't determine execution target for " + file);
   }
 
+  cached.engine = engine;
+  cached.target = target;
   const result = { engine, target };
-  if (!project.engineAndTargetCache) {
-    project.engineAndTargetCache = new Map();
-  }
-  project.engineAndTargetCache.set(file, result);
   return result;
 }
 
@@ -239,3 +276,30 @@ export function projectIgnoreGlobs(dir: string) {
     gitignoreEntries(dir).map((ignore) => `**/${ignore}**`),
   );
 }
+
+export const engineCommand = new Command()
+  .name("engine")
+  .description(
+    `Access functionality specific to quarto's different rendering engines.`,
+  )
+  .action(() => {
+    engineCommand.showHelp();
+    Deno.exit(1);
+  });
+
+kEngines.forEach((engine, name) => {
+  if (engine.populateCommand) {
+    const engineSubcommand = new Command();
+    // fill in some default behavior for each engine command
+    engineSubcommand
+      .description(
+        `Access functionality specific to the ${name} rendering engine.`,
+      )
+      .action(() => {
+        engineSubcommand.showHelp();
+        Deno.exit(1);
+      });
+    engine.populateCommand(engineSubcommand);
+    engineCommand.command(name, engineSubcommand);
+  }
+});

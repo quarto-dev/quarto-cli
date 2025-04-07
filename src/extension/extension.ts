@@ -4,9 +4,10 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync, walkSync } from "fs/mod.ts";
+import { existsSync, walkSync } from "../deno_ral/fs.ts";
 import { expandGlobSync } from "../core/deno/expand-glob.ts";
 import { warning } from "../deno_ral/log.ts";
+import { isSubdir } from "../deno_ral/fs.ts";
 import { coerce, Range, satisfies } from "semver/mod.ts";
 
 import {
@@ -14,7 +15,6 @@ import {
   ProjectConfig,
   ProjectContext,
 } from "../project/types.ts";
-import { isSubdir } from "fs/_is_subdir.ts";
 
 import {
   dirname,
@@ -730,6 +730,7 @@ async function readExtension(
         extensionDir,
         formatMeta[kFormatResources] as string[],
         [],
+        { mode: "strict" },
       );
       if (resolved.include.length > 0) {
         formatMeta[kFormatResources] = resolved.include.map((include) => {

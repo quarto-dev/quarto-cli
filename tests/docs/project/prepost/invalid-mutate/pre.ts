@@ -1,4 +1,4 @@
-import { existsSync } from "https://deno.land/std/fs/mod.ts";
+import { existsSync } from "stdlib/fs";
 
 const file = "_metadata.yml"
 const contents = `

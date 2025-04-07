@@ -6,9 +6,14 @@ format:
   html:
     quality: 1
     format-links: false
+references:
+  - type: website
+    id: great-tables
+    url: https://posit-dev.github.io/great-tables/examples/
 ---
 
 ```{python}
+#| classes: plain
 from great_tables import GT, md, html
 from great_tables.data import islands
 

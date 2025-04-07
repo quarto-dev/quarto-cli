@@ -7043,6 +7043,13 @@ try {
             description: "Classes to apply to cell container"
           },
           {
+            name: "renderings",
+            schema: {
+              arrayOf: "string"
+            },
+            description: "Array of rendering names, e.g. `[light, dark]`"
+          },
+          {
             name: "tags",
             tags: {
               engine: "jupyter"
@@ -7330,7 +7337,7 @@ try {
             default: true,
             description: {
               short: "Evaluate code cells (if `false` just echos the code into output).",
-              long: "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines \n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
+              long: "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative numbers to selectively include or exclude expressions \n  (explicit inclusion/exclusion of expressions is available only when using the knitr engine)\n"
             }
           },
           {
@@ -8221,9 +8228,18 @@ try {
             tags: {
               engine: "knitr"
             },
-            schema: "boolean",
+            schema: {
+              enum: [
+                true,
+                false,
+                "NA"
+              ]
+            },
             default: true,
-            description: "Include messages in rendered output."
+            description: {
+              short: "Include messages in rendered output.",
+              long: "Include messages in rendered output. Possible values are `true`, `false`, or `NA`. \nIf `true`, messages are included in the output. If `false`, messages are not included. \nIf `NA`, messages are not included in output but shown in the knitr log to console.\n"
+            }
           },
           {
             name: "results",
@@ -8456,6 +8472,7 @@ try {
               "page",
               "page-left",
               "page-right",
+              "page-inset",
               "page-inset-left",
               "page-inset-right",
               "screen",
@@ -9558,6 +9575,11 @@ try {
                             schema: "boolean",
                             description: "Provide button for copying search link"
                           },
+                          "merge-navbar-crumbs": {
+                            schema: "boolean",
+                            default: true,
+                            description: "When false, do not merge navbar crumbs into the crumbs in `search.json`."
+                          },
                           "keyboard-shortcut": {
                             maybeArrayOf: {
                               string: {
@@ -10096,7 +10118,7 @@ try {
                   },
                   "output-file": {
                     path: {
-                      description: "Base name for single-file output (e.g. PDF, ePub)"
+                      description: "Base name for single-file output (e.g. PDF, ePub, docx)"
                     }
                   },
                   "cover-image": {
@@ -11785,6 +11807,819 @@ try {
                 }
               }
             }
+          },
+          {
+            id: "brand-meta",
+            description: "Metadata for a brand, including the brand name and important links.\n",
+            object: {
+              closed: false,
+              properties: {
+                name: {
+                  description: "The brand name.",
+                  anyOf: [
+                    "string",
+                    {
+                      object: {
+                        properties: {
+                          full: {
+                            string: {
+                              description: "The full, official or legal name of the company or brand."
+                            }
+                          },
+                          short: {
+                            string: {
+                              description: "The short, informal, or common name of the company or brand."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                link: {
+                  description: "Important links for the brand, including social media links. If a single string, it is the brand's home page or website. Additional fields are allowed for internal use.\n",
+                  anyOf: [
+                    "string",
+                    {
+                      object: {
+                        properties: {
+                          home: {
+                            string: {
+                              description: "The brand's home page or website."
+                            }
+                          },
+                          mastodon: {
+                            string: {
+                              description: "The brand's Mastodon URL."
+                            }
+                          },
+                          bluesky: {
+                            string: {
+                              description: "The brand's Bluesky URL."
+                            }
+                          },
+                          github: {
+                            string: {
+                              description: "The brand's GitHub URL."
+                            }
+                          },
+                          linkedin: {
+                            string: {
+                              description: "The brand's LinkedIn URL."
+                            }
+                          },
+                          twitter: {
+                            string: {
+                              description: "The brand's Twitter URL."
+                            }
+                          },
+                          facebook: {
+                            string: {
+                              description: "The brand's Facebook URL."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            id: "brand-string-light-dark",
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: {
+                      schema: "string",
+                      description: "A link or path to the brand's light-colored logo or icon.\n"
+                    },
+                    dark: {
+                      schema: "string",
+                      description: "A link or path to the brand's dark-colored logo or icon.\n"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            id: "brand-logo-explicit-resource",
+            object: {
+              closed: true,
+              properties: {
+                path: "path",
+                alt: {
+                  schema: "string",
+                  description: "Alternative text for the logo, used for accessibility.\n"
+                }
+              },
+              required: [
+                "path"
+              ]
+            }
+          },
+          {
+            id: "brand-logo-resource",
+            anyOf: [
+              "string",
+              {
+                ref: "brand-logo-explicit-resource"
+              }
+            ]
+          },
+          {
+            id: "brand-logo",
+            description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
+            object: {
+              closed: true,
+              properties: {
+                images: {
+                  description: "A dictionary of named logo resources.",
+                  schema: {
+                    object: {
+                      additionalProperties: {
+                        schema: {
+                          ref: "brand-logo-resource"
+                        }
+                      }
+                    }
+                  }
+                },
+                small: {
+                  description: "A link or path to the brand's small-sized logo or icon, or a link or path to both the light and dark versions.\n",
+                  schema: {
+                    ref: "brand-string-light-dark"
+                  }
+                },
+                medium: {
+                  description: "A link or path to the brand's medium-sized logo, or a link or path to both the light and dark versions.\n",
+                  schema: {
+                    ref: "brand-string-light-dark"
+                  }
+                },
+                large: {
+                  description: "A link or path to the brand's large- or full-sized logo, or a link or path to both the light and dark versions.\n",
+                  schema: {
+                    ref: "brand-string-light-dark"
+                  }
+                }
+              }
+            }
+          },
+          {
+            id: "brand-named-logo",
+            description: "Names of customizeable logos",
+            enum: [
+              "small",
+              "medium",
+              "large"
+            ]
+          },
+          {
+            id: "brand-color-value",
+            schema: "string"
+          },
+          {
+            id: "brand-color",
+            description: "The brand's custom color palette and theme.\n",
+            object: {
+              closed: true,
+              properties: {
+                palette: {
+                  description: "The brand's custom color palette. Any number of colors can be defined, each color having a custom name.\n",
+                  object: {
+                    additionalProperties: {
+                      schema: {
+                        ref: "brand-color-value"
+                      }
+                    }
+                  }
+                },
+                foreground: {
+                  description: "The foreground color, used for text.",
+                  schema: {
+                    ref: "brand-color-value"
+                  },
+                  default: "black"
+                },
+                background: {
+                  description: "The background color, used for the page background.",
+                  schema: {
+                    ref: "brand-color-value"
+                  },
+                  default: "white"
+                },
+                primary: {
+                  description: "The primary accent color, i.e. the main theme color. Typically used for hyperlinks, active states, primary action buttons, etc.\n",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                secondary: {
+                  description: "The secondary accent color. Typically used for lighter text or disabled states.\n",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                tertiary: {
+                  description: "The tertiary accent color. Typically an even lighter color, used for hover states, accents, and wells.\n",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                success: {
+                  description: "The color used for positive or successful actions and information.",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                info: {
+                  description: "The color used for neutral or informational actions and information.",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                warning: {
+                  description: "The color used for warning or cautionary actions and information.",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                danger: {
+                  description: "The color used for errors, dangerous actions, or negative information.",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                light: {
+                  description: "A bright color, used as a high-contrast foreground color on dark elements or low-contrast background color on light elements.\n",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                dark: {
+                  description: "A dark color, used as a high-contrast foreground color on light elements or high-contrast background color on light elements.\n",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                },
+                link: {
+                  description: "The color used for hyperlinks. If not defined, the `primary` color is used.\n",
+                  schema: {
+                    ref: "brand-color-value"
+                  }
+                }
+              }
+            }
+          },
+          {
+            id: "brand-maybe-named-color",
+            description: "A color, which may be a named brand color.\n",
+            anyOf: [
+              {
+                ref: "brand-named-theme-color"
+              },
+              {
+                schema: "string"
+              }
+            ]
+          },
+          {
+            id: "brand-named-theme-color",
+            description: "A named brand color, taken either from `color.theme` or `color.palette` (in that order).\n",
+            enum: [
+              "foreground",
+              "background",
+              "primary",
+              "secondary",
+              "tertiary",
+              "success",
+              "info",
+              "warning",
+              "danger",
+              "light",
+              "dark",
+              "link"
+            ]
+          },
+          {
+            id: "brand-typography",
+            description: "Typography definitions for the brand.",
+            object: {
+              closed: true,
+              properties: {
+                fonts: {
+                  description: "Font files and definitions for the brand.",
+                  arrayOf: {
+                    ref: "brand-font"
+                  }
+                },
+                base: {
+                  description: "The base font settings for the brand. These are used as the default for all text.\n",
+                  ref: "brand-typography-options-base"
+                },
+                headings: {
+                  description: "Settings for headings, or a string specifying the font family only.",
+                  ref: "brand-typography-options-headings"
+                },
+                monospace: {
+                  description: "Settings for monospace text, or a string specifying the font family only.",
+                  ref: "brand-typography-options-monospace"
+                },
+                "monospace-inline": {
+                  description: "Settings for inline code, or a string specifying the font family only.",
+                  ref: "brand-typography-options-monospace-inline"
+                },
+                "monospace-block": {
+                  description: "Settings for code blocks, or a string specifying the font family only.",
+                  ref: "brand-typography-options-monospace-block"
+                },
+                link: {
+                  description: "Settings for links.",
+                  ref: "brand-typography-options-link"
+                }
+              }
+            }
+          },
+          {
+            id: "brand-typography-options-base",
+            description: "Base typographic options.",
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    family: "string",
+                    size: "string",
+                    weight: {
+                      ref: "brand-font-weight"
+                    },
+                    "line-height": {
+                      ref: "line-height-number-string"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            id: "brand-typography-options-headings",
+            description: "Typographic options for headings.",
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    family: "string",
+                    weight: {
+                      ref: "brand-font-weight"
+                    },
+                    style: {
+                      ref: "brand-font-style"
+                    },
+                    color: {
+                      ref: "brand-maybe-named-color"
+                    },
+                    "line-height": {
+                      ref: "line-height-number-string"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            id: "brand-typography-options-monospace",
+            description: "Typographic options for monospace elements.",
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    family: "string",
+                    size: "string",
+                    weight: {
+                      ref: "brand-font-weight"
+                    },
+                    color: {
+                      ref: "brand-maybe-named-color"
+                    },
+                    "background-color": {
+                      ref: "brand-maybe-named-color"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            id: "brand-typography-options-monospace-inline",
+            description: "Typographic options for inline monospace elements.",
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    family: "string",
+                    size: "string",
+                    weight: {
+                      ref: "brand-font-weight"
+                    },
+                    color: {
+                      ref: "brand-maybe-named-color"
+                    },
+                    "background-color": {
+                      ref: "brand-maybe-named-color"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            id: "line-height-number-string",
+            description: "Line height",
+            anyOf: [
+              "number",
+              "string"
+            ]
+          },
+          {
+            id: "brand-typography-options-monospace-block",
+            description: "Typographic options for block monospace elements.",
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    family: "string",
+                    size: "string",
+                    weight: {
+                      ref: "brand-font-weight"
+                    },
+                    color: {
+                      ref: "brand-maybe-named-color"
+                    },
+                    "background-color": {
+                      ref: "brand-maybe-named-color"
+                    },
+                    "line-height": {
+                      ref: "line-height-number-string"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            id: "brand-typography-options-link",
+            description: "Typographic options for inline monospace elements.",
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    weight: {
+                      ref: "brand-font-weight"
+                    },
+                    color: {
+                      ref: "brand-maybe-named-color"
+                    },
+                    "background-color": {
+                      ref: "brand-maybe-named-color"
+                    },
+                    decoration: "string"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            id: "brand-named-font",
+            description: "Names of customizeable fonts",
+            enum: [
+              "base",
+              "headings",
+              "monospace"
+            ]
+          },
+          {
+            id: "brand-font",
+            description: "Font files and definitions for the brand.",
+            anyOf: [
+              {
+                ref: "brand-font-google"
+              },
+              {
+                ref: "brand-font-bunny"
+              },
+              {
+                ref: "brand-font-file"
+              },
+              {
+                ref: "brand-font-system"
+              },
+              {
+                ref: "brand-font-common"
+              }
+            ]
+          },
+          {
+            id: "brand-font-weight",
+            description: "A font weight.",
+            enum: [
+              100,
+              200,
+              300,
+              400,
+              500,
+              600,
+              700,
+              800,
+              900,
+              "thin",
+              "extra-light",
+              "ultra-light",
+              "light",
+              "normal",
+              "regular",
+              "medium",
+              "semi-bold",
+              "demi-bold",
+              "bold",
+              "extra-bold",
+              "ultra-bold",
+              "black"
+            ],
+            default: 400
+          },
+          {
+            id: "brand-font-style",
+            description: "A font style.",
+            enum: [
+              "normal",
+              "italic",
+              "oblique"
+            ],
+            default: "normal"
+          },
+          {
+            id: "brand-font-common",
+            schema: {
+              object: {
+                closed: true,
+                properties: {
+                  family: {
+                    description: "The font family name, which must match the name of the font on the foundry website.",
+                    schema: "string"
+                  },
+                  weight: {
+                    description: "The font weights to include.",
+                    maybeArrayOf: {
+                      ref: "brand-font-weight"
+                    },
+                    default: [
+                      400,
+                      700
+                    ]
+                  },
+                  style: {
+                    description: "The font styles to include.",
+                    maybeArrayOf: {
+                      ref: "brand-font-style"
+                    },
+                    default: [
+                      "normal",
+                      "italic"
+                    ]
+                  },
+                  display: {
+                    description: "The font display method, determines how a font face is font face is shown depending on its download status and readiness for use.\n",
+                    enum: [
+                      "auto",
+                      "block",
+                      "swap",
+                      "fallback",
+                      "optional"
+                    ],
+                    default: "swap"
+                  }
+                }
+              }
+            }
+          },
+          {
+            id: "brand-font-system",
+            description: "A system font definition.",
+            object: {
+              super: {
+                resolveRef: "brand-font-common"
+              },
+              closed: true,
+              properties: {
+                source: {
+                  enum: [
+                    "system"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            id: "brand-font-google",
+            description: "A font definition from Google Fonts.",
+            object: {
+              super: {
+                resolveRef: "brand-font-common"
+              },
+              closed: true,
+              properties: {
+                source: {
+                  enum: [
+                    "google"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            id: "brand-font-bunny",
+            description: "A font definition from fonts.bunny.net.",
+            object: {
+              super: {
+                resolveRef: "brand-font-common"
+              },
+              closed: true,
+              properties: {
+                source: {
+                  enum: [
+                    "bunny"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            id: "brand-font-file",
+            description: "A method for providing font files directly, either locally or from an online location.",
+            object: {
+              closed: true,
+              properties: {
+                source: {
+                  enum: [
+                    "file"
+                  ]
+                },
+                family: {
+                  description: "The font family name.",
+                  schema: "string"
+                },
+                files: {
+                  arrayOf: {
+                    anyOf: [
+                      "path",
+                      {
+                        schema: {
+                          object: {
+                            properties: {
+                              path: {
+                                schema: "path",
+                                description: "The path to the font file. This can be a local path or a URL.\n"
+                              },
+                              weight: {
+                                ref: "brand-font-weight"
+                              },
+                              style: {
+                                ref: "brand-font-style"
+                              }
+                            },
+                            required: [
+                              "path"
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  description: "The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs.\n"
+                }
+              },
+              required: [
+                "files",
+                "family",
+                "source"
+              ]
+            }
+          },
+          {
+            id: "brand-font-family",
+            description: "A locally-installed font family name. When used, the end-user is responsible for ensuring that the font is installed on their system.\n",
+            schema: "string"
+          },
+          {
+            id: "brand",
+            object: {
+              closed: true,
+              properties: {
+                meta: {
+                  ref: "brand-meta"
+                },
+                logo: {
+                  ref: "brand-logo"
+                },
+                color: {
+                  ref: "brand-color"
+                },
+                typography: {
+                  ref: "brand-typography"
+                },
+                defaults: {
+                  ref: "brand-defaults"
+                }
+              }
+            }
+          },
+          {
+            id: "brand-path-bool-light-dark",
+            anyOf: [
+              "string",
+              "boolean",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: {
+                      anyOf: [
+                        "string",
+                        {
+                          ref: "brand"
+                        }
+                      ],
+                      description: "The path to a light brand file or an inline light brand definition.\n"
+                    },
+                    dark: {
+                      anyOf: [
+                        "string",
+                        {
+                          ref: "brand"
+                        }
+                      ],
+                      description: "The path to a dark brand file or an inline dark brand definition.\n"
+                    }
+                  }
+                }
+              },
+              {
+                ref: "brand"
+              }
+            ],
+            description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
+          },
+          {
+            id: "brand-defaults",
+            object: {
+              properties: {
+                bootstrap: {
+                  ref: "brand-defaults-bootstrap"
+                },
+                quarto: {
+                  schema: "object"
+                }
+              }
+            }
+          },
+          {
+            id: "brand-defaults-bootstrap",
+            object: {
+              properties: {
+                defaults: {
+                  schema: {
+                    object: {
+                      additionalProperties: {
+                        schema: {
+                          anyOf: [
+                            "string",
+                            "boolean",
+                            "number"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         ],
         "schema/document-about.yml": [
@@ -11971,7 +12806,8 @@ try {
               formats: [
                 "$html-doc",
                 "$epub-all",
-                "docx"
+                "docx",
+                "typst"
               ]
             },
             description: "Title used to label document abstract"
@@ -12433,7 +13269,10 @@ try {
         "schema/document-crossref.yml": [
           {
             name: "crossref",
-            description: "Configuration for crossref labels and prefixes.",
+            description: {
+              short: "Configuration for cross-reference labels and prefixes.",
+              long: "Configuration for cross-reference labels and prefixes. See [Cross-Reference Options](https://quarto.org/docs/reference/metadata/crossref.html) for more details."
+            },
             schema: {
               anyOf: [
                 {
@@ -12448,7 +13287,7 @@ try {
                       custom: {
                         arrayOf: {
                           object: {
-                            description: "A custom cross reference type.",
+                            description: "A custom cross reference type. See [Custom](https://quarto.org/docs/reference/metadata/crossref.html#custom) for more details.",
                             closed: true,
                             required: [
                               "kind",
@@ -14784,6 +15623,22 @@ try {
             description: "The paper size for the document.\n"
           },
           {
+            name: "brand-mode",
+            schema: {
+              enum: [
+                "light",
+                "dark"
+              ]
+            },
+            default: "light",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: "The brand mode to use for rendering the Typst document, `light` or `dark`.\n"
+          },
+          {
             name: "layout",
             schema: {
               maybeArrayOf: "string"
@@ -14826,7 +15681,7 @@ try {
             schema: "number",
             description: {
               short: "Target page width for output (used to compute columns widths for `layout` divs)\n",
-              long: "Target page width for output (used to compute columns widths for `layout` divs).\nDefaults to 6.5 inches, which corresponds to default letter page settings in \ndocx and odt.\n"
+              long: "Target body page width for output (used to compute columns widths for `layout` divs).\nDefaults to 6.5 inches, which corresponds to default letter page settings in \ndocx and odt (8.5 inches with 1 inch for each margins).\n"
             }
           },
           {
@@ -15269,7 +16124,7 @@ try {
             schema: "string",
             description: {
               short: "A regular expression that can be used to determine whether a link is an internal link.",
-              long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
+              long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with `http://www.quarto.org/custom` or `https://www.quarto.org/custom`\nas internal links (and others will be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
             }
           },
           {
@@ -15890,6 +16745,13 @@ try {
             description: "Use the specified file as a style reference in producing a docx, \npptx, or odt file.\n"
           },
           {
+            name: "brand",
+            schema: {
+              ref: "brand-path-bool-light-dark"
+            },
+            description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
+          },
+          {
             name: "theme",
             tags: {
               formats: [
@@ -15929,6 +16791,13 @@ try {
               ]
             },
             description: "Theme name, theme scss file, or a mix of both."
+          },
+          {
+            name: "renderings",
+            schema: {
+              arrayOf: "string"
+            },
+            description: "Array of rendering names, e.g. `[light, dark]`"
           },
           {
             name: "body-classes",
@@ -16007,6 +16876,20 @@ try {
               ]
             },
             description: "Enables smooth scrolling within the page."
+          },
+          {
+            name: "respect-user-color-scheme",
+            schema: "boolean",
+            default: false,
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: {
+              short: "Enables setting dark mode based on the `prefers-color-scheme` media query.",
+              long: "If set, Quarto reads the `prefers-color-scheme` media query to determine whether to show\nthe user a dark or light page. Otherwise the author-preferred color scheme is shown.\n"
+            }
           },
           {
             name: "html-math-method",
@@ -16655,12 +17538,6 @@ try {
             description: "Include the specified files as partials accessible to the template for the generated content.\n"
           },
           {
-            name: "standalone",
-            schema: "boolean",
-            default: true,
-            description: "Produce output with an appropriate header and footer (e.g. a standalone HTML, LaTeX, TEI, or RTF file, not a fragment)\n"
-          },
-          {
             name: "embed-resources",
             tags: {
               formats: [
@@ -16859,6 +17736,40 @@ try {
             description: "If `none`, do not process tables in HTML input."
           },
           {
+            name: "html-pre-tag-processing",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: {
+              enum: [
+                "none",
+                "parse"
+              ]
+            },
+            description: "If `none`, ignore any divs with `html-pre-tag-processing=parse` enabled."
+          },
+          {
+            name: "css-property-processing",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: {
+              enum: [
+                "none",
+                "translate"
+              ]
+            },
+            default: "translate",
+            description: {
+              short: "CSS property translation",
+              long: "If `translate`, translate CSS properties into output format properties. If `none`, do not process css properties."
+            }
+          },
+          {
             name: "use-rsvg-convert",
             schema: "boolean",
             default: true,
@@ -16875,10 +17786,16 @@ try {
             name: "logo",
             tags: {
               formats: [
-                "revealjs"
+                "revealjs",
+                "typst"
               ]
             },
-            schema: "path",
+            schema: {
+              anyOf: [
+                "string",
+                "object"
+              ]
+            },
             description: "Logo image (placed in bottom right corner of slides)"
           },
           {
@@ -17586,6 +18503,17 @@ try {
             schema: "boolean",
             default: false,
             description: "Play a subtle sound when changing slides"
+          },
+          {
+            name: "jump-to-slide",
+            tags: {
+              formats: [
+                "revealjs"
+              ]
+            },
+            schema: "boolean",
+            default: true,
+            description: "Deactivate jump to slide feature."
           }
         ],
         "schema/document-reveal-print.yml": [
@@ -17783,6 +18711,66 @@ try {
                       secret: {
                         string: {
                           description: "Secret provided by multiplex token server"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            name: "scroll-view",
+            description: "Control the scroll view feature of Revealjs",
+            tags: {
+              formats: [
+                "revealjs"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  object: {
+                    properties: {
+                      activate: {
+                        boolean: {
+                          default: true,
+                          description: "Activate scroll view by default for the presentation. Otherwise, it is manually avalaible by adding `?view=scroll` to url."
+                        }
+                      },
+                      progress: {
+                        anyOf: [
+                          "boolean",
+                          {
+                            enum: [
+                              "auto"
+                            ]
+                          }
+                        ],
+                        default: "auto",
+                        description: "Show the scrollbar while scrolling, hide while idle (default `auto`). Set to 'true' to always show, `false` to always hide."
+                      },
+                      snap: {
+                        enum: [
+                          "mandatory",
+                          "proximity",
+                          false
+                        ],
+                        default: "mandatory",
+                        description: "When scrolling, it will automatically snap to the closest slide. Only snap when close to the top of a slide using `proximity`. Disable snapping altogether by setting to `false`.\n"
+                      },
+                      layout: {
+                        enum: [
+                          "compact",
+                          "full"
+                        ],
+                        default: "full",
+                        description: "By default each slide will be sized to be as tall as the viewport. If you prefer a more dense layout with multiple slides visible in parallel, set to `compact`.\n"
+                      },
+                      "activation-width": {
+                        number: {
+                          description: "Control scroll view activation width. The scroll view is automatically unable when the viewport reaches mobile widths. Set to `0` to disable automatic scroll view.\n"
                         }
                       }
                     }
@@ -18298,7 +19286,7 @@ try {
             schema: "boolean",
             description: {
               short: "Include an automatically generated table of contents",
-              long: "Include an automatically generated table of contents (or, in\nthe case of `latex`, `context`, `docx`, `odt`,\n`opendocument`, `rst`, or `ms`, an instruction to create\none) in the output document. This option has no effect\nif `standalone` is `false`.\n\nNote that if you are producing a PDF via `ms`, the table\nof contents will appear at the beginning of the\ndocument, before the title.  If you would prefer it to\nbe at the end of the document, use the option\n`pdf-engine-opt: --no-toc-relocation`.\n"
+              long: "Include an automatically generated table of contents (or, in\nthe case of `latex`, `context`, `docx`, `odt`,\n`opendocument`, `rst`, or `ms`, an instruction to create\none) in the output document.\n\nNote that if you are producing a PDF via `ms`, the table\nof contents will appear at the beginning of the\ndocument, before the title.  If you would prefer it to\nbe at the end of the document, use the option\n`pdf-engine-opt: --no-toc-relocation`.\n"
             }
           },
           {
@@ -18438,7 +19426,7 @@ try {
                 "$html-doc"
               ]
             },
-            description: "Setting this to false prevents the `repo-actions` from appearing on this page."
+            description: "Setting this to false prevents the `repo-actions` from appearing on this page.\nOther possible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
           },
           {
             name: "aliases",
@@ -18813,7 +19801,7 @@ try {
               title: "Footnotes"
             },
             crossref: {
-              title: "Crossrefs"
+              title: "Cross-References"
             },
             citation: {
               title: "Citation"
@@ -18979,6 +19967,13 @@ try {
             },
             errorMessage: "type key not supported at project type-level. Use `project: type: ...` instead.",
             description: "internal-schema-hack"
+          },
+          {
+            name: "engines",
+            schema: {
+              arrayOf: "string"
+            },
+            description: "List execution engines you want to give priority when determining which engine should render a notebook. If two engines have support for a notebook, the one listed earlier will be chosen. Quarto's default order is 'knitr', 'jupyter', 'markdown', 'julia'."
           }
         ],
         "schema/schema.yml": [
@@ -19039,6 +20034,9 @@ try {
               super: {
                 resolveRef: "schema/base"
               },
+              required: [
+                "enum"
+              ],
               properties: {
                 enum: {
                   anyOf: [
@@ -19069,22 +20067,38 @@ try {
           },
           {
             id: "schema/null",
-            object: {
-              closed: true,
-              super: {
-                resolveRef: "schema/base"
+            anyOf: [
+              {
+                enum: [
+                  "null"
+                ]
               },
-              properties: {
-                null: {
-                  ref: "schema/schema"
+              {
+                object: {
+                  closed: true,
+                  required: [
+                    "null"
+                  ],
+                  properties: {
+                    null: {
+                      anyOf: [
+                        {
+                          ref: "schema/base"
+                        }
+                      ]
+                    }
+                  }
                 }
               }
-            }
+            ]
           },
           {
             id: "schema/explicit-schema",
             object: {
               closed: true,
+              required: [
+                "schema"
+              ],
               super: {
                 resolveRef: "schema/base"
               },
@@ -19096,16 +20110,52 @@ try {
             }
           },
           {
+            id: "schema/explicit-pattern-string",
+            object: {
+              closed: true,
+              super: {
+                resolveRef: "schema/base"
+              },
+              required: [
+                "pattern"
+              ],
+              properties: {
+                pattern: "string"
+              }
+            }
+          },
+          {
             id: "schema/string",
             anyOf: [
+              {
+                enum: [
+                  "string",
+                  "path"
+                ]
+              },
+              {
+                ref: "schema/explicit-pattern-string"
+              },
               {
                 object: {
                   closed: true,
                   super: {
                     resolveRef: "schema/base"
                   },
+                  required: [
+                    "path"
+                  ],
                   properties: {
-                    pattern: "string"
+                    path: {
+                      anyOf: [
+                        {
+                          ref: "schema/explicit-pattern-string"
+                        },
+                        {
+                          ref: "schema/base"
+                        }
+                      ]
+                    }
                   }
                 }
               },
@@ -19115,15 +20165,19 @@ try {
                   super: {
                     resolveRef: "schema/base"
                   },
+                  required: [
+                    "string"
+                  ],
                   properties: {
                     string: {
-                      ref: "schema/schema"
-                    },
-                    path: {
-                      ref: "schema/schema"
-                    },
-                    pattern: {
-                      ref: "schema/schema"
+                      anyOf: [
+                        {
+                          ref: "schema/explicit-pattern-string"
+                        },
+                        {
+                          ref: "schema/base"
+                        }
+                      ]
                     }
                   }
                 }
@@ -19132,36 +20186,77 @@ try {
           },
           {
             id: "schema/number",
-            object: {
-              closed: true,
-              super: {
-                resolveRef: "schema/base"
+            anyOf: [
+              {
+                enum: [
+                  "number"
+                ]
               },
-              properties: {
-                number: {
-                  ref: "schema/schema"
+              {
+                object: {
+                  closed: true,
+                  super: {
+                    resolveRef: "schema/base"
+                  },
+                  required: [
+                    "number"
+                  ],
+                  properties: {
+                    number: {
+                      anyOf: [
+                        {
+                          ref: "schema/schema"
+                        },
+                        {
+                          ref: "schema/base"
+                        }
+                      ]
+                    }
+                  }
                 }
               }
-            }
+            ]
           },
           {
             id: "schema/boolean",
-            object: {
-              closed: true,
-              super: {
-                resolveRef: "schema/base"
+            anyOf: [
+              {
+                enum: [
+                  "boolean"
+                ]
               },
-              properties: {
-                boolean: {
-                  ref: "schema/schema"
+              {
+                object: {
+                  closed: true,
+                  required: [
+                    "boolean"
+                  ],
+                  super: {
+                    resolveRef: "schema/base"
+                  },
+                  properties: {
+                    boolean: {
+                      anyOf: [
+                        {
+                          ref: "schema/schema"
+                        },
+                        {
+                          ref: "schema/base"
+                        }
+                      ]
+                    }
+                  }
                 }
               }
-            }
+            ]
           },
           {
             id: "schema/resolve-ref",
             object: {
               closed: true,
+              required: [
+                "resolveRef"
+              ],
               properties: {
                 resolveRef: "string"
               }
@@ -19171,6 +20266,9 @@ try {
             id: "schema/ref",
             object: {
               closed: true,
+              required: [
+                "ref"
+              ],
               properties: {
                 ref: "string",
                 description: {
@@ -19183,6 +20281,9 @@ try {
             id: "schema/maybe-array-of",
             object: {
               closed: true,
+              required: [
+                "maybeArrayOf"
+              ],
               super: {
                 resolveRef: "schema/base"
               },
@@ -19200,6 +20301,9 @@ try {
               super: {
                 resolveRef: "schema/base"
               },
+              required: [
+                "arrayOf"
+              ],
               properties: {
                 arrayOf: {
                   anyOf: [
@@ -19232,6 +20336,9 @@ try {
               super: {
                 resolveRef: "schema/base"
               },
+              required: [
+                "allOf"
+              ],
               properties: {
                 allOf: {
                   anyOf: [
@@ -19266,6 +20373,9 @@ try {
               super: {
                 resolveRef: "schema/base"
               },
+              required: [
+                "anyOf"
+              ],
               properties: {
                 anyOf: {
                   anyOf: [
@@ -19300,6 +20410,9 @@ try {
               super: {
                 resolveRef: "schema/base"
               },
+              required: [
+                "record"
+              ],
               properties: {
                 record: {
                   anyOf: [
@@ -19337,101 +20450,113 @@ try {
           },
           {
             id: "schema/object",
-            object: {
-              closed: true,
-              super: {
-                resolveRef: "schema/base"
+            anyOf: [
+              {
+                enum: [
+                  "object"
+                ]
               },
-              properties: {
+              {
                 object: {
-                  object: {
-                    super: {
-                      resolveRef: "schema/base"
-                    },
-                    closed: true,
-                    properties: {
-                      namingConvention: {
-                        anyOf: [
-                          {
-                            enum: [
-                              "ignore"
+                  closed: true,
+                  super: {
+                    resolveRef: "schema/base"
+                  },
+                  required: [
+                    "object"
+                  ],
+                  properties: {
+                    object: {
+                      object: {
+                        super: {
+                          resolveRef: "schema/base"
+                        },
+                        closed: true,
+                        properties: {
+                          namingConvention: {
+                            anyOf: [
+                              {
+                                enum: [
+                                  "ignore"
+                                ]
+                              },
+                              {
+                                arrayOf: {
+                                  enum: [
+                                    "camelCase",
+                                    "camel-case",
+                                    "camel_case",
+                                    "capitalizationCase",
+                                    "capitalization-case",
+                                    "capitalization_case",
+                                    "underscoreCase",
+                                    "underscore-case",
+                                    "underscore_case",
+                                    "snakeCase",
+                                    "snake-case",
+                                    "snake_case",
+                                    "dashCase",
+                                    "dash-case",
+                                    "dash_case",
+                                    "kebabCase",
+                                    "kebab-case",
+                                    "kebab_case"
+                                  ]
+                                }
+                              }
                             ]
                           },
-                          {
-                            arrayOf: {
-                              enum: [
-                                "camelCase",
-                                "camel-case",
-                                "camel_case",
-                                "capitalizationCase",
-                                "capitalization-case",
-                                "capitalization_case",
-                                "underscoreCase",
-                                "underscore-case",
-                                "underscore_case",
-                                "snakeCase",
-                                "snake-case",
-                                "snake_case",
-                                "dashCase",
-                                "dash-case",
-                                "dash_case",
-                                "kebabCase",
-                                "kebab-case",
-                                "kebab_case"
-                              ]
+                          properties: {
+                            object: {
+                              additionalProperties: {
+                                ref: "schema/schema"
+                              }
                             }
-                          }
-                        ]
-                      },
-                      properties: {
-                        object: {
+                          },
+                          patternProperties: {
+                            object: {
+                              additionalProperties: {
+                                ref: "schema/schema"
+                              }
+                            }
+                          },
+                          propertyNames: {
+                            ref: "schema/schema"
+                          },
                           additionalProperties: {
                             ref: "schema/schema"
-                          }
-                        }
-                      },
-                      patternProperties: {
-                        object: {
-                          additionalProperties: {
-                            ref: "schema/schema"
-                          }
-                        }
-                      },
-                      propertyNames: {
-                        ref: "schema/schema"
-                      },
-                      additionalProperties: {
-                        ref: "schema/schema"
-                      },
-                      super: {
-                        maybeArrayOf: {
-                          ref: "schema/schema"
-                        }
-                      },
-                      required: {
-                        anyOf: [
-                          {
-                            enum: [
-                              "all"
+                          },
+                          super: {
+                            maybeArrayOf: {
+                              ref: "schema/schema"
+                            }
+                          },
+                          required: {
+                            anyOf: [
+                              {
+                                enum: [
+                                  "all"
+                                ]
+                              },
+                              {
+                                arrayOf: "string"
+                              }
                             ]
                           },
-                          {
+                          closed: "boolean",
+                          description: {
+                            ref: "schema/description"
+                          },
+                          completions: {
                             arrayOf: "string"
                           }
-                        ]
-                      },
-                      closed: "boolean",
-                      description: {
-                        ref: "schema/description"
-                      },
-                      completions: {
-                        arrayOf: "string"
+                        }
                       }
                     }
                   }
                 }
               }
-            }
+            ]
           },
           {
             id: "schema/schema",
@@ -19480,13 +20605,7 @@ try {
               },
               {
                 enum: [
-                  "number",
-                  "boolean",
-                  "path",
-                  "string",
                   null,
-                  "null",
-                  "object",
                   "any"
                 ]
               }
@@ -19539,6 +20658,7 @@ try {
           }
         ],
         "pandoc/formats.yml": [
+          "ansi",
           "asciidoc",
           "asciidoc_legacy",
           "asciidoctor",
@@ -19853,6 +20973,7 @@ try {
           "Number of matches to display (defaults to 20)",
           "Matches after which to collapse additional results",
           "Provide button for copying search link",
+          "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -20013,6 +21134,7 @@ try {
           "Number of matches to display (defaults to 20)",
           "Matches after which to collapse additional results",
           "Provide button for copying search link",
+          "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -20105,7 +21227,7 @@ try {
           "Book part and chapter files",
           "Book appendix files",
           "Book references file",
-          "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+          "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
           "Cover image (used in HTML and ePub formats)",
           "Alternative text for cover image (used in HTML format)",
           "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -20783,11 +21905,95 @@ try {
           "Additional file resources to be copied to output directory",
           "Files that specify the execution environment (e.g.&nbsp;renv.lock,\nrequirements.text, etc\u2026)",
           "Files that specify the execution environment (e.g.&nbsp;renv.lock,\nrequirements.text, etc\u2026)",
+          "Metadata for a brand, including the brand name and important\nlinks.",
+          "The brand name.",
+          "The full, official or legal name of the company or brand.",
+          "The short, informal, or common name of the company or brand.",
+          "Important links for the brand, including social media links. If a\nsingle string, it is the brand\u2019s home page or website. Additional fields\nare allowed for internal use.",
+          "The brand\u2019s home page or website.",
+          "The brand\u2019s Mastodon URL.",
+          "The brand\u2019s Bluesky URL.",
+          "The brand\u2019s GitHub URL.",
+          "The brand\u2019s LinkedIn URL.",
+          "The brand\u2019s Twitter URL.",
+          "The brand\u2019s Facebook URL.",
+          "A link or path to the brand\u2019s light-colored logo or icon.",
+          "A link or path to the brand\u2019s dark-colored logo or icon.",
+          "Alternative text for the logo, used for accessibility.",
+          "Provide definitions and defaults for brand\u2019s logo in various formats\nand sizes.",
+          "A dictionary of named logo resources.",
+          "A link or path to the brand\u2019s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
+          "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
+          "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
+          "Names of customizeable logos",
+          "The brand\u2019s custom color palette and theme.",
+          "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
+          "The foreground color, used for text.",
+          "The background color, used for the page background.",
+          "The primary accent color, i.e.&nbsp;the main theme color. Typically used\nfor hyperlinks, active states, primary action buttons, etc.",
+          "The secondary accent color. Typically used for lighter text or\ndisabled states.",
+          "The tertiary accent color. Typically an even lighter color, used for\nhover states, accents, and wells.",
+          "The color used for positive or successful actions and\ninformation.",
+          "The color used for neutral or informational actions and\ninformation.",
+          "The color used for warning or cautionary actions and information.",
+          "The color used for errors, dangerous actions, or negative\ninformation.",
+          "A bright color, used as a high-contrast foreground color on dark\nelements or low-contrast background color on light elements.",
+          "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
+          "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
+          "A color, which may be a named brand color.",
+          "A named brand color, taken either from <code>color.theme</code> or\n<code>color.palette</code> (in that order).",
+          "Typography definitions for the brand.",
+          "Font files and definitions for the brand.",
+          "The base font settings for the brand. These are used as the default\nfor all text.",
+          "Settings for headings, or a string specifying the font family\nonly.",
+          "Settings for monospace text, or a string specifying the font family\nonly.",
+          "Settings for inline code, or a string specifying the font family\nonly.",
+          "Settings for code blocks, or a string specifying the font family\nonly.",
+          "Settings for links.",
+          "Base typographic options.",
+          "Typographic options for headings.",
+          "Typographic options for monospace elements.",
+          "Typographic options for inline monospace elements.",
+          "Line height",
+          "Typographic options for block monospace elements.",
+          "Typographic options for inline monospace elements.",
+          "Names of customizeable fonts",
+          "Font files and definitions for the brand.",
+          "A font weight.",
+          "A font style.",
+          "The font family name, which must match the name of the font on the\nfoundry website.",
+          "The font weights to include.",
+          "The font styles to include.",
+          "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
+          "A system font definition.",
+          "The font family name, which must match the name of the font on the\nfoundry website.",
+          "The font weights to include.",
+          "The font styles to include.",
+          "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
+          "A font definition from Google Fonts.",
+          "The font family name, which must match the name of the font on the\nfoundry website.",
+          "The font weights to include.",
+          "The font styles to include.",
+          "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
+          "A font definition from fonts.bunny.net.",
+          "The font family name, which must match the name of the font on the\nfoundry website.",
+          "The font weights to include.",
+          "The font styles to include.",
+          "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
+          "A method for providing font files directly, either locally or from an\nonline location.",
+          "The font family name.",
+          "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
+          "The path to the font file. This can be a local path or a URL.",
+          "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
+          "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
+          "The path to a light brand file or an inline light brand\ndefinition.",
+          "The path to a dark brand file or an inline dark brand definition.",
           {
             short: "Unique label for code cell",
             long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
           },
           "Classes to apply to cell container",
+          "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
           "Array of tags for notebook cell",
           {
             short: "Notebook cell identifier",
@@ -20973,7 +22179,10 @@ try {
             short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
             long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
           },
-          "Include messages in rendered output.",
+          {
+            short: "Include messages in rendered output.",
+            long: "Include messages in rendered output. Possible values are\n<code>true</code>, <code>false</code>, or <code>NA</code>. If\n<code>true</code>, messages are included in the output. If\n<code>false</code>, messages are not included. If <code>NA</code>,\nmessages are not included in output but shown in the knitr log to\nconsole."
+          },
           {
             short: "How to display text results",
             long: "How to display text results. Note that this option only applies to\nnormal text output (not warnings, messages, or errors). The possible\nvalues are as follows:"
@@ -21091,8 +22300,11 @@ try {
             long: 'Color for links to other content within the document.\nSee <a href="https://wiki.contextgarden.net/Color">ConTeXt Color</a>\nfor additional information.'
           },
           "Configuration for document commenting.",
-          "Configuration for crossref labels and prefixes.",
-          "A custom cross reference type.",
+          {
+            short: "Configuration for cross-reference labels and prefixes.",
+            long: 'Configuration for cross-reference labels and prefixes. See <a href="https://quarto.org/docs/reference/metadata/crossref.html">Cross-Reference\nOptions</a> for more details.'
+          },
+          'A custom cross reference type. See <a href="https://quarto.org/docs/reference/metadata/crossref.html#custom">Custom</a>\nfor more details.',
           "The kind of cross reference (currently only \u201Cfloat\u201D is\nsupported).",
           "The prefix used in rendered references when referencing this\ntype.",
           "The prefix used in rendered captions when referencing this type. If\nomitted, the field <code>reference-prefix</code> is used.",
@@ -21561,6 +22773,7 @@ try {
           },
           "Control the <code>\\pagestyle{}</code> for the document.",
           "The paper size for the document.",
+          "The brand mode to use for rendering the Typst document,\n<code>light</code> or <code>dark</code>.",
           {
             short: "The options for margins and text layout for this document.",
             long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.'
@@ -21568,7 +22781,7 @@ try {
           "The page layout to use for this document (<code>article</code>,\n<code>full</code>, or <code>custom</code>)",
           {
             short: "Target page width for output (used to compute columns widths for\n<code>layout</code> divs)",
-            long: "Target page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt."
+            long: "Target body page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt (8.5 inches with 1 inch for\neach margins)."
           },
           {
             short: "Properties of the grid system used to layout Quarto HTML pages.",
@@ -21653,7 +22866,7 @@ try {
           "Open external links in a new browser window or tab (rather than\nnavigating the current tab).",
           {
             short: "A regular expression that can be used to determine whether a link is\nan internal link.",
-            long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith http://www.quarto.org as internal links (and others will be\nconsidered external):"
+            long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith <code>http://www.quarto.org/custom</code> or\n<code>https://www.quarto.org/custom</code> as internal links (and others\nwill be considered external):"
           },
           {
             short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
@@ -21746,6 +22959,7 @@ try {
           },
           "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
           "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
+          "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
           "Theme name, theme scss file, or a mix of both.",
           "The light theme name, theme scss file, or a mix of both.",
           "The light theme name, theme scss file, or a mix of both.",
@@ -21758,6 +22972,10 @@ try {
           "Enables hover over a section title to see an anchor link.",
           "Enables tabsets to present content.",
           "Enables smooth scrolling within the page.",
+          {
+            short: "Enables setting dark mode based on the\n<code>prefers-color-scheme</code> media query.",
+            long: "If set, Quarto reads the <code>prefers-color-scheme</code> media\nquery to determine whether to show the user a dark or light page.\nOtherwise the author-preferred color scheme is shown."
+          },
           {
             short: "Method use to render math in HTML output",
             long: 'Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href="https://pandoc.org/MANUAL.html#math-rendering-in-html">Math\nRendering in HTML</a> for additional details.'
@@ -21863,7 +23081,6 @@ try {
           "Extension to use for generated output file",
           "Use the specified file as a custom template for the generated\ndocument.",
           "Include the specified files as partials accessible to the template\nfor the generated content.",
-          "Produce output with an appropriate header and footer (e.g.&nbsp;a\nstandalone HTML, LaTeX, TEI, or RTF file, not a fragment)",
           {
             short: "Produce a standalone HTML file with no external dependencies",
             long: 'Produce a standalone HTML file with no external dependencies, using\n<code>data:</code> URIs to incorporate the contents of linked scripts,\nstylesheets, images, and videos. The resulting file should be\n\u201Cself-contained,\u201D in the sense that it needs no external files and no\nnet access to be displayed properly by a browser. This option works only\nwith HTML output formats, including <code>html4</code>,\n<code>html5</code>, <code>html+lhs</code>, <code>html5+lhs</code>,\n<code>s5</code>, <code>slidy</code>, <code>slideous</code>,\n<code>dzslides</code>, and <code>revealjs</code>. Scripts, images, and\nstylesheets at absolute URLs will be downloaded; those at relative URLs\nwill be sought relative to the working directory (if the first source\nfile is local) or relative to the base URL (if the first source file is\nremote). Elements with the attribute <code>data-external="1"</code> will\nbe left alone; the documents they link to will not be incorporated in\nthe document. Limitation: resources that are loaded dynamically through\nJavaScript cannot be incorporated; as a result, some advanced features\n(e.g.&nbsp;zoom or speaker notes) may not work in an offline \u201Cself-contained\u201D\n<code>reveal.js</code> slide show.'
@@ -21903,6 +23120,11 @@ try {
             long: "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa. (Technically, the correct\nterm would be ppi: pixels per inch.) The default is <code>96</code>.\nWhen images contain information about dpi internally, the encoded value\nis used instead of the default specified by this option."
           },
           "If <code>none</code>, do not process tables in HTML input.",
+          "If <code>none</code>, ignore any divs with\n<code>html-pre-tag-processing=parse</code> enabled.",
+          {
+            short: "CSS property translation",
+            long: "If <code>translate</code>, translate CSS properties into output\nformat properties. If <code>none</code>, do not process css\nproperties."
+          },
           "If <code>true</code>, attempt to use <code>rsvg-convert</code> to\nconvert SVG images to PDF.",
           "Logo image (placed in bottom right corner of slides)",
           {
@@ -21991,6 +23213,7 @@ try {
           "Monitor the hash and change slides accordingly",
           "Include the current fragment in the URL",
           "Play a subtle sound when changing slides",
+          "Deactivate jump to slide feature.",
           {
             short: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
             long: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages. You can limit how many pages a slide may expand to using\nthis option."
@@ -22018,6 +23241,12 @@ try {
           "Multiplex token server (defaults to Reveal-hosted server)",
           "Unique presentation id provided by multiplex token server",
           "Secret provided by multiplex token server",
+          "Control the scroll view feature of Revealjs",
+          "Activate scroll view by default for the presentation. Otherwise, it\nis manually avalaible by adding <code>?view=scroll</code> to url.",
+          "Show the scrollbar while scrolling, hide while idle (default\n<code>auto</code>). Set to \u2018true\u2019 to always show, <code>false</code> to\nalways hide.",
+          "When scrolling, it will automatically snap to the closest slide. Only\nsnap when close to the top of a slide using <code>proximity</code>.\nDisable snapping altogether by setting to <code>false</code>.",
+          "By default each slide will be sized to be as tall as the viewport. If\nyou prefer a more dense layout with multiple slides visible in parallel,\nset to <code>compact</code>.",
+          "Control scroll view activation width. The scroll view is\nautomatically unable when the viewport reaches mobile widths. Set to\n<code>0</code> to disable automatic scroll view.",
           {
             short: "Transition style for slides",
             long: "Transition style for slides backgrounds. (<code>none</code>,\n<code>fade</code>, <code>slide</code>, <code>convex</code>,\n<code>concave</code>, or <code>zoom</code>)"
@@ -22103,11 +23332,11 @@ try {
           },
           {
             short: "Include an automatically generated table of contents",
-            long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
+            long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output\ndocument.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
           },
           {
             short: "Include an automatically generated table of contents",
-            long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
+            long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output\ndocument.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
           },
           "The amount of indentation to use for each level of the table of\ncontents. The default is \u201C1.5em\u201D.",
           "Specify the number of section levels to include in the table of\ncontents. The default is 3",
@@ -22120,7 +23349,7 @@ try {
           "Print a list of figures in the document.",
           "Print a list of tables in the document.",
           "Setting this to false prevents this document from being included in\nsearches.",
-          "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
+          "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page. Other possible values are <code>none</code> or\none or more of <code>edit</code>, <code>source</code>, and\n<code>issue</code>, <em>e.g.</em>\n<code>[edit, source, issue]</code>.",
           {
             short: "Links to source repository actions",
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -22235,6 +23464,7 @@ try {
           "Number of matches to display (defaults to 20)",
           "Matches after which to collapse additional results",
           "Provide button for copying search link",
+          "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -22327,7 +23557,7 @@ try {
           "Book part and chapter files",
           "Book appendix files",
           "Book references file",
-          "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+          "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
           "Cover image (used in HTML and ePub formats)",
           "Alternative text for cover image (used in HTML format)",
           "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -22485,6 +23715,15 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+          {
+            short: "Include an automatically generated table of contents",
+            long: ""
+          },
+          {
+            short: "Use smart quotes in document output. Defaults to true.",
+            long: ""
+          },
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -22579,6 +23818,7 @@ try {
           "Number of matches to display (defaults to 20)",
           "Matches after which to collapse additional results",
           "Provide button for copying search link",
+          "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -22671,7 +23911,7 @@ try {
           "Book part and chapter files",
           "Book appendix files",
           "Book references file",
-          "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+          "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
           "Cover image (used in HTML and ePub formats)",
           "Alternative text for cover image (used in HTML format)",
           "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -22828,7 +24068,9 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+          "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>"
         ],
         "schema/external-schemas.yml": [
           {
@@ -23057,12 +24299,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 186493,
+          _internalId: 194632,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 186485,
+              _internalId: 194624,
               type: "enum",
               enum: [
                 "png",
@@ -23078,7 +24320,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 186492,
+              _internalId: 194631,
               type: "anyOf",
               anyOf: [
                 {
@@ -23118,7 +24360,42 @@ try {
             "case-detection": true
           },
           $id: "handlers/mermaid"
-        }
+        },
+        "schema/document-typst.yml": [
+          {
+            name: "page-numbering",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "string",
+                {
+                  enum: [
+                    false
+                  ]
+                }
+              ]
+            },
+            description: {
+              short: "Include an automatically generated table of contents"
+            }
+          },
+          {
+            name: "smart",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: "boolean",
+            description: {
+              short: "Use smart quotes in document output. Defaults to true."
+            }
+          }
+        ]
       };
     }
   });
@@ -23227,7 +24504,7 @@ try {
     try {
       return Deno.build.os !== "windows";
     } catch (_e) {
-      return false;
+      return true;
     }
   }
   function tidyverseInfo(msg) {
@@ -29634,6 +30911,27 @@ ${reindented}
     };
   }
 
+  // ../is-circular.ts
+  var isCircular = (obj) => {
+    const objectSet = /* @__PURE__ */ new WeakSet();
+    const detect = (obj2) => {
+      if (obj2 && typeof obj2 === "object") {
+        if (objectSet.has(obj2)) {
+          return true;
+        }
+        objectSet.add(obj2);
+        for (const key in obj2) {
+          if (Object.hasOwn(obj2, key) && detect(obj2[key])) {
+            return true;
+          }
+        }
+        objectSet.delete(obj2);
+      }
+      return false;
+    };
+    return detect(obj);
+  };
+
   // annotated-yaml.ts
   function postProcessAnnotation(parse) {
     if (parse.components.length === 1 && parse.start === parse.components[0].start && parse.end === parse.components[0].end) {
@@ -29784,7 +31082,11 @@ ${tidyverseInfo(
         `Expected a single result, got ${results.length} instead`
       );
     }
-    JSON.stringify(results[0]);
+    if (isCircular(results[0])) {
+      throw new InternalError(
+        `Circular structure detected in yaml`
+      );
+    }
     return postProcessAnnotation(results[0]);
   }
   function buildTreeSitterAnnotation(tree, mappedSource2) {
@@ -30161,6 +31463,51 @@ ${tidyverseInfo(
   }
 
   // ../yaml-validation/validator.ts
+  function createNiceError(obj) {
+    const {
+      violatingObject,
+      source,
+      message
+    } = obj;
+    const locF = mappedIndexToLineCol(source);
+    let location;
+    try {
+      location = {
+        start: locF(violatingObject.start),
+        end: locF(violatingObject.end)
+      };
+    } catch (_e) {
+      location = {
+        start: { line: 0, column: 0 },
+        end: { line: 0, column: 0 }
+      };
+    }
+    const mapResult = source.map(violatingObject.start);
+    const fileName = mapResult ? mapResult.originalString.fileName : void 0;
+    return {
+      heading: message,
+      error: [],
+      info: {},
+      fileName,
+      location,
+      sourceContext: createSourceContext(violatingObject.source, {
+        start: violatingObject.start,
+        end: violatingObject.end
+      })
+    };
+  }
+  var NoExprTag = class extends Error {
+    constructor(violatingObject, source) {
+      super(`Unexpected !expr tag`);
+      this.name = "NoExprTag";
+      this.niceError = createNiceError({
+        violatingObject,
+        source,
+        message: "!expr tags are not allowed in Quarto outside of knitr code cells."
+      });
+    }
+    niceError;
+  };
   var ValidationContext = class {
     instancePath;
     root;
@@ -30551,6 +31898,9 @@ ${tidyverseInfo(
             return value.components[i];
           }
         }
+      }
+      if (value.result && typeof value.result === "object" && !Array.isArray(value.result) && value.result.tag === "!expr") {
+        throw new NoExprTag(value, value.source);
       }
       throw new InternalError(`Couldn't locate key ${key}`);
     };
@@ -32067,11 +33417,22 @@ ${tidyverseInfo(
     },
     "engine-jupyter"
   );
+  var juliaEnginesSchema = defineCached(
+    // deno-lint-ignore require-await
+    async () => {
+      return {
+        schema: makeEngineSchema("julia"),
+        errorHandlers: []
+      };
+    },
+    "engine-julia"
+  );
   async function getEngineOptionsSchema() {
     const obj = {
       markdown: await markdownEngineSchema(),
       knitr: await knitrEngineSchema(),
-      jupyter: await jupyterEngineSchema()
+      jupyter: await jupyterEngineSchema(),
+      julia: await juliaEnginesSchema()
     };
     return obj;
   }
@@ -32447,9 +33808,7 @@ ${tidyverseInfo(
         } else if (cell_type === "directive") {
           cell.source = mappedString(src, mappedChunks.slice(1, -1), fileName);
         }
-        if (mdTrimEmptyLines(lines(cell.sourceVerbatim.value)).length > 0 || cell.options !== void 0) {
-          nb.cells.push(cell);
-        }
+        nb.cells.push(cell);
         lineBuffer.splice(0, lineBuffer.length);
       }
     };
@@ -32510,24 +33869,6 @@ ${tidyverseInfo(
     }
     await flushLineBuffer("markdown", srcLines.length);
     return nb;
-  }
-  function mdTrimEmptyLines(lines2) {
-    const firstNonEmpty = lines2.findIndex((line) => line.trim().length > 0);
-    if (firstNonEmpty === -1) {
-      return [];
-    }
-    lines2 = lines2.slice(firstNonEmpty);
-    let lastNonEmpty = -1;
-    for (let i = lines2.length - 1; i >= 0; i--) {
-      if (lines2[i].trim().length > 0) {
-        lastNonEmpty = i;
-        break;
-      }
-    }
-    if (lastNonEmpty > -1) {
-      lines2 = lines2.slice(0, lastNonEmpty + 1);
-    }
-    return lines2;
   }
 
   // ../yaml-schema/format-aliases.ts
@@ -32823,6 +34164,11 @@ ${tidyverseInfo(
       });
     }
   }
+
+  // ../yaml-schema/brand.ts
+  var getBrandConfigSchema = async () => {
+    return refSchema("brand", "");
+  };
 
   // yaml-intelligence.ts
   function getTagValue(schema2, tag) {
@@ -33350,7 +34696,6 @@ ${tidyverseInfo(
       return size;
     };
     if (kind === "completions") {
-      debugger;
       let foundCell = void 0;
       for (const cell of result.cells) {
         const size = lines((cell.sourceWithYaml || cell.source).value).length;
@@ -33553,7 +34898,19 @@ ${tidyverseInfo(
         schema: extensionConfigSchema,
         schemaName: "extension-config"
       };
-    } else {
+    }
+    const brandYamlNames = [
+      "_brand.yml",
+      "_brand.yaml"
+    ];
+    if (context.path && brandYamlNames.some((name) => context.path.endsWith(name))) {
+      const brandYamlSchema = await getBrandConfigSchema();
+      return {
+        schema: brandYamlSchema,
+        schemaName: "brand"
+      };
+    }
+    {
       const projectConfigSchema = await getProjectConfigSchema();
       return {
         schema: projectConfigSchema,

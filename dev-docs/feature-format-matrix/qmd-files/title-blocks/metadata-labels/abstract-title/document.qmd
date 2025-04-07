@@ -1,0 +1,45 @@
+---
+title: "Toward a Unified Theory of High-Energy Metaphysics: Silly String Theory"
+format:
+  html:
+    quality: 2
+  typst:
+    quality: 2
+    keep-typ: true
+  pdf:
+    quality: na
+  docx:
+    quality: 2
+  pptx:
+    quality: na
+    comment: abstract not shown
+  revealjs:
+    quality: na
+    comment: abstract not shown
+  dashboard:
+    quality: na
+    comment: abstract not shown
+date: 2008-02-29
+abstract: >
+  The characteristic theme of the works of Stone is
+  the bridge between culture and society. ...
+abstract-title: Abstract!
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - 'Abstract\!'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'Abstract\!'
+        - []
+    docx:
+      ensureDocxRegexMatches:
+        -
+          - 'Abstract\!'
+        - []
+
+---

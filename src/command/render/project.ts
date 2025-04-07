@@ -4,12 +4,19 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import {
+  ensureDirSync,
+  existsSync,
+  safeMoveSync,
+  safeRemoveDirSync,
+  safeRemoveSync,
+  UnsafeRemovalError,
+} from "../../deno_ral/fs.ts";
 import { dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
 import { info, warning } from "../../deno_ral/log.ts";
 import { mergeProjectMetadata } from "../../config/metadata.ts";
 
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 
 import { copyMinimal, copyTo } from "../../core/copy.ts";
 import * as ld from "../../core/lodash.ts";
@@ -68,13 +75,12 @@ import {
 } from "../../project/project-shared.ts";
 import { asArray } from "../../core/array.ts";
 import { normalizePath } from "../../core/path.ts";
-import { isSubdir } from "fs/_is_subdir.ts";
+import { isSubdir } from "../../deno_ral/fs.ts";
 import { Format } from "../../config/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { projectContextForDirectory } from "../../project/project-context.ts";
 import { ProjectType } from "../../project/types/types.ts";
 import { ProjectConfig as ProjectConfig_Project } from "../../resources/types/schema-types.ts";
-import { Extension } from "../../extension/types.ts";
 
 const noMutationValidations = (
   projType: ProjectType,
@@ -137,7 +143,7 @@ const computeProjectRenderConfig = async (
 
   // force execution for any incremental files (unless options.useFreezer is set)
   let alwaysExecuteFiles = incremental && !inputs.options.useFreezer
-    ? ld.cloneDeep(inputs.files) as string[]
+    ? [...(inputs.files!)]
     : undefined;
 
   // file normaliation
@@ -264,7 +270,7 @@ export async function renderProject(
   pOptions: RenderOptions,
   pFiles?: string[],
 ): Promise<RenderResult> {
-  mergeExtensionMetadata(context, pOptions);
+  await mergeExtensionMetadata(context, pOptions);
   const { preRenderScripts, postRenderScripts } = await getProjectRenderScripts(
     context,
   );
@@ -300,7 +306,7 @@ export async function renderProject(
       (projectRenderConfig.options.flags?.clean == true) &&
         (projType.cleanOutputDir === true))
   ) {
-    // ouptut dir
+    // output dir
     const realProjectDir = normalizePath(context.dir);
     if (existsSync(projOutputDir)) {
       const realOutputDir = normalizePath(projOutputDir);
@@ -326,18 +332,34 @@ export async function renderProject(
 
   // run pre-render step if we are rendering all files
   if (preRenderScripts.length) {
+    // https://github.com/quarto-dev/quarto-cli/issues/10828
+    // some environments limit the length of environment variables.
+    // It's hard to know in advance what the limit is, so we will
+    // instead ask users to configure their environment with
+    // the names of the files we will write the list of files to.
+
+    const filesToRender = projectRenderConfig.filesToRender
+      .map((fileToRender) => fileToRender.path)
+      .map((file) => relative(projDir, file));
+    const env: Record<string, string> = {
+      ...prePostEnv,
+    };
+
+    if (Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES")) {
+      Deno.writeTextFileSync(
+        Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES")!,
+        filesToRender.join("\n"),
+      );
+    } else {
+      env.QUARTO_PROJECT_INPUT_FILES = filesToRender.join("\n");
+    }
+
     await runPreRender(
       projDir,
       preRenderScripts,
       progress,
       !!projectRenderConfig.options.flags?.quiet,
-      {
-        ...prePostEnv,
-        QUARTO_PROJECT_INPUT_FILES: projectRenderConfig.filesToRender
-          .map((fileToRender) => fileToRender.path)
-          .map((file) => relative(projDir, file))
-          .join("\n"),
-      },
+      env,
     );
 
     // re-initialize project context
@@ -461,15 +483,35 @@ export async function renderProject(
       // remove directories, we should instead make a function that
       // does that explicitly, rather than as a side effect of a missing
       // src Dir
-      if (existsSync(srcDir)) {
-        if (existsSync(targetDir)) {
-          Deno.removeSync(targetDir, { recursive: true });
+      if (!existsSync(srcDir)) {
+        return;
+      }
+      if (existsSync(targetDir)) {
+        try {
+          safeRemoveDirSync(targetDir, context.dir);
+        } catch (e) {
+          if (e instanceof UnsafeRemovalError) {
+            warning(
+              `Refusing to remove directory ${targetDir} since it is not a subdirectory of the main project directory.`,
+            );
+            warning(
+              `Quarto did not expect the path configuration being used in this project, and strange behavior may result.`,
+            );
+          }
         }
-        ensureDirSync(dirname(targetDir));
-        if (copy) {
-          copyTo(srcDir, targetDir);
-        } else {
+      }
+      ensureDirSync(dirname(targetDir));
+      if (copy) {
+        copyTo(srcDir, targetDir);
+      } else {
+        try {
           Deno.renameSync(srcDir, targetDir);
+        } catch (_e) {
+          // if renaming failed, it could have happened
+          // because src and target are in different file systems.
+          // In that case, try to recursively copy from src
+          copyTo(srcDir, targetDir);
+          safeRemoveDirSync(targetDir, context.dir);
         }
       }
     };
@@ -505,7 +547,7 @@ export async function renderProject(
       if (!renderedFile.isTransient) {
         const outputFile = join(formatOutputDir, renderedFile.file);
         ensureDirSync(dirname(outputFile));
-        Deno.renameSync(join(projDir, renderedFile.file), outputFile);
+        safeMoveSync(join(projDir, renderedFile.file), outputFile);
       }
 
       // files dir
@@ -814,17 +856,34 @@ export async function renderProject(
 
     // run post-render if this isn't incremental
     if (postRenderScripts.length) {
+      // https://github.com/quarto-dev/quarto-cli/issues/10828
+      // some environments limit the length of environment variables.
+      // It's hard to know in advance what the limit is, so we will
+      // instead ask users to configure their environment with
+      // the names of the files we will write the list of files to.
+
+      const env: Record<string, string> = {
+        ...prePostEnv,
+      };
+
+      if (Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES")) {
+        Deno.writeTextFileSync(
+          Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES")!,
+          outputFiles.map((outputFile) => relative(projDir, outputFile.file))
+            .join("\n"),
+        );
+      } else {
+        env.QUARTO_PROJECT_OUTPUT_FILES = outputFiles
+          .map((outputFile) => relative(projDir, outputFile.file))
+          .join("\n");
+      }
+
       await runPostRender(
         projDir,
         postRenderScripts,
         progress,
         !!projectRenderConfig.options.flags?.quiet,
-        {
-          ...prePostEnv,
-          QUARTO_PROJECT_OUTPUT_FILES: outputFiles
-            .map((outputFile) => relative(projDir, outputFile.file))
-            .join("\n"),
-        },
+        env,
       );
     }
   }
@@ -864,7 +923,7 @@ export async function renderProject(
   if (projectRenderConfig.options.forceClean) {
     const scratchDir = join(projDir, kQuartoScratch);
     if (existsSync(scratchDir)) {
-      Deno.removeSync(scratchDir, { recursive: true });
+      safeRemoveSync(scratchDir, { recursive: true });
     }
   }
 
@@ -908,6 +967,23 @@ async function runScripts(
 
     const handler = handlerForScript(script);
     if (handler) {
+      if (env) {
+        env = {
+          ...env,
+        };
+      } else {
+        env = {};
+      }
+      if (!env) throw new Error("should never get here");
+      const input = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES");
+      const output = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES");
+      if (input) {
+        env["QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES"] = input;
+      }
+      if (output) {
+        env["QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES"] = output;
+      }
+
       const result = await handler.run(script, args.splice(1), undefined, {
         cwd: projDir,
         stdout: quiet ? "piped" : "inherit",

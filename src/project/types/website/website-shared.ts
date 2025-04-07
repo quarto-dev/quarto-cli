@@ -43,7 +43,7 @@ import {
 import { cookieConsentEnabled } from "./website-analytics.ts";
 import { Format, FormatExtras } from "../../../config/types.ts";
 import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
-import { md5Hash } from "../../../core/hash.ts";
+import { md5HashAsync } from "../../../core/hash.ts";
 export { type NavigationFooter } from "../../types.ts";
 
 export interface Navigation {
@@ -99,7 +99,7 @@ export function computePageTitle(
     if (titlePrefix === title) {
       return title as string;
     } else if (title !== undefined) {
-      return titlePrefix + " - " + title;
+      return title + " – " + titlePrefix;
     } else {
       return titlePrefix + "";
     }
@@ -114,7 +114,7 @@ export function inputFileHref(href: string) {
   return pathWithForwardSlashes(htmlHref);
 }
 
-export function websiteNavigationConfig(project: ProjectContext) {
+export async function websiteNavigationConfig(project: ProjectContext) {
   // read navbar
   let navbar = websiteConfig(kSiteNavbar, project.config) as
     | Navbar
@@ -161,6 +161,33 @@ export function websiteNavigationConfig(project: ProjectContext) {
           sb.contents = [sb.contents as SidebarItem];
         }
       }
+    }
+  }
+
+  const projectBrand = await project.resolveBrand();
+  if (
+    projectBrand?.light?.processedData.logo && sidebars?.[0]
+  ) {
+    if (sidebars[0].logo === undefined) {
+      const logo = projectBrand.light.processedData.logo.medium ??
+        projectBrand.light.processedData.logo.small ??
+        projectBrand.light.processedData.logo.large;
+      if (logo) {
+        sidebars[0].logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
+        sidebars[0]["logo-alt"] = logo.light.alt;
+      }
+    }
+  }
+
+  if (
+    projectBrand?.light?.processedData && navbar
+  ) {
+    const logo = projectBrand.light.processedData.logo.small ??
+      projectBrand.light.processedData.logo.medium ??
+      projectBrand.light.processedData.logo.large;
+    if (logo) {
+      navbar.logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
+      navbar["logo-alt"] = logo.light.alt;
     }
   }
 
@@ -219,7 +246,7 @@ export function websiteNavigationConfig(project: ProjectContext) {
   let announcement: NavigationAnnouncement | undefined;
   if (typeof announcementRaw === "string") {
     announcement = {
-      id: md5Hash(announcementRaw),
+      id: await md5HashAsync(announcementRaw),
       icon: undefined,
       dismissable: true,
       content: announcementRaw,
@@ -228,7 +255,7 @@ export function websiteNavigationConfig(project: ProjectContext) {
     };
   } else if (announcementRaw && !Array.isArray(announcementRaw)) {
     announcement = {
-      id: md5Hash(announcementRaw.content as string),
+      id: await md5HashAsync(announcementRaw.content as string),
       icon: announcementRaw.icon as string | undefined,
       dismissable: announcementRaw.dismissable !== false,
       content: announcementRaw.content as string,

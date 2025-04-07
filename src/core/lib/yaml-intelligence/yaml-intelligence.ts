@@ -75,6 +75,7 @@ import {
 import { loadDefaultSchemaDefinitions } from "../yaml-schema/definitions.ts";
 import { patchMarkdownDescriptions } from "./descriptions.ts";
 import { hover } from "./hover.ts";
+import { getBrandConfigSchema } from "../yaml-schema/brand.ts";
 
 interface IDEContext {
   formats: string[];
@@ -833,7 +834,6 @@ async function automationFromGoodParseMarkdown(
   };
 
   if (kind === "completions") {
-    debugger;
     let foundCell = undefined;
     for (const cell of result.cells) {
       // use sourceWithYaml when it exists (code cells)
@@ -1099,7 +1099,24 @@ const determineSchema = async (context: YamlIntelligenceContext): Promise<{
       schema: extensionConfigSchema,
       schemaName: "extension-config",
     };
-  } else {
+  }
+
+  const brandYamlNames = [
+    "_brand.yml",
+    "_brand.yaml",
+  ];
+  if (
+    context.path &&
+    brandYamlNames.some((name) => context.path!.endsWith(name))
+  ) {
+    const brandYamlSchema = await getBrandConfigSchema();
+    return {
+      schema: brandYamlSchema,
+      schemaName: "brand",
+    };
+  }
+
+  {
     const projectConfigSchema = await getProjectConfigSchema();
     return {
       schema: projectConfigSchema,

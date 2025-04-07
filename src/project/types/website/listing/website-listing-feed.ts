@@ -40,7 +40,11 @@ import {
   renderedContentReader,
   RenderedContents,
 } from "./website-listing-shared.ts";
-import { dirAndStem, resolvePathGlobs } from "../../../../core/path.ts";
+import {
+  dirAndStem,
+  resolvePathGlobs,
+  safeRemoveSync,
+} from "../../../../core/path.ts";
 import { ProjectOutputFile } from "../../types.ts";
 import { resolveInputTarget } from "../../../project-index.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
@@ -163,7 +167,7 @@ export async function createFeed(
 
   // Add any image metadata
   const image = options.image || format.metadata[kImage] as string ||
-    websiteImage(project.config);
+    websiteImage(project.config)?.src;
   if (image) {
     feed.image = {
       title: feedTitle,
@@ -372,7 +376,7 @@ export function completeStagedFeeds(
             );
           } finally {
             try {
-              Deno.removeSync(feedFile);
+              safeRemoveSync(feedFile);
             } catch {
               // Just ignore this and move on
             }
@@ -513,7 +517,7 @@ async function generateFeed(
         escape,
       },
     );
-    await Deno.write(feedFile.rid, textEncoder.encode(preamble));
+    await feedFile.write(textEncoder.encode(preamble));
 
     for (const feedItem of feedItems) {
       const item = renderEjs(
@@ -523,7 +527,7 @@ async function generateFeed(
           escape,
         },
       );
-      await Deno.write(feedFile.rid, textEncoder.encode(item));
+      await feedFile.write(textEncoder.encode(item));
     }
 
     // Render the postamble
@@ -534,9 +538,9 @@ async function generateFeed(
         escape,
       },
     );
-    await Deno.write(feedFile.rid, textEncoder.encode(postamble));
+    await feedFile.write(textEncoder.encode(postamble));
   } finally {
-    Deno.close(feedFile.rid);
+    feedFile.close();
   }
 }
 

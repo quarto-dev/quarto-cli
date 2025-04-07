@@ -1,3 +1,5 @@
+import { expect, Locator } from "@playwright/test";
+
 export const getUrl = (path: string) => {
   return `http://127.0.0.1:8080/${path}`;
 };
@@ -118,3 +120,60 @@ export const checkClick = async (page: any, locator: any) => {
   }
   return !error;
 };
+
+export type RGBColor = {
+  red: number;
+  green: number;
+  blue: number;
+  alpha?: number;
+};
+
+export async function checkColor(element, cssProperty, rgbColors: RGBColor) {
+  const colorString = rgbColors.alpha !== undefined 
+    ? `rgba(${rgbColors.red}, ${rgbColors.green}, ${rgbColors.blue}, ${rgbColors.alpha})`
+    : `rgb(${rgbColors.red}, ${rgbColors.green}, ${rgbColors.blue})`;
+  await expect(element).toHaveCSS(cssProperty, colorString);
+}
+
+export function asRGB(red: number, green: number, blue: number, alpha?: number): RGBColor {
+  return { red, green, blue, alpha };
+}
+
+export async function getCSSProperty(loc: Locator, variable: string, asNumber = false): Promise<string | number> {
+  const property = await loc.evaluate((element, variable) =>
+    window.getComputedStyle(element).getPropertyValue(variable),
+    variable
+  );
+  if (asNumber) {
+    return parseFloat(property);
+  } else {
+    return property;
+  }
+}
+
+export async function checkCSSproperty(loc1: Locator, loc2: Locator, property: string, asNumber: false | true, checkType: 'identical' | 'similar', factor: number = 1) {
+  let loc1Property = await getCSSProperty(loc1, property, asNumber);
+  let loc2Property = await getCSSProperty(loc2, property, asNumber);
+  if (checkType === 'identical') {
+    await expect(loc2).toHaveCSS(property, loc1Property as string);
+  } else {
+    await expect(loc1Property).toBeCloseTo(loc2Property as number * factor);
+  }
+}
+
+export async function checkFontSizeIdentical(loc1: Locator, loc2: Locator) {
+  await checkCSSproperty(loc1, loc2, 'font-size', false, 'identical');
+}
+
+export async function checkFontSizeSimilar(loc1: Locator, loc2: Locator, factor: number = 1) {
+  await checkCSSproperty(loc1, loc2, 'font-size', true, 'similar', factor);
+}
+
+export async function checkColorIdentical(loc1: Locator, loc2: Locator, property: string) {
+  await checkCSSproperty(loc1, loc2, property, false, 'identical');
+}
+
+export async function checkBorderProperties(element: Locator, side: string, color: RGBColor, width: string) {
+  await checkColor(element, `border-${side}-color`, color);
+  await expect(element).toHaveCSS(`border-${side}-width`, width);
+}

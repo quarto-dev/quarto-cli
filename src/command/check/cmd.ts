@@ -4,15 +4,16 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { error } from "../../deno_ral/log.ts";
-
 import { Command } from "cliffy/command/mod.ts";
-import { check, Target } from "./check.ts";
-
-const kTargets = ["install", "jupyter", "knitr", "versions", "all"];
+import { check, enforceTargetType } from "./check.ts";
 
 export const checkCommand = new Command()
   .name("check")
+  .option("--output <path>", "Output as JSON to a file")
+  .option(
+    "--no-strict",
+    "When set, will not fail if dependency versions don't match precisely",
+  )
   .arguments("[target:string]")
   .description(
     "Verify correct functioning of Quarto installation.\n\n" +
@@ -22,13 +23,12 @@ export const checkCommand = new Command()
   .example("Check Jupyter engine", "quarto check jupyter")
   .example("Check Knitr engine", "quarto check knitr")
   .example("Check installation and all engines", "quarto check all")
-  .action(async (_options: unknown, target?: string) => {
-    target = target || "all";
-    if (!kTargets.includes(target)) {
-      error(
-        "Invalid target '" + target + "' (valid targets are " +
-          kTargets.join(", ") + ").",
-      );
-    }
-    await check(target as Target);
+  // deno-lint-ignore no-explicit-any
+  .action(async (options: any, targetStr?: string) => {
+    targetStr = targetStr || "all";
+    await check(
+      enforceTargetType(targetStr),
+      options.strict,
+      options.output,
+    );
   });

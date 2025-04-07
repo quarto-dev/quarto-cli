@@ -35,6 +35,7 @@ import { languages, languageSchema } from "../handlers/base.ts";
 import { idSchema } from "../lib/yaml-schema/common.ts";
 import { kLangCommentChars } from "../lib/partition-cell-options.ts";
 import { generateTypesFromSchemas } from "./types-from-schema.ts";
+import { generateJsonSchemasFromSchemas } from "./json-schema-from-schema.ts";
 import { InternalError } from "../lib/error.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -85,7 +86,11 @@ export async function buildIntelligenceResources() {
   );
   Deno.writeTextFileSync(yamlResourcesPath, yamlResources);
 
-  await generateTypesFromSchemas(resourcePath());
+  const path = resourcePath();
+  await Promise.all([
+    generateTypesFromSchemas(path),
+    generateJsonSchemasFromSchemas(path),
+  ]);
 }
 
 function getMarkdownDescriptions() {

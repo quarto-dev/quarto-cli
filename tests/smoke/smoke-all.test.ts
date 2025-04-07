@@ -13,7 +13,7 @@ import {
 } from "../../src/core/lib/yaml-validation/state.ts";
 
 import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
-import { parse } from "yaml/mod.ts";
+import { parse } from "../../src/core/yaml.ts";
 import { cleanoutput } from "./render/render.ts";
 import {
   ensureDocxRegexMatches,
@@ -33,12 +33,15 @@ import {
   ensurePptxLayout,
   ensurePptxMaxSlides,
   ensureLatexFileRegexMatches,
+  printsMessage,
+  shouldError,
+  ensureHtmlElementContents
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
-import { WalkEntry } from "fs/mod.ts";
+import { WalkEntry } from "../../src/deno_ral/fs.ts";
 import { quarto } from "../../src/quarto.ts";
 import { safeExistsSync, safeRemoveSync } from "../../src/core/path.ts";
 
@@ -54,7 +57,15 @@ async function guessFormat(fileName: string): Promise<string[]> {
   for (const cell of cells) {
     if (cell.cell_type === "raw") {
       const src = cell.source.value.replaceAll(/^---$/mg, "");
-      const yaml = parse(src);
+      let yaml;
+      try {
+        yaml = parse(src);
+      } catch (e) {
+        if (e.message.includes("unknown tag")) {
+          // assume it's not necessary to guess the format
+          continue;
+        }
+      }
       if (yaml && typeof yaml === "object") {
         // deno-lint-ignore no-explicit-any
         const format = (yaml as Record<string, any>).format;
@@ -77,13 +88,31 @@ async function guessFormat(fileName: string): Promise<string[]> {
 }
 
 //deno-lint-ignore no-explicit-any
-function hasTestSpecs(metadata: any): boolean {
-  return metadata?.["_quarto"]?.["tests"] != undefined;
+function hasTestSpecs(metadata: any, input: string): boolean {
+  const hasTestSpecs = metadata?.["_quarto"]?.["tests"] != undefined
+  if (!hasTestSpecs && metadata?.["_quarto"]?.["test"] != undefined) {
+    throw new Error(`Test is ${input} is using 'test' in metadata instead of 'tests'. This is probably a typo.`);
+  }
+  return hasTestSpecs
 }
 
 interface QuartoInlineTestSpec {
   format: string;
   verifyFns: Verify[];
+}
+
+// Functions to cleanup leftover testing
+const postRenderCleanupFiles: string[] = [];
+function registerPostRenderCleanupFile(file: string): void {
+  postRenderCleanupFiles.push(file);
+}
+const postRenderCleanup = () => {
+  for (const file of postRenderCleanupFiles) {
+    console.log(`Cleaning up ${file} in ${Deno.cwd()}`);
+    if (safeExistsSync(file)) {
+      Deno.removeSync(file);
+    }
+  }
 }
 
 function resolveTestSpecs(
@@ -97,6 +126,7 @@ function resolveTestSpecs(
   // deno-lint-ignore no-explicit-any
   const verifyMap: Record<string, any> = {
     ensureHtmlElements,
+    ensureHtmlElementContents,
     ensureFileRegexMatches,
     ensureLatexFileRegexMatches,
     ensureTypstFileRegexMatches,
@@ -109,7 +139,8 @@ function resolveTestSpecs(
     ensurePptxXpath,
     ensurePptxLayout,
     ensurePptxMaxSlides,
-    ensureSnapshotMatches
+    ensureSnapshotMatches,
+    printsMessage
   };
 
   for (const [format, testObj] of Object.entries(specs)) {
@@ -120,12 +151,28 @@ function resolveTestSpecs(
         // deno-lint-ignore no-explicit-any
         const [key, value] of Object.entries(testObj as Record<string, any>)
       ) {
-        if (key === "noErrors") {
+        if (key == "postRenderCleanup") {
+          // This is a special key to register cleanup operations
+          // each entry is a file to cleanup relative to the input file
+          for (let file of value) {
+            // if value has `${input_stem}` in the string, replace by input_stem value (input file name without extension)
+            if (file.includes("${input_stem}")) {
+              const extension = input.endsWith('.qmd') ? '.qmd' : '.ipynb';
+              const inputStem = basename(input, extension);
+              file = file.replace("${input_stem}", inputStem);
+            }
+            // file is registered for cleanup in testQuartoCmd teardown step
+            registerPostRenderCleanupFile(join(dirname(input), file));
+          }
+        } else if (key == "shouldError") {
+          checkWarnings = false;
+          verifyFns.push(shouldError);
+        } else if (key === "noErrors") {
           checkWarnings = false;
           verifyFns.push(noErrors);
         } else {
           // See if there is a project and grab it's type
-          const projectPath = findSmokeAllProjectDir(input)
+          const projectPath = findRootTestsProjectDir(input)
           const projectOutDir = findProjectOutputDir(projectPath);
           const outputFile = outputForInput(input, format, projectOutDir, projectPath, metadata);
           if (key === "fileExists") {
@@ -153,6 +200,8 @@ function resolveTestSpecs(
             } else {
               verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
             }
+          } else if (key === "printsMessage") {
+            verifyFns.push(verifyMap[key](value));
           } else if (verifyMap[key]) {
             // FIXME: We should find another way that having this requirement of keep-* in the metadata
             if (key === "ensureTypstFileRegexMatches") {
@@ -164,7 +213,9 @@ function resolveTestSpecs(
                 throw new Error(`Using ensureLatexFileRegexMatches requires setting 'keep-tex: true' in file ${input}`);
               }
             }
-            if (typeof value === "object") {
+            
+            if (typeof value === "object" && Array.isArray(value)) {
+              // Only use spread operator for arrays
               verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
             } else {
               verifyFns.push(verifyMap[key](outputFile.outputPath, value));
@@ -227,7 +278,7 @@ for (const { path: fileName } of files) {
 
   const testSpecs: QuartoInlineTestSpec[] = [];
 
-  if (hasTestSpecs(metadata)) {
+  if (hasTestSpecs(metadata, input)) {
     testSpecs.push(...resolveTestSpecs(input, metadata));
   } else {
     const formats = await guessFormat(input);
@@ -241,7 +292,7 @@ for (const { path: fileName } of files) {
   }
 
   // Get project path for this input and store it if this is a project (used for cleaning)
-  const projectPath = findSmokeAllProjectDir(input);
+  const projectPath = findRootTestsProjectDir(input);
   if (projectPath) testedProjects.add(projectPath);
 
   // Render project before testing individual document if required
@@ -286,6 +337,7 @@ for (const { path: fileName } of files) {
                 },
                 teardown: () => {
                   cleanoutput(input, format, undefined, undefined, metadata);
+                  postRenderCleanup()
                   testSpecResolve(); // Resolve the promise for the testSpec
                   return Promise.resolve();
                 },
@@ -317,7 +369,7 @@ Promise.all(testFilesPromises).then(() => {
   for (const project of testedProjects) {
     // Clean project output directory
     const projectOutDir = join(project, findProjectOutputDir(project));
-    if (safeExistsSync(projectOutDir)) {
+    if (projectOutDir !== project && safeExistsSync(projectOutDir)) {
       safeRemoveSync(projectOutDir, { recursive: true });
     }
     // Clean hidden .quarto directory
@@ -328,6 +380,11 @@ Promise.all(testFilesPromises).then(() => {
   }
 }).catch((_error) => {});
 
-function findSmokeAllProjectDir(input: string) {
-  return findProjectDir(input, /smoke-all$/);
+function findRootTestsProjectDir(input: string) {
+  const smokeAllRootDir = 'smoke-all$'
+  const ffMatrixRootDir = 'feature-format-matrix[/]qmd-files$'
+
+  const RootTestsRegex = new RegExp(`${smokeAllRootDir}|${ffMatrixRootDir}`);
+  
+  return findProjectDir(input, RootTestsRegex);
 }

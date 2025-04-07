@@ -41,13 +41,16 @@ export function findDescription(doc: Document): string | undefined {
 
 export function findPreviewImg(
   doc: Document,
-  strict: boolean,
-): string | undefined {
-  const imgEl = findPreviewImgEl(doc, strict);
+): { src: string; alt?: string } | undefined {
+  const imgEl = findPreviewImgEl(doc);
   if (imgEl) {
     const src = getDecodedAttribute(imgEl, "src");
+    const alt = getDecodedAttribute(imgEl, "alt");
     if (src !== null) {
-      return src;
+      return {
+        src,
+        alt: alt ?? undefined,
+      };
     } else {
       return undefined;
     }
@@ -58,7 +61,6 @@ export function findPreviewImg(
 
 export function findPreviewImgEl(
   doc: Document,
-  strict: boolean,
 ): Element | undefined {
   // look for an image explicitly marked as the preview image (.class .preview-image)
   const match = doc.querySelector(`img.${kPreviewImgClass}`);
@@ -86,13 +88,14 @@ export function findPreviewImgEl(
   }
 
   // as a last resort, just use the first _local_ image found within the document body
-  if (!strict) {
-    const autoImg = doc.querySelector("#quarto-document-content img");
-    if (autoImg) {
-      const src = autoImg.getAttribute("src");
-      if (src && !src.startsWith("http:") && !src.startsWith("https:")) {
-        return autoImg;
-      }
+  const autoImgs = Array.from(
+    doc.querySelectorAll("#quarto-document-content img"),
+  );
+  for (const autoImgN of autoImgs) {
+    const autoImg = autoImgN as Element;
+    const src = getDecodedAttribute(autoImg, "src");
+    if (src && !src.startsWith("http:") && !src.startsWith("https:")) {
+      return autoImg;
     }
   }
 }

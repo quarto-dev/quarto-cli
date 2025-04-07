@@ -1,0 +1,5 @@
+_site/
+.quarto
+/.quarto/
+*jupyter_cache/
+*.jupyter_cache*

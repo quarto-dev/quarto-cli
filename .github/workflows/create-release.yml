@@ -65,7 +65,7 @@ jobs:
           # echo -e "Due to an issue with upstream dependency, the RHEL build may not included in this release." >> "release_note.md"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: News
           path: |
@@ -89,7 +89,6 @@ jobs:
   make-source-tarball:
     runs-on: ubuntu-latest
     needs: [configure]
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -100,7 +99,7 @@ jobs:
           tar --owner=root --group=root -zcvf  quarto-${{needs.configure.outputs.version}}.tar.gz *
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Source
           path: ./quarto-${{needs.configure.outputs.version}}.tar.gz
@@ -108,7 +107,6 @@ jobs:
   make-tarball:
     runs-on: ubuntu-latest
     needs: [configure]
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -134,7 +132,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Deb Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
@@ -142,7 +140,6 @@ jobs:
   make-arm64-tarball:
     runs-on: ubuntu-latest
     needs: [configure]
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -168,7 +165,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Deb Arm64 Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
@@ -176,7 +173,6 @@ jobs:
   make-tarball-rhel:
     runs-on: ubuntu-latest
     needs: [configure]
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -198,9 +194,9 @@ jobs:
           source ./configuration
 
           echo Placing custom Deno ${DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files
-          curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-hfc7925d_0.conda --output deno.conda
+          curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-hcab8b69_0.conda --output deno.conda
           unzip deno.conda
-          tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-hfc7925d_0.tar.zst
+          tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-hcab8b69_0.tar.zst
           cp bin/deno package/pkg-working/bin/tools/x86_64/deno
 
       - name: Make Tarball
@@ -213,7 +209,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: RHEL Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
@@ -221,7 +217,6 @@ jobs:
   make-installer-arm64-deb:
     runs-on: ubuntu-latest
     needs: [configure]
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -244,7 +239,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Deb Arm64 Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
@@ -252,7 +247,6 @@ jobs:
   make-installer-deb:
     runs-on: ubuntu-latest
     needs: [configure]
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -275,7 +269,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Deb Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
@@ -284,7 +278,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure, make-tarball]
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: Deb Zip
           path: .
@@ -328,23 +322,54 @@ jobs:
           cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
           cp package/launcher/target/release/quarto.exe package/pkg-working/bin/quarto.exe
 
+      - name: Sign files before making ZIP and MSI installer
+        id: sign-files
+        uses: ./.github/workflows/actions/sign-files
+        with:
+          paths: |
+            ./package/pkg-working/bin/quarto.exe
+            ./package/pkg-working/bin/tools/x86_64/deno.exe
+            ./package/pkg-working/bin/tools/x86_64/esbuild.exe
+            ./package/pkg-working/bin/tools/x86_64/dart-sass/src/dart.exe
+            ./package/pkg-working/bin/tools/x86_64/deno_dom/plugin.dll
+            ./package/pkg-working/bin/tools/pandoc.exe
+            ./package/pkg-working/bin/quarto.js
+        env:
+          # those environment variables are required to sign with signtool
+          SM_HOST: ${{ secrets.SM_HOST }}
+          SM_API_KEY: ${{ secrets.SM_API_KEY }}
+          SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64 }}
+          SM_CLIENT_CERT_PASSWORD: ${{ secrets.SM_CLIENT_CERT_PASSWORD }}
+          CERT_FINGERPRINT: ${{ secrets.SM_CLIENT_CERT_FINGERPRINT }}
+
       - name: Make Installer
         run: |
+          # Build installer
           pushd package\src\
           .\quarto-bld.cmd make-installer-win --set-version ${{needs.configure.outputs.version}} --log-level debug
           popd
+
+      - name: Sign MSI installer
+        uses: ./.github/workflows/actions/sign-files
+        with:
+          paths: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
+          signtools-extra-args: /d "Quarto CLI"
         env:
-          QUARTO_WIN_PFX: ${{ secrets.WIN_PFX }}
-          QUARTO_WIN_PFX_PW: ${{ secrets.WIN_PFX_PW }}
+          # those environment variables are required to sign with signtool
+          SM_HOST: ${{ secrets.SM_HOST }}
+          SM_API_KEY: ${{ secrets.SM_API_KEY }}
+          SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64 }}
+          SM_CLIENT_CERT_PASSWORD: ${{ secrets.SM_CLIENT_CERT_PASSWORD }}
+          CERT_FINGERPRINT: ${{ secrets.SM_CLIENT_CERT_FINGERPRINT }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Windows Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
 
       - name: Upload Zip
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Windows Zip
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.zip
@@ -353,7 +378,7 @@ jobs:
     runs-on: windows-latest
     needs: [configure, make-installer-win]
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: Windows Zip
           path: .
@@ -368,7 +393,6 @@ jobs:
   make-installer-mac:
     runs-on: macos-latest
     needs: [configure]
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -415,13 +439,13 @@ jobs:
           QUARTO_APPLE_CONNECT_PW: ${{ secrets.APPLE_CONNECT_PW }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Mac Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.pkg
 
       - name: Upload Zip
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Mac Zip
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
@@ -435,7 +459,7 @@ jobs:
     runs-on: macos-latest
     needs: [configure, make-installer-mac]
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: Mac Zip
           path: .
@@ -471,7 +495,7 @@ jobs:
 
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - name: Rename news
         run: |
@@ -595,7 +619,7 @@ jobs:
     needs: [configure, publish-release]
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - uses: quarto-dev/quarto-cli/.github/actions/docker@main
         with:

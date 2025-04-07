@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { assert, assertEquals } from "testing/asserts.ts";
+import { assert, assertEquals } from "testing/asserts";
 import { unitTest } from "../test.ts";
 import { quartoConfig } from "../../src/core/quarto.ts";
 

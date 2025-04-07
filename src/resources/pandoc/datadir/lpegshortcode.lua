@@ -1,5 +1,5 @@
 -- LPEG parsing and handling for shortcodes
--- Copyright (C) 2020-2023 Posit Software, PBC
+-- Copyright (C) 2020-2024 Posit Software, PBC
 
 local lpeg = require('lpeg')
 

@@ -55,17 +55,20 @@ local function fetch_and_store_image(src)
   return filename
 end
 
+local function should_mediabag(src)
+  local relativePath = src:match("https?://[%w%$%-%_%.%+%!%*%'%(%)%:%%]+/(.+)") or
+    src:match("data:image/.+;base64,(.+)")
+  return relativePath or param("has-resource-path", false)
+end
+
 local function resolve_image_from_url(image)
   if resolved_url_cache[image.src] then
     image.src = resolved_url_cache[image.src]
     return image
   end 
-  local relativePath = image.src:match("https?://[%w%$%-%_%.%+%!%*%'%(%)%:%%]+/(.+)") or
-    image.src:match("data:image/.+;base64,(.+)")
-  if not (relativePath or param("has-resource-path", false)) then
+  if not should_mediabag(image.src) then
     return nil
   end
-
   local filename = fetch_and_store_image(image.src)
   if filename == nil then
     return nil
@@ -74,9 +77,25 @@ local function resolve_image_from_url(image)
   return image
 end
 
+local function write_mediabag_entry(src)
+  local mt, contents = pandoc.mediabag.lookup(src)
+  if contents == nil then return nil end
+
+  local mediabagDir = param("mediabag-dir", nil)
+  local mediaFile = pandoc.path.join{mediabagDir, src}
+
+  local file = _quarto.file.write(mediaFile, contents)
+  if not file then
+    warn('failed to write mediabag entry: ' .. mediaFile)
+  end
+  return mediaFile
+end
+
 return {
   resolved_url_cache = resolved_url_cache,
   with_mediabag_contents = with_mediabag_contents,
   fetch_and_store_image = fetch_and_store_image,
-  resolve_image_from_url = resolve_image_from_url
+  should_mediabag = should_mediabag,
+  resolve_image_from_url = resolve_image_from_url,
+  write_mediabag_entry = write_mediabag_entry
 }

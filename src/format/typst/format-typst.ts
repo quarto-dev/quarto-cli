@@ -29,6 +29,7 @@ import {
 } from "../../config/types.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { createFormat } from "../formats-shared.ts";
+import { hasLevelOneHeadings as hasL1Headings } from "../../core/lib/markdown-analysis/level-one-headings.ts";
 
 export function typstFormat(): Format {
   return createFormat("Typst", "pdf", {
@@ -44,14 +45,14 @@ export function typstFormat(): Format {
       [kCiteproc]: false,
     },
     resolveFormat: typstResolveFormat,
-    formatExtras: (
+    formatExtras: async (
       _input: string,
       markdown: string,
       flags: PandocFlags,
       format: Format,
       _libDir: string,
       _services: RenderServices,
-    ): FormatExtras => {
+    ): Promise<FormatExtras> => {
       const pandoc: FormatPandoc = {};
       const metadata: Metadata = {};
 
@@ -68,7 +69,7 @@ export function typstFormat(): Format {
 
       // unless otherwise specified, pdfs with only level 2 or greater headings get their
       // heading level shifted by -1.
-      const hasLevelOneHeadings = !!markdown.match(/\n^#\s.*$/gm);
+      const hasLevelOneHeadings = await hasL1Headings(markdown);
       if (
         !hasLevelOneHeadings &&
         flags?.[kShiftHeadingLevelBy] === undefined &&

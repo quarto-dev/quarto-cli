@@ -1,0 +1,24 @@
+---
+format: typst
+---
+
+
+::: {.cell execution_count=1}
+``` {.python .cell-code}
+from plotnine import ggplot, geom_point, aes, stat_smooth, facet_wrap
+from plotnine.data import mtcars
+
+(
+    ggplot(mtcars, aes("wt", "mpg", color="factor(gear)"))
+    + geom_point()
+    + stat_smooth(method="lm")
+    + facet_wrap("gear")
+)
+```
+
+::: {.cell-output .cell-output-display}
+![](10217_files/figure-typst/cell-2-output-1.png){width=640 height=480}
+:::
+:::
+
+

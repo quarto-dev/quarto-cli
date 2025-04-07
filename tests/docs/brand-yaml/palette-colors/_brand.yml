@@ -1,0 +1,18 @@
+color:
+  ## ERROR: Expecting punctuation: "}" if no palette
+  palette:
+    orangeblue: "#ccc"
+    branded-monospace-inline-foreground: rgb(8, 111, 15)
+    branded-monospace-inline-background: rgb(255, 250, 224)
+    branded-monospace-block-foreground: "#E7DADA"
+    branded-monospace-block-background: rgb(14, 85, 10)
+  background: "#e6f8ff"
+typography:
+  # does not work in revealjs
+  monospace-inline:
+    color: branded-monospace-inline-foreground
+    background-color: branded-monospace-inline-background
+  monospace-block:
+    color: branded-monospace-block-foreground
+    weight: 400
+    background-color: branded-monospace-block-background

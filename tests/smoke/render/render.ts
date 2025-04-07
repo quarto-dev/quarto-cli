@@ -4,7 +4,6 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { existsSync } from "fs/mod.ts";
 import { basename, join } from "../../../src/deno_ral/path.ts";
 
 import { outputForInput } from "../../utils.ts";
@@ -17,6 +16,7 @@ import {
 } from "../../verify.ts";
 import { safeRemoveSync } from "../../../src/core/path.ts";
 import { safeExistsSync } from "../../../src/core/path.ts";
+import { assert } from "testing/asserts";
 
 export function testSimpleIsolatedRender(
   file: string,
@@ -66,6 +66,12 @@ export function testRender(
     verify,
     {
       ...context,
+      setup: async () => {
+        if (context?.setup) {
+          await context?.setup();
+        }
+        assert(safeExistsSync(input), `Input file ${input} does not exist. Test could not be ran.`);
+      },
       teardown: async () => {
         if (context?.teardown) {
           await context?.teardown();

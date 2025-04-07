@@ -6,7 +6,7 @@
 --[[
 Create a Tab AST node (represented as a Lua table)
 ]]
----@param params { content:nil|pandoc.Blocks|string, title:pandoc.Inlines|string }
+---@param params { content:nil|pandoc.Blocks|string, title:pandoc.Inlines|string, active:nil|boolean }
 ---@return quarto.Tab
 quarto.Tab = function(params)
   local content
@@ -17,7 +17,13 @@ quarto.Tab = function(params)
   else
     content = params.content or pandoc.Blocks({})
   end
+  local active = false
+  if type(params.active) == "boolean" then
+    active = params.active
+  end
+
   return {
+    active = active,
     content = content,
     title = pandoc.Inlines(params.title)
   }
@@ -27,7 +33,11 @@ local function render_quarto_tab(tbl, tabset)
   local content = quarto.utils.as_blocks(tbl.content)
   local title = quarto.utils.as_inlines(tbl.title)
   local inner_content = pandoc.List()
-  inner_content:insert(pandoc.Header(tabset.level, title))
+  local attr = pandoc.Attr("", {}, {})
+  if tbl.active then
+    attr.classes:insert("active")
+  end
+  inner_content:insert(pandoc.Header(tabset.level, title, attr))
   inner_content:extend(content)
   return pandoc.Div(inner_content)
 end
@@ -42,7 +52,10 @@ function parse_tabset_contents(div)
     for i=1,#div.content do 
       local el = div.content[i]
       if el.t == "Header" and el.level == level then
-        tab = quarto.Tab({ title = el.content })
+        tab = quarto.Tab({ 
+          title = el.content, 
+          active = el.attr.classes:includes("active") 
+        })
         tabs:insert(tab)
       elseif tab ~= nil then
         tab.content:insert(el)
@@ -74,6 +87,19 @@ function render_tabset(attr, tabs, renderer)
       return class
     end
   end)
+  local has_active = tabs:find_if(function(tab) 
+    local heading = tab.content[1]
+    return heading and heading.classes:includes("active")
+  end)
+  local function is_active(tab, i)
+    if has_active then
+      local heading = tab.content[1]
+      return heading and heading.classes:includes("active")
+    end
+    return i == 1
+  end
+  -- cache actives here because the populate loop mutates the tabs
+  local actives = tabs:map(function(tab, i) return is_active(tab, i) end)
   
   -- populate
   for i=1,#tabs do
@@ -88,12 +114,12 @@ function render_tabset(attr, tabs, renderer)
 
     -- navigation
     nav:insert(pandoc.RawInline('html', '<li ' .. renderer.liAttribs() .. '>'))
-    nav:insert(pandoc.RawInline('html', '<a ' .. renderer.liLinkAttribs(tabid, i==1) .. '>'))
+    nav:insert(pandoc.RawInline('html', '<a ' .. renderer.liLinkAttribs(tabid, actives[i]) .. '>'))
     nav:extend(heading.content)
     nav:insert(pandoc.RawInline('html', '</a></li>'))
 
     -- pane
-    local paneAttr = renderer.paneAttribs(tabid, i==1, heading.attr)
+    local paneAttr = renderer.paneAttribs(tabid, actives[i], heading.attr)
     local pane = pandoc.Div({}, paneAttr)
     pane.content:extend(tab.content)
     panes.content:insert(pane)
@@ -125,14 +151,18 @@ _quarto.ast.add_handler({
       __quarto_custom_node = node,
       level = params.level or 2,
       attr = params.attr or pandoc.Attr("", {"panel-tabset"}),
+      actives = params.tabs:map(function(tab) return tab.active end)
     }
+    local outer_custom_data = custom_data
 
     local function make_tab_metaobject(custom_data, index)
       local forwarder = {
         content = 2 * index - 1,
         title = 2 * index
       }
-      local result = {}
+      local result = {
+        active = outer_custom_data.actives[index],
+      }
       setmetatable(result, _quarto.ast.create_proxy_metatable(
         function(key) return forwarder[key] end,
         function(_) 

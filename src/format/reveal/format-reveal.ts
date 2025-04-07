@@ -56,13 +56,20 @@ import {
   kCenterTitleSlide,
   kControlsAuto,
   kHashType,
+  kJumpToSlide,
   kPdfMaxPagesPerSlide,
   kPdfSeparateFragments,
   kPreviewLinksAuto,
   kRevealJsConfig,
   kScrollable,
+  kScrollActivationWidth,
+  kScrollLayout,
+  kScrollProgress,
+  kScrollSnap,
+  kScrollView,
   kSlideFooter,
   kSlideLogo,
+  kView,
 } from "./constants.ts";
 import { revealMetadataFilter } from "./metadata.ts";
 import { ProjectContext } from "../../project/types.ts";
@@ -77,6 +84,36 @@ export function revealResolveFormat(format: Format) {
   if (format.metadata["navigationMode"] === "vertical") {
     format.metadata["navigationMode"] = "default";
   }
+
+  // normalize scroll-view to map to revealjs configuration
+  const scrollView = format.metadata[kScrollView];
+  if (typeof scrollView === "boolean" && scrollView) {
+    // if scroll-view is true then set view to scroll by default
+    // using all default option
+    format.metadata[kView] = "scroll";
+  } else if (typeof scrollView === "object") {
+    // if scroll-view is an object then map to revealjs configuration individually
+    const scrollViewRecord = scrollView as Record<string, unknown>;
+    // Only activate scroll by default when ask explicitly
+    if (scrollViewRecord["activate"] === true) {
+      format.metadata[kView] = "scroll";
+    }
+    if (scrollViewRecord["progress"] !== undefined) {
+      format.metadata[kScrollProgress] = scrollViewRecord["progress"];
+    }
+    if (scrollViewRecord["snap"] !== undefined) {
+      format.metadata[kScrollSnap] = scrollViewRecord["snap"];
+    }
+    if (scrollViewRecord["layout"] !== undefined) {
+      format.metadata[kScrollLayout] = scrollViewRecord["layout"];
+    }
+    if (scrollViewRecord["activation-width"] !== undefined) {
+      format.metadata[kScrollActivationWidth] =
+        scrollViewRecord["activation-width"];
+    }
+  }
+  // remove scroll-view from metadata
+  delete format.metadata[kScrollView];
 }
 
 export function revealjsFormat() {
@@ -87,7 +124,7 @@ export function revealjsFormat() {
         [kHtmlMathMethod]: {
           method: "mathjax",
           url:
-            "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML-full",
+            "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-AMS_HTML-full",
         },
         [kSlideLevel]: 2,
       },
@@ -142,6 +179,9 @@ export function revealjsFormat() {
             format.metadata[kAutoAnimateUnmatched] !== undefined
               ? format.metadata[kAutoAnimateUnmatched]
               : true,
+          [kJumpToSlide]: format.metadata[kJumpToSlide] !== undefined
+            ? !!format.metadata[kJumpToSlide]
+            : true,
         };
 
         if (format.metadata[kPdfMaxPagesPerSlide]) {
@@ -149,8 +189,31 @@ export function revealjsFormat() {
             format.metadata[kPdfMaxPagesPerSlide];
         }
 
+        // pass scroll view settings as they are not yet in revealjs template
+        if (format.metadata[kView]) {
+          extraConfig[kView] = format.metadata[kView];
+        }
+        if (format.metadata[kScrollProgress] !== undefined) {
+          extraConfig[kScrollProgress] = format.metadata[kScrollProgress];
+        }
+        if (format.metadata[kScrollSnap] !== undefined) {
+          extraConfig[kScrollSnap] = format.metadata[kScrollSnap];
+        }
+        if (format.metadata[kScrollLayout] !== undefined) {
+          extraConfig[kScrollLayout] = format.metadata[kScrollLayout];
+        }
+        if (format.metadata[kScrollActivationWidth] !== undefined) {
+          extraConfig[kScrollActivationWidth] =
+            format.metadata[kScrollActivationWidth];
+        }
+
         // get theme info (including text highlighing mode)
-        const theme = await revealTheme(format, input, libDir, services.temp);
+        const theme = await revealTheme(
+          format,
+          input,
+          libDir,
+          project,
+        );
 
         const revealPluginData = await revealPluginExtras(
           input,
@@ -221,7 +284,6 @@ export function revealjsFormat() {
             metadataOverride,
             templateContext,
             [kIncludeInHeader]: [
-              formatResourcePath("html", "styles-callout.html"),
               stylesFile,
             ],
             html: {
@@ -312,12 +374,51 @@ export function revealjsFormat() {
   );
 }
 
+const determineRevealLogo = (format: Format): string | undefined => {
+  const brandData = format.render.brand?.light?.processedData;
+  if (brandData?.logo) {
+    const keys: ("medium" | "small" | "large")[] = ["medium", "small", "large"];
+    // add slide logo if we have one
+    for (const size of keys) {
+      const logoInfo = brandData.logo[size];
+      if (!logoInfo) {
+        continue;
+      }
+      if (typeof logoInfo === "string") {
+        return logoInfo;
+      } else {
+        // what to do about light vs dark?
+        return logoInfo?.light.path ?? logoInfo?.dark.path;
+      }
+    }
+  }
+};
+
 function revealMarkdownAfterBody(format: Format) {
   const lines: string[] = [];
-  lines.push("::: {.quarto-auto-generated-content}\n");
-  if (format.metadata[kSlideLogo]) {
+  lines.push("::: {.quarto-auto-generated-content style='display: none;'}\n");
+  let revealLogo = format
+    .metadata[kSlideLogo] as (string | { path: string } | undefined);
+  if (revealLogo) {
+    if (typeof revealLogo === "object") {
+      revealLogo = revealLogo.path;
+    }
+    if (["small", "medium", "large"].includes(revealLogo)) {
+      const brandData = format.render.brand?.light?.processedData;
+      const logoInfo = brandData?.logo
+        ?.[revealLogo as ("medium" | "small" | "large")];
+      if (typeof logoInfo === "string") {
+        revealLogo = logoInfo;
+      } else {
+        revealLogo = logoInfo?.light.path ?? logoInfo?.dark.path;
+      }
+    }
+  } else {
+    revealLogo = determineRevealLogo(format);
+  }
+  if (revealLogo) {
     lines.push(
-      `<img src="${format.metadata[kSlideLogo]}" class="slide-logo" />`,
+      `<img src="${revealLogo}" class="slide-logo" />`,
     );
     lines.push("\n");
   }
@@ -390,30 +491,13 @@ const handleHashTypeNumber = (
 };
 
 const handleAutoGeneratedContent = (doc: Document) => {
-  // bugfix for #6800
-  // if slides have content that was added by quarto then move that to the parent node
-  for (const slide of doc.querySelectorAll("section.slide")) {
-    const slideContentFromQuarto = (slide as Element).querySelector(
-      ".quarto-auto-generated-content",
-    );
-    if (
-      slideContentFromQuarto &&
-      (slide as Element).getAttribute("data-visibility") === "hidden"
-    ) {
-      if (slideContentFromQuarto.childElementCount === 0) {
-        slideContentFromQuarto.remove();
-      } else {
-        for (const otherSlide of doc.querySelectorAll("section.slide")) {
-          if (
-            (otherSlide as Element).getAttribute("data-visibility") !==
-              "hidden"
-          ) {
-            otherSlide.appendChild(slideContentFromQuarto);
-            break;
-          }
-        }
-      }
-    }
+  // Move quarto auto-generated content outside of slides and hide it
+  // Content is moved with appendChild in quarto-support plugin
+  const slideContentFromQuarto = doc.querySelector(
+    ".quarto-auto-generated-content",
+  );
+  if (slideContentFromQuarto) {
+    doc.querySelector("div.reveal")?.appendChild(slideContentFromQuarto);
   }
 };
 
@@ -513,12 +597,12 @@ const handleInvisibleSlides = (doc: Document) => {
 const handleUntitledSlidesInToc = (doc: Document) => {
   // remove from toc all slides that have no title
   const tocEntries = Array.from(doc.querySelectorAll(
-    'nav[role="doc-toc"] a[href^="#/"]',
+    'nav[role="doc-toc"] ul > li',
   ));
   for (const tocEntry of tocEntries) {
     const tocEntryEl = tocEntry as Element;
     if (tocEntryEl.textContent.trim() === "") {
-      tocEntryEl.parentElement?.remove();
+      tocEntryEl.remove();
     }
   }
 };
@@ -777,23 +861,6 @@ const handleAnchors = (doc: Document) => {
     const codeLineAnchorEl = codeLineAnchor as Element;
     codeLineAnchorEl.removeAttribute("href");
   });
-
-  // https://github.com/quarto-dev/quarto-cli/issues/3533
-  // redirect anchors to the slide they refer to
-  const anchors = doc.querySelectorAll("a[href^='#/']");
-  for (const anchor of anchors) {
-    const anchorEl = anchor as Element;
-    const href = anchorEl.getAttribute("href");
-    if (href) {
-      const target = doc.getElementById(href.replace(/^#\//, ""));
-      if (target) {
-        const slide = findParentSlide(target);
-        if (slide && slide.getAttribute("id")) {
-          anchorEl.setAttribute("href", `#/${slide.getAttribute("id")}`);
-        }
-      }
-    }
-  }
 };
 
 const handleInterColumnDivSpaces = (doc: Document) => {
@@ -827,6 +894,27 @@ function revealHtmlPostprocessor(
       resources: [],
       supporting: [],
     };
+
+    // Remove blockquote scaffolding added in Lua post-render to prevent Pandoc syntax for applying
+    if (doc.querySelectorAll("div.blockquote-list-scaffold")) {
+      const blockquoteListScaffolds = doc.querySelectorAll(
+        "div.blockquote-list-scaffold",
+      );
+      for (const blockquoteListScaffold of blockquoteListScaffolds) {
+        const blockquoteListScaffoldEL = blockquoteListScaffold as Element;
+        const blockquoteListScaffoldParent =
+          blockquoteListScaffoldEL.parentNode;
+        if (blockquoteListScaffoldParent) {
+          while (blockquoteListScaffoldEL.firstChild) {
+            blockquoteListScaffoldParent.insertBefore(
+              blockquoteListScaffoldEL.firstChild,
+              blockquoteListScaffoldEL,
+            );
+          }
+          blockquoteListScaffoldParent.removeChild(blockquoteListScaffoldEL);
+        }
+      }
+    }
 
     // apply highlighting mode to body
     doc.body.classList.add("quarto-" + highlightingMode);
@@ -975,7 +1063,7 @@ function applyStretch(doc: Document, autoStretch: boolean) {
             }
           };
 
-          // Figure environment ? Get caption and alignment
+          // Figure environment ? Get caption, id and alignment
           const quartoFig = slideEl.querySelector("div.quarto-figure");
           const caption = doc.createElement("p");
           if (quartoFig) {
@@ -984,6 +1072,9 @@ function applyStretch(doc: Document, autoStretch: boolean) {
               "quarto-figure-(center|left|right)",
             );
             if (align) imageEl.classList.add(align[0]);
+            // Get id
+            const quartoFigId = quartoFig?.id;
+            if (quartoFigId) imageEl.id = quartoFigId;
             // Get Caption
             const figCaption = nodeEl.querySelector("figcaption");
             if (figCaption) {

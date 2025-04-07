@@ -109,7 +109,7 @@
 - name: abstract-title
   schema: string
   tags:
-    formats: [$html-doc, $epub-all, docx]
+    formats: [$html-doc, $epub-all, docx, typst]
   description: "Title used to label document abstract"
 
 - name: notes

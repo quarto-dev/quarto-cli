@@ -45,7 +45,7 @@
       $mixColor,
       percentage(quarto-math.div($percentMix, 100))
     );
-    $contrastRatio: contrast($contrastColor, $bgColor);
+    $contrastRatio: quarto-contrast($contrastColor, $bgColor);
     $percentMix: $percentMix - 1;
   }
 
@@ -343,7 +343,7 @@
 
 // Calculate the contrast ratio between two colors.
 // See https://www.w3.org/TR/WCAG20-TECHS/G17.html#G17-tests
-@function contrast($back, $front) {
+@function quarto-contrast($back, $front) {
   $backLum: luminance($back) + 0.05;
   $foreLum: luminance($front) + 0.05;
 
@@ -361,8 +361,8 @@
 
   $minimumContrast: 3.1;
 
-  $lightContrast: contrast($color, white);
-  $darkContrast: contrast($color, rgba(black, 0.87));
+  $lightContrast: quarto-contrast($color, white);
+  $darkContrast: quarto-contrast($color, rgba(black, 0.87));
 
   @if ($lightContrast < $minimumContrast) and ($darkContrast > $lightContrast) {
     @return "light";

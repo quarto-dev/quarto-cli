@@ -5,7 +5,7 @@
  */
 
 import * as ld from "../core/lodash.ts";
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "../deno_ral/fs.ts";
 import { basename, dirname, join } from "../deno_ral/path.ts";
 import { info } from "../deno_ral/log.ts";
 
@@ -45,7 +45,6 @@ export interface ProjectCreateOptions {
 export async function projectCreate(options: ProjectCreateOptions) {
   // read and validate options
   options = await readOptions(options);
-
   // computed options
   const engine = executionEngine(options.engine);
   if (!engine) {
@@ -236,7 +235,7 @@ function projectMarkdownFile(
   }
 
   // write file and return it's name
-  name = (name + engine.defaultExt).toLocaleLowerCase();
+  name = name + engine.defaultExt;
 
   const ensureSubDir = (dir: string, name: string, subdirectory?: string) => {
     if (subdirectory) {

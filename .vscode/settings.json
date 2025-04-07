@@ -3,8 +3,12 @@
     "editor.defaultFormatter": "denoland.vscode-deno"
   },
   "[r]": {
-    "editor.formatOnSave": false,
-    "editor.defaultFormatter": "REditorSupport.r"
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "Posit.air-vscode"
+  },
+  "[quarto]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "quarto.quarto"
   },
   "[html]": {
     "editor.formatOnSave": false
@@ -15,5 +19,8 @@
   "deno.enable": true,
   "deno.lint": true,
   "deno.unstable": true,
-  "deno.importMap": "./src/import_map.json"
+  "deno.importMap": "./src/import_map.json",
+  "deno.disablePaths": ["tests/integration/playwright/"],
+  // opt-out lintr as we use air formatter
+  "r.lsp.diagnostics": false
 }

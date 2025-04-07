@@ -130,8 +130,8 @@ pre code {
  overflow: visible;
 }
 hr {
-  background-color: #1a1a1a;
   border: none;
+  border-top: 1px solid #1a1a1a;
   height: 1px;
   margin: 1em 0;
 }
@@ -144,7 +144,12 @@ table {
   font-variant-numeric: lining-nums tabular-nums;
 }
 table caption {
+$if(table-caption-below)$
+  caption-side: bottom;
+  margin-top: 0.75em;
+$else$
   margin-bottom: 0.75em;
+$endif$
 }
 tbody {
   margin-top: 0.5em;

@@ -59,6 +59,8 @@ end
 
 local handlers = {}
 
+local read_arg = quarto.shortcode.read_arg
+
 function initShortcodeHandlers()
 
   -- user provided handlers
@@ -90,46 +92,108 @@ function initShortcodeHandlers()
     end)
   end
 
+  local function handle_contents(args)
+    local data = {
+      type = "contents-shortcode",
+      payload = {
+        id = read_arg(args)
+      }
+    }
+    flags.has_contents_shortcode = true
+    return { pandoc.RawInline('quarto-internal', quarto.json.encode(data)) }
+  end
+
+  local function handle_brand(args, _kwargs, _meta, _raw_args, context)
+    local brand = require("modules/brand/brand")
+    local brandCommand = read_arg(args, 1)
+
+    local warn_bad_brand_command = function()
+      warn("Unknown brand command " .. brandCommand .. " specified in a brand shortcode.")
+      return quarto.shortcode.error_output("brand", args, context)
+    end
+
+    if brandCommand == "color" then 
+      local brandMode = 'light'
+      if #args > 2 then
+        brandMode = read_arg(args, 3) or brandMode
+      end
+      local color_name = read_arg(args, 2)
+      local color_value = brand.get_color(brandMode, color_name)
+      if color_value == nil then
+        return warn_bad_brand_command()
+      else
+        return pandoc.Inlines { pandoc.Str(color_value) }
+      end
+    end
+
+    if brandCommand == "logo" then
+      local logo_name = read_arg(args, 2)
+      local logo_value = brand.get_logo(logo_name)
+      local entry = { path = nil }
+
+      if type(logo_value) ~= "table" then
+        warn("unexpected logo value entry: " .. type(logo_value))
+        return warn_bad_brand_command()
+      end
+
+      quarto.utils.dump(logo_value)
+
+      -- does this have light/dark variants?
+      -- TODO handle light-dark theme switching
+      if logo_value.light then
+        entry = logo_value.light
+      else
+        entry = logo_value
+      end
+
+      if type(entry.path) ~= "string" then
+        warn("unexpected type in logo light entry: " .. type(entry.path))
+        return warn_bad_brand_command()
+      end
+
+      -- TODO fix alt text handling
+      if context == "block" then
+        return pandoc.Blocks { pandoc.Image(pandoc.Inlines {}, entry.path) }
+      elseif context == "inline" then
+        return pandoc.Inlines { pandoc.Image(pandoc.Inlines {}, entry.path) }
+      elseif context == "text" then
+        return entry.path
+      else
+        warn("unexpected context for logo shortcode: " .. context)
+        return warn_bad_brand_command()
+      end
+    end
+
+    return warn_bad_brand_command()
+  end
 
   -- built in handlers (these override any user handlers)
   handlers['meta'] = { handle = handleMeta }
   handlers['var'] = { handle = handleVars }
   handlers['env'] = { handle = handleEnv }
   handlers['pagebreak'] = { handle = handlePagebreak }
+  handlers['brand'] = { handle = handle_brand }
+  handlers['contents'] = { handle = handle_contents }
 end
 
 function handlerForShortcode(shortCode)
   return handlers[shortCode.name]
 end
 
-local function read_arg(args, n)
-  local arg = args[n or 1]
-  local varName
-  if arg == nil then
-    return nil
-  end
-  if type(arg) ~= "string" then
-    varName = inlinesToString(arg)
-  else
-    varName = arg
-  end
-  return varName
-end
-
 -- Implements reading values from envrionment variables
-function handleEnv(args)
+function handleEnv(args, _kwargs, _meta, _raw_args, context)
   if #args > 0 then
     -- the args are the var name
     local varName = read_arg(args)
     local defaultValue = read_arg(args, 2)
 
     -- read the environment variable
-    local envValue = os.getenv(varName) or defaultValue
+    local envValue = varName and os.getenv(varName) or defaultValue
     if envValue ~= nil then
       return { pandoc.Str(envValue) }  
     else 
       warn("Unknown variable " .. varName .. " specified in an env Shortcode.")
-      return { pandoc.Strong({pandoc.Str("?env:" .. varName)}) } 
+      return quarto.shortcode.error_output("env", args, context)
     end
   else
     -- no args, we can't do anything
@@ -141,10 +205,10 @@ end
 -- as {{< meta title >}}
 -- or {{< meta key.subkey.subkey >}}
 -- This only supports emitting simple types (not arrays or maps)
-function handleMeta(args) 
+function handleMeta(args, _kwargs, _meta, _raw_args, context) 
   if #args > 0 then
     -- the args are the var name
-    local varName = read_arg(args)
+    local varName = read_arg(args) or ""
 
     -- strip quotes if present
     -- works around the real bug that we don't have
@@ -162,7 +226,7 @@ function handleMeta(args)
       return processValue(optionValue, varName, "meta")
     else 
       warn("Unknown meta key " .. varName .. " specified in a metadata Shortcode.")
-      return { pandoc.Strong({pandoc.Str("?meta:" .. varName)}) } 
+      return { pandoc.Strong(pandoc.Inlines {pandoc.Str("?meta:" .. varName)}) } 
     end
   else
     -- no args, we can't do anything
@@ -174,7 +238,7 @@ end
 -- as {{< var title >}}
 -- or {{< var key.subkey.subkey >}}
 -- This only supports emitting simple types (not arrays or maps)
-function handleVars(args) 
+function handleVars(args, _kwargs, _meta, _raw_args, context) 
   if #args > 0 then
     -- the args are the var name
     local varName = read_arg(args)
@@ -185,7 +249,7 @@ function handleVars(args)
       return processValue(varValue, varName, "var")
     else 
       warn("Unknown var " .. varName .. " specified in a var shortcode.")
-      return { pandoc.Strong({pandoc.Str("?var:" .. varName)}) } 
+      return quarto.shortcode.error_output("var", args, context)
     end
 
   else
@@ -206,10 +270,10 @@ function processValue(val, name, t)
       return processValue(val[1])
     else
       warn("Unsupported type '" .. pandoc.utils.type(val)  .. "' for key " .. name .. " in a " .. t .. " shortcode.")
-      return { pandoc.Strong({pandoc.Str("?invalid " .. t .. " type:" .. name)}) }         
+      return { pandoc.Strong(pandoc.Inlines { pandoc.Str("?invalid " .. t .. " type:" .. name) } ) }
     end
   else 
-    return { pandoc.Str( tostring(val) ) }  
+    return { pandoc.Str( tostring(val) ) }
   end
 end
 
@@ -228,6 +292,8 @@ function handlePagebreak()
 
   if FORMAT == 'docx' then
     return pandoc.RawBlock('openxml', pagebreak.ooxml)
+  elseif FORMAT == 'pptx' then
+    return {}
   elseif FORMAT:match 'latex' then
     return pandoc.RawBlock('tex', pagebreak.latex)
   elseif FORMAT:match 'odt' then
@@ -242,7 +308,7 @@ function handlePagebreak()
     return pandoc.RawBlock('context', pagebreak.context)
   else
     -- fall back to insert a form feed character
-    return pandoc.Para{pandoc.Str '\f'}
+    return pandoc.Para( pandoc.Inlines { pandoc.Str '\f'} )
   end
 
 end

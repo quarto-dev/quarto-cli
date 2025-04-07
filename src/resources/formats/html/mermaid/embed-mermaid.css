@@ -5,6 +5,13 @@
 
    (Quarto doesn't control this: mermaid does textual substitution in the
    CSS you pass them. So you can't just pass a URL to a CSS file.)
+
+   we currently use https://www.npmjs.com/package/css-minify to minify
+
+   $ deno
+   > import m from "npm:css-minify"
+   > let t = Deno.readTextFileSync("src/resources/formats/html/mermaid/embed-mermaid.css")
+   > await m(t)
 */
 
 .label text {
@@ -28,6 +35,7 @@ marker {
 .label {
   color: var(--mermaid-label-fg-color);
   font-family: var(--mermaid-font-family);
+  font-weight: var(--mermaid-font-weight);
 }
 .label foreignObject {
   line-height: normal;
@@ -61,6 +69,7 @@ marker {
 .cluster span {
   color: var(--mermaid-label-fg-color);
   font-family: var(--mermaid-font-family);
+  font-weight: var(--mermaid-font-weight);
 }
 defs #flowchart-circleEnd,
 defs #flowchart-circleStart,
@@ -78,6 +87,7 @@ g.classGroup rect {
 g.classGroup text {
   fill: var(--mermaid-label-fg-color);
   font-family: var(--mermaid-font-family);
+  font-weight: var(--mermaid-font-weight);
 }
 .classLabel .box {
   fill: var(--mermaid-label-bg-color);
@@ -87,6 +97,7 @@ g.classGroup text {
 .classLabel .label {
   fill: var(--mermaid-label-fg-color);
   font-family: var(--mermaid-font-family);
+  font-weight: var(--mermaid-font-weight);
 }
 .node .divider {
   stroke: var(--mermaid-node-fg-color);
@@ -97,6 +108,7 @@ g.classGroup text {
 .cardinality {
   fill: var(--mermaid-label-fg-color);
   font-family: var(--mermaid-font-family);
+  font-weight: var(--mermaid-font-weight);
 }
 .cardinality text {
   fill: inherit !important;
@@ -122,6 +134,7 @@ g.stateGroup rect {
 g.stateGroup .state-title {
   fill: var(--mermaid-label-fg-color) !important;
   font-family: var(--mermaid-font-family);
+  font-weight: var(--mermaid-font-weight);
 }
 g.stateGroup .composit {
   fill: var(--mermaid-label-bg-color);
@@ -129,6 +142,7 @@ g.stateGroup .composit {
 .nodeLabel {
   color: var(--mermaid-label-fg-color);
   font-family: var(--mermaid-font-family);
+  font-weight: var(--mermaid-font-weight);
 }
 .node circle.state-end,
 .node circle.state-start,
@@ -173,6 +187,7 @@ defs #statediagram-barbEnd {
 .entityLabel {
   fill: var(--mermaid-label-fg-color);
   font-family: var(--mermaid-font-family);
+  font-weight: var(--mermaid-font-weight);
 }
 .relationshipLabelBox {
   fill: var(--mermaid-label-bg-color);
@@ -207,6 +222,7 @@ defs #ZERO_OR_MORE_START circle {
 text.actor > tspan {
   fill: var(--mermaid-label-fg-color);
   font-family: var(--mermaid-font-family);
+  font-weight: var(--mermaid-font-weight);
 }
 line {
   stroke: var(--mermaid-fg-color--lighter);
@@ -221,6 +237,7 @@ line {
   fill: var(--mermaid-edge-color);
   stroke: none;
   font-family: var(--mermaid-font-family) !important;
+  font-weight: var(--mermaid-font-weight) !important;
 }
 .noteText > tspan {
   fill: #000;
@@ -243,4 +260,5 @@ line {
 .labelText > span {
   fill: var(--mermaid-node-fg-color);
   font-family: var(--mermaid-font-family);
+  font-weight: var(--mermaid-font-weight);
 }

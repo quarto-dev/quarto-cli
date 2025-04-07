@@ -56,7 +56,7 @@ end
 -- we often wrap a table in a div, unwrap it
 function tableFromLayoutCell(cell)
   local tbl
-  cell:walk({
+  _quarto.traverser(cell, {
     Table = function(t)
       tbl = t
     end

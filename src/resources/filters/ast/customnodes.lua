@@ -41,7 +41,7 @@ function is_regular_node(node, name)
   return node
 end
 
-function run_emulated_filter(doc, filter)
+function run_emulated_filter(doc, filter, traverser)
   if doc == nil then
     return nil
   end
@@ -73,7 +73,21 @@ function run_emulated_filter(doc, filter)
         -- luacov: enable
       end
     end
-    return node:walk(filter_param)
+
+    local old_traverse = _quarto.traverser
+    if traverser == nil or traverser == 'pandoc' or traverser == 'walk' then
+      _quarto.traverser = _quarto.utils.walk
+    elseif traverser == 'jog' then
+      _quarto.traverser = _quarto.modules.jog
+    elseif type(traverser) == 'function' then
+      _quarto.traverser = traverser
+    else
+      warn('Unknown traverse method: ' .. tostring(traverser))
+    end
+    local result = _quarto.traverser(node, filter_param)
+    _quarto.traverser = old_traverse
+
+    return result
   end
 
   -- performance: if filter is empty, do nothing
@@ -249,42 +263,6 @@ function create_emulated_node(t, tbl, context, forwarder)
   return result, custom_node_data[id]
 end
 
--- walk_meta walks a Pandoc Meta object, applying the filter to each node
--- and recursing on lists and objects. It mutates the meta object in place
--- and returns it.
---
--- It performs slightly more work than a regular walk filter because of the
--- ambiguity around single-element lists and objects.
-function walk_meta(meta, filter)
-  local skip = {
-    ["nil"] = true,
-    number = true,
-    boolean = true,
-    string = true,
-    ["function"] = true,
-  }
-  local iterate = {
-    Meta = true,
-    List = true,
-  }
-  local function walk(obj)
-    local t = type(obj)
-    if skip[t] then
-      return obj
-    end
-    local pt = quarto.utils.type(obj)
-    if iterate[pt] then
-      for k, v in pairs(obj) do
-        obj[k] = walk(v)
-      end
-    else
-      return _quarto.ast.walk(obj, filter)
-    end
-    return obj
-  end
-  return walk(meta)
-end
-
 _quarto.ast = {
   vault = {
     _uuid = "3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9",
@@ -372,22 +350,21 @@ _quarto.ast = {
           return
         end
         local node = node_accessor(table)
-        local t = pandoc.utils.type(value)
-        -- FIXME this is broken; that can only be "Block", "Inline", etc
-        if t == "Div" or t == "Span" then
-          local custom_data, t, kind = _quarto.ast.resolve_custom_data(value)
-          if custom_data ~= nil then
-            value = custom_data
-          end
-        end
+        local valtype = pandoc.utils.type(value)
+        quarto_assert(valtype ~= 'Div' and valtype ~= 'Span', "")
         if index > #node.content then
           _quarto.ast.grow_scaffold(node, index)
         end
-        local pt = pandoc.utils.type(value)
-        if pt == "Block" or pt == "Inline" then
-          node.content[index].content = {value}
+        local inner_node = node.content[index]
+        local innertype = pandoc.utils.type(inner_node)
+        if innertype == 'Block' then
+          inner_node.content = quarto.utils.as_blocks(value)
+        elseif innertype == 'Inline' then
+          inner_node.content = quarto.utils.as_inlines(value)
         else
-          node.content[index].content = value
+          warn(debug.traceback(
+                 'Cannot find the right content type for value ' .. valtype))
+          inner_node.content = value
         end
       end
     }
@@ -458,13 +435,15 @@ _quarto.ast = {
       -- luacov: enable
     end
 
-    local forwarder = { }
+    local forwarder
     if tisarray(handler.slots) then
+      forwarder = pandoc.List{}
       for i, slot in ipairs(handler.slots) do
         forwarder[slot] = i
       end
-    else
-      forwarder = handler.slots
+    elseif handler.slots ~= nil then
+      warn('Expected `slots` to be either an array or nil, got ' ..
+           tostring(handler.slots))
     end
 
     quarto[handler.ast_name] = function(params)
@@ -540,8 +519,6 @@ _quarto.ast = {
   scoped_walk = scoped_walk,
 
   walk = run_emulated_filter,
-
-  walk_meta = walk_meta,
 
   writer_walk = function(doc, filter)
     local old_custom_walk = filter.Custom

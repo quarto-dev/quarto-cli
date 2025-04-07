@@ -1,0 +1,17 @@
+---
+title: "Hello, Quarto"
+format: html
+key: value
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["Hello, value"]
+        - []
+---
+
+::: {#thm-1 name='Hello, {{< meta key >}}'}
+
+This is a theorem.
+
+:::

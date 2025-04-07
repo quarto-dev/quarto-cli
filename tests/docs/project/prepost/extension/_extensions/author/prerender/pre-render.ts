@@ -1,4 +1,4 @@
-import { join } from "https://deno.land/std/path/mod.ts";
+import { join } from "stdlib/path";
 
 try {
   Deno.statSync(join(Deno.cwd(), "i-exist.txt"));
@@ -6,6 +6,7 @@ try {
 } catch (e) {
   if (e instanceof Deno.errors.NotFound) {
     Deno.writeTextFileSync(join(Deno.cwd(), "i-exist.txt"), "yes.");
+    Deno.writeTextFileSync(join(Deno.cwd(), "i-was-created.txt"), "yes.");
     console.log("pre-render ok");
   } else {
     throw e;

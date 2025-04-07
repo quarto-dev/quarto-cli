@@ -1,11 +1,10 @@
 /*
-* profile.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * profile.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { Args } from "flags/mod.ts";
+import { Args } from "flags";
 import { Command } from "cliffy/command/mod.ts";
 
 export const kQuartoProfile = "QUARTO_PROFILE";

@@ -45,13 +45,15 @@ import { RenderedFile, RenderServices } from "../../command/render/types.ts";
 import { ProjectConfig, ProjectContext } from "../../project/types.ts";
 import { BookExtension } from "../../project/types/book/book-shared.ts";
 
-import { readLines } from "io/read_lines.ts";
+import { readLines } from "io/read-lines";
 import { TempContext } from "../../core/temp.ts";
 import { isLatexPdfEngine, pdfEngine } from "../../config/pdf.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { copyTo } from "../../core/copy.ts";
 import { kCodeAnnotations } from "../html/format-html-shared.ts";
+import { safeModeFromFile } from "../../deno_ral/fs.ts";
+import { hasLevelOneHeadings as hasL1Headings } from "../../core/lib/markdown-analysis/level-one-headings.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
@@ -137,7 +139,7 @@ function createPdfFormat(
       metadata: {
         ["block-headings"]: true,
       },
-      formatExtras: (
+      formatExtras: async (
         _input: string,
         markdown: string,
         flags: PandocFlags,
@@ -230,9 +232,12 @@ function createPdfFormat(
         }
 
         // Provide a custom template for this format
-        const partialNames = [
+        // Partials can be the one from Quarto division
+        const partialNamesQuarto: string[] = [
+          "babel-lang",
           "before-bib",
           "biblio",
+          "biblio-config",
           "citations",
           "doc-class",
           "graphics",
@@ -245,15 +250,41 @@ function createPdfFormat(
           "title",
           "toc",
         ];
-        extras.templateContext = {
-          template: formatResourcePath("pdf", "pandoc/template.tex"),
-          partials: partialNames.map((name) => {
-            return formatResourcePath("pdf", `pandoc/${name}.tex`);
-          }),
+        // or the one from Pandoc division (since Pandoc 3.6.3)
+        const partialNamesPandoc: string[] = [
+          "after-header-includes",
+          "common",
+          "font-settings",
+          "fonts",
+          "hypersetup",
+          "passoptions",
+        ];
+
+        const createTemplateContext = function (
+          to: string,
+          partialNamesQuarto: string[],
+          partialNamesPandoc: string[],
+        ) {
+          return {
+            template: formatResourcePath(to, "pandoc/template.tex"),
+            partials: [
+              ...partialNamesQuarto.map((name) => {
+                return formatResourcePath(to, `pandoc/${name}.tex`);
+              }),
+              ...partialNamesPandoc.map((name) => {
+                return formatResourcePath(to, `pandoc/${name}.latex`);
+              }),
+            ],
+          };
         };
+        extras.templateContext = createTemplateContext(
+          displayName === "Beamer" ? "beamer" : "pdf",
+          partialNamesQuarto,
+          partialNamesPandoc,
+        );
 
         // Don't shift the headings if we see any H1s (we can't shift up any longer)
-        const hasLevelOneHeadings = !!markdown.match(/\n^#\s.*$/gm);
+        const hasLevelOneHeadings = await hasL1Headings(markdown);
 
         // pdfs with no other heading level oriented options get their heading level shifted by -1
         if (
@@ -419,13 +450,7 @@ async function processLines(
   const outputFile = temp.createFile({ suffix: ".tex" });
   const file = await Deno.open(inputFile);
   // Preserve the existing permissions as we'll replace
-  let mode;
-  if (Deno.build.os !== "windows") {
-    const stat = Deno.statSync(inputFile);
-    if (stat.mode !== null) {
-      mode = stat.mode;
-    }
-  }
+  const mode = safeModeFromFile(inputFile);
   try {
     for await (const line of readLines(file)) {
       let processedLine: string | undefined = line;
@@ -981,6 +1006,10 @@ const longtableBottomCaptionProcessor = () => {
           caption = line;
           capturing = true;
           return undefined;
+        } else if (line.match(/^\\endlastfoot/) && caption) {
+          line = `\\tabularnewline\n${caption}\n${line}`;
+          caption = undefined;
+          return line;
         } else if (line.match(/^\\end{longtable}$/)) {
           scanning = false;
           if (caption) {

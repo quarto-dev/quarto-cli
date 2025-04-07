@@ -24,7 +24,7 @@ function render_folded_block(block)
     })
     
     if not isEmpty(summary) then
-      tappend(beginPara.content, markdownToInlines(summary))
+      tappend(beginPara.content, process_shortcodes(string_to_quarto_ast_inlines(summary)))
     end
     beginPara.content:insert(pandoc.RawInline("html", "</summary>"))
     div.content:insert(beginPara)
@@ -65,7 +65,7 @@ function fold_code_and_lift_codeblocks()
       local prev_annotated_code_block_scaffold = nil
       local prev_annotated_code_block = nil
       -- ok to lift codeblocks
-      float.content = _quarto.ast.walk(float.content, {
+      float.content = _quarto.ast.walk(float.content or pandoc.Blocks{}, {
         traverse = "topdown",
         DecoratedCodeBlock = function(block)
           -- defer the folding of code blocks to the DecoratedCodeBlock renderer
