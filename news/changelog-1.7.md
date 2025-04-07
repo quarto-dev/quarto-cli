@@ -29,6 +29,7 @@ All changes included in 1.7:
 
 ### `website`
 
+- ([#5600](https://github.com/quarto-dev/quarto-cli/issues/5600)): Allow existing-but-empty `_metadata.yml` file in projects.
 - ([#8238](https://github.com/quarto-dev/quarto-cli/issues/8238)): Listing categories are now sorted case-insensitively.
 - ([#10501](https://github.com/quarto-dev/quarto-cli/issues/10501)): Improve documentation of `repo-actions` option.
 - ([#11701](https://github.com/quarto-dev/quarto-cli/issues/11701)): Wrap HTML emitted by EJS templates in `{=html}` blocks to avoid memory blowup issues with Pandoc's parser.
