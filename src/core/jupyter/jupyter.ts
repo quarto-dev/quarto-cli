@@ -175,6 +175,7 @@ import {
   jupyterCellSrcAsStr,
 } from "./jupyter-shared.ts";
 import { error } from "../../deno_ral/log.ts";
+import { valid } from "semver/mod.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -922,12 +923,14 @@ export function jupyterCellWithOptions(
     }
   };
 
-  const validMetadata: Record<string, string | number | boolean> = {};
+  const validMetadata: Record<string, string | number | boolean | null> = {};
   for (const key of Object.keys(cell.metadata)) {
     const value = cell.metadata[key];
     let jsonEncodedKeyIndex = 0;
     if (value !== undefined) {
-      if (value && typeof value === "object") {
+      if (!value && typeof value === "object") {
+        validMetadata[key] = null;
+      } else if (value && typeof value === "object") {
         // https://github.com/quarto-dev/quarto-cli/issues/9089
         // we need to json-encode this and signal the encoding in the key
         // we can't use the key as is since it may contain invalid characters
