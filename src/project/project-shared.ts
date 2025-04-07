@@ -329,6 +329,7 @@ export async function directoryMetadataForInputFile(
         file,
         frontMatterSchema,
         errMsg,
+        "{}",
       )) || {}) as Record<string, unknown>;
 
       // resolve format into expected structure
@@ -611,7 +612,7 @@ export async function projectResolveBrand(
         }
         if (typeof brand.dark === "string") {
           dark = await loadRelativeBrand(brand.dark);
-        } else if(brand.dark) {
+        } else if (brand.dark) {
           dark = new Brand(
             brand.dark,
             dirname(fileName),
