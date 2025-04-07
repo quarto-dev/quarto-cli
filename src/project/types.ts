@@ -7,7 +7,7 @@
 import { RenderServices } from "../command/render/types.ts";
 import { Metadata, PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
-import { Brand } from "../core/brand/brand.ts";
+import { Brand, LightDarkBrand } from "../core/brand/brand.ts";
 import { MappedString } from "../core/mapped-text.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { ExecutionEngine, ExecutionTarget } from "../execute/types.ts";
@@ -56,7 +56,7 @@ export type FileInformation = {
   engine?: ExecutionEngine;
   target?: ExecutionTarget;
   metadata?: Metadata;
-  brand?: Brand;
+  brand?: LightDarkBrand;
 };
 
 export interface ProjectContext {
@@ -70,8 +70,8 @@ export interface ProjectContext {
   fileInformationCache: Map<string, FileInformation>;
 
   // This is a cache of _brand.yml for a project
-  brandCache?: { brand?: Brand };
-  resolveBrand: (fileName?: string) => Promise<Brand | undefined>;
+  brandCache?: { brand?: LightDarkBrand};
+  resolveBrand: (fileName?: string) => Promise<undefined | {light?: Brand | undefined, dark?: Brand | undefined}>;
 
   // expands markdown for a file
   // input file doesn't have to be markdown; it can be, for example, a knitr spin file

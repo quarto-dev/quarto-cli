@@ -25,12 +25,14 @@ import {
   kFilterParams,
   kHeaderIncludes,
   kIncludeAfterBody,
+  kIncludeBeforeBody,
   kIncludeInHeader,
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kNotebookLinks,
   kNotebookViewStyle,
+  kRespectUserColorScheme,
   kTheme,
 } from "../../config/constants.ts";
 
@@ -342,6 +344,8 @@ export async function htmlFormatExtras(
   options.codeTools = formatHasCodeTools(format);
   options.darkMode = formatDarkMode(format);
   options.darkModeDefault = darkModeDefault(format.metadata);
+  options.respectUserColorScheme = format.metadata[kRespectUserColorScheme] ||
+    false;
   options.linkExternalIcon = format.render[kLinkExternalIcon];
   options.linkExternalNewwindow = format.render[kLinkExternalNewwindow];
   options.linkExternalFilter = format.render[kLinkExternalFilter];
@@ -506,7 +510,8 @@ export async function htmlFormatExtras(
     includeInHeader.push(hypothesisHeader);
   }
 
-  // after body
+  // before and after body
+  const includeBeforeBody: string[] = [];
   const includeAfterBody: string[] = [];
 
   // add main orchestion script if we have any options enabled
@@ -514,15 +519,21 @@ export async function htmlFormatExtras(
     !!options[option]
   );
   if (quartoHtmlRequired) {
-    // html orchestration script
-    const quartoHtmlScript = temp.createFile();
-    const renderedHtml = renderEjs(
-      formatResourcePath("html", join("templates", "quarto-html.ejs")),
-      options,
-    );
-    if (renderedHtml.trim() !== "") {
-      Deno.writeTextFileSync(quartoHtmlScript, renderedHtml);
-      includeAfterBody.push(quartoHtmlScript);
+    for (
+      const { dest, ejsfile } of [
+        { dest: includeBeforeBody, ejsfile: "quarto-html-before-body.ejs" },
+        { dest: includeAfterBody, ejsfile: "quarto-html-after-body.ejs" },
+      ]
+    ) {
+      const quartoHtmlScript = temp.createFile();
+      const renderedHtml = renderEjs(
+        formatResourcePath("html", join("templates", ejsfile)),
+        options,
+      );
+      if (renderedHtml.trim() !== "") {
+        Deno.writeTextFileSync(quartoHtmlScript, renderedHtml);
+        dest.push(quartoHtmlScript);
+      }
     }
   }
 
@@ -636,6 +647,7 @@ export async function htmlFormatExtras(
   const metadata: Metadata = {};
   return {
     [kIncludeInHeader]: includeInHeader,
+    [kIncludeBeforeBody]: includeBeforeBody,
     [kIncludeAfterBody]: includeAfterBody,
     metadata,
     templateContext,

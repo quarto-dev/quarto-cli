@@ -7,8 +7,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         - 
-          - "<fig-simple>"
-          - "@fig-simple"
+          - "#ref\\(<fig-simple>, supplement: \\[Figure\\]\\)"
           - "A simple figure"
           - "#.*image\\(\"img/surus.jpg\"\\)"
         - []
