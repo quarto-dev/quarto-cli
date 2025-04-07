@@ -16646,11 +16646,6 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "number-offset",
-          tags: {
-            formats: [
-              "$html-all"
-            ]
-          },
           schema: {
             maybeArrayOf: "number"
           },
@@ -22969,7 +22964,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name, theme scss file, or a mix of both.",
         "The dark theme name, theme scss file, or a mix of both.",
         "The dark theme name, theme scss file, or a mix of both.",
-        "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
         "Classes to apply to the body of the document.",
         "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
         "Enables inclusion of Pandoc default CSS for this document.",
@@ -24074,7 +24068,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+        "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>"
       ],
       "schema/external-schemas.yml": [
         {
@@ -24303,12 +24298,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 195005,
+        _internalId: 194632,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 194997,
+            _internalId: 194624,
             type: "enum",
             enum: [
               "png",
@@ -24324,7 +24319,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 195004,
+            _internalId: 194631,
             type: "anyOf",
             anyOf: [
               {
