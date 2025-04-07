@@ -9095,7 +9095,7 @@
       "schema": "string",
       "description": {
         "short": "A regular expression that can be used to determine whether a link is an internal link.",
-        "long": "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
+        "long": "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with `http://www.quarto.org/custom` or `https://www.quarto.org/custom`\nas internal links (and others will be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
       }
     },
     {
@@ -14957,7 +14957,7 @@
       "long": "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
     },
     "Classes to apply to cell container",
-    "Array of rendering names",
+    "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
     "Array of tags for notebook cell",
     {
       "short": "Notebook cell identifier",
@@ -15937,8 +15937,8 @@
     "Enables tabsets to present content.",
     "Enables smooth scrolling within the page.",
     {
-      "short": "Whether the <code>prefers-color-scheme</code> media query controls\ndark mode.",
-      "long": "Whether to use the <code>prefers-color-scheme</code> media query to\ndetermine whether to show the user a dark or light page. Otherwise the\nauthor preference (order of <code>light</code> and <code>dark</code> in\n<code>theme</code> or <code>brand</code>) determines what is shown to\nthe user at first visit."
+      "short": "Enables setting dark mode based on the\n<code>prefers-color-scheme</code> media query.",
+      "long": "If set, Quarto reads the <code>prefers-color-scheme</code> media\nquery to determine whether to show the user a dark or light page.\nOtherwise the author-preferred color scheme is shown."
     },
     {
       "short": "Method use to render math in HTML output",
