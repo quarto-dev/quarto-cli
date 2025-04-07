@@ -18,6 +18,7 @@ import {
 import { makeTimedFunctionAsync } from "./performance/function-times.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 import { convertCombinedLuaProfileToCSV } from "./performance/perfetto-utils.ts";
+import { info } from "../deno_ral/log.ts";
 
 type Runner = (args: Args) => Promise<unknown>;
 export async function mainRunner(runner: Runner) {
@@ -44,8 +45,8 @@ export async function mainRunner(runner: Runner) {
 
     // if profiling, wait for 10 seconds before quitting
     if (Deno.env.get("QUARTO_TS_PROFILE") !== undefined) {
-      console.log("Program finished. Turn off the Chrome profiler now!");
-      console.log("Waiting for 10 seconds ...");
+      info("Program finished. Turn off the Chrome profiler now!");
+      info("Waiting for 10 seconds ...");
       await new Promise((resolve) => setTimeout(resolve, 10000));
     }
 

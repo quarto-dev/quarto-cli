@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
+import { info } from "../../deno_ral/log.ts";
 import { inputTargetIndexCacheMetrics } from "../../project/project-index.ts";
 import { functionTimes } from "./function-times.ts";
 import { Stats } from "./stats.ts";
@@ -63,9 +64,12 @@ export function reportPerformanceMetrics(keys?: MetricsKeys[]) {
   if (outFile) {
     Deno.writeTextFileSync(outFile, content);
   } else {
-    console.log("---");
-    console.log("Performance metrics");
-    console.log("Quarto:");
-    console.log(content);
+    const msg = [
+      "---",
+      "Performance metrics",
+      "Quarto:",
+      content,
+    ];
+    info(msg.join("\n"));
   }
 }

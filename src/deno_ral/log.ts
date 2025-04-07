@@ -11,6 +11,7 @@ export {
   info,
   LogLevels,
   setup,
+  warn,
   warn as warning,
 } from "log";
 
