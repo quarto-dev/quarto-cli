@@ -174,6 +174,7 @@ import {
   jupyterCellSrcAsLines,
   jupyterCellSrcAsStr,
 } from "./jupyter-shared.ts";
+import { error } from "../../deno_ral/log.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -921,8 +922,31 @@ export function jupyterCellWithOptions(
     }
   };
 
+  const validMetadata: Record<string, string | number | boolean> = {};
+  for (const key of Object.keys(cell.metadata)) {
+    const value = cell.metadata[key];
+    if (value !== undefined) {
+      if (value && typeof value === "object") {
+        // we need to json-encode this and signal the encoding in the key
+        validMetadata[
+          `quarto-json-encoded-${key.replaceAll(/[^A-Za-z]/g, "_")}`
+        ] = JSON.stringify({ key, value });
+      } else if (
+        typeof value === "string" || typeof value === "number" ||
+        typeof value === "boolean"
+      ) {
+        validMetadata[key] = value;
+      } else {
+        error(
+          `Invalid metadata type for key ${key}: ${typeof value}. Entry will not be serialized.`,
+        );
+      }
+    }
+  }
+
   return {
     ...cell,
+    metadata: validMetadata,
     id: cellId(cell),
     source,
     optionsSource,
@@ -1766,7 +1790,10 @@ function isMarkdown(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsMarkdown);
 }
 
-async function mdOutputStream(output: JupyterOutputStream, options: JupyterToMarkdownOptions) {
+async function mdOutputStream(
+  output: JupyterOutputStream,
+  options: JupyterToMarkdownOptions,
+) {
   let text: string[] = [];
   if (typeof output.text === "string") {
     text = [output.text];
@@ -1873,8 +1900,11 @@ async function mdOutputDisplayData(
       // if output is invalid, warn and emit empty
       const data = output.data[mimeType] as unknown;
       if (!Array.isArray(data) || data.some((s) => typeof s !== "string")) {
-        return await mdWarningOutput(`Unable to process text plain output data 
-which does not appear to be plain text: ${JSON.stringify(data)}`, options);
+        return await mdWarningOutput(
+          `Unable to process text plain output data 
+which does not appear to be plain text: ${JSON.stringify(data)}`,
+          options,
+        );
       }
       const lines = data as string[];
       // pandas inexplicably outputs html tables as text/plain with an enclosing single-quote
@@ -1911,7 +1941,7 @@ which does not appear to be plain text: ${JSON.stringify(data)}`, options);
   // no type match found
   return await mdWarningOutput(
     "Unable to display output for mime type(s): " +
-    Object.keys(output.data).join(", "),
+      Object.keys(output.data).join(", "),
     options,
   );
 }
