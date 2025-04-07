@@ -315,3 +315,25 @@ export function normalizeCaseConvention(str: string): CaseConvention {
   }
   return result;
 }
+
+export const getEndingNewlineCount = (lines: string[]) => {
+  let count = 0;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].match(/^\n+$/)) { // only newlines
+      count += lines[i].length;
+      continue;
+    }
+    const m = lines[i].match(/\n+$/);
+    if (m) {
+      // newlines + other content
+      count += m[0].length;
+      break;
+    }
+    if (lines[i].length) {
+      // non-newline content
+      break;
+    }
+    // otherwise, continue
+  }
+  return count;
+};

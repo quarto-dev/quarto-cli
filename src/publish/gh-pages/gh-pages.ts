@@ -246,6 +246,8 @@ async function publish(
 
   // wait for deployment if we are opening a browser
   let verified = false;
+  const start = new Date();
+
   if (options.browser && ghContext.siteUrl && !notifyGhPagesBranch) {
     await withSpinner({
       message:
@@ -253,6 +255,14 @@ async function publish(
     }, async () => {
       const noJekyllUrl = joinUrl(ghContext.siteUrl!, ".nojekyll");
       while (true) {
+        const now = new Date();
+        const elapsed = now.getTime() - start.getTime();
+        if (elapsed > 1000 * 60 * 5) {
+          info(colors.yellow(
+            "Deployment took longer than 5 minutes, giving up waiting for deployment to complete",
+          ));
+          break;
+        }
         await sleep(2000);
         const response = await fetch(noJekyllUrl);
         if (response.status === 200) {

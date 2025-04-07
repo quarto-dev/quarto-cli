@@ -20,8 +20,10 @@ const outputCustom = outputForInput(inputCustom, "html");
 testRender(inputCustom, "html", false, [
   ensureFileRegexMatches(outputCustom.outputPath, [
     /<strong>_bringit_<\/strong>/,
+    /\?shorty:error_args/,
+    /\?shorty:error message/,
   ], [
-    /\?shorty/,
+    /\?shorty:_bringit_/,
   ]),
 ]);
 

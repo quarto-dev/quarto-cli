@@ -1,0 +1,17 @@
+---
+format: html
+brand:
+  light: united-brand.yml
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["link[href*=\"-dark-\"]"]
+---
+
+## Hello
+
+```markdown
+![asdf](asd.png)
+```

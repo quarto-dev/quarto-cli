@@ -19,6 +19,7 @@ import {
   type ImmediateBufferCacheEntry,
   type ImmediateStringCacheEntry,
 } from "./cache-types.ts";
+import { Cloneable } from "../safe-clone-deep.ts";
 export { type ProjectCache } from "./cache-types.ts";
 
 const currentCacheVersion = "1";
@@ -26,13 +27,17 @@ const requiredQuartoVersions: Record<string, string> = {
   "1": ">1.7.0",
 };
 
-class ProjectCacheImpl {
+class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
   projectScratchDir: string;
   index: Deno.Kv | null;
 
   constructor(_projectScratchDir: string) {
     this.projectScratchDir = _projectScratchDir;
     this.index = null;
+  }
+
+  clone() {
+    return this;
   }
 
   close() {

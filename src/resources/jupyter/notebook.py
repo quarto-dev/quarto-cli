@@ -36,6 +36,14 @@ except ImportError:
 
 NB_FORMAT_VERSION = 4
 
+def get_language_from_nb_metadata(metadata):
+   ks_lang = metadata.kernelspec.get("language", None)
+   li_name = None
+   li = metadata.get("language_info", None)
+   if li:
+      li_name = metadata.language_info.get("name", None)
+   return ks_lang or li_name
+
 # exception to indicate the kernel needs restarting
 class RestartKernel(Exception):
    pass
@@ -192,7 +200,7 @@ def notebook_execute(options, status):
       nb_parameterize(nb, quarto_kernel_setup_options["params"])
 
    # insert setup cell
-   setup_cell = nb_setup_cell(nb.metadata.kernelspec, quarto_kernel_setup_options)
+   setup_cell = nb_setup_cell(nb, quarto_kernel_setup_options)
    nb.cells.insert(0, setup_cell)
 
    nb_cache = retrieve_nb_from_cache(nb, status, **quarto_kernel_setup_options)
@@ -254,7 +262,8 @@ def notebook_execute(options, status):
       if cell.cell_type == 'code':
          total_code_cells += 1
       # map cells to their labels
-      label = nb_cell_yaml_options(client.nb.metadata.kernelspec.language, cell).get('label', '')
+      language = get_language_from_nb_metadata(client.nb.metadata)
+      label = nb_cell_yaml_options(language, cell).get('label', '')
       cell_labels.append(label)
       # find max label length
       max_label_len = max(max_label_len, len(label))
@@ -350,7 +359,7 @@ def notebook_execute(options, status):
    nb_write(client.nb, input)
 
    # execute cleanup cell
-   cleanup_cell = nb_cleanup_cell(nb.metadata.kernelspec, resource_dir)
+   cleanup_cell = nb_cleanup_cell(nb, resource_dir)
    if cleanup_cell:
       kernel_supports_daemonization = True
       nb.cells.append(cleanup_cell)
@@ -425,18 +434,20 @@ def notebook_init(nb, resources, allow_errors):
 def nb_write(nb, input):
    nbformat.write(nb, input, version = NB_FORMAT_VERSION)
 
-def nb_setup_cell(kernelspec, options):
+def nb_setup_cell(nb, options):
    options = dict(options)
    options["allow_empty"] = True
-   return nb_language_cell('setup', kernelspec, **options)
+   return nb_language_cell('setup', nb, **options)
 
-def nb_cleanup_cell(kernelspec, resource_dir):
-   return nb_language_cell('cleanup', kernelspec, resource_dir, False)
+def nb_cleanup_cell(nb, resource_dir):
+   return nb_language_cell('cleanup', nb, resource_dir, False)
 
-def nb_language_cell(name, kernelspec, resource_dir, allow_empty, **args):
-   trace(json.dumps(kernelspec, indent=2))
+def nb_language_cell(name, nb, resource_dir, allow_empty, **args):
+   kernelspec = nb.metadata.kernelspec
+   language = get_language_from_nb_metadata(nb.metadata)
+   trace(json.dumps(nb.metadata, indent=2))
    source = ''
-   lang_dir = os.path.join(resource_dir, 'jupyter', 'lang',  kernelspec.language)
+   lang_dir = os.path.join(resource_dir, 'jupyter', 'lang', language)
    if os.path.isdir(lang_dir):
       cell_file = glob.glob(os.path.join(lang_dir, name + '.*'))
       # base64-encode the run_path given
@@ -445,7 +456,7 @@ def nb_language_cell(name, kernelspec, resource_dir, allow_empty, **args):
          with open(cell_file[0], 'r') as file:
             source = file.read().format(**args)
    else:
-      trace(f'No {kernelspec.language} directory found in {lang_dir}')
+      trace(f'No {language} directory found in {lang_dir}')
       trace(f'Will look for explicit quarto setup cell information in kernelspec dir')
       try:
          with open(os.path.join(kernelspec.path, f"quarto_{name}_cell"), 'r') as file:
@@ -500,14 +511,17 @@ def nb_kernel_dependencies(setup_cell):
 
 def cell_execute(client, cell, index, execution_count, eval_default, store_history):
 
+   language = get_language_from_nb_metadata(client.nb.metadata)
    # read cell options
-   cell_options = nb_cell_yaml_options(client.nb.metadata.kernelspec.language, cell)
+   cell_options = nb_cell_yaml_options(language, cell)
 
    # check options for eval and error
    eval = cell_options.get('eval', eval_default)
-   allow_errors = cell_options.get('error', False)
+   allow_errors = cell_options.get('error')
      
    trace(f"cell_execute with eval={eval}")
+   if (allow_errors == True):
+      trace(f"cell_execute with allow_errors={allow_errors}")
 
    # execute if eval is active
    if eval == True:
@@ -541,6 +555,27 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
          if len(cell["metadata"]["tags"]) == 0:
             del cell["metadata"]["tags"]
 
+      # Check for display errors in output (respecting both global and cell settings)
+      cell_allows_errors = allow_errors if allow_errors is not None else client.allow_errors
+      if not cell_allows_errors:
+         trace("Cell does not allow errors: checking for uncaught errors")
+         for output in cell.outputs:
+            if output.get('output_type') == 'error':
+               trace("   Uncaught error found in output")
+               from nbclient.exceptions import CellExecutionError
+               error_name = output.get('ename', 'UnnamedError')
+               error_value = output.get('evalue', '')
+               traceback = output.get('traceback', [])
+               # Use same error raising mechanism as nbclient
+               raise CellExecutionError.from_cell_and_msg(
+                  cell,
+                  {
+                     'ename': 'UncaughtCellError:' + error_name,
+                     'evalue': error_value,
+                     'traceback': traceback
+                  }
+               )
+
    # return cell
    return cell
    
@@ -560,7 +595,7 @@ def cell_execute_inline(client, cell):
             del metadata["user_expressions"]
    
    # find expressions in source
-   language = client.nb.metadata.kernelspec.language
+   language = get_language_from_nb_metadata(client.nb.metadata)
    source = ''.join(cell.source)
    expressions = re.findall(
       fr'(?:^|[^`])`{{{language}}}[ \t]([^`]+)`',
@@ -623,7 +658,7 @@ def nb_parameterize(nb, params):
 
    # alias kernel name and language
    kernel_name = nb.metadata.kernelspec.name
-   language = nb.metadata.kernelspec.language
+   language = get_language_from_nb_metadata(nb.metadata)
 
    # find params index and note any tags/yaml on it (exit if no params)
    params_index = find_first_tagged_cell_index(nb, "parameters")
@@ -701,7 +736,7 @@ def find_first_tagged_cell_index(nb, tag):
    return parameters_indices[0]
 
 def nb_strip_yaml_options(client, source):
-   yaml_lines = nb_cell_yaml_lines(client.nb.metadata.kernelspec.language, source)  
+   yaml_lines = nb_cell_yaml_lines(get_language_from_nb_metadata(client.nb.metadata), source)  
    num_yaml_lines = len(yaml_lines)
    if num_yaml_lines > 0:
       return "\n".join(source.splitlines()[num_yaml_lines:])
