@@ -4,18 +4,37 @@
 pandoc.List = {}
 
 --[[
- Create a new List 
+  Create a new List. If the optional argument `table` is given,
+set the metatable of that value to `pandoc.List`.
+
+  The function also accepts an iterator, in which case it creates a
+new list from the return values of the iterator function.
 ]]
----@param table? table # (Optional) `table` to initialize list from
+---@param table? table|function # (Optional) `table` to initialize list from
 ---@return pandoc.List
 function pandoc.List(table) end
 
 --[[
- Create a new List 
+  Create a new List. If the optional argument `table` is given,
+set the metatable of that value to `pandoc.List`.
+
+  The function also accepts an iterator, in which case it creates a
+new list from the return values of the iterator function.
 ]]
----@param table? table # (Optional) `table` to initialize list from
+---@param table? table|function # (Optional) `table` to initialize list from
 ---@return pandoc.List
 function pandoc.List:new(table) end
+
+--[[
+  Returns the element at the given index, or `default` if the list
+contains no item at the given position. 
+
+  Negative integers count back from the last item in the list.
+]]
+---@param index integer Element position
+---@param default? any The default value that is returned if the index is out of range
+---@return any
+function pandoc.List:at(index, default) end
 
 --[[
 Returns a (shallow) copy of the list. (To get a deep copy of the list, use walk with an empty filter.)
@@ -82,6 +101,19 @@ Inserts element value at position `pos` in list, shifting elements to the next-g
 ---@param value any Value to insert into the list
 function pandoc.List:insert(pos, value) end
 
+--[[
+Create an iterator over the list. The resulting function returns the
+next value each time it is called.
+
+Usage:
+
+    for item in List{1, 1, 2, 3, 5, 8}:iter() do
+      -- process item
+    end
+]]
+---@param step? integer Step size for iteration. Negative step sizes cause the iterator to start from the end of the list. Defaults to 1
+---@return function # Iterator function
+function pandoc.List:iter(step) end
 
 --[[
 Returns a copy of the current list by applying the given function to all elements.

@@ -529,10 +529,10 @@ function code_annotations()
             local dl
             if _quarto.format.isAsciiDocOutput() then
               local formatted = pandoc.List()
-              for _i,v in ipairs(items) do
+              for _,v in ipairs(items) do
                 local annotationMarker = v[1] .. ' '
                 local definition = v[2]
-                tprepend(definition.content, {annotationMarker})
+                tprepend(definition.content, {pandoc.RawInline('asciidoc', annotationMarker)})
                 formatted:insert(definition)
               end
               dl = pandoc.Div(formatted)

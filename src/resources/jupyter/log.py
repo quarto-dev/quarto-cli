@@ -37,8 +37,10 @@ else:
    def log(level, msg):
       logging.getLogger().log(level, msg)
 
-def log_error(msg, exc_info = False):
-   logging.getLogger().log(logging.ERROR, msg, exc_info = exc_info, stack_info = not exc_info)
+def log_error(msg, exc_info = False, stack_info = None):
+   if stack_info is None:
+      stack_info = not exc_info
+   logging.getLogger().log(logging.ERROR, msg, exc_info = exc_info, stack_info = stack_info)
 
 def trace(msg):
    prev_frame = inspect.stack()[1]

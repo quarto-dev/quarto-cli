@@ -15,7 +15,7 @@
     - Select 'Publish Quarto PyPi'
     - [ ] Click "Run Workflow"
       - **Publishing Test**: You may elect to publish to test.pypi first by _unchecking_ the `Production Release` option
-        - Once complete, trest using
+        - Once complete, test using
           ```bash
           python3 -m pip install --index-url https://test.pypi.org/ --extra-index-url https://pypi.org/ quarto-cli
           ```
@@ -24,4 +24,4 @@
       - **Publishing Production**: You may elect to publish to production pypyi by checking the `Production Release` option
         - Published to: <https://pypi.org/project/quarto-cli/>
     - Take a sip of tea ☕, bask in the glory of automation.
-- [ ] Update the stable changelog by moving entries to the "in previous release"
+- [ ] Update the stable changelog by moving entries to the "in previous release". Use "[release checklist]" in the commit message to make it easier to spot if a new release is needed next month.

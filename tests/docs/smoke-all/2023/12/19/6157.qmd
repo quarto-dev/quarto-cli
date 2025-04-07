@@ -14,7 +14,7 @@ _quarto:
 #| echo: true
 #| layout-ncol: 2
 #| fig-cap: "Caption."
-#| fig-subcap: 
+#| fig-subcap:
 #|   - "Subcaption 1."
 #|   - "Subcaption 2."
 #| fig-align: center

@@ -20,8 +20,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         - 
-          - "<thm-line>"
-          - "@thm-line"
+          - "#ref\\(<thm-line>, supplement: \\[Theorem\\]\\)"
           - "#theorem\\(\"Line\"\\)"
         - []
     markdown:

@@ -7,10 +7,8 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         - 
-          - "<fig-foo>"
-          - "<tbl-foo>"
-          - "@fig-foo"
-          - "@tbl-foo"
+          - "#ref\\(<fig-foo>, supplement: \\[Figure\\]\\)"
+          - "#ref\\(<tbl-foo>, supplement: \\[Table\\]\\)"
           - "This is the figure"
           - "This is the table"
 ---

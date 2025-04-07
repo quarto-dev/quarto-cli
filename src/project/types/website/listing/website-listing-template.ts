@@ -6,7 +6,7 @@
 *
 */
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
-import { cloneDeep, escape } from "../../../../core/lodash.ts";
+import { escape } from "../../../../core/lodash.ts";
 import {
   kListingPageMinutesCompact,
   kListingPageOrderByDateAsc,

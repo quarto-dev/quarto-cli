@@ -92,6 +92,7 @@ import { resourcePath } from "../../../core/resources.ts";
 import { PandocAttr, PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 import { stringify } from "../../../core/yaml.ts";
 import { waitUntilNamedLifetime } from "../../../core/lifetimes.ts";
+import { safeCloneDeep } from "../../../core/safe-clone-deep.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -381,7 +382,7 @@ async function mergeExecutedFiles(
   files: ExecutedFile[],
 ): Promise<ExecutedFile> {
   // base context on the first file (which has to be index.md in the root)
-  const context = ld.cloneDeep(files[0].context) as RenderContext;
+  const context = safeCloneDeep(files[0].context);
 
   // use global render options
   context.options = removePandocTo(options);
