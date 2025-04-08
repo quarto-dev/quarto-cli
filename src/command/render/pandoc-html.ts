@@ -498,7 +498,16 @@ function generateThemeCssClasses(
     Record<string, unknown>
   >;
   if (textStyles) {
-    const lines: string[] = [];
+    const otherLines: string[] = [];
+    const tokenCssLines: string[] = [];
+
+    const toCSS = function (abbr: string, cssValues: string[]) {
+      tokenCssLines.push(`\ncode span${abbr !== "" ? `.${abbr}` : ""} {`);
+      cssValues.forEach((value) => {
+        tokenCssLines.push(`  ${value}`);
+      });
+      tokenCssLines.push("}\n");
+    };
 
     Object.keys(textStyles).forEach((styleName) => {
       const abbr = kAbbrevs[styleName];
@@ -506,26 +515,26 @@ function generateThemeCssClasses(
         const textValues = textStyles[styleName];
         const cssValues = generateCssKeyValues(textValues);
 
-        if (abbr !== "") {
-          lines.push(`\ncode span.${abbr} {`);
-          lines.push(...cssValues);
-          lines.push("}\n");
-        } else {
+        tokenCssLines.push(`/* ${styleName} */`);
+
+        toCSS(abbr, cssValues);
+
+        if (abbr == "") {
           [
             "pre > code.sourceCode > span",
-            "code span",
             "code.sourceCode > span",
             "div.sourceCode,\ndiv.sourceCode pre.sourceCode",
           ]
             .forEach((selector) => {
-              lines.push(`\n${selector} {`);
-              lines.push(...cssValues);
-              lines.push("}\n");
+              otherLines.push(`\n${selector} {`);
+              otherLines.push(...cssValues);
+              otherLines.push("}\n");
             });
         }
       }
     });
-    return lines;
+    // return otherLines followed by tokenCssLines
+    return otherLines.concat(tokenCssLines);
   }
   return undefined;
 }
