@@ -66,7 +66,7 @@ All changes included in 1.7:
 ## `html`
 
 - ([#1325](https://github.com/quarto-dev/quarto-cli/issues/1325)): Dark Mode pages should not flash light on reload. (Nor should Light Mode pages flash dark.)
-- ([#1470](https://github.com/quarto-dev/quarto-cli/issues/1470)): `respect-user-color-scheme` enables checking the media query `prefers-color-scheme` for user dark mode preference. This is only on page load, not dynamic. Author preference still influences stylesheet order and NoJS experience. Defaults to `false`, leaving to author preference.
+- ([#1470](https://github.com/quarto-dev/quarto-cli/issues/1470)): `respect-user-color-scheme` enables checking the media query `prefers-color-scheme` for user dark mode preference. Author preference still influences stylesheet order and NoJS experience. Defaults to `false`, leaving to author preference.
 - ([#10780])(https://github.com/quarto-dev/quarto-cli/issues/10780)): improve `link-external-filter` documentation.
 - ([#11860](https://github.com/quarto-dev/quarto-cli/issues/11860)): ES6 modules that import other local JS modules in documents with `embed-resources: true` are now correctly embedded.
 - ([#12277](https://github.com/quarto-dev/quarto-cli/pull/12277)): Provide light and dark plot and table renderings with `renderings: [light,dark]`
@@ -144,6 +144,7 @@ All changes included in 1.7:
 - ([#11896](https://github.com/quarto-dev/quarto-cli/pull/11896)): fix `\f` (`{{< pagebreak >}}`) form feed character not valid in PowerPoint (`pptx`).
 - ([#12326](https://github.com/quarto-dev/quarto-cli/issues/12326)): Add `quarto.shortcode.*` API entry points for shortcode developers.
 - ([#12365](https://github.com/quarto-dev/quarto-cli/pull/12365)): `brand color` shortcode takes an optional `brandMode` second parameter, default `light`.
+- ([#12453](https://github.com/quarto-dev/quarto-cli/issues/12453)): Expose `_quarto.modules.brand` as `quarto.brand` and add `has_mode()` function.
 
 ## Lua API
 
