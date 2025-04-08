@@ -120,6 +120,7 @@ All changes included in 1.7:
 ### `jupyter`
 
 - ([#9089](https://github.com/quarto-dev/quarto-cli/issues/9089)): Serialize compound `jupyter` metadata into a special key-value attribute to not break Pandoc's fenced div parsing.
+- ([#10113](https://github.com/quarto-dev/quarto-cli/issues/10113)): KaTeX will now load correctly in `engine: jupyter` documents using `emebed-resources: true`.
 - ([#12114](https://github.com/quarto-dev/quarto-cli/issues/12114)): `JUPYTERCACHE` environment variable from [Jupyter cache CLI](https://jupyter-cache.readthedocs.io/en/latest/using/cli.html) is now respected by Quarto when `cache: true` is used. This environment variable allows to change the path of the cache directory.
 - ([#12228](https://github.com/quarto-dev/quarto-cli/issues/12228)): `quarto render` will now fails if errors are detected at IPython display level. Setting `error: true` globally or at cell level will keep the error to show in output and not stop the rendering.
 - ([#12374](https://github.com/quarto-dev/quarto-cli/issues/12374)): Detect language properly in Jupyter notebooks that lack the `language` field in their `kernelspec`s.
