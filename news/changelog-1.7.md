@@ -174,3 +174,4 @@ All changes included in 1.7:
 - ([#12338](https://github.com/quarto-dev/quarto-cli/issues/12338)): Add an additional workaround for the SCSS parser used in color variable extraction.
 - ([#12369](https://github.com/quarto-dev/quarto-cli/pull/12369)): `quarto preview` correctly throws a YAML validation error when a `format` key does not conform.
 - ([#12459](https://github.com/quarto-dev/quarto-cli/pull/12459)): Add `.page-inset-*` classes to completions.
+- ([#12492](https://github.com/quarto-dev/quarto-cli/pull/12492)): Improve shortcode extension template with new parameters and a link to docs.
