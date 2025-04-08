@@ -607,7 +607,11 @@ async function quartoFilterParams(
   }
   const shortcodes = format.render[kShortcodes];
   if (shortcodes !== undefined) {
-    params[kShortcodes] = shortcodes;
+    params[kShortcodes] = shortcodes.map((p) => {
+      if (p.startsWith("/")) {
+        return resolve(join(options.project.dir, p));
+      }
+    });
   }
   const extShortcodes = await extensionShortcodes(options);
   if (extShortcodes) {
