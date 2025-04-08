@@ -87,7 +87,7 @@ import { quartoConfig } from "../../core/quarto.ts";
 import { metadataNormalizationFilterActive } from "./normalize.ts";
 import { kCodeAnnotations } from "../../format/html/format-html-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { extname, join, relative, resolve } from "../../deno_ral/path.ts";
+import { extname, relative, resolve } from "../../deno_ral/path.ts";
 import { citeIndexFilterParams } from "../../project/project-cites.ts";
 import { debug } from "../../deno_ral/log.ts";
 import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
@@ -891,9 +891,9 @@ async function resolveFilterExtension(
       }
     }
 
-    // The filter string points to an executable file which exists
+    // The filter string points to a file which exists
     if (existsSync(filter) && !Deno.statSync(filter).isDirectory) {
-      const type = extname(filter) !== "lua" ? "json" : "lua";
+      const type = extname(filter) !== ".lua" ? "json" : "lua";
       return {
         at: "__quarto-auto",
         type,
