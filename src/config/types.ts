@@ -277,10 +277,16 @@ export interface FormatDependency {
   resources?: DependencyFile[];
 }
 
-type QualifiedPath = {
+export type PathType = "project-relative" | "relative" | "absolute";
+
+type BasePath = {
   path: string;
-  type: "relative" | "project" | "absolute";
 };
+
+export type QualifiedPath = BasePath & { type: PathType };
+export type AbsolutePath = BasePath & { type: "absolute" };
+export type RelativePath = BasePath & { type: "relative" };
+export type ProjectRelativePath = BasePath & { type: "project-relative" };
 
 export interface DependencyFile {
   name: string;
@@ -369,10 +375,20 @@ export type QuartoFilterEntryPointQualified =
   | QuartoFilterEntryPointQualifiedFull
   | QuartoFilterSpecialEntryPoint;
 
-export type QuartoFilter = string | PandocFilter | QuartoFilterEntryPoint;
+export type QuartoFilter =
+  | string
+  | PandocFilter
+  | QuartoFilterEntryPoint
+  | QuartoFilterEntryPointQualifiedFull;
 
 export function isPandocFilter(filter: QuartoFilter): filter is PandocFilter {
-  return (<PandocFilter> filter).path !== undefined;
+  return typeof (<PandocFilter> filter).path === "string";
+}
+
+export function isQuartoFilterEntryPointQualifiedFull(
+  filter: QuartoFilter,
+): filter is QuartoFilterEntryPointQualifiedFull {
+  return typeof (<PandocFilter> filter).path !== "string";
 }
 
 export function isFilterEntryPoint(

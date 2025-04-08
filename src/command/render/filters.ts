@@ -65,7 +65,7 @@ import {
   QuartoFilterEntryPointQualifiedFull,
 } from "../../config/types.ts";
 import { QuartoFilterSpec } from "./types.ts";
-import { Metadata } from "../../config/types.ts";
+import { Metadata, QualifiedPath } from "../../config/types.ts";
 import { kProjectType } from "../../project/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
 import { rBinaryPath, resourcePath } from "../../core/resources.ts";
@@ -772,7 +772,7 @@ export async function resolveFilters(
         return filter.path;
       case "relative":
         return resolve(dirname(options.source), filter.path);
-      case "project":
+      case "project-relative":
         return resolve(join(options.project.dir, filter.path));
     }
   };
@@ -891,13 +891,18 @@ async function resolveFilterExtension(
       return { type: filter };
     }
     if (typeof filter !== "string") {
-      const fileType: "project" | "relative" = filter.path.startsWith("/")
-        ? "project"
-        : "relative";
-      const path = {
-        type: fileType,
-        path: filter.path,
-      };
+      const path: QualifiedPath = (() => {
+        if (typeof filter.path !== "string") {
+          const result = filter.path;
+          return result;
+        }
+        const fileType: "project-relative" | "relative" =
+          filter.path.startsWith("/") ? "project-relative" : "relative";
+        return {
+          type: fileType,
+          path: filter.path,
+        };
+      })();
       // deno-lint-ignore no-explicit-any
       if ((filter as any).at) {
         const entryPoint = filter as QuartoFilterEntryPoint;
@@ -939,8 +944,8 @@ async function resolveFilterExtension(
       const filterType: "json" | "lua" = extname(filter) !== ".lua"
         ? "json"
         : "lua";
-      const pathType: "project" | "relative" = filter.startsWith("/")
-        ? "project"
+      const pathType: "project-relative" | "relative" = filter.startsWith("/")
+        ? "project-relative"
         : "relative";
 
       return {
@@ -999,15 +1004,21 @@ async function resolveFilterExtension(
           },
         };
       }
-
+      if (typeof f.path === "string") {
+        return {
+          ...f,
+          // deno-lint-ignore no-explicit-any
+          at: (f as any).at ?? "__quarto-auto",
+          path: {
+            type: "absolute",
+            path: f.path,
+          },
+        };
+      }
       return {
         ...f,
-        // deno-lint-ignore no-explicit-any
         at: (f as any).at ?? "__quarto-auto",
-        path: {
-          type: "absolute",
-          path: f.path,
-        },
+        path: f.path,
       };
     });
   };
