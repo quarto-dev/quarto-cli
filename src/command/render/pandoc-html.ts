@@ -499,14 +499,24 @@ function generateThemeCssClasses(
   >;
   if (textStyles) {
     const otherLines: string[] = [];
-    const tokenCssLines: string[] = [];
+    otherLines.push("/* syntax highlight based on Pandoc's rules */");
+    const tokenCssByAbbr: Record<string, string[]> = {};
 
-    const toCSS = function (abbr: string, cssValues: string[]) {
-      tokenCssLines.push(`\ncode span${abbr !== "" ? `.${abbr}` : ""} {`);
+    const toCSS = function (
+      abbr: string,
+      styleName: string,
+      cssValues: string[],
+    ) {
+      const lines: string[] = [];
+      lines.push(`/* ${styleName} */`);
+      lines.push(`\ncode span${abbr !== "" ? `.${abbr}` : ""} {`);
       cssValues.forEach((value) => {
-        tokenCssLines.push(`  ${value}`);
+        lines.push(`  ${value}`);
       });
-      tokenCssLines.push("}\n");
+      lines.push("}\n");
+
+      // Store by abbreviation for sorting later
+      tokenCssByAbbr[abbr] = lines;
     };
 
     Object.keys(textStyles).forEach((styleName) => {
@@ -515,9 +525,7 @@ function generateThemeCssClasses(
         const textValues = textStyles[styleName];
         const cssValues = generateCssKeyValues(textValues);
 
-        tokenCssLines.push(`/* ${styleName} */`);
-
-        toCSS(abbr, cssValues);
+        toCSS(abbr, styleName, cssValues);
 
         if (abbr == "") {
           [
@@ -533,8 +541,24 @@ function generateThemeCssClasses(
         }
       }
     });
-    // return otherLines followed by tokenCssLines
-    return otherLines.concat(tokenCssLines);
+
+    // Sort tokenCssLines by abbr and flatten them
+    // Ensure empty abbr ("") comes first by using a custom sort function
+    const sortedTokenCssLines: string[] = [];
+    Object.keys(tokenCssByAbbr)
+      .sort((a, b) => {
+        // Empty string ("") should come first
+        if (a === "") return -1;
+        if (b === "") return 1;
+        // Otherwise normal alphabetical sort
+        return a.localeCompare(b);
+      })
+      .forEach((abbr) => {
+        sortedTokenCssLines.push(...tokenCssByAbbr[abbr]);
+      });
+
+    // return otherLines followed by tokenCssLines (now sorted by abbr)
+    return otherLines.concat(sortedTokenCssLines);
   }
   return undefined;
 }
