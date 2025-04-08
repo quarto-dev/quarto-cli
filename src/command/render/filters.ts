@@ -85,7 +85,7 @@ import { quartoConfig } from "../../core/quarto.ts";
 import { metadataNormalizationFilterActive } from "./normalize.ts";
 import { kCodeAnnotations } from "../../format/html/format-html-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { relative } from "../../deno_ral/path.ts";
+import { join, relative } from "../../deno_ral/path.ts";
 import { citeIndexFilterParams } from "../../project/project-cites.ts";
 import { debug } from "../../deno_ral/log.ts";
 import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
@@ -746,14 +746,17 @@ export async function resolveFilters(
     .filter((f) => f !== "quarto") // remove quarto marker
     .map((filter, i) => {
       if (isFilterEntryPoint(filter)) {
-        return filter; // send entry-point-style filters unchanged
+        return {
+          ...filter,
+          path: join(options.project.dir, filter.path),
+        }; // send entry-point-style filters unchanged
       }
       const at = quartoLoc > i ? kQuartoPre : kQuartoPost;
       const result: QuartoFilterEntryPoint = typeof filter === "string"
         ? {
           "at": at,
           "type": filter.endsWith(".lua") ? "lua" : "json",
-          "path": filter,
+          "path": join(options.project.dir, filter),
         }
         : {
           "at": at,
