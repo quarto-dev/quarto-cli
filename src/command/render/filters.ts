@@ -610,6 +610,8 @@ async function quartoFilterParams(
     params[kShortcodes] = shortcodes.map((p) => {
       if (p.startsWith("/")) {
         return resolve(join(options.project.dir, p));
+      } else {
+        return p;
       }
     });
   }
