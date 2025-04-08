@@ -59,7 +59,6 @@ import { PandocOptions } from "./types.ts";
 import {
   Format,
   FormatPandoc,
-  isFilterEntryPoint,
   QuartoFilter,
   QuartoFilterEntryPoint,
   QuartoFilterEntryPointQualified,
@@ -87,7 +86,13 @@ import { quartoConfig } from "../../core/quarto.ts";
 import { metadataNormalizationFilterActive } from "./normalize.ts";
 import { kCodeAnnotations } from "../../format/html/format-html-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { dirname, extname, relative, resolve } from "../../deno_ral/path.ts";
+import {
+  dirname,
+  extname,
+  join,
+  relative,
+  resolve,
+} from "../../deno_ral/path.ts";
 import { citeIndexFilterParams } from "../../project/project-cites.ts";
 import { debug } from "../../deno_ral/log.ts";
 import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
@@ -762,7 +767,7 @@ export async function resolveFilters(
       case "relative":
         return resolve(dirname(options.source), filter.path);
       case "project":
-        return resolve(options.project.dir, filter.path);
+        return resolve(join(options.project.dir, filter.path));
     }
   };
 
@@ -880,8 +885,9 @@ async function resolveFilterExtension(
       return { type: filter };
     }
     if (typeof filter !== "string") {
-      const fileType: "project" | "relative" =
-        extname(filter.path).startsWith("/") ? "project" : "relative";
+      const fileType: "project" | "relative" = filter.path.startsWith("/")
+        ? "project"
+        : "relative";
       const path = {
         type: fileType,
         path: filter.path,
