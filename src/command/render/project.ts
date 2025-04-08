@@ -948,13 +948,16 @@ async function runScripts(
   }
   if (!env) throw new Error("should never get here");
 
+  // Pass some argument as environment
+  env["QUARTO_PROJECT_SCRIPT_PROGRESS"] = progress ? "1" : "0";
+  env["QUARTO_PROJECT_SCRIPT_QUIET"] = quiet ? "1" : "0";
+
   for (let i = 0; i < scripts.length; i++) {
     const args = parseShellRunCommand(scripts[i]);
     const script = args[0];
 
     if (progress && !quiet) {
       info(colors.bold(colors.blue(`Running script '${script}'`)));
-      env["QUARTO_PROJECT_SCRIPT_PROGRESS"] = "1";
     }
 
     const handler = handlerForScript(script) ?? {
