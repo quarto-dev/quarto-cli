@@ -62,6 +62,8 @@ import {
   isFilterEntryPoint,
   QuartoFilter,
   QuartoFilterEntryPoint,
+  QuartoFilterEntryPointQualified,
+  QuartoFilterEntryPointQualifiedFull,
 } from "../../config/types.ts";
 import { QuartoFilterSpec } from "./types.ts";
 import { Metadata } from "../../config/types.ts";
@@ -85,7 +87,7 @@ import { quartoConfig } from "../../core/quarto.ts";
 import { metadataNormalizationFilterActive } from "./normalize.ts";
 import { kCodeAnnotations } from "../../format/html/format-html-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { join, relative } from "../../deno_ral/path.ts";
+import { extname, join, relative, resolve } from "../../deno_ral/path.ts";
 import { citeIndexFilterParams } from "../../project/project-cites.ts";
 import { debug } from "../../deno_ral/log.ts";
 import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
@@ -95,6 +97,7 @@ import { pythonExec } from "../../core/jupyter/exec.ts";
 import { kTocIndent } from "../../config/constants.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { tinyTexBinDir } from "../../tools/impl/tinytex-info.ts";
+import { warn } from "log";
 
 const kQuartoParams = "quarto-params";
 
@@ -716,7 +719,7 @@ const kQuartoCiteProcMarker = "citeproc";
 
 // NB: this mutates `pandoc.citeproc`
 export async function resolveFilters(
-  filters: QuartoFilter[],
+  filtersParam: QuartoFilter[],
   options: PandocOptions,
   pandoc: FormatPandoc,
 ): Promise<QuartoFilterSpec | undefined> {
@@ -729,8 +732,10 @@ export async function resolveFilters(
   quartoFilters.push(quartoMainFilter());
 
   // Resolve any filters that are provided by an extension
-  filters = await resolveFilterExtension(options, filters);
-  let quartoLoc = filters.findIndex((filter) => filter === kQuartoFilterMarker);
+  const filters = await resolveFilterExtension(options, filtersParam);
+  let quartoLoc = filters.findIndex((filter) =>
+    filter.type === kQuartoFilterMarker
+  );
   if (quartoLoc === -1) {
     quartoLoc = Infinity; // if no quarto marker, put our filters at the beginning
   }
@@ -742,31 +747,28 @@ export async function resolveFilters(
   // if 'quarto' is not in the filter, all declarations go to the kQuartoPre entry point
   //
   // (note that citeproc will in all cases run last)
-  const entryPoints: QuartoFilterEntryPoint[] = filters
-    .filter((f) => f !== "quarto") // remove quarto marker
+
+  // citeproc at the very end so all other filters can interact with citations
+
+  // remove special filter markers
+  const fullFilters = filters.filter((filter) =>
+    filter.type !== kQuartoCiteProcMarker && filter.type !== kQuartoFilterMarker
+  ) as QuartoFilterEntryPointQualifiedFull[];
+
+  const entryPoints: QuartoFilterEntryPoint[] = fullFilters
     .map((filter, i) => {
-      if (isFilterEntryPoint(filter)) {
-        return {
-          ...filter,
-          path: join(options.project.dir, filter.path),
-        }; // send entry-point-style filters unchanged
-      }
-      const at = quartoLoc > i ? kQuartoPre : kQuartoPost;
-      const result: QuartoFilterEntryPoint = typeof filter === "string"
-        ? {
-          "at": at,
-          "type": filter.endsWith(".lua") ? "lua" : "json",
-          "path": join(options.project.dir, filter),
-        }
-        : {
-          "at": at,
-          ...filter,
-        };
+      const at = filter.at === "__quarto-auto"
+        ? (quartoLoc > i ? kQuartoPre : kQuartoPost)
+        : filter.at;
+
+      const result: QuartoFilterEntryPoint = {
+        "at": at,
+        "type": filter.type,
+        "path": filter.path.path,
+      };
       return result;
     });
 
-  // citeproc at the very end so all other filters can interact with citations
-  filters = filters.filter((filter) => filter !== kQuartoCiteProcMarker);
   const citeproc = citeMethod(options) === kQuartoCiteProcMarker;
   if (citeproc) {
     // If we're explicitely adding the citeproc filter, turn off
@@ -847,60 +849,133 @@ function pdfEngine(options: PandocOptions): string {
   return pdfEngine;
 }
 
+// Resolve any filters that are provided by an extension
 async function resolveFilterExtension(
   options: PandocOptions,
   filters: QuartoFilter[],
-): Promise<QuartoFilter[]> {
-  // Resolve any filters that are provided by an extension
-  const results: (QuartoFilter | QuartoFilter[])[] = [];
-  const getFilter = async (filter: QuartoFilter) => {
-    // Look for extension names in the filter list and result them
-    // into the filters provided by the extension
-    if (
-      filter !== kQuartoFilterMarker && filter !== kQuartoCiteProcMarker &&
-      typeof filter === "string"
-    ) {
-      // The filter string points to an executable file which exists
-      if (existsSync(filter) && !Deno.statSync(filter).isDirectory) {
-        return filter;
-      }
+): Promise<QuartoFilterEntryPointQualified[]> {
+  const results:
+    (QuartoFilterEntryPointQualified | QuartoFilterEntryPointQualified[])[] =
+      [];
 
-      const extensions = await options.services.extension?.find(
-        filter,
-        options.source,
-        "filters",
-        options.project?.config,
-        options.project?.dir,
-      ) || [];
-
-      // Filter this list of extensions
-      const filteredExtensions = filterExtensions(
-        extensions || [],
-        filter,
-        "filter",
-      );
-      // Return any contributed plugins
-      if (filteredExtensions.length > 0) {
-        // This matches an extension, use the contributed filters
-        const filters = extensions[0].contributes.filters;
-        if (filters) {
-          return filters;
-        } else {
-          return filter;
-        }
-      } else if (extensions.length > 0) {
-        // There was a matching extension with this name, but
-        // it was filtered out, just hide the filter altogether
-        return [];
-      } else {
-        // There were no extensions matching this name, just allow it
-        // through
-        return filter;
-      }
-    } else {
-      return filter;
+  // Look for extension names in the filter list and result them
+  // into the filters provided by the extension
+  const getFilter = async (
+    filter: QuartoFilter,
+  ): Promise<
+    QuartoFilterEntryPointQualified | QuartoFilterEntryPointQualified[]
+  > => {
+    if (filter === kQuartoFilterMarker || filter === kQuartoCiteProcMarker) {
+      return { type: filter };
     }
+    if (typeof filter !== "string") {
+      // deno-lint-ignore no-explicit-any
+      if ((filter as any).at) {
+        const entryPoint = filter as QuartoFilterEntryPoint;
+        return {
+          ...entryPoint,
+          path: {
+            type: "relative",
+            path: entryPoint.path,
+          },
+        };
+      } else {
+        return {
+          at: "__quarto-auto",
+          type: filter.type,
+          path: {
+            type: "relative",
+            path: filter.path,
+          },
+        };
+      }
+    }
+
+    // The filter string points to an executable file which exists
+    if (existsSync(filter) && !Deno.statSync(filter).isDirectory) {
+      const type = extname(filter) !== "lua" ? "json" : "lua";
+      return {
+        at: "__quarto-auto",
+        type,
+        path: {
+          type: "absolute",
+          path: resolve(filter),
+        },
+      };
+    }
+
+    const extensions = await options.services.extension?.find(
+      filter,
+      options.source,
+      "filters",
+      options.project?.config,
+      options.project?.dir,
+    ) || [];
+
+    if (extensions.length === 0) {
+      // There were no extensions matching this name,
+      // this should not happen
+      //
+      // Previously, we allowed it to pass, we're warning now and dropping
+      warn(
+        `No extensions matching name but filter (${filter}) is a string that isn't an existing path or quarto or citeproc. Ignoring`,
+      );
+      return [];
+    }
+
+    // Filter this list of extensions
+    const filteredExtensions = filterExtensions(
+      extensions || [],
+      filter,
+      "filter",
+    );
+
+    if (filteredExtensions.length === 0) {
+      // There was a matching extension with this name, but
+      // it was filtered out, just hide the filter altogether
+      return [];
+    }
+
+    // Return any contributed plugins
+    // This matches an extension, use the contributed filters
+    const filters = extensions[0].contributes.filters;
+    if (!filters) {
+      warn(
+        `No extensions matching name but filter (${filter}) is a string that isn't an existing path or quarto or citeproc. Ignoring`,
+      );
+      return [];
+    }
+
+    // our extension-finding service returns absolute paths
+    // so any paths below will be "type": "absolute"
+    // and need no conversion
+
+    return filters.map((f) => {
+      if (typeof f === "string") {
+        const isExistingFile = existsSync(f) && !Deno.statSync(f).isDirectory;
+        const type = (isExistingFile && extname(f) !== ".lua") ? "json" : "lua";
+        return {
+          at: "__quarto-auto",
+          type,
+          path: {
+            type: "absolute",
+            path: f,
+          },
+        };
+      }
+
+      return {
+        ...f,
+        // deno-lint-ignore no-explicit-any
+        at: (f as any).at ?? "__quarto-auto",
+        path: {
+          type: "absolute",
+          path: f.path,
+        },
+      };
+    });
   };
+
   for (const filter of filters) {
     const r = await getFilter(filter);
     results.push(r);

@@ -230,7 +230,7 @@ export function filterExtensions(
   extensionId: string,
   type: string,
 ) {
-  if (extensions && extensions.length > 0) {
+  if (extensions.length > 0) {
     // First see if there are now built it (quarto organization)
     // filters that we previously provided by quarto-ext and
     // filter those out

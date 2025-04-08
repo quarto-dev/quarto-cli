@@ -277,6 +277,11 @@ export interface FormatDependency {
   resources?: DependencyFile[];
 }
 
+type QualifiedPath = {
+  path: string;
+  type: "relative" | "project" | "absolute";
+};
+
 export interface DependencyFile {
   name: string;
   path: string;
@@ -350,7 +355,19 @@ export type PandocFilter = {
   path: string;
 };
 
-export type QuartoFilterEntryPoint = PandocFilter & { "at": string };
+export type QuartoFilterEntryPoint = PandocFilter & { at: string };
+
+export type QuartoFilterEntryPointQualifiedFull = {
+  type: "json" | "lua";
+  at: string;
+  path: QualifiedPath;
+};
+export type QuartoFilterSpecialEntryPoint = {
+  type: "citeproc" | "quarto";
+};
+export type QuartoFilterEntryPointQualified =
+  | QuartoFilterEntryPointQualifiedFull
+  | QuartoFilterSpecialEntryPoint;
 
 export type QuartoFilter = string | PandocFilter | QuartoFilterEntryPoint;
 
@@ -457,7 +474,7 @@ export interface Format {
 
 export interface LightDarkBrand {
   [kLight]?: Brand;
-  [kDark]?: Brand
+  [kDark]?: Brand;
 }
 
 export interface FormatRender {
