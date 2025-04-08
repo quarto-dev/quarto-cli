@@ -87,7 +87,7 @@ import { quartoConfig } from "../../core/quarto.ts";
 import { metadataNormalizationFilterActive } from "./normalize.ts";
 import { kCodeAnnotations } from "../../format/html/format-html-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { extname, relative, resolve } from "../../deno_ral/path.ts";
+import { dirname, extname, relative, resolve } from "../../deno_ral/path.ts";
 import { citeIndexFilterParams } from "../../project/project-cites.ts";
 import { debug } from "../../deno_ral/log.ts";
 import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
@@ -755,6 +755,17 @@ export async function resolveFilters(
     filter.type !== kQuartoCiteProcMarker && filter.type !== kQuartoFilterMarker
   ) as QuartoFilterEntryPointQualifiedFull[];
 
+  const resolvePath = (filter: QuartoFilterEntryPointQualifiedFull["path"]) => {
+    switch (filter.type) {
+      case "absolute":
+        return filter.path;
+      case "relative":
+        return resolve(dirname(options.source), filter.path);
+      case "project":
+        return resolve(options.project.dir, filter.path);
+    }
+  };
+
   const entryPoints: QuartoFilterEntryPoint[] = fullFilters
     .map((filter, i) => {
       const at = filter.at === "__quarto-auto"
@@ -764,7 +775,7 @@ export async function resolveFilters(
       const result: QuartoFilterEntryPoint = {
         "at": at,
         "type": filter.type,
-        "path": filter.path.path,
+        "path": resolvePath(filter.path),
       };
       return result;
     });
@@ -869,24 +880,24 @@ async function resolveFilterExtension(
       return { type: filter };
     }
     if (typeof filter !== "string") {
+      const fileType: "project" | "relative" =
+        extname(filter.path).startsWith("/") ? "project" : "relative";
+      const path = {
+        type: fileType,
+        path: filter.path,
+      };
       // deno-lint-ignore no-explicit-any
       if ((filter as any).at) {
         const entryPoint = filter as QuartoFilterEntryPoint;
         return {
           ...entryPoint,
-          path: {
-            type: "relative",
-            path: entryPoint.path,
-          },
+          path,
         };
       } else {
         return {
           at: "__quarto-auto",
           type: filter.type,
-          path: {
-            type: "relative",
-            path: filter.path,
-          },
+          path,
         };
       }
     }
@@ -912,15 +923,31 @@ async function resolveFilterExtension(
       options.project?.dir,
     ) || [];
 
+    const fallthroughResult = () => {
+      const filterType: "json" | "lua" = extname(filter) !== ".lua"
+        ? "json"
+        : "lua";
+      const pathType: "project" | "relative" = filter.startsWith("/")
+        ? "project"
+        : "relative";
+
+      return {
+        at: "__quarto-auto",
+        type: filterType,
+        path: {
+          type: pathType,
+          path: filter,
+        },
+      };
+    };
+
     if (extensions.length === 0) {
       // There were no extensions matching this name,
-      // this should not happen
-      //
-      // Previously, we allowed it to pass, we're warning now and dropping
-      warn(
-        `No extensions matching name but filter (${filter}) is a string that isn't an existing path or quarto or citeproc. Ignoring`,
-      );
-      return [];
+      // but the filter is a string that isn't an existing path
+      // this indicates that the filter is meant to be interpreted
+      // as a project- or file-relative path
+
+      return fallthroughResult();
     }
 
     // Filter this list of extensions
@@ -940,10 +967,7 @@ async function resolveFilterExtension(
     // This matches an extension, use the contributed filters
     const filters = extensions[0].contributes.filters;
     if (!filters) {
-      warn(
-        `No extensions matching name but filter (${filter}) is a string that isn't an existing path or quarto or citeproc. Ignoring`,
-      );
-      return [];
+      return fallthroughResult();
     }
 
     // our extension-finding service returns absolute paths
