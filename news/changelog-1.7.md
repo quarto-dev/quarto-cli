@@ -164,6 +164,7 @@ All changes included in 1.7:
 - ([#11441](https://github.com/quarto-dev/quarto-cli/issues/11441)): Don't add newlines around shortcodes during processing.
 - ([#11606](https://github.com/quarto-dev/quarto-cli/discussions/11606)): Added a new `QUARTO_DOCUMENT_FILE` env var available to computation engine to the name of the file currently being rendered.
 - ([#11643](https://github.com/quarto-dev/quarto-cli/issues/11643)): Improve highlighting of nested code block inside markdown code block, i.e. using ` ```{{python}} ` or ` ```python ` inside ` ````markdown` fenced code block.
+- ([#11788](https://github.com/quarto-dev/quarto-cli/issues/11788)): `quarto add` and `quarto remove` will return non-zero code when they fail.
 - ([#11803](https://github.com/quarto-dev/quarto-cli/pull/11803)): Added a new CLI command `quarto call`. First users of this interface are the new `quarto call engine julia ...` subcommands.
 - ([#11951](https://github.com/quarto-dev/quarto-cli/issues/11951)): Raw LaTeX table without `tbl-` prefix label for using Quarto crossref are now correctly passed through unmodified.
 - ([#11967](https://github.com/quarto-dev/quarto-cli/issues/11967)): Produce a better error message when YAML metadata with `!expr` tags are used outside of `knitr` code cells.
