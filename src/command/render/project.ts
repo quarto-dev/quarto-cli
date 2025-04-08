@@ -81,6 +81,7 @@ import { fileExecutionEngine } from "../../execute/engine.ts";
 import { projectContextForDirectory } from "../../project/project-context.ts";
 import { ProjectType } from "../../project/types/types.ts";
 import { Zod } from "../../resources/types/zod/schema-types.ts";
+import { RunHandlerOptions } from "../../core/run/types.ts";
 
 const noMutationValidations = (
   projType: ProjectType,
@@ -976,16 +977,30 @@ async function runScripts(
       env["QUARTO_PROJECT_SCRIPT_PROGRESS"] = "1";
     }
 
-    const handler = handlerForScript(script);
-    if (handler) {
-      const input = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES");
-      const output = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES");
-      if (input) {
-        env["QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES"] = input;
-      }
-      if (output) {
-        env["QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES"] = output;
-      }
+    const handler = handlerForScript(script) ?? {
+      run: async (
+        script: string,
+        args: string[],
+        _stdin?: string,
+        options?: RunHandlerOptions,
+      ) => {
+        return await execProcess({
+          cmd: [script, ...args],
+          cwd: options?.cwd,
+          stdout: options?.stdout,
+          env: options?.env,
+        });
+      },
+    };
+
+    const input = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES");
+    const output = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES");
+    if (input) {
+      env["QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES"] = input;
+    }
+    if (output) {
+      env["QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES"] = output;
+    }
 
       const result = await handler.run(script, args.splice(1), undefined, {
         cwd: projDir,
@@ -997,8 +1012,7 @@ async function runScripts(
       }
     } else {
       const result = await execProcess({
-        cmd: args[0],
-        args: args.slice(1),
+        cmd: args,
         cwd: projDir,
         stdout: quiet ? "piped" : "inherit",
         env,
