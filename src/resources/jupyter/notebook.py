@@ -686,9 +686,11 @@ def nb_parameterize(nb, params):
       # and then re-encode it
       try:
          params_cell_yaml = parse_string("\n".join(params_cell_yaml))
-         del params_cell_yaml['label']
+         if "label" in params_cell_yaml:
+            del params_cell_yaml['label']
          params_cell_yaml = safe_dump(params_cell_yaml).strip().splitlines()
       except Exception as e:
+         sys.stderr.write(str(e) + "\naksjdfhakjsdhf\n")
          sys.stderr.write("\nWARNING: Invalid YAML option format in cell:\n" + "\n".join(params_cell_yaml) + "\n")
          sys.stderr.flush()
          params_cell_yaml = []
