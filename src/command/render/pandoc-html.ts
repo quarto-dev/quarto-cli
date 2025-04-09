@@ -498,7 +498,26 @@ function generateThemeCssClasses(
     Record<string, unknown>
   >;
   if (textStyles) {
-    const lines: string[] = [];
+    const otherLines: string[] = [];
+    otherLines.push("/* syntax highlight based on Pandoc's rules */");
+    const tokenCssByAbbr: Record<string, string[]> = {};
+
+    const toCSS = function (
+      abbr: string,
+      styleName: string,
+      cssValues: string[],
+    ) {
+      const lines: string[] = [];
+      lines.push(`/* ${styleName} */`);
+      lines.push(`\ncode span${abbr !== "" ? `.${abbr}` : ""} {`);
+      cssValues.forEach((value) => {
+        lines.push(`  ${value}`);
+      });
+      lines.push("}\n");
+
+      // Store by abbreviation for sorting later
+      tokenCssByAbbr[abbr] = lines;
+    };
 
     Object.keys(textStyles).forEach((styleName) => {
       const abbr = kAbbrevs[styleName];
@@ -506,26 +525,40 @@ function generateThemeCssClasses(
         const textValues = textStyles[styleName];
         const cssValues = generateCssKeyValues(textValues);
 
-        if (abbr !== "") {
-          lines.push(`\ncode span.${abbr} {`);
-          lines.push(...cssValues);
-          lines.push("}\n");
-        } else {
+        toCSS(abbr, styleName, cssValues);
+
+        if (abbr == "") {
           [
             "pre > code.sourceCode > span",
-            "code span",
             "code.sourceCode > span",
             "div.sourceCode,\ndiv.sourceCode pre.sourceCode",
           ]
             .forEach((selector) => {
-              lines.push(`\n${selector} {`);
-              lines.push(...cssValues);
-              lines.push("}\n");
+              otherLines.push(`\n${selector} {`);
+              otherLines.push(...cssValues);
+              otherLines.push("}\n");
             });
         }
       }
     });
-    return lines;
+
+    // Sort tokenCssLines by abbr and flatten them
+    // Ensure empty abbr ("") comes first by using a custom sort function
+    const sortedTokenCssLines: string[] = [];
+    Object.keys(tokenCssByAbbr)
+      .sort((a, b) => {
+        // Empty string ("") should come first
+        if (a === "") return -1;
+        if (b === "") return 1;
+        // Otherwise normal alphabetical sort
+        return a.localeCompare(b);
+      })
+      .forEach((abbr) => {
+        sortedTokenCssLines.push(...tokenCssByAbbr[abbr]);
+      });
+
+    // return otherLines followed by tokenCssLines (now sorted by abbr)
+    return otherLines.concat(sortedTokenCssLines);
   }
   return undefined;
 }

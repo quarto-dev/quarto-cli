@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { asRGB, checkBorderProperties, checkColor, getCSSProperty } from '../src/utils';
+import { asRGB, checkBorderProperties, getCSSProperty } from '../src/utils';
 
 test('Dark and light theme respect user themes', async ({ page }) => {
   // This document use a custom theme file that change the background color of the title banner
