@@ -521,7 +521,7 @@ export async function htmlFormatExtras(
   if (quartoHtmlRequired) {
     for (
       const { dest, ejsfile } of [
-        { dest: includeBeforeBody, ejsfile: "quarto-html-before-body.ejs" },
+        { dest: includeInHeader, ejsfile: "quarto-html-include-in-header.ejs" },
         { dest: includeAfterBody, ejsfile: "quarto-html-after-body.ejs" },
       ]
     ) {
