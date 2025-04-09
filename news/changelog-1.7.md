@@ -10,6 +10,7 @@ All changes included in 1.7:
 - ([#11659](https://github.com/quarto-dev/quarto-cli/pull/11659)): `julia` engine - Fix escaping bug where paths containing spaces or backslashes break server startup on Windows.
 - ([#11752](https://github.com/quarto-dev/quarto-cli/issues/11752)): Fix regression with non-alphanumeric characters in `categories` preventing correct filtering of listing.
 - ([#11943](https://github.com/quarto-dev/quarto-cli/issues/11943)): Fix callout title color on dark theme in revealjs following Revealjs update in quarto 1.6.
+- ([#11990](https://github.com/quarto-dev/quarto-cli/issues/11990)): Do not print parameter cell in parameterized Jupyter notebooks.
 - ([#12147](https://github.com/quarto-dev/quarto-cli/issues/12147)): for RevealJS format, `serif` and `simple` themes defaults back to have their heading color (`$presentation-heading-color`) to be the same as the body color (`$body-color`) as in Quarto 1.5.
 
 ## Dependencies
