@@ -13032,29 +13032,31 @@ try {
                 {
                   string: {
                     completions: [
-                      "pygments",
-                      "tango",
-                      "espresso",
-                      "zenburn",
-                      "kate",
-                      "monochrome",
-                      "breezedark",
-                      "haddock",
+                      "a11y",
                       "arrow",
                       "atom-one",
                       "ayu",
                       "ayu-mirage",
                       "breeze",
+                      "breezedark",
                       "dracula",
+                      "espresso",
                       "github",
                       "gruvbox",
-                      "mokokai",
+                      "haddock",
+                      "kate",
+                      "monochrome",
+                      "monokai",
+                      "none",
                       "nord",
                       "oblivion",
                       "printing",
+                      "pygments",
                       "radical",
                       "solarized",
-                      "vim-dark"
+                      "tango",
+                      "vim-dark",
+                      "zenburn"
                     ]
                   }
                 }
@@ -23987,7 +23989,7 @@ try {
           "A url to the full text for this item.",
           {
             short: "Type, class, or subtype of the item",
-            long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\uFFFD\uFFFDadventure\u201D\nfor an adventure movie)"
+            long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
           },
           "Guest (e.g.&nbsp;on a TV show or podcast).",
           "Host of the item (e.g.&nbsp;of a TV show or podcast).",
@@ -24304,12 +24306,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 195064,
+          _internalId: 195005,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 195056,
+              _internalId: 194997,
               type: "enum",
               enum: [
                 "png",
@@ -24325,7 +24327,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 195063,
+              _internalId: 195004,
               type: "anyOf",
               anyOf: [
                 {
