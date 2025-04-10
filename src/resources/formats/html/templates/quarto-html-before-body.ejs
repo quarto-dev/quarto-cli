@@ -41,7 +41,7 @@
       const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
       manageTransitions('#quarto-margin-sidebar .nav-link', false);
       if (alternate) {
-        disableStylesheet(primaryStylesheets)
+        // note: dark is layered on light, we don't disable primary!
         enableStylesheet(alternateStylesheets);
         for (const sheetNode of alternateStylesheets) {
           if (sheetNode.id === "quarto-bootstrap") {
@@ -169,6 +169,10 @@
     const darkModeDefault = queryPrefersDark.matches;
     <% } else { %>
     const darkModeDefault = <%= darkModeDefault %>;
+    <% } %>
+
+    <% if (!darkModeDefault) { %>
+    document.querySelector('link.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
     <% } %>
       
     let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
