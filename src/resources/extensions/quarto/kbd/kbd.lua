@@ -52,7 +52,7 @@ return {
           shortcutText = shortcutText:gsub("]", "\\]")
         end
 
-        return pandoc.RawInline("asciidoc", "kbd:[" .. stringEscape(shortcutText, "asciidoc") .. "]")
+        return pandoc.RawInline("asciidoc", "kbd:[" .. shortcutText .. "]")
       else
         return quarto.shortcode.error_output("kbd", "kbd only supports one positional argument", "inline")
       end
