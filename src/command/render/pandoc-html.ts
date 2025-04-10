@@ -142,7 +142,7 @@ export async function resolveSassBundles(
       )
       ? "dark"
       : "light";
-    const targets: SassTarget[] = [{
+    let targets: SassTarget[] = [{
       name: `${dependency}.min.css`,
       bundles: (bundles as any),
       attribs: {
@@ -175,10 +175,22 @@ export async function resolveSassBundles(
           ...attribForThemeStyle("dark"),
         },
       };
-      if (defaultStyle === "dark") {
+      if (defaultStyle === "dark") { // light, dark
         targets.push(darkTarget);
-      } else {
-        targets.unshift(darkTarget);
+      } else { // light, dark, light
+        const lightTargetExtra = {
+          ...targets[0],
+          attribs: {
+            ...targets[0].attribs,
+            class: "quarto-color-scheme-extra",
+          },
+        };
+
+        targets = [
+          targets[0],
+          darkTarget,
+          lightTargetExtra,
+        ];
       }
 
       hasDarkStyles = true;
