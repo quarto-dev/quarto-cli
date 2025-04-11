@@ -1,0 +1,18 @@
+---
+format: html
+theme:
+  light: united
+  dark: slate
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["link[href*=\"-dark-\"]"]
+---
+
+## Hello
+
+```markdown
+![asdf](asd.png)
+```
