@@ -265,6 +265,22 @@ local function _main()
         return isMarkdownOutput()
       elseif to == "asciidoc" or to == "asciidoctor" then
         return isAsciiDocOutput()
+      elseif to == "confluence" then
+        return isConfluenceOutput()
+      elseif to == "docusaurus" or to == "docusaurus-md" then
+        return isDocusaurusOutput()  
+      elseif to == "email" then
+        return isEmailOutput()
+      elseif to == "dashboard" then
+        return isDashboardOutput()
+      elseif to == "gfm" then
+        return isGithubMarkdownOutput()
+      elseif to == "hugo-md" or to == 'hugo' then
+        return isHugoMarkdownOutput()
+      --[[ Not working yet
+      elseif to == "ipynb" then
+        return isIpynbOutput()
+      ]]--
       else
         return false
       end 
@@ -279,7 +295,7 @@ local function _main()
     isRawLatex = isRawLatex,
     is_raw_latex = isRawLatex,
     isFormat = isFormat,
-    is_format = is_format,
+    is_format = isFormat,
     isLatexOutput = isLatexOutput,
     is_latex_output = isLatexOutput,
     isBeamerOutput = isBeamerOutput,

@@ -1,0 +1,171 @@
+---
+title: Testing when-format
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - ['Only visible in LATEX']
+        - ['Only visible in (?!LATEX|PDF)']
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['Only visible in LATEX', 'Only visible in PDF']
+        - ['Only visible in (?!LATEX|PDF)']
+    html:
+      ensureFileRegexMatches:
+        - ['Only visible in HTML', 'Only visible in HTMLJS']
+        - ['Only visible in (?!HTML)']
+    revealjs:
+      ensureFileRegexMatches:
+        - ['Only visible in HTML', 'Only visible in HTMLJS', 'Only visible in REVEALJS']
+        - ['Only visible in (?!HTML|REVEALJS)']
+
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['Only visible in TYPST']
+        - ['Only visible in (?!TYPST)']
+    docx:
+      ensureDocxRegexMatches:
+        - ['Only visible in DOCX']
+        - ['Only visible in (?!DOCX)']
+    pptx:
+      ensurePptxRegexMatches:
+        - ['Only visible in PPTX']
+        - 2
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - ['Only visible in DOCUSAURUS', 'Only visible in DOCUSAURUSMD', 'Only visible in MARKDOWN']
+        - ['Only visible in (?!DOCUSAURUS|MARKDOWN)']
+    hugo-md:
+      ensureFileRegexMatches:
+        - ['Only visible in HUGO', 'Only visible in MARKDOWN', 'Only visible in HUGOMD']
+        - ['Only visible in (?!HUGO|MARKDOWN)']
+    gfm:
+      ensureFileRegexMatches:
+        - ['Only visible in GFM', 'Only visible in MARKDOWN', 'Only visible in COMMONMARK']
+        - ['Only visible in (?!GFM|MARKDOWN|COMMONMARK)']
+    commonmark:
+      ensureFileRegexMatches:
+        - ['Only visible in COMMONMARK', 'Only visible in MARKDOWN']
+        - ['Only visible in (?!GFM|MARKDOWN|COMMONMARK)'] 
+    markdown:
+      ensureFileRegexMatches:
+        - ['Only visible in MARKDOWN']
+        - ['Only visible in (?!MARKDOWN)'] 
+    confluence-publish:
+      ensureFileRegexMatches:
+        - ['Only visible in CONFLUENCE']
+        - ['Only visible in (?!CONFLUENCE)'] 
+    asciidoc:
+      ensureFileRegexMatches:
+        - ['Only visible in ASCIIDOC']
+        - ['Only visible in (?!ASCIIDOC)'] 
+    dashboard:
+      ensureFileRegexMatches:
+        - ['Only visible in DASHBOARD', 'Only visible in HTML', 'Only visible in HTMLJS']
+        - ['Only visible in (?!HTML|DASHBOARD)']
+    email:
+      ensureFileRegexMatches:
+        - ['Only visible in EMAIL', 'Only visible in HTML', 'Only visible in HTMLJS']
+        - ['Only visible in (?!HTML|EMAIL)']
+    ipynb:
+      ensureFileRegexMatches:
+        - ['Only visible in IPYNB']
+        - ['Only visible in (?!IPYNB)']
+    beamer:
+      ensureLatexFileRegexMatches:
+        - ['Only visible in BEAMER', 'Only visible in LATEX', 'Only visible in PDF']
+        - ['Only visible in (?!BEAMER|LATEX|PDF)']
+---
+
+::: {.content-visible when-format="html"}
+Only visible in HTML
+:::
+
+::: {.content-visible when-format="revealjs"}
+Only visible in REVEALJS
+:::
+
+::: {.content-visible when-format="html:js"}
+Only visible in HTMLJS
+:::
+
+::: {.content-visible when-format="latex"}
+Only visible in LATEX
+:::
+
+::: {.content-visible when-format="pdf"}
+Only visible in PDF
+:::
+
+::: {.content-visible when-format="typst"}
+Only visible in TYPST
+:::
+
+::: {.content-visible when-format="docx"}
+Only visible in DOCX
+:::
+
+::: {.content-visible when-format="pptx"}
+Only visible in PPTX
+:::
+
+::: {.content-visible when-format="epub"}
+Only visible in EPUB
+:::
+
+::: {.content-visible when-format="markdown"}
+Only visible in MARKDOWN
+:::
+
+::: {.content-visible when-format="gfm"}
+Only visible in GFM
+:::
+
+::: {.content-visible when-format="commonmark"}
+Only visible in COMMONMARK
+:::
+
+::: {.content-visible when-format="asciidoc"}
+Only visible in ASCIIDOC
+:::
+
+::: {.content-visible when-format="docusaurus"}
+Only visible in DOCUSAURUS
+:::
+
+::: {.content-visible when-format="docusaurus-md"}
+Only visible in DOCUSAURUSMD
+:::
+
+::: {.content-visible when-format="hugo"}
+Only visible in HUGO
+:::
+
+::: {.content-visible when-format="hugo-md"}
+Only visible in HUGOMD
+:::
+
+::: {.content-visible when-format="confluence"}
+Only visible in CONFLUENCE
+:::
+
+::: {.content-visible when-format="dashboard"}
+Only visible in DASHBOARD
+:::
+
+::: {.content-visible when-format="email"}
+Only visible in EMAIL
+:::
+
+::: {.content-visible when-format="ipynb"}
+Only visible in IPYNB
+:::
+
+::: {.content-visible when-format="beamer"}
+Only visible in BEAMER
+:::
+
+
+
