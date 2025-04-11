@@ -4,37 +4,34 @@
  * Copyright (C) 2023 Posit Software, PBC
  */
 
-import { connectToServer } from './server/connection';
-import { navigationHandler } from './server/navigation';
-import { progressHandler } from './server/progress';
+import { connectToServer } from "./server/connection";
+import { navigationHandler } from "./server/navigation";
+import { progressHandler } from "./server/progress";
 
 import { handleExternalLinks } from "./frame/links";
-import { handleMecaLinks } from './frame/meca';
+import { handleMecaLinks } from "./frame/meca";
 import { handleRevealMessages } from "./frame/reveal";
 import { handleViewerMessages } from "./frame/viewer";
-import { handleCommands } from './frame/commands';
+import { handleCommands } from "./frame/commands";
 
-import './ui/fluent.css'
-
+import "./ui/fluent.css";
 
 export interface Options {
-  origin: string | null,
-  search: string | null,
-  inputFile: string | null,
+  origin: string | null;
+  search: string | null;
+  inputFile: string | null;
   isPresentation: boolean;
 }
 
 function init(options: Options) {
-  
   try {
-
     // detect dark mode
     const darkMode = detectDarkMode();
 
     // server connection
     const disconnect = connectToServer([
       progressHandler(darkMode),
-      navigationHandler()
+      navigationHandler(),
     ]);
 
     // handle commands
@@ -50,11 +47,10 @@ function init(options: Options) {
 
     // handle messages as approprate for format
     if (options.isPresentation) {
-      handleRevealMessages(disconnect)
+      handleRevealMessages(disconnect);
     } else {
       handleViewerMessages(options.inputFile);
     }
-
   } catch (error) {
     console.error(error);
   }
@@ -69,8 +65,4 @@ function detectDarkMode() {
   }
 }
 
-export { init }
-
-
-
-
+export { init };
