@@ -1560,7 +1560,7 @@ async function mdFromCodeCell(
         : label;
       // If the user specifies a top-level array for images but also labels give a warning.
       if (labelCellContainer === false && Array.isArray(sortedOutputs) == true) {
-        warning("Warning: using top-level figures with labels might result in unwanted behaviour.")
+        warning("Warning: using multiple top-level figures with labels might result in unwanted behaviour.")
       }
       // If this output has been marked to not be displayed
       // just continue
