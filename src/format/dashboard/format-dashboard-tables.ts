@@ -30,7 +30,6 @@ export function processDatatables(
 ): { resources: string[]; supporting: string[] } {
   const resources: string[] = [];
   const supporting: string[] = [];
-  debugger;
 
   // Look through the scripts in the body and see if we spot Datatables that we should fix up
   const scriptNodes = doc.querySelectorAll(
