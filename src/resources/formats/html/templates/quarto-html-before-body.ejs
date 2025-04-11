@@ -172,7 +172,8 @@
     <% } %>
 
     <% if (!darkModeDefault) { %>
-    document.querySelector('link.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
     <% } %>
       
     let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
