@@ -277,6 +277,17 @@ export interface FormatDependency {
   resources?: DependencyFile[];
 }
 
+export type PathType = "project-relative" | "relative" | "absolute";
+
+type BasePath = {
+  path: string;
+};
+
+export type QualifiedPath = BasePath & { type: PathType };
+export type AbsolutePath = BasePath & { type: "absolute" };
+export type RelativePath = BasePath & { type: "relative" };
+export type ProjectRelativePath = BasePath & { type: "project-relative" };
+
 export interface DependencyFile {
   name: string;
   path: string;
@@ -350,12 +361,34 @@ export type PandocFilter = {
   path: string;
 };
 
-export type QuartoFilterEntryPoint = PandocFilter & { "at": string };
+export type QuartoFilterEntryPoint = PandocFilter & { at: string };
 
-export type QuartoFilter = string | PandocFilter | QuartoFilterEntryPoint;
+export type QuartoFilterEntryPointQualifiedFull = {
+  type: "json" | "lua";
+  at: string;
+  path: QualifiedPath;
+};
+export type QuartoFilterSpecialEntryPoint = {
+  type: "citeproc" | "quarto";
+};
+export type QuartoFilterEntryPointQualified =
+  | QuartoFilterEntryPointQualifiedFull
+  | QuartoFilterSpecialEntryPoint;
+
+export type QuartoFilter =
+  | string
+  | PandocFilter
+  | QuartoFilterEntryPoint
+  | QuartoFilterEntryPointQualifiedFull;
 
 export function isPandocFilter(filter: QuartoFilter): filter is PandocFilter {
-  return (<PandocFilter> filter).path !== undefined;
+  return typeof (<PandocFilter> filter).path === "string";
+}
+
+export function isQuartoFilterEntryPointQualifiedFull(
+  filter: QuartoFilter,
+): filter is QuartoFilterEntryPointQualifiedFull {
+  return typeof (<PandocFilter> filter).path !== "string";
 }
 
 export function isFilterEntryPoint(
@@ -457,7 +490,7 @@ export interface Format {
 
 export interface LightDarkBrand {
   [kLight]?: Brand;
-  [kDark]?: Brand
+  [kDark]?: Brand;
 }
 
 export interface FormatRender {
