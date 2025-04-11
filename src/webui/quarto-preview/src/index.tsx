@@ -23,7 +23,13 @@ export interface Options {
   isPresentation: boolean;
 }
 
+// Store the current options
+let currentOptions: Options | null = null;
+
 function init(options: Options) {
+  // Store the options for export
+  currentOptions = options;
+
   try {
     // detect dark mode
     const darkMode = detectDarkMode();
@@ -51,6 +57,13 @@ function init(options: Options) {
     } else {
       handleViewerMessages(options.inputFile);
     }
+
+    // Dispatch event when initialized
+    const event = new CustomEvent("quarto-preview-initialized", {
+      detail: options,
+    });
+
+    document.dispatchEvent(event);
   } catch (error) {
     console.error(error);
   }
@@ -65,4 +78,9 @@ function detectDarkMode() {
   }
 }
 
-export { init };
+// Export the current options
+function getOptions() {
+  return currentOptions;
+}
+
+export { init, getOptions };
