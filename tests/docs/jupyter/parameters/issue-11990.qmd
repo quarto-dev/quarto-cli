@@ -1,0 +1,18 @@
+---
+title: "Quarto Parameters"
+format: html
+engine: jupyter
+keep-md: true
+keep-ipynb: true
+---
+
+```{python}
+#| tags: [parameters]
+#| include: false
+username = None
+password = None
+```
+
+```{python}
+print(f"Hello, {username}!")
+```

@@ -36,6 +36,7 @@ import { typstBinaryPath } from "./core/typst.ts";
 import { exitWithCleanup, onCleanup } from "./core/cleanup.ts";
 
 import { runScript } from "./command/run/run.ts";
+import { commandFailed } from "./command/utils.ts";
 
 // ensures run handlers are registered
 import "./core/run/register.ts";
@@ -51,7 +52,6 @@ import "./format/imports.ts";
 
 import { kCliffyImplicitCwd } from "./config/constants.ts";
 import { mainRunner } from "./core/main.ts";
-import { engineCommand } from "./execute/engine.ts";
 
 const checkVersionRequirement = () => {
   const versionReq = Deno.env.get("QUARTO_VERSION_REQUIREMENT");
@@ -196,6 +196,9 @@ export async function quarto(
         Deno.env.set(key, value);
       }
     }
+    if (commandFailed()) {
+      exitWithCleanup(1);
+    }
   } catch (e) {
     if (e instanceof CommandError) {
       logError(e, false);
@@ -221,5 +224,9 @@ if (import.meta.main) {
       cmd = appendLogOptions(cmd);
       return appendProfileArg(cmd);
     });
+
+    if (commandFailed()) {
+      exitWithCleanup(1);
+    }
   });
 }

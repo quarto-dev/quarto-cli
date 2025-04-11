@@ -22,41 +22,8 @@
   
       window.document.body.appendChild(a);
     }
-  
-    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
-      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
-      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
-  
-      let newTheme = '';
-  
-      if(darkModeDefault) {
-        newTheme = isAlternate ? baseTheme : alternateTheme;
-      } else {
-        newTheme = isAlternate ? alternateTheme : baseTheme;
-      }
-  
-      const changeGiscusTheme = () => {
-  
-        // From: https://github.com/giscus/giscus/issues/336
-        const sendMessage = (message) => {
-          const iframe = document.querySelector('iframe.giscus-frame');
-          if (!iframe) return;
-          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
-        }
-  
-        sendMessage({
-          setConfig: {
-            theme: newTheme
-          }
-        });
-      }
-  
-      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
-      if (isGiscussLoaded) {
-        changeGiscusTheme();
-      }
-    }
-  
+    window.setColorSchemeToggle(window.hasAlternateSentinel())
+
     <% } %>
   
     <% if (tabby) {  %>

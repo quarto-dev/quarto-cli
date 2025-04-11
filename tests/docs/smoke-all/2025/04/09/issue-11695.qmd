@@ -1,0 +1,20 @@
+--- 
+title: "foo"
+format: pdf
+keep-tex: true
+---
+
+::: {.cell execution_count=1}
+``` {.python .cell-code}
+stuff
+```
+
+::: {.cell-output .cell-output-error}
+```
+[1;32m    793[0m         err_msg [38;5;241m+[39m[38;5;241m=[39m [38;5;124m'[39m[38;5;130;01m\n[39;00m[38;5;124m'[39m [38;5;241m+[39m [38;5;124m'[39m[38;5;130;01m\n[39;00m[38;5;124m'[39m[38;5;241m.[39mjoin(remarks)
+```
+```
+Bad but handled somehow: \n
+```
+:::
+:::

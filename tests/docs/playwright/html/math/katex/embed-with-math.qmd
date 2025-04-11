@@ -1,0 +1,13 @@
+---
+format: html
+html-math-method: katex
+embed-resources: true
+self-contained-math: true
+---
+
+$\alpha$
+
+```{python}
+import pandas as pd
+pd.DataFrame([1])
+```

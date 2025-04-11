@@ -16,6 +16,7 @@ import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
 import { parse } from "../../src/core/yaml.ts";
 import { cleanoutput } from "./render/render.ts";
 import {
+  ensureEpubFileRegexMatches,
   ensureDocxRegexMatches,
   ensureDocxXpath,
   ensureFileRegexMatches,
@@ -125,6 +126,7 @@ function resolveTestSpecs(
   const result = [];
   // deno-lint-ignore no-explicit-any
   const verifyMap: Record<string, any> = {
+    ensureEpubFileRegexMatches,
     ensureHtmlElements,
     ensureHtmlElementContents,
     ensureFileRegexMatches,
@@ -202,6 +204,10 @@ function resolveTestSpecs(
             }
           } else if (key === "printsMessage") {
             verifyFns.push(verifyMap[key](value));
+          } else if (key === "ensureEpubFileRegexMatches") {
+            // this ensure function is special because it takes an array of path + regex specifiers,
+            // so we should never use the spread operator
+            verifyFns.push(verifyMap[key](outputFile.outputPath, value));
           } else if (verifyMap[key]) {
             // FIXME: We should find another way that having this requirement of keep-* in the metadata
             if (key === "ensureTypstFileRegexMatches") {

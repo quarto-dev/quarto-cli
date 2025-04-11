@@ -132,8 +132,6 @@ export async function jupyterNotebookToMarkdown(
     }
   }
 
-  console.log({ md });
-
   // join into source
   const mdSource = md.join("");
 

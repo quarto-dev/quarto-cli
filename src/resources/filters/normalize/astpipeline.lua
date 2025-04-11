@@ -112,6 +112,9 @@ function quarto_ast_pipeline()
     end
     local function handle_raw_html_as_table(el)
       local eltext
+      -- trim leading and trailing spaces
+      el.text = el.text:gsub("^%s*(.-)%s*$", "%1")
+
       if(_quarto.format.isTypstOutput()) then
         eltext = juice(el.text)
       else

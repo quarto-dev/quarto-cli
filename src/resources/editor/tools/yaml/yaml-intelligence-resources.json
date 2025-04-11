@@ -18,7 +18,7 @@
       "schema": {
         "arrayOf": "string"
       },
-      "description": "Array of rendering names"
+      "description": "Array of rendering names, e.g. `[light, dark]`"
     },
     {
       "name": "tags",
@@ -6003,29 +6003,31 @@
           {
             "string": {
               "completions": [
-                "pygments",
-                "tango",
-                "espresso",
-                "zenburn",
-                "kate",
-                "monochrome",
-                "breezedark",
-                "haddock",
+                "a11y",
                 "arrow",
                 "atom-one",
                 "ayu",
                 "ayu-mirage",
                 "breeze",
+                "breezedark",
                 "dracula",
+                "espresso",
                 "github",
                 "gruvbox",
-                "mokokai",
+                "haddock",
+                "kate",
+                "monochrome",
+                "monokai",
+                "none",
                 "nord",
                 "oblivion",
                 "printing",
+                "pygments",
                 "radical",
                 "solarized",
-                "vim-dark"
+                "tango",
+                "vim-dark",
+                "zenburn"
               ]
             }
           }
@@ -9095,7 +9097,7 @@
       "schema": "string",
       "description": {
         "short": "A regular expression that can be used to determine whether a link is an internal link.",
-        "long": "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
+        "long": "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with `http://www.quarto.org/custom` or `https://www.quarto.org/custom`\nas internal links (and others will be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
       }
     },
     {
@@ -9618,6 +9620,11 @@
     },
     {
       "name": "number-offset",
+      "tags": {
+        "formats": [
+          "$html-all"
+        ]
+      },
       "schema": {
         "maybeArrayOf": "number"
       },
@@ -9764,6 +9771,13 @@
       "description": "Theme name, theme scss file, or a mix of both."
     },
     {
+      "name": "renderings",
+      "schema": {
+        "arrayOf": "string"
+      },
+      "description": "Array of rendering names, e.g. `[light, dark]`"
+    },
+    {
       "name": "body-classes",
       "tags": {
         "formats": [
@@ -9851,8 +9865,8 @@
         ]
       },
       "description": {
-        "short": "Whether the `prefers-color-scheme` media query controls dark mode.",
-        "long": "Whether to use the `prefers-color-scheme` media query to determine whether to show\nthe user a dark or light page. Otherwise the author preference (order of `light`\nand `dark` in `theme` or `brand`) determines what is shown to the user at first visit.\n"
+        "short": "Enables setting dark mode based on the `prefers-color-scheme` media query.",
+        "long": "If set, Quarto reads the `prefers-color-scheme` media query to determine whether to show\nthe user a dark or light page. Otherwise the author-preferred color scheme is shown.\n"
       }
     },
     {
@@ -12390,7 +12404,7 @@
           "$html-doc"
         ]
       },
-      "description": "Setting this to false prevents the `repo-actions` from appearing on this page."
+      "description": "Setting this to false prevents the `repo-actions` from appearing on this page.\nOther possible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
     },
     {
       "name": "aliases",
@@ -14957,7 +14971,7 @@
       "long": "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
     },
     "Classes to apply to cell container",
-    "Array of rendering names",
+    "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
     "Array of tags for notebook cell",
     {
       "short": "Notebook cell identifier",
@@ -15830,7 +15844,7 @@
     "Open external links in a new browser window or tab (rather than\nnavigating the current tab).",
     {
       "short": "A regular expression that can be used to determine whether a link is\nan internal link.",
-      "long": "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith http://www.quarto.org as internal links (and others will be\nconsidered external):"
+      "long": "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith <code>http://www.quarto.org/custom</code> or\n<code>https://www.quarto.org/custom</code> as internal links (and others\nwill be considered external):"
     },
     {
       "short": "Controls whether links to other rendered formats are displayed in\nHTML output.",
@@ -15929,6 +15943,7 @@
     "The light theme name, theme scss file, or a mix of both.",
     "The dark theme name, theme scss file, or a mix of both.",
     "The dark theme name, theme scss file, or a mix of both.",
+    "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
     "Classes to apply to the body of the document.",
     "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
     "Enables inclusion of Pandoc default CSS for this document.",
@@ -15936,6 +15951,10 @@
     "Enables hover over a section title to see an anchor link.",
     "Enables tabsets to present content.",
     "Enables smooth scrolling within the page.",
+    {
+      "short": "Enables setting dark mode based on the\n<code>prefers-color-scheme</code> media query.",
+      "long": "If set, Quarto reads the <code>prefers-color-scheme</code> media\nquery to determine whether to show the user a dark or light page.\nOtherwise the author-preferred color scheme is shown."
+    },
     {
       "short": "Method use to render math in HTML output",
       "long": "Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href=\"https://pandoc.org/MANUAL.html#math-rendering-in-html\">Math\nRendering in HTML</a> for additional details."
@@ -16309,7 +16328,7 @@
     "Print a list of figures in the document.",
     "Print a list of tables in the document.",
     "Setting this to false prevents this document from being included in\nsearches.",
-    "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
+    "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page. Other possible values are <code>none</code> or\none or more of <code>edit</code>, <code>source</code>, and\n<code>issue</code>, <em>e.g.</em>\n<code>[edit, source, issue]</code>.",
     {
       "short": "Links to source repository actions",
       "long": "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -17029,11 +17048,7 @@
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "Manuscript configuration",
     "internal-schema-hack",
-    "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’.",
-    {
-      "short": "Whether the <code>prefers-color-scheme</code> media query controls\ndark mode.",
-      "long": "Whether to use the <code>prefers-color-scheme</code> media query to\ndetermine whether to show the user a dark or light page. Otherwise the\nauthor preference (order of <code>light</code> and <code>dark</code> in\n<code>theme</code> or <code>brand</code>) determines what is shown to\nthe user at first visit."
-    }
+    "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’."
   ],
   "schema/external-schemas.yml": [
     {
@@ -17262,12 +17277,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 194479,
+    "_internalId": 195005,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 194471,
+        "_internalId": 194997,
         "type": "enum",
         "enum": [
           "png",
@@ -17283,7 +17298,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 194478,
+        "_internalId": 195004,
         "type": "anyOf",
         "anyOf": [
           {

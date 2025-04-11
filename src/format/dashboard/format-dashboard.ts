@@ -36,6 +36,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { kPageLayout, kPageLayoutCustom } from "../html/format-html-shared.ts";
 import { htmlFormat } from "../html/format-html.ts";
+import { kDTTableSentinel } from "./format-dashboard-shared.ts";
 
 import { join } from "../../deno_ral/path.ts";
 import {
@@ -199,7 +200,7 @@ export function dashboardFormat() {
             join("js", "dt", "datatables.min.js"),
           ),
           attribs: {
-            kDTTableSentinel: "true",
+            [kDTTableSentinel]: "true",
           },
         });
         stylesheets.push({
@@ -209,7 +210,7 @@ export function dashboardFormat() {
             join("js", "dt", "datatables.min.css"),
           ),
           attribs: {
-            kDTTableSentinel: "true",
+            [kDTTableSentinel]: "true",
           },
         });
         scripts.push({
@@ -219,7 +220,7 @@ export function dashboardFormat() {
             join("js", "dt", "pdfmake.min.js"),
           ),
           attribs: {
-            kDTTableSentinel: "true",
+            [kDTTableSentinel]: "true",
           },
         });
         scripts.push({
@@ -229,7 +230,7 @@ export function dashboardFormat() {
             join("js", "dt", "vfs_fonts.js"),
           ),
           attribs: {
-            kDTTableSentinel: "true",
+            [kDTTableSentinel]: "true",
           },
         });
 

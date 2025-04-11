@@ -9,6 +9,7 @@ import { createTempContext } from "../../core/temp.ts";
 import { installExtension } from "../../extension/install.ts";
 
 import { info } from "../../deno_ral/log.ts";
+import { signalCommandFailure } from "../utils.ts";
 
 export const addCommand = new Command()
   .name("add")
@@ -44,16 +45,19 @@ export const addCommand = new Command()
       await initYamlIntelligenceResourcesFromFilesystem();
       const temp = createTempContext();
       try {
-        // Install an extension
-        if (extension) {
-          await installExtension(
-            extension,
-            temp,
-            options.prompt !== false,
-            options.embed,
-          );
-        } else {
+        if (!extension) {
           info("Please provide an extension name, url, or path.");
+          signalCommandFailure();
+        }
+        // Install an extension
+        const result = await installExtension(
+          extension,
+          temp,
+          options.prompt !== false,
+          options.embed,
+        );
+        if (!result) {
+          signalCommandFailure();
         }
       } finally {
         temp.cleanup();

@@ -1,0 +1,13 @@
+---
+format: html
+filters:
+  - print-available-brands.lua
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        -
+          - this document has a light brand
+          - this document has a dark brand
+---
