@@ -64,7 +64,11 @@ All changes included in 1.7:
 
 ## Formats
 
-## `html`
+### `dashboard`
+
+- ([#11338](https://github.com/quarto-dev/quarto-cli/issues/11338)): Remove unused datatables imports when appropriate.
+
+### `html`
 
 - ([#1325](https://github.com/quarto-dev/quarto-cli/issues/1325)): Dark Mode pages should not flash light on reload. (Nor should Light Mode pages flash dark.)
 - ([#1470](https://github.com/quarto-dev/quarto-cli/issues/1470)): `respect-user-color-scheme` enables checking the media query `prefers-color-scheme` for user dark mode preference. Author preference still influences stylesheet order and NoJS experience. Defaults to `false`, leaving to author preference.
@@ -76,7 +80,7 @@ All changes included in 1.7:
 - ([#12319](https://github.com/quarto-dev/quarto-cli/pull/12319)): Provide switchable light and dark brands for a page with `brand.light` and `brand.dark`.
 - ([#12356](https://github.com/quarto-dev/quarto-cli/issues/12356)): Remove duplicate id in HTML document when using `#lst-` prefix label for using Quarto crossref.
 
-## `pdf`
+### `pdf`
 
 - ([#11835](https://github.com/quarto-dev/quarto-cli/issues/11835)): Take markdown structure into account when detecting minimum heading level.
 - ([#11878](https://github.com/quarto-dev/quarto-cli/issues/11878), [#12085](https://github.com/quarto-dev/quarto-cli/issues/12085)): Correctly fixup raw LaTeX table having an unexpected table env with options (e.g `\begin{table}[!ht]`) to be handled as crossref table.
@@ -92,16 +96,16 @@ All changes included in 1.7:
     - New Quarto partials: `babel-lang.tex`, `biblio-config.tex`. Quarto's partials uses `.tex` extension.
   - BREAKING CHANGE for templates authors: `common.latex` does now uses `pandoc.tex` partial from Quarto, which include now part of the content that was in main `template.tex`. If you modify `pandoc.tex` as part of a custom format, it should be updated to new content.
 
-## `jats`
+### `jats`
 
 - Update to Pandoc's template following Pandoc 3.6.3 support:
   - `article.jats_publishing` partials now support `author.roles`
 
-## `revealjs`
+### `revealjs`
 
 - ([#12307](https://github.com/quarto-dev/quarto-cli/issues/12307)): Tabsets using `tabby.js` in Revealjs now correctly render reactive content when `server: shiny` is used.
 
-## `typst` format
+### `typst` format
 
 - ([#11578](https://github.com/quarto-dev/quarto-cli/issues/11578)): Typst column layout widths use fractional `fr` units instead of percent `%` units for unitless and default widths in order to fill the enclosing block and not spill outside it.
 - ([#11676](https://github.com/quarto-dev/quarto-cli/pull/11676)): Convert unitless image widths from pixels to inches for column layouts.
