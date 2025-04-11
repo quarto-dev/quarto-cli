@@ -8,6 +8,7 @@
 
 import { ensureDirSync, walkSync } from "../../deno_ral/fs.ts";
 import { dirname, extname, join, relative } from "../../deno_ral/path.ts";
+import { warning } from "../../deno_ral/log.ts";
 import * as colors from "fmt/colors";
 import { decodeBase64 as base64decode } from "encoding/base64";
 import { stringify } from "../yaml.ts";
@@ -1554,10 +1555,13 @@ async function mdFromCodeCell(
 
     for (const { index, output } of sortedOutputs) {
       // compute output label
-      const outputLabel = label && labelCellContainer && isDisplayData(output)
+      const outputLabel = label && (labelCellContainer || Array.isArray(sortedOutputs)) && isDisplayData(output)
         ? (label + "-" + nextOutputSuffix++)
         : label;
-
+      // If the user specifies a top-level array for images but also labels give a warning.
+      if (labelCellContainer === false && Array.isArray(sortedOutputs) == true) {
+        warning("Warning: using top-level figures with labels might result in unwanted behaviour.")
+      }
       // If this output has been marked to not be displayed
       // just continue
       if (output.metadata?.[kQuartoOutputDisplay] === false) {
