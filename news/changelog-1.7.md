@@ -162,6 +162,10 @@ All changes included in 1.7:
 
 - ([#12366](https://github.com/quarto-dev/quarto-cli/pull/12366)): Added Bulgarian translation for Quarto UI text (credit: @sakelariev)
 
+## `quarto publish`
+
+- ([#9929](https://github.com/quarto-dev/quarto-cli/issues/9929)): `quarto publish gh-pages` will now clean previous worktree directory leftover from previous deploys.
+
 ## Other Fixes and Improvements
 
 - A new folder `quarto-session-temp` can be created in `.quarto` to store temporary files created by Quarto during a rendering. Reminder: `.quarto` is for internal use of Quarto and should not be versioned (thus added to `.gitignore`).
