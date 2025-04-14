@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { info } from "../../deno_ral/log.ts";
+import { debug, info } from "../../deno_ral/log.ts";
 import { dirname, join, relative } from "../../deno_ral/path.ts";
 import { copy } from "../../deno_ral/fs.ts";
 import * as colors from "fmt/colors";
@@ -190,11 +190,33 @@ async function publish(
   );
 
   // allocate worktree dir
-  const tempDir = Deno.makeTempDirSync({ dir: input });
+  const tempDir = Deno.makeTempDirSync({
+    dir: input,
+    prefix: ".quarto-publish-worktree-",
+  });
   removeIfExists(tempDir);
 
-  const deployId = shortUuid();
+  // cleaning up leftover by listing folder with prefix .quarto-publish-worktree- and calling git worktree rm on them
+  const worktreeDir = Deno.readDirSync(input);
+  for (const entry of worktreeDir) {
+    if (
+      entry.isDirectory && entry.name.startsWith(".quarto-publish-worktree-")
+    ) {
+      debug(
+        `Cleaning up leftover worktree folder ${entry.name} from past deploys`,
+      );
+      const worktreePath = join(input, entry.name);
+      await execProcess({
+        cmd: ["git", "worktree", "remove", worktreePath],
+        cwd: input,
+      });
+      removeIfExists(worktreePath);
+    }
+  }
 
+  // create worktree and deploy from it
+  const deployId = shortUuid();
+  debug(`Deploying from worktree ${tempDir} with deployId ${deployId}`);
   await withWorktree(input, relative(input, tempDir), async () => {
     // copy output to tempdir and add .nojekyll (include deployId
     // in .nojekyll so we can poll for completed deployment)
