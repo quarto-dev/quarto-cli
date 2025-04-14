@@ -41,7 +41,9 @@
       const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
       manageTransitions('#quarto-margin-sidebar .nav-link', false);
       if (alternate) {
-        // note: dark is layered on light, we don't disable primary!
+        // note: we don't disable primary, but we need to disable light highlighting
+        const lightHighlightStylesheets = window.document.querySelectorAll('link#quarto-text-highlighting-styles:not(.quarto-color-alternate)')
+        disableStylesheet(lightHighlightStylesheets)
         enableStylesheet(alternateStylesheets);
         for (const sheetNode of alternateStylesheets) {
           if (sheetNode.id === "quarto-bootstrap") {
