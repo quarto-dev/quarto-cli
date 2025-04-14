@@ -191,9 +191,10 @@ async function publish(
     type === "site" ? target?.url : undefined,
   );
 
+  const kPublishWorktreeDir = "quarto-publish-worktree-";
   // allocate worktree dir
   const temp = createTempContext(
-    { prefix: "quarto-publish-worktree-", dir: projectScratchPath(input) },
+    { prefix: kPublishWorktreeDir, dir: projectScratchPath(input) },
   );
   const tempDir = temp.baseDir;
   removeIfExists(tempDir);
@@ -202,7 +203,7 @@ async function publish(
   const worktreeDir = Deno.readDirSync(projectScratchPath(input));
   for (const entry of worktreeDir) {
     if (
-      entry.isDirectory && entry.name.startsWith("quarto-publish-worktree-")
+      entry.isDirectory && entry.name.startsWith(kPublishWorktreeDir)
     ) {
       debug(
         `Cleaning up leftover worktree folder ${entry.name} from past deploys`,
