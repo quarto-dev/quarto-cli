@@ -27,8 +27,12 @@ export async function mainRunner(runner: Runner) {
     await initializeLogger(logOptions(args));
 
     // install termination signal handlers
+
+    // Even though windows doesn't technically have signals, Deno
+    // does the "expected" thing here and calls abend
+    // on interruption.
+    Deno.addSignalListener("SIGINT", abend);
     if (!isWindows) {
-      Deno.addSignalListener("SIGINT", abend);
       Deno.addSignalListener("SIGTERM", abend);
     }
 
