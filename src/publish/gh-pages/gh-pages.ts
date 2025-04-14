@@ -33,6 +33,8 @@ import {
   gitHubContextForPublish,
   verifyContext,
 } from "../common/git.ts";
+import { createTempContext } from "../../core/temp.ts";
+import { projectScratchPath } from "../../project/project-scratch.ts";
 
 export const kGhpages = "gh-pages";
 const kGhpagesDescription = "GitHub Pages";
@@ -190,25 +192,25 @@ async function publish(
   );
 
   // allocate worktree dir
-  const tempDir = Deno.makeTempDirSync({
-    dir: input,
-    prefix: ".quarto-publish-worktree-",
-  });
+  const temp = createTempContext(
+    { prefix: "quarto-publish-worktree-", dir: projectScratchPath(input) },
+  );
+  const tempDir = temp.baseDir;
   removeIfExists(tempDir);
 
   // cleaning up leftover by listing folder with prefix .quarto-publish-worktree- and calling git worktree rm on them
-  const worktreeDir = Deno.readDirSync(input);
+  const worktreeDir = Deno.readDirSync(projectScratchPath(input));
   for (const entry of worktreeDir) {
     if (
-      entry.isDirectory && entry.name.startsWith(".quarto-publish-worktree-")
+      entry.isDirectory && entry.name.startsWith("quarto-publish-worktree-")
     ) {
       debug(
         `Cleaning up leftover worktree folder ${entry.name} from past deploys`,
       );
-      const worktreePath = join(input, entry.name);
+      const worktreePath = join(projectScratchPath(input), entry.name);
       await execProcess({
         cmd: ["git", "worktree", "remove", worktreePath],
-        cwd: input,
+        cwd: projectScratchPath(input),
       });
       removeIfExists(worktreePath);
     }
@@ -231,6 +233,7 @@ async function publish(
       ["push", "--force", "origin", "HEAD:gh-pages"],
     ]);
   });
+  temp.cleanup();
   info("");
 
   // if this is the creation of gh-pages AND this is a user home/default site
