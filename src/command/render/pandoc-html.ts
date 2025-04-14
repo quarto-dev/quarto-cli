@@ -295,19 +295,9 @@ export async function resolveSassBundles(
     }
   }
 
-  // Resolve generated quarto css variables
-  if (hasDarkStyles && defaultStyle !== "dark") {
-    // Put dark stylesheet first if light is default (for NoJS)
-    extras = await resolveQuartoSyntaxHighlighting(
-      inputDir,
-      extras,
-      format,
-      project,
-      "dark",
-      defaultStyle,
-    );
-  }
-
+  // light only: light
+  // author prefers dark: light, dark
+  // author prefers light: light, dark, light
   extras = await resolveQuartoSyntaxHighlighting(
     inputDir,
     extras,
@@ -317,8 +307,15 @@ export async function resolveSassBundles(
     defaultStyle,
   );
 
-  if (hasDarkStyles && defaultStyle === "dark") {
-    // Put dark stylesheet second if dark is default (for NoJS)
+  if (hasDarkStyles) {
+    // find the last entry, for the light highlight stylesheet
+    // so we can duplicate it below.
+    // (note we must do this before adding the dark highlight stylesheet)
+    const lightDep = extras.html?.[kDependencies]?.find((extraDep) =>
+      extraDep.name === kQuartoHtmlDependency
+    );
+    const lightEntry = lightDep?.stylesheets &&
+      lightDep.stylesheets[lightDep.stylesheets.length - 1];
     extras = await resolveQuartoSyntaxHighlighting(
       inputDir,
       extras,
@@ -327,6 +324,19 @@ export async function resolveSassBundles(
       "dark",
       defaultStyle,
     );
+    if (defaultStyle === "light") {
+      const dep2 = extras.html?.[kDependencies]?.find((extraDep) =>
+        extraDep.name === kQuartoHtmlDependency
+      );
+      assert(dep2?.stylesheets && lightEntry);
+      dep2.stylesheets.push({
+        ...lightEntry,
+        attribs: {
+          ...lightEntry.attribs,
+          class: "quarto-color-scheme-extra",
+        },
+      });
+    }
   }
 
   if (isHtmlOutput(format.pandoc, true)) {
