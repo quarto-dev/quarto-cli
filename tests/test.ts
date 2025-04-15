@@ -336,3 +336,13 @@ function readExecuteOutput(log: string) {
     return JSON.parse(line) as ExecuteOutput;
   });
 }
+
+export const removeFilesTeardown = (fileList: string[]) => {
+  return {
+    teardown: async () => {
+      for (const file of fileList) {
+        safeRemoveSync(file);
+      }
+    }
+  };
+}
