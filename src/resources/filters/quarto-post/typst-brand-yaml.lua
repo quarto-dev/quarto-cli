@@ -126,7 +126,7 @@ function render_typst_brand_yaml()
         if headings and next(headings) then
             quarto.doc.include_text('in-header', table.concat({
               '#show heading: set text(',
-              conditional_entry('font', headings.family),
+              conditional_entry('font', headings.family and _quarto.modules.typst.css.translate_font_family_list(headings.family), false),
               conditional_entry('weight', _quarto.modules.typst.css.translate_font_weight(headings.weight)),
               conditional_entry('style', headings.style),
               conditional_entry('fill', headings.color, false),
@@ -147,7 +147,7 @@ function render_typst_brand_yaml()
         if monospaceInline and next(monospaceInline) then
             quarto.doc.include_text('in-header', table.concat({
               '#show raw.where(block: false): set text(',
-              conditional_entry('font', monospaceInline.family),
+              conditional_entry('font', monospaceInline.family and _quarto.modules.typst.css.translate_font_family_list(monospaceInline.family), false),
               conditional_entry('weight', _quarto.modules.typst.css.translate_font_weight(monospaceInline.weight)),
               conditional_entry('size', monospaceInline.size, false),
               conditional_entry('fill', monospaceInline.color, false),
@@ -166,7 +166,7 @@ function render_typst_brand_yaml()
         if monospaceBlock and next(monospaceBlock) then
           quarto.doc.include_text('in-header', table.concat({
             '#show raw.where(block: true): set text(',
-            conditional_entry('font', monospaceBlock.family),
+            conditional_entry('font', monospaceBlock.family and _quarto.modules.typst.css.translate_font_family_list(monospaceBlock.family), false),
             conditional_entry('weight', _quarto.modules.typst.css.translate_font_weight(monospaceBlock.weight)),
             conditional_entry('size', monospaceBlock.size, false),
             conditional_entry('fill', monospaceBlock.color, false),
@@ -318,7 +318,7 @@ function render_typst_brand_yaml()
       local base = _quarto.modules.brand.get_typography(brandMode, 'base')
       if base and next(base) then
         meta.brand.typography.base = {
-          family = base.family,
+          family = base.family and pandoc.RawInline('typst', _quarto.modules.typst.css.translate_font_family_list(base.family)),
           size = base.size,
         }
       end
@@ -332,8 +332,9 @@ function render_typst_brand_yaml()
         color = color and pandoc.RawInline('typst', color)
         local weight = _quarto.modules.typst.css.translate_font_weight(headings.weight or base.weight)
         weight = weight and pandoc.RawInline('typst', tostring(quote_string(weight)))
+        local family = headings.family or base.family
         meta.brand.typography.headings = {
-          family = headings.family or base.family,
+          family = family and pandoc.RawInline('typst', _quarto.modules.typst.css.translate_font_family_list(family)),
           weight = weight,
           style = headings.style or base.style,
           decoration = headings.decoration or base.decoration,
