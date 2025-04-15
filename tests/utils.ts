@@ -109,8 +109,11 @@ export function outputForInput(
     outputExt = ext 
   } else {
     outputExt = baseFormat || "html";
-    if (baseFormat === "latex" || baseFormat == "context" || baseFormat == "beamer") {
+    if (baseFormat === "latex" || baseFormat == "context") {
       outputExt = "tex";
+    }
+    if (baseFormat === "beamer") {
+      outputExt = "pdf";
     }
     if (baseFormat === "revealjs") {
       outputExt = "html";
