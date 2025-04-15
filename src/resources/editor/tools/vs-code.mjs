@@ -16799,13 +16799,6 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Theme name, theme scss file, or a mix of both."
         },
         {
-          name: "renderings",
-          schema: {
-            arrayOf: "string"
-          },
-          description: "Array of rendering names, e.g. `[light, dark]`"
-        },
-        {
           name: "body-classes",
           tags: {
             formats: [
@@ -24305,12 +24298,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 195005,
+        _internalId: 195e3,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 194997,
+            _internalId: 194992,
             type: "enum",
             enum: [
               "png",
@@ -24326,7 +24319,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 195004,
+            _internalId: 194999,
             type: "anyOf",
             anyOf: [
               {

@@ -9771,13 +9771,6 @@
       "description": "Theme name, theme scss file, or a mix of both."
     },
     {
-      "name": "renderings",
-      "schema": {
-        "arrayOf": "string"
-      },
-      "description": "Array of rendering names, e.g. `[light, dark]`"
-    },
-    {
       "name": "body-classes",
       "tags": {
         "formats": [
@@ -17277,12 +17270,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 195005,
+    "_internalId": 195000,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 194997,
+        "_internalId": 194992,
         "type": "enum",
         "enum": [
           "png",
@@ -17298,7 +17291,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 195004,
+        "_internalId": 194999,
         "type": "anyOf",
         "anyOf": [
           {
