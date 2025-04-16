@@ -4,14 +4,10 @@ format: html
 brand:
   light:
     logo:
-      small:
-        light: sun.png
-        dark: sun.png
+      small: sun.png
   dark:
     logo:
-      small:
-        light: moon.png
-        dark: moon.png
+      small: moon.png
 _quarto:
   tests:
     html:

@@ -3,11 +3,7 @@ title: Test brand light/dark shortcodes
 format: html
 brand:
   logo:
-    small:
-      # light/dark don't work here yet,
-      # but brand.ts will drop entries that don't have both
-      light: sun.png
-      dark: moon.png
+    small: sun.png
 _quarto:
   tests:
     html:
