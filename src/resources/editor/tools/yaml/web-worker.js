@@ -8601,7 +8601,127 @@ try {
             }
           },
           {
-            id: "comments",
+            id: "giscus-configuration",
+            object: {
+              closed: true,
+              properties: {
+                repo: {
+                  string: {
+                    description: {
+                      short: "The Github repo that will be used to store comments.",
+                      long: "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n"
+                    }
+                  }
+                },
+                "repo-id": {
+                  string: {
+                    description: {
+                      short: "The Github repository identifier.",
+                      long: "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
+                    }
+                  }
+                },
+                category: {
+                  string: {
+                    description: {
+                      short: "The discussion category where new discussions will be created.",
+                      long: "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n"
+                    }
+                  }
+                },
+                "category-id": {
+                  string: {
+                    description: {
+                      short: "The Github category identifier.",
+                      long: "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
+                    }
+                  }
+                },
+                mapping: {
+                  anyOf: [
+                    {
+                      enum: [
+                        "pathname",
+                        "url",
+                        "title",
+                        "og:title"
+                      ]
+                    },
+                    "string"
+                  ],
+                  description: {
+                    short: "The mapping between the page and the embedded discussion.",
+                    long: "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
+                  }
+                },
+                "reactions-enabled": {
+                  boolean: {
+                    description: "Display reactions for the discussion's main post before the comments."
+                  }
+                },
+                loading: {
+                  enum: [
+                    "lazy"
+                  ],
+                  description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
+                },
+                "input-position": {
+                  enum: [
+                    "top",
+                    "bottom"
+                  ],
+                  description: "Place the comment input box above or below the comments."
+                },
+                theme: {
+                  anyOf: [
+                    "string",
+                    {
+                      ref: "giscus-themes"
+                    },
+                    {
+                      object: {
+                        closed: true,
+                        properties: {
+                          light: {
+                            anyOf: [
+                              "string",
+                              {
+                                ref: "giscus-themes"
+                              }
+                            ],
+                            description: "The light theme name."
+                          },
+                          dark: {
+                            anyOf: [
+                              "string",
+                              {
+                                ref: "giscus-themes"
+                              }
+                            ],
+                            description: "The dark theme name."
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  description: {
+                    short: "The giscus theme to use when displaying comments.",
+                    long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
+                  }
+                },
+                language: {
+                  string: {
+                    description: "The language that should be used when displaying the commenting interface."
+                  }
+                }
+              },
+              required: [
+                "repo"
+              ]
+            }
+          },
+          {
+            id: "document-comments-configuration",
             anyOf: [
               {
                 enum: [
@@ -8665,123 +8785,7 @@ try {
                       }
                     },
                     giscus: {
-                      object: {
-                        closed: true,
-                        properties: {
-                          repo: {
-                            string: {
-                              description: {
-                                short: "The Github repo that will be used to store comments.",
-                                long: "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n"
-                              }
-                            }
-                          },
-                          "repo-id": {
-                            string: {
-                              description: {
-                                short: "The Github repository identifier.",
-                                long: "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                              }
-                            }
-                          },
-                          category: {
-                            string: {
-                              description: {
-                                short: "The discussion category where new discussions will be created.",
-                                long: "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n"
-                              }
-                            }
-                          },
-                          "category-id": {
-                            string: {
-                              description: {
-                                short: "The Github category identifier.",
-                                long: "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                              }
-                            }
-                          },
-                          mapping: {
-                            anyOf: [
-                              {
-                                enum: [
-                                  "pathname",
-                                  "url",
-                                  "title",
-                                  "og:title"
-                                ]
-                              },
-                              "string"
-                            ],
-                            description: {
-                              short: "The mapping between the page and the embedded discussion.",
-                              long: "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
-                            }
-                          },
-                          "reactions-enabled": {
-                            boolean: {
-                              description: "Display reactions for the discussion's main post before the comments."
-                            }
-                          },
-                          loading: {
-                            enum: [
-                              "lazy"
-                            ],
-                            description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
-                          },
-                          "input-position": {
-                            enum: [
-                              "top",
-                              "bottom"
-                            ],
-                            description: "Place the comment input box above or below the comments."
-                          },
-                          theme: {
-                            anyOf: [
-                              "string",
-                              {
-                                ref: "giscus-themes"
-                              },
-                              {
-                                object: {
-                                  closed: true,
-                                  properties: {
-                                    light: {
-                                      anyOf: [
-                                        "string",
-                                        {
-                                          ref: "giscus-themes"
-                                        }
-                                      ],
-                                      description: "The light theme name."
-                                    },
-                                    dark: {
-                                      anyOf: [
-                                        "string",
-                                        {
-                                          ref: "giscus-themes"
-                                        }
-                                      ],
-                                      description: "The dark theme name."
-                                    }
-                                  }
-                                }
-                              }
-                            ],
-                            description: {
-                              short: "The giscus theme to use when displaying comments.",
-                              long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
-                            }
-                          },
-                          language: {
-                            string: {
-                              description: "The language that should be used when displaying the commenting interface."
-                            }
-                          }
-                        },
-                        required: [
-                          "repo"
-                        ]
-                      }
+                      ref: "giscus-configuration"
                     },
                     hypothesis: {
                       anyOf: [
@@ -9979,7 +9983,7 @@ try {
                 },
                 comments: {
                   schema: {
-                    ref: "comments"
+                    ref: "document-comments-configuration"
                   }
                 },
                 "open-graph": {
@@ -13263,7 +13267,7 @@ try {
               ]
             },
             schema: {
-              ref: "comments"
+              ref: "document-comments-configuration"
             },
             description: "Configuration for document commenting."
           }
@@ -20749,16 +20753,6 @@ try {
           "Alias for href",
           'Value for rel attribute. Multiple space-separated values are\npermitted. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor a details.',
           'Value for target attribute. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target</a>\nfor details.',
-          "The Github repo that will be used to store comments.",
-          "The label that will be assigned to issues created by Utterances.",
-          {
-            short: "The Github theme that should be used for Utterances.",
-            long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
-          },
-          {
-            short: "How posts should be mapped to Github issues",
-            long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
-          },
           {
             short: "The Github repo that will be used to store comments.",
             long: "The Github repo that will be used to store comments.\nIn order to work correctly, the repo must be public, with the giscus\napp installed, and the discussions feature must be enabled."
@@ -20789,6 +20783,16 @@ try {
           "The light theme name.",
           "The dark theme name.",
           "The language that should be used when displaying the commenting\ninterface.",
+          "The Github repo that will be used to store comments.",
+          "The label that will be assigned to issues created by Utterances.",
+          {
+            short: "The Github theme that should be used for Utterances.",
+            long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
+          },
+          {
+            short: "How posts should be mapped to Github issues",
+            long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
+          },
           "Override the default hypothesis client url with a custom client\nurl.",
           "Controls whether the sidebar opens automatically on startup.",
           "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -24077,7 +24081,46 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+          "The Github repo that will be used to store comments.",
+          "The label that will be assigned to issues created by Utterances.",
+          {
+            short: "The Github theme that should be used for Utterances.",
+            long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
+          },
+          {
+            short: "How posts should be mapped to Github issues",
+            long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
+          },
+          "Override the default hypothesis client url with a custom client\nurl.",
+          "Controls whether the sidebar opens automatically on startup.",
+          "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
+          "Controls the overall look of the sidebar (<code>classic</code> or\n<code>clean</code>)",
+          "Controls whether the experimental New Note button should be shown in\nthe notes tab in the sidebar.",
+          "Specify a URL to direct a user to, in a new tab. when they click on\nthe annotation author link in the header of an annotation.",
+          "Alternative annotation services which the client should connect to\ninstead of connecting to the public Hypothesis service at\nhypothes.is.",
+          "The base URL of the service API.",
+          "The domain name which the annotation service is associated with.",
+          "An OAuth 2 grant token which the client can send to the service in\norder to get an access token for making authenticated requests to the\nservice.",
+          "A flag indicating whether users should be able to leave groups of\nwhich they are a member.",
+          "A flag indicating whether annotation cards should show links that\ntake the user to see an annotation in context.",
+          "An array of Group IDs or the literal string\n<code>$rpc:requestGroups</code>",
+          "The URL to an image for the annotation service. This image will\nappear to the left of the name of the currently selected group.",
+          "Settings to adjust the commenting sidebar\u2019s look and feel.",
+          "Secondary color for elements of the commenting UI.",
+          "The main background color of the commenting UI.",
+          "The background color for call to action buttons.",
+          "The font family for selection text in the annotation card.",
+          "The font family for the actual annotation value that the user writes\nabout the page or selection.",
+          "A CSS selector specifying the containing element into which the\nsidebar iframe will be placed.",
+          "Defines a focused filter set for the available annotations on a\npage.",
+          "The username of the user to focus on.",
+          "The userid of the user to focus on.",
+          "The display name of the user to focus on.",
+          "Host url and port number of receiving iframe",
+          "Number of nested iframes deep the client is relative from the\nreceiving iframe.",
+          "The root URL from which assets are loaded.",
+          "The URL for the sidebar application which displays annotations."
         ],
         "schema/external-schemas.yml": [
           {
@@ -24306,12 +24349,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 195005,
+          _internalId: 195011,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 194997,
+              _internalId: 195003,
               type: "enum",
               enum: [
                 "png",
@@ -24327,7 +24370,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 195004,
+              _internalId: 195010,
               type: "anyOf",
               anyOf: [
                 {

@@ -32,6 +32,7 @@ export async function resolveFormatForGiscus(
 ) {
   const comments = format.metadata[kComments] as
     | Record<string, unknown>
+    | false
     | undefined;
   if (!comments) return;
 
