@@ -1,0 +1,28 @@
+---
+title: Test brand light/dark shortcodes
+format: html
+brand:
+  light:
+    logo:
+      small:
+        light: sun.png
+        dark: sun.png
+  dark:
+    logo:
+      small:
+        light: moon.png
+        dark: moon.png
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'img[src="moon.png"]'
+        - []
+---
+
+::: {}
+
+{{< brand logo small dark >}}
+
+:::
