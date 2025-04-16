@@ -195,9 +195,6 @@ function compute_flags()
       elseif lightbox_auto == false then
         flags.has_lightbox = false
       end
-      if el.renderings then
-        flags.has_renderings = true
-      end
     end,
   }}
 end

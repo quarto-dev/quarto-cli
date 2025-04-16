@@ -16804,13 +16804,6 @@ try {
             description: "Theme name, theme scss file, or a mix of both."
           },
           {
-            name: "renderings",
-            schema: {
-              arrayOf: "string"
-            },
-            description: "Array of rendering names, e.g. `[light, dark]`"
-          },
-          {
             name: "body-classes",
             tags: {
               formats: [
@@ -20753,6 +20746,16 @@ try {
           "Alias for href",
           'Value for rel attribute. Multiple space-separated values are\npermitted. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor a details.',
           'Value for target attribute. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target</a>\nfor details.',
+          "The Github repo that will be used to store comments.",
+          "The label that will be assigned to issues created by Utterances.",
+          {
+            short: "The Github theme that should be used for Utterances.",
+            long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
+          },
+          {
+            short: "How posts should be mapped to Github issues",
+            long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
+          },
           {
             short: "The Github repo that will be used to store comments.",
             long: "The Github repo that will be used to store comments.\nIn order to work correctly, the repo must be public, with the giscus\napp installed, and the discussions feature must be enabled."
@@ -20783,16 +20786,6 @@ try {
           "The light theme name.",
           "The dark theme name.",
           "The language that should be used when displaying the commenting\ninterface.",
-          "The Github repo that will be used to store comments.",
-          "The label that will be assigned to issues created by Utterances.",
-          {
-            short: "The Github theme that should be used for Utterances.",
-            long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
-          },
-          {
-            short: "How posts should be mapped to Github issues",
-            long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
-          },
           "Override the default hypothesis client url with a custom client\nurl.",
           "Controls whether the sidebar opens automatically on startup.",
           "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -22976,7 +22969,6 @@ try {
           "The light theme name, theme scss file, or a mix of both.",
           "The dark theme name, theme scss file, or a mix of both.",
           "The dark theme name, theme scss file, or a mix of both.",
-          "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
           "Classes to apply to the body of the document.",
           "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
           "Enables inclusion of Pandoc default CSS for this document.",
@@ -24082,6 +24074,36 @@ try {
           "Manuscript configuration",
           "internal-schema-hack",
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+          {
+            short: "The Github repo that will be used to store comments.",
+            long: "The Github repo that will be used to store comments.\nIn order to work correctly, the repo must be public, with the giscus\napp installed, and the discussions feature must be enabled."
+          },
+          {
+            short: "The Github repository identifier.",
+            long: 'The Github repository identifier.\nYou can quickly find this by using the configuration tool at <a href="https://giscus.app">https://giscus.app</a>. If this is not\nprovided, Quarto will attempt to discover it at render time.'
+          },
+          {
+            short: "The discussion category where new discussions will be created.",
+            long: "The discussion category where new discussions will be created. It is\nrecommended to use a category with the <strong>Announcements</strong>\ntype so that new discussions can only be created by maintainers and\ngiscus."
+          },
+          {
+            short: "The Github category identifier.",
+            long: 'The Github category identifier.\nYou can quickly find this by using the configuration tool at <a href="https://giscus.app">https://giscus.app</a>. If this is not\nprovided, Quarto will attempt to discover it at render time.'
+          },
+          {
+            short: "The mapping between the page and the embedded discussion.",
+            long: "The mapping between the page and the embedded discussion."
+          },
+          "Display reactions for the discussion\u2019s main post before the\ncomments.",
+          "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
+          "Place the comment input box above or below the comments.",
+          {
+            short: "The giscus theme to use when displaying comments.",
+            long: "The giscus theme to use when displaying comments. Light and dark\nthemes are supported. If a single theme is provided by name, it will be\nused as light and dark theme. To use different themes, use\n<code>light</code> and <code>dark</code> key:"
+          },
+          "The light theme name.",
+          "The dark theme name.",
+          "The language that should be used when displaying the commenting\ninterface.",
           "The Github repo that will be used to store comments.",
           "The label that will be assigned to issues created by Utterances.",
           {
@@ -24349,12 +24371,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 195011,
+          _internalId: 194571,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 195003,
+              _internalId: 194563,
               type: "enum",
               enum: [
                 "png",
@@ -24370,7 +24392,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 195010,
+              _internalId: 194570,
               type: "anyOf",
               anyOf: [
                 {

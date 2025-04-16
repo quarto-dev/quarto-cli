@@ -154,8 +154,13 @@ All changes included in 1.7:
 - ([#12365](https://github.com/quarto-dev/quarto-cli/pull/12365)): `brand color` shortcode takes an optional `brandMode` second parameter, default `light`.
 - ([#12453](https://github.com/quarto-dev/quarto-cli/issues/12453)): Expose `_quarto.modules.brand` as `quarto.brand` and add `has_mode()` function.
 
-## Lua API
+### Conditional Content
 
+- ([#4411](https://github.com/quarto-dev/quarto-cli/issues/12462)): Added support for new format and aliases in `when-format` and `unless-format`: `confluence`, `docusaurus` (and `docusaurus-md`), `email`, `dashboard`, `gfm`, `hugo` (and `hugo-md`).
+
+### Quarto Lua API
+
+- ([#4411](https://github.com/quarto-dev/quarto-cli/issues/12462)): `quarto.format.is_format` is now working as expected with support of more aliases: `confluence`, `docusaurus` (and `docusaurus-md`), `email`, `dashboard`, `gfm`, `hugo` (and `hugo-md`)
 - ([#12299](https://github.com/quarto-dev/quarto-cli/issues/12299)): `quarto.doc.pdf_engine()` now correctly returns the PDF engine used for the document. `quarto.doc.cite_method()` now returns `nil` if no citation method will be used (i.e. no references is the document set).
 
 ## Languages

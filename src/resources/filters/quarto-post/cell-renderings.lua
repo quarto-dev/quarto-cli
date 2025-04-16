@@ -8,31 +8,15 @@ function choose_cell_renderings()
       return {json}
     end
   end
-
-  local documentRenderings
   
   return {
-    traverse = "topdown",
-    Meta = function(meta)
-      if meta.renderings then
-        documentRenderings = {}
-        for _, inlines in ipairs(meta.renderings) do
-          table.insert(documentRenderings, inlines[1].text)
-        end
-      end
-    end,
     Div = function(div)
       -- Only process cell div with renderings attr
-      if not div.classes:includes("cell") or (not documentRenderings and not div.attributes["renderings"]) then
+      if not div.classes:includes("cell") or not div.attributes["renderings"] then
         return nil
       end
-      local renderings
-      if div.attributes['renderings'] then
-        local renderingsJson = div.attributes['renderings']
-        renderings = jsonDecodeArray(renderingsJson)
-      else
-        renderings = documentRenderings
-      end
+      local renderingsJson = div.attributes['renderings']
+      local renderings = jsonDecodeArray(renderingsJson)
       if not type(renderings) == "table" or #renderings == 0 then
         quarto.log.warning("renderings expected array of rendering names, got", renderings)
         return nil
