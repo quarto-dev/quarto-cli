@@ -5,7 +5,6 @@
  */
 
 import { MuxAsyncIterator } from "async/mux-async-iterator";
-import { iterateReader } from "io/iterate-reader";
 import { isWindows } from "../deno_ral/platform.ts";
 
 export interface PreviewServer {

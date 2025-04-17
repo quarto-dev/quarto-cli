@@ -403,7 +403,7 @@ function externalPreviewServer(
 ): Promise<PreviewServer> {
   // run a control channel server for handling render requests
   // if there was a renderToken() passed
-  let controlListener: Deno.Listener | undefined;
+  let stop: () => void | undefined;
   if (renderToken()) {
     const outputDir = projectOutputDir(project);
     const handlerOptions: HttpFileRequestOptions = {
@@ -425,12 +425,12 @@ function externalPreviewServer(
 
     const handler = httpFileRequestHandler(handlerOptions);
     const port = findOpenPort();
-    controlListener = Deno.listen({ port, hostname: kLocalhost });
-    handleHttpRequests(controlListener, handler).then(() => {
-      // terminanted
-    }).catch((_error) => {
-      // ignore errors
-    });
+    ({ stop } = handleHttpRequests({
+      port,
+      hostname: kLocalhost,
+      handler,
+    }));
+    // .abortController;
     info(`Preview service running (${port})`);
   }
 
@@ -467,9 +467,7 @@ function externalPreviewServer(
       return server.serve();
     },
     stop: () => {
-      if (controlListener) {
-        controlListener.close();
-      }
+      stop?.();
       return server.stop();
     },
   });
@@ -772,15 +770,21 @@ async function internalPreviewServer(
   const path = (targetPath && targetPath !== "index.html") ? targetPath : "";
 
   // start listening
-  const listener = Deno.listen({ port: options.port!, hostname: options.host });
+  let stop: () => void | undefined;
 
   return {
     start: () => Promise.resolve(path),
     serve: async () => {
-      await handleHttpRequests(listener, handler);
+      const { server, stop: stopServer } = handleHttpRequests({
+        port: options.port!,
+        hostname: options.host,
+        handler,
+      });
+      stop = stopServer;
+      await server.finished;
     },
     stop: () => {
-      listener.close();
+      stop?.();
       return Promise.resolve();
     },
   };
