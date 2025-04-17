@@ -4,13 +4,14 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
+import { execProcess } from "../../../src/core/process.ts";
 import { info } from "../../../src/deno_ral/log.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { Configuration } from "../common/config.ts";
 
+// TODO in we only use the bundler for quarto.ts
+// so we hardcode it in the new esbuild-based bundler
 export async function bundle(
-  input: string,
-  output: string,
   configuration: Configuration,
 ) {
   // Bundle source code
@@ -19,28 +20,23 @@ export async function bundle(
   if (!denoExecPath) {
     throw Error("QUARTO_DENO is not defined");
   }
-  denoBundleCmd.push(denoExecPath);
-  denoBundleCmd.push("bundle");
-  denoBundleCmd.push("--no-check");
-  denoBundleCmd.push("--unstable-kv");
-  denoBundleCmd.push("--unstable-ffi");
-  denoBundleCmd.push(
-    "--importmap=" + configuration.importmap,
-  );
+  denoBundleCmd.push("run");
+  denoBundleCmd.push("--allow-all");
+  denoBundleCmd.push("../tools/deno-esbuild-bundle.ts");
   /*
   denoBundleCmd.push("--log-level");
   denoBundleCmd.push("debug");
   */
+  // denoBundleCmd.push(input);
+  // denoBundleCmd.push(output);
 
-  denoBundleCmd.push(input);
-  denoBundleCmd.push(output);
-
-  const p = Deno.run({
-    cmd: denoBundleCmd,
+  const status = await execProcess({
+    cmd: denoExecPath,
+    args: denoBundleCmd,
+    cwd: configuration.directoryInfo.src,
   });
-  const status = await p.status();
   if (status.code !== 0) {
-    throw Error(`Failure to bundle ${input}`);
+    throw Error(`Failure to bundle src/quarto.ts`);
   }
 }
 
@@ -50,31 +46,7 @@ export async function compile(
   flags: string[],
   configuration: Configuration,
 ) {
-  const denoBundleCmd: string[] = [];
-  const denoExecPath = Deno.env.get("QUARTO_DENO");
-  if (!denoExecPath) {
-    throw Error("QUARTO_DENO is not defined");
-  }
-  denoBundleCmd.push(denoExecPath);
-  denoBundleCmd.push("compile");
-  denoBundleCmd.push("--unstable-kv");
-  denoBundleCmd.push("--unstable-ffi");
-  denoBundleCmd.push(
-    "--importmap=" + configuration.importmap,
-  );
-  denoBundleCmd.push("--output");
-  denoBundleCmd.push(output);
-  denoBundleCmd.push(...flags);
-
-  denoBundleCmd.push(input);
-
-  const p = Deno.run({
-    cmd: denoBundleCmd,
-  });
-  const status = await p.status();
-  if (status.code !== 0) {
-    throw Error(`Failure to compile ${input}`);
-  }
+  throw new Error("Not implemented");
 }
 
 export async function install(
@@ -87,7 +59,6 @@ export async function install(
   if (!denoExecPath) {
     throw Error("QUARTO_DENO is not defined");
   }
-  denoBundleCmd.push(denoExecPath);
   denoBundleCmd.push("install");
   denoBundleCmd.push("--unstable-kv");
   denoBundleCmd.push("--unstable-ffi");
@@ -98,24 +69,19 @@ export async function install(
 
   denoBundleCmd.push(input);
 
-  const p = Deno.run({
-    cmd: denoBundleCmd,
+  const status = await execProcess({
+    cmd: denoExecPath,
+    args: denoBundleCmd,
     stdout: "piped",
   });
-  const status = await p.status();
   if (status.code !== 0) {
     throw Error(`Failure to install ${input}`);
   }
-  const output = await p.output();
-
-  if (output) {
-    // Try to read the installation path and return it
-    const outputTxt = new TextDecoder().decode(output);
-
+  if (status.stdout) {
     // Forward the output
-    info(outputTxt);
+    info(status.stdout);
 
-    const match = outputTxt.match(/Successfully installed.*\n(.*)/);
+    const match = status.stdout.match(/Successfully installed.*\n(.*)/);
     if (match) {
       return match[1];
     }

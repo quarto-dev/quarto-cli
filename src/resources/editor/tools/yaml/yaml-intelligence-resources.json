@@ -15936,7 +15936,6 @@
     "The light theme name, theme scss file, or a mix of both.",
     "The dark theme name, theme scss file, or a mix of both.",
     "The dark theme name, theme scss file, or a mix of both.",
-    "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
     "Classes to apply to the body of the document.",
     "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
     "Enables inclusion of Pandoc default CSS for this document.",
@@ -16688,14 +16687,6 @@
     "Manuscript configuration",
     "internal-schema-hack",
     "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’.",
-    {
-      "short": "Include an automatically generated table of contents",
-      "long": ""
-    },
-    {
-      "short": "Use smart quotes in document output. Defaults to true.",
-      "long": ""
-    },
     "Project configuration.",
     "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
     "Files to render (defaults to all files)",
@@ -17270,12 +17261,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 195000,
+    "_internalId": 193834,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 194992,
+        "_internalId": 193826,
         "type": "enum",
         "enum": [
           "png",
@@ -17291,7 +17282,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 194999,
+        "_internalId": 193833,
         "type": "anyOf",
         "anyOf": [
           {
@@ -17331,40 +17322,5 @@
       "case-detection": true
     },
     "$id": "handlers/mermaid"
-  },
-  "schema/document-typst.yml": [
-    {
-      "name": "page-numbering",
-      "tags": {
-        "formats": [
-          "typst"
-        ]
-      },
-      "schema": {
-        "anyOf": [
-          "string",
-          {
-            "enum": [
-              false
-            ]
-          }
-        ]
-      },
-      "description": {
-        "short": "Include an automatically generated table of contents"
-      }
-    },
-    {
-      "name": "smart",
-      "tags": {
-        "formats": [
-          "typst"
-        ]
-      },
-      "schema": "boolean",
-      "description": {
-        "short": "Use smart quotes in document output. Defaults to true."
-      }
-    }
-  ]
+  }
 }
