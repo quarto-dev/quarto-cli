@@ -210,7 +210,8 @@ async function publish(
       );
       const worktreePath = join(projectScratchPath(input), entry.name);
       await execProcess({
-        cmd: ["git", "worktree", "remove", worktreePath],
+        cmd: "git",
+        args: ["worktree", "remove", worktreePath],
         cwd: projectScratchPath(input),
       });
       removeIfExists(worktreePath);

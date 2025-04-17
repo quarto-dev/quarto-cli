@@ -34,19 +34,23 @@ export function runExternalPreviewServer(options: {
   env?: { [key: string]: string };
   cwd?: string;
 }): PreviewServer {
+  const { cmd } = options;
   // start the process
-  const process = Deno.run({
+  const denoCommand = new Deno.Command(cmd[0], {
+    args: cmd.slice(1),
     ...options,
     stdout: "piped",
     stderr: "piped",
   });
 
+  const process = denoCommand.spawn();
+
   // merge and stream stdout and stderr
   const multiplexIterator = new MuxAsyncIterator<
     Uint8Array
   >();
-  multiplexIterator.add(iterateReader(process.stdout));
-  multiplexIterator.add(iterateReader(process.stderr));
+  multiplexIterator.add(process.stdout);
+  multiplexIterator.add(process.stderr);
 
   // wait for ready and then return from 'start'
   const decoder = new TextDecoder();
@@ -65,7 +69,7 @@ export function runExternalPreviewServer(options: {
       for await (const chunk of multiplexIterator) {
         Deno.stderr.writeSync(chunk);
       }
-      await process.status();
+      await process.output();
     },
     stop: () => {
       if (!isWindows) {
@@ -73,7 +77,6 @@ export function runExternalPreviewServer(options: {
       } else {
         process.kill();
       }
-      process.close();
       return Promise.resolve();
     },
   };

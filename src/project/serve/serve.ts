@@ -647,6 +647,7 @@ async function internalPreviewServer(
                 );
               }
             } catch (e) {
+              if (!(e instanceof Error)) throw e;
               logError(e);
               renderError = e;
             } finally {

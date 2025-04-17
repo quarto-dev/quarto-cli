@@ -207,6 +207,7 @@ import { isWindows } from "../../deno_ral/platform.ts";
 import { appendToCombinedLuaProfile } from "../../core/performance/perfetto-utils.ts";
 import { makeTimedFunctionAsync } from "../../core/performance/function-times.ts";
 import { walkJson } from "../../core/json.ts";
+import { call } from "../../deno_ral/process.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -1572,9 +1573,9 @@ async function resolveExtras(
       };
       const woff2ttf = async (url: string) => {
         const path = url_to_path(url);
-        await Deno.run({ cmd: ["ttx", join(font_cache, path)] });
-        await Deno.run({
-          cmd: ["ttx", join(font_cache, path.replace(/woff2?$/, "ttx"))],
+        await call("ttx", { args: [join(font_cache, path)] });
+        await call("ttx", {
+          args: [join(font_cache, path.replace(/woff2?$/, "ttx"))],
         });
       };
       const ttf_urls2: Array<string> = [], woff_urls2: Array<string> = [];
