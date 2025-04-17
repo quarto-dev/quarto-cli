@@ -343,7 +343,8 @@ function isNotFound(_err: Error) {
 
 async function gitStash(dir: string) {
   const result = await execProcess({
-    cmd: ["git", "stash"],
+    cmd: "git",
+    args: ["stash"],
     cwd: dir,
   });
   if (!result.success) {
@@ -353,7 +354,8 @@ async function gitStash(dir: string) {
 
 async function gitStashApply(dir: string) {
   const result = await execProcess({
-    cmd: ["git", "stash", "apply"],
+    cmd: "git",
+    args: ["stash", "apply"],
     cwd: dir,
   });
   if (!result.success) {
@@ -363,7 +365,8 @@ async function gitStashApply(dir: string) {
 
 async function gitDirIsClean(dir: string) {
   const result = await execProcess({
-    cmd: ["git", "diff", "HEAD"],
+    cmd: "git",
+    args: ["diff", "HEAD"],
     cwd: dir,
     stdout: "piped",
   });
@@ -376,7 +379,8 @@ async function gitDirIsClean(dir: string) {
 
 async function gitCurrentBranch(dir: string) {
   const result = await execProcess({
-    cmd: ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+    cmd: "git",
+    args: ["rev-parse", "--abbrev-ref", "HEAD"],
     cwd: dir,
     stdout: "piped",
   });
@@ -393,8 +397,8 @@ async function withWorktree(
   f: () => Promise<void>,
 ) {
   await execProcess({
-    cmd: [
-      "git",
+    cmd: "git",
+    args: [
       "worktree",
       "add",
       "--track",
@@ -408,7 +412,8 @@ async function withWorktree(
 
   // remove files in existing site, i.e. start clean
   await execProcess({
-    cmd: ["git", "rm", "-r", "--quiet", "."],
+    cmd: "git",
+    args: ["rm", "-r", "--quiet", "."],
     cwd: join(dir, siteDir),
   });
 
@@ -416,7 +421,8 @@ async function withWorktree(
     await f();
   } finally {
     await execProcess({
-      cmd: ["git", "worktree", "remove", siteDir],
+      cmd: "git",
+      args: ["worktree", "remove", siteDir],
       cwd: dir,
     });
   }

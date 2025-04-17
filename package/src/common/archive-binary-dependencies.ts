@@ -164,9 +164,10 @@ export async function archiveBinaryDependency(
 }
 
 async function s3cmd(cmd: string, args: string[]) {
-  const s3Command = ["aws", "s3", cmd, ...args];
+  const s3Args = ["s3", cmd, ...args];
   const p = await execProcess({
-    cmd: s3Command,
+    cmd: "aws",
+    args: s3Args,
     stdout: "piped",
   });
 

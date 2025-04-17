@@ -106,7 +106,8 @@ export async function rswURL(port: number, path: string) {
 async function rswPortToken(port: number) {
   const result = await execProcess(
     {
-      cmd: ["/usr/lib/rstudio-server/bin/rserver-url", String(port)],
+      cmd: "/usr/lib/rstudio-server/bin/rserver-url",
+      args: [String(port)],
       stdout: "piped",
       stderr: "piped",
     },

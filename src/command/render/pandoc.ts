@@ -241,42 +241,38 @@ const handleCombinedLuaProfiles = (
 };
 
 function captureRenderCommand(
-  args: Deno.RunOptions,
+  args: Deno.CommandOptions,
   temp: TempContext,
   outputDir: string,
 ) {
   Deno.mkdirSync(outputDir, { recursive: true });
-  const newArgs = [
-    args.cmd[0],
-    ...args.cmd.slice(1).map((_arg) => {
-      const arg = _arg as string; // we know it's a string, TypeScript doesn't somehow
-      if (!arg.startsWith(temp.baseDir)) {
-        return arg;
-      }
-      const newArg = join(outputDir, basename(arg));
-      if (arg.match(/^.*quarto\-defaults.*.yml$/)) {
-        // we need to correct the defaults YML because it contains a reference to a template in a temp directory
-        const ymlDefaults = Deno.readTextFileSync(arg);
-        const defaults = parseYml(ymlDefaults);
-
-        const templateDirectory = dirname(defaults.template);
-        const newTemplateDirectory = join(
-          outputDir,
-          basename(templateDirectory),
-        );
-        copyTo(templateDirectory, newTemplateDirectory);
-        defaults.template = join(
-          newTemplateDirectory,
-          basename(defaults.template),
-        );
-        const defaultsOutputFile = join(outputDir, basename(arg));
-        Deno.writeTextFileSync(defaultsOutputFile, stringify(defaults));
-        return defaultsOutputFile;
-      }
-      Deno.copyFileSync(arg, newArg);
-      return newArg;
-    }),
-  ] as typeof args.cmd;
+  const newArgs: typeof args.args = (args.args ?? []).map((_arg) => {
+    const arg = _arg as string; // we know it's a string, TypeScript doesn't somehow
+    if (!arg.startsWith(temp.baseDir)) {
+      return arg;
+    }
+    const newArg = join(outputDir, basename(arg));
+    if (arg.match(/^.*quarto\-defaults.*.yml$/)) {
+      // we need to correct the defaults YML because it contains a reference to a template in a temp directory
+      const ymlDefaults = Deno.readTextFileSync(arg);
+      const defaults = parseYml(ymlDefaults);
+      const templateDirectory = dirname(defaults.template);
+      const newTemplateDirectory = join(
+        outputDir,
+        basename(templateDirectory),
+      );
+      copyTo(templateDirectory, newTemplateDirectory);
+      defaults.template = join(
+        newTemplateDirectory,
+        basename(defaults.template),
+      );
+      const defaultsOutputFile = join(outputDir, basename(arg));
+      Deno.writeTextFileSync(defaultsOutputFile, stringify(defaults));
+      return defaultsOutputFile;
+    }
+    Deno.copyFileSync(arg, newArg);
+    return newArg;
+  });
 
   // now we need to correct entries in filterParams
   const filterParams = JSON.parse(
@@ -1322,7 +1318,8 @@ export async function runPandoc(
   setupPandocEnv();
 
   const params = {
-    cmd,
+    cmd: cmd[0],
+    args: cmd.slice(1),
     cwd,
     env: pandocEnv,
     ourEnv: Deno.env.toObject(),
