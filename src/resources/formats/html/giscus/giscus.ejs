@@ -30,16 +30,25 @@ function loadGiscusWhenReady() {
     document.getElementById("quarto-content").appendChild(script);
   };
 
+  let observer;
+  const loadIfBodyReady = () => {
+    // Check if the body has the 'quarto-light' or 'quarto-dark' class
+    if (!(document.body.classList.contains('quarto-light') || document.body.classList.contains('quarto-dark'))) {
+      return false;
+    }
+    loadGiscus();
+    observer.disconnect();
+    return true;
+  };
+
   // MutationObserver to detect when the 'quarto-light' or 'quarto-dark' class is added to the body
-  const observer = new MutationObserver((mutations) => {
+  observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
-      if (mutation.type === "attributes" && mutation.attributeName === "class") {
-        if (document.body.classList.contains('quarto-light') || document.body.classList.contains('quarto-dark')) {
-          loadGiscus();
-          observer.disconnect(); // Stop observing once Giscus is loaded
-          break;
+      if (mutation.type === "attributes" && 
+        mutation.attributeName === "class" && 
+        loadIfBodyReady()) {
+          break; // Stop observing if Giscus is loaded
         }
-      }
     }
   });
 
@@ -48,6 +57,8 @@ function loadGiscusWhenReady() {
     attributes: true,
     attributeFilter: ["class"],
   });
+
+  loadIfBodyReady(); // Initial check in case the class is already present
 }
 loadGiscusWhenReady();
 </script>
