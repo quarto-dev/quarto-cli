@@ -1,9 +1,8 @@
 /*
-* http-server.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * http-server.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { warning } from "../deno_ral/log.ts";
 
@@ -18,6 +17,7 @@ export async function handleHttpRequests(
           await respondWith(handler(request));
         }
       } catch (err) {
+        if (!(err instanceof Error)) throw err;
         warning(err.message);
         try {
           conn.close();
