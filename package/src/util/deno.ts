@@ -46,9 +46,31 @@ export async function compile(
   flags: string[],
   configuration: Configuration,
 ) {
-  throw new Error("Not implemented");
-}
+  const denoBundleCmd: string[] = [];
+  const denoExecPath = Deno.env.get("QUARTO_DENO");
+  if (!denoExecPath) {
+    throw Error("QUARTO_DENO is not defined");
+  }
+  denoBundleCmd.push("compile");
+  denoBundleCmd.push("--unstable-kv");
+  denoBundleCmd.push("--unstable-ffi");
+  denoBundleCmd.push(
+    "--importmap=" + configuration.importmap,
+  );
+  denoBundleCmd.push("--output");
+  denoBundleCmd.push(output);
+  denoBundleCmd.push(...flags);
 
+  denoBundleCmd.push(input);
+
+  const status = await execProcess({
+    cmd: denoExecPath, 
+    args: denoBundleCmd,
+  });
+  if (status.code !== 0) {
+    throw Error(`Failure to compile ${input}`);
+  }
+}
 export async function install(
   input: string,
   flags: string[],
