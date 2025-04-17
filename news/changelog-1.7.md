@@ -122,7 +122,7 @@ All changes included in 1.7:
 ### `julia`
 
 - ([#11803](https://github.com/quarto-dev/quarto-cli/pull/11803)): Added subcommands `status`, `kill`, `close [--force]` and `log` under the new CLI command `quarto call engine julia`.
-- ([#12121](https://github.com/quarto-dev/quarto-cli/pull/12121)): Update QuartoNotebookRunner to 0.16.0. Support for evaluating Python cells via [PythonCall.jl](https://github.com/JuliaPy/PythonCall.jl) added. Support for notebook caching via `execute.cache` added.
+- ([#12121](https://github.com/quarto-dev/quarto-cli/pull/12121)): Update QuartoNotebookRunner to 0.17.0. Support for evaluating Python cells via [PythonCall.jl](https://github.com/JuliaPy/PythonCall.jl) added. Support for notebook caching via `execute.cache` added.
 - ([#12151](https://github.com/quarto-dev/quarto-cli/pull/12151)): Basic YAML validation is now active for documents using Julia engine.
 
 ### `jupyter`
