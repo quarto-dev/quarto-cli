@@ -1489,7 +1489,7 @@ async function resolveExtras(
           }
         } else if (source === "bunny") {
           const font = _font as BrandFontBunny;
-          console.log(
+          info(
             "Font bunny is not yet supported for Typst, skipping",
             font.family,
           );
@@ -1534,7 +1534,7 @@ async function resolveExtras(
                 }
               }
               if (!found) {
-                console.log(
+                info(
                   "skipping",
                   family,
                   "\nnot currently able to use formats",
