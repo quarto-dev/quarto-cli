@@ -77,8 +77,8 @@ export async function execProcess(
     const process = denoCmd.spawn();
     const thisProcessId = registerForExitCleanup(process);
 
-    const stdinWriter = process.stdin.getWriter();
     if (stdin !== undefined) {
+      const stdinWriter = process.stdin.getWriter();
       if (!process.stdin) {
         unregisterForExitCleanup(thisProcessId);
         throw new Error("Process stdin not available");
@@ -93,6 +93,7 @@ export async function execProcess(
         await stdinWriter.write(window);
         offset += window.byteLength;
       }
+      stdinWriter.releaseLock();
       process.stdin.close();
     }
 
@@ -199,7 +200,7 @@ export async function execProcess(
     if (!(e instanceof Error)) {
       throw e;
     }
-    throw new Error(`Error executing '${options.cmd[0]}': ${e.message}`);
+    throw new Error(`Error executing '${options.cmd}': ${e.message}`);
   }
 }
 
