@@ -153,6 +153,7 @@ All changes included in 1.7:
 - ([#12326](https://github.com/quarto-dev/quarto-cli/issues/12326)): Add `quarto.shortcode.*` API entry points for shortcode developers.
 - ([#12365](https://github.com/quarto-dev/quarto-cli/pull/12365)): `brand color` shortcode takes an optional `brandMode` second parameter, default `light`.
 - ([#12453](https://github.com/quarto-dev/quarto-cli/issues/12453)): Expose `_quarto.modules.brand` as `quarto.brand` and add `has_mode()` function.
+- ([#12564](https://github.com/quarto-dev/quarto-cli/issues/12564)): `brand logo` shortcode also takes an optional `brandMode` second parameter, default `light`.
 
 ### Conditional Content
 
