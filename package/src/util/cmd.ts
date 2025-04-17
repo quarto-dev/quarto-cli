@@ -28,11 +28,6 @@ export async function runCmd(
     stdout: "piped",
     stderr: "piped",
   });
-  // const p = Deno.run({
-  //   cmd,
-  //   stdout: "piped",
-  //   stderr: "piped",
-  // });
   const output = await cmd.output();
   const stdout = new TextDecoder().decode(output.stdout);
   const stderr = new TextDecoder().decode(output.stderr);
@@ -45,9 +40,6 @@ export async function runCmd(
     error(stderr);
     throw Error(`Command ${[runCmd, ...args]} failed.`);
   }
-
-  // Close the child process
-  // p.close();
 
   return {
     status: output,
