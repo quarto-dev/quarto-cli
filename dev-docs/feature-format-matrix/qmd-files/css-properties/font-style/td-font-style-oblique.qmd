@@ -6,7 +6,7 @@ format:
     quality: na
   typst:
     quality: 2
-    comment: "table and table cell only"
+    comment: "td, span only"
   dashboard:
     quality: 1
   docx:
@@ -19,13 +19,13 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - '#{set text\(size: 6pt\); table\('
+          - '\[#set text\(style: "oblique"\); B\]'
         - []
 ---
 
 ```{=html}
-<table style="font-size: 8px;">
-    <tr><td>A</td><td>B</td></tr>
+<table>
+    <tr><td>A</td><td style="font-style: oblique;">B</td></tr>
 </table>
 ```
 
