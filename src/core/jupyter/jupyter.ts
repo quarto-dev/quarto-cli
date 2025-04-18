@@ -1837,7 +1837,7 @@ async function mdOutputStream(
     );
   } else {
     // normal default behavior
-    return mdCodeOutput(text.map(colors.stripColor));
+    return mdCodeOutput(text.map(colors.stripAnsiCode));
   }
 }
 
@@ -1946,7 +1946,7 @@ which does not appear to be plain text: ${JSON.stringify(data)}`,
             return mdCodeOutput(lines);
           }
         } else {
-          return mdCodeOutput(lines.map(colors.stripColor));
+          return mdCodeOutput(lines.map(colors.stripAnsiCode));
         }
       }
     }
