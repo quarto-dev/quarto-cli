@@ -1,0 +1,52 @@
+{
+  "manifest": {
+    "/duration_test.ts": {
+      "size": 2018,
+      "checksum": "sha256-5572103a5c6b4622c14162e8728750c3fd1a1e55c85c6afa2b578479ed824536"
+    },
+    "/colors.ts": {
+      "size": 12876,
+      "checksum": "sha256-3d13f30cebc5fa5cbd29e93d712bf003374f94ce8b9b4e71fb8b5dae240ad520"
+    },
+    "/printf.ts": {
+      "size": 27850,
+      "checksum": "sha256-8d01408076e2f956b03dd8377010c4974515d6cc909978d2edc5c8cd75077eeb"
+    },
+    "/colors_test.ts": {
+      "size": 6420,
+      "checksum": "sha256-11828debc3e35c8ec7d21973f4fed3e898608d252aebd2952d87fb6cadab00ad"
+    },
+    "/deno.json": {
+      "size": 194,
+      "checksum": "sha256-d1e00fe25cead44ebd70f45b9add65e50baf229dc38ad8510c4855a946416ea5"
+    },
+    "/bytes_test.ts": {
+      "size": 7144,
+      "checksum": "sha256-3403468f1f3c33b43ebff0eca3f1d34cb116981a8ace6d1c7ee7e2068b529187"
+    },
+    "/bytes.ts": {
+      "size": 4538,
+      "checksum": "sha256-cca092bd3662056c150b4db90e9ef827b574eafa7bd929a6ca12c702f246484e"
+    },
+    "/printf_test.ts": {
+      "size": 26238,
+      "checksum": "sha256-ee0d11977564a2e8977d88fa22873d139e509a2205ffc66994815945e4b2019a"
+    },
+    "/duration.ts": {
+      "size": 4217,
+      "checksum": "sha256-aee068ae4f04f703d4b5e9efa5a33834460bfdb7a3e3e8b2afcb2b0529175e08"
+    }
+  },
+  "moduleGraph1": {
+    "/printf.ts": {},
+    "/colors.ts": {},
+    "/bytes.ts": {},
+    "/duration.ts": {}
+  },
+  "exports": {
+    "./bytes": "./bytes.ts",
+    "./colors": "./colors.ts",
+    "./duration": "./duration.ts",
+    "./printf": "./printf.ts"
+  }
+}

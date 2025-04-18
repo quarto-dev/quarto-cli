@@ -1,0 +1,898 @@
+{
+  "manifest": {
+    "/to_text.ts": {
+      "size": 1067,
+      "checksum": "sha256-a43a2266f4937cf297af0ae49f116a6475fea0f160e3ca639400c6984cd8f2c2"
+    },
+    "/mod.ts": {
+      "size": 1442,
+      "checksum": "sha256-1bda97957429edc50ad241309aefc2a2477fe58827c19e9fda7dbc733c01160d"
+    },
+    "/concat_readable_streams.ts": {
+      "size": 1557,
+      "checksum": "sha256-612956424d06af1bf4fd8d95caf9eeb8612cca277e38e8930fbb4b865b6e69f0"
+    },
+    "/concat_readable_streams_test.ts": {
+      "size": 2043,
+      "checksum": "sha256-1b676117c80710a79da36c5dec81d3861c60009da32d3a833d82555a22a6ed9c"
+    },
+    "/merge_readable_streams.ts": {
+      "size": 2403,
+      "checksum": "sha256-cf0060f6fb9ea0335546a4e48275b6f3a58a800ee8d2cbf8bc2a6aee11e61f6d"
+    },
+    "/reader_from_stream_reader.ts": {
+      "size": 1328,
+      "checksum": "sha256-6c3804b60ac1847729044e432ce952eda2d5a134269814cd9b0eccba1a080148"
+    },
+    "/to_transform_stream_test.ts": {
+      "size": 5983,
+      "checksum": "sha256-579a3d52c64c629d1b0e91ac7108de2d82267e0eb504cd0ea0a35ebfadb875de"
+    },
+    "/text_line_stream.ts": {
+      "size": 4150,
+      "checksum": "sha256-9b6eab7939d590f7543971f51e73d7dd8992395e3f6e2ee7ead0806f7b2ba631"
+    },
+    "/writer_from_stream_writer_test.ts": {
+      "size": 838,
+      "checksum": "sha256-b2ec8fca46c3427043cdd0afa20f72771627a195b6401ad2fa0adbf81c415243"
+    },
+    "/reader_from_stream_reader_test.ts": {
+      "size": 2827,
+      "checksum": "sha256-3d07d4faa9497d86e649b69b71b57f91e821ed3c4ed12119a12a8de8bc7560bc"
+    },
+    "/to_array_buffer_test.ts": {
+      "size": 507,
+      "checksum": "sha256-54294af615787d896a0bb486f3a981c53ece8dc7874604e859551a917468a611"
+    },
+    "/to_transform_stream.ts": {
+      "size": 3653,
+      "checksum": "sha256-f59b0d5e425941fd5ee46b0f69aeac6d2f8738a0346d47cc8073cdebc57d0406"
+    },
+    "/to_array_buffer.ts": {
+      "size": 1252,
+      "checksum": "sha256-19bdd77df9ad96df3d15b3128a590fd9ed13ef117f65491df9a2a45749771d22"
+    },
+    "/writable_stream_from_writer.ts": {
+      "size": 1777,
+      "checksum": "sha256-e92a2f95d0deaf0a841a366d7f901593a0894f305824c317394f3f7ce074662b"
+    },
+    "/delimiter_stream.ts": {
+      "size": 12013,
+      "checksum": "sha256-dc077c6a14ed2643b4398601ee6ff89d10fab23d428973f4d31f6830d4e008e9"
+    },
+    "/merge_readable_streams_test.ts": {
+      "size": 1307,
+      "checksum": "sha256-0b842969b52768df3275a39488b05fcf8e305d90bb2f8ef83d61e0ca72510665"
+    },
+    "/limited_transform_stream_test.ts": {
+      "size": 855,
+      "checksum": "sha256-34ad8b9d8b15dcfad716279757abea78d6496a230d6f6c403348f1f4f512827b"
+    },
+    "/to_blob_test.ts": {
+      "size": 606,
+      "checksum": "sha256-122d37462cb131ce82434af5b421f1a46a3c38079e0a973bc7ade1d27e4fda5d"
+    },
+    "/early_zip_readable_streams_test.ts": {
+      "size": 1467,
+      "checksum": "sha256-f36116c0b3379d9fe400d1374fffd6474203a8b5f14b23c929a53450ac777dbc"
+    },
+    "/byte_slice_stream_test.ts": {
+      "size": 1452,
+      "checksum": "sha256-34e98e43f2d4504107e8b549d4e23cc12ad6e4f5798e9aebcca7d705211d7520"
+    },
+    "/to_blob.ts": {
+      "size": 863,
+      "checksum": "sha256-ab94cfc058a458ea1f4eb781c2dfefc1b49504417a416fad471a09fa1e3d1bd7"
+    },
+    "/writer_from_stream_writer.ts": {
+      "size": 1384,
+      "checksum": "sha256-cbb90aa5e06197cdcc8919a866514cc98f6c4df87dbec11609f61f9ea9543317"
+    },
+    "/delimiter_stream_test.ts": {
+      "size": 5479,
+      "checksum": "sha256-ada28a63fe1ec76fe955c9ccc94dca41ebe4e89b6a6f3e3a03d4d284ab49b683"
+    },
+    "/byte_slice_stream.ts": {
+      "size": 2656,
+      "checksum": "sha256-e24ecf112ec9cb2ea142790d7ed3cfcc1eb37bcd94051c72cf07057f61bdcc9f"
+    },
+    "/to_json.ts": {
+      "size": 942,
+      "checksum": "sha256-752129fb471e3b51201103472f3bd455f9ece4c00f05bf8fe623640c34969a81"
+    },
+    "/text_delimiter_stream_test.ts": {
+      "size": 2682,
+      "checksum": "sha256-8b6a27d2f0fb5046c62413941d6b8b7b6f7251bc3a5f5116116a86f188ef8eda"
+    },
+    "/iterate_reader.ts": {
+      "size": 3026,
+      "checksum": "sha256-ff5099f5328b57fa134d55839da1d90359c199d5aef65de040fe4fb125b07c45"
+    },
+    "/deno.json": {
+      "size": 1339,
+      "checksum": "sha256-086bdeed219f3f9f1266c679e966686f900f7245fa1d3cf3535126c9a8611bc6"
+    },
+    "/limited_transform_stream.ts": {
+      "size": 3357,
+      "checksum": "sha256-ab98d8a3912bb13e98fd0ab1d2ba91fdf9aa9d54b21e7d5fa5a86ab73be01750"
+    },
+    "/_common.ts": {
+      "size": 698,
+      "checksum": "sha256-948735ef6d140cd6916dca861197b88fc57db52c2f923c392b7a14033d8fed4b"
+    },
+    "/limited_bytes_transform_stream_test.ts": {
+      "size": 6083,
+      "checksum": "sha256-d4029f32a6b83a4741e47b1d282ff1df94ee0ef984b92c8c2e2fe25041a668a4"
+    },
+    "/zip_readable_streams.ts": {
+      "size": 3395,
+      "checksum": "sha256-b2f055585b7b4c7b1b60708f90c89a56c65b4c0e0e4d6f4133317cbb8bb20f79"
+    },
+    "/zip_readable_streams_test.ts": {
+      "size": 773,
+      "checksum": "sha256-10b8fceacd42f365aeee4dce83fc8150f231bf4a676c27814f1f24b3cc88cf22"
+    },
+    "/to_json_test.ts": {
+      "size": 581,
+      "checksum": "sha256-52f56f75d6e88a4b93c5b1f0b94657896b1f2b56f0824c373c7ef05abf83f59d"
+    },
+    "/buffer_test.ts": {
+      "size": 1330,
+      "checksum": "sha256-c100f0d86babfe9f310ccd9d1152e1c5e1441d61fe9c5bb4d78edb69bd5d83e0"
+    },
+    "/reader_from_iterable_test.ts": {
+      "size": 758,
+      "checksum": "sha256-462867b4ede75693d24bd48a622634c9d169f3f7dc10489bcbde04ca72047fc5"
+    },
+    "/buffer.ts": {
+      "size": 13378,
+      "checksum": "sha256-47125ed0ee249321edab07f6962ce63c6ca8e41b135ba3bf091f9d93ac01093c"
+    },
+    "/writable_stream_from_writer_test.ts": {
+      "size": 3311,
+      "checksum": "sha256-d5fd08719245eefae62b534bbc47c8e5a7b1705bd64ef38d7d4c7072a4a4d37f"
+    },
+    "/iterate_reader_test.ts": {
+      "size": 2960,
+      "checksum": "sha256-9c5747834f22f0a92b37564ec6d9414554e0be17ff04de851f3d0959c249fa16"
+    },
+    "/early_zip_readable_streams.ts": {
+      "size": 3840,
+      "checksum": "sha256-b0ebd08ab0f34ad82127bc08f1ae2963858e1c3256d66955354adceae9f62b32"
+    },
+    "/to_text_test.ts": {
+      "size": 541,
+      "checksum": "sha256-a18940e99b2f46ba66682501dafe5eeeaf11f3cfe8602bfd77b63dd670854da3"
+    },
+    "/text_line_stream_test.ts": {
+      "size": 2902,
+      "checksum": "sha256-4bc39c5ec3ab6814d20476671b1e3ad0058e88abd60f6cb6c5a3305712650385"
+    },
+    "/readable_stream_from_reader.ts": {
+      "size": 2288,
+      "checksum": "sha256-4a7456d21ddbcbc4de40d395f43b84253521a13416eccebeec608514b0d7e338"
+    },
+    "/readable_stream_from_reader_test.ts": {
+      "size": 3138,
+      "checksum": "sha256-238735a49a7c6036a8cb581aa8d27fc6e83c9ab3620ab982f8228b27288a8dfa"
+    },
+    "/limited_bytes_transform_stream.ts": {
+      "size": 4520,
+      "checksum": "sha256-bd0b8fd8bd8216dd85f9e1e94581c8378a89de0fd9206bf0b2692946e94d59b1"
+    },
+    "/reader_from_iterable.ts": {
+      "size": 2368,
+      "checksum": "sha256-d944f6002819e00d0bab99074e2313aec822b9278606d1adda6f5fe233a84a61"
+    },
+    "/text_delimiter_stream.ts": {
+      "size": 4019,
+      "checksum": "sha256-3ca09070eec684f42b5a7271e21a870aa560dd0c573ee08c709898fd007b0a10"
+    },
+    "/_test_common.ts": {
+      "size": 860,
+      "checksum": "sha256-e6e404b60ff4f1ef606687895315e567f85e2a733997b118d378f6aa3bfa5c0d"
+    }
+  },
+  "moduleGraph2": {
+    "/limited_bytes_transform_stream.ts": {},
+    "/zip_readable_streams.ts": {},
+    "/writable_stream_from_writer.ts": {
+      "dependencies": [
+        {
+          "type": "static",
+          "kind": "importType",
+          "specifier": "jsr:/@std/io@^0.224.1/types",
+          "specifierRange": [
+            [
+              3,
+              28
+            ],
+            [
+              3,
+              57
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "import",
+          "specifier": "jsr:/@std/io@^0.224.1/to-writable-stream",
+          "specifierRange": [
+            [
+              4,
+              33
+            ],
+            [
+              4,
+              75
+            ]
+          ]
+        }
+      ]
+    },
+    "/to_text.ts": {},
+    "/early_zip_readable_streams.ts": {},
+    "/text_line_stream.ts": {},
+    "/_common.ts": {},
+    "/buffer.ts": {
+      "dependencies": [
+        {
+          "type": "static",
+          "kind": "import",
+          "specifier": "jsr:/@std/bytes@^1.0.0-rc.3/copy",
+          "specifierRange": [
+            [
+              3,
+              21
+            ],
+            [
+              3,
+              55
+            ]
+          ]
+        }
+      ]
+    },
+    "/reader_from_stream_reader.ts": {
+      "dependencies": [
+        {
+          "type": "static",
+          "kind": "import",
+          "specifier": "jsr:/@std/io@^0.224.1/reader-from-stream-reader",
+          "specifierRange": [
+            [
+              3,
+              66
+            ],
+            [
+              3,
+              115
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "importType",
+          "specifier": "jsr:/@std/io@^0.224.1/types",
+          "specifierRange": [
+            [
+              4,
+              28
+            ],
+            [
+              4,
+              57
+            ]
+          ]
+        }
+      ]
+    },
+    "/concat_readable_streams.ts": {},
+    "/writer_from_stream_writer.ts": {
+      "dependencies": [
+        {
+          "type": "static",
+          "kind": "importType",
+          "specifier": "jsr:/@std/io@^0.224.1/types",
+          "specifierRange": [
+            [
+              3,
+              28
+            ],
+            [
+              3,
+              57
+            ]
+          ]
+        }
+      ]
+    },
+    "/iterate_reader.ts": {
+      "dependencies": [
+        {
+          "type": "static",
+          "kind": "import",
+          "specifier": "jsr:/@std/io@^0.224.1/iterate-reader",
+          "specifierRange": [
+            [
+              6,
+              7
+            ],
+            [
+              6,
+              45
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "importType",
+          "specifier": "jsr:/@std/io@^0.224.1/types",
+          "specifierRange": [
+            [
+              7,
+              40
+            ],
+            [
+              7,
+              69
+            ]
+          ]
+        }
+      ]
+    },
+    "/mod.ts": {
+      "dependencies": [
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./buffer.ts",
+          "specifierRange": [
+            [
+              20,
+              14
+            ],
+            [
+              20,
+              27
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./byte_slice_stream.ts",
+          "specifierRange": [
+            [
+              21,
+              14
+            ],
+            [
+              21,
+              38
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./concat_readable_streams.ts",
+          "specifierRange": [
+            [
+              22,
+              14
+            ],
+            [
+              22,
+              44
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./delimiter_stream.ts",
+          "specifierRange": [
+            [
+              23,
+              14
+            ],
+            [
+              23,
+              37
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./early_zip_readable_streams.ts",
+          "specifierRange": [
+            [
+              24,
+              14
+            ],
+            [
+              24,
+              47
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./iterate_reader.ts",
+          "specifierRange": [
+            [
+              25,
+              14
+            ],
+            [
+              25,
+              35
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./limited_bytes_transform_stream.ts",
+          "specifierRange": [
+            [
+              26,
+              14
+            ],
+            [
+              26,
+              51
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./limited_transform_stream.ts",
+          "specifierRange": [
+            [
+              27,
+              14
+            ],
+            [
+              27,
+              45
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./merge_readable_streams.ts",
+          "specifierRange": [
+            [
+              28,
+              14
+            ],
+            [
+              28,
+              43
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./readable_stream_from_reader.ts",
+          "specifierRange": [
+            [
+              29,
+              14
+            ],
+            [
+              29,
+              48
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./reader_from_iterable.ts",
+          "specifierRange": [
+            [
+              30,
+              14
+            ],
+            [
+              30,
+              41
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./reader_from_stream_reader.ts",
+          "specifierRange": [
+            [
+              31,
+              14
+            ],
+            [
+              31,
+              46
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./text_delimiter_stream.ts",
+          "specifierRange": [
+            [
+              32,
+              14
+            ],
+            [
+              32,
+              42
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./text_line_stream.ts",
+          "specifierRange": [
+            [
+              33,
+              14
+            ],
+            [
+              33,
+              37
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./to_array_buffer.ts",
+          "specifierRange": [
+            [
+              34,
+              14
+            ],
+            [
+              34,
+              36
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./to_blob.ts",
+          "specifierRange": [
+            [
+              35,
+              14
+            ],
+            [
+              35,
+              28
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./to_json.ts",
+          "specifierRange": [
+            [
+              36,
+              14
+            ],
+            [
+              36,
+              28
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./to_text.ts",
+          "specifierRange": [
+            [
+              37,
+              14
+            ],
+            [
+              37,
+              28
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./to_transform_stream.ts",
+          "specifierRange": [
+            [
+              38,
+              14
+            ],
+            [
+              38,
+              40
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./writable_stream_from_writer.ts",
+          "specifierRange": [
+            [
+              39,
+              14
+            ],
+            [
+              39,
+              48
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./writer_from_stream_writer.ts",
+          "specifierRange": [
+            [
+              40,
+              14
+            ],
+            [
+              40,
+              46
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "export",
+          "specifier": "./zip_readable_streams.ts",
+          "specifierRange": [
+            [
+              41,
+              14
+            ],
+            [
+              41,
+              41
+            ]
+          ]
+        }
+      ]
+    },
+    "/to_blob.ts": {},
+    "/to_json.ts": {
+      "dependencies": [
+        {
+          "type": "static",
+          "kind": "import",
+          "specifier": "./to_text.ts",
+          "specifierRange": [
+            [
+              3,
+              23
+            ],
+            [
+              3,
+              37
+            ]
+          ]
+        }
+      ]
+    },
+    "/text_delimiter_stream.ts": {
+      "dependencies": [
+        {
+          "type": "static",
+          "kind": "import",
+          "specifier": "./_common.ts",
+          "specifierRange": [
+            [
+              3,
+              26
+            ],
+            [
+              3,
+              40
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "importType",
+          "specifier": "./delimiter_stream.ts",
+          "specifierRange": [
+            [
+              8,
+              7
+            ],
+            [
+              8,
+              30
+            ]
+          ]
+        }
+      ]
+    },
+    "/reader_from_iterable.ts": {
+      "dependencies": [
+        {
+          "type": "static",
+          "kind": "import",
+          "specifier": "jsr:/@std/io@^0.224.1/buffer",
+          "specifierRange": [
+            [
+              3,
+              23
+            ],
+            [
+              3,
+              53
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "import",
+          "specifier": "jsr:/@std/io@^0.224.1/write-all",
+          "specifierRange": [
+            [
+              4,
+              25
+            ],
+            [
+              4,
+              58
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "importType",
+          "specifier": "jsr:/@std/io@^0.224.1/types",
+          "specifierRange": [
+            [
+              5,
+              28
+            ],
+            [
+              5,
+              57
+            ]
+          ]
+        }
+      ]
+    },
+    "/to_array_buffer.ts": {
+      "dependencies": [
+        {
+          "type": "static",
+          "kind": "import",
+          "specifier": "jsr:/@std/bytes@^1.0.0-rc.3/concat",
+          "specifierRange": [
+            [
+              3,
+              23
+            ],
+            [
+              3,
+              59
+            ]
+          ]
+        }
+      ]
+    },
+    "/delimiter_stream.ts": {
+      "dependencies": [
+        {
+          "type": "static",
+          "kind": "import",
+          "specifier": "jsr:/@std/bytes@^1.0.0-rc.3/concat",
+          "specifierRange": [
+            [
+              3,
+              23
+            ],
+            [
+              3,
+              59
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "import",
+          "specifier": "./_common.ts",
+          "specifierRange": [
+            [
+              4,
+              26
+            ],
+            [
+              4,
+              40
+            ]
+          ]
+        }
+      ]
+    },
+    "/readable_stream_from_reader.ts": {
+      "dependencies": [
+        {
+          "type": "static",
+          "kind": "import",
+          "specifier": "jsr:/@std/io@^0.224.1/to-readable-stream",
+          "specifierRange": [
+            [
+              3,
+              33
+            ],
+            [
+              3,
+              75
+            ]
+          ]
+        },
+        {
+          "type": "static",
+          "kind": "importType",
+          "specifier": "jsr:/@std/io@^0.224.1/types",
+          "specifierRange": [
+            [
+              4,
+              36
+            ],
+            [
+              4,
+              65
+            ]
+          ]
+        }
+      ]
+    },
+    "/to_transform_stream.ts": {},
+    "/merge_readable_streams.ts": {},
+    "/limited_transform_stream.ts": {},
+    "/byte_slice_stream.ts": {}
+  },
+  "exports": {
+    ".": "./mod.ts",
+    "./buffer": "./buffer.ts",
+    "./byte-slice-stream": "./byte_slice_stream.ts",
+    "./concat-readable-streams": "./concat_readable_streams.ts",
+    "./delimiter-stream": "./delimiter_stream.ts",
+    "./early-zip-readable-streams": "./early_zip_readable_streams.ts",
+    "./iterate-reader": "./iterate_reader.ts",
+    "./limited-bytes-transform-stream": "./limited_bytes_transform_stream.ts",
+    "./limited-transform-stream": "./limited_transform_stream.ts",
+    "./merge-readable-streams": "./merge_readable_streams.ts",
+    "./readable-stream-from-reader": "./readable_stream_from_reader.ts",
+    "./reader-from-iterable": "./reader_from_iterable.ts",
+    "./reader-from-stream-reader": "./reader_from_stream_reader.ts",
+    "./text-delimiter-stream": "./text_delimiter_stream.ts",
+    "./text-line-stream": "./text_line_stream.ts",
+    "./to-array-buffer": "./to_array_buffer.ts",
+    "./to-blob": "./to_blob.ts",
+    "./to-json": "./to_json.ts",
+    "./to-text": "./to_text.ts",
+    "./to-transform-stream": "./to_transform_stream.ts",
+    "./writable-stream-from-writer": "./writable_stream_from_writer.ts",
+    "./writer-from-stream-writer": "./writer_from_stream_writer.ts",
+    "./zip-readable-streams": "./zip_readable_streams.ts"
+  }
+}

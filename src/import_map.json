@@ -1,11 +1,8 @@
 {
   "imports": {
-    "archive/": "jsr:/@std/archive@^0.225.0/",
     "async": "jsr:/@std/async@^0.224.0",
-    "async/": "jsr:/@std/async@^0.224.0/",
     "bytes/": "jsr:/@std/bytes@^0.224.0/",
     "collection/": "jsr:/@std/collection@^0.224.0/",
-    "colors": "https://deno.land/std@0.217.0/fmt/colors.ts",
     "crypto/": "jsr:/@std/crypto@^0.224.0/",
     "datetime/": "jsr:/@std/datetime@^0.224.0/",
     "dotenv": "jsr:/@std/dotenv@^0.224.0",
@@ -24,6 +21,8 @@
     "permissions/": "jsr:/@std/permissions@^0.224.0/",
     "signal/": "jsr:/@std/signal@^0.224.0/",
     "streams/": "jsr:/@std/streams@^0.224.0/",
+    "tar": "jsr:/@std/tar@^0.1.6",
+    "tar/": "jsr:/@std/tar@^0.1.6/",
     "testing/": "jsr:/@std/testing@^0.224.0/",
     "uuid/": "jsr:/@std/uuid@^0.224.0/",
     "wasi/": "jsr:/@std/wasi@^0.224.0/",
