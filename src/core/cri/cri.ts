@@ -21,6 +21,7 @@ import {
   registerForExitCleanup,
   unregisterForExitCleanup,
 } from "../process.ts";
+import { assert } from "testing/asserts";
 
 async function waitForServer(port: number, timeout = 3000) {
   const interval = 50;
@@ -87,8 +88,7 @@ export async function criClient(appPath?: string, port?: number) {
   // Allow to adapt the headless mode depending on the Chrome version
   const headlessMode = getenv("QUARTO_CHROMIUM_HEADLESS_MODE", "none");
 
-  const cmd = [
-    app,
+  const args = [
     // TODO: Chrome v128 changed the default from --headless=old to --headless=new
     // in 2024-08. Old headless mode was effectively a separate browser render,
     // and while more performant did not share the same browser implementation as
@@ -106,19 +106,27 @@ export async function criClient(appPath?: string, port?: number) {
     "--renderer-process-limit=1",
     `--remote-debugging-port=${port}`,
   ];
-  const browser = Deno.run({ cmd, stdout: "piped", stderr: "piped" });
+  const browser = new Deno.Command(app, {
+    args,
+    stdout: "piped",
+    stderr: "piped",
+  });
 
+  const cmd = browser.spawn();
   // Register for cleanup inside exitWithCleanup() in case something goes wrong
-  const thisProcessId = registerForExitCleanup(browser);
+  const thisProcessId = registerForExitCleanup(cmd);
 
   if (!(await waitForServer(port as number))) {
     let msg = "Couldn't find open server.";
     // Printing more error information if chrome process errored
-    if (!(await browser.status()).success) {
+    if (!(await cmd.status).success) {
       debug(`[CHROMIUM path]   : ${app}`);
       debug(`[CHROMIUM cmd]   : ${cmd}`);
-      const rawError = await browser.stderrOutput();
-      const errorString = new TextDecoder().decode(rawError);
+      const rawError = await cmd.stderr;
+      const reader = rawError.getReader();
+      const readerResult = await reader.read();
+      assert(readerResult.done);
+      const errorString = new TextDecoder().decode(readerResult.value!);
       msg = msg + "\n" + `Chrome process error: ${errorString}`;
     }
 
@@ -135,8 +143,7 @@ export async function criClient(appPath?: string, port?: number) {
       // We have a bug where `client.close()` doesn't return properly and we don't go below
       // meaning the `browser` process is not killed here, and it will be handled in exitWithCleanup().
 
-      browser.kill(); // Chromium headless won't terminate on its own, so we need to send kill signal
-      browser.close(); // Closing the browser Deno process
+      cmd.kill(); // Chromium headless won't terminate on its own, so we need to send kill signal
       unregisterForExitCleanup(thisProcessId); // All went well so not need to cleanup on quarto exit
     },
 

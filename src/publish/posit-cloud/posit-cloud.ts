@@ -165,6 +165,9 @@ async function authorizeToken(
         token: tokenAndSecret,
       };
     } catch (err) {
+      if (!(err instanceof Error)) {
+        throw err;
+      }
       if (isUnauthorized(err)) {
         promptError(
           "Credential is unauthorized.",

@@ -136,7 +136,7 @@ async function createHtmlDescriptions(): Promise<
   const cmd = [pandocBinaryPath(), "--to", "html"];
 
   const pandocResult = await execProcess(
-    { stdout: "piped", cmd },
+    { stdout: "piped", cmd: cmd[0], args: cmd.slice(1) },
     markdownDescriptions,
   );
 

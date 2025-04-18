@@ -6,8 +6,8 @@ import { unitTest } from "../../test.ts";
 const testPassthroughCmd = (name: string, command: string, args: string[]) => {
   unitTest(name, async () => {
     const result = await execProcess({
-      cmd: [
-        quartoDevCmd(),
+      cmd: quartoDevCmd(), 
+      args: [
         command,
         ...args,
       ]

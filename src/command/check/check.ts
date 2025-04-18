@@ -217,7 +217,8 @@ async function checkVersions(conf: CheckConfiguration) {
 
   let pandocVersion = lines(
     (await execProcess({
-      cmd: [pandocBinaryPath(), "--version"],
+      cmd: pandocBinaryPath(),
+      args: ["--version"],
       stdout: "piped",
     })).stdout!,
   )[0]?.split(" ")[1];
@@ -225,7 +226,8 @@ async function checkVersions(conf: CheckConfiguration) {
   const denoVersion = Deno.version.deno;
   const typstVersion = lines(
     (await execProcess({
-      cmd: [typstBinaryPath(), "--version"],
+      cmd: typstBinaryPath(),
+      args: ["--version"],
       stdout: "piped",
     })).stdout!,
   )[0].split(" ")[1];
@@ -300,7 +302,8 @@ async function checkInstall(conf: CheckConfiguration) {
     const quartoRoot = Deno.env.get("QUARTO_ROOT");
     if (quartoRoot) {
       const gitHead = await execProcess({
-        cmd: ["git", "-C", quartoRoot, "rev-parse", "HEAD"],
+        cmd: "git",
+        args: ["-C", quartoRoot, "rev-parse", "HEAD"],
         stdout: "piped",
         stderr: "piped", // to not show error if not in a git repo
       });

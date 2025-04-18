@@ -297,6 +297,10 @@ const installContext = (
       try {
         await downloadWithProgress(url, `Downloading ${name}`, target);
       } catch (error) {
+        // shouldn't happen, but this appeases the typechecker
+        if (!(error instanceof Error)) {
+          throw error;
+        }
         installMessaging.error(
           error.message,
         );

@@ -994,7 +994,8 @@ async function runScripts(
       }
     } else {
       const result = await execProcess({
-        cmd: args,
+        cmd: args[0],
+        args: args.slice(1),
         cwd: projDir,
         stdout: quiet ? "piped" : "inherit",
         env,

@@ -159,6 +159,9 @@ async function revealMultiplexToken(
     };
     return multiplex;
   } catch (e) {
+    if (!(e instanceof Error)) {
+      throw e;
+    }
     throw Error(
       "Error attempting to provision multiplex token from '" + url + "': " +
         e.message,

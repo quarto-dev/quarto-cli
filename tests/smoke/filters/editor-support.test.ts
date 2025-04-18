@@ -26,6 +26,7 @@ async function runEditorSupportCrossref(doc: string) {
     Deno.readTextFileSync(doc),
   );
   await writer.write(buf);
+  writer.releaseLock();
   await writer.close();
   const outputBuf = await child.output();
   const status = await child.status;

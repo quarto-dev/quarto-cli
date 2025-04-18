@@ -19,7 +19,7 @@ import { outputForInput } from "./utils.ts";
 import { unzip } from "../src/core/zip.ts";
 import { dirAndStem, safeRemoveSync, which } from "../src/core/path.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
-import { execProcess } from "../src/core/process.ts";
+import { execProcess, ExecProcessOptions } from "../src/core/process.ts";
 import { canonicalizeSnapshot, checkSnapshot } from "./verify-snapshot.ts";
 
 export const withDocxContent = async <T>(
@@ -978,9 +978,10 @@ export const ensureXmlValidatesWithXsd = (
     name: "Validating XML",
     verify: async (_output: ExecuteOutput[]) => {
       if (!isWindows) {
-        const cmd = ["xmllint", "--noout", "--valid", file, "--path", xsdPath];
-        const runOptions: Deno.RunOptions = {
-          cmd,
+        const args = ["--noout", "--valid", file, "--path", xsdPath];
+        const runOptions: ExecProcessOptions = {
+          cmd: "xmllint", 
+          args,
           stderr: "piped",
           stdout: "piped",
         };
@@ -1006,7 +1007,8 @@ export const ensureMECAValidates = (
           const hasMeca = await which("meca");
           if (hasMeca) {
             const result = await execProcess({
-              cmd: ["meca", "validate", mecaFile],
+              cmd: "meca", 
+              args: ["validate", mecaFile],
               stderr: "piped",
               stdout: "piped",
             });

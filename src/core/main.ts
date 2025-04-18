@@ -6,7 +6,7 @@
  * Copyright (C) 2022 Posit Software, PBC
  */
 
-import { initializeLogger, logError, logOptions } from "../../src/core/log.ts";
+import { initializeLogger, logError, logOptions } from "./log.ts";
 import { Args } from "flags";
 import { parse } from "flags";
 import { exitWithCleanup } from "./cleanup.ts";

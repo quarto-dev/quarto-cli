@@ -75,6 +75,7 @@ const dotHandler: LanguageHandler = {
       console.log = oldConsoleLog;
       console.warn = oldConsoleWarn;
     } catch (e) {
+      if (!(e instanceof Error)) throw e;
       console.log = oldConsoleLog;
       console.warn = oldConsoleWarn;
       const m = (e.message as string).match(

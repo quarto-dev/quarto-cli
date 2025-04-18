@@ -97,6 +97,7 @@ export async function validateDocumentFromSource(
           }
         });
       } catch (e) {
+        if (!(e instanceof Error)) throw e;
         if (e.name === "NoExprTag") {
           const err = e as NoExprTag;
           error(tidyverseFormatError(err.niceError), { colorize: false });

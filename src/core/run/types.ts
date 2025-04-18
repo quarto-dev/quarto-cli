@@ -11,7 +11,7 @@ export interface RunHandlerOptions {
   env?: {
     [key: string]: string;
   };
-  stdout?: "inherit" | "piped" | "null" | number;
+  stdout?: "inherit" | "piped" | "null";
 }
 
 export interface RunHandler {

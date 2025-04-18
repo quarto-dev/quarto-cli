@@ -62,6 +62,7 @@ async function guessFormat(fileName: string): Promise<string[]> {
       try {
         yaml = parse(src);
       } catch (e) {
+        if (!(e instanceof Error)) throw e;
         if (e.message.includes("unknown tag")) {
           // assume it's not necessary to guess the format
           continue;

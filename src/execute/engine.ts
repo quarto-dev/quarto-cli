@@ -216,6 +216,7 @@ export async function fileExecutionEngine(
         flags,
       );
     } catch (error) {
+      if (!(error instanceof Error)) throw error;
       if (error.name === "YAMLError") {
         error.message = `${file}:\n${error.message}`;
       }

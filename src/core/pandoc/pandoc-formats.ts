@@ -15,7 +15,8 @@ export const kYamlMetadataBlock = "yaml_metadata_block";
 
 export async function pandocListFormats() {
   const result = await execProcess({
-    cmd: [pandocBinaryPath(), "--list-output-formats"],
+    cmd: pandocBinaryPath(),
+    args: ["--list-output-formats"],
     stdout: "piped",
   });
   if (result.success) {
@@ -31,7 +32,8 @@ export async function pandocListFormatDefaultExtensions(format: string) {
     return [];
   }
   const result = await execProcess({
-    cmd: [pandocBinaryPath(), `--list-extensions=${format}`],
+    cmd: pandocBinaryPath(),
+    args: [`--list-extensions=${format}`],
     stdout: "piped",
   });
   if (result.success) {

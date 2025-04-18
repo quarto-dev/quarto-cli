@@ -39,7 +39,8 @@ export async function registryReadString(
   let result: ProcessResult;
   try {
     result = await execProcess({
-      cmd,
+      cmd: cmd[0],
+      args: cmd.slice(1),
       stdout: "piped",
       stderr: "null",
     });

@@ -179,11 +179,12 @@ export function contextPdfOutputRecipe(
     const engine = pdfEngine(format.pandoc, format.render, pandocOptions.flags);
 
     // build context command
-    const cmd = ["context", input];
+    const cmd = "context";
+    const args = [input];
     if (engine.pdfEngineOpts) {
-      cmd.push(...engine.pdfEngineOpts);
+      args.push(...engine.pdfEngineOpts);
     }
-    cmd.push(
+    args.push(
       // ConTeXt produces some auxiliary files:
       // direct PDF generation by Pandoc never produces these auxiliary
       // files because Pandoc runs ConTeXt in a temporary directory.
@@ -194,7 +195,10 @@ export function contextPdfOutputRecipe(
     );
 
     // run context
-    const result = await execProcess({ cmd });
+    const result = await execProcess({
+      cmd,
+      args,
+    });
     if (result.success) {
       const [dir, stem] = dirAndStem(input);
       return computePath(stem, dir, format);

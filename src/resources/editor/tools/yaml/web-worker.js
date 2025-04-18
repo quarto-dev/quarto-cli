@@ -22965,7 +22965,6 @@ try {
           "The light theme name, theme scss file, or a mix of both.",
           "The dark theme name, theme scss file, or a mix of both.",
           "The dark theme name, theme scss file, or a mix of both.",
-          "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
           "Classes to apply to the body of the document.",
           "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
           "Enables inclusion of Pandoc default CSS for this document.",
@@ -23717,14 +23716,6 @@ try {
           "Manuscript configuration",
           "internal-schema-hack",
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-          {
-            short: "Include an automatically generated table of contents",
-            long: ""
-          },
-          {
-            short: "Use smart quotes in document output. Defaults to true.",
-            long: ""
-          },
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -24299,12 +24290,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 195e3,
+          _internalId: 193834,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 194992,
+              _internalId: 193826,
               type: "enum",
               enum: [
                 "png",
@@ -24320,7 +24311,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 194999,
+              _internalId: 193833,
               type: "anyOf",
               anyOf: [
                 {
@@ -24360,42 +24351,7 @@ try {
             "case-detection": true
           },
           $id: "handlers/mermaid"
-        },
-        "schema/document-typst.yml": [
-          {
-            name: "page-numbering",
-            tags: {
-              formats: [
-                "typst"
-              ]
-            },
-            schema: {
-              anyOf: [
-                "string",
-                {
-                  enum: [
-                    false
-                  ]
-                }
-              ]
-            },
-            description: {
-              short: "Include an automatically generated table of contents"
-            }
-          },
-          {
-            name: "smart",
-            tags: {
-              formats: [
-                "typst"
-              ]
-            },
-            schema: "boolean",
-            description: {
-              short: "Use smart quotes in document output. Defaults to true."
-            }
-          }
-        ]
+        }
       };
     }
   });
@@ -31331,6 +31287,8 @@ ${tidyverseInfo(
         annotation: innermostAnnotation
       };
     } catch (e) {
+      if (!(e instanceof Error))
+        throw e;
       if (e.message === kInternalLocateError) {
         return {
           withError: true

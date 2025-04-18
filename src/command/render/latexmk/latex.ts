@@ -11,7 +11,7 @@ import { error, info } from "../../../deno_ral/log.ts";
 import { PdfEngine } from "../../../config/types.ts";
 
 import { dirAndStem } from "../../../core/path.ts";
-import { execProcess } from "../../../core/process.ts";
+import { execProcess, ExecProcessOptions } from "../../../core/process.ts";
 import { ProcessResult } from "../../../core/process-types.ts";
 
 import { PackageManager } from "./pkgmgr.ts";
@@ -29,7 +29,8 @@ export interface LatexCommandReponse {
 export async function hasLatexDistribution() {
   try {
     const result = await execProcess({
-      cmd: ["pdftex", "--version"],
+      cmd: "pdftex",
+      args: ["--version"],
       stdout: "piped",
       stderr: "piped",
     });
@@ -211,8 +212,9 @@ async function runLatexCommand(
 ): Promise<ProcessResult> {
   const fullLatexCmd = texLiveCmd(latexCmd, context.texLive);
 
-  const runOptions: Deno.RunOptions = {
-    cmd: [fullLatexCmd.fullPath, ...args],
+  const runOptions: ExecProcessOptions = {
+    cmd: fullLatexCmd.fullPath,
+    args,
     stdout: "piped",
     stderr: "piped",
   };

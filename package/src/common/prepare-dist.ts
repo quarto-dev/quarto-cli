@@ -90,6 +90,7 @@ export async function prepareDist(
     try {
       await configArchDependency(dependency, targetDir, config)
     } catch (e) {
+      if (!(e instanceof Error)) { throw e; }
       if (
         e.message ===
           "The architecture aarch64 is missing the dependency deno_dom"
@@ -121,13 +122,11 @@ export async function prepareDist(
   info("");
 
   // Create the deno bundle
-  const input = join(config.directoryInfo.src, "quarto.ts");
+  // const input = join(config.directoryInfo.src, "quarto.ts");
   const output = join(config.directoryInfo.pkgWorking.bin, "quarto.js");
   info("\nCreating Deno Bundle");
   info(output);
   await bundle(
-    input,
-    output,
     config,
   );
   info("");

@@ -43,8 +43,8 @@ export const denoRunHandler: RunHandler = {
 
     return await execProcess(
       {
-        cmd: [
-          architectureToolsPath("deno"),
+        cmd: architectureToolsPath("deno"),
+        args: [
           "run",
           "--import-map",
           importMap,

@@ -27,6 +27,7 @@ export function initSessionTempDir() {
         ensureDirSync(tmpEnv);
       }
     } catch (err) {
+      if (!(err instanceof Error)) throw err;
       if (err.message) {
         debug("Error attempting to create TMPDIR: " + err.message);
       }

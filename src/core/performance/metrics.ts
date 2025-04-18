@@ -10,7 +10,7 @@ import { Stats } from "./stats.ts";
 
 type FileReadRecord = {
   path: string;
-  stack: string;
+  stack: string[];
 };
 
 let fileReads: FileReadRecord[] | undefined = undefined;
@@ -24,6 +24,7 @@ export function captureFileReads() {
     try {
       throw new Error("File read");
     } catch (e) {
+      if (!(e instanceof Error)) throw e;
       const stack = e.stack!.split("\n").slice(2);
       fileReads!.push({ path: String(path), stack });
     }

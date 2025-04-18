@@ -166,6 +166,9 @@ export async function initDenoDom() {
         return;
       }
     } catch (e) {
+      if (!(e instanceof Error)) {
+        throw e;
+      }
       debug("Error loading deno-dom-native: " + e.message);
     }
   }

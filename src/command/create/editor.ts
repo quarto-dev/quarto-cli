@@ -22,6 +22,7 @@ import {
   objectPredicate,
   stringTypePredicate,
 } from "../../typing/dynamic.ts";
+import { call } from "../../deno_ral/process.ts";
 
 export interface Editor {
   // A short, command line friendly id
@@ -103,11 +104,7 @@ function vscodeEditorInfo(): EditorInfo {
         : dirname(artifactPath);
 
       return async () => {
-        const p = Deno.run({
-          cmd: [path, artifactPath],
-          cwd,
-        });
-        await p.status();
+        await call(path, { args: [artifactPath], cwd });
       };
     },
     inEditor: isVSCodeTerminal(),
@@ -164,11 +161,7 @@ function positronEditorInfo(): EditorInfo {
         : dirname(artifactPath);
 
       return async () => {
-        const p = Deno.run({
-          cmd: [path, artifactPath],
-          cwd,
-        });
-        await p.status();
+        await call(path, { args: [artifactPath], cwd });
       };
     },
     inEditor: isPositronTerminal(),
@@ -231,15 +224,13 @@ function rstudioEditorInfo(): EditorInfo {
         const rProjPath = join(cwd, `${artifactName}.Rproj`);
         Deno.writeTextFileSync(rProjPath, kRProjContents);
 
-        const cmd = path.endsWith(".app") && isMac
+        const callCmd = path.endsWith(".app") && isMac
           ? ["open", "-na", path, "--args", rProjPath]
           : [path, rProjPath];
 
-        const p = Deno.run({
-          cmd,
-          cwd,
-        });
-        await p.status();
+        const callPath = callCmd[0];
+        const args = callCmd.slice(1);
+        await call(callPath, { args, cwd });
       };
     },
     inEditor: isRStudioTerminal(),

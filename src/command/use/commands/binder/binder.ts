@@ -82,8 +82,8 @@ export const useBinderCommand = new Command()
       if (projectHasR(context, projEnv)) {
         const result = await execProcess(
           {
-            cmd: [
-              await rBinaryPath("R"),
+            cmd: await rBinaryPath("R"),
+            args: [
               "--version",
             ],
             stdout: "piped",
