@@ -27,15 +27,20 @@ else
     exit 1
   fi
 fi
+export DENO_DIR=$QUARTO_BIN_PATH/deno_cache
 
 echo Revendoring quarto dependencies
 
+# remove deno_cache directory first
+if [ -d "$DENO_DIR" ]; then
+  rm -rf $DENO_DIR
+fi
+
 pushd ${QUARTO_SRC_PATH}
-today=`date +%Y-%m-%d`
-mv vendor vendor-${today}
 set +e
-$DENO_BIN_PATH install --vendor --no-config quarto.ts $QUARTO_ROOT/src/vendor_deps.ts $QUARTO_ROOT/tests/test-deps.ts $QUARTO_ROOT/package/scripts/deno_std/deno_std.ts --importmap=$QUARTO_SRC_PATH/import_map.json
-# FINISHME We need to move the vendor directory from .. to ./ after this is run.
+for entrypoint in quarto.ts vendor_deps.ts ../tests/test-deps.ts ../package/scripts/deno_std/deno_std.ts; do
+  $DENO_BIN_PATH install --allow-all --no-config --entrypoint $entrypoint $QUARTO_ROOT/package/scripts/deno_std/deno_std.ts --importmap=$QUARTO_SRC_PATH/import_map.json
+done
 return_code="$?"
 set -e
 if [[ ${return_code} -ne 0 ]]; then
@@ -46,6 +51,5 @@ if [[ ${return_code} -ne 0 ]]; then
 else
   rm -rf vendor-${today}
 fi
-$DENO_BIN_PATH run --no-config --unstable-ffi --allow-all --importmap=$QUARTO_SRC_PATH/import_map.json $QUARTO_PACKAGE_PATH/src/common/create-dev-import-map.ts
 popd
 source configure.sh

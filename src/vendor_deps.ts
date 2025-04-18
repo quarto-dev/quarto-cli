@@ -9,3 +9,4 @@ This is only used by vendor.sh and should not be imported by any other code.
 
 // for puppeteer
 import { dirname, join, SEP } from "https://deno.land/std@0.93.0/path/mod.ts";
+import puppeteer from "https://deno.land/x/puppeteer@9.0.2/mod.ts";

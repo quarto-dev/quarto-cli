@@ -196,7 +196,7 @@ import {
   createMarkdownPipeline,
   MarkdownPipelineHandler,
 } from "../../core/markdown-pipeline.ts";
-import { getEnv } from "../../../package/src/util/utils.ts";
+import { getenv } from "../../core/env.ts";
 import {
   BrandFontBunny,
   BrandFontFile,
@@ -351,7 +351,7 @@ export async function runPandoc(
     // load the system lua libraries, which may not be compatible with
     // the lua version we are using
     if (Deno.env.get("QUARTO_LUA_CPATH") !== undefined) {
-      pandocEnv["LUA_CPATH"] = getEnv("QUARTO_LUA_CPATH");
+      pandocEnv["LUA_CPATH"] = getenv("QUARTO_LUA_CPATH");
     } else {
       pandocEnv["LUA_CPATH"] = "";
     }
