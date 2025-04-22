@@ -10,4 +10,7 @@ This is only used by vendor.sh and should not be imported by any other code.
 // for puppeteer
 import { dirname, join, SEP } from "https://deno.land/std@0.93.0/path/mod.ts";
 import puppeteer from "https://deno.land/x/puppeteer@9.0.2/mod.ts";
-import * as base64 from "https://deno.land/std@0.93.0/encoding/base64.ts";
+import * as _base64 from "https://deno.land/std@0.93.0/encoding/base64.ts";
+
+// I don't quite understand why the import map is not resolving this one
+import * as _base64_2 from "https://deno.land/std@0.196.0/encoding/base64.ts";
