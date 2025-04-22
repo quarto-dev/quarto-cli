@@ -255,13 +255,13 @@ async function checkVersions(conf: CheckConfiguration) {
     ? [
       [pandocVersion, "3.6.3", "Pandoc"],
       [sassVersion, "1.85.1", "Dart Sass"],
-      [denoVersion, "1.46.3", "Deno"],
+      [denoVersion, "2.2.10", "Deno"],
       [typstVersion, "0.13.0", "Typst"],
     ]
     : [
       [pandocVersion, ">=2.19.2", "Pandoc"],
       [sassVersion, ">=1.32.8", "Dart Sass"],
-      [denoVersion, ">=1.33.1", "Deno"],
+      [denoVersion, ">=2.2.10", "Deno"],
       [typstVersion, ">=0.10.0", "Typst"],
     ];
   const fun = strict ? strictCheckVersion : checkVersion;
