@@ -194,10 +194,6 @@ function supportingFiles(config: Configuration) {
       from: join(config.directoryInfo.src, "resources"),
       to: config.directoryInfo.pkgWorking.share,
     },
-    {
-      from: join(config.directoryInfo.src, "resources", "vendor"),
-      to: join(config.directoryInfo.pkgWorking.bin, "vendor"),
-    },
   ];
 
   // Gather supporting files
