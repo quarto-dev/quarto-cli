@@ -15,7 +15,7 @@ import { isMac, isWindows } from "../deno_ral/platform.ts";
 // deno-lint-ignore no-explicit-any
 let puppeteerImport: any = undefined;
 // deno-lint-ignore prefer-const
-let puppeteerUrl = "puppeteer/mod.ts";
+let puppeteerUrl = "puppeteer";
 export async function getPuppeteer() {
   if (puppeteerImport !== undefined) {
     return puppeteerImport;
