@@ -171,9 +171,7 @@ export async function prepareDist(
   const configDir = join(config.directoryInfo.dist, "config");
   info(configDir);
   if (existsSync(configDir)) {
-    Deno.removeSync(configDir, {
-      recursive: true,
-    });
+    Deno.removeSync(configDir, { recursive: true });
   }
 
   info("");
@@ -210,7 +208,6 @@ function supportingFiles(config: Configuration) {
   // compiled later
   const pathsToClean = [
     join(config.directoryInfo.pkgWorking.share, "filters"),
-    join(config.directoryInfo.pkgWorking.share, "vendor"),
   ];
   pathsToClean.forEach((path) => Deno.removeSync(path, { recursive: true }));
 }
