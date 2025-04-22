@@ -12,7 +12,7 @@ function choose_cell_renderings()
   return {
     Div = function(div)
       -- Only process cell div with renderings attr
-      if not div.classes:includes("cell") or not div.attributes["renderings"] then
+      if not div.classes or not div.classes:includes("cell") or not div.attributes["renderings"] then
         return nil
       end
       local renderingsJson = div.attributes['renderings']
@@ -24,7 +24,7 @@ function choose_cell_renderings()
       local cods = {}
       local firstCODIndex = nil
       for i, cellOutput in ipairs(div.content) do
-        if cellOutput.classes:includes("cell-output-display") then
+        if cellOutput.classes and cellOutput.classes:includes("cell-output-display") then
           if not firstCODIndex then
             firstCODIndex = i
           end
