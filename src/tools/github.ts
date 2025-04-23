@@ -1,11 +1,11 @@
 /*
-* github.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * github.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { GitHubRelease } from "./types.ts";
+import * as core from "github_actions/core";
 
 // deno-lint-ignore-file camelcase
 
@@ -25,4 +25,12 @@ export async function getLatestRelease(repo: string): Promise<GitHubRelease> {
   } else {
     return response.json();
   }
+}
+
+export async function group<T>(title: string, fn: () => Promise<T>) {
+  Deno.env.get("CI");
+  if (!Deno.env.get("CI")) {
+    return fn();
+  }
+  return core.group(title, fn);
 }

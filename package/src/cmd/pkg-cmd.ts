@@ -7,6 +7,8 @@
 import { Command } from "cliffy/command/mod.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 
+import { group } from "../../../src/tools/github.ts";
+
 import { printConfiguration } from "../common/config.ts";
 
 import {
@@ -19,7 +21,7 @@ import {
 export const kLogLevel = "logLevel";
 export const kVersion = "setVersion";
 
-export function packageCommand(run: (config: Configuration) => Promise<void>) {
+export function packageCommand(run: (config: Configuration) => Promise<void>, commandName: string) {
   return new Command().option(
     "-sv, --set-version [version:string]",
     "Version to set when preparing this distribution",
@@ -51,7 +53,9 @@ export function packageCommand(run: (config: Configuration) => Promise<void>) {
       // Print the configuration
       printConfiguration(config);
 
-      // Run the command
-      await run(config);
-    });
+      await group(commandName, async () => {
+        // Run the command
+        await run(config);
+      });
+    }).name(commandName);
 }

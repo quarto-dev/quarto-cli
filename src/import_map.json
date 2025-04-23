@@ -6,6 +6,7 @@
     "encoding/": "jsr:/@std/encoding@1.0.9/",
     "fmt/": "jsr:/@std/fmt@1.0.6/",
     "fs/": "jsr:/@std/fs@1.0.16/",
+    "github_actions/core": "npm:@actions/core@1.11.1",
     "http/": "jsr:/@std/http@1.0.14/",
     "path": "jsr:@std/path@1.0.8",
     "path/posix": "jsr:@std/path@1.0.8/posix",
