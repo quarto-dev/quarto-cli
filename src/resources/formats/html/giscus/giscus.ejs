@@ -4,8 +4,11 @@
 function loadGiscusWhenReady() {
   // Function to get the theme based on body class
   const getTheme = () => {
-    const baseTheme = document.getElementById('giscus-base-theme').value;
-    const altTheme = document.getElementById('giscus-alt-theme').value;
+    let baseTheme = document.getElementById('giscus-base-theme').value;
+    let altTheme = document.getElementById('giscus-alt-theme').value;
+    if (authorPrefersDark) {
+        [baseTheme, altTheme] = [altTheme, baseTheme];
+    }
     return document.body.classList.contains('quarto-dark') ? altTheme : baseTheme;
   };
 

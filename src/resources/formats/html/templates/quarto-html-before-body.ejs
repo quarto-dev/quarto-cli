@@ -136,7 +136,7 @@
   
       let newTheme = '';
   
-      if(darkModeDefault) {
+      if(authorPrefersDark) {
         newTheme = isAlternate ? baseTheme : alternateTheme;
       } else {
         newTheme = isAlternate ? alternateTheme : baseTheme;
@@ -165,10 +165,12 @@
     };
 
     <% if (respectUserColorScheme) { %>
+    const authorPrefersDark = <%= darkModeDefault %>;
     const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
     const darkModeDefault = queryPrefersDark.matches;
     <% } else { %>
     const darkModeDefault = <%= darkModeDefault %>;
+    const authorPrefersDark = <%= darkModeDefault %>;
     <% } %>
 
     <% if (!darkModeDefault) { %>
