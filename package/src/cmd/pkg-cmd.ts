@@ -51,7 +51,9 @@ export function packageCommand(run: (config: Configuration) => Promise<void>, co
       Deno.env.set("QUARTO_DEBUG", "true");
 
       // Print the configuration
-      printConfiguration(config);
+      await group("Configuration info", async () => {
+        printConfiguration(config);
+      });
 
       await group(commandName, async () => {
         // Run the command

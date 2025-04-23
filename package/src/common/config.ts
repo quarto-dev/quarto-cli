@@ -120,10 +120,11 @@ export function printConfiguration(config: Configuration) {
   info("");
   info("******************************************");
   info("Configuration:");
-  info(` - OS:      ${config.os}`);
-  info(` - Arch:    ${config.arch}`);
-  info(` - Version: ${config.version}`);
-  info(` - Cwd:     ${Deno.cwd()}`);
+  info(` - OS:       ${config.os}`);
+  info(` - Arch:     ${config.arch}`);
+  info(` - Version:  ${config.version}`);
+  info(` - Cwd:      ${Deno.cwd()}`);
+  info(` - DENO_DIR: ${Deno.env.get("DENO_DIR")}`);
   info(` - Directory configuration:`);
   info(
     `   - Package folder (build source): ${config.directoryInfo.pkg}`,
