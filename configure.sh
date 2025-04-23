@@ -82,6 +82,11 @@ pushd "$QUARTO_PACKAGE_PATH/src/"
 # Run the configure command to bootstrap installation
 ./quarto-bld configure --log-level info
 
+popd
+
+# download typescript dependencies
+./package/scripts/vendoring/vendor.sh
+
 # Run the quarto command with 'reload', which will force the import_map dependencies
 # to be reloaded
 if ! quarto_loc="$(type -p quarto)" || [[ -z $quarto_loc ]]; then

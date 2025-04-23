@@ -44,12 +44,9 @@ done
 return_code="$?"
 set -e
 if [[ ${return_code} -ne 0 ]]; then
-  echo "deno vendor failed (likely because of a download error). Please run the configure script again."
-  rm -rf vendor
-  mv vendor-${today} vendor
+  echo "deno vendor failed (likely because of a download error)."
   exit 1
 else
   rm -rf vendor-${today}
 fi
 popd
-source configure.sh
