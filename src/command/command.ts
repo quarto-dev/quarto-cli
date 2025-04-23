@@ -30,6 +30,7 @@ import { uninstallCommand } from "./uninstall/cmd.ts";
 import { createCommand } from "./create/cmd.ts";
 import { editorSupportCommand } from "./editor-support/cmd.ts";
 import { callCommand } from "./call/cmd.ts";
+import { devCallCommand } from "./dev-call/cmd.ts";
 
 // deno-lint-ignore no-explicit-any
 export function commands(): Command<any>[] {
@@ -59,5 +60,6 @@ export function commands(): Command<any>[] {
     buildJsCommand,
     editorSupportCommand,
     callCommand,
+    devCallCommand,
   ];
 }
