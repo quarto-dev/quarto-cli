@@ -13,5 +13,15 @@
         <%- giscus.loading ? `data-loading=${giscus.loading}` : '' %>
         async>
 </script>
+<script type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    var giscusIframe = window.document.querySelector('iframe.giscus-frame');
+    giscusIframe.addEventListener("load", function() {
+      window.setTimeout(() => {
+        window.toggleGiscusIfUsed(window.hasAlternateSentinel(), authorPrefersDark);
+      }, 100);
+    });
+  });
+</script>
 <input type="hidden" id="giscus-base-theme" value="<%- giscus.baseTheme %>">
 <input type="hidden" id="giscus-alt-theme" value="<%- giscus.altTheme %>">
