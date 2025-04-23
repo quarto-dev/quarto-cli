@@ -11,17 +11,19 @@ import { existsSync } from "../deno_ral/fs.ts";
 import { UnreachableError } from "./lib/error.ts";
 import { quartoDataDir } from "./appdirs.ts";
 import { isMac, isWindows } from "../deno_ral/platform.ts";
+import puppeteer from "puppeteer";
 
 // deno-lint-ignore no-explicit-any
-let puppeteerImport: any = undefined;
+// let puppeteerImport: any = undefined;
 // deno-lint-ignore prefer-const
-let puppeteerUrl = "puppeteer";
+// let puppeteerUrl = "puppeteer";
 export async function getPuppeteer() {
-  if (puppeteerImport !== undefined) {
-    return puppeteerImport;
-  }
-  puppeteerImport = (await import(puppeteerUrl)).default;
-  return puppeteerImport;
+  return puppeteer;
+  // if (puppeteerImport !== undefined) {
+  //   return puppeteerImport;
+  // }
+  // puppeteerImport = (await import(puppeteerUrl)).default;
+  // return puppeteerImport;
 }
 
 /**
