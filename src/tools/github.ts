@@ -5,7 +5,6 @@
  */
 
 import { GitHubRelease } from "./types.ts";
-import * as core from "github_actions/core";
 
 // deno-lint-ignore-file camelcase
 
@@ -27,10 +26,37 @@ export async function getLatestRelease(repo: string): Promise<GitHubRelease> {
   }
 }
 
+// NB we do not escape these here - it's the caller's responsibility to do so
+function githubActionsWorkflowCommand(
+  command: string,
+  value = "",
+  params?: Record<string, string>,
+) {
+  let paramsStr = "";
+  if (params) {
+    paramsStr = " ";
+    let first = false;
+    for (const [key, val] of Object.entries(params)) {
+      if (!first) {
+        first = true;
+      } else {
+        paramsStr += ",";
+      }
+      paramsStr += `${key}=${val}`;
+    }
+  }
+  return `::${command}${paramsStr}::${value}`;
+}
+
 export async function group<T>(title: string, fn: () => Promise<T>) {
   Deno.env.get("CI");
   if (!Deno.env.get("CI")) {
     return fn();
   }
-  return core.group(title, fn);
+  console.log(githubActionsWorkflowCommand("group", title));
+  try {
+    return await fn();
+  } finally {
+    console.log(githubActionsWorkflowCommand("endgroup"));
+  }
 }
