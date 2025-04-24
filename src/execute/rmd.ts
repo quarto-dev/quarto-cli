@@ -155,6 +155,8 @@ export const knitrEngine: ExecutionEngine = {
 
         return output;
       },
+      true,
+      options.env,
     );
     const includes = result.includes as unknown;
     // knitr appears to return [] instead of {} as the value for includes.
@@ -255,6 +257,7 @@ async function callR<T>(
   quiet?: boolean,
   outputFilter?: (output: string) => string,
   reportError = true,
+  env?: Record<string, string>,
 ): Promise<T> {
   // establish cwd for our R scripts (the current dir if there is an renv
   // otherwise the project dir if specified)
@@ -287,6 +290,7 @@ async function callR<T>(
           ...rscriptArgsArray,
           resourcePath("rmd/rmd.R"),
         ],
+        env,
         cwd,
         stderr: quiet ? "piped" : "inherit",
       },

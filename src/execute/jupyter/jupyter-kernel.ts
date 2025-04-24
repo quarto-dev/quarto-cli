@@ -61,6 +61,7 @@ export async function executeKernelOneshot(
     "execute",
     { ...options, debug },
     options.kernelspec,
+    options.env,
   );
 
   if (!result.success) {
@@ -189,6 +190,7 @@ async function execJupyter(
   command: string,
   options: Record<string, unknown>,
   kernelspec: JupyterKernelspec,
+  env: Record<string, string> = {},
 ): Promise<ProcessResult> {
   try {
     const result = await execProcess(
@@ -197,6 +199,7 @@ async function execJupyter(
           ...(await pythonExec(kernelspec)),
           resourcePath("jupyter/jupyter.py"),
         ],
+        // FIXME IS THIS NOT SET WITH THE DAEMON?
         env: {
           // Force default matplotlib backend. something simillar is done here:
           // https://github.com/ipython/ipykernel/blob/d7339c2c70115bbe6042880d29eeb273b5a2e350/ipykernel/kernelapp.py#L549-L554
@@ -207,6 +210,7 @@ async function execJupyter(
           // function within the notebook
           "MPLBACKEND": "module://matplotlib_inline.backend_inline",
           "PYDEVD_DISABLE_FILE_VALIDATION": "1",
+          ...env,
         },
         stdout: "piped",
       },

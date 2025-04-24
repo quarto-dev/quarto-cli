@@ -227,6 +227,7 @@ export async function renderExecute(
     previewServer: context.options.previewServer,
     handledLanguages: languages(),
     project: context.project,
+    env: {},
   };
   // execute computations
   setExecuteEnvironment(executeOptions);
