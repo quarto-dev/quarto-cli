@@ -21,7 +21,7 @@
       }
     }
 
-    window.setColorSchemeToggle = (alternate) => {
+    const setColorSchemeToggle = (alternate) => {
       const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
       for (let i=0; i < toggles.length; i++) {
         const toggle = toggles[i];
@@ -56,7 +56,7 @@
       manageTransitions('#quarto-margin-sidebar .nav-link', true);
 
       // Switch the toggles
-      window.setColorSchemeToggle(alternate)
+      setColorSchemeToggle(alternate)
 
       // Hack to workaround the fact that safari doesn't
       // properly recolor the scrollbar when toggling (#1455)
@@ -103,7 +103,7 @@
       return window.location.protocol === 'file:';
     }
 
-    window.hasAlternateSentinel = () => {
+    const hasAlternateSentinel = () => {
       let styleSentinel = getColorSchemeSentinel();
       if (styleSentinel !== null) {
         return styleSentinel === "alternate";
@@ -182,13 +182,11 @@
     // Dark / light mode switch
     window.quartoToggleColorScheme = () => {
       // Read the current dark / light value
-      let toAlternate = !window.hasAlternateSentinel();
+      let toAlternate = !hasAlternateSentinel();
       toggleColorMode(toAlternate);
       setStyleSentinel(toAlternate);
       toggleGiscusIfUsed(toAlternate, darkModeDefault);
     };
-
-    window.toggleGiscusIfUsed = toggleGiscusIfUsed;
 
     <% if (respectUserColorScheme) { %>
     queryPrefersDark.addEventListener("change", e => {
@@ -202,7 +200,7 @@
     <% } %>
 
     // Switch to dark mode if need be
-    if (window.hasAlternateSentinel()) {
+    if (hasAlternateSentinel()) {
       toggleColorMode(true);
     } else {
       toggleColorMode(false);

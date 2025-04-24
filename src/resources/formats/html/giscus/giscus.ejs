@@ -22,7 +22,7 @@
           if(giscusIframe) {
             giscusIframe.addEventListener("load", function() {
               window.setTimeout(() => {
-                window.toggleGiscusIfUsed(window.hasAlternateSentinel(), authorPrefersDark);
+                toggleGiscusIfUsed(hasAlternateSentinel(), authorPrefersDark);
               }, 100);
             });
             giscusIframeObserver.disconnect();
