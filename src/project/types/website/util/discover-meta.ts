@@ -15,7 +15,7 @@ import { getDecodedAttribute } from "../../../../core/html.ts";
 
 const kPreviewImgClass = "preview-image";
 const kNamedFilePattern =
-  "(.*?(?:preview|feature|cover|thumbnail).*?(?:\\.png|\\.gif|\\.jpg|\\.jpeg|\\.webp))";
+  "(.*?(?:preview|feature|cover|thumbnail).*?(?:\\.png|\\.gif|\\.jpg|\\.jpeg|\\.webp|\\.svg))";
 const kPreviewClassPattern =
   `!\\[[^\\]]*\\]\\((.*?)(?:\\".*\\")?\\)\\{[^\\|]*\\.${kPreviewImgClass}[\\s\\}]+`;
 const kMdNamedImagePattern =
