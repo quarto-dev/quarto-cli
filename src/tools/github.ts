@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { runningInCI } from "../core/ci-info.ts";
 import { GitHubRelease } from "./types.ts";
 
 // deno-lint-ignore-file camelcase
@@ -49,8 +50,7 @@ function githubActionsWorkflowCommand(
 }
 
 export async function group<T>(title: string, fn: () => Promise<T>) {
-  Deno.env.get("CI");
-  if (!Deno.env.get("CI")) {
+  if (!runningInCI()) {
     return fn();
   }
   console.log(githubActionsWorkflowCommand("group", title));
