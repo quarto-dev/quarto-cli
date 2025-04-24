@@ -18,7 +18,6 @@ import { typstCommand } from "./typst/cmd.ts";
 import { capabilitiesCommand } from "./capabilities/cmd.ts";
 import { checkCommand } from "./check/cmd.ts";
 import { inspectCommand } from "./inspect/cmd.ts";
-import { buildJsCommand } from "./build-js/cmd.ts";
 import { installCommand } from "./install/cmd.ts";
 import { updateCommand } from "./update/cmd.ts";
 import { publishCommand } from "./publish/cmd.ts";
@@ -57,7 +56,6 @@ export function commands(): Command<any>[] {
     capabilitiesCommand,
     inspectCommand,
     checkCommand,
-    buildJsCommand,
     editorSupportCommand,
     callCommand,
     devCallCommand,

@@ -1,6 +1,7 @@
 import { Command } from "cliffy/command/mod.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { commands } from "../command.ts";
+import { buildJsCommand } from "./build-artifacts/cmd.ts";
 
 type CommandOptionInfo = {
   name: string;
@@ -55,4 +56,6 @@ export const devCallCommand = new Command()
   .action(() => {
     devCallCommand.showHelp();
     Deno.exit(1);
-  }).command("cli-info", generateCliInfoCommand);
+  })
+  .command("cli-info", generateCliInfoCommand)
+  .command("build-artifacts", buildJsCommand);
