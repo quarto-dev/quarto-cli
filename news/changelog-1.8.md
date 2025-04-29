@@ -6,6 +6,10 @@ All changes included in 1.8:
 
 - ([#12598](https://github.com/quarto-dev/quarto-cli/pull/12598)): Ensure `.fragment` on an image with caption applies to whole figure.
 
+### `docx`
+
+- ([#8392](https://github.com/quarto-dev/quarto-cli/issues/8392)): Fix `docx` generation issues in tables 
+
 ## Projects
 
 ### `website`
