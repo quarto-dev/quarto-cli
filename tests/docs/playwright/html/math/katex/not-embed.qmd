@@ -1,0 +1,11 @@
+---
+format: html
+html-math-method: katex
+---
+
+$\alpha$
+
+```{python}
+import pandas as pd
+pd.DataFrame([1])
+```

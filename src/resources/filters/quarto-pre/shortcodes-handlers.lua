@@ -128,7 +128,11 @@ function initShortcodeHandlers()
 
     if brandCommand == "logo" then
       local logo_name = read_arg(args, 2)
-      local logo_value = brand.get_logo(logo_name)
+      local brandMode = 'light'
+      if #args > 2 then
+        brandMode = read_arg(args, 3) or brandMode
+      end
+      local logo_value = brand.get_logo(brandMode, logo_name)
       local entry = { path = nil }
 
       if type(logo_value) ~= "table" then

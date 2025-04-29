@@ -10,17 +10,17 @@ import {
   ESBuildAnalysis,
   esbuildAnalyze,
   esbuildCompile,
-} from "../../core/esbuild.ts";
-import { buildIntelligenceResources } from "../../core/schema/build-schema-file.ts";
-import { formatResourcePath, resourcePath } from "../../core/resources.ts";
+} from "../../../core/esbuild.ts";
+import { buildIntelligenceResources } from "../../../core/schema/build-schema-file.ts";
+import { formatResourcePath, resourcePath } from "../../../core/resources.ts";
 import { simple } from "acorn/walk";
 import { Parser } from "acorn/acorn";
 import classFields from "acorn-class-fields";
-import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
+import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
 
 // initialize language handlers
-import "../../core/handlers/handlers.ts";
-import { join } from "../../deno_ral/path.ts";
+import "../../../core/handlers/handlers.ts";
+import { join } from "../../../deno_ral/path.ts";
 
 function ensureAllowableIDESyntax(src: string, filename: string) {
   const ast = Parser.extend(classFields).parse(src, {

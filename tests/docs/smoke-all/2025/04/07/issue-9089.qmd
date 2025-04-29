@@ -1,0 +1,42 @@
+---
+title: DataBricks Notebooks
+engine: jupyter
+keep-md: true
+execute:
+  eval: false
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - [":::"]
+---
+
+
+## Introduction
+
+In this notebook, we try Quarto with DataBricks.
+
+## Chapter
+
+In the first chapter, we try multiple commands and observe their results.
+
+
+```{python}
+#| application/vnd.databricks.v1+cell: {cellMetadata: {byteLimit: 2048000, rowLimit: 10000}, inputWidgets: {}, nuid: 7039bc23-d898-4506-b24d-8f1002a66d18, showTitle: false, title: ''}
+df = spark.read.table("samples.nyctaxi.trips")
+df.show(5)
+```
+
+This is text in-between the commands.
+
+```{python}
+#| application/vnd.databricks.v1+cell: {cellMetadata: {byteLimit: 2048000, rowLimit: 10000}, inputWidgets: {}, nuid: 21c1cb83-83cc-40c8-9a8b-f5378d3f29be, showTitle: false, title: ''}
+from databricks.sdk.runtime import dbutils
+dbutils.fs.ls("dbfs:/Workspace/Users/")
+```
+
+## Conclusion
+
+Currently, Quarto does not fully work, at least not rendering.
+

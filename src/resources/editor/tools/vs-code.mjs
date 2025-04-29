@@ -13031,29 +13031,31 @@ var require_yaml_intelligence_resources = __commonJS({
               {
                 string: {
                   completions: [
-                    "pygments",
-                    "tango",
-                    "espresso",
-                    "zenburn",
-                    "kate",
-                    "monochrome",
-                    "breezedark",
-                    "haddock",
+                    "a11y",
                     "arrow",
                     "atom-one",
                     "ayu",
                     "ayu-mirage",
                     "breeze",
+                    "breezedark",
                     "dracula",
+                    "espresso",
                     "github",
                     "gruvbox",
-                    "mokokai",
+                    "haddock",
+                    "kate",
+                    "monochrome",
+                    "monokai",
+                    "none",
                     "nord",
                     "oblivion",
                     "printing",
+                    "pygments",
                     "radical",
                     "solarized",
-                    "vim-dark"
+                    "tango",
+                    "vim-dark",
+                    "zenburn"
                   ]
                 }
               }
@@ -16123,7 +16125,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           description: {
             short: "A regular expression that can be used to determine whether a link is an internal link.",
-            long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
+            long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with `http://www.quarto.org/custom` or `https://www.quarto.org/custom`\nas internal links (and others will be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
           }
         },
         {
@@ -16646,6 +16648,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "number-offset",
+          tags: {
+            formats: [
+              "$html-all"
+            ]
+          },
           schema: {
             maybeArrayOf: "number"
           },
@@ -19418,7 +19425,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-doc"
             ]
           },
-          description: "Setting this to false prevents the `repo-actions` from appearing on this page."
+          description: "Setting this to false prevents the `repo-actions` from appearing on this page.\nOther possible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
         },
         {
           name: "aliases",
@@ -21985,7 +21992,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
         },
         "Classes to apply to cell container",
-        "Array of rendering names",
+        "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
         "Array of tags for notebook cell",
         {
           short: "Notebook cell identifier",
@@ -22858,7 +22865,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Open external links in a new browser window or tab (rather than\nnavigating the current tab).",
         {
           short: "A regular expression that can be used to determine whether a link is\nan internal link.",
-          long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith http://www.quarto.org as internal links (and others will be\nconsidered external):"
+          long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith <code>http://www.quarto.org/custom</code> or\n<code>https://www.quarto.org/custom</code> as internal links (and others\nwill be considered external):"
         },
         {
           short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
@@ -22957,6 +22964,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name, theme scss file, or a mix of both.",
         "The dark theme name, theme scss file, or a mix of both.",
         "The dark theme name, theme scss file, or a mix of both.",
+        "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
         "Classes to apply to the body of the document.",
         "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
         "Enables inclusion of Pandoc default CSS for this document.",
@@ -22965,8 +22973,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Enables tabsets to present content.",
         "Enables smooth scrolling within the page.",
         {
-          short: "Whether the <code>prefers-color-scheme</code> media query controls\ndark mode.",
-          long: "Whether to use the <code>prefers-color-scheme</code> media query to\ndetermine whether to show the user a dark or light page. Otherwise the\nauthor preference (order of <code>light</code> and <code>dark</code> in\n<code>theme</code> or <code>brand</code>) determines what is shown to\nthe user at first visit."
+          short: "Enables setting dark mode based on the\n<code>prefers-color-scheme</code> media query.",
+          long: "If set, Quarto reads the <code>prefers-color-scheme</code> media\nquery to determine whether to show the user a dark or light page.\nOtherwise the author-preferred color scheme is shown."
         },
         {
           short: "Method use to render math in HTML output",
@@ -23341,7 +23349,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Print a list of figures in the document.",
         "Print a list of tables in the document.",
         "Setting this to false prevents this document from being included in\nsearches.",
-        "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
+        "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page. Other possible values are <code>none</code> or\none or more of <code>edit</code>, <code>source</code>, and\n<code>issue</code>, <em>e.g.</em>\n<code>[edit, source, issue]</code>.",
         {
           short: "Links to source repository actions",
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -24290,12 +24298,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 194627,
+        _internalId: 195e3,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 194619,
+            _internalId: 194992,
             type: "enum",
             enum: [
               "png",
@@ -24311,7 +24319,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 194626,
+            _internalId: 194999,
             type: "anyOf",
             anyOf: [
               {

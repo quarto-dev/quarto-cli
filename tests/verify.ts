@@ -17,7 +17,7 @@ import { readYamlFromString } from "../src/core/yaml.ts";
 import { ExecuteOutput, Verify } from "./test.ts";
 import { outputForInput } from "./utils.ts";
 import { unzip } from "../src/core/zip.ts";
-import { dirAndStem, which } from "../src/core/path.ts";
+import { dirAndStem, safeRemoveSync, which } from "../src/core/path.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
 import { execProcess } from "../src/core/process.ts";
 import { canonicalizeSnapshot, checkSnapshot } from "./verify-snapshot.ts";
@@ -38,6 +38,26 @@ export const withDocxContent = async <T>(
     const docXml = join(temp, "word", "document.xml");
     const xml = await Deno.readTextFile(docXml);
     const result = await k(xml);
+    return result;
+  } finally {
+    await Deno.remove(temp, { recursive: true });
+  }
+};
+
+export const withEpubDirectory = async <T>(
+  file: string,
+  k: (path: string) => Promise<T>
+) => {
+  const [_dir, stem] = dirAndStem(file);
+  const temp = await Deno.makeTempDir();
+  try {
+    // Move the docx to a temp dir and unzip it
+    const zipFile = join(temp, stem + ".zip");
+    await Deno.copyFile(file, zipFile);
+    await unzip(zipFile);
+
+    // Open the core xml document and match the matches
+    const result = await k(temp);
     return result;
   } finally {
     await Deno.remove(temp, { recursive: true });
@@ -468,7 +488,7 @@ export const verifyKeepFileRegexMatches = (
       try {
         await regexChecker(file, matches, noMatches);
       } finally {
-        await Deno.remove(file);
+        await safeRemoveSync(file);
       }
     }
     return verifyFileRegexMatches(keptFileChecker, `Inspecting intermediate ${keptFile} for Regex matches`)(keptFile, matchesUntyped, noMatchesUntyped);
@@ -568,6 +588,18 @@ export const verifyDocXDocument = (
     },
   });
 };
+
+export const verifyEpubDocument = (
+  callback: (path: string) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting Epub",
+    verify: async (_output: ExecuteOutput[]) => {
+      return await withEpubDirectory(file, callback);
+    },
+  });
+}
 
 export const verifyPptxDocument = (
   callback: (doc: string, docFile: string) => Promise<void>,
@@ -729,6 +761,52 @@ export const ensureDocxRegexMatches = (
     return Promise.resolve();
   }, "Inspecting Docx for Regex matches")(file);
 };
+
+export const ensureEpubFileRegexMatches = (
+  epubFile: string,
+  pathsAndRegexes: {
+    path: string;
+    regexes: (string | RegExp)[][];
+  }[]
+): Verify => {
+  return verifyEpubDocument(async (epubDir) => {
+    for (const { path, regexes } of pathsAndRegexes) {
+      const file = join(epubDir, path);
+      assert(
+        existsSync(file),
+        `File ${file} doesn't exist in Epub`,
+      );
+      const content = await Deno.readTextFile(file);
+      const mustMatch: (RegExp | string)[] = [];
+      const mustNotMatch: (RegExp | string)[] = [];
+      if (regexes.length) {
+        mustMatch.push(...regexes[0]);
+      }
+      if (regexes.length > 1) {
+        mustNotMatch.push(...regexes[1]);
+      }
+
+      mustMatch.forEach((regex) => {
+        if (typeof regex === "string") {
+          regex = new RegExp(regex);
+        }
+        assert(
+          regex.test(content),
+          `Required match ${String(regex)} is missing from file ${file}.`,
+        );
+      });
+      mustNotMatch.forEach((regex) => {
+        if (typeof regex === "string") {
+          regex = new RegExp(regex);
+        }
+        assert(
+          !regex.test(content),
+          `Illegal match ${String(regex)} was found in file ${file}.`,
+        );
+      });
+    }
+  }, "Inspecting Epub for Regex matches")(epubFile);
+}
 
 // export const ensureDocxRegexMatches = (
 //   file: string,

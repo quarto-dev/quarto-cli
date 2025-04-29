@@ -22,10 +22,7 @@ import {
   BrandFontWeight,
 } from "../../resources/types/schema-types.ts";
 import { Brand } from "../brand/brand.ts";
-import {
-  darkModeDefault,
-} from "../../format/html/format-html-info.ts";
-
+import { darkModeDefault } from "../../format/html/format-html-info.ts";
 
 const defaultColorNameMap: Record<string, string> = {
   "link-color": "link",
@@ -81,8 +78,8 @@ export async function brandBootstrapSassBundles(
     dependency: "bootstrap",
     user: layers.light,
     dark: {
-      user: layers.dark
-    }
+      user: layers.dark,
+    },
   }];
 }
 
@@ -187,7 +184,7 @@ const brandColorLayer = (
 
   // format-specific name mapping
   for (const [key, value] of Object.entries(nameMap)) {
-    const resolvedValue = brand.getColor(value);
+    const resolvedValue = brand.getColor(value, true);
     if (resolvedValue !== value) {
       colorVariables.push(
         `$${key}: ${resolvedValue} !default;`,
@@ -579,7 +576,7 @@ export async function brandSassLayers(
   const brand = await project.resolveBrand(fileName);
   const sassLayers: LightDarkSassLayers = {
     light: [],
-    dark: []
+    dark: [],
   };
 
   for (const mode of ["light", "dark"] as Array<"dark" | "light">) {
@@ -660,10 +657,12 @@ export async function brandSassFormatExtras(
           key: "brand",
           dependency: "bootstrap",
           user: htmlSassBundleLayers.light,
-          dark: htmlSassBundleLayers.dark.length ? {
-            user: htmlSassBundleLayers.dark,
-            default: darkModeDefault(format.metadata)
-          } : undefined
+          dark: htmlSassBundleLayers.dark.length
+            ? {
+              user: htmlSassBundleLayers.dark,
+              default: darkModeDefault(format.metadata),
+            }
+            : undefined,
         },
       ],
     },
