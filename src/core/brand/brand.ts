@@ -158,12 +158,12 @@ export class Brand {
       if (v) {
         logo[size] = v;
       }
-      for (const [key, value] of Object.entries(data.logo?.images ?? {})) {
-        if (typeof value === "string") {
-          logo.images[key] = { path: value };
-        } else {
-          logo.images[key] = value;
-        }
+    }
+    for (const [key, value] of Object.entries(data.logo?.images ?? {})) {
+      if (typeof value === "string") {
+        logo.images[key] = { path: value };
+      } else {
+        logo.images[key] = value;
       }
     }
 

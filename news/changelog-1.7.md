@@ -122,7 +122,7 @@ All changes included in 1.7:
 ### `julia`
 
 - ([#11803](https://github.com/quarto-dev/quarto-cli/pull/11803)): Added subcommands `status`, `kill`, `close [--force]` and `log` under the new CLI command `quarto call engine julia`.
-- ([#12121](https://github.com/quarto-dev/quarto-cli/pull/12121)): Update QuartoNotebookRunner to 0.16.0. Support for evaluating Python cells via [PythonCall.jl](https://github.com/JuliaPy/PythonCall.jl) added. Support for notebook caching via `execute.cache` added.
+- ([#12121](https://github.com/quarto-dev/quarto-cli/pull/12121)): Update QuartoNotebookRunner to 0.17.0. Support for evaluating Python cells via [PythonCall.jl](https://github.com/JuliaPy/PythonCall.jl) added. Support for notebook caching via `execute.cache` added.
 - ([#12151](https://github.com/quarto-dev/quarto-cli/pull/12151)): Basic YAML validation is now active for documents using Julia engine.
 
 ### `jupyter`
@@ -153,9 +153,15 @@ All changes included in 1.7:
 - ([#12326](https://github.com/quarto-dev/quarto-cli/issues/12326)): Add `quarto.shortcode.*` API entry points for shortcode developers.
 - ([#12365](https://github.com/quarto-dev/quarto-cli/pull/12365)): `brand color` shortcode takes an optional `brandMode` second parameter, default `light`.
 - ([#12453](https://github.com/quarto-dev/quarto-cli/issues/12453)): Expose `_quarto.modules.brand` as `quarto.brand` and add `has_mode()` function.
+- ([#12564](https://github.com/quarto-dev/quarto-cli/issues/12564)): `brand logo` shortcode also takes an optional `brandMode` second parameter, default `light`.
 
-## Lua API
+### Conditional Content
 
+- ([#4411](https://github.com/quarto-dev/quarto-cli/issues/12462)): Added support for new format and aliases in `when-format` and `unless-format`: `confluence`, `docusaurus` (and `docusaurus-md`), `email`, `dashboard`, `gfm`, `hugo` (and `hugo-md`).
+
+### Quarto Lua API
+
+- ([#4411](https://github.com/quarto-dev/quarto-cli/issues/12462)): `quarto.format.is_format` is now working as expected with support of more aliases: `confluence`, `docusaurus` (and `docusaurus-md`), `email`, `dashboard`, `gfm`, `hugo` (and `hugo-md`)
 - ([#12299](https://github.com/quarto-dev/quarto-cli/issues/12299)): `quarto.doc.pdf_engine()` now correctly returns the PDF engine used for the document. `quarto.doc.cite_method()` now returns `nil` if no citation method will be used (i.e. no references is the document set).
 
 ## Languages

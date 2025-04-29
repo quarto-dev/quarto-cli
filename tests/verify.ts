@@ -17,7 +17,7 @@ import { readYamlFromString } from "../src/core/yaml.ts";
 import { ExecuteOutput, Verify } from "./test.ts";
 import { outputForInput } from "./utils.ts";
 import { unzip } from "../src/core/zip.ts";
-import { dirAndStem, which } from "../src/core/path.ts";
+import { dirAndStem, safeRemoveSync, which } from "../src/core/path.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
 import { execProcess } from "../src/core/process.ts";
 import { canonicalizeSnapshot, checkSnapshot } from "./verify-snapshot.ts";
@@ -488,7 +488,7 @@ export const verifyKeepFileRegexMatches = (
       try {
         await regexChecker(file, matches, noMatches);
       } finally {
-        await Deno.remove(file);
+        await safeRemoveSync(file);
       }
     }
     return verifyFileRegexMatches(keptFileChecker, `Inspecting intermediate ${keptFile} for Regex matches`)(keptFile, matchesUntyped, noMatchesUntyped);
