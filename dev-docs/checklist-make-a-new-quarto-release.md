@@ -37,9 +37,9 @@
     - [ ] ensure the build completes successfully
   - [ ] Merge `main` into `prerelease`
     - [ ] ensure the build completes successfully
-  - [ ] Create new tag on `main` (here, `v1.5`)
-    - [ ] `git tag -a v1.5 -m "v1.5"`
-    - [ ] `git push origin v1.5`
+  - [ ] Create new tag on `main` with stable release version number (here, `v1.4`) to mark when the new main site version went live
+    - [ ] `git tag -a v1.4 -m "v1.4"`
+    - [ ] `git push origin v1.4`
   - [ ] Update `prerelease` version number (here, `v1.5`)
     - [ ] edit `_quarto-prerelease-docs.yml` to point to the new version
   - [ ] publish the release blog post that should exist in https://github.com/quarto-dev/quarto-web/tree/main/docs/blog/posts
