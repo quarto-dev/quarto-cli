@@ -5,7 +5,7 @@
  */
 
 import { info } from "../deno_ral/log.ts";
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 
 import {
   isJupyterHubServer,

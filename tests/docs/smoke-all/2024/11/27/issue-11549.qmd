@@ -1,0 +1,30 @@
+---
+title: "test"
+format: dashboard
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        - [".dashboard-card-no-title"]
+        - []
+---
+
+# Page {orientation="rows" scrolling="true"}
+
+## Row - Tabsets
+
+### Column - Tabset1 {.tabset}
+
+```{r}
+#| label: Tabset1
+#| title: "Tabset1"
+
+print("Tabset1")
+```
+
+```{r}
+#| label: Tabset2
+#| title: "Tabset2"
+
+print("Tabset2")
+```

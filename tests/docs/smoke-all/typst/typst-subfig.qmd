@@ -1,0 +1,25 @@
+---
+title: "Typst id-less subfigures"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          ['#grid\(columns: 2, gutter: 2em,(\r\n?|\n)  \[(\r\n?|\n)#block\[(\r\n?|\n)#figure']
+        -
+          ['#figure\(\[(\r\n?|\n)#grid\(columns: 2, gutter: 2em,(\r\n?|\n)  \[(\r\n?|\n)#block\[(\r\n?|\n)#figure']
+---
+
+
+::: {#fig-panel2 layout-ncol=2}
+
+![Placeholder]({{< placeholder 200 >}})
+
+![Placeholder]({{< placeholder 200 >}})
+
+Panels
+
+:::

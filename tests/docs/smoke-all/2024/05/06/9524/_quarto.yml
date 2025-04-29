@@ -1,0 +1,17 @@
+project:
+  type: website
+
+website:
+  site-url: https://index.html.com/
+  title: "Quarto 9524"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - about/index.qmd
+      - about/test/something.qmd
+      - root-page.index.qmd
+
+format:
+  html:
+    canonical-url: true

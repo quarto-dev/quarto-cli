@@ -1,0 +1,41 @@
+---
+title: Crossref Raw LaTeX table including table env with position
+format: pdf
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['\n\\begin\{table\}\n', 'See Table~\\ref\{tbl-mod\}']
+        - ['\[htbp\]']
+---
+
+`\begin{table}` should be catched and remove as Quarto does add its own, including when option position are used.
+
+```{=latex}
+\begin{table}[htbp]
+   \caption{\label{tbl-mod} no title}
+   \centering
+   \begin{tabular}{lc}
+      \tabularnewline \midrule \midrule
+      Dependent Variable: & disp\\  
+      Model:              & (1)\\  
+      \midrule
+      \emph{Variables}\\
+      Constant            & 580.9$^{***}$\\   
+                          & (41.74)\\   
+      mpg                 & -17.43$^{***}$\\   
+                          & (1.993)\\   
+      \midrule
+      \emph{Fit statistics}\\
+      Observations        & 32\\  
+      R$^2$               & 0.71834\\  
+      Adjusted R$^2$      & 0.70895\\  
+      \midrule \midrule
+      \multicolumn{2}{l}{\emph{IID standard-errors in parentheses}}\\
+      \multicolumn{2}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
+   \end{tabular}
+\end{table}
+```
+
+See @tbl-mod

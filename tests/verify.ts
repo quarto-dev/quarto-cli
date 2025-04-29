@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync, walkSync} from "fs/mod.ts";
+import { existsSync, walkSync } from "../src/deno_ral/fs.ts";
 import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 import { basename, dirname, join, relative, resolve } from "../src/deno_ral/path.ts";
 import { parseXmlDocument } from "slimdom";
 import xpath from "fontoxpath";
@@ -17,8 +17,8 @@ import { readYamlFromString } from "../src/core/yaml.ts";
 import { ExecuteOutput, Verify } from "./test.ts";
 import { outputForInput } from "./utils.ts";
 import { unzip } from "../src/core/zip.ts";
-import { dirAndStem, which } from "../src/core/path.ts";
-import { isWindows } from "../src/core/platform.ts";
+import { dirAndStem, safeRemoveSync, which } from "../src/core/path.ts";
+import { isWindows } from "../src/deno_ral/platform.ts";
 import { execProcess } from "../src/core/process.ts";
 import { canonicalizeSnapshot, checkSnapshot } from "./verify-snapshot.ts";
 
@@ -38,6 +38,26 @@ export const withDocxContent = async <T>(
     const docXml = join(temp, "word", "document.xml");
     const xml = await Deno.readTextFile(docXml);
     const result = await k(xml);
+    return result;
+  } finally {
+    await Deno.remove(temp, { recursive: true });
+  }
+};
+
+export const withEpubDirectory = async <T>(
+  file: string,
+  k: (path: string) => Promise<T>
+) => {
+  const [_dir, stem] = dirAndStem(file);
+  const temp = await Deno.makeTempDir();
+  try {
+    // Move the docx to a temp dir and unzip it
+    const zipFile = join(temp, stem + ".zip");
+    await Deno.copyFile(file, zipFile);
+    await unzip(zipFile);
+
+    // Open the core xml document and match the matches
+    const result = await k(temp);
     return result;
   } finally {
     await Deno.remove(temp, { recursive: true });
@@ -83,25 +103,45 @@ export const withPptxContent = async <T>(
   }
 };
 
+const checkErrors = (outputs: ExecuteOutput[]): { errors: boolean, messages: string | undefined } => {
+  const isError = (output: ExecuteOutput) => {
+    return output.levelName.toLowerCase() === "error";
+  };
+  const errors = outputs.some(isError);
+
+  const messages = errors ? outputs.filter(isError).map((outputs) => outputs.msg).join("\n") : undefined
+
+  return({
+    errors,
+    messages
+  })
+}
+
 export const noErrors: Verify = {
   name: "No Errors",
   verify: (outputs: ExecuteOutput[]) => {
-    const isError = (output: ExecuteOutput) => {
-      return output.levelName.toLowerCase() === "error";
-    };
+    
+    const { errors, messages } = checkErrors(outputs);
 
-    const errors = outputs.some(isError);
+    assert(
+      !errors,
+      `Errors During Execution\n|${messages}|`,
+    );
 
-    // Output an error or warning if it exists
-    if (errors) {
-      const messages = outputs.filter(isError).map((outputs) => outputs.msg)
-        .join("\n");
+    return Promise.resolve();
+  },
+};
 
-      assert(
-        !errors,
-        `Errors During Execution\n|${messages}|`,
-      );
-    }
+export const shouldError: Verify = {
+  name: "Should Error",
+  verify: (outputs: ExecuteOutput[]) => {
+
+    const { errors } = checkErrors(outputs);
+
+    assert(
+      errors,
+      `No errors during execution while rendering was expected to fail.`,
+    );
 
     return Promise.resolve();
   },
@@ -111,7 +151,7 @@ export const noErrorsOrWarnings: Verify = {
   name: "No Errors or Warnings",
   verify: (outputs: ExecuteOutput[]) => {
     const isErrorOrWarning = (output: ExecuteOutput) => {
-      return output.levelName.toLowerCase() === "warning" ||
+      return output.levelName.toLowerCase() === "warn" ||
         output.levelName.toLowerCase() === "error";
     };
 
@@ -133,17 +173,26 @@ export const noErrorsOrWarnings: Verify = {
   },
 };
 
-export const printsMessage = (
-  level: "DEBUG" | "INFO" | "WARNING" | "ERROR",
-  regex: RegExp,
-): Verify => {
+export const printsMessage = (options: {
+  level: "DEBUG" | "INFO" | "WARN" | "ERROR";
+  regex: string | RegExp;
+  negate?: boolean;
+}): Verify => {
+  const { level, regex: regexPattern, negate = false } = options;  // Set default here
   return {
-    name: `${level} matches ${String(regex)}`,
+    name: `${level} matches ${String(regexPattern)}`,
     verify: (outputs: ExecuteOutput[]) => {
+      const regex = typeof regexPattern === "string" 
+      ? new RegExp(regexPattern) 
+      : regexPattern;
+
       const printedMessage = outputs.some((output) => {
         return output.levelName === level && output.msg.match(regex);
       });
-      assert(printedMessage, `Missing ${level} ${String(regex)}`);
+      assert(
+        negate ? !printedMessage : printedMessage, 
+        `${negate ? "Found" : "Missing"} ${level} ${String(regex)}`
+      );
       return Promise.resolve();
     },
   };
@@ -175,6 +224,16 @@ export const fileExists = (file: string): Verify => {
     name: `File ${file} exists`,
     verify: (_output: ExecuteOutput[]) => {
       verifyPath(file);
+      return Promise.resolve();
+    },
+  };
+};
+
+export const pathDoNotExists = (path: string): Verify => {
+  return {
+    name: `path ${path} exists`,
+    verify: (_output: ExecuteOutput[]) => {
+      verifyNoPath(path);
       return Promise.resolve();
     },
   };
@@ -276,43 +335,186 @@ export const directoryEmptyButFor = (
   };
 };
 
+export const ensureHtmlElements = (
+  file: string,
+  selectors: string[],
+  noMatchSelectors?: string[],
+): Verify => {
+  return {
+    name: `Inspecting HTML for Selectors in ${file}`,
+    verify: async (_output: ExecuteOutput[]) => {
+      const htmlInput = await Deno.readTextFile(file);
+      const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
+      selectors.forEach((sel) => {
+        assert(
+          doc.querySelector(sel) !== null,
+          `Required DOM Element ${sel} is missing in ${file}.`,
+        );
+      });
+
+      if (noMatchSelectors) {
+        noMatchSelectors.forEach((sel) => {
+          assert(
+            doc.querySelector(sel) === null,
+            `Illegal DOM Element ${sel} is present in ${file}.`,
+          );
+        });
+      }
+    },
+  };
+};
+
+export const ensureHtmlElementContents = (
+  file: string, 
+  options : {
+    selectors: string[],
+    matches: (string | RegExp)[],
+    noMatches?: (string | RegExp)[]
+  }
+) => {
+  return {
+    name: "Inspecting HTML for Selector Contents",
+    verify: async (_output: ExecuteOutput[]) => {
+      const htmlInput = await Deno.readTextFile(file);
+      const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
+      options.selectors.forEach((sel) => {
+        const el = doc.querySelector(sel);
+        if (el !== null) {
+          const contents = el.innerText;
+          options.matches.forEach((regex) => {
+            assert(
+              asRegexp(regex).test(contents),
+              `Required match ${String(regex)} is missing from selector ${sel} content: ${contents}.`,
+            );
+          });
+
+          options.noMatches?.forEach((regex) => {
+            assert(
+              !asRegexp(regex).test(contents),
+              `Unexpected match ${String(regex)} is present from selector ${sel} content: ${contents}.`,
+            );
+          });
+  
+        }
+      });
+    },
+  };
+
+}
+
+export const ensureSnapshotMatches = (
+  file: string,
+): Verify => {
+  return {
+    name: "Inspecting Snapshot",
+    verify: async (_output: ExecuteOutput[]) => {
+      const good = await checkSnapshot(file);
+      if (!good) {
+        console.log("output:");
+        console.log(await canonicalizeSnapshot(file));
+        console.log("snapshot:");
+        console.log(await canonicalizeSnapshot(file + ".snapshot"));
+      }
+      assert(
+        good,
+        `Snapshot ${file}.snapshot doesn't match output`,
+      );
+    },
+  };
+}
+
+const regexChecker = async function(file: string, matches: RegExp[], noMatches: RegExp[] | undefined) {
+  const content = await Deno.readTextFile(file);
+  matches.forEach((regex) => {
+    assert(
+      regex.test(content),
+      `Required match ${String(regex)} is missing from file ${file}.`,
+    );
+  });
+
+  if (noMatches) {
+    noMatches.forEach((regex) => {
+      assert(
+        !regex.test(content),
+        `Illegal match ${String(regex)} was found in file ${file}.`,
+      );
+    });
+  }
+}
+
+export const verifyFileRegexMatches = (
+  callback: (file: string, matches: RegExp[], noMatches: RegExp[] | undefined) => Promise<void>,
+  name?: string,
+): (file: string, matchesUntyped: (string | RegExp)[], noMatchesUntyped?: (string | RegExp)[]) => Verify => {
+  return (file: string, matchesUntyped: (string | RegExp)[], noMatchesUntyped?: (string | RegExp)[]) => {
+    // Use mutliline flag for regexes so that ^ and $ can be used
+    const asRegexp = (m: string | RegExp) => {
+      if (typeof m === "string") {
+        return new RegExp(m, "m");
+      } else {
+        return m;
+      }
+    };
+    const matches = matchesUntyped.map(asRegexp);
+    const noMatches = noMatchesUntyped?.map(asRegexp);
+    return {
+      name: name ?? `Inspecting ${file} for Regex matches`,
+      verify: async (_output: ExecuteOutput[]) => {
+        const tex = await Deno.readTextFile(file);
+        await callback(file, matches, noMatches);
+      }
+    };
+  }
+}
+
+// Use this function to Regex match text in the output file
+export const ensureFileRegexMatches = (
+  file: string,
+  matchesUntyped: (string | RegExp)[],
+  noMatchesUntyped?: (string | RegExp)[],
+): Verify => {
+  return(verifyFileRegexMatches(regexChecker)(file, matchesUntyped, noMatchesUntyped));
+};
+
+// Use this function to Regex match text in the intermediate kept file
+// FIXME: do this properly without resorting on file having keep-*
+export const verifyKeepFileRegexMatches = (
+  toExt: string,
+  keepExt: string,
+): (file: string, matchesUntyped: (string | RegExp)[], noMatchesUntyped?: (string | RegExp)[]) => Verify => {
+  return (file: string, matchesUntyped: (string | RegExp)[], noMatchesUntyped?: (string | RegExp)[]) => {
+    const keptFile = file.replace(`.${toExt}`, `.${keepExt}`);
+    const keptFileChecker = async (file: string, matches: RegExp[], noMatches: RegExp[] | undefined) => {
+      try {
+        await regexChecker(file, matches, noMatches);
+      } finally {
+        await safeRemoveSync(file);
+      }
+    }
+    return verifyFileRegexMatches(keptFileChecker, `Inspecting intermediate ${keptFile} for Regex matches`)(keptFile, matchesUntyped, noMatchesUntyped);
+  }
+};
+
 // FIXME: do this properly without resorting on file having keep-typ
 export const ensureTypstFileRegexMatches = (
   file: string,
   matchesUntyped: (string | RegExp)[],
   noMatchesUntyped?: (string | RegExp)[],
 ): Verify => {
-  const matches = matchesUntyped.map(asRegexp);
-  const noMatches = noMatchesUntyped?.map(asRegexp);
-  return {
-    name: `Inspecting ${file} for Regex matches`,
-    verify: async (_output: ExecuteOutput[]) => {
-      const keptTyp = file.replace(".pdf", ".typ");
-      const typ = await Deno.readTextFile(keptTyp);
-
-      try {
-        matches.forEach((regex) => {
-          assert(
-            regex.test(typ),
-            `Required match ${String(regex)} is missing from file ${keptTyp}.`,
-          );
-        });
-
-        if (noMatches) {
-          noMatches.forEach((regex) => {
-            assert(
-              !regex.test(typ),
-              `Illegal match ${String(regex)} was found in file ${keptTyp}.`,
-            );
-          });
-        }
-      } finally {
-        await Deno.remove(keptTyp);
-      }
-    },
-  };
+  return(verifyKeepFileRegexMatches("pdf", "typ")(file, matchesUntyped, noMatchesUntyped));
 };
 
+// FIXME: do this properly without resorting on file having keep-tex
+export const ensureLatexFileRegexMatches = (
+  file: string,
+  matchesUntyped: (string | RegExp)[],
+  noMatchesUntyped?: (string | RegExp)[],
+): Verify => {
+  return(verifyKeepFileRegexMatches("pdf", "tex")(file, matchesUntyped, noMatchesUntyped));
+};
+
+// Use this function to Regex match text in a rendered PDF file
+// This requires pdftotext to be available on PATH
 export const ensurePdfRegexMatches = (
   file: string,
   matchesUntyped: (string | RegExp)[],
@@ -350,129 +552,6 @@ export const ensurePdfRegexMatches = (
   };
 }
 
-export const ensureHtmlElements = (
-  file: string,
-  selectors: string[],
-  noMatchSelectors?: string[],
-): Verify => {
-  return {
-    name: "Inspecting HTML for Selectors",
-    verify: async (_output: ExecuteOutput[]) => {
-      const htmlInput = await Deno.readTextFile(file);
-      const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
-      selectors.forEach((sel) => {
-        assert(
-          doc.querySelector(sel) !== null,
-          `Required DOM Element ${sel} is missing.`,
-        );
-      });
-
-      if (noMatchSelectors) {
-        noMatchSelectors.forEach((sel) => {
-          assert(
-            doc.querySelector(sel) === null,
-            `Illegal DOM Element ${sel} is present.`,
-          );
-        });
-      }
-    },
-  };
-};
-
-export const ensureHtmlElementContents = (
-  file: string,
-  selectors: string[],
-  matches: (string | RegExp)[],
-  noMatches: (string | RegExp)[]
-) => {
-  return {
-    name: "Inspecting HTML for Selector Contents",
-    verify: async (_output: ExecuteOutput[]) => {
-      const htmlInput = await Deno.readTextFile(file);
-      const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
-      selectors.forEach((sel) => {
-        const el = doc.querySelector(sel);
-        if (el !== null) {
-          const contents = el.innerText;
-          matches.forEach((regex) => {
-            assert(
-              asRegexp(regex).test(contents),
-              `Required match ${String(regex)} is missing from selector ${sel}.`,
-            );
-          });
-
-          noMatches.forEach((regex) => {
-            assert(
-              !asRegexp(regex).test(contents),
-              `Unexpected match ${String(regex)} is present from selector ${sel}.`,
-            );
-          });
-  
-        }
-      });
-    },
-  };
-
-}
-
-export const ensureSnapshotMatches = (
-  file: string,
-): Verify => {
-  return {
-    name: "Inspecting Snapshot",
-    verify: async (_output: ExecuteOutput[]) => {
-      const good = await checkSnapshot(file);
-      if (!good) {
-        console.log("output:");
-        console.log(await canonicalizeSnapshot(file));
-        console.log("snapshot:");
-        console.log(await canonicalizeSnapshot(file + ".snapshot"));
-      }
-      assert(
-        good,
-        `Snapshot ${file}.snapshot doesn't match output`,
-      );
-    },
-  };
-}
-
-export const ensureFileRegexMatches = (
-  file: string,
-  matchesUntyped: (string | RegExp)[],
-  noMatchesUntyped?: (string | RegExp)[],
-): Verify => {
-  const asRegexp = (m: string | RegExp) => {
-    if (typeof m === "string") {
-      return new RegExp(m, "m");
-    } else {
-      return m;
-    }
-  };
-  const matches = matchesUntyped.map(asRegexp);
-  const noMatches = noMatchesUntyped?.map(asRegexp);
-  return {
-    name: `Inspecting ${file} for Regex matches`,
-    verify: async (_output: ExecuteOutput[]) => {
-      const tex = await Deno.readTextFile(file);
-      matches.forEach((regex) => {
-        assert(
-          regex.test(tex),
-          `Required match ${String(regex)} is missing from file ${file}.`,
-        );
-      });
-
-      if (noMatches) {
-        noMatches.forEach((regex) => {
-          assert(
-            !regex.test(tex),
-            `Illegal match ${String(regex)} was found in file ${file}.`,
-          );
-        });
-      }
-    },
-  };
-};
-
 export const verifyJatsDocument = (
   callback: (doc: string) => Promise<void>,
   name?: string,
@@ -509,6 +588,18 @@ export const verifyDocXDocument = (
     },
   });
 };
+
+export const verifyEpubDocument = (
+  callback: (path: string) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting Epub",
+    verify: async (_output: ExecuteOutput[]) => {
+      return await withEpubDirectory(file, callback);
+    },
+  });
+}
 
 export const verifyPptxDocument = (
   callback: (doc: string, docFile: string) => Promise<void>,
@@ -671,6 +762,52 @@ export const ensureDocxRegexMatches = (
   }, "Inspecting Docx for Regex matches")(file);
 };
 
+export const ensureEpubFileRegexMatches = (
+  epubFile: string,
+  pathsAndRegexes: {
+    path: string;
+    regexes: (string | RegExp)[][];
+  }[]
+): Verify => {
+  return verifyEpubDocument(async (epubDir) => {
+    for (const { path, regexes } of pathsAndRegexes) {
+      const file = join(epubDir, path);
+      assert(
+        existsSync(file),
+        `File ${file} doesn't exist in Epub`,
+      );
+      const content = await Deno.readTextFile(file);
+      const mustMatch: (RegExp | string)[] = [];
+      const mustNotMatch: (RegExp | string)[] = [];
+      if (regexes.length) {
+        mustMatch.push(...regexes[0]);
+      }
+      if (regexes.length > 1) {
+        mustNotMatch.push(...regexes[1]);
+      }
+
+      mustMatch.forEach((regex) => {
+        if (typeof regex === "string") {
+          regex = new RegExp(regex);
+        }
+        assert(
+          regex.test(content),
+          `Required match ${String(regex)} is missing from file ${file}.`,
+        );
+      });
+      mustNotMatch.forEach((regex) => {
+        if (typeof regex === "string") {
+          regex = new RegExp(regex);
+        }
+        assert(
+          !regex.test(content),
+          `Illegal match ${String(regex)} was found in file ${file}.`,
+        );
+      });
+    }
+  }, "Inspecting Epub for Regex matches")(epubFile);
+}
+
 // export const ensureDocxRegexMatches = (
 //   file: string,
 //   regexes: (string | RegExp)[],
@@ -809,7 +946,7 @@ export function verifyPath(path: string) {
 
 export function verifyNoPath(path: string) {
   const pathExists = existsSync(path);
-  assert(!pathExists, `Unexpected directory: ${path}`);
+  assert(!pathExists, `Unexpected path: ${path}`);
 }
 
 export const ensureHtmlSelectorSatisfies = (
@@ -840,7 +977,7 @@ export const ensureXmlValidatesWithXsd = (
   return {
     name: "Validating XML",
     verify: async (_output: ExecuteOutput[]) => {
-      if (!isWindows()) {
+      if (!isWindows) {
         const cmd = ["xmllint", "--noout", "--valid", file, "--path", xsdPath];
         const runOptions: Deno.RunOptions = {
           cmd,
@@ -863,7 +1000,7 @@ export const ensureMECAValidates = (
   return {
     name: "Validating MECA Archive",
     verify: async (_output: ExecuteOutput[]) => {
-      if (Deno.build.os !== "windows") {
+      if (!isWindows) {
         const hasNpm = await which("npm");
         if (hasNpm) {
           const hasMeca = await which("meca");

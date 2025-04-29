@@ -4,7 +4,7 @@
  *
  */
 import { unitTest } from "../../test.ts";
-import { assertEquals, assertThrows } from "testing/asserts.ts";
+import { assertEquals, assertThrows } from "testing/asserts";
 
 import {
   buildContentCreate,

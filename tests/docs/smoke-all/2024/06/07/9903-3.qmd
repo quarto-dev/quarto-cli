@@ -1,0 +1,14 @@
+---
+format: html
+htmllink: https://www.example.com
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "div#div-1[data-key='https://www.example.com']"
+---
+
+::: {#div-1 key='{{< meta htmllink >}}'}
+A div
+:::

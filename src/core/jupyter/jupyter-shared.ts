@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 import { join } from "../../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 
-import * as colors from "fmt/colors.ts";
+import * as colors from "fmt/colors";
 
 import { pathWithForwardSlashes } from "../path.ts";
 
@@ -27,6 +27,20 @@ export const jupyterCellSrcAsStr = (cell: JupyterCell) => {
 export const jupyterCellSrcAsLines = (cell: JupyterCell) => {
   return typeof cell.source === "string" ? lines(cell.source) : cell.source;
 };
+
+export async function jupyterCapabilitiesJson(
+  caps: JupyterCapabilities,
+): Promise<
+  JupyterCapabilities & {
+    kernels: JupyterKernelspec[];
+  }
+> {
+  const kernels = Array.from((await jupyterKernelspecs()).values());
+  return {
+    ...caps,
+    kernels,
+  };
+}
 
 export async function jupyterCapabilitiesMessage(
   caps: JupyterCapabilities,

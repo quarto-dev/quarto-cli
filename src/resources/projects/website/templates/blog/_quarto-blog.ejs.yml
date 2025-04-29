@@ -12,7 +12,9 @@ website:
         href: https://twitter.com
 format:
   html:
-    theme: cosmo
+    theme:
+      - cosmo
+      - brand
     css: styles.css
 
 <% if(editor){ %>editor: <%= editor %><% } %>

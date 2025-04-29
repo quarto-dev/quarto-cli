@@ -163,7 +163,7 @@ In vel luctus ligula, sit amet tincidunt ex. Aliquam erat volutpat. Nullam lacus
 #| label: tbl-stuff
 #| tbl-cap: A table of car related activities.
 #| warning: false
-library('gt')
+library("gt")
 knitr::kable(head(mtcars))
 ```
 

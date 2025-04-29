@@ -1,7 +1,9 @@
 ## Updating the bundled version of Pandoc
 
-- [ ] If needed, ask JJ to upgrade our archives
-- [ ] Run `./package/src/quarto-bld update-pandoc PANDOC_VERSION`
+Carlos needs to run this:
+
+- [ ] Ensure archives are upgraded
+- [ ] Run `AWS_PROFILE=... ./package/src/quarto-bld update-pandoc PANDOC_VERSION`
 - [ ] look at `git diff`, specifically for changes in Pandoc templates, and adjust as needed.
 
 ## Manual steps

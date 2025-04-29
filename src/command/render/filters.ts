@@ -4,10 +4,12 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 
 import {
   kBibliography,
+  kBrand,
+  kBrandMode,
   kCitationLocation,
   kCiteMethod,
   kClearCellOptions,
@@ -15,6 +17,7 @@ import {
   kCodeFold,
   kCodeLineNumbers,
   kCodeSummary,
+  kCssPropertyProcessing,
   kEnableCrossRef,
   kFigAlign,
   kFigEnv,
@@ -23,6 +26,7 @@ import {
   kFormatIdentifier,
   kHeaderIncludes,
   kHtmlMathMethod,
+  kHtmlPreTagProcessing,
   kHtmlTableProcessing,
   kIncludeAfter,
   kIncludeAfterBody,
@@ -33,6 +37,7 @@ import {
   kIPynbTitleBlockTemplate,
   kJatsSubarticleId,
   kKeepHidden,
+  kLogo,
   kMergeIncludes,
   kOutputDivs,
   kOutputLocation,
@@ -62,7 +67,7 @@ import { QuartoFilterSpec } from "./types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kProjectType } from "../../project/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
-import { resourcePath } from "../../core/resources.ts";
+import { rBinaryPath, resourcePath } from "../../core/resources.ts";
 import { crossrefFilterActive, crossrefFilterParams } from "./crossref.ts";
 import { layoutFilterParams } from "./layout.ts";
 import { pandocMetadataPath } from "./render-paths.ts";
@@ -88,6 +93,8 @@ import { shortUuid } from "../../core/uuid.ts";
 import { isServerShinyPython } from "../../core/render.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
 import { kTocIndent } from "../../config/constants.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
+import { tinyTexBinDir } from "../../tools/impl/tinytex-info.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -97,8 +104,6 @@ const kFilterProjectOutputDir = "project-output-dir";
 const kMediabagDir = "mediabag-dir";
 
 const kResultsFile = "results-file";
-
-const kTimingFile = "timings-file";
 
 const kHasBootstrap = "has-bootstrap";
 
@@ -126,8 +131,7 @@ export async function filterParamsJson(
   filterParams: Record<string, unknown>,
   resultsFile: string,
   dependenciesFile: string,
-  timingFile: string,
-) {
+): Promise<Record<string, unknown>> {
   // extract include params (possibly mutating it's arguments)
   const includes = options.format.render[kMergeIncludes] !== false
     ? extractIncludeParams(
@@ -179,7 +183,6 @@ export async function filterParamsJson(
     ...customFormatParams,
     ...typstFilterParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
-    [kTimingFile]: pandocMetadataPath(timingFile),
     [kQuartoFilters]: filterSpec,
     [kActiveFilters]: {
       normalization: metadataNormalizationFilterActive(options),
@@ -190,8 +193,19 @@ export async function filterParamsJson(
     [kIsShinyPython]: isShinyPython,
     [kShinyPythonExec]: isShinyPython ? await pythonExec() : undefined,
     [kExecutionEngine]: options.executionEngine,
+    [kBrand]: options.format.render[kBrand],
+    "quarto-environment": await quartoEnvironmentParams(options),
   };
-  return JSON.stringify(params);
+  return params;
+}
+
+async function quartoEnvironmentParams(_options: PandocOptions) {
+  return {
+    "paths": {
+      "Rscript": await rBinaryPath("Rscript"),
+      "TinyTexBinDir": tinyTexBinDir(), // will be undefined if no tinytex found and quarto will look in PATH
+    },
+  };
 }
 
 export function removeFilterParams(metadata: Metadata) {
@@ -452,14 +466,6 @@ function languageFilterParams(format: Format) {
     [kCodeSummary]: format.metadata[kCodeSummary] || language[kCodeSummary],
     [kTocTitleDocument]: language[kTocTitleDocument],
   };
-  Object.keys(language).forEach((key) => {
-    if (
-      key.startsWith("callout-") || key.startsWith("crossref-") ||
-      key.startsWith("environment-")
-    ) {
-      params[key] = language[key];
-    }
-  });
   // default prefixes based on titles
   [
     "fig",
@@ -475,6 +481,14 @@ function languageFilterParams(format: Format) {
     "exr",
   ].forEach((type) => {
     params[`crossref-${type}-prefix`] = language[`crossref-${type}-title`];
+  });
+  Object.keys(language).forEach((key) => {
+    if (
+      key.startsWith("callout-") || key.startsWith("crossref-") ||
+      key.startsWith("environment-")
+    ) {
+      params[key] = language[key];
+    }
   });
   return params;
 }
@@ -686,7 +700,7 @@ async function extensionShortcodes(options: PandocOptions) {
 
 function initFilterParams(dependenciesFile: string) {
   const params: Metadata = {};
-  if (Deno.build.os === "windows") {
+  if (isWindows) {
     const value = readCodePage();
     if (value) {
       debug("Windows: Using code page " + value);
@@ -700,6 +714,7 @@ function initFilterParams(dependenciesFile: string) {
 const kQuartoFilterMarker = "quarto";
 const kQuartoCiteProcMarker = "citeproc";
 
+// NB: this mutates `pandoc.citeproc`
 export async function resolveFilters(
   filters: QuartoFilter[],
   options: PandocOptions,
@@ -824,7 +839,7 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
 
 function pdfEngine(options: PandocOptions): string {
   const pdfEngine = options.flags?.pdfEngine ||
-    options.metadata?.[kPdfEngine] as string ||
+    options.format.pandoc?.[kPdfEngine] as string ||
     "pdflatex";
   return pdfEngine;
 }
@@ -893,5 +908,9 @@ async function resolveFilterExtension(
 const extractTypstFilterParams = (format: Format) => {
   return {
     [kTocIndent]: format.metadata[kTocIndent],
+    [kLogo]: format.metadata[kLogo],
+    [kCssPropertyProcessing]: format.metadata[kCssPropertyProcessing],
+    [kBrandMode]: format.metadata[kBrandMode],
+    [kHtmlPreTagProcessing]: format.metadata[kHtmlPreTagProcessing],
   };
 };

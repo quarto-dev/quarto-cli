@@ -5,7 +5,7 @@
  */
 
 import { extname } from "../../deno_ral/path.ts";
-import { stringify } from "yaml/mod.ts";
+import { stringify } from "../../core/yaml.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -39,9 +39,12 @@ export async function generateDefaults(
   let allDefaults: FormatPandoc | undefined;
 
   if (options.format.pandoc) {
-    allDefaults = (options.format.pandoc
-      ? ld.cloneDeep(options.format.pandoc)
-      : {}) as FormatPandoc;
+    allDefaults = {
+      ...(options.format.pandoc || {}),
+      variables: {
+        ...(options.format.pandoc?.variables || {}),
+      },
+    } as FormatPandoc;
 
     // resolve filters
     const resolvedFilters = await resolveFilters(
@@ -125,10 +128,10 @@ export function pandocDefaultsMessage(
 
   const filtersContains = (filters: QuartoFilter[], filter: QuartoFilter) => {
     return filters.find((sysFilter) => {
-      const sysPath = typeof (sysFilter) === "string"
+      const sysPath = typeof sysFilter === "string"
         ? sysFilter
         : sysFilter.path;
-      const filterPath = typeof (filter) === "string" ? filter : filter.path;
+      const filterPath = typeof filter === "string" ? filter : filter.path;
       return sysPath === filterPath;
     });
   };

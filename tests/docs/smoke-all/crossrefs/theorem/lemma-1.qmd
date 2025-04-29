@@ -1,7 +1,7 @@
 ---
 format:
   typst:
-    output-ext: typ
+    keep-typ: true
 _quarto:
   tests:
     html:
@@ -19,8 +19,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         - 
-          - "<lem-line>"
-          - "@lem-line"
+          - "#ref\\(<lem-line>, supplement: \\[Lemma\\]\\)"
           - "#lemma\\(\"Line\"\\)"
         - []
     markdown:

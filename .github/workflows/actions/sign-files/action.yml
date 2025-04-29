@@ -1,0 +1,97 @@
+name: "Signing file"
+description: "Install and configure the environment to then do the signing of files."
+inputs:
+  paths:
+    description: "Paths to sign"
+    required: true
+  signtools-extra-args:
+    description: "Additionnal arguments to pass to signtool"
+outputs:
+  cert_path:
+    description: "certificate path"
+    value: ${{ steps.setup-cert.outputs.SM_CLIENT_CERT_FILE }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup for SMCTL authentication
+      id: setup-cert
+      shell: pwsh
+      run: |
+        Write-Output "::group::Check for required environment variable"
+        if (-not $env:SM_CLIENT_CERT_FILE_B64) {
+          Write-Output "::error title=Environment Variable Error::SM_CLIENT_CERT_FILE_B64 is not set"
+          exit 1
+        } else {
+          Write-Output "SM_CLIENT_CERT_FILE_B64 is set correctly"
+        }
+        Write-Output "::endgroup::" 
+        Write-Output "::group::Retrieve client certificate for auth"
+        if (!(Test-Path ".\.build\certificates\codesign.pfx")) {
+          # Get certificates
+          New-Item -ItemType Directory -Force -Path .\.build\certificates
+          Set-Content -Path ".\.build\certificates\codesign.txt" -Value $env:SM_CLIENT_CERT_FILE_B64
+          & certutil -decode ".\.build\certificates\codesign.txt" ".\.build\certificates\codesign.pfx"
+        } else {
+          Write-Output "Certificate already exists"
+        }
+        # Configure environment for next step
+        "SM_CLIENT_CERT_FILE=.\.build\certificates\codesign.pfx" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        Write-Output "::endgroup::"
+
+    - name: Install SMCTL
+      shell: pwsh
+      run: |
+        Write-Output "::group::Install smctl if needed"
+        if (!(Get-Command smctl -ErrorAction SilentlyContinue)) {
+          curl -o smtools-windows-x64.msi "https://rstudio-buildtools.s3.amazonaws.com/posit-dev/smtools-windows-x64.msi"
+          msiexec /i smtools-windows-x64.msi /quiet /qn /log smtools-windows-x64.log
+          "C:/Program Files/DigiCert/DigiCert One Signing Manager Tools" | Out-File -FilePath $env:GITHUB_PATH -Append
+          Write-Output "SMCTL installed and added on PATH"
+        } else {
+          Write-Output "SMCTL already installed and on PATH"
+        }
+        Write-Output "::endgroup::" 
+        Write-Output "::group::Add signtools in PATH"
+        if (!(Get-Command signtool -ErrorAction SilentlyContinue)) {
+          "C:/Program Files (x86)/Windows Kits/10/App Certification Kit" | Out-File -FilePath $env:GITHUB_PATH -Append
+          Write-Output "signtool added on PATH"
+        } else {
+          Write-Output "signtool already installed and on PATH"
+        }
+        Write-Output "::endgroup::"
+
+    - name: Sign files with signtool
+      shell: pwsh
+      env:
+        SM_CLIENT_CERT_FILE: ${{ steps.setup-cert.outputs.SM_CLIENT_CERT_FILE }}
+      run: |
+        Write-Output "::group::Check for required environment variables"
+        $requiredEnvVars = @('SM_HOST', 'SM_API_KEY', 'SM_CLIENT_CERT_FILE', 'SM_CLIENT_CERT_PASSWORD', 'CERT_FINGERPRINT')
+        foreach ($envVar in $requiredEnvVars) {
+          if (-not $(Get-Item -Path "Env:$envVar" -ErrorAction SilentlyContinue)) {
+            Write-Output "::error title=Missing environment variable::Environment variable $envVar is not set."
+            exit 1
+          }
+          Write-Output "All env var correctly set."
+        }
+        Write-Output "::endgroup::"
+        Write-Output "::group::Sync certificates"
+        smctl windows certsync
+        Write-Output "::endgroup::"
+        # Sign each file that will be bundled in the installer
+        $paths = "${{ inputs.paths }}" -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
+        foreach ($path in $paths) {
+          Write-Output "::group::Signing ${path}"
+          signtool.exe sign /sha1 $env:CERT_FINGERPRINT /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 ${{ inputs.signtools-extra-args }} $path
+          if ($LASTEXITCODE -ne 0) {
+            Write-Output "::error title=Signing error::Error while signing ${path}"
+            exit 1
+          }
+          signtool.exe verify /v /pa $path
+          if ($LASTEXITCODE -ne 0) {
+            Write-Output "::error title=Verify signature error::Error while verifying ${path}"
+            exit 1
+          }
+          Write-Output "::endgroup::"
+        }

@@ -1,0 +1,24 @@
+---
+title: "Minimal example"
+format: gfm
+keep-md: true
+---
+
+
+::: {.cell execution_count=1}
+``` {.python .cell-code}
+import matplotlib.pyplot as plt
+import numpy as np
+
+x = np.linspace(0,1,10)
+y = np.sin(x)
+
+plt.plot(x,y)
+```
+
+::: {.cell-output .cell-output-display}
+![](10358_files/figure-commonmark/fig-sin-output-1.png){#fig-sin}
+:::
+:::
+
+

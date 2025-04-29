@@ -1,7 +1,7 @@
 // catch all plugin for various quarto features
 window.QuartoSupport = function () {
   function isPrintView() {
-    return /print-pdf/gi.test(window.location.search);
+    return /print-pdf/gi.test(window.location.search) || /view=print/gi.test(window.location.search);
   }
 
   // helper for theme toggling
@@ -128,42 +128,62 @@ window.QuartoSupport = function () {
   // tweak slide-number element
   function tweakSlideNumber(deck) {
     deck.on("slidechanged", function (ev) {
+      // No slide number in scroll view
+      if (deck.isScrollView()) { return }
       const revealParent = deck.getRevealElement();
       const slideNumberEl = revealParent.querySelector(".slide-number");
-      const onDarkBackground = Reveal.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-dark-background');
-      const onLightBackground = Reveal.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-light-background');
+      const slideBackground = Reveal.getSlideBackground(ev.currentSlide);
+      const onDarkBackground = slideBackground.classList.contains('has-dark-background')
+      const onLightBackground = slideBackground.classList.contains('has-light-background')
       toggleBackgroundTheme(slideNumberEl, onDarkBackground, onLightBackground);
     })
   }
 
-   // add footer text
-   function addFooter(deck) {
+  // add footer text
+  function addFooter(deck) {
     const revealParent = deck.getRevealElement();
     const defaultFooterDiv = document.querySelector(".footer-default");
+    // Set per slide footer if any defined, 
+    // or show default unless data-footer="false" for no footer on this slide
+    const setSlideFooter = (ev, defaultFooterDiv) => {
+      const currentSlideFooter = ev.currentSlide.querySelector(".footer");
+      const onDarkBackground = deck.getSlideBackground(ev.currentSlide).classList.contains('has-dark-background')
+      const onLightBackground = deck.getSlideBackground(ev.currentSlide).classList.contains('has-light-background')
+      if (currentSlideFooter) {
+        defaultFooterDiv.style.display = "none";
+        const slideFooter = currentSlideFooter.cloneNode(true);
+        handleLinkClickEvents(deck, slideFooter);
+        deck.getRevealElement().appendChild(slideFooter);
+        toggleBackgroundTheme(slideFooter, onDarkBackground, onLightBackground)
+      } else if (ev.currentSlide.getAttribute("data-footer") === "false") {
+        defaultFooterDiv.style.display = "none";
+      } else {
+        defaultFooterDiv.style.display = "block";
+        toggleBackgroundTheme(defaultFooterDiv, onDarkBackground, onLightBackground)
+      }
+    }
     if (defaultFooterDiv) {
+      // move default footnote to the div.reveal element
       revealParent.appendChild(defaultFooterDiv);
       handleLinkClickEvents(deck, defaultFooterDiv);
+
       if (!isPrintView()) {
+        // Ready even is needed so that footer customization applies on first loaded slide
+        deck.on('ready', (ev) => {
+          // Set footer (custom, default or none)
+          setSlideFooter(ev, defaultFooterDiv)
+        });
+        // Any new navigated new slide will get the custom footnote check
         deck.on("slidechanged", function (ev) {
+          // Remove presentation footer defined by previous slide
           const prevSlideFooter = document.querySelector(
             ".reveal > .footer:not(.footer-default)"
           );
           if (prevSlideFooter) {
             prevSlideFooter.remove();
           }
-          const currentSlideFooter = ev.currentSlide.querySelector(".footer");
-          const onDarkBackground = Reveal.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-dark-background')
-          const onLightBackground = Reveal.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-light-background')
-          if (currentSlideFooter) {
-            defaultFooterDiv.style.display = "none";
-            const slideFooter = currentSlideFooter.cloneNode(true);
-            handleLinkClickEvents(deck, slideFooter);
-            deck.getRevealElement().appendChild(slideFooter);
-            toggleBackgroundTheme(slideFooter, onDarkBackground, onLightBackground)
-          } else {
-            defaultFooterDiv.style.display = "block";
-            toggleBackgroundTheme(defaultFooterDiv, onDarkBackground, onLightBackground)
-          }
+          // Set new one (custom, default or none)
+          setSlideFooter(ev, defaultFooterDiv)
         });
       }
     }
@@ -261,34 +281,47 @@ window.QuartoSupport = function () {
     }
   }
 
+  // dispatch for htmlwidgets
+  // they use slideenter event to trigger resize
+  const fireSlideEnter = () => {
+    const event = window.document.createEvent("Event");
+    event.initEvent("slideenter", true, true);
+    window.document.dispatchEvent(event);
+  };
+
+  // dispatch for shiny
+  // they use BS shown and hidden events to trigger rendering
+  const distpatchShinyEvents = (previous, current) => {
+    if (window.jQuery) {
+      if (previous) {
+        window.jQuery(previous).trigger("hidden");
+      }
+      if (current) {
+        window.jQuery(current).trigger("shown");
+      }
+    }
+  };
+
   function handleSlideChanges(deck) {
-    // dispatch for htmlwidgets
-    const fireSlideEnter = () => {
-      const event = window.document.createEvent("Event");
-      event.initEvent("slideenter", true, true);
-      window.document.dispatchEvent(event);
-    };
 
     const fireSlideChanged = (previousSlide, currentSlide) => {
       fireSlideEnter();
-
-      // dispatch for shiny
-      if (window.jQuery) {
-        if (previousSlide) {
-          window.jQuery(previousSlide).trigger("hidden");
-        }
-        if (currentSlide) {
-          window.jQuery(currentSlide).trigger("shown");
-        }
-      }
+      distpatchShinyEvents(previousSlide, currentSlide);
     };
-
-    // fire slideEnter for tabby tab activations (for htmlwidget resize behavior)
-    document.addEventListener("tabby", fireSlideEnter, false);
 
     deck.on("slidechanged", function (event) {
       fireSlideChanged(event.previousSlide, event.currentSlide);
     });
+  }
+
+  function handleTabbyChanges() {
+    const fireTabChanged = (previousTab, currentTab) => {
+      fireSlideEnter()
+      distpatchShinyEvents(previousTab, currentTab);
+    };
+    document.addEventListener("tabby", function(event) {
+      fireTabChanged(event.detail.previousTab, event.detail.tab);
+    }, false);
   }
 
   function workaroundMermaidDistance(deck) {
@@ -318,9 +351,49 @@ window.QuartoSupport = function () {
     }
   }
 
+  function cleanEmptyAutoGeneratedContent(deck) {
+    const div = document.querySelector('div.quarto-auto-generated-content')
+    if (div && div.textContent.trim() === '') {
+      div.remove()
+    }
+  }
+
+  // FIXME: Possibly remove this wrapper class when upstream trigger is fixed
+  // https://github.com/hakimel/reveal.js/issues/3688
+  // Currently, scrollActivationWidth needs to be unset for toggle to work
+  class ScrollViewToggler {
+    constructor(deck) {
+      this.deck = deck;
+      this.oldScrollActivationWidth = deck.getConfig()['scrollActivationWidth'];
+    }
+  
+    toggleScrollViewWrapper() {
+      if (this.deck.isScrollView() === true) {
+        this.deck.configure({ scrollActivationWidth: this.oldScrollActivationWidth });
+        this.deck.toggleScrollView(false);
+      } else if (this.deck.isScrollView() === false) {
+        this.deck.configure({ scrollActivationWidth: null });
+        this.deck.toggleScrollView(true);
+      }
+    }
+  }
+
+  let scrollViewToggler;
+
+  function installScollViewKeyBindings(deck) {
+		var config = deck.getConfig();
+		var shortcut = config.scrollViewShortcut || 'R';
+		Reveal.addKeyBinding({
+			keyCode: shortcut.toUpperCase().charCodeAt( 0 ),
+			key: shortcut.toUpperCase(),
+			description: 'Scroll View Mode'
+		}, () => { scrollViewToggler.toggleScrollViewWrapper() } );
+	}
+
   return {
     id: "quarto-support",
     init: function (deck) {
+      scrollViewToggler = new ScrollViewToggler(deck);
       controlsAuto(deck);
       previewLinksAuto(deck);
       fixupForPrint(deck);
@@ -330,9 +403,17 @@ window.QuartoSupport = function () {
       addFooter(deck);
       addChalkboardButtons(deck);
       handleTabbyClicks();
+      handleTabbyChanges();
       handleSlideChanges(deck);
       workaroundMermaidDistance(deck);
       handleWhiteSpaceInColumns(deck);
+      installScollViewKeyBindings(deck);
+      // should stay last
+      cleanEmptyAutoGeneratedContent(deck);
     },
+    // Export for adding in menu
+    toggleScrollView: function() {
+      scrollViewToggler.toggleScrollViewWrapper();
+    }
   };
 };

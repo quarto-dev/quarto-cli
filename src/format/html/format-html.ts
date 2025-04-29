@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { join } from "../../deno_ral/path.ts";
+import { dirname, join, relative } from "../../deno_ral/path.ts";
 import { warning } from "../../deno_ral/log.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -14,7 +14,7 @@ import { Document, Element } from "../../core/deno-dom.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { formatResourcePath } from "../../core/resources.ts";
+import { formatResourcePath, resourcePath } from "../../core/resources.ts";
 import { TempContext } from "../../core/temp.ts";
 import { asCssSize } from "../../core/css.ts";
 
@@ -25,12 +25,14 @@ import {
   kFilterParams,
   kHeaderIncludes,
   kIncludeAfterBody,
+  kIncludeBeforeBody,
   kIncludeInHeader,
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kNotebookLinks,
   kNotebookViewStyle,
+  kRespectUserColorScheme,
   kTheme,
 } from "../../config/constants.ts";
 
@@ -113,6 +115,54 @@ import {
 } from "./format-html-types.ts";
 import { kQuartoHtmlDependency } from "./format-html-constants.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
+import { brandSassFormatExtras } from "../../core/sass/brand.ts";
+import { ESBuildAnalysis, esbuildAnalyze } from "../../core/esbuild.ts";
+import { assert } from "testing/asserts";
+
+let esbuildAnalysisCache: Record<string, ESBuildAnalysis> | undefined;
+export function esbuildCachedAnalysis(
+  input: string,
+): ESBuildAnalysis {
+  if (!esbuildAnalysisCache) {
+    esbuildAnalysisCache = JSON.parse(
+      Deno.readTextFileSync(
+        formatResourcePath("html", "esbuild-analysis-cache.json"),
+      ),
+    ) as Record<string, ESBuildAnalysis>;
+  }
+  const result = esbuildAnalysisCache[input];
+  assert(result, `Cached analysis not found for ${input}`);
+  return result;
+}
+
+function recursiveModuleDependencies(
+  path: string,
+): DependencyHtmlFile[] {
+  const result: DependencyHtmlFile[] = [];
+  const inpRelPath = relative(join(resourcePath("formats"), "html"), path);
+
+  result.push({
+    name: inpRelPath,
+    path: formatResourcePath("html", inpRelPath),
+    attribs: { type: "module" },
+  });
+
+  const analysis = esbuildCachedAnalysis(inpRelPath);
+  // console.log(JSON.stringify(analysis, null, 2));
+  for (const [_key, value] of Object.entries(analysis.outputs)) {
+    for (const imp of value.imports) {
+      if (imp.external) {
+        const relPath = relative(path, join(path, imp.path));
+        result.push({
+          name: relPath,
+          path: formatResourcePath("html", relPath),
+          attribs: { type: "module" },
+        });
+      }
+    }
+  }
+  return result;
+}
 
 export function htmlFormat(
   figwidth: number,
@@ -171,6 +221,7 @@ export function htmlFormat(
             project,
             quiet,
           ),
+          await brandSassFormatExtras(input, format, project),
           { [kFilterParams]: htmlFilterParams },
         );
       },
@@ -293,6 +344,8 @@ export async function htmlFormatExtras(
   options.codeTools = formatHasCodeTools(format);
   options.darkMode = formatDarkMode(format);
   options.darkModeDefault = darkModeDefault(format.metadata);
+  options.respectUserColorScheme = format.metadata[kRespectUserColorScheme] ||
+    false;
   options.linkExternalIcon = format.render[kLinkExternalIcon];
   options.linkExternalNewwindow = format.render[kLinkExternalNewwindow];
   options.linkExternalFilter = format.render[kLinkExternalFilter];
@@ -311,10 +364,10 @@ export async function htmlFormatExtras(
 
   // quarto.js helpers
   if (bootstrap) {
-    scripts.push({
-      name: "quarto.js",
-      path: formatResourcePath("html", "quarto.js"),
-    });
+    const deps = recursiveModuleDependencies(
+      formatResourcePath("html", "quarto.js"),
+    );
+    scripts.push(...deps);
   }
 
   // tabby if required
@@ -457,7 +510,8 @@ export async function htmlFormatExtras(
     includeInHeader.push(hypothesisHeader);
   }
 
-  // after body
+  // before and after body
+  const includeBeforeBody: string[] = [];
   const includeAfterBody: string[] = [];
 
   // add main orchestion script if we have any options enabled
@@ -465,15 +519,21 @@ export async function htmlFormatExtras(
     !!options[option]
   );
   if (quartoHtmlRequired) {
-    // html orchestration script
-    const quartoHtmlScript = temp.createFile();
-    const renderedHtml = renderEjs(
-      formatResourcePath("html", join("templates", "quarto-html.ejs")),
-      options,
-    );
-    if (renderedHtml.trim() !== "") {
-      Deno.writeTextFileSync(quartoHtmlScript, renderedHtml);
-      includeAfterBody.push(quartoHtmlScript);
+    for (
+      const { dest, ejsfile } of [
+        { dest: includeBeforeBody, ejsfile: "quarto-html-before-body.ejs" },
+        { dest: includeAfterBody, ejsfile: "quarto-html-after-body.ejs" },
+      ]
+    ) {
+      const quartoHtmlScript = temp.createFile();
+      const renderedHtml = renderEjs(
+        formatResourcePath("html", join("templates", ejsfile)),
+        options,
+      );
+      if (renderedHtml.trim() !== "") {
+        Deno.writeTextFileSync(quartoHtmlScript, renderedHtml);
+        dest.push(quartoHtmlScript);
+      }
     }
   }
 
@@ -587,6 +647,7 @@ export async function htmlFormatExtras(
   const metadata: Metadata = {};
   return {
     [kIncludeInHeader]: includeInHeader,
+    [kIncludeBeforeBody]: includeBeforeBody,
     [kIncludeAfterBody]: includeAfterBody,
     metadata,
     templateContext,

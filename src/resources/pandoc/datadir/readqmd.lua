@@ -1,9 +1,10 @@
 -- read qmd with quarto syntax extensions and produce quarto's extended AST
--- Copyright (C) 2023 Posit Software, PBC
+-- Copyright (C) 2023-2024 Posit Software, PBC
 --
 -- Originally by Albert Krewinkel
 
 local md_shortcode = require("lpegshortcode")
+local md_fenced_div = require("lpegfenceddiv")
 
 -- Support the same format extensions as pandoc's Markdown reader
 Extensions = pandoc.format.extensions 'markdown'
@@ -125,6 +126,8 @@ local function urldecode(url)
 end
 
 local function readqmd(txt, opts)
+  local tags
+  txt = md_fenced_div.attempt_to_fix_fenced_div(txt)
   txt, tags = escape_invalid_tags(txt)
   txt = md_shortcode.parse_md_shortcode(txt)
   local flavor = {
@@ -185,6 +188,7 @@ local function readqmd(txt, opts)
         l.target = md_shortcode.unparse_md_shortcode(urldecode(l.target))
         return l
       end
+      return l
     end,
     Image = function (i)
       i = filter_attrs(i)
@@ -192,6 +196,7 @@ local function readqmd(txt, opts)
         i.src = md_shortcode.unparse_md_shortcode(urldecode(i.src))
         return i
       end
+      return i
     end,
   }
   return doc

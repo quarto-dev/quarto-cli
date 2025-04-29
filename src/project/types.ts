@@ -7,18 +7,23 @@
 import { RenderServices } from "../command/render/types.ts";
 import { Metadata, PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
+import { Brand, LightDarkBrand } from "../core/brand/brand.ts";
 import { MappedString } from "../core/mapped-text.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { ExecutionEngine, ExecutionTarget } from "../execute/types.ts";
 import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import {
+  Brand as BrandJson,
   NavigationItem as NavItem,
   NavigationItemObject,
   NavigationItemObject as SidebarTool,
   ProjectConfig as ProjectConfig_Project,
 } from "../resources/types/schema-types.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
+import { ProjectCache } from "../core/cache/cache-types.ts";
+import { TempContext } from "../core/temp-types.ts";
+
 export {
   type NavigationItem as NavItem,
   type NavigationItemObject,
@@ -48,6 +53,10 @@ export type FileInformation = {
   fullMarkdown?: MappedString;
   includeMap?: FileInclusion[];
   codeCells?: InspectedMdCell[];
+  engine?: ExecutionEngine;
+  target?: ExecutionTarget;
+  metadata?: Metadata;
+  brand?: LightDarkBrand;
 };
 
 export interface ProjectContext {
@@ -58,13 +67,11 @@ export interface ProjectContext {
   notebookContext: NotebookContext;
   outputNameIndex?: Map<string, { file: string; format: Format } | undefined>;
 
-  // This is a cache of the engine and target for a given filename
-  engineAndTargetCache?: Map<
-    string,
-    { engine: ExecutionEngine; target: ExecutionTarget }
-  >;
-
   fileInformationCache: Map<string, FileInformation>;
+
+  // This is a cache of _brand.yml for a project
+  brandCache?: { brand?: LightDarkBrand};
+  resolveBrand: (fileName?: string) => Promise<undefined | {light?: Brand | undefined, dark?: Brand | undefined}>;
 
   // expands markdown for a file
   // input file doesn't have to be markdown; it can be, for example, a knitr spin file
@@ -81,6 +88,11 @@ export interface ProjectContext {
     file: string,
     force?: boolean,
   ) => Promise<{ engine: ExecutionEngine; target: ExecutionTarget }>;
+
+  fileMetadata: (
+    file: string,
+    force?: boolean,
+  ) => Promise<Metadata>;
 
   formatExtras?: (
     source: string,
@@ -101,6 +113,11 @@ export interface ProjectContext {
   environment: () => Promise<ProjectEnvironment>;
 
   isSingleFile: boolean;
+
+  diskCache: ProjectCache;
+  temp: TempContext;
+
+  cleanup: () => void;
 }
 
 export interface ProjectFiles {

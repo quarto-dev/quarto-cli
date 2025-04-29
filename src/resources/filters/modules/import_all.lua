@@ -4,12 +4,14 @@
 _quarto.modules = {
   astshortcode = require("modules/astshortcode"),
   authors = require("modules/authors"),
+  brand = require("modules/brand/brand"),
   callouts = require("modules/callouts"),
   classpredicates = require("modules/classpredicates"),
   constants = require("modules/constants"),
   dashboard = require("modules/dashboard"),
   filenames = require("modules/filenames"),
   filters = require("modules/filters"),
+  jog = require("modules/jog"),
   license = require("modules/license"),
   lightbox = require("modules/lightbox"),
   mediabag = require("modules/mediabag"),
@@ -20,3 +22,5 @@ _quarto.modules = {
   tablecolwidths = require("modules/tablecolwidths"),
   typst = require("modules/typst")
 }
+
+quarto.brand = _quarto.modules.brand

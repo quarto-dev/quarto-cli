@@ -1,0 +1,24 @@
+---
+title: issue-8498
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        - ['</div><div class="column"']
+        - []
+---
+
+## Slide
+
+::: {.column width="33.3%"}
+A
+:::
+
+::: {.column width="33.3%"}
+B
+:::
+
+::: {.column width="33.3%"}
+C
+:::

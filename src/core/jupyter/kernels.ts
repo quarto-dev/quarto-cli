@@ -5,7 +5,7 @@
  */
 
 import { basename, join } from "../../deno_ral/path.ts";
-import { existsSync, walkSync } from "fs/mod.ts";
+import { existsSync, walkSync } from "../../deno_ral/fs.ts";
 
 import { debug } from "../../deno_ral/log.ts";
 

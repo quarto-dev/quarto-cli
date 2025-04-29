@@ -178,7 +178,6 @@ local function def_columns()
                 el.classes = el.classes:filter(function(clz) 
                   return not isStarEnv(clz)
                 end)
-                print(el)
               end
             elseif is_custom_node(contentEl, "FloatRefTarget") then
               -- forward the columns class from the output div
@@ -282,7 +281,6 @@ local function def_columns()
               return attr ~= "aside"
             end)
             tappend(el.classes, {'column-margin', 'margin-aside'})
-            removeColumnClasses(el)
             return el
           end
         end

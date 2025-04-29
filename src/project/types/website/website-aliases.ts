@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
 import { dirname, extname, join, relative } from "../../../deno_ral/path.ts";
 
 import { ProjectOutputFile } from "../types.ts";
@@ -106,10 +106,17 @@ export async function updateAliases(
 
     // Write the redirect file
     if (allOutputFiles.find((outputFile) => outputFile === targetFile)) {
-      // Do not, this is the same name as an output file!
-      warning(
-        `Aliases that you have created would overwrite the output file ${targetFile}. The aliases file was not created.`,
-      );
+      for (
+        const offendingAlias of targetHrefs.filter(
+          (targetHref) =>
+            targetHref.href ===
+              relative(dirname(targetHref.outputFile), targetFile),
+        )
+      ) {
+        warning(
+          `Requested alias ${targetFile} -> ${offendingAlias.outputFile} would overwrite the target. Skipping.`,
+        );
+      }
     } else {
       // Write, this is a safe file
       writeMultipleRedirectPage(targetFile, redirects);

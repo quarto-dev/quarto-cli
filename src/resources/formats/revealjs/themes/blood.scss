@@ -1,44 +1,63 @@
+/**
+ * Blood theme for reveal.js
+ * Author: Walther http://github.com/Walther
+ *
+ * Designed to be used with highlight.js theme
+ * "monokai_sublime.css" available from
+ * https://github.com/isagalaev/highlight.js/
+ *
+ * For other themes, change $codeBackground accordingly.
+ *
+ * Adapted for Quarto by Posit, PBC
+ * Copyright (C) 2024 Posit, PBC
+ */
+
 /*-- scss:defaults --*/
 
+// Include theme-specific fonts
 @import url(https://fonts.googleapis.com/css?family=Ubuntu:300,700,300italic,700italic);
 
-// fonts
-$font-family-sans-serif: Ubuntu, sans-serif !default;
+// Colors used in the theme
+$blood: #a23;
+$coal: #222;
+$code-bg: #23241f !default;
 
-// colors
-$body-bg: #222 !default;
+$body-bg: $coal !default;
+
+// Main text
+$font-family-sans-serif: Ubuntu, "sans-serif" !default;
 $body-color: #eee !default;
-$link-color: #a23 !default;
-$selection-bg: $link-color !default;
-$selection-color: #fff !default;
-$input-panel-bg: rgba(233, 236, 239, 0.2) !default;
 
-// headings
-$presentation-heading-font: Ubuntu, sans-serif !default;
-$presentation-heading-font-weight: 700 !default;
+// Headings
+$presentation-heading-font: Ubuntu, "sans-serif" !default;
 $presentation-heading-text-shadow: 2px 2px 2px $body-bg !default;
+$presentation-heading-font-weight: 700 !default;
 $presentation-h1-font-size: 3.77em !default;
+
+// h1 shadow, borrowed humbly from
+// (c) Default theme by Hakim El Hattab
 $presentation-h1-text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb,
   0 4px 0 #b9b9b9, 0 5px 0 #aaa, 0 6px 1px rgba(0, 0, 0, 0.1),
   0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3),
   0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25),
-  0 20px 20px rgba(0, 0, 0, 0.15);
+  0 20px 20px rgba(0, 0, 0, 0.15) !default;
 $presentation-heading-text-transform: uppercase !default;
+
+// Links
+$link-color: $blood !default;
+
+// Text selection
+$selection-bg: $link-color !default;
+$selection-color: #fff !default;
+
+// input panel
+$input-panel-bg: rgba(233, 236, 239, 0.2) !default;
 
 /*-- scss:rules --*/
 
 .reveal p {
   font-weight: 300;
   text-shadow: 1px 1px $body-bg;
-}
-
-.reveal p code {
-  display: inline-block;
-  border-radius: 7px;
-}
-
-.reveal small code {
-  vertical-align: baseline;
 }
 
 section.has-light-background {
@@ -49,4 +68,14 @@ section.has-light-background {
   h4 {
     text-shadow: none;
   }
+}
+
+.reveal p code {
+  background-color: $code-bg;
+  display: inline-block;
+  border-radius: 7px;
+}
+
+.reveal small code {
+  vertical-align: baseline;
 }

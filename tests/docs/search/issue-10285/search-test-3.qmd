@@ -1,0 +1,12 @@
+# Another test chapter
+
+
+::: callout-note
+
+[Please find me.]{.quarto-include-in-search-index}
+
+:::
+
+## Another section
+
+More stuff yet.

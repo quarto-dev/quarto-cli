@@ -1,0 +1,13 @@
+---
+title: "testing post with space"
+author: "Harlow Malloc"
+date: "2024-12-28"
+categories: [news, code, analysis]
+image: "image.jpg"
+---
+
+This is a post folder name with space
+
+```{r}
+1 + 1
+```

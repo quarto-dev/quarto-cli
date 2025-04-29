@@ -30,11 +30,68 @@ import {
 
 import { resolveSchema } from "./resolve.ts";
 
-import { MappedString } from "../text-types.ts";
-import { createLocalizedError } from "./errors.ts";
+import { MappedString, StringMapResult } from "../text-types.ts";
+import { createLocalizedError, createSourceContext } from "./errors.ts";
 import { InternalError } from "../error.ts";
+import { mappedIndexToLineCol } from "../mapped-text.ts";
+import { TidyverseError } from "../errors-types.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
+
+function createNiceError(obj: {
+  violatingObject: AnnotatedParse;
+  source: MappedString;
+  message: string;
+}): TidyverseError {
+  const {
+    violatingObject,
+    source,
+    message,
+  } = obj;
+  const locF = mappedIndexToLineCol(source);
+
+  let location;
+  try {
+    location = {
+      start: locF(violatingObject.start),
+      end: locF(violatingObject.end),
+    };
+  } catch (_e) {
+    location = {
+      start: { line: 0, column: 0 },
+      end: { line: 0, column: 0 },
+    };
+  }
+
+  const mapResult = source.map(violatingObject.start);
+  const fileName = mapResult ? mapResult.originalString.fileName : undefined;
+  return {
+    heading: message,
+    error: [],
+    info: {},
+    fileName,
+    location: location!,
+    sourceContext: createSourceContext(violatingObject.source, {
+      start: violatingObject.start,
+      end: violatingObject.end,
+    }),
+  };
+}
+
+export class NoExprTag extends Error {
+  constructor(violatingObject: AnnotatedParse, source: MappedString) {
+    super(`Unexpected !expr tag`);
+    this.name = "NoExprTag";
+    this.niceError = createNiceError({
+      violatingObject,
+      source,
+      message:
+        "!expr tags are not allowed in Quarto outside of knitr code cells.",
+    });
+  }
+
+  niceError: TidyverseError;
+}
 
 class ValidationContext {
   instancePath: (number | string)[];
@@ -560,6 +617,12 @@ function validateObject(
           return value.components[i];
         }
       }
+    }
+    if (
+      value.result && typeof value.result === "object" &&
+      !Array.isArray(value.result) && value.result.tag === "!expr"
+    ) {
+      throw new NoExprTag(value, value.source);
     }
     throw new InternalError(`Couldn't locate key ${key}`);
   };

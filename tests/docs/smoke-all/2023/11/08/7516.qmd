@@ -14,7 +14,7 @@ _quarto:
 #| fig-align: right
 library(ggplot2)
 ggplot(mtcars, aes(x = cyl, y = mpg)) +
-    geom_point()
+  geom_point()
 ```
 
 
@@ -22,7 +22,7 @@ ggplot(mtcars, aes(x = cyl, y = mpg)) +
 #| fig-align: center
 library(ggplot2)
 ggplot(mtcars, aes(x = cyl, y = mpg)) +
-    geom_point()
+  geom_point()
 ```
 
 
@@ -32,5 +32,5 @@ ggplot(mtcars, aes(x = cyl, y = mpg)) +
 #| fig-cap: Hello this works.
 library(ggplot2)
 ggplot(mtcars, aes(x = cyl, y = mpg)) +
-    geom_point()
+  geom_point()
 ```

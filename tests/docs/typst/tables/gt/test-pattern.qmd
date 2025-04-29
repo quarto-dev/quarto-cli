@@ -13,7 +13,7 @@ format:
 ```
 
 ```{r}
-
+#| classes: plain
 library(dplyr)
 library(gt)
 

@@ -1,0 +1,14 @@
+---
+format: revealjs 
+title: Hello
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - ["img.slide-logo"]
+        - []
+---
+
+## Slide
+
+## Another slide

@@ -13,10 +13,32 @@ return {
     local svg64 = "data:image/svg+xml;base64," .. quarto.base64.encode(svg)
     local result
 
-    if kwargs["format"] == "svg" then
+    local output_format = pandoc.utils.stringify(kwargs["format"])
+    if output_format == "" then
+      if quarto.format.is_typst_output() then
+        output_format = "svg"
+      else 
+        output_format = "png"
+      end
+    end
+
+    if output_format == "svg" then
       result = svg64
     else
-      local mt, contents = pandoc.mediabag.fetch("https://svg2png.deno.dev/" .. svg64)
+      local pcallresult, mt, contents = pcall(function()
+        local mt, contents = pandoc.mediabag.fetch("https://svg2png.deno.dev/" .. svg64)
+        return mt, contents
+      end)
+      if not pcallresult then
+        error("Error rendering placeholder")
+        error(contents)
+        return pandoc.Str("Error rendering placeholder")
+      end
+      if mt ~= "image/png" then
+        error("Expected image/png but got " .. mt)
+        error(contents)
+        return pandoc.Str("Error rendering placeholder")
+      end
       result = "data:" .. mt .. ";base64," .. quarto.base64.encode(contents)
     end
 

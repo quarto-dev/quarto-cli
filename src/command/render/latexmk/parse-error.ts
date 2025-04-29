@@ -5,7 +5,7 @@
  */
 
 import { basename, join } from "../../../deno_ral/path.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../deno_ral/fs.ts";
 import * as ld from "../../../core/lodash.ts";
 
 import { lines } from "../../../core/text.ts";
@@ -111,6 +111,14 @@ const resolvingMatchers = [
 export function findMissingHyphenationFiles(logText: string) {
   //ngerman gets special cased
   const filterLang = (lang: string) => {
+    // It seems some languages have no hyphenation files, so we just filter them out
+    // e.g. `lang: zh` has no hyphenation files
+    // https://github.com/quarto-dev/quarto-cli/issues/10291
+    const noHyphen = ["chinese-hans", "chinese"];
+    if (noHyphen.includes(lang)) {
+      return;
+    }
+
     // NOTE Although the names of the corresponding lfd files match those in this list,
     // there are some exceptions, particularly in German and Serbian. So, ngerman is
     // called here german, which is the name in the CLDR and, actually, the most logical.
@@ -201,8 +209,11 @@ function findMissingFonts(dir: string): string[] {
 }
 
 const formatFontFilter = (match: string, _text: string) => {
-  const base = basename(match);
-  return fontSearchTerm(base);
+  // Remove special prefix / suffix e.g. 'file:HaranoAjiMincho-Regular.otf:-kern;jfm=ujis'
+  // https://github.com/quarto-dev/quarto-cli/issues/12194
+  const base = basename(match).replace(/^.*?:|:.*$/g, "");
+  // return found file directly if it has an extension
+  return /[.]/.test(base) ? base : fontSearchTerm(base);
 };
 
 const estoPdfFilter = (_match: string, _text: string) => {
@@ -224,16 +235,19 @@ const packageMatchers = [
     filter: formatFontFilter,
   },
   {
+    regex: /.*Unable to find TFM file "([^"]+)".*/g,
+    filter: formatFontFilter,
+  },
+  {
+    regex: /.*\(fontspec\)\s+The font "([^"]+)" cannot be.*/g,
+    filter: formatFontFilter,
+  },
+  {
     regex: /.*Package widetext error: Install the ([^ ]+) package.*/g,
     filter: (match: string, _text: string) => {
       return `${match}.sty`;
     },
   },
-  {
-    regex: /.*Unable to find TFM file "([^"]+)".*/g,
-    filter: formatFontFilter,
-  },
-
   { regex: /.* File `(.+eps-converted-to.pdf)'.*/g, filter: estoPdfFilter },
   { regex: /.*xdvipdfmx:fatal: pdf_ref_obj.*/g, filter: estoPdfFilter },
 
@@ -291,7 +305,7 @@ function findMissingPackages(logFileText: string): string[] {
     packageMatcher.regex.lastIndex = 0;
   });
 
-  // dedpulicated list of packages to attempt to install
+  // dedulicated list of packages to attempt to install
   return ld.uniq(toInstall);
 }
 

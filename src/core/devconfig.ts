@@ -6,13 +6,13 @@
 
 import { error, info } from "../deno_ral/log.ts";
 import { join } from "../deno_ral/path.ts";
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "../deno_ral/fs.ts";
 
-import { md5Hash } from "./hash.ts";
+import { md5HashSync } from "./hash.ts";
 
-import { isWindows } from "./platform.ts";
 import { quartoConfig } from "./quarto.ts";
 import { normalizePath } from "./path.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 const kDevConfig = "dev-config";
 
@@ -37,7 +37,7 @@ export function createDevConfig(
   typst: string,
   scriptDir: string,
 ): DevConfig {
-  const scriptPath = join(scriptDir, "quarto" + (isWindows() ? ".cmd" : ""));
+  const scriptPath = join(scriptDir, "quarto" + (isWindows ? ".cmd" : ""));
   const srcDir = Deno.env.get("QUARTO_SRC_PATH") ||
     join(quartoConfig.sharePath(), "../../src");
   return {
@@ -47,13 +47,13 @@ export function createDevConfig(
     dartsass,
     esbuild,
     typst,
-    script: md5Hash(Deno.readTextFileSync(scriptPath)),
-    importMap: md5Hash(
+    script: md5HashSync(Deno.readTextFileSync(scriptPath)),
+    importMap: md5HashSync(
       Deno.readTextFileSync(
         join(srcDir, "import_map.json"),
       ),
     ),
-    bundleImportMap: md5Hash(
+    bundleImportMap: md5HashSync(
       Deno.readTextFileSync(
         join(srcDir, "resources/vendor/import_map.json"),
       ),
@@ -128,7 +128,7 @@ export async function reconfigureQuarto(
   // Running configuration from within quarto does not work on windows
   // because deno.exe is running and this lock and prevent reinstallation
   // So we fail and print comment to run
-  if (isWindows()) {
+  if (isWindows) {
     error(
       `Quarto requires reconfiguration to ${
         reconfigureReason(installed, source)
@@ -138,7 +138,7 @@ export async function reconfigureQuarto(
   }
   // Leaving Windows here if we find a way to reconfigure
   // to not forget how to call the script
-  const configureScript = isWindows()
+  const configureScript = isWindows
     ? ["cmd", "/c", ".\\configure.cmd"]
     : ["./configure.sh"];
 

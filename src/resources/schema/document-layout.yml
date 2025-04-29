@@ -48,6 +48,15 @@
   description: |
     The paper size for the document.
 
+- name: brand-mode
+  schema:
+    enum: [light, dark]
+  default: light
+  tags:
+    formats: [typst]
+  description: |
+    The brand mode to use for rendering the Typst document, `light` or `dark`.
+
 - name: layout
   schema:
     maybeArrayOf: string
@@ -76,9 +85,9 @@
     short: |
       Target page width for output (used to compute columns widths for `layout` divs)
     long: |
-      Target page width for output (used to compute columns widths for `layout` divs).
+      Target body page width for output (used to compute columns widths for `layout` divs).
       Defaults to 6.5 inches, which corresponds to default letter page settings in 
-      docx and odt.
+      docx and odt (8.5 inches with 1 inch for each margins).
 
 - name: grid
   schema:

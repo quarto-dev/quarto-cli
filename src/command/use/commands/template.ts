@@ -11,7 +11,7 @@ import {
 import { info } from "../../../deno_ral/log.ts";
 import { Confirm, Input } from "cliffy/prompt/mod.ts";
 import { basename, dirname, join, relative } from "../../../deno_ral/path.ts";
-import { ensureDir, ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDir, ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
 import { TempContext } from "../../../core/temp-types.ts";
 import { downloadWithProgress } from "../../../core/download.ts";
 import { withSpinner } from "../../../core/console.ts";

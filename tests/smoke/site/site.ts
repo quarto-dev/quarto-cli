@@ -3,10 +3,10 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { dirname } from "../../../src/deno_ral/path.ts";
-import { testQuartoCmd, Verify } from "../../test.ts";
-import { siteOutputForInput } from "../../utils.ts";
+import { testQuartoCmd, Verify, TestContext, mergeTestContexts } from "../../test.ts";
+import { projectOutputForInput } from "../../utils.ts";
 import { ensureHtmlElements, noErrorsOrWarnings } from "../../verify.ts";
 
 export const testSite = (
@@ -14,9 +14,10 @@ export const testSite = (
   renderTarget: string,
   includeSelectors: string[],
   excludeSelectors: string[],
+  additionalContext?: TestContext,
   ...verify: Verify[]
 ) => {
-  const output = siteOutputForInput(input);
+  const output = projectOutputForInput(input);
 
   const verifySel = ensureHtmlElements(
     output.outputPath,
@@ -24,18 +25,20 @@ export const testSite = (
     excludeSelectors,
   );
 
+  const baseContext: TestContext = {
+    teardown: async () => {
+      const siteDir = dirname(output.outputPath);
+      if (existsSync(siteDir)) {
+        await Deno.remove(siteDir, { recursive: true });
+      }
+    },
+  };
+
   // Run the command
   testQuartoCmd(
     "render",
     [renderTarget],
     [noErrorsOrWarnings, verifySel, ...verify],
-    {
-      teardown: async () => {
-        const siteDir = dirname(output.outputPath);
-        if (existsSync(siteDir)) {
-          await Deno.remove(siteDir, { recursive: true });
-        }
-      },
-    },
+    mergeTestContexts(baseContext, additionalContext),
   );
 };

@@ -1,0 +1,31 @@
+---
+title: brand and base logo
+format:
+  dashboard: default
+  revealjs: default
+brand:
+  logo:
+    images:
+      quarto:
+        path: quarto.png
+        alt: quarto logo
+      posit:
+        path: posit-logo-2024.svg
+        alt: posit logo
+    medium: quarto
+    large: posit
+_quarto:
+  tests:
+    dashboard:
+      ensureFileRegexMatches:
+        -
+          - '<img src="quarto\.png" alt="quarto logo"'
+        - []
+    revealjs:
+      ensureFileRegexMatches:
+        -
+          - '<img src="quarto\.png" class="slide-logo">'
+        - []
+---
+
+{{< lipsum 4 >}}

@@ -7,9 +7,10 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         - 
-          - "<lst-customers>"
-          - "@lst-customers"
-          - "Customers Query"
+          - '#figure\(\[\s+#set align\(left\)'
+          - '```sql\s+SELECT \* FROM Customers\s+```'
+          - '#ref\(<lst-customers>, supplement: \[Listing\]\)'
+          - 'Customers Query'
         - []
 ---
 

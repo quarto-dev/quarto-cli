@@ -1,0 +1,55 @@
+---
+format:
+  html:
+    quality: na
+    comment: doi title not shown
+  typst:
+    quality: na
+    comment: doi not shown
+  pdf:
+    quality: na
+    comment: doi not shown
+  docx:
+    quality: na
+    comment: doi not shown
+  pptx:
+    quality: na
+    comment: doi not shown
+  revealjs:
+    quality: na
+    comment: doi not shown
+  dashboard:
+    quality: na
+    comment: doi not shown
+title: "Toward a Unified Theory of High-Energy Metaphysics: Silly String Theory"
+date: 2008-02-29
+title-block-banner: true
+author:
+  - name: Josiah Carberry
+    id: jc
+    orcid: 0000-0002-1825-0097
+    email: josiah@psychoceramics.org
+    affiliation:
+      - name: Brown University
+        city: Providence
+        state: RI
+        url: https://www.brown.edu
+abstract: >
+  The characteristic theme of the works of Stone is
+  the bridge between culture and society. ...
+abstract-title: Abstract!
+description: works of Stone
+keywords:
+  - Metaphysics
+  - String Theory
+license: "CC BY"
+copyright:
+  holder: Josiah Carberry
+  year: 2008
+citation:
+  container-title: Journal of Psychoceramics
+  volume: 1
+  issue: 1
+  doi: 10.5555/12345678
+funding: "The author received no specific funding for this work."
+---

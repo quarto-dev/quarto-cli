@@ -1,0 +1,42 @@
+---
+format: html
+keep-md: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.callout div.cell#my-id"]
+        - []
+---
+
+
+::: {#my-id .cell execution_count=1}
+``` {.python .cell-code}
+print("This is the output of a code cell")
+```
+
+::: {.cell-output .cell-output-stdout}
+```
+This is the output of a code cell
+```
+:::
+:::
+
+
+Another paragraph.
+
+## A different section
+
+::: callout-note
+
+## This is a note with an embedded code cell that will render nicely in Jupyter!
+
+
+
+{{< contents my-id >}}
+
+
+
+
+:::
+

@@ -21,10 +21,11 @@ import { copyTo } from "../../core/copy.ts";
 import { PandocOptions, RenderFlags } from "./types.ts";
 import * as ld from "../../core/lodash.ts";
 import { isHtmlDocOutput, isRevealjsOutput } from "../../config/format.ts";
-import { expandGlobSync } from "fs/mod.ts";
+import { expandGlobSync } from "../../deno_ral/fs.ts";
 import { normalizePath } from "../../core/path.ts";
 import { isGlob } from "../../core/lib/glob.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { isWindows } from "../../deno_ral/platform.ts";
 
 export const kPatchedTemplateExt = ".patched";
 export const kTemplatePartials = "template-partials";
@@ -109,7 +110,7 @@ export async function stageTemplate(
         const targetFile = join(dir, template);
         copyTo(context.template, targetFile);
         // Ensure that file is writable
-        if (Deno.build.os !== "windows") {
+        if (!isWindows) {
           Deno.chmodSync(targetFile, 0o666);
         }
       }
@@ -269,26 +270,47 @@ function katexScript(url: string) {
       link.rel = "stylesheet";
       link.href = "${url}katex.min.css";
       head.appendChild(link);
-
-      var script = document.createElement("script");
-      script.type = "text/javascript";
-      script.src  = "${url}katex.min.js";
-      script.async = false;
-      script.addEventListener('load', function() {
+      
+      function renderMathElements() {
         var mathElements = document.getElementsByClassName("math");
-          var macros = [];
-          for (var i = 0; i < mathElements.length; i++) {
-            var texText = mathElements[i].firstChild;
-            if (mathElements[i].tagName == "SPAN") {
+        var macros = [];
+        for (var i = 0; i < mathElements.length; i++) {
+          var texText = mathElements[i].firstChild;
+          if (mathElements[i].tagName == "SPAN") {
+            if (window.katex) {
               window.katex.render(texText.data, mathElements[i], {
                 displayMode: mathElements[i].classList.contains('display'),
                 throwOnError: false,
                 macros: macros,
                 fleqn: false
               });
+            } else {
+              console.error("KaTeX has not been loaded correctly, as not found globally.");
             }
           }
-      });
+        }
+      }
+
+      var script = document.createElement("script");
+      script.src = "${url}katex.min.js";
+      script.onload = renderMathElements;
+      
+      // Check for RequireJS and AMD detection as it conflicts with KaTeX loading.
+      if (typeof require === 'function' && typeof define === 'function' && define.amd) {
+        // Disable require.js AMD detection temporarily, as it conflicts with KaTeX loading using CommonJS
+        var disableAmdScript = document.createElement("script");
+        disableAmdScript.textContent = 'window._amd_backup = window.define.amd; window.define.amd = false;';
+        head.appendChild(disableAmdScript);
+        
+        // overwrite onload to restore Require.js AMD detection
+        script.onload = function() {
+          // Restore Require.js AMD detection
+          window.define.amd = window._amd_backup;
+          delete window._amd_backup;
+          renderMathElements();
+        };
+      }
+
       head.appendChild(script);
     });
   </script>

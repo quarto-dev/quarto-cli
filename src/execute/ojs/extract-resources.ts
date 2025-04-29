@@ -4,9 +4,14 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import * as colors from "fmt/colors.ts";
-import { dirname, fromFileUrl, relative, resolve } from "../../deno_ral/path.ts";
-import { encodeBase64 } from "encoding/base64.ts";
+import * as colors from "fmt/colors";
+import {
+  dirname,
+  fromFileUrl,
+  relative,
+  resolve,
+} from "../../deno_ral/path.ts";
+import { encodeBase64 } from "encoding/base64";
 import { lookup } from "media_types/mod.ts";
 
 import { parseModule } from "observablehq/parser";
@@ -29,6 +34,7 @@ import { stripColor } from "../../core/lib/external/colors.ts";
 import { lines } from "../../core/lib/text.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { kRenderServicesLifetime } from "../../config/constants.ts";
+import { safeRemoveSync } from "../../deno_ral/fs.ts";
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -440,11 +446,17 @@ quarto will only generate javascript files in ${
   }
 
   let fixedSource = jsSource;
-
-  const ast = parseES6(jsSource, {
-    ecmaVersion: "2020",
-    sourceType: "module",
-  });
+  let ast: any = undefined;
+  try {
+    ast = parseES6(jsSource, {
+      ecmaVersion: "latest",
+      sourceType: "module",
+    });
+  } catch (e) {
+    console.error(jsSource);
+    console.error("Error parsing compiled typescript file.");
+    throw e;
+  }
   const recursionList: string[] = [];
   // deno-lint-ignore no-explicit-any
   const patchDeclaration = (node: any) => {
@@ -566,7 +578,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
             // more than once, so we could end up with more than one request
             // to delete it. Fail gracefully if so.
             try {
-              Deno.removeSync(res.filename);
+              safeRemoveSync(res.filename);
             } catch (e) {
               if (e.name !== "NotFound") {
                 throw e;

@@ -1,0 +1,18 @@
+---
+format: typst
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '\[#set text\(fill: rgb\(255, 0, 255\)\); B\]'
+        - []
+---
+
+```{=html}
+<table>
+    <tr><td>A</td><td style="color: magenta;">B</td></tr>
+</table>
+```
+

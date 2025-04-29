@@ -5,7 +5,7 @@
 *
 */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync } from "../../../src/deno_ral/fs.ts";
 
 import {
   removePackage,

@@ -20,8 +20,8 @@ Usage:
     -- }
 ]]
 ---@param blocks pandoc.List List of `Block` elements to be flattened.
----@param sep? pandoc.List List of `Inline` elements inserted as separator between two consecutive blocks; defaults to `{pandoc.LineBreak()}`.
----@return pandoc.List
+---@param sep? pandoc.Inlines List of `Inline` elements inserted as separator between two consecutive blocks; defaults to `{pandoc.LineBreak()}`.
+---@return pandoc.Inlines
 function pandoc.utils.blocks_to_inlines(blocks, sep) end
 
 --[[
@@ -215,5 +215,11 @@ Usage:
 ---@return string # Type of the given value
 function pandoc.utils.type(value) end
 
+--[[
+Filter the given doc by passing it through a Lua filter.
+]]
+---@param doc pandoc.Pandoc Document to filter
+---@param filter table Filter to use
+function pandoc.utils.run_lua_filter(doc, filter) end
 
 return pandoc.utils

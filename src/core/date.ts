@@ -5,7 +5,7 @@
  */
 import momentGuess from "moment-guess";
 
-import { parse } from "datetime/mod.ts";
+import { parse } from "datetime/parse";
 import dayjs from "dayjs/dayjs.min.js";
 import advancedPlugin from "../resources/library/dayjs/plugins/advanced.js";
 import timezonePlugin from "../resources/library/dayjs/plugins/timezone.js";
@@ -13,8 +13,8 @@ import utcPlugin from "../resources/library/dayjs/plugins/utc.js";
 import isoWeekPlugin from "../resources/library/dayjs/plugins/isoweek.js";
 import weekOfYearPlugin from "../resources/library/dayjs/plugins/weekofyear.js";
 import weekYearPlugin from "../resources/library/dayjs/plugins/weekyear.js";
-import { existsSync } from "fs/mod.ts";
 
+import { existsSync } from "../deno_ral/fs.ts";
 import { toFileUrl } from "../deno_ral/path.ts";
 import { resourcePath } from "./resources.ts";
 

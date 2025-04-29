@@ -2,17 +2,27 @@
 
 #let article(
   title: none,
+  subtitle: none,
   authors: none,
   date: none,
   abstract: none,
+  abstract-title: none,
   cols: 1,
   margin: (x: 1.25in, y: 1.25in),
   paper: "us-letter",
   lang: "en",
   region: "US",
-  font: (),
+  font: "libertinus serif",
   fontsize: 11pt,
+  title-size: 1.5em,
+  subtitle-size: 1.25em,
+  heading-family: "libertinus serif",
+  heading-weight: "bold",
+  heading-style: "normal",
+  heading-color: black,
+  heading-line-height: 0.65em,
   sectionnumbering: none,
+  pagenumbering: "1",
   toc: false,
   toc_title: none,
   toc_depth: none,
@@ -22,7 +32,7 @@
   set page(
     paper: paper,
     margin: margin,
-    numbering: "1",
+    numbering: pagenumbering,
   )
   set par(justify: true)
   set text(lang: lang,
@@ -30,10 +40,25 @@
            font: font,
            size: fontsize)
   set heading(numbering: sectionnumbering)
-
   if title != none {
     align(center)[#block(inset: 2em)[
-      #text(weight: "bold", size: 1.5em)[#title]
+      #set par(leading: heading-line-height)
+      #if (heading-family != none or heading-weight != "bold" or heading-style != "normal"
+           or heading-color != black or heading-decoration == "underline"
+           or heading-background-color != none) {
+        set text(font: heading-family, weight: heading-weight, style: heading-style, fill: heading-color)
+        text(size: title-size)[#title]
+        if subtitle != none {
+          parbreak()
+          text(size: subtitle-size)[#subtitle]
+        }
+      } else {
+        text(weight: "bold", size: title-size)[#title]
+        if subtitle != none {
+          parbreak()
+          text(weight: "bold", size: subtitle-size)[#subtitle]
+        }
+      }
     ]]
   }
 
@@ -61,7 +86,7 @@
 
   if abstract != none {
     block(inset: 2em)[
-    #text(weight: "semibold")[$labels.abstract$] #h(1em) #abstract
+    #text(weight: "semibold")[#abstract-title] #h(1em) #abstract
     ]
   }
 

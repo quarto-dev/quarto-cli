@@ -1,0 +1,15 @@
+---
+title: "issue-5625"
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - '<meta property="og:image" content="/posts/post-with-code/image.jpg">'
+        - []
+---
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.

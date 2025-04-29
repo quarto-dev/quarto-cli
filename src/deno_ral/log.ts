@@ -12,6 +12,6 @@ export {
   LogLevels,
   setup,
   warn as warning,
-} from "log/mod.ts";
+} from "log";
 
-export type { LevelName, LogRecord } from "log/mod.ts";
+export type { LevelName, LogRecord } from "log";

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
 import { basename, dirname, join, relative } from "../deno_ral/path.ts";
@@ -34,7 +34,7 @@ export async function installExtension(
   temp: TempContext,
   allowPrompt: boolean,
   embed?: string,
-) {
+): Promise<boolean> {
   // Is this local or remote?
   const source = await extensionSource(target);
 
@@ -43,7 +43,7 @@ export async function installExtension(
     info(
       `Extension not found in local or remote sources`,
     );
-    return;
+    return false;
   }
 
   // Does the user trust the extension?
@@ -51,60 +51,62 @@ export async function installExtension(
   if (!trusted) {
     // Not trusted, cancel
     cancelInstallation();
-  } else {
-    // Compute the installation directory
-    const currentDir = Deno.cwd();
-    const installDir = await determineInstallDir(
-      currentDir,
-      allowPrompt,
-      embed,
-    );
+    return false;
+  }
 
-    // Stage the extension locally
-    const extensionDir = await stageExtension(source, temp.createDir());
+  // Compute the installation directory
+  const currentDir = Deno.cwd();
+  const installDir = await determineInstallDir(
+    currentDir,
+    allowPrompt,
+    embed,
+  );
 
-    // Validate the extension in in the staging dir
-    const stagedExtensions = await validateExtension(extensionDir);
+  // Stage the extension locally
+  const extensionDir = await stageExtension(source, temp.createDir());
 
-    // Confirm that the user would like to take this action
-    const confirmed = await confirmInstallation(
-      stagedExtensions,
-      installDir,
-      { allowPrompt },
-    );
+  // Validate the extension in in the staging dir
+  const stagedExtensions = await validateExtension(extensionDir);
 
-    if (confirmed) {
-      // Complete the installation
-      await completeInstallation(extensionDir, installDir);
+  // Confirm that the user would like to take this action
+  const confirmed = await confirmInstallation(
+    stagedExtensions,
+    installDir,
+    { allowPrompt },
+  );
 
-      await withSpinner(
-        { message: "Extension installation complete" },
-        () => {
-          return Promise.resolve();
-        },
-      );
+  if (!confirmed) {
+    // Not confirmed, cancel the installation
+    cancelInstallation();
+  }
 
-      if (source.learnMoreUrl) {
-        info("");
-        if (allowPrompt) {
-          const open = await Confirm.prompt({
-            message: "View documentation using default browser?",
-            default: true,
-          });
-          if (open) {
-            await openUrl(source.learnMoreUrl);
-          }
-        } else {
-          info(
-            `\nLearn more about this extension at:\n${source.learnMoreUrl}\n`,
-          );
-        }
+  // Complete the installation
+  await completeInstallation(extensionDir, installDir);
+
+  await withSpinner(
+    { message: "Extension installation complete" },
+    () => {
+      return Promise.resolve();
+    },
+  );
+
+  if (source.learnMoreUrl) {
+    info("");
+    if (allowPrompt) {
+      const open = await Confirm.prompt({
+        message: "View documentation using default browser?",
+        default: true,
+      });
+      if (open) {
+        await openUrl(source.learnMoreUrl);
       }
     } else {
-      // Not confirmed, cancel the installation
-      cancelInstallation();
+      info(
+        `\nLearn more about this extension at:\n${source.learnMoreUrl}\n`,
+      );
     }
   }
+  return true;
 }
 
 // Cancels the installation, providing user feedback that the installation is canceled
@@ -587,7 +589,7 @@ export async function completeInstallation(
         // Move from the staging path to the install dir
         const installPath = join(installExtDir, extensionRelativeDir);
         if (existsSync(installPath)) {
-          Deno.removeSync(installPath, { recursive: true });
+          safeRemoveSync(installPath, { recursive: true });
         }
 
         // Ensure the parent directory exists
@@ -596,7 +598,7 @@ export async function completeInstallation(
       });
     } finally {
       // Clean up the staging directory
-      Deno.removeSync(stagingDir, { recursive: true });
+      safeRemoveSync(stagingDir, { recursive: true });
     }
     return Promise.resolve();
   });

@@ -1,7 +1,7 @@
 import { testQuartoCmd } from "../../test.ts";
 import { directoryContainsOnlyAllowedPaths, fileExists, folderExists, noErrorsOrWarnings, printsMessage } from "../../verify.ts";
 import { join } from "../../../src/deno_ral/path.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
 
 const tempDir = Deno.makeTempDirSync();
 
@@ -39,7 +39,7 @@ ensureDirSync(nonEmptyWorkingDir);
 testQuartoCmd(
   "use",
   ["template", "quarto-journals/jasa", "--no-prompt"],
-  [printsMessage("ERROR", /directory isn't empty/), directoryContainsOnlyAllowedPaths(nonEmptyWorkingDir, [nonEmptyFileName])],
+  [printsMessage({level: "ERROR", regex: /directory isn't empty/}), directoryContainsOnlyAllowedPaths(nonEmptyWorkingDir, [nonEmptyFileName])],
   {
     setup: () => {
       Deno.writeTextFileSync(join(nonEmptyWorkingDir, nonEmptyFileName), "Just making a non-empty file!");

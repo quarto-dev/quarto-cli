@@ -10,38 +10,23 @@ else
   echo "   > Restoring renv project"
   Rscript -e 'renv::restore()'
   echo "   > Installing dev knitr and rmarkdown"
-  Rscript -e "install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev'))"
-  Rscript -e "install.packages('knitr', repos = c('https://yihui.r-universe.dev'))"
+  Rscript -e "install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev', getOption('repos')))"
+  Rscript -e "install.packages('knitr', repos = c('https://yihui.r-universe.dev', getOption('repos')))"
 fi
 
 
 # Check python test environment ---
 echo ">>>> Configuring Python environment"
-python_exists=$(command -v python)
-if [ -z $python_exists ] 
-then 
-  python_exists=$(command -v python3)
-  if [ -z python_exists ]
-  then
-    echo "No python found in PATH - Check your PATH or install python add to PATH."
-  fi
-fi
-if [ -n $python_exists ]
+# Prefer uv is available
+uv_exist=$(command -v uv)
+if [ -z $uv_exist ]
 then
-  pipenv_exist=$(command -v pipenv)
-  if [ -z $pipenv_exist ] 
-  then
-    echo "No pipenv found - Installing pipenv running ``pip install pipenv``..."
-    $python_exists -m pip install pipenv
-    echo "...pipenv installed"
-  fi
-  # specific for pyenv shim
-  [[ -n $(command -v pyenv) ]] && pyenv rehash
-  echo "Setting up python environnement with pipenv"
-  # our default is pipenv to use its own virtualenv and be in project directory
-  export PIPENV_IGNORE_VIRTUALENVS=1
-  export PIPENV_VENV_IN_PROJECT=1
-  pipenv install
+  echo "No uv found - Install uv please: https://docs.astral.sh/uv/getting-started/installation/."
+  echo "Using 'uv' is the prefered way. You can still use python and create a .venv in the project."
+else
+  echo "Setting up python environnement with uv"
+  # create or sync the virtual env in the project
+  uv sync --frozen
 fi
 
 # Check Julia environment ---
@@ -52,7 +37,12 @@ then
   echo "No julia found in PATH - Check your PATH or install julia and add to PATH."
 else
   echo "Setting up Julia environment"
-  julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
+  if [ -z $uv_exist ]
+  then
+    uv run --frozen julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
+  else
+    julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
+  fi
 fi
 
 # Update tinytex

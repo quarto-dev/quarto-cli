@@ -1,0 +1,19 @@
+---
+title: Revealjs logo svg
+format:
+  revealjs:
+    logo: https://raw.githubusercontent.com/mcanouil/hex-stickers/main/SVG/rlille.svg
+    embed-resources: true
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - ['img.slide-logo']
+        - []
+---
+
+## Slide
+
+This is a playground for Quarto.
+
+![An image](https://placehold.co/600x400.png)

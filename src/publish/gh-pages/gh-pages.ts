@@ -4,10 +4,10 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { info } from "../../deno_ral/log.ts";
+import { debug, info } from "../../deno_ral/log.ts";
 import { dirname, join, relative } from "../../deno_ral/path.ts";
-import { copy } from "fs/mod.ts";
-import * as colors from "fmt/colors.ts";
+import { copy } from "../../deno_ral/fs.ts";
+import * as colors from "fmt/colors";
 
 import { Confirm } from "cliffy/prompt/confirm.ts";
 
@@ -33,6 +33,8 @@ import {
   gitHubContextForPublish,
   verifyContext,
 } from "../common/git.ts";
+import { createTempContext } from "../../core/temp.ts";
+import { projectScratchPath } from "../../project/project-scratch.ts";
 
 export const kGhpages = "gh-pages";
 const kGhpagesDescription = "GitHub Pages";
@@ -189,12 +191,35 @@ async function publish(
     type === "site" ? target?.url : undefined,
   );
 
+  const kPublishWorktreeDir = "quarto-publish-worktree-";
   // allocate worktree dir
-  const tempDir = Deno.makeTempDirSync({ dir: input });
+  const temp = createTempContext(
+    { prefix: kPublishWorktreeDir, dir: projectScratchPath(input) },
+  );
+  const tempDir = temp.baseDir;
   removeIfExists(tempDir);
 
-  const deployId = shortUuid();
+  // cleaning up leftover by listing folder with prefix .quarto-publish-worktree- and calling git worktree rm on them
+  const worktreeDir = Deno.readDirSync(projectScratchPath(input));
+  for (const entry of worktreeDir) {
+    if (
+      entry.isDirectory && entry.name.startsWith(kPublishWorktreeDir)
+    ) {
+      debug(
+        `Cleaning up leftover worktree folder ${entry.name} from past deploys`,
+      );
+      const worktreePath = join(projectScratchPath(input), entry.name);
+      await execProcess({
+        cmd: ["git", "worktree", "remove", worktreePath],
+        cwd: projectScratchPath(input),
+      });
+      removeIfExists(worktreePath);
+    }
+  }
 
+  // create worktree and deploy from it
+  const deployId = shortUuid();
+  debug(`Deploying from worktree ${tempDir} with deployId ${deployId}`);
   await withWorktree(input, relative(input, tempDir), async () => {
     // copy output to tempdir and add .nojekyll (include deployId
     // in .nojekyll so we can poll for completed deployment)
@@ -209,6 +234,7 @@ async function publish(
       ["push", "--force", "origin", "HEAD:gh-pages"],
     ]);
   });
+  temp.cleanup();
   info("");
 
   // if this is the creation of gh-pages AND this is a user home/default site
@@ -246,6 +272,8 @@ async function publish(
 
   // wait for deployment if we are opening a browser
   let verified = false;
+  const start = new Date();
+
   if (options.browser && ghContext.siteUrl && !notifyGhPagesBranch) {
     await withSpinner({
       message:
@@ -253,6 +281,14 @@ async function publish(
     }, async () => {
       const noJekyllUrl = joinUrl(ghContext.siteUrl!, ".nojekyll");
       while (true) {
+        const now = new Date();
+        const elapsed = now.getTime() - start.getTime();
+        if (elapsed > 1000 * 60 * 5) {
+          info(colors.yellow(
+            "Deployment took longer than 5 minutes, giving up waiting for deployment to complete",
+          ));
+          break;
+        }
         await sleep(2000);
         const response = await fetch(noJekyllUrl);
         if (response.status === 200) {

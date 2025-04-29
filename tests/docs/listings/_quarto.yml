@@ -5,4 +5,4 @@ website:
   title: "Listing Test"
 format:
   html:
-    theme: [litera, styles.scss]
+    theme: [litera]

@@ -5,7 +5,7 @@
 *
 */
 import { unitTest } from "../test.ts";
-import { assert } from "testing/asserts.ts";
+import { assert } from "testing/asserts";
 import { Metadata } from "../../src/config/types.ts";
 import { readYamlFromString } from "../../src/core/yaml.ts";
 

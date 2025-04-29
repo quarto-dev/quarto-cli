@@ -35,6 +35,9 @@ export function processDatatables(
   const scriptNodes = doc.querySelectorAll(
     ".cell-output script[type='module']",
   );
+
+  let keepDeps = false;
+
   for (const scriptNode of scriptNodes) {
     const scriptEl = scriptNode as Element;
     const code = scriptEl.innerText;
@@ -57,6 +60,7 @@ export function processDatatables(
     }
 
     if (hasConnectedDt) {
+      keepDeps = true;
       // Replace the table initialization
       const codeText = codeFiltered.join("\n");
       // for iTables < 1.7, do fixups
@@ -82,19 +86,21 @@ export function processDatatables(
           linkCssEl.remove();
         }
       }
-
-      // We found tables, clear the DT sentinel attr
-      const dtNodes = doc.querySelectorAll(`[${kDTTableSentinel}="true"]`);
-      dtNodes.forEach((node) => {
-        (node as Element).removeAttribute(kDTTableSentinel);
-      });
-    } else {
-      // We didn't find any DT, remove the dependencies that we injected at the root level
-      const dtNodes = doc.querySelectorAll(`[${kDTTableSentinel}="true"]`);
-      dtNodes.forEach((node) => {
-        (node as Element).remove();
-      });
     }
+  }
+
+  if (keepDeps) {
+    // We found tables, clear the DT sentinel attr
+    const dtNodes = doc.querySelectorAll(`[${kDTTableSentinel}="true"]`);
+    dtNodes.forEach((node) => {
+      (node as Element).removeAttribute(kDTTableSentinel);
+    });
+  } else {
+    // We didn't find any DT, remove the dependencies that we injected at the root level
+    const dtNodes = doc.querySelectorAll(`[${kDTTableSentinel}="true"]`);
+    dtNodes.forEach((node) => {
+      (node as Element).remove();
+    });
   }
 
   return {
