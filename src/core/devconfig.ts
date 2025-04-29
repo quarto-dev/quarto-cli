@@ -8,7 +8,7 @@ import { error, info } from "../deno_ral/log.ts";
 import { join } from "../deno_ral/path.ts";
 import { ensureDirSync, existsSync } from "../deno_ral/fs.ts";
 
-import { md5Hash } from "./hash.ts";
+import { md5HashSync } from "./hash.ts";
 
 import { quartoConfig } from "./quarto.ts";
 import { normalizePath } from "./path.ts";
@@ -47,13 +47,13 @@ export function createDevConfig(
     dartsass,
     esbuild,
     typst,
-    script: md5Hash(Deno.readTextFileSync(scriptPath)),
-    importMap: md5Hash(
+    script: md5HashSync(Deno.readTextFileSync(scriptPath)),
+    importMap: md5HashSync(
       Deno.readTextFileSync(
         join(srcDir, "import_map.json"),
       ),
     ),
-    bundleImportMap: md5Hash(
+    bundleImportMap: md5HashSync(
       Deno.readTextFileSync(
         join(srcDir, "resources/vendor/import_map.json"),
       ),

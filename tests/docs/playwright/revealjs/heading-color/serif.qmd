@@ -1,0 +1,13 @@
+---
+title: "Quarto Title Test"
+format: revealjs
+theme: [simple, custom.scss]
+---
+
+## slide 1
+
+Text for slide 1
+
+## side 2
+
+Text for slide 2

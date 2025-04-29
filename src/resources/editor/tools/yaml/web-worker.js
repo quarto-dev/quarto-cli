@@ -7043,6 +7043,13 @@ try {
             description: "Classes to apply to cell container"
           },
           {
+            name: "renderings",
+            schema: {
+              arrayOf: "string"
+            },
+            description: "Array of rendering names, e.g. `[light, dark]`"
+          },
+          {
             name: "tags",
             tags: {
               engine: "jupyter"
@@ -7330,7 +7337,7 @@ try {
             default: true,
             description: {
               short: "Evaluate code cells (if `false` just echos the code into output).",
-              long: "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines \n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
+              long: "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative numbers to selectively include or exclude expressions \n  (explicit inclusion/exclusion of expressions is available only when using the knitr engine)\n"
             }
           },
           {
@@ -9568,6 +9575,11 @@ try {
                             schema: "boolean",
                             description: "Provide button for copying search link"
                           },
+                          "merge-navbar-crumbs": {
+                            schema: "boolean",
+                            default: true,
+                            description: "When false, do not merge navbar crumbs into the crumbs in `search.json`."
+                          },
                           "keyboard-shortcut": {
                             maybeArrayOf: {
                               string: {
@@ -10106,7 +10118,7 @@ try {
                   },
                   "output-file": {
                     path: {
-                      description: "Base name for single-file output (e.g. PDF, ePub)"
+                      description: "Base name for single-file output (e.g. PDF, ePub, docx)"
                     }
                   },
                   "cover-image": {
@@ -12539,6 +12551,42 @@ try {
             }
           },
           {
+            id: "brand-path-bool-light-dark",
+            anyOf: [
+              "string",
+              "boolean",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: {
+                      anyOf: [
+                        "string",
+                        {
+                          ref: "brand"
+                        }
+                      ],
+                      description: "The path to a light brand file or an inline light brand definition.\n"
+                    },
+                    dark: {
+                      anyOf: [
+                        "string",
+                        {
+                          ref: "brand"
+                        }
+                      ],
+                      description: "The path to a dark brand file or an inline dark brand definition.\n"
+                    }
+                  }
+                }
+              },
+              {
+                ref: "brand"
+              }
+            ],
+            description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
+          },
+          {
             id: "brand-defaults",
             object: {
               properties: {
@@ -12984,29 +13032,31 @@ try {
                 {
                   string: {
                     completions: [
-                      "pygments",
-                      "tango",
-                      "espresso",
-                      "zenburn",
-                      "kate",
-                      "monochrome",
-                      "breezedark",
-                      "haddock",
+                      "a11y",
                       "arrow",
                       "atom-one",
                       "ayu",
                       "ayu-mirage",
                       "breeze",
+                      "breezedark",
                       "dracula",
+                      "espresso",
                       "github",
                       "gruvbox",
-                      "mokokai",
+                      "haddock",
+                      "kate",
+                      "monochrome",
+                      "monokai",
+                      "none",
                       "nord",
                       "oblivion",
                       "printing",
+                      "pygments",
                       "radical",
                       "solarized",
-                      "vim-dark"
+                      "tango",
+                      "vim-dark",
+                      "zenburn"
                     ]
                   }
                 }
@@ -15575,6 +15625,22 @@ try {
             description: "The paper size for the document.\n"
           },
           {
+            name: "brand-mode",
+            schema: {
+              enum: [
+                "light",
+                "dark"
+              ]
+            },
+            default: "light",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: "The brand mode to use for rendering the Typst document, `light` or `dark`.\n"
+          },
+          {
             name: "layout",
             schema: {
               maybeArrayOf: "string"
@@ -16060,7 +16126,7 @@ try {
             schema: "string",
             description: {
               short: "A regular expression that can be used to determine whether a link is an internal link.",
-              long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
+              long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with `http://www.quarto.org/custom` or `https://www.quarto.org/custom`\nas internal links (and others will be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
             }
           },
           {
@@ -16583,6 +16649,11 @@ try {
           },
           {
             name: "number-offset",
+            tags: {
+              formats: [
+                "$html-all"
+              ]
+            },
             schema: {
               maybeArrayOf: "number"
             },
@@ -16683,15 +16754,9 @@ try {
           {
             name: "brand",
             schema: {
-              anyOf: [
-                "string",
-                "boolean",
-                {
-                  ref: "brand"
-                }
-              ]
+              ref: "brand-path-bool-light-dark"
             },
-            description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition.\n"
+            description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
           },
           {
             name: "theme",
@@ -16811,6 +16876,20 @@ try {
               ]
             },
             description: "Enables smooth scrolling within the page."
+          },
+          {
+            name: "respect-user-color-scheme",
+            schema: "boolean",
+            default: false,
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: {
+              short: "Enables setting dark mode based on the `prefers-color-scheme` media query.",
+              long: "If set, Quarto reads the `prefers-color-scheme` media query to determine whether to show\nthe user a dark or light page. Otherwise the author-preferred color scheme is shown.\n"
+            }
           },
           {
             name: "html-math-method",
@@ -19347,7 +19426,7 @@ try {
                 "$html-doc"
               ]
             },
-            description: "Setting this to false prevents the `repo-actions` from appearing on this page."
+            description: "Setting this to false prevents the `repo-actions` from appearing on this page.\nOther possible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
           },
           {
             name: "aliases",
@@ -19888,6 +19967,13 @@ try {
             },
             errorMessage: "type key not supported at project type-level. Use `project: type: ...` instead.",
             description: "internal-schema-hack"
+          },
+          {
+            name: "engines",
+            schema: {
+              arrayOf: "string"
+            },
+            description: "List execution engines you want to give priority when determining which engine should render a notebook. If two engines have support for a notebook, the one listed earlier will be chosen. Quarto's default order is 'knitr', 'jupyter', 'markdown', 'julia'."
           }
         ],
         "schema/schema.yml": [
@@ -20887,6 +20973,7 @@ try {
           "Number of matches to display (defaults to 20)",
           "Matches after which to collapse additional results",
           "Provide button for copying search link",
+          "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -21047,6 +21134,7 @@ try {
           "Number of matches to display (defaults to 20)",
           "Matches after which to collapse additional results",
           "Provide button for copying search link",
+          "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -21139,7 +21227,7 @@ try {
           "Book part and chapter files",
           "Book appendix files",
           "Book references file",
-          "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+          "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
           "Cover image (used in HTML and ePub formats)",
           "Alternative text for cover image (used in HTML format)",
           "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -21897,11 +21985,15 @@ try {
           "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
           "The path to the font file. This can be a local path or a URL.",
           "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
+          "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
+          "The path to a light brand file or an inline light brand\ndefinition.",
+          "The path to a dark brand file or an inline dark brand definition.",
           {
             short: "Unique label for code cell",
             long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
           },
           "Classes to apply to cell container",
+          "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
           "Array of tags for notebook cell",
           {
             short: "Notebook cell identifier",
@@ -22681,6 +22773,7 @@ try {
           },
           "Control the <code>\\pagestyle{}</code> for the document.",
           "The paper size for the document.",
+          "The brand mode to use for rendering the Typst document,\n<code>light</code> or <code>dark</code>.",
           {
             short: "The options for margins and text layout for this document.",
             long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.'
@@ -22773,7 +22866,7 @@ try {
           "Open external links in a new browser window or tab (rather than\nnavigating the current tab).",
           {
             short: "A regular expression that can be used to determine whether a link is\nan internal link.",
-            long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith http://www.quarto.org as internal links (and others will be\nconsidered external):"
+            long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith <code>http://www.quarto.org/custom</code> or\n<code>https://www.quarto.org/custom</code> as internal links (and others\nwill be considered external):"
           },
           {
             short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
@@ -22866,12 +22959,13 @@ try {
           },
           "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
           "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
-          "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition.",
+          "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
           "Theme name, theme scss file, or a mix of both.",
           "The light theme name, theme scss file, or a mix of both.",
           "The light theme name, theme scss file, or a mix of both.",
           "The dark theme name, theme scss file, or a mix of both.",
           "The dark theme name, theme scss file, or a mix of both.",
+          "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
           "Classes to apply to the body of the document.",
           "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
           "Enables inclusion of Pandoc default CSS for this document.",
@@ -22879,6 +22973,10 @@ try {
           "Enables hover over a section title to see an anchor link.",
           "Enables tabsets to present content.",
           "Enables smooth scrolling within the page.",
+          {
+            short: "Enables setting dark mode based on the\n<code>prefers-color-scheme</code> media query.",
+            long: "If set, Quarto reads the <code>prefers-color-scheme</code> media\nquery to determine whether to show the user a dark or light page.\nOtherwise the author-preferred color scheme is shown."
+          },
           {
             short: "Method use to render math in HTML output",
             long: 'Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href="https://pandoc.org/MANUAL.html#math-rendering-in-html">Math\nRendering in HTML</a> for additional details.'
@@ -23252,7 +23350,7 @@ try {
           "Print a list of figures in the document.",
           "Print a list of tables in the document.",
           "Setting this to false prevents this document from being included in\nsearches.",
-          "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
+          "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page. Other possible values are <code>none</code> or\none or more of <code>edit</code>, <code>source</code>, and\n<code>issue</code>, <em>e.g.</em>\n<code>[edit, source, issue]</code>.",
           {
             short: "Links to source repository actions",
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -23367,6 +23465,7 @@ try {
           "Number of matches to display (defaults to 20)",
           "Matches after which to collapse additional results",
           "Provide button for copying search link",
+          "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -23459,7 +23558,7 @@ try {
           "Book part and chapter files",
           "Book appendix files",
           "Book references file",
-          "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+          "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
           "Cover image (used in HTML and ePub formats)",
           "Alternative text for cover image (used in HTML format)",
           "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -23617,6 +23716,15 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+          {
+            short: "Include an automatically generated table of contents",
+            long: ""
+          },
+          {
+            short: "Use smart quotes in document output. Defaults to true.",
+            long: ""
+          },
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -23711,6 +23819,7 @@ try {
           "Number of matches to display (defaults to 20)",
           "Matches after which to collapse additional results",
           "Provide button for copying search link",
+          "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -23803,7 +23912,7 @@ try {
           "Book part and chapter files",
           "Book appendix files",
           "Book references file",
-          "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+          "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
           "Cover image (used in HTML and ePub formats)",
           "Alternative text for cover image (used in HTML format)",
           "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -23960,7 +24069,8 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
         ],
         "schema/external-schemas.yml": [
           {
@@ -24189,12 +24299,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 193535,
+          _internalId: 195e3,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 193527,
+              _internalId: 194992,
               type: "enum",
               enum: [
                 "png",
@@ -24210,7 +24320,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 193534,
+              _internalId: 194999,
               type: "anyOf",
               anyOf: [
                 {
@@ -24250,7 +24360,42 @@ try {
             "case-detection": true
           },
           $id: "handlers/mermaid"
-        }
+        },
+        "schema/document-typst.yml": [
+          {
+            name: "page-numbering",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "string",
+                {
+                  enum: [
+                    false
+                  ]
+                }
+              ]
+            },
+            description: {
+              short: "Include an automatically generated table of contents"
+            }
+          },
+          {
+            name: "smart",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: "boolean",
+            description: {
+              short: "Use smart quotes in document output. Defaults to true."
+            }
+          }
+        ]
       };
     }
   });
@@ -30766,6 +30911,27 @@ ${reindented}
     };
   }
 
+  // ../is-circular.ts
+  var isCircular = (obj) => {
+    const objectSet = /* @__PURE__ */ new WeakSet();
+    const detect = (obj2) => {
+      if (obj2 && typeof obj2 === "object") {
+        if (objectSet.has(obj2)) {
+          return true;
+        }
+        objectSet.add(obj2);
+        for (const key in obj2) {
+          if (Object.hasOwn(obj2, key) && detect(obj2[key])) {
+            return true;
+          }
+        }
+        objectSet.delete(obj2);
+      }
+      return false;
+    };
+    return detect(obj);
+  };
+
   // annotated-yaml.ts
   function postProcessAnnotation(parse) {
     if (parse.components.length === 1 && parse.start === parse.components[0].start && parse.end === parse.components[0].end) {
@@ -30916,16 +31082,10 @@ ${tidyverseInfo(
         `Expected a single result, got ${results.length} instead`
       );
     }
-    try {
-      JSON.stringify(results[0]);
-    } catch (e) {
-      if (e.message.match("invalid string length")) {
-      } else if (e.message.match(/circular structure/)) {
-        throw new InternalError(
-          `Circular structure detected in parsed yaml: ${e.message}`
-        );
-      } else {
-      }
+    if (isCircular(results[0])) {
+      throw new InternalError(
+        `Circular structure detected in yaml`
+      );
     }
     return postProcessAnnotation(results[0]);
   }
@@ -31303,6 +31463,51 @@ ${tidyverseInfo(
   }
 
   // ../yaml-validation/validator.ts
+  function createNiceError(obj) {
+    const {
+      violatingObject,
+      source,
+      message
+    } = obj;
+    const locF = mappedIndexToLineCol(source);
+    let location;
+    try {
+      location = {
+        start: locF(violatingObject.start),
+        end: locF(violatingObject.end)
+      };
+    } catch (_e) {
+      location = {
+        start: { line: 0, column: 0 },
+        end: { line: 0, column: 0 }
+      };
+    }
+    const mapResult = source.map(violatingObject.start);
+    const fileName = mapResult ? mapResult.originalString.fileName : void 0;
+    return {
+      heading: message,
+      error: [],
+      info: {},
+      fileName,
+      location,
+      sourceContext: createSourceContext(violatingObject.source, {
+        start: violatingObject.start,
+        end: violatingObject.end
+      })
+    };
+  }
+  var NoExprTag = class extends Error {
+    constructor(violatingObject, source) {
+      super(`Unexpected !expr tag`);
+      this.name = "NoExprTag";
+      this.niceError = createNiceError({
+        violatingObject,
+        source,
+        message: "!expr tags are not allowed in Quarto outside of knitr code cells."
+      });
+    }
+    niceError;
+  };
   var ValidationContext = class {
     instancePath;
     root;
@@ -31693,6 +31898,9 @@ ${tidyverseInfo(
             return value.components[i];
           }
         }
+      }
+      if (value.result && typeof value.result === "object" && !Array.isArray(value.result) && value.result.tag === "!expr") {
+        throw new NoExprTag(value, value.source);
       }
       throw new InternalError(`Couldn't locate key ${key}`);
     };
@@ -33209,11 +33417,22 @@ ${tidyverseInfo(
     },
     "engine-jupyter"
   );
+  var juliaEnginesSchema = defineCached(
+    // deno-lint-ignore require-await
+    async () => {
+      return {
+        schema: makeEngineSchema("julia"),
+        errorHandlers: []
+      };
+    },
+    "engine-julia"
+  );
   async function getEngineOptionsSchema() {
     const obj = {
       markdown: await markdownEngineSchema(),
       knitr: await knitrEngineSchema(),
-      jupyter: await jupyterEngineSchema()
+      jupyter: await jupyterEngineSchema(),
+      julia: await juliaEnginesSchema()
     };
     return obj;
   }
@@ -33589,9 +33808,7 @@ ${tidyverseInfo(
         } else if (cell_type === "directive") {
           cell.source = mappedString(src, mappedChunks.slice(1, -1), fileName);
         }
-        if (mdTrimEmptyLines(lines(cell.sourceVerbatim.value)).length > 0 || cell.options !== void 0) {
-          nb.cells.push(cell);
-        }
+        nb.cells.push(cell);
         lineBuffer.splice(0, lineBuffer.length);
       }
     };
@@ -33652,24 +33869,6 @@ ${tidyverseInfo(
     }
     await flushLineBuffer("markdown", srcLines.length);
     return nb;
-  }
-  function mdTrimEmptyLines(lines2) {
-    const firstNonEmpty = lines2.findIndex((line) => line.trim().length > 0);
-    if (firstNonEmpty === -1) {
-      return [];
-    }
-    lines2 = lines2.slice(firstNonEmpty);
-    let lastNonEmpty = -1;
-    for (let i = lines2.length - 1; i >= 0; i--) {
-      if (lines2[i].trim().length > 0) {
-        lastNonEmpty = i;
-        break;
-      }
-    }
-    if (lastNonEmpty > -1) {
-      lines2 = lines2.slice(0, lastNonEmpty + 1);
-    }
-    return lines2;
   }
 
   // ../yaml-schema/format-aliases.ts

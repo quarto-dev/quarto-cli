@@ -1,0 +1,25 @@
+---
+title: "issue-8238"
+listing: 
+  - id: reports
+    contents: "lab-reports"
+    type: table
+    fields: [title, author, reading-time]
+    categories: true
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['div.quarto-listing-category div.category:nth-child(2)[data-category="YWFyZHZhcms="]']
+        - []
+---
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+
+## Reports
+
+:::{#reports}
+:::

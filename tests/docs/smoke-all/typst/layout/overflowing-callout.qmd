@@ -1,0 +1,33 @@
+---
+title: Test
+format: typst
+keep-md: true
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          ['#grid\((\r\n?|\n)columns: \(1fr, 1fr, 1fr, 1fr, 1fr\), gutter: 1em, rows: 1,']
+---
+
+::: {.callout-note}
+
+## Plots
+
+::: {layout-ncol=5}
+
+![]({{< placeholder format=svg >}})
+
+![]({{< placeholder format=svg >}})
+
+![]({{< placeholder format=svg >}})
+
+![]({{< placeholder format=svg >}})
+
+![]({{< placeholder format=svg >}})
+:::
+
+a)  Beschreiben Sie die 5 Verteilungsformen. [5 Punkte]
+
+:::

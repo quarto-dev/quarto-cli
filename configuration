@@ -7,14 +7,17 @@
 # but it also used when packaging (e.g. run configure.sh, then prepare-dist.sh, then package.sh)
 # deno_dom should match release at https://github.com/b-fuze/deno-dom/releases
 
+# NB: When these are updated, you must also update the versions
+# in src/command/check/check.ts
+
 # Binary dependencies
 export DENO=v1.46.3
 # TODO figure out where 0.1.41 apple silicon libs are available
 export DENO_DOM=v0.1.41-alpha-artifacts
-export PANDOC=3.4
-export DARTSASS=1.70.0
+export PANDOC=3.6.3
+export DARTSASS=1.85.1
 export ESBUILD=0.19.12
-export TYPST=0.11.0
+export TYPST=0.13.0
 
 
 # NB: we can't put comments in the same line as export statements because it
@@ -37,9 +40,10 @@ export TIPPY_JS=6.3.7
 export PDF_JS=2.8.335
 export REVEAL_JS=5.1.0
 export REVEAL_JS_MENU=2.1.0
-# unrelease version needed for a fix with Reveal.js 5
+# unrelease version needed for fixes with Reveal.js 5
 # https://github.com/rajgoel/reveal.js-plugins/pull/180
-export REVEAL_JS_CHALKBOARD=8408d5a265abf74a042122520bbb4fd0d31feaed
+# https://github.com/rajgoel/reveal.js-plugins/pull/184
+export REVEAL_JS_CHALKBOARD=217142176341e24628db2908cae38221ef13d639
 export REVEAL_JS_PDFEXPORT=2.0.1
 export LIST_JS=2.3.1
 export DAY_JS=1.11.7
@@ -57,7 +61,7 @@ export ALGOLIA_SEARCH_INSIGHTS_JS=2.0.3
 
 
 # Quarto Info Version
-export QUARTO_VERSION=1.7
+export QUARTO_VERSION=1.8
 export QUARTO_NAME=Quarto
 
 # Folder names. These are not the same as paths (those variable names end in _PATH).

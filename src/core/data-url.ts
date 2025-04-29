@@ -1,4 +1,4 @@
-import { encode as base64Encode } from "encoding/base64";
+import { encodeBase64 as base64Encode } from "encoding/base64";
 
 export function asDataUrl(
   content: string | ArrayBuffer,

@@ -1707,31 +1707,30 @@ local function resolveServiceWorkers(serviceworkers)
    end
 end
 
+-- Lua Patterns for LaTeX Table Environment
 
-local latexTableWithOptionsPattern_table = { "\\begin{table}%[[^%]]+%]", ".*", "\\end{table}" }
+--    1. \begin{table}[h] ... \end{table}
+local latexTablePatternWithPos_table = { "\\begin{table}%[[^%]]+%]", ".*", "\\end{table}" }
 local latexTablePattern_table = { "\\begin{table}", ".*", "\\end{table}" }
+
+--    2. \begin{longtable}[c*]{l|r|r} 
+--       FIXME: These two patterns with longtable align options do no account for newlines in options,
+--       however pandoc will break align options over lines. This leads to specific treatment needed
+--       as latexLongtablePattern_table will be the pattern, matching options in content.
+--       see split_longtable_start() usage in src\resources\filters\customnodes\floatreftarget.lua
 local latexLongtablePatternWithPosAndAlign_table = { "\\begin{longtable}%[[^%]]+%]{[^\n]*}", ".*", "\\end{longtable}" }
-local latexLongtablePatternWithPos_table = { "\\begin{longtable}%[[^%]]+%]", ".*", "\\end{longtable}" }
 local latexLongtablePatternWithAlign_table = { "\\begin{longtable}{[^\n]*}", ".*", "\\end{longtable}" }
+local latexLongtablePatternWithPos_table = { "\\begin{longtable}%[[^%]]+%]", ".*", "\\end{longtable}" }
 local latexLongtablePattern_table = { "\\begin{longtable}", ".*", "\\end{longtable}" }
+
+--    3. \begin{tabular}[c]{l|r|r}
 local latexTabularPatternWithPosAndAlign_table = { "\\begin{tabular}%[[^%]]+%]{[^\n]*}", ".*", "\\end{tabular}" }
 local latexTabularPatternWithPos_table = { "\\begin{tabular}%[[^%]]+%]", ".*", "\\end{tabular}" }
 local latexTabularPatternWithAlign_table = { "\\begin{tabular}{[^\n]*}", ".*", "\\end{tabular}" }
 local latexTabularPattern_table = { "\\begin{tabular}", ".*", "\\end{tabular}" }
-local latexCaptionPattern_table = { "\\caption{", ".-", "}[^\n]*\n" }
 
-local latexTablePatterns = pandoc.List({
-  latexTableWithOptionsPattern_table,
-  latexTablePattern_table,
-  latexLongtablePatternWithPosAndAlign_table,
-  latexLongtablePatternWithPos_table,
-  latexLongtablePatternWithAlign_table,
-  latexLongtablePattern_table,
-  latexTabularPatternWithPosAndAlign_table,
-  latexTabularPatternWithPos_table,
-  latexTabularPatternWithAlign_table,
-  latexTabularPattern_table,
-})
+-- Lua Pattern for Caption environment
+local latexCaptionPattern_table = { "\\caption{", ".-", "}[^\n]*\n" }
 
 -- global quarto params
 local paramsJson = base64.decode(os.getenv("QUARTO_FILTER_PARAMS"))
@@ -1875,13 +1874,44 @@ local function file_exists(name)
 _quarto = {   
    processDependencies = processDependencies,
    format = format,
+   -- Each list in patterns below contains Lua pattern as table,
+   -- where elements are ordered from more specific match to more generic one.
+   -- They are meant to be used with _quarto.modules.patterns.match_in_list_of_patterns()
    patterns = {
-      latexTabularPattern = latexTabularPattern_table,
-      latexTablePattern = latexTablePattern_table,
-      latexLongtablePattern = latexLongtablePattern_table,
-      latexTablePatterns = latexTablePatterns,
-      latexCaptionPattern = latexCaptionPattern_table
+      latexTableEnvPatterns = pandoc.List({
+         latexTablePatternWithPos_table, 
+         latexTablePattern_table
+      }),
+      latexTabularEnvPatterns = pandoc.List({
+         latexTabularPatternWithPosAndAlign_table,
+         latexTabularPatternWithPos_table,
+         latexTabularPatternWithAlign_table,
+         latexTabularPattern_table
+      }),
+      latexLongtableEnvPatterns = pandoc.List({
+         latexLongtablePatternWithPosAndAlign_table,
+         latexLongtablePatternWithPos_table,
+         latexLongtablePatternWithAlign_table,
+         latexLongtablePattern_table
+      }),
+      -- This is all table env patterns
+      latexAllTableEnvPatterns = pandoc.List({
+         latexTablePatternWithPos_table,
+         latexTablePattern_table,
+         latexLongtablePatternWithPosAndAlign_table,
+         latexLongtablePatternWithPos_table,
+         latexLongtablePatternWithAlign_table,
+         latexLongtablePattern_table,
+         latexTabularPatternWithPosAndAlign_table,
+         latexTabularPatternWithPos_table,
+         latexTabularPatternWithAlign_table,
+         latexTabularPattern_table,
+      }),
+      latexCaptionPatterns = pandoc.List({
+         latexCaptionPattern_table
+      })
    },
+   traverser = utils.walk,
    utils = utils,
    withScriptFile = function(file, callback)
       table.insert(scriptFile, file)
@@ -2052,7 +2082,7 @@ quarto = {
     is_format = format.isFormat,
 
     cite_method = function() 
-      local citeMethod = param('cite-method', 'citeproc')
+      local citeMethod = param('cite-method', nil)
       return citeMethod
     end,
     pdf_engine = function() 
@@ -2093,9 +2123,12 @@ quarto = {
     add_to_blocks = utils.add_to_blocks,
   },
   paths = {
+     -- matches the path from `quartoEnvironmentParams` from src/command/render/filters.ts
     rscript = function()
-      -- matches the path from `quartoEnvironmentParams` from src/command/render/filters.ts
       return param('quarto-environment', nil).paths.Rscript
+    end,
+    tinytex_bin_dir = function()
+      return param('quarto-environment', nil).paths.TinyTexBinDir
     end,
   },
   json = json,
@@ -2106,7 +2139,38 @@ quarto = {
   config = {
     cli_path = function() return param('quarto-cli-path', nil) end,
     version = function() return version() end
-  }
+  },
+  shortcode = {
+      read_arg = function (args, n)
+         local arg = args[n or 1]
+         local varName
+         if arg == nil then
+            return nil
+         end
+         if type(arg) ~= "string" then
+            varName = inlinesToString(arg)
+         else
+            varName = arg --[[@as string]]
+         end
+         return varName
+      end,
+      error_output = function (shortcode, message_or_args, context)
+         if type(message_or_args) == "table" then
+            message_or_args = table.concat(message_or_args, " ")
+         end
+         local message = "?" .. shortcode .. ":" .. message_or_args
+         if context == "block" then
+            return pandoc.Blocks { pandoc.Strong( pandoc.Inlines { pandoc.Str(message) } ) }
+          elseif context == "inline" then
+            return pandoc.Inlines { pandoc.Strong( pandoc.Inlines { pandoc.Str(message) } ) }
+          elseif context == "text" then
+            return message
+          else
+            warn("Unknown context for " .. shortcode .. " shortcode error: " .. context)
+            return { }
+          end
+      end,
+  },
 }
 
 -- alias old names for backwards compatibility

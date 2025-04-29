@@ -1,0 +1,17 @@
+---
+title: "Untitled"
+format:
+  typst:
+    keep-typ: true
+brand:
+  logo:
+    medium: https://quarto.org/quarto.png
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+      -
+        - '#set page\(background: align\(left\+top, box\(inset: 0.75in, image\("online-logo_files(/|\\)mediabag(/|\\)quarto.png", width: 1.5in\)\)\)\)'
+      - []
+---
+

@@ -3,6 +3,7 @@ import { join } from "../deno_ral/path.ts";
 import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { readYamlFromMarkdown } from "../core/yaml.ts";
+import { asMappedString } from "../core/lib/mapped-text.ts";
 import { ProjectContext } from "../project/types.ts";
 import {
   DependenciesOptions,
@@ -34,7 +35,7 @@ import {
 } from "../config/format.ts";
 import { resourcePath } from "../core/resources.ts";
 import { quartoRuntimeDir } from "../core/appdirs.ts";
-import { normalizePath } from "../core/path.ts";
+import { normalizePath, pathWithForwardSlashes } from "../core/path.ts";
 import { isInteractiveSession } from "../core/platform.ts";
 import { runningInCI } from "../core/ci-info.ts";
 import { sleep } from "../core/async.ts";
@@ -46,11 +47,18 @@ import {
   executeResultIncludes,
 } from "./jupyter/jupyter.ts";
 import { isWindows } from "../deno_ral/platform.ts";
+import { Command } from "cliffy/command/mod.ts";
+import {
+  isJupyterPercentScript,
+  markdownFromJupyterPercentScript,
+} from "./jupyter/percent.ts";
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
-  julia_cmd: string;
   oneShot: boolean; // if true, the file's worker process is closed before and after running
-  supervisor_pid?: number;
+}
+
+function isJuliaPercentScript(file: string) {
+  return isJupyterPercentScript(file, [".jl"]);
 }
 
 export const juliaEngine: ExecutionEngine = {
@@ -68,12 +76,12 @@ export const juliaEngine: ExecutionEngine = {
 
   validExtensions: () => [],
 
-  claimsFile: (file: string, ext: string) => false,
+  claimsFile: (file: string, _ext: string) => {
+    return isJuliaPercentScript(file);
+  },
 
   claimsLanguage: (language: string) => {
-    // we don't claim `julia` so the old behavior of using the jupyter
-    // backend by default stays intact
-    return false; // language.toLowerCase() === "julia";
+    return language.toLowerCase() === "julia";
   },
 
   partitionedMarkdown: async (file: string) => {
@@ -109,7 +117,13 @@ export const juliaEngine: ExecutionEngine = {
   },
 
   markdownForFile(file: string): Promise<MappedString> {
-    return Promise.resolve(mappedStringFromFile(file));
+    if (isJuliaPercentScript(file)) {
+      return Promise.resolve(
+        asMappedString(markdownFromJupyterPercentScript(file)),
+      );
+    } else {
+      return Promise.resolve(mappedStringFromFile(file));
+    }
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
@@ -131,9 +145,7 @@ export const juliaEngine: ExecutionEngine = {
     };
 
     const juliaExecOptions: JuliaExecuteOptions = {
-      julia_cmd: Deno.env.get("QUARTO_JULIA") ?? "julia",
       oneShot: !executeDaemon,
-      supervisor_pid: options.previewServer ? Deno.pid : undefined,
       ...execOptions,
     };
 
@@ -246,7 +258,19 @@ export const juliaEngine: ExecutionEngine = {
     };
     return Promise.resolve(target);
   },
+
+  populateCommand: populateJuliaEngineCommand,
 };
+
+function juliaCmd() {
+  return Deno.env.get("QUARTO_JULIA") ?? "julia";
+}
+
+function powershell_argument_list_to_string(...args: string[]): string {
+  // formats as '"arg 1" "arg 2" "arg 3"'
+  const inner = args.map((arg) => `"${arg}"`).join(" ");
+  return `'${inner}'`;
+}
 
 async function startOrReuseJuliaServer(
   options: JuliaExecuteOptions,
@@ -265,11 +289,12 @@ async function startOrReuseJuliaServer(
       await ensureQuartoNotebookRunnerEnvironment(options);
       juliaProject = juliaRuntimeDir();
     } else {
+      juliaProject = pathWithForwardSlashes(juliaProject);
       trace(
         options,
         `Custom julia project set via QUARTO_JULIA_PROJECT="${juliaProject}". Checking if QuartoNotebookRunner can be loaded.`,
       );
-      const qnrTestCommand = new Deno.Command(options.julia_cmd, {
+      const qnrTestCommand = new Deno.Command(juliaCmd(), {
         args: [
           "--startup-file=no",
           `--project=${juliaProject}`,
@@ -308,17 +333,15 @@ async function startOrReuseJuliaServer(
           args: [
             "-Command",
             "Start-Process",
-            options.julia_cmd,
+            juliaCmd(),
             "-ArgumentList",
-            // string array argument list, each element but the last must have a "," element after
-            "--startup-file=no",
-            ",",
-            `--project=${juliaProject}`,
-            ",",
-            resourcePath("julia/quartonotebookrunner.jl"),
-            ",",
-            transportFile,
-            // end of string array
+            powershell_argument_list_to_string(
+              "--startup-file=no",
+              `--project=${juliaProject}`,
+              resourcePath("julia/quartonotebookrunner.jl"),
+              transportFile,
+              juliaServerLogFile(),
+            ),
             "-WindowStyle",
             "Hidden",
           ],
@@ -336,14 +359,15 @@ async function startOrReuseJuliaServer(
         throw new Error(new TextDecoder().decode(result.stderr));
       }
     } else {
-      const command = new Deno.Command(options.julia_cmd, {
+      const command = new Deno.Command(juliaCmd(), {
         args: [
           "--startup-file=no",
           resourcePath("julia/start_quartonotebookrunner_detached.jl"),
-          options.julia_cmd,
+          juliaCmd(),
           juliaProject,
           resourcePath("julia/quartonotebookrunner.jl"),
           transportFile,
+          juliaServerLogFile(),
         ],
         env: {
           "JULIA_LOAD_PATH": "@:@stdlib", // ignore the main env
@@ -374,7 +398,7 @@ async function ensureQuartoNotebookRunnerEnvironment(
   const projectTomlTemplate = juliaResourcePath("Project.toml");
   const projectToml = join(juliaRuntimeDir(), "Project.toml");
   Deno.copyFileSync(projectTomlTemplate, projectToml);
-  const command = new Deno.Command(options.julia_cmd, {
+  const command = new Deno.Command(juliaCmd(), {
     args: [
       "--startup-file=no",
       `--project=${juliaRuntimeDir()}`,
@@ -397,6 +421,9 @@ interface JuliaTransportFile {
   port: number;
   pid: number;
   key: string;
+  juliaVersion: string;
+  environment: string;
+  runnerVersion: string;
 }
 
 async function pollTransportFile(
@@ -404,11 +431,11 @@ async function pollTransportFile(
 ): Promise<JuliaTransportFile> {
   const transportFile = juliaTransportFile();
 
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 15; i++) {
     if (existsSync(transportFile)) {
-      const content = Deno.readTextFileSync(transportFile);
+      const transportOptions = readTransportFile(transportFile);
       trace(options, "Transport file read successfully.");
-      return JSON.parse(content) as JuliaTransportFile;
+      return transportOptions;
     }
     trace(options, "Transport file did not exist, yet.");
     await sleep(i * 100);
@@ -416,11 +443,75 @@ async function pollTransportFile(
   return Promise.reject();
 }
 
+function readTransportFile(transportFile: string): JuliaTransportFile {
+  // As we know the json file ends with \n but we might accidentally read
+  // it too quickly once it exists, for example when not the whole string
+  // has been written to it, yet, we just repeat reading until the string
+  // ends in a newline. The overhead doesn't matter as the file is so small.
+  let content = Deno.readTextFileSync(transportFile);
+  let i = 0;
+  while (i < 20 && !content.endsWith("\n")) {
+    sleep(100);
+    content = Deno.readTextFileSync(transportFile);
+    i += 1;
+  }
+  if (!content.endsWith("\n")) {
+    throw ("Read invalid transport file that did not end with a newline");
+  }
+  return JSON.parse(content) as JuliaTransportFile;
+}
+
+async function getReadyServerConnection(
+  transportOptions: JuliaTransportFile,
+  executeOptions: JuliaExecuteOptions,
+) {
+  const conn = await Deno.connect({
+    port: transportOptions.port,
+  });
+  const isready = writeJuliaCommand(
+    conn,
+    { type: "isready", content: {} },
+    transportOptions.key,
+    executeOptions,
+  );
+  const timeoutMilliseconds = 10000;
+  const timeout = new Promise((accept, _) =>
+    setTimeout(() => {
+      accept(
+        `Timed out after getting no response for ${timeoutMilliseconds} milliseconds.`,
+      );
+    }, timeoutMilliseconds)
+  );
+  const result = await Promise.race([isready, timeout]);
+  if (typeof result === "string") {
+    return result;
+  } else if (result !== true) {
+    conn.close();
+    return `Expected isready command to return true, returned ${isready} instead. Closing connection.`;
+  } else {
+    return conn;
+  }
+}
+
 async function getJuliaServerConnection(
   options: JuliaExecuteOptions,
 ): Promise<Deno.TcpConn> {
   const { reused } = await startOrReuseJuliaServer(options);
-  const transportOptions = await pollTransportFile(options);
+
+  let transportOptions: JuliaTransportFile;
+  try {
+    transportOptions = await pollTransportFile(options);
+  } catch (err) {
+    if (!reused) {
+      info(
+        "No transport file was found after the timeout. This is the log from the server process:",
+      );
+      info("#### BEGIN LOG ####");
+      printJuliaServerLog();
+      info("#### END LOG ####");
+    }
+    throw err;
+  }
 
   if (!reused) {
     info("Julia server process started.");
@@ -432,35 +523,13 @@ async function getJuliaServerConnection(
   );
 
   try {
-    const conn = await Deno.connect({
-      port: transportOptions.port,
-    });
-    const isready = writeJuliaCommand(
-      conn,
-      "isready",
-      transportOptions.key,
-      options,
-    ) as Promise<boolean>;
-    const timeoutMilliseconds = 10000;
-    const timeout = new Promise((accept, _) =>
-      setTimeout(() => {
-        accept(
-          `Timed out after getting no response for ${timeoutMilliseconds} milliseconds.`,
-        );
-      }, timeoutMilliseconds)
-    );
-    const result = await Promise.race([isready, timeout]);
-    if (typeof result === "string") {
-      // timed out
-      throw new Error(result);
-    } else if (result !== true) {
-      error(
-        `Expected isready command to return true, returned ${isready} instead. Closing connection.`,
-      );
-      conn.close();
-      return Promise.reject();
+    const conn = await getReadyServerConnection(transportOptions, options);
+    if (typeof conn === "string") {
+      // timed out or otherwise not ready
+      throw new Error(conn);
+    } else {
+      return conn;
     }
-    return conn;
   } catch (e) {
     if (reused) {
       trace(
@@ -514,20 +583,26 @@ async function executeJulia(
 ): Promise<JupyterNotebook> {
   const conn = await getJuliaServerConnection(options);
   const transportOptions = await pollTransportFile(options);
+  const file = options.target.input;
   if (options.oneShot || options.format.execute[kExecuteDaemonRestart]) {
     const isopen = await writeJuliaCommand(
       conn,
-      "isopen",
+      { type: "isopen", content: { file } },
       transportOptions.key,
       options,
-    ) as boolean;
+    );
     if (isopen) {
-      await writeJuliaCommand(conn, "close", transportOptions.key, options);
+      await writeJuliaCommand(
+        conn,
+        { type: "close", content: { file } },
+        transportOptions.key,
+        options,
+      );
     }
   }
   const response = await writeJuliaCommand(
     conn,
-    "run",
+    { type: "run", content: { file, options } },
     transportOptions.key,
     options,
     (update: ProgressUpdate) => {
@@ -546,14 +621,15 @@ async function executeJulia(
   );
 
   if (options.oneShot) {
-    await writeJuliaCommand(conn, "close", transportOptions.key, options);
+    await writeJuliaCommand(
+      conn,
+      { type: "close", content: { file } },
+      transportOptions.key,
+      options,
+    );
   }
 
-  if (response.error !== undefined) {
-    throw new Error("Running notebook failed:\n" + response.juliaError);
-  }
-
-  return response.notebook as JupyterNotebook;
+  return response.notebook;
 }
 
 interface ProgressUpdate {
@@ -564,26 +640,51 @@ interface ProgressUpdate {
   line: number;
 }
 
-async function writeJuliaCommand(
+type empty = Record<string | number | symbol, never>;
+
+type ServerCommand =
+  | { type: "run"; content: { file: string; options: JuliaExecuteOptions } }
+  | { type: "close"; content: { file: string } }
+  | { type: "forceclose"; content: { file: string } }
+  | { type: "isopen"; content: { file: string } }
+  | { type: "stop"; content: empty }
+  | { type: "isready"; content: empty }
+  | { type: "status"; content: empty };
+
+type ServerCommandResponseMap = {
+  run: { notebook: JupyterNotebook };
+  close: { status: true };
+  forceclose: { status: true };
+  stop: { message: "Server stopped." };
+  isopen: boolean;
+  isready: true;
+  status: string;
+};
+
+type ServerCommandError = {
+  error: string;
+  juliaError?: string;
+};
+
+type ServerCommandResponse<T extends ServerCommand["type"]> =
+  ServerCommandResponseMap[T];
+
+function isProgressUpdate(data: any): data is ProgressUpdate {
+  return data && data.type === "progress_update";
+}
+
+function isServerCommandError(data: any): data is ServerCommandError {
+  return data && typeof (data.error) === "string";
+}
+
+async function writeJuliaCommand<T extends ServerCommand["type"]>(
   conn: Deno.Conn,
-  command: "run" | "close" | "stop" | "isready" | "isopen",
+  command: Extract<ServerCommand, { type: T }>,
   secret: string,
   options: JuliaExecuteOptions,
   onProgressUpdate?: (update: ProgressUpdate) => void,
-) {
-  // send the options along with the "run" command
-  const content = command === "run"
-    ? { file: options.target.input, options }
-    : command === "stop" || command === "isready"
-    ? {}
-    : options.target.input;
-
-  const commandData = {
-    type: command,
-    content,
-  };
-
-  const payload = JSON.stringify(commandData);
+): Promise<ServerCommandResponse<T>> {
+  const payload = JSON.stringify(command);
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
@@ -591,9 +692,7 @@ async function writeJuliaCommand(
     true,
     ["sign"],
   );
-  const canonicalRequestBytes = new TextEncoder().encode(
-    JSON.stringify(commandData),
-  );
+  const canonicalRequestBytes = new TextEncoder().encode(payload);
   const signatureArrayBuffer = await crypto.subtle.sign(
     "HMAC",
     key,
@@ -606,7 +705,7 @@ async function writeJuliaCommand(
 
   const messageBytes = new TextEncoder().encode(message);
 
-  trace(options, `write command "${command}" to socket server`);
+  trace(options, `write command "${command.type}" to socket server`);
   const bytesWritten = await conn.write(messageBytes);
   if (bytesWritten !== messageBytes.length) {
     throw new Error("Internal Error");
@@ -676,28 +775,40 @@ async function writeJuliaCommand(
     // one command should be sent, ended by a newline, currently just throwing away anything else because we don't
     // expect multiple commmands at once
     const json = response.split("\n")[0];
-    const data = JSON.parse(json);
+    const responseData = JSON.parse(json);
 
-    if (data.type === "progress_update") {
-      trace(
-        options,
-        "received progress update response, listening for further responses",
-      );
-      if (onProgressUpdate !== undefined) {
-        onProgressUpdate(data as ProgressUpdate);
+    if (isServerCommandError(responseData)) {
+      const data = responseData;
+      let errorMessage =
+        `Julia server returned error after receiving "${command.type}" command:\n\n${data.error}`;
+
+      if (data.juliaError) {
+        errorMessage +=
+          `\n\nThe underlying Julia error was:\n\n${data.juliaError}`;
       }
-      continue; // wait for the next message
+
+      throw new Error(errorMessage);
     }
 
-    const err = data.error;
-    if (err !== undefined) {
-      const juliaError = data.juliaError ?? "No julia error message available.";
-      error(
-        `Julia server returned error after receiving "${command}" command:\n` +
-          err,
-      );
-      error(juliaError);
-      throw new Error("Internal julia server error");
+    let data: ServerCommandResponse<T>;
+    if (command.type === "run") {
+      const data_or_update: ServerCommandResponse<T> | ProgressUpdate =
+        responseData;
+      if (isProgressUpdate(data_or_update)) {
+        const update = data_or_update;
+        trace(
+          options,
+          "received progress update response, listening for further responses",
+        );
+        if (onProgressUpdate !== undefined) {
+          onProgressUpdate(update);
+        }
+        continue; // wait for the next message
+      } else {
+        data = data_or_update;
+      }
+    } else {
+      data = responseData;
     }
 
     return data;
@@ -722,12 +833,155 @@ function juliaRuntimeDir(): string {
   }
 }
 
-function juliaTransportFile() {
+export function juliaTransportFile() {
   return join(juliaRuntimeDir(), "julia_transport.txt");
 }
 
+export function juliaServerLogFile() {
+  return join(juliaRuntimeDir(), "julia_server_log.txt");
+}
+
 function trace(options: ExecuteOptions, msg: string) {
-  if (options.format.execute[kExecuteDebug]) {
+  if (options.format?.execute[kExecuteDebug] === true) {
     info("- " + msg, { bold: true });
   }
+}
+
+function populateJuliaEngineCommand(command: Command) {
+  command
+    .command("status", "Status")
+    .description(
+      "Get status information on the currently running Julia server process.",
+    ).action(logStatus)
+    .command("kill", "Kill server")
+    .description("Kill the control server if it is currently running. This will also kill all notebook worker processes.")
+    .action(killJuliaServer)
+    .command("log", "Print julia server log")
+    .description(
+      "Print the content of the julia server log file if it exists which can be used to diagnose problems.",
+    )
+    .action(printJuliaServerLog)
+    .command(
+      "close",
+      "Close the worker for a given notebook. If it is currently running, it will not be interrupted.",
+    )
+    .arguments("<file:string>")
+    .option(
+      "-f, --force",
+      "Force closing. This will terminate the worker if it is running.",
+      { default: false },
+    )
+    .action(async (options, file) => {
+      await closeWorker(file, options.force);
+    })
+    .command("stop", "Stop the server")
+    .description(
+      "Send a message to the server that it should close all notebooks and exit. This will fail if any notebooks are not idle.",
+    )
+    .action(stopServer);
+  return;
+}
+
+async function logStatus() {
+  const transportFile = juliaTransportFile();
+  if (!existsSync(transportFile)) {
+    info("Julia control server is not running.");
+    return;
+  }
+  const transportOptions = readTransportFile(transportFile);
+
+  const conn = await getReadyServerConnection(
+    transportOptions,
+    {} as JuliaExecuteOptions,
+  );
+  const successfullyConnected = typeof conn !== "string";
+
+  if (successfullyConnected) {
+    const status: string = await writeJuliaCommand(
+      conn,
+      { type: "status", content: {} },
+      transportOptions.key,
+      {} as JuliaExecuteOptions,
+    );
+
+    Deno.stdout.writeSync((new TextEncoder()).encode(status));
+
+    conn.close();
+  } else {
+    info(`Found transport file but can't connect to control server.`);
+  }
+}
+
+function killJuliaServer() {
+  const transportFile = juliaTransportFile();
+  if (!existsSync(transportFile)) {
+    info("Julia control server is not running.");
+    return;
+  }
+  const transportOptions = readTransportFile(transportFile);
+  Deno.kill(transportOptions.pid, "SIGTERM");
+  info("Sent SIGTERM to server process");
+}
+
+function printJuliaServerLog() {
+  if (existsSync(juliaServerLogFile())) {
+    Deno.stdout.writeSync(Deno.readFileSync(juliaServerLogFile()));
+  } else {
+    info("Server log file doesn't exist");
+  }
+  return;
+}
+
+// todo: this could use a refactor with the other functions that make
+// server connections or execute commands, this one is just supposed to
+// simplify the pattern where a running server is expected (there will be an error if there is none)
+// and we want to get the API response out quickly
+async function connectAndWriteJuliaCommandToRunningServer<
+  T extends ServerCommand["type"],
+>(
+  command: Extract<ServerCommand, { type: T }>,
+): Promise<ServerCommandResponse<T>> {
+  const transportFile = juliaTransportFile();
+  if (!existsSync(transportFile)) {
+    throw new Error("Julia control server is not running.");
+  }
+  const transportOptions = readTransportFile(transportFile);
+
+  const conn = await getReadyServerConnection(
+    transportOptions,
+    {} as JuliaExecuteOptions,
+  );
+  const successfullyConnected = typeof conn !== "string";
+
+  if (successfullyConnected) {
+    const result = await writeJuliaCommand(
+      conn,
+      command,
+      transportOptions.key,
+      {} as JuliaExecuteOptions,
+    );
+    conn.close();
+    return result;
+  } else {
+    throw new Error(
+      `Found transport file but can't connect to control server.`,
+    );
+  }
+}
+
+async function closeWorker(file: string, force: boolean) {
+  const absfile = normalizePath(file);
+  await connectAndWriteJuliaCommandToRunningServer({
+    type: force ? "forceclose" : "close",
+    content: { file: absfile },
+  });
+  info(`Worker ${force ? "force-" : ""}closed successfully.`);
+}
+
+async function stopServer() {
+  const result = await connectAndWriteJuliaCommandToRunningServer({
+    type: "stop",
+    content: {},
+  });
+  info(result.message);
 }

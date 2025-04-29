@@ -58,7 +58,7 @@ export function texToPdfOutputRecipe(
 
   const texStem = texSafeFilename(`${inputStem}${fixupInputName}`);
 
-  // cacluate output and args for pandoc (this is an intermediate file
+  // calculate output and args for pandoc (this is an intermediate file
   // which we will then compile to a pdf and rename to .tex)
   const output = texStem + ".tex";
   let args = options.pandocArgs || [];

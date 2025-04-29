@@ -150,8 +150,10 @@ export const jupyterEngine: ExecutionEngine = {
       isJupyterPercentScript(file);
   },
 
-  claimsLanguage: (_language: string) => {
-    return false;
+  claimsLanguage: (language: string) => {
+    // jupyter has to claim julia so that julia may also claim it without changing the old behavior
+    // of preferring jupyter over julia engine by default
+    return language.toLowerCase() === "julia";
   },
 
   markdownForFile(file: string): Promise<MappedString> {
@@ -179,7 +181,20 @@ export const jupyterEngine: ExecutionEngine = {
     let nb: JupyterNotebook | undefined;
     if (isJupyterNotebook(file)) {
       const nbJSON = Deno.readTextFileSync(file);
-      nb = JSON.parse(nbJSON) as JupyterNotebook;
+      const nbRaw = JSON.parse(nbJSON);
+
+      // https://github.com/quarto-dev/quarto-cli/issues/12374
+      // kernelspecs are not guaranteed to have a language field
+      // so we need to check for it and if not present
+      // use the language_info.name field
+      if (
+        nbRaw.metadata.kernelspec &&
+        nbRaw.metadata.kernelspec.language === undefined &&
+        nbRaw.metadata.language_info?.name
+      ) {
+        nbRaw.metadata.kernelspec.language = nbRaw.metadata.language_info.name;
+      }
+      nb = nbRaw as JupyterNotebook;
     }
 
     // cache check for percent script
@@ -243,7 +258,15 @@ export const jupyterEngine: ExecutionEngine = {
       isServerShinyPython(format, kJupyterEngine) &&
       format.render[kKeepHidden] !== true
     ) {
-      format = ld.cloneDeep(format);
+      format = {
+        ...format,
+        render: {
+          ...format.render,
+        },
+        metadata: {
+          ...format.metadata,
+        },
+      };
       format.render[kKeepHidden] = true;
       format.metadata[kRemoveHidden] = "all";
     }
@@ -507,8 +530,7 @@ export const jupyterEngine: ExecutionEngine = {
     ];
     if (options.reload) {
       cmd.push("--reload");
-      cmd.push(`--reload-includes`);
-      cmd.push(`*.py`);
+      cmd.push(`--reload-includes=*.py`);
     }
 
     // start server

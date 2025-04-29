@@ -1,8 +1,8 @@
 diff --git a/src/resources/formats/revealjs/themes/dracula.scss b/src/resources/formats/revealjs/themes/dracula.scss
-index 5330fbc1b..45498dd41 100644
+index 5330fbc1b..fe068d9a8 100644
 --- a/src/resources/formats/revealjs/themes/dracula.scss
 +++ b/src/resources/formats/revealjs/themes/dracula.scss
-@@ -1,106 +1,88 @@
+@@ -1,106 +1,90 @@
  /**
   * Dracula Dark theme for reveal.js.
   * Based on https://draculatheme.com
@@ -151,7 +151,9 @@ index 5330fbc1b..45498dd41 100644
 -	}
 +  strong,
 +  b {
-+    color: var(--r-bold-color);
++    &:not(.callout-title strong, .callout-tile b) {
++      color: var(--r-bold-color);
++    }
 +  }
 +  em,
 +  i,

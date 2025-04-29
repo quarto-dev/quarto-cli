@@ -174,6 +174,8 @@ import {
   jupyterCellSrcAsLines,
   jupyterCellSrcAsStr,
 } from "./jupyter-shared.ts";
+import { error } from "../../deno_ral/log.ts";
+import { valid } from "semver/mod.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -921,8 +923,44 @@ export function jupyterCellWithOptions(
     }
   };
 
+  const validMetadata: Record<
+    string,
+    string | number | boolean | null | Array<unknown>
+  > = {};
+  for (const key of Object.keys(cell.metadata)) {
+    const value = cell.metadata[key];
+    let jsonEncodedKeyIndex = 0;
+    if (value !== undefined) {
+      if (!value && typeof value === "object") {
+        validMetadata[key] = null;
+      } else if (value && typeof value === "object" && !Array.isArray(value)) {
+        // https://github.com/quarto-dev/quarto-cli/issues/9089
+        // we need to json-encode this and signal the encoding in the key
+        // we can't use the key as is since it may contain invalid characters
+        // and modifying the key might introduce collisions
+        // we ensure the key is unique with a counter, and assume
+        // "quarto-private-*" to be a private namespace for quarto.
+        // we'd prefer to use _quarto-* instead, but Pandoc doesn't allow keys to start
+        // with an underscore.
+        validMetadata[
+          `quarto-private-${++jsonEncodedKeyIndex}`
+        ] = JSON.stringify({ key, value });
+      } else if (
+        typeof value === "string" || typeof value === "number" ||
+        typeof value === "boolean" || Array.isArray(value)
+      ) {
+        validMetadata[key] = value;
+      } else {
+        error(
+          `Invalid metadata type for key ${key}: ${typeof value}. Entry will not be serialized.`,
+        );
+      }
+    }
+  }
+
   return {
     ...cell,
+    metadata: validMetadata,
     id: cellId(cell),
     source,
     optionsSource,
@@ -963,7 +1001,9 @@ export function mdFromContentCell(
   const contentCellEnvelope = createCellEnvelope(["cell", "markdown"], options);
 
   // clone source for manipulation
-  const source = ld.cloneDeep(cell.source) as string[];
+  const source = typeof cell.source === "string"
+    ? [cell.source]
+    : [...cell.source];
 
   // handle user expressions (if any)
   if (options && source) {
@@ -1461,7 +1501,9 @@ async function mdFromCodeCell(
       }
     }
     md.push("}\n");
-    let source = ld.cloneDeep(cell.source);
+    let source = typeof cell.source === "string"
+      ? [cell.source]
+      : [...cell.source];
     if (fenced) {
       const optionsSource = cell.optionsSource.filter((line) =>
         line.search(/\|\s+echo:\s+fenced\s*$/) === -1
@@ -1625,7 +1667,7 @@ async function mdFromCodeCell(
           }
           md.push(text.join(""));
         } else {
-          md.push(mdOutputStream(stream));
+          md.push(await mdOutputStream(stream, options));
         }
       } else if (output.output_type === "error") {
         md.push(await mdOutputError(output as JupyterOutputError, options));
@@ -1762,7 +1804,10 @@ function isMarkdown(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsMarkdown);
 }
 
-function mdOutputStream(output: JupyterOutputStream) {
+async function mdOutputStream(
+  output: JupyterOutputStream,
+  options: JupyterToMarkdownOptions,
+) {
   let text: string[] = [];
   if (typeof output.text === "string") {
     text = [output.text];
@@ -1777,14 +1822,23 @@ function mdOutputStream(output: JupyterOutputStream) {
         /<ipython-input.*?>:\d+:\s+/,
         "",
       );
-      return mdCodeOutput(
-        [firstLine, ...text.slice(1)].map(colors.stripColor),
-      );
+      text = [firstLine, ...text.slice(1)];
     }
   }
 
-  // normal default handling
-  return mdCodeOutput(text.map(colors.stripColor));
+  if (options.toHtml && text.some(hasAnsiEscapeCodes)) {
+    const linesHTML = await convertToHtmlSpans(text.join("\n"));
+    return mdMarkdownOutput(
+      [
+        "\n::: {.ansi-escaped-output}\n```{=html}\n<pre>",
+        linesHTML,
+        "</pre>\n```\n:::\n",
+      ],
+    );
+  } else {
+    // normal default behavior
+    return mdCodeOutput(text.map(colors.stripColor));
+  }
 }
 
 async function mdOutputError(
@@ -1860,8 +1914,11 @@ async function mdOutputDisplayData(
       // if output is invalid, warn and emit empty
       const data = output.data[mimeType] as unknown;
       if (!Array.isArray(data) || data.some((s) => typeof s !== "string")) {
-        return mdWarningOutput(`Unable to process text plain output data 
-which does not appear to be plain text: ${JSON.stringify(data)}`);
+        return await mdWarningOutput(
+          `Unable to process text plain output data 
+which does not appear to be plain text: ${JSON.stringify(data)}`,
+          options,
+        );
       }
       const lines = data as string[];
       // pandas inexplicably outputs html tables as text/plain with an enclosing single-quote
@@ -1896,9 +1953,10 @@ which does not appear to be plain text: ${JSON.stringify(data)}`);
   }
 
   // no type match found
-  return mdWarningOutput(
+  return await mdWarningOutput(
     "Unable to display output for mime type(s): " +
       Object.keys(output.data).join(", "),
+    options,
   );
 }
 
@@ -2057,12 +2115,12 @@ function mdEnclosedOutput(begin: string, text: string[], end: string) {
   return md.join("");
 }
 
-function mdWarningOutput(msg: string) {
-  return mdOutputStream({
+async function mdWarningOutput(msg: string, options: JupyterToMarkdownOptions) {
+  return await mdOutputStream({
     output_type: "stream",
     name: "stderr",
     text: [msg],
-  });
+  }, options);
 }
 
 function isWarningOutput(output: JupyterOutput) {

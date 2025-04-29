@@ -347,6 +347,11 @@ function mergeQuartoConfigs(
 
   // bibliography needs to always be an array so it can be merged
   const fixupMergeableScalars = (metadata: Metadata) => {
+    // see https://github.com/quarto-dev/quarto-cli/pull/12372
+    // and https://github.com/quarto-dev/quarto-cli/pull/12369
+    // for more details on why we need this check, as a consequence of an unintuitive
+    // ordering of YAML validation operations
+    if (metadata === null) return metadata;
     [
       kBibliography,
       kCss,
@@ -603,7 +608,7 @@ async function resolveFormats(
 
     // apply defaults from brand yaml under the metadata of the current format
     const brandFormatDefaults: Metadata =
-      (brand?.data?.defaults?.quarto as unknown as Record<
+      (brand?.light?.data?.defaults?.quarto as unknown as Record<
         string,
         Record<string, Metadata>
       >)?.format
@@ -741,9 +746,6 @@ export async function projectMetadataForInputFile(
   input: string,
   project: ProjectContext,
 ): Promise<Metadata> {
-  // don't mutate caller
-  project = ld.cloneDeep(project) as ProjectContext;
-
   if (project.dir && project.config) {
     // If there is directory and configuration information
     // process paths
@@ -751,10 +753,10 @@ export async function projectMetadataForInputFile(
       projectType(project.config?.project?.[kProjectType]),
       project.dir,
       dirname(input),
-      project.config,
+      ld.cloneDeep(project.config),
     ) as Metadata;
   } else {
     // Just return the config or empty metadata
-    return project.config || {};
+    return ld.cloneDeep(project.config) || {};
   }
 }

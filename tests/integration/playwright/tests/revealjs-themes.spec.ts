@@ -1,5 +1,5 @@
 import { test, expect, Locator } from '@playwright/test';
-import { asRGB, checkColor, checkFontSizeIdentical, checkFontSizeSimilar, getCSSProperty, RGBColor } from '../src/utils';
+import { asRGB, checkColor, checkColorIdentical, checkFontSizeSimilar, getCSSProperty, RGBColor } from '../src/utils';
 
 async function getRevealMainFontSize(page: any): Promise<number> {
   return await getCSSProperty(page.locator('body'), "--r-main-font-size", true) as number;
@@ -71,4 +71,26 @@ test('Callouts can be customized using SCSS variables', async ({ page }) => {
   await checkCustom(page.locator('div.callout-warning'), '10px', asRGB(173, 216, 230));
   await checkCustom(page.locator('div.callout-important'), '10px', asRGB(128, 128, 128));
   await checkCustom(page.locator('div.callout-caution'), '10px', asRGB(0, 128, 0));
+});
+
+test('Callout title color in dracula theme is correctly tweaked to use same as body color', async ({ page }) => {
+  await page.goto('./revealjs/callouts/dracula-theme-tweaks.html#/note');
+  const calloutTitleLoc = page.getByText('Title of the callout', { exact: true });
+  const calloutContentLoc = page.getByText('Content', { exact: true });
+  await checkColorIdentical(calloutTitleLoc, calloutContentLoc, 'color');
+});
+
+test('Headings color in simple and serif theme are correctly defaulting to $body-bg', async ({ page }) => {
+  await page.goto('./revealjs/heading-color/simple.html#/slide-1');
+  await checkColorIdentical(
+    page.getByText('Text for slide 1', { exact: true }), 
+    page.getByRole('heading', { name: 'slide' }), 
+    'color'
+  );
+  await page.goto('./revealjs/heading-color/serif.html#/slide-1');
+  await checkColorIdentical(
+    page.getByText('Text for slide 1', { exact: true }), 
+    page.getByRole('heading', { name: 'slide' }), 
+    'color'
+  );
 });

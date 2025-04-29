@@ -166,10 +166,11 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
 
       for (const headerChildNode of Array.from(cardHeaderEl.childNodes)) {
         if (
-          isText(headerChildNode) ||
-          isEmphasis(headerChildNode) ||
-          isBold(headerChildNode) ||
-          isMath(headerChildNode)
+          (isText(headerChildNode) ||
+            isEmphasis(headerChildNode) ||
+            isBold(headerChildNode) ||
+            isMath(headerChildNode)) &&
+          headerChildNode.textContent.trim() !== ""
         ) {
           looseText.push(headerChildNode);
           headerChildNode.parentNode?.removeChild(headerChildNode);

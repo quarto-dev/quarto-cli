@@ -33,6 +33,7 @@ import { kTextPlain } from "../../core/mime.ts";
 import { normalizePath } from "../../core/path.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
+import { assert } from "testing/asserts";
 
 export async function render(
   path: string,
@@ -95,8 +96,9 @@ export async function render(
   // validate that we didn't get any project-only options
   validateDocumentRenderFlags(options.flags);
 
+  assert(!context, "Expected no context here");
   // NB: singleFileProjectContext is currently not fully-featured
-  context = singleFileProjectContext(path, nbContext, options.flags);
+  context = await singleFileProjectContext(path, nbContext, options.flags);
 
   // otherwise it's just a file render
   const result = await renderFiles(

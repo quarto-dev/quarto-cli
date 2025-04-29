@@ -7,7 +7,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { lineOffsets, lines } from "./text.ts";
+import { lineOffsets } from "./text.ts";
 import { Range, rangedLines, RangedSubstring } from "./ranged-text.ts";
 import {
   asMappedString,

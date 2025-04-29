@@ -13,7 +13,7 @@ function resolveRefs()
       local function add_ref_prefix(ref, ref_type, prefix)
         local category = crossref.categories.by_ref_type[ref_type]
         ref:extend(prefix)
-        if category == nil or category.space_before_numbering ~= false then
+        if (category == nil or category.space_before_numbering ~= false) and not _quarto.format.isTypstOutput() then
           ref:extend({nbspString()})
         end
       end
@@ -82,12 +82,13 @@ function resolveRefs()
               -- so we don't get the fallthrough else clause in latex when custom ref commands
               -- are in play
               if category == nil or category.custom_ref_command == nil then
-                ref:extend({pandoc.RawInline('latex', '\\ref{' .. label .. '}')})
+                ref:extend(pandoc.List({pandoc.RawInline('latex', '\\ref{' .. label .. '}')}))
               end
             elseif _quarto.format.isAsciiDocOutput() then
               ref = pandoc.List({pandoc.RawInline('asciidoc', '<<' .. label .. '>>')})
             elseif _quarto.format.isTypstOutput() then
-              ref = pandoc.List({pandoc.RawInline('typst', '@' .. label)})
+              ref:insert(1, pandoc.RawInline('typst', '#ref(<' .. label .. '>, supplement: ['))
+              ref:insert(pandoc.RawInline('typst', '])'))
             else
               if not resolve then
                 local refClasses = pandoc.List({"quarto-unresolved-ref"})

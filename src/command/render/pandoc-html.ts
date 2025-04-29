@@ -19,7 +19,6 @@ import {
 } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
-import { TempContext } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 import { cleanSourceMappingUrl, compileSass } from "../../core/sass.ts";
 
@@ -53,7 +52,6 @@ export async function resolveSassBundles(
   inputDir: string,
   extras: FormatExtras,
   format: Format,
-  temp: TempContext,
   project: ProjectContext,
 ) {
   extras = cloneDeep(extras);
@@ -89,38 +87,62 @@ export async function resolveSassBundles(
     // the brand bundle itself doesn't have any 'brand' entries;
     // those are used to specify where the brand-specific layers should be inserted
     // in the final bundle.
-    const brandLayersMaybeBrand = bundlesWithBrand.find((bundle) =>
+    const maybeBrandBundle = bundlesWithBrand.find((bundle) =>
       bundle.key === "brand"
-    )?.user || [];
-    assert(!brandLayersMaybeBrand.find((v) => v === "brand"));
-    const brandLayers = brandLayersMaybeBrand as SassLayer[];
-    let foundBrand = false;
+    );
+    assert(
+      !maybeBrandBundle ||
+        !maybeBrandBundle.user?.find((v) => v === "brand") &&
+          !maybeBrandBundle.dark?.user?.find((v) => v === "brand"),
+    );
+    const foundBrand = { light: false, dark: false };
     const bundles: SassBundle[] = bundlesWithBrand.filter((bundle) =>
       bundle.key !== "brand"
     ).map((bundle) => {
       const userBrand = bundle.user?.findIndex((layer) => layer === "brand");
+      let cloned = false;
       if (userBrand && userBrand !== -1) {
         bundle = cloneDeep(bundle);
-        bundle.user!.splice(userBrand, 1, ...brandLayers);
-        foundBrand = true;
+        cloned = true;
+        bundle.user!.splice(userBrand, 1, ...(maybeBrandBundle?.user || []));
+        foundBrand.light = true;
+      }
+      const darkBrand = bundle.dark?.user?.findIndex((layer) =>
+        layer === "brand"
+      );
+      if (darkBrand && darkBrand !== -1) {
+        if (!cloned) {
+          bundle = cloneDeep(bundle);
+        }
+        bundle.dark!.user!.splice(
+          darkBrand,
+          1,
+          ...(maybeBrandBundle?.dark?.user || []),
+        );
+        foundBrand.dark = true;
       }
       return bundle as SassBundle;
     });
-    if (!foundBrand) {
+    if (maybeBrandBundle && (!foundBrand.light || !foundBrand.dark)) {
       bundles.unshift({
         dependency,
         key: "brand",
-        user: brandLayers,
+        user: !foundBrand.light && maybeBrandBundle.user as SassLayer[] || [],
+        dark: !foundBrand.dark && maybeBrandBundle.dark?.user && {
+              user: maybeBrandBundle.dark.user as SassLayer[],
+              default: maybeBrandBundle.dark.default,
+            } || undefined,
       });
     }
 
     // See if any bundles are providing dark specific css
     const hasDark = bundles.some((bundle) => bundle.dark !== undefined);
-    defaultStyle =
-      bundles.some((bundle) => bundle.dark !== undefined && bundle.dark.default)
-        ? "dark"
-        : "light";
-    const targets: SassTarget[] = [{
+    defaultStyle = bundles.some((bundle) =>
+        bundle.dark !== undefined && bundle.dark.default
+      )
+      ? "dark"
+      : "light";
+    let targets: SassTarget[] = [{
       name: `${dependency}.min.css`,
       bundles: (bundles as any),
       attribs: {
@@ -131,7 +153,7 @@ export async function resolveSassBundles(
       // Note that the other bundle provides light
       targets[0].attribs = {
         ...targets[0].attribs,
-        ...attribForThemeStyle("light", defaultStyle),
+        ...attribForThemeStyle("light"),
       };
 
       // Provide a dark bundle for this
@@ -145,25 +167,42 @@ export async function resolveSassBundles(
         bundle.key = bundle.key + "-dark";
         return bundle;
       });
-      targets.push({
+      const darkTarget = {
         name: `${dependency}-dark.min.css`,
         bundles: darkBundles as any,
         attribs: {
           "append-hash": "true",
-          ...attribForThemeStyle("dark", defaultStyle),
+          ...attribForThemeStyle("dark"),
         },
-      });
+      };
+      if (defaultStyle === "dark") { // light, dark
+        targets.push(darkTarget);
+      } else { // light, dark, light
+        const lightTargetExtra = {
+          ...targets[0],
+          attribs: {
+            ...targets[0].attribs,
+            class: "quarto-color-scheme-extra",
+          },
+        };
+
+        targets = [
+          targets[0],
+          darkTarget,
+          lightTargetExtra,
+        ];
+      }
 
       hasDarkStyles = true;
     }
 
     for (const target of targets) {
       let cssPath: string | undefined;
-      cssPath = await compileSass(target.bundles, temp);
+      cssPath = await compileSass(target.bundles, project);
       // First, Clean CSS
       cleanSourceMappingUrl(cssPath);
       // look for a sentinel 'dark' value, extract variables
-      const cssResult = await processCssIntoExtras(cssPath, extras, temp);
+      const cssResult = await processCssIntoExtras(cssPath, extras, project);
       cssPath = cssResult.path;
 
       // it can happen that processing generate an empty css file (e.g quarto-html deps with Quarto CSS variables)
@@ -256,26 +295,48 @@ export async function resolveSassBundles(
     }
   }
 
-  // Resolve generated quarto css variables
+  // light only: light
+  // author prefers dark: light, dark
+  // author prefers light: light, dark, light
   extras = await resolveQuartoSyntaxHighlighting(
     inputDir,
     extras,
     format,
-    temp,
+    project,
     hasDarkStyles ? "light" : "default",
     defaultStyle,
   );
 
   if (hasDarkStyles) {
-    // Provide dark variables for this
+    // find the last entry, for the light highlight stylesheet
+    // so we can duplicate it below.
+    // (note we must do this before adding the dark highlight stylesheet)
+    const lightDep = extras.html?.[kDependencies]?.find((extraDep) =>
+      extraDep.name === kQuartoHtmlDependency
+    );
+    const lightEntry = lightDep?.stylesheets &&
+      lightDep.stylesheets[lightDep.stylesheets.length - 1];
     extras = await resolveQuartoSyntaxHighlighting(
       inputDir,
       extras,
       format,
-      temp,
+      project,
       "dark",
       defaultStyle,
     );
+    if (defaultStyle === "light") {
+      const dep2 = extras.html?.[kDependencies]?.find((extraDep) =>
+        extraDep.name === kQuartoHtmlDependency
+      );
+      assert(dep2?.stylesheets && lightEntry);
+      dep2.stylesheets.push({
+        ...lightEntry,
+        attribs: {
+          ...lightEntry.attribs,
+          class: "quarto-color-scheme-extra",
+        },
+      });
+    }
   }
 
   if (isHtmlOutput(format.pandoc, true)) {
@@ -291,7 +352,7 @@ async function resolveQuartoSyntaxHighlighting(
   inputDir: string,
   extras: FormatExtras,
   format: Format,
-  temp: TempContext,
+  project: ProjectContext,
   style: "dark" | "light" | "default",
   defaultStyle?: "dark" | "light",
 ) {
@@ -304,7 +365,7 @@ async function resolveQuartoSyntaxHighlighting(
   extras = cloneDeep(extras);
 
   // If we're using default highlighting, use theme darkness to select highlight style
-  const mediaAttr = attribForThemeStyle(style, defaultStyle);
+  const mediaAttr = attribForThemeStyle(style);
   if (style === "default") {
     if (extras.html?.[kTextHighlightingMode] === "dark") {
       style = "dark";
@@ -381,7 +442,7 @@ async function resolveQuartoSyntaxHighlighting(
             rules: rules.join("\n"),
           },
         }],
-        temp,
+        project,
         false,
       );
 
@@ -459,7 +520,26 @@ function generateThemeCssClasses(
     Record<string, unknown>
   >;
   if (textStyles) {
-    const lines: string[] = [];
+    const otherLines: string[] = [];
+    otherLines.push("/* syntax highlight based on Pandoc's rules */");
+    const tokenCssByAbbr: Record<string, string[]> = {};
+
+    const toCSS = function (
+      abbr: string,
+      styleName: string,
+      cssValues: string[],
+    ) {
+      const lines: string[] = [];
+      lines.push(`/* ${styleName} */`);
+      lines.push(`\ncode span${abbr !== "" ? `.${abbr}` : ""} {`);
+      cssValues.forEach((value) => {
+        lines.push(`  ${value}`);
+      });
+      lines.push("}\n");
+
+      // Store by abbreviation for sorting later
+      tokenCssByAbbr[abbr] = lines;
+    };
 
     Object.keys(textStyles).forEach((styleName) => {
       const abbr = kAbbrevs[styleName];
@@ -467,26 +547,40 @@ function generateThemeCssClasses(
         const textValues = textStyles[styleName];
         const cssValues = generateCssKeyValues(textValues);
 
-        if (abbr !== "") {
-          lines.push(`\ncode span.${abbr} {`);
-          lines.push(...cssValues);
-          lines.push("}\n");
-        } else {
+        toCSS(abbr, styleName, cssValues);
+
+        if (abbr == "") {
           [
             "pre > code.sourceCode > span",
-            "code span",
             "code.sourceCode > span",
             "div.sourceCode,\ndiv.sourceCode pre.sourceCode",
           ]
             .forEach((selector) => {
-              lines.push(`\n${selector} {`);
-              lines.push(...cssValues);
-              lines.push("}\n");
+              otherLines.push(`\n${selector} {`);
+              otherLines.push(...cssValues);
+              otherLines.push("}\n");
             });
         }
       }
     });
-    return lines;
+
+    // Sort tokenCssLines by abbr and flatten them
+    // Ensure empty abbr ("") comes first by using a custom sort function
+    const sortedTokenCssLines: string[] = [];
+    Object.keys(tokenCssByAbbr)
+      .sort((a, b) => {
+        // Empty string ("") should come first
+        if (a === "") return -1;
+        if (b === "") return 1;
+        // Otherwise normal alphabetical sort
+        return a.localeCompare(b);
+      })
+      .forEach((abbr) => {
+        sortedTokenCssLines.push(...tokenCssByAbbr[abbr]);
+      });
+
+    // return otherLines followed by tokenCssLines (now sorted by abbr)
+    return otherLines.concat(sortedTokenCssLines);
   }
   return undefined;
 }
@@ -500,8 +594,9 @@ interface CSSResult {
 async function processCssIntoExtras(
   cssPath: string,
   extras: FormatExtras,
-  temp: TempContext,
+  project: ProjectContext,
 ): Promise<CSSResult> {
+  const { temp } = project;
   extras.html = extras.html || {};
 
   const css = Deno.readTextFileSync(cssPath);
@@ -559,28 +654,23 @@ const kVariablesRegex =
   /\/\*\! quarto-variables-start \*\/([\S\s]*)\/\*\! quarto-variables-end \*\//g;
 
 // Attributes for the style tag
-// Note that we default disable the dark mode and rely on JS to enable it
 function attribForThemeStyle(
   style: "dark" | "light" | "default",
-  defaultStyle?: "dark" | "light",
 ): Record<string, string> {
-  const colorModeAttrs = (mode: string, disabled: boolean) => {
+  const colorModeAttrs = (mode: string) => {
     const attr: Record<string, string> = {
       class: `quarto-color-scheme${
         mode === "dark" ? " quarto-color-alternate" : ""
       }`,
     };
-    if (disabled) {
-      attr.rel = "prefetch";
-    }
     return attr;
   };
 
   switch (style) {
     case "dark":
-      return colorModeAttrs("dark", defaultStyle !== "dark");
+      return colorModeAttrs("dark");
     case "light":
-      return colorModeAttrs("light", false);
+      return colorModeAttrs("light");
     case "default":
     default:
       return {};

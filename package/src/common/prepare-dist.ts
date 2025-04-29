@@ -12,7 +12,7 @@ import { Configuration } from "../common/config.ts";
 import { buildFilter } from "./package-filters.ts";
 import { bundle } from "../util/deno.ts";
 import { info } from "../../../src/deno_ral/log.ts";
-import { buildAssets } from "../../../src/command/build-js/cmd.ts";
+import { buildAssets } from "../../../src/command/dev-call/build-artifacts/cmd.ts";
 import { initTreeSitter } from "../../../src/core/schema/deno-init-tree-sitter.ts";
 import {
 Dependency,
@@ -238,6 +238,7 @@ function inlineFilters(config: Configuration) {
     { name: "crossref" },
     { name: "customwriter" },
     { name: "qmd-reader", dir: "." },
+    { name: "leveloneanalysis", dir: "quarto-internals"}
   ];
 
   filtersToInline.forEach((filter) => {

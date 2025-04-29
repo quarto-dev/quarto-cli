@@ -1,16 +1,24 @@
 -- brand.lua
 -- Copyright (C) 2020-2024 Posit Software, PBC
 
-local function get_color_css(name)
+local function has_mode(brandMode)
+  assert(brandMode == 'light' or brandMode == 'dark')
   local brand = param("brand")
-  brand = brand and brand.processedData -- from src/core/brand/brand.ts
+  return (brand and brand[brandMode]) ~= nil
+end
+
+local function get_color_css(brandMode, name)
+  assert(brandMode == 'light' or brandMode == 'dark')
+  local brand = param("brand")
+  brand = brand and brand[brandMode] and brand[brandMode].processedData
   if not brand then return nil end
   local cssColor = brand.color[name]
   return cssColor
 end
 
-local function get_color(name)
-  local cssColor = get_color_css(name)
+local function get_color(brandMode, name)
+  assert(brandMode == 'light' or brandMode == 'dark')
+  local cssColor = get_color_css(brandMode, name)
   if not cssColor then return nil end
   if _quarto.format.isTypstOutput() then
     return _quarto.format.typst.css.output_color(_quarto.format.typst.css.parse_color(cssColor))
@@ -18,22 +26,10 @@ local function get_color(name)
   return cssColor
 end
 
-local function get_background_color(name, opacity)
+local function get_typography(brandMode, fontName)
+  assert(brandMode == 'light' or brandMode == 'dark')
   local brand = param("brand")
-  brand = brand and brand.processedData -- from src/core/brand/brand.ts
-  if not brand then return nil end
-  local cssColor = brand.color[name]
-  if not cssColor then return nil end
-  if _quarto.format.isTypstOutput() then
-    return _quarto.format.typst.css.output_color(_quarto.modules.typst.css.parse_color(cssColor), {unit = 'fraction', value = opacity})
-  end
-  -- todo: implement for html if useful
-  return cssColor
-end
-
-local function get_typography(fontName)
-  local brand = param("brand")
-  brand = brand and brand.processedData -- from src/core/brand/brand.ts
+  brand = brand and brand[brandMode] and brand[brandMode].processedData
   if not brand then return nil end
   local typography = brand.typography and brand.typography[fontName]
   if not typography then return nil end
@@ -41,7 +37,7 @@ local function get_typography(fontName)
   if type(typography) == 'string' then typography = {family = typography} end
   for k, v in pairs(typography) do
     if k == 'color' or k == 'background-color' then
-      typsted[k] = get_color(v) or _quarto.format.typst.css.output_color(_quarto.format.typst.css.parse_color(v))
+      typsted[k] = get_color(brandMode, v) or _quarto.format.typst.css.output_color(_quarto.format.typst.css.parse_color(v))
     elseif k == 'size' then
       local length = _quarto.format.typst.css.parse_length(v)
       if length and fontName == 'base' and length.unit == 'rem' then
@@ -58,17 +54,18 @@ local function get_typography(fontName)
   return typsted 
 end
 
-local function get_logo(name)
+local function get_logo(brandMode, name)
+  assert(brandMode == 'light' or brandMode == 'dark')
   local brand = param("brand")
-  brand = brand and brand.processedData -- from src/core/brand/brand.ts
+  brand = brand and brand[brandMode] and brand[brandMode].processedData
   if not brand then return nil end
   return brand.logo and (brand.logo[name] or brand.logo.images[name])
 end
 
 return {
+  has_mode = has_mode,
   get_color_css = get_color_css,
   get_color = get_color,
-  get_background_color = get_background_color,
   get_typography = get_typography,
   get_logo = get_logo,
 }

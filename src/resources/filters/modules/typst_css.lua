@@ -176,6 +176,8 @@ local typst_named_colors = {
   lime = '#01ff70',
 }
 
+local brandMode = param('brand-mode') or 'light'
+
 -- css can have fraction or percent
 -- typst can have int or percent
 -- what goes for opacity also goes for alpha
@@ -346,7 +348,7 @@ local function output_color(color, opacity, warnings)
       end
       color = parse_color(typst_named_colors[color.value] or css_named_colors[color.value])
     elseif color.type == 'brand' then
-      local cssColor = _quarto.modules.brand.get_color_css(color.value)
+      local cssColor = _quarto.modules.brand.get_color_css(brandMode, color.value)
       if not cssColor then
         output_warning(warnings, 'unknown brand color ' .. color.value)
         return nil
@@ -384,7 +386,7 @@ local function output_color(color, opacity, warnings)
         return nil
       end
     elseif color.type == 'brand' then
-      local cssColor = _quarto.modules.brand.get_color_css(color.value)
+      local cssColor = _quarto.modules.brand.get_color_css(brandMode, color.value)
       if not cssColor then
         output_warning(warnings, 'unknown brand color ' .. color.value)
         return nil
@@ -488,7 +490,7 @@ local css_lengths = {
   mm = passthrough,
   em = passthrough,
   rem = function(val, _, _, warnings)
-    local base = _quarto.modules.brand.get_typography('base')
+    local base = _quarto.modules.brand.get_typography(brandMode, 'base')
     if base and base.size then
       local base_size = parse_length(base.size)
       if not base_size then
@@ -592,6 +594,69 @@ end
 local function quote(s)
   return '"' .. s .. '"'
 end
+
+local same_weights = {
+  'thin',
+  'light',
+  'normal',
+  'regular',
+  'medium',
+  'bold',
+  'black',
+}
+
+local weight_synonyms = {
+  ['ultra-light'] = 'extra-light',
+  ['demi-bold'] = 'semi-bold',
+  ['ultra-bold'] = 'extra-bold',
+}
+
+local dashed_weights = {
+  'extra-light',
+  'ultra-light',
+  'semi-bold',
+  'demi-bold',
+  'extra-bold',
+  'ultra-bold',
+}
+
+local function translate_font_weight(w, warnings)
+  if not w then return nil end
+  local num = tonumber(w)
+  if num and 1 <= num and num <= 1000 then
+    return num
+  elseif tcontains(same_weights, w) then
+    return w
+  elseif tcontains(dashed_weights, w) then
+    w = weight_synonyms[w] or w
+    return w:gsub('-', '')
+  else
+    output_warning(warnings, 'invalid font weight ' .. tostring(w))
+    return nil
+  end
+end
+
+local function dequote(s)
+  return s:gsub('^["\']', ''):gsub('["\']$', '')
+end
+
+local function quote(s)
+  return '"' .. s .. '"'
+end
+
+local function translate_font_family_list(sl)
+  if sl == nil then
+    return '()'
+  end
+  local strings = {}
+  for s in sl:gmatch('([^,]+)') do
+    s = s:gsub('^%s+', '')
+    table.insert(strings, quote(dequote(s)))
+  end
+  local trailcomma = #strings == 1 and ',' or ''
+  return '(' .. table.concat(strings, ', ') .. trailcomma .. ')'
+end
+
 
 local function translate_border_style(v, _warnings)
   local dash
@@ -705,6 +770,7 @@ local function expand_side_shorthand(items, context, warnings)
 end
 
 return {
+  set_brand_mode = set_brand_mode,
   parse_color = parse_color,
   parse_opacity = parse_opacity,
   output_color = output_color,
@@ -718,6 +784,8 @@ return {
   translate_border_width = translate_border_width,
   translate_border_style = translate_border_style,
   translate_border_color = translate_border_color,
+  translate_font_weight = translate_font_weight,
+  translate_font_family_list = translate_font_family_list,
   consume_width = consume_width,
   consume_style = consume_style,
   consume_color = consume_color

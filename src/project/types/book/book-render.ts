@@ -92,6 +92,7 @@ import { resourcePath } from "../../../core/resources.ts";
 import { PandocAttr, PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 import { stringify } from "../../../core/yaml.ts";
 import { waitUntilNamedLifetime } from "../../../core/lifetimes.ts";
+import { safeCloneDeep } from "../../../core/safe-clone-deep.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -173,7 +174,7 @@ export function bookPandocRenderer(
             const title = file.recipe.format.metadata[kTitle] || "";
             const alt = coverImageAlt ? ` fig-alt="${coverImageAlt}"` : "";
             file.executeResult.markdown =
-              `![](${coverImage} "${title}"){.quarto-cover-image${alt}}\n\n` +
+              `![](${coverImage} "${title}"){.quarto-cover-image .nolightbox${alt}}\n\n` +
               file.executeResult.markdown;
           }
 
@@ -288,7 +289,7 @@ export function bookPandocRenderer(
             const format = files[0].context.format;
 
             // if it's not a multi-file book then we need to render from the
-            // accumulated exected files
+            // accumulated executed files
             if (!isMultiFileBookFormat(format)) {
               renderedFiles.push(
                 await renderSingleFileBook(
@@ -381,7 +382,7 @@ async function mergeExecutedFiles(
   files: ExecutedFile[],
 ): Promise<ExecutedFile> {
   // base context on the first file (which has to be index.md in the root)
-  const context = ld.cloneDeep(files[0].context) as RenderContext;
+  const context = safeCloneDeep(files[0].context);
 
   // use global render options
   context.options = removePandocTo(options);

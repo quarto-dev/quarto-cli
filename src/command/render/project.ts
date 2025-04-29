@@ -81,7 +81,6 @@ import { fileExecutionEngine } from "../../execute/engine.ts";
 import { projectContextForDirectory } from "../../project/project-context.ts";
 import { ProjectType } from "../../project/types/types.ts";
 import { ProjectConfig as ProjectConfig_Project } from "../../resources/types/schema-types.ts";
-import { Extension } from "../../extension/types.ts";
 
 const noMutationValidations = (
   projType: ProjectType,
@@ -144,7 +143,7 @@ const computeProjectRenderConfig = async (
 
   // force execution for any incremental files (unless options.useFreezer is set)
   let alwaysExecuteFiles = incremental && !inputs.options.useFreezer
-    ? ld.cloneDeep(inputs.files) as string[]
+    ? [...(inputs.files!)]
     : undefined;
 
   // file normaliation
@@ -307,7 +306,7 @@ export async function renderProject(
       (projectRenderConfig.options.flags?.clean == true) &&
         (projType.cleanOutputDir === true))
   ) {
-    // ouptut dir
+    // output dir
     const realProjectDir = normalizePath(context.dir);
     if (existsSync(projOutputDir)) {
       const realOutputDir = normalizePath(projOutputDir);

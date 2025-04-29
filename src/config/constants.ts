@@ -110,6 +110,8 @@ export const kSelfContainedMath = "self-contained-math";
 export const kBiblioConfig = "biblio-config";
 export const kBodyClasses = "body-classes";
 export const kBrand = "brand";
+export const kLight = "light";
+export const kDark = "dark";
 
 export const kLatexAutoMk = "latex-auto-mk";
 export const kLatexAutoInstall = "latex-auto-install";
@@ -139,6 +141,8 @@ export const kFontPaths = "font-paths";
 export const kHtmlTableProcessing = "html-table-processing";
 export const kHtmlPreTagProcessing = "html-pre-tag-processing";
 export const kCssPropertyProcessing = "css-property-processing";
+export const kBrandMode = "brand-mode";
+export const kRespectUserColorScheme = "respect-user-color-scheme";
 export const kUseRsvgConvert = "use-rsvg-convert";
 export const kValidateYaml = "validate-yaml";
 

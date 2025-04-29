@@ -43,7 +43,7 @@ import {
 import { cookieConsentEnabled } from "./website-analytics.ts";
 import { Format, FormatExtras } from "../../../config/types.ts";
 import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
-import { md5Hash } from "../../../core/hash.ts";
+import { md5HashAsync } from "../../../core/hash.ts";
 export { type NavigationFooter } from "../../types.ts";
 
 export interface Navigation {
@@ -166,12 +166,12 @@ export async function websiteNavigationConfig(project: ProjectContext) {
 
   const projectBrand = await project.resolveBrand();
   if (
-    projectBrand?.processedData.logo && sidebars?.[0]
+    projectBrand?.light?.processedData.logo && sidebars?.[0]
   ) {
     if (sidebars[0].logo === undefined) {
-      const logo = projectBrand.processedData.logo.medium ??
-        projectBrand.processedData.logo.small ??
-        projectBrand.processedData.logo.large;
+      const logo = projectBrand.light.processedData.logo.medium ??
+        projectBrand.light.processedData.logo.small ??
+        projectBrand.light.processedData.logo.large;
       if (logo) {
         sidebars[0].logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
         sidebars[0]["logo-alt"] = logo.light.alt;
@@ -180,11 +180,11 @@ export async function websiteNavigationConfig(project: ProjectContext) {
   }
 
   if (
-    projectBrand?.processedData && navbar
+    projectBrand?.light?.processedData && navbar
   ) {
-    const logo = projectBrand.processedData.logo.small ??
-      projectBrand.processedData.logo.medium ??
-      projectBrand.processedData.logo.large;
+    const logo = projectBrand.light.processedData.logo.small ??
+      projectBrand.light.processedData.logo.medium ??
+      projectBrand.light.processedData.logo.large;
     if (logo) {
       navbar.logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
       navbar["logo-alt"] = logo.light.alt;
@@ -246,7 +246,7 @@ export async function websiteNavigationConfig(project: ProjectContext) {
   let announcement: NavigationAnnouncement | undefined;
   if (typeof announcementRaw === "string") {
     announcement = {
-      id: md5Hash(announcementRaw),
+      id: await md5HashAsync(announcementRaw),
       icon: undefined,
       dismissable: true,
       content: announcementRaw,
@@ -255,7 +255,7 @@ export async function websiteNavigationConfig(project: ProjectContext) {
     };
   } else if (announcementRaw && !Array.isArray(announcementRaw)) {
     announcement = {
-      id: md5Hash(announcementRaw.content as string),
+      id: await md5HashAsync(announcementRaw.content as string),
       icon: announcementRaw.icon as string | undefined,
       dismissable: announcementRaw.dismissable !== false,
       content: announcementRaw.content as string,

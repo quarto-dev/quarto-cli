@@ -36,6 +36,7 @@ import { typstBinaryPath } from "./core/typst.ts";
 import { exitWithCleanup, onCleanup } from "./core/cleanup.ts";
 
 import { runScript } from "./command/run/run.ts";
+import { commandFailed } from "./command/utils.ts";
 
 // ensures run handlers are registered
 import "./core/run/register.ts";
@@ -195,6 +196,9 @@ export async function quarto(
         Deno.env.set(key, value);
       }
     }
+    if (commandFailed()) {
+      exitWithCleanup(1);
+    }
   } catch (e) {
     if (e instanceof CommandError) {
       logError(e, false);
@@ -220,5 +224,9 @@ if (import.meta.main) {
       cmd = appendLogOptions(cmd);
       return appendProfileArg(cmd);
     });
+
+    if (commandFailed()) {
+      exitWithCleanup(1);
+    }
   });
 }

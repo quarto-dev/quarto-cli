@@ -858,6 +858,10 @@
                 copy-button:
                   schema: boolean
                   description: "Provide button for copying search link"
+                merge-navbar-crumbs:
+                  schema: boolean
+                  default: true
+                  description: "When false, do not merge navbar crumbs into the crumbs in `search.json`."
                 keyboard-shortcut:
                   maybeArrayOf:
                     string:
@@ -1203,7 +1207,7 @@
             description: "Book references file"
         output-file:
           path:
-            description: "Base name for single-file output (e.g. PDF, ePub)"
+            description: "Base name for single-file output (e.g. PDF, ePub, docx)"
         cover-image:
           path:
             description: "Cover image (used in HTML and ePub formats)"
@@ -2979,6 +2983,31 @@
         ref: brand-typography
       defaults:
         ref: brand-defaults
+
+- id: brand-path-bool-light-dark
+  anyOf:
+    - string # a file path
+    - boolean # if false, don't use branding on this document
+    - object:
+        closed: true
+        properties:
+          light:
+            anyOf:
+              - string
+              - ref: brand
+            description: >
+              The path to a light brand file or an inline light brand definition.
+          dark:
+            anyOf:
+              - string
+              - ref: brand
+            description: >
+              The path to a dark brand file or an inline dark brand definition.
+    - ref: brand
+  description: |
+    Branding information to use for this document. If a string, the path to a brand file.
+    If false, don't use branding on this document. If an object, an inline brand
+    definition, or an object with light and dark brand paths or definitions.
 
 - id: brand-defaults
   object:

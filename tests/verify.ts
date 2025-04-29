@@ -17,7 +17,7 @@ import { readYamlFromString } from "../src/core/yaml.ts";
 import { ExecuteOutput, Verify } from "./test.ts";
 import { outputForInput } from "./utils.ts";
 import { unzip } from "../src/core/zip.ts";
-import { dirAndStem, which } from "../src/core/path.ts";
+import { dirAndStem, safeRemoveSync, which } from "../src/core/path.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
 import { execProcess } from "../src/core/process.ts";
 import { canonicalizeSnapshot, checkSnapshot } from "./verify-snapshot.ts";
@@ -38,6 +38,26 @@ export const withDocxContent = async <T>(
     const docXml = join(temp, "word", "document.xml");
     const xml = await Deno.readTextFile(docXml);
     const result = await k(xml);
+    return result;
+  } finally {
+    await Deno.remove(temp, { recursive: true });
+  }
+};
+
+export const withEpubDirectory = async <T>(
+  file: string,
+  k: (path: string) => Promise<T>
+) => {
+  const [_dir, stem] = dirAndStem(file);
+  const temp = await Deno.makeTempDir();
+  try {
+    // Move the docx to a temp dir and unzip it
+    const zipFile = join(temp, stem + ".zip");
+    await Deno.copyFile(file, zipFile);
+    await unzip(zipFile);
+
+    // Open the core xml document and match the matches
+    const result = await k(temp);
     return result;
   } finally {
     await Deno.remove(temp, { recursive: true });
@@ -83,25 +103,45 @@ export const withPptxContent = async <T>(
   }
 };
 
+const checkErrors = (outputs: ExecuteOutput[]): { errors: boolean, messages: string | undefined } => {
+  const isError = (output: ExecuteOutput) => {
+    return output.levelName.toLowerCase() === "error";
+  };
+  const errors = outputs.some(isError);
+
+  const messages = errors ? outputs.filter(isError).map((outputs) => outputs.msg).join("\n") : undefined
+
+  return({
+    errors,
+    messages
+  })
+}
+
 export const noErrors: Verify = {
   name: "No Errors",
   verify: (outputs: ExecuteOutput[]) => {
-    const isError = (output: ExecuteOutput) => {
-      return output.levelName.toLowerCase() === "error";
-    };
+    
+    const { errors, messages } = checkErrors(outputs);
 
-    const errors = outputs.some(isError);
+    assert(
+      !errors,
+      `Errors During Execution\n|${messages}|`,
+    );
 
-    // Output an error or warning if it exists
-    if (errors) {
-      const messages = outputs.filter(isError).map((outputs) => outputs.msg)
-        .join("\n");
+    return Promise.resolve();
+  },
+};
 
-      assert(
-        !errors,
-        `Errors During Execution\n|${messages}|`,
-      );
-    }
+export const shouldError: Verify = {
+  name: "Should Error",
+  verify: (outputs: ExecuteOutput[]) => {
+
+    const { errors } = checkErrors(outputs);
+
+    assert(
+      errors,
+      `No errors during execution while rendering was expected to fail.`,
+    );
 
     return Promise.resolve();
   },
@@ -133,20 +173,26 @@ export const noErrorsOrWarnings: Verify = {
   },
 };
 
-export const printsMessage = (
-  level: "DEBUG" | "INFO" | "WARN" | "ERROR",
-  regex: RegExp | string,
-): Verify => {
+export const printsMessage = (options: {
+  level: "DEBUG" | "INFO" | "WARN" | "ERROR";
+  regex: string | RegExp;
+  negate?: boolean;
+}): Verify => {
+  const { level, regex: regexPattern, negate = false } = options;  // Set default here
   return {
-    name: `${level} matches ${String(regex)}`,
+    name: `${level} matches ${String(regexPattern)}`,
     verify: (outputs: ExecuteOutput[]) => {
-      if (typeof regex === "string") {
-        regex = new RegExp(regex);
-      }
+      const regex = typeof regexPattern === "string" 
+      ? new RegExp(regexPattern) 
+      : regexPattern;
+
       const printedMessage = outputs.some((output) => {
         return output.levelName === level && output.msg.match(regex);
       });
-      assert(printedMessage, `Missing ${level} ${String(regex)}`);
+      assert(
+        negate ? !printedMessage : printedMessage, 
+        `${negate ? "Found" : "Missing"} ${level} ${String(regex)}`
+      );
       return Promise.resolve();
     },
   };
@@ -319,31 +365,33 @@ export const ensureHtmlElements = (
 };
 
 export const ensureHtmlElementContents = (
-  file: string,
-  selectors: string[],
-  matches: (string | RegExp)[],
-  noMatches: (string | RegExp)[]
+  file: string, 
+  options : {
+    selectors: string[],
+    matches: (string | RegExp)[],
+    noMatches?: (string | RegExp)[]
+  }
 ) => {
   return {
     name: "Inspecting HTML for Selector Contents",
     verify: async (_output: ExecuteOutput[]) => {
       const htmlInput = await Deno.readTextFile(file);
       const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
-      selectors.forEach((sel) => {
+      options.selectors.forEach((sel) => {
         const el = doc.querySelector(sel);
         if (el !== null) {
           const contents = el.innerText;
-          matches.forEach((regex) => {
+          options.matches.forEach((regex) => {
             assert(
               asRegexp(regex).test(contents),
-              `Required match ${String(regex)} is missing from selector ${sel}.`,
+              `Required match ${String(regex)} is missing from selector ${sel} content: ${contents}.`,
             );
           });
 
-          noMatches.forEach((regex) => {
+          options.noMatches?.forEach((regex) => {
             assert(
               !asRegexp(regex).test(contents),
-              `Unexpected match ${String(regex)} is present from selector ${sel}.`,
+              `Unexpected match ${String(regex)} is present from selector ${sel} content: ${contents}.`,
             );
           });
   
@@ -440,7 +488,7 @@ export const verifyKeepFileRegexMatches = (
       try {
         await regexChecker(file, matches, noMatches);
       } finally {
-        await Deno.remove(file);
+        await safeRemoveSync(file);
       }
     }
     return verifyFileRegexMatches(keptFileChecker, `Inspecting intermediate ${keptFile} for Regex matches`)(keptFile, matchesUntyped, noMatchesUntyped);
@@ -540,6 +588,18 @@ export const verifyDocXDocument = (
     },
   });
 };
+
+export const verifyEpubDocument = (
+  callback: (path: string) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting Epub",
+    verify: async (_output: ExecuteOutput[]) => {
+      return await withEpubDirectory(file, callback);
+    },
+  });
+}
 
 export const verifyPptxDocument = (
   callback: (doc: string, docFile: string) => Promise<void>,
@@ -701,6 +761,52 @@ export const ensureDocxRegexMatches = (
     return Promise.resolve();
   }, "Inspecting Docx for Regex matches")(file);
 };
+
+export const ensureEpubFileRegexMatches = (
+  epubFile: string,
+  pathsAndRegexes: {
+    path: string;
+    regexes: (string | RegExp)[][];
+  }[]
+): Verify => {
+  return verifyEpubDocument(async (epubDir) => {
+    for (const { path, regexes } of pathsAndRegexes) {
+      const file = join(epubDir, path);
+      assert(
+        existsSync(file),
+        `File ${file} doesn't exist in Epub`,
+      );
+      const content = await Deno.readTextFile(file);
+      const mustMatch: (RegExp | string)[] = [];
+      const mustNotMatch: (RegExp | string)[] = [];
+      if (regexes.length) {
+        mustMatch.push(...regexes[0]);
+      }
+      if (regexes.length > 1) {
+        mustNotMatch.push(...regexes[1]);
+      }
+
+      mustMatch.forEach((regex) => {
+        if (typeof regex === "string") {
+          regex = new RegExp(regex);
+        }
+        assert(
+          regex.test(content),
+          `Required match ${String(regex)} is missing from file ${file}.`,
+        );
+      });
+      mustNotMatch.forEach((regex) => {
+        if (typeof regex === "string") {
+          regex = new RegExp(regex);
+        }
+        assert(
+          !regex.test(content),
+          `Illegal match ${String(regex)} was found in file ${file}.`,
+        );
+      });
+    }
+  }, "Inspecting Epub for Regex matches")(epubFile);
+}
 
 // export const ensureDocxRegexMatches = (
 //   file: string,
