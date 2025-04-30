@@ -1,4 +1,10 @@
-All changes included in 1.7:
+# v1.8 backports
+
+## In this release
+
+- ([#12625](https://github.com/quarto-dev/quarto-cli/pull/12625)): Fire resize event on window when light/dark toggle is clicked, to tell widgets to resize.
+
+# v1.7 changes
 
 ## Regression fixes
 
