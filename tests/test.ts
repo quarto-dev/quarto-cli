@@ -17,6 +17,7 @@ import { runningInCI } from "../src/core/ci-info.ts";
 import { relative, fromFileUrl } from "../src/deno_ral/path.ts";
 import { quartoConfig } from "../src/core/quarto.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
+import { execProcess } from "../src/core/process.ts";
 
 export interface TestDescriptor {
   // The name of the test
@@ -55,9 +56,6 @@ export interface TestContext {
 
   // control if test is ran or skipped
   ignore?: boolean;
-
-  // environment to pass to downstream processes
-  env?: Record<string, string>;
 }
 
 // Allow to merge test contexts in Tests helpers
@@ -95,9 +93,42 @@ export function mergeTestContexts(baseContext: TestContext, additionalContext?: 
     },
     // override ignore if provided
     ignore: additionalContext.ignore ?? baseContext.ignore,
-    // merge env with additional context taking precedence
-    env: { ...baseContext.env, ...additionalContext.env },
   };
+}
+
+// for Quarto tests that new to change the environment,
+// we use a subprocess call to run the command, or else we risk
+// race conditions with environment variables overwriting
+// each other
+export function testQuartoCmdWithEnv(
+  cmd: string,
+  args: string[],
+  verify: Verify[],
+  env: Record<string, string>,
+  context?: TestContext,
+  name?: string
+) {
+  if (name === undefined) {
+    name = `quarto ${cmd} ${args.join(" ")}`;
+  }
+  test({
+    name,
+    execute: async () => {
+      const timeout = new Promise((_resolve, reject) => {
+        setTimeout(reject, 600000, "timed out after 10 minutes");
+      });
+      await Promise.race([
+        execProcess({
+          cmd: [quartoConfig.binPath(), cmd, ...args],
+          env
+        }),
+        timeout,
+      ]);
+    },
+    verify,
+    context: context || {},
+    type: "smoke",
+  });
 }
 
 export function testQuartoCmd(
@@ -117,7 +148,7 @@ export function testQuartoCmd(
         setTimeout(reject, 600000, "timed out after 10 minutes");
       });
       await Promise.race([
-        quarto([cmd, ...args], undefined, context?.env),
+        quarto([cmd, ...args]),
         timeout,
       ]);
     },
