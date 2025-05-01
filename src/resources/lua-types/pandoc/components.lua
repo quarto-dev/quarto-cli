@@ -67,7 +67,7 @@ A table cell.
 ---@field contents pandoc.List Cell contents (list of blocks)
 ---@field row_span integer Number of rows occupied by the call
 ---@field col_span integer Number of columns spanned by the cell
-pandonc.Cell = {}
+pandoc.Cell = {}
 
 --[[
 Create a new table cell
