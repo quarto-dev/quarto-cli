@@ -470,11 +470,20 @@ export async function logPandocJson(
   return logPandoc(src, "json");
 }
 
+const getColumns = () => {
+  try {
+    // Catch error in none tty mode: Inappropriate ioctl for device (os error 25)
+    return Deno.consoleSize().columns ?? 130;
+  } catch (_error) {
+    return 130;
+  }
+};
+
 export async function logPandoc(
   src: string,
   format: string = "markdown",
 ) {
-  const cols = Deno.consoleSize().columns;
+  const cols = getColumns();
   const result = await execProcess({
     cmd: [
       pandocBinaryPath(),
