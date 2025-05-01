@@ -7,7 +7,7 @@
 import { Command } from "cliffy/command/mod.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 
-import { configurationAST } from "../common/config.ts";
+import { configurationAST, printConfiguration } from "../common/config.ts";
 
 import {
   Configuration,
@@ -50,7 +50,11 @@ export function packageCommand(run: (config: Configuration) => Promise<void>) {
       Deno.env.set("QUARTO_DEBUG", "true");
 
       // Print the configuration
-      await logPandocJson(configurationAST(config));
+      try {
+        await logPandocJson(configurationAST(config));
+      } catch (e) {
+        printConfiguration(config);
+      }
 
       // Run the command
       await run(config);
