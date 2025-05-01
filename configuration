@@ -16,7 +16,7 @@ export DENO=v1.46.3
 export DENO_DOM=v0.1.41-alpha-artifacts
 export PANDOC=3.6.3
 export DARTSASS=1.85.1
-export ESBUILD=0.19.12
+export ESBUILD=0.25.3
 export TYPST=0.13.0
 
 
