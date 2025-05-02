@@ -6,10 +6,11 @@ const kDefaultCategory = ""; // Default category "" means all posts selected
 window.quartoListingCategory = (category) => {
   // category is URI encoded in EJS template for UTF-8 support
   category = decodeURIComponent(atob(category));
-  if (categoriesLoaded) {
-    activateCategory(category);
-    setCategoryHash();
-  }
+  selectedCategories.clear();
+  selectedCategories.add(category);
+  updateCategoryUI();
+  filterListingCategory();
+  setCategoryHash();
 };
 
 window["quarto-listing-loaded"] = () => {
