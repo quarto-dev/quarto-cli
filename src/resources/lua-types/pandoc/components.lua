@@ -230,8 +230,6 @@ Make a clone
 ---@return pandoc.TableFoot
 function pandoc.TableFoot:clone() end
 
-
-
 --[[
 The head of a table
 ]]
