@@ -18,8 +18,8 @@ window["quarto-listing-loaded"] = () => {
 
   if (hash) {
     // If there are categories, switch to those
-    if (hash.categories) {
-      const cats = hash.categories.split(",");
+    if (hash.category) {
+      const cats = hash.category.split(",");
       for (const cat of cats) {
         if (cat) selectedCategories.add(decodeURIComponent(cat));
       }
@@ -87,6 +87,12 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       if (!e.ctrlKey && !e.metaKey) {
         selectedCategories.clear();
       }
+
+      // If this would deselect the last category, ensure default category remains selected
+      if (selectedCategories.has(category) && selectedCategories.size === 1) {
+        selectedCategories.add(kDefaultCategory);
+      }
+
       activateCategory(category);
       setCategoryHash();
     };
@@ -108,8 +114,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   // Process any existing hash for multiple categories
   const hash = getHash();
-  if (hash && hash.categories) {
-    const cats = hash.categories.split(",");
+  if (hash && hash.category) {
+    const cats = hash.category.split(",");
     for (const cat of cats) {
       if (cat) selectedCategories.add(decodeURIComponent(cat));
     }
@@ -261,11 +267,11 @@ function activateCategory(category) {
 
 function updateCategoryUI() {
   // Deactivate all categories first
-  const activeEls = window.document.querySelectorAll(
+  const categoryEls = window.document.querySelectorAll(
     ".quarto-listing-category .category"
   );
-  for (const activeEls of activeEls) {
-    activeEls.classList.remove("active");
+  for (const categoryEl of categoryEls) {
+    categoryEl.classList.remove("active");
   }
 
   // Activate selected categories
@@ -293,7 +299,7 @@ function filterListingCategory() {
       } else {
         // Filter to selected categories, but ignore kDefaultCategory if other categories selected
         const effectiveCategories = new Set(selectedCategories);
-        if (effectiveCategories.size > 1) {
+        if (effectiveCategories.size > 1 && effectiveCategories.has(kDefaultCategory)) {
           effectiveCategories.delete(kDefaultCategory);
         }
 
