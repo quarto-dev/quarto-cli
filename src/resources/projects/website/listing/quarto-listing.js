@@ -24,12 +24,12 @@ window["quarto-listing-loaded"] = () => {
         if (cat) selectedCategories.add(decodeURIComponent(cat));
       }
       updateCategoryUI();
-      filterListingCategories();
+      filterListingCategory();
     } else {
       // No categories in hash, use default
       selectedCategories.add(kDefaultCategory);
       updateCategoryUI();
-      filterListingCategories();
+      filterListingCategory();
     }
     // Paginate a specific listing
     const listingIds = Object.keys(window["quarto-listings"]);
@@ -43,7 +43,7 @@ window["quarto-listing-loaded"] = () => {
     // No hash at all, use default category
     selectedCategories.add(kDefaultCategory);
     updateCategoryUI();
-    filterListingCategories();
+    filterListingCategory();
   }
 
   const listingIds = Object.keys(window["quarto-listings"]);
@@ -102,7 +102,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       selectedCategories.clear();
       updateCategoryUI();
       setCategoryHash();
-      filterListingCategories();
+      filterListingCategory();
     };
   }
 
@@ -114,12 +114,12 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       if (cat) selectedCategories.add(decodeURIComponent(cat));
     }
     updateCategoryUI();
-    filterListingCategories();
+    filterListingCategory();
   } else {
     // No hash at all, use default category
     selectedCategories.add(kDefaultCategory);
     updateCategoryUI();
-    filterListingCategories();
+    filterListingCategory();
   }
 
   categoriesLoaded = true;
@@ -256,7 +256,7 @@ function activateCategory(category) {
     selectedCategories.add(category);
   }
   updateCategoryUI();
-  filterListingCategories();
+  filterListingCategory();
 }
 
 function updateCategoryUI() {
@@ -281,7 +281,7 @@ function updateCategoryUI() {
   }
 }
 
-function filterListingCategories() {
+function filterListingCategory() {
   const listingIds = Object.keys(window["quarto-listings"]);
   for (const listingId of listingIds) {
     const list = window["quarto-listings"][listingId];
@@ -300,10 +300,10 @@ function filterListingCategories() {
         list.filter(function (item) {
           const itemValues = item.values();
           if (itemValues.categories !== null) {
-            const itemCategories = decodeURIComponent(
+            const categories = decodeURIComponent(
               atob(itemValues.categories)
             ).split(",");
-            return itemCategories.some(category => effectiveCategories.has(category));
+            return categories.some(category => effectiveCategories.has(category));
           } else {
             return false;
           }
