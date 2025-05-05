@@ -18,6 +18,7 @@ import {
 
 import {
   dirname,
+  extname,
   isAbsolute,
   join,
   normalize,
@@ -71,6 +72,7 @@ import { resourcePath } from "../core/resources.ts";
 import { warnOnce } from "../core/log.ts";
 import { existsSync1 } from "../core/file.ts";
 import { kFormatResources } from "../config/constants.ts";
+import { assert } from "testing/asserts";
 
 // This is where we maintain a list of extensions that have been promoted
 // to 'built-in' status. If we see these extensions, we will filter them
@@ -230,7 +232,7 @@ export function filterExtensions(
   extensionId: string,
   type: string,
 ) {
-  if (extensions && extensions.length > 0) {
+  if (extensions.length > 0) {
     // First see if there are now built it (quarto organization)
     // filters that we previously provided by quarto-ext and
     // filter those out
@@ -757,7 +759,18 @@ async function readExtension(
     });
     formatMeta.filters = (formatMeta.filters as QuartoFilter[] || []).flatMap(
       (filter) => {
-        return resolveFilter(embeddedExtensions, extensionDir, filter);
+        // that cast above is maybe invalid if filters are declared without 'type'
+        // deno-lint-ignore no-explicit-any
+        if (typeof filter === "object" && (filter as any).type === undefined) {
+          const unqualifiedPath = typeof filter.path === "string"
+            ? filter.path
+            : filter.path.path;
+          if (extname(unqualifiedPath) === ".lua") {
+            filter = { ...filter, type: "lua" };
+          }
+        }
+        const result = resolveFilter(embeddedExtensions, extensionDir, filter);
+        return result;
       },
     );
     formatMeta[kRevealJSPlugins] = (formatMeta?.[kRevealJSPlugins] as Array<
@@ -987,7 +1000,7 @@ function resolveFilter(
     // First check for the sentinel quarto filter, and allow that through
     // if it is present
     if (filter === "quarto") {
-      return filter;
+      return [filter];
     }
 
     // First attempt to load this shortcode from an embedded extension
@@ -1005,11 +1018,20 @@ function resolveFilter(
       return filters;
     } else {
       validateExtensionPath("filter", dir, filter);
-      return resolveFilterPath(dir, filter);
+      return [resolveFilterPath(dir, filter)];
     }
   } else {
-    validateExtensionPath("filter", dir, filter.path);
-    return resolveFilterPath(dir, filter);
+    if (typeof filter.path === "string") {
+      validateExtensionPath("filter", dir, filter.path);
+      return [resolveFilterPath(dir, filter)];
+    } else {
+      if (filter.path.type !== "relative") {
+        throw new Error(
+          `Failed to resolve referenced ${filter.path.path} - extensions can only declare fully-qualified paths of type "relative"`,
+        );
+      }
+      return [resolveFilterPath(dir, filter.path.path)];
+    }
   }
 }
 
@@ -1027,12 +1049,27 @@ function resolveFilterPath(
   } else {
     // deno-lint-ignore no-explicit-any
     const filterAt = ((filter as any).at) as string | undefined;
-    const result: QuartoFilter = {
-      type: filter.type,
-      path: isAbsolute(filter.path)
-        ? filter.path
-        : join(extensionDir, filter.path),
-    };
+    const result: QuartoFilter = typeof filter.path === "string"
+      ? {
+        type: filter.type,
+        at: "__quarto-auto",
+        path: {
+          type: "absolute",
+          path: isAbsolute(filter.path)
+            ? filter.path
+            : join(extensionDir, filter.path),
+        },
+      }
+      : {
+        type: filter.type,
+        at: "__quarto-auto",
+        path: {
+          type: "absolute",
+          path: isAbsolute(filter.path.path)
+            ? filter.path.path
+            : join(extensionDir, filter.path.path),
+        },
+      };
     if (filterAt === undefined) {
       return result;
     } else {

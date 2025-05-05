@@ -207,6 +207,7 @@ import { isWindows } from "../../deno_ral/platform.ts";
 import { appendToCombinedLuaProfile } from "../../core/performance/perfetto-utils.ts";
 import { makeTimedFunctionAsync } from "../../core/performance/function-times.ts";
 import { walkJson } from "../../core/json.ts";
+import { asRawPath } from "../../core/qualified-path.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -919,10 +920,18 @@ export async function runPandoc(
     allDefaults.filters = allDefaults.filters.map((filter) => {
       if (typeof filter === "string") {
         return pandocMetadataPath(filter);
-      } else {
+      } else if (typeof filter.path === "string") {
         return {
           type: filter.type,
           path: pandocMetadataPath(filter.path),
+        };
+      } else {
+        return {
+          type: filter.type,
+          path: pandocMetadataPath(asRawPath(filter.path, {
+            projectRoot: options.project.dir,
+            currentFileDir: dirname(options.source),
+          })),
         };
       }
     });

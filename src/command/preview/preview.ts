@@ -57,7 +57,11 @@ import { renderFormats } from "../render/render-contexts.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
 
-import { Format, isPandocFilter } from "../../config/types.ts";
+import {
+  Format,
+  isPandocFilter,
+  isQuartoFilterEntryPointQualifiedFull,
+} from "../../config/types.ts";
 import {
   kPdfJsInitialPath,
   pdfJsBaseDir,
@@ -467,17 +471,34 @@ export async function renderForPreview(
   extensionFiles.push(...renderResult.files.reduce(
     (extensionFiles: string[], file: RenderResultFile) => {
       const shortcodes = file.format.render.shortcodes || [];
-      const filters = (file.format.pandoc.filters || []).map((filter) =>
-        isPandocFilter(filter) ? filter.path : filter
-      );
+      const filters = (file.format.pandoc.filters || []).map((filter) => {
+        if (isPandocFilter(filter)) {
+          return filter.path;
+        }
+        if (isQuartoFilterEntryPointQualifiedFull(filter)) {
+          switch (filter.path.type) {
+            case "absolute":
+              return filter.path.path;
+            case "relative":
+              return join(dirname(file.input), filter.path.path);
+            case "project-relative":
+              return join(
+                project?.dir ?? dirname(file.input),
+                filter.path.path,
+              );
+          }
+        }
+        return filter;
+      });
       const ipynbFilters = file.format.execute["ipynb-filters"] || [];
       [...shortcodes, ...filters.map((filter) => filter), ...ipynbFilters]
         .forEach((extensionFile) => {
           if (!isAbsolute(extensionFile)) {
-            const extensionFullPath = join(dirname(file.input), extensionFile);
-            if (existsSync(extensionFullPath)) {
-              extensionFiles.push(normalizePath(extensionFullPath));
-            }
+            extensionFile = join(dirname(file.input), extensionFile);
+          }
+          // const extensionFullPath = join(dirname(file.input), extensionFile);
+          if (existsSync(extensionFile)) {
+            extensionFiles.push(normalizePath(extensionFile));
           }
         });
       return extensionFiles;

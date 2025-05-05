@@ -1,0 +1,10 @@
+---
+title: "Hello"
+format: html
+shortcodes:
+  - /shortcode.lua
+---
+
+# Hello, world!
+
+{{< my-shortcode >}}
