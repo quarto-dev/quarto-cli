@@ -19,6 +19,9 @@ import { lines } from "./text.ts";
 import { debug, error, getLogger, setup, warning } from "../deno_ral/log.ts";
 import { asErrorEx, InternalError } from "./lib/error.ts";
 import { onCleanup } from "./cleanup.ts";
+import { execProcess } from "./process.ts";
+import { pandocBinaryPath } from "./resources.ts";
+import { Block, pandoc } from "./pandoc/json.ts";
 
 export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
@@ -459,3 +462,42 @@ const levelMap: Record<
   warning: "WARN",
   error: "ERROR",
 };
+
+export async function logPandocJson(
+  blocks: Block[],
+) {
+  const src = JSON.stringify(pandoc({}, blocks), null, 2);
+  return logPandoc(src, "json");
+}
+
+const getColumns = () => {
+  try {
+    // Catch error in none tty mode: Inappropriate ioctl for device (os error 25)
+    return Deno.consoleSize().columns ?? 130;
+  } catch (_error) {
+    return 130;
+  }
+};
+
+export async function logPandoc(
+  src: string,
+  format: string = "markdown",
+) {
+  const cols = getColumns();
+  const result = await execProcess({
+    cmd: pandocBinaryPath(),
+    args: [
+      "-f",
+      format,
+      "-t",
+      "ansi",
+      `--columns=${cols}`,
+    ],
+    stdout: "piped",
+  }, src);
+  if (result.code !== 0) {
+    error(result.stderr);
+  } else {
+    log.info(result.stdout);
+  }
+}

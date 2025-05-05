@@ -15,8 +15,8 @@ export DENO=v2.2.10
 # TODO figure out where 0.1.41 apple silicon libs are available
 export DENO_DOM=v0.1.41-alpha-artifacts
 export PANDOC=3.6.3
-export DARTSASS=1.85.1
-export ESBUILD=0.19.12
+export DARTSASS=1.87.0
+export ESBUILD=0.25.3
 export TYPST=0.13.0
 
 
@@ -61,7 +61,7 @@ export ALGOLIA_SEARCH_INSIGHTS_JS=2.0.3
 
 
 # Quarto Info Version
-export QUARTO_VERSION=1.7
+export QUARTO_VERSION=1.8
 export QUARTO_NAME=Quarto
 
 # Folder names. These are not the same as paths (those variable names end in _PATH).
