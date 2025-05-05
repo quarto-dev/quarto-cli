@@ -1,8 +1,6 @@
 {
     "text-styles": {
         "Alert": {
-            "background-color": "#2a0f15",
-            "bold": true,
             "selected-text-color": "#f07178",
             "text-color": "#f07178"
         },

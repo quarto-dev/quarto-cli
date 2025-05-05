@@ -252,7 +252,13 @@ export async function updateSearchIndex(
       // link that points to this page / sidebar. If so, inject that level
       // into the crumbs as well. An attempt at improving #7803 and providing
       // better crumbs
-      if (crumbs && sidebar) {
+      // deno-lint-ignore no-explicit-any
+      const mergeNavBarSearchCrumbs = (outputFile.format.metadata as any)
+        ?.website?.search?.["merge-navbar-crumbs"];
+      if (
+        mergeNavBarSearchCrumbs !== false &&
+        crumbs && sidebar
+      ) {
         const navItem = navbarItemForSidebar(sidebar, outputFile.format);
         if (navItem) {
           if (typeof navItem === "object") {

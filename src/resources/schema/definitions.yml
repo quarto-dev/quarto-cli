@@ -178,7 +178,107 @@
         preferred_color_scheme,
       ]
 
-- id: comments
+- id: giscus-configuration
+  object:
+    closed: true
+    properties:
+      repo:
+        string:
+          description:
+            short: The Github repo that will be used to store comments.
+            long: |
+              The Github repo that will be used to store comments.
+
+              In order to work correctly, the repo must be public, with the giscus app installed, and 
+              the discussions feature must be enabled.
+      repo-id:
+        string:
+          description:
+            short: The Github repository identifier.
+            long: |
+              The Github repository identifier.
+
+              You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
+              If this is not provided, Quarto will attempt to discover it at render time.
+      category:
+        string:
+          description:
+            short: The discussion category where new discussions will be created.
+            long: |
+              The discussion category where new discussions will be created. It is recommended 
+              to use a category with the **Announcements** type so that new discussions 
+              can only be created by maintainers and giscus.
+      category-id:
+        string:
+          description:
+            short: The Github category identifier.
+            long: |
+              The Github category identifier.
+
+              You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
+              If this is not provided, Quarto will attempt to discover it at render time.
+      mapping:
+        anyOf:
+          - enum: [pathname, url, title, og:title]
+          - string
+        description:
+          short: The mapping between the page and the embedded discussion.
+          long: |
+            The mapping between the page and the embedded discussion. 
+
+            - `pathname`: The discussion title contains the page path
+            - `url`: The discussion title contains the page url
+            - `title`: The discussion title contains the page title
+            - `og:title`: The discussion title contains the `og:title` metadata value
+            - any other string or number: Any other strings will be passed through verbatim and a discussion title
+            containing that value will be used. Numbers will be treated
+            as a discussion number and automatic discussion creation is not supported.
+      reactions-enabled:
+        boolean:
+          description: Display reactions for the discussion's main post before the comments.
+      loading:
+        enum: [lazy]
+        description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
+      input-position:
+        enum: [top, bottom]
+        description: Place the comment input box above or below the comments.
+      theme:
+        anyOf:
+          - string
+          - ref: giscus-themes
+          - object:
+              closed: true
+              properties:
+                light:
+                  anyOf:
+                    - string
+                    - ref: giscus-themes
+                  description: The light theme name.
+                dark:
+                  anyOf:
+                    - string
+                    - ref: giscus-themes
+                  description: The dark theme name.
+
+        description:
+          short: The giscus theme to use when displaying comments.
+          long: |
+            The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: 
+
+            ```yaml
+            website:
+              comments:
+                giscus:
+                  theme:
+                    light: light # giscus theme used for light website theme
+                    dark: dark_dimmed # giscus theme used for dark website theme
+            ```
+      language:
+        string:
+          description: The language that should be used when displaying the commenting interface.
+    required: [repo]
+
+- id: document-comments-configuration
   anyOf:
     - enum: [false]
     - object:
@@ -226,104 +326,7 @@
                       - og:title
               required: [repo]
           giscus:
-            object:
-              closed: true
-              properties:
-                repo:
-                  string:
-                    description:
-                      short: The Github repo that will be used to store comments.
-                      long: |
-                        The Github repo that will be used to store comments.
-
-                        In order to work correctly, the repo must be public, with the giscus app installed, and 
-                        the discussions feature must be enabled.
-                repo-id:
-                  string:
-                    description:
-                      short: The Github repository identifier.
-                      long: |
-                        The Github repository identifier.
-
-                        You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
-                        If this is not provided, Quarto will attempt to discover it at render time.
-                category:
-                  string:
-                    description:
-                      short: The discussion category where new discussions will be created.
-                      long: |
-                        The discussion category where new discussions will be created. It is recommended 
-                        to use a category with the **Announcements** type so that new discussions 
-                        can only be created by maintainers and giscus.
-                category-id:
-                  string:
-                    description:
-                      short: The Github category identifier.
-                      long: |
-                        The Github category identifier.
-
-                        You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
-                        If this is not provided, Quarto will attempt to discover it at render time.
-                mapping:
-                  anyOf:
-                    - enum: [pathname, url, title, og:title]
-                    - string
-                  description:
-                    short: The mapping between the page and the embedded discussion.
-                    long: |
-                      The mapping between the page and the embedded discussion. 
-
-                      - `pathname`: The discussion title contains the page path
-                      - `url`: The discussion title contains the page url
-                      - `title`: The discussion title contains the page title
-                      - `og:title`: The discussion title contains the `og:title` metadata value
-                      - any other string or number: Any other strings will be passed through verbatim and a discussion title
-                      containing that value will be used. Numbers will be treated
-                      as a discussion number and automatic discussion creation is not supported.
-                reactions-enabled:
-                  boolean:
-                    description: Display reactions for the discussion's main post before the comments.
-                loading:
-                  enum: [lazy]
-                  description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
-                input-position:
-                  enum: [top, bottom]
-                  description: Place the comment input box above or below the comments.
-                theme:
-                  anyOf:
-                    - string
-                    - ref: giscus-themes
-                    - object:
-                        closed: true
-                        properties:
-                          light:
-                            anyOf:
-                              - string
-                              - ref: giscus-themes
-                            description: The light theme name.
-                          dark:
-                            anyOf:
-                              - string
-                              - ref: giscus-themes
-                            description: The dark theme name.
-
-                  description:
-                    short: The giscus theme to use when displaying comments.
-                    long: |
-                      The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: 
-
-                      ```yaml
-                      website:
-                        comments:
-                          giscus:
-                            theme:
-                              light: light # giscus theme used for light website theme
-                              dark: dark_dimmed # giscus theme used for dark website theme
-                      ```
-                language:
-                  string:
-                    description: The language that should be used when displaying the commenting interface.
-              required: [repo]
+            ref: giscus-configuration
           hypothesis:
             anyOf:
               - boolean
@@ -858,6 +861,10 @@
                 copy-button:
                   schema: boolean
                   description: "Provide button for copying search link"
+                merge-navbar-crumbs:
+                  schema: boolean
+                  default: true
+                  description: "When false, do not merge navbar crumbs into the crumbs in `search.json`."
                 keyboard-shortcut:
                   maybeArrayOf:
                     string:
@@ -1117,7 +1124,7 @@
             Default site thumbnail image alt text for `twitter` /`open-graph`
       comments:
         schema:
-          ref: comments
+          ref: document-comments-configuration
 
       open-graph:
         anyOf:
@@ -2979,6 +2986,31 @@
         ref: brand-typography
       defaults:
         ref: brand-defaults
+
+- id: brand-path-bool-light-dark
+  anyOf:
+    - string # a file path
+    - boolean # if false, don't use branding on this document
+    - object:
+        closed: true
+        properties:
+          light:
+            anyOf:
+              - string
+              - ref: brand
+            description: >
+              The path to a light brand file or an inline light brand definition.
+          dark:
+            anyOf:
+              - string
+              - ref: brand
+            description: >
+              The path to a dark brand file or an inline dark brand definition.
+    - ref: brand
+  description: |
+    Branding information to use for this document. If a string, the path to a brand file.
+    If false, don't use branding on this document. If an object, an inline brand
+    definition, or an object with light and dark brand paths or definitions.
 
 - id: brand-defaults
   object:

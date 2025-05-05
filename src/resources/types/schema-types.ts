@@ -111,31 +111,30 @@ export type GiscusThemes =
   | "noborder_gray"
   | "preferred_color_scheme";
 
-export type Comments = false | {
-  giscus?: {
-    "repo-id"?: string /* The Github repository identifier.
+export type GiscusConfiguration = {
+  "repo-id"?: string /* The Github repository identifier.
 
 You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
 If this is not provided, Quarto will attempt to discover it at render time. */;
-    "category-id"?: string /* The Github category identifier.
+  "category-id"?: string /* The Github category identifier.
 
 You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
 If this is not provided, Quarto will attempt to discover it at render time. */;
-    "reactions-enabled"?:
-      boolean /* Display reactions for the discussion's main post before the comments. */;
-    "input-position"?:
-      | "top"
-      | "bottom" /* Place the comment input box above or below the comments. */;
-    category?:
-      string /* The discussion category where new discussions will be created. It is recommended
+  "reactions-enabled"?:
+    boolean /* Display reactions for the discussion's main post before the comments. */;
+  "input-position"?:
+    | "top"
+    | "bottom" /* Place the comment input box above or below the comments. */;
+  category?:
+    string /* The discussion category where new discussions will be created. It is recommended
 to use a category with the **Announcements** type so that new discussions
 can only be created by maintainers and giscus. */;
-    loading?: "lazy";
-    language?:
-      string /* The language that should be used when displaying the commenting interface. */;
-    mapping?:
-      | ("pathname" | "url" | "title" | "og:title")
-      | string /* The mapping between the page and the embedded discussion.
+  loading?: "lazy";
+  language?:
+    string /* The language that should be used when displaying the commenting interface. */;
+  mapping?:
+    | ("pathname" | "url" | "title" | "og:title")
+    | string /* The mapping between the page and the embedded discussion.
 
 - `pathname`: The discussion title contains the page path
 - `url`: The discussion title contains the page url
@@ -144,14 +143,14 @@ can only be created by maintainers and giscus. */;
 - any other string or number: Any other strings will be passed through verbatim and a discussion title
 containing that value will be used. Numbers will be treated
 as a discussion number and automatic discussion creation is not supported. */;
-    repo: string /* The Github repo that will be used to store comments.
+  repo: string /* The Github repo that will be used to store comments.
 
 In order to work correctly, the repo must be public, with the giscus app installed, and
 the discussions feature must be enabled. */;
-    theme?: string | GiscusThemes | {
-      dark?: string | GiscusThemes /* The dark theme name. */;
-      light?: string | GiscusThemes; /* The light theme name. */
-    }; /* The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key:
+  theme?: string | GiscusThemes | {
+    dark?: string | GiscusThemes /* The dark theme name. */;
+    light?: string | GiscusThemes; /* The light theme name. */
+  }; /* The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key:
 
 ```yaml
 website:
@@ -161,7 +160,10 @@ website:
         light: light # giscus theme used for light website theme
         dark: dark_dimmed # giscus theme used for dark website theme
 ``` */
-  };
+};
+
+export type DocumentCommentsConfiguration = false | {
+  giscus?: GiscusConfiguration;
   hypothesis?: boolean | {
     "client-url"?:
       string /* Override the default hypothesis client url with a custom client url. */;
@@ -454,7 +456,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
       | "light"
       | "dark";
   } /* Provides an announcement displayed at the top of the page. */;
-  comments?: Comments;
+  comments?: DocumentCommentsConfiguration;
   description?: string /* Website description */;
   drafts?: MaybeArrayOf<string>;
   favicon?: string /* The path to the favicon for this website */;
@@ -513,6 +515,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   search?: boolean | {
     "collapse-after"?: number;
     "copy-button"?: boolean;
+    "merge-navbar-crumbs"?: boolean;
     "keyboard-shortcut"?: MaybeArrayOf<
       string /* One or more keys that will act as a shortcut to launch search (single characters) */
     >;
@@ -1482,6 +1485,21 @@ export type Brand = {
   meta?: BrandMeta;
   typography?: BrandTypography;
 };
+
+export type BrandPathBoolLightDark =
+  | string
+  | boolean
+  | {
+    dark?:
+      | string
+      | Brand /* The path to a dark brand file or an inline dark brand definition. */;
+    light?:
+      | string
+      | Brand; /* The path to a light brand file or an inline light brand definition. */
+  }
+  | Brand; /* Branding information to use for this document. If a string, the path to a brand file.
+If false, don't use branding on this document. If an object, an inline brand
+definition, or an object with light and dark brand paths or definitions. */
 
 export type BrandDefaults = {
   bootstrap?: BrandDefaultsBootstrap;

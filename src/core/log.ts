@@ -19,6 +19,9 @@ import { lines } from "./text.ts";
 import { debug, error, getLogger, setup, warning } from "../deno_ral/log.ts";
 import { asErrorEx, InternalError } from "./lib/error.ts";
 import { onCleanup } from "./cleanup.ts";
+import { execProcess } from "./process.ts";
+import { pandocBinaryPath } from "./resources.ts";
+import { Block, pandoc } from "./pandoc/json.ts";
 
 export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
@@ -37,6 +40,7 @@ export interface LogMessageOptions {
   indent?: number;
   format?: (line: string) => string;
   colorize?: boolean;
+  stripAnsiCode?: boolean;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -156,9 +160,23 @@ export class StdErrOutputHandler extends BaseHandler {
     return msg;
   }
   log(msg: string): void {
-    Deno.stderr.writeSync(
-      new TextEncoder().encode(msg),
-    );
+    const encoder = new TextEncoder();
+    const data = encoder.encode(msg);
+
+    let bytesWritten = 0;
+    while (bytesWritten < data.length) {
+      // Write the remaining portion of the buffer
+      const remaining = data.subarray(bytesWritten);
+      const written = Deno.stderr.writeSync(remaining);
+
+      // If we wrote 0 bytes, something is wrong - avoid infinite loop
+      if (written === 0) {
+        // Could add fallback handling here if needed
+        break;
+      }
+
+      bytesWritten += written;
+    }
   }
 }
 
@@ -215,6 +233,7 @@ export class LogFileHandler extends FileHandler {
         ...logRecord.args[0] as LogMessageOptions,
         bold: false,
         dim: false,
+        stripAnsiCode: true,
         format: undefined,
       };
       let msg = applyMsgOptions(logRecord.msg, options);
@@ -344,8 +363,14 @@ Please consider reporting it at https://github.com/quarto-dev/quarto-cli. Thank 
     if (!message) {
       message = err.stack;
     } else {
-      message = message + "\n\nStack trace:\n" +
-        err.stack.split("\n").slice(1).join("\n");
+      const stackLines = err.stack.split("\n");
+      const firstAtLineIndex = stackLines.findIndex((line) =>
+        /^\s*at /.test(line)
+      );
+      if (firstAtLineIndex !== -1) {
+        const stackTrace = stackLines.slice(firstAtLineIndex).join("\n");
+        message = message + "\n\nStack trace:\n" + stackTrace;
+      }
     }
   }
 
@@ -397,7 +422,9 @@ function applyMsgOptions(msg: string, options: LogMessageOptions) {
   if (options.format) {
     msg = options.format(msg);
   }
-
+  if (options.stripAnsiCode) {
+    msg = colors.stripAnsiCode(msg);
+  }
   return msg;
 }
 
@@ -435,3 +462,42 @@ const levelMap: Record<
   warning: "WARN",
   error: "ERROR",
 };
+
+export async function logPandocJson(
+  blocks: Block[],
+) {
+  const src = JSON.stringify(pandoc({}, blocks), null, 2);
+  return logPandoc(src, "json");
+}
+
+const getColumns = () => {
+  try {
+    // Catch error in none tty mode: Inappropriate ioctl for device (os error 25)
+    return Deno.consoleSize().columns ?? 130;
+  } catch (_error) {
+    return 130;
+  }
+};
+
+export async function logPandoc(
+  src: string,
+  format: string = "markdown",
+) {
+  const cols = getColumns();
+  const result = await execProcess({
+    cmd: [
+      pandocBinaryPath(),
+      "-f",
+      format,
+      "-t",
+      "ansi",
+      `--columns=${cols}`,
+    ],
+    stdout: "piped",
+  }, src);
+  if (result.code !== 0) {
+    error(result.stderr);
+  } else {
+    log.info(result.stdout);
+  }
+}

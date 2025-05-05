@@ -1,0 +1,26 @@
+---
+title: Listings Test
+format: typst
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - '#figure\(\[\s+#set align\(left\)'
+          - '```sql\s+SELECT \* FROM Customers\s+```'
+          - '#ref\(<lst-customers>, supplement: \[Listing\]\)'
+          - 'Customers Query'
+        - []
+---
+
+::: {#lst-customers}
+
+```{.sql}
+SELECT * FROM Customers
+```
+Customers Query
+
+:::
+
+Then we query the customers database (@lst-customers).

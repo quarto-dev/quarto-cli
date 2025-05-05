@@ -14,6 +14,6 @@ See https://github.com/quarto-dev/quarto-cli/issues/6658
 
 ```{r}
 #| fig-cap: !expr caption
-caption = character(0)
+caption <- character(0)
 knitr::include_graphics("https://quarto.org/quarto.png")
 ```

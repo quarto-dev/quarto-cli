@@ -1,0 +1,14 @@
+---
+title: Callout with minimal appearance
+format:
+  html: 
+    quality: 1
+---
+
+::: {.callout-note appearance="minimal"}
+
+## Title
+
+{{< lipsum 1 >}}
+
+:::

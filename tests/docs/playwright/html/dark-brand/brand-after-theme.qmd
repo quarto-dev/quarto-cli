@@ -1,0 +1,58 @@
+---
+title: "dark brand - ggplot"
+brand:
+  dark: red-background.yml
+  light: blue-background.yml
+theme:
+  dark: [cyborg, brand]
+  light: [simplex, brand]
+execute:
+  echo: false
+  warning: false
+---
+
+```{r}
+#| echo: false
+#| warning: false
+library(ggplot2)
+
+ggplot_theme <- function(bgcolor, fgcolor) {
+  theme_minimal(base_size = 11) %+%
+    theme(
+      panel.border = element_blank(),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      text = element_text(colour = fgcolor),
+      axis.text = element_text(colour = fgcolor),
+      rect = element_rect(colour = bgcolor, fill = bgcolor),
+      plot.background = element_rect(fill = bgcolor, colour = NA),
+      axis.line = element_line(colour = fgcolor),
+      axis.ticks = element_line(colour = fgcolor)
+    )
+}
+
+brand_ggplot <- function(brand_yml) {
+  brand <- yaml::yaml.load_file(brand_yml)
+  ggplot_theme(brand$color$background, brand$color$foreground)
+}
+
+blue_theme <- brand_ggplot("blue-background.yml")
+red_theme <- brand_ggplot("red-background.yml")
+
+colour_scale <- scale_colour_manual(values = c("darkorange", "purple", "cyan4"))
+```
+
+
+```{r}
+#| renderings: [light, dark]
+ggplot(mtcars, aes(mpg, wt)) +
+  geom_point(aes(colour = factor(cyl))) +
+  blue_theme +
+  colour_scale
+ggplot(mtcars, aes(mpg, wt)) +
+  geom_point(aes(colour = factor(cyl))) +
+  red_theme +
+  colour_scale
+```

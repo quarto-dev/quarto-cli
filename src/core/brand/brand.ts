@@ -18,6 +18,8 @@ import {
 import { InternalError } from "../lib/error.ts";
 
 import { join, relative } from "../../deno_ral/path.ts";
+import { warnOnce } from "../log.ts";
+import { isCssColorName } from "../css/color-names.ts";
 
 // we can't programmatically convert typescript types to string arrays,
 // so we have to define this manually. They should match `BrandNamedThemeColor` in schema-types.ts
@@ -156,12 +158,12 @@ export class Brand {
       if (v) {
         logo[size] = v;
       }
-      for (const [key, value] of Object.entries(data.logo?.images ?? {})) {
-        if (typeof value === "string") {
-          logo.images[key] = { path: value };
-        } else {
-          logo.images[key] = value;
-        }
+    }
+    for (const [key, value] of Object.entries(data.logo?.images ?? {})) {
+      if (typeof value === "string") {
+        logo.images[key] = { path: value };
+      } else {
+        logo.images[key] = value;
       }
     }
 
@@ -176,7 +178,7 @@ export class Brand {
   // - if the name is in the "palette" key, use that value as they key for a recursive call (so color names can be aliased or redefined away from scss defaults)
   // - if the name is a default color name, call getColor recursively (so defaults can use named values)
   // - otherwise, assume it's a color value and return it
-  getColor(name: string): string {
+  getColor(name: string, quiet = false): string {
     const seenValues = new Set<string>();
 
     do {
@@ -198,6 +200,12 @@ export class Brand {
       ) {
         name = this.data.color[name as BrandNamedThemeColor]!;
       } else {
+        // if the name is not a default color name, assume it's a color value
+        if (!isCssColorName(name) && !quiet) {
+          warnOnce(
+            `"${name}" is not a valid CSS color name.\nThis might cause SCSS compilation to fail, or the color to have no effect.`,
+          );
+        }
         return name;
       }
     } while (seenValues.size < 100); // 100 ought to be enough for anyone, with apologies to Bill Gates
@@ -283,6 +291,11 @@ export class Brand {
     }
   }
 }
+
+export type LightDarkBrand = {
+  light?: Brand;
+  dark?: Brand;
+};
 
 export const getFavicon = (brand: Brand): string | undefined => {
   const logoInfo = brand.getLogo("small");

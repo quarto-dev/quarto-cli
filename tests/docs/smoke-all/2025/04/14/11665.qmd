@@ -1,0 +1,27 @@
+---
+title: Hello, `_brand.yml`!
+brand:
+  typography: 
+    monospace:
+      color: foreground
+format: html
+_quarto:
+  tests:
+    html:
+      noErrors: default
+      printsMessage:
+        level: WARN
+        regex: 'foreground.*valid CSS color name'
+---
+
+## Links
+
+Download the Positron Beta here: <https://positron.posit.co/download.html>
+
+Docs for `_brand.yml`: <https://posit-dev.github.io/brand-yml/>, <https://quarto.org/docs/authoring/brand.html>
+
+## Placeholder text
+
+This is an example document with a [number](https://quarto.org) of `features` to help you come with a nicely branded document.
+
+Duis ornare ex ac iaculis pretium. Maecenas sagittis odio id erat pharetra, sit amet consectetur quam sollicitudin. Vivamus pharetra quam purus, nec sagittis risus pretium at. Nullam feugiat, turpis ac accumsan interdum, sem tellus blandit neque, id vulputate diam quam semper nisl. Donec sit amet enim at neque porttitor aliquet. Phasellus facilisis nulla eget placerat eleifend. Vestibulum non egestas eros, eget lobortis ipsum. Nulla rutrum massa eget enim aliquam, id porttitor erat luctus. Nunc sagittis quis eros eu sagittis. Pellentesque dictum, erat at pellentesque sollicitudin, justo augue pulvinar metus, quis rutrum est mi nec felis. Vestibulum efficitur mi lorem, at elementum purus tincidunt a. Aliquam finibus enim magna, vitae pellentesque erat faucibus at. Nulla mauris tellus, imperdiet id lobortis et, dignissim condimentum ipsum. Morbi nulla orci, varius at aliquet sed, facilisis id tortor. Donec ut urna nisi.

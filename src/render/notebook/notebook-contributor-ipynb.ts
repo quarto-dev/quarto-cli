@@ -25,15 +25,13 @@ import { InternalError } from "../../core/lib/error.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { NotebookContributor, NotebookMetadata } from "./notebook-types.ts";
-
-import * as ld from "../../core/lodash.ts";
-
 import { error } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
 import { ipynbTitleTemplatePath } from "../../format/ipynb/format-ipynb.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { existsSync } from "../../deno_ral/fs.ts";
 import { dirname, join, relative } from "../../deno_ral/path.ts";
+import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 
 export const outputNotebookContributor: NotebookContributor = {
   resolve: resolveOutputNotebook,
@@ -67,7 +65,7 @@ function resolveOutputNotebook(
   executedFile: ExecutedFile,
   _notebookMetadata?: NotebookMetadata,
 ) {
-  const resolved = ld.cloneDeep(executedFile);
+  const resolved = safeCloneDeep(executedFile);
   resolved.recipe.format.pandoc[kOutputFile] = outputFile(nbAbsPath);
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
 

@@ -74,6 +74,16 @@ export interface JupyterCapabilitiesEx extends JupyterCapabilities {
   venv?: boolean;
 }
 
+// cf https://github.com/jupyter/nbformat/blob/main/nbformat/v4/nbformat.v4.schema.json
+// note that this doesn't directly define the kernelspec as used in kernel.json
+// but defines the kernelspec object used in .ipynb files
+//
+// note in addition that Quarto needs to know the language name which
+// might not come from the kernelspec itself but will exist in a language_info
+// field. When the kernelspec object in a jupyter notebook is missing the language field,
+// this object's language field will come from the language_info.name field
+//
+// see https://github.com/quarto-dev/quarto-cli/issues/12374
 export interface JupyterKernelspec {
   name: string;
   language: string;
@@ -88,10 +98,20 @@ export interface JupyterAssets {
   supporting_dir: string;
 }
 
+// cf https://github.com/jupyter/nbformat/blob/main/nbformat/v4/nbformat.v4.schema.json
+export type JupyterLanguageInfo = {
+  name: string;
+  codemirror_mode?: string | Record<string, unknown>;
+  file_extension?: string;
+  mimetype?: string;
+  pygments_lexer?: string;
+};
+
 export interface JupyterNotebook {
   metadata: {
     kernelspec: JupyterKernelspec;
     widgets?: Record<string, unknown>;
+    language_info?: JupyterLanguageInfo;
     [key: string]: unknown;
   };
   cells: JupyterCell[];

@@ -176,6 +176,8 @@ local typst_named_colors = {
   lime = '#01ff70',
 }
 
+local brandMode = param('brand-mode') or 'light'
+
 -- css can have fraction or percent
 -- typst can have int or percent
 -- what goes for opacity also goes for alpha
@@ -346,7 +348,7 @@ local function output_color(color, opacity, warnings)
       end
       color = parse_color(typst_named_colors[color.value] or css_named_colors[color.value])
     elseif color.type == 'brand' then
-      local cssColor = _quarto.modules.brand.get_color_css(color.value)
+      local cssColor = _quarto.modules.brand.get_color_css(brandMode, color.value)
       if not cssColor then
         output_warning(warnings, 'unknown brand color ' .. color.value)
         return nil
@@ -384,7 +386,7 @@ local function output_color(color, opacity, warnings)
         return nil
       end
     elseif color.type == 'brand' then
-      local cssColor = _quarto.modules.brand.get_color_css(color.value)
+      local cssColor = _quarto.modules.brand.get_color_css(brandMode, color.value)
       if not cssColor then
         output_warning(warnings, 'unknown brand color ' .. color.value)
         return nil
@@ -488,7 +490,7 @@ local css_lengths = {
   mm = passthrough,
   em = passthrough,
   rem = function(val, _, _, warnings)
-    local base = _quarto.modules.brand.get_typography('base')
+    local base = _quarto.modules.brand.get_typography(brandMode, 'base')
     if base and base.size then
       local base_size = parse_length(base.size)
       if not base_size then
@@ -634,6 +636,28 @@ local function translate_font_weight(w, warnings)
   end
 end
 
+local function dequote(s)
+  return s:gsub('^["\']', ''):gsub('["\']$', '')
+end
+
+local function quote(s)
+  return '"' .. s .. '"'
+end
+
+local function translate_font_family_list(sl)
+  if sl == nil then
+    return '()'
+  end
+  local strings = {}
+  for s in sl:gmatch('([^,]+)') do
+    s = s:gsub('^%s+', '')
+    table.insert(strings, quote(dequote(s)))
+  end
+  local trailcomma = #strings == 1 and ',' or ''
+  return '(' .. table.concat(strings, ', ') .. trailcomma .. ')'
+end
+
+
 local function translate_border_style(v, _warnings)
   local dash
   if v == 'none' then
@@ -746,6 +770,7 @@ local function expand_side_shorthand(items, context, warnings)
 end
 
 return {
+  set_brand_mode = set_brand_mode,
   parse_color = parse_color,
   parse_opacity = parse_opacity,
   output_color = output_color,
@@ -760,6 +785,7 @@ return {
   translate_border_style = translate_border_style,
   translate_border_color = translate_border_color,
   translate_font_weight = translate_font_weight,
+  translate_font_family_list = translate_font_family_list,
   consume_width = consume_width,
   consume_style = consume_style,
   consume_color = consume_color
