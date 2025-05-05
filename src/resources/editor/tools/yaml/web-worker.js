@@ -17143,7 +17143,19 @@ try {
                 "beamer"
               ]
             },
-            description: "The Beamer color theme for this presentation."
+            description: "The Beamer color theme for this presentation, passed to `\\usecolortheme`."
+          },
+          {
+            name: "colorthemeoptions",
+            schema: {
+              maybeArrayOf: "string"
+            },
+            tags: {
+              formats: [
+                "beamer"
+              ]
+            },
+            description: "The Beamer color theme options for this presentation, passed to `\\usecolortheme`."
           },
           {
             name: "fonttheme",
@@ -17153,7 +17165,19 @@ try {
                 "beamer"
               ]
             },
-            description: "The Beamer font theme for this presentation."
+            description: "The Beamer font theme for this presentation, passed to `\\usefonttheme`."
+          },
+          {
+            name: "fontthemeoptions",
+            schema: {
+              maybeArrayOf: "string"
+            },
+            tags: {
+              formats: [
+                "beamer"
+              ]
+            },
+            description: "The Beamer font theme options for this presentation, passed to `\\usefonttheme`."
           },
           {
             name: "innertheme",
@@ -17163,7 +17187,19 @@ try {
                 "beamer"
               ]
             },
-            description: "The Beamer inner theme for this presentation."
+            description: "The Beamer inner theme for this presentation, passed to `\\useinnertheme`."
+          },
+          {
+            name: "innerthemeoptions",
+            schema: {
+              maybeArrayOf: "string"
+            },
+            tags: {
+              formats: [
+                "beamer"
+              ]
+            },
+            description: "The Beamer inner theme options for this presentation, passed to `\\useinnertheme`."
           },
           {
             name: "outertheme",
@@ -17173,7 +17209,19 @@ try {
                 "beamer"
               ]
             },
-            description: "The Beamer outer theme for this presentation."
+            description: "The Beamer outer theme for this presentation, passed to `\\useoutertheme`."
+          },
+          {
+            name: "outerthemeoptions",
+            schema: {
+              maybeArrayOf: "string"
+            },
+            tags: {
+              formats: [
+                "beamer"
+              ]
+            },
+            description: "The Beamer outer theme options for this presentation, passed to `\\useoutertheme`."
           },
           {
             name: "themeoptions",
@@ -17185,7 +17233,7 @@ try {
                 "beamer"
               ]
             },
-            description: "Options passed to LaTeX Beamer themes."
+            description: "Options passed to LaTeX Beamer themes inside `\\usetheme`."
           },
           {
             name: "section",
@@ -22965,7 +23013,6 @@ try {
           "The light theme name, theme scss file, or a mix of both.",
           "The dark theme name, theme scss file, or a mix of both.",
           "The dark theme name, theme scss file, or a mix of both.",
-          "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
           "Classes to apply to the body of the document.",
           "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
           "Enables inclusion of Pandoc default CSS for this document.",
@@ -24070,7 +24117,11 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+          "The Beamer color theme options for this presentation, passed to\n<code>\\usecolortheme</code>.",
+          "The Beamer font theme options for this presentation, passed to\n<code>\\usefonttheme</code>.",
+          "The Beamer inner theme options for this presentation, passed to\n<code>\\useinnertheme</code>.",
+          "The Beamer outer theme options for this presentation, passed to\n<code>\\useoutertheme</code>."
         ],
         "schema/external-schemas.yml": [
           {
@@ -24299,12 +24350,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 195e3,
+          _internalId: 194592,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 194992,
+              _internalId: 194584,
               type: "enum",
               enum: [
                 "png",
@@ -24320,7 +24371,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 194999,
+              _internalId: 194591,
               type: "anyOf",
               anyOf: [
                 {
