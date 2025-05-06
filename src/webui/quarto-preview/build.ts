@@ -17,6 +17,7 @@ const buildFromArgs = () => {
 };
 
 const run = async (args: string[], quiet = true) => {
+  console.log(`Running: ${Deno.execPath()} ${args.join(" ")}`);
   const command = new Deno.Command(Deno.execPath(), {
     args,
   });
