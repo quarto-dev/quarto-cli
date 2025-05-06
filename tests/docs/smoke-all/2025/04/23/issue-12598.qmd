@@ -1,0 +1,13 @@
+---
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - ["div.fragment"]
+        - []
+---
+
+## Slide title
+
+![caption](image.jpg){.fragment}

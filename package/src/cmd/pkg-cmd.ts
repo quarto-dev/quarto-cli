@@ -9,7 +9,7 @@ import { join } from "../../../src/deno_ral/path.ts";
 
 import { group } from "../../../src/tools/github.ts";
 
-import { printConfiguration } from "../common/config.ts";
+import { configurationAST, printConfiguration } from "../common/config.ts";
 
 import {
   Configuration,
@@ -17,6 +17,7 @@ import {
   kValidOS,
   readConfiguration,
 } from "../common/config.ts";
+import { logPandocJson } from "../../../src/core/log.ts";
 
 export const kLogLevel = "logLevel";
 export const kVersion = "setVersion";
@@ -52,7 +53,11 @@ export function packageCommand(run: (config: Configuration) => Promise<void>, co
 
       // Print the configuration
       await group("Configuration info", async () => {
-        printConfiguration(config);
+        try {
+          await logPandocJson(configurationAST(config));
+        } catch (e) {
+          printConfiguration(config);
+        }
       });
 
       await group(commandName, async () => {

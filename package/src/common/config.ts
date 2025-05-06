@@ -11,6 +11,8 @@ import { info } from "../../../src/deno_ral/log.ts";
 import { getEnv } from "../util/utils.ts";
 
 import { os as platformOs } from "../../../src/deno_ral/platform.ts"
+import * as Pandoc from "../../../src/core/pandoc/json.ts";
+import { fromObjects } from "../../../src/core/pandoc/table.ts";
 
 // The core configuration for the packaging process
 export interface Configuration extends PlatformConfiguration {
@@ -114,6 +116,36 @@ export function readConfiguration(
     os: cmdOs as "windows" | "linux" | "darwin",
     arch: cmdArch as "x86_64" | "aarch64",
   };
+}
+
+export function configurationAST(config: Configuration): Pandoc.Block[] {
+  const makeObject = (
+    obj: {
+      key: string,
+      value: string
+  },
+  ) => ({
+    "key": [Pandoc.plain([Pandoc.str(obj.key)])], 
+    "value": [Pandoc.plain([Pandoc.code(obj.value)])]
+  });
+  const configTable = fromObjects([
+    {key: "OS", value: config.os},
+    {key: "Arch", value: config.arch},
+    {key: "Version", value: config.version},
+    {key: "Cwd", value: Deno.cwd()},
+    {key: "Package folder (build source)", value: config.directoryInfo.pkg},
+    {key: "Dist folder (output folder)", value: config.directoryInfo.dist},
+    {key: "Bin folder", value: config.directoryInfo.bin},
+    {key: "Share folder", value: config.directoryInfo.share},
+    {key: "Package working folder", value: config.directoryInfo.pkgWorking.root},
+  ].map(makeObject), undefined, [
+    Pandoc.colspec("AlignLeft", {t: "ColWidth", c: 0.3}),
+    Pandoc.colspec("AlignLeft", {t: "ColWidth", c: 0.6}),
+  ]);
+  return [
+    Pandoc.header(2, [Pandoc.str("Configuration:")]),
+    configTable,
+  ];
 }
 
 export function printConfiguration(config: Configuration) {

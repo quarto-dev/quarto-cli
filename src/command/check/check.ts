@@ -254,7 +254,7 @@ async function checkVersions(conf: CheckConfiguration) {
   const checkData: [string | undefined, string, string][] = strict
     ? [
       [pandocVersion, "3.6.3", "Pandoc"],
-      [sassVersion, "1.85.1", "Dart Sass"],
+      [sassVersion, "1.87.0", "Dart Sass"],
       [denoVersion, "2.2.10", "Deno"],
       [typstVersion, "0.13.0", "Typst"],
     ]
