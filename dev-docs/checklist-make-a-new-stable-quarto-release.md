@@ -30,8 +30,17 @@
       - **Publishing Production**: You may elect to publish to production pypyi by checking the `Production Release` option
         - Published to: <https://pypi.org/project/quarto-cli/>
     - Take a sip of tea ☕, bask in the glory of automation.
-- [ ] If quarto.org download page is updated with the new stable release, trigger a stable release deploy to Chocolatey.
+- [ ] push release to chocolatey (Only once quarto.org download page is updated with the new release)
   - Got to <https://github.com/quarto-dev/quarto-release-bundles/actions/workflows/build-and-publish-choco.yaml>
   - In the "Build Choco package & Publish" workflow, click "Run Workflow" and be sure to check the "Whether to publish or not the package on chocolatey" checkbox
   - Wait for @cderv to receive email confirmation, no action needed.
 - [ ] Update the stable changelog by moving entries to the "in previous release". Use "[release checklist]" in the commit message to make it easier to spot if a new release is needed next month.
+
+- Others installers
+  - conda-forge: An automated PR will be created to update the package version in the feedstock <github.com/conda-forge/quarto-feedstock>
+    - This is community maintained, so no action is needed from us - except maybe helping if there are issues with the PR. We are assigned as reviewers to the PR.
+    - Winget: An automated PR will be created by a winget bot in <github.com/microsoft/winget-pkgs/>.
+      - This is community maintained, so no action is needed from us.
+    - Scoop: This will be updated automatically in the manifests repo. No action is needed from us. Maintained as personal project by @cderv.
+    - Homebrew: This is automated through an homebrew bot to update the cask <https://github.com/Homebrew/homebrew-cask>
+      - Manisfest: <https://github.com/Homebrew/homebrew-cask/blob/master/Casks/q/quarto.rb>
