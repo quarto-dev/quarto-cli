@@ -17,6 +17,7 @@
   - this means flipping the profile group configuration in `_quarto.yml` from `[rc,prelease]` to `[prerelease,rc]`
     - [ ] push the changes to the `main` branch
 - [ ] quarto-dev/quarto-web changes
+
   - wait for the downloads file to be automatically updated by the GitHub Action on https://github.com/quarto-dev/quarto-web
     - [ ] wait for https://github.com/quarto-dev/quarto-web/actions/workflows/update-downloads.yml to run (it runs every 15 minutes, or you can manually trigger it)
       - This workflow run rendered the website: https://github.com/quarto-dev/quarto-web/actions/runs/12016407762
@@ -29,7 +30,7 @@
       - [ ] create `docs/prerelease/1.5/{_highlights, index, _pre-release-feature}.qmd` files based on the ones from the previous release
       - [ ] change `docs/prerelease/_highlights.qmd` so its include points to the new version-specific `_highlights.qmd` file (here, 1.5)
       - [ ] change `docs/prerelease/_highlights-release.qmd` so its include points to the new version-specific `_highlights.qmd` file (here, 1.4)
-    - [ ] add the stable version to the older downloads list by editing /docs/download/_download-older.yml
+    - [ ] add the stable version to the older downloads list by editing /docs/download/\_download-older.yml
     - [ ] run `quarto run tools/release-notes.R` to generate the release notes
   - [ ] push the changes to `prerelease` branch, ensure they build correctly
   - [ ] Merge the `prerelease` branch into `main`, push to `main`
@@ -43,16 +44,15 @@
     - [ ] edit `_quarto-prerelease-docs.yml` to point to the new version
   - [ ] publish the release blog post that should exist in https://github.com/quarto-dev/quarto-web/tree/main/docs/blog/posts
     - [ ] Create a branch off of `main` (to trigger our PR automation to make the corresponding change to `prerelease`).
-    - [ ] Removing the `draft: true` line in the metadata 
-    - [ ] Change the date to match the release date. 
+    - [ ] Removing the `draft: true` line in the metadata
+    - [ ] Change the date to match the release date.
 
 - [ ] Update https://github.com/quarto-dev/quarto-cli/blob/main/CITATION.cff
 - [ ] Packaging and package managers, etc
   - TBD winget, etc?
   - [ ] chocolatey
-    - https://github.com/quarto-dev/quarto-release-bundles/
-    - Go to "Select 'Publish Quarto PyPi'"
-    - [ ] Click "Run Workflow"
+    - https://github.com/quarto-dev/quarto-release-bundles/actions/workflows/build-and-publish-choco.yaml
+    - [ ] In "Build Choco package & Publish" workflow page, click "Run Workflow"
       - Check the "Whether to publish or not the package on chocolatey" checkbox
     - Wait for @cderv to receive email confirmation, no action needed
   - [ ] pypi
