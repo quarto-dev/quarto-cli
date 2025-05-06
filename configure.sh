@@ -41,7 +41,7 @@ if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
 
     ## Binary Directory
     mkdir -p "$QUARTO_BIN_PATH/tools"
-    cd "$QUARTO_BIN_PATH/tools"
+    pushd "$QUARTO_BIN_PATH/tools"
 
     # Download Deno
     for DENOFILE in $DENOFILES; do
@@ -64,6 +64,8 @@ if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
     # write deno version file for later use
     mkdir -p "$QUARTO_BIN_PATH/../config"
     echo "$DENO" > "$QUARTO_BIN_PATH/../config/deno-version"
+
+    popd
   fi
   export DENO_BIN_PATH=$QUARTO_BIN_PATH/tools/$DENO_ARCH_DIR/deno
 else
