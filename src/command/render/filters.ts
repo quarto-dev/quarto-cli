@@ -549,7 +549,7 @@ function jatsFilterParams(options: PandocOptions) {
 
 function notebookContextFilterParams(options: PandocOptions) {
   const nbContext = options.services.notebook;
-  const notebooks = nbContext.all();
+  const notebooks = nbContext.all(options.project);
   if (notebooks.length > 0) {
     return {
       "notebook-context": notebooks,
