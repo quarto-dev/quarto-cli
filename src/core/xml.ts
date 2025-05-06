@@ -18,8 +18,8 @@ export async function reformat(xmlFile: string) {
     const xmlLint = await which(kXmlLint);
     if (xmlLint) {
       const result = await execProcess({
-        cmd: [
-          kXmlLint,
+        cmd: kXmlLint,
+        args: [
           xmlFile,
           "--format",
           "-o",

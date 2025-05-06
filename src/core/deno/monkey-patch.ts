@@ -27,6 +27,9 @@ function withAttempts<T>(callable: () => T) {
     try {
       return callable();
     } catch (err) {
+      if (!(err instanceof Error)) {
+        throw err;
+      }
       if (err.message) {
         debug("Error attempting to create temp file: " + err.message);
         if (i === maxAttempts - 1) {
@@ -43,6 +46,9 @@ function withAttempts<T>(callable: () => T) {
 function withAttemptsAsync<T>(callable: () => Promise<T>) {
   const inner = (attempt: number): Promise<T> => {
     return callable().catch((err) => {
+      if (!(err instanceof Error)) {
+        throw err;
+      }
       if (err.message) {
         debug("Error attempting to create temp file: " + err.message);
       }
@@ -91,6 +97,9 @@ Deno.readTextFile = async (
     const result = await oldReadTextFile(path, options);
     return result;
   } catch (err) {
+    if (!(err instanceof Error)) {
+      throw err;
+    }
     if (err.message) {
       err.message = err.message + "\n" + "Path: " + path;
     }
@@ -103,6 +112,9 @@ Deno.readTextFileSync = (path: string | URL) => {
     const result = oldReadTextFileSync(path);
     return result;
   } catch (err) {
+    if (!(err instanceof Error)) {
+      throw err;
+    }
     if (err.message) {
       err.message = err.message + "\n" + "Path: " + path;
     }

@@ -84,7 +84,9 @@ export function safeMoveSync(
 ): void {
   try {
     Deno.renameSync(src, dest);
-  } catch (err) {
+    // deno-lint-ignore no-explicit-any
+  } catch (err: any) {
+    // code isn't part of the generic error object, which is why we use `: any`
     if (err.code !== "EXDEV") {
       throw err;
     }

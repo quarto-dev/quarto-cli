@@ -1,9 +1,8 @@
 /*
-* retry.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * retry.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { sleep } from "./wait.ts";
 
@@ -23,12 +22,13 @@ export async function withRetry<T = void>(
     minWait = 1000,
     maxWait = 4000,
     retry = () => true,
-  } = (options || {});
+  } = options || {};
   let attempt = 0;
   while (true) {
     try {
       return fn();
     } catch (err) {
+      if (!(err instanceof Error)) throw err;
       if ((attempt++ >= attempts) || (retry && !retry(err))) {
         throw err;
       }

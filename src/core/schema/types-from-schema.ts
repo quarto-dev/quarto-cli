@@ -27,9 +27,9 @@ export function typeNameFromSchemaName(schemaName: string) {
 }
 
 function fmtSource(source: string) {
-  return Deno.run({
-    cmd: [Deno.execPath(), "fmt", source],
-  }).status();
+  return new Deno.Command(Deno.execPath(), {
+    args: ["fmt", source],
+  }).output();
 }
 
 export const generatedSrcMessage =

@@ -12,8 +12,8 @@ import { isWindows } from "../../../src/deno_ral/platform.ts";
 
 unitTest("stdlib-run-version", async () => {
   const result = await execProcess({
-    cmd: [
-      "quarto",
+    cmd: "quarto", 
+    args: [
       "run",
       "docs/run/test-stdlib.ts",
     ],

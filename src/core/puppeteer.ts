@@ -125,6 +125,7 @@ export async function withPuppeteerBrowserAndPage<T>(
         return result!;
       }
     } catch (error) {
+      if (!(error instanceof Error)) throw error;
       if (
         (allowedErrorMessages.indexOf(error.message) !== -1) &&
         (attempts < maxAttempts)
@@ -166,6 +167,7 @@ export async function inPuppeteer(
         return clientSideResult;
       });
     } catch (error) {
+      if (!(error instanceof Error)) throw error;
       if (
         (allowedErrorMessages.indexOf(error.message) !== -1) &&
         (attempts < maxAttempts)

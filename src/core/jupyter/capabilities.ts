@@ -203,8 +203,9 @@ function getPyLauncherJupyterCapabilities() {
 async function getJupyterCapabilities(cmd: string[], pyLauncher = false) {
   try {
     const result = await execProcess({
-      cmd: [
-        ...cmd,
+      cmd: cmd[0],
+      args: [
+        ...cmd.slice(1),
         resourcePath("capabilities/jupyter.py"),
       ],
       stdout: "piped",

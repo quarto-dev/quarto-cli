@@ -113,7 +113,7 @@ export function logLevel() {
 }
 
 export class StdErrOutputHandler extends BaseHandler {
-  format(logRecord: LogRecord, prefix = true): string {
+  override format(logRecord: LogRecord, prefix = true): string {
     // Set default options
     const options = {
       newline: true,
@@ -186,7 +186,7 @@ export class LogEventsHandler extends StdErrOutputHandler {
       formatter: (({ msg }) => `${msg}`),
     });
   }
-  handle(logRecord: LogRecord) {
+  override handle(logRecord: LogRecord) {
     if (this.level > logRecord.level) return;
 
     LogEventsHandler.handlers_.forEach((handler) =>
@@ -214,11 +214,11 @@ export class LogFileHandler extends FileHandler {
   }
   msgFormat;
 
-  flush(): void {
+  override flush(): void {
     this.logger.flush();
   }
 
-  format(logRecord: LogRecord): string {
+  override format(logRecord: LogRecord): string {
     // Messages that start with a carriage return are progress messages
     // that rewrite a line, so just ignore these
     if (logRecord.msg.startsWith("\r")) {
@@ -253,7 +253,7 @@ export class LogFileHandler extends FileHandler {
     }
   }
 
-  async log(msg: string) {
+  override async log(msg: string) {
     // Ignore any messages that are blank
     if (msg !== "") {
       this.logger.log(msg);
@@ -485,8 +485,8 @@ export async function logPandoc(
 ) {
   const cols = getColumns();
   const result = await execProcess({
-    cmd: [
-      pandocBinaryPath(),
+    cmd: pandocBinaryPath(),
+    args: [
       "-f",
       format,
       "-t",
