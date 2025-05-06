@@ -11,7 +11,6 @@ runs:
         key: ${{ runner.os }}-deno_std-2-${{ hashFiles('./src/resources/deno_std/deno_std.lock', './package/scripts/deno_std/deno_std.ts') }}
         restore-keys: |
           ${{ runner.os }}-deno_std-2-
-          ${{ runner.os }}-deno_std-
 
     - name: Configure Quarto (.sh)
       if: runner.os != 'Windows'
