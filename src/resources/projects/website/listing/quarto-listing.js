@@ -8,9 +8,9 @@ window.quartoListingCategory = (category) => {
   category = decodeURIComponent(atob(category));
   selectedCategories.clear();
   selectedCategories.add(category);
-  updateCategoryUI();
-  filterListingCategory();
+
   setCategoryHash();
+  updateCategory();
 };
 
 window["quarto-listing-loaded"] = () => {
@@ -24,13 +24,11 @@ window["quarto-listing-loaded"] = () => {
       for (const cat of cats) {
         if (cat) selectedCategories.add(decodeURIComponent(cat));
       }
-      updateCategoryUI();
-      filterListingCategory();
+      updateCategory();
     } else {
       // No categories in hash, use default
       selectedCategories.add(kDefaultCategory);
-      updateCategoryUI();
-      filterListingCategory();
+      updateCategory();
     }
     // Paginate a specific listing
     const listingIds = Object.keys(window["quarto-listings"]);
@@ -43,8 +41,7 @@ window["quarto-listing-loaded"] = () => {
   } else {
     // No hash at all, use default category
     selectedCategories.add(kDefaultCategory);
-    updateCategoryUI();
-    filterListingCategory();
+    updateCategory();
   }
 
   const listingIds = Object.keys(window["quarto-listings"]);
@@ -90,12 +87,17 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       }
 
       // If this would deselect the last category, ensure default category remains selected
-      if (selectedCategories.has(category) && selectedCategories.size === 1) {
-        selectedCategories.add(kDefaultCategory);
+      if (selectedCategories.has(category)) {
+        selectedCategories.delete(category);
+        if (selectedCategories.size === 1) {
+          selectedCategories.add(kDefaultCategory);
+        }
+      } else {
+        selectedCategories.add(category);
       }
 
-      activateCategory(category);
       setCategoryHash();
+      updateCategory();
     };
   }
 
@@ -107,9 +109,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   for (const categoryTitleEl of categoryTitleEls) {
     categoryTitleEl.onclick = () => {
       selectedCategories.clear();
-      updateCategoryUI();
       setCategoryHash();
-      filterListingCategory();
+      updateCategory();
     };
   }
 
@@ -120,13 +121,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     for (const cat of cats) {
       if (cat) selectedCategories.add(decodeURIComponent(cat));
     }
-    updateCategoryUI();
-    filterListingCategory();
+    updateCategory();
   } else {
     // No hash at all, use default category
     selectedCategories.add(kDefaultCategory);
-    updateCategoryUI();
-    filterListingCategory();
+    updateCategory();
   }
 
   categoriesLoaded = true;
@@ -256,12 +255,7 @@ function showPage(listingId, page) {
   }
 }
 
-function activateCategory(category) {
-  if (selectedCategories.has(category)) {
-    selectedCategories.delete(category);
-  } else {
-    selectedCategories.add(category);
-  }
+function updateCategory() {
   updateCategoryUI();
   filterListingCategory();
 }
