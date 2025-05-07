@@ -23,6 +23,10 @@ Deno.realPathSync = normalizePath;
 // deno-lint-ignore no-explicit-any
 (Deno as any).writeAll = writeAll;
 
+// TODO:
+// Puppeteer (and only Puppeteer) uses Deno.run, but it still more-or-less exists
+// in the Deno namespace.
+
 // 2023-02-14: We're seeing a rare failure in Deno.makeTempFile{,Sync} with FileExists, so we're going to try
 // a few times to create the file. If it fails, we'll log the error and try again.
 // If it fails 5 times, we'll throw the error.
