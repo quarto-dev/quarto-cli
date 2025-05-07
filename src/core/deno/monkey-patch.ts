@@ -6,7 +6,7 @@
 
 import { debug } from "../../deno_ral/log.ts";
 import { normalizePath } from "../path.ts";
-import { getStack } from "./debug.ts";
+import { copy } from "io/copy";
 
 // Windows UNC paths can be mishandled by realPathSync
 // (see https://github.com/quarto-dev/quarto-vscode/issues/67)
@@ -14,6 +14,11 @@ import { getStack } from "./debug.ts";
 // parts of realPathSync (we aren't interested in the symlink
 // resolution, and certainly not on windows that has no symlinks!)
 Deno.realPathSync = normalizePath;
+
+// some of our dependencies use Deno.copy and have not been ported to Deno 2
+//
+// deno-lint-ignore no-explicit-any
+(Deno as any).copy = copy;
 
 // 2023-02-14: We're seeing a rare failure in Deno.makeTempFile{,Sync} with FileExists, so we're going to try
 // a few times to create the file. If it fails, we'll log the error and try again.
