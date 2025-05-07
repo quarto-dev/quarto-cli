@@ -110,20 +110,18 @@ export async function check(
     }
     checkInfoMsg(conf, `Quarto ${quartoConfig.version()}`);
 
-    if (target === "info" || target === "all") {
-      await checkInfo(conf);
-    }
-    if (target === "versions" || target === "all") {
-      await checkVersions(conf);
-    }
-    if (target === "install" || target === "all") {
-      await checkInstall(conf);
-    }
-    if (target === "jupyter" || target === "all") {
-      await checkJupyterInstallation(conf);
-    }
-    if (target === "knitr" || target === "all") {
-      await checkKnitrInstallation(conf);
+    for (
+      const [name, checker] of [
+        ["info", checkInfo],
+        ["versions", checkVersions],
+        ["install", checkInstall],
+        ["jupyter", checkJupyterInstallation],
+        ["knitr", checkKnitrInstallation],
+      ] as const
+    ) {
+      if (target === name || target === "all") {
+        await checker(conf);
+      }
     }
 
     if (conf.jsonResult && conf.output) {
@@ -255,14 +253,14 @@ async function checkVersions(conf: CheckConfiguration) {
     ? [
       [pandocVersion, "3.6.3", "Pandoc"],
       [sassVersion, "1.87.0", "Dart Sass"],
-      [denoVersion, "2.2.10", "Deno"],
+      [denoVersion, "2.3.1", "Deno"],
       [typstVersion, "0.13.0", "Typst"],
     ]
     : [
-      [pandocVersion, ">=2.19.2", "Pandoc"],
-      [sassVersion, ">=1.32.8", "Dart Sass"],
-      [denoVersion, ">=2.2.10", "Deno"],
-      [typstVersion, ">=0.10.0", "Typst"],
+      [pandocVersion, ">=3.6.3", "Pandoc"],
+      [sassVersion, ">=1.87.0", "Dart Sass"],
+      [denoVersion, ">=2.3.1", "Deno"],
+      [typstVersion, ">=0.13.0", "Typst"],
     ];
   const fun = strict ? strictCheckVersion : checkVersion;
   for (const [version, constraint, name] of checkData) {
