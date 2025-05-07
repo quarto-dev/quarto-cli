@@ -2,6 +2,8 @@
 
 ## In this release
 
+- ([#12700](https://github.com/quarto-dev/quarto-cli/issues/12700)): Giscus not loading on a site without dark mode configured.
+
 ## In previous releases
 
 - ([#6607](https://github.com/quarto-dev/quarto-cli/issues/6607)): Add missing beamer template update for beamer theme options: `colorthemeoptions`, `fontthemeoptions`, `innerthemeoptions` and `outerthemeoptions`.
