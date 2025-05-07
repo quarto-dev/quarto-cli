@@ -6,9 +6,11 @@
     const getTheme = () => {
       let baseTheme = document.getElementById('giscus-base-theme').value;
       let altTheme = document.getElementById('giscus-alt-theme').value;
+      <% if (darkMode !== undefined) { %>
       if (authorPrefersDark) {
           [baseTheme, altTheme] = [altTheme, baseTheme];
       }
+      <% } %>
       return document.body.classList.contains('quarto-dark') ? altTheme : baseTheme;
     };
     const script = document.createElement("script");
