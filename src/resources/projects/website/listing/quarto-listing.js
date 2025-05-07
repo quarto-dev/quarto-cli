@@ -9,8 +9,8 @@ window.quartoListingCategory = (category) => {
   selectedCategories.clear();
   selectedCategories.add(category);
 
-  setCategoryHash();
   updateCategory();
+  setCategoryHash();
 };
 
 window["quarto-listing-loaded"] = () => {
@@ -96,8 +96,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         selectedCategories.add(category);
       }
 
-      setCategoryHash();
       updateCategory();
+      setCategoryHash();
     };
   }
 
@@ -109,8 +109,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   for (const categoryTitleEl of categoryTitleEls) {
     categoryTitleEl.onclick = () => {
       selectedCategories.clear();
-      setCategoryHash();
       updateCategory();
+      setCategoryHash();
     };
   }
 
