@@ -15,3 +15,10 @@
 /*global define, module */
 
 /*eslint no-undef: "error"*/
+
+/* puppeteer globals 
+    45454:11  error  Definition for rule '@typescript-eslint/ban-ts-comment' was not found  @typescript-eslint/ban-ts-comment*/
+    
+/*global NodeFilter, ShadowRoot, Node, IntersectionObserver, Event, DataTransfer, XPathResult, base64Decode */
+/*global XMLSerializer, predicateQueryHandler, checkWaitForOptions, MutationObserver, requestAnimationFrame, FileReader */
+/*global name, createIterResult, navigator */

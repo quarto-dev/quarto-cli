@@ -9,7 +9,7 @@ source "${SCRIPT_PATH}/../../configuration"
 source "${SCRIPT_PATH}/set_package_paths.sh"
 
 if [ -z "$QUARTO_DENO" ]; then
-  export QUARTO_DENO=$SCRIPT_PATH/../dist/bin/tools/$DENO_DIR/deno
+  export QUARTO_DENO=$SCRIPT_PATH/../dist/bin/tools/$DENO_ARCH_DIR/deno
 fi
 
 export RUST_BACKTRACE=full

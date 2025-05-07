@@ -159,7 +159,7 @@ export class StdErrOutputHandler extends BaseHandler {
 
     return msg;
   }
-  log(msg: string): void {
+  override log(msg: string): void {
     const encoder = new TextEncoder();
     const data = encoder.encode(msg);
 

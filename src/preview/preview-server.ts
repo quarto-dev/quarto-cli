@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { MuxAsyncIterator } from "async/mux-async-iterator";
+import { MuxAsyncIterator } from "async";
 import { isWindows } from "../deno_ral/platform.ts";
 
 export interface PreviewServer {
