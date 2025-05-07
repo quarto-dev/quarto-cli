@@ -20,10 +20,7 @@ import {
   initState,
   setInitializer,
 } from "../../core/lib/yaml-validation/state.ts";
-import {
-  projectContext,
-  projectInputFiles,
-} from "../../project/project-context.ts";
+import { projectContext } from "../../project/project-context.ts";
 
 import {
   projectIsManuscript,
@@ -292,20 +289,23 @@ async function publish(
       await openUrl(siteUrl.toString());
     }
   } catch (err) {
-    // attempt to recover from unauthorized
-    if (provider.isUnauthorized(err) && options.prompt) {
-      if (await handleUnauthorized(provider, account)) {
-        const authorizedAccount = await provider.authorizeToken(
-          options,
-          target,
-        );
-        if (authorizedAccount) {
-          // recursve after re-authorization
-          return await publish(provider, authorizedAccount, options, target);
-        }
-      }
-    } else {
+    if (!(err instanceof Error)) {
+      // shouldn't ever happen
       throw err;
+    }
+    // attempt to recover from unauthorized
+    if (!(provider.isUnauthorized(err) && options.prompt)) {
+      throw err;
+    }
+    if (await handleUnauthorized(provider, account)) {
+      const authorizedAccount = await provider.authorizeToken(
+        options,
+        target,
+      );
+      if (authorizedAccount) {
+        // recursve after re-authorization
+        return await publish(provider, authorizedAccount, options, target);
+      }
     }
   }
 }

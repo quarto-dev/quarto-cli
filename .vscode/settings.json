@@ -2,6 +2,18 @@
   "[typescript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
   },
+  "notebook.formatOnSave.enabled": false,
+  "notebook.codeActionsOnSave": {
+    "notebook.source.organizeImports": "explicit"
+  },
+  "pylint.enabled": false,
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
   "[r]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "Posit.air-vscode"
@@ -12,6 +24,10 @@
   },
   "[html]": {
     "editor.formatOnSave": false
+  },
+  "[toml]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "tamasfe.even-better-toml"
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,

@@ -60,17 +60,19 @@ export const quartoConfig = {
   },
   dotenv: async (forceReload?: boolean): Promise<Record<string, string>> => {
     if (forceReload || !dotenvConfig) {
+      const defaultOptions: ConfigOptions = {
+        envPath: join(quartoConfig.sharePath(), "env", "env.defaults"),
+      };
+      dotenvConfig = await config(defaultOptions);
       const options: ConfigOptions = {
-        defaultsPath: join(quartoConfig.sharePath(), "env", "env.defaults"),
-        // On dev mode only (QUARTO_DEBUG='true'), we load the .env file in root quarto-cli project
         envPath: quartoConfig.isDebug()
           ? join(quartoConfig.sharePath(), "..", "..", ".env")
           : null,
-        // we don't want any `.env.example` o be loaded, especially one from working dir
-        // https://github.com/quarto-dev/quarto-cli/issues/9262
-        examplePath: null,
       };
-      dotenvConfig = await config(options);
+      const otherConfig = await config(options);
+      for (const key of Object.keys(otherConfig)) {
+        dotenvConfig[key] = otherConfig[key];
+      }
     }
     return dotenvConfig;
   },

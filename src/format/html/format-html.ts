@@ -609,7 +609,7 @@ export async function htmlFormatExtras(
       giscusAfterBody,
       renderEjs(
         formatResourcePath("html", join("giscus", "giscus.ejs")),
-        { giscus },
+        { giscus, darkMode: options.darkMode },
       ),
     );
     includeAfterBody.push(giscusAfterBody);

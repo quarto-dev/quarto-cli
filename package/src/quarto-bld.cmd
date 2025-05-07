@@ -9,4 +9,4 @@ if NOT DEFINED QUARTO_DENO (
 SET "RUST_BACKTRACE=full"
 SET "DENO_NO_UPDATE_CHECK=1"
 
-"%QUARTO_DENO%" run --unstable-kv --unstable-ffi --allow-all --importmap=%~dp0\..\..\src\dev_import_map.json %~dp0\bld.ts %*
+"%QUARTO_DENO%" run --unstable-kv --unstable-ffi --allow-all --importmap=%~dp0\..\..\src\import_map.json %~dp0\bld.ts %*

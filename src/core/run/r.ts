@@ -22,8 +22,8 @@ export const rRunHandler: RunHandler = {
   ) => {
     return await execProcess(
       {
-        cmd: [
-          await rBinaryPath("Rscript"),
+        cmd: (await rBinaryPath("Rscript")),
+        args: [
           script,
           ...args,
         ],

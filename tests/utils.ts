@@ -52,7 +52,7 @@ export function findProjectOutputDir(projectdir: string | undefined) {
     // deno-lint-ignore no-explicit-any
     type = ((yaml as any).project as any).type;
   } catch (error) {
-    throw new Error("Failed to read quarto project YAML", error);
+    throw new Error("Failed to read quarto project YAML" + String(error));
   }
   if (type === "book") {
     return "_book";

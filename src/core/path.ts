@@ -40,6 +40,9 @@ export function safeRemoveIfExists(file: string) {
   try {
     removeIfExists(file);
   } catch (error) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
     warning(`Error removing file ${file}: ${error.message}`);
   }
 }
@@ -108,7 +111,7 @@ export function safeExistsSync(path: string) {
 export async function which(cmd: string) {
   const args = isWindows ? ["CMD", "/C", "where", cmd] : ["which", cmd];
   const result = await execProcess(
-    { cmd: args, stderr: "piped", stdout: "piped" },
+    { cmd: args[0], args: args.slice(1), stderr: "piped", stdout: "piped" },
   );
   if (result.code === 0) {
     return isWindows
