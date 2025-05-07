@@ -7,6 +7,7 @@
 import { debug } from "../../deno_ral/log.ts";
 import { normalizePath } from "../path.ts";
 import { copy } from "io/copy";
+import { writeAll } from "io/write-all";
 
 // Windows UNC paths can be mishandled by realPathSync
 // (see https://github.com/quarto-dev/quarto-vscode/issues/67)
@@ -19,6 +20,8 @@ Deno.realPathSync = normalizePath;
 //
 // deno-lint-ignore no-explicit-any
 (Deno as any).copy = copy;
+// deno-lint-ignore no-explicit-any
+(Deno as any).writeAll = writeAll;
 
 // 2023-02-14: We're seeing a rare failure in Deno.makeTempFile{,Sync} with FileExists, so we're going to try
 // a few times to create the file. If it fails, we'll log the error and try again.
