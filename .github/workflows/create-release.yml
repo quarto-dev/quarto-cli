@@ -178,6 +178,11 @@ jobs:
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
+      # we _also_ need npm, specifically for webui/preview
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
       - name: Configure
         run: |
           ./configure.sh
