@@ -1,5 +1,4 @@
 const kProgressiveAttr = "data-src";
-let categoriesLoaded = false;
 let selectedCategories = new Set();
 const kDefaultCategory = ""; // Default category "" means all posts selected
 
@@ -127,8 +126,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     selectedCategories.add(kDefaultCategory);
     updateCategory();
   }
-
-  categoriesLoaded = true;
 });
 
 function toggleNoMatchingMessage(list) {
