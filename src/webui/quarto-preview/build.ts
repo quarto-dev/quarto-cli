@@ -68,6 +68,6 @@ if (!build) {
 
 console.log("Building quarto-preview.js");
 console.log("Installing...");
-await run(["install", "--allow-scripts"], false);
+await run(["install"], false);
 console.log("Building...");
-await run(["task", "build"], false);
+await run(["run", "build"], false);
