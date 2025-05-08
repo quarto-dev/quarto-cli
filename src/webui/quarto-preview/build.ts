@@ -19,16 +19,9 @@ const buildFromArgs = () => {
 };
 
 const run = async (args: string[], quiet = true) => {
-  console.log(`Running: ${Deno.execPath()} ${args.join(" ")}`);
-  const command = new Deno.Command(Deno.execPath(), {
+  console.log(`Running: npm ${args.join(" ")}`);
+  const command = new Deno.Command("npm", {
     args,
-    env: Deno.build.os === "windows"
-      ? {
-        PATH: `${dirname(Deno.execPath())}${
-          Deno.env.get("PATH") ? `;${Deno.env.get("PATH")}` : ""
-        }`,
-      }
-      : undefined,
   });
   const output = await command.output();
   if (output.success || quiet) {

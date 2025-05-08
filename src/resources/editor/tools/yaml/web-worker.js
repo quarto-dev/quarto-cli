@@ -17147,7 +17147,19 @@ try {
                 "beamer"
               ]
             },
-            description: "The Beamer color theme for this presentation."
+            description: "The Beamer color theme for this presentation, passed to `\\usecolortheme`."
+          },
+          {
+            name: "colorthemeoptions",
+            schema: {
+              maybeArrayOf: "string"
+            },
+            tags: {
+              formats: [
+                "beamer"
+              ]
+            },
+            description: "The Beamer color theme options for this presentation, passed to `\\usecolortheme`."
           },
           {
             name: "fonttheme",
@@ -17157,7 +17169,19 @@ try {
                 "beamer"
               ]
             },
-            description: "The Beamer font theme for this presentation."
+            description: "The Beamer font theme for this presentation, passed to `\\usefonttheme`."
+          },
+          {
+            name: "fontthemeoptions",
+            schema: {
+              maybeArrayOf: "string"
+            },
+            tags: {
+              formats: [
+                "beamer"
+              ]
+            },
+            description: "The Beamer font theme options for this presentation, passed to `\\usefonttheme`."
           },
           {
             name: "innertheme",
@@ -17167,7 +17191,19 @@ try {
                 "beamer"
               ]
             },
-            description: "The Beamer inner theme for this presentation."
+            description: "The Beamer inner theme for this presentation, passed to `\\useinnertheme`."
+          },
+          {
+            name: "innerthemeoptions",
+            schema: {
+              maybeArrayOf: "string"
+            },
+            tags: {
+              formats: [
+                "beamer"
+              ]
+            },
+            description: "The Beamer inner theme options for this presentation, passed to `\\useinnertheme`."
           },
           {
             name: "outertheme",
@@ -17177,7 +17213,19 @@ try {
                 "beamer"
               ]
             },
-            description: "The Beamer outer theme for this presentation."
+            description: "The Beamer outer theme for this presentation, passed to `\\useoutertheme`."
+          },
+          {
+            name: "outerthemeoptions",
+            schema: {
+              maybeArrayOf: "string"
+            },
+            tags: {
+              formats: [
+                "beamer"
+              ]
+            },
+            description: "The Beamer outer theme options for this presentation, passed to `\\useoutertheme`."
           },
           {
             name: "themeoptions",
@@ -17189,7 +17237,7 @@ try {
                 "beamer"
               ]
             },
-            description: "Options passed to LaTeX Beamer themes."
+            description: "Options passed to LaTeX Beamer themes inside `\\usetheme`."
           },
           {
             name: "section",
@@ -20746,16 +20794,6 @@ try {
           "Alias for href",
           'Value for rel attribute. Multiple space-separated values are\npermitted. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor a details.',
           'Value for target attribute. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target</a>\nfor details.',
-          "The Github repo that will be used to store comments.",
-          "The label that will be assigned to issues created by Utterances.",
-          {
-            short: "The Github theme that should be used for Utterances.",
-            long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
-          },
-          {
-            short: "How posts should be mapped to Github issues",
-            long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
-          },
           {
             short: "The Github repo that will be used to store comments.",
             long: "The Github repo that will be used to store comments.\nIn order to work correctly, the repo must be public, with the giscus\napp installed, and the discussions feature must be enabled."
@@ -20786,6 +20824,16 @@ try {
           "The light theme name.",
           "The dark theme name.",
           "The language that should be used when displaying the commenting\ninterface.",
+          "The Github repo that will be used to store comments.",
+          "The label that will be assigned to issues created by Utterances.",
+          {
+            short: "The Github theme that should be used for Utterances.",
+            long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
+          },
+          {
+            short: "How posts should be mapped to Github issues",
+            long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
+          },
           "Override the default hypothesis client url with a custom client\nurl.",
           "Controls whether the sidebar opens automatically on startup.",
           "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -23013,11 +23061,15 @@ try {
           "The image for the title slide.",
           "Controls navigation symbols for the presentation (<code>empty</code>,\n<code>frame</code>, <code>vertical</code>, or\n<code>horizontal</code>)",
           "Whether to enable title pages for new sections.",
-          "The Beamer color theme for this presentation.",
-          "The Beamer font theme for this presentation.",
-          "The Beamer inner theme for this presentation.",
-          "The Beamer outer theme for this presentation.",
-          "Options passed to LaTeX Beamer themes.",
+          "The Beamer color theme for this presentation, passed to\n<code>\\usecolortheme</code>.",
+          "The Beamer color theme options for this presentation, passed to\n<code>\\usecolortheme</code>.",
+          "The Beamer font theme for this presentation, passed to\n<code>\\usefonttheme</code>.",
+          "The Beamer font theme options for this presentation, passed to\n<code>\\usefonttheme</code>.",
+          "The Beamer inner theme for this presentation, passed to\n<code>\\useinnertheme</code>.",
+          "The Beamer inner theme options for this presentation, passed to\n<code>\\useinnertheme</code>.",
+          "The Beamer outer theme for this presentation, passed to\n<code>\\useoutertheme</code>.",
+          "The Beamer outer theme options for this presentation, passed to\n<code>\\useoutertheme</code>.",
+          "Options passed to LaTeX Beamer themes inside\n<code>\\usetheme</code>.",
           "The section number in man pages.",
           "Enable and disable extensions for markdown output (e.g.&nbsp;\u201C+emoji\u201D)",
           "Specify whether to use <code>atx</code> (<code>#</code>-prefixed) or\n<code>setext</code> (underlined) headings for level 1 and 2 headings\n(<code>atx</code> or <code>setext</code>).",
@@ -24065,76 +24117,7 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-          {
-            short: "The Github repo that will be used to store comments.",
-            long: "The Github repo that will be used to store comments.\nIn order to work correctly, the repo must be public, with the giscus\napp installed, and the discussions feature must be enabled."
-          },
-          {
-            short: "The Github repository identifier.",
-            long: 'The Github repository identifier.\nYou can quickly find this by using the configuration tool at <a href="https://giscus.app">https://giscus.app</a>. If this is not\nprovided, Quarto will attempt to discover it at render time.'
-          },
-          {
-            short: "The discussion category where new discussions will be created.",
-            long: "The discussion category where new discussions will be created. It is\nrecommended to use a category with the <strong>Announcements</strong>\ntype so that new discussions can only be created by maintainers and\ngiscus."
-          },
-          {
-            short: "The Github category identifier.",
-            long: 'The Github category identifier.\nYou can quickly find this by using the configuration tool at <a href="https://giscus.app">https://giscus.app</a>. If this is not\nprovided, Quarto will attempt to discover it at render time.'
-          },
-          {
-            short: "The mapping between the page and the embedded discussion.",
-            long: "The mapping between the page and the embedded discussion."
-          },
-          "Display reactions for the discussion\u2019s main post before the\ncomments.",
-          "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
-          "Place the comment input box above or below the comments.",
-          {
-            short: "The giscus theme to use when displaying comments.",
-            long: "The giscus theme to use when displaying comments. Light and dark\nthemes are supported. If a single theme is provided by name, it will be\nused as light and dark theme. To use different themes, use\n<code>light</code> and <code>dark</code> key:"
-          },
-          "The light theme name.",
-          "The dark theme name.",
-          "The language that should be used when displaying the commenting\ninterface.",
-          "The Github repo that will be used to store comments.",
-          "The label that will be assigned to issues created by Utterances.",
-          {
-            short: "The Github theme that should be used for Utterances.",
-            long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
-          },
-          {
-            short: "How posts should be mapped to Github issues",
-            long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
-          },
-          "Override the default hypothesis client url with a custom client\nurl.",
-          "Controls whether the sidebar opens automatically on startup.",
-          "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
-          "Controls the overall look of the sidebar (<code>classic</code> or\n<code>clean</code>)",
-          "Controls whether the experimental New Note button should be shown in\nthe notes tab in the sidebar.",
-          "Specify a URL to direct a user to, in a new tab. when they click on\nthe annotation author link in the header of an annotation.",
-          "Alternative annotation services which the client should connect to\ninstead of connecting to the public Hypothesis service at\nhypothes.is.",
-          "The base URL of the service API.",
-          "The domain name which the annotation service is associated with.",
-          "An OAuth 2 grant token which the client can send to the service in\norder to get an access token for making authenticated requests to the\nservice.",
-          "A flag indicating whether users should be able to leave groups of\nwhich they are a member.",
-          "A flag indicating whether annotation cards should show links that\ntake the user to see an annotation in context.",
-          "An array of Group IDs or the literal string\n<code>$rpc:requestGroups</code>",
-          "The URL to an image for the annotation service. This image will\nappear to the left of the name of the currently selected group.",
-          "Settings to adjust the commenting sidebar\u2019s look and feel.",
-          "Secondary color for elements of the commenting UI.",
-          "The main background color of the commenting UI.",
-          "The background color for call to action buttons.",
-          "The font family for selection text in the annotation card.",
-          "The font family for the actual annotation value that the user writes\nabout the page or selection.",
-          "A CSS selector specifying the containing element into which the\nsidebar iframe will be placed.",
-          "Defines a focused filter set for the available annotations on a\npage.",
-          "The username of the user to focus on.",
-          "The userid of the user to focus on.",
-          "The display name of the user to focus on.",
-          "Host url and port number of receiving iframe",
-          "Number of nested iframes deep the client is relative from the\nreceiving iframe.",
-          "The root URL from which assets are loaded.",
-          "The URL for the sidebar application which displays annotations."
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
         ],
         "schema/external-schemas.yml": [
           {
@@ -24363,12 +24346,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 193837,
+          _internalId: 190556,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 193829,
+              _internalId: 190548,
               type: "enum",
               enum: [
                 "png",
@@ -24384,7 +24367,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 193836,
+              _internalId: 190555,
               type: "anyOf",
               anyOf: [
                 {
