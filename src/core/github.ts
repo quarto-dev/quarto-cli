@@ -26,7 +26,8 @@ export async function gitHubContext(dir: string) {
   // check for a repo in this directory
   if (context.git) {
     context.repo = (await execProcess({
-      cmd: ["git", "rev-parse"],
+      cmd: "git",
+      args: ["rev-parse"],
       cwd: dir,
       stdout: "piped",
       stderr: "piped",
@@ -35,7 +36,8 @@ export async function gitHubContext(dir: string) {
     // check for an origin remote
     if (context.repo) {
       const result = await execProcess({
-        cmd: ["git", "config", "--get", "remote.origin.url"],
+        cmd: "git",
+        args: ["config", "--get", "remote.origin.url"],
         cwd: dir,
         stdout: "piped",
         stderr: "piped",
@@ -45,8 +47,8 @@ export async function gitHubContext(dir: string) {
 
         // check for a gh-pages branch
         const ghPagesRemote = await execProcess({
-          cmd: [
-            "git",
+          cmd: "git",
+          args: [
             "ls-remote",
             "--quiet",
             "--exit-code",

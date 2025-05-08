@@ -24,8 +24,7 @@ export interface DevConfig {
   esbuild: string;
   typst: string;
   script: string;
-  importMap: string; // import map for most imports, which we need on dev version
-  bundleImportMap: string; // import map for dynamic imports which we need on bundled versions
+  importMap: string;
 }
 
 export function createDevConfig(
@@ -51,11 +50,6 @@ export function createDevConfig(
     importMap: md5HashSync(
       Deno.readTextFileSync(
         join(srcDir, "import_map.json"),
-      ),
-    ),
-    bundleImportMap: md5HashSync(
-      Deno.readTextFileSync(
-        join(srcDir, "resources/vendor/import_map.json"),
       ),
     ),
   };
@@ -117,8 +111,7 @@ export function devConfigsEqual(a: DevConfig, b: DevConfig) {
     a.esbuild == b.esbuild &&
     a.typst === b.typst &&
     a.script == b.script &&
-    a.importMap === b.importMap &&
-    a.bundleImportMap === b.bundleImportMap;
+    a.importMap === b.importMap;
 }
 
 export async function reconfigureQuarto(
@@ -146,12 +139,12 @@ export async function reconfigureQuarto(
     join(quartoConfig.sharePath(), "..", ".."),
   );
 
-  const process = Deno.run({
-    cmd: configureScript,
+  const process = new Deno.Command(configureScript[0], {
+    args: configureScript.slice(1),
     cwd: quartoDir,
   });
 
-  await process.status();
+  await process.output();
 
   info("");
   error(
@@ -183,8 +176,7 @@ function reconfigureReason(
   } else if (installed.script !== source.script) {
     return "update Quarto wrapper script";
   } else if (
-    installed.importMap !== source.importMap ||
-    installed.bundleImportMap !== source.importMap
+    installed.importMap !== source.importMap
   ) {
     return "update dev import map";
   }

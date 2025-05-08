@@ -110,20 +110,18 @@ export async function check(
     }
     checkInfoMsg(conf, `Quarto ${quartoConfig.version()}`);
 
-    if (target === "info" || target === "all") {
-      await checkInfo(conf);
-    }
-    if (target === "versions" || target === "all") {
-      await checkVersions(conf);
-    }
-    if (target === "install" || target === "all") {
-      await checkInstall(conf);
-    }
-    if (target === "jupyter" || target === "all") {
-      await checkJupyterInstallation(conf);
-    }
-    if (target === "knitr" || target === "all") {
-      await checkKnitrInstallation(conf);
+    for (
+      const [name, checker] of [
+        ["info", checkInfo],
+        ["versions", checkVersions],
+        ["install", checkInstall],
+        ["jupyter", checkJupyterInstallation],
+        ["knitr", checkKnitrInstallation],
+      ] as const
+    ) {
+      if (target === name || target === "all") {
+        await checker(conf);
+      }
     }
 
     if (conf.jsonResult && conf.output) {
@@ -217,7 +215,8 @@ async function checkVersions(conf: CheckConfiguration) {
 
   let pandocVersion = lines(
     (await execProcess({
-      cmd: [pandocBinaryPath(), "--version"],
+      cmd: pandocBinaryPath(),
+      args: ["--version"],
       stdout: "piped",
     })).stdout!,
   )[0]?.split(" ")[1];
@@ -225,7 +224,8 @@ async function checkVersions(conf: CheckConfiguration) {
   const denoVersion = Deno.version.deno;
   const typstVersion = lines(
     (await execProcess({
-      cmd: [typstBinaryPath(), "--version"],
+      cmd: typstBinaryPath(),
+      args: ["--version"],
       stdout: "piped",
     })).stdout!,
   )[0].split(" ")[1];
@@ -252,15 +252,15 @@ async function checkVersions(conf: CheckConfiguration) {
   const checkData: [string | undefined, string, string][] = strict
     ? [
       [pandocVersion, "3.6.3", "Pandoc"],
-      [sassVersion, "1.85.1", "Dart Sass"],
-      [denoVersion, "1.46.3", "Deno"],
+      [sassVersion, "1.87.0", "Dart Sass"],
+      [denoVersion, "2.3.1", "Deno"],
       [typstVersion, "0.13.0", "Typst"],
     ]
     : [
-      [pandocVersion, ">=2.19.2", "Pandoc"],
-      [sassVersion, ">=1.32.8", "Dart Sass"],
-      [denoVersion, ">=1.33.1", "Deno"],
-      [typstVersion, ">=0.10.0", "Typst"],
+      [pandocVersion, ">=3.6.3", "Pandoc"],
+      [sassVersion, ">=1.87.0", "Dart Sass"],
+      [denoVersion, ">=2.3.1", "Deno"],
+      [typstVersion, ">=0.13.0", "Typst"],
     ];
   const fun = strict ? strictCheckVersion : checkVersion;
   for (const [version, constraint, name] of checkData) {
@@ -300,7 +300,8 @@ async function checkInstall(conf: CheckConfiguration) {
     const quartoRoot = Deno.env.get("QUARTO_ROOT");
     if (quartoRoot) {
       const gitHead = await execProcess({
-        cmd: ["git", "-C", quartoRoot, "rev-parse", "HEAD"],
+        cmd: "git",
+        args: ["-C", quartoRoot, "rev-parse", "HEAD"],
         stdout: "piped",
         stderr: "piped", // to not show error if not in a git repo
       });

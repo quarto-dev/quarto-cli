@@ -196,7 +196,7 @@ import {
   createMarkdownPipeline,
   MarkdownPipelineHandler,
 } from "../../core/markdown-pipeline.ts";
-import { getEnv } from "../../../package/src/util/utils.ts";
+import { getenv } from "../../core/env.ts";
 import {
   BrandFontBunny,
   BrandFontFile,
@@ -207,6 +207,7 @@ import { isWindows } from "../../deno_ral/platform.ts";
 import { appendToCombinedLuaProfile } from "../../core/performance/perfetto-utils.ts";
 import { makeTimedFunctionAsync } from "../../core/performance/function-times.ts";
 import { walkJson } from "../../core/json.ts";
+import { call } from "../../deno_ral/process.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -241,42 +242,38 @@ const handleCombinedLuaProfiles = (
 };
 
 function captureRenderCommand(
-  args: Deno.RunOptions,
+  args: Deno.CommandOptions,
   temp: TempContext,
   outputDir: string,
 ) {
   Deno.mkdirSync(outputDir, { recursive: true });
-  const newArgs = [
-    args.cmd[0],
-    ...args.cmd.slice(1).map((_arg) => {
-      const arg = _arg as string; // we know it's a string, TypeScript doesn't somehow
-      if (!arg.startsWith(temp.baseDir)) {
-        return arg;
-      }
-      const newArg = join(outputDir, basename(arg));
-      if (arg.match(/^.*quarto\-defaults.*.yml$/)) {
-        // we need to correct the defaults YML because it contains a reference to a template in a temp directory
-        const ymlDefaults = Deno.readTextFileSync(arg);
-        const defaults = parseYml(ymlDefaults);
-
-        const templateDirectory = dirname(defaults.template);
-        const newTemplateDirectory = join(
-          outputDir,
-          basename(templateDirectory),
-        );
-        copyTo(templateDirectory, newTemplateDirectory);
-        defaults.template = join(
-          newTemplateDirectory,
-          basename(defaults.template),
-        );
-        const defaultsOutputFile = join(outputDir, basename(arg));
-        Deno.writeTextFileSync(defaultsOutputFile, stringify(defaults));
-        return defaultsOutputFile;
-      }
-      Deno.copyFileSync(arg, newArg);
-      return newArg;
-    }),
-  ] as typeof args.cmd;
+  const newArgs: typeof args.args = (args.args ?? []).map((_arg) => {
+    const arg = _arg as string; // we know it's a string, TypeScript doesn't somehow
+    if (!arg.startsWith(temp.baseDir)) {
+      return arg;
+    }
+    const newArg = join(outputDir, basename(arg));
+    if (arg.match(/^.*quarto\-defaults.*.yml$/)) {
+      // we need to correct the defaults YML because it contains a reference to a template in a temp directory
+      const ymlDefaults = Deno.readTextFileSync(arg);
+      const defaults = parseYml(ymlDefaults);
+      const templateDirectory = dirname(defaults.template);
+      const newTemplateDirectory = join(
+        outputDir,
+        basename(templateDirectory),
+      );
+      copyTo(templateDirectory, newTemplateDirectory);
+      defaults.template = join(
+        newTemplateDirectory,
+        basename(defaults.template),
+      );
+      const defaultsOutputFile = join(outputDir, basename(arg));
+      Deno.writeTextFileSync(defaultsOutputFile, stringify(defaults));
+      return defaultsOutputFile;
+    }
+    Deno.copyFileSync(arg, newArg);
+    return newArg;
+  });
 
   // now we need to correct entries in filterParams
   const filterParams = JSON.parse(
@@ -354,7 +351,7 @@ export async function runPandoc(
     // load the system lua libraries, which may not be compatible with
     // the lua version we are using
     if (Deno.env.get("QUARTO_LUA_CPATH") !== undefined) {
-      pandocEnv["LUA_CPATH"] = getEnv("QUARTO_LUA_CPATH");
+      pandocEnv["LUA_CPATH"] = getenv("QUARTO_LUA_CPATH");
     } else {
       pandocEnv["LUA_CPATH"] = "";
     }
@@ -1322,7 +1319,8 @@ export async function runPandoc(
   setupPandocEnv();
 
   const params = {
-    cmd,
+    cmd: cmd[0],
+    args: cmd.slice(1),
     cwd,
     env: pandocEnv,
     ourEnv: Deno.env.toObject(),
@@ -1575,9 +1573,9 @@ async function resolveExtras(
       };
       const woff2ttf = async (url: string) => {
         const path = url_to_path(url);
-        await Deno.run({ cmd: ["ttx", join(font_cache, path)] });
-        await Deno.run({
-          cmd: ["ttx", join(font_cache, path.replace(/woff2?$/, "ttx"))],
+        await call("ttx", { args: [join(font_cache, path)] });
+        await call("ttx", {
+          args: [join(font_cache, path.replace(/woff2?$/, "ttx"))],
         });
       };
       const ttf_urls2: Array<string> = [], woff_urls2: Array<string> = [];

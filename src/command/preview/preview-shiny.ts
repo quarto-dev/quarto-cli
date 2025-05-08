@@ -159,13 +159,6 @@ function runPreviewControlService(
 
   const port = findOpenPort();
 
-  const controlListener = Deno.listen({ port, hostname: kLocalhost });
-  onCleanup(() => controlListener.close());
-
-  handleHttpRequests(controlListener, handler).then(() => {
-    // terminanted
-  }).catch((_error) => {
-    // ignore errors
-  });
+  onCleanup(handleHttpRequests({ ...handlerOptions, handler }).stop);
   info(`Preview service running (${port})`);
 }

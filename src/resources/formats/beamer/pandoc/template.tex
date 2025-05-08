@@ -72,29 +72,25 @@ $if(theme)$
 \usetheme[$for(themeoptions)$$themeoptions$$sep$,$endfor$]{$theme$}
 $endif$
 $if(colortheme)$
-\usecolortheme{$colortheme$}
+\usecolortheme[$for(colorthemeoptions)$$colorthemeoptions$$sep$,$endfor$]{$colortheme$}
 $endif$
 $if(fonttheme)$
-\usefonttheme{$fonttheme$}
+\usefonttheme[$for(fontthemeoptions)$$fontthemeoptions$$sep$,$endfor$]{$fonttheme$}
 $endif$
 $if(mainfont)$
 \usefonttheme{serif} % use mainfont rather than sansfont for slide text
 $endif$
 $if(innertheme)$
-\useinnertheme{$innertheme$}
+\useinnertheme[$for(innerthemeoptions)$$innerthemeoptions$$sep$,$endfor$]{$innertheme$}
 $endif$
 $if(outertheme)$
-\useoutertheme{$outertheme$}
+\useoutertheme[$for(outerthemeoptions)$$outerthemeoptions$$sep$,$endfor$]{$outertheme$}
 $endif$
 $font-settings.latex()$
 $common.latex()$
 
 $after-header-includes.latex()$
 $hypersetup.latex()$
-
-$if(nocite-ids)$
-\nocite{$for(nocite-ids)$$it$$sep$, $endfor$}
-$endif$
 
 $before-title.tex()$
 

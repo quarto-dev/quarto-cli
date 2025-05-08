@@ -193,10 +193,10 @@ jobs:
 
           source ./configuration
 
-          echo Placing custom Deno ${DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files
-          curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-hcab8b69_0.conda --output deno.conda
+          echo Placing custom Deno ${DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files hbf66b88_0
+          curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-hbf66b88_0.conda --output deno.conda
           unzip deno.conda
-          tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-hcab8b69_0.tar.zst
+          tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-hbf66b88_0.tar.zst
           cp bin/deno package/pkg-working/bin/tools/x86_64/deno
 
       - name: Make Tarball

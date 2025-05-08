@@ -68,11 +68,25 @@ function render_pandoc3_figure()
     return {
       traverse = "topdown",
       Figure = function(figure)
+        local has_fragment = false
+        figure.content = _quarto.ast.walk(figure.content, {
+          Image = function(img)
+            if img.classes:includes("fragment") then
+              has_fragment = true
+              img.classes = img.classes:filter(function(c) return c ~= "fragment" end)
+              return img
+            end
+          end
+        })
+
         local result = html_handle_linked_image(figure)
-        if result ~= nil then
-          return result
+        if result == nil then
+          result = html_handle_image(figure)
         end
-        return html_handle_image(figure)
+        if has_fragment then
+          result = pandoc.Div(result, pandoc.Attr("", {"fragment"}, {}))
+        end
+        return result
       end
     }
   elseif _quarto.format.isLatexOutput() then

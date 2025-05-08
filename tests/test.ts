@@ -241,6 +241,7 @@ export function test(test: TestDescriptor) {
             }
           }
         } catch (ex) {
+          if (!(ex instanceof Error)) throw ex;
           const border = "-".repeat(80);
           const coloredName = userSession
             ? colors.brightGreen(colors.italic(testName))
@@ -287,7 +288,7 @@ export function test(test: TestDescriptor) {
             coloredVerify,
             "",
             ex.message,
-            ex.stack,
+            ex.stack ?? "",
             "",
           ];
 

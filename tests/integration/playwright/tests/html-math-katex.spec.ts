@@ -15,3 +15,15 @@ test.describe('KaTeX math rendering in Jupyter engine document', () => {
     });
   }
 });
+
+
+test('KaTeX does not prevent crossref pop to be rendered', async ({ page }) => {
+  await page.goto('html/math/katex/crossref-popup.html');
+  const Thm1Ref = page.getByRole('link', { name: 'Theorem 1' });
+  await expect(Thm1Ref).toBeVisible();
+  await Thm1Ref.hover();
+  // hover box should be visible
+  await expect(page.getByRole('tooltip', { name: 'Theorem 1 (Theorem with math' })).toBeVisible();
+  // Katex Math should be rendered in the hover box
+  await expect(page.getByRole('tooltip', { name: 'Theorem 1 (Theorem with math' })).toContainText('∅');
+})

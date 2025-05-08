@@ -251,6 +251,10 @@ async function resolveDeploymentTarget(
   try {
     return await provider.resolveTarget(account, record);
   } catch (err) {
+    if (!(err instanceof Error)) {
+      // shouldn't ever happen
+      throw err;
+    }
     if (provider.isNotFound(err)) {
       warning(
         `${record.url} not found (you may need to remove it from the publish configuration)`,
