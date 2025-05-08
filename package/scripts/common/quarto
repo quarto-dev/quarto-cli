@@ -92,7 +92,6 @@ else
   QUARTO_ACTION=run
   QUARTO_TARGET=${SCRIPT_PATH}/quarto.js
   export QUARTO_BIN_PATH=$SCRIPT_PATH
-  export DENO_DIR=$QUARTO_BIN_PATH/deno_cache
   QUARTO_CACHE_OPTIONS="--cached-only"
 
   # Turn off type checking for bundled version
