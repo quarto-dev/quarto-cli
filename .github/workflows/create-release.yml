@@ -35,6 +35,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      # we _also_ need npm, specifically for webui/preview
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
       - name: Get previous version
         id: read-version
         run: |
@@ -177,11 +182,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
-
-      # we _also_ need npm, specifically for webui/preview
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
 
       - name: Configure
         run: |
