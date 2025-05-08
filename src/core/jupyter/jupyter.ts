@@ -1030,7 +1030,7 @@ export function mdFromContentCell(
             : data as string;
           // base 64 decode if its not svg
           if (!imageText.trimStart().startsWith("<svg")) {
-            const imageData = base64decode(imageText);
+            const imageData = base64decode(imageText.replaceAll("\n", ""));
             Deno.writeFileSync(outputFile, imageData);
           } else {
             Deno.writeTextFileSync(outputFile, imageText);
