@@ -407,7 +407,7 @@ ${zodObject}
       baseObj = `${baseObj}.passthrough()`;
     }
     if (Array.isArray(required)) {
-      baseObj = `${baseObj}.required({${
+      baseObj = `${baseObj}.partial().required({${
         required.map((key: string) => {
           return `${key}: true`;
         }).join(", ")

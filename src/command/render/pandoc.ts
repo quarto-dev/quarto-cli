@@ -197,11 +197,6 @@ import {
   MarkdownPipelineHandler,
 } from "../../core/markdown-pipeline.ts";
 import { getenv } from "../../core/env.ts";
-import {
-  BrandFontBunny,
-  BrandFontFile,
-  BrandFontGoogle,
-} from "../../resources/types/schema-types.ts";
 import { Zod } from "../../resources/types/zod/schema-types.ts";
 import { kFieldCategories } from "../../project/types/website/listing/website-listing-shared.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
@@ -1487,13 +1482,13 @@ async function resolveExtras(
             fontdirs.add(dirname(join(brand.brandDir, path)));
           }
         } else if (source === "bunny") {
-          const font = _font as BrandFontBunny;
+          const font = Zod.BrandFontBunny.parse(_font);
           console.log(
             "Font bunny is not yet supported for Typst, skipping",
             font.family,
           );
         } else if (source === "google" /* || font.source === "bunny" */) {
-          const font = _font as BrandFontGoogle;
+          const font = Zod.BrandFontGoogle.parse(_font);
           let { family, style, weight } = font;
           const parts = [family!];
           if (style) {

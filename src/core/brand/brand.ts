@@ -7,14 +7,19 @@
  */
 
 import {
-  Brand as BrandJson,
+  // Brand as BrandJson,
   BrandFont,
-  BrandLogoExplicitResource,
   BrandNamedThemeColor,
   BrandTypography,
   BrandTypographyOptionsBase,
   BrandTypographyOptionsHeadings,
 } from "../../resources/types/schema-types.ts";
+
+import {
+  Brand as BrandJson,
+  BrandLogoExplicitResource,
+  Zod,
+} from "../../resources/types/zod/schema-types.ts";
 import { InternalError } from "../lib/error.ts";
 
 import { join, relative } from "../../deno_ral/path.ts";
@@ -68,7 +73,7 @@ export class Brand {
   processedData: ProcessedBrandData;
 
   constructor(readonly brand: BrandJson, brandDir: string, projectDir: string) {
-    this.data = brand;
+    this.data = Zod.Brand.parse(brand);
     this.brandDir = brandDir;
     this.projectDir = projectDir;
     this.processedData = this.processData(brand);
@@ -261,8 +266,10 @@ export class Brand {
     if (typeof entry === "string") {
       return { path: join(pathPrefix, entry) };
     }
-    entry.path = join(pathPrefix, entry.path);
-    return entry;
+    return {
+      ...entry,
+      path: join(pathPrefix, entry.path),
+    };
   }
 
   getLogo(name: "small" | "medium" | "large"): CanonicalLogoInfo | undefined {
