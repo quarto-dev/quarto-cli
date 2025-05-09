@@ -50,6 +50,7 @@ const generateCliInfoCommand = new Command()
 
 export const devCallCommand = new Command()
   .name("dev-call")
+  .hidden()
   .description(
     "Access internals of Quarto - this command is not intended for general use.",
   )
