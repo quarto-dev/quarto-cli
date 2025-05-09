@@ -24,7 +24,7 @@ export type JsonObject = { [key: string]: unknown };
 
 export const ZodDate = z.union([
   z.string(),
-  z.object({ value: z.string(), format: z.string() }).passthrough().partial({
+  z.object({ value: z.string(), format: z.string() }).passthrough().required({
     value: true,
   }),
 ]);
@@ -40,7 +40,7 @@ export const ZodPandocFormatOutputFile = z.union([z.string(), z.literal(null)]);
 export const ZodPandocFormatFilters = z.array(
   z.union([
     z.string(),
-    z.object({ type: z.string(), path: z.string() }).passthrough().partial({
+    z.object({ type: z.string(), path: z.string() }).passthrough().required({
       path: true,
     }),
     z.object({
@@ -56,7 +56,7 @@ export const ZodPandocFormatFilters = z.array(
           "post-render",
         ] as const,
       ),
-    }).passthrough().partial({ path: true, at: true }),
+    }).passthrough().required({ path: true, at: true }),
     z.object({ type: z.enum(["citeproc"] as const) }).strict(),
   ]),
 );
@@ -133,7 +133,7 @@ export const ZodGiscusConfiguration = z.object({
     }).strict().partial(),
   ]),
   language: z.string(),
-}).strict().partial({ repo: true });
+}).strict().required({ repo: true });
 
 export const ZodDocumentCommentsConfiguration = z.union([
   z.literal(false),
@@ -143,7 +143,7 @@ export const ZodDocumentCommentsConfiguration = z.union([
       label: z.string(),
       theme: z.string(),
       "issue-term": z.string(),
-    }).strict().partial({ repo: true }),
+    }).strict().required({ repo: true }),
     giscus: z.lazy(() => ZodGiscusConfiguration),
     hypothesis: z.union([
       z.boolean(),
@@ -169,7 +169,7 @@ export const ZodDocumentCommentsConfiguration = z.union([
               z.array(z.string()),
             ]),
             icon: z.string(),
-          }).passthrough().partial({
+          }).passthrough().required({
             apiUrl: true,
             authority: true,
             grantToken: true,
@@ -189,7 +189,7 @@ export const ZodDocumentCommentsConfiguration = z.union([
             userid: z.string(),
             displayName: z.string(),
           }).passthrough().partial(),
-        }).passthrough().partial({ user: true }),
+        }).passthrough().required({ user: true }),
         requestConfigFromFrame: z.object({
           origin: z.string(),
           ancestorLevel: z.number(),
@@ -232,7 +232,7 @@ export const ZodProjectServe = z.object({
   args: z.string(),
   env: z.object({}).passthrough().partial(),
   ready: z.string(),
-}).strict().partial({ cmd: true, ready: true });
+}).strict().required({ cmd: true, ready: true });
 
 export const ZodPublish = z.object({
   netlify: z.array(z.lazy(() => ZodPublishRecord)),
@@ -650,7 +650,7 @@ export const ZodChapterItem = z.union([
   z.object({
     part: z.string(),
     chapters: z.array(z.lazy(() => ZodNavigationItem)),
-  }).passthrough().partial({ part: true }),
+  }).passthrough().required({ part: true }),
 ]);
 
 export const ZodChapterList = z.array(z.lazy(() => ZodChapterItem));
@@ -662,7 +662,7 @@ export const ZodOtherLinks = z.array(
     icon: z.string(),
     rel: z.string(),
     target: z.string(),
-  }).passthrough().partial({ text: true, href: true }),
+  }).passthrough().required({ text: true, href: true }),
 );
 
 export const ZodCrossrefLabelsSchema = z.string();
@@ -756,7 +756,7 @@ export const ZodWebsiteAbout = z.object({
   "image-width": z.string(),
   "image-shape": z.enum(["rectangle", "round", "rounded"] as const),
   links: z.array(z.lazy(() => ZodNavigationItem)),
-}).strict().partial({ template: true });
+}).strict().required({ template: true });
 
 export const ZodWebsiteListing = z.object({
   id: z.string(),
@@ -1224,7 +1224,7 @@ export const ZodSemver = z.string().regex(
 
 export const ZodQuartoDate = z.union([
   z.string(),
-  z.object({ format: z.string(), value: z.string() }).strict().partial({
+  z.object({ format: z.string(), value: z.string() }).strict().required({
     value: true,
   }),
 ]);
@@ -1248,7 +1248,7 @@ export const ZodNotebookViewSchema = z.object({
   title: z.union([z.string(), z.boolean()]),
   url: z.string(),
   "download-url": z.string(),
-}).passthrough().partial({ notebook: true });
+}).passthrough().required({ notebook: true });
 
 export const ZodCodeLinksSchema = z.union([
   z.boolean(),
@@ -1317,7 +1317,7 @@ export const ZodBrandStringLightDark = z.union([
 export const ZodBrandLogoExplicitResource = z.object({
   path: z.string(),
   alt: z.string(),
-}).strict().partial({ path: true });
+}).strict().required({ path: true });
 
 export const ZodBrandLogoResource = z.union([
   z.string(),
@@ -1564,10 +1564,10 @@ export const ZodBrandFontFile = z.object({
         path: z.string(),
         weight: z.lazy(() => ZodBrandFontWeight),
         style: z.lazy(() => ZodBrandFontStyle),
-      }).passthrough().partial({ path: true }),
+      }).passthrough().required({ path: true }),
     ]),
   ),
-}).strict().partial({ files: true, family: true, source: true });
+}).strict().required({ files: true, family: true, source: true });
 
 export const ZodBrandFontFamily = z.string();
 

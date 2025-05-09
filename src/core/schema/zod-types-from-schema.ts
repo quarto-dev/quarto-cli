@@ -407,13 +407,15 @@ ${zodObject}
       baseObj = `${baseObj}.passthrough()`;
     }
     if (Array.isArray(required)) {
-      baseObj = `${baseObj}.partial({${
+      baseObj = `${baseObj}.required({${
         required.map((key: string) => {
           return `${key}: true`;
         }).join(", ")
       }})`;
     } else if (required === undefined) {
       baseObj = `${baseObj}.partial()`;
+    } else if (required === "all") {
+      baseObj = `${baseObj}.required()`;
     }
     if (obj.additionalProperties) {
       baseObj = `z.record(${

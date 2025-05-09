@@ -202,6 +202,7 @@ import {
   BrandFontFile,
   BrandFontGoogle,
 } from "../../resources/types/schema-types.ts";
+import { Zod } from "../../resources/types/zod/schema-types.ts";
 import { kFieldCategories } from "../../project/types/website/listing/website-listing-shared.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { appendToCombinedLuaProfile } from "../../core/performance/perfetto-utils.ts";
@@ -1480,7 +1481,7 @@ async function resolveExtras(
         // deno-lint-ignore no-explicit-any
         const source: string = (_font as any).source ?? "google";
         if (source === "file") {
-          const font = _font as BrandFontFile;
+          const font = Zod.BrandFontFile.parse(_font);
           for (const file of font.files || []) {
             const path = typeof file === "object" ? file.path : file;
             fontdirs.add(dirname(join(brand.brandDir, path)));
