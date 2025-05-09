@@ -257,13 +257,11 @@ export async function bookProjectConfig(
   const footerFiles: string[] = [];
   const pageFooter = resolvePageFooter(config);
   const addFooterItems = (region?: PageFooterRegion) => {
-    if (!region) return;
+    if (!region || typeof region === "string") return;
     for (const item of region) {
-      if (typeof item !== "string") {
-        const navItem = Zod.NavigationItemObject.parse(item);
-        if (navItem.href && !isAbsoluteRef(navItem.href)) {
-          footerFiles.push(navItem.href);
-        }
+      const navItem = Zod.NavigationItemObject.parse(item);
+      if (navItem.href && !isAbsoluteRef(navItem.href)) {
+        footerFiles.push(navItem.href);
       }
     }
   };

@@ -109,10 +109,10 @@ export const Base_ZodNavigationItemObject = z.object({
 }).strict().partial();
 
 type NavigationItemObject = z.infer<typeof Base_ZodNavigationItemObject> & {
-  menu: NavigationItem[];
+  menu?: NavigationItem[];
 };
 
 export const ZodNavigationItemObject: z.ZodType<NavigationItemObject> =
   Base_ZodNavigationItemObject.extend({
     menu: z.array(z.lazy(() => ZodNavigationItem)),
-  });
+  }).strict().partial();
