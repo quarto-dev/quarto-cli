@@ -2,6 +2,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { commands } from "../command.ts";
 import { buildJsCommand } from "./build-artifacts/cmd.ts";
+import { hidden } from "../../core/lib/external/colors.ts";
 
 type CommandOptionInfo = {
   name: string;
@@ -13,6 +14,7 @@ type CommandOptionInfo = {
 };
 
 type CommandInfo = {
+  hidden: boolean;
   name: string;
   description: string;
   options: CommandOptionInfo[];
@@ -33,10 +35,19 @@ const generateCliInfoCommand = new Command()
     output["version"] = quartoConfig.version();
     const commandsInfo: CommandInfo[] = [];
     output["commands"] = commandsInfo;
+
+    // Cliffy doesn't export the "hidden" property, so we maintain our own list
+    // here
+    const hiddenCommands = [
+      "dev-call",
+      "editor-support",
+      "create-project",
+    ];
     // deno-lint-ignore no-explicit-any
     const cmdAsJson = (cmd: any): CommandInfo => {
       return {
         name: cmd.getName(),
+        hidden: hiddenCommands.includes(cmd.getName()),
         description: cmd.getDescription(),
         options: cmd.getOptions(),
         usage: cmd.getUsage(),
