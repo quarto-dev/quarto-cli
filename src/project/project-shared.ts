@@ -579,11 +579,14 @@ export async function projectResolveBrand(
     return project.brandCache.brand;
   } else {
     const metadata = await project.fileMetadata(fileName);
+    if (metadata.brand === undefined) {
+      return project.resolveBrand();
+    }
     const brand = Zod.BrandPathBoolLightDark.parse(metadata.brand);
     if (brand === false) {
       return undefined;
     }
-    if (brand === true || brand === undefined) {
+    if (brand === true) {
       return project.resolveBrand();
     }
     const fileInformation = ensureFileInformationCache(project, fileName);
