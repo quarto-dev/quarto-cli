@@ -26,6 +26,8 @@
     "log": "jsr:/@std/log@0.224.0",
     "log/": "jsr:/@std/log@0.224.0/",
 
+    "zod": "npm:/zod@3.24.4",
+
     "yaml": "https://cdn.skypack.dev/js-yaml",
     "events/": "https://deno.land/x/events@v1.0.0/",
     "cache/": "https://deno.land/x/cache@0.2.12/",
