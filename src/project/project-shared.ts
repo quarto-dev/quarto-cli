@@ -47,10 +47,7 @@ import { normalizeNewlines } from "../core/lib/text.ts";
 import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
 import { QuartoJSONSchema, readYamlFromMarkdown } from "../core/yaml.ts";
 import { refSchema } from "../core/lib/yaml-schema/common.ts";
-import {
-  BrandPathBoolLightDark,
-  Zod,
-} from "../resources/types/zod/schema-types.ts";
+import { Zod } from "../resources/types/zod/schema-types.ts";
 import { Brand } from "../core/brand/brand.ts";
 import { assert } from "testing/asserts";
 
@@ -547,7 +544,7 @@ export async function projectResolveBrand(
     let fileNames = ["_brand.yml", "_brand.yaml"].map((file) =>
       join(project.dir, file)
     );
-    let brand = project?.config?.brand as Boolean | string | {
+    const brand = project?.config?.brand as boolean | string | {
       light?: string;
       dark?: string;
     };
@@ -582,7 +579,7 @@ export async function projectResolveBrand(
     return project.brandCache.brand;
   } else {
     const metadata = await project.fileMetadata(fileName);
-    const brand = Zod.BrandPathBoolLightDark.parse(metadata.brand); //  as BrandPathBoolLightDark;
+    const brand = Zod.BrandPathBoolLightDark.parse(metadata.brand);
     if (brand === false) {
       return undefined;
     }
