@@ -109,7 +109,7 @@ import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
 import { projectExtensionDirs } from "../../extension/extension.ts";
 import { findOpenPort } from "../../core/port.ts";
 import { kLocalhost } from "../../core/port-consts.ts";
-import { ProjectServe } from "../../resources/types/schema-types.ts";
+import { ProjectServe } from "../../resources/types/zod/schema-types.ts";
 import { handleHttpRequests } from "../../core/http-server.ts";
 import { touch } from "../../core/file.ts";
 import { staticResource } from "../../preview/preview-static.ts";

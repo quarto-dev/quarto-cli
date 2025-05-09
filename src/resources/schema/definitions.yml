@@ -218,9 +218,15 @@
               You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
               If this is not provided, Quarto will attempt to discover it at render time.
       mapping:
-        anyOf:
-          - enum: [pathname, url, title, og:title]
-          - string
+        schema: 
+          anyOf:
+            - string
+            - number
+        completions:
+          - pathname
+          - url
+          - title
+          - og:title          
         description:
           short: The mapping between the page and the embedded discussion.
           long: |
@@ -937,35 +943,29 @@
                   string:
                     description: "Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html)."
                 background:
-                  anyOf:
-                    - enum:
-                        [
-                          "primary",
-                          "secondary",
-                          "success",
-                          "danger",
-                          "warning",
-                          "info",
-                          "light",
-                          "dark",
-                        ]
-                    - string
-                  description: "The navbar's background color (named or hex color)."
+                  string:
+                    description: "The navbar's background color (named or hex color)."
+                    completions:
+                      - primary
+                      - secondary
+                      - success
+                      - danger
+                      - warning
+                      - info
+                      - light
+                      - dark
                 foreground:
-                  anyOf:
-                    - enum:
-                        [
-                          "primary",
-                          "secondary",
-                          "success",
-                          "danger",
-                          "warning",
-                          "info",
-                          "light",
-                          "dark",
-                        ]
-                    - string
-                  description: "The navbar's foreground color (named or hex color)."
+                  string:
+                    description: "The navbar's foreground color (named or hex color)."
+                    completions:
+                      - primary
+                      - secondary
+                      - success
+                      - danger
+                      - warning
+                      - info
+                      - light
+                      - dark
                 search:
                   boolean:
                     description: "Include a search box in the navbar."
@@ -1039,34 +1039,28 @@
                     description: "The style of sidebar (`docked` or `floating`)."
                     default: "floating"
                   background:
-                    anyOf:
-                      - enum:
-                          [
-                            "primary",
-                            "secondary",
-                            "success",
-                            "danger",
-                            "warning",
-                            "info",
-                            "light",
-                            "dark",
-                          ]
-                      - string
+                    schema: string
+                    completions:
+                      - primary
+                      - secondary
+                      - success
+                      - danger
+                      - warning
+                      - info
+                      - light
+                      - dark
                     description: "The sidebar's background color (named or hex color)."
                   foreground:
-                    anyOf:
-                      - enum:
-                          [
-                            "primary",
-                            "secondary",
-                            "success",
-                            "danger",
-                            "warning",
-                            "info",
-                            "light",
-                            "dark",
-                          ]
-                      - string
+                    schema: string
+                    completions:
+                      - primary
+                      - secondary
+                      - success
+                      - danger
+                      - warning
+                      - info
+                      - light
+                      - dark
                     description: "The sidebar's foreground color (named or hex color)."
                   border:
                     boolean:

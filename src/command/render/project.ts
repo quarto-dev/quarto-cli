@@ -80,7 +80,7 @@ import { Format } from "../../config/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { projectContextForDirectory } from "../../project/project-context.ts";
 import { ProjectType } from "../../project/types/types.ts";
-import { ProjectConfig as ProjectConfig_Project } from "../../resources/types/schema-types.ts";
+import { Zod } from "../../resources/types/zod/schema-types.ts";
 
 const noMutationValidations = (
   projType: ProjectType,
@@ -255,9 +255,11 @@ const mergeExtensionMetadata = async (
       context.isSingleFile ? undefined : context.dir,
       { builtIn: false },
     );
-    const projectMetadata = extensions.map((extension) =>
+    const projectMetadata = extensions.filter((extension) =>
       extension.contributes.metadata?.project
-    ).filter((project) => project) as ProjectConfig_Project[];
+    ).map((extension) => {
+      return Zod.ProjectConfig.parse(extension.contributes.metadata!.project);
+    });
     context.config.project = mergeProjectMetadata(
       context.config.project,
       ...projectMetadata,
