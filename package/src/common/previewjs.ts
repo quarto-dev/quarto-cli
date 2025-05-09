@@ -11,7 +11,7 @@ export function buildQuartoPreviewJs(
   denoDir?: string,
   force?: boolean,
 ) {
-  const args = ["run", "-A", "build.ts"];
+  const args = ["run", "--no-config", "-A", "build.ts"];
   if (force) {
     args.push("--force");
   }
