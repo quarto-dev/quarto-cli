@@ -8637,16 +8637,17 @@ var require_yaml_intelligence_resources = __commonJS({
                 }
               },
               mapping: {
-                anyOf: [
-                  {
-                    enum: [
-                      "pathname",
-                      "url",
-                      "title",
-                      "og:title"
-                    ]
-                  },
-                  "string"
+                schema: {
+                  anyOf: [
+                    "string",
+                    "number"
+                  ]
+                },
+                completions: [
+                  "pathname",
+                  "url",
+                  "title",
+                  "og:title"
                 ],
                 description: {
                   short: "The mapping between the page and the embedded discussion.",
@@ -9699,40 +9700,34 @@ var require_yaml_intelligence_resources = __commonJS({
                           }
                         },
                         background: {
-                          anyOf: [
-                            {
-                              enum: [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            "string"
-                          ],
-                          description: "The navbar's background color (named or hex color)."
+                          string: {
+                            description: "The navbar's background color (named or hex color).",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
+                            ]
+                          }
                         },
                         foreground: {
-                          anyOf: [
-                            {
-                              enum: [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            "string"
-                          ],
-                          description: "The navbar's foreground color (named or hex color)."
+                          string: {
+                            description: "The navbar's foreground color (named or hex color).",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
+                            ]
+                          }
                         },
                         search: {
                           boolean: {
@@ -9854,38 +9849,30 @@ var require_yaml_intelligence_resources = __commonJS({
                             default: "floating"
                           },
                           background: {
-                            anyOf: [
-                              {
-                                enum: [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              "string"
+                            schema: "string",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
                             ],
                             description: "The sidebar's background color (named or hex color)."
                           },
                           foreground: {
-                            anyOf: [
-                              {
-                                enum: [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              "string"
+                            schema: "string",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
                             ],
                             description: "The sidebar's foreground color (named or hex color)."
                           },
@@ -24345,12 +24332,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 195600,
+        _internalId: 195566,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 195592,
+            _internalId: 195558,
             type: "enum",
             enum: [
               "png",
@@ -24366,7 +24353,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 195599,
+            _internalId: 195565,
             type: "anyOf",
             anyOf: [
               {
