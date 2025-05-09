@@ -7,17 +7,13 @@
  */
 
 import {
-  // Brand as BrandJson,
+  Brand as BrandJson,
   BrandFont,
+  BrandLogoExplicitResource,
   BrandNamedThemeColor,
   BrandTypography,
   BrandTypographyOptionsBase,
   BrandTypographyOptionsHeadings,
-} from "../../resources/types/schema-types.ts";
-
-import {
-  Brand as BrandJson,
-  BrandLogoExplicitResource,
   Zod,
 } from "../../resources/types/zod/schema-types.ts";
 import { InternalError } from "../lib/error.ts";
@@ -72,11 +68,15 @@ export class Brand {
   projectDir: string;
   processedData: ProcessedBrandData;
 
-  constructor(readonly brand: BrandJson, brandDir: string, projectDir: string) {
+  constructor(
+    readonly brand: unknown,
+    brandDir: string,
+    projectDir: string,
+  ) {
     this.data = Zod.Brand.parse(brand);
     this.brandDir = brandDir;
     this.projectDir = projectDir;
-    this.processedData = this.processData(brand);
+    this.processedData = this.processData(this.data);
   }
 
   processData(data: BrandJson): ProcessedBrandData {

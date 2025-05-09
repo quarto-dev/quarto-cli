@@ -48,9 +48,9 @@ import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
 import { QuartoJSONSchema, readYamlFromMarkdown } from "../core/yaml.ts";
 import { refSchema } from "../core/lib/yaml-schema/common.ts";
 import {
-  Brand as BrandJson,
   BrandPathBoolLightDark,
-} from "../resources/types/schema-types.ts";
+  Zod,
+} from "../resources/types/zod/schema-types.ts";
 import { Brand } from "../core/brand/brand.ts";
 import { assert } from "testing/asserts";
 
@@ -524,7 +524,7 @@ export async function projectResolveBrand(
       brandPath,
       refSchema("brand", "Format-independent brand configuration."),
       "Brand validation failed for " + brandPath + ".",
-    ) as BrandJson;
+    );
     return new Brand(brand, dirname(brandPath), project.dir);
   }
   async function loadRelativeBrand(
@@ -582,7 +582,7 @@ export async function projectResolveBrand(
     return project.brandCache.brand;
   } else {
     const metadata = await project.fileMetadata(fileName);
-    const brand = metadata.brand as BrandPathBoolLightDark;
+    const brand = Zod.BrandPathBoolLightDark.parse(metadata.brand); //  as BrandPathBoolLightDark;
     if (brand === false) {
       return undefined;
     }
@@ -611,7 +611,7 @@ export async function projectResolveBrand(
         }
         if (typeof brand.dark === "string") {
           dark = await loadRelativeBrand(brand.dark);
-        } else if(brand.dark) {
+        } else if (brand.dark) {
           dark = new Brand(
             brand.dark,
             dirname(fileName),
@@ -622,7 +622,7 @@ export async function projectResolveBrand(
       } else {
         fileInformation.brand = {
           light: new Brand(
-            brand as BrandJson,
+            brand,
             dirname(fileName),
             project.dir,
           ),
