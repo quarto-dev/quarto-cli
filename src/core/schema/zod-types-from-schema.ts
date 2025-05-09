@@ -60,6 +60,19 @@ class ZodDeclarationFileBuilder {
   fileSource(): string {
     const zodDeclarations = this.declarations.join("\n");
     const zodInferredTypes = this.inferredTypes.join("\n");
+    const zodObject = (() => {
+      const lines = [
+        "export const Zod = {",
+      ];
+      Object.keys(this.schemas).forEach((name) => {
+        const typeName = typeNameFromSchemaName(name);
+        lines.push(
+          `  ${typeName}: Zod${typeName},`,
+        );
+      });
+      lines.push("};");
+      return lines.join("\n");
+    })();
     return `import { z } from "zod";
 
 import { ZodSidebarContents, ZodNavigationItem, ZodNavigationItemObject } from "./handwritten-schema-types.ts";
@@ -68,7 +81,10 @@ export { ZodSidebarContents, ZodNavigationItem, ZodNavigationItemObject } from "
 ${generatedSrcMessage}
 
 ${zodDeclarations}
-${zodInferredTypes}`;
+${zodInferredTypes}
+
+${zodObject}
+`;
   }
 
   // deno-lint-ignore no-explicit-any
