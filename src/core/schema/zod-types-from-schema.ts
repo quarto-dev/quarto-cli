@@ -38,6 +38,7 @@ class ZodDeclarationFileBuilder {
 
   // we keep track of the schemas we've seen so we can
   // process resolve-ref schemas
+  // deno-lint-ignore no-explicit-any
   schemas: Record<string, any> = {};
 
   // deno-lint-ignore no-explicit-any
@@ -106,18 +107,13 @@ ${zodInferredTypes}`;
   convertSchemaEnum(schema: any): string | undefined {
     // deno-lint-ignore no-explicit-any
     const zodEnumDeclaration = (values: any[]) => {
-      // deno-lint-ignore no-explicit-any
-      const zodEnumValues = values.map((value: any) => {
-        return JSON.stringify(value);
-      });
-
       // first filter out strings
-      const zodEnumStrings = zodEnumValues.filter((value) => {
+      const zodEnumStrings = values.filter((value) => {
         return typeof value === "string";
       }).map((value) => {
         return JSON.stringify(value);
       });
-      const zodLiterals = zodEnumValues.filter((x) => {
+      const zodLiterals = values.filter((x) => {
         return typeof x !== "string";
       });
       const zodTypes: string[] = [];
@@ -131,7 +127,7 @@ ${zodInferredTypes}`;
         zodTypes.push(
           ...zodLiterals.map((x) => {
             return `z.literal(${JSON.stringify(x)})`;
-          }).join(", "),
+          }),
         );
       }
       if (zodTypes.length === 0) {
