@@ -1,7 +1,7 @@
 /*
  * types.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2023 Posit Software, PBC
  */
 import {
   kIncludeAfterBody,
@@ -89,6 +89,7 @@ export interface ExecuteOptions {
   quiet?: boolean;
   previewServer?: boolean;
   handledLanguages: string[]; // list of languages handled by cell language handlers, after the execution engine
+  env?: Record<string, string>;
   project?: ProjectContext;
 }
 

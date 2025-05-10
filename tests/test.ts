@@ -1,9 +1,8 @@
 /*
-* test.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * test.ts
+ *
+ * Copyright (C) 2020-2025 Posit Software, PBC
+ */
 import { existsSync, safeRemoveSync } from "../src/deno_ral/fs.ts";
 import { AssertionError, fail } from "testing/asserts";
 import { warning } from "../src/deno_ral/log.ts";
@@ -16,6 +15,7 @@ import * as colors from "fmt/colors";
 import { runningInCI } from "../src/core/ci-info.ts";
 import { relative, fromFileUrl } from "../src/deno_ral/path.ts";
 import { quartoConfig } from "../src/core/quarto.ts";
+import { requestIncomingCovFilename } from "./docs/luacov/covtools.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
 
 export interface TestDescriptor {
@@ -100,13 +100,22 @@ export function mergeTestContexts(baseContext: TestContext, additionalContext?: 
   };
 }
 
-export function testQuartoCmd(
+export async function testQuartoCmd(
   cmd: string,
   args: string[],
   verify: Verify[],
   context?: TestContext,
   name?: string
 ) {
+  if (cmd === "render" && Deno.env.get("QUARTO_FINE_GRAINED_LUACOV")) {
+    const testCovFilename = await requestIncomingCovFilename(
+      [cmd, ...args].join(" "),
+    );
+    args.push(
+      "--env",
+      `QUARTO_LUACOV=${testCovFilename}`,
+    );
+  }
   if (name === undefined) {
     name = `quarto ${cmd} ${args.join(" ")}`;
   }
@@ -216,7 +225,6 @@ export function test(test: TestDescriptor) {
         };
         let lastVerify;
         try {
-
           try {
             await test.execute();
           } catch (e) {
