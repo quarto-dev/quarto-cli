@@ -4,14 +4,14 @@
  * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
-import { join } from "../deno_ral/path.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 
 export function buildQuartoPreviewJs(
   srcDir: string,
   denoDir?: string,
   force?: boolean,
 ) {
-  const args = ["run", "-A", "build.ts"];
+  const args = ["run", "--no-config", "-A", "build.ts"];
   if (force) {
     args.push("--force");
   }

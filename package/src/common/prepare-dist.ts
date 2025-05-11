@@ -21,7 +21,7 @@ Dependency,
 } from "./dependencies/dependencies.ts";
 import { copyQuartoScript } from "./configure.ts";
 import { deno } from "./dependencies/deno.ts";
-import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
+import { buildQuartoPreviewJs } from "./previewjs.ts";
 
 export async function prepareDist(
   config: Configuration,
