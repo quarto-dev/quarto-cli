@@ -20,6 +20,10 @@ All changes included in 1.8:
 
 - ([#8392](https://github.com/quarto-dev/quarto-cli/issues/8392)): Fix `docx` generation issues in tables
 
+### `typst`
+
+- ([#12554](https://github.com/quarto-dev/quarto-cli/pull/12554)): CSS properties `font-weight` and `font-style` are translated to Typst `text` properties.
+
 ## Projects
 
 ### `website`
