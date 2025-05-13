@@ -631,7 +631,11 @@ h1.title {
   margin-top: 0;
 }
 
-main.content > section:first-of-type > h2:first-child {
+main.content > p:has(+ section) {
+  margin-bottom: 2rem;
+}
+
+main.content > section:first-of-type > h2:nth-child(1) {
   margin-top: 0;
 }
 
