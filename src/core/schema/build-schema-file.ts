@@ -37,6 +37,7 @@ import { kLangCommentChars } from "../lib/partition-cell-options.ts";
 import { generateTypesFromSchemas } from "./types-from-schema.ts";
 import { generateJsonSchemasFromSchemas } from "./json-schema-from-schema.ts";
 import { InternalError } from "../lib/error.ts";
+import { generateZodTypesFromSchemas } from "./zod-types-from-schema.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -90,6 +91,7 @@ export async function buildIntelligenceResources() {
   await Promise.all([
     generateTypesFromSchemas(path),
     generateJsonSchemasFromSchemas(path),
+    generateZodTypesFromSchemas(path),
   ]);
 }
 

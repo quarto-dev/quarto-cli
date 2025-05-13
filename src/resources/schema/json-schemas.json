@@ -258,15 +258,10 @@
           "mapping": {
             "anyOf": [
               {
-                "enum": [
-                  "pathname",
-                  "url",
-                  "title",
-                  "og:title"
-                ]
+                "type": "string"
               },
               {
-                "type": "string"
+                "type": "number"
               }
             ]
           },
@@ -1045,42 +1040,10 @@
                       "type": "string"
                     },
                     "background": {
-                      "anyOf": [
-                        {
-                          "enum": [
-                            "primary",
-                            "secondary",
-                            "success",
-                            "danger",
-                            "warning",
-                            "info",
-                            "light",
-                            "dark"
-                          ]
-                        },
-                        {
-                          "type": "string"
-                        }
-                      ]
+                      "type": "string"
                     },
                     "foreground": {
-                      "anyOf": [
-                        {
-                          "enum": [
-                            "primary",
-                            "secondary",
-                            "success",
-                            "danger",
-                            "warning",
-                            "info",
-                            "light",
-                            "dark"
-                          ]
-                        },
-                        {
-                          "type": "string"
-                        }
-                      ]
+                      "type": "string"
                     },
                     "search": {
                       "type": "boolean"
@@ -1179,42 +1142,10 @@
                             ]
                           },
                           "background": {
-                            "anyOf": [
-                              {
-                                "enum": [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              {
-                                "type": "string"
-                              }
-                            ]
+                            "type": "string"
                           },
                           "foreground": {
-                            "anyOf": [
-                              {
-                                "enum": [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              {
-                                "type": "string"
-                              }
-                            ]
+                            "type": "string"
                           },
                           "border": {
                             "type": "boolean"
@@ -1306,42 +1237,10 @@
                           ]
                         },
                         "background": {
-                          "anyOf": [
-                            {
-                              "enum": [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            {
-                              "type": "string"
-                            }
-                          ]
+                          "type": "string"
                         },
                         "foreground": {
-                          "anyOf": [
-                            {
-                              "enum": [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            {
-                              "type": "string"
-                            }
-                          ]
+                          "type": "string"
                         },
                         "border": {
                           "type": "boolean"
