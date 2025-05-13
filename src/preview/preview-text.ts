@@ -155,7 +155,8 @@ async function textPreviewHtml(file: string, req: Request) {
   );
   cmd.push("--standalone");
   const result = await execProcess({
-    cmd,
+    cmd: cmd[0],
+    args: cmd.slice(1),
     stdout: "piped",
   }, markdown);
   if (result.success) {
@@ -244,7 +245,7 @@ async function gfmPreview(file: string, request: Request) {
     // Github renders math with MathJax now, so our preview mode does the same
     cmd.push("--mathjax");
     const result = await execProcess(
-      { cmd, stdout: "piped", stderr: "piped" },
+      { cmd: cmd[0], args: cmd.slice(1), stdout: "piped", stderr: "piped" },
       Deno.readTextFileSync(file),
     );
     if (result.success) {

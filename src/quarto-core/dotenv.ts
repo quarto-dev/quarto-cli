@@ -20,13 +20,15 @@ const kQuartoEnvRequired = `${kQuartoEnv}.required`;
 // read the QUARTO_PROFILE from dotenv if it's there
 export async function dotenvQuartoProfile(projectDir: string) {
   // read config
-  const conf = await config({
-    defaultsPath: join(projectDir, kQuartoEnv),
+  const conf1 = await config({
+    envPath: join(projectDir, kQuartoEnv),
+  });
+  const conf2 = await config({
     envPath: join(projectDir, kQuartoEnvLocal),
   });
 
   // return profile if we have it
-  return conf[kQuartoProfile];
+  return conf2[kQuartoProfile] || conf1[kQuartoProfile] || "";
 }
 
 // process dotenv files -- note that we track the processing we have done
@@ -84,8 +86,6 @@ export async function dotenvSetVariables(projectDir: string) {
     // seems to indicate that we shouldn't be using examplePath here...
     await config({
       envPath: definedEnvTempPath,
-      examplePath: dotenvRequired,
-      allowEmptyValues: true,
     });
   }
 

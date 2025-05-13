@@ -115,6 +115,7 @@ import {
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
 import { setExecuteEnvironment } from "../../execute/environment.ts";
 import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
+import { warn } from "log";
 
 export async function renderExecute(
   context: RenderContext,
@@ -347,6 +348,10 @@ export async function renderFiles(
 
     return await pandocRenderer.onComplete(false, options.flags?.quiet);
   } catch (error) {
+    if (!(error instanceof Error)) {
+      warn("Should not have arrived here:", error);
+      throw error;
+    }
     return {
       files: (await pandocRenderer.onComplete(true)).files,
       error: error || new Error(),
@@ -400,6 +405,10 @@ export async function renderFile(
     }
     return await pandocRenderer.onComplete(false, options.flags?.quiet);
   } catch (error) {
+    if (!(error instanceof Error)) {
+      warn("Should not have arrived here:", error);
+      throw error;
+    }
     return {
       files: (await pandocRenderer.onComplete(true)).files,
       error: error || new Error(),

@@ -1,0 +1,21 @@
+---
+title: "Reproducible Quarto Document"
+format: html
+html-math-method: katex
+---
+
+:::{#thm-with-math}
+### Theorem with math
+
+Text with math $\mathcal P (\mathbb N) ≠ \varnothing$.
+:::
+
+:::{#thm-without-math}
+### Theorem without math
+
+Just text!
+:::
+
+Reference to @thm-with-math. (Popup does not render correctly)
+
+Reference to @thm-without-math. (Popup does render.)

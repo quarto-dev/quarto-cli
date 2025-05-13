@@ -43,7 +43,8 @@ export async function checkRBinary() {
   const rBin = await rBinaryPath("Rscript");
   try {
     const result = await execProcess({
-      cmd: [rBin, "--version"],
+      cmd: rBin,
+      args: ["--version"],
       stdout: "piped",
       stderr: "piped",
     });
@@ -72,7 +73,8 @@ export async function knitrCapabilities(rBin: string | undefined) {
   try {
     debug(`-- Checking knitr engine capabilities --`);
     const result = await execProcess({
-      cmd: [rBin, resourcePath("capabilities/knitr.R")],
+      cmd: rBin,
+      args: [resourcePath("capabilities/knitr.R")],
       stdout: "piped",
     });
     if (result.success && result.stdout) {

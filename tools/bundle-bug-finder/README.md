@@ -1,6 +1,6 @@
 ## bundle bug finder
 
-This is a hack^Wtool to find badly-generated `deno bundle` code.
+This is a tool to find badly-generated bundled code.
 
 - run `npm install` in this directory
 - copy the bundled file you generated with `./quarto-bld prepare-dist` to this directory.

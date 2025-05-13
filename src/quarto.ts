@@ -80,7 +80,8 @@ const checkReconfiguration = async () => {
 const passThroughPandoc = async (args: string[]) => {
   const result = await execProcess(
     {
-      cmd: [pandocBinaryPath(), ...args.slice(1)],
+      cmd: pandocBinaryPath(),
+      args: args.slice(1),
     },
     undefined,
     undefined,
@@ -99,7 +100,8 @@ const passThroughTypst = async (args: string[]) => {
     Deno.exit(1);
   }
   const result = await execProcess({
-    cmd: [typstBinaryPath(), ...args.slice(1)],
+    cmd: typstBinaryPath(),
+    args: args.slice(1),
   });
   Deno.exit(result.code);
 };

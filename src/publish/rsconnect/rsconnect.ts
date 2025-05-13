@@ -139,6 +139,9 @@ async function authorizeToken(
     try {
       await client.getUser();
     } catch (err) {
+      if (!(err instanceof Error)) {
+        throw err;
+      }
       // connect server will give 401 for unauthorized, break out
       // of the loop in that case
       if (isUnauthorized(err)) {
@@ -193,6 +196,9 @@ async function authorizeToken(
         );
       }
     } catch (err) {
+      if (!(err instanceof Error)) {
+        throw err;
+      }
       if (isUnauthorized(err)) {
         promptError(
           "API key is not authorized for this Posit Connect server.",
@@ -314,6 +320,9 @@ async function createContent(
     try {
       return await client.createContent(name, title);
     } catch (err) {
+      if (!(err instanceof Error)) {
+        throw err;
+      }
       if (!isConflict(err)) {
         throw err;
       }

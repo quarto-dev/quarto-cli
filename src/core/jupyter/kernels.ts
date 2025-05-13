@@ -80,9 +80,11 @@ async function computeJupyterKernelspecs(): Promise<
   Map<string, JupyterKernelspec>
 > {
   try {
+    const cmd = await jupyterExec();
     const result = await execProcess(
       {
-        cmd: [...(await jupyterExec()), "--paths", "--json"],
+        cmd: cmd[0],
+        args: [...cmd.slice(1), "--paths", "--json"],
         stdout: "piped",
         stderr: "piped",
       },
@@ -125,6 +127,7 @@ async function computeJupyterKernelspecs(): Promise<
       return kDefaultKernelspecs;
     }
   } catch (e) {
+    if (!(e instanceof Error)) throw e;
     debug("Error reading kernelspecs: " + e.message);
     return kDefaultKernelspecs;
   }
