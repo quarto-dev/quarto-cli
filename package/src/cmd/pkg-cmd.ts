@@ -7,7 +7,9 @@
 import { Command } from "cliffy/command/mod.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 
-import { printConfiguration } from "../common/config.ts";
+import { group } from "../../../src/tools/github.ts";
+
+import { configurationAST, printConfiguration } from "../common/config.ts";
 
 import {
   Configuration,
@@ -15,11 +17,12 @@ import {
   kValidOS,
   readConfiguration,
 } from "../common/config.ts";
+import { logPandocJson } from "../../../src/core/log.ts";
 
 export const kLogLevel = "logLevel";
 export const kVersion = "setVersion";
 
-export function packageCommand(run: (config: Configuration) => Promise<void>) {
+export function packageCommand(run: (config: Configuration) => Promise<void>, commandName: string) {
   return new Command().option(
     "-sv, --set-version [version:string]",
     "Version to set when preparing this distribution",
@@ -49,9 +52,17 @@ export function packageCommand(run: (config: Configuration) => Promise<void>) {
       Deno.env.set("QUARTO_DEBUG", "true");
 
       // Print the configuration
-      printConfiguration(config);
+      await group("Configuration info", async () => {
+        try {
+          await logPandocJson(configurationAST(config));
+        } catch (e) {
+          printConfiguration(config);
+        }
+      });
 
-      // Run the command
-      await run(config);
-    });
+      await group(commandName, async () => {
+        // Run the command
+        await run(config);
+      });
+    }).name(commandName);
 }

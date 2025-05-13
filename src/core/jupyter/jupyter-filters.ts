@@ -71,10 +71,8 @@ export async function jupyterNotebookFiltered(
           stdout: "piped",
         })
         : await execProcess({
-          cmd: [
-            isAbsolute(script) ? script : basename(script),
-            ...args.slice(1),
-          ],
+          cmd: isAbsolute(script) ? script : basename(script),
+          args: args.slice(1),
           cwd: dirname(file),
           env: {
             PYTHONUNBUFFERED: "1",

@@ -240,7 +240,88 @@
         ]
       }
     },
-    "Comments": {
+    "GiscusConfiguration": {
+      "object": {
+        "properties": {
+          "repo": {
+            "type": "string"
+          },
+          "repo-id": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "category-id": {
+            "type": "string"
+          },
+          "mapping": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "reactions-enabled": {
+            "type": "boolean"
+          },
+          "loading": {
+            "enum": [
+              "lazy"
+            ]
+          },
+          "input-position": {
+            "enum": [
+              "top",
+              "bottom"
+            ]
+          },
+          "theme": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/GiscusThemes"
+              },
+              {
+                "object": {
+                  "properties": {
+                    "light": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/$defs/GiscusThemes"
+                        }
+                      ]
+                    },
+                    "dark": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/$defs/GiscusThemes"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "language": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "DocumentCommentsConfiguration": {
       "anyOf": [
         {
           "enum": [
@@ -269,90 +350,7 @@
                 }
               },
               "giscus": {
-                "object": {
-                  "properties": {
-                    "repo": {
-                      "type": "string"
-                    },
-                    "repo-id": {
-                      "type": "string"
-                    },
-                    "category": {
-                      "type": "string"
-                    },
-                    "category-id": {
-                      "type": "string"
-                    },
-                    "mapping": {
-                      "anyOf": [
-                        {
-                          "enum": [
-                            "pathname",
-                            "url",
-                            "title",
-                            "og:title"
-                          ]
-                        },
-                        {
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "reactions-enabled": {
-                      "type": "boolean"
-                    },
-                    "loading": {
-                      "enum": [
-                        "lazy"
-                      ]
-                    },
-                    "input-position": {
-                      "enum": [
-                        "top",
-                        "bottom"
-                      ]
-                    },
-                    "theme": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "$ref": "#/$defs/GiscusThemes"
-                        },
-                        {
-                          "object": {
-                            "properties": {
-                              "light": {
-                                "anyOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "$ref": "#/$defs/GiscusThemes"
-                                  }
-                                ]
-                              },
-                              "dark": {
-                                "anyOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "$ref": "#/$defs/GiscusThemes"
-                                  }
-                                ]
-                              }
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    "language": {
-                      "type": "string"
-                    }
-                  }
-                }
+                "$ref": "#/$defs/GiscusConfiguration"
               },
               "hypothesis": {
                 "anyOf": [
@@ -1042,42 +1040,10 @@
                       "type": "string"
                     },
                     "background": {
-                      "anyOf": [
-                        {
-                          "enum": [
-                            "primary",
-                            "secondary",
-                            "success",
-                            "danger",
-                            "warning",
-                            "info",
-                            "light",
-                            "dark"
-                          ]
-                        },
-                        {
-                          "type": "string"
-                        }
-                      ]
+                      "type": "string"
                     },
                     "foreground": {
-                      "anyOf": [
-                        {
-                          "enum": [
-                            "primary",
-                            "secondary",
-                            "success",
-                            "danger",
-                            "warning",
-                            "info",
-                            "light",
-                            "dark"
-                          ]
-                        },
-                        {
-                          "type": "string"
-                        }
-                      ]
+                      "type": "string"
                     },
                     "search": {
                       "type": "boolean"
@@ -1176,42 +1142,10 @@
                             ]
                           },
                           "background": {
-                            "anyOf": [
-                              {
-                                "enum": [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              {
-                                "type": "string"
-                              }
-                            ]
+                            "type": "string"
                           },
                           "foreground": {
-                            "anyOf": [
-                              {
-                                "enum": [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              {
-                                "type": "string"
-                              }
-                            ]
+                            "type": "string"
                           },
                           "border": {
                             "type": "boolean"
@@ -1303,42 +1237,10 @@
                           ]
                         },
                         "background": {
-                          "anyOf": [
-                            {
-                              "enum": [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            {
-                              "type": "string"
-                            }
-                          ]
+                          "type": "string"
                         },
                         "foreground": {
-                          "anyOf": [
-                            {
-                              "enum": [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            {
-                              "type": "string"
-                            }
-                          ]
+                          "type": "string"
                         },
                         "border": {
                           "type": "boolean"
@@ -1447,7 +1349,7 @@
             "type": "string"
           },
           "comments": {
-            "$ref": "#/$defs/Comments"
+            "$ref": "#/$defs/DocumentCommentsConfiguration"
           },
           "open-graph": {
             "anyOf": [

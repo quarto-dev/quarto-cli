@@ -25,7 +25,8 @@ export function unzip(file: string, dir?: string) {
         (cmd: string[]) => {
           return execProcess(
             {
-              cmd: cmd,
+              cmd: cmd[0],
+              args: cmd.slice(1),
               stdout: "piped",
             },
           );
@@ -34,13 +35,13 @@ export function unzip(file: string, dir?: string) {
     } else {
       // Use the built in unzip command
       return execProcess(
-        { cmd: ["unzip", "-o", file], cwd: dir, stdout: "piped" },
+        { cmd: "unzip", args: ["-o", file], cwd: dir, stdout: "piped" },
       );
     }
   } else {
     // use the tar command to untar this
     return execProcess(
-      { cmd: ["tar", "xfz", file], cwd: dir, stdout: "piped" },
+      { cmd: "tar", args: ["xfz", file], cwd: dir, stdout: "piped" },
     );
   }
 }
@@ -79,8 +80,11 @@ export function zip(
       ];
     }
   };
+
+  const cmd = zipCmd();
   return execProcess({
-    cmd: zipCmd(),
+    cmd: cmd[0],
+    args: cmd.slice(1),
     cwd: options?.cwd,
     stdout: "piped",
     stderr: "piped",

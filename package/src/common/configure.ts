@@ -19,7 +19,7 @@ import {
   kDependencies,
 } from "./dependencies/dependencies.ts";
 import { suggestUserBinPaths } from "../../../src/core/path.ts";
-import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
+import { buildQuartoPreviewJs } from "./previewjs.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
 
 export async function configure(

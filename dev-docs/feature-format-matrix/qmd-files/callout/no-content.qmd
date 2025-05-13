@@ -1,0 +1,12 @@
+---
+title: Callout with no content
+format:
+  html: 
+    quality: 1
+---
+
+::: {.callout-note}
+
+## Title
+
+:::

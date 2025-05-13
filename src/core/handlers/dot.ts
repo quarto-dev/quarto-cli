@@ -75,11 +75,8 @@ const dotHandler: LanguageHandler = {
         "svg",
         options["graph-layout"],
       );
-      console["log"] = oldConsoleLog;
-      console["warn"] = oldConsoleWarn;
     } catch (e) {
-      console["log"] = oldConsoleLog;
-      console["warn"] = oldConsoleWarn;
+      if (!(e instanceof Error)) throw e;
       const m = (e.message as string).match(
         /(.*)syntax error in line (\d+)(.*)/,
       );
@@ -96,10 +93,11 @@ const dotHandler: LanguageHandler = {
             mapResult!.originalString.fileName
           }, line ${line + 1}${m[3]}`,
         );
-        throw e;
-      } else {
-        throw e;
       }
+      throw e;
+    } finally {
+      console["log"] = oldConsoleLog;
+      console["warn"] = oldConsoleWarn;
     }
 
     const makeFigLink = (

@@ -6,7 +6,8 @@
 
 import { debug } from "../../deno_ral/log.ts";
 import { normalizePath } from "../path.ts";
-import { getStack } from "./debug.ts";
+import { copy } from "io/copy";
+import { writeAll } from "io/write-all";
 
 // Windows UNC paths can be mishandled by realPathSync
 // (see https://github.com/quarto-dev/quarto-vscode/issues/67)
@@ -14,6 +15,17 @@ import { getStack } from "./debug.ts";
 // parts of realPathSync (we aren't interested in the symlink
 // resolution, and certainly not on windows that has no symlinks!)
 Deno.realPathSync = normalizePath;
+
+// some of our dependencies use Deno.copy and have not been ported to Deno 2
+//
+// deno-lint-ignore no-explicit-any
+(Deno as any).copy = copy;
+// deno-lint-ignore no-explicit-any
+(Deno as any).writeAll = writeAll;
+
+// TODO:
+// Puppeteer (and only Puppeteer) uses Deno.run, but it still more-or-less exists
+// in the Deno namespace.
 
 // 2023-02-14: We're seeing a rare failure in Deno.makeTempFile{,Sync} with FileExists, so we're going to try
 // a few times to create the file. If it fails, we'll log the error and try again.
@@ -27,6 +39,9 @@ function withAttempts<T>(callable: () => T) {
     try {
       return callable();
     } catch (err) {
+      if (!(err instanceof Error)) {
+        throw err;
+      }
       if (err.message) {
         debug("Error attempting to create temp file: " + err.message);
         if (i === maxAttempts - 1) {
@@ -43,6 +58,9 @@ function withAttempts<T>(callable: () => T) {
 function withAttemptsAsync<T>(callable: () => Promise<T>) {
   const inner = (attempt: number): Promise<T> => {
     return callable().catch((err) => {
+      if (!(err instanceof Error)) {
+        throw err;
+      }
       if (err.message) {
         debug("Error attempting to create temp file: " + err.message);
       }
@@ -91,6 +109,9 @@ Deno.readTextFile = async (
     const result = await oldReadTextFile(path, options);
     return result;
   } catch (err) {
+    if (!(err instanceof Error)) {
+      throw err;
+    }
     if (err.message) {
       err.message = err.message + "\n" + "Path: " + path;
     }
@@ -103,6 +124,9 @@ Deno.readTextFileSync = (path: string | URL) => {
     const result = oldReadTextFileSync(path);
     return result;
   } catch (err) {
+    if (!(err instanceof Error)) {
+      throw err;
+    }
     if (err.message) {
       err.message = err.message + "\n" + "Path: " + path;
     }

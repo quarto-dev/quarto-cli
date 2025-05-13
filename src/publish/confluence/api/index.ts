@@ -152,6 +152,9 @@ export class ConfluenceClient {
         `content/${testContentId}/restriction/byOperation/update/user?accountId=${user.accountId}`,
       );
     } catch (error) {
+      if (!(error instanceof ApiError)) {
+        throw error;
+      }
       trace("lockDownResult Error", error);
       // Note, sometimes a successful call throws a
       // "SyntaxError: Unexpected end of JSON input"
@@ -170,6 +173,9 @@ export class ConfluenceClient {
     try {
       await this.deleteContent(contentDelete);
     } catch (error) {
+      if (!(error instanceof ApiError)) {
+        throw error;
+      }
       trace("delete canSetPermissions Test Error", error);
       if (error?.status === 403) {
         //Delete is disabled for this user, attempt an archive

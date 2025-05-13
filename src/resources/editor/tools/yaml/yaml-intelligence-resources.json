@@ -1572,7 +1572,128 @@
       }
     },
     {
-      "id": "comments",
+      "id": "giscus-configuration",
+      "object": {
+        "closed": true,
+        "properties": {
+          "repo": {
+            "string": {
+              "description": {
+                "short": "The Github repo that will be used to store comments.",
+                "long": "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n"
+              }
+            }
+          },
+          "repo-id": {
+            "string": {
+              "description": {
+                "short": "The Github repository identifier.",
+                "long": "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
+              }
+            }
+          },
+          "category": {
+            "string": {
+              "description": {
+                "short": "The discussion category where new discussions will be created.",
+                "long": "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n"
+              }
+            }
+          },
+          "category-id": {
+            "string": {
+              "description": {
+                "short": "The Github category identifier.",
+                "long": "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
+              }
+            }
+          },
+          "mapping": {
+            "schema": {
+              "anyOf": [
+                "string",
+                "number"
+              ]
+            },
+            "completions": [
+              "pathname",
+              "url",
+              "title",
+              "og:title"
+            ],
+            "description": {
+              "short": "The mapping between the page and the embedded discussion.",
+              "long": "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
+            }
+          },
+          "reactions-enabled": {
+            "boolean": {
+              "description": "Display reactions for the discussion's main post before the comments."
+            }
+          },
+          "loading": {
+            "enum": [
+              "lazy"
+            ],
+            "description": "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
+          },
+          "input-position": {
+            "enum": [
+              "top",
+              "bottom"
+            ],
+            "description": "Place the comment input box above or below the comments."
+          },
+          "theme": {
+            "anyOf": [
+              "string",
+              {
+                "ref": "giscus-themes"
+              },
+              {
+                "object": {
+                  "closed": true,
+                  "properties": {
+                    "light": {
+                      "anyOf": [
+                        "string",
+                        {
+                          "ref": "giscus-themes"
+                        }
+                      ],
+                      "description": "The light theme name."
+                    },
+                    "dark": {
+                      "anyOf": [
+                        "string",
+                        {
+                          "ref": "giscus-themes"
+                        }
+                      ],
+                      "description": "The dark theme name."
+                    }
+                  }
+                }
+              }
+            ],
+            "description": {
+              "short": "The giscus theme to use when displaying comments.",
+              "long": "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
+            }
+          },
+          "language": {
+            "string": {
+              "description": "The language that should be used when displaying the commenting interface."
+            }
+          }
+        },
+        "required": [
+          "repo"
+        ]
+      }
+    },
+    {
+      "id": "document-comments-configuration",
       "anyOf": [
         {
           "enum": [
@@ -1636,123 +1757,7 @@
                 }
               },
               "giscus": {
-                "object": {
-                  "closed": true,
-                  "properties": {
-                    "repo": {
-                      "string": {
-                        "description": {
-                          "short": "The Github repo that will be used to store comments.",
-                          "long": "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n"
-                        }
-                      }
-                    },
-                    "repo-id": {
-                      "string": {
-                        "description": {
-                          "short": "The Github repository identifier.",
-                          "long": "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                        }
-                      }
-                    },
-                    "category": {
-                      "string": {
-                        "description": {
-                          "short": "The discussion category where new discussions will be created.",
-                          "long": "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n"
-                        }
-                      }
-                    },
-                    "category-id": {
-                      "string": {
-                        "description": {
-                          "short": "The Github category identifier.",
-                          "long": "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                        }
-                      }
-                    },
-                    "mapping": {
-                      "anyOf": [
-                        {
-                          "enum": [
-                            "pathname",
-                            "url",
-                            "title",
-                            "og:title"
-                          ]
-                        },
-                        "string"
-                      ],
-                      "description": {
-                        "short": "The mapping between the page and the embedded discussion.",
-                        "long": "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
-                      }
-                    },
-                    "reactions-enabled": {
-                      "boolean": {
-                        "description": "Display reactions for the discussion's main post before the comments."
-                      }
-                    },
-                    "loading": {
-                      "enum": [
-                        "lazy"
-                      ],
-                      "description": "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
-                    },
-                    "input-position": {
-                      "enum": [
-                        "top",
-                        "bottom"
-                      ],
-                      "description": "Place the comment input box above or below the comments."
-                    },
-                    "theme": {
-                      "anyOf": [
-                        "string",
-                        {
-                          "ref": "giscus-themes"
-                        },
-                        {
-                          "object": {
-                            "closed": true,
-                            "properties": {
-                              "light": {
-                                "anyOf": [
-                                  "string",
-                                  {
-                                    "ref": "giscus-themes"
-                                  }
-                                ],
-                                "description": "The light theme name."
-                              },
-                              "dark": {
-                                "anyOf": [
-                                  "string",
-                                  {
-                                    "ref": "giscus-themes"
-                                  }
-                                ],
-                                "description": "The dark theme name."
-                              }
-                            }
-                          }
-                        }
-                      ],
-                      "description": {
-                        "short": "The giscus theme to use when displaying comments.",
-                        "long": "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
-                      }
-                    },
-                    "language": {
-                      "string": {
-                        "description": "The language that should be used when displaying the commenting interface."
-                      }
-                    }
-                  },
-                  "required": [
-                    "repo"
-                  ]
-                }
+                "ref": "giscus-configuration"
               },
               "hypothesis": {
                 "anyOf": [
@@ -2667,40 +2672,34 @@
                       }
                     },
                     "background": {
-                      "anyOf": [
-                        {
-                          "enum": [
-                            "primary",
-                            "secondary",
-                            "success",
-                            "danger",
-                            "warning",
-                            "info",
-                            "light",
-                            "dark"
-                          ]
-                        },
-                        "string"
-                      ],
-                      "description": "The navbar's background color (named or hex color)."
+                      "string": {
+                        "description": "The navbar's background color (named or hex color).",
+                        "completions": [
+                          "primary",
+                          "secondary",
+                          "success",
+                          "danger",
+                          "warning",
+                          "info",
+                          "light",
+                          "dark"
+                        ]
+                      }
                     },
                     "foreground": {
-                      "anyOf": [
-                        {
-                          "enum": [
-                            "primary",
-                            "secondary",
-                            "success",
-                            "danger",
-                            "warning",
-                            "info",
-                            "light",
-                            "dark"
-                          ]
-                        },
-                        "string"
-                      ],
-                      "description": "The navbar's foreground color (named or hex color)."
+                      "string": {
+                        "description": "The navbar's foreground color (named or hex color).",
+                        "completions": [
+                          "primary",
+                          "secondary",
+                          "success",
+                          "danger",
+                          "warning",
+                          "info",
+                          "light",
+                          "dark"
+                        ]
+                      }
                     },
                     "search": {
                       "boolean": {
@@ -2822,38 +2821,30 @@
                         "default": "floating"
                       },
                       "background": {
-                        "anyOf": [
-                          {
-                            "enum": [
-                              "primary",
-                              "secondary",
-                              "success",
-                              "danger",
-                              "warning",
-                              "info",
-                              "light",
-                              "dark"
-                            ]
-                          },
-                          "string"
+                        "schema": "string",
+                        "completions": [
+                          "primary",
+                          "secondary",
+                          "success",
+                          "danger",
+                          "warning",
+                          "info",
+                          "light",
+                          "dark"
                         ],
                         "description": "The sidebar's background color (named or hex color)."
                       },
                       "foreground": {
-                        "anyOf": [
-                          {
-                            "enum": [
-                              "primary",
-                              "secondary",
-                              "success",
-                              "danger",
-                              "warning",
-                              "info",
-                              "light",
-                              "dark"
-                            ]
-                          },
-                          "string"
+                        "schema": "string",
+                        "completions": [
+                          "primary",
+                          "secondary",
+                          "success",
+                          "danger",
+                          "warning",
+                          "info",
+                          "light",
+                          "dark"
                         ],
                         "description": "The sidebar's foreground color (named or hex color)."
                       },
@@ -2950,7 +2941,7 @@
           },
           "comments": {
             "schema": {
-              "ref": "comments"
+              "ref": "document-comments-configuration"
             }
           },
           "open-graph": {
@@ -6234,7 +6225,7 @@
         ]
       },
       "schema": {
-        "ref": "comments"
+        "ref": "document-comments-configuration"
       },
       "description": "Configuration for document commenting."
     }
@@ -10114,7 +10105,19 @@
           "beamer"
         ]
       },
-      "description": "The Beamer color theme for this presentation."
+      "description": "The Beamer color theme for this presentation, passed to `\\usecolortheme`."
+    },
+    {
+      "name": "colorthemeoptions",
+      "schema": {
+        "maybeArrayOf": "string"
+      },
+      "tags": {
+        "formats": [
+          "beamer"
+        ]
+      },
+      "description": "The Beamer color theme options for this presentation, passed to `\\usecolortheme`."
     },
     {
       "name": "fonttheme",
@@ -10124,7 +10127,19 @@
           "beamer"
         ]
       },
-      "description": "The Beamer font theme for this presentation."
+      "description": "The Beamer font theme for this presentation, passed to `\\usefonttheme`."
+    },
+    {
+      "name": "fontthemeoptions",
+      "schema": {
+        "maybeArrayOf": "string"
+      },
+      "tags": {
+        "formats": [
+          "beamer"
+        ]
+      },
+      "description": "The Beamer font theme options for this presentation, passed to `\\usefonttheme`."
     },
     {
       "name": "innertheme",
@@ -10134,7 +10149,19 @@
           "beamer"
         ]
       },
-      "description": "The Beamer inner theme for this presentation."
+      "description": "The Beamer inner theme for this presentation, passed to `\\useinnertheme`."
+    },
+    {
+      "name": "innerthemeoptions",
+      "schema": {
+        "maybeArrayOf": "string"
+      },
+      "tags": {
+        "formats": [
+          "beamer"
+        ]
+      },
+      "description": "The Beamer inner theme options for this presentation, passed to `\\useinnertheme`."
     },
     {
       "name": "outertheme",
@@ -10144,7 +10171,19 @@
           "beamer"
         ]
       },
-      "description": "The Beamer outer theme for this presentation."
+      "description": "The Beamer outer theme for this presentation, passed to `\\useoutertheme`."
+    },
+    {
+      "name": "outerthemeoptions",
+      "schema": {
+        "maybeArrayOf": "string"
+      },
+      "tags": {
+        "formats": [
+          "beamer"
+        ]
+      },
+      "description": "The Beamer outer theme options for this presentation, passed to `\\useoutertheme`."
     },
     {
       "name": "themeoptions",
@@ -10156,7 +10195,7 @@
           "beamer"
         ]
       },
-      "description": "Options passed to LaTeX Beamer themes."
+      "description": "Options passed to LaTeX Beamer themes inside `\\usetheme`."
     },
     {
       "name": "section",
@@ -13713,16 +13752,6 @@
     "Alias for href",
     "Value for rel attribute. Multiple space-separated values are\npermitted. See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel\" class=\"uri\">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor a details.",
     "Value for target attribute. See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target\" class=\"uri\">https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target</a>\nfor details.",
-    "The Github repo that will be used to store comments.",
-    "The label that will be assigned to issues created by Utterances.",
-    {
-      "short": "The Github theme that should be used for Utterances.",
-      "long": "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
-    },
-    {
-      "short": "How posts should be mapped to Github issues",
-      "long": "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
-    },
     {
       "short": "The Github repo that will be used to store comments.",
       "long": "The Github repo that will be used to store comments.\nIn order to work correctly, the repo must be public, with the giscus\napp installed, and the discussions feature must be enabled."
@@ -13753,6 +13782,16 @@
     "The light theme name.",
     "The dark theme name.",
     "The language that should be used when displaying the commenting\ninterface.",
+    "The Github repo that will be used to store comments.",
+    "The label that will be assigned to issues created by Utterances.",
+    {
+      "short": "The Github theme that should be used for Utterances.",
+      "long": "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
+    },
+    {
+      "short": "How posts should be mapped to Github issues",
+      "long": "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
+    },
     "Override the default hypothesis client url with a custom client\nurl.",
     "Controls whether the sidebar opens automatically on startup.",
     "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -15936,7 +15975,6 @@
     "The light theme name, theme scss file, or a mix of both.",
     "The dark theme name, theme scss file, or a mix of both.",
     "The dark theme name, theme scss file, or a mix of both.",
-    "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
     "Classes to apply to the body of the document.",
     "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
     "Enables inclusion of Pandoc default CSS for this document.",
@@ -15981,11 +16019,15 @@
     "The image for the title slide.",
     "Controls navigation symbols for the presentation (<code>empty</code>,\n<code>frame</code>, <code>vertical</code>, or\n<code>horizontal</code>)",
     "Whether to enable title pages for new sections.",
-    "The Beamer color theme for this presentation.",
-    "The Beamer font theme for this presentation.",
-    "The Beamer inner theme for this presentation.",
-    "The Beamer outer theme for this presentation.",
-    "Options passed to LaTeX Beamer themes.",
+    "The Beamer color theme for this presentation, passed to\n<code>\\usecolortheme</code>.",
+    "The Beamer color theme options for this presentation, passed to\n<code>\\usecolortheme</code>.",
+    "The Beamer font theme for this presentation, passed to\n<code>\\usefonttheme</code>.",
+    "The Beamer font theme options for this presentation, passed to\n<code>\\usefonttheme</code>.",
+    "The Beamer inner theme for this presentation, passed to\n<code>\\useinnertheme</code>.",
+    "The Beamer inner theme options for this presentation, passed to\n<code>\\useinnertheme</code>.",
+    "The Beamer outer theme for this presentation, passed to\n<code>\\useoutertheme</code>.",
+    "The Beamer outer theme options for this presentation, passed to\n<code>\\useoutertheme</code>.",
+    "Options passed to LaTeX Beamer themes inside\n<code>\\usetheme</code>.",
     "The section number in man pages.",
     "Enable and disable extensions for markdown output (e.g.&nbsp;“+emoji”)",
     "Specify whether to use <code>atx</code> (<code>#</code>-prefixed) or\n<code>setext</code> (underlined) headings for level 1 and 2 headings\n(<code>atx</code> or <code>setext</code>).",
@@ -16688,14 +16730,6 @@
     "Manuscript configuration",
     "internal-schema-hack",
     "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’.",
-    {
-      "short": "Include an automatically generated table of contents",
-      "long": ""
-    },
-    {
-      "short": "Use smart quotes in document output. Defaults to true.",
-      "long": ""
-    },
     "Project configuration.",
     "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
     "Files to render (defaults to all files)",
@@ -17270,12 +17304,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 195000,
+    "_internalId": 195562,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 194992,
+        "_internalId": 195554,
         "type": "enum",
         "enum": [
           "png",
@@ -17291,7 +17325,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 194999,
+        "_internalId": 195561,
         "type": "anyOf",
         "anyOf": [
           {
@@ -17331,40 +17365,5 @@
       "case-detection": true
     },
     "$id": "handlers/mermaid"
-  },
-  "schema/document-typst.yml": [
-    {
-      "name": "page-numbering",
-      "tags": {
-        "formats": [
-          "typst"
-        ]
-      },
-      "schema": {
-        "anyOf": [
-          "string",
-          {
-            "enum": [
-              false
-            ]
-          }
-        ]
-      },
-      "description": {
-        "short": "Include an automatically generated table of contents"
-      }
-    },
-    {
-      "name": "smart",
-      "tags": {
-        "formats": [
-          "typst"
-        ]
-      },
-      "schema": "boolean",
-      "description": {
-        "short": "Use smart quotes in document output. Defaults to true."
-      }
-    }
-  ]
+  }
 }

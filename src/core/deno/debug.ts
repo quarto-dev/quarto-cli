@@ -6,7 +6,7 @@
  * Debugging utilities.
  */
 
-import * as colors from "colors";
+import * as colors from "fmt/colors";
 import { warn } from "../../deno_ral/log.ts";
 
 type StackEntry = {

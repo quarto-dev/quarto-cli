@@ -8,7 +8,6 @@ Reads an *Archive* structure from a raw zip archive or a list of
 Entry items; throws an error if the given string cannot be decoded
 into an archive.
 ]]
-
 ---@param bytestring_or_entries string|pandoc.zip.Entry[]
 ---@return pandoc.zip.Archive
 function pandoc.zip.Archive(bytestring_or_entries) end

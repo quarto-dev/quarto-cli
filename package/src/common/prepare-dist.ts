@@ -21,7 +21,7 @@ Dependency,
 } from "./dependencies/dependencies.ts";
 import { copyQuartoScript } from "./configure.ts";
 import { deno } from "./dependencies/deno.ts";
-import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
+import { buildQuartoPreviewJs } from "./previewjs.ts";
 
 export async function prepareDist(
   config: Configuration,
@@ -90,6 +90,7 @@ export async function prepareDist(
     try {
       await configArchDependency(dependency, targetDir, config)
     } catch (e) {
+      if (!(e instanceof Error)) { throw e; }
       if (
         e.message ===
           "The architecture aarch64 is missing the dependency deno_dom"
@@ -121,13 +122,11 @@ export async function prepareDist(
   info("");
 
   // Create the deno bundle
-  const input = join(config.directoryInfo.src, "quarto.ts");
+  // const input = join(config.directoryInfo.src, "quarto.ts");
   const output = join(config.directoryInfo.pkgWorking.bin, "quarto.js");
   info("\nCreating Deno Bundle");
   info(output);
   await bundle(
-    input,
-    output,
     config,
   );
   info("");
@@ -172,9 +171,7 @@ export async function prepareDist(
   const configDir = join(config.directoryInfo.dist, "config");
   info(configDir);
   if (existsSync(configDir)) {
-    Deno.removeSync(configDir, {
-      recursive: true,
-    });
+    Deno.removeSync(configDir, { recursive: true });
   }
 
   info("");
@@ -195,10 +192,6 @@ function supportingFiles(config: Configuration) {
       from: join(config.directoryInfo.src, "resources"),
       to: config.directoryInfo.pkgWorking.share,
     },
-    {
-      from: join(config.directoryInfo.src, "resources", "vendor"),
-      to: join(config.directoryInfo.pkgWorking.bin, "vendor"),
-    },
   ];
 
   // Gather supporting files
@@ -215,7 +208,6 @@ function supportingFiles(config: Configuration) {
   // compiled later
   const pathsToClean = [
     join(config.directoryInfo.pkgWorking.share, "filters"),
-    join(config.directoryInfo.pkgWorking.share, "vendor"),
   ];
   pathsToClean.forEach((path) => Deno.removeSync(path, { recursive: true }));
 }

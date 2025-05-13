@@ -29,49 +29,56 @@ function download() {
 
 QUARTO_VENDOR_BINARIES=${QUARTO_VENDOR_BINARIES=true}
 
-DENO_BIN=${QUARTO_DENO=$QUARTO_BIN_PATH/tools/$DENO_DIR/deno}
+DENO_BIN=${QUARTO_DENO=$QUARTO_BIN_PATH/tools/$DENO_ARCH_DIR/deno}
 
 if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
-  DENO_VERSION_NO_V=$(echo $DENO | sed 's/v//')
-  if [[ (! -f "$DENO_BIN") || $("$DENO_BIN" --version | grep $DENO_VERSION_NO_V) == "" ]]; then
+  DENO_VERSION_NO_V=$(echo "$DENO" | sed 's/v//')
+  if [[ (! -f "$DENO_BIN") || $("$DENO_BIN" --version | grep "$DENO_VERSION_NO_V") == "" ]]; then
     # Ensure directory is there for Deno
     echo "Bootstrapping Deno..."
 
-    rm -rf $QUARTO_DIST_PATH
+    rm -rf "$QUARTO_DIST_PATH"
 
     ## Binary Directory
     mkdir -p "$QUARTO_BIN_PATH/tools"
-    cd $QUARTO_BIN_PATH/tools
+    pushd "$QUARTO_BIN_PATH/tools"
 
     # Download Deno
     for DENOFILE in $DENOFILES; do
       download "$DENOURL/$DENO/$DENOFILE" "$DENOFILE"
-      unzip -o $DENOFILE
-      
-      mkdir -p $DENO_DIR
-      mv deno $DENO_DIR
-      rm $DENOFILE
+      unzip -o "$DENOFILE"
+      mkdir -p "$DENO_ARCH_DIR"
+      mv deno "$DENO_ARCH_DIR"
+      rm "$DENOFILE"
     done
 
     # we create a symlink here so that we need only one quarto-cli.code-workspace file
-    ln -s $DENO_DIR/deno deno
+    ln -s $DENO_ARCH_DIR/deno deno
 
     # If a canary commit is provided, upgrade to that
-    if [ ! -z "$DENO_CANARY_COMMIT" ]; then
+    if [ -n "$DENO_CANARY_COMMIT" ]; then
       echo [Upgrading Deno to Canary]
-      ./deno upgrade --canary --version $DENO_CANARY_COMMIT
+      ./deno upgrade --canary --version "$DENO_CANARY_COMMIT"
     fi
 
     # write deno version file for later use
-    mkdir -p $QUARTO_BIN_PATH/../config
-    echo $DENO > $QUARTO_BIN_PATH/../config/deno-version
+    mkdir -p "$QUARTO_BIN_PATH/../config"
+    echo "$DENO" > "$QUARTO_BIN_PATH/../config/deno-version"
+
+    popd
   fi
-  export DENO_BIN_PATH=$QUARTO_BIN_PATH/tools/$DENO_DIR/deno
+  export DENO_BIN_PATH=$QUARTO_BIN_PATH/tools/$DENO_ARCH_DIR/deno
 else
   if [ -z "$DENO_BIN_PATH" ]; then
     echo "DENO_BIN_PATH is not set. You either need to allow QUARTO_VENDOR_BINARIES or set DENO_BIN_PATH to the path of a deno binary."
     exit 1
   fi
+fi
+
+if [ "$QUARTO_DENO_DIR" == "" ]; then
+  export DENO_DIR=$QUARTO_BIN_PATH/deno_cache
+else
+  export DENO_DIR=$QUARTO_DENO_DIR
 fi
 
 echo "Downloading Deno Stdlib"
@@ -81,6 +88,11 @@ pushd "$QUARTO_PACKAGE_PATH/src/"
 
 # Run the configure command to bootstrap installation
 ./quarto-bld configure --log-level info
+
+popd
+
+# download typescript dependencies
+source package/scripts/vendoring/vendor.sh
 
 # Run the quarto command with 'reload', which will force the import_map dependencies
 # to be reloaded

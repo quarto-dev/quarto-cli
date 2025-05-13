@@ -1030,7 +1030,7 @@ export function mdFromContentCell(
             : data as string;
           // base 64 decode if its not svg
           if (!imageText.trimStart().startsWith("<svg")) {
-            const imageData = base64decode(imageText);
+            const imageData = base64decode(imageText.replaceAll("\n", ""));
             Deno.writeFileSync(outputFile, imageData);
           } else {
             Deno.writeTextFileSync(outputFile, imageText);
@@ -1837,7 +1837,7 @@ async function mdOutputStream(
     );
   } else {
     // normal default behavior
-    return mdCodeOutput(text.map(colors.stripColor));
+    return mdCodeOutput(text.map(colors.stripAnsiCode));
   }
 }
 
@@ -1946,7 +1946,7 @@ which does not appear to be plain text: ${JSON.stringify(data)}`,
             return mdCodeOutput(lines);
           }
         } else {
-          return mdCodeOutput(lines.map(colors.stripColor));
+          return mdCodeOutput(lines.map(colors.stripAnsiCode));
         }
       }
     }
@@ -1991,7 +1991,7 @@ function mdImageOutput(
   // get the data
   const imageText = Array.isArray(data)
     ? (data as string[]).join("")
-    : data as string;
+    : (data as string).trim();
 
   const outputFile = join(options.assets.base_dir, imageFile);
   if (
@@ -2002,7 +2002,9 @@ function mdImageOutput(
     // https://github.com/quarto-dev/quarto-cli/issues/9793
     !/<svg/.test(imageText)
   ) {
-    const imageData = base64decode(imageText);
+    // we need to remove the newlines from the base64 encoded data
+    // because base64decode doesn't like the multiline-encoded style
+    const imageData = base64decode(imageText.replaceAll("\n", ""));
 
     // if we are in retina mode, then derive width and height from the image
     if (
