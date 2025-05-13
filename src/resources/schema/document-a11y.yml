@@ -1,0 +1,10 @@
+- name: axe
+  schema:
+    anyOf:
+      - true
+      - object:
+          properties:
+            output:
+              enum: [json]
+              description: "If true, output axe-core results on console in JSON format."
+  description: "When defined, run axe-core accessibility tests on the document."
