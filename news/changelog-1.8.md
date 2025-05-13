@@ -35,3 +35,7 @@ All changes included in 1.8:
 ## Crossrefs
 
 - ([#12615](https://github.com/quarto-dev/quarto-cli/pull/12615)): Adds `algorithm` to theorem environments. (author: @jeremy9959)
+
+## Lua Filters
+
+- ([#12727](https://github.com/quarto-dev/quarto-cli/issues/12727)): Do not crash in the presence of malformed tabset contents.
