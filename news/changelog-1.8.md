@@ -40,3 +40,9 @@ All changes included in 1.8:
 ## Lua Filters
 
 - ([#12727](https://github.com/quarto-dev/quarto-cli/issues/12727)): Do not crash in the presence of malformed tabset contents.
+
+## Commands
+
+### `inspect`
+
+- ([#12733](https://github.com/quarto-dev/quarto-cli/issues/12733)): Add installed extensions to `quarto inspect` project report.
