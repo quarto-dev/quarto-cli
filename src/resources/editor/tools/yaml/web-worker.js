@@ -12680,7 +12680,7 @@ try {
             schema: {
               ref: "date-format"
             },
-            descript: "Date format for the document"
+            description: "Date format for the document"
           },
           {
             name: "date-modified",
@@ -24344,12 +24344,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 195569,
+          _internalId: 195861,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 195561,
+              _internalId: 195853,
               type: "enum",
               enum: [
                 "png",
@@ -24365,7 +24365,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 195568,
+              _internalId: 195860,
               type: "anyOf",
               anyOf: [
                 {

@@ -16,7 +16,7 @@
 - name: date-format
   schema:
     ref: date-format
-  descript: "Date format for the document"
+  description: "Date format for the document"
 
 - name: date-modified
   tags:
