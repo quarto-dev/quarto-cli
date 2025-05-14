@@ -39,7 +39,7 @@ for (const style of highlightStyles) {
         test.use({ ...useDarkLightMode(colorScheme) });
         
         test.beforeEach(async ({ page }) => {
-          await page.goto(`./html/code-highlight/code-highlight-${style}.html`);
+          await page.goto(`./html/code-highlight/_docs/code-highlight-${style}.html`);
         });
 
         test(`[${style}] Code highlighting for Inline and CodeBlock are the same`, async ({ page }) => {
