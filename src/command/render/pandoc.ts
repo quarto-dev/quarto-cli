@@ -203,6 +203,8 @@ import { isWindows } from "../../deno_ral/platform.ts";
 import { appendToCombinedLuaProfile } from "../../core/performance/perfetto-utils.ts";
 import { makeTimedFunctionAsync } from "../../core/performance/function-times.ts";
 import { walkJson } from "../../core/json.ts";
+import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
+import { assert } from "testing/asserts";
 import { call } from "../../deno_ral/process.ts";
 
 // in case we are running multiple pandoc processes
@@ -323,7 +325,9 @@ export async function runPandoc(
       JSON.stringify(paramsJson),
     );
 
-    const traceFilters = pandocMetadata?.["_quarto"]?.["trace-filters"] ||
+    const traceFilters =
+      // deno-lint-ignore no-explicit-any
+      (pandocMetadata as any)?.["_quarto"]?.["trace-filters"] ||
       Deno.env.get("QUARTO_TRACE_FILTERS");
 
     if (traceFilters) {
@@ -438,7 +442,7 @@ export async function runPandoc(
 
   // generate defaults and capture defaults to be printed
   let allDefaults = (await generateDefaults(options)) || {};
-  let printAllDefaults = ld.cloneDeep(allDefaults) as FormatPandoc;
+  let printAllDefaults = safeCloneDeep(allDefaults);
 
   // capture any filterParams in the FormatExtras
   const formatFilterParams = {} as Record<string, unknown>;
@@ -1120,7 +1124,7 @@ export async function runPandoc(
 
   // selectively overwrite some resolved metadata (e.g. ensure that metadata
   // computed from inline r expressions gets included @ the bottom).
-  const pandocMetadata = ld.cloneDeep(options.format.metadata || {});
+  const pandocMetadata = safeCloneDeep(options.format.metadata || {});
   for (const key of Object.keys(engineMetadata)) {
     const isChapterTitle = key === kTitle && projectIsBook(options.project);
 
@@ -1154,6 +1158,7 @@ export async function runPandoc(
   dateFields.forEach((dateField) => {
     const date = pandocMetadata[dateField];
     const format = pandocMetadata[kDateFormat];
+    assert(format === undefined || typeof format === "string");
     pandocMetadata[dateField] = resolveAndFormatDate(
       options.source,
       date,
@@ -1173,15 +1178,19 @@ export async function runPandoc(
   // Expand citation dates into CSL dates
   const citationMetadata = pandocMetadata[kCitation];
   if (citationMetadata) {
+    assert(typeof citationMetadata === "object");
+    // ideally we should be asserting non-arrayness here but that's not very fast.
+    // assert(!Array.isArray(citationMetadata));
+    const citationMetadataObj = citationMetadata as Record<string, unknown>;
     const docCSLDate = dateRaw
       ? cslDate(resolveDate(options.source, dateRaw))
       : undefined;
     const fields = ["issued", "available-date"];
     fields.forEach((field) => {
-      if (citationMetadata[field]) {
-        citationMetadata[field] = cslDate(citationMetadata[field]);
+      if (citationMetadataObj[field]) {
+        citationMetadataObj[field] = cslDate(citationMetadataObj[field]);
       } else if (docCSLDate) {
-        citationMetadata[field] = docCSLDate;
+        citationMetadataObj[field] = docCSLDate;
       }
     });
   }
@@ -1221,8 +1230,9 @@ export async function runPandoc(
     !isBeamerOutput(options.format.pandoc)
   ) {
     const docClass = pandocMetadata[kDocumentClass];
+    assert(!docClass || typeof docClass === "string");
     const isPrintDocumentClass = docClass &&
-      ["book", "scrbook"].includes(docClass);
+      ["book", "scrbook"].includes(docClass as string);
 
     if (!isPrintDocumentClass) {
       if (pandocMetadata[kColorLinks] === undefined) {
@@ -1274,7 +1284,7 @@ export async function runPandoc(
     prefix: "quarto-metadata",
     suffix: ".yml",
   });
-  const pandocPassedMetadata = ld.cloneDeep(pandocMetadata);
+  const pandocPassedMetadata = safeCloneDeep(pandocMetadata);
   delete pandocPassedMetadata.format;
   delete pandocPassedMetadata.project;
   delete pandocPassedMetadata.website;
@@ -1673,7 +1683,7 @@ function runPandocMessage(
 
   const keys = Object.keys(metadata);
   if (keys.length > 0) {
-    const printMetadata = ld.cloneDeep(metadata) as Metadata;
+    const printMetadata = safeCloneDeep(metadata);
     delete printMetadata.format;
 
     // print message

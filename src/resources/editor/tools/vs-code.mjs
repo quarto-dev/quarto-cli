@@ -8372,6 +8372,10 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "date-format",
+          schema: "string"
+        },
+        {
           id: "math-methods",
           enum: {
             values: [
@@ -12669,6 +12673,13 @@ var require_yaml_intelligence_resources = __commonJS({
             ref: "date"
           },
           description: "Document date"
+        },
+        {
+          name: "date-format",
+          schema: {
+            ref: "date-format"
+          },
+          description: "Date format for the document"
         },
         {
           name: "date-modified",
@@ -24332,12 +24343,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 195562,
+        _internalId: 195861,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 195554,
+            _internalId: 195853,
             type: "enum",
             enum: [
               "png",
@@ -24353,7 +24364,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 195561,
+            _internalId: 195860,
             type: "anyOf",
             anyOf: [
               {

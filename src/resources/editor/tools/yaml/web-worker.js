@@ -8373,6 +8373,10 @@ try {
             ]
           },
           {
+            id: "date-format",
+            schema: "string"
+          },
+          {
             id: "math-methods",
             enum: {
               values: [
@@ -12670,6 +12674,13 @@ try {
               ref: "date"
             },
             description: "Document date"
+          },
+          {
+            name: "date-format",
+            schema: {
+              ref: "date-format"
+            },
+            description: "Date format for the document"
           },
           {
             name: "date-modified",
@@ -24333,12 +24344,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 195562,
+          _internalId: 195861,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 195554,
+              _internalId: 195853,
               type: "enum",
               enum: [
                 "png",
@@ -24354,7 +24365,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 195561,
+              _internalId: 195860,
               type: "anyOf",
               anyOf: [
                 {
