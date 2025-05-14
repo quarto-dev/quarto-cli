@@ -33,7 +33,7 @@ import { projectOutputDir } from "../project/project-shared.ts";
 import { PublishRecord } from "../publish/types.ts";
 import { ProjectContext } from "../project/types.ts";
 import { renderProgress } from "../command/render/render-info.ts";
-import { inspectConfig, isDocumentConfig } from "../quarto-core/inspect.ts";
+import { inspectConfig, isDocumentConfig } from "../inspect/inspect.ts";
 import { kOutputFile, kTitle } from "../config/constants.ts";
 import { inputFilesDir } from "../core/render.ts";
 import {
