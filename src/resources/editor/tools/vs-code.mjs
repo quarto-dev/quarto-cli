@@ -7046,7 +7046,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: {
             arrayOf: "string"
           },
-          description: "Array of rendering names"
+          description: "Array of rendering names, e.g. `[light, dark]`"
         },
         {
           name: "tags",
@@ -8604,7 +8604,128 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
-          id: "comments",
+          id: "giscus-configuration",
+          object: {
+            closed: true,
+            properties: {
+              repo: {
+                string: {
+                  description: {
+                    short: "The Github repo that will be used to store comments.",
+                    long: "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n"
+                  }
+                }
+              },
+              "repo-id": {
+                string: {
+                  description: {
+                    short: "The Github repository identifier.",
+                    long: "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
+                  }
+                }
+              },
+              category: {
+                string: {
+                  description: {
+                    short: "The discussion category where new discussions will be created.",
+                    long: "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n"
+                  }
+                }
+              },
+              "category-id": {
+                string: {
+                  description: {
+                    short: "The Github category identifier.",
+                    long: "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
+                  }
+                }
+              },
+              mapping: {
+                schema: {
+                  anyOf: [
+                    "string",
+                    "number"
+                  ]
+                },
+                completions: [
+                  "pathname",
+                  "url",
+                  "title",
+                  "og:title"
+                ],
+                description: {
+                  short: "The mapping between the page and the embedded discussion.",
+                  long: "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
+                }
+              },
+              "reactions-enabled": {
+                boolean: {
+                  description: "Display reactions for the discussion's main post before the comments."
+                }
+              },
+              loading: {
+                enum: [
+                  "lazy"
+                ],
+                description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
+              },
+              "input-position": {
+                enum: [
+                  "top",
+                  "bottom"
+                ],
+                description: "Place the comment input box above or below the comments."
+              },
+              theme: {
+                anyOf: [
+                  "string",
+                  {
+                    ref: "giscus-themes"
+                  },
+                  {
+                    object: {
+                      closed: true,
+                      properties: {
+                        light: {
+                          anyOf: [
+                            "string",
+                            {
+                              ref: "giscus-themes"
+                            }
+                          ],
+                          description: "The light theme name."
+                        },
+                        dark: {
+                          anyOf: [
+                            "string",
+                            {
+                              ref: "giscus-themes"
+                            }
+                          ],
+                          description: "The dark theme name."
+                        }
+                      }
+                    }
+                  }
+                ],
+                description: {
+                  short: "The giscus theme to use when displaying comments.",
+                  long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
+                }
+              },
+              language: {
+                string: {
+                  description: "The language that should be used when displaying the commenting interface."
+                }
+              }
+            },
+            required: [
+              "repo"
+            ]
+          }
+        },
+        {
+          id: "document-comments-configuration",
           anyOf: [
             {
               enum: [
@@ -8668,123 +8789,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     }
                   },
                   giscus: {
-                    object: {
-                      closed: true,
-                      properties: {
-                        repo: {
-                          string: {
-                            description: {
-                              short: "The Github repo that will be used to store comments.",
-                              long: "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n"
-                            }
-                          }
-                        },
-                        "repo-id": {
-                          string: {
-                            description: {
-                              short: "The Github repository identifier.",
-                              long: "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                            }
-                          }
-                        },
-                        category: {
-                          string: {
-                            description: {
-                              short: "The discussion category where new discussions will be created.",
-                              long: "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n"
-                            }
-                          }
-                        },
-                        "category-id": {
-                          string: {
-                            description: {
-                              short: "The Github category identifier.",
-                              long: "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                            }
-                          }
-                        },
-                        mapping: {
-                          anyOf: [
-                            {
-                              enum: [
-                                "pathname",
-                                "url",
-                                "title",
-                                "og:title"
-                              ]
-                            },
-                            "string"
-                          ],
-                          description: {
-                            short: "The mapping between the page and the embedded discussion.",
-                            long: "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
-                          }
-                        },
-                        "reactions-enabled": {
-                          boolean: {
-                            description: "Display reactions for the discussion's main post before the comments."
-                          }
-                        },
-                        loading: {
-                          enum: [
-                            "lazy"
-                          ],
-                          description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
-                        },
-                        "input-position": {
-                          enum: [
-                            "top",
-                            "bottom"
-                          ],
-                          description: "Place the comment input box above or below the comments."
-                        },
-                        theme: {
-                          anyOf: [
-                            "string",
-                            {
-                              ref: "giscus-themes"
-                            },
-                            {
-                              object: {
-                                closed: true,
-                                properties: {
-                                  light: {
-                                    anyOf: [
-                                      "string",
-                                      {
-                                        ref: "giscus-themes"
-                                      }
-                                    ],
-                                    description: "The light theme name."
-                                  },
-                                  dark: {
-                                    anyOf: [
-                                      "string",
-                                      {
-                                        ref: "giscus-themes"
-                                      }
-                                    ],
-                                    description: "The dark theme name."
-                                  }
-                                }
-                              }
-                            }
-                          ],
-                          description: {
-                            short: "The giscus theme to use when displaying comments.",
-                            long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
-                          }
-                        },
-                        language: {
-                          string: {
-                            description: "The language that should be used when displaying the commenting interface."
-                          }
-                        }
-                      },
-                      required: [
-                        "repo"
-                      ]
-                    }
+                    ref: "giscus-configuration"
                   },
                   hypothesis: {
                     anyOf: [
@@ -9578,6 +9583,11 @@ var require_yaml_intelligence_resources = __commonJS({
                           schema: "boolean",
                           description: "Provide button for copying search link"
                         },
+                        "merge-navbar-crumbs": {
+                          schema: "boolean",
+                          default: true,
+                          description: "When false, do not merge navbar crumbs into the crumbs in `search.json`."
+                        },
                         "keyboard-shortcut": {
                           maybeArrayOf: {
                             string: {
@@ -9694,40 +9704,34 @@ var require_yaml_intelligence_resources = __commonJS({
                           }
                         },
                         background: {
-                          anyOf: [
-                            {
-                              enum: [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            "string"
-                          ],
-                          description: "The navbar's background color (named or hex color)."
+                          string: {
+                            description: "The navbar's background color (named or hex color).",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
+                            ]
+                          }
                         },
                         foreground: {
-                          anyOf: [
-                            {
-                              enum: [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            "string"
-                          ],
-                          description: "The navbar's foreground color (named or hex color)."
+                          string: {
+                            description: "The navbar's foreground color (named or hex color).",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
+                            ]
+                          }
                         },
                         search: {
                           boolean: {
@@ -9849,38 +9853,30 @@ var require_yaml_intelligence_resources = __commonJS({
                             default: "floating"
                           },
                           background: {
-                            anyOf: [
-                              {
-                                enum: [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              "string"
+                            schema: "string",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
                             ],
                             description: "The sidebar's background color (named or hex color)."
                           },
                           foreground: {
-                            anyOf: [
-                              {
-                                enum: [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              "string"
+                            schema: "string",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
                             ],
                             description: "The sidebar's foreground color (named or hex color)."
                           },
@@ -9977,7 +9973,7 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               comments: {
                 schema: {
-                  ref: "comments"
+                  ref: "document-comments-configuration"
                 }
               },
               "open-graph": {
@@ -13037,29 +13033,31 @@ var require_yaml_intelligence_resources = __commonJS({
               {
                 string: {
                   completions: [
-                    "pygments",
-                    "tango",
-                    "espresso",
-                    "zenburn",
-                    "kate",
-                    "monochrome",
-                    "breezedark",
-                    "haddock",
+                    "a11y",
                     "arrow",
                     "atom-one",
                     "ayu",
                     "ayu-mirage",
                     "breeze",
+                    "breezedark",
                     "dracula",
+                    "espresso",
                     "github",
                     "gruvbox",
-                    "mokokai",
+                    "haddock",
+                    "kate",
+                    "monochrome",
+                    "monokai",
+                    "none",
                     "nord",
                     "oblivion",
                     "printing",
+                    "pygments",
                     "radical",
                     "solarized",
-                    "vim-dark"
+                    "tango",
+                    "vim-dark",
+                    "zenburn"
                   ]
                 }
               }
@@ -13266,7 +13264,7 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           schema: {
-            ref: "comments"
+            ref: "document-comments-configuration"
           },
           description: "Configuration for document commenting."
         }
@@ -15628,6 +15626,22 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "The paper size for the document.\n"
         },
         {
+          name: "brand-mode",
+          schema: {
+            enum: [
+              "light",
+              "dark"
+            ]
+          },
+          default: "light",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: "The brand mode to use for rendering the Typst document, `light` or `dark`.\n"
+        },
+        {
           name: "layout",
           schema: {
             maybeArrayOf: "string"
@@ -16113,7 +16127,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           description: {
             short: "A regular expression that can be used to determine whether a link is an internal link.",
-            long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
+            long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with `http://www.quarto.org/custom` or `https://www.quarto.org/custom`\nas internal links (and others will be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
           }
         },
         {
@@ -16636,6 +16650,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "number-offset",
+          tags: {
+            formats: [
+              "$html-all"
+            ]
+          },
           schema: {
             maybeArrayOf: "number"
           },
@@ -16858,6 +16877,20 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "Enables smooth scrolling within the page."
+        },
+        {
+          name: "respect-user-color-scheme",
+          schema: "boolean",
+          default: false,
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: {
+            short: "Enables setting dark mode based on the `prefers-color-scheme` media query.",
+            long: "If set, Quarto reads the `prefers-color-scheme` media query to determine whether to show\nthe user a dark or light page. Otherwise the author-preferred color scheme is shown.\n"
+          }
         },
         {
           name: "html-math-method",
@@ -17111,7 +17144,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer color theme for this presentation."
+          description: "The Beamer color theme for this presentation, passed to `\\usecolortheme`."
+        },
+        {
+          name: "colorthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer color theme options for this presentation, passed to `\\usecolortheme`."
         },
         {
           name: "fonttheme",
@@ -17121,7 +17166,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer font theme for this presentation."
+          description: "The Beamer font theme for this presentation, passed to `\\usefonttheme`."
+        },
+        {
+          name: "fontthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer font theme options for this presentation, passed to `\\usefonttheme`."
         },
         {
           name: "innertheme",
@@ -17131,7 +17188,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer inner theme for this presentation."
+          description: "The Beamer inner theme for this presentation, passed to `\\useinnertheme`."
+        },
+        {
+          name: "innerthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer inner theme options for this presentation, passed to `\\useinnertheme`."
         },
         {
           name: "outertheme",
@@ -17141,7 +17210,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer outer theme for this presentation."
+          description: "The Beamer outer theme for this presentation, passed to `\\useoutertheme`."
+        },
+        {
+          name: "outerthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer outer theme options for this presentation, passed to `\\useoutertheme`."
         },
         {
           name: "themeoptions",
@@ -17153,7 +17234,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "Options passed to LaTeX Beamer themes."
+          description: "Options passed to LaTeX Beamer themes inside `\\usetheme`."
         },
         {
           name: "section",
@@ -19394,7 +19475,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-doc"
             ]
           },
-          description: "Setting this to false prevents the `repo-actions` from appearing on this page."
+          description: "Setting this to false prevents the `repo-actions` from appearing on this page.\nOther possible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
         },
         {
           name: "aliases",
@@ -20710,16 +20791,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Alias for href",
         'Value for rel attribute. Multiple space-separated values are\npermitted. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor a details.',
         'Value for target attribute. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target</a>\nfor details.',
-        "The Github repo that will be used to store comments.",
-        "The label that will be assigned to issues created by Utterances.",
-        {
-          short: "The Github theme that should be used for Utterances.",
-          long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
-        },
-        {
-          short: "How posts should be mapped to Github issues",
-          long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
-        },
         {
           short: "The Github repo that will be used to store comments.",
           long: "The Github repo that will be used to store comments.\nIn order to work correctly, the repo must be public, with the giscus\napp installed, and the discussions feature must be enabled."
@@ -20750,6 +20821,16 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name.",
         "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
+        "The Github repo that will be used to store comments.",
+        "The label that will be assigned to issues created by Utterances.",
+        {
+          short: "The Github theme that should be used for Utterances.",
+          long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
+        },
+        {
+          short: "How posts should be mapped to Github issues",
+          long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
+        },
         "Override the default hypothesis client url with a custom client\nurl.",
         "Controls whether the sidebar opens automatically on startup.",
         "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -20941,6 +21022,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -21101,6 +21183,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -21959,7 +22042,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
         },
         "Classes to apply to cell container",
-        "Array of rendering names",
+        "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
         "Array of tags for notebook cell",
         {
           short: "Notebook cell identifier",
@@ -22739,6 +22822,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Control the <code>\\pagestyle{}</code> for the document.",
         "The paper size for the document.",
+        "The brand mode to use for rendering the Typst document,\n<code>light</code> or <code>dark</code>.",
         {
           short: "The options for margins and text layout for this document.",
           long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.'
@@ -22831,7 +22915,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Open external links in a new browser window or tab (rather than\nnavigating the current tab).",
         {
           short: "A regular expression that can be used to determine whether a link is\nan internal link.",
-          long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith http://www.quarto.org as internal links (and others will be\nconsidered external):"
+          long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith <code>http://www.quarto.org/custom</code> or\n<code>https://www.quarto.org/custom</code> as internal links (and others\nwill be considered external):"
         },
         {
           short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
@@ -22938,6 +23022,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Enables tabsets to present content.",
         "Enables smooth scrolling within the page.",
         {
+          short: "Enables setting dark mode based on the\n<code>prefers-color-scheme</code> media query.",
+          long: "If set, Quarto reads the <code>prefers-color-scheme</code> media\nquery to determine whether to show the user a dark or light page.\nOtherwise the author-preferred color scheme is shown."
+        },
+        {
           short: "Method use to render math in HTML output",
           long: 'Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href="https://pandoc.org/MANUAL.html#math-rendering-in-html">Math\nRendering in HTML</a> for additional details.'
         },
@@ -22970,11 +23058,15 @@ var require_yaml_intelligence_resources = __commonJS({
         "The image for the title slide.",
         "Controls navigation symbols for the presentation (<code>empty</code>,\n<code>frame</code>, <code>vertical</code>, or\n<code>horizontal</code>)",
         "Whether to enable title pages for new sections.",
-        "The Beamer color theme for this presentation.",
-        "The Beamer font theme for this presentation.",
-        "The Beamer inner theme for this presentation.",
-        "The Beamer outer theme for this presentation.",
-        "Options passed to LaTeX Beamer themes.",
+        "The Beamer color theme for this presentation, passed to\n<code>\\usecolortheme</code>.",
+        "The Beamer color theme options for this presentation, passed to\n<code>\\usecolortheme</code>.",
+        "The Beamer font theme for this presentation, passed to\n<code>\\usefonttheme</code>.",
+        "The Beamer font theme options for this presentation, passed to\n<code>\\usefonttheme</code>.",
+        "The Beamer inner theme for this presentation, passed to\n<code>\\useinnertheme</code>.",
+        "The Beamer inner theme options for this presentation, passed to\n<code>\\useinnertheme</code>.",
+        "The Beamer outer theme for this presentation, passed to\n<code>\\useoutertheme</code>.",
+        "The Beamer outer theme options for this presentation, passed to\n<code>\\useoutertheme</code>.",
+        "Options passed to LaTeX Beamer themes inside\n<code>\\usetheme</code>.",
         "The section number in man pages.",
         "Enable and disable extensions for markdown output (e.g.&nbsp;\u201C+emoji\u201D)",
         "Specify whether to use <code>atx</code> (<code>#</code>-prefixed) or\n<code>setext</code> (underlined) headings for level 1 and 2 headings\n(<code>atx</code> or <code>setext</code>).",
@@ -23310,7 +23402,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Print a list of figures in the document.",
         "Print a list of tables in the document.",
         "Setting this to false prevents this document from being included in\nsearches.",
-        "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
+        "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page. Other possible values are <code>none</code> or\none or more of <code>edit</code>, <code>source</code>, and\n<code>issue</code>, <em>e.g.</em>\n<code>[edit, source, issue]</code>.",
         {
           short: "Links to source repository actions",
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -23425,6 +23517,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -23676,14 +23769,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Manuscript configuration",
         "internal-schema-hack",
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        {
-          short: "Include an automatically generated table of contents",
-          long: ""
-        },
-        {
-          short: "Use smart quotes in document output. Defaults to true.",
-          long: ""
-        },
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -23778,6 +23863,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -24257,12 +24343,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 194255,
+        _internalId: 195569,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 194247,
+            _internalId: 195561,
             type: "enum",
             enum: [
               "png",
@@ -24278,7 +24364,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 194254,
+            _internalId: 195568,
             type: "anyOf",
             anyOf: [
               {
@@ -24318,42 +24404,7 @@ var require_yaml_intelligence_resources = __commonJS({
           "case-detection": true
         },
         $id: "handlers/mermaid"
-      },
-      "schema/document-typst.yml": [
-        {
-          name: "page-numbering",
-          tags: {
-            formats: [
-              "typst"
-            ]
-          },
-          schema: {
-            anyOf: [
-              "string",
-              {
-                enum: [
-                  false
-                ]
-              }
-            ]
-          },
-          description: {
-            short: "Include an automatically generated table of contents"
-          }
-        },
-        {
-          name: "smart",
-          tags: {
-            formats: [
-              "typst"
-            ]
-          },
-          schema: "boolean",
-          description: {
-            short: "Use smart quotes in document output. Defaults to true."
-          }
-        }
-      ]
+      }
     };
   }
 });
@@ -24838,8 +24889,7 @@ function mappedConcat(strings) {
   const mappedStrings = strings.map((s) => {
     if (typeof s === "string") {
       return asMappedString(s);
-    } else
-      return s;
+    } else return s;
   });
   let currentOffset = 0;
   const offsets = [0];
@@ -25078,10 +25128,8 @@ function isObject(subject) {
   return typeof subject === "object" && subject !== null;
 }
 function toArray(sequence) {
-  if (Array.isArray(sequence))
-    return sequence;
-  else if (isNothing(sequence))
-    return [];
+  if (Array.isArray(sequence)) return sequence;
+  else if (isNothing(sequence)) return [];
   return [sequence];
 }
 function extend(target, source) {
@@ -25121,8 +25169,7 @@ var common = {
 };
 function formatError(exception2, compact) {
   var where = "", message = exception2.reason || "(unknown reason)";
-  if (!exception2.mark)
-    return message;
+  if (!exception2.mark) return message;
   if (exception2.mark.name) {
     where += 'in "' + exception2.mark.name + '" ';
   }
@@ -25172,16 +25219,11 @@ function padStart(string, max) {
 }
 function makeSnippet(mark, options) {
   options = Object.create(options || null);
-  if (!mark.buffer)
-    return null;
-  if (!options.maxLength)
-    options.maxLength = 79;
-  if (typeof options.indent !== "number")
-    options.indent = 1;
-  if (typeof options.linesBefore !== "number")
-    options.linesBefore = 3;
-  if (typeof options.linesAfter !== "number")
-    options.linesAfter = 2;
+  if (!mark.buffer) return null;
+  if (!options.maxLength) options.maxLength = 79;
+  if (typeof options.indent !== "number") options.indent = 1;
+  if (typeof options.linesBefore !== "number") options.linesBefore = 3;
+  if (typeof options.linesAfter !== "number") options.linesAfter = 2;
   var re = /\r?\n|\r|\0/g;
   var lineStarts = [0];
   var lineEnds = [];
@@ -25194,8 +25236,7 @@ function makeSnippet(mark, options) {
       foundLineNo = lineStarts.length - 2;
     }
   }
-  if (foundLineNo < 0)
-    foundLineNo = lineStarts.length - 1;
+  if (foundLineNo < 0) foundLineNo = lineStarts.length - 1;
   var result = "", i, line;
   var lineNoLength = Math.min(
     mark.line + options.linesAfter,
@@ -25203,8 +25244,7 @@ function makeSnippet(mark, options) {
   ).toString().length;
   var maxLineLength = options.maxLength - (options.indent + lineNoLength + 3);
   for (i = 1; i <= options.linesBefore; i++) {
-    if (foundLineNo - i < 0)
-      break;
+    if (foundLineNo - i < 0) break;
     line = getLine(
       mark.buffer,
       lineStarts[foundLineNo - i],
@@ -25224,8 +25264,7 @@ function makeSnippet(mark, options) {
   result += common.repeat(" ", options.indent) + padStart((mark.line + 1).toString(), lineNoLength) + " | " + line.str + "\n";
   result += common.repeat("-", options.indent + lineNoLength + 3 + line.pos) + "^\n";
   for (i = 1; i <= options.linesAfter; i++) {
-    if (foundLineNo + i >= lineEnds.length)
-      break;
+    if (foundLineNo + i >= lineEnds.length) break;
     line = getLine(
       mark.buffer,
       lineStarts[foundLineNo + i],
@@ -25344,10 +25383,8 @@ Schema$1.prototype.extend = function extend2(definition) {
   } else if (Array.isArray(definition)) {
     explicit = explicit.concat(definition);
   } else if (definition && (Array.isArray(definition.implicit) || Array.isArray(definition.explicit))) {
-    if (definition.implicit)
-      implicit = implicit.concat(definition.implicit);
-    if (definition.explicit)
-      explicit = explicit.concat(definition.explicit);
+    if (definition.implicit) implicit = implicit.concat(definition.implicit);
+    if (definition.explicit) explicit = explicit.concat(definition.explicit);
   } else {
     throw new exception(
       "Schema.extend argument should be a Type, [ Type ], or a schema definition ({ implicit: [...], explicit: [...] })"
@@ -25411,8 +25448,7 @@ var failsafe = new schema({
   explicit: [str, seq, map]
 });
 function resolveYamlNull(data) {
-  if (data === null)
-    return true;
+  if (data === null) return true;
   var max = data.length;
   return max === 1 && data === "~" || max === 4 && (data === "null" || data === "Null" || data === "NULL");
 }
@@ -25447,8 +25483,7 @@ var _null = new type("tag:yaml.org,2002:null", {
   defaultStyle: "lowercase"
 });
 function resolveYamlBoolean(data) {
-  if (data === null)
-    return false;
+  if (data === null) return false;
   var max = data.length;
   return max === 4 && (data === "true" || data === "True" || data === "TRUE") || max === 5 && (data === "false" || data === "False" || data === "FALSE");
 }
@@ -25486,27 +25521,22 @@ function isDecCode(c) {
   return 48 <= c && c <= 57;
 }
 function resolveYamlInteger(data) {
-  if (data === null)
-    return false;
+  if (data === null) return false;
   var max = data.length, index = 0, hasDigits = false, ch;
-  if (!max)
-    return false;
+  if (!max) return false;
   ch = data[index];
   if (ch === "-" || ch === "+") {
     ch = data[++index];
   }
   if (ch === "0") {
-    if (index + 1 === max)
-      return true;
+    if (index + 1 === max) return true;
     ch = data[++index];
     if (ch === "b") {
       index++;
       for (; index < max; index++) {
         ch = data[index];
-        if (ch === "_")
-          continue;
-        if (ch !== "0" && ch !== "1")
-          return false;
+        if (ch === "_") continue;
+        if (ch !== "0" && ch !== "1") return false;
         hasDigits = true;
       }
       return hasDigits && ch !== "_";
@@ -25515,10 +25545,8 @@ function resolveYamlInteger(data) {
       index++;
       for (; index < max; index++) {
         ch = data[index];
-        if (ch === "_")
-          continue;
-        if (!isHexCode(data.charCodeAt(index)))
-          return false;
+        if (ch === "_") continue;
+        if (!isHexCode(data.charCodeAt(index))) return false;
         hasDigits = true;
       }
       return hasDigits && ch !== "_";
@@ -25527,28 +25555,23 @@ function resolveYamlInteger(data) {
       index++;
       for (; index < max; index++) {
         ch = data[index];
-        if (ch === "_")
-          continue;
-        if (!isOctCode(data.charCodeAt(index)))
-          return false;
+        if (ch === "_") continue;
+        if (!isOctCode(data.charCodeAt(index))) return false;
         hasDigits = true;
       }
       return hasDigits && ch !== "_";
     }
   }
-  if (ch === "_")
-    return false;
+  if (ch === "_") return false;
   for (; index < max; index++) {
     ch = data[index];
-    if (ch === "_")
-      continue;
+    if (ch === "_") continue;
     if (!isDecCode(data.charCodeAt(index))) {
       return false;
     }
     hasDigits = true;
   }
-  if (!hasDigits || ch === "_")
-    return false;
+  if (!hasDigits || ch === "_") return false;
   return true;
 }
 function constructYamlInteger(data) {
@@ -25558,20 +25581,15 @@ function constructYamlInteger(data) {
   }
   ch = value[0];
   if (ch === "-" || ch === "+") {
-    if (ch === "-")
-      sign = -1;
+    if (ch === "-") sign = -1;
     value = value.slice(1);
     ch = value[0];
   }
-  if (value === "0")
-    return 0;
+  if (value === "0") return 0;
   if (ch === "0") {
-    if (value[1] === "b")
-      return sign * parseInt(value.slice(2), 2);
-    if (value[1] === "x")
-      return sign * parseInt(value.slice(2), 16);
-    if (value[1] === "o")
-      return sign * parseInt(value.slice(2), 8);
+    if (value[1] === "b") return sign * parseInt(value.slice(2), 2);
+    if (value[1] === "x") return sign * parseInt(value.slice(2), 16);
+    if (value[1] === "o") return sign * parseInt(value.slice(2), 8);
   }
   return sign * parseInt(value, 10);
 }
@@ -25609,8 +25627,7 @@ var YAML_FLOAT_PATTERN = new RegExp(
   "^(?:[-+]?(?:[0-9][0-9_]*)(?:\\.[0-9_]*)?(?:[eE][-+]?[0-9]+)?|\\.[0-9_]+(?:[eE][-+]?[0-9]+)?|[-+]?\\.(?:inf|Inf|INF)|\\.(?:nan|NaN|NAN))$"
 );
 function resolveYamlFloat(data) {
-  if (data === null)
-    return false;
+  if (data === null) return false;
   if (!YAML_FLOAT_PATTERN.test(data) || data[data.length - 1] === "_") {
     return false;
   }
@@ -25688,21 +25705,16 @@ var YAML_TIMESTAMP_REGEXP = new RegExp(
   "^([0-9][0-9][0-9][0-9])-([0-9][0-9]?)-([0-9][0-9]?)(?:[Tt]|[ \\t]+)([0-9][0-9]?):([0-9][0-9]):([0-9][0-9])(?:\\.([0-9]*))?(?:[ \\t]*(Z|([-+])([0-9][0-9]?)(?::([0-9][0-9]))?))?$"
 );
 function resolveYamlTimestamp(data) {
-  if (data === null)
-    return false;
-  if (YAML_DATE_REGEXP.exec(data) !== null)
-    return true;
-  if (YAML_TIMESTAMP_REGEXP.exec(data) !== null)
-    return true;
+  if (data === null) return false;
+  if (YAML_DATE_REGEXP.exec(data) !== null) return true;
+  if (YAML_TIMESTAMP_REGEXP.exec(data) !== null) return true;
   return false;
 }
 function constructYamlTimestamp(data) {
   var match, year, month, day, hour, minute, second, fraction = 0, delta = null, tz_hour, tz_minute, date;
   match = YAML_DATE_REGEXP.exec(data);
-  if (match === null)
-    match = YAML_TIMESTAMP_REGEXP.exec(data);
-  if (match === null)
-    throw new Error("Date resolve error");
+  if (match === null) match = YAML_TIMESTAMP_REGEXP.exec(data);
+  if (match === null) throw new Error("Date resolve error");
   year = +match[1];
   month = +match[2] - 1;
   day = +match[3];
@@ -25723,12 +25735,10 @@ function constructYamlTimestamp(data) {
     tz_hour = +match[10];
     tz_minute = +(match[11] || 0);
     delta = (tz_hour * 60 + tz_minute) * 6e4;
-    if (match[9] === "-")
-      delta = -delta;
+    if (match[9] === "-") delta = -delta;
   }
   date = new Date(Date.UTC(year, month, day, hour, minute, second, fraction));
-  if (delta)
-    date.setTime(date.getTime() - delta);
+  if (delta) date.setTime(date.getTime() - delta);
   return date;
 }
 function representYamlTimestamp(object) {
@@ -25750,15 +25760,12 @@ var merge = new type("tag:yaml.org,2002:merge", {
 });
 var BASE64_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r";
 function resolveYamlBinary(data) {
-  if (data === null)
-    return false;
+  if (data === null) return false;
   var code2, idx, bitlen = 0, max = data.length, map2 = BASE64_MAP;
   for (idx = 0; idx < max; idx++) {
     code2 = map2.indexOf(data.charAt(idx));
-    if (code2 > 64)
-      continue;
-    if (code2 < 0)
-      return false;
+    if (code2 > 64) continue;
+    if (code2 < 0) return false;
     bitlen += 6;
   }
   return bitlen % 8 === 0;
@@ -25829,28 +25836,21 @@ var binary = new type("tag:yaml.org,2002:binary", {
 var _hasOwnProperty$3 = Object.prototype.hasOwnProperty;
 var _toString$2 = Object.prototype.toString;
 function resolveYamlOmap(data) {
-  if (data === null)
-    return true;
+  if (data === null) return true;
   var objectKeys = [], index, length, pair, pairKey, pairHasKey, object = data;
   for (index = 0, length = object.length; index < length; index += 1) {
     pair = object[index];
     pairHasKey = false;
-    if (_toString$2.call(pair) !== "[object Object]")
-      return false;
+    if (_toString$2.call(pair) !== "[object Object]") return false;
     for (pairKey in pair) {
       if (_hasOwnProperty$3.call(pair, pairKey)) {
-        if (!pairHasKey)
-          pairHasKey = true;
-        else
-          return false;
+        if (!pairHasKey) pairHasKey = true;
+        else return false;
       }
     }
-    if (!pairHasKey)
-      return false;
-    if (objectKeys.indexOf(pairKey) === -1)
-      objectKeys.push(pairKey);
-    else
-      return false;
+    if (!pairHasKey) return false;
+    if (objectKeys.indexOf(pairKey) === -1) objectKeys.push(pairKey);
+    else return false;
   }
   return true;
 }
@@ -25864,24 +25864,20 @@ var omap = new type("tag:yaml.org,2002:omap", {
 });
 var _toString$1 = Object.prototype.toString;
 function resolveYamlPairs(data) {
-  if (data === null)
-    return true;
+  if (data === null) return true;
   var index, length, pair, keys, result, object = data;
   result = new Array(object.length);
   for (index = 0, length = object.length; index < length; index += 1) {
     pair = object[index];
-    if (_toString$1.call(pair) !== "[object Object]")
-      return false;
+    if (_toString$1.call(pair) !== "[object Object]") return false;
     keys = Object.keys(pair);
-    if (keys.length !== 1)
-      return false;
+    if (keys.length !== 1) return false;
     result[index] = [keys[0], pair[keys[0]]];
   }
   return true;
 }
 function constructYamlPairs(data) {
-  if (data === null)
-    return [];
+  if (data === null) return [];
   var index, length, pair, keys, result, object = data;
   result = new Array(object.length);
   for (index = 0, length = object.length; index < length; index += 1) {
@@ -25898,13 +25894,11 @@ var pairs = new type("tag:yaml.org,2002:pairs", {
 });
 var _hasOwnProperty$2 = Object.prototype.hasOwnProperty;
 function resolveYamlSet(data) {
-  if (data === null)
-    return true;
+  if (data === null) return true;
   var key, object = data;
   for (key in object) {
     if (_hasOwnProperty$2.call(object, key)) {
-      if (object[key] !== null)
-        return false;
+      if (object[key] !== null) return false;
     }
   }
   return true;
@@ -26614,8 +26608,7 @@ function readBlockScalar(state, nodeIndent) {
 }
 function readBlockSequence(state, nodeIndent) {
   var _line, _tag = state.tag, _anchor = state.anchor, _result = [], following, detected = false, ch;
-  if (state.firstTabInLine !== -1)
-    return false;
+  if (state.firstTabInLine !== -1) return false;
   if (state.anchor !== null) {
     state.anchorMap[state.anchor] = _result;
   }
@@ -26663,8 +26656,7 @@ function readBlockSequence(state, nodeIndent) {
 }
 function readBlockMapping(state, nodeIndent, flowIndent) {
   var following, allowCompact, _line, _keyLine, _keyLineStart, _keyPos, _tag = state.tag, _anchor = state.anchor, _result = {}, overridableKeys = /* @__PURE__ */ Object.create(null), keyTag = null, keyNode = null, valueNode = null, atExplicitKey = false, detected = false, ch;
-  if (state.firstTabInLine !== -1)
-    return false;
+  if (state.firstTabInLine !== -1) return false;
   if (state.anchor !== null) {
     state.anchorMap[state.anchor] = _result;
   }
@@ -26826,8 +26818,7 @@ function readBlockMapping(state, nodeIndent, flowIndent) {
 function readTagProperty(state) {
   var _position, isVerbatim = false, isNamed = false, tagHandle, tagName, ch;
   ch = state.input.charCodeAt(state.position);
-  if (ch !== 33)
-    return false;
+  if (ch !== 33) return false;
   if (state.tag !== null) {
     throwError(state, "duplication of a tag property");
   }
@@ -26901,8 +26892,7 @@ function readTagProperty(state) {
 function readAnchorProperty(state) {
   var _position, ch;
   ch = state.input.charCodeAt(state.position);
-  if (ch !== 38)
-    return false;
+  if (ch !== 38) return false;
   if (state.anchor !== null) {
     throwError(state, "duplication of an anchor property");
   }
@@ -26923,8 +26913,7 @@ function readAnchorProperty(state) {
 function readAlias(state) {
   var _position, alias, ch;
   ch = state.input.charCodeAt(state.position);
-  if (ch !== 42)
-    return false;
+  if (ch !== 42) return false;
   ch = state.input.charCodeAt(++state.position);
   _position = state.position;
   while (ch !== 0 && !is_WS_OR_EOL(ch) && !is_FLOW_INDICATOR(ch)) {
@@ -27115,16 +27104,14 @@ function readDocument(state) {
         } while (ch !== 0 && !is_EOL(ch));
         break;
       }
-      if (is_EOL(ch))
-        break;
+      if (is_EOL(ch)) break;
       _position = state.position;
       while (ch !== 0 && !is_WS_OR_EOL(ch)) {
         ch = state.input.charCodeAt(++state.position);
       }
       directiveArgs.push(state.input.slice(_position, state.position));
     }
-    if (ch !== 0)
-      readLineBreak(state);
+    if (ch !== 0) readLineBreak(state);
     if (_hasOwnProperty$1.call(directiveHandlers, directiveName)) {
       directiveHandlers[directiveName](state, directiveName, directiveArgs);
     } else {
@@ -27280,8 +27267,7 @@ var DEPRECATED_BOOLEANS_SYNTAX = [
 var DEPRECATED_BASE60_SYNTAX = /^[-+]?[0-9_]+(?::[0-9_]+)+(?:\.[0-9_]*)?$/;
 function compileStyleMap(schema2, map2) {
   var result, keys, index, length, tag, style, type2;
-  if (map2 === null)
-    return {};
+  if (map2 === null) return {};
   result = {};
   keys = Object.keys(map2);
   for (index = 0, length = keys.length; index < length; index += 1) {
@@ -27352,8 +27338,7 @@ function indentString(string, spaces) {
       line = string.slice(position, next + 1);
       position = next + 1;
     }
-    if (line.length && line !== "\n")
-      result += ind;
+    if (line.length && line !== "\n") result += ind;
     result += line;
   }
   return result;
@@ -27530,8 +27515,7 @@ function foldString(string, width) {
   return result;
 }
 function foldLine(line, width) {
-  if (line === "" || line[0] === " ")
-    return line;
+  if (line === "" || line[0] === " ") return line;
   var breakRe = / [^ ]/g;
   var match;
   var start = 0, end, curr = 0, next = 0;
@@ -27562,8 +27546,7 @@ function escapeString(string) {
     escapeSeq = ESCAPE_SEQUENCES[char];
     if (!escapeSeq && isPrintable(char)) {
       result += string[i];
-      if (char >= 65536)
-        result += string[i + 1];
+      if (char >= 65536) result += string[i + 1];
     } else {
       result += escapeSeq || encodeHex(char);
     }
@@ -27578,8 +27561,7 @@ function writeFlowSequence(state, level, object) {
       value = state.replacer.call(object, String(index), value);
     }
     if (writeNode(state, level, value, false, false) || typeof value === "undefined" && writeNode(state, level, null, false, false)) {
-      if (_result !== "")
-        _result += "," + (!state.condenseFlow ? " " : "");
+      if (_result !== "") _result += "," + (!state.condenseFlow ? " " : "");
       _result += state.dump;
     }
   }
@@ -27612,10 +27594,8 @@ function writeFlowMapping(state, level, object) {
   var _result = "", _tag = state.tag, objectKeyList = Object.keys(object), index, length, objectKey, objectValue, pairBuffer;
   for (index = 0, length = objectKeyList.length; index < length; index += 1) {
     pairBuffer = "";
-    if (_result !== "")
-      pairBuffer += ", ";
-    if (state.condenseFlow)
-      pairBuffer += '"';
+    if (_result !== "") pairBuffer += ", ";
+    if (state.condenseFlow) pairBuffer += '"';
     objectKey = objectKeyList[index];
     objectValue = object[objectKey];
     if (state.replacer) {
@@ -27624,8 +27604,7 @@ function writeFlowMapping(state, level, object) {
     if (!writeNode(state, level, objectKey, false, false)) {
       continue;
     }
-    if (state.dump.length > 1024)
-      pairBuffer += "? ";
+    if (state.dump.length > 1024) pairBuffer += "? ";
     pairBuffer += state.dump + (state.condenseFlow ? '"' : "") + ":" + (state.condenseFlow ? "" : " ");
     if (!writeNode(state, level, objectValue, false, false)) {
       continue;
@@ -27778,8 +27757,7 @@ function writeNode(state, level, object, block, compact, iskey, isblockseq) {
     } else if (type2 === "[object Undefined]") {
       return false;
     } else {
-      if (state.skipInvalid)
-        return false;
+      if (state.skipInvalid) return false;
       throw new exception("unacceptable kind of an object to dump " + type2);
     }
     if (state.tag !== null && state.tag !== "?") {
@@ -27832,14 +27810,12 @@ function inspectNode(object, objects, duplicatesIndexes) {
 function dump$1(input, options) {
   options = options || {};
   var state = new State(options);
-  if (!state.noRefs)
-    getDuplicateReferences(input, state);
+  if (!state.noRefs) getDuplicateReferences(input, state);
   var value = input;
   if (state.replacer) {
     value = state.replacer.call({ "": value }, "", value);
   }
-  if (writeNode(state, 0, value, true, true))
-    return state.dump + "\n";
+  if (writeNode(state, 0, value, true, true)) return state.dump + "\n";
   return "";
 }
 var dump_1 = dump$1;
@@ -31276,6 +31252,7 @@ function locateCursor(annotation, position) {
       annotation: innermostAnnotation
     };
   } catch (e) {
+    if (!(e instanceof Error)) throw e;
     if (e.message === kInternalLocateError) {
       return {
         withError: true
@@ -31408,6 +31385,51 @@ function guessChunkOptionsFormat(options) {
 }
 
 // ../yaml-validation/validator.ts
+function createNiceError(obj) {
+  const {
+    violatingObject,
+    source,
+    message
+  } = obj;
+  const locF = mappedIndexToLineCol(source);
+  let location;
+  try {
+    location = {
+      start: locF(violatingObject.start),
+      end: locF(violatingObject.end)
+    };
+  } catch (_e) {
+    location = {
+      start: { line: 0, column: 0 },
+      end: { line: 0, column: 0 }
+    };
+  }
+  const mapResult = source.map(violatingObject.start);
+  const fileName = mapResult ? mapResult.originalString.fileName : void 0;
+  return {
+    heading: message,
+    error: [],
+    info: {},
+    fileName,
+    location,
+    sourceContext: createSourceContext(violatingObject.source, {
+      start: violatingObject.start,
+      end: violatingObject.end
+    })
+  };
+}
+var NoExprTag = class extends Error {
+  constructor(violatingObject, source) {
+    super(`Unexpected !expr tag`);
+    this.name = "NoExprTag";
+    this.niceError = createNiceError({
+      violatingObject,
+      source,
+      message: "!expr tags are not allowed in Quarto outside of knitr code cells."
+    });
+  }
+  niceError;
+};
 var ValidationContext = class {
   instancePath;
   root;
@@ -31798,6 +31820,9 @@ function validateObject(value, schema2, context) {
           return value.components[i];
         }
       }
+    }
+    if (value.result && typeof value.result === "object" && !Array.isArray(value.result) && value.result.tag === "!expr") {
+      throw new NoExprTag(value, value.source);
     }
     throw new InternalError(`Couldn't locate key ${key}`);
   };
@@ -32259,10 +32284,8 @@ function objectSchema(params = {}) {
       result.additionalProperties = allOfSchema(...additionalPropArray);
     }
     const propNamesArray = baseSchema.map((s) => s.propertyNames).filter((s) => {
-      if (typeof s !== "object")
-        return true;
-      if (s.tags === void 0)
-        return true;
+      if (typeof s !== "object") return true;
+      if (s.tags === void 0) return true;
       if (s.tags["case-detection"] === true) {
         return false;
       }
@@ -32431,8 +32454,7 @@ function globToRegExp(glob, {
   const wildcard = "[^/]*";
   const escapePrefix = "\\";
   let newLength = glob.length;
-  for (; newLength > 1 && seps.includes(glob[newLength - 1]); newLength--)
-    ;
+  for (; newLength > 1 && seps.includes(glob[newLength - 1]); newLength--) ;
   glob = glob.slice(0, newLength);
   let regExpString = "";
   for (let j = 0; j < glob.length; ) {
@@ -32474,34 +32496,21 @@ function globToRegExp(glob, {
           }
           if (glob[k + 1] == ":" && glob[k + 2] == "]") {
             i = k + 2;
-            if (value == "alnum")
-              segment += "\\dA-Za-z";
-            else if (value == "alpha")
-              segment += "A-Za-z";
-            else if (value == "ascii")
-              segment += "\0-\x7F";
-            else if (value == "blank")
-              segment += "	 ";
-            else if (value == "cntrl")
-              segment += "\0-\x7F";
-            else if (value == "digit")
-              segment += "\\d";
-            else if (value == "graph")
-              segment += "!-~";
-            else if (value == "lower")
-              segment += "a-z";
-            else if (value == "print")
-              segment += " -~";
+            if (value == "alnum") segment += "\\dA-Za-z";
+            else if (value == "alpha") segment += "A-Za-z";
+            else if (value == "ascii") segment += "\0-\x7F";
+            else if (value == "blank") segment += "	 ";
+            else if (value == "cntrl") segment += "\0-\x7F";
+            else if (value == "digit") segment += "\\d";
+            else if (value == "graph") segment += "!-~";
+            else if (value == "lower") segment += "a-z";
+            else if (value == "print") segment += " -~";
             else if (value == "punct") {
               segment += `!"#$%&'()*+,\\-./:;<=>?@[\\\\\\]^_\u2018{|}~`;
-            } else if (value == "space")
-              segment += "\\s\v";
-            else if (value == "upper")
-              segment += "A-Z";
-            else if (value == "word")
-              segment += "\\w";
-            else if (value == "xdigit")
-              segment += "\\dA-Fa-f";
+            } else if (value == "space") segment += "\\s\v";
+            else if (value == "upper") segment += "A-Z";
+            else if (value == "word") segment += "\\w";
+            else if (value == "xdigit") segment += "\\dA-Fa-f";
             continue;
           }
         }
@@ -32611,8 +32620,7 @@ function globToRegExp(glob, {
       regExpString += i < glob.length ? sep : sepMaybe;
       endsWithSep = true;
     }
-    while (seps.includes(glob[i]))
-      i++;
+    while (seps.includes(glob[i])) i++;
     if (!(i > j)) {
       throw new Error("Assertion failure: i > j (potential infinite loop)");
     }

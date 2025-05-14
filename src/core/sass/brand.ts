@@ -16,16 +16,14 @@ import {
 import { ProjectContext } from "../../project/types.ts";
 import {
   BrandFont,
-  BrandFontBunny,
+  // BrandFontBunny,
   BrandFontCommon,
   BrandFontGoogle,
   BrandFontWeight,
-} from "../../resources/types/schema-types.ts";
+  Zod,
+} from "../../resources/types/zod/schema-types.ts";
 import { Brand } from "../brand/brand.ts";
-import {
-  darkModeDefault,
-} from "../../format/html/format-html-info.ts";
-
+import { darkModeDefault } from "../../format/html/format-html-info.ts";
 
 const defaultColorNameMap: Record<string, string> = {
   "link-color": "link",
@@ -81,8 +79,8 @@ export async function brandBootstrapSassBundles(
     dependency: "bootstrap",
     user: layers.light,
     dark: {
-      user: layers.dark
-    }
+      user: layers.dark,
+    },
   }];
 }
 
@@ -187,7 +185,7 @@ const brandColorLayer = (
 
   // format-specific name mapping
   for (const [key, value] of Object.entries(nameMap)) {
-    const resolvedValue = brand.getColor(value);
+    const resolvedValue = brand.getColor(value, true);
     if (resolvedValue !== value) {
       colorVariables.push(
         `$${key}: ${resolvedValue} !default;`,
@@ -326,10 +324,11 @@ const brandTypographyLayer = (
   ): string | undefined => {
     let googleFamily = "";
     for (const _resolvedFont of font) {
-      const resolvedFont = _resolvedFont as (BrandFontGoogle | BrandFontBunny);
-      if (resolvedFont.source !== "google") {
+      const safeResolvedFont = Zod.BrandFontGoogle.safeParse(_resolvedFont);
+      if (!safeResolvedFont.success) {
         return undefined;
       }
+      const resolvedFont = safeResolvedFont.data;
       const thisFamily = resolvedFont.family;
       if (!thisFamily) {
         continue;
@@ -354,17 +353,15 @@ const brandTypographyLayer = (
   ): string | undefined => {
     let googleFamily = "";
     for (const _resolvedFont of font) {
-      const resolvedFont =
-        _resolvedFont as (BrandFont | BrandFontGoogle | BrandFontBunny);
+      const safeResolvedFont = Zod.BrandFontBunny.safeParse(_resolvedFont);
+      if (!safeResolvedFont.success) {
+        return undefined;
+      }
+      const resolvedFont = safeResolvedFont.data;
       // Typescript's type checker doesn't understand that it's ok to attempt
       // to access a property that might not exist on a type when you're
       // only testing for its existence.
 
-      // deno-lint-ignore no-explicit-any
-      const source = (resolvedFont as any).source;
-      if (source && source !== "bunny") {
-        return undefined;
-      }
       const thisFamily = resolvedFont.family;
       if (!thisFamily) {
         continue;
@@ -387,6 +384,7 @@ const brandTypographyLayer = (
   type HTMLFontInformation = { [key: string]: unknown };
 
   type FontKind =
+    | "link"
     | "base"
     | "headings"
     | "monospace"
@@ -401,9 +399,14 @@ const brandTypographyLayer = (
     } else if (typeof resolvedFontOptions === "string") {
       resolvedFontOptions = { family: resolvedFontOptions };
     }
-    const family = resolvedFontOptions.family;
-    const font = getFontFamilies(family);
     const result: HTMLFontInformation = {};
+    // This is an ugly hack:
+    //   resolvedFontOptions doesn't always have 'family', but at this
+    //   point in the code we know resolvedFontOptions is an object
+    //   that we can attempt to extract the family from.
+    const family =
+      (resolvedFontOptions as Record<string, string | undefined>).family;
+    const font = getFontFamilies(family);
     result.family = resolveGoogleFontFamily(font) ??
       resolveBunnyFontFamily(font) ??
       // resolveFilesFontFamily(font) ??
@@ -527,11 +530,9 @@ const brandTypographyLayer = (
       "monospace",
       "headings",
       "base",
-    ]
+    ] as const
   ) {
-    const fontInformation = resolveHTMLFontInformation(
-      kind as FontKind,
-    );
+    const fontInformation = resolveHTMLFontInformation(kind);
     if (!fontInformation) {
       continue;
     }
@@ -579,17 +580,19 @@ export async function brandSassLayers(
   const brand = await project.resolveBrand(fileName);
   const sassLayers: LightDarkSassLayers = {
     light: [],
-    dark: []
+    dark: [],
   };
 
-  for (const layer of [sassLayers.light, sassLayers.dark]) {
-    layer.push({
-      defaults: '$theme: "brand" !default;',
-      uses: "",
-      functions: "",
-      mixins: "",
-      rules: "",
-    });
+  for (const mode of ["light", "dark"] as Array<"dark" | "light">) {
+    if (brand && brand[mode]) {
+      sassLayers[mode].push({
+        defaults: '$theme: "brand" !default;',
+        uses: "",
+        functions: "",
+        mixins: "",
+        rules: "",
+      });
+    }
   }
   if (brand?.light?.data.color) {
     sassLayers.light.push(brandColorLayer(brand?.light, nameMap));
@@ -658,10 +661,12 @@ export async function brandSassFormatExtras(
           key: "brand",
           dependency: "bootstrap",
           user: htmlSassBundleLayers.light,
-          dark: {
-            user: htmlSassBundleLayers.dark,
-            default: darkModeDefault(format.metadata)
-          }
+          dark: htmlSassBundleLayers.dark.length
+            ? {
+              user: htmlSassBundleLayers.dark,
+              default: darkModeDefault(format.metadata),
+            }
+            : undefined,
         },
       ],
     },

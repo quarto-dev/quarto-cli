@@ -104,6 +104,9 @@ import { makeTimedFunctionAsync } from "../core/performance/function-times.ts";
 import { createProjectCache } from "../core/cache/cache.ts";
 import { createTempContext } from "../core/temp.ts";
 
+import { onCleanup } from "../core/cleanup.ts";
+import { once } from "../core/once.ts";
+
 export async function projectContext(
   path: string,
   notebookContext: NotebookContext,
@@ -314,11 +317,11 @@ export async function projectContext(
           isSingleFile: false,
           diskCache: await createProjectCache(join(dir, ".quarto")),
           temp,
-          cleanup: () => {
+          cleanup: once(() => {
             cleanupFileInformationCache(result);
             result.diskCache.close();
             temp.cleanup();
-          },
+          }),
         };
 
         // see if the project [kProjectType] wants to filter the project config
@@ -357,7 +360,7 @@ export async function projectContext(
           config: configFiles,
           configResources: projectConfigResources(dir, projectConfig, type),
         };
-
+        onCleanup(result.cleanup);
         return result;
       } else {
         debug(`projectContext: Found Quarto project in ${dir}`);
@@ -408,11 +411,11 @@ export async function projectContext(
           isSingleFile: false,
           diskCache: await createProjectCache(join(dir, ".quarto")),
           temp,
-          cleanup: () => {
+          cleanup: once(() => {
             cleanupFileInformationCache(result);
             result.diskCache.close();
             temp.cleanup();
-          },
+          }),
         };
         const { files, engines } = await projectInputFiles(
           result,
@@ -425,6 +428,7 @@ export async function projectContext(
           config: configFiles,
           configResources: projectConfigResources(dir, projectConfig),
         };
+        onCleanup(result.cleanup);
         return result;
       }
     } else {
@@ -486,11 +490,11 @@ export async function projectContext(
             isSingleFile: false,
             diskCache: await createProjectCache(join(temp.baseDir, ".quarto")),
             temp,
-            cleanup: () => {
+            cleanup: once(() => {
               cleanupFileInformationCache(context);
               context.diskCache.close();
               temp.cleanup();
-            },
+            }),
           };
           if (Deno.statSync(path).isDirectory) {
             const { files, engines } = await projectInputFiles(context);
@@ -503,6 +507,7 @@ export async function projectContext(
             context.files.input = [input];
           }
           debug(`projectContext: Found Quarto project in ${originalDir}`);
+          onCleanup(context.cleanup);
           return context;
         } else {
           return undefined;

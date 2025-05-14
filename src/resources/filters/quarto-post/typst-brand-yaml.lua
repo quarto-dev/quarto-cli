@@ -59,7 +59,7 @@ function render_typst_brand_yaml()
   return {
     Pandoc = function(pandoc0)
       local brand = param('brand')
-      local brandMode = 'light'
+      local brandMode = param('brand-mode') or 'light'
       brand = brand and brand[brandMode]
       if brand and brand.processedData then
         -- color
@@ -82,7 +82,16 @@ function render_typst_brand_yaml()
           end
           local themebk = {}
           for name, _ in pairs(brandColor) do
-            themebk[name] = 'brand-color.' .. name .. '.lighten(85%)'
+            if brandColor.background then
+              local brandPercent = 15
+              if brandMode == 'dark' then
+                brandPercent = 50
+              end
+              local bkPercent = 100 - brandPercent
+              themebk[name] = 'color.mix((brand-color.' .. name .. ', ' .. brandPercent .. '%), (brand-color.background, ' .. bkPercent .. '%))'
+            else
+              themebk[name] = 'brand-color.' .. name .. '.lighten(85%)'
+            end
           end
           local decl = '#let brand-color-background = ' .. to_typst_dict_indent(themebk)
           quarto.doc.include_text('in-header', decl)
@@ -117,7 +126,7 @@ function render_typst_brand_yaml()
         if headings and next(headings) then
             quarto.doc.include_text('in-header', table.concat({
               '#show heading: set text(',
-              conditional_entry('font', headings.family),
+              conditional_entry('font', headings.family and _quarto.modules.typst.css.translate_font_family_list(headings.family), false),
               conditional_entry('weight', _quarto.modules.typst.css.translate_font_weight(headings.weight)),
               conditional_entry('style', headings.style),
               conditional_entry('fill', headings.color, false),
@@ -138,7 +147,7 @@ function render_typst_brand_yaml()
         if monospaceInline and next(monospaceInline) then
             quarto.doc.include_text('in-header', table.concat({
               '#show raw.where(block: false): set text(',
-              conditional_entry('font', monospaceInline.family),
+              conditional_entry('font', monospaceInline.family and _quarto.modules.typst.css.translate_font_family_list(monospaceInline.family), false),
               conditional_entry('weight', _quarto.modules.typst.css.translate_font_weight(monospaceInline.weight)),
               conditional_entry('size', monospaceInline.size, false),
               conditional_entry('fill', monospaceInline.color, false),
@@ -157,7 +166,7 @@ function render_typst_brand_yaml()
         if monospaceBlock and next(monospaceBlock) then
           quarto.doc.include_text('in-header', table.concat({
             '#show raw.where(block: true): set text(',
-            conditional_entry('font', monospaceBlock.family),
+            conditional_entry('font', monospaceBlock.family and _quarto.modules.typst.css.translate_font_family_list(monospaceBlock.family), false),
             conditional_entry('weight', _quarto.modules.typst.css.translate_font_weight(monospaceBlock.weight)),
             conditional_entry('size', monospaceBlock.size, false),
             conditional_entry('fill', monospaceBlock.color, false),
@@ -300,7 +309,7 @@ function render_typst_brand_yaml()
       end
     end,
     Meta = function(meta)
-      local brandMode = 'light'
+      local brandMode = param('brand-mode') or 'light'
       -- it can contain the path but we want to store an object here
       if not meta.brand or pandoc.utils.type(meta.brand) == 'Inlines' then
         meta.brand = {}
@@ -309,7 +318,7 @@ function render_typst_brand_yaml()
       local base = _quarto.modules.brand.get_typography(brandMode, 'base')
       if base and next(base) then
         meta.brand.typography.base = {
-          family = base.family,
+          family = base.family and pandoc.RawInline('typst', _quarto.modules.typst.css.translate_font_family_list(base.family)),
           size = base.size,
         }
       end
@@ -323,8 +332,9 @@ function render_typst_brand_yaml()
         color = color and pandoc.RawInline('typst', color)
         local weight = _quarto.modules.typst.css.translate_font_weight(headings.weight or base.weight)
         weight = weight and pandoc.RawInline('typst', tostring(quote_string(weight)))
+        local family = headings.family or base.family
         meta.brand.typography.headings = {
-          family = headings.family or base.family,
+          family = family and pandoc.RawInline('typst', _quarto.modules.typst.css.translate_font_family_list(family)),
           weight = weight,
           style = headings.style or base.style,
           decoration = headings.decoration or base.decoration,

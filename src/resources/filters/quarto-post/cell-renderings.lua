@@ -12,7 +12,7 @@ function choose_cell_renderings()
   return {
     Div = function(div)
       -- Only process cell div with renderings attr
-      if not div.classes:includes("cell") or not div.attributes["renderings"] then
+      if not div.classes or not div.classes:includes("cell") or not div.attributes["renderings"] then
         return nil
       end
       local renderingsJson = div.attributes['renderings']
@@ -24,7 +24,7 @@ function choose_cell_renderings()
       local cods = {}
       local firstCODIndex = nil
       for i, cellOutput in ipairs(div.content) do
-        if cellOutput.classes:includes("cell-output-display") then
+        if cellOutput.classes and cellOutput.classes:includes("cell-output-display") then
           if not firstCODIndex then
             firstCODIndex = i
           end
@@ -47,6 +47,13 @@ function choose_cell_renderings()
       if quarto.format.isHtmlOutput() and lightDiv and darkDiv then
         blocks:insert(pandoc.Div(lightDiv.content, pandoc.Attr("", {'light-content'}, {})))
         blocks:insert(pandoc.Div(darkDiv.content, pandoc.Attr("", {'dark-content'}, {})))
+      elseif quarto.format.isTypstOutput() and lightDiv and darkDiv then
+        local brandMode = param('brand-mode') or 'light'
+        if brandMode == 'light' then
+          blocks:insert(lightDiv)
+        elseif brandMode == 'dark' then
+          blocks:insert(darkDiv)
+        end
       else
         blocks:insert(lightDiv or darkDiv)
       end

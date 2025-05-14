@@ -52,7 +52,8 @@ for (const { path: fileName } of globOutput) {
   // mediabag inspection if we don't wait all renders
   // individually. This is very slow..
   await execProcess({
-    cmd: [quartoDevCmd(), "render", input, ...options],
+    cmd: quartoDevCmd(), 
+    args: ["render", input, ...options],
   });
   fileNames.push(fileName);
 }
@@ -65,7 +66,8 @@ Deno.test({
     try {
       // run playwright
       const res = await execProcess({
-        cmd: [isWindows ? "npx.cmd" : "npx", "playwright", "test", "--ignore-snapshots"],
+        cmd: isWindows ? "npx.cmd" : "npx", 
+        args: ["playwright", "test", "--ignore-snapshots"],
         cwd: "integration/playwright",
       });
       if (!res.success) {

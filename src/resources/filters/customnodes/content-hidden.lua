@@ -183,8 +183,8 @@ function propertiesMatch(properties, profiles)
   local tests = {
     { constants.kWhenMeta, check_meta, false },
     { constants.kUnlessMeta, check_meta, true },
-    { constants.kWhenFormat, _quarto.format.isFormat, false },
-    { constants.kUnlessFormat, _quarto.format.isFormat, true },
+    { constants.kWhenFormat, quarto.format.is_format, false },
+    { constants.kUnlessFormat, quarto.format.is_format, true },
     { constants.kWhenProfile, check_profile, false },
     { constants.kUnlessProfile, check_profile, true }
   }

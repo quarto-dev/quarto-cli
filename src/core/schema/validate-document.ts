@@ -21,6 +21,7 @@ import { isObject } from "../lodash.ts";
 import { getFrontMatterSchema } from "../lib/yaml-schema/front-matter.ts";
 import { JSONValue, LocalizedError } from "../lib/yaml-schema/types.ts";
 import { MappedString } from "../lib/mapped-text.ts";
+import { NoExprTag } from "../lib/yaml-validation/validator.ts";
 
 export async function validateDocumentFromSource(
   src: MappedString,
@@ -77,22 +78,32 @@ export async function validateDocumentFromSource(
     ) {
       const frontMatterSchema = await getFrontMatterSchema();
 
-      await withValidator(frontMatterSchema, async (frontMatterValidator) => {
-        const fmValidation = await frontMatterValidator.validateParseWithErrors(
-          frontMatterText,
-          annotation,
-          "Validation of YAML front matter failed.",
-          errorFn,
-          reportOnce(
-            (err: TidyverseError) =>
-              error(tidyverseFormatError(err), { colorize: false }),
-            reportSet,
-          ),
-        );
-        if (fmValidation && fmValidation.errors.length) {
-          result.push(...fmValidation.errors);
+      try {
+        await withValidator(frontMatterSchema, async (frontMatterValidator) => {
+          const fmValidation = await frontMatterValidator
+            .validateParseWithErrors(
+              frontMatterText,
+              annotation,
+              "Validation of YAML front matter failed.",
+              errorFn,
+              reportOnce(
+                (err: TidyverseError) =>
+                  error(tidyverseFormatError(err), { colorize: false }),
+                reportSet,
+              ),
+            );
+          if (fmValidation && fmValidation.errors.length) {
+            result.push(...fmValidation.errors);
+          }
+        });
+      } catch (e) {
+        if (!(e instanceof Error)) throw e;
+        if (e.name === "NoExprTag") {
+          const err = e as NoExprTag;
+          error(tidyverseFormatError(err.niceError), { colorize: false });
+          throw e;
         }
-      });
+      }
     }
   } else {
     firstContentCellIndex = 0;

@@ -181,7 +181,20 @@ export const jupyterEngine: ExecutionEngine = {
     let nb: JupyterNotebook | undefined;
     if (isJupyterNotebook(file)) {
       const nbJSON = Deno.readTextFileSync(file);
-      nb = JSON.parse(nbJSON) as JupyterNotebook;
+      const nbRaw = JSON.parse(nbJSON);
+
+      // https://github.com/quarto-dev/quarto-cli/issues/12374
+      // kernelspecs are not guaranteed to have a language field
+      // so we need to check for it and if not present
+      // use the language_info.name field
+      if (
+        nbRaw.metadata.kernelspec &&
+        nbRaw.metadata.kernelspec.language === undefined &&
+        nbRaw.metadata.language_info?.name
+      ) {
+        nbRaw.metadata.kernelspec.language = nbRaw.metadata.language_info.name;
+      }
+      nb = nbRaw as JupyterNotebook;
     }
 
     // cache check for percent script

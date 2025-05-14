@@ -174,6 +174,8 @@ import {
   jupyterCellSrcAsLines,
   jupyterCellSrcAsStr,
 } from "./jupyter-shared.ts";
+import { error } from "../../deno_ral/log.ts";
+import { valid } from "semver/mod.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -921,8 +923,44 @@ export function jupyterCellWithOptions(
     }
   };
 
+  const validMetadata: Record<
+    string,
+    string | number | boolean | null | Array<unknown>
+  > = {};
+  for (const key of Object.keys(cell.metadata)) {
+    const value = cell.metadata[key];
+    let jsonEncodedKeyIndex = 0;
+    if (value !== undefined) {
+      if (!value && typeof value === "object") {
+        validMetadata[key] = null;
+      } else if (value && typeof value === "object" && !Array.isArray(value)) {
+        // https://github.com/quarto-dev/quarto-cli/issues/9089
+        // we need to json-encode this and signal the encoding in the key
+        // we can't use the key as is since it may contain invalid characters
+        // and modifying the key might introduce collisions
+        // we ensure the key is unique with a counter, and assume
+        // "quarto-private-*" to be a private namespace for quarto.
+        // we'd prefer to use _quarto-* instead, but Pandoc doesn't allow keys to start
+        // with an underscore.
+        validMetadata[
+          `quarto-private-${++jsonEncodedKeyIndex}`
+        ] = JSON.stringify({ key, value });
+      } else if (
+        typeof value === "string" || typeof value === "number" ||
+        typeof value === "boolean" || Array.isArray(value)
+      ) {
+        validMetadata[key] = value;
+      } else {
+        error(
+          `Invalid metadata type for key ${key}: ${typeof value}. Entry will not be serialized.`,
+        );
+      }
+    }
+  }
+
   return {
     ...cell,
+    metadata: validMetadata,
     id: cellId(cell),
     source,
     optionsSource,
@@ -992,7 +1030,7 @@ export function mdFromContentCell(
             : data as string;
           // base 64 decode if its not svg
           if (!imageText.trimStart().startsWith("<svg")) {
-            const imageData = base64decode(imageText);
+            const imageData = base64decode(imageText.replaceAll("\n", ""));
             Deno.writeFileSync(outputFile, imageData);
           } else {
             Deno.writeTextFileSync(outputFile, imageText);
@@ -1766,7 +1804,10 @@ function isMarkdown(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsMarkdown);
 }
 
-async function mdOutputStream(output: JupyterOutputStream, options: JupyterToMarkdownOptions) {
+async function mdOutputStream(
+  output: JupyterOutputStream,
+  options: JupyterToMarkdownOptions,
+) {
   let text: string[] = [];
   if (typeof output.text === "string") {
     text = [output.text];
@@ -1796,7 +1837,7 @@ async function mdOutputStream(output: JupyterOutputStream, options: JupyterToMar
     );
   } else {
     // normal default behavior
-    return mdCodeOutput(text.map(colors.stripColor));
+    return mdCodeOutput(text.map(colors.stripAnsiCode));
   }
 }
 
@@ -1873,8 +1914,11 @@ async function mdOutputDisplayData(
       // if output is invalid, warn and emit empty
       const data = output.data[mimeType] as unknown;
       if (!Array.isArray(data) || data.some((s) => typeof s !== "string")) {
-        return await mdWarningOutput(`Unable to process text plain output data 
-which does not appear to be plain text: ${JSON.stringify(data)}`, options);
+        return await mdWarningOutput(
+          `Unable to process text plain output data 
+which does not appear to be plain text: ${JSON.stringify(data)}`,
+          options,
+        );
       }
       const lines = data as string[];
       // pandas inexplicably outputs html tables as text/plain with an enclosing single-quote
@@ -1902,7 +1946,7 @@ which does not appear to be plain text: ${JSON.stringify(data)}`, options);
             return mdCodeOutput(lines);
           }
         } else {
-          return mdCodeOutput(lines.map(colors.stripColor));
+          return mdCodeOutput(lines.map(colors.stripAnsiCode));
         }
       }
     }
@@ -1911,7 +1955,7 @@ which does not appear to be plain text: ${JSON.stringify(data)}`, options);
   // no type match found
   return await mdWarningOutput(
     "Unable to display output for mime type(s): " +
-    Object.keys(output.data).join(", "),
+      Object.keys(output.data).join(", "),
     options,
   );
 }
@@ -1947,7 +1991,7 @@ function mdImageOutput(
   // get the data
   const imageText = Array.isArray(data)
     ? (data as string[]).join("")
-    : data as string;
+    : (data as string).trim();
 
   const outputFile = join(options.assets.base_dir, imageFile);
   if (
@@ -1958,7 +2002,9 @@ function mdImageOutput(
     // https://github.com/quarto-dev/quarto-cli/issues/9793
     !/<svg/.test(imageText)
   ) {
-    const imageData = base64decode(imageText);
+    // we need to remove the newlines from the base64 encoded data
+    // because base64decode doesn't like the multiline-encoded style
+    const imageData = base64decode(imageText.replaceAll("\n", ""));
 
     // if we are in retina mode, then derive width and height from the image
     if (

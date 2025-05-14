@@ -95,11 +95,10 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     -- further, otherwise generate the listing div and return it
     if not param("listings", false) then
       local listingDiv = pandoc.Div({})
-      local position = ""
-      if _quarto.format.isBeamerOutput() then
-        -- Adjust default float positionment for beamer (#5536)
-        position = "[H]"
-      end
+      -- Adjust default float positionment for beamer (#5536)
+      -- Adjust default float positionment for code blocks that request it (#12344)
+      local needs_hold = _quarto.format.isBeamerOutput() or node.hold
+      local position = needs_hold and "[H]" or ""
       listingDiv.content:insert(pandoc.RawBlock("latex", "\\begin{codelisting}" .. position))
 
       local captionContent = node.caption

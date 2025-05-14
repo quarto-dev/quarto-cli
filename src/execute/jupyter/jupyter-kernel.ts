@@ -55,7 +55,8 @@ export async function executeKernelOneshot(
   }
 
   trace(options, "Executing notebook with oneshot kernel");
-  const debug = !!options.format.execute[kExecuteDebug];
+  const debug = !!options.format.execute[kExecuteDebug] ||
+    (!!Deno.env.get("QUARTO_JUPYTER_DEBUG"));
   const result = await execJupyter(
     "execute",
     { ...options, debug },
@@ -71,12 +72,12 @@ export async function executeKernelKeepalive(
   options: JupyterExecuteOptions,
 ): Promise<void> {
   // if we are in debug mode then tail follow the log file
-  let serverLogProcess: Deno.Process | undefined;
+  let serverLogProcess: Deno.ChildProcess | undefined;
   if (options.format.execute[kExecuteDebug]) {
     if (!isWindows) {
-      serverLogProcess = Deno.run({
-        cmd: ["tail", "-F", "-n", "0", kernelLogFile()],
-      });
+      serverLogProcess = new Deno.Command("tail", {
+        args: ["-F", "-n", "0", kernelLogFile()],
+      }).spawn();
     }
   }
 
@@ -155,10 +156,7 @@ export async function executeKernelKeepalive(
   } finally {
     conn.close();
 
-    if (serverLogProcess) {
-      // deno-lint-ignore no-explicit-any
-      (serverLogProcess as any).kill("SIGKILL");
-    }
+    serverLogProcess?.kill("SIGKILL");
   }
 }
 
@@ -190,10 +188,12 @@ async function execJupyter(
   kernelspec: JupyterKernelspec,
 ): Promise<ProcessResult> {
   try {
+    const cmd = await pythonExec(kernelspec);
     const result = await execProcess(
       {
-        cmd: [
-          ...(await pythonExec(kernelspec)),
+        cmd: cmd[0],
+        args: [
+          ...cmd.slice(1),
           resourcePath("jupyter/jupyter.py"),
         ],
         env: {
@@ -217,6 +217,7 @@ async function execJupyter(
     }
     return result;
   } catch (e) {
+    if (!(e instanceof Error)) throw e;
     if (e?.message) {
       info("");
       error(e.message);
@@ -357,6 +358,7 @@ function readKernelTransportFile(
           throw new Error("Invalid file format");
         }
       } catch (e) {
+        if (!(e instanceof Error)) throw e;
         error(
           "Error reading kernel transport file: " + e.toString() +
             "(removing file)",
@@ -453,6 +455,7 @@ async function connectToKernel(
       try {
         return await denoConnectToKernel(kernelTransport);
       } catch (e) {
+        if (!(e instanceof Error)) throw e;
         // remove the transport file
         safeRemoveSync(transportFile);
         error("Error connecting to Jupyter kernel: " + e.toString());

@@ -1,14 +1,5 @@
 import { test, expect } from '@playwright/test';
 
-async function check_red_blue(page) {
-  const locatr = await page.locator('body').first();
-  await expect(locatr).toHaveClass('fullcontent quarto-dark');
-  await expect(locatr).toHaveCSS('background-color', 'rgb(66, 7, 11)');
-  await page.locator("a.quarto-color-scheme-toggle").click();
-  const locatr2 = await page.locator('body').first();
-  await expect(locatr2).toHaveCSS('background-color', 'rgb(204, 221, 255)');
-}
-
 async function check_theme_overrides(page) {
   const locatr = await page.locator('body').first();
   await expect(locatr).toHaveClass('fullcontent quarto-light');
@@ -19,12 +10,6 @@ async function check_theme_overrides(page) {
 }
 // themes used in these documents have background colors
 
-test('Dark and light brand after user themes', async ({ page }) => {
-  // brand overrides theme background color
-  await page.goto('./html/dark-brand/brand-after-theme.html');
-  await check_red_blue(page);
-});
-
 test('Dark and light brand before user themes', async ({ page }) => {
   // theme will override brand
   await page.goto('./html/dark-brand/brand-before-theme.html');
@@ -33,23 +18,46 @@ test('Dark and light brand before user themes', async ({ page }) => {
 
 // project tests
 
-test('Project specifies dark and light brands', async ({ page }) => {
-  await page.goto('./html/dark-brand/project-light-dark/simple.html');
-  await check_red_blue(page);
-});
-
 test('Project brand before user themes', async ({ page }) => {
   // theme will override brand
-  await page.goto('./html/dark-brand/project-light-dark/brand-under-theme.html');
+  await page.goto('./html/dark-brand/project-dark/brand-under-theme.html');
   await check_theme_overrides(page);
 });
 
 test('Brand false remove project brand', async ({ page }) => {
   // theme will override brand
-  await page.goto('./html/dark-brand/project-light-dark/brand-false.html');
+  await page.goto('./html/dark-brand/project-dark/brand-false.html');
   const locatr = await page.locator('body').first();
   await expect(locatr).toHaveClass('fullcontent quarto-light');
   await expect(locatr).toHaveCSS('background-color', 'rgb(255, 255, 255)');
   // no toggle
   expect(await page.locator('a.quarto-color-scheme-toggle').count()).toEqual(0);
+});
+
+
+test('Syntax highlighting, a11y, with JS', async ({ page }) => {
+  // This document use a custom theme file that change the background color of the title banner
+  // Same user defined color should be used in both dark and light theme
+  await page.goto('./html/dark-brand/syntax-highlighting/a11y-syntax-highlighting.html');
+  const locatr = await page.locator('body').first();
+  await expect(locatr).toHaveClass('fullcontent quarto-light');
+  await expect(locatr).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  const importKeyword = await page.locator('span.im').first();
+  // light highlight stylesheet 
+  await expect(importKeyword).toHaveCSS('color', 'rgb(84, 84, 84)');
+  await page.locator("a.quarto-color-scheme-toggle").click();
+  // dark highlight stylesheet
+  await expect(importKeyword).toHaveCSS('color', 'rgb(248, 248, 242)');
+});
+
+
+test('Syntax highlighting, arrow, with JS', async ({ page }) => {
+  // This document use a custom theme file that change the background color of the title banner
+  // Same user defined color should be used in both dark and light theme
+  await page.goto('./html/dark-brand/syntax-highlighting/arrow-syntax-highlighting.html');
+  const locatr = await page.locator('body').first();
+  await expect(locatr).toHaveClass('fullcontent quarto-light');
+  await expect(locatr).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  const link = await page.locator('span.al').first();
+  await expect(link).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
 });

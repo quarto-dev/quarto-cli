@@ -22,3 +22,5 @@ _quarto.modules = {
   tablecolwidths = require("modules/tablecolwidths"),
   typst = require("modules/typst")
 }
+
+quarto.brand = _quarto.modules.brand

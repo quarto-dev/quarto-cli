@@ -24,14 +24,15 @@ import {
   kFigResponsive,
   kFilterParams,
   kHeaderIncludes,
-  kIncludeBeforeBody,
   kIncludeAfterBody,
+  kIncludeBeforeBody,
   kIncludeInHeader,
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kNotebookLinks,
   kNotebookViewStyle,
+  kRespectUserColorScheme,
   kTheme,
 } from "../../config/constants.ts";
 
@@ -343,6 +344,8 @@ export async function htmlFormatExtras(
   options.codeTools = formatHasCodeTools(format);
   options.darkMode = formatDarkMode(format);
   options.darkModeDefault = darkModeDefault(format.metadata);
+  options.respectUserColorScheme = format.metadata[kRespectUserColorScheme] ||
+    false;
   options.linkExternalIcon = format.render[kLinkExternalIcon];
   options.linkExternalNewwindow = format.render[kLinkExternalNewwindow];
   options.linkExternalFilter = format.render[kLinkExternalFilter];
@@ -502,7 +505,7 @@ export async function htmlFormatExtras(
       renderEjs(
         formatResourcePath("html", join("hypothesis", "hypothesis.ejs")),
         { hypothesis: options.hypothesis },
-      )
+      ),
     );
     includeInHeader.push(hypothesisHeader);
   }
@@ -516,10 +519,12 @@ export async function htmlFormatExtras(
     !!options[option]
   );
   if (quartoHtmlRequired) {
-    for(const {dest, ejsfile} of [
-      {dest: includeBeforeBody, ejsfile: "quarto-html-before-body.ejs"},
-      {dest: includeAfterBody, ejsfile: "quarto-html-after-body.ejs"}
-    ]) {
+    for (
+      const { dest, ejsfile } of [
+        { dest: includeBeforeBody, ejsfile: "quarto-html-before-body.ejs" },
+        { dest: includeAfterBody, ejsfile: "quarto-html-after-body.ejs" },
+      ]
+    ) {
       const quartoHtmlScript = temp.createFile();
       const renderedHtml = renderEjs(
         formatResourcePath("html", join("templates", ejsfile)),
@@ -604,7 +609,7 @@ export async function htmlFormatExtras(
       giscusAfterBody,
       renderEjs(
         formatResourcePath("html", join("giscus", "giscus.ejs")),
-        { giscus },
+        { giscus, darkMode: options.darkMode },
       ),
     );
     includeAfterBody.push(giscusAfterBody);

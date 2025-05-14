@@ -5,6 +5,7 @@
  */
 import { join } from "../../../src/deno_ral/path.ts";
 import { info } from "../../../src/deno_ral/log.ts";
+import { logPandoc } from "../../../src/core/log.ts";
 
 import { execProcess } from "../../../src/core/process.ts";
 import { Configuration, withWorkingDir } from "./config.ts";
@@ -34,7 +35,7 @@ export function archiveUrl(
 // Archives dependencies (if they are not present in the archive already)
 export async function archiveBinaryDependencies(_config: Configuration) {
   await withWorkingDir(async (workingDir) => {
-    info(`Updating binary dependencies...\n`);
+    await logPandoc(`## Updating binary dependencies`);
 
     for (const dependency of kDependencies) {
       await archiveBinaryDependency(dependency, workingDir);
@@ -45,7 +46,7 @@ export async function archiveBinaryDependencies(_config: Configuration) {
 // Archives dependencies (if they are not present in the archive already)
 export async function checkBinaryDependencies(_config: Configuration) {
   await withWorkingDir(async (workingDir) => {
-    info(`Updating binary dependencies...\n`);
+    await logPandoc(`## Checking binary dependencies`);
 
     for (const dependency of kDependencies) {
       await checkBinaryDependency(dependency, workingDir);
@@ -99,10 +100,9 @@ export async function archiveBinaryDependency(
   dependency: Dependency,
   workingDir: string,
 ) {
-  info(`** ${dependency.name} ${dependency.version} **`);
+  await logPandoc(`## ${dependency.name} ${dependency.version}\n\nChecking archive status...`, "markdown");
 
   const dependencyBucketPath = `${dependency.bucket}/${dependency.version}`;
-  info("Checking archive status...\n");
 
   const archive = async (
     architectureDependency: ArchitectureDependency,
@@ -117,7 +117,7 @@ export async function archiveBinaryDependency(
         
         const dependencyAwsPath =
           `${kBucket}/${dependencyBucketPath}/${platformDep.filename}`;
-        info(`Checking ${dependencyAwsPath}`);
+        await logPandoc(`Checking \`${dependencyAwsPath}\``, "markdown");
         const response = await s3cmd("ls", [dependencyAwsPath]);
         if (response?.includes('Unable to locate credentials')) {
           throw new Error("Unable to locate S3 credentials, please try again.");
@@ -126,8 +126,8 @@ export async function archiveBinaryDependency(
 
         if (!response) {
           // This dependency doesn't exist, archive it
-          info(
-            `Archiving ${dependencyBucketPath} - ${platformDep.filename}`,
+          await logPandoc(
+            `Archiving \`${dependencyBucketPath}\` - ${platformDep.filename}`,
           );
 
           // Download the file
@@ -144,29 +144,25 @@ export async function archiveBinaryDependency(
             "--acl",
             "public-read",
           ]);
-          
-          info(`(Reponse): ${result}`);
-
+          info(`  (Response): ${result}`);
         } else {
-          info(`${dependencyAwsPath} already archived.`);
+          info(`  ${dependencyAwsPath.split("/").slice(-1)[0]} already archived.\n`);
         }
       }
     }
   };
 
   for (const arch of Object.keys(dependency.architectureDependencies)) {
-    info(`Archiving ${dependency.name}`);
     const archDep = dependency.architectureDependencies[arch];
     await archive(archDep);
   }
-
-  info("");
 }
 
 async function s3cmd(cmd: string, args: string[]) {
-  const s3Command = ["aws", "s3", cmd, ...args];
+  const s3Args = ["s3", cmd, ...args];
   const p = await execProcess({
-    cmd: s3Command,
+    cmd: "aws",
+    args: s3Args,
     stdout: "piped",
   });
 

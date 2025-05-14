@@ -47,10 +47,7 @@ import { normalizeNewlines } from "../core/lib/text.ts";
 import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
 import { QuartoJSONSchema, readYamlFromMarkdown } from "../core/yaml.ts";
 import { refSchema } from "../core/lib/yaml-schema/common.ts";
-import {
-  Brand as BrandJson,
-  BrandPathBoolLightDark,
-} from "../resources/types/schema-types.ts";
+import { Zod } from "../resources/types/zod/schema-types.ts";
 import { Brand } from "../core/brand/brand.ts";
 import { assert } from "testing/asserts";
 
@@ -524,7 +521,7 @@ export async function projectResolveBrand(
       brandPath,
       refSchema("brand", "Format-independent brand configuration."),
       "Brand validation failed for " + brandPath + ".",
-    ) as BrandJson;
+    );
     return new Brand(brand, dirname(brandPath), project.dir);
   }
   async function loadRelativeBrand(
@@ -547,7 +544,7 @@ export async function projectResolveBrand(
     let fileNames = ["_brand.yml", "_brand.yaml"].map((file) =>
       join(project.dir, file)
     );
-    let brand = project?.config?.brand as Boolean | string | {
+    const brand = project?.config?.brand as boolean | string | {
       light?: string;
       dark?: string;
     };
@@ -582,11 +579,14 @@ export async function projectResolveBrand(
     return project.brandCache.brand;
   } else {
     const metadata = await project.fileMetadata(fileName);
-    const brand = metadata.brand as BrandPathBoolLightDark;
+    if (metadata.brand === undefined) {
+      return project.resolveBrand();
+    }
+    const brand = Zod.BrandPathBoolLightDark.parse(metadata.brand);
     if (brand === false) {
       return undefined;
     }
-    if (brand === true || brand === undefined) {
+    if (brand === true) {
       return project.resolveBrand();
     }
     const fileInformation = ensureFileInformationCache(project, fileName);
@@ -602,18 +602,18 @@ export async function projectResolveBrand(
         let light, dark;
         if (typeof brand.light === "string") {
           light = await loadRelativeBrand(brand.light);
-        } else {
+        } else if (brand.light) {
           light = new Brand(
-            brand.light!,
+            brand.light,
             dirname(fileName),
             project.dir,
           );
         }
         if (typeof brand.dark === "string") {
           dark = await loadRelativeBrand(brand.dark);
-        } else {
+        } else if (brand.dark) {
           dark = new Brand(
-            brand.dark!,
+            brand.dark,
             dirname(fileName),
             project.dir,
           );
@@ -622,7 +622,7 @@ export async function projectResolveBrand(
       } else {
         fileInformation.brand = {
           light: new Brand(
-            brand as BrandJson,
+            brand,
             dirname(fileName),
             project.dir,
           ),

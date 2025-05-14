@@ -252,14 +252,27 @@ function _callout_main()
       icon = attrs.fa_icon_typst
     end
     local brand = param("brand")
-    local brandMode = 'light'
+    local brandMode = param('brand-mode') or 'light'
     brand = brand and brand[brandMode]
+    body_background_color = "white"
     if brand then
       local color = brand.processedData and brand.processedData.color
-      if color and callout_theme_color_map[callout.type] and
+      if color then
+        if callout_theme_color_map[callout.type] and
           color[callout_theme_color_map[callout.type]] then
-        background_color =  "brand-color-background." .. callout_theme_color_map[callout.type]
-        icon_color = "brand-color." .. callout_theme_color_map[callout.type]
+          background_color =  "brand-color-background." .. callout_theme_color_map[callout.type]
+          icon_color = "brand-color." .. callout_theme_color_map[callout.type]
+        elseif color.background then
+          local brandPercent = 15
+          if brandMode == 'dark' then
+            brandPercent = 50
+          end
+          local bkPercent = 100 - brandPercent
+          background_color = 'color.mix((' .. icon_color .. ', ' .. brandPercent .. '%), (brand-color.background, ' .. bkPercent .. '%))'
+        end
+        if color.background then
+          body_background_color = "brand-color.background"
+        end
       end
     end
     if callout.attr.identifier == "" then
@@ -271,7 +284,8 @@ function _callout_main()
         )},
         { "background_color", pandoc.RawInline("typst", background_color) },
         { "icon_color", pandoc.RawInline("typst", icon_color) },
-        { "icon", pandoc.RawInline("typst", "" .. icon .. "()")}
+        { "icon", pandoc.RawInline("typst", "" .. icon .. "()")},
+        { "body_background_color", pandoc.RawInline("typst", body_background_color)}
       })
     end
 
@@ -281,7 +295,8 @@ function _callout_main()
        },
       { "background_color", pandoc.RawInline("typst", background_color) },
       { "icon_color", pandoc.RawInline("typst", icon_color) },
-      { "icon", pandoc.RawInline("typst", "" .. icon .. "()")}
+      { "icon", pandoc.RawInline("typst", "" .. icon .. "()")},
+      { "body_background_color", pandoc.RawInline("typst", body_background_color)}
     })
 
     local category = crossref.categories.by_ref_type[refType(callout.attr.identifier)]

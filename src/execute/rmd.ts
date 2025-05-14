@@ -97,6 +97,7 @@ export const knitrEngine: ExecutionEngine = {
     try {
       metadata = readYamlFromMarkdown(markdown.value);
     } catch (e) {
+      if (!(e instanceof Error)) throw e;
       error(`Error reading metadata from ${file}.\n${e.message}`);
       throw e;
     }
@@ -282,8 +283,8 @@ async function callR<T>(
   try {
     const result = await execProcess(
       {
-        cmd: [
-          await rBinaryPath("Rscript"),
+        cmd: await rBinaryPath("Rscript"),
+        args: [
           ...rscriptArgsArray,
           resourcePath("rmd/rmd.R"),
         ],
@@ -317,6 +318,9 @@ async function callR<T>(
       return Promise.reject();
     }
   } catch (e) {
+    if (!(e instanceof Error)) {
+      throw e;
+    }
     if (reportError) {
       if (e?.message) {
         info("");

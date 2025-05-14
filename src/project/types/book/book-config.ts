@@ -118,10 +118,8 @@ import { RenderFlags } from "../../../command/render/types.ts";
 import { formatLanguage } from "../../../core/language.ts";
 import { kComments } from "../../../format/html/format-html-shared.ts";
 import { resolvePageFooter } from "../website/website-shared.ts";
-import {
-  NavigationItemObject,
-  PageFooterRegion,
-} from "../../../resources/types/schema-types.ts";
+import { Zod } from "../../../resources/types/zod/schema-types.ts";
+import { PageFooterRegion } from "../../../resources/types/schema-types.ts";
 import { projectType } from "../project-types.ts";
 import { BookRenderItem, BookRenderItemType } from "./book-types.ts";
 import { isAbsoluteRef } from "../../../core/http.ts";
@@ -145,7 +143,7 @@ export async function bookProjectConfig(
     if (!site[kSiteFavicon]) {
       const brand = await project.resolveBrand();
       if (brand?.light) {
-        site[kSiteFavicon] = getFavicon(brand.light); // 
+        site[kSiteFavicon] = getFavicon(brand.light); //
       }
     }
     site[kSiteUrl] = book[kSiteUrl];
@@ -259,14 +257,11 @@ export async function bookProjectConfig(
   const footerFiles: string[] = [];
   const pageFooter = resolvePageFooter(config);
   const addFooterItems = (region?: PageFooterRegion) => {
-    if (region) {
-      for (const item of region) {
-        if (typeof item !== "string") {
-          const navItem = item as NavigationItemObject;
-          if (navItem.href && !isAbsoluteRef(navItem.href)) {
-            footerFiles.push(navItem.href);
-          }
-        }
+    if (!region || typeof region === "string") return;
+    for (const item of region) {
+      const navItem = Zod.NavigationItemObject.parse(item);
+      if (navItem.href && !isAbsoluteRef(navItem.href)) {
+        footerFiles.push(navItem.href);
       }
     }
   };

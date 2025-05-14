@@ -48,11 +48,15 @@ export const pandocIngestSelfContainedContent = async (
 
   // The raw html contents
   const contents = Deno.readTextFileSync(file);
+  const doctypeMatch = contents.match(/^<!DOCTYPE.*?>/);
   const dom = await parseHtml(contents);
   await bundleModules(dom, workingDir);
 
   const input: string[] = [];
   input.push("````````{=html}");
+  if (doctypeMatch) {
+    input.push(doctypeMatch[0]);
+  }
   input.push(dom.documentElement!.outerHTML);
   input.push("````````");
 
@@ -68,7 +72,8 @@ export const pandocIngestSelfContainedContent = async (
     cmd.push("--resource-path", resourcePath.join(":"));
   }
   const result = await execProcess({
-    cmd,
+    cmd: cmd[0],
+    args: cmd.slice(1),
     stdout: "piped",
     cwd: workingDir,
   }, input.join("\n"));

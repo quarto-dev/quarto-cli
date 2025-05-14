@@ -8,6 +8,9 @@ export const makeParserModule = (
 ) => {
   return {
     getSassAst: (contents: string) => {
+      // scss-parser doesn't support the `$.` operator for module access and it breaks their parser oO, so we remove it.
+      contents = contents.replaceAll(".$", "_dot_dollar");
+
       // scss-parser doesn't support the `...` operator and it breaks their parser oO, so we remove it.
       // our analysis doesn't need to know about it.
       contents = contents.replaceAll("...", "_dot_dot_dot");

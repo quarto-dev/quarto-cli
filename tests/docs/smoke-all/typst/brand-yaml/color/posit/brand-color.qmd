@@ -10,7 +10,7 @@ _quarto:
         -
           - 'burgundy: rgb\("#9a4665"\),'
           - 'primary: rgb\("#447099"\),'
-          - 'primary: brand-color\.primary\.lighten\(85%\),'
+          - 'primary: color\.mix\(\(brand-color\.primary, 15%\), \(brand-color\.background, 85%\)\),'
           - 'title: (\r\n?|\n)\[(\r\n?|\n)Note(\r\n?|\n)\](\r\n?|\n), (\r\n?|\n)background_color: (\r\n?|\n)brand-color-background.primary'
           - 'title: (\r\n?|\n)\[(\r\n?|\n)Warning(\r\n?|\n)\](\r\n?|\n), (\r\n?|\n)background_color: (\r\n?|\n)brand-color-background.warning'
         -

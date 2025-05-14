@@ -84,6 +84,17 @@
     formats: [$html-doc]
   description: Enables smooth scrolling within the page.
 
+- name: respect-user-color-scheme
+  schema: boolean
+  default: false
+  tags:
+    formats: [$html-doc]
+  description:
+    short: "Enables setting dark mode based on the `prefers-color-scheme` media query."
+    long: |
+      If set, Quarto reads the `prefers-color-scheme` media query to determine whether to show
+      the user a dark or light page. Otherwise the author-preferred color scheme is shown.
+
 - name: html-math-method
   tags:
     formats: [$html-doc, $epub-all, gfm]
@@ -263,32 +274,60 @@
   schema: string
   tags:
     formats: [beamer]
-  description: The Beamer color theme for this presentation.
+  description: The Beamer color theme for this presentation, passed to `\usecolortheme`.
+
+- name: colorthemeoptions
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [beamer]
+  description: The Beamer color theme options for this presentation, passed to `\usecolortheme`.
 
 - name: fonttheme
   schema: string
   tags:
     formats: [beamer]
-  description: The Beamer font theme for this presentation.
+  description: The Beamer font theme for this presentation, passed to `\usefonttheme`.
+
+- name: fontthemeoptions
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [beamer]
+  description: The Beamer font theme options for this presentation, passed to `\usefonttheme`.
 
 - name: innertheme
   schema: string
   tags:
     formats: [beamer]
-  description: The Beamer inner theme for this presentation.
+  description: The Beamer inner theme for this presentation, passed to `\useinnertheme`.
+
+- name: innerthemeoptions
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [beamer]
+  description: The Beamer inner theme options for this presentation, passed to `\useinnertheme`.
 
 - name: outertheme
   schema: string
   tags:
     formats: [beamer]
-  description: The Beamer outer theme for this presentation.
+  description: The Beamer outer theme for this presentation, passed to `\useoutertheme`.
+
+- name: outerthemeoptions
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [beamer]
+  description: The Beamer outer theme options for this presentation, passed to `\useoutertheme`.
 
 - name: themeoptions
   schema:
     maybeArrayOf: string
   tags:
     formats: [beamer]
-  description: Options passed to LaTeX Beamer themes.
+  description: Options passed to LaTeX Beamer themes inside `\usetheme`.
 
 - name: section
   schema: number

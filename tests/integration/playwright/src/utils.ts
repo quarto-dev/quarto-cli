@@ -1,4 +1,4 @@
-import { expect, Locator } from "@playwright/test";
+import { expect, Locator, PlaywrightTestOptions } from "@playwright/test";
 
 export const getUrl = (path: string) => {
   return `http://127.0.0.1:8080/${path}`;
@@ -139,6 +139,34 @@ export function asRGB(red: number, green: number, blue: number, alpha?: number):
   return { red, green, blue, alpha };
 }
 
+export function hexToRgb(hex: string): RGBColor {
+  // Remove the # if present
+  hex = hex.replace(/^#/, '');
+  
+  let r: number, g: number, b: number, a: number | undefined = undefined; 
+  
+  if (hex.length === 3) {
+    // Handle shorthand #RGB format
+    r = parseInt(hex[0] + hex[0], 16);
+    g = parseInt(hex[1] + hex[1], 16);
+    b = parseInt(hex[2] + hex[2], 16);
+  } else if (hex.length === 6) {
+    // Handle #RRGGBB format
+    r = parseInt(hex.slice(0, 2), 16);
+    g = parseInt(hex.slice(2, 4), 16);
+    b = parseInt(hex.slice(4, 6), 16);
+  } else if (hex.length === 8) {
+    // Handle #RRGGBBAA format
+    r = parseInt(hex.slice(0, 2), 16);
+    g = parseInt(hex.slice(2, 4), 16);
+    b = parseInt(hex.slice(4, 6), 16);
+    a = parseInt(hex.slice(6, 8), 16);
+  } else {
+    throw new Error('Invalid hex color format');
+  }
+  return (asRGB(r, g, b, a));
+}
+
 export async function getCSSProperty(loc: Locator, variable: string, asNumber = false): Promise<string | number> {
   const property = await loc.evaluate((element, variable) =>
     window.getComputedStyle(element).getPropertyValue(variable),
@@ -176,4 +204,10 @@ export async function checkColorIdentical(loc1: Locator, loc2: Locator, property
 export async function checkBorderProperties(element: Locator, side: string, color: RGBColor, width: string) {
   await checkColor(element, `border-${side}-color`, color);
   await expect(element).toHaveCSS(`border-${side}-width`, width);
+}
+
+export function useDarkLightMode(mode: 'dark' | 'light'): Partial<PlaywrightTestOptions> {
+  return {
+    colorScheme: mode
+  };
 }

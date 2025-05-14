@@ -12,6 +12,7 @@ import { renderServices } from "../render/render-services.ts";
 import { JupyterCapabilities } from "../../core/jupyter/types.ts";
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import {
+  jupyterCapabilitiesJson,
   jupyterCapabilitiesMessage,
   jupyterInstallationMessage,
   jupyterUnactivatedEnvMessage,
@@ -32,7 +33,7 @@ import {
   clearCodePageCache,
   readCodePage,
 } from "../../core/windows.ts";
-import { RenderServices } from "../render/types.ts";
+import { RenderServiceWithLifetime } from "../render/types.ts";
 import { jupyterKernelspecForLanguage } from "../../core/jupyter/kernels.ts";
 import { execProcess } from "../../core/process.ts";
 import { pandocBinaryPath } from "../../core/resources.ts";
@@ -63,24 +64,71 @@ export const enforceTargetType = makeStringEnumTypeEnforcer(...kTargets);
 
 const kIndent = "      ";
 
-export async function check(target: Target): Promise<void> {
+type CheckJsonResult = Record<string, unknown>;
+
+type CheckConfiguration = {
+  strict: boolean;
+  target: Target;
+  output: string | undefined;
+  services: RenderServiceWithLifetime;
+  jsonResult: CheckJsonResult | undefined;
+};
+
+function checkCompleteMessage(conf: CheckConfiguration, message: string) {
+  if (!conf.jsonResult) {
+    completeMessage(message);
+  }
+}
+
+function checkInfoMsg(conf: CheckConfiguration, message: string) {
+  if (!conf.jsonResult) {
+    info(message);
+  }
+}
+
+export async function check(
+  target: Target,
+  strict?: boolean,
+  output?: string,
+): Promise<void> {
   const services = renderServices(notebookContext());
+  const conf: CheckConfiguration = {
+    strict: !!strict,
+    target: target,
+    output,
+    services,
+    jsonResult: undefined,
+  };
+  if (conf.output) {
+    conf.jsonResult = {
+      strict,
+    };
+  }
   try {
-    info(`Quarto ${quartoConfig.version()}`);
-    if (target === "info" || target === "all") {
-      await checkInfo(services);
+    if (conf.jsonResult) {
+      conf.jsonResult.version = quartoConfig.version();
     }
-    if (target === "versions" || target === "all") {
-      await checkVersions(services);
+    checkInfoMsg(conf, `Quarto ${quartoConfig.version()}`);
+
+    for (
+      const [name, checker] of [
+        ["info", checkInfo],
+        ["versions", checkVersions],
+        ["install", checkInstall],
+        ["jupyter", checkJupyterInstallation],
+        ["knitr", checkKnitrInstallation],
+      ] as const
+    ) {
+      if (target === name || target === "all") {
+        await checker(conf);
+      }
     }
-    if (target === "install" || target === "all") {
-      await checkInstall(services);
-    }
-    if (target === "jupyter" || target === "all") {
-      await checkJupyterInstallation(services);
-    }
-    if (target === "knitr" || target === "all") {
-      await checkKnitrInstallation(services);
+
+    if (conf.jsonResult && conf.output) {
+      await Deno.writeTextFile(
+        conf.output,
+        JSON.stringify(conf.jsonResult, null, 2),
+      );
     }
   } finally {
     services.cleanup();
@@ -90,14 +138,20 @@ export async function check(target: Target): Promise<void> {
 // Currently this doesn't check anything
 // but it's a placeholder for future checks
 // and the message is useful for troubleshooting
-async function checkInfo(_services: RenderServices) {
+async function checkInfo(conf: CheckConfiguration) {
   const cacheDir = quartoCacheDir();
-  completeMessage("Checking environment information...");
-  info(kIndent + "Quarto cache location: " + cacheDir);
+  if (conf.jsonResult) {
+    conf.jsonResult!.info = { cacheDir };
+  }
+  checkCompleteMessage(conf, "Checking environment information...");
+  checkInfoMsg(conf, kIndent + "Quarto cache location: " + cacheDir);
 }
 
-async function checkVersions(_services: RenderServices) {
-  const checkVersion = async (
+async function checkVersions(conf: CheckConfiguration) {
+  const {
+    strict,
+  } = conf;
+  const checkVersion = (
     version: string | undefined,
     constraint: string,
     name: string,
@@ -105,25 +159,77 @@ async function checkVersions(_services: RenderServices) {
     if (typeof version !== "string") {
       throw new Error(`Unable to determine ${name} version`);
     }
-    if (!satisfies(version, constraint)) {
-      info(
+    const good = satisfies(version, constraint);
+    if (conf.jsonResult) {
+      if (conf.jsonResult.dependencies === undefined) {
+        conf.jsonResult.dependencies = {};
+      }
+      (conf.jsonResult.dependencies as Record<string, unknown>)[name] = {
+        version,
+        constraint,
+        satisfies: good,
+      };
+    }
+    if (!good) {
+      checkInfoMsg(
+        conf,
         `      NOTE: ${name} version ${version} is too old. Please upgrade to ${
           constraint.slice(2)
         } or later.`,
       );
     } else {
-      info(`      ${name} version ${version}: OK`);
+      checkInfoMsg(conf, `      ${name} version ${version}: OK`);
     }
   };
 
-  completeMessage("Checking versions of quarto binary dependencies...");
+  const strictCheckVersion = (
+    version: string,
+    constraint: string,
+    name: string,
+  ) => {
+    const good = version === constraint;
+    if (conf.jsonResult) {
+      if (conf.jsonResult.dependencies === undefined) {
+        conf.jsonResult.dependencies = {};
+      }
+      (conf.jsonResult.dependencies as Record<string, unknown>)[name] = {
+        version,
+        constraint,
+        satisfies: good,
+      };
+    }
+    if (!good) {
+      checkInfoMsg(
+        conf,
+        `      NOTE: ${name} version ${version} does not strictly match ${constraint} and strict checking is enabled. Please use ${constraint}.`,
+      );
+    } else {
+      checkInfoMsg(conf, `      ${name} version ${version}: OK`);
+    }
+  };
+
+  checkCompleteMessage(
+    conf,
+    "Checking versions of quarto binary dependencies...",
+  );
 
   let pandocVersion = lines(
     (await execProcess({
-      cmd: [pandocBinaryPath(), "--version"],
+      cmd: pandocBinaryPath(),
+      args: ["--version"],
       stdout: "piped",
     })).stdout!,
   )[0]?.split(" ")[1];
+  const sassVersion = (await dartCommand(["--version"]))?.trim();
+  const denoVersion = Deno.version.deno;
+  const typstVersion = lines(
+    (await execProcess({
+      cmd: typstBinaryPath(),
+      args: ["--version"],
+      stdout: "piped",
+    })).stdout!,
+  )[0].split(" ")[1];
+
   // We hack around pandocVersion to build a sem-verish string
   // that satisfies the semver package
   // if pandoc reports more than three version numbers, pick the first three
@@ -138,35 +244,55 @@ async function checkVersions(_services: RenderServices) {
       ).join(".");
     }
   }
-  checkVersion(pandocVersion, ">=2.19.2", "Pandoc");
 
-  const sassVersion = (await dartCommand(["--version"]))?.trim();
-  checkVersion(sassVersion, ">=1.32.8", "Dart Sass");
-
-  // manually check Deno version without shelling out
-  // because we're actually running in Deno right now
-  if (!satisfies(Deno.version.deno, ">=1.33.1")) {
-    info(
-      `      NOTE: Deno version ${Deno.version.deno} is too old. Please upgrade to 1.33.1 or later.`,
-    );
-  } else {
-    info(`      Deno version ${Deno.version.deno}: OK`);
+  // FIXME: all of these strict checks should be done by
+  // loading the configuration file directly, but that
+  // file is in an awkward format and it is not packaged
+  // with our installers
+  const checkData: [string | undefined, string, string][] = strict
+    ? [
+      [pandocVersion, "3.6.3", "Pandoc"],
+      [sassVersion, "1.87.0", "Dart Sass"],
+      [denoVersion, "2.3.1", "Deno"],
+      [typstVersion, "0.13.0", "Typst"],
+    ]
+    : [
+      [pandocVersion, ">=3.6.3", "Pandoc"],
+      [sassVersion, ">=1.87.0", "Dart Sass"],
+      [denoVersion, ">=2.3.1", "Deno"],
+      [typstVersion, ">=0.13.0", "Typst"],
+    ];
+  const fun = strict ? strictCheckVersion : checkVersion;
+  for (const [version, constraint, name] of checkData) {
+    if (version === undefined) {
+      if (conf.jsonResult) {
+        if (conf.jsonResult.dependencies === undefined) {
+          conf.jsonResult.dependencies = {};
+        }
+        (conf.jsonResult.dependencies as Record<string, unknown>)[name] = {
+          version,
+          constraint,
+          found: false,
+        };
+      }
+      checkInfoMsg(conf, `      ${name} version: (not detected)`);
+    } else {
+      fun(version, constraint, name);
+    }
   }
 
-  let typstVersion = lines(
-    (await execProcess({
-      cmd: [typstBinaryPath(), "--version"],
-      stdout: "piped",
-    })).stdout!,
-  )[0].split(" ")[1];
-  checkVersion(typstVersion, ">=0.10.0", "Typst");
-
-  completeMessage("Checking versions of quarto dependencies......OK");
+  checkCompleteMessage(
+    conf,
+    "Checking versions of quarto dependencies......OK",
+  );
 }
 
-async function checkInstall(services: RenderServices) {
-  completeMessage("Checking Quarto installation......OK");
-  info(`${kIndent}Version: ${quartoConfig.version()}`);
+async function checkInstall(conf: CheckConfiguration) {
+  const {
+    services,
+  } = conf;
+  checkCompleteMessage(conf, "Checking Quarto installation......OK");
+  checkInfoMsg(conf, `${kIndent}Version: ${quartoConfig.version()}`);
   if (quartoConfig.version() === "99.9.9") {
     // if they're running a dev version, we assume git is installed
     // and QUARTO_ROOT is set to the root of the quarto-cli repo
@@ -174,69 +300,103 @@ async function checkInstall(services: RenderServices) {
     const quartoRoot = Deno.env.get("QUARTO_ROOT");
     if (quartoRoot) {
       const gitHead = await execProcess({
-        cmd: ["git", "-C", quartoRoot, "rev-parse", "HEAD"],
+        cmd: "git",
+        args: ["-C", quartoRoot, "rev-parse", "HEAD"],
         stdout: "piped",
         stderr: "piped", // to not show error if not in a git repo
       });
       if (gitHead.success && gitHead.stdout) {
-        info(`${kIndent}commit: ${gitHead.stdout.trim()}`);
+        checkInfoMsg(conf, `${kIndent}commit: ${gitHead.stdout.trim()}`);
+        if (conf.jsonResult) {
+          conf.jsonResult["quarto-dev-version"] = gitHead.stdout.trim();
+        }
       }
     }
   }
-  info(`${kIndent}Path: ${quartoConfig.binPath()}`);
+  checkInfoMsg(conf, `${kIndent}Path: ${quartoConfig.binPath()}`);
+  if (conf.jsonResult) {
+    conf.jsonResult["quarto-path"] = quartoConfig.binPath();
+  }
+
   if (isWindows) {
+    const json: Record<string, unknown> = {};
+    if (conf.jsonResult) {
+      conf.jsonResult.windows = json;
+    }
     try {
       const codePage = readCodePage();
       clearCodePageCache();
       await cacheCodePage();
       const codePage2 = readCodePage();
 
-      info(`${kIndent}CodePage: ${codePage2 || "unknown"}`);
+      checkInfoMsg(conf, `${kIndent}CodePage: ${codePage2 || "unknown"}`);
+      json["code-page"] = codePage2 || "unknown";
       if (codePage && codePage !== codePage2) {
-        info(
+        checkInfoMsg(
+          conf,
           `${kIndent}NOTE: Code page updated from ${codePage} to ${codePage2}. Previous rendering may have been affected.`,
         );
+        json["code-page-updated-from"] = codePage;
       }
       // if non-standard code page, check for non-ascii characters in path
       // deno-lint-ignore no-control-regex
       const nonAscii = /[^\x00-\x7F]+/;
       if (nonAscii.test(quartoConfig.binPath())) {
-        info(
+        checkInfoMsg(
+          conf,
           `${kIndent}ERROR: Non-ASCII characters in Quarto path causes rendering problems.`,
         );
+        json["non-ascii-in-path"] = true;
       }
     } catch {
-      info(`${kIndent}CodePage: Unable to read code page`);
+      checkInfoMsg(conf, `${kIndent}CodePage: Unable to read code page`);
+      json["error"] = "Unable to read code page";
     }
   }
 
-  info("");
+  checkInfoMsg(conf, "");
   const toolsMessage = "Checking tools....................";
   const toolsOutput: string[] = [];
   let tools: Awaited<ReturnType<typeof allTools>>;
-  await withSpinner({
-    message: toolsMessage,
-    doneMessage: toolsMessage + "OK",
-  }, async () => {
+  const toolsJson: Record<string, unknown> = {};
+  if (conf.jsonResult) {
+    conf.jsonResult.tools = toolsJson;
+  }
+  const toolsCb = async () => {
     tools = await allTools();
 
     for (const tool of tools.installed) {
       const version = await tool.installedVersion() || "(external install)";
       toolsOutput.push(`${kIndent}${tool.name}: ${version}`);
+      toolsJson[tool.name] = {
+        version,
+      };
     }
     for (const tool of tools.notInstalled) {
       toolsOutput.push(`${kIndent}${tool.name}: (not installed)`);
+      toolsJson[tool.name] = {
+        installed: false,
+      };
     }
-  });
-  toolsOutput.forEach((out) => info(out));
-  info("");
+  };
+  if (conf.jsonResult) {
+    await toolsCb();
+  } else {
+    await withSpinner({
+      message: toolsMessage,
+      doneMessage: toolsMessage + "OK",
+    }, toolsCb);
+  }
+  toolsOutput.forEach((out) => checkInfoMsg(conf, out));
+  checkInfoMsg(conf, "");
 
   const latexMessage = "Checking LaTeX....................";
   const latexOutput: string[] = [];
-  await withSpinner({
-    message: latexMessage,
-    doneMessage: latexMessage + "OK",
-  }, async () => {
+  const latexJson: Record<string, unknown> = {};
+  if (conf.jsonResult) {
+    conf.jsonResult.latex = latexJson;
+  }
+  const latexCb = async () => {
     const tlContext = await texLiveContext(true);
     if (tlContext.hasTexLive) {
       const version = await tlVersion(tlContext);
@@ -247,27 +407,42 @@ async function checkInstall(services: RenderServices) {
         latexOutput.push(`${kIndent}Using: Installation From Path`);
         if (tlMgrPath) {
           latexOutput.push(`${kIndent}Path: ${dirname(tlMgrPath)}`);
+          latexJson["path"] = dirname(tlMgrPath);
+          latexJson["source"] = "global";
         }
       } else {
         latexOutput.push(`${kIndent}Using: TinyTex`);
         if (tlContext.binDir) {
           latexOutput.push(`${kIndent}Path: ${tlContext.binDir}`);
+          latexJson["path"] = tlContext.binDir;
+          latexJson["source"] = "tinytex";
         }
       }
       latexOutput.push(`${kIndent}Version: ${version}`);
+      latexJson["version"] = version;
     } else {
       latexOutput.push(`${kIndent}Tex:  (not detected)`);
+      latexJson["installed"] = false;
     }
-  });
-  latexOutput.forEach((out) => info(out));
-  info("");
+  };
+  if (conf.jsonResult) {
+    await latexCb();
+  } else {
+    await withSpinner({
+      message: latexMessage,
+      doneMessage: latexMessage + "OK",
+    }, latexCb);
+  }
+  latexOutput.forEach((out) => checkInfoMsg(conf, out));
+  checkInfoMsg(conf, "");
 
   const chromeHeadlessMessage = "Checking Chrome Headless....................";
   const chromeHeadlessOutput: string[] = [];
-  await withSpinner({
-    message: chromeHeadlessMessage,
-    doneMessage: chromeHeadlessMessage + "OK",
-  }, async () => {
+  const chromeJson: Record<string, unknown> = {};
+  if (conf.jsonResult) {
+    conf.jsonResult.chrome = chromeJson;
+  }
+  const chromeCb = async () => {
     const chromeDetected = await findChrome();
     const chromiumQuarto = tools.installed.find((tool) =>
       tool.name === "chromium"
@@ -280,7 +455,10 @@ async function checkInstall(services: RenderServices) {
       if (chromeDetected.source) {
         chromeHeadlessOutput.push(`${kIndent}Source: ${chromeDetected.source}`);
       }
+      chromeJson["path"] = chromeDetected.path;
+      chromeJson["source"] = chromeDetected.source;
     } else if (chromiumQuarto !== undefined) {
+      chromeJson["source"] = "quarto";
       chromeHeadlessOutput.push(
         `${kIndent}Using: Chromium installed by Quarto`,
       );
@@ -288,22 +466,36 @@ async function checkInstall(services: RenderServices) {
         chromeHeadlessOutput.push(
           `${kIndent}Path: ${chromiumQuarto?.binDir}`,
         );
+        chromeJson["path"] = chromiumQuarto?.binDir;
       }
       chromeHeadlessOutput.push(
         `${kIndent}Version: ${chromiumQuarto.installedVersion}`,
       );
+      chromeJson["version"] = chromiumQuarto.installedVersion;
     } else {
       chromeHeadlessOutput.push(`${kIndent}Chrome:  (not detected)`);
+      chromeJson["installed"] = false;
     }
-  });
-  chromeHeadlessOutput.forEach((out) => info(out));
-  info("");
+  };
+  if (conf.jsonResult) {
+    await chromeCb();
+  } else {
+    await withSpinner({
+      message: chromeHeadlessMessage,
+      doneMessage: chromeHeadlessMessage + "OK",
+    }, chromeCb);
+  }
+  chromeHeadlessOutput.forEach((out) => checkInfoMsg(conf, out));
+  checkInfoMsg(conf, "");
 
   const kMessage = "Checking basic markdown render....";
-  await withSpinner({
-    message: kMessage,
-    doneMessage: kMessage + "OK\n",
-  }, async () => {
+  const markdownRenderJson: Record<string, unknown> = {};
+  if (conf.jsonResult) {
+    conf.jsonResult.render = {
+      markdown: markdownRenderJson,
+    };
+  }
+  const markdownRenderCb = async () => {
     const mdPath = services.temp.createFile({ suffix: "check.md" });
     Deno.writeTextFileSync(
       mdPath,
@@ -320,56 +512,105 @@ title: "Title"
       flags: { quiet: true },
     });
     if (result.error) {
-      throw result.error;
-    }
-  });
-}
-
-async function checkJupyterInstallation(services: RenderServices) {
-  const kMessage = "Checking Python 3 installation....";
-  let caps: JupyterCapabilities | undefined;
-  await withSpinner({
-    message: kMessage,
-    doneMessage: false,
-  }, async () => {
-    caps = await jupyterCapabilities();
-  });
-  if (caps) {
-    completeMessage(kMessage + "OK");
-    info(await jupyterCapabilitiesMessage(caps, kIndent));
-    info("");
-    if (caps.jupyter_core) {
-      if (await jupyterKernelspecForLanguage("python")) {
-        const kJupyterMessage = "Checking Jupyter engine render....";
-        await withSpinner({
-          message: kJupyterMessage,
-          doneMessage: kJupyterMessage + "OK\n",
-        }, async () => {
-          await checkJupyterRender(services);
-        });
+      if (!conf.jsonResult) {
+        throw result.error;
       } else {
-        info(
-          kIndent + "NOTE: No Jupyter kernel for Python found",
-        );
-        info("");
+        markdownRenderJson["error"] = result.error;
       }
     } else {
-      info(jupyterInstallationMessage(caps, kIndent));
-      info("");
-      const envMessage = jupyterUnactivatedEnvMessage(caps, kIndent);
-      if (envMessage) {
-        info(envMessage);
-        info("");
-      }
+      markdownRenderJson["ok"] = true;
     }
+  };
+
+  if (conf.jsonResult) {
+    await markdownRenderCb();
   } else {
-    completeMessage(kMessage + "(None)\n");
-    info(pythonInstallationMessage(kIndent));
-    info("");
+    await withSpinner({
+      message: kMessage,
+      doneMessage: kMessage + "OK\n",
+    }, markdownRenderCb);
   }
 }
 
-async function checkJupyterRender(services: RenderServices) {
+async function checkJupyterInstallation(conf: CheckConfiguration) {
+  const kMessage = "Checking Python 3 installation....";
+  const jupyterJson: Record<string, unknown> = {};
+  if (conf.jsonResult) {
+    (conf.jsonResult.tools as Record<string, unknown>).jupyter = jupyterJson;
+  }
+  let caps: JupyterCapabilities | undefined;
+  if (conf.jsonResult) {
+    caps = await jupyterCapabilities();
+  } else {
+    await withSpinner({
+      message: kMessage,
+      doneMessage: false,
+    }, async () => {
+      caps = await jupyterCapabilities();
+    });
+  }
+  if (caps) {
+    checkCompleteMessage(conf, kMessage + "OK");
+    if (conf.jsonResult) {
+      jupyterJson["capabilities"] = await jupyterCapabilitiesJson(caps);
+    } else {
+      checkInfoMsg(conf, await jupyterCapabilitiesMessage(caps, kIndent));
+    }
+    checkInfoMsg(conf, "");
+    if (caps.jupyter_core) {
+      if (await jupyterKernelspecForLanguage("python")) {
+        const kJupyterMessage = "Checking Jupyter engine render....";
+        if (conf.jsonResult) {
+          await checkJupyterRender(conf);
+        } else {
+          await withSpinner({
+            message: kJupyterMessage,
+            doneMessage: kJupyterMessage + "OK\n",
+          }, async () => {
+            await checkJupyterRender(conf);
+          });
+        }
+      } else {
+        jupyterJson["kernels"] = [];
+        checkInfoMsg(
+          conf,
+          kIndent + "NOTE: No Jupyter kernel for Python found",
+        );
+        checkInfoMsg(conf, "");
+      }
+    } else {
+      const installMessage = jupyterInstallationMessage(caps, kIndent);
+      checkInfoMsg(conf, installMessage);
+      checkInfoMsg(conf, "");
+      jupyterJson["installed"] = false;
+      jupyterJson["how-to-install"] = installMessage;
+      const envMessage = jupyterUnactivatedEnvMessage(caps, kIndent);
+      if (envMessage) {
+        checkInfoMsg(conf, envMessage);
+        checkInfoMsg(conf, "");
+        jupyterJson["env"] = {
+          "warning": envMessage,
+        };
+      }
+    }
+  } else {
+    checkCompleteMessage(conf, kMessage + "(None)\n");
+    const msg = pythonInstallationMessage(kIndent);
+    jupyterJson["installed"] = false;
+    jupyterJson["how-to-install-python"] = msg;
+    checkInfoMsg(conf, msg);
+    checkInfoMsg(conf, "");
+  }
+}
+
+async function checkJupyterRender(conf: CheckConfiguration) {
+  const {
+    services,
+  } = conf;
+  const json: Record<string, unknown> = {};
+  if (conf.jsonResult) {
+    (conf.jsonResult.render as Record<string, unknown>).jupyter = json;
+  }
   const qmdPath = services.temp.createFile({ suffix: "check.qmd" });
   Deno.writeTextFileSync(
     qmdPath,
@@ -390,72 +631,106 @@ title: "Title"
     flags: { quiet: true, executeDaemon: 0 },
   });
   if (result.error) {
-    throw result.error;
+    if (!conf.jsonResult) {
+      throw result.error;
+    } else {
+      json["error"] = result.error;
+    }
+  } else {
+    json["ok"] = true;
   }
 }
 
-async function checkKnitrInstallation(services: RenderServices) {
+async function checkKnitrInstallation(conf: CheckConfiguration) {
   const kMessage = "Checking R installation...........";
   let caps: KnitrCapabilities | undefined;
   let rBin: string | undefined;
-  await withSpinner({
-    message: kMessage,
-    doneMessage: false,
-  }, async () => {
+  const json: Record<string, unknown> = {};
+  if (conf.jsonResult) {
+    (conf.jsonResult.tools as Record<string, unknown>).knitr = json;
+  }
+  const knitrCb = async () => {
     rBin = await checkRBinary();
     caps = await knitrCapabilities(rBin);
-  });
+  };
+  if (conf.jsonResult) {
+    await knitrCb();
+  } else {
+    await withSpinner({
+      message: kMessage,
+      doneMessage: false,
+    }, knitrCb);
+  }
   if (rBin && caps) {
-    completeMessage(kMessage + "OK");
-    info(knitrCapabilitiesMessage(caps, kIndent));
-    info("");
+    checkCompleteMessage(conf, kMessage + "OK");
+    checkInfoMsg(conf, knitrCapabilitiesMessage(caps, kIndent));
+    checkInfoMsg(conf, "");
     if (caps.packages.rmarkdownVersOk && caps.packages.knitrVersOk) {
       const kKnitrMessage = "Checking Knitr engine render......";
-      await withSpinner({
-        message: kKnitrMessage,
-        doneMessage: kKnitrMessage + "OK\n",
-      }, async () => {
-        await checkKnitrRender(services);
-      });
+      if (conf.jsonResult) {
+        await checkKnitrRender(conf);
+      } else {
+        await withSpinner({
+          message: kKnitrMessage,
+          doneMessage: kKnitrMessage + "OK\n",
+        }, async () => {
+          await checkKnitrRender(conf);
+        });
+      }
     } else {
       // show install message if not available
       // or update message if not up to date
-      if (!!!caps.packages.knitr || !caps.packages.knitrVersOk) {
-        info(
-          knitrInstallationMessage(
-            kIndent,
-            "knitr",
-            !!caps.packages.knitr && !caps.packages.knitrVersOk,
-          ),
+      json["installed"] = false;
+      if (!caps.packages.knitr || !caps.packages.knitrVersOk) {
+        const msg = knitrInstallationMessage(
+          kIndent,
+          "knitr",
+          !!caps.packages.knitr && !caps.packages.knitrVersOk,
         );
+        checkInfoMsg(conf, msg);
+        json["how-to-install-knitr"] = msg;
       }
-      if (!!!caps.packages.rmarkdown || !caps.packages.rmarkdownVersOk) {
-        info(
-          knitrInstallationMessage(
-            kIndent,
-            "rmarkdown",
-            !!caps.packages.rmarkdown && !caps.packages.rmarkdownVersOk,
-          ),
+      if (!caps.packages.rmarkdown || !caps.packages.rmarkdownVersOk) {
+        const msg = knitrInstallationMessage(
+          kIndent,
+          "rmarkdown",
+          !!caps.packages.rmarkdown && !caps.packages.rmarkdownVersOk,
         );
+        checkInfoMsg(conf, msg);
+        json["how-to-install-rmarkdown"] = msg;
       }
-      info("");
+      checkInfoMsg(conf, "");
     }
   } else if (rBin === undefined) {
-    completeMessage(kMessage + "(None)\n");
-    info(rInstallationMessage(kIndent));
-    info("");
+    checkCompleteMessage(conf, kMessage + "(None)\n");
+    const msg = rInstallationMessage(kIndent);
+    checkInfoMsg(conf, msg);
+    json["installed"] = false;
+    checkInfoMsg(conf, "");
   } else if (caps === undefined) {
-    completeMessage(kMessage + "(None)\n");
-    info(`R succesfully found at ${rBin}.`);
-    info(
+    json["installed"] = false;
+    checkCompleteMessage(conf, kMessage + "(None)\n");
+    const msgs = [
+      `R succesfully found at ${rBin}.`,
       "However, a problem was encountered when checking configurations of packages.",
-    );
-    info("Please check your installation of R.");
-    info("");
+      "Please check your installation of R.",
+    ];
+    msgs.forEach((msg) => {
+      checkInfoMsg(conf, msg);
+    });
+    json["error"] = msgs.join("\n");
+    checkInfoMsg(conf, "");
   }
 }
 
-async function checkKnitrRender(services: RenderServices) {
+async function checkKnitrRender(conf: CheckConfiguration) {
+  const {
+    services,
+  } = conf;
+  const json: Record<string, unknown> = {};
+  if (conf.jsonResult) {
+    (conf.jsonResult.render as Record<string, unknown>).knitr = json;
+  }
   const rmdPath = services.temp.createFile({ suffix: "check.rmd" });
   Deno.writeTextFileSync(
     rmdPath,
@@ -476,6 +751,12 @@ title: "Title"
     flags: { quiet: true },
   });
   if (result.error) {
-    throw result.error;
+    if (!conf.jsonResult) {
+      throw result.error;
+    } else {
+      json["error"] = result.error;
+    }
+  } else {
+    json["ok"] = true;
   }
 }

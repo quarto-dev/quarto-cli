@@ -52,7 +52,7 @@ $endif$
 $if(mainfont)$
   font: ("$mainfont$",),
 $elseif(brand.typography.base.family)$
-  font: ("$brand.typography.base.family$",),
+  font: $brand.typography.base.family$,
 $endif$
 $if(fontsize)$
   fontsize: $fontsize$,
@@ -61,7 +61,7 @@ $elseif(brand.typography.base.size)$
 $endif$
 $if(title)$
 $if(brand.typography.headings.family)$
-  heading-family: ("$brand.typography.headings.family$",),
+  heading-family: $brand.typography.headings.family$,
 $endif$
 $if(brand.typography.headings.weight)$
   heading-weight: $brand.typography.headings.weight$,
@@ -82,6 +82,7 @@ $endif$
 $if(section-numbering)$
   sectionnumbering: "$section-numbering$",
 $endif$
+  pagenumbering: $if(page-numbering)$"$page-numbering$"$else$none$endif$,
 $if(toc)$
   toc: $toc$,
 $endif$

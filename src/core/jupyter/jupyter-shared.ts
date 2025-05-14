@@ -28,6 +28,20 @@ export const jupyterCellSrcAsLines = (cell: JupyterCell) => {
   return typeof cell.source === "string" ? lines(cell.source) : cell.source;
 };
 
+export async function jupyterCapabilitiesJson(
+  caps: JupyterCapabilities,
+): Promise<
+  JupyterCapabilities & {
+    kernels: JupyterKernelspec[];
+  }
+> {
+  const kernels = Array.from((await jupyterKernelspecs()).values());
+  return {
+    ...caps,
+    kernels,
+  };
+}
+
 export async function jupyterCapabilitiesMessage(
   caps: JupyterCapabilities,
   indent = "",
