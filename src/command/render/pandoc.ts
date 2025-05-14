@@ -1230,9 +1230,9 @@ export async function runPandoc(
     !isBeamerOutput(options.format.pandoc)
   ) {
     const docClass = pandocMetadata[kDocumentClass];
-    assert(typeof docClass === "string");
+    assert(!docClass || typeof docClass === "string");
     const isPrintDocumentClass = docClass &&
-      ["book", "scrbook"].includes(docClass);
+      ["book", "scrbook"].includes(docClass as string);
 
     if (!isPrintDocumentClass) {
       if (pandocMetadata[kColorLinks] === undefined) {
