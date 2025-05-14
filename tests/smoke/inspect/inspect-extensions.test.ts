@@ -14,7 +14,7 @@ import {
 import { assert, assertEquals } from "testing/asserts";
 
 (() => {
-  const input = "docs/inspect/website-with-extensions";
+  const input = "docs/inspect/website-with-extensions/extension-test";
   const output = "docs/inspect/website-with-extensions.json";
   testQuartoCmd(
     "inspect",
@@ -26,7 +26,7 @@ import { assert, assertEquals } from "testing/asserts";
           assert(existsSync(output));
           const json = JSON.parse(Deno.readTextFileSync(output));
           assert(json.extensions.length === 1);
-          assertObjectMatch(json.extensions[0].title, "Auto Dark Mode");
+          assertEquals(json.extensions[0].title, "Auto Dark Mode");
         }
       }
     ],
