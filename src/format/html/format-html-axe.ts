@@ -14,7 +14,7 @@ export function axeFormatDependencies(
   temp: TempContext,
   options?: unknown,
 ): FormatExtras {
-  if (options === undefined) {
+  if (!options) {
     return {};
   }
 

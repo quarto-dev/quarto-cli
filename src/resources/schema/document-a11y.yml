@@ -1,7 +1,7 @@
 - name: axe
   schema:
     anyOf:
-      - true
+      - boolean
       - object:
           properties:
             output:

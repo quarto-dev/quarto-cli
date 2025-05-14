@@ -23759,6 +23759,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "internal-schema-hack",
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
         "When defined, run axe-core accessibility tests on the document.",
+        "If true, output axe-core results on console in JSON format.",
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -24333,12 +24334,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 196726,
+        _internalId: 196509,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 196718,
+            _internalId: 196501,
             type: "enum",
             enum: [
               "png",
@@ -24354,7 +24355,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 196725,
+            _internalId: 196508,
             type: "anyOf",
             anyOf: [
               {
@@ -24400,7 +24401,7 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "axe",
           schema: {
             anyOf: [
-              true,
+              "boolean",
               {
                 object: {
                   properties: {
