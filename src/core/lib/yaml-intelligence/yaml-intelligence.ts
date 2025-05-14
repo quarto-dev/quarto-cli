@@ -1231,7 +1231,7 @@ export async function getCompletions(
     await init(context);
     return await getAutomation("completions", context);
   } catch (e) {
-    console.log("Error found during autocomplete", e);
+    console["log"]("Error found during autocomplete", e);
     exportSmokeTest("completions", context);
     return null;
   }
@@ -1245,7 +1245,7 @@ export async function getLint(
     await init(context);
     return await getAutomation("validation", context);
   } catch (e) {
-    console.log("Error found during linting", e);
+    console["log"]("Error found during linting", e);
     exportSmokeTest("validation", context);
     return null;
   }
@@ -1259,7 +1259,7 @@ export async function getHover(
     await init(context);
     return hover(context);
   } catch (e) {
-    console.log("Error found during hover", e);
+    console["log"]("Error found during hover", e);
     exportSmokeTest("hover", context);
     return null;
   }
