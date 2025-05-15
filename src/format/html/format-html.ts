@@ -817,15 +817,15 @@ function htmlFormatPostprocessor(
 
     // Process tables to restore th-vs-td markers
     const tables = doc.querySelectorAll(
-      'table[data-quarto-postprocess-tables="true"]',
+      'table[data-quarto-postprocess="true"]',
     );
-
     for (let i = 0; i < tables.length; ++i) {
       const table = tables[i] as Element;
-      if (table.getAttribute("data-quarto-disable-processing")) {
+      if (table.getAttribute("data-quarto-disable-processing") === "true") {
         continue;
       }
-      table.removeAttribute("data-quarto-postprocess-tables");
+      table.removeAttribute("data-quarto-postprocess");
+      table.removeAttribute("data-quarto-disable-processing");
       table.querySelectorAll("tr").forEach((tr) => {
         const { children } = tr as Element;
         for (let j = 0; j < children.length; ++j) {
