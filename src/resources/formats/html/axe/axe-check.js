@@ -99,7 +99,7 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
     violations.forEach((violation) => {
       reportElement.appendChild(this.createViolationElement(violation));
     });
-    document.body.appendChild(reportElement);
+    document.querySelector("main").appendChild(reportElement);
   }
 }
 
