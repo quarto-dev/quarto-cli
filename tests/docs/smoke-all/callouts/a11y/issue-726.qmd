@@ -1,0 +1,17 @@
+---
+format: html
+title: Hello
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - [div.callout.callout-note div.callout-title-container span.screen-reader-only]
+---
+
+::: callout-note
+
+## Title
+
+This is a callout.
+
+:::
