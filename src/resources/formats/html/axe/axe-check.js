@@ -96,6 +96,12 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
     const violations = this.axeResult.violations;
     const reportElement = document.createElement("div");
     reportElement.className = "quarto-axe-report";
+    if (violations.length === 0) {
+      const noViolationsElement = document.createElement("div");
+      noViolationsElement.className = "quarto-axe-no-violations";
+      noViolationsElement.innerText = "No axe-core violations found.";
+      reportElement.appendChild(noViolationsElement);
+    }
     violations.forEach((violation) => {
       reportElement.appendChild(this.createViolationElement(violation));
     });
