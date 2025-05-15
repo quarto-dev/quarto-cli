@@ -1,0 +1,18 @@
+---
+title: hello
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ['td[data-quarto-table-cell-role="th"]']
+---
+
+```{r}
+library(gt)
+library(dplyr)
+
+exibble %>%
+  dplyr::group_by(group) %>%
+  gt(groupname_col = "date")
+```
