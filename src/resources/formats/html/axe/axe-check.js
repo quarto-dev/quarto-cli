@@ -115,14 +115,12 @@ class QuartoAxeChecker {
   }
   async init() {
     const axe = (await import("https://cdn.skypack.dev/pin/axe-core@v4.10.3-aVOFXWsJaCpVrtv89pCa/mode=imports,min/optimized/axe-core.js")).default;
-
-
-    // https://github.com/microsoft/tabster/issues/288
-    // MS has claimed they won't fix this, so we need to add an exclusion to
-    // all tabster elements
     const result = await axe.run({
       exclude: [
-        "[data-tabster-dummy]"
+       // https://github.com/microsoft/tabster/issues/288
+       // MS has claimed they won't fix this, so we need to add an exclusion to
+       // all tabster elements
+       "[data-tabster-dummy]"
       ],
       preload: { assets: ['cssom'], timeout: 50000 }    
     });
