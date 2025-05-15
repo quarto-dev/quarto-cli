@@ -23770,6 +23770,8 @@ try {
           "Manuscript configuration",
           "internal-schema-hack",
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+          "When defined, run axe-core accessibility tests on the document.",
+          "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -24115,7 +24117,8 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+          "Date format for the document"
         ],
         "schema/external-schemas.yml": [
           {
@@ -24344,12 +24347,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 195861,
+          _internalId: 196444,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 195853,
+              _internalId: 196436,
               type: "enum",
               enum: [
                 "png",
@@ -24365,7 +24368,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 195860,
+              _internalId: 196443,
               type: "anyOf",
               anyOf: [
                 {
@@ -24405,7 +24408,32 @@ try {
             "case-detection": true
           },
           $id: "handlers/mermaid"
-        }
+        },
+        "schema/document-a11y.yml": [
+          {
+            name: "axe",
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  object: {
+                    properties: {
+                      output: {
+                        enum: [
+                          "json",
+                          "console",
+                          "document"
+                        ],
+                        description: "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            description: "When defined, run axe-core accessibility tests on the document."
+          }
+        ]
       };
     }
   });
