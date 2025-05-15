@@ -24334,12 +24334,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 196509,
+        _internalId: 196437,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 196501,
+            _internalId: 196429,
             type: "enum",
             enum: [
               "png",
@@ -24355,7 +24355,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 196508,
+            _internalId: 196436,
             type: "anyOf",
             anyOf: [
               {
@@ -24407,9 +24407,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     output: {
                       enum: [
-                        "json"
+                        "json",
+                        "console",
+                        "document"
                       ],
-                      description: "If true, output axe-core results on console in JSON format."
+                      description: "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
                     }
                   }
                 }

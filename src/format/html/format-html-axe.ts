@@ -14,9 +14,7 @@ export function axeFormatDependencies(
   temp: TempContext,
   options?: unknown,
 ): FormatExtras {
-  if (!options) {
-    return {};
-  }
+  if (!options) return {};
 
   return {
     [kIncludeInHeader]: [
@@ -26,5 +24,41 @@ export function axeFormatDependencies(
         }</script>`,
       ),
     ],
+    html: {
+      "sass-bundles": [
+        {
+          key: "axe",
+          dependency: "bootstrap",
+          user: [{
+            uses: "",
+            defaults: "",
+            functions: "",
+            mixins: "",
+            rules: `
+body div.quarto-axe-report {
+  position: fixed;
+  bottom: 3rem;
+  right: 3rem;
+  padding: 1rem;
+  border: 1px solid $body-color;
+}
+
+.quarto-axe-violation-help { padding-left: 0.5rem; }
+.quarto-axe-violation-selector { padding-left: 1rem; }
+.quarto-axe-violation-target {
+  padding: 0.5rem;
+  color: $link-color;
+  text-decoration: underline;
+  cursor: pointer;
+}
+  
+.quarto-axe-hover-highlight {
+  background-color: red;
+  border: 1px solid $body-color;
+}`,
+          }],
+        },
+      ],
+    },
   };
 }
