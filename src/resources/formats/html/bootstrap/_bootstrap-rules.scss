@@ -2192,3 +2192,15 @@ a {
   font-weight: $link-weight;
   text-decoration: $link-decoration;
 }
+
+// screen-reader-only, cf https://github.com/quarto-dev/quarto-cli/issues/726#issuecomment-1112486100
+.screen-reader-only {
+    position: absolute;
+    clip: rect(0 0 0 0);
+    border: 0;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    width: 1px;
+}
