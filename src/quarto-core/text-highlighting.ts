@@ -41,8 +41,8 @@ export function textHighlightThemePath(
   // First try the style specific version of the theme, otherwise
   // fall back to the plain name
   const names = [
-    `${theme}-${style === "dark" ? kDarkSuffix : kLightSuffix}`,
-    theme,
+    `${resolvedTheme}-${style === "dark" ? kDarkSuffix : kLightSuffix}`,
+    resolvedTheme,
   ];
 
   const themePath = names.map((name) => {

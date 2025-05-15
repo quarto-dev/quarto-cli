@@ -7,6 +7,9 @@
           format: string
         required: [value]
 
+- id: date-format
+  schema: string
+
 - id: math-methods
   enum:
     values: [plain, webtex, gladtex, mathml, mathjax, katex]
@@ -3026,3 +3029,5 @@
                   - string
                   - boolean
                   - number
+
+# - id: quarto-extension

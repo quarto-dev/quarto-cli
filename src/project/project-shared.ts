@@ -38,7 +38,7 @@ import { createTempContext } from "../core/temp.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { LanguageCellHandlerOptions } from "../core/handlers/types.ts";
 import { ExecutionEngine } from "../execute/types.ts";
-import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
+import { InspectedMdCell } from "../inspect/inspect-types.ts";
 import { breakQuartoMd, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
 import { partitionCellOptionsText } from "../core/lib/partition-cell-options.ts";
 import { parse } from "../core/yaml.ts";

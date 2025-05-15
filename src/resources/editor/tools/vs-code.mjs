@@ -8372,6 +8372,10 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "date-format",
+          schema: "string"
+        },
+        {
           id: "math-methods",
           enum: {
             values: [
@@ -12669,6 +12673,13 @@ var require_yaml_intelligence_resources = __commonJS({
             ref: "date"
           },
           description: "Document date"
+        },
+        {
+          name: "date-format",
+          schema: {
+            ref: "date-format"
+          },
+          description: "Date format for the document"
         },
         {
           name: "date-modified",
@@ -23759,7 +23770,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "internal-schema-hack",
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
         "When defined, run axe-core accessibility tests on the document.",
-        "If true, output axe-core results on console in JSON format.",
+        "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -24105,7 +24116,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+        "Date format for the document"
       ],
       "schema/external-schemas.yml": [
         {
@@ -24334,12 +24346,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 196437,
+        _internalId: 196444,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 196429,
+            _internalId: 196436,
             type: "enum",
             enum: [
               "png",
@@ -24355,7 +24367,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 196436,
+            _internalId: 196443,
             type: "anyOf",
             anyOf: [
               {

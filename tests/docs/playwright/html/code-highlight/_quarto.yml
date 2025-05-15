@@ -1,3 +1,11 @@
 project:
   type: default
   title: "Quarto Code Highlighting"
+  output-dir: _docs
+
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+    respect-user-color-scheme: true

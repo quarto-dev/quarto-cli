@@ -5,6 +5,7 @@
  */
 
 import { Format } from "../config/types.ts";
+import { Extension } from "../extension/types.ts";
 import {
   FileInclusion,
   ProjectConfig,
@@ -38,6 +39,7 @@ export interface InspectedProjectConfig extends InspectedConfig {
   dir: string;
   config: ProjectConfig;
   files: ProjectFiles;
+  extensions: Extension[];
 }
 
 export interface InspectedDocumentConfig extends InspectedConfig {

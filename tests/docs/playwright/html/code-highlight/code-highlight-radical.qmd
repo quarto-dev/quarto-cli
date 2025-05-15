@@ -1,16 +1,6 @@
 ---
 title: Testing radical code highlight
 highlight-style: radical
-theme: 
-  light: flatly
-  dark: darkly
 ---
 
-
-```{.julia}
-function divide_floats(x::Float64, y::Float64)
-    return x / y
-end
-```
-
-And here the inline version `function divide_floats(x::Float64, y::Float64)`{.julia}.
+{{< include _body.md >}}
