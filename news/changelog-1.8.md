@@ -28,6 +28,7 @@ All changes included in 1.8:
 ### `typst`
 
 - ([#12554](https://github.com/quarto-dev/quarto-cli/pull/12554)): CSS properties `font-weight` and `font-style` are translated to Typst `text` properties.
+- ([#12739](https://github.com/quarto-dev/quarto-cli/pull/12739)): Remove unused variable `heading-background-color` and `heading-decoration` from Typst's templates. They are leftover from previous change, and not part of Brand.yml schema for typography of headings.
 
 ## Projects
 
