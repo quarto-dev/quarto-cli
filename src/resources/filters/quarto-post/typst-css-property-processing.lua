@@ -171,7 +171,11 @@ function render_typst_css_property_processing()
         elseif k == 'font-size' then
           cell.attributes['typst:text:size'] = _quarto.format.typst.css.translate_length(v, _warnings)
         elseif k == 'font-weight' then
-          cell.attributes['typst:text:weight'] = _quarto.format.typst.css.quote(_quarto.format.typst.css.translate_font_weight(v, _warnings))
+          local translated_fw = _quarto.format.typst.css.translate_font_weight(v, _warnings)
+          -- unsupported font-weight values will be returned as nil
+          if translated_fw then
+            cell.attributes['typst:text:weight'] = _quarto.format.typst.css.quote(translated_fw)
+          end
         elseif k == 'font-style' then
           cell.attributes['typst:text:style'] = _quarto.format.typst.css.quote(v)
         elseif k == 'vertical-align' then
