@@ -15,4 +15,7 @@ dependencies = [
     "papermill>=2.6.0",
     "seaborn>=0.13.2",
     "shiny>=1.2.0",
+    "great-tables>=0.17.0",
+    "polars>=1.29.0",
+    "pyarrow>=20.0.0",
 ]
