@@ -55,11 +55,11 @@ body:
 
   - type: checkboxes
     attributes:
-      label: "I Have checked the following"
+      label: "I Have"
       options:
-        - label: I have searched the issue tracker for similar issues
-        - label: I have (at least) the latest version of [Quarto CLI](https://github.com/quarto-dev/quarto-cli/releases/latest)
-        - label: I have properly formatted my issue following the [Bug Reports guide](https://quarto.org/bug-reports.html)
+        - label: searched the issue tracker for similar issues
+        - label: installed the latest version of [Quarto CLI](https://github.com/quarto-dev/quarto-cli/releases/latest)
+        - label: formatted my issue following the [Bug Reports guide](https://quarto.org/bug-reports.html)
 
   - type: textarea
     attributes:
