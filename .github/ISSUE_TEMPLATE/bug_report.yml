@@ -58,9 +58,8 @@ body:
       label: "I Have checked the following"
       options:
         - label: I have searched the issue tracker for similar issues
-          required: true
         - label: I have (at least) the latest version of [Quarto CLI](https://github.com/quarto-dev/quarto-cli/releases/latest)
-          required: true
+        - label: I have properly formatted my issue following the [Bug Reports guide](https://quarto.org/bug-reports.html)
 
   - type: textarea
     attributes:
