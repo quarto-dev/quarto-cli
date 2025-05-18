@@ -53,6 +53,15 @@ body:
             The end.
             ````
 
+  - type: checkboxes
+    attributes:
+      label: "I Have checked the following"
+      options:
+        - label: I have searched the issue tracker for similar issues
+          required: true
+        - label: I have (at least) the latest version of [Quarto CLI](https://github.com/quarto-dev/quarto-cli/releases/latest)
+          required: true
+
   - type: textarea
     attributes:
       label: Bug description
