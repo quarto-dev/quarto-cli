@@ -1,0 +1,17 @@
+---
+title: "title"
+date: last-modified
+format: beamer
+---
+
+## slide
+
+::::::{layout="[48, 48]"}
+:::{#first-column valign="bottom"}
+hallo
+:::
+:::{#second-column valign="top-baseline"}
+### a block title
+du
+:::
+::::::
