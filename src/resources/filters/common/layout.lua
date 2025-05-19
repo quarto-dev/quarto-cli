@@ -11,12 +11,9 @@ function layout_align_attribute(el_with_attr, default)
   return validatedAlign(el_with_attr.attributes[kLayoutAlign], default)
 end
 
--- now unused. Remove?
--- luacov: disable
 function layout_valign_attribute(el_with_attr, default)
   return validatedVAlign(el_with_attr.attributes[kLayoutVAlign] or default)
 end
--- luacov: enable
 
 function attr_has_layout_attributes(attr)
   local attribs = tkeys(attr.attributes)
