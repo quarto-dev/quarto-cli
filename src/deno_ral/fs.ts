@@ -62,7 +62,10 @@ export function isSubdir(
   path1 = toPathString(path1);
   path2 = toPathString(path2);
 
-  if (resolve(path1) === resolve(path2)) {
+  path1 = resolve(path1);
+  path2 = resolve(path2);
+
+  if (path1 === path2) {
     return false;
   }
 
