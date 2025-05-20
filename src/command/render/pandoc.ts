@@ -1609,6 +1609,9 @@ async function resolveExtras(
     if (typeof fontPaths === "string") {
       fontPaths = [fontPaths];
     }
+    fontPaths = fontPaths.map((path) =>
+      path[0] === "/" ? join(project.dir, path) : path
+    );
     fontPaths.push(...fontdirs);
     format.metadata[kFontPaths] = fontPaths;
   }
