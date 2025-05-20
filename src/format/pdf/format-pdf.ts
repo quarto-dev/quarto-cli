@@ -128,7 +128,7 @@ function createPdfFormat(
         [kFigDpi]: 300,
       },
       pandoc: {
-        [kPdfEngine]: "xelatex",
+        [kPdfEngine]: "lualatex",
         standalone: true,
         variables: {
           graphics: true,
