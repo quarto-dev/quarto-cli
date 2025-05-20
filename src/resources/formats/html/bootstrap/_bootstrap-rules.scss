@@ -877,7 +877,7 @@ pre.sourceCode {
     border: none;
   }
   font-size: $code-block-font-size;
-  overflow: visible !important;
+  overflow-y: auto !important;
   @if $code-block-bg {
     padding: $code-block-bg-padding;
   }
@@ -890,7 +890,7 @@ pre.sourceCode > code.sourceCode {
 }
 
 div.sourceCode {
-  overflow-y: hidden;
+  position: relative;
 }
 
 .callout div.sourceCode {
