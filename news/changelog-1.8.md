@@ -57,3 +57,7 @@ All changes included in 1.8:
 ### `inspect`
 
 - ([#12733](https://github.com/quarto-dev/quarto-cli/issues/12733)): Add installed extensions to `quarto inspect` project report.
+
+## Other fixes and improvements
+
+- ([#12782](https://github.com/quarto-dev/quarto-cli/pull/12782)): fix bug on `safeRemoveDirSync`'s detection of safe directory boundaries.
