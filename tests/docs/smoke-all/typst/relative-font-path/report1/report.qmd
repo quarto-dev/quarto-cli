@@ -1,0 +1,15 @@
+---
+title: Test Report
+_quarto:
+  tests: 
+    typst:
+      printsMessage:
+        level: INFO
+        regex: 'warning: unknown font family'
+        negate: true
+---
+
+```{=typst}
+#set text(font: "Amaranth")
+Testing my text.
+```
