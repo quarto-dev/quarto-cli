@@ -513,7 +513,7 @@ export async function renderProject(
           // because src and target are in different file systems.
           // In that case, try to recursively copy from src
           copyTo(srcDir, targetDir);
-          safeRemoveDirSync(targetDir, context.dir);
+          safeRemoveDirSync(srcDir, context.dir);
         }
       }
     };
@@ -632,13 +632,11 @@ export async function renderProject(
     const sortedOperations = uniqOps.sort((a, b) => {
       if (a.src === b.src) {
         return 0;
-      } else {
-        if (isSubdir(a.src, b.src)) {
-          return -1;
-        } else {
-          return a.src.localeCompare(b.src);
-        }
       }
+      if (isSubdir(a.src, b.src)) {
+        return -1;
+      }
+      return a.src.localeCompare(b.src);
     });
 
     // Before file move
