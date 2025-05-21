@@ -71,6 +71,7 @@ import { projectResourceFiles } from "./project-resources.ts";
 
 import {
   cleanupFileInformationCache,
+  FileInformationCacheMap,
   ignoreFieldsForProjectType,
   normalizeFormatYaml,
   projectConfigFile,
@@ -107,16 +108,6 @@ import { createTempContext } from "../core/temp.ts";
 
 import { onCleanup } from "../core/cleanup.ts";
 import { once } from "../core/once.ts";
-import { Cloneable } from "../core/safe-clone-deep.ts";
-
-// Create a class that extends Map and implements Cloneable
-class FileInformationCacheMap extends Map<string, FileInformation>
-  implements Cloneable<Map<string, FileInformation>> {
-  clone(): Map<string, FileInformation> {
-    // Return the same instance (reference) instead of creating a clone
-    return this;
-  }
-}
 
 export async function projectContext(
   path: string,
