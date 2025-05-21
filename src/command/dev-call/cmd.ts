@@ -2,7 +2,8 @@ import { Command } from "cliffy/command/mod.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { commands } from "../command.ts";
 import { buildJsCommand } from "./build-artifacts/cmd.ts";
-import { hidden } from "../../core/lib/external/colors.ts";
+import { validateYamlCommand } from "./validate-yaml/cmd.ts";
+import { showAstTraceCommand } from "./show-ast-trace/cmd.ts";
 
 type CommandOptionInfo = {
   name: string;
@@ -70,4 +71,6 @@ export const devCallCommand = new Command()
     Deno.exit(1);
   })
   .command("cli-info", generateCliInfoCommand)
-  .command("build-artifacts", buildJsCommand);
+  .command("validate-yaml", validateYamlCommand)
+  .command("build-artifacts", buildJsCommand)
+  .command("show-ast-trace", showAstTraceCommand);

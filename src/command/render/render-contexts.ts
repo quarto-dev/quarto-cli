@@ -88,6 +88,7 @@ import {
 } from "../../core/pandoc/pandoc-formats.ts";
 import { ExtensionContext } from "../../extension/types.ts";
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
+import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
@@ -215,7 +216,7 @@ export async function renderContexts(
     // we make it optional because some of the callers have
     // actually just cloned it themselves and don't need to preserve
     // the original
-    options = ld.cloneDeep(options) as RenderOptions;
+    options = safeCloneDeep(options);
   }
 
   const { engine, target } = await fileExecutionEngineAndTarget(
@@ -342,8 +343,8 @@ function mergeQuartoConfigs(
   ...configs: Array<Metadata>
 ): Metadata {
   // copy all configs so we don't mutate them
-  config = ld.cloneDeep(config);
-  configs = ld.cloneDeep(configs);
+  config = safeCloneDeep(config);
+  configs = safeCloneDeep(configs);
 
   // bibliography needs to always be an array so it can be merged
   const fixupMergeableScalars = (metadata: Metadata) => {
@@ -450,7 +451,7 @@ async function resolveFormats(
 
     // Remove any 'to' information that will force the
     // rendering to a particular format
-    options = ld.cloneDeep(options);
+    options = safeCloneDeep(options);
     delete options.flags?.to;
   }
 
@@ -503,39 +504,6 @@ async function resolveFormats(
     const projFormat = projFormats[format].format;
     const directoryFormat = directoryFormats[format].format;
     const inputFormat = inputFormats[format].format;
-
-    // resolve theme (project-level bootstrap theme always wins for web drived output)
-    if (
-      project &&
-      (isHtmlOutput(format, true) || isHtmlDashboardOutput(format)) &&
-      formatHasBootstrap(projFormat) && projectTypeIsWebsite(projType)
-    ) {
-      // if (formatHasBootstrap(inputFormat)) {
-      //   if (
-      //     inputFormat.metadata[kTheme] !== undefined &&
-      //     !ld.isEqual(inputFormat.metadata[kTheme], projFormat.metadata[kTheme])
-      //   ) {
-      //     warnOnce(
-      //       `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
-      //     );
-      //   }
-      //   delete inputFormat.metadata[kTheme];
-      // }
-      // if (formatHasBootstrap(directoryFormat)) {
-      //   if (
-      //     directoryFormat.metadata[kTheme] !== undefined &&
-      //     !ld.isEqual(
-      //       directoryFormat.metadata[kTheme],
-      //       projFormat.metadata[kTheme],
-      //     )
-      //   ) {
-      //     warnOnce(
-      //       `The file ${file.path} contains a theme provided by a metadata file. This theme metadata is being ignored. Website projects do not support per directory themes since all pages within a website share the website's theme.`,
-      //     );
-      //   }
-      //   delete directoryFormat.metadata[kTheme];
-      // }
-    }
 
     // combine user formats
     const userFormat = mergeFormatMetadata(
@@ -753,10 +721,10 @@ export async function projectMetadataForInputFile(
       projectType(project.config?.project?.[kProjectType]),
       project.dir,
       dirname(input),
-      ld.cloneDeep(project.config),
+      safeCloneDeep(project.config),
     ) as Metadata;
   } else {
     // Just return the config or empty metadata
-    return ld.cloneDeep(project.config) || {};
+    return safeCloneDeep(project.config) || {};
   }
 }

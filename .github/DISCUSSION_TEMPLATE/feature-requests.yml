@@ -4,6 +4,16 @@ body:
   - type: markdown
     attributes:
       value: |
+        Welcome to the Quarto CLI GitHub repository!
+        We are always happy to hear feedback from our users.
+
+        This is the repository for the command-line program `quarto`:
+
+        - If you're reporting an issue with the **Visual Editor** or with the **Visual Studio Code / Positron extension**, please visit https://github.com/quarto-dev/quarto
+        - If you're reporting an issue inside **RStudio**, please visit https://github.com/rstudio/rstudio
+        - If you're reporting an issue inside **Positron**, please visit https://github.com/posit-dev/positron
+        - If you want to ask for help, please use the [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a).
+
         First, please check [Quarto Issues](https://github.com/quarto-dev/quarto-cli/issues) and [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests) to see if your feature request has already been discussed.
         If it has, please consider adding a comment to the existing discussion instead of creating a new one.
 

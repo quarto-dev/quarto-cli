@@ -55,8 +55,7 @@
     align(center)[#block(inset: 2em)[
       #set par(leading: heading-line-height)
       #if (heading-family != none or heading-weight != "bold" or heading-style != "normal"
-           or heading-color != black or heading-decoration == "underline"
-           or heading-background-color != none) {
+           or heading-color != black) {
         set text(font: heading-family, weight: heading-weight, style: heading-style, fill: heading-color)
         text(size: title-size)[#title]
         if subtitle != none {

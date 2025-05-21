@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { dirname, join, relative } from "../../deno_ral/path.ts";
+import { join, relative } from "../../deno_ral/path.ts";
 import { warning } from "../../deno_ral/log.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -68,6 +68,7 @@ import {
   clipboardDependency,
   createCodeCopyButton,
   kAnchorSections,
+  kAxe,
   kBootstrapDependencyName,
   kCitationsHover,
   kCodeAnnotations,
@@ -116,8 +117,9 @@ import {
 import { kQuartoHtmlDependency } from "./format-html-constants.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { brandSassFormatExtras } from "../../core/sass/brand.ts";
-import { ESBuildAnalysis, esbuildAnalyze } from "../../core/esbuild.ts";
+import { ESBuildAnalysis } from "../../core/esbuild.ts";
 import { assert } from "testing/asserts";
+import { axeFormatDependencies } from "./format-html-axe.ts";
 
 let esbuildAnalysisCache: Record<string, ESBuildAnalysis> | undefined;
 export function esbuildCachedAnalysis(
@@ -245,6 +247,10 @@ export async function htmlFormatExtras(
   tippyOptions?: HtmlFormatTippyOptions,
   scssOptions?: HtmlFormatScssOptions,
 ): Promise<FormatExtras> {
+  const configurableExtras: FormatExtras[] = [
+    axeFormatDependencies(format, temp, format.metadata[kAxe]),
+  ];
+
   // note whether we are targeting bootstrap
   const bootstrap = formatHasBootstrap(format);
 
@@ -645,7 +651,7 @@ export async function htmlFormatExtras(
   }
 
   const metadata: Metadata = {};
-  return {
+  const result: FormatExtras = {
     [kIncludeInHeader]: includeInHeader,
     [kIncludeBeforeBody]: includeBeforeBody,
     [kIncludeAfterBody]: includeAfterBody,
@@ -657,6 +663,11 @@ export async function htmlFormatExtras(
       [kHtmlPostprocessors]: htmlPostProcessors,
     },
   };
+
+  return mergeConfigs(
+    result,
+    ...configurableExtras,
+  ) as FormatExtras;
 }
 
 const kFormatHasBootstrap = "has-bootstrap";
@@ -806,15 +817,15 @@ function htmlFormatPostprocessor(
 
     // Process tables to restore th-vs-td markers
     const tables = doc.querySelectorAll(
-      'table[data-quarto-postprocess-tables="true"]',
+      'table[data-quarto-postprocess="true"]',
     );
-
     for (let i = 0; i < tables.length; ++i) {
       const table = tables[i] as Element;
-      if (table.getAttribute("data-quarto-disable-processing")) {
+      if (table.getAttribute("data-quarto-disable-processing") === "true") {
         continue;
       }
-      table.removeAttribute("data-quarto-postprocess-tables");
+      table.removeAttribute("data-quarto-postprocess");
+      table.removeAttribute("data-quarto-disable-processing");
       table.querySelectorAll("tr").forEach((tr) => {
         const { children } = tr as Element;
         for (let j = 0; j < children.length; ++j) {

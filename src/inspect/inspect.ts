@@ -20,7 +20,7 @@ import {
   resolveFileResources,
   resourcesFromMetadata,
 } from "../command/render/resources.ts";
-import { kLocalDevelopment, quartoConfig } from "../core/quarto.ts";
+import { quartoConfig } from "../core/quarto.ts";
 
 import { cssFileResourceReferences } from "../core/css.ts";
 import {
@@ -31,7 +31,10 @@ import {
 } from "../project/project-shared.ts";
 import { normalizePath, safeExistsSync } from "../core/path.ts";
 import { kExtensionDir } from "../extension/constants.ts";
-import { extensionFilesFromDirs } from "../extension/extension.ts";
+import {
+  createExtensionContext,
+  extensionFilesFromDirs,
+} from "../extension/extension.ts";
 import { withRenderServices } from "../command/render/render-services.ts";
 import { notebookContext } from "../render/notebook/notebook-context.ts";
 import { RenderServices } from "../command/render/types.ts";
@@ -88,27 +91,9 @@ const inspectProjectConfig = async (context: ProjectContext) => {
   }
   const fileInformation: Record<string, InspectedFile> = {};
   for (const file of context.files.input) {
-    const engine = await fileExecutionEngine(file, undefined, context);
-    const src = await context.resolveFullMarkdownForFile(engine, file);
-    if (engine) {
-      const errors = await validateDocumentFromSource(
-        src,
-        engine.name,
-        error,
-      );
-      if (errors.length) {
-        throw new Error(`${file} is not a valid Quarto input document`);
-      }
-    }
-    await projectResolveCodeCellsForFile(context, engine, file);
-    await projectFileMetadata(context, file);
-    fileInformation[file] = {
-      includeMap: context.fileInformationCache.get(file)?.includeMap ??
-        [],
-      codeCells: context.fileInformationCache.get(file)?.codeCells ?? [],
-      metadata: context.fileInformationCache.get(file)?.metadata ?? {},
-    };
+    await populateFileInformation(context, fileInformation, file);
   }
+  const extensions = await populateExtensionInformation(context);
   const config: InspectedProjectConfig = {
     quarto: {
       version: quartoConfig.version(),
@@ -118,8 +103,48 @@ const inspectProjectConfig = async (context: ProjectContext) => {
     config: context.config,
     files: context.files,
     fileInformation,
+    extensions: extensions,
   };
   return config;
+};
+
+const populateExtensionInformation = async (
+  context: ProjectContext,
+) => {
+  const extensionContext = createExtensionContext();
+  return await extensionContext.extensions(
+    context.dir,
+    context.config,
+    context.dir,
+    { builtIn: false },
+  );
+};
+
+const populateFileInformation = async (
+  context: ProjectContext,
+  fileInformation: Record<string, InspectedFile>,
+  file: string,
+) => {
+  const engine = await fileExecutionEngine(file, undefined, context);
+  const src = await context.resolveFullMarkdownForFile(engine, file);
+  if (engine) {
+    const errors = await validateDocumentFromSource(
+      src,
+      engine.name,
+      error,
+    );
+    if (errors.length) {
+      throw new Error(`${file} is not a valid Quarto input document`);
+    }
+  }
+  await projectResolveCodeCellsForFile(context, engine, file);
+  await projectFileMetadata(context, file);
+  fileInformation[file] = {
+    includeMap: context.fileInformationCache.get(file)?.includeMap ??
+      [],
+    codeCells: context.fileInformationCache.get(file)?.codeCells ?? [],
+    metadata: context.fileInformationCache.get(file)?.metadata ?? {},
+  };
 };
 
 const inspectDocumentConfig = async (path: string) => {

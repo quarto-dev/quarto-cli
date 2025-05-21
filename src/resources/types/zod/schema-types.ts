@@ -28,6 +28,8 @@ export const ZodDate = z.union([
     .required({ value: true }),
 ]);
 
+export const ZodDateFormat = z.string();
+
 export const ZodMathMethods = z.enum(
   ["plain", "webtex", "gladtex", "mathml", "mathjax", "katex"] as const,
 );
@@ -1615,6 +1617,8 @@ export const ZodBookProject = z.object({}).passthrough().partial();
 
 export type Date = z.infer<typeof ZodDate>;
 
+export type DateFormat = z.infer<typeof ZodDateFormat>;
+
 export type MathMethods = z.infer<typeof ZodMathMethods>;
 
 export type PandocFormatRequestHeaders = z.infer<
@@ -1801,6 +1805,7 @@ export type BookProject = z.infer<typeof ZodBookProject>;
 
 export const Zod = {
   Date: ZodDate,
+  DateFormat: ZodDateFormat,
   MathMethods: ZodMathMethods,
   PandocFormatRequestHeaders: ZodPandocFormatRequestHeaders,
   PandocFormatOutputFile: ZodPandocFormatOutputFile,

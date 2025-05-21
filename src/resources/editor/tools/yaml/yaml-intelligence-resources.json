@@ -1344,6 +1344,10 @@
       ]
     },
     {
+      "id": "date-format",
+      "schema": "string"
+    },
+    {
       "id": "math-methods",
       "enum": {
         "values": [
@@ -5641,6 +5645,13 @@
         "ref": "date"
       },
       "description": "Document date"
+    },
+    {
+      "name": "date-format",
+      "schema": {
+        "ref": "date-format"
+      },
+      "description": "Date format for the document"
     },
     {
       "name": "date-modified",
@@ -16730,6 +16741,8 @@
     "Manuscript configuration",
     "internal-schema-hack",
     "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’.",
+    "When defined, run axe-core accessibility tests on the document.",
+    "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
     "Project configuration.",
     "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
     "Files to render (defaults to all files)",
@@ -17075,7 +17088,8 @@
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "Manuscript configuration",
     "internal-schema-hack",
-    "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’."
+    "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’.",
+    "Date format for the document"
   ],
   "schema/external-schemas.yml": [
     {
@@ -17304,12 +17318,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 195562,
+    "_internalId": 196444,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 195554,
+        "_internalId": 196436,
         "type": "enum",
         "enum": [
           "png",
@@ -17325,7 +17339,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 195561,
+        "_internalId": 196443,
         "type": "anyOf",
         "anyOf": [
           {
@@ -17365,5 +17379,30 @@
       "case-detection": true
     },
     "$id": "handlers/mermaid"
-  }
+  },
+  "schema/document-a11y.yml": [
+    {
+      "name": "axe",
+      "schema": {
+        "anyOf": [
+          "boolean",
+          {
+            "object": {
+              "properties": {
+                "output": {
+                  "enum": [
+                    "json",
+                    "console",
+                    "document"
+                  ],
+                  "description": "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
+                }
+              }
+            }
+          }
+        ]
+      },
+      "description": "When defined, run axe-core accessibility tests on the document."
+    }
+  ]
 }

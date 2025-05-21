@@ -631,7 +631,11 @@ h1.title {
   margin-top: 0;
 }
 
-main.content > section:first-of-type > h2:first-child {
+main.content > p:has(+ section) {
+  margin-bottom: 2rem;
+}
+
+main.content > section:first-of-type > h2:nth-child(1) {
   margin-top: 0;
 }
 
@@ -873,7 +877,7 @@ pre.sourceCode {
     border: none;
   }
   font-size: $code-block-font-size;
-  overflow: visible !important;
+  overflow-y: auto !important;
   @if $code-block-bg {
     padding: $code-block-bg-padding;
   }
@@ -886,7 +890,7 @@ pre.sourceCode > code.sourceCode {
 }
 
 div.sourceCode {
-  overflow-y: hidden;
+  position: relative;
 }
 
 .callout div.sourceCode {
@@ -2187,4 +2191,16 @@ a {
   background-color: $link-color-bg;
   font-weight: $link-weight;
   text-decoration: $link-decoration;
+}
+
+// screen-reader-only, cf https://github.com/quarto-dev/quarto-cli/issues/726#issuecomment-1112486100
+.screen-reader-only {
+    position: absolute;
+    clip: rect(0 0 0 0);
+    border: 0;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    width: 1px;
 }
