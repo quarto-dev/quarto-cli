@@ -19,6 +19,7 @@ import * as ld from "../core/lodash.ts";
 import { ProjectType } from "./types/types.ts";
 import { Format, Metadata, PandocFlags } from "../config/types.ts";
 import {
+  FileInformation,
   kProjectLibDir,
   kProjectOutputDir,
   kProjectPostRender,
@@ -106,6 +107,16 @@ import { createTempContext } from "../core/temp.ts";
 
 import { onCleanup } from "../core/cleanup.ts";
 import { once } from "../core/once.ts";
+import { Cloneable } from "../core/safe-clone-deep.ts";
+
+// Create a class that extends Map and implements Cloneable
+class FileInformationCacheMap extends Map<string, FileInformation>
+  implements Cloneable<Map<string, FileInformation>> {
+  clone(): Map<string, FileInformation> {
+    // Return the same instance (reference) instead of creating a clone
+    return this;
+  }
+}
 
 export async function projectContext(
   path: string,
@@ -272,7 +283,7 @@ export async function projectContext(
           dir: join(dir, ".quarto"),
           prefix: "quarto-session-temp",
         });
-        const fileInformationCache = new Map();
+        const fileInformationCache = new FileInformationCacheMap();
         const result: ProjectContext = {
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
@@ -368,7 +379,7 @@ export async function projectContext(
           dir: join(dir, ".quarto"),
           prefix: "quarto-session-temp",
         });
-        const fileInformationCache = new Map();
+        const fileInformationCache = new FileInformationCacheMap();
         const result: ProjectContext = {
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
@@ -443,7 +454,7 @@ export async function projectContext(
             dir: join(originalDir, ".quarto"),
             prefix: "quarto-session-temp",
           });
-          const fileInformationCache = new Map();
+          const fileInformationCache = new FileInformationCacheMap();
           const context: ProjectContext = {
             resolveBrand: async (fileName?: string) =>
               projectResolveBrand(context, fileName),
