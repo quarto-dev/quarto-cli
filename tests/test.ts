@@ -119,7 +119,8 @@ export function testQuartoCmdWithEnv(
       });
       await Promise.race([
         execProcess({
-          cmd: [quartoConfig.binPath(), cmd, ...args],
+          cmd: quartoConfig.binPath(),
+          args: [cmd, ...args],
           env
         }),
         timeout,
