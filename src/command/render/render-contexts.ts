@@ -298,7 +298,7 @@ export async function renderContexts(
 
     // if this isn't for execute then cleanup context
     if (!forExecute && engine.executeTargetSkipped) {
-      engine.executeTargetSkipped(target, formats[formatKey].format);
+      engine.executeTargetSkipped(target, formats[formatKey].format, project);
     }
   }
   return contexts;

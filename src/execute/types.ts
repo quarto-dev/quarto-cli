@@ -49,7 +49,11 @@ export interface ExecutionEngine {
     format: Format,
   ) => Format;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
-  executeTargetSkipped?: (target: ExecutionTarget, format: Format) => void;
+  executeTargetSkipped?: (
+    target: ExecutionTarget,
+    format: Format,
+    project: ProjectContext,
+  ) => void;
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
   canFreeze: boolean;
