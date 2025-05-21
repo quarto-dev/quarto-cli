@@ -17,7 +17,7 @@ import { readYamlFromMarkdown } from "../../core/yaml.ts";
 import { isInteractiveSession } from "../../core/platform.ts";
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
-import { dirAndStem, normalizePath, removeIfExists } from "../../core/path.ts";
+import { dirAndStem, normalizePath } from "../../core/path.ts";
 import { runningInCI } from "../../core/ci-info.ts";
 
 import {
@@ -109,7 +109,10 @@ import {
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import { runExternalPreviewServer } from "../../preview/preview-server.ts";
 import { onCleanup } from "../../core/cleanup.ts";
-import { projectOutputDir } from "../../project/project-shared.ts";
+import {
+  ensureFileInformationCache,
+  projectOutputDir,
+} from "../../project/project-shared.ts";
 import { assert } from "testing/asserts";
 
 export const jupyterEngine: ExecutionEngine = {
@@ -436,7 +439,7 @@ export const jupyterEngine: ExecutionEngine = {
 
     // if it's a transient notebook then remove it
     // (unless keep-ipynb was specified)
-    cleanupNotebook(options.target, options.format);
+    cleanupNotebook(options.target, options.format, options.project);
 
     // Create markdown from the result
     const outputs = result.cellOutputs.map((output) => output.markdown);
@@ -713,12 +716,17 @@ async function disableDaemonForNotebook(target: ExecutionTarget) {
   return false;
 }
 
-function cleanupNotebook(target: ExecutionTarget, format: Format) {
-  // remove transient notebook if appropriate
+function cleanupNotebook(
+  target: ExecutionTarget,
+  format: Format,
+  project: ProjectContext,
+) {
+  // Make notebook non-transient when keep-ipynb is set
   const data = target.data as JupyterTargetData;
-  if (data.transient) {
-    if (!format.execute[kKeepIpynb]) {
-      removeIfExists(target.input);
+  const cached = ensureFileInformationCache(project, target.source);
+  if (data.transient && format.execute[kKeepIpynb]) {
+    if (cached.target && cached.target.data) {
+      (cached.target.data as JupyterTargetData).transient = false;
     }
   }
 }

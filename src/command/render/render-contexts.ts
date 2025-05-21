@@ -71,8 +71,6 @@ import {
   kProjectType,
   ProjectContext,
 } from "../../project/types.ts";
-import { isHtmlDashboardOutput, isHtmlOutput } from "../../config/format.ts";
-import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { warnOnce } from "../../core/log.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { fileExecutionEngineAndTarget } from "../../execute/engine.ts";
@@ -88,6 +86,8 @@ import {
 } from "../../core/pandoc/pandoc-formats.ts";
 import { ExtensionContext } from "../../extension/types.ts";
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
+import { isHtmlDashboardOutput, isHtmlOutput } from "../../config/format.ts";
+import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
@@ -297,7 +297,7 @@ export async function renderContexts(
 
     // if this isn't for execute then cleanup context
     if (!forExecute && engine.executeTargetSkipped) {
-      engine.executeTargetSkipped(target, formats[formatKey].format);
+      engine.executeTargetSkipped(target, formats[formatKey].format, project);
     }
   }
   return contexts;

@@ -199,7 +199,11 @@ export async function renderExecute(
 
         // notify engine that we skipped execute
         if (context.engine.executeTargetSkipped) {
-          context.engine.executeTargetSkipped(context.target, context.format);
+          context.engine.executeTargetSkipped(
+            context.target,
+            context.format,
+            context.project,
+          );
         }
 
         // return results
