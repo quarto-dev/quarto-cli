@@ -1,0 +1,14 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["julia.qmd"]
+        - []
+engine: julia
+---
+
+```{julia}
+ENV["QUARTO_DOCUMENT_FILE"]
+```
