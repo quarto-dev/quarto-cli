@@ -274,6 +274,7 @@ export async function projectContext(
         });
         const fileInformationCache = new Map();
         const result: ProjectContext = {
+          clone: () => result,
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
           resolveFullMarkdownForFile: (
@@ -370,6 +371,7 @@ export async function projectContext(
         });
         const fileInformationCache = new Map();
         const result: ProjectContext = {
+          clone: () => result,
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
           resolveFullMarkdownForFile: (
@@ -445,6 +447,7 @@ export async function projectContext(
           });
           const fileInformationCache = new Map();
           const context: ProjectContext = {
+            clone: () => context,
             resolveBrand: async (fileName?: string) =>
               projectResolveBrand(context, fileName),
             resolveFullMarkdownForFile: (

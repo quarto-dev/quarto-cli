@@ -27,7 +27,11 @@ import {
 import { kTitle } from "../config/constants.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 
-import { projectConfigFile, projectOutputDir } from "./project-shared.ts";
+import {
+  ensureFileInformationCache,
+  projectConfigFile,
+  projectOutputDir,
+} from "./project-shared.ts";
 import { projectScratchPath } from "./project-scratch.ts";
 import { parsePandocTitle } from "../core/pandoc/pandoc-partition.ts";
 import { readYamlFromString } from "../core/yaml.ts";
@@ -297,19 +301,12 @@ export async function resolveInputTarget(
   }
 }
 
-export async function inputFileForOutputFile(
+// populates the outputNameIndex field in the project context
+export async function resolveOutputFileNames(
   project: ProjectContext,
-  output: string,
-): Promise<{ file: string; format: Format } | undefined> {
-  // compute output dir
+): Promise<void> {
+  if (project.outputNameIndex) return;
   const outputDir = projectOutputDir(project);
-
-  // full path to output (it's relative to output dir)
-  output = isAbsolute(output) ? output : join(outputDir, output);
-
-  if (project.outputNameIndex !== undefined) {
-    return project.outputNameIndex.get(output);
-  }
 
   project.outputNameIndex = new Map();
   for (const file of project.files.input) {
@@ -319,6 +316,8 @@ export async function inputFileForOutputFile(
       relative(project.dir, file),
     );
     if (index) {
+      const cache = ensureFileInformationCache(project, file);
+      cache.outputFiles = cache.outputFiles || {};
       Object.keys(index.formats).forEach((key) => {
         const format = index.formats[key];
         const outputFile = formatOutputFile(format);
@@ -329,11 +328,25 @@ export async function inputFileForOutputFile(
             outputFile,
           );
           project.outputNameIndex!.set(formatOutputPath, { file, format });
+          cache.outputFiles![formatOutputPath] = format.identifier;
         }
       });
     }
   }
-  return project.outputNameIndex.get(output);
+}
+
+export async function inputFileForOutputFile(
+  project: ProjectContext,
+  output: string,
+): Promise<{ file: string; format: Format } | undefined> {
+  // compute output dir
+  const outputDir = projectOutputDir(project);
+
+  // full path to output (it's relative to output dir)
+  output = isAbsolute(output) ? output : join(outputDir, output);
+
+  await resolveOutputFileNames(project);
+  return project.outputNameIndex?.get(output);
 }
 
 export async function inputTargetIndexForOutputFile(

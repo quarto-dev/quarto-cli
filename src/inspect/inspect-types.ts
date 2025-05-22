@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { Format } from "../config/types.ts";
+import { Format, FormatIdentifier } from "../config/types.ts";
 import { Extension } from "../extension/types.ts";
 import {
   FileInclusion,
@@ -25,6 +25,7 @@ export interface InspectedFile {
   includeMap: FileInclusion[];
   codeCells: InspectedMdCell[];
   metadata: Record<string, unknown>;
+  outputFiles: Record<string, FormatIdentifier>;
 }
 
 export interface InspectedConfig {
