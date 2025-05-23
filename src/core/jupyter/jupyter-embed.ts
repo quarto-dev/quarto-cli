@@ -43,7 +43,13 @@ import {
   JupyterCellOutput,
 } from "../jupyter/types.ts";
 
-import { dirname, extname, join, basename, isAbsolute } from "../../deno_ral/path.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+} from "../../deno_ral/path.ts";
 import { languages } from "../handlers/base.ts";
 import {
   extractJupyterWidgetDependencies,
@@ -596,6 +602,7 @@ async function getCachedNotebookInfo(
       quiet: flags.quiet,
       previewServer: context.options.previewServer,
       handledLanguages: languages(),
+      project: context.project,
     };
 
     const [dir, stem] = dirAndStem(nbAddress.path);

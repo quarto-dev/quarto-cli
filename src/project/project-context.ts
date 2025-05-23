@@ -70,6 +70,7 @@ import { projectResourceFiles } from "./project-resources.ts";
 
 import {
   cleanupFileInformationCache,
+  FileInformationCacheMap,
   ignoreFieldsForProjectType,
   normalizeFormatYaml,
   projectConfigFile,
@@ -272,7 +273,7 @@ export async function projectContext(
           dir: join(dir, ".quarto"),
           prefix: "quarto-session-temp",
         });
-        const fileInformationCache = new Map();
+        const fileInformationCache = new FileInformationCacheMap();
         const result: ProjectContext = {
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
@@ -368,7 +369,7 @@ export async function projectContext(
           dir: join(dir, ".quarto"),
           prefix: "quarto-session-temp",
         });
-        const fileInformationCache = new Map();
+        const fileInformationCache = new FileInformationCacheMap();
         const result: ProjectContext = {
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
@@ -443,7 +444,7 @@ export async function projectContext(
             dir: join(originalDir, ".quarto"),
             prefix: "quarto-session-temp",
           });
-          const fileInformationCache = new Map();
+          const fileInformationCache = new FileInformationCacheMap();
           const context: ProjectContext = {
             resolveBrand: async (fileName?: string) =>
               projectResolveBrand(context, fileName),
