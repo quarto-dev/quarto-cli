@@ -5,7 +5,7 @@
  */
 
 import { RenderServices } from "../command/render/types.ts";
-import { Metadata, PandocFlags } from "../config/types.ts";
+import { FormatIdentifier, Metadata, PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
 import { Brand, LightDarkBrand } from "../core/brand/brand.ts";
 import { MappedString } from "../core/mapped-text.ts";
@@ -22,6 +22,7 @@ import {
 import { ProjectEnvironment } from "./project-environment-types.ts";
 import { ProjectCache } from "../core/cache/cache-types.ts";
 import { TempContext } from "../core/temp-types.ts";
+import { Cloneable } from "../core/safe-clone-deep.ts";
 
 export {
   type NavigationItem as NavItem,
@@ -56,9 +57,11 @@ export type FileInformation = {
   target?: ExecutionTarget;
   metadata?: Metadata;
   brand?: LightDarkBrand;
+  outputFiles?: Record<string, FormatIdentifier>;
 };
 
 export interface ProjectContext {
+  clone: () => ProjectContext;
   dir: string;
   engines: string[];
   files: ProjectFiles;
