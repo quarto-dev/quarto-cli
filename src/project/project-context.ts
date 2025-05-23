@@ -19,7 +19,6 @@ import * as ld from "../core/lodash.ts";
 import { ProjectType } from "./types/types.ts";
 import { Format, Metadata, PandocFlags } from "../config/types.ts";
 import {
-  FileInformation,
   kProjectLibDir,
   kProjectOutputDir,
   kProjectPostRender,
