@@ -1,4 +1,4 @@
-if pandoc.system.os == "windows" then
+if pandoc.system.os == "mingw32" then
 
    local function get_windows_ansi_codepage()
       -- Reading the code page directly out of the registry was causing 
