@@ -36,7 +36,7 @@ _quarto:
           - '#brightcove-test iframe[src$="https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001"]'
 
           - "#youtube-short-test .quarto-video.ratio.ratio-16x9"
-          - '#youtube-short-test iframe[src$="https://www.youtube.com/shorts/Kra3uHSIuBY"]'
+          - '#youtube-short-test iframe[src$="https://www.youtube.com/embed/Kra3uHSIuBY"]'
 
 ---
 
