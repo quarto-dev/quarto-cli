@@ -1,0 +1,10 @@
+---
+title: "Untitled"
+format: typst
+---
+
+
+::: {#tbl-mtcars .cell tbl-cap='Head of mtcars'}
+
+:::
+

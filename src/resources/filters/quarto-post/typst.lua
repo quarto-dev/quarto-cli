@@ -32,6 +32,9 @@ function render_typst()
     },
     {
       FloatRefTarget = function(float)
+        if float.content == nil then
+          return float
+        end
         if float.content.t == "Table" then
           -- this needs the fix from https://github.com/jgm/pandoc/pulls/9778
           float.content.classes:insert("typst-no-figure")
