@@ -49,7 +49,11 @@ export interface ExecutionEngine {
     format: Format,
   ) => Format;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
-  executeTargetSkipped?: (target: ExecutionTarget, format: Format) => void;
+  executeTargetSkipped?: (
+    target: ExecutionTarget,
+    format: Format,
+    project: ProjectContext,
+  ) => void;
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
   canFreeze: boolean;
@@ -89,7 +93,7 @@ export interface ExecuteOptions {
   quiet?: boolean;
   previewServer?: boolean;
   handledLanguages: string[]; // list of languages handled by cell language handlers, after the execution engine
-  project?: ProjectContext;
+  project: ProjectContext;
 }
 
 // result of execution

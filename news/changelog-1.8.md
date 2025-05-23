@@ -5,6 +5,7 @@ All changes included in 1.8:
 - ([#6607](https://github.com/quarto-dev/quarto-cli/issues/6607)): Add missing beamer template update for beamer theme options: `colorthemeoptions`, `fontthemeoptions`, `innerthemeoptions` and `outerthemeoptions`.
 - ([#12625](https://github.com/quarto-dev/quarto-cli/pull/12625)): Fire resize event on window when light/dark toggle is clicked, to tell widgets to resize.
 - ([#12657](https://github.com/quarto-dev/quarto-cli/pull/12657)): Load Giscus in generated script tag, to avoid wrong-theming in Chrome.
+- ([#12780](https://github.com/quarto-dev/quarto-cli/issues/12780)): `keep-ipynb: true` now works again correctly and intermediate `.quarto_ipynb` is not removed.
 
 ## Formats
 
@@ -52,6 +53,8 @@ All changes included in 1.8:
 ## Lua Filters
 
 - ([#12727](https://github.com/quarto-dev/quarto-cli/issues/12727)): Do not crash in the presence of malformed tabset contents.
+- ([#12806](https://github.com/quarto-dev/quarto-cli/pull/12806)): Use pandoc APIs to handle codepage conversion on Windows.
+- ([#12811](https://github.com/quarto-dev/quarto-cli/pull/12811)): Add support for YouTube Shorts in `video` shortcode.
 
 ## Commands
 

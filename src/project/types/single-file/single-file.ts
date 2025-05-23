@@ -21,6 +21,7 @@ import { MappedString } from "../../../core/mapped-text.ts";
 import { fileExecutionEngineAndTarget } from "../../../execute/engine.ts";
 import {
   cleanupFileInformationCache,
+  FileInformationCacheMap,
   projectFileMetadata,
   projectResolveBrand,
   projectResolveFullMarkdownForFile,
@@ -50,7 +51,7 @@ export async function singleFileProjectContext(
     notebookContext,
     environment: () => environmentMemoizer(result),
     renderFormats,
-    fileInformationCache: new Map(),
+    fileInformationCache: new FileInformationCacheMap(),
     fileExecutionEngineAndTarget: (
       file: string,
     ) => {

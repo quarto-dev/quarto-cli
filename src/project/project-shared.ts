@@ -50,6 +50,7 @@ import { refSchema } from "../core/lib/yaml-schema/common.ts";
 import { Zod } from "../resources/types/zod/schema-types.ts";
 import { Brand } from "../core/brand/brand.ts";
 import { assert } from "testing/asserts";
+import { Cloneable } from "../core/safe-clone-deep.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -630,6 +631,15 @@ export async function projectResolveBrand(
       }
       return fileInformation.brand;
     }
+  }
+}
+
+// Create a class that extends Map and implements Cloneable
+export class FileInformationCacheMap extends Map<string, FileInformation>
+  implements Cloneable<Map<string, FileInformation>> {
+  clone(): Map<string, FileInformation> {
+    // Return the same instance (reference) instead of creating a clone
+    return this;
   }
 }
 
