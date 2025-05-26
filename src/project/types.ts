@@ -60,8 +60,7 @@ export type FileInformation = {
   outputFiles?: Record<string, FormatIdentifier>;
 };
 
-export interface ProjectContext {
-  clone: () => ProjectContext;
+export interface ProjectContext extends Cloneable<ProjectContext> {
   dir: string;
   engines: string[];
   files: ProjectFiles;
