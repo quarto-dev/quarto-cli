@@ -18,4 +18,5 @@ dependencies = [
     "great-tables>=0.17.0",
     "polars>=1.29.0",
     "pyarrow>=20.0.0",
+    "plotly>=6.1.1",
 ]
