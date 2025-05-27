@@ -36,7 +36,8 @@ import {
   ensureLatexFileRegexMatches,
   printsMessage,
   shouldError,
-  ensureHtmlElementContents
+  ensureHtmlElementContents,
+  ensureHtmlElementCount,
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
@@ -130,6 +131,7 @@ function resolveTestSpecs(
     ensureEpubFileRegexMatches,
     ensureHtmlElements,
     ensureHtmlElementContents,
+    ensureHtmlElementCount,
     ensureFileRegexMatches,
     ensureLatexFileRegexMatches,
     ensureTypstFileRegexMatches,

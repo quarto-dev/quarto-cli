@@ -190,9 +190,11 @@ function isWidgetIncludeHtml(html: string) {
 }
 
 function isPlotlyLibrary(html: string) {
-  return /^\s*<script type="text\/javascript">/.test(html) &&
+  return (/^\s*<script type="text\/javascript">/.test(html) &&
     (/require\.undef\(["']plotly["']\)/.test(html) ||
-      /define\('plotly'/.test(html));
+      /define\('plotly'/.test(html))) ||
+    // also handle new module syntax from plotly.py 6+
+    /\s*<script type=\"module\">import .*plotly.*<\/script>/.test(html);
 }
 
 function htmlLibrariesText(htmlText: string) {

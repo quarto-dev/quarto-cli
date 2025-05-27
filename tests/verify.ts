@@ -402,6 +402,39 @@ export const ensureHtmlElementContents = (
 
 }
 
+export const ensureHtmlElementCount = (
+  file: string,
+  options: {
+    selectors: string[] | string,
+    counts: number[] | number
+  }
+): Verify => {
+  return {
+    name: "Verify number of elements for selectors",
+    verify: async (_output: ExecuteOutput[]) => {
+      const htmlInput = await Deno.readTextFile(file);
+      const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
+      
+      // Convert single values to arrays for unified processing
+      const selectorsArray = Array.isArray(options.selectors) ? options.selectors : [options.selectors];
+      const countsArray = Array.isArray(options.counts) ? options.counts : [options.counts];
+      
+      if (selectorsArray.length !== countsArray.length) {
+        throw new Error("Selectors and counts arrays must have the same length");
+      }
+      
+      selectorsArray.forEach((selector, index) => {
+        const expectedCount = countsArray[index];
+        const elements = doc.querySelectorAll(selector);
+        assert(
+          elements.length === expectedCount,
+          `Selector '${selector}' matched ${elements.length} elements, expected ${expectedCount}.`
+        );
+      });
+    }
+  };
+};
+
 export const ensureSnapshotMatches = (
   file: string,
 ): Verify => {
