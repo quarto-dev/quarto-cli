@@ -29,7 +29,7 @@ export TYPST=0.13.0
 # 0.5.1 + consolidated components
 export BOOTSTRAP=ad946cafdbf1c91cfd714cb39948bb203ae66e66
 export HTMLTOOLS=0.5.7
-export BOOTSTRAP_FONT=1.11.1
+export BOOTSTRAP_FONT=1.13.1
 export BOOTSWATCH=5.3.1
 
 # javascript HTML dependencies
