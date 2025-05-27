@@ -7,6 +7,10 @@ All changes included in 1.8:
 - ([#12657](https://github.com/quarto-dev/quarto-cli/pull/12657)): Load Giscus in generated script tag, to avoid wrong-theming in Chrome.
 - ([#12780](https://github.com/quarto-dev/quarto-cli/issues/12780)): `keep-ipynb: true` now works again correctly and intermediate `.quarto_ipynb` is not removed.
 
+## Dependencies
+
+- Update `bootstrap-icons` to version v1.13.1 from v1.11.1.
+
 ## Formats
 
 ### `html`
