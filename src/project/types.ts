@@ -5,7 +5,7 @@
  */
 
 import { RenderServices } from "../command/render/types.ts";
-import { Metadata, PandocFlags } from "../config/types.ts";
+import { FormatIdentifier, Metadata, PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
 import { Brand, LightDarkBrand } from "../core/brand/brand.ts";
 import { MappedString } from "../core/mapped-text.ts";
@@ -57,6 +57,7 @@ export type FileInformation = {
   target?: ExecutionTarget;
   metadata?: Metadata;
   brand?: LightDarkBrand;
+  outputFiles?: Record<string, FormatIdentifier>;
 };
 
 export interface ProjectContext extends Cloneable<ProjectContext> {

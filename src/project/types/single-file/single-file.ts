@@ -46,7 +46,7 @@ export async function singleFileProjectContext(
     dir: normalizePath(dirname(source)),
     engines: [],
     files: {
-      input: [],
+      input: [normalizePath(source)],
     },
     notebookContext,
     environment: () => environmentMemoizer(result),
