@@ -6,7 +6,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { kTheme, kBrand } from "../../config/constants.ts";
+import { kBrand, kTheme } from "../../config/constants.ts";
 import { isHtmlDashboardOutput, isHtmlOutput } from "../../config/format.ts";
 import { Format, Metadata } from "../../config/types.ts";
 
@@ -33,16 +33,28 @@ export function hasBootstrapTheme(metadata: Metadata) {
 export function formatDarkMode(format: Format): boolean | undefined {
   const isBootstrap = formatHasBootstrap(format);
   if (isBootstrap) {
-    return darkModeDefault(format.metadata);
+    return darkModeDefault(format);
   }
   return undefined;
 }
 
-export function darkModeDefault(metadata?: Metadata): boolean | undefined {
+export function darkModeDefault(format: Format): boolean | undefined {
+  const metadata = format.metadata;
+  const brand = format.render.brand;
   if (metadata !== undefined) {
-    for (const darkable of [metadata[kTheme], metadata[kBrand]]) {
-      if (darkable && typeof (darkable) === "object") {
-        const keys = Object.keys(darkable);
+    if (metadata[kTheme] && typeof metadata[kTheme] === "object") {
+      const keys = Object.keys(metadata[kTheme]);
+      if (keys.includes("dark")) {
+        if (keys[0] === "dark") {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+    if (metadata[kBrand] || brand) {
+      if (metadata[kBrand] && typeof metadata[kBrand] === "object") {
+        const keys = Object.keys(metadata[kBrand]);
         if (keys.includes("dark")) {
           if (keys[0] === "dark") {
             return true;
@@ -50,6 +62,10 @@ export function darkModeDefault(metadata?: Metadata): boolean | undefined {
             return false;
           }
         }
+      }
+      if (brand && brand.dark) {
+        // unified brand has no author preference but it can have dark mode
+        return false;
       }
     }
   }

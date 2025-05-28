@@ -1,0 +1,6 @@
+color:
+  foreground: "#222"
+  background: "#eee"
+typography:
+  link:
+    background-color: "#efe"
