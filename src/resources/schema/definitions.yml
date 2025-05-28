@@ -221,7 +221,7 @@
               You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
               If this is not provided, Quarto will attempt to discover it at render time.
       mapping:
-        schema: 
+        schema:
           anyOf:
             - string
             - number
@@ -229,7 +229,7 @@
           - pathname
           - url
           - title
-          - og:title          
+          - og:title
         description:
           short: The mapping between the page and the embedded discussion.
           long: |
@@ -2539,7 +2539,32 @@
     - string
     - ref: brand-logo-explicit-resource
 
-- id: brand-logo
+- id: brand-logo-single
+  description: >
+    Provide definitions and defaults for brand's logo in various formats and sizes.
+  object:
+    closed: true
+    properties:
+      images:
+        description: A dictionary of named logo resources.
+        schema:
+          object:
+            additionalProperties:
+              schema: { ref: brand-logo-resource }
+      small:
+        description: >
+          A link or path to the brand's small-sized logo or icon.
+        schema: string
+      medium:
+        description: >
+          A link or path to the brand's medium-sized logo.
+        schema: string
+      large:
+        description: >
+          A link or path to the brand's large- or full-sized logo.
+        schema: string
+
+- id: brand-logo-unified
   description: >
     Provide definitions and defaults for brand's logo in various formats and sizes.
   object:
@@ -2577,7 +2602,7 @@
 - id: brand-color-value
   schema: string
 
-- id: brand-color
+- id: brand-color-single
   description: >
     The brand's custom color palette and theme.
   object:
@@ -2652,12 +2677,121 @@
         schema:
           ref: brand-color-value
 
+- id: brand-color-light-dark
+  anyOf:
+    - ref: brand-color-value
+    - object:
+        closed: true
+        properties:
+          light:
+            schema:
+              ref: brand-color-value
+            description: >
+              A link or path to the brand's light-colored logo or icon.
+          dark:
+            schema:
+              ref: brand-color-value
+            description: >
+              A link or path to the brand's dark-colored logo or icon.
+
+- id: brand-color-unified
+  description: >
+    The brand's custom color palette and theme.
+  object:
+    closed: true
+    properties:
+      palette:
+        description: >
+          The brand's custom color palette. Any number of colors can be defined,
+          each color having a custom name.
+        object:
+          additionalProperties:
+            schema:
+              ref: brand-color-value
+      foreground:
+        description: The foreground color, used for text.
+        schema:
+          ref: brand-color-light-dark
+        default: black
+      background:
+        description: The background color, used for the page background.
+        schema:
+          ref: brand-color-light-dark
+        default: white
+      primary:
+        description: >
+          The primary accent color, i.e. the main theme color. Typically used for
+          hyperlinks, active states, primary action buttons, etc.
+        schema:
+          ref: brand-color-light-dark
+      secondary:
+        description: >
+          The secondary accent color. Typically used for lighter text or disabled states.
+        schema:
+          ref: brand-color-light-dark
+      tertiary:
+        description: >
+          The tertiary accent color. Typically an even lighter color, used for hover states,
+          accents, and wells.
+        schema:
+          ref: brand-color-light-dark
+      success:
+        description: The color used for positive or successful actions and information.
+        schema:
+          ref: brand-color-light-dark
+      info:
+        description: The color used for neutral or informational actions and information.
+        schema:
+          ref: brand-color-light-dark
+      warning:
+        description: The color used for warning or cautionary actions and information.
+        schema:
+          ref: brand-color-light-dark
+      danger:
+        description: The color used for errors, dangerous actions, or negative information.
+        schema:
+          ref: brand-color-light-dark
+      light:
+        description: >
+          A bright color, used as a high-contrast foreground color on dark elements
+          or low-contrast background color on light elements.
+        schema:
+          ref: brand-color-light-dark
+      dark:
+        description: >
+          A dark color, used as a high-contrast foreground color on light elements
+          or high-contrast background color on light elements.
+        schema:
+          ref: brand-color-light-dark
+      link:
+        description: >
+          The color used for hyperlinks. If not defined, the `primary` color is used.
+        schema:
+          ref: brand-color-light-dark
+
 - id: brand-maybe-named-color
   description: >
     A color, which may be a named brand color.
   anyOf:
     - ref: brand-named-theme-color
     - schema: string
+
+- id: brand-maybe-named-color-light-dark
+  anyOf:
+    - ref: brand-maybe-named-color
+    - object:
+        closed: true
+        properties:
+          light:
+            schema:
+              ref: brand-maybe-named-color
+            description: >
+              A link or path to the brand's light-colored logo or icon.
+          dark:
+            schema:
+              ref: brand-maybe-named-color
+            description: >
+              A link or path to the brand's dark-colored logo or icon.
 
 - id: brand-named-theme-color
   description: >
@@ -2678,7 +2812,7 @@
       link,
     ]
 
-- id: brand-typography
+- id: brand-typography-single
   description: Typography definitions for the brand.
   object:
     closed: true
@@ -2694,19 +2828,49 @@
         ref: brand-typography-options-base
       headings:
         description: Settings for headings, or a string specifying the font family only.
-        ref: brand-typography-options-headings
+        ref: brand-typography-options-headings-single
       monospace:
         description: Settings for monospace text, or a string specifying the font family only.
-        ref: brand-typography-options-monospace
+        ref: brand-typography-options-monospace-single
       monospace-inline:
         description: Settings for inline code, or a string specifying the font family only.
-        ref: brand-typography-options-monospace-inline
+        ref: brand-typography-options-monospace-inline-single
       monospace-block:
         description: Settings for code blocks, or a string specifying the font family only.
-        ref: brand-typography-options-monospace-block
+        ref: brand-typography-options-monospace-block-single
       link:
         description: Settings for links.
-        ref: brand-typography-options-link
+        ref: brand-typography-options-link-single
+
+- id: brand-typography-unified
+  description: Typography definitions for the brand.
+  object:
+    closed: true
+    properties:
+      fonts:
+        description: Font files and definitions for the brand.
+        arrayOf:
+          ref: brand-font
+      base:
+        description: >
+          The base font settings for the brand. These are used as the default for
+          all text.
+        ref: brand-typography-options-base
+      headings:
+        description: Settings for headings, or a string specifying the font family only.
+        ref: brand-typography-options-headings-unified
+      monospace:
+        description: Settings for monospace text, or a string specifying the font family only.
+        ref: brand-typography-options-monospace-unified
+      monospace-inline:
+        description: Settings for inline code, or a string specifying the font family only.
+        ref: brand-typography-options-monospace-inline-unified
+      monospace-block:
+        description: Settings for code blocks, or a string specifying the font family only.
+        ref: brand-typography-options-monospace-block-unified
+      link:
+        description: Settings for links.
+        ref: brand-typography-options-link-unified
 
 - id: brand-typography-options-base
   description: Base typographic options.
@@ -2722,7 +2886,7 @@
           line-height:
             ref: line-height-number-string
 
-- id: brand-typography-options-headings
+- id: brand-typography-options-headings-single
   description: Typographic options for headings.
   anyOf:
     - string
@@ -2739,7 +2903,24 @@
           line-height:
             ref: line-height-number-string
 
-- id: brand-typography-options-monospace
+- id: brand-typography-options-headings-unified
+  description: Typographic options for headings.
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          family: string
+          weight:
+            ref: brand-font-weight
+          style:
+            ref: brand-font-style
+          color:
+            ref: brand-maybe-named-color-light-dark
+          line-height:
+            ref: line-height-number-string
+
+- id: brand-typography-options-monospace-single
   description: Typographic options for monospace elements.
   anyOf:
     - string
@@ -2755,7 +2936,23 @@
           background-color:
             ref: brand-maybe-named-color
 
-- id: brand-typography-options-monospace-inline
+- id: brand-typography-options-monospace-unified
+  description: Typographic options for monospace elements.
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          family: string
+          size: string
+          weight:
+            ref: brand-font-weight
+          color:
+            ref: brand-maybe-named-color-light-dark
+          background-color:
+            ref: brand-maybe-named-color-light-dark
+
+- id: brand-typography-options-monospace-inline-single
   description: Typographic options for inline monospace elements.
   anyOf:
     - string
@@ -2771,11 +2968,27 @@
           background-color:
             ref: brand-maybe-named-color
 
+- id: brand-typography-options-monospace-inline-unified
+  description: Typographic options for inline monospace elements.
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          family: string
+          size: string
+          weight:
+            ref: brand-font-weight
+          color:
+            ref: brand-maybe-named-color-light-dark
+          background-color:
+            ref: brand-maybe-named-color-light-dark
+
 - id: line-height-number-string
   description: Line height
   anyOf: [number, string]
 
-- id: brand-typography-options-monospace-block
+- id: brand-typography-options-monospace-block-single
   description: Typographic options for block monospace elements.
   anyOf:
     - string
@@ -2793,7 +3006,25 @@
           line-height:
             ref: line-height-number-string
 
-- id: brand-typography-options-link
+- id: brand-typography-options-monospace-block-unified
+  description: Typographic options for block monospace elements.
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          family: string
+          size: string
+          weight:
+            ref: brand-font-weight
+          color:
+            ref: brand-maybe-named-color-light-dark
+          background-color:
+            ref: brand-maybe-named-color-light-dark
+          line-height:
+            ref: line-height-number-string
+
+- id: brand-typography-options-link-single
   description: Typographic options for inline monospace elements.
   anyOf:
     - string
@@ -2808,9 +3039,24 @@
             ref: brand-maybe-named-color
           decoration: string
 
-- id: brand-named-font
-  description: Names of customizeable fonts
-  enum: [base, headings, monospace]
+- id: brand-typography-options-link-unified
+  description: Typographic options for inline monospace elements.
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          weight:
+            ref: brand-font-weight
+          color:
+            ref: brand-maybe-named-color-light-dark
+          background-color:
+            ref: brand-maybe-named-color-light-dark
+          decoration: string
+
+- id: brand-named-typography-elements
+  description: Names of customizeable typography elements
+  enum: [base, headings, monospace, monospace-inline, monospace-block, link]
 
 - id: brand-font
   description: Font files and definitions for the brand.
@@ -2969,18 +3215,33 @@
     for ensuring that the font is installed on their system.
   schema: string
 
-- id: brand
+- id: brand-single
   object:
     closed: true
     properties:
       meta:
         ref: brand-meta
       logo:
-        ref: brand-logo
+        ref: brand-logo-unified # temporary
       color:
-        ref: brand-color
+        ref: brand-color-single
       typography:
-        ref: brand-typography
+        ref: brand-typography-single
+      defaults:
+        ref: brand-defaults
+
+- id: brand-unified
+  object:
+    closed: true
+    properties:
+      meta:
+        ref: brand-meta
+      logo:
+        ref: brand-logo-unified
+      color:
+        ref: brand-color-unified
+      typography:
+        ref: brand-typography-unified
       defaults:
         ref: brand-defaults
 
@@ -2994,19 +3255,19 @@
           light:
             anyOf:
               - string
-              - ref: brand
+              - ref: brand-single
             description: >
               The path to a light brand file or an inline light brand definition.
           dark:
             anyOf:
               - string
-              - ref: brand
+              - ref: brand-single
             description: >
               The path to a dark brand file or an inline dark brand definition.
-    - ref: brand
+    - ref: brand-unified
   description: |
     Branding information to use for this document. If a string, the path to a brand file.
-    If false, don't use branding on this document. If an object, an inline brand
+    If false, don't use branding on this document. If an object, an inline (unified) brand
     definition, or an object with light and dark brand paths or definitions.
 
 - id: brand-defaults
@@ -3029,5 +3290,4 @@
                   - string
                   - boolean
                   - number
-
 # - id: quarto-extension

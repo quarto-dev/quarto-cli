@@ -7,13 +7,16 @@
  */
 
 import {
-  Brand as BrandJson,
+  BrandColorLightDark,
   BrandFont,
   BrandLogoExplicitResource,
   BrandNamedThemeColor,
-  BrandTypography,
+  BrandSingle,
   BrandTypographyOptionsBase,
-  BrandTypographyOptionsHeadings,
+  BrandTypographyOptionsHeadingsSingle,
+  BrandTypographySingle,
+  BrandTypographyUnified,
+  BrandUnified,
   Zod,
 } from "../../resources/types/zod/schema-types.ts";
 import { InternalError } from "../lib/error.ts";
@@ -53,7 +56,7 @@ type CanonicalLogoInfo = {
 
 type ProcessedBrandData = {
   color: Record<string, string>;
-  typography: BrandTypography;
+  typography: BrandTypographySingle;
   logo: {
     small?: CanonicalLogoInfo;
     medium?: CanonicalLogoInfo;
@@ -63,7 +66,7 @@ type ProcessedBrandData = {
 };
 
 export class Brand {
-  data: BrandJson;
+  data: BrandSingle;
   brandDir: string;
   projectDir: string;
   processedData: ProcessedBrandData;
@@ -73,13 +76,13 @@ export class Brand {
     brandDir: string,
     projectDir: string,
   ) {
-    this.data = Zod.Brand.parse(brand);
+    this.data = Zod.BrandSingle.parse(brand);
     this.brandDir = brandDir;
     this.projectDir = projectDir;
     this.processedData = this.processData(this.data);
   }
 
-  processData(data: BrandJson): ProcessedBrandData {
+  processData(data: BrandSingle): ProcessedBrandData {
     const color: Record<string, string> = {};
     for (const colorName of Object.keys(data.color?.palette ?? {})) {
       color[colorName] = this.getColor(colorName);
@@ -91,7 +94,7 @@ export class Brand {
       color[colorName] = this.getColor(colorName);
     }
 
-    const typography: BrandTypography = {};
+    const typography: BrandTypographySingle = {};
     const base = this.getFont("base");
     if (base) {
       typography.base = base;
@@ -221,7 +224,10 @@ export class Brand {
 
   getFont(
     name: string,
-  ): BrandTypographyOptionsBase | BrandTypographyOptionsHeadings | undefined {
+  ):
+    | BrandTypographyOptionsBase
+    | BrandTypographyOptionsHeadingsSingle
+    | undefined {
     if (!this.data.typography) {
       return undefined;
     }
@@ -304,6 +310,11 @@ export type LightDarkBrand = {
   dark?: Brand;
 };
 
+export type LightDarkColor = {
+  light?: string;
+  dark?: string;
+};
+
 export const getFavicon = (brand: Brand): string | undefined => {
   const logoInfo = brand.getLogo("small");
   if (!logoInfo) {
@@ -311,3 +322,241 @@ export const getFavicon = (brand: Brand): string | undefined => {
   }
   return logoInfo.light.path;
 };
+
+function splitColorLightDark(
+  bcld: BrandColorLightDark,
+): LightDarkColor {
+  if (typeof bcld === "string") {
+    return { light: bcld, dark: bcld };
+  }
+  return bcld;
+}
+function colorIsUnified(blcd: BrandColorLightDark) {
+  return typeof blcd === "object" && "dark" in blcd;
+}
+export function brandIsUnified(brand: BrandUnified): boolean {
+  if (brand.color) {
+    for (const colorName of Zod.BrandNamedThemeColor.options) {
+      if (!brand.color[colorName]) {
+        continue;
+      }
+      if (colorIsUnified(brand.color![colorName])) {
+        return true;
+      }
+    }
+  }
+  if (brand.typography) {
+    for (const elementName of Zod.BrandNamedTypographyElements.options) {
+      const element = brand.typography![elementName];
+      if (!element || typeof element === "string") {
+        continue;
+      }
+      if (
+        "background-color" in element && element["background-color"] &&
+        colorIsUnified(element["background-color"])
+      ) {
+        return true;
+      }
+      if (
+        "color" in element && element["color"] &&
+        colorIsUnified(element["color"])
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+function sharedTypography(
+  unified: BrandTypographyUnified,
+): BrandTypographySingle {
+  const ret: BrandTypographySingle = {
+    fonts: unified.fonts,
+  };
+  for (const elementName of Zod.BrandNamedTypographyElements.options) {
+    if (!unified[elementName]) {
+      continue;
+    }
+    if (typeof unified[elementName] === "string") {
+      ret[elementName] = unified[elementName];
+      continue;
+    }
+    ret[elementName] = Object.fromEntries(
+      Object.entries(unified[elementName]).filter(
+        ([key, _]) => !["color", "background-color"].includes(key),
+      ),
+    );
+  }
+  return ret;
+}
+export function splitUnifiedBrand(
+  unified: unknown,
+  brandDir: string,
+  projectDir: string,
+): LightDarkBrand {
+  const unifiedBrand: BrandUnified = Zod.BrandUnified.parse(unified);
+  let typography: BrandTypographySingle | undefined = undefined;
+  let headingsColor: LightDarkColor | undefined = undefined;
+  let monospaceColor: LightDarkColor | undefined = undefined;
+  let monospaceBackgroundColor: LightDarkColor | undefined = undefined;
+  let monospaceInlineColor: LightDarkColor | undefined = undefined;
+  let monospaceInlineBackgroundColor: LightDarkColor | undefined = undefined;
+  let monospaceBlockColor: LightDarkColor | undefined = undefined;
+  let monospaceBlockBackgroundColor: LightDarkColor | undefined = undefined;
+  let linkColor: LightDarkColor | undefined = undefined;
+  let linkBackgroundColor: LightDarkColor | undefined = undefined;
+  if (unifiedBrand.typography) {
+    typography = sharedTypography(unifiedBrand.typography);
+    if (
+      unifiedBrand.typography.headings &&
+      typeof unifiedBrand.typography.headings !== "string" &&
+      unifiedBrand.typography.headings.color
+    ) {
+      headingsColor = splitColorLightDark(
+        unifiedBrand.typography.headings.color,
+      );
+    }
+    if (
+      unifiedBrand.typography.monospace &&
+      typeof unifiedBrand.typography.monospace !== "string"
+    ) {
+      if (unifiedBrand.typography.monospace.color) {
+        monospaceColor = splitColorLightDark(
+          unifiedBrand.typography.monospace.color,
+        );
+      }
+      if (unifiedBrand.typography.monospace["background-color"]) {
+        monospaceBackgroundColor = splitColorLightDark(
+          unifiedBrand.typography.monospace["background-color"],
+        );
+      }
+    }
+    if (
+      unifiedBrand.typography["monospace-inline"] &&
+      typeof unifiedBrand.typography["monospace-inline"] !== "string"
+    ) {
+      if (unifiedBrand.typography["monospace-inline"].color) {
+        monospaceInlineColor = splitColorLightDark(
+          unifiedBrand.typography["monospace-inline"].color,
+        );
+      }
+      if (unifiedBrand.typography["monospace-inline"]["background-color"]) {
+        monospaceInlineBackgroundColor = splitColorLightDark(
+          unifiedBrand.typography["monospace-inline"]["background-color"],
+        );
+      }
+    }
+    if (
+      unifiedBrand.typography["monospace-block"] &&
+      typeof unifiedBrand.typography["monospace-block"] !== "string"
+    ) {
+      if (unifiedBrand.typography["monospace-block"].color) {
+        monospaceBlockColor = splitColorLightDark(
+          unifiedBrand.typography["monospace-block"].color,
+        );
+      }
+      if (unifiedBrand.typography["monospace-block"]["background-color"]) {
+        monospaceBlockBackgroundColor = splitColorLightDark(
+          unifiedBrand.typography["monospace-block"]["background-color"],
+        );
+      }
+    }
+    if (
+      unifiedBrand.typography.link &&
+      typeof unifiedBrand.typography.link !== "string"
+    ) {
+      if (unifiedBrand.typography.link.color) {
+        linkColor = splitColorLightDark(
+          unifiedBrand.typography.link.color,
+        );
+      }
+      if (unifiedBrand.typography.link["background-color"]) {
+        linkBackgroundColor = splitColorLightDark(
+          unifiedBrand.typography.link["background-color"],
+        );
+      }
+    }
+  }
+  const specializeTypography = (
+    typography: BrandTypographySingle,
+    mode: "light" | "dark",
+  ) =>
+    typography && {
+      fonts: typography.fonts && [...typography.fonts],
+      base: !typography.base || typeof typography.base === "string"
+        ? typography.base
+        : { ...typography.base },
+      headings: !typography.headings || typeof typography.headings === "string"
+        ? typography.headings
+        : {
+          ...typography.headings,
+          color: headingsColor && headingsColor[mode],
+        },
+      monospace:
+        !typography.monospace || typeof typography.monospace === "string"
+          ? typography.monospace
+          : {
+            ...typography.monospace,
+            color: monospaceColor && monospaceColor[mode],
+            "background-color": monospaceBackgroundColor &&
+              monospaceBackgroundColor[mode],
+          },
+      "monospace-inline": !typography["monospace-inline"] ||
+          typeof typography["monospace-inline"] === "string"
+        ? typography["monospace-inline"]
+        : {
+          ...typography["monospace-inline"],
+          color: monospaceInlineColor && monospaceInlineColor[mode],
+          "background-color": monospaceInlineBackgroundColor &&
+            monospaceInlineBackgroundColor[mode],
+        },
+      "monospace-block": !typography["monospace-block"] ||
+          typeof typography["monospace-block"] === "string"
+        ? typography["monospace-block"]
+        : {
+          ...typography["monospace-block"],
+          color: monospaceBlockColor && monospaceBlockColor[mode],
+          "background-color": monospaceBlockBackgroundColor &&
+            monospaceBlockBackgroundColor[mode],
+        },
+      link: !typography.link || typeof typography.link === "string"
+        ? typography.link
+        : {
+          ...typography.link,
+          color: linkColor && linkColor[mode],
+          "background-color": linkBackgroundColor &&
+            linkBackgroundColor[mode],
+        },
+    };
+  const lightBrand: BrandSingle = {
+    meta: unifiedBrand.meta,
+    color: { palette: unifiedBrand.color && { ...unifiedBrand.color.palette } },
+    typography: typography && specializeTypography(typography, "light"),
+    logo: unifiedBrand.logo,
+    defaults: unifiedBrand.defaults,
+  };
+  const darkBrand: BrandSingle = {
+    meta: unifiedBrand.meta,
+    color: { palette: unifiedBrand.color && { ...unifiedBrand.color.palette } },
+    typography: typography && specializeTypography(typography, "dark"),
+    logo: unifiedBrand.logo,
+    defaults: unifiedBrand.defaults,
+  };
+  if (unifiedBrand.color) {
+    for (const colorName of Zod.BrandNamedThemeColor.options) {
+      if (!unifiedBrand.color[colorName]) {
+        continue;
+      }
+      ({
+        light: lightBrand.color![colorName],
+        dark: darkBrand.color![colorName],
+      } = splitColorLightDark(unifiedBrand.color![colorName]));
+    }
+  }
+  return {
+    light: new Brand(lightBrand, brandDir, projectDir),
+    dark: brandIsUnified(unifiedBrand)
+      ? new Brand(darkBrand, brandDir, projectDir)
+      : undefined,
+  };
+}
