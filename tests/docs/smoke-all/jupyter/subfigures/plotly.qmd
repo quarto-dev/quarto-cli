@@ -1,10 +1,21 @@
 ---
 title: "Bugged plotly figure: phantom subfigure"
-keep-ipynb: true
-keep-md: true
 _quarto:
   tests: 
     html:
+      ensureHtmlElements:
+        - 
+          - 'figure.quarto-float-fig div#fig-gapminder-1 figure.quarto-subfloat-fig div.plotly-graph-div'
+          - 'figure.quarto-float-fig div#fig-gapminder-2 figure.quarto-subfloat-fig div.plotly-graph-div'
+      ensureHtmlElementContents:
+        selectors: 
+          - 'div#fig-gapminder-1 figcaption.quarto-subfloat-caption'
+          - 'div#fig-gapminder-2 figcaption.quarto-subfloat-caption'
+        matches: ['\((a|b)\) Gapminder: (1957|2007)']
+      ensureHtmlElementCount:
+        selectors: ['figure.quarto-float-fig figure.quarto-subfloat-fig']
+        counts: [2]
+    dashboard:
       ensureHtmlElements:
         - 
           - 'figure.quarto-float-fig div#fig-gapminder-1 figure.quarto-subfloat-fig div.plotly-graph-div'
