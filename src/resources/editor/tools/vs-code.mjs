@@ -11927,7 +11927,40 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-logo",
+          id: "brand-logo-single",
+          description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
+          object: {
+            closed: true,
+            properties: {
+              images: {
+                description: "A dictionary of named logo resources.",
+                schema: {
+                  object: {
+                    additionalProperties: {
+                      schema: {
+                        ref: "brand-logo-resource"
+                      }
+                    }
+                  }
+                }
+              },
+              small: {
+                description: "A link or path to the brand's small-sized logo or icon.\n",
+                schema: "string"
+              },
+              medium: {
+                description: "A link or path to the brand's medium-sized logo.\n",
+                schema: "string"
+              },
+              large: {
+                description: "A link or path to the brand's large- or full-sized logo.\n",
+                schema: "string"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-logo-unified",
           description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
           object: {
             closed: true,
@@ -11979,7 +12012,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string"
         },
         {
-          id: "brand-color",
+          id: "brand-color-single",
           description: "The brand's custom color palette and theme.\n",
           object: {
             closed: true,
@@ -12072,6 +12105,126 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "brand-color-light-dark",
+          anyOf: [
+            {
+              ref: "brand-color-value"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "brand-color-value"
+                    },
+                    description: "A link or path to the brand's light-colored logo or icon.\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "brand-color-value"
+                    },
+                    description: "A link or path to the brand's dark-colored logo or icon.\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-color-unified",
+          description: "The brand's custom color palette and theme.\n",
+          object: {
+            closed: true,
+            properties: {
+              palette: {
+                description: "The brand's custom color palette. Any number of colors can be defined, each color having a custom name.\n",
+                object: {
+                  additionalProperties: {
+                    schema: {
+                      ref: "brand-color-value"
+                    }
+                  }
+                }
+              },
+              foreground: {
+                description: "The foreground color, used for text.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                },
+                default: "black"
+              },
+              background: {
+                description: "The background color, used for the page background.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                },
+                default: "white"
+              },
+              primary: {
+                description: "The primary accent color, i.e. the main theme color. Typically used for hyperlinks, active states, primary action buttons, etc.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              secondary: {
+                description: "The secondary accent color. Typically used for lighter text or disabled states.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              tertiary: {
+                description: "The tertiary accent color. Typically an even lighter color, used for hover states, accents, and wells.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              success: {
+                description: "The color used for positive or successful actions and information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              info: {
+                description: "The color used for neutral or informational actions and information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              warning: {
+                description: "The color used for warning or cautionary actions and information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              danger: {
+                description: "The color used for errors, dangerous actions, or negative information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              light: {
+                description: "A bright color, used as a high-contrast foreground color on dark elements or low-contrast background color on light elements.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              dark: {
+                description: "A dark color, used as a high-contrast foreground color on light elements or high-contrast background color on light elements.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              link: {
+                description: "The color used for hyperlinks. If not defined, the `primary` color is used.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              }
+            }
+          }
+        },
+        {
           id: "brand-maybe-named-color",
           description: "A color, which may be a named brand color.\n",
           anyOf: [
@@ -12080,6 +12233,33 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             {
               schema: "string"
+            }
+          ]
+        },
+        {
+          id: "brand-maybe-named-color-light-dark",
+          anyOf: [
+            {
+              ref: "brand-maybe-named-color"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "brand-maybe-named-color"
+                    },
+                    description: "A link or path to the brand's light-colored logo or icon.\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "brand-maybe-named-color"
+                    },
+                    description: "A link or path to the brand's dark-colored logo or icon.\n"
+                  }
+                }
+              }
             }
           ]
         },
@@ -12102,7 +12282,7 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography",
+          id: "brand-typography-single",
           description: "Typography definitions for the brand.",
           object: {
             closed: true,
@@ -12119,23 +12299,62 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               headings: {
                 description: "Settings for headings, or a string specifying the font family only.",
-                ref: "brand-typography-options-headings"
+                ref: "brand-typography-options-headings-single"
               },
               monospace: {
                 description: "Settings for monospace text, or a string specifying the font family only.",
-                ref: "brand-typography-options-monospace"
+                ref: "brand-typography-options-monospace-single"
               },
               "monospace-inline": {
                 description: "Settings for inline code, or a string specifying the font family only.",
-                ref: "brand-typography-options-monospace-inline"
+                ref: "brand-typography-options-monospace-inline-single"
               },
               "monospace-block": {
                 description: "Settings for code blocks, or a string specifying the font family only.",
-                ref: "brand-typography-options-monospace-block"
+                ref: "brand-typography-options-monospace-block-single"
               },
               link: {
                 description: "Settings for links.",
-                ref: "brand-typography-options-link"
+                ref: "brand-typography-options-link-single"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-typography-unified",
+          description: "Typography definitions for the brand.",
+          object: {
+            closed: true,
+            properties: {
+              fonts: {
+                description: "Font files and definitions for the brand.",
+                arrayOf: {
+                  ref: "brand-font"
+                }
+              },
+              base: {
+                description: "The base font settings for the brand. These are used as the default for all text.\n",
+                ref: "brand-typography-options-base"
+              },
+              headings: {
+                description: "Settings for headings, or a string specifying the font family only.",
+                ref: "brand-typography-options-headings-unified"
+              },
+              monospace: {
+                description: "Settings for monospace text, or a string specifying the font family only.",
+                ref: "brand-typography-options-monospace-unified"
+              },
+              "monospace-inline": {
+                description: "Settings for inline code, or a string specifying the font family only.",
+                ref: "brand-typography-options-monospace-inline-unified"
+              },
+              "monospace-block": {
+                description: "Settings for code blocks, or a string specifying the font family only.",
+                ref: "brand-typography-options-monospace-block-unified"
+              },
+              link: {
+                description: "Settings for links.",
+                ref: "brand-typography-options-link-unified"
               }
             }
           }
@@ -12163,7 +12382,7 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-headings",
+          id: "brand-typography-options-headings-single",
           description: "Typographic options for headings.",
           anyOf: [
             "string",
@@ -12190,7 +12409,34 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-monospace",
+          id: "brand-typography-options-headings-unified",
+          description: "Typographic options for headings.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  style: {
+                    ref: "brand-font-style"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "line-height": {
+                    ref: "line-height-number-string"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-typography-options-monospace-single",
           description: "Typographic options for monospace elements.",
           anyOf: [
             "string",
@@ -12215,7 +12461,32 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-monospace-inline",
+          id: "brand-typography-options-monospace-unified",
+          description: "Typographic options for monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-typography-options-monospace-inline-single",
           description: "Typographic options for inline monospace elements.",
           anyOf: [
             "string",
@@ -12240,6 +12511,31 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "brand-typography-options-monospace-inline-unified",
+          description: "Typographic options for inline monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
           id: "line-height-number-string",
           description: "Line height",
           anyOf: [
@@ -12248,7 +12544,7 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-monospace-block",
+          id: "brand-typography-options-monospace-block-single",
           description: "Typographic options for block monospace elements.",
           anyOf: [
             "string",
@@ -12276,7 +12572,35 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-link",
+          id: "brand-typography-options-monospace-block-unified",
+          description: "Typographic options for block monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "line-height": {
+                    ref: "line-height-number-string"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-typography-options-link-single",
           description: "Typographic options for inline monospace elements.",
           anyOf: [
             "string",
@@ -12300,12 +12624,39 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-named-font",
-          description: "Names of customizeable fonts",
+          id: "brand-typography-options-link-unified",
+          description: "Typographic options for inline monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  decoration: "string"
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-named-typography-elements",
+          description: "Names of customizeable typography elements",
           enum: [
             "base",
             "headings",
-            "monospace"
+            "monospace",
+            "monospace-inline",
+            "monospace-block",
+            "link"
           ]
         },
         {
@@ -12522,7 +12873,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string"
         },
         {
-          id: "brand",
+          id: "brand-single",
           object: {
             closed: true,
             properties: {
@@ -12530,13 +12881,36 @@ var require_yaml_intelligence_resources = __commonJS({
                 ref: "brand-meta"
               },
               logo: {
-                ref: "brand-logo"
+                ref: "brand-logo-unified"
               },
               color: {
-                ref: "brand-color"
+                ref: "brand-color-single"
               },
               typography: {
-                ref: "brand-typography"
+                ref: "brand-typography-single"
+              },
+              defaults: {
+                ref: "brand-defaults"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-unified",
+          object: {
+            closed: true,
+            properties: {
+              meta: {
+                ref: "brand-meta"
+              },
+              logo: {
+                ref: "brand-logo-unified"
+              },
+              color: {
+                ref: "brand-color-unified"
+              },
+              typography: {
+                ref: "brand-typography-unified"
               },
               defaults: {
                 ref: "brand-defaults"
@@ -12557,7 +12931,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     anyOf: [
                       "string",
                       {
-                        ref: "brand"
+                        ref: "brand-single"
                       }
                     ],
                     description: "The path to a light brand file or an inline light brand definition.\n"
@@ -12566,7 +12940,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     anyOf: [
                       "string",
                       {
-                        ref: "brand"
+                        ref: "brand-single"
                       }
                     ],
                     description: "The path to a dark brand file or an inline dark brand definition.\n"
@@ -12575,10 +12949,10 @@ var require_yaml_intelligence_resources = __commonJS({
               }
             },
             {
-              ref: "brand"
+              ref: "brand-unified"
             }
           ],
-          description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
+          description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline (unified) brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
         },
         {
           id: "brand-defaults",
@@ -22255,6 +22629,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Document title",
         "Identifies the subtitle of the document.",
         "Document date",
+        "Date format for the document",
         "Document date modified",
         "Author or authors of the document",
         {
@@ -24117,7 +24492,75 @@ var require_yaml_intelligence_resources = __commonJS({
         "Manuscript configuration",
         "internal-schema-hack",
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        "Date format for the document"
+        "Provide definitions and defaults for brand\u2019s logo in various formats\nand sizes.",
+        "A dictionary of named logo resources.",
+        "A link or path to the brand\u2019s small-sized logo or icon.",
+        "A link or path to the brand\u2019s medium-sized logo.",
+        "A link or path to the brand\u2019s large- or full-sized logo.",
+        "Provide definitions and defaults for brand\u2019s logo in various formats\nand sizes.",
+        "A dictionary of named logo resources.",
+        "A link or path to the brand\u2019s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
+        "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
+        "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
+        "The brand\u2019s custom color palette and theme.",
+        "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
+        "The foreground color, used for text.",
+        "The background color, used for the page background.",
+        "The primary accent color, i.e.&nbsp;the main theme color. Typically used\nfor hyperlinks, active states, primary action buttons, etc.",
+        "The secondary accent color. Typically used for lighter text or\ndisabled states.",
+        "The tertiary accent color. Typically an even lighter color, used for\nhover states, accents, and wells.",
+        "The color used for positive or successful actions and\ninformation.",
+        "The color used for neutral or informational actions and\ninformation.",
+        "The color used for warning or cautionary actions and information.",
+        "The color used for errors, dangerous actions, or negative\ninformation.",
+        "A bright color, used as a high-contrast foreground color on dark\nelements or low-contrast background color on light elements.",
+        "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
+        "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
+        "A link or path to the brand\u2019s light-colored logo or icon.",
+        "A link or path to the brand\u2019s dark-colored logo or icon.",
+        "The brand\u2019s custom color palette and theme.",
+        "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
+        "The foreground color, used for text.",
+        "The background color, used for the page background.",
+        "The primary accent color, i.e.&nbsp;the main theme color. Typically used\nfor hyperlinks, active states, primary action buttons, etc.",
+        "The secondary accent color. Typically used for lighter text or\ndisabled states.",
+        "The tertiary accent color. Typically an even lighter color, used for\nhover states, accents, and wells.",
+        "The color used for positive or successful actions and\ninformation.",
+        "The color used for neutral or informational actions and\ninformation.",
+        "The color used for warning or cautionary actions and information.",
+        "The color used for errors, dangerous actions, or negative\ninformation.",
+        "A bright color, used as a high-contrast foreground color on dark\nelements or low-contrast background color on light elements.",
+        "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
+        "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
+        "A link or path to the brand\u2019s light-colored logo or icon.",
+        "A link or path to the brand\u2019s dark-colored logo or icon.",
+        "Typography definitions for the brand.",
+        "Font files and definitions for the brand.",
+        "The base font settings for the brand. These are used as the default\nfor all text.",
+        "Settings for headings, or a string specifying the font family\nonly.",
+        "Settings for monospace text, or a string specifying the font family\nonly.",
+        "Settings for inline code, or a string specifying the font family\nonly.",
+        "Settings for code blocks, or a string specifying the font family\nonly.",
+        "Settings for links.",
+        "Typography definitions for the brand.",
+        "Font files and definitions for the brand.",
+        "The base font settings for the brand. These are used as the default\nfor all text.",
+        "Settings for headings, or a string specifying the font family\nonly.",
+        "Settings for monospace text, or a string specifying the font family\nonly.",
+        "Settings for inline code, or a string specifying the font family\nonly.",
+        "Settings for code blocks, or a string specifying the font family\nonly.",
+        "Settings for links.",
+        "Typographic options for headings.",
+        "Typographic options for headings.",
+        "Typographic options for monospace elements.",
+        "Typographic options for monospace elements.",
+        "Typographic options for inline monospace elements.",
+        "Typographic options for inline monospace elements.",
+        "Typographic options for block monospace elements.",
+        "Typographic options for block monospace elements.",
+        "Typographic options for inline monospace elements.",
+        "Typographic options for inline monospace elements.",
+        "Names of customizeable typography elements"
       ],
       "schema/external-schemas.yml": [
         {
@@ -24346,12 +24789,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 196444,
+        _internalId: 197022,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 196436,
+            _internalId: 197014,
             type: "enum",
             enum: [
               "png",
@@ -24367,7 +24810,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 196443,
+            _internalId: 197021,
             type: "anyOf",
             anyOf: [
               {
