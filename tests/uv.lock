@@ -1449,6 +1449,19 @@ wheels = [
 ]
 
 [[package]]
+name = "plotly"
+version = "6.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "narwhals" },
+    { name = "packaging" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8a/7c/f396bc817975252afbe7af102ce09cd12ac40a8e90b8699a857d1b15c8a3/plotly-6.1.1.tar.gz", hash = "sha256:84a4f3d36655f1328fa3155377c7e8a9533196697d5b79a4bc5e905bdd09a433", size = 7543694, upload-time = "2025-05-20T20:09:31.935Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/75/f3/f8cb7066f761e2530e1280889e3413769891e349fca35ee7290e4ace35f5/plotly-6.1.1-py3-none-any.whl", hash = "sha256:9cca7167406ebf7ff541422738402159ec3621a608ff7b3e2f025573a1c76225", size = 16118469, upload-time = "2025-05-20T20:09:26.196Z" },
+]
+
+[[package]]
 name = "polars"
 version = "1.30.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1954,6 +1967,7 @@ dependencies = [
     { name = "matplotlib" },
     { name = "pandas" },
     { name = "papermill" },
+    { name = "plotly" },
     { name = "polars" },
     { name = "pyarrow" },
     { name = "seaborn" },
@@ -1972,6 +1986,7 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.9.2" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "papermill", specifier = ">=2.6.0" },
+    { name = "plotly", specifier = ">=6.1.1" },
     { name = "polars", specifier = ">=1.29.0" },
     { name = "pyarrow", specifier = ">=20.0.0" },
     { name = "seaborn", specifier = ">=0.13.2" },
