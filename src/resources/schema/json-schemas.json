@@ -3177,7 +3177,27 @@
         }
       ]
     },
-    "BrandLogo": {
+    "BrandLogoSingle": {
+      "object": {
+        "properties": {
+          "images": {
+            "object": {
+              "properties": {}
+            }
+          },
+          "small": {
+            "type": "string"
+          },
+          "medium": {
+            "type": "string"
+          },
+          "large": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "BrandLogoUnified": {
       "object": {
         "properties": {
           "images": {
@@ -3207,7 +3227,7 @@
     "BrandColorValue": {
       "type": "string"
     },
-    "BrandColor": {
+    "BrandColorSingle": {
       "object": {
         "properties": {
           "palette": {
@@ -3254,6 +3274,72 @@
         }
       }
     },
+    "BrandColorLightDark": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BrandColorValue"
+        },
+        {
+          "object": {
+            "properties": {
+              "light": {
+                "$ref": "#/$defs/BrandColorValue"
+              },
+              "dark": {
+                "$ref": "#/$defs/BrandColorValue"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "BrandColorUnified": {
+      "object": {
+        "properties": {
+          "palette": {
+            "object": {
+              "properties": {}
+            }
+          },
+          "foreground": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "background": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "primary": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "secondary": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "tertiary": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "success": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "info": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "warning": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "danger": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "light": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "dark": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "link": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          }
+        }
+      }
+    },
     "BrandMaybeNamedColor": {
       "anyOf": [
         {
@@ -3261,6 +3347,25 @@
         },
         {
           "type": "string"
+        }
+      ]
+    },
+    "BrandMaybeNamedColorLightDark": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BrandMaybeNamedColor"
+        },
+        {
+          "object": {
+            "properties": {
+              "light": {
+                "$ref": "#/$defs/BrandMaybeNamedColor"
+              },
+              "dark": {
+                "$ref": "#/$defs/BrandMaybeNamedColor"
+              }
+            }
+          }
         }
       ]
     },
@@ -3280,7 +3385,7 @@
         "link"
       ]
     },
-    "BrandTypography": {
+    "BrandTypographySingle": {
       "object": {
         "properties": {
           "fonts": {
@@ -3293,19 +3398,49 @@
             "$ref": "#/$defs/BrandTypographyOptionsBase"
           },
           "headings": {
-            "$ref": "#/$defs/BrandTypographyOptionsHeadings"
+            "$ref": "#/$defs/BrandTypographyOptionsHeadingsSingle"
           },
           "monospace": {
-            "$ref": "#/$defs/BrandTypographyOptionsMonospace"
+            "$ref": "#/$defs/BrandTypographyOptionsMonospaceSingle"
           },
           "monospace-inline": {
-            "$ref": "#/$defs/BrandTypographyOptionsMonospaceInline"
+            "$ref": "#/$defs/BrandTypographyOptionsMonospaceInlineSingle"
           },
           "monospace-block": {
-            "$ref": "#/$defs/BrandTypographyOptionsMonospaceBlock"
+            "$ref": "#/$defs/BrandTypographyOptionsMonospaceBlockSingle"
           },
           "link": {
-            "$ref": "#/$defs/BrandTypographyOptionsLink"
+            "$ref": "#/$defs/BrandTypographyOptionsLinkSingle"
+          }
+        }
+      }
+    },
+    "BrandTypographyUnified": {
+      "object": {
+        "properties": {
+          "fonts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/BrandFont"
+            }
+          },
+          "base": {
+            "$ref": "#/$defs/BrandTypographyOptionsBase"
+          },
+          "headings": {
+            "$ref": "#/$defs/BrandTypographyOptionsHeadingsUnified"
+          },
+          "monospace": {
+            "$ref": "#/$defs/BrandTypographyOptionsMonospaceUnified"
+          },
+          "monospace-inline": {
+            "$ref": "#/$defs/BrandTypographyOptionsMonospaceInlineUnified"
+          },
+          "monospace-block": {
+            "$ref": "#/$defs/BrandTypographyOptionsMonospaceBlockUnified"
+          },
+          "link": {
+            "$ref": "#/$defs/BrandTypographyOptionsLinkUnified"
           }
         }
       }
@@ -3335,7 +3470,7 @@
         }
       ]
     },
-    "BrandTypographyOptionsHeadings": {
+    "BrandTypographyOptionsHeadingsSingle": {
       "anyOf": [
         {
           "type": "string"
@@ -3363,7 +3498,35 @@
         }
       ]
     },
-    "BrandTypographyOptionsMonospace": {
+    "BrandTypographyOptionsHeadingsUnified": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "style": {
+                "$ref": "#/$defs/BrandFontStyle"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              },
+              "line-height": {
+                "$ref": "#/$defs/LineHeightNumberString"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "BrandTypographyOptionsMonospaceSingle": {
       "anyOf": [
         {
           "type": "string"
@@ -3391,7 +3554,35 @@
         }
       ]
     },
-    "BrandTypographyOptionsMonospaceInline": {
+    "BrandTypographyOptionsMonospaceUnified": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string"
+              },
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              },
+              "background-color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "BrandTypographyOptionsMonospaceInlineSingle": {
       "anyOf": [
         {
           "type": "string"
@@ -3413,6 +3604,34 @@
               },
               "background-color": {
                 "$ref": "#/$defs/BrandMaybeNamedColor"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "BrandTypographyOptionsMonospaceInlineUnified": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string"
+              },
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              },
+              "background-color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
               }
             }
           }
@@ -3429,7 +3648,7 @@
         }
       ]
     },
-    "BrandTypographyOptionsMonospaceBlock": {
+    "BrandTypographyOptionsMonospaceBlockSingle": {
       "anyOf": [
         {
           "type": "string"
@@ -3460,7 +3679,38 @@
         }
       ]
     },
-    "BrandTypographyOptionsLink": {
+    "BrandTypographyOptionsMonospaceBlockUnified": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string"
+              },
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              },
+              "background-color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              },
+              "line-height": {
+                "$ref": "#/$defs/LineHeightNumberString"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "BrandTypographyOptionsLinkSingle": {
       "anyOf": [
         {
           "type": "string"
@@ -3485,11 +3735,39 @@
         }
       ]
     },
-    "BrandNamedFont": {
+    "BrandTypographyOptionsLinkUnified": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              },
+              "background-color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              },
+              "decoration": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "BrandNamedTypographyElements": {
       "enum": [
         "base",
         "headings",
-        "monospace"
+        "monospace",
+        "monospace-inline",
+        "monospace-block",
+        "link"
       ]
     },
     "BrandFont": {
@@ -3663,20 +3941,41 @@
     "BrandFontFamily": {
       "type": "string"
     },
-    "Brand": {
+    "BrandSingle": {
       "object": {
         "properties": {
           "meta": {
             "$ref": "#/$defs/BrandMeta"
           },
           "logo": {
-            "$ref": "#/$defs/BrandLogo"
+            "$ref": "#/$defs/BrandLogoUnified"
           },
           "color": {
-            "$ref": "#/$defs/BrandColor"
+            "$ref": "#/$defs/BrandColorSingle"
           },
           "typography": {
-            "$ref": "#/$defs/BrandTypography"
+            "$ref": "#/$defs/BrandTypographySingle"
+          },
+          "defaults": {
+            "$ref": "#/$defs/BrandDefaults"
+          }
+        }
+      }
+    },
+    "BrandUnified": {
+      "object": {
+        "properties": {
+          "meta": {
+            "$ref": "#/$defs/BrandMeta"
+          },
+          "logo": {
+            "$ref": "#/$defs/BrandLogoUnified"
+          },
+          "color": {
+            "$ref": "#/$defs/BrandColorUnified"
+          },
+          "typography": {
+            "$ref": "#/$defs/BrandTypographyUnified"
           },
           "defaults": {
             "$ref": "#/$defs/BrandDefaults"
@@ -3701,7 +4000,7 @@
                     "type": "string"
                   },
                   {
-                    "$ref": "#/$defs/Brand"
+                    "$ref": "#/$defs/BrandSingle"
                   }
                 ]
               },
@@ -3711,7 +4010,7 @@
                     "type": "string"
                   },
                   {
-                    "$ref": "#/$defs/Brand"
+                    "$ref": "#/$defs/BrandSingle"
                   }
                 ]
               }
@@ -3719,7 +4018,7 @@
           }
         },
         {
-          "$ref": "#/$defs/Brand"
+          "$ref": "#/$defs/BrandUnified"
         }
       ]
     },
