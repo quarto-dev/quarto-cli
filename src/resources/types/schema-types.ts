@@ -1242,7 +1242,14 @@ export type BrandLogoExplicitResource = { alt?: string; path: string };
 
 export type BrandLogoResource = string | BrandLogoExplicitResource;
 
-export type BrandLogo = {
+export type BrandLogoSingle = {
+  images?: { [key: string]: BrandLogoResource };
+  large?: string;
+  medium?: string;
+  small?: string;
+}; /* Provide definitions and defaults for brand's logo in various formats and sizes. */
+
+export type BrandLogoUnified = {
   images?: { [key: string]: BrandLogoResource };
   large?: BrandStringLightDark;
   medium?: BrandStringLightDark;
@@ -1256,7 +1263,7 @@ export type BrandNamedLogo =
 
 export type BrandColorValue = string;
 
-export type BrandColor = {
+export type BrandColorSingle = {
   background?: BrandColorValue;
   danger?: BrandColorValue;
   dark?: BrandColorValue;
@@ -1274,9 +1281,37 @@ export type BrandColor = {
   warning?: BrandColorValue;
 }; /* The brand's custom color palette and theme. */
 
+export type BrandColorLightDark = BrandColorValue | {
+  dark?: BrandColorValue;
+  light?: BrandColorValue;
+};
+
+export type BrandColorUnified = {
+  background?: BrandColorLightDark;
+  danger?: BrandColorLightDark;
+  dark?: BrandColorLightDark;
+  foreground?: BrandColorLightDark;
+  info?: BrandColorLightDark;
+  light?: BrandColorLightDark;
+  link?: BrandColorLightDark;
+  palette?: {
+    [key: string]: BrandColorValue;
+  } /* The brand's custom color palette. Any number of colors can be defined, each color having a custom name. */;
+  primary?: BrandColorLightDark;
+  secondary?: BrandColorLightDark;
+  success?: BrandColorLightDark;
+  tertiary?: BrandColorLightDark;
+  warning?: BrandColorLightDark;
+}; /* The brand's custom color palette and theme. */
+
 export type BrandMaybeNamedColor =
   | BrandNamedThemeColor
   | string; /* A color, which may be a named brand color. */
+
+export type BrandMaybeNamedColorLightDark = BrandMaybeNamedColor | {
+  dark?: BrandMaybeNamedColor;
+  light?: BrandMaybeNamedColor;
+};
 
 export type BrandNamedThemeColor =
   | "foreground"
@@ -1292,14 +1327,24 @@ export type BrandNamedThemeColor =
   | "dark"
   | "link"; /* A named brand color, taken either from `color.theme` or `color.palette` (in that order). */
 
-export type BrandTypography = {
-  "monospace-inline"?: BrandTypographyOptionsMonospaceInline;
-  "monospace-block"?: BrandTypographyOptionsMonospaceBlock;
+export type BrandTypographySingle = {
+  "monospace-inline"?: BrandTypographyOptionsMonospaceInlineSingle;
+  "monospace-block"?: BrandTypographyOptionsMonospaceBlockSingle;
   base?: BrandTypographyOptionsBase;
   fonts?: (BrandFont)[] /* Font files and definitions for the brand. */;
-  headings?: BrandTypographyOptionsHeadings;
-  link?: BrandTypographyOptionsLink;
-  monospace?: BrandTypographyOptionsMonospace;
+  headings?: BrandTypographyOptionsHeadingsSingle;
+  link?: BrandTypographyOptionsLinkSingle;
+  monospace?: BrandTypographyOptionsMonospaceSingle;
+}; /* Typography definitions for the brand. */
+
+export type BrandTypographyUnified = {
+  "monospace-inline"?: BrandTypographyOptionsMonospaceInlineUnified;
+  "monospace-block"?: BrandTypographyOptionsMonospaceBlockUnified;
+  base?: BrandTypographyOptionsBase;
+  fonts?: (BrandFont)[] /* Font files and definitions for the brand. */;
+  headings?: BrandTypographyOptionsHeadingsUnified;
+  link?: BrandTypographyOptionsLinkUnified;
+  monospace?: BrandTypographyOptionsMonospaceUnified;
 }; /* Typography definitions for the brand. */
 
 export type BrandTypographyOptionsBase = string | {
@@ -1309,7 +1354,7 @@ export type BrandTypographyOptionsBase = string | {
   weight?: BrandFontWeight;
 }; /* Base typographic options. */
 
-export type BrandTypographyOptionsHeadings = string | {
+export type BrandTypographyOptionsHeadingsSingle = string | {
   "line-height"?: LineHeightNumberString;
   color?: BrandMaybeNamedColor;
   family?: string;
@@ -1317,7 +1362,15 @@ export type BrandTypographyOptionsHeadings = string | {
   weight?: BrandFontWeight;
 }; /* Typographic options for headings. */
 
-export type BrandTypographyOptionsMonospace = string | {
+export type BrandTypographyOptionsHeadingsUnified = string | {
+  "line-height"?: LineHeightNumberString;
+  color?: BrandMaybeNamedColorLightDark;
+  family?: string;
+  style?: BrandFontStyle;
+  weight?: BrandFontWeight;
+}; /* Typographic options for headings. */
+
+export type BrandTypographyOptionsMonospaceSingle = string | {
   "background-color"?: BrandMaybeNamedColor;
   color?: BrandMaybeNamedColor;
   family?: string;
@@ -1325,7 +1378,15 @@ export type BrandTypographyOptionsMonospace = string | {
   weight?: BrandFontWeight;
 }; /* Typographic options for monospace elements. */
 
-export type BrandTypographyOptionsMonospaceInline = string | {
+export type BrandTypographyOptionsMonospaceUnified = string | {
+  "background-color"?: BrandMaybeNamedColorLightDark;
+  color?: BrandMaybeNamedColorLightDark;
+  family?: string;
+  size?: string;
+  weight?: BrandFontWeight;
+}; /* Typographic options for monospace elements. */
+
+export type BrandTypographyOptionsMonospaceInlineSingle = string | {
   "background-color"?: BrandMaybeNamedColor;
   color?: BrandMaybeNamedColor;
   family?: string;
@@ -1333,9 +1394,17 @@ export type BrandTypographyOptionsMonospaceInline = string | {
   weight?: BrandFontWeight;
 }; /* Typographic options for inline monospace elements. */
 
+export type BrandTypographyOptionsMonospaceInlineUnified = string | {
+  "background-color"?: BrandMaybeNamedColorLightDark;
+  color?: BrandMaybeNamedColorLightDark;
+  family?: string;
+  size?: string;
+  weight?: BrandFontWeight;
+}; /* Typographic options for inline monospace elements. */
+
 export type LineHeightNumberString = number | string; /* Line height */
 
-export type BrandTypographyOptionsMonospaceBlock = string | {
+export type BrandTypographyOptionsMonospaceBlockSingle = string | {
   "background-color"?: BrandMaybeNamedColor;
   "line-height"?: LineHeightNumberString;
   color?: BrandMaybeNamedColor;
@@ -1344,17 +1413,36 @@ export type BrandTypographyOptionsMonospaceBlock = string | {
   weight?: BrandFontWeight;
 }; /* Typographic options for block monospace elements. */
 
-export type BrandTypographyOptionsLink = string | {
+export type BrandTypographyOptionsMonospaceBlockUnified = string | {
+  "background-color"?: BrandMaybeNamedColorLightDark;
+  "line-height"?: LineHeightNumberString;
+  color?: BrandMaybeNamedColorLightDark;
+  family?: string;
+  size?: string;
+  weight?: BrandFontWeight;
+}; /* Typographic options for block monospace elements. */
+
+export type BrandTypographyOptionsLinkSingle = string | {
   "background-color"?: BrandMaybeNamedColor;
   color?: BrandMaybeNamedColor;
   decoration?: string;
   weight?: BrandFontWeight;
 }; /* Typographic options for inline monospace elements. */
 
-export type BrandNamedFont =
+export type BrandTypographyOptionsLinkUnified = string | {
+  "background-color"?: BrandMaybeNamedColorLightDark;
+  color?: BrandMaybeNamedColorLightDark;
+  decoration?: string;
+  weight?: BrandFontWeight;
+}; /* Typographic options for inline monospace elements. */
+
+export type BrandNamedTypographyElements =
   | "base"
   | "headings"
-  | "monospace"; /* Names of customizeable fonts */
+  | "monospace"
+  | "monospace-inline"
+  | "monospace-block"
+  | "link"; /* Names of customizeable typography elements */
 
 export type BrandFont =
   | BrandFontGoogle
@@ -1428,12 +1516,20 @@ export type BrandFontFile = {
 
 export type BrandFontFamily = string;
 
-export type Brand = {
-  color?: BrandColor;
+export type BrandSingle = {
+  color?: BrandColorSingle;
   defaults?: BrandDefaults;
-  logo?: BrandLogo;
+  logo?: BrandLogoUnified;
   meta?: BrandMeta;
-  typography?: BrandTypography;
+  typography?: BrandTypographySingle;
+};
+
+export type BrandUnified = {
+  color?: BrandColorUnified;
+  defaults?: BrandDefaults;
+  logo?: BrandLogoUnified;
+  meta?: BrandMeta;
+  typography?: BrandTypographyUnified;
 };
 
 export type BrandPathBoolLightDark =
@@ -1442,13 +1538,13 @@ export type BrandPathBoolLightDark =
   | {
     dark?:
       | string
-      | Brand /* The path to a dark brand file or an inline dark brand definition. */;
+      | BrandSingle /* The path to a dark brand file or an inline dark brand definition. */;
     light?:
       | string
-      | Brand; /* The path to a light brand file or an inline light brand definition. */
+      | BrandSingle; /* The path to a light brand file or an inline light brand definition. */
   }
-  | Brand; /* Branding information to use for this document. If a string, the path to a brand file.
-If false, don't use branding on this document. If an object, an inline brand
+  | BrandUnified; /* Branding information to use for this document. If a string, the path to a brand file.
+If false, don't use branding on this document. If an object, an inline (unified) brand
 definition, or an object with light and dark brand paths or definitions. */
 
 export type BrandDefaults = {
