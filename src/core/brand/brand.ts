@@ -331,16 +331,16 @@ function splitColorLightDark(
   }
   return bcld;
 }
-function colorIsUnified(blcd: BrandColorLightDark) {
+function enablesDarkMode(blcd: BrandColorLightDark) {
   return typeof blcd === "object" && "dark" in blcd;
 }
-export function brandIsUnified(brand: BrandUnified): boolean {
+export function brandHasDarkMode(brand: BrandUnified): boolean {
   if (brand.color) {
     for (const colorName of Zod.BrandNamedThemeColor.options) {
       if (!brand.color[colorName]) {
         continue;
       }
-      if (colorIsUnified(brand.color![colorName])) {
+      if (enablesDarkMode(brand.color![colorName])) {
         return true;
       }
     }
@@ -353,13 +353,13 @@ export function brandIsUnified(brand: BrandUnified): boolean {
       }
       if (
         "background-color" in element && element["background-color"] &&
-        colorIsUnified(element["background-color"])
+        enablesDarkMode(element["background-color"])
       ) {
         return true;
       }
       if (
         "color" in element && element["color"] &&
-        colorIsUnified(element["color"])
+        enablesDarkMode(element["color"])
       ) {
         return true;
       }
@@ -555,7 +555,7 @@ export function splitUnifiedBrand(
   }
   return {
     light: new Brand(lightBrand, brandDir, projectDir),
-    dark: brandIsUnified(unifiedBrand)
+    dark: brandHasDarkMode(unifiedBrand)
       ? new Brand(darkBrand, brandDir, projectDir)
       : undefined,
   };
