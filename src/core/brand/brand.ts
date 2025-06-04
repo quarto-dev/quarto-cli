@@ -10,6 +10,7 @@ import {
   BrandColorLightDark,
   BrandFont,
   BrandLogoExplicitResource,
+  BrandNamedLogo,
   BrandNamedThemeColor,
   BrandSingle,
   BrandTypographyOptionsBase,
@@ -24,30 +25,6 @@ import { InternalError } from "../lib/error.ts";
 import { join, relative } from "../../deno_ral/path.ts";
 import { warnOnce } from "../log.ts";
 import { isCssColorName } from "../css/color-names.ts";
-
-// we can't programmatically convert typescript types to string arrays,
-// so we have to define this manually. They should match `BrandNamedThemeColor` in schema-types.ts
-
-export const defaultColorNames: BrandNamedThemeColor[] = [
-  "foreground",
-  "background",
-  "primary",
-  "secondary",
-  "tertiary",
-  "success",
-  "info",
-  "warning",
-  "danger",
-  "light",
-  "dark",
-  "link",
-];
-
-const defaultLogoNames: string[] = [
-  "small",
-  "medium",
-  "large",
-];
 
 type CanonicalLogoInfo = {
   light: BrandLogoExplicitResource;
@@ -156,11 +133,7 @@ export class Brand {
 
     const logo: ProcessedBrandData["logo"] = { images: {} };
     for (
-      const size of [
-        "small",
-        "medium",
-        "large",
-      ] as ("small" | "medium" | "large")[]
+      const size of Zod.BrandNamedLogo.options
     ) {
       const v = this.getLogo(size);
       if (v) {
@@ -203,7 +176,9 @@ export class Brand {
       if (this.data.color?.palette?.[name]) {
         name = this.data.color.palette[name] as string;
       } else if (
-        defaultColorNames.includes(name as BrandNamedThemeColor) &&
+        Zod.BrandNamedThemeColor.options.includes(
+          name as BrandNamedThemeColor,
+        ) &&
         this.data.color?.[name as BrandNamedThemeColor]
       ) {
         name = this.data.color[name as BrandNamedThemeColor]!;
@@ -278,7 +253,7 @@ export class Brand {
     };
   }
 
-  getLogo(name: "small" | "medium" | "large"): CanonicalLogoInfo | undefined {
+  getLogo(name: BrandNamedLogo): CanonicalLogoInfo | undefined {
     const entry = this.data.logo?.[name];
     if (!entry) {
       return undefined;
@@ -331,9 +306,11 @@ function splitColorLightDark(
   }
   return bcld;
 }
+
 function enablesDarkMode(blcd: BrandColorLightDark) {
   return typeof blcd === "object" && "dark" in blcd;
 }
+
 export function brandHasDarkMode(brand: BrandUnified): boolean {
   if (brand.color) {
     for (const colorName of Zod.BrandNamedThemeColor.options) {
@@ -367,6 +344,7 @@ export function brandHasDarkMode(brand: BrandUnified): boolean {
   }
   return false;
 }
+
 function sharedTypography(
   unified: BrandTypographyUnified,
 ): BrandTypographySingle {
