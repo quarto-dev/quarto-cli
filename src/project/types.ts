@@ -14,6 +14,7 @@ import { ExecutionEngine, ExecutionTarget } from "../execute/types.ts";
 import { InspectedMdCell } from "../inspect/inspect-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import {
+  LogoLightDarkSpecifier,
   NavigationItem as NavItem,
   NavigationItemObject,
   NavigationItemObject as SidebarTool,
@@ -151,7 +152,7 @@ export const kSidebarMenus = "sidebar-menus";
 
 export interface Navbar {
   title?: string | false;
-  logo?: string;
+  logo?: LogoLightDarkSpecifier;
   [kLogoAlt]?: string;
   [kLogoHref]?: string;
   background:
@@ -197,7 +198,7 @@ export interface Sidebar {
   id?: string;
   title?: string;
   subtitle?: string;
-  logo?: string;
+  logo?: LogoLightDarkSpecifier;
   [kLogoAlt]?: string;
   [kLogoHref]?: string;
   alignment?: "left" | "right" | "center";

@@ -36,7 +36,12 @@
     <div class="pt-lg-2 mt-2 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
     <% if (sidebar.logo) { %>
       <a href="<%- sidebar['logo-href'] || '/index.html' %>" class="sidebar-logo-link">
-      <img src="<%- sidebar.logo %>" alt="<%- sidebar['logo-alt'] || '' %>" class="sidebar-logo py-0 d-lg-inline d-none"/>
+      <% if (sidebar.logo.light) { %>
+      <img src="<%- sidebar.logo.light.path %>" alt="<%- sidebar.logo.light.alt || '' %>" class="sidebar-logo light-content py-0 d-lg-inline d-none"/>
+      <% } %>
+      <% if (sidebar.logo.dark) { %>
+      <img src="<%- sidebar.logo.dark.path %>" alt="<%- sidebar.logo.dark.alt || '' %>" class="sidebar-logo dark-content py-0 d-lg-inline d-none"/>
+      <% } %>
       </a>
     <% } %>
     <% if (needsTools && toolsLocation === "logo") { %>

@@ -4,7 +4,7 @@
   schema:
     anyOf:
       - string
-      - object # typst: location, padding, padding-*, width, source
+      - object
   description: "Logo image (placed in bottom right corner of slides)"
 
 - name: footer

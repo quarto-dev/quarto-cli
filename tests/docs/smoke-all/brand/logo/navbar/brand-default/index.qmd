@@ -1,0 +1,11 @@
+---
+title: intro
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'img[class*="light-content"][src="./sun-face.png"][alt=""]'
+          - 'img[class*="dark-content"][src="./moon-face.png"][alt=""]'
+        - []
+---
