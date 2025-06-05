@@ -172,9 +172,16 @@ export async function websiteNavigationConfig(project: ProjectContext) {
       const logo = projectBrand.light.processedData.logo.medium ??
         projectBrand.light.processedData.logo.small ??
         projectBrand.light.processedData.logo.large;
-      if (logo) {
-        sidebars[0].logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
-        sidebars[0]["logo-alt"] = logo.light.alt;
+      const darkLogo = projectBrand.dark && (
+        projectBrand.dark.processedData.logo.medium ??
+          projectBrand.dark.processedData.logo.small ??
+          projectBrand.dark.processedData.logo.large
+      );
+      if (logo || darkLogo) {
+        sidebars[0].logo = {
+          light: logo,
+          dark: darkLogo,
+        };
       }
     }
   }
@@ -186,8 +193,9 @@ export async function websiteNavigationConfig(project: ProjectContext) {
       projectBrand.light.processedData.logo.medium ??
       projectBrand.light.processedData.logo.large;
     if (logo) {
-      navbar.logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
-      navbar["logo-alt"] = logo.light.alt;
+      navbar.logo = logo.path; // TODO: This needs smarts to work on light+dark themes
+      navbar["logo-alt"] = logo.alt;
+      console.log("navbar logo", logo);
     }
   }
 

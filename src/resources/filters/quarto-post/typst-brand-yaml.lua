@@ -219,13 +219,13 @@ function render_typst_brand_yaml()
         local foundLogo = null
          if logo then
           if type(logo) == 'string' then
-            foundLogo = _quarto.modules.brand.get_logo(brandMode, logo) or {light={path=logo}}
+            foundLogo = _quarto.modules.brand.get_logo(brandMode, logo) or {path=logo}
           elseif type(logo) == 'table' then
             for k, v in pairs(logo) do
               logoOptions[k] = v
             end
             if logo.path then
-              foundLogo =  _quarto.modules.brand.get_logo(brandMode, logo.path) or {light={path=logo}}
+              foundLogo =  _quarto.modules.brand.get_logo(brandMode, logo.path) or {path=logo}
             end
           end
         end
@@ -236,13 +236,8 @@ function render_typst_brand_yaml()
             or _quarto.modules.brand.get_logo(brandMode, 'large')
         end
         if foundLogo then
-          if foundLogo.light then
-            logoOptions.path = foundLogo.light.path
-            logoOptions.alt = foundLogo.light.alt
-          elseif foundLogo.dark then
-            logoOptions.path = foundLogo.dark.path
-            logoOptions.alt = foundLogo.dark.alt
-          end
+          logoOptions.path = foundLogo.path
+          logoOptions.alt = foundLogo.alt
 
           local pads = {}
           for k, v in _quarto.utils.table.sortedPairs(logoOptions) do

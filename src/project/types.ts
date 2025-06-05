@@ -14,6 +14,7 @@ import { ExecutionEngine, ExecutionTarget } from "../execute/types.ts";
 import { InspectedMdCell } from "../inspect/inspect-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import {
+  BrandLogoExplicitResource,
   NavigationItem as NavItem,
   NavigationItemObject,
   NavigationItemObject as SidebarTool,
@@ -149,6 +150,11 @@ export const kLogoHref = "logo-href";
 
 export const kSidebarMenus = "sidebar-menus";
 
+export interface LightDarkLogo {
+  light?: BrandLogoExplicitResource;
+  dark?: BrandLogoExplicitResource;
+}
+
 export interface Navbar {
   title?: string | false;
   logo?: string;
@@ -197,8 +203,7 @@ export interface Sidebar {
   id?: string;
   title?: string;
   subtitle?: string;
-  logo?: string;
-  [kLogoAlt]?: string;
+  logo?: LightDarkLogo;
   [kLogoHref]?: string;
   alignment?: "left" | "right" | "center";
   align?: "left" | "right" | "center"; // This is here only because older versions of Quarto used to use it even though it wasn't documented
