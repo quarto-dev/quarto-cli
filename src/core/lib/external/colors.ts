@@ -12,7 +12,7 @@
 /**
  * ```ts
  * import { bgBlue, red, bold } from "https://deno.land/std@$STD_VERSION/fmt/colors";
- * console.log(bgBlue(red(bold("Hello world!"))));
+ * console["log"](bgBlue(red(bold("Hello world!"))));
  * ```
  *
  * This module supports `NO_COLOR` environmental variable disabling any coloring

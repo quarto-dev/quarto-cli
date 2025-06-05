@@ -150,7 +150,7 @@ function recursiveModuleDependencies(
   });
 
   const analysis = esbuildCachedAnalysis(inpRelPath);
-  // console.log(JSON.stringify(analysis, null, 2));
+  // info(JSON.stringify(analysis, null, 2));
   for (const [_key, value] of Object.entries(analysis.outputs)) {
     for (const imp of value.imports) {
       if (imp.external) {

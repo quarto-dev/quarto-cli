@@ -362,7 +362,7 @@ async function resolveImport(
         ) !== -1
       );
 
-    console.log(errorLines);
+    error(errorLines);
     const errorCountRe = /^Found (\d+) errors.$/;
     const errorCount = Number(
       (errorLines.filter((x) => (x.trim().match(errorCountRe)))[0] ??
@@ -377,14 +377,14 @@ async function resolveImport(
       if (m === null) {
         // this is an internal error, but we do the best we can by simply printing out the
         // error as we know it
-        console.log(errStr);
+        error(errStr);
         throw new InternalError("Internal error in deno ojs cell compilation.");
       }
 
       const badFile = fromFileUrl(m[1]);
       const badContents = Deno.readTextFileSync(badFile);
       if (!badContents.startsWith("/** @jsxImportSource quarto-tsx */")) {
-        console.log(`
+        error(`
 File ${colors.red(badFile)} must start with
 
 ${colors.yellow("/** @jsxImportSource quarto-tsx */")}
@@ -394,7 +394,7 @@ We apologize for the inconvenience; this is a temporary workaround for an upstre
       }
 
       if (denoBugErrorLines.length !== errorCount) {
-        console.log(`Other compilation errors follow below.\n`);
+        error(`Other compilation errors follow below.\n`);
 
         let colorErrorLines = lines(errStr);
         for (let i = denoBugErrorLines.length - 1; i >= 0; i--) {
@@ -411,7 +411,7 @@ We apologize for the inconvenience; this is a temporary workaround for an upstre
       }
       throw new Error();
     }
-    console.log(errStr);
+    error(errStr);
     throw new Error();
   }
 

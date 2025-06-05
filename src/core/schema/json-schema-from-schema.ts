@@ -14,6 +14,7 @@ import {
   JsonObject,
   SchemaSchema,
 } from "../../resources/types/schema-schema-types.ts";
+import { error } from "../../deno_ral/log.ts";
 
 // https://json-schema.org/draft/2020-12/json-schema-core#name-json-schema-documents
 type JsonSchema = JsonObject | boolean;
@@ -129,8 +130,8 @@ const convertSchemaToJSONSchema = (_schema: SchemaSchema): JsonSchema => {
         };
       }
     } else {
-      console.log({ schema });
-      console.log(typeof schema);
+      error({ schema });
+      error(typeof schema);
       throw new Error(`fallthrough?`);
     }
   } else {
@@ -140,7 +141,7 @@ const convertSchemaToJSONSchema = (_schema: SchemaSchema): JsonSchema => {
       };
     }
   }
-  console.log(JSON.stringify(schema, null, 2));
+  error(JSON.stringify(schema, null, 2));
   throw new Error("Not implemented");
 };
 
@@ -152,8 +153,8 @@ export const generateJsonSchemasFromSchemas = async (resourcePath: string) => {
       try {
         acc[name] = convertSchemaToJSONSchema(schema);
       } catch (e) {
-        console.log("Outermost failing schema:");
-        console.log(JSON.stringify(schema));
+        error("Outermost failing schema:");
+        error(JSON.stringify(schema));
         throw e;
       }
       return acc;
