@@ -1012,6 +1012,7 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // ensure title and search are present
   sidebar.title = await sidebarTitle(sidebar, project) as string | undefined;
+  console.log("sidebar.logo", sidebar.logo);
   if (sidebar.logo?.light) {
     sidebar.logo.light.path = resolveLogo(sidebar.logo.light.path)!;
   }

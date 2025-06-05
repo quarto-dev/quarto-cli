@@ -148,6 +148,17 @@ export async function websiteNavigationConfig(project: ProjectContext) {
       sidebars[0].tools = [];
     }
 
+    if (sidebars[0].logo) { // normalize to LightDarkLogo
+      if (typeof (sidebars[0].logo) === "string") {
+        sidebars[0].logo = {
+          light: {
+            path: sidebars[0].logo,
+            alt: (sidebars[0] as unknown as { "logo-alt": string })["logo-alt"],
+          },
+        };
+      }
+    }
+
     // convert contents: auto into items
     for (const sb of sidebars) {
       if (sb.contents && !Array.isArray(sb.contents)) {
