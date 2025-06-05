@@ -1012,8 +1012,12 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // ensure title and search are present
   sidebar.title = await sidebarTitle(sidebar, project) as string | undefined;
-  sidebar.logo = resolveLogo(sidebar.logo);
-
+  if (sidebar.logo?.light) {
+    sidebar.logo.light.path = resolveLogo(sidebar.logo.light.path)!;
+  }
+  if (sidebar.logo?.dark) {
+    sidebar.logo.dark.path = resolveLogo(sidebar.logo.dark.path)!;
+  }
   const searchOpts = await searchOptions(project);
   sidebar.search = sidebar.search !== undefined
     ? sidebar.search

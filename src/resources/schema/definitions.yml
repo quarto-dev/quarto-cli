@@ -3222,7 +3222,7 @@
       meta:
         ref: brand-meta
       logo:
-        ref: brand-logo-unified # temporary
+        ref: brand-logo-single
       color:
         ref: brand-color-single
       typography:

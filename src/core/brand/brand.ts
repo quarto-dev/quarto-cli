@@ -10,9 +10,12 @@ import {
   BrandColorLightDark,
   BrandFont,
   BrandLogoExplicitResource,
+  BrandLogoSingle,
+  BrandLogoUnified,
   BrandNamedLogo,
   BrandNamedThemeColor,
   BrandSingle,
+  BrandStringLightDark,
   BrandTypographyOptionsBase,
   BrandTypographyOptionsHeadingsSingle,
   BrandTypographySingle,
@@ -26,18 +29,13 @@ import { join, relative } from "../../deno_ral/path.ts";
 import { warnOnce } from "../log.ts";
 import { isCssColorName } from "../css/color-names.ts";
 
-type CanonicalLogoInfo = {
-  light: BrandLogoExplicitResource;
-  dark: BrandLogoExplicitResource;
-};
-
 type ProcessedBrandData = {
   color: Record<string, string>;
   typography: BrandTypographySingle;
   logo: {
-    small?: CanonicalLogoInfo;
-    medium?: CanonicalLogoInfo;
-    large?: CanonicalLogoInfo;
+    small?: BrandLogoExplicitResource;
+    medium?: BrandLogoExplicitResource;
+    large?: BrandLogoExplicitResource;
     images: Record<string, BrandLogoExplicitResource>;
   };
 };
@@ -253,30 +251,12 @@ export class Brand {
     };
   }
 
-  getLogo(name: BrandNamedLogo): CanonicalLogoInfo | undefined {
+  getLogo(name: BrandNamedLogo): BrandLogoExplicitResource | undefined {
     const entry = this.data.logo?.[name];
     if (!entry) {
       return undefined;
     }
-    if (typeof entry === "string") {
-      const res = this.getLogoResource(entry);
-      return {
-        light: res,
-        dark: res,
-      };
-    }
-    const lightEntry = entry?.light
-      ? this.getLogoResource(entry.light)
-      : undefined;
-    const darkEntry = entry?.dark
-      ? this.getLogoResource(entry.dark)
-      : undefined;
-    if (lightEntry && darkEntry) {
-      return {
-        light: lightEntry,
-        dark: darkEntry,
-      };
-    }
+    return this.getLogoResource(entry);
   }
 }
 
@@ -295,7 +275,7 @@ export const getFavicon = (brand: Brand): string | undefined => {
   if (!logoInfo) {
     return undefined;
   }
-  return logoInfo.light.path;
+  return logoInfo.path;
 };
 
 function splitColorLightDark(
@@ -307,9 +287,8 @@ function splitColorLightDark(
   return bcld;
 }
 
-function enablesDarkMode(blcd: BrandColorLightDark) {
-  return typeof blcd === "object" && "dark" in blcd;
-}
+const enablesDarkMode = (x: BrandColorLightDark | BrandStringLightDark) =>
+  typeof x === "object" && x?.dark;
 
 export function brandHasDarkMode(brand: BrandUnified): boolean {
   if (brand.color) {
@@ -324,7 +303,7 @@ export function brandHasDarkMode(brand: BrandUnified): boolean {
   }
   if (brand.typography) {
     for (const elementName of Zod.BrandNamedTypographyElements.options) {
-      const element = brand.typography![elementName];
+      const element = brand.typography[elementName];
       if (!element || typeof element === "string") {
         continue;
       }
@@ -338,6 +317,17 @@ export function brandHasDarkMode(brand: BrandUnified): boolean {
         "color" in element && element["color"] &&
         enablesDarkMode(element["color"])
       ) {
+        return true;
+      }
+    }
+  }
+  if (brand.logo) {
+    for (const logoName of Zod.BrandNamedLogo.options) {
+      const logo = brand.logo[logoName];
+      if (!logo || typeof logo === "string") {
+        continue;
+      }
+      if (enablesDarkMode(logo)) {
         return true;
       }
     }
@@ -367,6 +357,25 @@ function sharedTypography(
   }
   return ret;
 }
+
+function splitLogo(
+  unifiedLogo: BrandLogoUnified,
+): { light: BrandLogoSingle; dark: BrandLogoSingle } {
+  const light: BrandLogoSingle = { images: unifiedLogo.images },
+    dark: BrandLogoSingle = { images: unifiedLogo.images };
+  for (const logoName of Zod.BrandNamedLogo.options) {
+    if (unifiedLogo[logoName]) {
+      if (typeof unifiedLogo[logoName] === "string") {
+        light[logoName] = dark[logoName] = unifiedLogo[logoName];
+        continue;
+      }
+      ({ light: light[logoName], dark: dark[logoName] } =
+        unifiedLogo[logoName]);
+    }
+  }
+  return { light, dark };
+}
+
 export function splitUnifiedBrand(
   unified: unknown,
   brandDir: string,
@@ -506,18 +515,19 @@ export function splitUnifiedBrand(
             linkBackgroundColor[mode],
         },
     };
+  const logos = unifiedBrand.logo && splitLogo(unifiedBrand.logo);
   const lightBrand: BrandSingle = {
     meta: unifiedBrand.meta,
     color: { palette: unifiedBrand.color && { ...unifiedBrand.color.palette } },
     typography: typography && specializeTypography(typography, "light"),
-    logo: unifiedBrand.logo,
+    logo: logos && logos.light,
     defaults: unifiedBrand.defaults,
   };
   const darkBrand: BrandSingle = {
     meta: unifiedBrand.meta,
     color: { palette: unifiedBrand.color && { ...unifiedBrand.color.palette } },
     typography: typography && specializeTypography(typography, "dark"),
-    logo: unifiedBrand.logo,
+    logo: logos && logos.dark,
     defaults: unifiedBrand.defaults,
   };
   if (unifiedBrand.color) {
