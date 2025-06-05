@@ -1695,7 +1695,7 @@ export const ZodBrandFontFamily = z.string();
 
 export const ZodBrandSingle = z.object({
   meta: z.lazy(() => ZodBrandMeta),
-  logo: z.lazy(() => ZodBrandLogoUnified),
+  logo: z.lazy(() => ZodBrandLogoSingle),
   color: z.lazy(() => ZodBrandColorSingle),
   typography: z.lazy(() => ZodBrandTypographySingle),
   defaults: z.lazy(() => ZodBrandDefaults),

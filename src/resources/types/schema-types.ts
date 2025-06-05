@@ -1519,7 +1519,7 @@ export type BrandFontFamily = string;
 export type BrandSingle = {
   color?: BrandColorSingle;
   defaults?: BrandDefaults;
-  logo?: BrandLogoUnified;
+  logo?: BrandLogoSingle;
   meta?: BrandMeta;
   typography?: BrandTypographySingle;
 };
