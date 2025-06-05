@@ -397,7 +397,7 @@ async function ensureQuartoNotebookRunnerEnvironment(
 ) {
   const projectTomlTemplate = juliaResourcePath("Project.toml");
   const projectToml = join(juliaRuntimeDir(), "Project.toml");
-  Deno.copyFileSync(projectTomlTemplate, projectToml);
+  Deno.writeFileSync(projectToml, Deno.readFileSync(projectTomlTemplate));
   const command = new Deno.Command(juliaCmd(), {
     args: [
       "--startup-file=no",
