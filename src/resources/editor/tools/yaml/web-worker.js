@@ -12882,7 +12882,7 @@ try {
                   ref: "brand-meta"
                 },
                 logo: {
-                  ref: "brand-logo-unified"
+                  ref: "brand-logo-single"
                 },
                 color: {
                   ref: "brand-color-single"

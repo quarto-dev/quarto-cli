@@ -12881,7 +12881,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 ref: "brand-meta"
               },
               logo: {
-                ref: "brand-logo-unified"
+                ref: "brand-logo-single"
               },
               color: {
                 ref: "brand-color-single"

@@ -3948,7 +3948,7 @@
             "$ref": "#/$defs/BrandMeta"
           },
           "logo": {
-            "$ref": "#/$defs/BrandLogoUnified"
+            "$ref": "#/$defs/BrandLogoSingle"
           },
           "color": {
             "$ref": "#/$defs/BrandColorSingle"
