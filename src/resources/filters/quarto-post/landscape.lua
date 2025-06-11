@@ -44,8 +44,8 @@ function landscape_div()
     if div.classes:includes('landscape') then
       if FORMAT:match 'docx' then
         -- DOCX-specific landscape orientation
-        local height = pandoc.utils.stringify(div.attributes.height) or "8.5cm"
-        local width = pandoc.utils.stringify(div.attributes.width) or "11cm"
+        local height = div.attributes.height or "8.5in"
+        local width = div.attributes.width or "11in"
 
         -- Define the end of a landscape section for DOCX
         local end_landscape_section = ooxml(
