@@ -1,9 +1,8 @@
 /*
-* embed.ts
-*
-* Copyright (C) 2022 by Posit, PBC
-*
-*/
+ * embed.ts
+ *
+ * Copyright (C) 2022-2025 by Posit, PBC
+ */
 
 import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
@@ -63,7 +62,8 @@ const kHandlers: EmbedHandler[] = [
           handled: true,
           markdownFragments,
           resources: [
-            notebookAddress.path,
+            // Narrow fix for https://github.com/quarto-dev/quarto-cli/issues/9224
+            notebookAddress.path.replaceAll("\\_", "\\\\_"),
           ],
         });
       } else {
