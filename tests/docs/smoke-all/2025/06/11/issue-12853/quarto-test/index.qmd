@@ -1,0 +1,15 @@
+---
+title: Home Page
+format:
+    html: default
+    pdf: default
+---
+
+## From an embedded notebook
+
+{{< embed somefolder/somefile.qmd#plot-phase-space-density echo=true >}}
+
+## Still from an embedded notebook
+
+{{< embed somefolder/somefile.qmd#plot-final-density echo=true >}}
+
