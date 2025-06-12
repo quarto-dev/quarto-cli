@@ -23,7 +23,7 @@ import { execProcess } from "./process.ts";
 import { pandocBinaryPath } from "./resources.ts";
 import { Block, pandoc } from "./pandoc/json.ts";
 
-export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
+export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "CRITICAL";
 
 export interface LogOptions {
   log?: string;
@@ -461,6 +461,7 @@ const levelMap: Record<
   info: "INFO",
   warning: "WARN",
   error: "ERROR",
+  critical: "CRITICAL",
 };
 
 export async function logPandocJson(
