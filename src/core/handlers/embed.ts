@@ -62,8 +62,7 @@ const kHandlers: EmbedHandler[] = [
           handled: true,
           markdownFragments,
           resources: [
-            // Narrow fix for https://github.com/quarto-dev/quarto-cli/issues/9224
-            notebookAddress.path.replaceAll("\\_", "\\\\_"),
+            notebookAddress.path,
           ],
         });
       } else {
