@@ -55,7 +55,7 @@ export function appendLogOptions(cmd: Command<any>): Command<any> {
       },
     ).option(
       "--log-level <level>",
-      "Log level (info, warning, error, critical)",
+      "Log level (debug, info, warning, error, critical)",
       {
         global: true,
       },
