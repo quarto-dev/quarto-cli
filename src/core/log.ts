@@ -24,11 +24,12 @@ import { pandocBinaryPath } from "./resources.ts";
 import { Block, pandoc } from "./pandoc/json.ts";
 
 export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "CRITICAL";
+export type LogFormat = "plain" | "json-stream";
 
 export interface LogOptions {
   log?: string;
   level?: string;
-  format?: "plain" | "json-stream";
+  format?: LogFormat;
   quiet?: boolean;
   newline?: true;
 }
@@ -265,7 +266,7 @@ export class LogFileHandler extends FileHandler {
 interface LogFileHandlerOptions {
   filename: string;
   mode?: "a" | "w" | "x";
-  format?: "plain" | "json-stream";
+  format?: LogFormat;
 }
 
 export function flushLoggers(handlers: Record<string, BaseHandler>) {
