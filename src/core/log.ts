@@ -460,6 +460,7 @@ const levelMap: Record<
   debug: "DEBUG",
   info: "INFO",
   warning: "WARN",
+  warn: "WARN",
   error: "ERROR",
   critical: "CRITICAL",
 };
