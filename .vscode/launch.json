@@ -36,7 +36,7 @@
       "name": "Run Quarto test",
       "request": "launch",
       "type": "node",
-      "program": "smoke/smoke-all.test.ts", // test script here
+      "program": "smoke/logging/log-level-direct.test.ts", // test script here
       "args": [], // args to the script here, like in command line smoke/smoke-all.test.t -- .\docs\smoke-all\2023\01\19\2107.qmd
       "cwd": "${workspaceFolder}/tests",
       "runtimeExecutable": "${workspaceFolder}/package/dist/bin/tools/deno",
