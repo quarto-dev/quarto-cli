@@ -13,6 +13,7 @@ import {
   testQuartoCmd,
 } from "../../test.ts";
 import { assert } from "testing/asserts";
+import { normalizePath } from "../../../src/core/path.ts";
 
 (() => {
   const input = "docs/project/book/_include.qmd";
@@ -26,7 +27,7 @@ import { assert } from "testing/asserts";
         verify: async (outputs: ExecuteOutput[]) => {
           assert(existsSync(output));
           const json = JSON.parse(Deno.readTextFileSync(output));
-          const info = json.fileInformation["docs/project/book/_include.qmd"];
+          const info = json.fileInformation[normalizePath("docs/project/book/_include.qmd")];
           const codeCells = info.codeCells;
           assertObjectMatch(info.codeCells[0], { 
             start: 0,
@@ -65,12 +66,12 @@ import { assert } from "testing/asserts";
         verify: async (outputs: ExecuteOutput[]) => {
           assert(existsSync(output));
           const json = JSON.parse(Deno.readTextFileSync(output));
-          const info = json.fileInformation["docs/inspect/10039.qmd"];
+          const info = json.fileInformation[normalizePath("docs/inspect/10039.qmd")];
           const codeCells = info.codeCells;
           assertObjectMatch(info.codeCells[1], {
             "start": 14,
             "end": 18,
-            "file": "docs/inspect/10039.qmd",
+            "file": normalizePath("docs/inspect/10039.qmd"),
             "source": "p[[1]]\n",
             "language": "r",
             "metadata": {

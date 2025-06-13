@@ -49,6 +49,7 @@ import {
 import { validateDocumentFromSource } from "../core/schema/validate-document.ts";
 import { error } from "../deno_ral/log.ts";
 import { ProjectContext } from "../project/types.ts";
+import { resolveOutputFileNames } from "../project/project-index.ts";
 
 export function isProjectConfig(
   config: InspectedConfig,
@@ -90,6 +91,7 @@ const inspectProjectConfig = async (context: ProjectContext) => {
     return undefined;
   }
   const fileInformation: Record<string, InspectedFile> = {};
+  await resolveOutputFileNames(context);
   for (const file of context.files.input) {
     await populateFileInformation(context, fileInformation, file);
   }
@@ -144,6 +146,7 @@ const populateFileInformation = async (
       [],
     codeCells: context.fileInformationCache.get(file)?.codeCells ?? [],
     metadata: context.fileInformationCache.get(file)?.metadata ?? {},
+    outputFiles: context.fileInformationCache.get(file)?.outputFiles ?? {},
   };
 };
 
@@ -213,9 +216,11 @@ const inspectDocumentConfig = async (path: string) => {
       );
     }
 
+    path = normalizePath(path);
     await context.resolveFullMarkdownForFile(engine, path);
     await projectResolveCodeCellsForFile(context, engine, path);
     await projectFileMetadata(context, path);
+    await resolveOutputFileNames(context);
     const fileInformation = context.fileInformationCache.get(path);
 
     // data to write
@@ -231,6 +236,7 @@ const inspectDocumentConfig = async (path: string) => {
           includeMap: fileInformation?.includeMap ?? [],
           codeCells: fileInformation?.codeCells ?? [],
           metadata: fileInformation?.metadata ?? {},
+          outputFiles: fileInformation?.outputFiles ?? {},
         },
       },
     };
