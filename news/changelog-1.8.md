@@ -68,6 +68,10 @@ All changes included in 1.8:
 
 - ([#12733](https://github.com/quarto-dev/quarto-cli/issues/12733)): Add installed extensions to `quarto inspect` project report.
 
+### `add`
+
+- ([#12627](https://github.com/quarto-dev/quarto-cli/issues/12627)): Don't actually install extension when user responds `yes` to first prompt but `no` to second.
+
 ## Engines
 
 ### `jupyter`
