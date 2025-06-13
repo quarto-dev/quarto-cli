@@ -23,6 +23,10 @@ import {
   SidebarItem,
 } from "../../types.ts";
 import {
+  LogoLightDarkSpecifier,
+  NormalizedLogoLightDarkSpecifier,
+} from "../../../resources/types/schema-types.ts";
+import {
   kAnnouncement,
   kBodyFooter,
   kBodyHeader,
@@ -45,6 +49,7 @@ import { Format, FormatExtras } from "../../../config/types.ts";
 import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
 import { md5HashAsync } from "../../../core/hash.ts";
 export { type NavigationFooter } from "../../types.ts";
+import { assert } from "testing/asserts";
 
 export interface Navigation {
   navbar?: Navbar;
@@ -108,6 +113,38 @@ export function computePageTitle(
   }
 }
 
+export function normalizeLogoSpec(
+  spec: LogoLightDarkSpecifier,
+): NormalizedLogoLightDarkSpecifier {
+  if (typeof spec === "string") {
+    return {
+      light: { path: spec },
+      dark: { path: spec },
+    };
+  }
+  if ("light" in spec || "dark" in spec) {
+    return {
+      light: typeof spec.light === "string"
+        ? {
+          path: spec.light,
+        }
+        : spec.light,
+      dark: typeof spec.dark === "string"
+        ? {
+          path: spec.dark,
+        }
+        : spec.dark,
+    };
+  }
+  if ("path" in spec) {
+    return {
+      light: spec,
+      dark: spec,
+    };
+  }
+  assert(false);
+}
+
 export function inputFileHref(href: string) {
   const [hrefDir, hrefStem] = dirAndStem(href);
   const htmlHref = "/" + join(hrefDir, `${hrefStem}.html`);
@@ -148,15 +185,8 @@ export async function websiteNavigationConfig(project: ProjectContext) {
       sidebars[0].tools = [];
     }
 
-    if (sidebars[0].logo) { // normalize to LightDarkLogo
-      if (typeof (sidebars[0].logo) === "string") {
-        sidebars[0].logo = {
-          light: {
-            path: sidebars[0].logo,
-            alt: (sidebars[0] as unknown as { "logo-alt": string })["logo-alt"],
-          },
-        };
-      }
+    if (sidebars[0].logo) {
+      sidebars[0].logo = normalizeLogoSpec(sidebars[0].logo);
     }
 
     // convert contents: auto into items

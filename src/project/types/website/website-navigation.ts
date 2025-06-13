@@ -77,6 +77,9 @@ import {
   SidebarTool,
 } from "../../types.ts";
 import {
+  NormalizedLogoLightDarkSpecifier,
+} from "../../../resources/types/schema-types.ts";
+import {
   normalizeSidebarItem,
   resolveHrefAttribute,
   sidebarContext,
@@ -1012,12 +1015,14 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // ensure title and search are present
   sidebar.title = await sidebarTitle(sidebar, project) as string | undefined;
-  console.log("sidebar.logo", sidebar.logo);
-  if (sidebar.logo?.light) {
-    sidebar.logo.light.path = resolveLogo(sidebar.logo.light.path)!;
+  // sidebar logo has been normalized
+  const sidebarLogo = sidebar.logo as NormalizedLogoLightDarkSpecifier;
+  console.log("sidebar.logo", sidebarLogo);
+  if (sidebarLogo.light) {
+    sidebarLogo.light.path = resolveLogo(sidebarLogo.light.path)!;
   }
-  if (sidebar.logo?.dark) {
-    sidebar.logo.dark.path = resolveLogo(sidebar.logo.dark.path)!;
+  if (sidebarLogo?.dark) {
+    sidebarLogo.dark.path = resolveLogo(sidebarLogo.dark.path)!;
   }
   const searchOpts = await searchOptions(project);
   sidebar.search = sidebar.search !== undefined
