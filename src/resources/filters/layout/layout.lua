@@ -41,7 +41,7 @@ function layout_panels()
         return nil
       end
       local nested_layout = false
-      _quarto.ast.walk(div, {
+      _quarto.ast.walk(float, {
         PanelLayout = function()
           nested_layout = true
         end
