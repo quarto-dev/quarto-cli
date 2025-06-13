@@ -40,6 +40,10 @@ All changes included in 1.8:
 
 - ([#12775](https://github.com/quarto-dev/quarto-cli/issues/12775)): Convert Quarto-native layouts (divs with `layout` syntax) to Beamer columns, equivalent to using the Pandoc-native syntax of div with `columns` and `column` classes.
 
+### `hugo-md`
+
+- ([#12676](https://github.com/quarto-dev/quarto-cli/issues/12676)): Add support for rendering layout panels that are not floats.
+
 ## Projects
 
 ### `website`
