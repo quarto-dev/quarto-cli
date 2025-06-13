@@ -11,6 +11,7 @@ import {
   testQuartoCmd,
 } from "../../test.ts";
 import { assert } from "testing/asserts";
+import { normalizePath } from "../../../src/core/path.ts";
 
 (() => {
   const input = "docs/inspect/foo.qmd";
@@ -22,11 +23,12 @@ import { assert } from "testing/asserts";
       {
         name: "inspect-include",
         verify: async (outputs: ExecuteOutput[]) => {
-          assert(existsSync("docs/inspect/foo.json"));
-          const json = JSON.parse(Deno.readTextFileSync("docs/inspect/foo.json"));
-          assertObjectMatch(json.fileInformation["docs/inspect/foo.qmd"].includeMap[0],
+          assert(existsSync(output));
+          const normalizedPath = normalizePath(input);
+          const json = JSON.parse(Deno.readTextFileSync(output));
+          assertObjectMatch(json.fileInformation[normalizedPath].includeMap[0],
           {
-            source: input,
+            source: normalizedPath,
             target: "_bar.qmd"
           });
         }
@@ -34,8 +36,8 @@ import { assert } from "testing/asserts";
     ],
     {
       teardown: async () => {
-        if (existsSync("docs/inspect/foo.json")) {
-          Deno.removeSync("docs/inspect/foo.json");
+        if (existsSync(output)) {
+          Deno.removeSync(output);
         }
       }
     },

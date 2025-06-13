@@ -5,6 +5,7 @@
 *
 */
 
+import { normalizePath } from "../../../src/core/path.ts";
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import {  } from "../../../src/project/types.ts";
 import {
@@ -25,7 +26,7 @@ import { assert } from "testing/asserts";
         verify: async (outputs: ExecuteOutput[]) => {
           assert(existsSync(output));
           const json = JSON.parse(Deno.readTextFileSync(output));
-          assert(json.fileInformation["docs/inspect/cleanup-issue-12336/cleanup-bug.qmd"].metadata.engine === "jupyter");
+          assert(json.fileInformation[normalizePath("docs/inspect/cleanup-issue-12336/cleanup-bug.qmd")].metadata.engine === "jupyter");
           assert(!existsSync("docs/inspect/cleanup-issue-12336/cleanup-bug.quarto_ipynb"));
         }
       }

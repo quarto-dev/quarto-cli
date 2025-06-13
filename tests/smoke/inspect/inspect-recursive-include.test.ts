@@ -12,6 +12,7 @@ import {
   testQuartoCmd,
 } from "../../test.ts";
 import { assert, assertEquals } from "testing/asserts";
+import { normalizePath } from "../../../src/core/path.ts";
 
 (() => {
   const input = "docs/websites/issue-9253/index.qmd";
@@ -25,7 +26,7 @@ import { assert, assertEquals } from "testing/asserts";
         verify: async (outputs: ExecuteOutput[]) => {
           assert(existsSync(output));
           const json = JSON.parse(Deno.readTextFileSync(output));
-          const info = json.fileInformation["docs/websites/issue-9253/index.qmd"];
+          const info = json.fileInformation[normalizePath("docs/websites/issue-9253/index.qmd")];
           const includeMap: FileInclusion[] = info.includeMap;
           assertObjectMatch(info.includeMap[0], { target: "_include.qmd" });
           assertObjectMatch(info.includeMap[1], { source: "_include.qmd", target: "_include2.qmd" });
