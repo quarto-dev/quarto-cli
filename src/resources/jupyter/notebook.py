@@ -1,26 +1,24 @@
 # pyright: reportMissingImports=false
 
-import os
-import re
+import asyncio
 import atexit
-import glob
-import sys
-import json
-import pprint
-import copy
 import base64
-
+import copy
+import glob
+import json
+import os
+import pprint
+import re
+import sys
 from pathlib import Path
 
-from yaml import safe_load as parse_string
-from yaml import safe_dump
-
-from log import trace
 import nbformat
-from nbclient import NotebookClient
 from jupyter_client import KernelManager
 from jupyter_core_utils_vendor import run_sync
-import asyncio
+from log import trace
+from nbclient import NotebookClient
+from yaml import safe_dump
+from yaml import safe_load as parse_string
 
 # optional import of papermill for params support
 try:
@@ -129,6 +127,8 @@ def set_env_vars(options):
     else:
         os.environ["QUARTO_FIG_DPI"] = str(options["fig_dpi"])
         os.environ["QUARTO_FIG_FORMAT"] = options["fig_format"]
+    for key, value in options.get("env", {}).items():
+        os.environ[key] = value
 
 
 def retrieve_nb_from_cache(nb, status, input, **kwargs):
@@ -201,6 +201,7 @@ def notebook_execute(options, status):
     quiet = quarto_kernel_setup_options["quiet"]
     resource_dir = quarto_kernel_setup_options["resource_dir"]
     eval = quarto_kernel_setup_options["eval"]
+    quarto_kernel_setup_options["env"] = options.get("env", {})
 
     # set environment variables
     set_env_vars(quarto_kernel_setup_options)
