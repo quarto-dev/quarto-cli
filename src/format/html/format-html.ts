@@ -349,7 +349,7 @@ export async function htmlFormatExtras(
   options.zenscroll = format.metadata[kSmoothScroll];
   options.codeTools = formatHasCodeTools(format);
   options.darkMode = formatDarkMode(format);
-  options.darkModeDefault = darkModeDefault(format.metadata);
+  options.darkModeDefault = darkModeDefault(format);
   options.respectUserColorScheme = format.metadata[kRespectUserColorScheme] ||
     false;
   options.linkExternalIcon = format.render[kLinkExternalIcon];

@@ -22,7 +22,14 @@ try:
   plt.rcParams['figure.figsize'] = (fig_width, fig_height)
   plt.rcParams['figure.dpi'] = fig_dpi
   plt.rcParams['savefig.dpi'] = "figure"
-  from IPython.display import set_matplotlib_formats
+
+  # IPython 7.14 deprecated set_matplotlib_formats from IPython
+  try:
+    from matplotlib_inline.backend_inline import set_matplotlib_formats
+  except ImportError:
+    # Fall back to deprecated location for older IPython versions
+    from IPython.display import set_matplotlib_formats
+    
   set_matplotlib_formats(fig_format)
 except Exception:
   pass

@@ -1039,7 +1039,7 @@ export function mdFromContentCell(
           for (let i = 0; i < source.length; i++) {
             source[i] = source[i].replaceAll(
               `attachment:${file}`,
-              imageFile,
+              () => imageFile,
             );
           }
           // only process one supported mime type

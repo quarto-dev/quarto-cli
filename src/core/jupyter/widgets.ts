@@ -190,9 +190,29 @@ function isWidgetIncludeHtml(html: string) {
 }
 
 function isPlotlyLibrary(html: string) {
-  return /^\s*<script type="text\/javascript">/.test(html) &&
+  // Plotly before version 6 used require.js to load the library
+  const hasRequireScript = (
+    html: string,
+  ) => (/^\s*<script type="text\/javascript">/.test(html) &&
     (/require\.undef\(["']plotly["']\)/.test(html) ||
-      /define\('plotly'/.test(html));
+      /define\('plotly'/.test(html)));
+  // Plotly 6+ uses the new module syntax
+  const hasModuleScript = (html: string) =>
+    /\s*<script type=\"module\">import .*plotly.*<\/script>/.test(html);
+  // notebook mode non connected embed plotly.js scripts like this:
+  //  * plotly.js v3.0.1
+  //  * Copyright 2012-2025, Plotly, Inc.
+  //  * All rights reserved.
+  //  * Licensed under the MIT license
+  const hasEmbedScript = (
+    html: string,
+  ) => (/\* plotly\.js v\d+\.\d+\.\d+\s*\n\s*\* Copyright \d{4}-\d{4}, Plotly, Inc\.\s*\n\s*\* All rights reserved\.\s*\n\s*\* Licensed under the MIT license/
+    .test(html));
+  return hasRequireScript(html) ||
+    // also handle new module syntax from plotly.py 6+
+    hasModuleScript(html) ||
+    // detect plotly by its copyright header
+    hasEmbedScript(html);
 }
 
 function htmlLibrariesText(htmlText: string) {

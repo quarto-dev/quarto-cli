@@ -340,7 +340,14 @@ export async function replaceNotebookPlaceholders(
       }
 
       // Replace the placeholders with the rendered markdown
-      markdown = markdown.replaceAll(match[0], nbMarkdown || "");
+      markdown = markdown.replaceAll(
+        match[0],
+        // https://github.com/quarto-dev/quarto-cli/issues/12853
+        // we use a function here to avoid
+        // escaping issues with $ in the markdown
+        // (e.g. $x$ in math mode)
+        () => nbMarkdown ?? "",
+      );
     }
     match = regex.exec(markdown);
   }
@@ -604,6 +611,7 @@ async function getCachedNotebookInfo(
       quiet: flags.quiet,
       previewServer: context.options.previewServer,
       handledLanguages: languages(),
+      project: context.project,
     };
 
     const [dir, stem] = dirAndStem(nbAddress.path);

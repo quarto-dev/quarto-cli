@@ -22,6 +22,7 @@ import {
 import { ProjectEnvironment } from "./project-environment-types.ts";
 import { ProjectCache } from "../core/cache/cache-types.ts";
 import { TempContext } from "../core/temp-types.ts";
+import { Cloneable } from "../core/safe-clone-deep.ts";
 
 export {
   type NavigationItem as NavItem,
@@ -58,7 +59,7 @@ export type FileInformation = {
   brand?: LightDarkBrand;
 };
 
-export interface ProjectContext {
+export interface ProjectContext extends Cloneable<ProjectContext> {
   dir: string;
   engines: string[];
   files: ProjectFiles;

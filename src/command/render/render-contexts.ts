@@ -63,7 +63,6 @@ import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
 import {
   deleteProjectMetadata,
   directoryMetadataForInputFile,
-  projectTypeIsWebsite,
   toInputRelativePaths,
 } from "../../project/project-shared.ts";
 import {
@@ -71,8 +70,6 @@ import {
   kProjectType,
   ProjectContext,
 } from "../../project/types.ts";
-import { isHtmlDashboardOutput, isHtmlOutput } from "../../config/format.ts";
-import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { warnOnce } from "../../core/log.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { fileExecutionEngineAndTarget } from "../../execute/engine.ts";
@@ -298,7 +295,7 @@ export async function renderContexts(
 
     // if this isn't for execute then cleanup context
     if (!forExecute && engine.executeTargetSkipped) {
-      engine.executeTargetSkipped(target, formats[formatKey].format);
+      engine.executeTargetSkipped(target, formats[formatKey].format, project);
     }
   }
   return contexts;

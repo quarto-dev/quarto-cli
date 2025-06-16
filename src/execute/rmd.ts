@@ -135,7 +135,10 @@ export const knitrEngine: ExecutionEngine = {
       options.quiet,
       // fixup .rmarkdown file references
       (output) => {
-        output = output.replaceAll(`${inputStem}.rmarkdown`, inputBasename);
+        output = output.replaceAll(
+          `${inputStem}.rmarkdown`,
+          () => inputBasename,
+        );
 
         const m = output.match(/^Quitting from lines (\d+)-(\d+)/m);
         if (m) {

@@ -664,7 +664,7 @@ export async function brandSassFormatExtras(
           dark: htmlSassBundleLayers.dark.length
             ? {
               user: htmlSassBundleLayers.dark,
-              default: darkModeDefault(format.metadata),
+              default: darkModeDefault(format),
             }
             : undefined,
         },

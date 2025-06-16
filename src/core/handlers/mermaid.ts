@@ -258,7 +258,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
         const oldId = svg.getAttribute("id") as string;
         svg.setAttribute("id", newMermaidId);
         const style = svg.querySelector("style")!;
-        style.innerHTML = style.innerHTML.replaceAll(oldId, newMermaidId);
+        style.innerHTML = style.innerHTML.replaceAll(oldId, () => newMermaidId);
 
         for (const defNode of svg.querySelectorAll("defs")) {
           const defEl = defNode as Element;
@@ -296,11 +296,11 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
           // this string substitution is fraught, but I don't know how else to fix the problem.
           oldSvgSrc = oldSvgSrc.replaceAll(
             `"${idToPatch}"`,
-            `"${to}"`,
+            () => `"${to}"`,
           );
           oldSvgSrc = oldSvgSrc.replaceAll(
             `#${idToPatch}`,
-            `#${to}`,
+            () => `#${to}`,
           );
         }
         svg = mappedDiff(svg, oldSvgSrc);

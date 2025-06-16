@@ -1323,7 +1323,16 @@ export const ZodBrandLogoResource = z.union([
   z.lazy(() => ZodBrandLogoExplicitResource),
 ]);
 
-export const ZodBrandLogo = z.object({
+export const ZodBrandLogoSingle = z.object({
+  images: z.record(z.lazy(() => ZodBrandLogoResource)).and(
+    z.object({}).passthrough().partial(),
+  ),
+  small: z.string(),
+  medium: z.string(),
+  large: z.string(),
+}).strict().partial();
+
+export const ZodBrandLogoUnified = z.object({
   images: z.record(z.lazy(() => ZodBrandLogoResource)).and(
     z.object({}).passthrough().partial(),
   ),
@@ -1336,7 +1345,7 @@ export const ZodBrandNamedLogo = z.enum(["small", "medium", "large"] as const);
 
 export const ZodBrandColorValue = z.string();
 
-export const ZodBrandColor = z.object({
+export const ZodBrandColorSingle = z.object({
   palette: z.record(z.lazy(() => ZodBrandColorValue)).and(
     z.object({}).passthrough().partial(),
   ),
@@ -1354,9 +1363,43 @@ export const ZodBrandColor = z.object({
   link: z.lazy(() => ZodBrandColorValue),
 }).strict().partial();
 
+export const ZodBrandColorLightDark = z.union([
+  z.lazy(() => ZodBrandColorValue),
+  z.object({
+    light: z.lazy(() => ZodBrandColorValue),
+    dark: z.lazy(() => ZodBrandColorValue),
+  }).strict().partial(),
+]);
+
+export const ZodBrandColorUnified = z.object({
+  palette: z.record(z.lazy(() => ZodBrandColorValue)).and(
+    z.object({}).passthrough().partial(),
+  ),
+  foreground: z.lazy(() => ZodBrandColorLightDark),
+  background: z.lazy(() => ZodBrandColorLightDark),
+  primary: z.lazy(() => ZodBrandColorLightDark),
+  secondary: z.lazy(() => ZodBrandColorLightDark),
+  tertiary: z.lazy(() => ZodBrandColorLightDark),
+  success: z.lazy(() => ZodBrandColorLightDark),
+  info: z.lazy(() => ZodBrandColorLightDark),
+  warning: z.lazy(() => ZodBrandColorLightDark),
+  danger: z.lazy(() => ZodBrandColorLightDark),
+  light: z.lazy(() => ZodBrandColorLightDark),
+  dark: z.lazy(() => ZodBrandColorLightDark),
+  link: z.lazy(() => ZodBrandColorLightDark),
+}).strict().partial();
+
 export const ZodBrandMaybeNamedColor = z.union([
   z.lazy(() => ZodBrandNamedThemeColor),
   z.string(),
+]);
+
+export const ZodBrandMaybeNamedColorLightDark = z.union([
+  z.lazy(() => ZodBrandMaybeNamedColor),
+  z.object({
+    light: z.lazy(() => ZodBrandMaybeNamedColor),
+    dark: z.lazy(() => ZodBrandMaybeNamedColor),
+  }).strict().partial(),
 ]);
 
 export const ZodBrandNamedThemeColor = z.enum(
@@ -1376,14 +1419,32 @@ export const ZodBrandNamedThemeColor = z.enum(
   ] as const,
 );
 
-export const ZodBrandTypography = z.object({
+export const ZodBrandTypographySingle = z.object({
   fonts: z.array(z.lazy(() => ZodBrandFont)),
   base: z.lazy(() => ZodBrandTypographyOptionsBase),
-  headings: z.lazy(() => ZodBrandTypographyOptionsHeadings),
-  monospace: z.lazy(() => ZodBrandTypographyOptionsMonospace),
-  "monospace-inline": z.lazy(() => ZodBrandTypographyOptionsMonospaceInline),
-  "monospace-block": z.lazy(() => ZodBrandTypographyOptionsMonospaceBlock),
-  link: z.lazy(() => ZodBrandTypographyOptionsLink),
+  headings: z.lazy(() => ZodBrandTypographyOptionsHeadingsSingle),
+  monospace: z.lazy(() => ZodBrandTypographyOptionsMonospaceSingle),
+  "monospace-inline": z.lazy(() =>
+    ZodBrandTypographyOptionsMonospaceInlineSingle
+  ),
+  "monospace-block": z.lazy(() =>
+    ZodBrandTypographyOptionsMonospaceBlockSingle
+  ),
+  link: z.lazy(() => ZodBrandTypographyOptionsLinkSingle),
+}).strict().partial();
+
+export const ZodBrandTypographyUnified = z.object({
+  fonts: z.array(z.lazy(() => ZodBrandFont)),
+  base: z.lazy(() => ZodBrandTypographyOptionsBase),
+  headings: z.lazy(() => ZodBrandTypographyOptionsHeadingsUnified),
+  monospace: z.lazy(() => ZodBrandTypographyOptionsMonospaceUnified),
+  "monospace-inline": z.lazy(() =>
+    ZodBrandTypographyOptionsMonospaceInlineUnified
+  ),
+  "monospace-block": z.lazy(() =>
+    ZodBrandTypographyOptionsMonospaceBlockUnified
+  ),
+  link: z.lazy(() => ZodBrandTypographyOptionsLinkUnified),
 }).strict().partial();
 
 export const ZodBrandTypographyOptionsBase = z.union([
@@ -1396,7 +1457,7 @@ export const ZodBrandTypographyOptionsBase = z.union([
   }).strict().partial(),
 ]);
 
-export const ZodBrandTypographyOptionsHeadings = z.union([
+export const ZodBrandTypographyOptionsHeadingsSingle = z.union([
   z.string(),
   z.object({
     family: z.string(),
@@ -1407,7 +1468,18 @@ export const ZodBrandTypographyOptionsHeadings = z.union([
   }).strict().partial(),
 ]);
 
-export const ZodBrandTypographyOptionsMonospace = z.union([
+export const ZodBrandTypographyOptionsHeadingsUnified = z.union([
+  z.string(),
+  z.object({
+    family: z.string(),
+    weight: z.lazy(() => ZodBrandFontWeight),
+    style: z.lazy(() => ZodBrandFontStyle),
+    color: z.lazy(() => ZodBrandMaybeNamedColorLightDark),
+    "line-height": z.lazy(() => ZodLineHeightNumberString),
+  }).strict().partial(),
+]);
+
+export const ZodBrandTypographyOptionsMonospaceSingle = z.union([
   z.string(),
   z.object({
     family: z.string(),
@@ -1418,7 +1490,18 @@ export const ZodBrandTypographyOptionsMonospace = z.union([
   }).strict().partial(),
 ]);
 
-export const ZodBrandTypographyOptionsMonospaceInline = z.union([
+export const ZodBrandTypographyOptionsMonospaceUnified = z.union([
+  z.string(),
+  z.object({
+    family: z.string(),
+    size: z.string(),
+    weight: z.lazy(() => ZodBrandFontWeight),
+    color: z.lazy(() => ZodBrandMaybeNamedColorLightDark),
+    "background-color": z.lazy(() => ZodBrandMaybeNamedColorLightDark),
+  }).strict().partial(),
+]);
+
+export const ZodBrandTypographyOptionsMonospaceInlineSingle = z.union([
   z.string(),
   z.object({
     family: z.string(),
@@ -1426,12 +1509,23 @@ export const ZodBrandTypographyOptionsMonospaceInline = z.union([
     weight: z.lazy(() => ZodBrandFontWeight),
     color: z.lazy(() => ZodBrandMaybeNamedColor),
     "background-color": z.lazy(() => ZodBrandMaybeNamedColor),
+  }).strict().partial(),
+]);
+
+export const ZodBrandTypographyOptionsMonospaceInlineUnified = z.union([
+  z.string(),
+  z.object({
+    family: z.string(),
+    size: z.string(),
+    weight: z.lazy(() => ZodBrandFontWeight),
+    color: z.lazy(() => ZodBrandMaybeNamedColorLightDark),
+    "background-color": z.lazy(() => ZodBrandMaybeNamedColorLightDark),
   }).strict().partial(),
 ]);
 
 export const ZodLineHeightNumberString = z.union([z.number(), z.string()]);
 
-export const ZodBrandTypographyOptionsMonospaceBlock = z.union([
+export const ZodBrandTypographyOptionsMonospaceBlockSingle = z.union([
   z.string(),
   z.object({
     family: z.string(),
@@ -1443,7 +1537,19 @@ export const ZodBrandTypographyOptionsMonospaceBlock = z.union([
   }).strict().partial(),
 ]);
 
-export const ZodBrandTypographyOptionsLink = z.union([
+export const ZodBrandTypographyOptionsMonospaceBlockUnified = z.union([
+  z.string(),
+  z.object({
+    family: z.string(),
+    size: z.string(),
+    weight: z.lazy(() => ZodBrandFontWeight),
+    color: z.lazy(() => ZodBrandMaybeNamedColorLightDark),
+    "background-color": z.lazy(() => ZodBrandMaybeNamedColorLightDark),
+    "line-height": z.lazy(() => ZodLineHeightNumberString),
+  }).strict().partial(),
+]);
+
+export const ZodBrandTypographyOptionsLinkSingle = z.union([
   z.string(),
   z.object({
     weight: z.lazy(() => ZodBrandFontWeight),
@@ -1453,8 +1559,25 @@ export const ZodBrandTypographyOptionsLink = z.union([
   }).strict().partial(),
 ]);
 
-export const ZodBrandNamedFont = z.enum(
-  ["base", "headings", "monospace"] as const,
+export const ZodBrandTypographyOptionsLinkUnified = z.union([
+  z.string(),
+  z.object({
+    weight: z.lazy(() => ZodBrandFontWeight),
+    color: z.lazy(() => ZodBrandMaybeNamedColorLightDark),
+    "background-color": z.lazy(() => ZodBrandMaybeNamedColorLightDark),
+    decoration: z.string(),
+  }).strict().partial(),
+]);
+
+export const ZodBrandNamedTypographyElements = z.enum(
+  [
+    "base",
+    "headings",
+    "monospace",
+    "monospace-inline",
+    "monospace-block",
+    "link",
+  ] as const,
 );
 
 export const ZodBrandFont = z.union([
@@ -1570,11 +1693,19 @@ export const ZodBrandFontFile = z.object({
 
 export const ZodBrandFontFamily = z.string();
 
-export const ZodBrand = z.object({
+export const ZodBrandSingle = z.object({
   meta: z.lazy(() => ZodBrandMeta),
-  logo: z.lazy(() => ZodBrandLogo),
-  color: z.lazy(() => ZodBrandColor),
-  typography: z.lazy(() => ZodBrandTypography),
+  logo: z.lazy(() => ZodBrandLogoUnified),
+  color: z.lazy(() => ZodBrandColorSingle),
+  typography: z.lazy(() => ZodBrandTypographySingle),
+  defaults: z.lazy(() => ZodBrandDefaults),
+}).strict().partial();
+
+export const ZodBrandUnified = z.object({
+  meta: z.lazy(() => ZodBrandMeta),
+  logo: z.lazy(() => ZodBrandLogoUnified),
+  color: z.lazy(() => ZodBrandColorUnified),
+  typography: z.lazy(() => ZodBrandTypographyUnified),
   defaults: z.lazy(() => ZodBrandDefaults),
 }).strict().partial();
 
@@ -1582,10 +1713,10 @@ export const ZodBrandPathBoolLightDark = z.union([
   z.string(),
   z.boolean(),
   z.object({
-    light: z.union([z.string(), z.lazy(() => ZodBrand)]),
-    dark: z.union([z.string(), z.lazy(() => ZodBrand)]),
+    light: z.union([z.string(), z.lazy(() => ZodBrandSingle)]),
+    dark: z.union([z.string(), z.lazy(() => ZodBrandSingle)]),
   }).strict().partial(),
-  z.lazy(() => ZodBrand),
+  z.lazy(() => ZodBrandUnified),
 ]);
 
 export const ZodBrandDefaults = z.object({
@@ -1731,47 +1862,81 @@ export type BrandLogoExplicitResource = z.infer<
 
 export type BrandLogoResource = z.infer<typeof ZodBrandLogoResource>;
 
-export type BrandLogo = z.infer<typeof ZodBrandLogo>;
+export type BrandLogoSingle = z.infer<typeof ZodBrandLogoSingle>;
+
+export type BrandLogoUnified = z.infer<typeof ZodBrandLogoUnified>;
 
 export type BrandNamedLogo = z.infer<typeof ZodBrandNamedLogo>;
 
 export type BrandColorValue = z.infer<typeof ZodBrandColorValue>;
 
-export type BrandColor = z.infer<typeof ZodBrandColor>;
+export type BrandColorSingle = z.infer<typeof ZodBrandColorSingle>;
+
+export type BrandColorLightDark = z.infer<typeof ZodBrandColorLightDark>;
+
+export type BrandColorUnified = z.infer<typeof ZodBrandColorUnified>;
 
 export type BrandMaybeNamedColor = z.infer<typeof ZodBrandMaybeNamedColor>;
 
+export type BrandMaybeNamedColorLightDark = z.infer<
+  typeof ZodBrandMaybeNamedColorLightDark
+>;
+
 export type BrandNamedThemeColor = z.infer<typeof ZodBrandNamedThemeColor>;
 
-export type BrandTypography = z.infer<typeof ZodBrandTypography>;
+export type BrandTypographySingle = z.infer<typeof ZodBrandTypographySingle>;
+
+export type BrandTypographyUnified = z.infer<typeof ZodBrandTypographyUnified>;
 
 export type BrandTypographyOptionsBase = z.infer<
   typeof ZodBrandTypographyOptionsBase
 >;
 
-export type BrandTypographyOptionsHeadings = z.infer<
-  typeof ZodBrandTypographyOptionsHeadings
+export type BrandTypographyOptionsHeadingsSingle = z.infer<
+  typeof ZodBrandTypographyOptionsHeadingsSingle
 >;
 
-export type BrandTypographyOptionsMonospace = z.infer<
-  typeof ZodBrandTypographyOptionsMonospace
+export type BrandTypographyOptionsHeadingsUnified = z.infer<
+  typeof ZodBrandTypographyOptionsHeadingsUnified
 >;
 
-export type BrandTypographyOptionsMonospaceInline = z.infer<
-  typeof ZodBrandTypographyOptionsMonospaceInline
+export type BrandTypographyOptionsMonospaceSingle = z.infer<
+  typeof ZodBrandTypographyOptionsMonospaceSingle
+>;
+
+export type BrandTypographyOptionsMonospaceUnified = z.infer<
+  typeof ZodBrandTypographyOptionsMonospaceUnified
+>;
+
+export type BrandTypographyOptionsMonospaceInlineSingle = z.infer<
+  typeof ZodBrandTypographyOptionsMonospaceInlineSingle
+>;
+
+export type BrandTypographyOptionsMonospaceInlineUnified = z.infer<
+  typeof ZodBrandTypographyOptionsMonospaceInlineUnified
 >;
 
 export type LineHeightNumberString = z.infer<typeof ZodLineHeightNumberString>;
 
-export type BrandTypographyOptionsMonospaceBlock = z.infer<
-  typeof ZodBrandTypographyOptionsMonospaceBlock
+export type BrandTypographyOptionsMonospaceBlockSingle = z.infer<
+  typeof ZodBrandTypographyOptionsMonospaceBlockSingle
 >;
 
-export type BrandTypographyOptionsLink = z.infer<
-  typeof ZodBrandTypographyOptionsLink
+export type BrandTypographyOptionsMonospaceBlockUnified = z.infer<
+  typeof ZodBrandTypographyOptionsMonospaceBlockUnified
 >;
 
-export type BrandNamedFont = z.infer<typeof ZodBrandNamedFont>;
+export type BrandTypographyOptionsLinkSingle = z.infer<
+  typeof ZodBrandTypographyOptionsLinkSingle
+>;
+
+export type BrandTypographyOptionsLinkUnified = z.infer<
+  typeof ZodBrandTypographyOptionsLinkUnified
+>;
+
+export type BrandNamedTypographyElements = z.infer<
+  typeof ZodBrandNamedTypographyElements
+>;
 
 export type BrandFont = z.infer<typeof ZodBrandFont>;
 
@@ -1791,7 +1956,9 @@ export type BrandFontFile = z.infer<typeof ZodBrandFontFile>;
 
 export type BrandFontFamily = z.infer<typeof ZodBrandFontFamily>;
 
-export type Brand = z.infer<typeof ZodBrand>;
+export type BrandSingle = z.infer<typeof ZodBrandSingle>;
+
+export type BrandUnified = z.infer<typeof ZodBrandUnified>;
 
 export type BrandPathBoolLightDark = z.infer<typeof ZodBrandPathBoolLightDark>;
 
@@ -1858,22 +2025,38 @@ export const Zod = {
   BrandStringLightDark: ZodBrandStringLightDark,
   BrandLogoExplicitResource: ZodBrandLogoExplicitResource,
   BrandLogoResource: ZodBrandLogoResource,
-  BrandLogo: ZodBrandLogo,
+  BrandLogoSingle: ZodBrandLogoSingle,
+  BrandLogoUnified: ZodBrandLogoUnified,
   BrandNamedLogo: ZodBrandNamedLogo,
   BrandColorValue: ZodBrandColorValue,
-  BrandColor: ZodBrandColor,
+  BrandColorSingle: ZodBrandColorSingle,
+  BrandColorLightDark: ZodBrandColorLightDark,
+  BrandColorUnified: ZodBrandColorUnified,
   BrandMaybeNamedColor: ZodBrandMaybeNamedColor,
+  BrandMaybeNamedColorLightDark: ZodBrandMaybeNamedColorLightDark,
   BrandNamedThemeColor: ZodBrandNamedThemeColor,
-  BrandTypography: ZodBrandTypography,
+  BrandTypographySingle: ZodBrandTypographySingle,
+  BrandTypographyUnified: ZodBrandTypographyUnified,
   BrandTypographyOptionsBase: ZodBrandTypographyOptionsBase,
-  BrandTypographyOptionsHeadings: ZodBrandTypographyOptionsHeadings,
-  BrandTypographyOptionsMonospace: ZodBrandTypographyOptionsMonospace,
-  BrandTypographyOptionsMonospaceInline:
-    ZodBrandTypographyOptionsMonospaceInline,
+  BrandTypographyOptionsHeadingsSingle: ZodBrandTypographyOptionsHeadingsSingle,
+  BrandTypographyOptionsHeadingsUnified:
+    ZodBrandTypographyOptionsHeadingsUnified,
+  BrandTypographyOptionsMonospaceSingle:
+    ZodBrandTypographyOptionsMonospaceSingle,
+  BrandTypographyOptionsMonospaceUnified:
+    ZodBrandTypographyOptionsMonospaceUnified,
+  BrandTypographyOptionsMonospaceInlineSingle:
+    ZodBrandTypographyOptionsMonospaceInlineSingle,
+  BrandTypographyOptionsMonospaceInlineUnified:
+    ZodBrandTypographyOptionsMonospaceInlineUnified,
   LineHeightNumberString: ZodLineHeightNumberString,
-  BrandTypographyOptionsMonospaceBlock: ZodBrandTypographyOptionsMonospaceBlock,
-  BrandTypographyOptionsLink: ZodBrandTypographyOptionsLink,
-  BrandNamedFont: ZodBrandNamedFont,
+  BrandTypographyOptionsMonospaceBlockSingle:
+    ZodBrandTypographyOptionsMonospaceBlockSingle,
+  BrandTypographyOptionsMonospaceBlockUnified:
+    ZodBrandTypographyOptionsMonospaceBlockUnified,
+  BrandTypographyOptionsLinkSingle: ZodBrandTypographyOptionsLinkSingle,
+  BrandTypographyOptionsLinkUnified: ZodBrandTypographyOptionsLinkUnified,
+  BrandNamedTypographyElements: ZodBrandNamedTypographyElements,
   BrandFont: ZodBrandFont,
   BrandFontWeight: ZodBrandFontWeight,
   BrandFontStyle: ZodBrandFontStyle,
@@ -1883,7 +2066,8 @@ export const Zod = {
   BrandFontBunny: ZodBrandFontBunny,
   BrandFontFile: ZodBrandFontFile,
   BrandFontFamily: ZodBrandFontFamily,
-  Brand: ZodBrand,
+  BrandSingle: ZodBrandSingle,
+  BrandUnified: ZodBrandUnified,
   BrandPathBoolLightDark: ZodBrandPathBoolLightDark,
   BrandDefaults: ZodBrandDefaults,
   BrandDefaultsBootstrap: ZodBrandDefaultsBootstrap,
