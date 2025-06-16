@@ -4,6 +4,7 @@
 
 - ([#12780](https://github.com/quarto-dev/quarto-cli/issues/12780)): `keep-ipynb: true` now works again correctly and intermediate `.quarto_ipynb` is not removed.
 - ([#12627](https://github.com/quarto-dev/quarto-cli/issues/12627)): Don't actually install extension when user responds `yes` to first prompt but `no` to second.
+- ([#12870](https://github.com/quarto-dev/quarto-cli/pull/12870/)): Update QuartoNotebookRunner to 0.17.3.
 
 
 ## In previous releases
