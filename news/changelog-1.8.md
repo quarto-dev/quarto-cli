@@ -52,6 +52,7 @@ All changes included in 1.8:
 - ([#12551](https://github.com/quarto-dev/quarto-cli/pull/12551)): Improve warning issued when `aliases` would overwrite an existing document.
 - ([#12616](https://github.com/quarto-dev/quarto-cli/issues/12616)): find SVG images in image discovery for listings.
 - ([#12693](https://github.com/quarto-dev/quarto-cli/issues/12693)): Prevent resource exhaustion on large websites by serializing `NotebookContext` information to file instead of the environment.
+- ([#12949](https://github.com/quarto-dev/quarto-cli/issues/12949)): Ensure redirects preserve `hash` and `search` when possible.
 
 ## Crossrefs
 
