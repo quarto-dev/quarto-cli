@@ -20,6 +20,7 @@ All changes included in 1.8:
 - ([#12747](https://github.com/quarto-dev/quarto-cli/issues/12747)): Ensure `th` elements are properly restored when Quarto's HTML table processing is happening.
 - ([#12766](https://github.com/quarto-dev/quarto-cli/issues/12766)): Use consistent equation numbering display for `html-math-method` and `html-math-method.method` for MathJax and KaTeX (author: @mcanouil)
 - ([#12797](https://github.com/quarto-dev/quarto-cli/issues/12797)): Allow light and dark brands to be specified in one file, by specializing colors with `light:` and `dark:`.
+- ([#12919](https://github.com/quarto-dev/quarto-cli/issues/12919)): Ensure `kbd` shortcode output has hover tooltip.
 
 ### `revealjs`
 
@@ -51,6 +52,7 @@ All changes included in 1.8:
 - ([#12551](https://github.com/quarto-dev/quarto-cli/pull/12551)): Improve warning issued when `aliases` would overwrite an existing document.
 - ([#12616](https://github.com/quarto-dev/quarto-cli/issues/12616)): find SVG images in image discovery for listings.
 - ([#12693](https://github.com/quarto-dev/quarto-cli/issues/12693)): Prevent resource exhaustion on large websites by serializing `NotebookContext` information to file instead of the environment.
+- ([#12949](https://github.com/quarto-dev/quarto-cli/issues/12949)): Ensure redirects preserve `hash` and `search` when possible.
 
 ## Crossrefs
 
@@ -67,6 +69,10 @@ All changes included in 1.8:
 ### `inspect`
 
 - ([#12733](https://github.com/quarto-dev/quarto-cli/issues/12733)): Add installed extensions to `quarto inspect` project report.
+
+### `add`
+
+- ([#12627](https://github.com/quarto-dev/quarto-cli/issues/12627)): Don't actually install extension when user responds `yes` to first prompt but `no` to second.
 
 ## Engines
 

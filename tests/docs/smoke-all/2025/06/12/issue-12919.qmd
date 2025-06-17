@@ -1,0 +1,12 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['kbd[title="Shift-K"]','kbd[title="linux: Shift-Ctrl-L, mac: Shift-Command-O, windows: Shift-Control-O"]']
+---
+
+{{< kbd mac=Shift-Command-O win=Shift-Control-O linux=Shift-Ctrl-L >}}
+
+{{< kbd Shift-K >}}
