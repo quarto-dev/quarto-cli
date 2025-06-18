@@ -233,6 +233,10 @@ export async function checkBorderProperties(element: Locator, side: string, colo
   await expect(element).toHaveCSS(`border-${side}-width`, width);
 }
 
+export async function checkBackgroundColorProperty(element: Locator, color: RGBColor) {
+  await checkColor(element, `background-color`, color);
+}
+
 export function useDarkLightMode(mode: 'dark' | 'light'): Partial<PlaywrightTestOptions> {
   return {
     colorScheme: mode
