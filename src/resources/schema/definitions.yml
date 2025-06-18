@@ -937,8 +937,8 @@
                     - boolean
                   description: "The navbar title. Uses the project title if none is specified."
                 logo:
-                  path:
-                    description: "Path to a logo image that will be displayed to the left of the title."
+                  ref: logo-light-dark-specifier
+                  description: "Specification of image that will be displayed to the left of the title."
                 logo-alt:
                   string:
                     description: "Alternate text for the logo image."
@@ -1020,7 +1020,7 @@
                     description: "The sidebar title. Uses the project title if none is specified."
                   logo:
                     ref: logo-light-dark-specifier
-                    description: "Speciffication of image that will be displayed in the sidebar."
+                    description: "Specification of image that will be displayed in the sidebar."
                   logo-alt:
                     string:
                       description: "Alternate text for the logo image."

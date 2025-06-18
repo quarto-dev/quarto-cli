@@ -152,7 +152,7 @@ export const kSidebarMenus = "sidebar-menus";
 
 export interface Navbar {
   title?: string | false;
-  logo?: string;
+  logo?: LogoLightDarkSpecifier;
   [kLogoAlt]?: string;
   [kLogoHref]?: string;
   background:

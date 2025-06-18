@@ -16,6 +16,7 @@ import {
   ProjectContext,
 } from "../../types.ts";
 import {
+  kLogoAlt,
   Navbar,
   NavigationFooter,
   NavItem,
@@ -127,7 +128,16 @@ export async function websiteNavigationConfig(project: ProjectContext) {
   } else if (typeof navbar !== "object") {
     navbar = undefined;
   }
-
+  if (navbar && navbar.logo) {
+    let logo = navbar.logo;
+    if (navbar[kLogoAlt]) {
+      if (typeof logo === "string") {
+        logo = { path: logo, alt: navbar[kLogoAlt] };
+      }
+    }
+    const brand = await projectResolveBrand(project);
+    navbar.logo = await normalizeLogoSpec(brand, logo);
+  }
   // read sidebar
   const sidebar = websiteConfig(kSiteSidebar, project.config);
   const sidebars =
@@ -153,8 +163,34 @@ export async function websiteNavigationConfig(project: ProjectContext) {
 
     if (sidebars[0].logo) {
       // note no document-level customization of brand logo #11309
+      let logo = sidebars[0].logo;
+      if (sidebars[0][kLogoAlt]) {
+        const alt = sidebars[0][kLogoAlt];
+        if (typeof logo === "string") {
+          logo = { path: logo, alt };
+        }
+        // possible but absurd
+        // else if ("path" in logo) {
+        //   logo = { ...logo, alt };
+        // } else {
+        //   logo = {
+        //     light: !logo.light ? undefined : typeof logo.light === "string"
+        //       ? {
+        //         path: logo.light,
+        //         alt,
+        //       }
+        //       : { ...logo.light, alt },
+        //     dark: !logo.dark ? undefined : typeof logo.dark === "string"
+        //       ? {
+        //         path: logo.dark,
+        //         alt,
+        //       }
+        //       : { ...logo.dark, alt },
+        //   };
+        // }
+      }
       const brand = await projectResolveBrand(project);
-      sidebars[0].logo = await normalizeLogoSpec(sidebars[0].logo, brand);
+      sidebars[0].logo = await normalizeLogoSpec(brand, logo);
     }
 
     // convert contents: auto into items
@@ -178,32 +214,37 @@ export async function websiteNavigationConfig(project: ProjectContext) {
     projectBrand?.light?.processedData.logo && sidebars?.[0]
   ) {
     if (sidebars[0].logo === undefined) {
-      const logo = projectBrand.light.processedData.logo.medium ??
+      const light = projectBrand.light.processedData.logo.medium ??
         projectBrand.light.processedData.logo.small ??
         projectBrand.light.processedData.logo.large;
-      const darkLogo = projectBrand.dark && (
+      const dark = projectBrand.dark && (
         projectBrand.dark.processedData.logo.medium ??
           projectBrand.dark.processedData.logo.small ??
           projectBrand.dark.processedData.logo.large
       );
-      if (logo || darkLogo) {
+      if (light || dark) {
         sidebars[0].logo = {
-          light: logo,
-          dark: darkLogo,
+          light,
+          dark,
         };
       }
     }
   }
 
   if (
-    projectBrand?.light?.processedData && navbar
+    projectBrand?.light?.processedData.logo && navbar
   ) {
-    const logo = projectBrand.light.processedData.logo.small ??
+    const light = projectBrand.light.processedData.logo.small ??
       projectBrand.light.processedData.logo.medium ??
       projectBrand.light.processedData.logo.large;
-    if (logo) {
-      navbar.logo = logo.path; // TODO: This needs smarts to work on light+dark themes
-      navbar["logo-alt"] = logo.alt;
+    const dark = projectBrand.dark?.processedData.logo.small ??
+      projectBrand.dark?.processedData.logo.medium ??
+      projectBrand.dark?.processedData.logo.large;
+    if (light || dark) {
+      navbar.logo = {
+        light,
+        dark,
+      };
     }
   }
 

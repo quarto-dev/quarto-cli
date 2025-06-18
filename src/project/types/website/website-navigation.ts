@@ -1247,7 +1247,7 @@ async function navbarEjsData(
       ? searchOpts.type
       : false,
     background: navbar.background || "primary",
-    logo: resolveLogo(navbar.logo),
+    logo: navbar.logo,
     [kLogoAlt]: navbar[kLogoAlt],
     [kLogoHref]: navbar[kLogoHref],
     collapse,
@@ -1256,7 +1256,16 @@ async function navbarEjsData(
       : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
     pinned: navbar.pinned !== undefined ? !!navbar.pinned : false,
   };
-
+  if (data.logo) {
+    // navbar logo has been normalized
+    const navbarLogo = navbar.logo as NormalizedLogoLightDarkSpecifier;
+    if (navbarLogo.light) {
+      navbarLogo.light.path = resolveLogo(navbarLogo.light.path)!;
+    }
+    if (navbarLogo.dark) {
+      navbarLogo.dark.path = resolveLogo(navbarLogo.dark.path)!;
+    }
+  }
   // if there is no navbar title and it hasn't been set to 'false'
   // then use the site title
   if (!data.title && data.title !== false) {

@@ -283,8 +283,8 @@ export const getFavicon = (brand: Brand): string | undefined => {
 };
 
 export async function normalizeLogoSpec(
-  spec: LogoLightDarkSpecifier,
   brand: LightDarkBrand | undefined,
+  spec: LogoLightDarkSpecifier,
 ): Promise<NormalizedLogoLightDarkSpecifier> {
   const resolveLogo = (mode: "light" | "dark", name: string) => {
     const logo = brand?.[mode]?.processedData?.logo;
