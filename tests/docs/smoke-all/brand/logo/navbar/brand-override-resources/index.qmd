@@ -5,7 +5,7 @@ _quarto:
     html:
       ensureHtmlElements:
         -
-          - 'img[class*="dark-content"][src="./sun-face.png"][alt=""]'
+          - 'img[class*="dark-content"][src="./sun-face.png"][alt="SUN FACE"]'
           - 'img[class*="light-content"][src="./moon-face.png"][alt=""]'
         - []
 ---

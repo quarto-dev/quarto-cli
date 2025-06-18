@@ -8,8 +8,8 @@ website:
     id: navbar-id
     style: "docked"
     logo:
-      light: moon
-      dark: sun
+      light: { path: moon }
+      dark: { path: sun, alt: "SUN FACE" }
     search: true
     contents:
       - index.qmd

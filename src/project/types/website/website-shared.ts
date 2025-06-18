@@ -135,6 +135,8 @@ export async function websiteNavigationConfig(project: ProjectContext) {
         logo = { path: logo, alt: navbar[kLogoAlt] };
       }
     }
+
+    // note no document-level customization of brand logo #11309
     const brand = await projectResolveBrand(project);
     navbar.logo = await normalizeLogoSpec(brand, logo);
   }
@@ -162,7 +164,6 @@ export async function websiteNavigationConfig(project: ProjectContext) {
     }
 
     if (sidebars[0].logo) {
-      // note no document-level customization of brand logo #11309
       let logo = sidebars[0].logo;
       if (sidebars[0][kLogoAlt]) {
         const alt = sidebars[0][kLogoAlt];
@@ -189,6 +190,7 @@ export async function websiteNavigationConfig(project: ProjectContext) {
         //   };
         // }
       }
+      // note no document-level customization of brand logo #11309
       const brand = await projectResolveBrand(project);
       sidebars[0].logo = await normalizeLogoSpec(brand, logo);
     }
@@ -234,17 +236,19 @@ export async function websiteNavigationConfig(project: ProjectContext) {
   if (
     projectBrand?.light?.processedData.logo && navbar
   ) {
-    const light = projectBrand.light.processedData.logo.small ??
-      projectBrand.light.processedData.logo.medium ??
-      projectBrand.light.processedData.logo.large;
-    const dark = projectBrand.dark?.processedData.logo.small ??
-      projectBrand.dark?.processedData.logo.medium ??
-      projectBrand.dark?.processedData.logo.large;
-    if (light || dark) {
-      navbar.logo = {
-        light,
-        dark,
-      };
+    if (navbar.logo === undefined) {
+      const light = projectBrand.light.processedData.logo.small ??
+        projectBrand.light.processedData.logo.medium ??
+        projectBrand.light.processedData.logo.large;
+      const dark = projectBrand.dark?.processedData.logo.small ??
+        projectBrand.dark?.processedData.logo.medium ??
+        projectBrand.dark?.processedData.logo.large;
+      if (light || dark) {
+        navbar.logo = {
+          light,
+          dark,
+        };
+      }
     }
   }
 

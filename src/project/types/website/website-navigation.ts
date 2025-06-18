@@ -1015,13 +1015,15 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // ensure title and search are present
   sidebar.title = await sidebarTitle(sidebar, project) as string | undefined;
-  // sidebar logo has been normalized
-  const sidebarLogo = sidebar.logo as NormalizedLogoLightDarkSpecifier;
-  if (sidebarLogo.light) {
-    sidebarLogo.light.path = resolveLogo(sidebarLogo.light.path)!;
-  }
-  if (sidebarLogo.dark) {
-    sidebarLogo.dark.path = resolveLogo(sidebarLogo.dark.path)!;
+  if (sidebar.logo) {
+    // sidebar logo has been normalized
+    const sidebarLogo = sidebar.logo as NormalizedLogoLightDarkSpecifier;
+    if (sidebarLogo.light) {
+      sidebarLogo.light.path = resolveLogo(sidebarLogo.light.path)!;
+    }
+    if (sidebarLogo.dark) {
+      sidebarLogo.dark.path = resolveLogo(sidebarLogo.dark.path)!;
+    }
   }
   const searchOpts = await searchOptions(project);
   sidebar.search = sidebar.search !== undefined
@@ -1257,6 +1259,7 @@ async function navbarEjsData(
     pinned: navbar.pinned !== undefined ? !!navbar.pinned : false,
   };
   if (data.logo) {
+    console.log("navbar logo", navbar.logo);
     // navbar logo has been normalized
     const navbarLogo = navbar.logo as NormalizedLogoLightDarkSpecifier;
     if (navbarLogo.light) {
