@@ -968,7 +968,8 @@ async function runScripts(
         options?: RunHandlerOptions,
       ) => {
         return await execProcess({
-          cmd: [script, ...args],
+          cmd: script,
+          args: args,
           cwd: options?.cwd,
           stdout: options?.stdout,
           env: options?.env,
@@ -985,24 +986,13 @@ async function runScripts(
       env["QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES"] = output;
     }
 
-      const result = await handler.run(script, args.splice(1), undefined, {
-        cwd: projDir,
-        stdout: quiet ? "piped" : "inherit",
-        env,
-      });
-      if (!result.success) {
-        throw new Error();
-      }
-    } else {
-      const result = await execProcess({
-        cmd: args,
-        cwd: projDir,
-        stdout: quiet ? "piped" : "inherit",
-        env,
-      });
-      if (!result.success) {
-        throw new Error();
-      }
+    const result = await handler.run(script, args.splice(1), undefined, {
+      cwd: projDir,
+      stdout: quiet ? "piped" : "inherit",
+      env,
+    });
+    if (!result.success) {
+      throw new Error();
     }
   }
   if (scripts.length > 0) {
