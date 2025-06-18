@@ -25,6 +25,7 @@ All changes included in 1.8:
 ### `revealjs`
 
 - ([#12598](https://github.com/quarto-dev/quarto-cli/pull/12598)): Ensure `.fragment` on an image with caption applies to whole figure.
+- ([#12716](https://github.com/quarto-dev/quarto-cli/issues/12716)): Correctly resolve `"brand"` set in `theme` configuration for document in subdirectory from project root.
 
 ### `docx`
 
@@ -94,4 +95,7 @@ All changes included in 1.8:
 - ([#11321](https://github.com/quarto-dev/quarto-cli/issues/11321)): Follow [recommendation from LaTeX project](https://latex-project.org/news/latex2e-news/ltnews40.pdf) and use `lualatex` instead of `xelatex` as the default PDF engine.
 - ([#12782](https://github.com/quarto-dev/quarto-cli/pull/12782)): fix bug on `safeRemoveDirSync`'s detection of safe directory boundaries.
 - ([#12853](https://github.com/quarto-dev/quarto-cli/issues/12853)): fix replaceAll() escaping issue with embedded notebooks containing `$` in their Markdown.
+<<<<<<< dependencies/1.8-mermaidjs -- Incoming Change
 - ([#12939](https://github.com/quarto-dev/quarto-cli/pull/12939)): Upgrade `mermaidjs` to 11.6.0.
+=======
+>>>>>>> main -- Current Change
