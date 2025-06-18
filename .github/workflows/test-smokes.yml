@@ -142,6 +142,16 @@ jobs:
         env:
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Show R session information
+        working-directory: tests
+        run: |
+          # Session info
+          cat("::group::Session info\n")
+          renv::install("sessioninfo")
+          sessioninfo::session_info(pkgs = "installed", include_base = TRUE)
+          cat("::endgroup::\n")
+        shell: Rscript {0}
+
       - name: Install uv for Python
         uses: astral-sh/setup-uv@v3
         with:
