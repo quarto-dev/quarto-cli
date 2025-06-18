@@ -1017,11 +1017,10 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   sidebar.title = await sidebarTitle(sidebar, project) as string | undefined;
   // sidebar logo has been normalized
   const sidebarLogo = sidebar.logo as NormalizedLogoLightDarkSpecifier;
-  console.log("sidebar.logo", sidebarLogo);
   if (sidebarLogo.light) {
     sidebarLogo.light.path = resolveLogo(sidebarLogo.light.path)!;
   }
-  if (sidebarLogo?.dark) {
+  if (sidebarLogo.dark) {
     sidebarLogo.dark.path = resolveLogo(sidebarLogo.dark.path)!;
   }
   const searchOpts = await searchOptions(project);

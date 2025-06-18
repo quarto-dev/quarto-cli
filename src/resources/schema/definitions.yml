@@ -2601,7 +2601,7 @@
 
 - id: logo-options
   object:
-    closed: true # e.g. to allow typst location, padding, padding-*, width
+    closed: false # e.g. to allow typst location, padding, padding-*, width
     properties:
       path:
         schema: path

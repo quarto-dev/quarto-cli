@@ -22,10 +22,7 @@ import {
   Sidebar,
   SidebarItem,
 } from "../../types.ts";
-import {
-  LogoLightDarkSpecifier,
-  NormalizedLogoLightDarkSpecifier,
-} from "../../../resources/types/schema-types.ts";
+import {} from "../../../resources/types/schema-types.ts";
 import {
   kAnnouncement,
   kBodyFooter,
@@ -49,7 +46,8 @@ import { Format, FormatExtras } from "../../../config/types.ts";
 import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
 import { md5HashAsync } from "../../../core/hash.ts";
 export { type NavigationFooter } from "../../types.ts";
-import { assert } from "testing/asserts";
+import { projectResolveBrand } from "../../project-shared.ts";
+import { normalizeLogoSpec } from "../../../core/brand/brand.ts";
 
 export interface Navigation {
   navbar?: Navbar;
@@ -113,38 +111,6 @@ export function computePageTitle(
   }
 }
 
-export function normalizeLogoSpec(
-  spec: LogoLightDarkSpecifier,
-): NormalizedLogoLightDarkSpecifier {
-  if (typeof spec === "string") {
-    return {
-      light: { path: spec },
-      dark: { path: spec },
-    };
-  }
-  if ("light" in spec || "dark" in spec) {
-    return {
-      light: typeof spec.light === "string"
-        ? {
-          path: spec.light,
-        }
-        : spec.light,
-      dark: typeof spec.dark === "string"
-        ? {
-          path: spec.dark,
-        }
-        : spec.dark,
-    };
-  }
-  if ("path" in spec) {
-    return {
-      light: spec,
-      dark: spec,
-    };
-  }
-  assert(false);
-}
-
 export function inputFileHref(href: string) {
   const [hrefDir, hrefStem] = dirAndStem(href);
   const htmlHref = "/" + join(hrefDir, `${hrefStem}.html`);
@@ -186,7 +152,9 @@ export async function websiteNavigationConfig(project: ProjectContext) {
     }
 
     if (sidebars[0].logo) {
-      sidebars[0].logo = normalizeLogoSpec(sidebars[0].logo);
+      // note no document-level customization of brand logo #11309
+      const brand = await projectResolveBrand(project);
+      sidebars[0].logo = await normalizeLogoSpec(sidebars[0].logo, brand);
     }
 
     // convert contents: auto into items
@@ -236,7 +204,6 @@ export async function websiteNavigationConfig(project: ProjectContext) {
     if (logo) {
       navbar.logo = logo.path; // TODO: This needs smarts to work on light+dark themes
       navbar["logo-alt"] = logo.alt;
-      console.log("navbar logo", logo);
     }
   }
 

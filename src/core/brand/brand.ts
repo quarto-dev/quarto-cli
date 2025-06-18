@@ -21,6 +21,9 @@ import {
   BrandTypographySingle,
   BrandTypographyUnified,
   BrandUnified,
+  LogoLightDarkSpecifier,
+  LogoOptions,
+  NormalizedLogoLightDarkSpecifier,
   Zod,
 } from "../../resources/types/zod/schema-types.ts";
 import { InternalError } from "../lib/error.ts";
@@ -28,6 +31,7 @@ import { InternalError } from "../lib/error.ts";
 import { join, relative } from "../../deno_ral/path.ts";
 import { warnOnce } from "../log.ts";
 import { isCssColorName } from "../css/color-names.ts";
+import { assert } from "testing/asserts";
 
 type ProcessedBrandData = {
   color: Record<string, string>;
@@ -238,7 +242,6 @@ export class Brand {
 
   getLogoResource(name: string): BrandLogoExplicitResource {
     const entry = this.data.logo?.images?.[name];
-    console.log(name, this.data.logo?.images);
     if (!entry) {
       return { path: name };
     }
@@ -278,6 +281,63 @@ export const getFavicon = (brand: Brand): string | undefined => {
   }
   return logoInfo.path;
 };
+
+export async function normalizeLogoSpec(
+  spec: LogoLightDarkSpecifier,
+  brand: LightDarkBrand | undefined,
+): Promise<NormalizedLogoLightDarkSpecifier> {
+  const resolveLogo = (mode: "light" | "dark", name: string) => {
+    const logo = brand?.[mode]?.processedData?.logo;
+    return logo &&
+      ((Zod.BrandNamedLogo.options.includes(name as BrandNamedLogo) &&
+        logo[name as BrandNamedLogo]) || logo.images[name]);
+  };
+  const resolveLogoOptions = (
+    mode: "light" | "dark",
+    logo: LogoOptions,
+  ): LogoOptions => {
+    const logo2 = resolveLogo(mode, logo.path);
+    if (logo2) {
+      const { path: _, ...rest } = logo;
+      return {
+        ...logo2,
+        ...rest,
+      };
+    }
+    return logo;
+  };
+  if (typeof spec === "string") {
+    return {
+      light: resolveLogo("light", spec) || { path: spec },
+      dark: resolveLogo("light", spec) || { path: spec },
+    };
+  }
+  if ("path" in spec) {
+    return {
+      light: resolveLogoOptions("light", spec),
+      dark: resolveLogoOptions("dark", spec),
+    };
+  }
+  let light, dark;
+  if (spec.light) {
+    if (typeof spec.light === "string") {
+      light = resolveLogo("light", spec.light) || { path: spec.light };
+    } else {
+      light = resolveLogoOptions("light", spec.light);
+    }
+  }
+  if (spec.dark) {
+    if (typeof spec.dark === "string") {
+      dark = resolveLogo("dark", spec.dark) || { path: spec.dark };
+    } else {
+      dark = resolveLogoOptions("dark", spec.dark);
+    }
+  }
+  return {
+    light,
+    dark,
+  };
+}
 
 function splitColorLightDark(
   bcld: BrandColorLightDark,
