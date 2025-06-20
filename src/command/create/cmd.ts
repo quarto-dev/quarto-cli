@@ -10,7 +10,7 @@ import { kEditorInfos, scanForEditors } from "./editor.ts";
 
 import {
   isInteractiveTerminal,
-  isRStudioWorkbench,
+  isPositWorkbench,
 } from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
 
@@ -60,7 +60,7 @@ export const createCommand = new Command()
         const allowPrompt = isInteractive && !!options.prompt && !options.json;
 
         // Specific case where opening automatically in an editor is not allowed
-        if (options.open !== false && isRStudioWorkbench()) {
+        if (options.open !== false && isPositWorkbench()) {
           if (options.open !== undefined) {
             info(
               `The --open option is not supported in Posit Workbench - ignoring`,
