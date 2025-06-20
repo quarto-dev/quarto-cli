@@ -79,6 +79,10 @@ All changes included in 1.8:
 
 - ([#12627](https://github.com/quarto-dev/quarto-cli/issues/12627)): Don't actually install extension when user responds `yes` to first prompt but `no` to second.
 
+### `create`
+
+- ([#12965](https://github.com/quarto-dev/quarto-cli/issues/12965)): Prevent automatic opening of new editor sessions when creating projects in Posit Workbench context. The `--open` flag is now ignored in this environment to avoid issues with Workbench session management.
+
 ## Engines
 
 ### `jupyter`

@@ -76,8 +76,8 @@ import {
   safeExistsSync,
 } from "../../core/path.ts";
 import {
+  isPositWorkbench,
   isRStudio,
-  isRStudioWorkbench,
   isServerSession,
   isVSCodeServer,
   vsCodeServerProxyUri,
@@ -872,7 +872,7 @@ function pdfFileRequestHandler(
     const onRequest = pdfOptions.onRequest;
     pdfOptions.onRequest = async (req: Request) => {
       if (new URL(req.url).pathname === "/") {
-        const url = isRStudioWorkbench()
+        const url = isPositWorkbench()
           ? await rswURL(port, kPdfJsInitialPath)
           : isVSCodeServer()
           ? vsCodeServerProxyUri()!.replace("{{port}}", `${port}`) +
