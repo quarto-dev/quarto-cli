@@ -1,0 +1,24 @@
+---
+format:
+  html: 
+    meta1: value1
+  latex:
+    meta1: value2
+engine: knitr
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["value1"]
+        - ["value2"]
+    latex:
+      ensureFileRegexMatches:
+        - ["value2"]
+        - ["value1"]
+---
+
+```{r}
+#| echo: false
+#| output: asis
+print(rmarkdown::metadata$format$html$meta1)
+```
