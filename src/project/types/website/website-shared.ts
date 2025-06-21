@@ -47,7 +47,6 @@ import { Format, FormatExtras } from "../../../config/types.ts";
 import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
 import { md5HashAsync } from "../../../core/hash.ts";
 export { type NavigationFooter } from "../../types.ts";
-import { projectResolveBrand } from "../../project-shared.ts";
 import { normalizeLogoSpec } from "../../../core/brand/brand.ts";
 
 export interface Navigation {
@@ -137,7 +136,7 @@ export async function websiteNavigationConfig(project: ProjectContext) {
     }
 
     // note no document-level customization of brand logo #11309
-    const brand = await projectResolveBrand(project);
+    const brand = await project.resolveBrand();
     navbar.logo = await normalizeLogoSpec(brand, logo);
   }
   // read sidebar
@@ -191,7 +190,7 @@ export async function websiteNavigationConfig(project: ProjectContext) {
         // }
       }
       // note no document-level customization of brand logo #11309
-      const brand = await projectResolveBrand(project);
+      const brand = await project.resolveBrand();
       sidebars[0].logo = await normalizeLogoSpec(brand, logo);
     }
 

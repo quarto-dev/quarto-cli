@@ -13,6 +13,7 @@ import {
   kFilterParams,
   kIncludeAfterBody,
   kIpynbShellInteractivity,
+  kLogo,
   kPlotlyConnected,
   kTemplate,
   kTheme,
@@ -32,7 +33,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-import { ProjectContext } from "../../project/types.ts";
+import { kLogoAlt, ProjectContext } from "../../project/types.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { kPageLayout, kPageLayoutCustom } from "../html/format-html-shared.ts";
 import { htmlFormat } from "../html/format-html.ts";
@@ -64,6 +65,7 @@ import { processToolbars } from "./format-dashboard-toolbar.ts";
 import { processDatatables } from "./format-dashboard-tables.ts";
 import { assert } from "testing/asserts";
 import { brandBootstrapSassBundles } from "../../core/sass/brand.ts";
+import { findLogo, normalizeLogoSpec } from "../../core/brand/brand.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -117,6 +119,19 @@ export function dashboardFormat() {
           } else if (htmlFormat && htmlFormat[kTheme]) {
             format.metadata[kTheme] = htmlFormat[kTheme];
           }
+        }
+
+        const brand = await project.resolveBrand(input);
+        if (format.metadata[kLogo]) {
+          format.metadata[kLogo] = await normalizeLogoSpec(
+            brand,
+            format.metadata[kLogo],
+          );
+          console.log("logo", format.metadata[kLogo]);
+        } else if (brand) {
+          const light = findLogo(brand, "light", ["small", "medium", "large"]);
+          const dark = findLogo(brand, "dark", ["small", "medium", "large"]);
+          format.metadata[kLogo] = { light, dark };
         }
 
         const extras: FormatExtras = await baseHtmlFormat.formatExtras(

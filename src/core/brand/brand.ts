@@ -339,6 +339,22 @@ export async function normalizeLogoSpec(
   };
 }
 
+export function findLogo(
+  brand: LightDarkBrand,
+  mode: "light" | "dark",
+  order: BrandNamedLogo[],
+): LogoOptions | undefined {
+  if (brand[mode]) {
+    for (const size of order) {
+      const logo = brand[mode].processedData.logo[size];
+      if (logo) {
+        return logo;
+      }
+    }
+  }
+  return undefined;
+}
+
 function splitColorLightDark(
   bcld: BrandColorLightDark,
 ): LightDarkColor {
