@@ -1034,7 +1034,7 @@
                       ]
                     },
                     "logo": {
-                      "type": "string"
+                      "$ref": "#/$defs/LogoLightDarkSpecifier"
                     },
                     "logo-alt": {
                       "type": "string"
@@ -1118,7 +1118,7 @@
                             ]
                           },
                           "logo": {
-                            "type": "string"
+                            "$ref": "#/$defs/LogoLightDarkSpecifier"
                           },
                           "logo-alt": {
                             "type": "string"
@@ -1213,7 +1213,7 @@
                           ]
                         },
                         "logo": {
-                          "type": "string"
+                          "$ref": "#/$defs/LogoLightDarkSpecifier"
                         },
                         "logo-alt": {
                           "type": "string"
@@ -3223,6 +3223,59 @@
         "medium",
         "large"
       ]
+    },
+    "LogoOptions": {
+      "object": {
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "LogoSpecifier": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/LogoOptions"
+        }
+      ]
+    },
+    "LogoLightDarkSpecifier": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LogoSpecifier"
+        },
+        {
+          "object": {
+            "properties": {
+              "light": {
+                "$ref": "#/$defs/LogoSpecifier"
+              },
+              "dark": {
+                "$ref": "#/$defs/LogoSpecifier"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "NormalizedLogoLightDarkSpecifier": {
+      "object": {
+        "properties": {
+          "light": {
+            "$ref": "#/$defs/LogoOptions"
+          },
+          "dark": {
+            "$ref": "#/$defs/LogoOptions"
+          }
+        }
+      }
     },
     "BrandColorValue": {
       "type": "string"
