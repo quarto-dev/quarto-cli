@@ -1249,7 +1249,7 @@ async function navbarEjsData(
       ? searchOpts.type
       : false,
     background: navbar.background || "primary",
-    logo: navbar.logo,
+    logo: ld.cloneDeep(navbar.logo),
     [kLogoAlt]: navbar[kLogoAlt],
     [kLogoHref]: navbar[kLogoHref],
     collapse,
@@ -1259,9 +1259,8 @@ async function navbarEjsData(
     pinned: navbar.pinned !== undefined ? !!navbar.pinned : false,
   };
   if (data.logo) {
-    console.log("navbar logo", navbar.logo);
     // navbar logo has been normalized
-    const navbarLogo = navbar.logo as NormalizedLogoLightDarkSpecifier;
+    const navbarLogo = data.logo as NormalizedLogoLightDarkSpecifier;
     if (navbarLogo.light) {
       navbarLogo.light.path = resolveLogo(navbarLogo.light.path)!;
     }

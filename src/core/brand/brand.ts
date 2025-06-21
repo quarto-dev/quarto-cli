@@ -282,21 +282,40 @@ export const getFavicon = (brand: Brand): string | undefined => {
   return logoInfo.path;
 };
 
-export async function normalizeLogoSpec(
+export function resolveLogo(
   brand: LightDarkBrand | undefined,
-  spec: LogoLightDarkSpecifier,
-): Promise<NormalizedLogoLightDarkSpecifier> {
-  const resolveLogo = (mode: "light" | "dark", name: string) => {
+  spec: LogoLightDarkSpecifier | undefined,
+  order: BrandNamedLogo[],
+): NormalizedLogoLightDarkSpecifier | undefined {
+  const resolveBrandLogo = (
+    mode: "light" | "dark",
+    name: string,
+  ): LogoOptions => {
     const logo = brand?.[mode]?.processedData?.logo;
     return logo &&
-      ((Zod.BrandNamedLogo.options.includes(name as BrandNamedLogo) &&
-        logo[name as BrandNamedLogo]) || logo.images[name]);
+        ((Zod.BrandNamedLogo.options.includes(name as BrandNamedLogo) &&
+          logo[name as BrandNamedLogo]) || logo.images[name]) ||
+      { path: name };
   };
+  function findLogo(
+    mode: "light" | "dark",
+    order: BrandNamedLogo[],
+  ): LogoOptions | undefined {
+    if (brand?.[mode]) {
+      for (const size of order) {
+        const logo = brand[mode].processedData.logo[size];
+        if (logo) {
+          return logo;
+        }
+      }
+    }
+    return undefined;
+  }
   const resolveLogoOptions = (
     mode: "light" | "dark",
     logo: LogoOptions,
   ): LogoOptions => {
-    const logo2 = resolveLogo(mode, logo.path);
+    const logo2 = resolveBrandLogo(mode, logo.path);
     if (logo2) {
       const { path: _, ...rest } = logo;
       return {
@@ -306,10 +325,16 @@ export async function normalizeLogoSpec(
     }
     return logo;
   };
+  if (!spec) {
+    return {
+      light: findLogo("light", order),
+      dark: findLogo("dark", order),
+    };
+  }
   if (typeof spec === "string") {
     return {
-      light: resolveLogo("light", spec) || { path: spec },
-      dark: resolveLogo("light", spec) || { path: spec },
+      light: resolveBrandLogo("light", spec),
+      dark: resolveBrandLogo("light", spec),
     };
   }
   if ("path" in spec) {
@@ -319,19 +344,19 @@ export async function normalizeLogoSpec(
     };
   }
   let light, dark;
-  if (spec.light) {
-    if (typeof spec.light === "string") {
-      light = resolveLogo("light", spec.light) || { path: spec.light };
-    } else {
-      light = resolveLogoOptions("light", spec.light);
-    }
+  if (!spec.light) {
+    light = findLogo("light", order);
+  } else if (typeof spec.light === "string") {
+    light = resolveBrandLogo("light", spec.light);
+  } else {
+    light = resolveLogoOptions("light", spec.light);
   }
-  if (spec.dark) {
-    if (typeof spec.dark === "string") {
-      dark = resolveLogo("dark", spec.dark) || { path: spec.dark };
-    } else {
-      dark = resolveLogoOptions("dark", spec.dark);
-    }
+  if (!spec.dark) {
+    dark = findLogo("dark", order);
+  } else if (typeof spec.dark === "string") {
+    dark = resolveBrandLogo("dark", spec.dark);
+  } else {
+    dark = resolveLogoOptions("dark", spec.dark);
   }
   return {
     light,
