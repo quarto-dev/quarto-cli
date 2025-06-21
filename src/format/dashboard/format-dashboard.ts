@@ -13,6 +13,7 @@ import {
   kFilterParams,
   kIncludeAfterBody,
   kIpynbShellInteractivity,
+  kLogo,
   kPlotlyConnected,
   kTemplate,
   kTheme,
@@ -27,12 +28,13 @@ import {
   kSassBundles,
   Metadata,
 } from "../../config/types.ts";
+import { LogoLightDarkSpecifier } from "../../resources/types/zod/schema-types.ts";
 import { PandocFlags } from "../../config/types.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-import { ProjectContext } from "../../project/types.ts";
+import { kLogoAlt, ProjectContext } from "../../project/types.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { kPageLayout, kPageLayoutCustom } from "../html/format-html-shared.ts";
 import { htmlFormat } from "../html/format-html.ts";
@@ -64,6 +66,7 @@ import { processToolbars } from "./format-dashboard-toolbar.ts";
 import { processDatatables } from "./format-dashboard-tables.ts";
 import { assert } from "testing/asserts";
 import { brandBootstrapSassBundles } from "../../core/sass/brand.ts";
+import { resolveLogo } from "../../core/brand/brand.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -118,6 +121,21 @@ export function dashboardFormat() {
             format.metadata[kTheme] = htmlFormat[kTheme];
           }
         }
+
+        const brand = await project.resolveBrand(input);
+        let logoSpec = format.metadata[kLogo] as LogoLightDarkSpecifier;
+        if (typeof logoSpec === "string" && format.metadata[kLogoAlt]) {
+          logoSpec = {
+            path: logoSpec,
+            alt: format.metadata[kLogoAlt] as string,
+          };
+        }
+        format.metadata[kLogo] = resolveLogo(brand, logoSpec, [
+          "small",
+          "medium",
+          "large",
+        ]);
+        console.log("dash logo", format.metadata[kLogo]);
 
         const extras: FormatExtras = await baseHtmlFormat.formatExtras(
           input,

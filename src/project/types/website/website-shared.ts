@@ -47,8 +47,7 @@ import { Format, FormatExtras } from "../../../config/types.ts";
 import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
 import { md5HashAsync } from "../../../core/hash.ts";
 export { type NavigationFooter } from "../../types.ts";
-import { projectResolveBrand } from "../../project-shared.ts";
-import { normalizeLogoSpec } from "../../../core/brand/brand.ts";
+import { resolveLogo } from "../../../core/brand/brand.ts";
 
 export interface Navigation {
   navbar?: Navbar;
@@ -128,17 +127,21 @@ export async function websiteNavigationConfig(project: ProjectContext) {
   } else if (typeof navbar !== "object") {
     navbar = undefined;
   }
-  if (navbar && navbar.logo) {
-    let logo = navbar.logo;
+
+  // note no document-level customization of brand logo #11309
+  const projectBrand = await project.resolveBrand();
+  if (navbar) {
+    let navLogo = navbar.logo;
     if (navbar[kLogoAlt]) {
-      if (typeof logo === "string") {
-        logo = { path: logo, alt: navbar[kLogoAlt] };
+      if (typeof navLogo === "string") {
+        navLogo = { path: navLogo, alt: navbar[kLogoAlt] };
       }
     }
-
-    // note no document-level customization of brand logo #11309
-    const brand = await projectResolveBrand(project);
-    navbar.logo = await normalizeLogoSpec(brand, logo);
+    navbar.logo = resolveLogo(projectBrand, navLogo, [
+      "small",
+      "medium",
+      "large",
+    ]);
   }
   // read sidebar
   const sidebar = websiteConfig(kSiteSidebar, project.config);
@@ -163,37 +166,39 @@ export async function websiteNavigationConfig(project: ProjectContext) {
       sidebars[0].tools = [];
     }
 
-    if (sidebars[0].logo) {
-      let logo = sidebars[0].logo;
+    let sideLogo = sidebars[0].logo;
+    if (sideLogo) {
       if (sidebars[0][kLogoAlt]) {
         const alt = sidebars[0][kLogoAlt];
-        if (typeof logo === "string") {
-          logo = { path: logo, alt };
+        if (typeof sideLogo === "string") {
+          sideLogo = { path: sideLogo, alt };
         }
         // possible but absurd
-        // else if ("path" in logo) {
-        //   logo = { ...logo, alt };
+        // else if ("path" in sideLogo) {
+        //   sideLogo = { ...sideLogo, alt };
         // } else {
-        //   logo = {
-        //     light: !logo.light ? undefined : typeof logo.light === "string"
+        //   sideLogo = {
+        //     light: !sideLogo.light ? undefined : typeof sideLogo.light === "string"
         //       ? {
-        //         path: logo.light,
+        //         path: sideLogo.light,
         //         alt,
         //       }
-        //       : { ...logo.light, alt },
-        //     dark: !logo.dark ? undefined : typeof logo.dark === "string"
+        //       : { ...sideLogo.light, alt },
+        //     dark: !sideLogo.dark ? undefined : typeof sideLogo.dark === "string"
         //       ? {
-        //         path: logo.dark,
+        //         path: sideLogo.dark,
         //         alt,
         //       }
-        //       : { ...logo.dark, alt },
+        //       : { ...sideLogo.dark, alt },
         //   };
         // }
       }
-      // note no document-level customization of brand logo #11309
-      const brand = await projectResolveBrand(project);
-      sidebars[0].logo = await normalizeLogoSpec(brand, logo);
     }
+    sidebars[0].logo = resolveLogo(projectBrand, sideLogo, [
+      "medium",
+      "small",
+      "large",
+    ]);
 
     // convert contents: auto into items
     for (const sb of sidebars) {
@@ -207,47 +212,6 @@ export async function websiteNavigationConfig(project: ProjectContext) {
         } else {
           sb.contents = [sb.contents as SidebarItem];
         }
-      }
-    }
-  }
-
-  const projectBrand = await project.resolveBrand();
-  if (
-    projectBrand?.light?.processedData.logo && sidebars?.[0]
-  ) {
-    if (sidebars[0].logo === undefined) {
-      const light = projectBrand.light.processedData.logo.medium ??
-        projectBrand.light.processedData.logo.small ??
-        projectBrand.light.processedData.logo.large;
-      const dark = projectBrand.dark && (
-        projectBrand.dark.processedData.logo.medium ??
-          projectBrand.dark.processedData.logo.small ??
-          projectBrand.dark.processedData.logo.large
-      );
-      if (light || dark) {
-        sidebars[0].logo = {
-          light,
-          dark,
-        };
-      }
-    }
-  }
-
-  if (
-    projectBrand?.light?.processedData.logo && navbar
-  ) {
-    if (navbar.logo === undefined) {
-      const light = projectBrand.light.processedData.logo.small ??
-        projectBrand.light.processedData.logo.medium ??
-        projectBrand.light.processedData.logo.large;
-      const dark = projectBrand.dark?.processedData.logo.small ??
-        projectBrand.dark?.processedData.logo.medium ??
-        projectBrand.dark?.processedData.logo.large;
-      if (light || dark) {
-        navbar.logo = {
-          light,
-          dark,
-        };
       }
     }
   }
