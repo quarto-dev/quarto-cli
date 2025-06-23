@@ -1,0 +1,26 @@
+---
+title: Sidebar Mode-First Search Algorithm
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          # For light mode, medium size is preferred (medium → small → large)
+          # For dark mode, check that it searches all sizes in dark mode first
+          # before considering any light mode variants
+          - 'img[class*="light-content"][src="./light-medium.png"][alt="light medium logo"]'
+          - 'img[class*="dark-content"][src="./dark-large.png"][alt="dark large logo"]'
+        - []
+---
+
+This test verifies that sidebar logos follow a mode-first search algorithm:
+
+1. For light mode: medium.light exists, so it's used
+2. For dark mode: 
+   - medium.dark doesn't exist, try small.dark (preferred backup size)
+   - small.dark doesn't exist, try large.dark
+   - large.dark exists, so it's used
+   - It never falls back to any light variant
+
+This demonstrates the mode-first search algorithm, where it exhaustively searches
+for a specific mode across all sizes before considering the other mode.

@@ -1,0 +1,36 @@
+---
+title: Dark Mode with No Light Logo
+format:
+  dashboard:
+    theme:
+      light: default
+      dark: darkly  # Explicitly enable dark mode
+brand:
+  color:
+    foreground: 
+      light: '#222'
+      dark: '#eee'
+    background:
+      light: '#eee'
+      dark: '#222'
+  logo:
+    images:
+      dark-logo:
+        path: posit-logo-2024.svg
+        alt: dark logo
+    medium:
+      dark: dark-logo
+      # No light variant defined - what happens?
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          # Dark mode should use the dark logo
+          - 'img[src="posit-logo-2024.svg"][alt="dark logo"][class="navbar-logo dark-content d-inline-block"]'
+          # For light mode, should it use the dark logo since no light logo exists?
+          - 'img[src="posit-logo-2024.svg"][alt="dark logo"][class="navbar-logo light-content d-inline-block"]'
+        - []
+---
+
+{{< lipsum 4 >}}
