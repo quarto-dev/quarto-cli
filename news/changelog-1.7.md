@@ -203,7 +203,7 @@
 - ([#11803](https://github.com/quarto-dev/quarto-cli/pull/11803)): Added a new CLI command `quarto call`. First users of this interface are the new `quarto call engine julia ...` subcommands.
 - ([#11951](https://github.com/quarto-dev/quarto-cli/issues/11951)): Raw LaTeX table without `tbl-` prefix label for using Quarto crossref are now correctly passed through unmodified.
 - ([#11967](https://github.com/quarto-dev/quarto-cli/issues/11967)): Produce a better error message when YAML metadata with `!expr` tags are used outside of `knitr` code cells.
-- ([#12117](https://github.com/quarto-dev/quarto-cli/issues/12117)): Color output to stdout and stderr is now correctly rendered for `html` format in the Jupyter and Julia engines.
+- ([#12117](https://github.com/quarto-dev/quarto-cli/issues/12117)): Color output to stdout and stderr is now correctly rendered for `html` format in the Jupyter and Julia engines. This change includes support for ANSI color codes in output.
 - ([#12264](https://github.com/quarto-dev/quarto-cli/issues/12264)): Upgrade `dart-sass` to 1.85.1.
 - ([#12238](https://github.com/quarto-dev/quarto-cli/issues/12238)): Do not truncate very long console errors (e.g. in Jupyter Notebook with backtrace).
 - ([#12338](https://github.com/quarto-dev/quarto-cli/issues/12338)): Add an additional workaround for the SCSS parser used in color variable extraction.
