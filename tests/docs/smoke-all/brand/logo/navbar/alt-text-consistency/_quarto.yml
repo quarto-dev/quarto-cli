@@ -1,0 +1,18 @@
+project:
+  type: website
+theme:
+  light: brand
+  dark: [brand, dark-fixups.scss]
+website:
+  navbar:
+    style: "docked"
+    logo:
+      # Test different alt text scenarios
+      light:
+        path: logo-with-alt  # Has alt text in brand definition
+      dark:
+        path: missing-alt    # Resource not defined in brand, no alt text
+    search: true
+    contents:
+      - index.qmd
+      - alt-override.qmd

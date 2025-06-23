@@ -1,0 +1,39 @@
+---
+title: Document Light Logo + Brand Light Logo Only
+format:
+  dashboard:
+    theme:
+      light: default
+      dark: darkly  # Explicitly enable dark mode
+    # Document level logo with only light defined
+    logo:
+      light: direct-light-logo.png
+brand:
+  color:
+    foreground: 
+      light: '#222'
+      dark: '#eee'
+    background:
+      light: '#eee'
+      dark: '#222'
+  logo:
+    images:
+      brand-light-logo:
+        path: quarto.png
+        alt: brand light logo
+    medium:
+      light: brand-light-logo
+      # No dark variant defined in brand
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          # Light mode should use document-level light logo (not brand)
+          - 'img[src="direct-light-logo.png"][alt=""][class="navbar-logo light-content d-inline-block"]'
+          # For dark mode, should use same document-level light logo for fallback
+          - 'img[src="direct-light-logo.png"][alt=""][class="navbar-logo dark-content d-inline-block"]'
+        - []
+---
+
+{{< lipsum 4 >}}
