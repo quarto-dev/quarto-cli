@@ -122,7 +122,7 @@ export function dashboardFormat() {
           }
         }
 
-        const brand = await project.resolveBrand(input);
+        const brand = format.render.brand;
         let logoSpec = format.metadata[kLogo] as LogoLightDarkSpecifier;
         if (typeof logoSpec === "string" && format.metadata[kLogoAlt]) {
           logoSpec = {
@@ -135,7 +135,6 @@ export function dashboardFormat() {
           "medium",
           "large",
         ]);
-        console.log("dash logo", format.metadata[kLogo]);
 
         const extras: FormatExtras = await baseHtmlFormat.formatExtras(
           input,

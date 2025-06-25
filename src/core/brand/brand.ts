@@ -269,6 +269,12 @@ export type LightDarkBrand = {
   dark?: Brand;
 };
 
+export type LightDarkBrandDarkFlag = {
+  light?: Brand;
+  dark?: Brand;
+  enablesDarkMode: boolean;
+};
+
 export type LightDarkColor = {
   light?: string;
   dark?: string;
@@ -327,8 +333,8 @@ export function resolveLogo(
   };
   if (!spec) {
     return {
-      light: findLogo("light", order),
-      dark: findLogo("dark", order),
+      light: findLogo("light", order) || findLogo("dark", order),
+      dark: findLogo("dark", order) || findLogo("light", order),
     };
   }
   if (typeof spec === "string") {
@@ -357,6 +363,15 @@ export function resolveLogo(
     dark = resolveBrandLogo("dark", spec.dark);
   } else {
     dark = resolveLogoOptions("dark", spec.dark);
+  }
+  // light logo default to dark logo if no light logo specified
+  if (!light && dark) {
+    light = { ...dark };
+  }
+  // dark logo default to light logo if no dark logo specified
+  // and dark mode is enabled
+  if (!dark && light && brand && brand.dark) {
+    dark = { ...light };
   }
   return {
     light,
@@ -466,7 +481,7 @@ export function splitUnifiedBrand(
   unified: unknown,
   brandDir: string,
   projectDir: string,
-): LightDarkBrand {
+): LightDarkBrandDarkFlag {
   const unifiedBrand: BrandUnified = Zod.BrandUnified.parse(unified);
   let typography: BrandTypographySingle | undefined = undefined;
   let headingsColor: LightDarkColor | undefined = undefined;
@@ -629,8 +644,7 @@ export function splitUnifiedBrand(
   }
   return {
     light: new Brand(lightBrand, brandDir, projectDir),
-    dark: brandHasDarkMode(unifiedBrand)
-      ? new Brand(darkBrand, brandDir, projectDir)
-      : undefined,
+    dark: new Brand(darkBrand, brandDir, projectDir),
+    enablesDarkMode: brandHasDarkMode(unifiedBrand),
   };
 }
