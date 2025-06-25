@@ -86,6 +86,7 @@ import {
 import { ExtensionContext } from "../../extension/types.ts";
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
 import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
+import { darkModeDefaultMetadata } from "../../format/html/format-html-info.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
@@ -569,8 +570,16 @@ async function resolveFormats(
 
     // resolve brand in project and forward it to format
     const brand = await project.resolveBrand(target.source);
-    mergedFormats[format].render.brand = brand;
-
+    if (brand) {
+      mergedFormats[format].render.brand = {
+        light: brand.light,
+        dark: (brand.enablesDarkMode ||
+            darkModeDefaultMetadata(mergedFormats[format].metadata) !==
+              undefined)
+          ? brand.dark
+          : undefined,
+      };
+    }
     // apply defaults from brand yaml under the metadata of the current format
     const brandFormatDefaults: Metadata =
       (brand?.light?.data?.defaults?.quarto as unknown as Record<

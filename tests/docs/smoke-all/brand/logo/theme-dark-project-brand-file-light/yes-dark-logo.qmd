@@ -1,0 +1,24 @@
+---
+title: Yes dark logo if theme enables dark mode
+logo:
+  light: quarto.png
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          - 'img[src="quarto.png"][alt=""][class="navbar-logo light-content d-inline-block"]'
+          - 'img[src="light-logo.png"][alt="light logo"][class="navbar-logo dark-content d-inline-block"]'
+        - []
+---
+
+
+There is ambiguity whether this should use `quarto.png` for the dark logo, since
+the brand provides no dark logos, but if that's the intention then use
+
+```yaml
+logo: quarto.png
+```
+
+
+{{< lipsum 4 >}}
