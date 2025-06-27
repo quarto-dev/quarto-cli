@@ -17,10 +17,10 @@ on:
   ##   paths-ignore:
   ##     - "news/**"
   ##     - "src/resources/language/**"
-  ## pull_request:
-  ##   branches: [main]
-  ##   paths-ignore:
-  ##     - "src/resources/language/**"
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "src/resources/language/**"
 
 concurrency:
   # Use github.run_id on main branch
