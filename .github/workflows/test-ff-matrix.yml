@@ -21,6 +21,14 @@ on:
     branches: [main]
     paths-ignore:
       - "src/resources/language/**"
+      # don't run on PR working on other workflows
+      - ".github/workflows/create-release.yml"
+      - ".github/workflows/performance-check.yml"
+      - ".github/workflows/stale-needs-repro.yml"
+      - ".github/workflows/test-bundle.yml"
+      - ".github/workflows/test-smokes-parallel.yml"
+      - ".github/workflows/test-quarto-latexmk.yml"
+      - ".github/workflows/update-test-timing.yml"
 
 concurrency:
   # Use github.run_id on main branch
