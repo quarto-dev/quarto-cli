@@ -193,8 +193,8 @@ jobs:
           echo "Julia Jupyter:"
           uv run julia --project=. -e "import IJulia;println(IJulia.JUPYTER);println(IJulia.find_jupyter_subcommand(\"notebook\"))"
 
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
 
       # we run from tests directory as our environment for R, Python and Julia is set up there
       - name: Run all feature-format-matrix Tests Windows
