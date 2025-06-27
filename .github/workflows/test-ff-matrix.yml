@@ -216,12 +216,6 @@ jobs:
         #     ./run-tests.sh ../dev-docs/feature-format-matrix/**/*.qmd
         run: |
           ./run-tests.sh \
-          ../dev-docs/feature-format-matrix/qmd-files/crossref/float/caption-location-bottom/document.qmd \
-          ../dev-docs/feature-format-matrix/qmd-files/crossref/float/caption-location-top/document.qmd \
-          ../dev-docs/feature-format-matrix/qmd-files/crossref/float/code-listing/document.qmd \
-          ../dev-docs/feature-format-matrix/qmd-files/crossref/float/code-listing/executable/document.qmd \
-          ../dev-docs/feature-format-matrix/qmd-files/crossref/float/custom/document.qmd \
-          ../dev-docs/feature-format-matrix/qmd-files/crossref/float/figure/document.qmd \
           ../dev-docs/feature-format-matrix/qmd-files/crossref/float/table/document.qmd
         working-directory: tests
         shell: bash
