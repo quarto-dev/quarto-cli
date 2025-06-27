@@ -8,17 +8,12 @@ _quarto:
       ensureHtmlElements:
         -
           - 'img[src="quarto.png"][alt=""][class="navbar-logo light-content d-inline-block"]'
-          - 'img[src="light-logo.png"][alt="light logo"][class="navbar-logo dark-content d-inline-block"]'
+          - 'img[src="quarto.png"][alt=""][class="navbar-logo dark-content d-inline-block"]'
         - []
 ---
 
 
-There is ambiguity whether this should use `quarto.png` for the dark logo, since
-the brand provides no dark logos, but if that's the intention then use
-
-```yaml
-logo: quarto.png
-```
+Uses the light logo as a dark logo because there is no dark logo in the brand.
 
 
 {{< lipsum 4 >}}

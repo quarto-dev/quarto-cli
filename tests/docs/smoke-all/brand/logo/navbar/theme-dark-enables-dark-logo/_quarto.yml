@@ -1,0 +1,14 @@
+project:
+  type: website
+theme:
+  light: default
+  dark: darkly
+website:
+  navbar:
+    logo:
+      light: quarto.png
+    style: "docked"
+    search: true
+    contents:
+      - index.qmd
+      - conclusion.qmd
