@@ -25,6 +25,8 @@ import {
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
+import { BrandNamedLogo, Zod } from "../../resources/types/zod/schema-types.ts";
+
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { renderEjs } from "../../core/ejs.ts";
@@ -377,18 +379,14 @@ export function revealjsFormat() {
 const determineRevealLogo = (format: Format): string | undefined => {
   const brandData = format.render.brand?.light?.processedData;
   if (brandData?.logo) {
-    const keys: ("medium" | "small" | "large")[] = ["medium", "small", "large"];
     // add slide logo if we have one
-    for (const size of keys) {
+    for (const size of Zod.BrandNamedLogo.options) {
       const logoInfo = brandData.logo[size];
       if (!logoInfo) {
         continue;
       }
-      if (typeof logoInfo === "string") {
-        return logoInfo;
-      } else {
-        // what to do about light vs dark?
-        return logoInfo?.light.path ?? logoInfo?.dark.path;
+      if (logoInfo) {
+        return logoInfo.path;
       }
     }
   }
@@ -403,14 +401,12 @@ function revealMarkdownAfterBody(format: Format) {
     if (typeof revealLogo === "object") {
       revealLogo = revealLogo.path;
     }
-    if (["small", "medium", "large"].includes(revealLogo)) {
+    if (Zod.BrandNamedLogo.options.includes(revealLogo as BrandNamedLogo)) {
       const brandData = format.render.brand?.light?.processedData;
       const logoInfo = brandData?.logo
-        ?.[revealLogo as ("medium" | "small" | "large")];
-      if (typeof logoInfo === "string") {
-        revealLogo = logoInfo;
-      } else {
-        revealLogo = logoInfo?.light.path ?? logoInfo?.dark.path;
+        ?.[revealLogo as BrandNamedLogo];
+      if (logoInfo) {
+        revealLogo = logoInfo.path;
       }
     }
   } else {

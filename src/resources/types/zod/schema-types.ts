@@ -368,7 +368,7 @@ export const ZodBaseWebsite = z.object({
     z.boolean(),
     z.object({
       title: z.union([z.string(), z.boolean()]),
-      logo: z.string(),
+      logo: z.lazy(() => ZodLogoLightDarkSpecifier),
       "logo-alt": z.string(),
       "logo-href": z.string(),
       background: z.string(),
@@ -389,7 +389,7 @@ export const ZodBaseWebsite = z.object({
       z.object({
         id: z.string(),
         title: z.union([z.string(), z.boolean()]),
-        logo: z.string(),
+        logo: z.lazy(() => ZodLogoLightDarkSpecifier),
         "logo-alt": z.string(),
         "logo-href": z.string(),
         search: z.boolean(),
@@ -409,7 +409,7 @@ export const ZodBaseWebsite = z.object({
         z.object({
           id: z.string(),
           title: z.union([z.string(), z.boolean()]),
-          logo: z.string(),
+          logo: z.lazy(() => ZodLogoLightDarkSpecifier),
           "logo-alt": z.string(),
           "logo-href": z.string(),
           search: z.boolean(),
@@ -542,7 +542,7 @@ export const ZodBookSchema = z.object({
     z.boolean(),
     z.object({
       title: z.union([z.string(), z.boolean()]),
-      logo: z.string(),
+      logo: z.lazy(() => ZodLogoLightDarkSpecifier),
       "logo-alt": z.string(),
       "logo-href": z.string(),
       background: z.string(),
@@ -563,7 +563,7 @@ export const ZodBookSchema = z.object({
       z.object({
         id: z.string(),
         title: z.union([z.string(), z.boolean()]),
-        logo: z.string(),
+        logo: z.lazy(() => ZodLogoLightDarkSpecifier),
         "logo-alt": z.string(),
         "logo-href": z.string(),
         search: z.boolean(),
@@ -583,7 +583,7 @@ export const ZodBookSchema = z.object({
         z.object({
           id: z.string(),
           title: z.union([z.string(), z.boolean()]),
-          logo: z.string(),
+          logo: z.lazy(() => ZodLogoLightDarkSpecifier),
           "logo-alt": z.string(),
           "logo-href": z.string(),
           search: z.boolean(),
@@ -1343,6 +1343,27 @@ export const ZodBrandLogoUnified = z.object({
 
 export const ZodBrandNamedLogo = z.enum(["small", "medium", "large"] as const);
 
+export const ZodLogoOptions = z.object({ path: z.string(), alt: z.string() })
+  .passthrough().partial().required({ path: true });
+
+export const ZodLogoSpecifier = z.union([
+  z.string(),
+  z.lazy(() => ZodLogoOptions),
+]);
+
+export const ZodLogoLightDarkSpecifier = z.union([
+  z.lazy(() => ZodLogoSpecifier),
+  z.object({
+    light: z.lazy(() => ZodLogoSpecifier),
+    dark: z.lazy(() => ZodLogoSpecifier),
+  }).strict().partial(),
+]);
+
+export const ZodNormalizedLogoLightDarkSpecifier = z.object({
+  light: z.lazy(() => ZodLogoOptions),
+  dark: z.lazy(() => ZodLogoOptions),
+}).strict().partial();
+
 export const ZodBrandColorValue = z.string();
 
 export const ZodBrandColorSingle = z.object({
@@ -1695,7 +1716,7 @@ export const ZodBrandFontFamily = z.string();
 
 export const ZodBrandSingle = z.object({
   meta: z.lazy(() => ZodBrandMeta),
-  logo: z.lazy(() => ZodBrandLogoUnified),
+  logo: z.lazy(() => ZodBrandLogoSingle),
   color: z.lazy(() => ZodBrandColorSingle),
   typography: z.lazy(() => ZodBrandTypographySingle),
   defaults: z.lazy(() => ZodBrandDefaults),
@@ -1868,6 +1889,16 @@ export type BrandLogoUnified = z.infer<typeof ZodBrandLogoUnified>;
 
 export type BrandNamedLogo = z.infer<typeof ZodBrandNamedLogo>;
 
+export type LogoOptions = z.infer<typeof ZodLogoOptions>;
+
+export type LogoSpecifier = z.infer<typeof ZodLogoSpecifier>;
+
+export type LogoLightDarkSpecifier = z.infer<typeof ZodLogoLightDarkSpecifier>;
+
+export type NormalizedLogoLightDarkSpecifier = z.infer<
+  typeof ZodNormalizedLogoLightDarkSpecifier
+>;
+
 export type BrandColorValue = z.infer<typeof ZodBrandColorValue>;
 
 export type BrandColorSingle = z.infer<typeof ZodBrandColorSingle>;
@@ -2028,6 +2059,10 @@ export const Zod = {
   BrandLogoSingle: ZodBrandLogoSingle,
   BrandLogoUnified: ZodBrandLogoUnified,
   BrandNamedLogo: ZodBrandNamedLogo,
+  LogoOptions: ZodLogoOptions,
+  LogoSpecifier: ZodLogoSpecifier,
+  LogoLightDarkSpecifier: ZodLogoLightDarkSpecifier,
+  NormalizedLogoLightDarkSpecifier: ZodNormalizedLogoLightDarkSpecifier,
   BrandColorValue: ZodBrandColorValue,
   BrandColorSingle: ZodBrandColorSingle,
   BrandColorLightDark: ZodBrandColorLightDark,

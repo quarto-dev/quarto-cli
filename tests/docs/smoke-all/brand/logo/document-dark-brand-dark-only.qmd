@@ -1,0 +1,39 @@
+---
+title: Document Dark Logo + Brand Dark Logo Only
+format:
+  dashboard:
+    theme:
+      light: default
+      dark: darkly  # Explicitly enable dark mode
+    # Document level logo with only dark defined
+    logo:
+      dark: direct-dark-logo.png
+brand:
+  color:
+    foreground: 
+      light: '#222'
+      dark: '#eee'
+    background:
+      light: '#eee'
+      dark: '#222'
+  logo:
+    images:
+      brand-dark-logo:
+        path: posit-logo-2024.svg
+        alt: brand dark logo
+    medium:
+      dark: brand-dark-logo
+      # No light variant defined in brand
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          # Dark mode should use document-level dark logo (not brand)
+          - 'img[src="direct-dark-logo.png"][alt=""][class="navbar-logo dark-content d-inline-block"]'
+          # For light mode, should use same document-level dark logo for fallback
+          - 'img[src="direct-dark-logo.png"][alt=""][class="navbar-logo light-content d-inline-block"]'
+        - []
+---
+
+{{< lipsum 4 >}}

@@ -937,8 +937,8 @@
                     - boolean
                   description: "The navbar title. Uses the project title if none is specified."
                 logo:
-                  path:
-                    description: "Path to a logo image that will be displayed to the left of the title."
+                  ref: logo-light-dark-specifier
+                  description: "Specification of image that will be displayed to the left of the title."
                 logo-alt:
                   string:
                     description: "Alternate text for the logo image."
@@ -1019,8 +1019,8 @@
                       - boolean
                     description: "The sidebar title. Uses the project title if none is specified."
                   logo:
-                    path:
-                      description: "Path to a logo image that will be displayed in the sidebar."
+                    ref: logo-light-dark-specifier
+                    description: "Specification of image that will be displayed in the sidebar."
                   logo-alt:
                     string:
                       description: "Alternate text for the logo image."
@@ -2599,6 +2599,65 @@
   description: Names of customizeable logos
   enum: [small, medium, large]
 
+- id: logo-options
+  object:
+    closed: false # e.g. to allow typst location, padding, padding-*, width
+    properties:
+      path:
+        schema: path
+        description: >
+          Path or brand.yml logo resource name.
+      alt:
+        schema: string
+        description: >
+          Alternative text for the logo, used for accessibility.
+    required: [path]
+
+- id: logo-specifier
+  anyOf:
+    - string
+    - schema:
+        ref: logo-options
+
+- id: logo-light-dark-specifier
+  description: >
+    Any of the ways a logo can be specified: string, object, or light/dark object of
+    string or object
+  anyOf:
+    - ref: logo-specifier
+    - object:
+        closed: true
+        properties:
+          light:
+            schema:
+              ref: logo-specifier
+            description: >
+              Specification of a light logo
+          dark:
+            schema:
+              ref: logo-specifier
+            description: >
+              Specification of a dark logo
+
+# normalized version of logo-light-dark-specifier
+- id: normalized-logo-light-dark-specifier
+  description: >
+    Any of the ways a logo can be specified: string, object, or light/dark object of
+    string or object
+  object:
+    closed: true
+    properties:
+      light:
+        schema:
+          ref: logo-options
+        description: >
+          Options for a light logo
+      dark:
+        schema:
+          ref: logo-options
+        description: >
+          Options for a dark logo
+
 - id: brand-color-value
   schema: string
 
@@ -3222,7 +3281,7 @@
       meta:
         ref: brand-meta
       logo:
-        ref: brand-logo-unified # temporary
+        ref: brand-logo-single
       color:
         ref: brand-color-single
       typography:
