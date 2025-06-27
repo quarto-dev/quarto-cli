@@ -20,6 +20,14 @@ on:
       - "v[1-9].[0-9]+" # run also on released version branch (for patch releases)
     paths-ignore:
       - "src/resources/language/**"
+      # don't run on PR working on other workflows
+      - ".github/workflows/create-release.yml"
+      - ".github/workflows/performance-check.yml"
+      - ".github/workflows/stale-needs-repro.yml"
+      - ".github/workflows/test-bundle.yml"
+      - ".github/workflows/test-ff-matrix.yml"
+      - ".github/workflows/test-quarto-latexmk.yml"
+      - ".github/workflows/update-test-timing.yml"
   push:
     # only trigger on branches, not on tags
     branches:
