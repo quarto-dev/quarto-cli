@@ -197,7 +197,7 @@ jobs:
       #   uses: mxschmitt/action-tmate@v3
 
       # we run from tests directory as our environment for R, Python and Julia is set up there
-      - name: Run all Smoke Tests Windows
+      - name: Run all feature-format-matrix Tests Windows
         if: ${{ runner.os == 'Windows' }}
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
@@ -206,7 +206,7 @@ jobs:
         working-directory: tests
         shell: pwsh
 
-      - name: Run all Smoke Tests Linux
+      - name: Run all feature-format-matrix Tests Linux
         if: ${{ runner.os != 'Windows' }}
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
