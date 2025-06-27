@@ -71,6 +71,17 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install node dependencies
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        run: yarn
+        working-directory: ./tests/integration/playwright
+        shell: bash
+
+      - name: Install Playwright Browsers
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        run: npx playwright install --with-deps
+        working-directory: ./tests/integration/playwright
+
       - name: Install MECA validator
         if: ${{ runner.os != 'Windows' }}
         run: npm install -g meca
