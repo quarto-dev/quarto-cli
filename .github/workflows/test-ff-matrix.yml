@@ -214,7 +214,7 @@ jobs:
         # run: |
         #   shopt -s globstar &&
         #     ./run-tests.sh ../dev-docs/feature-format-matrix/**/*.qmd
-        run: ./run-tests.sh ../dev-docs/feature-format-matrix/qmd-files/crossref/float/custom/document.qmd
+        run: shopt -s globstar && ./run-tests.sh ../dev-docs/feature-format-matrix/qmd-files/crossref/**/*.qmd
         working-directory: tests
         shell: bash
 
