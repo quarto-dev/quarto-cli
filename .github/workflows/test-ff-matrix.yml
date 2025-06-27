@@ -222,6 +222,7 @@ jobs:
           ../dev-docs/feature-format-matrix/qmd-files/crossref/float/code-listing/executable/document.qmd \
           ../dev-docs/feature-format-matrix/qmd-files/crossref/float/custom/document.qmd \
           ../dev-docs/feature-format-matrix/qmd-files/crossref/float/figure/document.qmd \
+          ../dev-docs/feature-format-matrix/qmd-files/crossref/float/table/document.qmd
         working-directory: tests
         shell: bash
 
