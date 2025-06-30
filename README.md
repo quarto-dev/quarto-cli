@@ -54,6 +54,6 @@ cd tests
 ./run-tests.sh smoke/extensions/
 ```
 
-## License
+## License {#license-1-ov-file}
 
 Quarto is open source software available under the MIT license (<https://opensource.org/license/mit/>).
