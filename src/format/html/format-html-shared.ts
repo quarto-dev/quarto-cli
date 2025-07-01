@@ -317,7 +317,8 @@ export const quartoDefaults = (format: Format) => {
         "code-copy-selector",
         format.metadata[kCodeCopy] === undefined ||
           format.metadata[kCodeCopy] === "hover"
-          ? '"pre.sourceCode:hover > "'
+          // ? '"div.sourceCode:hover > "'
+          ? '"div.code-copy-outer-scaffold:hover > "'
           : '""',
       ),
     ),
