@@ -1,0 +1,19 @@
+---
+title: Yes dark logo if theme enables dark mode
+logo:
+  light: quarto.png
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          - 'img[src="quarto.png"][alt=""][class="navbar-logo light-content d-inline-block"]'
+          - 'img[src="quarto.png"][alt=""][class="navbar-logo dark-content d-inline-block"]'
+        - []
+---
+
+
+Uses the light logo as a dark logo because there is no dark logo in the brand.
+
+
+{{< lipsum 4 >}}

@@ -1,0 +1,10 @@
+logo:
+  images:
+    light-logo:
+      path: light-logo.png
+      alt: light logo
+    dark-logo:
+      path: dark-logo.png
+      alt: dark logo
+  small:
+    light: light-logo

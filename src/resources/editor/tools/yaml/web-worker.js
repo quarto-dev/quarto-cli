@@ -9690,9 +9690,8 @@ try {
                             description: "The navbar title. Uses the project title if none is specified."
                           },
                           logo: {
-                            path: {
-                              description: "Path to a logo image that will be displayed to the left of the title."
-                            }
+                            ref: "logo-light-dark-specifier",
+                            description: "Specification of image that will be displayed to the left of the title."
                           },
                           "logo-alt": {
                             string: {
@@ -9816,9 +9815,8 @@ try {
                               description: "The sidebar title. Uses the project title if none is specified."
                             },
                             logo: {
-                              path: {
-                                description: "Path to a logo image that will be displayed in the sidebar."
-                              }
+                              ref: "logo-light-dark-specifier",
+                              description: "Specification of image that will be displayed in the sidebar."
                             },
                             "logo-alt": {
                               string: {
@@ -12009,6 +12007,85 @@ try {
             ]
           },
           {
+            id: "logo-options",
+            object: {
+              closed: false,
+              properties: {
+                path: {
+                  schema: "path",
+                  description: "Path or brand.yml logo resource name.\n"
+                },
+                alt: {
+                  schema: "string",
+                  description: "Alternative text for the logo, used for accessibility.\n"
+                }
+              },
+              required: [
+                "path"
+              ]
+            }
+          },
+          {
+            id: "logo-specifier",
+            anyOf: [
+              "string",
+              {
+                schema: {
+                  ref: "logo-options"
+                }
+              }
+            ]
+          },
+          {
+            id: "logo-light-dark-specifier",
+            description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+            anyOf: [
+              {
+                ref: "logo-specifier"
+              },
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: {
+                      schema: {
+                        ref: "logo-specifier"
+                      },
+                      description: "Specification of a light logo\n"
+                    },
+                    dark: {
+                      schema: {
+                        ref: "logo-specifier"
+                      },
+                      description: "Specification of a dark logo\n"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            id: "normalized-logo-light-dark-specifier",
+            description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+            object: {
+              closed: true,
+              properties: {
+                light: {
+                  schema: {
+                    ref: "logo-options"
+                  },
+                  description: "Options for a light logo\n"
+                },
+                dark: {
+                  schema: {
+                    ref: "logo-options"
+                  },
+                  description: "Options for a dark logo\n"
+                }
+              }
+            }
+          },
+          {
             id: "brand-color-value",
             schema: "string"
           },
@@ -12882,7 +12959,7 @@ try {
                   ref: "brand-meta"
                 },
                 logo: {
-                  ref: "brand-logo-unified"
+                  ref: "brand-logo-single"
                 },
                 color: {
                   ref: "brand-color-single"
@@ -13981,8 +14058,10 @@ try {
                 "dashboard"
               ]
             },
-            schema: "path",
-            description: "Logo image (placed on the left side of the navigation bar)"
+            schema: {
+              ref: "logo-light-dark-specifier"
+            },
+            description: "Logo image(s) (placed on the left side of the navigation bar)"
           },
           {
             name: "orientation",
@@ -24528,7 +24607,15 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+          "Path or brand.yml logo resource name.",
+          "Alternative text for the logo, used for accessibility.",
+          "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+          "Specification of a light logo",
+          "Specification of a dark logo",
+          "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+          "Options for a light logo",
+          "Options for a dark logo"
         ],
         "schema/external-schemas.yml": [
           {
@@ -24757,12 +24844,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197308,
+          _internalId: 197364,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197300,
+              _internalId: 197356,
               type: "enum",
               enum: [
                 "png",
@@ -24778,7 +24865,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197307,
+              _internalId: 197363,
               type: "anyOf",
               anyOf: [
                 {

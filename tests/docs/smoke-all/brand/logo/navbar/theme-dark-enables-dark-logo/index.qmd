@@ -1,0 +1,15 @@
+---
+title: Yes dark logo if theme enables dark mode
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'img[class*="light-content"][src="./quarto.png"][alt=""]'
+          - 'img[class*="dark-content"][src="./quarto.png"][alt=""]'
+        - []
+---
+
+Chooses the project's light logo because there is no dark logo in the brand.
+
+{{< lipsum 4 >}}

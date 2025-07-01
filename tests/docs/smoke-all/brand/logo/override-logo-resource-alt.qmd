@@ -19,9 +19,9 @@ logo:
 _quarto:
   tests:
     dashboard:
-      ensureFileRegexMatches:
+      ensureHtmlElements:
         -
-          - '<img src="posit-logo-2024\.svg" alt="logo of posit"'
+          - 'img[src="posit-logo-2024.svg"][alt="logo of posit"]'
         - []
 ---
 

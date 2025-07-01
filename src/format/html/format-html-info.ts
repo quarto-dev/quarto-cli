@@ -38,36 +38,48 @@ export function formatDarkMode(format: Format): boolean | undefined {
   return undefined;
 }
 
-export function darkModeDefault(format: Format): boolean | undefined {
-  const metadata = format.metadata;
-  const brand = format.render.brand;
-  if (metadata !== undefined) {
-    if (metadata[kTheme] && typeof metadata[kTheme] === "object") {
-      const keys = Object.keys(metadata[kTheme]);
-      if (keys.includes("dark")) {
-        if (keys[0] === "dark") {
-          return true;
-        } else {
-          return false;
-        }
-      }
-    }
-    if (metadata[kBrand] || brand) {
-      if (metadata[kBrand] && typeof metadata[kBrand] === "object") {
-        const keys = Object.keys(metadata[kBrand]);
-        if (keys.includes("dark")) {
-          if (keys[0] === "dark") {
-            return true;
-          } else {
-            return false;
-          }
-        }
-      }
-      if (brand && brand.dark) {
-        // unified brand has no author preference but it can have dark mode
+// there are two stages of knowing whether dark mode is enabled:
+// 1. from the start we can look at theme and brand metadata to see if there is
+//   a dark theme or brand
+// 2. later, after brand is loaded, we'll know whether unified brand enabled dark mode
+// in practice, we only know
+export function darkModeDefaultMetadata(
+  metadata: Metadata,
+): boolean | undefined {
+  if (metadata[kTheme] && typeof metadata[kTheme] === "object") {
+    const keys = Object.keys(metadata[kTheme]);
+    if (keys.includes("dark")) {
+      if (keys[0] === "dark") {
+        return true;
+      } else {
         return false;
       }
     }
+  }
+  if (metadata[kBrand] && typeof metadata[kBrand] === "object") {
+    const keys = Object.keys(metadata[kBrand]);
+    if (keys.includes("dark")) {
+      if (keys[0] === "dark") {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+  return undefined;
+}
+export function darkModeDefault(format: Format): boolean | undefined {
+  const metadata = format.metadata;
+  if (metadata !== undefined) {
+    const dmdm = darkModeDefaultMetadata(metadata);
+    if (dmdm !== undefined) {
+      return dmdm;
+    }
+  }
+  const brand = format.render.brand;
+  if (brand && brand.dark) {
+    // unified brand has no author preference but it can have dark mode
+    return false;
   }
   return undefined;
 }

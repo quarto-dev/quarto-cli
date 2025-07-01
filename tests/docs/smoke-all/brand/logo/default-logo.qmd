@@ -17,14 +17,14 @@ brand:
 _quarto:
   tests:
     dashboard:
-      ensureFileRegexMatches:
+      ensureHtmlElements:
         -
-          - '<img src="quarto\.png" alt="quarto logo"'
+          - 'img[src="quarto.png"][alt="quarto logo"]'
         - []
     revealjs:
-      ensureFileRegexMatches:
+      ensureHtmlElements:
         -
-          - '<img src="quarto\.png" class="slide-logo">'
+          - 'img[src="quarto.png"][class="slide-logo"]'
         - []
 ---
 

@@ -1,0 +1,31 @@
+---
+title: Document vs Brand Logo Precedence
+format:
+  dashboard: default
+brand:
+  logo:
+    images:
+      quarto:
+        path: quarto.png
+        alt: quarto logo
+      posit:
+        path: posit-logo-2024.svg
+        alt: posit logo
+    medium:
+      light: quarto
+      dark: quarto
+logo:
+  light: posit-logo-2024.svg
+  dark: quarto.png
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          # Document-level logo should override brand-level logo
+          - 'img[src="posit-logo-2024.svg"][alt=""][class="navbar-logo light-content d-inline-block"]'
+          - 'img[src="quarto.png"][alt=""][class="navbar-logo dark-content d-inline-block"]'
+        - []
+---
+
+{{< lipsum 4 >}}

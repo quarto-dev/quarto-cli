@@ -1,0 +1,30 @@
+---
+title: mixed logo types
+format:
+  dashboard: default
+brand:
+  logo:
+    images:
+      quarto:
+        path: quarto.png
+        alt: quarto logo
+      posit:
+        path: posit-logo-2024.svg
+        alt: posit logo
+    medium:
+      light: quarto
+      dark: custom-dark.png
+    large:
+      light: custom-light.svg
+      dark: posit
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          - 'img[src="quarto.png"][alt="quarto logo"][class="navbar-logo light-content d-inline-block"]'
+          - 'img[src="custom-dark.png"][alt=""][class="navbar-logo dark-content d-inline-block"]'
+        - []
+---
+
+{{< lipsum 4 >}}
