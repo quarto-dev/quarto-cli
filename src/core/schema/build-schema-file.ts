@@ -87,6 +87,20 @@ export async function buildIntelligenceResources() {
   );
   Deno.writeTextFileSync(yamlResourcesPath, yamlResources);
 
+  // we also need to write the schema definitions to a file
+  // it doesn't go on yaml-intelligence-resources.json because
+  // it's a larger file and we don't want to bundle it
+  // unnecessarily with web-worker.js
+
+  const definitions = getSchemaDefinitionsObject();
+  const definitionsPath = resourcePath(
+    "editor/tools/yaml/all-schema-definitions.json",
+  );
+  Deno.writeTextFileSync(
+    definitionsPath,
+    JSON.stringify(definitions),
+  );
+
   const path = resourcePath();
   await Promise.all([
     generateTypesFromSchemas(path),
