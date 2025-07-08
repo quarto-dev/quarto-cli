@@ -38,6 +38,7 @@ import {
   shouldError,
   ensureHtmlElementContents,
   ensureHtmlElementCount,
+  directoryContainsOnlyAllowedPaths,
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
@@ -46,6 +47,7 @@ import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
 import { WalkEntry } from "../../src/deno_ral/fs.ts";
 import { quarto } from "../../src/quarto.ts";
 import { safeExistsSync, safeRemoveSync } from "../../src/core/path.ts";
+import { runningInCI } from "../../src/core/ci-info.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -88,6 +90,10 @@ async function guessFormat(fileName: string): Promise<string[]> {
     }
   }
   return Array.from(formats);
+}
+
+function skipTestOnCi(metadata: Record<string, any>): boolean {
+  return runningInCI() && metadata["_quarto"]?.["tests-on-ci"] === false;
 }
 
 //deno-lint-ignore no-explicit-any
@@ -284,6 +290,11 @@ for (const { path: fileName } of files) {
   const metadata = input.endsWith("md") // qmd or md
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
+
+  if (skipTestOnCi(metadata) === true) {
+    console.log(`Skipping tests for ${input} as tests-on-ci is false in metadata`);
+    continue;
+  }
 
   const testSpecs: QuartoInlineTestSpec[] = [];
 
