@@ -9,7 +9,7 @@ format:
     comment: Missing implementation
   pdf: *tested
   typst:
-    output-ext: typ # for the test below
+    keep-typ: true
     quality: 2
   docusaurus-md: *tested
   revealjs: 
@@ -53,12 +53,12 @@ _quarto:
           - "\\\\includegraphics.*media.*table\\.jpg"
     beamer: *latex-tests
     typst:
-      ensureFileRegexMatches:
+      ensureTypstFileRegexMatches:
         - 
-          - "\\<tbl-1\\>"
-          - "\\<tbl-2\\>"
-          - "@tbl-1"
-          - "@tbl-2"
+          - '\<tbl-1\>'
+          - '\<tbl-2\>'
+          - '#ref\(\<tbl-1\>, supplement: \[Table\]\)'
+          - '#ref\(\<tbl-2\>, supplement: \[Table\]\)'
     docusaurus-md:
       ensureFileRegexMatches:
         -
