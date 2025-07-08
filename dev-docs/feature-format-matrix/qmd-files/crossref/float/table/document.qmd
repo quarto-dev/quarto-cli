@@ -12,7 +12,9 @@ format:
     output-ext: typ # for the test below
     quality: 2
   docusaurus-md: *tested
-  revealjs: *tested
+  revealjs: 
+    quality: 2
+    auto-stretch: false
   beamer: 
     output-ext: tex
     quality: 2
@@ -38,8 +40,8 @@ _quarto:
           - "div#tbl-2.quarto-float figure.quarto-float.quarto-float-tbl img"
           - "div#tbl-1.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
           - "div#tbl-2.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
-          - "a[href=\"#crossreferenceable-tables\"].quarto-xref"
-          - "a[href=\"#as-images\"].quarto-xref"
+          - "a[href=\"#/tbl-1\"].quarto-xref"
+          - "a[href=\"#/tbl-2\"].quarto-xref"
     latex: &latex-tests
       ensureFileRegexMatches:
         - 
