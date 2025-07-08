@@ -25,7 +25,7 @@
     "control": "⌃",
     "option": "⌥",
   };
-  const keyRegex = /^[a-z0-9_]+$/;
+  const keyRegex = /^[^\s]+$/;
     // use a non-capturing group to avoid capturing the key names
 
   const macosModifiersRegex = new RegExp(
