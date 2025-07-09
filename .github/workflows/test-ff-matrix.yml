@@ -41,13 +41,7 @@ concurrency:
 
 jobs:
   run-feature-format-tests:
-    name: Run feature-format matrix on (${{ matrix.os }})
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-          - windows-latest
+    name: Run feature-format matrix
     uses: ./.github/workflows/test-smokes.yml
     with:
       buckets: '[ "../dev-docs/feature-format-matrix/qmd-files/**/*.qmd" ]'
