@@ -36,7 +36,7 @@ function render_typst()
           return float
         end
         if float.content.t == "Table" then
-          -- this needs the fix from https://github.com/jgm/pandoc/pulls/9778
+          -- this needs the fix from https://github.com/jgm/pandoc/pull/9778
           float.content.classes:insert("typst-no-figure")
         else
           float.content = _quarto.ast.walk(float.content, {

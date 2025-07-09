@@ -7,6 +7,8 @@ crossref:
       reference-prefix: Diagram
 format:
   docusaurus-md: {}
+_quarto:
+  tests-on-ci: false 
 ---
 
 ::: {#dia-1}
