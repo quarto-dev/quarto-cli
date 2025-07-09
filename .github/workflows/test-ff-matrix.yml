@@ -211,18 +211,9 @@ jobs:
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # run: |
-        #   shopt -s globstar &&
-        #     ./run-tests.sh ../dev-docs/feature-format-matrix/**/*.qmd
         run: |
-          ./run-tests.sh \
-          ../dev-docs/feature-format-matrix/qmd-files/crossref/float/caption-location-bottom/document.qmd \
-          ../dev-docs/feature-format-matrix/qmd-files/crossref/float/caption-location-top/document.qmd \
-          ../dev-docs/feature-format-matrix/qmd-files/crossref/float/code-listing/document.qmd \
-          ../dev-docs/feature-format-matrix/qmd-files/crossref/float/code-listing/executable/document.qmd \
-          ../dev-docs/feature-format-matrix/qmd-files/crossref/float/custom/document.qmd \
-          ../dev-docs/feature-format-matrix/qmd-files/crossref/float/figure/document.qmd \
-          ../dev-docs/feature-format-matrix/qmd-files/crossref/float/table/document.qmd
+          shopt -s globstar &&
+            ./run-tests.sh ../dev-docs/feature-format-matrix/**/*.qmd
         working-directory: tests
         shell: bash
 
