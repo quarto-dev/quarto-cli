@@ -38,7 +38,6 @@ import {
   shouldError,
   ensureHtmlElementContents,
   ensureHtmlElementCount,
-  directoryContainsOnlyAllowedPaths,
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
