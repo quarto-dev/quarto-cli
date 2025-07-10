@@ -32,16 +32,19 @@ _quarto:
           - "div#tbl-3.quarto-float figure.quarto-float.quarto-float-tbl table"
           - "div#tbl-4.quarto-float figure.quarto-float.quarto-float-tbl table"
           - "div#tbl-5.quarto-float figure.quarto-float.quarto-float-tbl table"
+          - "div#tbl-6.quarto-float figure.quarto-float.quarto-float-tbl table"
           - "div#tbl-1.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
           - "div#tbl-2.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
           - "div#tbl-3.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
           - "div#tbl-4.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
           - "div#tbl-5.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
+          - "div#tbl-6.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
           - "a[href=\"#tbl-1\"].quarto-xref"
           - "a[href=\"#tbl-2\"].quarto-xref"
           - "a[href=\"#tbl-3\"].quarto-xref"
           - "a[href=\"#tbl-4\"].quarto-xref"
           - "a[href=\"#tbl-5\"].quarto-xref"
+          - "a[href=\"#tbl-6\"].quarto-xref"
     dashboard: *dom-tests
     revealjs:
       ensureHtmlElements:
@@ -51,16 +54,19 @@ _quarto:
           - "div#tbl-3.quarto-float figure.quarto-float.quarto-float-tbl table"
           - "div#tbl-4.quarto-float figure.quarto-float.quarto-float-tbl table"
           - "div#tbl-5.quarto-float figure.quarto-float.quarto-float-tbl table"
+          - "div#tbl-6.quarto-float figure.quarto-float.quarto-float-tbl table"
           - "div#tbl-1.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
           - "div#tbl-2.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
           - "div#tbl-3.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
           - "div#tbl-4.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
           - "div#tbl-5.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
+          - "div#tbl-6.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
           - "a[href=\"#/tbl-1\"].quarto-xref"
           - "a[href=\"#/tbl-2\"].quarto-xref"
           - "a[href=\"#/tbl-3\"].quarto-xref"
           - "a[href=\"#/tbl-4\"].quarto-xref"
           - "a[href=\"#/tbl-5\"].quarto-xref"
+          - "a[href=\"#/tbl-6\"].quarto-xref"
     latex: &latex-tests
       ensureFileRegexMatches:
         - 
@@ -69,11 +75,13 @@ _quarto:
           - '\\ref\{tbl-3\}'
           - '\\ref\{tbl-4\}'
           - '\\ref\{tbl-5\}'
+          - '\\ref\{tbl-6\}'
           - '\label\{tbl-1\}'
           - '\label\{tbl-2\}'
           - '\label\{tbl-3\}'
           - '\label\{tbl-4\}'
           - '\label\{tbl-5\}'
+          - '\label\{tbl-6\}'
           - '\\begin\{longtable\}'
           - '\\includegraphics.*media.*table\.jpg'
     beamer: *latex-tests
@@ -85,11 +93,13 @@ _quarto:
           - '\<tbl-3\>'
           - '\<tbl-4\>'
           - '\<tbl-5\>'
+          - '\<tbl-6\>'
           - '#ref\(\<tbl-1\>, supplement: \[Table\]\)'
           - '#ref\(\<tbl-2\>, supplement: \[Table\]\)'
           - '#ref\(\<tbl-3\>, supplement: \[Table\]\)'
           - '#ref\(\<tbl-4\>, supplement: \[Table\]\)'
           - '#ref\(\<tbl-5\>, supplement: \[Table\]\)'
+          - '#ref\(\<tbl-6\>, supplement: \[Table\]\)'
     docusaurus-md:
       ensureFileRegexMatches:
         -
@@ -98,6 +108,7 @@ _quarto:
           - '\<div id="tbl-3"\>'
           - '\<div id="tbl-4"\>'
           - '\<div id="tbl-5"\>'
+          - '\<div id="tbl-6"\>'
           - 'text-align: left.*Left'
           - 'text-align: right.*Right'
           - 'text-align: center.*Center'
@@ -137,6 +148,7 @@ The crossref Div syntax can also be used to insert a markdown table
 - either using Quarto Caption syntax (paragraph below the table) - See @tbl-3
 - either using the Pandoc Table Caption syntax - See @tbl-4
 - either using `tbl-cap` attributes when this is an output of computations - See @tbl-5
+- either using `tbl-cap` attributes on Crossref Div - See @tbl-6
 
 ### Quarto Syntax in Div {#quarto-in-div}
 
@@ -178,8 +190,6 @@ knitr::kable(iris[1:6,])
 
 ::: {#tbl-5 .cell tbl-cap='This is the caption for the table'}
 
-::: {.cell-output-display}
-
 | Default | Left | Right | Center |
 |---------|:-----|------:|:------:|
 | 12      | 12   |    12 |   12   |
@@ -188,5 +198,15 @@ knitr::kable(iris[1:6,])
 
 :::
 
-::: 
 
+### Using Div attribute on Cross ref div
+
+::: {#tbl-6 tbl-cap='This is the caption for the table'}
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+:::
