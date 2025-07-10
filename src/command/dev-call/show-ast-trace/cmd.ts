@@ -44,7 +44,7 @@ export const showAstTraceCommand = new Command()
     const traceName = join(dir, `${base}-quarto-ast-trace.json`);
 
     const renderOpts = {
-      cmd: "quarto",
+      cmd: quartoConfig.cliPath(),
       env: {
         "QUARTO_TRACE_FILTERS": traceName,
       },
@@ -62,7 +62,7 @@ export const showAstTraceCommand = new Command()
     moveSync(traceName, join(toolsPath, basename(traceName)));
 
     const _previewResult = await execProcess({
-      cmd: "quarto",
+      cmd: quartoConfig.cliPath(),
       cwd: toolsPath,
       args: [
         "preview",
