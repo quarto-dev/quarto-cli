@@ -2,6 +2,8 @@
 
 ## In this release
 
+- ([#13051](https://github.com/quarto-dev/quarto-cli/issues/13051)): Fixed support for captioned Markdown table inside Div syntax for crossref. This is special handling, but this could be output by function like `knitr::kable()` with old option support.
+
 ## In previous releases
 
 - ([#6607](https://github.com/quarto-dev/quarto-cli/issues/6607)): Add missing beamer template update for beamer theme options: `colorthemeoptions`, `fontthemeoptions`, `innerthemeoptions` and `outerthemeoptions`.
