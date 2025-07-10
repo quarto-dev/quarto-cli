@@ -268,7 +268,7 @@ function parse_floatreftargets()
             found_caption = true
             caption = table.caption.long[1] -- what if there's more than one entry here?
             -- table caption should be removed from the table as we'll handle it
-            table.caption.long = pandoc.Blocks({})
+            table.caption = pandoc.Caption{}
             return table
           end
         end
