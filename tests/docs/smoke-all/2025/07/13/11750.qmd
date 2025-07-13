@@ -1,0 +1,15 @@
+---
+title: "Issue 11750"
+format: html
+filters:
+  - path: cite
+    at: post-quarto
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - '<p><a href="https://github.com/mcanouil">@mcanouil</a></p>'
+---
+
+@mcanouil
