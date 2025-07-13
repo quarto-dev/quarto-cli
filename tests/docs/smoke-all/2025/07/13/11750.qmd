@@ -7,7 +7,7 @@ filters:
 _quarto:
   tests:
     html:
-      ensureHtmlElements:
+      ensureFileRegexMatches:
         - 
           - '<p><a href="https://github.com/mcanouil">@mcanouil</a></p>'
 ---
