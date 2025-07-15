@@ -888,28 +888,9 @@ async function resolveFilterExtension(
       // Return any contributed plugins
       if (filteredExtensions.length > 0) {
         // This matches an extension, use the contributed filters
-        const extensionFilters = extensions[0].contributes.filters;
-        if (extensionFilters) {
-          if (typeof filter === "string") {
-            return extensionFilters;
-          } else if (isFilterEntryPoint(filter)) {
-            return extensionFilters.map(extFilter => {
-              if (typeof extFilter === "string") {
-                return {
-                  type: extFilter.endsWith(".lua") ? "lua" : "json" as "lua" | "json",
-                  path: extFilter,
-                  at: filter.at
-                };
-              } else {
-                return {
-                  ...extFilter,
-                  at: filter.at
-                };
-              }
-            });
-          } else {
-            return extensionFilters;
-          }
+        const filters = extensions[0].contributes.filters;
+        if (filters) {
+          return filters;
         } else {
           return filter;
         }
