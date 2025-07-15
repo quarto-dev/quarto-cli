@@ -9,8 +9,9 @@ _quarto:
     html:
       ensureHtmlElements:
         -
-          - 'img[src="sun.png"]'
-        - []
+          - 'img[src="sun.png"][class*="light-content"]'
+        -
+          - 'img[class*="dark-content"]'
 ---
 
 
