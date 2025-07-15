@@ -28,6 +28,7 @@ jobs:
       tag_name: v${{ steps.read-version.outputs.version_full }}
       version_commit: ${{ steps.version_commit.outputs.commit_long_sha }}
       pushed: ${{ steps.version_commit.outputs.pushed }}
+      tagged: ${{ steps.version_commit.outputs.tagged }}
       tag_pushed: ${{ steps.version_commit.outputs.tag_pushed }}
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
@@ -656,7 +657,7 @@ jobs:
           git push origin $GITHUB_REF_NAME
 
       - name: Deleted created tag
-        if: ${{ needs.configure.outputs.tag_pushed }}
+        if: ${{ needs.configure.outputs.tagged && needs.configure.outputs.tag_pushed }}
         run: |
           git push --delete origin ${{ needs.configure.outputs.tag_name }}
 
