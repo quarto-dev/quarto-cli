@@ -29,6 +29,7 @@ All changes included in 1.8:
 - ([#12797](https://github.com/quarto-dev/quarto-cli/issues/12797)): Allow light and dark brands to be specified in one file, by specializing colors with `light:` and `dark:`.
 - ([#12919](https://github.com/quarto-dev/quarto-cli/issues/12919)): Ensure `kbd` shortcode output has hover tooltip.
 - ([#12981](https://github.com/quarto-dev/quarto-cli/issues/12981)): Brand should be applied in dark mode when dark mode is enabled by the theme, not the brand.
+- ([#13004](https://github.com/quarto-dev/quarto-cli/issues/13004)): Brand logo shortcode automatically applies `.light-content` and `.dark-content` classes, inserts both light and dark logo if brand mode is not specified, and uses alt text from brand logo spec.
 
 ### `revealjs`
 
