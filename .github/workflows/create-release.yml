@@ -31,6 +31,9 @@ jobs:
       tag_pushed: ${{ steps.version_commit.outputs.tag_pushed }}
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
+      - name: Prevent Re-run
+        uses: ./.github/actions/prevent-rerun
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -95,6 +98,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure]
     steps:
+      - name: Prevent Re-run
+        uses: ./.github/actions/prevent-rerun
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
@@ -113,6 +119,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure]
     steps:
+      - name: Prevent Re-run
+        uses: ./.github/actions/prevent-rerun
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
@@ -146,6 +155,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure]
     steps:
+      - name: Prevent Re-run
+        uses: ./.github/actions/prevent-rerun
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
@@ -179,6 +191,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure]
     steps:
+      - name: Prevent Re-run
+        uses: ./.github/actions/prevent-rerun
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
@@ -223,6 +238,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure]
     steps:
+      - name: Prevent Re-run
+        uses: ./.github/actions/prevent-rerun
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
@@ -253,6 +271,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure]
     steps:
+      - name: Prevent Re-run
+        uses: ./.github/actions/prevent-rerun
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
@@ -283,6 +304,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure, make-tarball]
     steps:
+      - name: Prevent Re-run
+        uses: ./.github/actions/prevent-rerun
+
       - uses: actions/download-artifact@v4
         with:
           name: Deb Zip
@@ -303,6 +327,9 @@ jobs:
     needs: [configure]
 
     steps:
+      - name: Prevent Re-run
+        uses: ./.github/actions/prevent-rerun
+
       - name: Configure Rust Tools
         run: |
           rustup.exe toolchain install 1.63.0 --component rustfmt --component clippy --no-self-update
@@ -383,6 +410,9 @@ jobs:
     runs-on: windows-latest
     needs: [configure, make-installer-win]
     steps:
+      - name: Prevent Re-run
+        uses: ./.github/actions/prevent-rerun
+
       - uses: actions/download-artifact@v4
         with:
           name: Windows Zip
@@ -399,6 +429,9 @@ jobs:
     runs-on: macos-latest
     needs: [configure]
     steps:
+      - name: Prevent Re-run
+        uses: ./.github/actions/prevent-rerun
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
@@ -464,6 +497,9 @@ jobs:
     runs-on: macos-latest
     needs: [configure, make-installer-mac]
     steps:
+      - name: Prevent Re-run
+        uses: ./.github/actions/prevent-rerun
+
       - uses: actions/download-artifact@v4
         with:
           name: Mac Zip
@@ -499,6 +535,9 @@ jobs:
       ]
 
     steps:
+      - name: Prevent Re-run
+        uses: ./.github/actions/prevent-rerun
+
       - name: Download Artifacts
         uses: actions/download-artifact@v4
 
@@ -599,6 +638,9 @@ jobs:
       ]
     runs-on: ubuntu-latest
     steps:
+      - name: Prevent Re-run
+        uses: ./.github/actions/prevent-rerun
+
       - uses: actions/checkout@v4
 
       - name: Revert commit of version.txt
@@ -623,6 +665,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure, publish-release]
     steps:
+      - name: Prevent Re-run
+        uses: ./.github/actions/prevent-rerun
+
       - name: Download Artifacts
         uses: actions/download-artifact@v4
 
