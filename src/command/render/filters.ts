@@ -897,7 +897,7 @@ async function resolveFilterExtension(
             return extensionFilters.map(extFilter => {
               if (typeof extFilter === "string") {
                 return {
-                  type: extFilter.endsWith(".lua") ? "lua" : "json",
+                  type: extFilter.endsWith(".lua") ? "lua" : "json" as "lua" | "json",
                   path: extFilter,
                   at: filter.at
                 };
