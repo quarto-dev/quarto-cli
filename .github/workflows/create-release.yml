@@ -516,7 +516,7 @@ jobs:
             .github
 
       - name: Prevent Re-run
-        uses: ./.github/actions/prevent-rerun
+        uses: ./.github/workflows/actions/prevent-rerun
 
       - uses: actions/download-artifact@v4
         with:
@@ -561,7 +561,7 @@ jobs:
             .github
 
       - name: Prevent Re-run
-        uses: ./quarto-cli/.github/actions/prevent-rerun
+        uses: ./quarto-cli/.github/workflows/actions/prevent-rerun
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4
@@ -663,10 +663,10 @@ jobs:
       ]
     runs-on: ubuntu-latest
     steps:
-      - name: Prevent Re-run
-        uses: ./.github/actions/prevent-rerun
-
       - uses: actions/checkout@v4
+
+      - name: Prevent Re-run
+        uses: ./.github/workflows/actions/prevent-rerun
 
       - name: Revert commit of version.txt
         if: ${{ needs.configure.outputs.pushed }}
@@ -690,13 +690,18 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure, publish-release]
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github
+
       - name: Prevent Re-run
-        uses: ./.github/actions/prevent-rerun
+        uses: ./.github/workflows/actions/prevent-rerun
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4
 
-      - uses: quarto-dev/quarto-cli/.github/actions/docker@main
+      - uses: ./.github/actions/docker
         with:
           source: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
           version: ${{needs.configure.outputs.version}}
