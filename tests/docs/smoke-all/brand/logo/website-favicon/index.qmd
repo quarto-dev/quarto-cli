@@ -3,8 +3,8 @@ title: "test-brand-favicon"
 _quarto:
   tests:
     html:
-      ensureFileRegexMatches:
-        - ['<link href="./logos/small.png" rel="icon" type="image/png">']
+      ensureHtmlElements:
+        - ['link[href="./logos/small.png"][rel="icon"][type="image/png"]']
         - []
 ---
 

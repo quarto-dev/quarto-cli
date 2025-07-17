@@ -1,0 +1,11 @@
+color:
+  background:
+    light: "#fff"
+    dark: "#111"
+  foreground:
+    light: "#111"
+    dark: "#fff"
+logo:
+  small:
+    light: sun-face.png
+    dark: moon-face.png

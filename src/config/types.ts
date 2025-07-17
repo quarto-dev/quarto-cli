@@ -269,7 +269,7 @@ export interface FormatDependency {
   version?: string;
   external?: boolean;
   meta?: Record<string, string>;
-  links?: { rel: string; href: string; type?: string }[];
+  links?: { rel: string; href: string; type?: string; media?: string }[];
   scripts?: DependencyHtmlFile[];
   stylesheets?: DependencyHtmlFile[];
   serviceworkers?: DependencyServiceWorker[];

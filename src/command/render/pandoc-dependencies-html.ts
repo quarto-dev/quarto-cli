@@ -209,6 +209,7 @@ interface HtmlInjector {
     href: string,
     rel: string,
     type?: string,
+    media?: string,
   ): void;
 
   injectHtml(html: string): void;
@@ -350,7 +351,7 @@ function processHtmlDependencies(
     // Link tags
     if (dependency.links) {
       dependency.links.forEach((link) => {
-        injector.injectLink(link.href, link.rel, link.type);
+        injector.injectLink(link.href, link.rel, link.type, link.media);
       });
     }
 
@@ -515,12 +516,16 @@ function domDependencyInjector(
     href: string,
     rel: string,
     type?: string,
+    media?: string,
   ) => {
     const linkEl = doc.createElement("link");
     linkEl.setAttribute("href", pathWithForwardSlashes(href));
     linkEl.setAttribute("rel", rel);
     if (type) {
       linkEl.setAttribute("type", type);
+    }
+    if (media) {
+      linkEl.setAttribute("media", media);
     }
     injectEl(linkEl);
   };
@@ -575,7 +580,7 @@ function lineDependencyInjector(
     `<link <%= attribs %> href="<%- href %>" rel="stylesheet" />`,
   );
   const rawLinkTemplate = ld.template(
-    `<link href="<%- href %>" rel="<%- rel %>"<% if (type) { %> type="<%- type %>"<% } %> />`,
+    `<link href="<%- href %>" rel="<%- rel %>"<% if (type) { %> type="<%- type %>"<% } %><% if (media) { %> media="<%- media %>"<% } %> />`,
   );
 
   const inject = (content: string, afterBody?: boolean) => {
@@ -625,6 +630,7 @@ function lineDependencyInjector(
     href: string,
     rel: string,
     type?: string,
+    media?: string,
   ) => {
     if (!type) {
       type = "";
