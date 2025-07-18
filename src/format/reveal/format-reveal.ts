@@ -126,7 +126,7 @@ export function revealjsFormat() {
         [kHtmlMathMethod]: {
           method: "mathjax",
           url:
-            "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-AMS_HTML-full",
+            "https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS_HTML-full",
         },
         [kSlideLevel]: 2,
       },
