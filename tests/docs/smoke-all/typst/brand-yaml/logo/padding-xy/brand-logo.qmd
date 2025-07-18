@@ -4,6 +4,7 @@ format:
   typst:
     keep-typ: true
 logo:
+  path: large
   padding: 1in 2in
 _quarto:
   tests:

@@ -4,6 +4,7 @@ format:
   typst:
     keep-typ: true
 logo:
+  path: large
   padding-left: 4pt
   padding: 9pt 2pt 3pt 17pt
   padding-top: 1pt
