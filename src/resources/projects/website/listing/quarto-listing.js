@@ -1,13 +1,15 @@
 const kProgressiveAttr = "data-src";
-let categoriesLoaded = false;
+let selectedCategories = new Set();
+const kDefaultCategory = ""; // Default category "" means all posts selected
 
 window.quartoListingCategory = (category) => {
   // category is URI encoded in EJS template for UTF-8 support
   category = decodeURIComponent(atob(category));
-  if (categoriesLoaded) {
-    activateCategory(category);
-    setCategoryHash(category);
-  }
+  selectedCategories.clear();
+  selectedCategories.add(category);
+
+  updateCategory();
+  setCategoryHash();
 };
 
 window["quarto-listing-loaded"] = () => {
@@ -15,11 +17,17 @@ window["quarto-listing-loaded"] = () => {
   const hash = getHash();
 
   if (hash) {
-    // If there is a category, switch to that
+    // If there are categories, switch to those
     if (hash.category) {
-      // category hash are URI encoded so we need to decode it before processing
-      // so that we can match it with the category element processed in JS
-      activateCategory(decodeURIComponent(hash.category));
+      const cats = hash.category.split(",");
+      for (const cat of cats) {
+        if (cat) selectedCategories.add(decodeURIComponent(cat));
+      }
+      updateCategory();
+    } else {
+      // No categories in hash, use default
+      selectedCategories.add(kDefaultCategory);
+      updateCategory();
     }
     // Paginate a specific listing
     const listingIds = Object.keys(window["quarto-listings"]);
@@ -29,6 +37,10 @@ window["quarto-listing-loaded"] = () => {
         showPage(listingId, page);
       }
     }
+  } else {
+    // No hash at all, use default category
+    selectedCategories.add(kDefaultCategory);
+    updateCategory();
   }
 
   const listingIds = Object.keys(window["quarto-listings"]);
@@ -66,9 +78,25 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     const category = decodeURIComponent(
       atob(categoryEl.getAttribute("data-category"))
     );
-    categoryEl.onclick = () => {
-      activateCategory(category);
-      setCategoryHash(category);
+    categoryEl.onclick = (e) => {
+      // Allow holding Ctrl/Cmd key for multiple selection
+      // Clear other selections if not using Ctrl/Cmd
+      if (!e.ctrlKey && !e.metaKey) {
+        selectedCategories.clear();
+      }
+
+      // If this would deselect the last category, ensure default category remains selected
+      if (selectedCategories.has(category)) {
+        selectedCategories.delete(category);
+        if (selectedCategories.size === 1) {
+          selectedCategories.add(kDefaultCategory);
+        }
+      } else {
+        selectedCategories.add(category);
+      }
+
+      updateCategory();
+      setCategoryHash();
     };
   }
 
@@ -79,12 +107,25 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   );
   for (const categoryTitleEl of categoryTitleEls) {
     categoryTitleEl.onclick = () => {
-      activateCategory("");
-      setCategoryHash("");
+      selectedCategories.clear();
+      updateCategory();
+      setCategoryHash();
     };
   }
 
-  categoriesLoaded = true;
+  // Process any existing hash for multiple categories
+  const hash = getHash();
+  if (hash && hash.category) {
+    const cats = hash.category.split(",");
+    for (const cat of cats) {
+      if (cat) selectedCategories.add(decodeURIComponent(cat));
+    }
+    updateCategory();
+  } else {
+    // No hash at all, use default category
+    selectedCategories.add(kDefaultCategory);
+    updateCategory();
+  }
 });
 
 function toggleNoMatchingMessage(list) {
@@ -101,8 +142,15 @@ function toggleNoMatchingMessage(list) {
   }
 }
 
-function setCategoryHash(category) {
-  setHash({ category });
+function setCategoryHash() {
+  if (selectedCategories.size === 0) {
+    setHash({});
+  } else {
+    const categoriesStr = Array.from(selectedCategories)
+      .map((cat) => encodeURIComponent(cat))
+      .join(",");
+    setHash({ category: categoriesStr });
+  }
 }
 
 function setPageHash(listingId, page) {
@@ -204,46 +252,56 @@ function showPage(listingId, page) {
   }
 }
 
-function activateCategory(category) {
-  // Deactivate existing categories
-  const activeEls = window.document.querySelectorAll(
-    ".quarto-listing-category .category.active"
-  );
-  for (const activeEl of activeEls) {
-    activeEl.classList.remove("active");
-  }
-
-  // Activate this category
-  const categoryEl = window.document.querySelector(
-    `.quarto-listing-category .category[data-category='${btoa(
-      encodeURIComponent(category)
-    )}']`
-  );
-  if (categoryEl) {
-    categoryEl.classList.add("active");
-  }
-
-  // Filter the listings to this category
-  filterListingCategory(category);
+function updateCategory() {
+  updateCategoryUI();
+  filterListingCategory();
 }
 
-function filterListingCategory(category) {
+function updateCategoryUI() {
+  // Deactivate all categories first
+  const categoryEls = window.document.querySelectorAll(
+    ".quarto-listing-category .category"
+  );
+  for (const categoryEl of categoryEls) {
+    categoryEl.classList.remove("active");
+  }
+
+  // Activate selected categories
+  for (const category of selectedCategories) {
+    const categoryEl = window.document.querySelector(
+      `.quarto-listing-category .category[data-category='${btoa(
+        encodeURIComponent(category)
+      )}']`
+    );
+    if (categoryEl) {
+      categoryEl.classList.add("active");
+    }
+  }
+}
+
+function filterListingCategory() {
   const listingIds = Object.keys(window["quarto-listings"]);
   for (const listingId of listingIds) {
     const list = window["quarto-listings"][listingId];
     if (list) {
-      if (category === "") {
-        // resets the filter
+      if (selectedCategories.size === 0 ||
+        (selectedCategories.size === 1 && selectedCategories.has(kDefaultCategory))) {
+        // Reset the filter when no categories selected or only default category
         list.filter();
       } else {
-        // filter to this category
+        // Filter to selected categories, but ignore kDefaultCategory if other categories selected
+        const effectiveCategories = new Set(selectedCategories);
+        if (effectiveCategories.size > 1 && effectiveCategories.has(kDefaultCategory)) {
+          effectiveCategories.delete(kDefaultCategory);
+        }
+
         list.filter(function (item) {
           const itemValues = item.values();
           if (itemValues.categories !== null) {
             const categories = decodeURIComponent(
               atob(itemValues.categories)
             ).split(",");
-            return categories.includes(category);
+            return categories.some(category => effectiveCategories.has(category));
           } else {
             return false;
           }
