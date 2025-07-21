@@ -6,6 +6,8 @@ $for(header-includes)$
 $header-includes$
 $endfor$
 
+$logo.typ()$
+
 $typst-show.typ()$
 
 $for(include-before)$
