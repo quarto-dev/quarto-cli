@@ -10,6 +10,7 @@ import {
   BrandColorLightDark,
   BrandFont,
   BrandLogoExplicitResource,
+  BrandLogoResource,
   BrandLogoSingle,
   BrandLogoUnified,
   BrandNamedLogo,
@@ -143,11 +144,7 @@ export class Brand {
       }
     }
     for (const [key, value] of Object.entries(data.logo?.images ?? {})) {
-      if (typeof value === "string") {
-        logo.images[key] = { path: value };
-      } else {
-        logo.images[key] = value;
-      }
+      logo.images[key] = this.resolvePath(value);
     }
 
     return {
@@ -240,11 +237,7 @@ export class Brand {
     return fonts ?? [];
   }
 
-  getLogoResource(name: string): BrandLogoExplicitResource {
-    const entry = this.data.logo?.images?.[name];
-    if (!entry) {
-      return { path: name };
-    }
+  resolvePath(entry: BrandLogoResource) {
     const pathPrefix = relative(this.projectDir, this.brandDir);
     if (typeof entry === "string") {
       return { path: join(pathPrefix, entry) };
@@ -255,6 +248,13 @@ export class Brand {
     };
   }
 
+  getLogoResource(name: string): BrandLogoExplicitResource {
+    const entry = this.data.logo?.images?.[name];
+    if (!entry) {
+      return { path: name };
+    }
+    return this.resolvePath(entry);
+  }
   getLogo(name: BrandNamedLogo): BrandLogoExplicitResource | undefined {
     const entry = this.data.logo?.[name];
     if (!entry) {

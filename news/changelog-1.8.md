@@ -47,6 +47,7 @@ All changes included in 1.8:
 - ([#12695](https://github.com/quarto-dev/quarto-cli/issues/12695)): Resolve Typst `font-paths` that start with `/` relative to project root.
 - ([#12739](https://github.com/quarto-dev/quarto-cli/pull/12739)): Remove unused variable `heading-background-color` and `heading-decoration` from Typst's templates. They are leftover from previous change, and not part of Brand.yml schema for typography of headings.
 - ([#12815](https://github.com/quarto-dev/quarto-cli/issues/12815)): Do not crash when floats have no content.
+- ([#13119](https://github.com/quarto-dev/quarto-cli/pull/13119)): Expose `brand.logo` metadata as Typst dictionaries.
 
 ### `beamer`
 
