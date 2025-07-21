@@ -92,6 +92,7 @@ export function typstFormat(): Format {
         partials: [
           "definitions.typ",
           "typst-template.typ",
+          "page.typ",
           "typst-show.typ",
           "notes.typ",
           "biblio.typ",
