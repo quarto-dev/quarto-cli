@@ -96,6 +96,33 @@ function render_typst_brand_yaml()
           local decl = '#let brand-color-background = ' .. to_typst_dict_indent(themebk)
           quarto.doc.include_text('in-header', decl)
         end
+        if brand.processedData.logo and next(brand.processedData.logo) then
+          local logo = brand.processedData.logo
+          if logo.images then
+            local declImage = {}
+            for name, image in pairs(logo.images) do
+              declImage[name] = {
+                path = quote_string(image.path):gsub('\\', '\\\\'),
+                alt = quote_string(image.alt),
+              }
+            end
+            if next(declImage) then
+              quarto.doc.include_text('in-header', '#let brand-logo-images = ' .. to_typst_dict_indent(declImage))
+            end
+          end
+          local declLogo = {}
+          for _, size in pairs({'small', 'medium', 'large'}) do
+            if logo[size] then
+              declLogo[size] = {
+                path = quote_string(logo[size].path):gsub('\\', '\\\\'),
+                alt = quote_string(logo[size].alt),
+              }
+            end
+          end
+          if next(declLogo) then
+            quarto.doc.include_text('in-header', '#let brand-logo = ' .. to_typst_dict_indent(declLogo))
+          end
+        end
         local function conditional_entry(key, value, quote_strings)
           if quote_strings == null then quote_strings = true end
           if not value then return '' end
