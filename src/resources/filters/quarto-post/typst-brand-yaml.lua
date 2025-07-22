@@ -102,7 +102,7 @@ function render_typst_brand_yaml()
             local declImage = {}
             for name, image in pairs(logo.images) do
               declImage[name] = {
-                path = quote_string(image.path),
+                path = quote_string(image.path):gsub('\\', '\\\\'),
                 alt = quote_string(image.alt),
               }
             end
@@ -114,7 +114,7 @@ function render_typst_brand_yaml()
           for _, size in pairs({'small', 'medium', 'large'}) do
             if logo[size] then
               declLogo[size] = {
-                path = quote_string(logo[size].path),
+                path = quote_string(logo[size].path):gsub('\\', '\\\\'),
                 alt = quote_string(logo[size].alt),
               }
             end
