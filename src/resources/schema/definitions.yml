@@ -2619,6 +2619,25 @@
     - schema:
         ref: logo-options
 
+- id: logo-options-path-optional
+  object:
+    closed: false # e.g. to allow typst location, padding, padding-*, width
+    properties:
+      path:
+        schema: path
+        description: >
+          Path or brand.yml logo resource name.
+      alt:
+        schema: string
+        description: >
+          Alternative text for the logo, used for accessibility.
+
+- id: logo-specifier-path-optional
+  anyOf:
+    - string
+    - schema:
+        ref: logo-options-path-optional
+
 - id: logo-light-dark-specifier
   description: >
     Any of the ways a logo can be specified: string, object, or light/dark object of
