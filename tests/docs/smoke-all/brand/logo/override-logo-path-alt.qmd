@@ -1,7 +1,14 @@
 ---
 title: brand and base logo
 format:
-  dashboard: default
+  dashboard:
+    logo:
+      path: posit-logo-2024.svg
+      alt: posit logo
+  revealjs: # test schema
+    logo:
+      path: posit-logo-2024.svg
+      alt: posit logo
 brand:
   logo:
     images:
@@ -13,9 +20,6 @@ brand:
         alt: posit logo
     medium: quarto
     large: posit
-logo:
-  path: posit-logo-2024.svg
-  alt: posit logo
 _quarto:
   tests:
     dashboard:
