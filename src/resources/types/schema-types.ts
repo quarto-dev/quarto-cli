@@ -1263,6 +1263,10 @@ export type LogoOptions = { alt?: string; path: string };
 
 export type LogoSpecifier = string | LogoOptions;
 
+export type LogoOptionsPathOptional = { alt?: string; path?: string };
+
+export type LogoSpecifierPathOptional = string | LogoOptionsPathOptional;
+
 export type LogoLightDarkSpecifier = LogoSpecifier | {
   dark?: LogoSpecifier;
   light?: LogoSpecifier;

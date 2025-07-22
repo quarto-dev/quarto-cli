@@ -3246,6 +3246,28 @@
         }
       ]
     },
+    "LogoOptionsPathOptional": {
+      "object": {
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "LogoSpecifierPathOptional": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/LogoOptionsPathOptional"
+        }
+      ]
+    },
     "LogoLightDarkSpecifier": {
       "anyOf": [
         {
