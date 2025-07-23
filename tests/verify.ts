@@ -152,7 +152,8 @@ export const noErrorsOrWarnings: Verify = {
   verify: (outputs: ExecuteOutput[]) => {
     const isErrorOrWarning = (output: ExecuteOutput) => {
       return output.levelName.toLowerCase() === "warn" ||
-        output.levelName.toLowerCase() === "error";
+        output.levelName.toLowerCase() === "error" ||
+        output.msg.startsWith("(W)"); // this is a warning from quarto.log.warning()
     };
 
     const errorsOrWarnings = outputs.some(isErrorOrWarning);

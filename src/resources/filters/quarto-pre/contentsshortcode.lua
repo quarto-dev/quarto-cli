@@ -104,7 +104,7 @@ function contents_shortcode_filter()
           -- if we have a span, return it wrapped in a div
           return pandoc.Div(pandoc.Plain({span}))
         end
-        warn(
+        quarto.log.warning(
           "[Malformed document] Found `contents` shortcode without a corresponding div with id: " .. tostring(data) .. ".\n" ..
           "This might happen because the shortcode is used in div context, while the id corresponds to a span.\n" ..
           "Removing from document.")
