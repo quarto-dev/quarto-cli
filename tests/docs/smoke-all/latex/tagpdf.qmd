@@ -1,12 +1,13 @@
 ---
 format:
-  latex:
+  pdf:
     tagpdf: true
+    keep-tex: true
 title: This is a tagpdf test
 _quarto:
   tests:
     latex:
-      ensureFileRegexMatches:
+      ensurePdfRegexMatches:
         - 
           - "tagging = on"
           - 'alt={alt text 2 here}'
