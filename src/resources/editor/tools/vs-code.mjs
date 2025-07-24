@@ -10527,6 +10527,37 @@ var require_yaml_intelligence_resources = __commonJS({
                   long: "Display item categories from this listing in the margin of the page.\n\n  - `numbered`: Category list with number of items\n  - `unnumbered`: Category list\n  - `cloud`: Word cloud style categories\n"
                 }
               },
+              pagination: {
+                object: {
+                  closed: true,
+                  properties: {
+                    "inner-window": {
+                      number: {
+                        description: "The number of pages to display on each side of the current page.",
+                        default: 2
+                      }
+                    },
+                    "outer-window": {
+                      number: {
+                        description: "The number of pages to display at the start and end of the pagination control.",
+                        default: 0
+                      }
+                    },
+                    left: {
+                      number: {
+                        description: "The number of pages to display on the left side of the current page.",
+                        default: 0
+                      }
+                    },
+                    right: {
+                      number: {
+                        description: "The number of pages to display on the right side of the current page.",
+                        default: 0
+                      }
+                    }
+                  }
+                }
+              },
               feed: {
                 anyOf: [
                   "boolean",
@@ -22458,6 +22489,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Names of customizeable logos",
         "Path or brand.yml logo resource name.",
         "Alternative text for the logo, used for accessibility.",
+        "Path or brand.yml logo resource name.",
+        "Alternative text for the logo, used for accessibility.",
         "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
         "Specification of a light logo",
         "Specification of a dark logo",
@@ -24292,6 +24325,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
         "When defined, run axe-core accessibility tests on the document.",
         "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
+        "The logo image.",
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -24637,10 +24671,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        "Path or brand.yml logo resource name.",
-        "Alternative text for the logo, used for accessibility.",
-        "The logo image."
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
       ],
       "schema/external-schemas.yml": [
         {
@@ -24869,12 +24900,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197511,
+        _internalId: 197472,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197503,
+            _internalId: 197464,
             type: "enum",
             enum: [
               "png",
@@ -24890,7 +24921,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197510,
+            _internalId: 197471,
             type: "anyOf",
             anyOf: [
               {

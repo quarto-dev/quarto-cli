@@ -1978,6 +1978,24 @@
               }
             ]
           },
+          "pagination": {
+            "object": {
+              "properties": {
+                "inner-window": {
+                  "type": "number"
+                },
+                "outer-window": {
+                  "type": "number"
+                },
+                "left": {
+                  "type": "number"
+                },
+                "right": {
+                  "type": "number"
+                }
+              }
+            }
+          },
           "feed": {
             "anyOf": [
               {
