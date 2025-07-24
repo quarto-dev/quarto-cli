@@ -851,6 +851,16 @@ If no `id` is provided for a listing, Quarto will synthesize one when rendering 
   include?: MaybeArrayOf<
     JsonObject
   > /* Items with matching field values will be included in the listing. */;
+  pagination?: {
+    "inner-window"?:
+      number /* The number of pages to display on each side of the current page. */;
+    "outer-window"?:
+      number /* The number of pages to display at the start and end of the pagination control. */;
+    "outer-window-left"?:
+      number /* The number of pages to display on the left side of the current page. */;
+    "outer-window-right"?:
+      number; /* The number of pages to display on the right side of the current page. */
+  };
   sort?:
     | boolean
     | MaybeArrayOf<

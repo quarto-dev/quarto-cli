@@ -10528,6 +10528,37 @@ try {
                     long: "Display item categories from this listing in the margin of the page.\n\n  - `numbered`: Category list with number of items\n  - `unnumbered`: Category list\n  - `cloud`: Word cloud style categories\n"
                   }
                 },
+                pagination: {
+                  object: {
+                    closed: true,
+                    properties: {
+                      "inner-window": {
+                        number: {
+                          description: "The number of pages to display on each side of the current page.",
+                          default: 2
+                        }
+                      },
+                      "outer-window": {
+                        number: {
+                          description: "The number of pages to display at the start and end of the pagination control.",
+                          default: 0
+                        }
+                      },
+                      "outer-window-left": {
+                        number: {
+                          description: "The number of pages to display on the left side of the current page.",
+                          default: 0
+                        }
+                      },
+                      "outer-window-right": {
+                        number: {
+                          description: "The number of pages to display on the right side of the current page.",
+                          default: 0
+                        }
+                      }
+                    }
+                  }
+                },
                 feed: {
                   anyOf: [
                     "boolean",
@@ -21830,6 +21861,10 @@ try {
             short: "Display item categories from this listing in the margin of the\npage.",
             long: "Display item categories from this listing in the margin of the\npage."
           },
+          "The number of pages to display on each side of the current page.",
+          "The number of pages to display at the start and end of the pagination\ncontrol.",
+          "The number of pages to display on the left side of the current\npage.",
+          "The number of pages to display on the right side of the current\npage.",
           "Enables an RSS feed for the listing.",
           "The number of items to include in your feed. Defaults to 20.",
           {
@@ -22457,6 +22492,8 @@ try {
           "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
           "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
           "Names of customizeable logos",
+          "Path or brand.yml logo resource name.",
+          "Alternative text for the logo, used for accessibility.",
           "Path or brand.yml logo resource name.",
           "Alternative text for the logo, used for accessibility.",
           "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
@@ -24293,6 +24330,7 @@ try {
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
           "When defined, run axe-core accessibility tests on the document.",
           "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
+          "The logo image.",
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -24638,10 +24676,7 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-          "Path or brand.yml logo resource name.",
-          "Alternative text for the logo, used for accessibility.",
-          "The logo image."
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
         ],
         "schema/external-schemas.yml": [
           {
@@ -24870,12 +24905,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197511,
+          _internalId: 197483,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197503,
+              _internalId: 197475,
               type: "enum",
               enum: [
                 "png",
@@ -24891,7 +24926,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197510,
+              _internalId: 197482,
               type: "anyOf",
               anyOf: [
                 {
