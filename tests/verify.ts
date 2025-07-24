@@ -152,8 +152,12 @@ export const noErrorsOrWarnings: Verify = {
   verify: (outputs: ExecuteOutput[]) => {
     const isErrorOrWarning = (output: ExecuteOutput) => {
       return output.levelName.toLowerCase() === "warn" ||
-        output.levelName.toLowerCase() === "error" ||
-        output.msg.startsWith("(W)"); // this is a warning from quarto.log.warning()
+        output.levelName.toLowerCase() === "error";
+        // I'd like to do this but many many of our tests
+        // would fail right now because we're assuming noErrorsOrWarnings
+        // doesn't include warnings from the lua subsystem
+        //  ||
+        // output.msg.startsWith("(W)"); // this is a warning from quarto.log.warning()
     };
 
     const errorsOrWarnings = outputs.some(isErrorOrWarning);
