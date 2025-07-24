@@ -153,6 +153,10 @@ function render_pandoc3_figure()
       if scope_utils.lookup_class(scope, "column-margin") then
         image.classes:insert("column-margin")
       end
+      if image.attributes['fig-alt'] ~= nil then
+        image.attributes['alt'] = image.attributes['fig-alt']
+        image.attributes['fig-alt'] = nil
+      end
       return latexImageFigure(image)
     end
 

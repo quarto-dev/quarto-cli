@@ -8,3 +8,16 @@
               enum: [json, console, document]
               description: "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
   description: "When defined, run axe-core accessibility tests on the document."
+
+- name: tagpdf
+  tags:
+    formats: [pdf]
+  schema: boolean
+  default: true
+  description:
+    short: "If true, enable `tagpdf` support for accessible PDFs"
+    long: |
+      If true, enable `tagpdf` support for accessible PDFs. This will
+      ensure that the PDF is tagged and that images have alt text.
+      Note that this requires a LaTeX engine that supports PDF tagging
+      (e.g., `lualatex`).

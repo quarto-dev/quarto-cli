@@ -1,0 +1,18 @@
+---
+format:
+  latex:
+    tagpdf: true
+title: This is a tagpdf test
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - 
+          - "tagging = on"
+          - 'alt={alt text 2 here}'
+        - []
+---
+
+## This is a test
+
+![A caption](./an-image.png){fig-alt="alt text 2 here"}
