@@ -1987,10 +1987,10 @@
                 "outer-window": {
                   "type": "number"
                 },
-                "left": {
+                "outer-window-left": {
                   "type": "number"
                 },
-                "right": {
+                "outer-window-right": {
                   "type": "number"
                 }
               }

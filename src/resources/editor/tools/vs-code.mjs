@@ -10543,13 +10543,13 @@ var require_yaml_intelligence_resources = __commonJS({
                         default: 0
                       }
                     },
-                    left: {
+                    "outer-window-left": {
                       number: {
                         description: "The number of pages to display on the left side of the current page.",
                         default: 0
                       }
                     },
-                    right: {
+                    "outer-window-right": {
                       number: {
                         description: "The number of pages to display on the right side of the current page.",
                         default: 0
@@ -21860,6 +21860,10 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Display item categories from this listing in the margin of the\npage.",
           long: "Display item categories from this listing in the margin of the\npage."
         },
+        "The number of pages to display on each side of the current page.",
+        "The number of pages to display at the start and end of the pagination\ncontrol.",
+        "The number of pages to display on the left side of the current\npage.",
+        "The number of pages to display on the right side of the current\npage.",
         "Enables an RSS feed for the listing.",
         "The number of items to include in your feed. Defaults to 20.",
         {
@@ -24900,12 +24904,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197472,
+        _internalId: 197483,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197464,
+            _internalId: 197475,
             type: "enum",
             enum: [
               "png",
@@ -24921,7 +24925,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197471,
+            _internalId: 197482,
             type: "anyOf",
             anyOf: [
               {

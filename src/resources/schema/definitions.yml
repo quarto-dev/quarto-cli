@@ -1532,11 +1532,11 @@
               number:
                 description: "The number of pages to display at the start and end of the pagination control."
                 default: 0
-            left:
+            outer-window-left:
               number:
                 description: "The number of pages to display on the left side of the current page."
                 default: 0
-            right:
+            outer-window-right:
               number:
                 description: "The number of pages to display on the right side of the current page."
                 default: 0
