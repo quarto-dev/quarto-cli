@@ -1520,7 +1520,26 @@
               - `numbered`: Category list with number of items
               - `unnumbered`: Category list
               - `cloud`: Word cloud style categories
-
+      pagination:
+        object:
+          closed: true
+          properties:
+            inner-window:
+              number:
+                description: "The number of pages to display on each side of the current page."
+                default: 2
+            outer-window:
+              number:
+                description: "The number of pages to display at the start and end of the pagination control."
+                default: 0
+            left:
+              number:
+                description: "The number of pages to display on the left side of the current page."
+                default: 0
+            right:
+              number:
+                description: "The number of pages to display on the right side of the current page."
+                default: 0
       feed:
         anyOf:
           - boolean

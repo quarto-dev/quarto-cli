@@ -31,6 +31,11 @@ import {
   kMaxDescLength,
   kMaxItems,
   kPageSize,
+  kPaginationOptions,
+  kInnerWindow,
+  kOuterWindow,
+  kLeftOuterWindow,
+  kRightOuterWindow,
   kSortAsc,
   kSortDesc,
   Listing,
@@ -522,13 +527,24 @@ export function templateJsScript(
   itemCount: number,
 ) {
   const pageSize = listing[kPageSize] as number || 50;
+  const listingPaginationOptions = listing[kPaginationOptions] as Record<string, number> || {};
 
   // If columns are present, factor that in
   const columns = listing[kFields] as string[] || [];
 
+  const paginationOptions = [
+    listingPaginationOptions[kInnerWindow] ? `innerWindow: ${listingPaginationOptions[kInnerWindow]}` : "",
+    listingPaginationOptions[kOuterWindow] ? `outerWindow: ${listingPaginationOptions[kOuterWindow]}` : "",
+    listingPaginationOptions[kLeftOuterWindow] ? `leftOuterWindow: ${listingPaginationOptions[kLeftOuterWindow]}` : "",
+    listingPaginationOptions[kRightOuterWindow] ? `rightOuterWindow: ${listingPaginationOptions[kRightOuterWindow]}` : "",
+    'item: "<li class=\'page-item\'><a class=\'page page-link\' href=\'#\'></a></li>"',
+  ]
+    .filter((v) => v !== "")
+    .join(", ");
+
   const pageOptions = itemCount > pageSize
     ? `${pageSize ? `page: ${pageSize}` : ""},
-    pagination: { item: "<li class='page-item'><a class='page page-link' href='#'></a></li>" },`
+    pagination: { ${paginationOptions} },`
     : "";
 
   const filterOptions = `searchColumns: [${
