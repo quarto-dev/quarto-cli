@@ -7,6 +7,7 @@ import { join } from "../../deno_ral/path.ts";
 
 import { Document, Element, NodeType } from "../../core/deno-dom.ts";
 import {
+  kBrandMode,
   kCodeLineNumbers,
   kFrom,
   kHtmlMathMethod,
@@ -376,8 +377,11 @@ export function revealjsFormat() {
   );
 }
 
-const determineRevealLogo = (format: Format): string | undefined => {
-  const brandData = format.render.brand?.light?.processedData;
+const determineRevealLogo = (
+  brandMode: "light" | "dark",
+  format: Format,
+): string | undefined => {
+  const brandData = format.render.brand?.[brandMode]?.processedData;
   if (brandData?.logo) {
     // add slide logo if we have one
     for (const size of Zod.BrandNamedLogo.options) {
@@ -393,6 +397,10 @@ const determineRevealLogo = (format: Format): string | undefined => {
 };
 
 function revealMarkdownAfterBody(format: Format) {
+  let brandMode: "light" | "dark" = "light";
+  if (format.metadata[kBrandMode] === "dark") {
+    brandMode = "dark";
+  }
   const lines: string[] = [];
   lines.push("::: {.quarto-auto-generated-content style='display: none;'}\n");
   let revealLogo = format
@@ -402,7 +410,7 @@ function revealMarkdownAfterBody(format: Format) {
       revealLogo = revealLogo.path;
     }
     if (Zod.BrandNamedLogo.options.includes(revealLogo as BrandNamedLogo)) {
-      const brandData = format.render.brand?.light?.processedData;
+      const brandData = format.render.brand?.[brandMode]?.processedData;
       const logoInfo = brandData?.logo
         ?.[revealLogo as BrandNamedLogo];
       if (logoInfo) {
@@ -410,7 +418,7 @@ function revealMarkdownAfterBody(format: Format) {
       }
     }
   } else {
-    revealLogo = determineRevealLogo(format);
+    revealLogo = determineRevealLogo(brandMode, format);
   }
   if (revealLogo) {
     lines.push(

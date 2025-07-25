@@ -33,6 +33,7 @@ All changes included in 1.8:
 
 ### `revealjs`
 
+- ([#12550](https://github.com/quarto-dev/quarto-cli/issues/12550)): Revealjs supports `brand-mode`, allowing to select either the light or the dark brand.
 - ([#12598](https://github.com/quarto-dev/quarto-cli/pull/12598)): Ensure `.fragment` on an image with caption applies to whole figure.
 - ([#12716](https://github.com/quarto-dev/quarto-cli/issues/12716)): Correctly resolve `"brand"` set in `theme` configuration for document in subdirectory from project root.
 - Use `cdn.jsdelivr.net` for mathjax dependencies to ensure consistent CDN usage across formats. Previously, `cdnjs.cloudflare.com` was used for `revealjs` mathjax dependencies, while `cdn.jsdelivr.net` was used for html format.
@@ -43,7 +44,7 @@ All changes included in 1.8:
 
 ### `typst`
 
-- ([#12180](https://github.com/quarto-dev/quarto-cli/issues/12180): Typst schema / autocomplete for `logo` option has `path` and `alt`.
+- ([#12180](https://github.com/quarto-dev/quarto-cli/issues/12180)): Typst schema / autocomplete for `logo` option has `path` and `alt`.
 - ([#12554](https://github.com/quarto-dev/quarto-cli/pull/12554)): CSS properties `font-weight` and `font-style` are translated to Typst `text` properties.
 - ([#12695](https://github.com/quarto-dev/quarto-cli/issues/12695)): Resolve Typst `font-paths` that start with `/` relative to project root.
 - ([#12739](https://github.com/quarto-dev/quarto-cli/pull/12739)): Remove unused variable `heading-background-color` and `heading-decoration` from Typst's templates. They are leftover from previous change, and not part of Brand.yml schema for typography of headings.
