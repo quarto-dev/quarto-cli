@@ -33,6 +33,7 @@ All changes included in 1.8:
 
 ### `revealjs`
 
+- ([#10933](https://github.com/quarto-dev/quarto-cli/issues/10933)): Revealjs supports alt text on logo, as well as customization of light and dark logos at the document level, consistent with other formats.
 - ([#12550](https://github.com/quarto-dev/quarto-cli/issues/12550)): Revealjs supports `brand-mode`, allowing to select either the light or the dark brand.
 - ([#12598](https://github.com/quarto-dev/quarto-cli/pull/12598)): Ensure `.fragment` on an image with caption applies to whole figure.
 - ([#12716](https://github.com/quarto-dev/quarto-cli/issues/12716)): Correctly resolve `"brand"` set in `theme` configuration for document in subdirectory from project root.

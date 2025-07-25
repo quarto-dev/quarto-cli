@@ -1,0 +1,40 @@
+---
+title: brand-mode and revealjs
+format: revealjs
+brand:
+  logo:
+    images:
+      sun:
+        path: sun-face.png
+        alt: sun face
+      moon:
+        path: moon-face.png
+        alt: moon face
+    medium:
+      light: sun
+      dark: moon
+  color:
+    foreground: 
+      light: '#222'
+      dark: '#eee'
+    background:
+      light: '#eee'
+      dark: '#222'
+  typography:
+    headings:
+      color:
+        light: '#429'
+        dark: '#54e'
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="sun-face.png"][alt="sun face"]'
+        -
+          - 'img[src="moon-face.png"][alt="moon face"]'
+---
+
+## Here's a slide
+
+- in {{< meta brand-mode >}} mode!
