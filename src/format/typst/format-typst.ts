@@ -14,6 +14,7 @@ import {
   kFigFormat,
   kFigHeight,
   kFigWidth,
+  kLogo,
   kNumberSections,
   kSectionNumbering,
   kShiftHeadingLevelBy,
@@ -30,6 +31,8 @@ import {
 import { formatResourcePath } from "../../core/resources.ts";
 import { createFormat } from "../formats-shared.ts";
 import { hasLevelOneHeadings as hasL1Headings } from "../../core/lib/markdown-analysis/level-one-headings.ts";
+import { LogoLightDarkSpecifier } from "../../resources/types/schema-types.ts";
+import { resolveLogo } from "../../core/brand/brand.ts";
 
 export function typstFormat(): Format {
   return createFormat("Typst", "pdf", {
@@ -77,6 +80,14 @@ export function typstFormat(): Format {
       ) {
         pandoc[kShiftHeadingLevelBy] = -1;
       }
+
+      const brand = format.render.brand;
+      const logoSpec = format.metadata[kLogo] as LogoLightDarkSpecifier;
+      format.metadata[kLogo] = resolveLogo(brand, logoSpec, [
+        "small",
+        "medium",
+        "large",
+      ]);
 
       // force columns to wrap and move any 'columns' setting to metadata
       const columns = format.pandoc[kColumns];
