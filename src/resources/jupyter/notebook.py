@@ -121,6 +121,9 @@ def build_kernel_options(options):
 
 
 def set_env_vars(options):
+    os.environ["QUARTO_OUTPUT_BASE_FORMAT"] = str(
+        options["format"]["identifier"]["base-format"]
+    )
     os.environ["QUARTO_FIG_WIDTH"] = str(options["fig_width"])
     os.environ["QUARTO_FIG_HEIGHT"] = str(options["fig_height"])
     if options["fig_format"] == "retina":
