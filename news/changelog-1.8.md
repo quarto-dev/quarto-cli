@@ -101,6 +101,7 @@ All changes included in 1.8:
 - ([#12753](https://github.com/quarto-dev/quarto-cli/issues/12753)): Support change in IPython 9+ and import `set_matplotlib_formats` from `matplotlib_inline.backend_inline` in the internal `setup.py` script used to initialize rendering with Jupyter engine.
 - ([#12839](https://github.com/quarto-dev/quarto-cli/issues/12839)): Support for `plotly.py` 6+ which now loads plotly.js using a cdn in script as a module.
 - ([#13026](https://github.com/quarto-dev/quarto-cli/pulls/13026)): Use `jsdelivr` CDN for jupyter widgets dependencies.
+- ([#13150](https://github.com/quarto-dev/quarto-cli/pull/13150))): Add environment variable for quarto base format
 
 ### `knitr`
 
