@@ -12092,6 +12092,34 @@ try {
             ]
           },
           {
+            id: "logo-light-dark-specifier-path-optional",
+            description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+            anyOf: [
+              {
+                ref: "logo-specifier-path-optional"
+              },
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: {
+                      schema: {
+                        ref: "logo-specifier-path-optional"
+                      },
+                      description: "Specification of a light logo\n"
+                    },
+                    dark: {
+                      schema: {
+                        ref: "logo-specifier-path-optional"
+                      },
+                      description: "Specification of a dark logo\n"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
             id: "normalized-logo-light-dark-specifier",
             description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
             object: {
@@ -16117,10 +16145,11 @@ try {
             default: "light",
             tags: {
               formats: [
-                "typst"
+                "typst",
+                "revealjs"
               ]
             },
-            description: "The brand mode to use for rendering the Typst document, `light` or `dark`.\n"
+            description: "The brand mode to use for rendering the document, `light` or `dark`.\n"
           },
           {
             name: "layout",
@@ -18320,7 +18349,7 @@ try {
               ]
             },
             schema: {
-              ref: "logo-specifier"
+              ref: "logo-light-dark-specifier"
             },
             description: "Logo image (placed in bottom right corner of slides)"
           },
@@ -24641,7 +24670,10 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+          "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+          "Specification of a light logo",
+          "Specification of a dark logo"
         ],
         "schema/external-schemas.yml": [
           {
@@ -24870,12 +24902,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197461,
+          _internalId: 197480,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197453,
+              _internalId: 197472,
               type: "enum",
               enum: [
                 "png",
@@ -24891,7 +24923,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197460,
+              _internalId: 197479,
               type: "anyOf",
               anyOf: [
                 {
@@ -24961,7 +24993,7 @@ try {
           {
             name: "logo",
             schema: {
-              ref: "logo-specifier-path-optional"
+              ref: "logo-light-dark-specifier-path-optional"
             },
             tags: {
               formats: [
