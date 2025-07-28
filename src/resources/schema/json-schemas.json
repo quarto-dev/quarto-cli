@@ -3287,6 +3287,25 @@
         }
       ]
     },
+    "LogoLightDarkSpecifierPathOptional": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LogoSpecifierPathOptional"
+        },
+        {
+          "object": {
+            "properties": {
+              "light": {
+                "$ref": "#/$defs/LogoSpecifierPathOptional"
+              },
+              "dark": {
+                "$ref": "#/$defs/LogoSpecifierPathOptional"
+              }
+            }
+          }
+        }
+      ]
+    },
     "NormalizedLogoLightDarkSpecifier": {
       "object": {
         "properties": {

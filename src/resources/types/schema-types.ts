@@ -1272,6 +1272,11 @@ export type LogoLightDarkSpecifier = LogoSpecifier | {
   light?: LogoSpecifier;
 }; /* Any of the ways a logo can be specified: string, object, or light/dark object of string or object */
 
+export type LogoLightDarkSpecifierPathOptional = LogoSpecifierPathOptional | {
+  dark?: LogoSpecifierPathOptional;
+  light?: LogoSpecifierPathOptional;
+}; /* Any of the ways a logo can be specified: string, object, or light/dark object of string or object */
+
 export type NormalizedLogoLightDarkSpecifier = {
   dark?: LogoOptions;
   light?: LogoOptions;
