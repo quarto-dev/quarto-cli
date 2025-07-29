@@ -42,7 +42,10 @@ import { InspectedMdCell } from "../inspect/inspect-types.ts";
 import { breakQuartoMd, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
 import { partitionCellOptionsText } from "../core/lib/partition-cell-options.ts";
 import { parse } from "../core/yaml.ts";
-import { mappedIndexToLineCol } from "../core/lib/mapped-text.ts";
+import {
+  asMappedString,
+  mappedIndexToLineCol,
+} from "../core/lib/mapped-text.ts";
 import { normalizeNewlines } from "../core/lib/text.ts";
 import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
 import { QuartoJSONSchema, readYamlFromMarkdown } from "../core/yaml.ts";
@@ -56,6 +59,7 @@ import {
 } from "../core/brand/brand.ts";
 import { assert } from "testing/asserts";
 import { Cloneable, safeCloneDeep } from "../core/safe-clone-deep.ts";
+import { readAnnotatedYamlFromMappedString } from "../core/lib/yaml-intelligence/annotated-yaml.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -420,11 +424,10 @@ export async function projectResolveCodeCellsForFile(
           cell.cell_type.language,
           cell.sourceWithYaml ?? cell.source,
         );
-        const metadata = cellOptions.yaml
-          ? parse(cellOptions.yaml.value, {
-            schema: QuartoJSONSchema,
-          }) as Record<string, unknown>
-          : {};
+        const annotatedMetadata = readAnnotatedYamlFromMappedString(
+          cellOptions.yaml ?? asMappedString(""),
+          false,
+        );
         const lineLocator = mappedIndexToLineCol(cell.sourceVerbatim);
         result.push({
           start: lineLocator(0).line,
@@ -432,7 +435,8 @@ export async function projectResolveCodeCellsForFile(
           file: file,
           source: normalizeNewlines(cell.source.value),
           language: cell.cell_type.language,
-          metadata,
+          annotatedMetadata,
+          metadata: annotatedMetadata.result as Record<string, unknown>,
         });
       }
     }

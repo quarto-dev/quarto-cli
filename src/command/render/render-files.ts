@@ -26,7 +26,11 @@ import {
   resetFigureCounter,
 } from "../../core/handlers/base.ts";
 import { LanguageCellHandlerOptions } from "../../core/handlers/types.ts";
-import { asMappedString, mappedDiff } from "../../core/mapped-text.ts";
+import {
+  asMappedString,
+  mappedDiff,
+  mappedIndexToLineCol,
+} from "../../core/mapped-text.ts";
 import {
   validateDocument,
   validateDocumentFromSource,
@@ -34,6 +38,7 @@ import {
 import { createTempContext, TempContext } from "../../core/temp.ts";
 import {
   executionEngineKeepMd,
+  fileExecutionEngine,
   fileExecutionEngineAndTarget,
 } from "../../execute/engine.ts";
 import { annotateOjsLineNumbers } from "../../execute/ojs/annotate-source.ts";
@@ -111,11 +116,14 @@ import { ensureNotebookContext } from "../../core/jupyter/jupyter-embed.ts";
 import {
   projectIsWebsite,
   projectOutputDir,
+  projectResolveCodeCellsForFile,
 } from "../../project/project-shared.ts";
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
 import { setExecuteEnvironment } from "../../execute/environment.ts";
 import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 import { warn } from "log";
+import { createSourceContext } from "../../core/lib/yaml-validation/errors.ts";
+import { getField } from "../../core/lib/yaml-intelligence/annotated-yaml.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -478,6 +486,37 @@ async function renderFileInternal(
     } else {
       // rethrow if no validation error happened.
       throw e;
+    }
+  }
+  const engine = await fileExecutionEngine(file.path, undefined, project);
+  await project.resolveFullMarkdownForFile(engine, file.path);
+  await projectResolveCodeCellsForFile(project, engine, file.path);
+
+  const fileInfo = project.fileInformationCache.get(file.path);
+  for (const codeCell of fileInfo?.codeCells || []) {
+    const meta = codeCell.annotatedMetadata;
+    const renderings = getField(meta, "renderings");
+    const label = getField(meta, "label");
+    if (!(renderings && label)) {
+      continue;
+    }
+    const multipleRenderings = renderings.components.length > 0;
+    const badLabel = (label.result as any).startsWith("fig-");
+    if (multipleRenderings || badLabel) {
+      // const mapper = mappedIndexToLineCol(renderings.source);
+      console.log("Bad renderings+label in file", file.path);
+      console.log(
+        createSourceContext(
+          renderings.source,
+          { start: renderings.start, end: renderings.end },
+        ),
+      );
+      console.log(
+        createSourceContext(
+          label.source,
+          { start: label.start, end: label.end },
+        ),
+      );
     }
   }
   const mergeHandlerResults = (

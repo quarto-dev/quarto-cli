@@ -28,6 +28,7 @@ import { ProjectEnvironment } from "./project-environment-types.ts";
 import { ProjectCache } from "../core/cache/cache-types.ts";
 import { TempContext } from "../core/temp-types.ts";
 import { Cloneable } from "../core/safe-clone-deep.ts";
+import { AnnotatedParse } from "../core/lib/yaml-schema/types.ts";
 
 export {
   type NavigationItem as NavItem,
@@ -61,6 +62,7 @@ export type FileInformation = {
   engine?: ExecutionEngine;
   target?: ExecutionTarget;
   metadata?: Metadata;
+  annotatedMetadata?: AnnotatedParse;
   brand?: LightDarkBrandDarkFlag;
 };
 

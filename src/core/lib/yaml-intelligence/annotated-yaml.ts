@@ -22,6 +22,7 @@ import { createSourceContext } from "../yaml-validation/errors.ts";
 import { tidyverseInfo } from "../errors.ts";
 import { InternalError } from "../error.ts";
 import { isCircular } from "../is-circular.ts";
+import { assert } from "testing/asserts";
 
 // deno-lint-ignore no-explicit-any
 type TreeSitterParse = any;
@@ -740,3 +741,17 @@ export function navigate(
     return annotation;
   }
 }
+
+export const getField = (
+  annotation: AnnotatedParse,
+  key: string,
+): AnnotatedParse | undefined => {
+  assert(annotation.kind === "mapping");
+  for (let i = 0; i < annotation.components.length; i += 2) {
+    const k = annotation.components[i];
+    if (k.result === key) {
+      return annotation.components[i + 1];
+    }
+  }
+  return undefined;
+};

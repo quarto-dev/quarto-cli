@@ -1,11 +1,10 @@
 /*
-* partition-cell-options.ts
-*
-* Splits code cell into metadata+options
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * partition-cell-options.ts
+ *
+ * Splits code cell into metadata+options
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { Range, rangedLines, RangedSubstring } from "./ranged-text.ts";
 import { asMappedString, MappedString, mappedString } from "./mapped-text.ts";

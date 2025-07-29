@@ -5,6 +5,7 @@
  */
 
 import { Format } from "../config/types.ts";
+import { AnnotatedParse } from "../core/lib/yaml-schema/types.ts";
 import { Extension } from "../extension/types.ts";
 import {
   FileInclusion,
@@ -19,12 +20,14 @@ export type InspectedMdCell = {
   source: string;
   language: string;
   metadata: Record<string, unknown>;
+  annotatedMetadata: AnnotatedParse;
 };
 
 export interface InspectedFile {
   includeMap: FileInclusion[];
   codeCells: InspectedMdCell[];
   metadata: Record<string, unknown>;
+  annotatedMetadata: AnnotatedParse;
 }
 
 export interface InspectedConfig {

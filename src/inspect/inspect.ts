@@ -144,6 +144,8 @@ const populateFileInformation = async (
       [],
     codeCells: context.fileInformationCache.get(file)?.codeCells ?? [],
     metadata: context.fileInformationCache.get(file)?.metadata ?? {},
+    annotatedMetadata: context.fileInformationCache.get(file)!
+      .annotatedMetadata!,
   };
 };
 
@@ -231,6 +233,7 @@ const inspectDocumentConfig = async (path: string) => {
           includeMap: fileInformation?.includeMap ?? [],
           codeCells: fileInformation?.codeCells ?? [],
           metadata: fileInformation?.metadata ?? {},
+          annotatedMetadata: fileInformation?.annotatedMetadata! ?? {},
         },
       },
     };
