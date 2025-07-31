@@ -7,6 +7,7 @@
  */
 
 import * as colors from "fmt/colors";
+import { warn } from "../../deno_ral/log.ts";
 
 type StackEntry = {
   pos: string;
@@ -47,7 +48,7 @@ export const getStackAsArray = (
     /^.*at async (.*)src\/quarto.ts:\d+:\d+$/,
   );
   if (!m) {
-    console.log(
+    warn(
       "Could not find quarto.ts in stack trace, is QUARTO_DENO_V8_OPTIONS set with a sufficiently-large stack size?",
     );
   }
@@ -184,12 +185,15 @@ export const getStack = (format?: "json" | "raw" | "ansi", offset?: number) => {
     getStackAsArray(format, offset ? offset + 1 : 3).join("\n");
 };
 
-// use debugPrint instead of console.log so it's easy to find stray print statements
+// use debugPrint instead of console["log"] so it's easier to find stray print statements
 // on our codebase
 //
 // deno-lint-ignore no-explicit-any
 export const debugPrint = (...data: any[]) => {
-  console.log(...data);
+  // use console["log"] here instead of dot notation
+  // to allow us to lint for the dot notation usage which
+  // we want to disallow throughout the codebase
+  console["log"](...data);
 };
 
 export const debugLogWithStack = async (...data: unknown[]) => {
