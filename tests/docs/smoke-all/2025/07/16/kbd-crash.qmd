@@ -1,0 +1,6 @@
+---
+format: html
+---
+
+{{< kbd windows=alt-f4 >}}
+
