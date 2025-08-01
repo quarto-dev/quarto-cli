@@ -2,7 +2,7 @@
 title: "knitr dark mode - ggplot"
 format:
   revealjs: default
-  html: default
+brand-mode: dark
 brand:
   light: united-brand.yml
   dark: slate-brand.yml
@@ -22,9 +22,11 @@ _quarto:
     revealjs:
       ensureHtmlElements:
         -
-          - 'img[data-src="ggplot-duobrand_files/figure-revealjs/cars-1.png"]'
+          - 'body.quarto-dark'
+          - 'img[data-src="ggplot-duobrand-dark_files/figure-revealjs/cars-2.png"]'
         -
-          - 'img[data-src="ggplot-duobrand_files/figure-revealjs/cars-2.png"]'
+          - 'img[data-src="ggplot-duobrand-dark_files/figure-revealjs/cars-1.png"]'
+          - 'body.quarto-light'
           - 'div.light-content'
           - 'div.dark-content'
 ---
