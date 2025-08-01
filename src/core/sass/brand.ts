@@ -24,6 +24,7 @@ import {
 } from "../../resources/types/zod/schema-types.ts";
 import { Brand } from "../brand/brand.ts";
 import { darkModeDefault } from "../../format/html/format-html-info.ts";
+import { kBrandMode } from "../../config/constants.ts";
 
 const defaultColorNameMap: Record<string, string> = {
   "link-color": "link",
@@ -634,14 +635,18 @@ export async function brandBootstrapSassLayers(
 
 export async function brandRevealSassLayers(
   input: string | undefined,
-  _format: Format,
+  format: Format,
   project: ProjectContext,
 ): Promise<SassLayer[]> {
+  let brandMode: "light" | "dark" = "light";
+  if (format.metadata[kBrandMode] === "dark") {
+    brandMode = "dark";
+  }
   return (await brandSassLayers(
     input,
     project,
     defaultColorNameMap,
-  )).light;
+  ))[brandMode];
 }
 
 export async function brandSassFormatExtras(

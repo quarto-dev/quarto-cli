@@ -12091,6 +12091,34 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "logo-light-dark-specifier-path-optional",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          anyOf: [
+            {
+              ref: "logo-specifier-path-optional"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "logo-specifier-path-optional"
+                    },
+                    description: "Specification of a light logo\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "logo-specifier-path-optional"
+                    },
+                    description: "Specification of a dark logo\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
           id: "normalized-logo-light-dark-specifier",
           description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
           object: {
@@ -16116,10 +16144,11 @@ var require_yaml_intelligence_resources = __commonJS({
           default: "light",
           tags: {
             formats: [
-              "typst"
+              "typst",
+              "revealjs"
             ]
           },
-          description: "The brand mode to use for rendering the Typst document, `light` or `dark`.\n"
+          description: "The brand mode to use for rendering the document, `light` or `dark`.\n"
         },
         {
           name: "layout",
@@ -18319,7 +18348,7 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           schema: {
-            ref: "logo-specifier"
+            ref: "logo-light-dark-specifier"
           },
           description: "Logo image (placed in bottom right corner of slides)"
         },
@@ -24294,6 +24323,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
         "When defined, run axe-core accessibility tests on the document.",
         "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
+        {
+          short: "If true, enable <code>tagpdf</code> support for accessible PDFs",
+          long: "If true, enable <code>tagpdf</code> support for accessible PDFs. This\nwill ensure that the PDF is tagged and that images have alt text. Note\nthat this requires a LaTeX engine that supports PDF tagging (e.g.,\n<code>lualatex</code>)."
+        },
         "The logo image.",
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
@@ -24641,10 +24674,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "Manuscript configuration",
         "internal-schema-hack",
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        {
-          short: "If true, enable <code>tagpdf</code> support for accessible PDFs",
-          long: "If true, enable <code>tagpdf</code> support for accessible PDFs. This\nwill ensure that the PDF is tagged and that images have alt text. Note\nthat this requires a LaTeX engine that supports PDF tagging (e.g.,\n<code>lualatex</code>)."
-        }
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+        "Specification of a light logo",
+        "Specification of a dark logo"
       ],
       "schema/external-schemas.yml": [
         {
@@ -24873,12 +24905,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197463,
+        _internalId: 197628,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197455,
+            _internalId: 197620,
             type: "enum",
             enum: [
               "png",
@@ -24894,7 +24926,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197462,
+            _internalId: 197627,
             type: "anyOf",
             anyOf: [
               {
@@ -24978,7 +25010,7 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "logo",
           schema: {
-            ref: "logo-specifier-path-optional"
+            ref: "logo-light-dark-specifier-path-optional"
           },
           tags: {
             formats: [
@@ -32837,7 +32869,7 @@ function objectSchema(params = {}) {
       );
       console.error("This is a bug in quarto's schemas.");
       console.error(
-        "Note that we don't throw in order to allow build-js to finish, but the generated schemas will be invalid."
+        "Note that we don't throw in order to allow build-artifacts to finish, but the generated schemas will be invalid."
       );
     }
     result.properties = Object.assign(
