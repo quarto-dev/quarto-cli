@@ -1,0 +1,21 @@
+project:
+  type: website
+
+website:
+  title: "myblog"
+  twitter-card: true
+  open-graph: true
+  page-footer:
+    center: |
+      Footer image:
+      [![](/profile.jpg)](https://quarto.org/)
+  navbar:
+    right:
+      - icon: github
+        href: https://github.com/
+      - icon: twitter
+        href: https://twitter.com
+
+format:
+  html:
+    theme: cosmo
