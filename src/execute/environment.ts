@@ -30,7 +30,7 @@ export const setExecuteEnvironment: (options: ExecuteOptions) => void = (
   }
 
   const executeInfo: Record<string, unknown> = {
-    documentPath: resolve(options.target.source),
+    "document-path": resolve(options.target.source),
     format: options.format,
   };
 
