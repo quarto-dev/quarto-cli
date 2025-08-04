@@ -20,6 +20,7 @@ All changes included in 1.8:
 - ([#726](https://github.com/quarto-dev/quarto-cli/issues/726)): a11y - Provide `.screen-reader-only` callout type when callout text doesn't naturally include the type.
 - ([#5538](https://github.com/quarto-dev/quarto-cli/issues/5538)): Fix code-copy button style so that scrolling behaves properly.
 - ([#5879](https://github.com/quarto-dev/quarto-cli/issues/5879)): Improve font rendering of `kbd` shortcode on macOS. `kbd` will now also be stricter in converting keyboard shortcuts to macOS icons.
+- ([#8568](https://github.com/quarto-dev/quarto-cli/issues/8568)) Default inline code background color to the code block background color if not specified; foreground color is `$pre-color` in dark mode and (remains) purple in light mode.
 - ([#10983](https://github.com/quarto-dev/quarto-cli/issues/10983)): Fix spacing inconsistency between paras and first section headings.
 - ([#12259](https://github.com/quarto-dev/quarto-cli/issues/12259)): Fix conflict between `html-math-method: katex` and crossref popups (author: @benkeks).
 - ([#12341](https://github.com/quarto-dev/quarto-cli/issues/12341)): Enable light and dark logos for html formats (sidebar, navbar, dashboard).
@@ -108,7 +109,7 @@ All changes included in 1.8:
 
 - ([#12753](https://github.com/quarto-dev/quarto-cli/issues/12753)): Support change in IPython 9+ and import `set_matplotlib_formats` from `matplotlib_inline.backend_inline` in the internal `setup.py` script used to initialize rendering with Jupyter engine.
 - ([#12839](https://github.com/quarto-dev/quarto-cli/issues/12839)): Support for `plotly.py` 6+ which now loads plotly.js using a cdn in script as a module.
-- ([#13026](https://github.com/quarto-dev/quarto-cli/pulls/13026), [#13151](https://github.com/quarto-dev/quarto-cli/pulls/13151)), [#13184](https://github.com/quarto-dev/quarto-cli/pull/13184): Use `jsdelivr` CDN for jupyter widgets dependencies.
+- ([#13026](https://github.com/quarto-dev/quarto-cli/pull/13026), [#13151](https://github.com/quarto-dev/quarto-cli/pull/13151)), [#13184](https://github.com/quarto-dev/quarto-cli/pull/13184): Use `jsdelivr` CDN for jupyter widgets dependencies.
 
 ### `knitr`
 

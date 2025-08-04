@@ -14,6 +14,7 @@ _quarto:
 
 ### Inline code
 
+* No syntax highlighting: `foo(bar)`
 * Python: `def identity(x): return x`{.python}
 * R: `identity <- function(x) x`{.r}
 
