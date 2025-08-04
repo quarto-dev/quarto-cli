@@ -97,6 +97,8 @@ All changes included in 1.8:
 
 ## Engines
 
+- ([#13171](https://github.com/quarto-dev/quarto-cli/pull/13171/)): Provide execution information to all engines uniformly via QUARTO_EXECUTE_INFO environment variable. It points to a file on disk containing a JSON object describing the execution environment for code cells to use.
+
 ### `jupyter`
 
 - ([#12753](https://github.com/quarto-dev/quarto-cli/issues/12753)): Support change in IPython 9+ and import `set_matplotlib_formats` from `matplotlib_inline.backend_inline` in the internal `setup.py` script used to initialize rendering with Jupyter engine.
