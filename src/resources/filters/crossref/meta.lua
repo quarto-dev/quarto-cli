@@ -9,7 +9,6 @@ function crossrefMetaInject()
         return trim(pandoc.write(pandoc.Pandoc(quarto.utils.as_blocks(inlines)), "latex"))
       end
       metaInjectLatex(meta, function(inject)
-        
         inject(usePackage("caption"))
 
         inject(
@@ -21,10 +20,10 @@ function crossrefMetaInject()
           maybeRenewCommand("tablename", as_latex(title("tbl", "Table"))) ..
           "}\n"
         )
-      
+
         if param("listings", false) then
           inject(
-            "\\newcommand*\\listoflistings\\lstlistoflistings\n" ..
+            "\\@ifundefined{listoflistings}{\\newcommand*\\listoflistings\\lstlistoflistings}{}\n" ..
             "\\AtBeginDocument{%\n" ..
             "\\renewcommand*\\lstlistlistingname{" .. listOfTitle("lol", "List of Listings") .. "}\n" ..
             "}\n"
@@ -38,7 +37,8 @@ function crossrefMetaInject()
           )
 
           inject(
-            "\\newcommand*\\listoflistings{\\listof{codelisting}{" .. listOfTitle("lol", "List of Listings") .. "}}\n"
+            "\\@ifundefined{listoflistings}{\\newcommand*\\listoflistings{\\listof{codelisting}{" ..
+            listOfTitle("lol", "List of Listings") .. "}}}{}\n"
           )
         end
 
@@ -61,23 +61,22 @@ function crossrefMetaInject()
                  "\n'', 'none', ':', 'colon', '.', 'period', ' ', 'space', and 'quad'")
           end
         end
-        
+
         local theoremIncludes = theoremLatexIncludes()
         if theoremIncludes then
           inject(theoremIncludes)
         end
       end)
-      
+
       return meta
     end
   }
 end
 
-function maybeRenewCommand(command, arg) 
+function maybeRenewCommand(command, arg)
   local commandWithArg = command .. "{" .. arg .. "}"
   return "\\ifdefined\\" .. command .. "\n  " .. "\\renewcommand*\\" .. commandWithArg .. "\n\\else\n  " .. "\\newcommand\\" .. commandWithArg .. "\n\\fi\n"
 end
-
 
 -- latex 'listof' title for type
 function listOfTitle(type, default)
