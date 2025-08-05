@@ -7,3 +7,13 @@ $endif$
 $if(CJKmainfont)$
 \PassOptionsToPackage{space}{xeCJK}
 $endif$
+$if(tagpdf)$
+\DocumentMetadata{%
+  lang = en-us,
+  pdfversion = 2.0,
+  pdfstandard = ua-2,
+  tagging = on,
+  tagging-setup = {math/setup=mathml-SE}
+}
+\tagpdfsetup{activate, tabsorder=structure}
+$endif$

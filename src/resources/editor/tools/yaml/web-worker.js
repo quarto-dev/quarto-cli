@@ -24324,6 +24324,10 @@ try {
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
           "When defined, run axe-core accessibility tests on the document.",
           "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
+          {
+            short: "If true, enable <code>tagpdf</code> support for accessible PDFs",
+            long: "If true, enable <code>tagpdf</code> support for accessible PDFs. This\nwill ensure that the PDF is tagged and that images have alt text. Note\nthat this requires a LaTeX engine that supports PDF tagging (e.g.,\n<code>lualatex</code>)."
+          },
           "The logo image.",
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
@@ -24902,12 +24906,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197480,
+          _internalId: 197628,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197472,
+              _internalId: 197620,
               type: "enum",
               enum: [
                 "png",
@@ -24923,7 +24927,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197479,
+              _internalId: 197627,
               type: "anyOf",
               anyOf: [
                 {
@@ -24987,6 +24991,20 @@ try {
               ]
             },
             description: "When defined, run axe-core accessibility tests on the document."
+          },
+          {
+            name: "tagpdf",
+            tags: {
+              formats: [
+                "pdf"
+              ]
+            },
+            schema: "boolean",
+            default: true,
+            description: {
+              short: "If true, enable `tagpdf` support for accessible PDFs",
+              long: "If true, enable `tagpdf` support for accessible PDFs. This will\nensure that the PDF is tagged and that images have alt text.\nNote that this requires a LaTeX engine that supports PDF tagging\n(e.g., `lualatex`).\n"
+            }
           }
         ],
         "schema/document-typst.yml": [
