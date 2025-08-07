@@ -95,6 +95,10 @@ All changes included in 1.8:
 
 - ([#12965](https://github.com/quarto-dev/quarto-cli/issues/12965)): Prevent automatic opening of new editor sessions when creating projects in Posit Workbench context. The `--open` flag is now ignored in this environment to avoid issues with Workbench session management.
 
+## Extensions
+
+- ([#12559](https://github.com/quarto-dev/quarto-cli/issues/12559)): New extension type: `brand` for distributing [brand.yml](https://posit-dev.github.io/brand-yml/) configurations with associated assets.
+
 ## Engines
 
 - ([#13171](https://github.com/quarto-dev/quarto-cli/pull/13171/)): Provide execution information to all engines uniformly via QUARTO_EXECUTE_INFO environment variable. It points to a file on disk containing a JSON object describing the execution environment for code cells to use.
