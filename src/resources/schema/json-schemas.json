@@ -4179,6 +4179,9 @@
               }
             ]
           },
+          "brand": {
+            "$ref": "#/$defs/BrandPathBoolLightDark"
+          },
           "preview": {
             "$ref": "#/$defs/ProjectPreview"
           },
