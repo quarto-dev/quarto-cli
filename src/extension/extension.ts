@@ -791,7 +791,7 @@ async function readExtension(
   const metadata = contributes?.metadata as Record<string, unknown> | undefined;
 
   // resolve metadata/project pre- and post-render scripts to their full path
-  for (const key of ["pre-render", "post-render"]) {
+  for (const key of ["pre-render", "post-render", "brand"]) {
     for (const object of [metadata, project]) {
       if (!object?.project || typeof object.project !== "object") {
         continue;
@@ -808,8 +808,14 @@ async function readExtension(
           [],
         );
         if (resolved.include.length > 0) {
-          (object.project as Record<string, unknown>)[key] = resolved
-            .include;
+          if (key === "brand") {
+            (object.project as Record<string, unknown>)[key] = relative(
+              join(extensionDir, "..", ".."),
+              resolved.include[0],
+            );
+          } else {
+            (object.project as Record<string, unknown>)[key] = resolved.include;
+          }
         }
       }
     }
