@@ -1777,6 +1777,7 @@ export const ZodProjectConfig = z.object({
   "output-dir": z.string(),
   "lib-dir": z.string(),
   resources: z.union([z.string(), z.array(z.string())]),
+  brand: z.lazy(() => ZodBrandPathBoolLightDark),
   preview: z.lazy(() => ZodProjectPreview),
   "pre-render": z.union([z.string(), z.array(z.string())]),
   "post-render": z.union([z.string(), z.array(z.string())]),

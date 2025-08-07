@@ -1588,6 +1588,7 @@ export type ProjectConfig = {
   "lib-dir"?: string /* HTML library (JS/CSS/etc.) directory */;
   "pre-render"?: MaybeArrayOf<string>;
   "post-render"?: MaybeArrayOf<string>;
+  brand?: BrandPathBoolLightDark;
   detect?: ((string)[])[];
   preview?: ProjectPreview;
   render?: (string)[] /* Files to render (defaults to all files) */;
