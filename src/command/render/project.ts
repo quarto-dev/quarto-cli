@@ -14,7 +14,6 @@ import {
 } from "../../deno_ral/fs.ts";
 import { dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
 import { info, warning } from "../../deno_ral/log.ts";
-import { mergeProjectMetadata } from "../../config/metadata.ts";
 
 import * as colors from "fmt/colors";
 
@@ -80,7 +79,6 @@ import { Format } from "../../config/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { projectContextForDirectory } from "../../project/project-context.ts";
 import { ProjectType } from "../../project/types/types.ts";
-import { Zod } from "../../resources/types/zod/schema-types.ts";
 
 const noMutationValidations = (
   projType: ProjectType,
@@ -242,37 +240,11 @@ const getProjectRenderScripts = async (
   return { preRenderScripts, postRenderScripts };
 };
 
-const mergeExtensionMetadata = async (
-  context: ProjectContext,
-  pOptions: RenderOptions,
-) => {
-  // this will mutate context.config.project to merge
-  // in any project metadata from extensions
-  if (context.config) {
-    const extensions = await pOptions.services.extension.extensions(
-      undefined,
-      context.config,
-      context.isSingleFile ? undefined : context.dir,
-      { builtIn: false },
-    );
-    const projectMetadata = extensions.filter((extension) =>
-      extension.contributes.metadata?.project
-    ).map((extension) => {
-      return Zod.ProjectConfig.parse(extension.contributes.metadata!.project);
-    });
-    context.config.project = mergeProjectMetadata(
-      context.config.project,
-      ...projectMetadata,
-    );
-  }
-};
-
 export async function renderProject(
   context: ProjectContext,
   pOptions: RenderOptions,
   pFiles?: string[],
 ): Promise<RenderResult> {
-  await mergeExtensionMetadata(context, pOptions);
   const { preRenderScripts, postRenderScripts } = await getProjectRenderScripts(
     context,
   );

@@ -560,10 +560,14 @@ export async function projectResolveBrand(
     let fileNames = ["_brand.yml", "_brand.yaml"].map((file) =>
       join(project.dir, file)
     );
-    const brand = project?.config?.brand as boolean | string | {
-      light?: string;
-      dark?: string;
-    };
+    const brand = (project?.config?.brand ??
+      project?.config?.project.brand) as
+        | boolean
+        | string
+        | {
+          light?: string;
+          dark?: string;
+        };
     if (brand === false) {
       project.brandCache.brand = undefined;
       return project.brandCache.brand;
