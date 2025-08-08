@@ -109,7 +109,7 @@ import { once } from "../core/once.ts";
 import { Zod } from "../resources/types/zod/schema-types.ts";
 import { ExternalEngine } from "../resources/types/schema-types.ts";
 
-const mergeExtensionMetadata = async (
+export const mergeExtensionMetadata = async (
   context: ProjectContext,
   pOptions: RenderOptions,
 ) => {
@@ -119,7 +119,7 @@ const mergeExtensionMetadata = async (
     const extensions = await pOptions.services.extension.extensions(
       undefined,
       context.config,
-      context.isSingleFile ? undefined : context.dir,
+      context.dir,
       { builtIn: false },
     );
     // Handle project metadata extensions
@@ -726,7 +726,7 @@ async function resolveProjectExtension(
   return projectConfig;
 }
 
-async function resolveEngineExtensions(
+export async function resolveEngineExtensions(
   context: ExtensionContext,
   projectConfig: ProjectConfig,
   dir: string,
