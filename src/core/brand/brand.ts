@@ -39,6 +39,7 @@ import {
   LogoSpecifier,
   LogoSpecifierPathOptional,
 } from "../../resources/types/schema-types.ts";
+import { isExternalPath } from "../../project/types/website/website-navigation.ts";
 
 type ProcessedBrandData = {
   color: Record<string, string>;
@@ -246,11 +247,13 @@ export class Brand {
   resolvePath(entry: BrandLogoResource) {
     const pathPrefix = relative(this.projectDir, this.brandDir);
     if (typeof entry === "string") {
-      return { path: join(pathPrefix, entry) };
+      return { path: isExternalPath(entry) ? entry : join(pathPrefix, entry) };
     }
     return {
       ...entry,
-      path: join(pathPrefix, entry.path),
+      path: isExternalPath(entry.path)
+        ? entry.path
+        : join(pathPrefix, entry.path),
     };
   }
 
