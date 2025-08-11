@@ -158,10 +158,10 @@ export function projectExtensionPathResolver(
   return (href: string, projectOffset: string) => {
     const projectRelativeHref = relative(projectOffset, href);
 
-    if (projectRelativeHref.startsWith("_extensions/")) {
+    if (projectRelativeHref.startsWith("_extensions/") || projectRelativeHref.startsWith("_extensions\\")) {
       const projectTargetHref = projectRelativeHref.replace(
-        /^_extensions\//,
-        `${libDir}/quarto-contrib/quarto-project/`,
+        /^_extensions/,
+        `${libDir}/quarto-contrib/quarto-project`,
       );
 
       copyResourceFile(
