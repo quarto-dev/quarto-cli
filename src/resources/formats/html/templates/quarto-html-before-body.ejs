@@ -2,22 +2,14 @@
   <script id = "quarto-html-before-body" type="application/javascript">
 
 
-    const toggleBodyColorMode = (bsSheetEl) => {
-      const mode = bsSheetEl.getAttribute("data-mode");
+    const toggleBodyColorMode = (isDark) => {
       const bodyEl = window.document.querySelector("body");
-      if (mode === "dark") {
+      if (isDark) {
         bodyEl.classList.add("quarto-dark");
         bodyEl.classList.remove("quarto-light");
       } else {
         bodyEl.classList.add("quarto-light");
         bodyEl.classList.remove("quarto-dark");
-      }
-    }
-
-    const toggleBodyColorPrimary = () => {
-      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
-      if (bsSheetEl) {
-        toggleBodyColorMode(bsSheetEl);
       }
     }
 
@@ -36,23 +28,7 @@
     };
 
     const toggleColorMode = (alternate) => {
-      // Switch the stylesheets
-      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
-      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
-      manageTransitions('#quarto-margin-sidebar .nav-link', false);
-      if (alternate) {
-        // note: dark is layered on light, we don't disable primary!
-        enableStylesheet(alternateStylesheets);
-        for (const sheetNode of alternateStylesheets) {
-          if (sheetNode.id === "quarto-bootstrap") {
-            toggleBodyColorMode(sheetNode);
-          }
-        }
-      } else {
-        disableStylesheet(alternateStylesheets);
-        enableStylesheet(primaryStylesheets)
-        toggleBodyColorPrimary();
-      }
+      toggleBodyColorMode(alternate);
       manageTransitions('#quarto-margin-sidebar .nav-link', true);
 
       // Switch the toggles
@@ -170,11 +146,6 @@
     const darkModeDefault = queryPrefersDark.matches;
     <% } else { %>
     const darkModeDefault = authorPrefersDark;
-    <% } %>
-
-    <% if (!darkModeDefault) { %>
-      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
-      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
     <% } %>
       
     let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
