@@ -14603,7 +14603,9 @@ try {
               string: {
                 completions: [
                   "jupyter",
-                  "knitr"
+                  "knitr",
+                  "julia",
+                  "markdown"
                 ]
               }
             },
@@ -22494,6 +22496,9 @@ try {
           "Specification of a light logo",
           "Specification of a dark logo",
           "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+          "Specification of a light logo",
+          "Specification of a dark logo",
+          "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
           "Options for a light logo",
           "Options for a dark logo",
           "The brand\u2019s custom color palette and theme.",
@@ -23375,7 +23380,7 @@ try {
           },
           "Control the <code>\\pagestyle{}</code> for the document.",
           "The paper size for the document.",
-          "The brand mode to use for rendering the Typst document,\n<code>light</code> or <code>dark</code>.",
+          "The brand mode to use for rendering the document, <code>light</code>\nor <code>dark</code>.",
           {
             short: "The options for margins and text layout for this document.",
             long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.'
@@ -24670,10 +24675,7 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-          "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
-          "Specification of a light logo",
-          "Specification of a dark logo"
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
         ],
         "schema/external-schemas.yml": [
           {
@@ -24902,12 +24904,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197480,
+          _internalId: 197500,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197472,
+              _internalId: 197492,
               type: "enum",
               enum: [
                 "png",
@@ -24923,7 +24925,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197479,
+              _internalId: 197499,
               type: "anyOf",
               anyOf: [
                 {
