@@ -1567,7 +1567,7 @@ function navigationDependency(resource: string) {
   };
 }
 
-export function isExternalPath(path: string) {
+function isExternalPath(path: string) {
   return /^\w+:/.test(path);
 }
 
