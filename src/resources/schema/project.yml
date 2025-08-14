@@ -34,11 +34,9 @@
             description: "Additional file resources to be copied to output directory"
         brand:
           schema:
-            ref: brand-path-bool-light-dark
+            ref: brand-path-only-light-dark
           description: |
-            Branding information to use for this document. If a string, the path to a brand file.
-            If false, don't use branding on this document. If an object, an inline brand
-            definition, or an object with light and dark brand paths or definitions.
+            Path to brand.yml or object with light and dark paths to brand.yml
         preview:
           description: Options for `quarto preview`
           schema:
