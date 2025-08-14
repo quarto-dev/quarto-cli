@@ -13052,6 +13052,22 @@ try {
             }
           },
           {
+            id: "brand-path-only-light-dark",
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: "string",
+                    dark: "string"
+                  }
+                }
+              }
+            ],
+            description: "A path to a brand.yml file, or an object with light and dark paths to brand.yml\n"
+          },
+          {
             id: "brand-path-bool-light-dark",
             anyOf: [
               "string",
@@ -20453,9 +20469,9 @@ try {
                   },
                   brand: {
                     schema: {
-                      ref: "brand-path-bool-light-dark"
+                      ref: "brand-path-only-light-dark"
                     },
-                    description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
+                    description: "Path to brand.yml or object with light and dark paths to brand.yml\n"
                   },
                   preview: {
                     description: "Options for `quarto preview`",
@@ -23996,6 +24012,7 @@ try {
           "HTML library (JS/CSS/etc.) directory",
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
+          "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
           "Options for <code>quarto preview</code>",
           "Scripts to run as a pre-render step",
           "Scripts to run as a post-render step",
@@ -24345,6 +24362,7 @@ try {
           "HTML library (JS/CSS/etc.) directory",
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
+          "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
           "Options for <code>quarto preview</code>",
           "Scripts to run as a pre-render step",
           "Scripts to run as a post-render step",
@@ -24679,7 +24697,8 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+          "A path to a brand.yml file, or an object with light and dark paths to\nbrand.yml"
         ],
         "schema/external-schemas.yml": [
           {
@@ -24908,12 +24927,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197505,
+          _internalId: 197527,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197497,
+              _internalId: 197519,
               type: "enum",
               enum: [
                 "png",
@@ -24929,7 +24948,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197504,
+              _internalId: 197526,
               type: "anyOf",
               anyOf: [
                 {
