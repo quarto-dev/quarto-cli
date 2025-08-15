@@ -98,7 +98,7 @@ export async function render(
 
   assert(!context, "Expected no context here");
   // NB: singleFileProjectContext is currently not fully-featured
-  context = await singleFileProjectContext(path, nbContext, options.flags);
+  context = await singleFileProjectContext(path, nbContext, options);
 
   // otherwise it's just a file render
   const result = await renderFiles(
