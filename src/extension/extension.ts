@@ -823,7 +823,6 @@ async function readExtension(
                 projectDir,
                 resolved.include[0],
               );
-              console.log("aslfjasf", projectDir, object.project);
             }
           } else {
             (object.project as Record<string, unknown>)[key] = resolved.include;
