@@ -4077,6 +4077,25 @@
         }
       }
     },
+    "BrandPathOnlyLightDark": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "light": {
+                "type": "string"
+              },
+              "dark": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
     "BrandPathBoolLightDark": {
       "anyOf": [
         {
@@ -4178,6 +4197,9 @@
                 "type": "string"
               }
             ]
+          },
+          "brand": {
+            "$ref": "#/$defs/BrandPathOnlyLightDark"
           },
           "preview": {
             "$ref": "#/$defs/ProjectPreview"

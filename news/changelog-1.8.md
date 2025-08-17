@@ -23,6 +23,7 @@ All changes included in 1.8:
 - ([#10983](https://github.com/quarto-dev/quarto-cli/issues/10983)): Fix spacing inconsistency between paras and first section headings.
 - ([#12259](https://github.com/quarto-dev/quarto-cli/issues/12259)): Fix conflict between `html-math-method: katex` and crossref popups (author: @benkeks).
 - ([#12341](https://github.com/quarto-dev/quarto-cli/issues/12341)): Enable light and dark logos for html formats (sidebar, navbar, dashboard).
+- ([#12643](https://github.com/quarto-dev/quarto-cli/issues/12643)): Ensure brand.yml logos using urls are rendered correctly by passing them through when resolving brand `processedData`, and not processing them as paths.
 - ([#12734](https://github.com/quarto-dev/quarto-cli/issues/12734)): `highlight-style` now correctly supports setting a different `light` and `dark`.
 - ([#12747](https://github.com/quarto-dev/quarto-cli/issues/12747)): Ensure `th` elements are properly restored when Quarto's HTML table processing is happening.
 - ([#12766](https://github.com/quarto-dev/quarto-cli/issues/12766)): Use consistent equation numbering display for `html-math-method` and `html-math-method.method` for MathJax and KaTeX (author: @mcanouil)
@@ -94,6 +95,10 @@ All changes included in 1.8:
 ### `create`
 
 - ([#12965](https://github.com/quarto-dev/quarto-cli/issues/12965)): Prevent automatic opening of new editor sessions when creating projects in Posit Workbench context. The `--open` flag is now ignored in this environment to avoid issues with Workbench session management.
+
+## Extensions
+
+- ([#12559](https://github.com/quarto-dev/quarto-cli/issues/12559)): New extension type: `brand` for distributing [brand.yml](https://posit-dev.github.io/brand-yml/) configurations with associated assets.
 
 ## Engines
 

@@ -3343,6 +3343,17 @@
       defaults:
         ref: brand-defaults
 
+- id: brand-path-only-light-dark
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          light: string
+          dark: string
+  description: |
+    A path to a brand.yml file, or an object with light and dark paths to brand.yml
+
 - id: brand-path-bool-light-dark
   anyOf:
     - string # a file path
