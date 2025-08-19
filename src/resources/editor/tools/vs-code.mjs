@@ -14618,7 +14618,8 @@ var require_yaml_intelligence_resources = __commonJS({
             string: {
               completions: [
                 "jupyter",
-                "knitr"
+                "knitr",
+                "julia"
               ]
             }
           },
@@ -22610,6 +22611,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
         "The path to the font file. This can be a local path or a URL.",
         "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
+        "A path to a brand.yml file, or an object with light and dark paths to\nbrand.yml",
         "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline (unified) brand definition, or an object with light\nand dark brand paths or definitions.",
         "The path to a light brand file or an inline light brand\ndefinition.",
         "The path to a dark brand file or an inline dark brand definition.",
@@ -24011,7 +24013,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "HTML library (JS/CSS/etc.) directory",
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
-        "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
+        "Path to brand.yml or object with light and dark paths to\nbrand.yml",
         "Options for <code>quarto preview</code>",
         "Scripts to run as a pre-render step",
         "Scripts to run as a post-render step",
@@ -24361,7 +24363,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "HTML library (JS/CSS/etc.) directory",
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
-        "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
+        "Path to brand.yml or object with light and dark paths to\nbrand.yml",
         "Options for <code>quarto preview</code>",
         "Scripts to run as a pre-render step",
         "Scripts to run as a post-render step",
@@ -24696,8 +24698,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        "A path to a brand.yml file, or an object with light and dark paths to\nbrand.yml"
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
       ],
       "schema/external-schemas.yml": [
         {
@@ -24926,12 +24927,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197527,
+        _internalId: 197539,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197519,
+            _internalId: 197531,
             type: "enum",
             enum: [
               "png",
@@ -24947,7 +24948,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197526,
+            _internalId: 197538,
             type: "anyOf",
             anyOf: [
               {

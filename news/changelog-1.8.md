@@ -129,3 +129,4 @@ All changes included in 1.8:
 - ([#12782](https://github.com/quarto-dev/quarto-cli/pull/12782)): fix bug on `safeRemoveDirSync`'s detection of safe directory boundaries.
 - ([#12853](https://github.com/quarto-dev/quarto-cli/issues/12853)): fix replaceAll() escaping issue with embedded notebooks containing `$` in their Markdown.
 - ([#12939](https://github.com/quarto-dev/quarto-cli/pull/12939)): Upgrade `mermaidjs` to 11.6.0.
+- ([#13164](https://github.com/quarto-dev/quarto-cli/pull/13164)): add `julia` to execute schema to allow autocomplete suggestions. (@mcanouil)
