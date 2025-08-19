@@ -4,7 +4,7 @@ format:
     keep-tex: true
 ---
 
-::: {layout-ncol="2" .column-page-right}
+::: {.column-page-right layout-ncol="2"}
 ``` {.markdown filename="01-import.qmd"}
 ---
 title: Data Import and Cleaning

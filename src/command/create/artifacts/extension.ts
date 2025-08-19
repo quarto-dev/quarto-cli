@@ -41,6 +41,7 @@ const kExtensionTypes: Array<string | ExtensionType> = [
   { name: "journal format", value: "journal", openfiles: ["template.qmd"] },
   { name: "custom format", value: "format", openfiles: ["template.qmd"] },
   { name: "metadata", value: "metadata", openfiles: [] },
+  { name: "brand", value: "brand", openfiles: [] },
 ];
 
 const kExtensionSubtypes: Record<string, string[]> = {

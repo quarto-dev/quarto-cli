@@ -13,12 +13,12 @@ _quarto:
     html:
       ensureHtmlElements:
         -
-          - 'img[src="sun.png"]'
+          - 'img[src="sun.png"][class*="light-content"]'
         - []
 ---
 
 ::: {}
 
-{{< brand logo small >}}
+{{< brand logo small light >}}
 
 :::

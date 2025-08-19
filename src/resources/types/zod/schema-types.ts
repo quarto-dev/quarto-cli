@@ -1351,11 +1351,29 @@ export const ZodLogoSpecifier = z.union([
   z.lazy(() => ZodLogoOptions),
 ]);
 
+export const ZodLogoOptionsPathOptional = z.object({
+  path: z.string(),
+  alt: z.string(),
+}).passthrough().partial();
+
+export const ZodLogoSpecifierPathOptional = z.union([
+  z.string(),
+  z.lazy(() => ZodLogoOptionsPathOptional),
+]);
+
 export const ZodLogoLightDarkSpecifier = z.union([
   z.lazy(() => ZodLogoSpecifier),
   z.object({
     light: z.lazy(() => ZodLogoSpecifier),
     dark: z.lazy(() => ZodLogoSpecifier),
+  }).strict().partial(),
+]);
+
+export const ZodLogoLightDarkSpecifierPathOptional = z.union([
+  z.lazy(() => ZodLogoSpecifierPathOptional),
+  z.object({
+    light: z.lazy(() => ZodLogoSpecifierPathOptional),
+    dark: z.lazy(() => ZodLogoSpecifierPathOptional),
   }).strict().partial(),
 ]);
 
@@ -1730,6 +1748,11 @@ export const ZodBrandUnified = z.object({
   defaults: z.lazy(() => ZodBrandDefaults),
 }).strict().partial();
 
+export const ZodBrandPathOnlyLightDark = z.union([
+  z.string(),
+  z.object({ light: z.string(), dark: z.string() }).strict().partial(),
+]);
+
 export const ZodBrandPathBoolLightDark = z.union([
   z.string(),
   z.boolean(),
@@ -1759,6 +1782,7 @@ export const ZodProjectConfig = z.object({
   "output-dir": z.string(),
   "lib-dir": z.string(),
   resources: z.union([z.string(), z.array(z.string())]),
+  brand: z.lazy(() => ZodBrandPathOnlyLightDark),
   preview: z.lazy(() => ZodProjectPreview),
   "pre-render": z.union([z.string(), z.array(z.string())]),
   "post-render": z.union([z.string(), z.array(z.string())]),
@@ -1893,7 +1917,19 @@ export type LogoOptions = z.infer<typeof ZodLogoOptions>;
 
 export type LogoSpecifier = z.infer<typeof ZodLogoSpecifier>;
 
+export type LogoOptionsPathOptional = z.infer<
+  typeof ZodLogoOptionsPathOptional
+>;
+
+export type LogoSpecifierPathOptional = z.infer<
+  typeof ZodLogoSpecifierPathOptional
+>;
+
 export type LogoLightDarkSpecifier = z.infer<typeof ZodLogoLightDarkSpecifier>;
+
+export type LogoLightDarkSpecifierPathOptional = z.infer<
+  typeof ZodLogoLightDarkSpecifierPathOptional
+>;
 
 export type NormalizedLogoLightDarkSpecifier = z.infer<
   typeof ZodNormalizedLogoLightDarkSpecifier
@@ -1991,6 +2027,8 @@ export type BrandSingle = z.infer<typeof ZodBrandSingle>;
 
 export type BrandUnified = z.infer<typeof ZodBrandUnified>;
 
+export type BrandPathOnlyLightDark = z.infer<typeof ZodBrandPathOnlyLightDark>;
+
 export type BrandPathBoolLightDark = z.infer<typeof ZodBrandPathBoolLightDark>;
 
 export type BrandDefaults = z.infer<typeof ZodBrandDefaults>;
@@ -2061,7 +2099,10 @@ export const Zod = {
   BrandNamedLogo: ZodBrandNamedLogo,
   LogoOptions: ZodLogoOptions,
   LogoSpecifier: ZodLogoSpecifier,
+  LogoOptionsPathOptional: ZodLogoOptionsPathOptional,
+  LogoSpecifierPathOptional: ZodLogoSpecifierPathOptional,
   LogoLightDarkSpecifier: ZodLogoLightDarkSpecifier,
+  LogoLightDarkSpecifierPathOptional: ZodLogoLightDarkSpecifierPathOptional,
   NormalizedLogoLightDarkSpecifier: ZodNormalizedLogoLightDarkSpecifier,
   BrandColorValue: ZodBrandColorValue,
   BrandColorSingle: ZodBrandColorSingle,
@@ -2103,6 +2144,7 @@ export const Zod = {
   BrandFontFamily: ZodBrandFontFamily,
   BrandSingle: ZodBrandSingle,
   BrandUnified: ZodBrandUnified,
+  BrandPathOnlyLightDark: ZodBrandPathOnlyLightDark,
   BrandPathBoolLightDark: ZodBrandPathBoolLightDark,
   BrandDefaults: ZodBrandDefaults,
   BrandDefaultsBootstrap: ZodBrandDefaultsBootstrap,
