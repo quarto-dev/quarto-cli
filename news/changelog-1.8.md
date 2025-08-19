@@ -120,6 +120,10 @@ All changes included in 1.8:
 
 - ([#12870](https://github.com/quarto-dev/quarto-cli/pull/12870)): Update `julia` engine from `0.17.0` to `0.17.3` to improve `juliaup` detection on Windows systems and correctly set `Base.source_path()` output to match REPL and script usage.
 
+## Languages
+
+- ([#13098](https://github.com/quarto-dev/quarto-cli/pull/13098)): Fox a minor inappropriate phrasing in the Chinese localization of `environment-proof-title` (@sun123xyz).
+
 ## Other fixes and improvements
 
 - ([#11321](https://github.com/quarto-dev/quarto-cli/issues/11321)): Follow [recommendation from LaTeX project](https://latex-project.org/news/latex2e-news/ltnews40.pdf) and use `lualatex` instead of `xelatex` as the default PDF engine.
