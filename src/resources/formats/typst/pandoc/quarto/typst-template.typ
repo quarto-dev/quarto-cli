@@ -8,8 +8,6 @@
   abstract: none,
   abstract-title: none,
   cols: 1,
-  margin: (x: 1.25in, y: 1.25in),
-  paper: "us-letter",
   lang: "en",
   region: "US",
   font: "libertinus serif",
@@ -22,18 +20,12 @@
   heading-color: black,
   heading-line-height: 0.65em,
   sectionnumbering: none,
-  pagenumbering: "1",
   toc: false,
   toc_title: none,
   toc_depth: none,
   toc_indent: 1.5em,
   doc,
 ) = {
-  set page(
-    paper: paper,
-    margin: margin,
-    numbering: pagenumbering,
-  )
   set par(justify: true)
   set text(lang: lang,
            region: region,

@@ -235,7 +235,7 @@ jobs:
           readarray -t my_array < <(echo '${{ inputs.buckets }}' | jq -rc '.[]')
           for file in "${my_array[@]}"; do 
             echo ">>> ./run-tests.sh ${file}"
-            ./run-tests.sh $file
+            shopt -s globstar && ./run-tests.sh $file
             status=$?
             [ $status -eq 0 ] && echo ">>> No error in this test file" || haserror=1
           done

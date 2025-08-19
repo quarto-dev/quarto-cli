@@ -53,9 +53,9 @@
     enum: [light, dark]
   default: light
   tags:
-    formats: [typst]
+    formats: [typst, revealjs]
   description: |
-    The brand mode to use for rendering the Typst document, `light` or `dark`.
+    The brand mode to use for rendering the document, `light` or `dark`.
 
 - name: layout
   schema:

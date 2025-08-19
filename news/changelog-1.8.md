@@ -20,9 +20,11 @@ All changes included in 1.8:
 - ([#726](https://github.com/quarto-dev/quarto-cli/issues/726)): a11y - Provide `.screen-reader-only` callout type when callout text doesn't naturally include the type.
 - ([#5538](https://github.com/quarto-dev/quarto-cli/issues/5538)): Fix code-copy button style so that scrolling behaves properly.
 - ([#5879](https://github.com/quarto-dev/quarto-cli/issues/5879)): Improve font rendering of `kbd` shortcode on macOS. `kbd` will now also be stricter in converting keyboard shortcuts to macOS icons.
+- ([#8568](https://github.com/quarto-dev/quarto-cli/issues/8568)) Default inline code background color to the code block background color if not specified; foreground color is `$pre-color` in dark mode and (remains) purple in light mode.
 - ([#10983](https://github.com/quarto-dev/quarto-cli/issues/10983)): Fix spacing inconsistency between paras and first section headings.
 - ([#12259](https://github.com/quarto-dev/quarto-cli/issues/12259)): Fix conflict between `html-math-method: katex` and crossref popups (author: @benkeks).
 - ([#12341](https://github.com/quarto-dev/quarto-cli/issues/12341)): Enable light and dark logos for html formats (sidebar, navbar, dashboard).
+- ([#12643](https://github.com/quarto-dev/quarto-cli/issues/12643)): Ensure brand.yml logos using urls are rendered correctly by passing them through when resolving brand `processedData`, and not processing them as paths.
 - ([#12734](https://github.com/quarto-dev/quarto-cli/issues/12734)): `highlight-style` now correctly supports setting a different `light` and `dark`.
 - ([#12747](https://github.com/quarto-dev/quarto-cli/issues/12747)): Ensure `th` elements are properly restored when Quarto's HTML table processing is happening.
 - ([#12766](https://github.com/quarto-dev/quarto-cli/issues/12766)): Use consistent equation numbering display for `html-math-method` and `html-math-method.method` for MathJax and KaTeX (author: @mcanouil)
@@ -33,8 +35,11 @@ All changes included in 1.8:
 
 ### `revealjs`
 
+- ([#10933](https://github.com/quarto-dev/quarto-cli/issues/10933)): Revealjs supports alt text on logo, as well as customization of light and dark logos at the document level, consistent with other formats.
+- ([#12550](https://github.com/quarto-dev/quarto-cli/issues/12550)): Revealjs supports `brand-mode`, allowing to select either the light or the dark brand.
 - ([#12598](https://github.com/quarto-dev/quarto-cli/pull/12598)): Ensure `.fragment` on an image with caption applies to whole figure.
 - ([#12716](https://github.com/quarto-dev/quarto-cli/issues/12716)): Correctly resolve `"brand"` set in `theme` configuration for document in subdirectory from project root.
+- Use `cdn.jsdelivr.net` for mathjax dependencies to ensure consistent CDN usage across formats. Previously, `cdnjs.cloudflare.com` was used for `revealjs` mathjax dependencies, while `cdn.jsdelivr.net` was used for html format.
 
 ### `docx`
 
@@ -42,10 +47,13 @@ All changes included in 1.8:
 
 ### `typst`
 
+- ([#12180](https://github.com/quarto-dev/quarto-cli/issues/12180)): Typst schema / autocomplete for `logo` option has `path` and `alt`.
 - ([#12554](https://github.com/quarto-dev/quarto-cli/pull/12554)): CSS properties `font-weight` and `font-style` are translated to Typst `text` properties.
 - ([#12695](https://github.com/quarto-dev/quarto-cli/issues/12695)): Resolve Typst `font-paths` that start with `/` relative to project root.
 - ([#12739](https://github.com/quarto-dev/quarto-cli/pull/12739)): Remove unused variable `heading-background-color` and `heading-decoration` from Typst's templates. They are leftover from previous change, and not part of Brand.yml schema for typography of headings.
 - ([#12815](https://github.com/quarto-dev/quarto-cli/issues/12815)): Do not crash when floats have no content.
+- ([#13119](https://github.com/quarto-dev/quarto-cli/pull/13119)): Expose `brand.logo` metadata as Typst dictionaries.
+- ([#13133](https://github.com/quarto-dev/quarto-cli/pull/13133)): Allow customization of light and dark logos at document level, consistent with other formats.
 
 ### `beamer`
 
@@ -73,6 +81,7 @@ All changes included in 1.8:
 - ([#12727](https://github.com/quarto-dev/quarto-cli/issues/12727)): Do not crash in the presence of malformed tabset contents.
 - ([#12806](https://github.com/quarto-dev/quarto-cli/pull/12806)): Use pandoc APIs to handle codepage conversion on Windows.
 - ([#12811](https://github.com/quarto-dev/quarto-cli/pull/12811)): Add support for YouTube Shorts in `video` shortcode.
+- ([#13128](https://github.com/quarto-dev/quarto-cli/issues/13128)): Meta shortcode could crash on bad input.
 
 ## Commands
 
@@ -88,13 +97,19 @@ All changes included in 1.8:
 
 - ([#12965](https://github.com/quarto-dev/quarto-cli/issues/12965)): Prevent automatic opening of new editor sessions when creating projects in Posit Workbench context. The `--open` flag is now ignored in this environment to avoid issues with Workbench session management.
 
+## Extensions
+
+- ([#12559](https://github.com/quarto-dev/quarto-cli/issues/12559)): New extension type: `brand` for distributing [brand.yml](https://posit-dev.github.io/brand-yml/) configurations with associated assets.
+
 ## Engines
+
+- ([#13171](https://github.com/quarto-dev/quarto-cli/pull/13171/)): Provide execution information to all engines uniformly via QUARTO_EXECUTE_INFO environment variable. It points to a file on disk containing a JSON object describing the execution environment for code cells to use.
 
 ### `jupyter`
 
 - ([#12753](https://github.com/quarto-dev/quarto-cli/issues/12753)): Support change in IPython 9+ and import `set_matplotlib_formats` from `matplotlib_inline.backend_inline` in the internal `setup.py` script used to initialize rendering with Jupyter engine.
 - ([#12839](https://github.com/quarto-dev/quarto-cli/issues/12839)): Support for `plotly.py` 6+ which now loads plotly.js using a cdn in script as a module.
-- ([#13026](https://github.com/quarto-dev/quarto-cli/pulls/13026)): Use `jsdelivr` CDN for jupyter widgets dependencies.
+- ([#13026](https://github.com/quarto-dev/quarto-cli/pull/13026), [#13151](https://github.com/quarto-dev/quarto-cli/pull/13151)), [#13184](https://github.com/quarto-dev/quarto-cli/pull/13184): Use `jsdelivr` CDN for jupyter widgets dependencies.
 
 ### `knitr`
 

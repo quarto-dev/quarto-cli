@@ -7,6 +7,7 @@ import { join } from "../../deno_ral/path.ts";
 
 import { Document, Element, NodeType } from "../../core/deno-dom.ts";
 import {
+  kBrandMode,
   kCodeLineNumbers,
   kFrom,
   kHtmlMathMethod,
@@ -78,6 +79,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { titleSlidePartial } from "./format-reveal-title.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { pandocNativeStr } from "../../core/pandoc/codegen.ts";
+import { resolveLogo } from "../../core/brand/brand.ts";
 
 export function revealResolveFormat(format: Format) {
   format.metadata = revealMetadataFilter(format.metadata);
@@ -126,7 +128,7 @@ export function revealjsFormat() {
         [kHtmlMathMethod]: {
           method: "mathjax",
           url:
-            "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-AMS_HTML-full",
+            "https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS_HTML-full",
         },
         [kSlideLevel]: 2,
       },
@@ -376,45 +378,25 @@ export function revealjsFormat() {
   );
 }
 
-const determineRevealLogo = (format: Format): string | undefined => {
-  const brandData = format.render.brand?.light?.processedData;
-  if (brandData?.logo) {
-    // add slide logo if we have one
-    for (const size of Zod.BrandNamedLogo.options) {
-      const logoInfo = brandData.logo[size];
-      if (!logoInfo) {
-        continue;
-      }
-      if (logoInfo) {
-        return logoInfo.path;
-      }
-    }
-  }
-};
-
 function revealMarkdownAfterBody(format: Format) {
+  let brandMode: "light" | "dark" = "light";
+  if (format.metadata[kBrandMode] === "dark") {
+    brandMode = "dark";
+  }
   const lines: string[] = [];
   lines.push("::: {.quarto-auto-generated-content style='display: none;'}\n");
-  let revealLogo = format
+  const revealLogo = format
     .metadata[kSlideLogo] as (string | { path: string } | undefined);
-  if (revealLogo) {
-    if (typeof revealLogo === "object") {
-      revealLogo = revealLogo.path;
-    }
-    if (Zod.BrandNamedLogo.options.includes(revealLogo as BrandNamedLogo)) {
-      const brandData = format.render.brand?.light?.processedData;
-      const logoInfo = brandData?.logo
-        ?.[revealLogo as BrandNamedLogo];
-      if (logoInfo) {
-        revealLogo = logoInfo.path;
-      }
-    }
-  } else {
-    revealLogo = determineRevealLogo(format);
-  }
-  if (revealLogo) {
+  const logo = resolveLogo(format.render.brand, revealLogo, [
+    "small",
+    "medium",
+    "large",
+  ]);
+  if (logo && logo[brandMode]) {
+    const modeLogo = logo[brandMode]!;
+    const altText = modeLogo.alt ? `alt="${modeLogo.alt}" ` : "";
     lines.push(
-      `<img src="${revealLogo}" class="slide-logo" />`,
+      `<img src="${modeLogo.path}" ${altText}class="slide-logo" />`,
     );
     lines.push("\n");
   }

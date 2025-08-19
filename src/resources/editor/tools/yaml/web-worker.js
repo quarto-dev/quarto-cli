@@ -12037,6 +12037,33 @@ try {
             ]
           },
           {
+            id: "logo-options-path-optional",
+            object: {
+              closed: false,
+              properties: {
+                path: {
+                  schema: "path",
+                  description: "Path or brand.yml logo resource name.\n"
+                },
+                alt: {
+                  schema: "string",
+                  description: "Alternative text for the logo, used for accessibility.\n"
+                }
+              }
+            }
+          },
+          {
+            id: "logo-specifier-path-optional",
+            anyOf: [
+              "string",
+              {
+                schema: {
+                  ref: "logo-options-path-optional"
+                }
+              }
+            ]
+          },
+          {
             id: "logo-light-dark-specifier",
             description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
             anyOf: [
@@ -12056,6 +12083,34 @@ try {
                     dark: {
                       schema: {
                         ref: "logo-specifier"
+                      },
+                      description: "Specification of a dark logo\n"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            id: "logo-light-dark-specifier-path-optional",
+            description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+            anyOf: [
+              {
+                ref: "logo-specifier-path-optional"
+              },
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: {
+                      schema: {
+                        ref: "logo-specifier-path-optional"
+                      },
+                      description: "Specification of a light logo\n"
+                    },
+                    dark: {
+                      schema: {
+                        ref: "logo-specifier-path-optional"
                       },
                       description: "Specification of a dark logo\n"
                     }
@@ -12995,6 +13050,22 @@ try {
                 }
               }
             }
+          },
+          {
+            id: "brand-path-only-light-dark",
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: "string",
+                    dark: "string"
+                  }
+                }
+              }
+            ],
+            description: "A path to a brand.yml file, or an object with light and dark paths to brand.yml\n"
           },
           {
             id: "brand-path-bool-light-dark",
@@ -16090,10 +16161,11 @@ try {
             default: "light",
             tags: {
               formats: [
-                "typst"
+                "typst",
+                "revealjs"
               ]
             },
-            description: "The brand mode to use for rendering the Typst document, `light` or `dark`.\n"
+            description: "The brand mode to use for rendering the document, `light` or `dark`.\n"
           },
           {
             name: "layout",
@@ -18289,15 +18361,11 @@ try {
             name: "logo",
             tags: {
               formats: [
-                "revealjs",
-                "typst"
+                "revealjs"
               ]
             },
             schema: {
-              anyOf: [
-                "string",
-                "object"
-              ]
+              ref: "logo-light-dark-specifier"
             },
             description: "Logo image (placed in bottom right corner of slides)"
           },
@@ -20399,6 +20467,12 @@ try {
                       description: "Additional file resources to be copied to output directory"
                     }
                   },
+                  brand: {
+                    schema: {
+                      ref: "brand-path-only-light-dark"
+                    },
+                    description: "Path to brand.yml or object with light and dark paths to brand.yml\n"
+                  },
                   preview: {
                     description: "Options for `quarto preview`",
                     schema: {
@@ -22436,6 +22510,11 @@ try {
           "Names of customizeable logos",
           "Path or brand.yml logo resource name.",
           "Alternative text for the logo, used for accessibility.",
+          "Path or brand.yml logo resource name.",
+          "Alternative text for the logo, used for accessibility.",
+          "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+          "Specification of a light logo",
+          "Specification of a dark logo",
           "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
           "Specification of a light logo",
           "Specification of a dark logo",
@@ -23321,7 +23400,7 @@ try {
           },
           "Control the <code>\\pagestyle{}</code> for the document.",
           "The paper size for the document.",
-          "The brand mode to use for rendering the Typst document,\n<code>light</code> or <code>dark</code>.",
+          "The brand mode to use for rendering the document, <code>light</code>\nor <code>dark</code>.",
           {
             short: "The options for margins and text layout for this document.",
             long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.'
@@ -23933,6 +24012,7 @@ try {
           "HTML library (JS/CSS/etc.) directory",
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
+          "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
           "Options for <code>quarto preview</code>",
           "Scripts to run as a pre-render step",
           "Scripts to run as a post-render step",
@@ -24270,6 +24350,7 @@ try {
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
           "When defined, run axe-core accessibility tests on the document.",
           "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
+          "The logo image.",
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -24281,6 +24362,7 @@ try {
           "HTML library (JS/CSS/etc.) directory",
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
+          "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
           "Options for <code>quarto preview</code>",
           "Scripts to run as a pre-render step",
           "Scripts to run as a post-render step",
@@ -24615,7 +24697,8 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+          "A path to a brand.yml file, or an object with light and dark paths to\nbrand.yml"
         ],
         "schema/external-schemas.yml": [
           {
@@ -24844,12 +24927,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197491,
+          _internalId: 197527,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197483,
+              _internalId: 197519,
               type: "enum",
               enum: [
                 "png",
@@ -24865,7 +24948,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197490,
+              _internalId: 197526,
               type: "anyOf",
               anyOf: [
                 {
@@ -24929,6 +25012,20 @@ try {
               ]
             },
             description: "When defined, run axe-core accessibility tests on the document."
+          }
+        ],
+        "schema/document-typst.yml": [
+          {
+            name: "logo",
+            schema: {
+              ref: "logo-light-dark-specifier-path-optional"
+            },
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: "The logo image."
           }
         ]
       };
@@ -32793,7 +32890,7 @@ ${tidyverseInfo(
         );
         console.error("This is a bug in quarto's schemas.");
         console.error(
-          "Note that we don't throw in order to allow build-js to finish, but the generated schemas will be invalid."
+          "Note that we don't throw in order to allow build-artifacts to finish, but the generated schemas will be invalid."
         );
       }
       result.properties = Object.assign(
