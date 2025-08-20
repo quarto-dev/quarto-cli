@@ -138,4 +138,5 @@ All changes included in 1.8:
 
 ## Quarto Internals
 
-- ([#13155](https://github.com/quarto-dev/quarto-cli/pull/13155)): Process `pandoc-reader-FORMAT` raw blocks through `pandoc.read(FORMAT)`
+- ([#13155](https://github.com/quarto-dev/quarto-cli/pull/13155)): Process `pandoc-reader-FORMAT` raw blocks through `pandoc.read(FORMAT)`.
+- ([#13255](https://github.com/quarto-dev/quarto-cli/pull/13255)): Move some Lua code to use Pandoc's Lua API.
