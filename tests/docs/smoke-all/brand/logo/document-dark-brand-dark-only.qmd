@@ -8,6 +8,13 @@ format:
     # Document level logo with only dark defined
     logo:
       dark: direct-dark-logo.png
+  revealjs:
+    logo:
+      dark: revealjs-dark-logo.png
+  typst:
+    output-ext: typ # refers to unknown pngs
+    logo:
+      dark: typst-dark-logo.png
 brand:
   color:
     foreground: 
@@ -33,6 +40,16 @@ _quarto:
           - 'img[src="direct-dark-logo.png"][alt=""][class="navbar-logo dark-content d-inline-block"]'
           # For light mode, should use same document-level dark logo for fallback
           - 'img[src="direct-dark-logo.png"][alt=""][class="navbar-logo light-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="revealjs-dark-logo.png"]:not([alt])'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("typst-dark-logo.png", width: 1\.5in\)\)'
         - []
 ---
 

@@ -2,6 +2,10 @@
 title: Size Inheritance
 format:
   dashboard: default
+  revealjs: default
+  typst:
+    output-ext: typ
+brand-mode: dark
 brand:
   logo:
     images:
@@ -32,6 +36,17 @@ _quarto:
           # Dark mode: small and medium.dark are missing, should use large.dark (not any .light)
           - 'img[src="small-logo.png"][alt="small logo"][class="navbar-logo light-content d-inline-block"]'
           - 'img[src="dark-logo.png"][alt="dark logo"][class="navbar-logo dark-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          # In dark mode with revealjs, should use large.dark
+          - 'img[src="dark-logo.png"][alt="dark logo"]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("dark-logo.png", width: 1\.5in, alt: "dark logo"\)\)'
         - []
 ---
 

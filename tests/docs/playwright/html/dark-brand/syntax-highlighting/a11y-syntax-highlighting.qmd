@@ -5,15 +5,21 @@ execute:
   warning: false
 theme:
   light: [cosmo, theme.scss]
-  dark: [cosmo, theme-dark.scss]
+  dark: [solar, theme-dark.scss]
 highlight-style: a11y
 ---
 
+### Inline code
+
+* No syntax highlighting: `foo(bar)`
+* Python: `def identity(x): return x`{.python}
+* R: `identity <- function(x) x`{.r}
+
+### Code blocks
 
 ```markdown
 ![asdf](asd.png)
 ```
-
 
 ```python
 #| label: fig-polar
