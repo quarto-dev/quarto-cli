@@ -83,7 +83,7 @@ return {
         if n_kwargs > 0 then
           table.insert(result, pandoc.Str(' ('))
           for k, v in pairs(kwargs) do
-            table.insert(result, pandoc.Str(osname(k)))
+            table.insert(result, pandoc.Str(get_osname(k)))
             table.insert(result, pandoc.Str(': '))
             table.insert(result, pandoc.Code(pandoc.utils.stringify(v)))
             n_kwargs = n_kwargs - 1
@@ -103,7 +103,7 @@ return {
           for k, v in pairs(kwargs) do
             table.insert(result, pandoc.Code(pandoc.utils.stringify(v)))
             table.insert(result, pandoc.Str(' ('))
-            table.insert(result, pandoc.Str(osname(k)))
+            table.insert(result, pandoc.Str(get_osname(k)))
             table.insert(result, pandoc.Str(')'))
             n_kwargs = n_kwargs - 1
             if n_kwargs > 0 then
