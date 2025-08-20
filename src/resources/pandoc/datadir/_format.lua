@@ -288,6 +288,9 @@ local function _main()
   end
 
   return {
+    format_identifier = function()
+      return param("format-identifier", {})
+    end,
     isAsciiDocOutput = isAsciiDocOutput,
     is_asciidoc_output = isAsciiDocOutput,
     isRawHtml = isRawHtml,
