@@ -93,7 +93,7 @@ import {
   MAX_PAGES_TO_LOAD,
 } from "./constants.ts";
 import { logError, trace } from "./confluence-logger.ts";
-import { md5Hash } from "../../core/hash.ts";
+import { md5HashBytes } from "../../core/hash.ts";
 import { sleep } from "../../core/async.ts";
 import { info } from "../../deno_ral/log.ts";
 
@@ -346,7 +346,7 @@ async function publish(
 
       try {
         fileBuffer = await Deno.readFile(path);
-        fileHash = md5Hash(fileBuffer.toString());
+        fileHash = await md5HashBytes(fileBuffer);
       } catch (error) {
         logError(`${path} not found`, error);
         return null;
@@ -856,7 +856,7 @@ async function publish(
     const [publishResult, hasAttachments] = await publishDocument();
     if (hasAttachments) {
       info(
-        "\nNote: The published content includes attachments or images. You may see a placeholder for a few moments while Confluence processes the image or atachment.\n",
+        "\nNote: The published content includes attachments or images. You may see a placeholder for a few moments while Confluence processes the image or attachment.\n",
       );
     }
     return publishResult;
@@ -864,7 +864,7 @@ async function publish(
     const [publishResult, hasAttachments] = await publishSite();
     if (hasAttachments) {
       info(
-        "\nNote: The published content includes attachments or images. You may see a placeholder for a few moments while Confluence processes the image or atachment.\n",
+        "\nNote: The published content includes attachments or images. You may see a placeholder for a few moments while Confluence processes the image or attachment.\n",
       );
     }
     return publishResult;

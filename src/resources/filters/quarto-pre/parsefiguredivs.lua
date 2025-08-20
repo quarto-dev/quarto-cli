@@ -12,33 +12,11 @@ local classes_to_not_merge = pandoc.List({
   "border"
 })
 
-function handle_subfloatreftargets()
-  -- #7045: pull fig-pos and fig-env attributes from subfloat to parent
-  return {
-    FloatRefTarget = function(float)
-      local pulled_attrs = {}
-      local attrs_to_pull = {
-        "fig-pos",
-        "fig-env",
-      }
-      local result = _quarto.ast.walk(float, {
-        FloatRefTarget = function(subfloat)
-          for _, attr in ipairs(attrs_to_pull) do
-            if subfloat.attributes[attr] then
-              pulled_attrs[attr] = subfloat.attributes[attr]
-              subfloat.attributes[attr] = nil
-            end
-          end
-          return subfloat
-        end,
-      }) or pandoc.Div({}) -- won't happen but the lua analyzer doesn't know that
-      for k, v in pairs(pulled_attrs) do
-        float.attributes[k] = v
-      end
-      return float
-    end
-  }
-end
+-- function handle_subfloatreftargets()
+--   return {
+--     FloatRefTarget = 
+--   }
+-- end
 
 local function process_div_caption_classes(div)
   -- knitr forwards "cap-location: top" as `.caption-top`...
@@ -88,9 +66,10 @@ local function remove_latex_crossref_envs(content, name)
         if not _quarto.format.isRawLatex(raw) then
           return nil
         end
-        local b, e, begin_table, table_body, end_table = raw.text:find(patterns.latex_table)
-        if b ~= nil then
-          raw.text = table_body
+        local matched, _ = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexTableEnvPatterns)
+        if matched then
+          -- table_body is second matched element.
+          raw.text = matched[2]
           return raw
         else
           return nil
@@ -136,6 +115,11 @@ local function kable_raw_latex_fixups(content, identifier)
 
       -- we found a table, a label, and a caption. This is a FloatRefTarget.
       matches = matches + 1
+
+      -- other FloatRefTarget constructions below go through
+      -- a recursion step to identify subfloats, but we don't have
+      -- to do that here, since we know that the content of this FloatRefTarget
+      -- is a single table.
       return quarto.FloatRefTarget({
         identifier = label_identifier,
         type = "Table",
@@ -165,6 +149,39 @@ end
 
 function parse_floatreftargets()
 
+  local filter
+
+  local function construct(tbl)
+    local new_content = _quarto.ast.walk(tbl.content, filter)
+
+    -- #7045: pull fig-pos and fig-env attributes from subfloat to parent
+    local pulled_attrs = {}
+    local attrs_to_pull = {
+      "fig-pos",
+      "fig-env",
+    }
+    new_content = _quarto.ast.walk(new_content, {
+      FloatRefTarget = function(subfloat)
+        for _, attr in ipairs(attrs_to_pull) do
+          if subfloat.attributes[attr] then
+            pulled_attrs[attr] = subfloat.attributes[attr]
+            subfloat.attributes[attr] = nil
+          end
+        end
+        return subfloat
+      end      
+    })
+    local inner_tbl = {}
+    for k, v in pairs(tbl) do
+      inner_tbl[k] = v
+    end
+    for k, v in pairs(pulled_attrs) do
+      inner_tbl.attr.attributes[k] = v
+    end
+    inner_tbl.content = new_content
+    return quarto.FloatRefTarget(inner_tbl)
+  end
+
   local function handle_subcells_as_subfloats(params)  
     local identifier = params.identifier
     local div = params.div
@@ -182,10 +199,10 @@ function parse_floatreftargets()
           return nil
         end
         subcap_index = subcap_index + 1
-        local subfloat = quarto.FloatRefTarget({
+        local subfloat = construct({
           attr = pandoc.Attr(identifier .. "-" .. tostring(subcap_index), {}, {}),
           type = category.name,
-          content = {subdiv},
+          content = pandoc.Blocks{subdiv},
           caption_long = {pandoc.Plain(string_to_quarto_ast_inlines(subcaps[subcap_index]))},
         })
         subcells:insert(subfloat)
@@ -250,6 +267,8 @@ function parse_floatreftargets()
           if table.caption.long and next(table.caption.long) then
             found_caption = true
             caption = table.caption.long[1] -- what if there's more than one entry here?
+            -- table caption should be removed from the table as we'll handle it
+            table.caption = pandoc.Caption{}
             return table
           end
         end
@@ -274,6 +293,7 @@ function parse_floatreftargets()
 
     local identifier = div.identifier
     local attr = pandoc.Attr(identifier, div.classes, div.attributes)
+    assert(content)
     if (#content == 1 and content[1].t == "Para" and
         content[1].content[1].t == "Image") then
       -- if the div contains a single image, then we simply use the image as
@@ -367,7 +387,7 @@ function parse_floatreftargets()
         return_cell.content = coalesce_code_blocks(return_cell.content)
         return_cell.classes = div.classes
         return_cell.attributes = div.attributes
-        local reftarget = quarto.FloatRefTarget({
+        local reftarget = construct({
           attr = attr,
           type = category.name,
           content = final_content.content,
@@ -416,7 +436,7 @@ function parse_floatreftargets()
       }
     end
 
-    return quarto.FloatRefTarget({
+    return construct({
       attr = attr,
       type = category.name,
       content = content,
@@ -424,7 +444,7 @@ function parse_floatreftargets()
     }), false
   end
 
-  return {
+  filter = {
     traverse = "topdown",
     Figure = function(fig)
       local key_prefix = refType(fig.identifier)
@@ -463,7 +483,7 @@ function parse_floatreftargets()
         end
       }) or fig.content[1] -- this shouldn't be needed but the lua analyzer doesn't know it
 
-      return quarto.FloatRefTarget({
+      return construct({
         attr = fig_attr,
         type = category.name,
         content = new_content.content,
@@ -502,7 +522,7 @@ function parse_floatreftargets()
 
       local combined = merge_attrs(el.attr, attr)
 
-      return quarto.FloatRefTarget({
+      return construct({
         identifier = label,
         classes = combined.classes,
         attributes = as_plain_table(combined.attributes),
@@ -529,8 +549,6 @@ function parse_floatreftargets()
             end
           end
         })
-        return parse_float_div(div)
-      elseif isTableDiv(div) then
         return parse_float_div(div)
       end
 
@@ -586,7 +604,7 @@ function parse_floatreftargets()
           -- warn("Figure with invalid crossref category: " .. identifier .. "\nWon't be able to cross-reference this figure.")
           return nil
         end
-        return quarto.FloatRefTarget({
+        return construct({
           identifier = identifier,
           classes = {}, 
           attributes = as_plain_table(img.attributes),
@@ -617,7 +635,7 @@ function parse_floatreftargets()
           return
         end
         local combined = merge_attrs(img.attr, link.attr)
-        return quarto.FloatRefTarget({
+        return construct({
           identifier = identifier,
           classes = combined.classes,
           attributes = as_plain_table(combined.attributes),
@@ -640,12 +658,12 @@ function parse_floatreftargets()
       end
       code.attr.attributes['lst-cap'] = nil
       
-      local attr = code.attr
-      -- code.attr = pandoc.Attr("", {}, {})
-      return quarto.FloatRefTarget({
+      local attr = pandoc.Attr(code.identifier, code.attr.classes, code.attr.attributes)
+      code.attr = pandoc.Attr("", code.classes, code.attr.attributes)
+      return construct({
         attr = attr,
         type = "Listing",
-        content = { decorated_code.__quarto_custom_node }, -- this custom AST impedance mismatch here is unfortunate
+        content = pandoc.Blocks{ decorated_code.__quarto_custom_node }, -- this custom AST impedance mismatch here is unfortunate
         caption_long = caption,
       }), false
     end,
@@ -670,11 +688,11 @@ function parse_floatreftargets()
       end
       
       local attr = code.attr
-      code.attr = pandoc.Attr("", {}, {})
-      return quarto.FloatRefTarget({
+      code.attr = pandoc.Attr("", code.classes, code.attr.attributes)
+      return construct({
         attr = attr,
         type = "Listing",
-        content = { content },
+        content = pandoc.Blocks({ content }),
         caption_long = caption_inlines,
       }), false
     end,
@@ -685,36 +703,39 @@ function parse_floatreftargets()
         return nil
       end
 
+      -- prevent raw mutation
+      local rawText = raw.text
+
       -- first we check if all of the expected bits are present
 
       -- check for {#...} or \label{...}
-      if raw.text:find(patterns.latex_label) == nil and 
-         raw.text:find(patterns.attr_identifier) == nil then
+      if rawText:find(patterns.latex_label) == nil and 
+         rawText:find(patterns.attr_identifier) == nil then
         return nil
       end
 
       -- check for \caption{...}
-      if raw.text:find(patterns.latex_caption) == nil then
+      if rawText:find(patterns.latex_caption) == nil then
         return nil
       end
 
       -- check for tabular or longtable
-      if raw.text:find(patterns.latex_long_table) == nil and
-         raw.text:find(patterns.latex_tabular) == nil then
+      if rawText:find(patterns.latex_long_table) == nil and
+         rawText:find(patterns.latex_tabular) == nil then
         return nil
       end
       
       -- if we're here, then we're going to parse this as a FloatRefTarget
       -- and we need to remove the label and caption from the raw block
       local identifier = ""
-      local b, e, match1, label_identifier = raw.text:find(patterns.latex_label)
+      local b, e, _ , label_identifier = rawText:find(patterns.latex_label)
       if b ~= nil then
-        raw.text = raw.text:sub(1, b - 1) .. raw.text:sub(e + 1)
+        rawText = rawText:sub(1, b - 1) .. rawText:sub(e + 1)
         identifier = label_identifier
       else
-        local b, e, match2, attr_identifier = raw.text:find(patterns.attr_identifier)
+        local b, e, _ , attr_identifier = rawText:find(patterns.attr_identifier)
         if b ~= nil then
-          raw.text = raw.text:sub(1, b - 1) .. raw.text:sub(e + 1)
+          rawText = rawText:sub(1, b - 1) .. rawText:sub(e + 1)
           identifier = attr_identifier
         else
           internal_error()
@@ -732,9 +753,9 @@ function parse_floatreftargets()
       end
 
       local caption
-      local b, e, match3, caption_content = raw.text:find(patterns.latex_caption)
+      local b, e, _, caption_content = rawText:find(patterns.latex_caption)
       if b ~= nil then
-        raw.text = raw.text:sub(1, b - 1) .. raw.text:sub(e + 1)
+        rawText = rawText:sub(1, b - 1) .. rawText:sub(e + 1)
         caption = pandoc.RawBlock("latex", caption_content)
       else
         internal_error()
@@ -742,22 +763,24 @@ function parse_floatreftargets()
       end
 
       -- finally, if the user passed a \\begin{table} float environment
-      -- we just remove it because we'll re-emit later ourselves
-
-      local b, e, begin_table, table_body, end_table = raw.text:find(patterns.latex_table)
-      if b ~= nil then
-        raw.text = table_body
+      -- we just remove it because we'll re-emit later ourselves  
+      local matched, _ = _quarto.modules.patterns.match_in_list_of_patterns(rawText, _quarto.patterns.latexTableEnvPatterns)
+      if matched then
+        -- table_body is second matched element.
+        rawText = matched[2]
       end
 
-      return quarto.FloatRefTarget({
+      return construct({
         attr = pandoc.Attr(identifier, {}, {}),
         type = "Table",
-        content = { raw },
+        content = pandoc.Blocks({ pandoc.RawBlock(raw.format, rawText) }),
         caption_long = quarto.utils.as_blocks(caption)
       }), false
     end
     
   }
+
+  return filter
 end
 
 function forward_cell_subcaps()
@@ -780,7 +803,7 @@ function forward_cell_subcaps()
       if type(subcaps) == "table" then
         nsubcaps = #subcaps
       end
-      div.content = _quarto.ast.walk(div.content, {
+      div.content = _quarto.traverser(div.content, {
         Div = function(subdiv)
           if type(nsubcaps) == "number" and index > nsubcaps or not subdiv.classes:includes("cell-output-display") then
             return nil
@@ -793,7 +816,7 @@ function forward_cell_subcaps()
             end
           end
           -- now we attempt to insert subcaptions where it makes sense for them to be inserted
-          subdiv.content = _quarto.ast.walk(subdiv.content, {
+          subdiv.content = _quarto.traverser(subdiv.content, {
             Table = function(pandoc_table)
               pandoc_table.caption.long = quarto.utils.as_blocks(get_subcap())
               pandoc_table.identifier = div.identifier .. "-" .. tostring(index)

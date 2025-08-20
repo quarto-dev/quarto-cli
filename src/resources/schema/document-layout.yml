@@ -48,6 +48,15 @@
   description: |
     The paper size for the document.
 
+- name: brand-mode
+  schema:
+    enum: [light, dark]
+  default: light
+  tags:
+    formats: [typst, revealjs]
+  description: |
+    The brand mode to use for rendering the document, `light` or `dark`.
+
 - name: layout
   schema:
     maybeArrayOf: string

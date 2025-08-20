@@ -1,0 +1,74 @@
+---
+title: Crossref Div with Markdown captioned table do not duplicate caption
+format: html
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - 'div#tbl-1.quarto-float figure.quarto-float.quarto-float-tbl table'
+          - 'div#tbl-2.quarto-float figure.quarto-float.quarto-float-tbl table'
+          - 'a[href="#tbl-1"].quarto-xref'
+          - 'a[href="#tbl-2"].quarto-xref'
+        -  
+           -  'div#tbl-1.quarto-float table caption'
+           -  'div#tbl-2.quarto-float table caption'
+    revealjs:
+      ensureHtmlElements:
+        - 
+          - 'div#tbl-1.quarto-float figure.quarto-float.quarto-float-tbl table'
+          - 'div#tbl-2.quarto-float figure.quarto-float.quarto-float-tbl table'
+          - 'a[href="#/tbl-1"].quarto-xref'
+          - 'a[href="#/tbl-2"].quarto-xref'
+        -  
+           -  'div#tbl-1.quarto-float table caption'
+           -  'div#tbl-2.quarto-float table caption'
+    docx:
+      ensureDocxXpath:
+        - 
+          - "//w:tbl//w:p//w:r//w:t[contains(text(), \"Table\u00a01\")]"
+          - "//w:tbl//w:p//w:r//w:t[contains(text(), \"Table\u00a02\")]"
+          - "//w:hyperlink[@w:anchor='tbl-1']"
+          - "//w:hyperlink[@w:anchor='tbl-2']"
+        - 
+          - "//w:tbl//w:tbl//w:tblCaption[contains(@w:val, 'caption for the table 1')]"
+          - "//w:tbl//w:tbl//w:tblCaption[contains(@w:val, 'caption for the table 2')]"
+---
+
+Pandoc's support Caption on Markdown table through a specific syntax: https://pandoc.org/MANUAL.html#extension-table_captions
+
+This test ensure we do catch the caption and do not duplicate
+
+## Using `:` syntax
+
+::: {#tbl-1}
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+: This is the caption for the table 1
+
+:::
+
+See @tbl-1
+
+## Using `Table:` syntax
+
+::: {#tbl-2}
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+Table: This is the caption for the table 2
+
+:::
+
+See @tbl-2

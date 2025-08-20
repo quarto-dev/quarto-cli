@@ -37,6 +37,7 @@ import { isHtmlOutput } from "../../../config/format.ts";
 import { renderPandoc } from "../../../command/render/render.ts";
 import {
   PandocRenderCompletion,
+  PandocRenderer,
   RenderFile,
 } from "../../../command/render/types.ts";
 
@@ -92,11 +93,12 @@ import { resourcePath } from "../../../core/resources.ts";
 import { PandocAttr, PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 import { stringify } from "../../../core/yaml.ts";
 import { waitUntilNamedLifetime } from "../../../core/lifetimes.ts";
+import { safeCloneDeep } from "../../../core/safe-clone-deep.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
   project: ProjectContext,
-) {
+): PandocRenderer {
   // rendered files to return. some formats need to end up returning all of the individual
   // renderedFiles (e.g. html or asciidoc) and some formats will consolidate all of their
   // files into a single one (e.g. pdf or epub)
@@ -173,7 +175,7 @@ export function bookPandocRenderer(
             const title = file.recipe.format.metadata[kTitle] || "";
             const alt = coverImageAlt ? ` fig-alt="${coverImageAlt}"` : "";
             file.executeResult.markdown =
-              `![](${coverImage} "${title}"){.quarto-cover-image${alt}}\n\n` +
+              `![](${coverImage} "${title}"){.quarto-cover-image .nolightbox${alt}}\n\n` +
               file.executeResult.markdown;
           }
 
@@ -288,7 +290,7 @@ export function bookPandocRenderer(
             const format = files[0].context.format;
 
             // if it's not a multi-file book then we need to render from the
-            // accumulated exected files
+            // accumulated executed files
             if (!isMultiFileBookFormat(format)) {
               renderedFiles.push(
                 await renderSingleFileBook(
@@ -309,6 +311,9 @@ export function bookPandocRenderer(
           files: renderedFiles,
         };
       } catch (error) {
+        if (!(error instanceof Error)) {
+          throw error;
+        }
         cleanupExecutedFiles();
         return {
           files: renderedFiles,
@@ -381,7 +386,7 @@ async function mergeExecutedFiles(
   files: ExecutedFile[],
 ): Promise<ExecutedFile> {
   // base context on the first file (which has to be index.md in the root)
-  const context = ld.cloneDeep(files[0].context) as RenderContext;
+  const context = safeCloneDeep(files[0].context);
 
   // use global render options
   context.options = removePandocTo(options);

@@ -97,7 +97,7 @@ function tdump (tbl, raw)
     for k, v in pairsByKeys(tbl, typesThenValues) do
       if shouldPrint(k, v, tbl) then
         empty = false
-        formatting = indentStr .. "  " .. k .. ": "
+        local formatting = indentStr .. "  " .. k .. ": "
         v = asLua(v)
         if type(v) == "table" or type(v) == "userdata" and v.is_emulated then
           printInner(formatting)
@@ -599,6 +599,14 @@ local function is_empty_node (node)
   end
 end
 
+--- Call the node's walk method with the given filters.
+-- @param node    a pandoc AST node
+-- @param filter  table with filter functions
+local function walk(node, filter)
+  quarto_assert(node and node.walk)
+  return node:walk(filter)
+end
+
 return {
   dump = dump,
   type = get_type,
@@ -611,6 +619,7 @@ return {
   as_blocks = as_blocks,
   is_empty_node = is_empty_node,
   match = match,
+  walk = walk,
   add_to_blocks = function(blocks, block)
     if pandoc.utils.type(blocks) ~= "Blocks" then
       fatal("add_to_blocks: invalid type " .. pandoc.utils.type(blocks))

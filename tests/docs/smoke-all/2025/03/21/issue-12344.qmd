@@ -1,0 +1,37 @@
+---
+format: 
+  pdf: 
+    keep-tex: true
+---
+
+::: {.column-page-right layout-ncol="2"}
+``` {.markdown filename="01-import.qmd"}
+---
+title: Data Import and Cleaning
+author: Soraya Drake
+format:
+  html:
+    toc: true
+    code-fold: true
+---
+
+## Import
+
+...
+```
+
+``` {.markdown filename="02-visualization.qmd"}
+---
+title: Exploratory Visualization
+author: Soraya Drake
+format:
+  html:
+    toc: true
+    code-fold: true
+---
+
+## Distributions
+
+...
+```
+:::

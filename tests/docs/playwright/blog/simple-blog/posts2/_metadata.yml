@@ -1,0 +1,4 @@
+# options specified here will apply to all posts in this folder
+
+# Enable banner style title blocks
+title-block-banner: true

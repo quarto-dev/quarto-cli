@@ -77,6 +77,9 @@ import {
   SidebarTool,
 } from "../../types.ts";
 import {
+  NormalizedLogoLightDarkSpecifier,
+} from "../../../resources/types/schema-types.ts";
+import {
   normalizeSidebarItem,
   resolveHrefAttribute,
   sidebarContext,
@@ -1012,8 +1015,16 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // ensure title and search are present
   sidebar.title = await sidebarTitle(sidebar, project) as string | undefined;
-  sidebar.logo = resolveLogo(sidebar.logo);
-
+  if (sidebar.logo) {
+    // sidebar logo has been normalized
+    const sidebarLogo = sidebar.logo as NormalizedLogoLightDarkSpecifier;
+    if (sidebarLogo.light) {
+      sidebarLogo.light.path = resolveLogo(sidebarLogo.light.path)!;
+    }
+    if (sidebarLogo.dark) {
+      sidebarLogo.dark.path = resolveLogo(sidebarLogo.dark.path)!;
+    }
+  }
   const searchOpts = await searchOptions(project);
   sidebar.search = sidebar.search !== undefined
     ? sidebar.search
@@ -1238,7 +1249,7 @@ async function navbarEjsData(
       ? searchOpts.type
       : false,
     background: navbar.background || "primary",
-    logo: resolveLogo(navbar.logo),
+    logo: ld.cloneDeep(navbar.logo),
     [kLogoAlt]: navbar[kLogoAlt],
     [kLogoHref]: navbar[kLogoHref],
     collapse,
@@ -1247,7 +1258,16 @@ async function navbarEjsData(
       : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
     pinned: navbar.pinned !== undefined ? !!navbar.pinned : false,
   };
-
+  if (data.logo) {
+    // navbar logo has been normalized
+    const navbarLogo = data.logo as NormalizedLogoLightDarkSpecifier;
+    if (navbarLogo.light) {
+      navbarLogo.light.path = resolveLogo(navbarLogo.light.path)!;
+    }
+    if (navbarLogo.dark) {
+      navbarLogo.dark.path = resolveLogo(navbarLogo.dark.path)!;
+    }
+  }
   // if there is no navbar title and it hasn't been set to 'false'
   // then use the site title
   if (!data.title && data.title !== false) {

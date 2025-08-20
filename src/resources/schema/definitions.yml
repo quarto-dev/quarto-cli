@@ -7,6 +7,9 @@
           format: string
         required: [value]
 
+- id: date-format
+  schema: string
+
 - id: math-methods
   enum:
     values: [plain, webtex, gladtex, mathml, mathjax, katex]
@@ -178,7 +181,113 @@
         preferred_color_scheme,
       ]
 
-- id: comments
+- id: giscus-configuration
+  object:
+    closed: true
+    properties:
+      repo:
+        string:
+          description:
+            short: The Github repo that will be used to store comments.
+            long: |
+              The Github repo that will be used to store comments.
+
+              In order to work correctly, the repo must be public, with the giscus app installed, and 
+              the discussions feature must be enabled.
+      repo-id:
+        string:
+          description:
+            short: The Github repository identifier.
+            long: |
+              The Github repository identifier.
+
+              You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
+              If this is not provided, Quarto will attempt to discover it at render time.
+      category:
+        string:
+          description:
+            short: The discussion category where new discussions will be created.
+            long: |
+              The discussion category where new discussions will be created. It is recommended 
+              to use a category with the **Announcements** type so that new discussions 
+              can only be created by maintainers and giscus.
+      category-id:
+        string:
+          description:
+            short: The Github category identifier.
+            long: |
+              The Github category identifier.
+
+              You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
+              If this is not provided, Quarto will attempt to discover it at render time.
+      mapping:
+        schema:
+          anyOf:
+            - string
+            - number
+        completions:
+          - pathname
+          - url
+          - title
+          - og:title
+        description:
+          short: The mapping between the page and the embedded discussion.
+          long: |
+            The mapping between the page and the embedded discussion. 
+
+            - `pathname`: The discussion title contains the page path
+            - `url`: The discussion title contains the page url
+            - `title`: The discussion title contains the page title
+            - `og:title`: The discussion title contains the `og:title` metadata value
+            - any other string or number: Any other strings will be passed through verbatim and a discussion title
+            containing that value will be used. Numbers will be treated
+            as a discussion number and automatic discussion creation is not supported.
+      reactions-enabled:
+        boolean:
+          description: Display reactions for the discussion's main post before the comments.
+      loading:
+        enum: [lazy]
+        description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
+      input-position:
+        enum: [top, bottom]
+        description: Place the comment input box above or below the comments.
+      theme:
+        anyOf:
+          - string
+          - ref: giscus-themes
+          - object:
+              closed: true
+              properties:
+                light:
+                  anyOf:
+                    - string
+                    - ref: giscus-themes
+                  description: The light theme name.
+                dark:
+                  anyOf:
+                    - string
+                    - ref: giscus-themes
+                  description: The dark theme name.
+
+        description:
+          short: The giscus theme to use when displaying comments.
+          long: |
+            The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: 
+
+            ```yaml
+            website:
+              comments:
+                giscus:
+                  theme:
+                    light: light # giscus theme used for light website theme
+                    dark: dark_dimmed # giscus theme used for dark website theme
+            ```
+      language:
+        string:
+          description: The language that should be used when displaying the commenting interface.
+    required: [repo]
+
+- id: document-comments-configuration
   anyOf:
     - enum: [false]
     - object:
@@ -226,104 +335,7 @@
                       - og:title
               required: [repo]
           giscus:
-            object:
-              closed: true
-              properties:
-                repo:
-                  string:
-                    description:
-                      short: The Github repo that will be used to store comments.
-                      long: |
-                        The Github repo that will be used to store comments.
-
-                        In order to work correctly, the repo must be public, with the giscus app installed, and 
-                        the discussions feature must be enabled.
-                repo-id:
-                  string:
-                    description:
-                      short: The Github repository identifier.
-                      long: |
-                        The Github repository identifier.
-
-                        You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
-                        If this is not provided, Quarto will attempt to discover it at render time.
-                category:
-                  string:
-                    description:
-                      short: The discussion category where new discussions will be created.
-                      long: |
-                        The discussion category where new discussions will be created. It is recommended 
-                        to use a category with the **Announcements** type so that new discussions 
-                        can only be created by maintainers and giscus.
-                category-id:
-                  string:
-                    description:
-                      short: The Github category identifier.
-                      long: |
-                        The Github category identifier.
-
-                        You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
-                        If this is not provided, Quarto will attempt to discover it at render time.
-                mapping:
-                  anyOf:
-                    - enum: [pathname, url, title, og:title]
-                    - string
-                  description:
-                    short: The mapping between the page and the embedded discussion.
-                    long: |
-                      The mapping between the page and the embedded discussion. 
-
-                      - `pathname`: The discussion title contains the page path
-                      - `url`: The discussion title contains the page url
-                      - `title`: The discussion title contains the page title
-                      - `og:title`: The discussion title contains the `og:title` metadata value
-                      - any other string or number: Any other strings will be passed through verbatim and a discussion title
-                      containing that value will be used. Numbers will be treated
-                      as a discussion number and automatic discussion creation is not supported.
-                reactions-enabled:
-                  boolean:
-                    description: Display reactions for the discussion's main post before the comments.
-                loading:
-                  enum: [lazy]
-                  description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
-                input-position:
-                  enum: [top, bottom]
-                  description: Place the comment input box above or below the comments.
-                theme:
-                  anyOf:
-                    - string
-                    - ref: giscus-themes
-                    - object:
-                        closed: true
-                        properties:
-                          light:
-                            anyOf:
-                              - string
-                              - ref: giscus-themes
-                            description: The light theme name.
-                          dark:
-                            anyOf:
-                              - string
-                              - ref: giscus-themes
-                            description: The dark theme name.
-
-                  description:
-                    short: The giscus theme to use when displaying comments.
-                    long: |
-                      The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: 
-
-                      ```yaml
-                      website:
-                        comments:
-                          giscus:
-                            theme:
-                              light: light # giscus theme used for light website theme
-                              dark: dark_dimmed # giscus theme used for dark website theme
-                      ```
-                language:
-                  string:
-                    description: The language that should be used when displaying the commenting interface.
-              required: [repo]
+            ref: giscus-configuration
           hypothesis:
             anyOf:
               - boolean
@@ -858,6 +870,10 @@
                 copy-button:
                   schema: boolean
                   description: "Provide button for copying search link"
+                merge-navbar-crumbs:
+                  schema: boolean
+                  default: true
+                  description: "When false, do not merge navbar crumbs into the crumbs in `search.json`."
                 keyboard-shortcut:
                   maybeArrayOf:
                     string:
@@ -921,8 +937,8 @@
                     - boolean
                   description: "The navbar title. Uses the project title if none is specified."
                 logo:
-                  path:
-                    description: "Path to a logo image that will be displayed to the left of the title."
+                  ref: logo-light-dark-specifier
+                  description: "Specification of image that will be displayed to the left of the title."
                 logo-alt:
                   string:
                     description: "Alternate text for the logo image."
@@ -930,35 +946,29 @@
                   string:
                     description: "Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html)."
                 background:
-                  anyOf:
-                    - enum:
-                        [
-                          "primary",
-                          "secondary",
-                          "success",
-                          "danger",
-                          "warning",
-                          "info",
-                          "light",
-                          "dark",
-                        ]
-                    - string
-                  description: "The navbar's background color (named or hex color)."
+                  string:
+                    description: "The navbar's background color (named or hex color)."
+                    completions:
+                      - primary
+                      - secondary
+                      - success
+                      - danger
+                      - warning
+                      - info
+                      - light
+                      - dark
                 foreground:
-                  anyOf:
-                    - enum:
-                        [
-                          "primary",
-                          "secondary",
-                          "success",
-                          "danger",
-                          "warning",
-                          "info",
-                          "light",
-                          "dark",
-                        ]
-                    - string
-                  description: "The navbar's foreground color (named or hex color)."
+                  string:
+                    description: "The navbar's foreground color (named or hex color)."
+                    completions:
+                      - primary
+                      - secondary
+                      - success
+                      - danger
+                      - warning
+                      - info
+                      - light
+                      - dark
                 search:
                   boolean:
                     description: "Include a search box in the navbar."
@@ -1009,8 +1019,8 @@
                       - boolean
                     description: "The sidebar title. Uses the project title if none is specified."
                   logo:
-                    path:
-                      description: "Path to a logo image that will be displayed in the sidebar."
+                    ref: logo-light-dark-specifier
+                    description: "Specification of image that will be displayed in the sidebar."
                   logo-alt:
                     string:
                       description: "Alternate text for the logo image."
@@ -1032,34 +1042,28 @@
                     description: "The style of sidebar (`docked` or `floating`)."
                     default: "floating"
                   background:
-                    anyOf:
-                      - enum:
-                          [
-                            "primary",
-                            "secondary",
-                            "success",
-                            "danger",
-                            "warning",
-                            "info",
-                            "light",
-                            "dark",
-                          ]
-                      - string
+                    schema: string
+                    completions:
+                      - primary
+                      - secondary
+                      - success
+                      - danger
+                      - warning
+                      - info
+                      - light
+                      - dark
                     description: "The sidebar's background color (named or hex color)."
                   foreground:
-                    anyOf:
-                      - enum:
-                          [
-                            "primary",
-                            "secondary",
-                            "success",
-                            "danger",
-                            "warning",
-                            "info",
-                            "light",
-                            "dark",
-                          ]
-                      - string
+                    schema: string
+                    completions:
+                      - primary
+                      - secondary
+                      - success
+                      - danger
+                      - warning
+                      - info
+                      - light
+                      - dark
                     description: "The sidebar's foreground color (named or hex color)."
                   border:
                     boolean:
@@ -1117,7 +1121,7 @@
             Default site thumbnail image alt text for `twitter` /`open-graph`
       comments:
         schema:
-          ref: comments
+          ref: document-comments-configuration
 
       open-graph:
         anyOf:
@@ -1203,7 +1207,7 @@
             description: "Book references file"
         output-file:
           path:
-            description: "Base name for single-file output (e.g. PDF, ePub)"
+            description: "Base name for single-file output (e.g. PDF, ePub, docx)"
         cover-image:
           path:
             description: "Cover image (used in HTML and ePub formats)"
@@ -2535,7 +2539,32 @@
     - string
     - ref: brand-logo-explicit-resource
 
-- id: brand-logo
+- id: brand-logo-single
+  description: >
+    Provide definitions and defaults for brand's logo in various formats and sizes.
+  object:
+    closed: true
+    properties:
+      images:
+        description: A dictionary of named logo resources.
+        schema:
+          object:
+            additionalProperties:
+              schema: { ref: brand-logo-resource }
+      small:
+        description: >
+          A link or path to the brand's small-sized logo or icon.
+        schema: string
+      medium:
+        description: >
+          A link or path to the brand's medium-sized logo.
+        schema: string
+      large:
+        description: >
+          A link or path to the brand's large- or full-sized logo.
+        schema: string
+
+- id: brand-logo-unified
   description: >
     Provide definitions and defaults for brand's logo in various formats and sizes.
   object:
@@ -2570,10 +2599,108 @@
   description: Names of customizeable logos
   enum: [small, medium, large]
 
+- id: logo-options
+  object:
+    closed: false # e.g. to allow typst location, padding, padding-*, width
+    properties:
+      path:
+        schema: path
+        description: >
+          Path or brand.yml logo resource name.
+      alt:
+        schema: string
+        description: >
+          Alternative text for the logo, used for accessibility.
+    required: [path]
+
+- id: logo-specifier
+  anyOf:
+    - string
+    - schema:
+        ref: logo-options
+
+- id: logo-options-path-optional
+  object:
+    closed: false # e.g. to allow typst location, padding, padding-*, width
+    properties:
+      path:
+        schema: path
+        description: >
+          Path or brand.yml logo resource name.
+      alt:
+        schema: string
+        description: >
+          Alternative text for the logo, used for accessibility.
+
+- id: logo-specifier-path-optional
+  anyOf:
+    - string
+    - schema:
+        ref: logo-options-path-optional
+
+- id: logo-light-dark-specifier
+  description: >
+    Any of the ways a logo can be specified: string, object, or light/dark object of
+    string or object
+  anyOf:
+    - ref: logo-specifier
+    - object:
+        closed: true
+        properties:
+          light:
+            schema:
+              ref: logo-specifier
+            description: >
+              Specification of a light logo
+          dark:
+            schema:
+              ref: logo-specifier
+            description: >
+              Specification of a dark logo
+
+- id: logo-light-dark-specifier-path-optional
+  description: >
+    Any of the ways a logo can be specified: string, object, or light/dark object of
+    string or object
+  anyOf:
+    - ref: logo-specifier-path-optional
+    - object:
+        closed: true
+        properties:
+          light:
+            schema:
+              ref: logo-specifier-path-optional
+            description: >
+              Specification of a light logo
+          dark:
+            schema:
+              ref: logo-specifier-path-optional
+            description: >
+              Specification of a dark logo
+
+# normalized version of logo-light-dark-specifier
+- id: normalized-logo-light-dark-specifier
+  description: >
+    Any of the ways a logo can be specified: string, object, or light/dark object of
+    string or object
+  object:
+    closed: true
+    properties:
+      light:
+        schema:
+          ref: logo-options
+        description: >
+          Options for a light logo
+      dark:
+        schema:
+          ref: logo-options
+        description: >
+          Options for a dark logo
+
 - id: brand-color-value
   schema: string
 
-- id: brand-color
+- id: brand-color-single
   description: >
     The brand's custom color palette and theme.
   object:
@@ -2648,12 +2775,121 @@
         schema:
           ref: brand-color-value
 
+- id: brand-color-light-dark
+  anyOf:
+    - ref: brand-color-value
+    - object:
+        closed: true
+        properties:
+          light:
+            schema:
+              ref: brand-color-value
+            description: >
+              A link or path to the brand's light-colored logo or icon.
+          dark:
+            schema:
+              ref: brand-color-value
+            description: >
+              A link or path to the brand's dark-colored logo or icon.
+
+- id: brand-color-unified
+  description: >
+    The brand's custom color palette and theme.
+  object:
+    closed: true
+    properties:
+      palette:
+        description: >
+          The brand's custom color palette. Any number of colors can be defined,
+          each color having a custom name.
+        object:
+          additionalProperties:
+            schema:
+              ref: brand-color-value
+      foreground:
+        description: The foreground color, used for text.
+        schema:
+          ref: brand-color-light-dark
+        default: black
+      background:
+        description: The background color, used for the page background.
+        schema:
+          ref: brand-color-light-dark
+        default: white
+      primary:
+        description: >
+          The primary accent color, i.e. the main theme color. Typically used for
+          hyperlinks, active states, primary action buttons, etc.
+        schema:
+          ref: brand-color-light-dark
+      secondary:
+        description: >
+          The secondary accent color. Typically used for lighter text or disabled states.
+        schema:
+          ref: brand-color-light-dark
+      tertiary:
+        description: >
+          The tertiary accent color. Typically an even lighter color, used for hover states,
+          accents, and wells.
+        schema:
+          ref: brand-color-light-dark
+      success:
+        description: The color used for positive or successful actions and information.
+        schema:
+          ref: brand-color-light-dark
+      info:
+        description: The color used for neutral or informational actions and information.
+        schema:
+          ref: brand-color-light-dark
+      warning:
+        description: The color used for warning or cautionary actions and information.
+        schema:
+          ref: brand-color-light-dark
+      danger:
+        description: The color used for errors, dangerous actions, or negative information.
+        schema:
+          ref: brand-color-light-dark
+      light:
+        description: >
+          A bright color, used as a high-contrast foreground color on dark elements
+          or low-contrast background color on light elements.
+        schema:
+          ref: brand-color-light-dark
+      dark:
+        description: >
+          A dark color, used as a high-contrast foreground color on light elements
+          or high-contrast background color on light elements.
+        schema:
+          ref: brand-color-light-dark
+      link:
+        description: >
+          The color used for hyperlinks. If not defined, the `primary` color is used.
+        schema:
+          ref: brand-color-light-dark
+
 - id: brand-maybe-named-color
   description: >
     A color, which may be a named brand color.
   anyOf:
     - ref: brand-named-theme-color
     - schema: string
+
+- id: brand-maybe-named-color-light-dark
+  anyOf:
+    - ref: brand-maybe-named-color
+    - object:
+        closed: true
+        properties:
+          light:
+            schema:
+              ref: brand-maybe-named-color
+            description: >
+              A link or path to the brand's light-colored logo or icon.
+          dark:
+            schema:
+              ref: brand-maybe-named-color
+            description: >
+              A link or path to the brand's dark-colored logo or icon.
 
 - id: brand-named-theme-color
   description: >
@@ -2674,7 +2910,7 @@
       link,
     ]
 
-- id: brand-typography
+- id: brand-typography-single
   description: Typography definitions for the brand.
   object:
     closed: true
@@ -2690,19 +2926,49 @@
         ref: brand-typography-options-base
       headings:
         description: Settings for headings, or a string specifying the font family only.
-        ref: brand-typography-options-headings
+        ref: brand-typography-options-headings-single
       monospace:
         description: Settings for monospace text, or a string specifying the font family only.
-        ref: brand-typography-options-monospace
+        ref: brand-typography-options-monospace-single
       monospace-inline:
         description: Settings for inline code, or a string specifying the font family only.
-        ref: brand-typography-options-monospace-inline
+        ref: brand-typography-options-monospace-inline-single
       monospace-block:
         description: Settings for code blocks, or a string specifying the font family only.
-        ref: brand-typography-options-monospace-block
+        ref: brand-typography-options-monospace-block-single
       link:
         description: Settings for links.
-        ref: brand-typography-options-link
+        ref: brand-typography-options-link-single
+
+- id: brand-typography-unified
+  description: Typography definitions for the brand.
+  object:
+    closed: true
+    properties:
+      fonts:
+        description: Font files and definitions for the brand.
+        arrayOf:
+          ref: brand-font
+      base:
+        description: >
+          The base font settings for the brand. These are used as the default for
+          all text.
+        ref: brand-typography-options-base
+      headings:
+        description: Settings for headings, or a string specifying the font family only.
+        ref: brand-typography-options-headings-unified
+      monospace:
+        description: Settings for monospace text, or a string specifying the font family only.
+        ref: brand-typography-options-monospace-unified
+      monospace-inline:
+        description: Settings for inline code, or a string specifying the font family only.
+        ref: brand-typography-options-monospace-inline-unified
+      monospace-block:
+        description: Settings for code blocks, or a string specifying the font family only.
+        ref: brand-typography-options-monospace-block-unified
+      link:
+        description: Settings for links.
+        ref: brand-typography-options-link-unified
 
 - id: brand-typography-options-base
   description: Base typographic options.
@@ -2718,7 +2984,7 @@
           line-height:
             ref: line-height-number-string
 
-- id: brand-typography-options-headings
+- id: brand-typography-options-headings-single
   description: Typographic options for headings.
   anyOf:
     - string
@@ -2735,7 +3001,24 @@
           line-height:
             ref: line-height-number-string
 
-- id: brand-typography-options-monospace
+- id: brand-typography-options-headings-unified
+  description: Typographic options for headings.
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          family: string
+          weight:
+            ref: brand-font-weight
+          style:
+            ref: brand-font-style
+          color:
+            ref: brand-maybe-named-color-light-dark
+          line-height:
+            ref: line-height-number-string
+
+- id: brand-typography-options-monospace-single
   description: Typographic options for monospace elements.
   anyOf:
     - string
@@ -2751,7 +3034,23 @@
           background-color:
             ref: brand-maybe-named-color
 
-- id: brand-typography-options-monospace-inline
+- id: brand-typography-options-monospace-unified
+  description: Typographic options for monospace elements.
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          family: string
+          size: string
+          weight:
+            ref: brand-font-weight
+          color:
+            ref: brand-maybe-named-color-light-dark
+          background-color:
+            ref: brand-maybe-named-color-light-dark
+
+- id: brand-typography-options-monospace-inline-single
   description: Typographic options for inline monospace elements.
   anyOf:
     - string
@@ -2767,11 +3066,27 @@
           background-color:
             ref: brand-maybe-named-color
 
+- id: brand-typography-options-monospace-inline-unified
+  description: Typographic options for inline monospace elements.
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          family: string
+          size: string
+          weight:
+            ref: brand-font-weight
+          color:
+            ref: brand-maybe-named-color-light-dark
+          background-color:
+            ref: brand-maybe-named-color-light-dark
+
 - id: line-height-number-string
   description: Line height
   anyOf: [number, string]
 
-- id: brand-typography-options-monospace-block
+- id: brand-typography-options-monospace-block-single
   description: Typographic options for block monospace elements.
   anyOf:
     - string
@@ -2789,7 +3104,25 @@
           line-height:
             ref: line-height-number-string
 
-- id: brand-typography-options-link
+- id: brand-typography-options-monospace-block-unified
+  description: Typographic options for block monospace elements.
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          family: string
+          size: string
+          weight:
+            ref: brand-font-weight
+          color:
+            ref: brand-maybe-named-color-light-dark
+          background-color:
+            ref: brand-maybe-named-color-light-dark
+          line-height:
+            ref: line-height-number-string
+
+- id: brand-typography-options-link-single
   description: Typographic options for inline monospace elements.
   anyOf:
     - string
@@ -2804,9 +3137,24 @@
             ref: brand-maybe-named-color
           decoration: string
 
-- id: brand-named-font
-  description: Names of customizeable fonts
-  enum: [base, headings, monospace]
+- id: brand-typography-options-link-unified
+  description: Typographic options for inline monospace elements.
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          weight:
+            ref: brand-font-weight
+          color:
+            ref: brand-maybe-named-color-light-dark
+          background-color:
+            ref: brand-maybe-named-color-light-dark
+          decoration: string
+
+- id: brand-named-typography-elements
+  description: Names of customizeable typography elements
+  enum: [base, headings, monospace, monospace-inline, monospace-block, link]
 
 - id: brand-font
   description: Font files and definitions for the brand.
@@ -2965,20 +3313,71 @@
     for ensuring that the font is installed on their system.
   schema: string
 
-- id: brand
+- id: brand-single
   object:
     closed: true
     properties:
       meta:
         ref: brand-meta
       logo:
-        ref: brand-logo
+        ref: brand-logo-single
       color:
-        ref: brand-color
+        ref: brand-color-single
       typography:
-        ref: brand-typography
+        ref: brand-typography-single
       defaults:
         ref: brand-defaults
+
+- id: brand-unified
+  object:
+    closed: true
+    properties:
+      meta:
+        ref: brand-meta
+      logo:
+        ref: brand-logo-unified
+      color:
+        ref: brand-color-unified
+      typography:
+        ref: brand-typography-unified
+      defaults:
+        ref: brand-defaults
+
+- id: brand-path-only-light-dark
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          light: string
+          dark: string
+  description: |
+    A path to a brand.yml file, or an object with light and dark paths to brand.yml
+
+- id: brand-path-bool-light-dark
+  anyOf:
+    - string # a file path
+    - boolean # if false, don't use branding on this document
+    - object:
+        closed: true
+        properties:
+          light:
+            anyOf:
+              - string
+              - ref: brand-single
+            description: >
+              The path to a light brand file or an inline light brand definition.
+          dark:
+            anyOf:
+              - string
+              - ref: brand-single
+            description: >
+              The path to a dark brand file or an inline dark brand definition.
+    - ref: brand-unified
+  description: |
+    Branding information to use for this document. If a string, the path to a brand file.
+    If false, don't use branding on this document. If an object, an inline (unified) brand
+    definition, or an object with light and dark brand paths or definitions.
 
 - id: brand-defaults
   object:
@@ -3000,3 +3399,4 @@
                   - string
                   - boolean
                   - number
+# - id: quarto-extension

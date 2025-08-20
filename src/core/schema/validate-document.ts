@@ -21,6 +21,7 @@ import { isObject } from "../lodash.ts";
 import { getFrontMatterSchema } from "../lib/yaml-schema/front-matter.ts";
 import { JSONValue, LocalizedError } from "../lib/yaml-schema/types.ts";
 import { MappedString } from "../lib/mapped-text.ts";
+import { NoExprTag } from "../lib/yaml-validation/validator.ts";
 
 export async function validateDocumentFromSource(
   src: MappedString,
@@ -77,31 +78,41 @@ export async function validateDocumentFromSource(
     ) {
       const frontMatterSchema = await getFrontMatterSchema();
 
-      await withValidator(frontMatterSchema, async (frontMatterValidator) => {
-        const fmValidation = await frontMatterValidator.validateParseWithErrors(
-          frontMatterText,
-          annotation,
-          "Validation of YAML front matter failed.",
-          errorFn,
-          reportOnce(
-            (err: TidyverseError) =>
-              error(tidyverseFormatError(err), { colorize: false }),
-            reportSet,
-          ),
-        );
-        if (fmValidation && fmValidation.errors.length) {
-          result.push(...fmValidation.errors);
+      try {
+        await withValidator(frontMatterSchema, async (frontMatterValidator) => {
+          const fmValidation = await frontMatterValidator
+            .validateParseWithErrors(
+              frontMatterText,
+              annotation,
+              "Validation of YAML front matter failed.",
+              errorFn,
+              reportOnce(
+                (err: TidyverseError) =>
+                  error(tidyverseFormatError(err), { colorize: false }),
+                reportSet,
+              ),
+            );
+          if (fmValidation && fmValidation.errors.length) {
+            result.push(...fmValidation.errors);
+          }
+        });
+      } catch (e) {
+        if (!(e instanceof Error)) throw e;
+        if (e.name === "NoExprTag") {
+          const err = e as NoExprTag;
+          error(tidyverseFormatError(err.niceError), { colorize: false });
+          throw e;
         }
-      });
+      }
     }
   } else {
     firstContentCellIndex = 0;
   }
-
   for (const cell of nb.cells.slice(firstContentCellIndex)) {
     if (
       cell.cell_type === "markdown" ||
-      cell.cell_type === "raw"
+      cell.cell_type === "raw" ||
+      cell.cell_type?.language === "_directive"
     ) {
       // not a language chunk
       continue;
@@ -110,21 +121,19 @@ export async function validateDocumentFromSource(
     const lang = cell.cell_type.language;
 
     try {
-      const fullCell = mappedString(cell.sourceVerbatim, [{
-        start: lang.length + 6,
-        end: cell.sourceVerbatim.value.length - 3,
-      }]);
-      await partitionCellOptionsMapped(
-        lang,
-        fullCell,
-        true,
-        engine,
-      );
+      if (cell.sourceWithYaml) {
+        await partitionCellOptionsMapped(
+          lang,
+          cell.sourceWithYaml,
+          true,
+          engine,
+        );
+      }
     } catch (e) {
       if (e instanceof ValidationError) {
         error("Validation of YAML cell metadata failed.");
         for (const err of e.validationErrors) {
-          console.log(tidyverseFormatError(err.niceError));
+          error(tidyverseFormatError(err.niceError), { colorize: false });
         }
         result.push(...e.validationErrors);
       } else {

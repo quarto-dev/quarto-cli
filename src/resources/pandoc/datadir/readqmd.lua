@@ -126,6 +126,7 @@ local function urldecode(url)
 end
 
 local function readqmd(txt, opts)
+  local tags
   txt = md_fenced_div.attempt_to_fix_fenced_div(txt)
   txt, tags = escape_invalid_tags(txt)
   txt = md_shortcode.parse_md_shortcode(txt)

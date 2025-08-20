@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { join } from "../../deno_ral/path.ts";
+import { join, relative } from "../../deno_ral/path.ts";
 import { warning } from "../../deno_ral/log.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -14,7 +14,7 @@ import { Document, Element } from "../../core/deno-dom.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { formatResourcePath } from "../../core/resources.ts";
+import { formatResourcePath, resourcePath } from "../../core/resources.ts";
 import { TempContext } from "../../core/temp.ts";
 import { asCssSize } from "../../core/css.ts";
 
@@ -25,12 +25,14 @@ import {
   kFilterParams,
   kHeaderIncludes,
   kIncludeAfterBody,
+  kIncludeBeforeBody,
   kIncludeInHeader,
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kNotebookLinks,
   kNotebookViewStyle,
+  kRespectUserColorScheme,
   kTheme,
 } from "../../config/constants.ts";
 
@@ -66,6 +68,7 @@ import {
   clipboardDependency,
   createCodeCopyButton,
   kAnchorSections,
+  kAxe,
   kBootstrapDependencyName,
   kCitationsHover,
   kCodeAnnotations,
@@ -114,6 +117,54 @@ import {
 import { kQuartoHtmlDependency } from "./format-html-constants.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { brandSassFormatExtras } from "../../core/sass/brand.ts";
+import { ESBuildAnalysis } from "../../core/esbuild.ts";
+import { assert } from "testing/asserts";
+import { axeFormatDependencies } from "./format-html-axe.ts";
+
+let esbuildAnalysisCache: Record<string, ESBuildAnalysis> | undefined;
+export function esbuildCachedAnalysis(
+  input: string,
+): ESBuildAnalysis {
+  if (!esbuildAnalysisCache) {
+    esbuildAnalysisCache = JSON.parse(
+      Deno.readTextFileSync(
+        formatResourcePath("html", "esbuild-analysis-cache.json"),
+      ),
+    ) as Record<string, ESBuildAnalysis>;
+  }
+  const result = esbuildAnalysisCache[input];
+  assert(result, `Cached analysis not found for ${input}`);
+  return result;
+}
+
+function recursiveModuleDependencies(
+  path: string,
+): DependencyHtmlFile[] {
+  const result: DependencyHtmlFile[] = [];
+  const inpRelPath = relative(join(resourcePath("formats"), "html"), path);
+
+  result.push({
+    name: inpRelPath,
+    path: formatResourcePath("html", inpRelPath),
+    attribs: { type: "module" },
+  });
+
+  const analysis = esbuildCachedAnalysis(inpRelPath);
+  // console.log(JSON.stringify(analysis, null, 2));
+  for (const [_key, value] of Object.entries(analysis.outputs)) {
+    for (const imp of value.imports) {
+      if (imp.external) {
+        const relPath = relative(path, join(path, imp.path));
+        result.push({
+          name: relPath,
+          path: formatResourcePath("html", relPath),
+          attribs: { type: "module" },
+        });
+      }
+    }
+  }
+  return result;
+}
 
 export function htmlFormat(
   figwidth: number,
@@ -196,6 +247,10 @@ export async function htmlFormatExtras(
   tippyOptions?: HtmlFormatTippyOptions,
   scssOptions?: HtmlFormatScssOptions,
 ): Promise<FormatExtras> {
+  const configurableExtras: FormatExtras[] = [
+    axeFormatDependencies(format, temp, format.metadata[kAxe]),
+  ];
+
   // note whether we are targeting bootstrap
   const bootstrap = formatHasBootstrap(format);
 
@@ -294,7 +349,9 @@ export async function htmlFormatExtras(
   options.zenscroll = format.metadata[kSmoothScroll];
   options.codeTools = formatHasCodeTools(format);
   options.darkMode = formatDarkMode(format);
-  options.darkModeDefault = darkModeDefault(format.metadata);
+  options.darkModeDefault = darkModeDefault(format);
+  options.respectUserColorScheme = format.metadata[kRespectUserColorScheme] ||
+    false;
   options.linkExternalIcon = format.render[kLinkExternalIcon];
   options.linkExternalNewwindow = format.render[kLinkExternalNewwindow];
   options.linkExternalFilter = format.render[kLinkExternalFilter];
@@ -313,10 +370,10 @@ export async function htmlFormatExtras(
 
   // quarto.js helpers
   if (bootstrap) {
-    scripts.push({
-      name: "quarto.js",
-      path: formatResourcePath("html", "quarto.js"),
-    });
+    const deps = recursiveModuleDependencies(
+      formatResourcePath("html", "quarto.js"),
+    );
+    scripts.push(...deps);
   }
 
   // tabby if required
@@ -459,7 +516,8 @@ export async function htmlFormatExtras(
     includeInHeader.push(hypothesisHeader);
   }
 
-  // after body
+  // before and after body
+  const includeBeforeBody: string[] = [];
   const includeAfterBody: string[] = [];
 
   // add main orchestion script if we have any options enabled
@@ -467,15 +525,21 @@ export async function htmlFormatExtras(
     !!options[option]
   );
   if (quartoHtmlRequired) {
-    // html orchestration script
-    const quartoHtmlScript = temp.createFile();
-    const renderedHtml = renderEjs(
-      formatResourcePath("html", join("templates", "quarto-html.ejs")),
-      options,
-    );
-    if (renderedHtml.trim() !== "") {
-      Deno.writeTextFileSync(quartoHtmlScript, renderedHtml);
-      includeAfterBody.push(quartoHtmlScript);
+    for (
+      const { dest, ejsfile } of [
+        { dest: includeBeforeBody, ejsfile: "quarto-html-before-body.ejs" },
+        { dest: includeAfterBody, ejsfile: "quarto-html-after-body.ejs" },
+      ]
+    ) {
+      const quartoHtmlScript = temp.createFile();
+      const renderedHtml = renderEjs(
+        formatResourcePath("html", join("templates", ejsfile)),
+        options,
+      );
+      if (renderedHtml.trim() !== "") {
+        Deno.writeTextFileSync(quartoHtmlScript, renderedHtml);
+        dest.push(quartoHtmlScript);
+      }
     }
   }
 
@@ -551,7 +615,7 @@ export async function htmlFormatExtras(
       giscusAfterBody,
       renderEjs(
         formatResourcePath("html", join("giscus", "giscus.ejs")),
-        { giscus },
+        { giscus, darkMode: options.darkMode },
       ),
     );
     includeAfterBody.push(giscusAfterBody);
@@ -587,8 +651,9 @@ export async function htmlFormatExtras(
   }
 
   const metadata: Metadata = {};
-  return {
+  const result: FormatExtras = {
     [kIncludeInHeader]: includeInHeader,
+    [kIncludeBeforeBody]: includeBeforeBody,
     [kIncludeAfterBody]: includeAfterBody,
     metadata,
     templateContext,
@@ -598,6 +663,11 @@ export async function htmlFormatExtras(
       [kHtmlPostprocessors]: htmlPostProcessors,
     },
   };
+
+  return mergeConfigs(
+    result,
+    ...configurableExtras,
+  ) as FormatExtras;
 }
 
 const kFormatHasBootstrap = "has-bootstrap";
@@ -680,12 +750,25 @@ function htmlFormatPostprocessor(
 
       // insert code copy button (with specfic attribute when inside a modal)
       if (codeCopy) {
-        code.classList.add("code-with-copy");
+        // the interaction of code copy button fixed position
+        // and scrolling overflow behavior requires a scaffold div to be inserted
+        // as a parent of the code block and the copy button both
+        // (see #13009, #5538, and #12787)
+        const outerScaffold = doc.createElement("div");
+        outerScaffold.classList.add("code-copy-outer-scaffold");
+
         const copyButton = createCodeCopyButton(doc, format);
         if (EmbedSourceModal && EmbedSourceModal.contains(code)) {
           copyButton.setAttribute("data-in-quarto-modal", "");
         }
-        code.appendChild(copyButton);
+        code.classList.add("code-with-copy");
+
+        const sourceCodeDiv = code.parentElement!;
+        const sourceCodeDivParent = code.parentElement?.parentElement;
+        sourceCodeDivParent!.replaceChild(outerScaffold, sourceCodeDiv);
+
+        outerScaffold.appendChild(sourceCodeDiv);
+        outerScaffold.appendChild(copyButton);
       }
 
       // insert example iframe
@@ -747,15 +830,15 @@ function htmlFormatPostprocessor(
 
     // Process tables to restore th-vs-td markers
     const tables = doc.querySelectorAll(
-      'table[data-quarto-postprocess-tables="true"]',
+      'table[data-quarto-postprocess="true"]',
     );
-
     for (let i = 0; i < tables.length; ++i) {
       const table = tables[i] as Element;
-      if (table.getAttribute("data-quarto-disable-processing")) {
+      if (table.getAttribute("data-quarto-disable-processing") === "true") {
         continue;
       }
-      table.removeAttribute("data-quarto-postprocess-tables");
+      table.removeAttribute("data-quarto-postprocess");
+      table.removeAttribute("data-quarto-disable-processing");
       table.querySelectorAll("tr").forEach((tr) => {
         const { children } = tr as Element;
         for (let j = 0; j < children.length; ++j) {

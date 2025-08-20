@@ -1,7 +1,7 @@
 import { isAbsolute, join } from "../../deno_ral/path.ts";
 
 import { RenderResult, RenderResultFile } from "../../command/render/types.ts";
-import { md5Hash } from "../../core/hash.ts";
+import { md5HashSync } from "../../core/hash.ts";
 import { HttpDevServerRenderMonitor } from "../../core/http-devserver.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { logError } from "../../core/log.ts";
@@ -118,8 +118,8 @@ export class ServeRenderManager {
         String(Deno.statSync(inputFile).mtime) +
         resourceHash;
     } else {
-      return md5Hash(Deno.readTextFileSync(file)) +
-        md5Hash(Deno.readTextFileSync(inputFile)) +
+      return md5HashSync(Deno.readTextFileSync(file)) +
+        md5HashSync(Deno.readTextFileSync(inputFile)) +
         resourceHash;
     }
   }

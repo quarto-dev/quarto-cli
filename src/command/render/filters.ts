@@ -9,6 +9,7 @@ import { existsSync } from "../../deno_ral/fs.ts";
 import {
   kBibliography,
   kBrand,
+  kBrandMode,
   kCitationLocation,
   kCiteMethod,
   kClearCellOptions,
@@ -93,6 +94,7 @@ import { isServerShinyPython } from "../../core/render.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
 import { kTocIndent } from "../../config/constants.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
+import { tinyTexBinDir } from "../../tools/impl/tinytex-info.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -102,8 +104,6 @@ const kFilterProjectOutputDir = "project-output-dir";
 const kMediabagDir = "mediabag-dir";
 
 const kResultsFile = "results-file";
-
-const kTimingFile = "timings-file";
 
 const kHasBootstrap = "has-bootstrap";
 
@@ -131,8 +131,7 @@ export async function filterParamsJson(
   filterParams: Record<string, unknown>,
   resultsFile: string,
   dependenciesFile: string,
-  timingFile: string,
-) {
+): Promise<Record<string, unknown>> {
   // extract include params (possibly mutating it's arguments)
   const includes = options.format.render[kMergeIncludes] !== false
     ? extractIncludeParams(
@@ -184,7 +183,6 @@ export async function filterParamsJson(
     ...customFormatParams,
     ...typstFilterParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
-    [kTimingFile]: pandocMetadataPath(timingFile),
     [kQuartoFilters]: filterSpec,
     [kActiveFilters]: {
       normalization: metadataNormalizationFilterActive(options),
@@ -198,13 +196,14 @@ export async function filterParamsJson(
     [kBrand]: options.format.render[kBrand],
     "quarto-environment": await quartoEnvironmentParams(options),
   };
-  return JSON.stringify(params);
+  return params;
 }
 
 async function quartoEnvironmentParams(_options: PandocOptions) {
   return {
     "paths": {
       "Rscript": await rBinaryPath("Rscript"),
+      "TinyTexBinDir": tinyTexBinDir(), // will be undefined if no tinytex found and quarto will look in PATH
     },
   };
 }
@@ -550,7 +549,7 @@ function jatsFilterParams(options: PandocOptions) {
 
 function notebookContextFilterParams(options: PandocOptions) {
   const nbContext = options.services.notebook;
-  const notebooks = nbContext.all();
+  const notebooks = nbContext.all(options.project);
   if (notebooks.length > 0) {
     return {
       "notebook-context": notebooks,
@@ -715,6 +714,7 @@ function initFilterParams(dependenciesFile: string) {
 const kQuartoFilterMarker = "quarto";
 const kQuartoCiteProcMarker = "citeproc";
 
+// NB: this mutates `pandoc.citeproc`
 export async function resolveFilters(
   filters: QuartoFilter[],
   options: PandocOptions,
@@ -839,7 +839,7 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
 
 function pdfEngine(options: PandocOptions): string {
   const pdfEngine = options.flags?.pdfEngine ||
-    options.metadata?.[kPdfEngine] as string ||
+    options.format.pandoc?.[kPdfEngine] as string ||
     "pdflatex";
   return pdfEngine;
 }
@@ -910,6 +910,7 @@ const extractTypstFilterParams = (format: Format) => {
     [kTocIndent]: format.metadata[kTocIndent],
     [kLogo]: format.metadata[kLogo],
     [kCssPropertyProcessing]: format.metadata[kCssPropertyProcessing],
+    [kBrandMode]: format.metadata[kBrandMode],
     [kHtmlPreTagProcessing]: format.metadata[kHtmlPreTagProcessing],
   };
 };

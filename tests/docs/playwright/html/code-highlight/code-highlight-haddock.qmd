@@ -1,0 +1,6 @@
+---
+title: Testing haddock code highlight
+highlight-style: haddock
+---
+
+{{< include _body.md >}}

@@ -78,6 +78,8 @@ import {
   documentTitleScssLayer,
   processDocumentTitle,
 } from "./format-html-title.ts";
+import { darkModeDefault } from "./format-html-info.ts";
+
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { isHtmlOutput } from "../../config/format.ts";
 import { emplaceNotebookPreviews } from "./format-html-notebook.ts";
@@ -515,6 +517,14 @@ function bootstrapHtmlPostprocessor(
       doc,
     );
     resources.push(...titleResourceFiles);
+
+    // put quarto-html-before-body script at top of body
+    const beforeBodyScript = doc.querySelector(
+      "script#quarto-html-before-body",
+    );
+    if (beforeBodyScript) {
+      doc.body.insertBefore(beforeBodyScript, doc.body.firstChild);
+    }
 
     // Process the elements of this document into an appendix
     if (
@@ -1059,6 +1069,13 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
         doc.body.classList.add("fullcontent");
       }
     }
+
+    // start body with light or dark class for proper display when JS is disabled
+    let initialLightDarkClass = "quarto-light";
+    if (darkModeDefault(format)) {
+      initialLightDarkClass = "quarto-dark";
+    }
+    doc.body.classList.add(initialLightDarkClass);
 
     // If there is no margin content and no toc in the right margin
     // then lower the z-order so everything else can get on top

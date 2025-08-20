@@ -63,7 +63,6 @@ import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
 import {
   deleteProjectMetadata,
   directoryMetadataForInputFile,
-  projectTypeIsWebsite,
   toInputRelativePaths,
 } from "../../project/project-shared.ts";
 import {
@@ -71,8 +70,6 @@ import {
   kProjectType,
   ProjectContext,
 } from "../../project/types.ts";
-import { isHtmlDashboardOutput, isHtmlOutput } from "../../config/format.ts";
-import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { warnOnce } from "../../core/log.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { fileExecutionEngineAndTarget } from "../../execute/engine.ts";
@@ -88,6 +85,8 @@ import {
 } from "../../core/pandoc/pandoc-formats.ts";
 import { ExtensionContext } from "../../extension/types.ts";
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
+import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
+import { darkModeDefaultMetadata } from "../../format/html/format-html-info.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
@@ -215,7 +214,7 @@ export async function renderContexts(
     // we make it optional because some of the callers have
     // actually just cloned it themselves and don't need to preserve
     // the original
-    options = ld.cloneDeep(options) as RenderOptions;
+    options = safeCloneDeep(options);
   }
 
   const { engine, target } = await fileExecutionEngineAndTarget(
@@ -297,7 +296,7 @@ export async function renderContexts(
 
     // if this isn't for execute then cleanup context
     if (!forExecute && engine.executeTargetSkipped) {
-      engine.executeTargetSkipped(target, formats[formatKey].format);
+      engine.executeTargetSkipped(target, formats[formatKey].format, project);
     }
   }
   return contexts;
@@ -342,11 +341,16 @@ function mergeQuartoConfigs(
   ...configs: Array<Metadata>
 ): Metadata {
   // copy all configs so we don't mutate them
-  config = ld.cloneDeep(config);
-  configs = ld.cloneDeep(configs);
+  config = safeCloneDeep(config);
+  configs = safeCloneDeep(configs);
 
   // bibliography needs to always be an array so it can be merged
   const fixupMergeableScalars = (metadata: Metadata) => {
+    // see https://github.com/quarto-dev/quarto-cli/pull/12372
+    // and https://github.com/quarto-dev/quarto-cli/pull/12369
+    // for more details on why we need this check, as a consequence of an unintuitive
+    // ordering of YAML validation operations
+    if (metadata === null) return metadata;
     [
       kBibliography,
       kCss,
@@ -445,7 +449,7 @@ async function resolveFormats(
 
     // Remove any 'to' information that will force the
     // rendering to a particular format
-    options = ld.cloneDeep(options);
+    options = safeCloneDeep(options);
     delete options.flags?.to;
   }
 
@@ -498,39 +502,6 @@ async function resolveFormats(
     const projFormat = projFormats[format].format;
     const directoryFormat = directoryFormats[format].format;
     const inputFormat = inputFormats[format].format;
-
-    // resolve theme (project-level bootstrap theme always wins for web drived output)
-    if (
-      project &&
-      (isHtmlOutput(format, true) || isHtmlDashboardOutput(format)) &&
-      formatHasBootstrap(projFormat) && projectTypeIsWebsite(projType)
-    ) {
-      // if (formatHasBootstrap(inputFormat)) {
-      //   if (
-      //     inputFormat.metadata[kTheme] !== undefined &&
-      //     !ld.isEqual(inputFormat.metadata[kTheme], projFormat.metadata[kTheme])
-      //   ) {
-      //     warnOnce(
-      //       `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
-      //     );
-      //   }
-      //   delete inputFormat.metadata[kTheme];
-      // }
-      // if (formatHasBootstrap(directoryFormat)) {
-      //   if (
-      //     directoryFormat.metadata[kTheme] !== undefined &&
-      //     !ld.isEqual(
-      //       directoryFormat.metadata[kTheme],
-      //       projFormat.metadata[kTheme],
-      //     )
-      //   ) {
-      //     warnOnce(
-      //       `The file ${file.path} contains a theme provided by a metadata file. This theme metadata is being ignored. Website projects do not support per directory themes since all pages within a website share the website's theme.`,
-      //     );
-      //   }
-      //   delete directoryFormat.metadata[kTheme];
-      // }
-    }
 
     // combine user formats
     const userFormat = mergeFormatMetadata(
@@ -599,11 +570,19 @@ async function resolveFormats(
 
     // resolve brand in project and forward it to format
     const brand = await project.resolveBrand(target.source);
-    mergedFormats[format].render.brand = brand;
-
+    if (brand) {
+      mergedFormats[format].render.brand = {
+        light: brand.light,
+        dark: (brand.enablesDarkMode ||
+            darkModeDefaultMetadata(mergedFormats[format].metadata) !==
+              undefined)
+          ? brand.dark
+          : undefined,
+      };
+    }
     // apply defaults from brand yaml under the metadata of the current format
     const brandFormatDefaults: Metadata =
-      (brand?.data?.defaults?.quarto as unknown as Record<
+      (brand?.light?.data?.defaults?.quarto as unknown as Record<
         string,
         Record<string, Metadata>
       >)?.format
@@ -741,9 +720,6 @@ export async function projectMetadataForInputFile(
   input: string,
   project: ProjectContext,
 ): Promise<Metadata> {
-  // don't mutate caller
-  project = ld.cloneDeep(project) as ProjectContext;
-
   if (project.dir && project.config) {
     // If there is directory and configuration information
     // process paths
@@ -751,10 +727,10 @@ export async function projectMetadataForInputFile(
       projectType(project.config?.project?.[kProjectType]),
       project.dir,
       dirname(input),
-      project.config,
+      safeCloneDeep(project.config),
     ) as Metadata;
   } else {
     // Just return the config or empty metadata
-    return project.config || {};
+    return safeCloneDeep(project.config) || {};
   }
 }

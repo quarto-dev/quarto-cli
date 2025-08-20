@@ -2,12 +2,32 @@
   "[typescript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
   },
+  "notebook.formatOnSave.enabled": false,
+  "notebook.codeActionsOnSave": {
+    "notebook.source.organizeImports": "explicit"
+  },
+  "pylint.enabled": false,
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
   "[r]": {
-    "editor.formatOnSave": false,
-    "editor.defaultFormatter": "REditorSupport.r"
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "Posit.air-vscode"
+  },
+  "[quarto]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "quarto.quarto"
   },
   "[html]": {
     "editor.formatOnSave": false
+  },
+  "[toml]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "tamasfe.even-better-toml"
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
@@ -16,5 +36,7 @@
   "deno.lint": true,
   "deno.unstable": true,
   "deno.importMap": "./src/import_map.json",
-  "deno.disablePaths": ["tests/integration/playwright/"]
+  "deno.disablePaths": ["tests/integration/playwright/"],
+  // opt-out lintr as we use air formatter
+  "r.lsp.diagnostics": false
 }

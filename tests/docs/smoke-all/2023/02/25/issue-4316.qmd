@@ -19,15 +19,16 @@ library(gt)
 #| label: tbl-test
 dat <- data.frame(
   a = c("A", "B"),
-  x = c(1, 2), 
-  y = c(12, 9), 
-  z = c(13, 11))
+  x = c(1, 2),
+  y = c(12, 9),
+  z = c(13, 11)
+)
 
 dat %>%
   gt() %>%
   tab_spanner(
-	label = "Subheader",
-	columns = c(x, y)
+    label = "Subheader",
+    columns = c(x, y)
   )
 ```
 

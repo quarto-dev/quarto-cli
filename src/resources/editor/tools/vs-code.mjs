@@ -7042,6 +7042,13 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Classes to apply to cell container"
         },
         {
+          name: "renderings",
+          schema: {
+            arrayOf: "string"
+          },
+          description: "Array of rendering names, e.g. `[light, dark]`"
+        },
+        {
           name: "tags",
           tags: {
             engine: "jupyter"
@@ -7329,7 +7336,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: true,
           description: {
             short: "Evaluate code cells (if `false` just echos the code into output).",
-            long: "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines \n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
+            long: "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative numbers to selectively include or exclude expressions \n  (explicit inclusion/exclusion of expressions is available only when using the knitr engine)\n"
           }
         },
         {
@@ -8365,6 +8372,10 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "date-format",
+          schema: "string"
+        },
+        {
           id: "math-methods",
           enum: {
             values: [
@@ -8593,7 +8604,128 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
-          id: "comments",
+          id: "giscus-configuration",
+          object: {
+            closed: true,
+            properties: {
+              repo: {
+                string: {
+                  description: {
+                    short: "The Github repo that will be used to store comments.",
+                    long: "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n"
+                  }
+                }
+              },
+              "repo-id": {
+                string: {
+                  description: {
+                    short: "The Github repository identifier.",
+                    long: "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
+                  }
+                }
+              },
+              category: {
+                string: {
+                  description: {
+                    short: "The discussion category where new discussions will be created.",
+                    long: "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n"
+                  }
+                }
+              },
+              "category-id": {
+                string: {
+                  description: {
+                    short: "The Github category identifier.",
+                    long: "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
+                  }
+                }
+              },
+              mapping: {
+                schema: {
+                  anyOf: [
+                    "string",
+                    "number"
+                  ]
+                },
+                completions: [
+                  "pathname",
+                  "url",
+                  "title",
+                  "og:title"
+                ],
+                description: {
+                  short: "The mapping between the page and the embedded discussion.",
+                  long: "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
+                }
+              },
+              "reactions-enabled": {
+                boolean: {
+                  description: "Display reactions for the discussion's main post before the comments."
+                }
+              },
+              loading: {
+                enum: [
+                  "lazy"
+                ],
+                description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
+              },
+              "input-position": {
+                enum: [
+                  "top",
+                  "bottom"
+                ],
+                description: "Place the comment input box above or below the comments."
+              },
+              theme: {
+                anyOf: [
+                  "string",
+                  {
+                    ref: "giscus-themes"
+                  },
+                  {
+                    object: {
+                      closed: true,
+                      properties: {
+                        light: {
+                          anyOf: [
+                            "string",
+                            {
+                              ref: "giscus-themes"
+                            }
+                          ],
+                          description: "The light theme name."
+                        },
+                        dark: {
+                          anyOf: [
+                            "string",
+                            {
+                              ref: "giscus-themes"
+                            }
+                          ],
+                          description: "The dark theme name."
+                        }
+                      }
+                    }
+                  }
+                ],
+                description: {
+                  short: "The giscus theme to use when displaying comments.",
+                  long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
+                }
+              },
+              language: {
+                string: {
+                  description: "The language that should be used when displaying the commenting interface."
+                }
+              }
+            },
+            required: [
+              "repo"
+            ]
+          }
+        },
+        {
+          id: "document-comments-configuration",
           anyOf: [
             {
               enum: [
@@ -8657,123 +8789,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     }
                   },
                   giscus: {
-                    object: {
-                      closed: true,
-                      properties: {
-                        repo: {
-                          string: {
-                            description: {
-                              short: "The Github repo that will be used to store comments.",
-                              long: "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n"
-                            }
-                          }
-                        },
-                        "repo-id": {
-                          string: {
-                            description: {
-                              short: "The Github repository identifier.",
-                              long: "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                            }
-                          }
-                        },
-                        category: {
-                          string: {
-                            description: {
-                              short: "The discussion category where new discussions will be created.",
-                              long: "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n"
-                            }
-                          }
-                        },
-                        "category-id": {
-                          string: {
-                            description: {
-                              short: "The Github category identifier.",
-                              long: "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                            }
-                          }
-                        },
-                        mapping: {
-                          anyOf: [
-                            {
-                              enum: [
-                                "pathname",
-                                "url",
-                                "title",
-                                "og:title"
-                              ]
-                            },
-                            "string"
-                          ],
-                          description: {
-                            short: "The mapping between the page and the embedded discussion.",
-                            long: "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
-                          }
-                        },
-                        "reactions-enabled": {
-                          boolean: {
-                            description: "Display reactions for the discussion's main post before the comments."
-                          }
-                        },
-                        loading: {
-                          enum: [
-                            "lazy"
-                          ],
-                          description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
-                        },
-                        "input-position": {
-                          enum: [
-                            "top",
-                            "bottom"
-                          ],
-                          description: "Place the comment input box above or below the comments."
-                        },
-                        theme: {
-                          anyOf: [
-                            "string",
-                            {
-                              ref: "giscus-themes"
-                            },
-                            {
-                              object: {
-                                closed: true,
-                                properties: {
-                                  light: {
-                                    anyOf: [
-                                      "string",
-                                      {
-                                        ref: "giscus-themes"
-                                      }
-                                    ],
-                                    description: "The light theme name."
-                                  },
-                                  dark: {
-                                    anyOf: [
-                                      "string",
-                                      {
-                                        ref: "giscus-themes"
-                                      }
-                                    ],
-                                    description: "The dark theme name."
-                                  }
-                                }
-                              }
-                            }
-                          ],
-                          description: {
-                            short: "The giscus theme to use when displaying comments.",
-                            long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
-                          }
-                        },
-                        language: {
-                          string: {
-                            description: "The language that should be used when displaying the commenting interface."
-                          }
-                        }
-                      },
-                      required: [
-                        "repo"
-                      ]
-                    }
+                    ref: "giscus-configuration"
                   },
                   hypothesis: {
                     anyOf: [
@@ -9567,6 +9583,11 @@ var require_yaml_intelligence_resources = __commonJS({
                           schema: "boolean",
                           description: "Provide button for copying search link"
                         },
+                        "merge-navbar-crumbs": {
+                          schema: "boolean",
+                          default: true,
+                          description: "When false, do not merge navbar crumbs into the crumbs in `search.json`."
+                        },
                         "keyboard-shortcut": {
                           maybeArrayOf: {
                             string: {
@@ -9668,9 +9689,8 @@ var require_yaml_intelligence_resources = __commonJS({
                           description: "The navbar title. Uses the project title if none is specified."
                         },
                         logo: {
-                          path: {
-                            description: "Path to a logo image that will be displayed to the left of the title."
-                          }
+                          ref: "logo-light-dark-specifier",
+                          description: "Specification of image that will be displayed to the left of the title."
                         },
                         "logo-alt": {
                           string: {
@@ -9683,40 +9703,34 @@ var require_yaml_intelligence_resources = __commonJS({
                           }
                         },
                         background: {
-                          anyOf: [
-                            {
-                              enum: [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            "string"
-                          ],
-                          description: "The navbar's background color (named or hex color)."
+                          string: {
+                            description: "The navbar's background color (named or hex color).",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
+                            ]
+                          }
                         },
                         foreground: {
-                          anyOf: [
-                            {
-                              enum: [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            "string"
-                          ],
-                          description: "The navbar's foreground color (named or hex color)."
+                          string: {
+                            description: "The navbar's foreground color (named or hex color).",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
+                            ]
+                          }
                         },
                         search: {
                           boolean: {
@@ -9800,9 +9814,8 @@ var require_yaml_intelligence_resources = __commonJS({
                             description: "The sidebar title. Uses the project title if none is specified."
                           },
                           logo: {
-                            path: {
-                              description: "Path to a logo image that will be displayed in the sidebar."
-                            }
+                            ref: "logo-light-dark-specifier",
+                            description: "Specification of image that will be displayed in the sidebar."
                           },
                           "logo-alt": {
                             string: {
@@ -9838,38 +9851,30 @@ var require_yaml_intelligence_resources = __commonJS({
                             default: "floating"
                           },
                           background: {
-                            anyOf: [
-                              {
-                                enum: [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              "string"
+                            schema: "string",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
                             ],
                             description: "The sidebar's background color (named or hex color)."
                           },
                           foreground: {
-                            anyOf: [
-                              {
-                                enum: [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              "string"
+                            schema: "string",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
                             ],
                             description: "The sidebar's foreground color (named or hex color)."
                           },
@@ -9966,7 +9971,7 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               comments: {
                 schema: {
-                  ref: "comments"
+                  ref: "document-comments-configuration"
                 }
               },
               "open-graph": {
@@ -10105,7 +10110,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 },
                 "output-file": {
                   path: {
-                    description: "Base name for single-file output (e.g. PDF, ePub)"
+                    description: "Base name for single-file output (e.g. PDF, ePub, docx)"
                   }
                 },
                 "cover-image": {
@@ -11920,7 +11925,40 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-logo",
+          id: "brand-logo-single",
+          description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
+          object: {
+            closed: true,
+            properties: {
+              images: {
+                description: "A dictionary of named logo resources.",
+                schema: {
+                  object: {
+                    additionalProperties: {
+                      schema: {
+                        ref: "brand-logo-resource"
+                      }
+                    }
+                  }
+                }
+              },
+              small: {
+                description: "A link or path to the brand's small-sized logo or icon.\n",
+                schema: "string"
+              },
+              medium: {
+                description: "A link or path to the brand's medium-sized logo.\n",
+                schema: "string"
+              },
+              large: {
+                description: "A link or path to the brand's large- or full-sized logo.\n",
+                schema: "string"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-logo-unified",
           description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
           object: {
             closed: true,
@@ -11968,11 +12006,145 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "logo-options",
+          object: {
+            closed: false,
+            properties: {
+              path: {
+                schema: "path",
+                description: "Path or brand.yml logo resource name.\n"
+              },
+              alt: {
+                schema: "string",
+                description: "Alternative text for the logo, used for accessibility.\n"
+              }
+            },
+            required: [
+              "path"
+            ]
+          }
+        },
+        {
+          id: "logo-specifier",
+          anyOf: [
+            "string",
+            {
+              schema: {
+                ref: "logo-options"
+              }
+            }
+          ]
+        },
+        {
+          id: "logo-options-path-optional",
+          object: {
+            closed: false,
+            properties: {
+              path: {
+                schema: "path",
+                description: "Path or brand.yml logo resource name.\n"
+              },
+              alt: {
+                schema: "string",
+                description: "Alternative text for the logo, used for accessibility.\n"
+              }
+            }
+          }
+        },
+        {
+          id: "logo-specifier-path-optional",
+          anyOf: [
+            "string",
+            {
+              schema: {
+                ref: "logo-options-path-optional"
+              }
+            }
+          ]
+        },
+        {
+          id: "logo-light-dark-specifier",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          anyOf: [
+            {
+              ref: "logo-specifier"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "logo-specifier"
+                    },
+                    description: "Specification of a light logo\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "logo-specifier"
+                    },
+                    description: "Specification of a dark logo\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "logo-light-dark-specifier-path-optional",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          anyOf: [
+            {
+              ref: "logo-specifier-path-optional"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "logo-specifier-path-optional"
+                    },
+                    description: "Specification of a light logo\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "logo-specifier-path-optional"
+                    },
+                    description: "Specification of a dark logo\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "normalized-logo-light-dark-specifier",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          object: {
+            closed: true,
+            properties: {
+              light: {
+                schema: {
+                  ref: "logo-options"
+                },
+                description: "Options for a light logo\n"
+              },
+              dark: {
+                schema: {
+                  ref: "logo-options"
+                },
+                description: "Options for a dark logo\n"
+              }
+            }
+          }
+        },
+        {
           id: "brand-color-value",
           schema: "string"
         },
         {
-          id: "brand-color",
+          id: "brand-color-single",
           description: "The brand's custom color palette and theme.\n",
           object: {
             closed: true,
@@ -12065,6 +12237,126 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "brand-color-light-dark",
+          anyOf: [
+            {
+              ref: "brand-color-value"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "brand-color-value"
+                    },
+                    description: "A link or path to the brand's light-colored logo or icon.\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "brand-color-value"
+                    },
+                    description: "A link or path to the brand's dark-colored logo or icon.\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-color-unified",
+          description: "The brand's custom color palette and theme.\n",
+          object: {
+            closed: true,
+            properties: {
+              palette: {
+                description: "The brand's custom color palette. Any number of colors can be defined, each color having a custom name.\n",
+                object: {
+                  additionalProperties: {
+                    schema: {
+                      ref: "brand-color-value"
+                    }
+                  }
+                }
+              },
+              foreground: {
+                description: "The foreground color, used for text.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                },
+                default: "black"
+              },
+              background: {
+                description: "The background color, used for the page background.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                },
+                default: "white"
+              },
+              primary: {
+                description: "The primary accent color, i.e. the main theme color. Typically used for hyperlinks, active states, primary action buttons, etc.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              secondary: {
+                description: "The secondary accent color. Typically used for lighter text or disabled states.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              tertiary: {
+                description: "The tertiary accent color. Typically an even lighter color, used for hover states, accents, and wells.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              success: {
+                description: "The color used for positive or successful actions and information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              info: {
+                description: "The color used for neutral or informational actions and information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              warning: {
+                description: "The color used for warning or cautionary actions and information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              danger: {
+                description: "The color used for errors, dangerous actions, or negative information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              light: {
+                description: "A bright color, used as a high-contrast foreground color on dark elements or low-contrast background color on light elements.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              dark: {
+                description: "A dark color, used as a high-contrast foreground color on light elements or high-contrast background color on light elements.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              link: {
+                description: "The color used for hyperlinks. If not defined, the `primary` color is used.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              }
+            }
+          }
+        },
+        {
           id: "brand-maybe-named-color",
           description: "A color, which may be a named brand color.\n",
           anyOf: [
@@ -12073,6 +12365,33 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             {
               schema: "string"
+            }
+          ]
+        },
+        {
+          id: "brand-maybe-named-color-light-dark",
+          anyOf: [
+            {
+              ref: "brand-maybe-named-color"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "brand-maybe-named-color"
+                    },
+                    description: "A link or path to the brand's light-colored logo or icon.\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "brand-maybe-named-color"
+                    },
+                    description: "A link or path to the brand's dark-colored logo or icon.\n"
+                  }
+                }
+              }
             }
           ]
         },
@@ -12095,7 +12414,7 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography",
+          id: "brand-typography-single",
           description: "Typography definitions for the brand.",
           object: {
             closed: true,
@@ -12112,23 +12431,62 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               headings: {
                 description: "Settings for headings, or a string specifying the font family only.",
-                ref: "brand-typography-options-headings"
+                ref: "brand-typography-options-headings-single"
               },
               monospace: {
                 description: "Settings for monospace text, or a string specifying the font family only.",
-                ref: "brand-typography-options-monospace"
+                ref: "brand-typography-options-monospace-single"
               },
               "monospace-inline": {
                 description: "Settings for inline code, or a string specifying the font family only.",
-                ref: "brand-typography-options-monospace-inline"
+                ref: "brand-typography-options-monospace-inline-single"
               },
               "monospace-block": {
                 description: "Settings for code blocks, or a string specifying the font family only.",
-                ref: "brand-typography-options-monospace-block"
+                ref: "brand-typography-options-monospace-block-single"
               },
               link: {
                 description: "Settings for links.",
-                ref: "brand-typography-options-link"
+                ref: "brand-typography-options-link-single"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-typography-unified",
+          description: "Typography definitions for the brand.",
+          object: {
+            closed: true,
+            properties: {
+              fonts: {
+                description: "Font files and definitions for the brand.",
+                arrayOf: {
+                  ref: "brand-font"
+                }
+              },
+              base: {
+                description: "The base font settings for the brand. These are used as the default for all text.\n",
+                ref: "brand-typography-options-base"
+              },
+              headings: {
+                description: "Settings for headings, or a string specifying the font family only.",
+                ref: "brand-typography-options-headings-unified"
+              },
+              monospace: {
+                description: "Settings for monospace text, or a string specifying the font family only.",
+                ref: "brand-typography-options-monospace-unified"
+              },
+              "monospace-inline": {
+                description: "Settings for inline code, or a string specifying the font family only.",
+                ref: "brand-typography-options-monospace-inline-unified"
+              },
+              "monospace-block": {
+                description: "Settings for code blocks, or a string specifying the font family only.",
+                ref: "brand-typography-options-monospace-block-unified"
+              },
+              link: {
+                description: "Settings for links.",
+                ref: "brand-typography-options-link-unified"
               }
             }
           }
@@ -12156,7 +12514,7 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-headings",
+          id: "brand-typography-options-headings-single",
           description: "Typographic options for headings.",
           anyOf: [
             "string",
@@ -12183,7 +12541,34 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-monospace",
+          id: "brand-typography-options-headings-unified",
+          description: "Typographic options for headings.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  style: {
+                    ref: "brand-font-style"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "line-height": {
+                    ref: "line-height-number-string"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-typography-options-monospace-single",
           description: "Typographic options for monospace elements.",
           anyOf: [
             "string",
@@ -12208,7 +12593,32 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-monospace-inline",
+          id: "brand-typography-options-monospace-unified",
+          description: "Typographic options for monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-typography-options-monospace-inline-single",
           description: "Typographic options for inline monospace elements.",
           anyOf: [
             "string",
@@ -12233,6 +12643,31 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "brand-typography-options-monospace-inline-unified",
+          description: "Typographic options for inline monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
           id: "line-height-number-string",
           description: "Line height",
           anyOf: [
@@ -12241,7 +12676,7 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-monospace-block",
+          id: "brand-typography-options-monospace-block-single",
           description: "Typographic options for block monospace elements.",
           anyOf: [
             "string",
@@ -12269,7 +12704,35 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-link",
+          id: "brand-typography-options-monospace-block-unified",
+          description: "Typographic options for block monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "line-height": {
+                    ref: "line-height-number-string"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-typography-options-link-single",
           description: "Typographic options for inline monospace elements.",
           anyOf: [
             "string",
@@ -12293,12 +12756,39 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-named-font",
-          description: "Names of customizeable fonts",
+          id: "brand-typography-options-link-unified",
+          description: "Typographic options for inline monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  decoration: "string"
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-named-typography-elements",
+          description: "Names of customizeable typography elements",
           enum: [
             "base",
             "headings",
-            "monospace"
+            "monospace",
+            "monospace-inline",
+            "monospace-block",
+            "link"
           ]
         },
         {
@@ -12515,7 +13005,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string"
         },
         {
-          id: "brand",
+          id: "brand-single",
           object: {
             closed: true,
             properties: {
@@ -12523,19 +13013,94 @@ var require_yaml_intelligence_resources = __commonJS({
                 ref: "brand-meta"
               },
               logo: {
-                ref: "brand-logo"
+                ref: "brand-logo-single"
               },
               color: {
-                ref: "brand-color"
+                ref: "brand-color-single"
               },
               typography: {
-                ref: "brand-typography"
+                ref: "brand-typography-single"
               },
               defaults: {
                 ref: "brand-defaults"
               }
             }
           }
+        },
+        {
+          id: "brand-unified",
+          object: {
+            closed: true,
+            properties: {
+              meta: {
+                ref: "brand-meta"
+              },
+              logo: {
+                ref: "brand-logo-unified"
+              },
+              color: {
+                ref: "brand-color-unified"
+              },
+              typography: {
+                ref: "brand-typography-unified"
+              },
+              defaults: {
+                ref: "brand-defaults"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-path-only-light-dark",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: "string",
+                  dark: "string"
+                }
+              }
+            }
+          ],
+          description: "A path to a brand.yml file, or an object with light and dark paths to brand.yml\n"
+        },
+        {
+          id: "brand-path-bool-light-dark",
+          anyOf: [
+            "string",
+            "boolean",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "brand-single"
+                      }
+                    ],
+                    description: "The path to a light brand file or an inline light brand definition.\n"
+                  },
+                  dark: {
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "brand-single"
+                      }
+                    ],
+                    description: "The path to a dark brand file or an inline dark brand definition.\n"
+                  }
+                }
+              }
+            },
+            {
+              ref: "brand-unified"
+            }
+          ],
+          description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline (unified) brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
         },
         {
           id: "brand-defaults",
@@ -12630,6 +13195,13 @@ var require_yaml_intelligence_resources = __commonJS({
             ref: "date"
           },
           description: "Document date"
+        },
+        {
+          name: "date-format",
+          schema: {
+            ref: "date-format"
+          },
+          description: "Date format for the document"
         },
         {
           name: "date-modified",
@@ -12983,29 +13555,31 @@ var require_yaml_intelligence_resources = __commonJS({
               {
                 string: {
                   completions: [
-                    "pygments",
-                    "tango",
-                    "espresso",
-                    "zenburn",
-                    "kate",
-                    "monochrome",
-                    "breezedark",
-                    "haddock",
+                    "a11y",
                     "arrow",
                     "atom-one",
                     "ayu",
                     "ayu-mirage",
                     "breeze",
+                    "breezedark",
                     "dracula",
+                    "espresso",
                     "github",
                     "gruvbox",
-                    "mokokai",
+                    "haddock",
+                    "kate",
+                    "monochrome",
+                    "monokai",
+                    "none",
                     "nord",
                     "oblivion",
                     "printing",
+                    "pygments",
                     "radical",
                     "solarized",
-                    "vim-dark"
+                    "tango",
+                    "vim-dark",
+                    "zenburn"
                   ]
                 }
               }
@@ -13212,7 +13786,7 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           schema: {
-            ref: "comments"
+            ref: "document-comments-configuration"
           },
           description: "Configuration for document commenting."
         }
@@ -13554,8 +14128,10 @@ var require_yaml_intelligence_resources = __commonJS({
               "dashboard"
             ]
           },
-          schema: "path",
-          description: "Logo image (placed on the left side of the navigation bar)"
+          schema: {
+            ref: "logo-light-dark-specifier"
+          },
+          description: "Logo image(s) (placed on the left side of the navigation bar)"
         },
         {
           name: "orientation",
@@ -14042,7 +14618,8 @@ var require_yaml_intelligence_resources = __commonJS({
             string: {
               completions: [
                 "jupyter",
-                "knitr"
+                "knitr",
+                "julia"
               ]
             }
           },
@@ -15574,6 +16151,23 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "The paper size for the document.\n"
         },
         {
+          name: "brand-mode",
+          schema: {
+            enum: [
+              "light",
+              "dark"
+            ]
+          },
+          default: "light",
+          tags: {
+            formats: [
+              "typst",
+              "revealjs"
+            ]
+          },
+          description: "The brand mode to use for rendering the document, `light` or `dark`.\n"
+        },
+        {
           name: "layout",
           schema: {
             maybeArrayOf: "string"
@@ -16059,7 +16653,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           description: {
             short: "A regular expression that can be used to determine whether a link is an internal link.",
-            long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
+            long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with `http://www.quarto.org/custom` or `https://www.quarto.org/custom`\nas internal links (and others will be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
           }
         },
         {
@@ -16582,6 +17176,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "number-offset",
+          tags: {
+            formats: [
+              "$html-all"
+            ]
+          },
           schema: {
             maybeArrayOf: "number"
           },
@@ -16682,15 +17281,9 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "brand",
           schema: {
-            anyOf: [
-              "string",
-              "boolean",
-              {
-                ref: "brand"
-              }
-            ]
+            ref: "brand-path-bool-light-dark"
           },
-          description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition.\n"
+          description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
         },
         {
           name: "theme",
@@ -16812,6 +17405,20 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Enables smooth scrolling within the page."
         },
         {
+          name: "respect-user-color-scheme",
+          schema: "boolean",
+          default: false,
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: {
+            short: "Enables setting dark mode based on the `prefers-color-scheme` media query.",
+            long: "If set, Quarto reads the `prefers-color-scheme` media query to determine whether to show\nthe user a dark or light page. Otherwise the author-preferred color scheme is shown.\n"
+          }
+        },
+        {
           name: "html-math-method",
           tags: {
             formats: [
@@ -16930,7 +17537,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Use the specified engine when producing PDF output.",
-            long: "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`, `pagedjs-cli`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n- `typst`: `typst`\n"
+            long: "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `lualatex` (other options: `pdflatex`, `xelatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`, `pagedjs-cli`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n- `typst`: `typst`\n"
           }
         },
         {
@@ -17063,7 +17670,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer color theme for this presentation."
+          description: "The Beamer color theme for this presentation, passed to `\\usecolortheme`."
+        },
+        {
+          name: "colorthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer color theme options for this presentation, passed to `\\usecolortheme`."
         },
         {
           name: "fonttheme",
@@ -17073,7 +17692,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer font theme for this presentation."
+          description: "The Beamer font theme for this presentation, passed to `\\usefonttheme`."
+        },
+        {
+          name: "fontthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer font theme options for this presentation, passed to `\\usefonttheme`."
         },
         {
           name: "innertheme",
@@ -17083,7 +17714,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer inner theme for this presentation."
+          description: "The Beamer inner theme for this presentation, passed to `\\useinnertheme`."
+        },
+        {
+          name: "innerthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer inner theme options for this presentation, passed to `\\useinnertheme`."
         },
         {
           name: "outertheme",
@@ -17093,7 +17736,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer outer theme for this presentation."
+          description: "The Beamer outer theme for this presentation, passed to `\\useoutertheme`."
+        },
+        {
+          name: "outerthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer outer theme options for this presentation, passed to `\\useoutertheme`."
         },
         {
           name: "themeoptions",
@@ -17105,7 +17760,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "Options passed to LaTeX Beamer themes."
+          description: "Options passed to LaTeX Beamer themes inside `\\usetheme`."
         },
         {
           name: "section",
@@ -17706,15 +18361,11 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "logo",
           tags: {
             formats: [
-              "revealjs",
-              "typst"
+              "revealjs"
             ]
           },
           schema: {
-            anyOf: [
-              "string",
-              "object"
-            ]
+            ref: "logo-light-dark-specifier"
           },
           description: "Logo image (placed in bottom right corner of slides)"
         },
@@ -19346,7 +19997,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-doc"
             ]
           },
-          description: "Setting this to false prevents the `repo-actions` from appearing on this page."
+          description: "Setting this to false prevents the `repo-actions` from appearing on this page.\nOther possible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
         },
         {
           name: "aliases",
@@ -19816,6 +20467,12 @@ var require_yaml_intelligence_resources = __commonJS({
                     description: "Additional file resources to be copied to output directory"
                   }
                 },
+                brand: {
+                  schema: {
+                    ref: "brand-path-only-light-dark"
+                  },
+                  description: "Path to brand.yml or object with light and dark paths to brand.yml\n"
+                },
                 preview: {
                   description: "Options for `quarto preview`",
                   schema: {
@@ -19887,6 +20544,13 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           errorMessage: "type key not supported at project type-level. Use `project: type: ...` instead.",
           description: "internal-schema-hack"
+        },
+        {
+          name: "engines",
+          schema: {
+            arrayOf: "string"
+          },
+          description: "List execution engines you want to give priority when determining which engine should render a notebook. If two engines have support for a notebook, the one listed earlier will be chosen. Quarto's default order is 'knitr', 'jupyter', 'markdown', 'julia'."
         }
       ],
       "schema/schema.yml": [
@@ -20655,16 +21319,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Alias for href",
         'Value for rel attribute. Multiple space-separated values are\npermitted. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor a details.',
         'Value for target attribute. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target</a>\nfor details.',
-        "The Github repo that will be used to store comments.",
-        "The label that will be assigned to issues created by Utterances.",
-        {
-          short: "The Github theme that should be used for Utterances.",
-          long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
-        },
-        {
-          short: "How posts should be mapped to Github issues",
-          long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
-        },
         {
           short: "The Github repo that will be used to store comments.",
           long: "The Github repo that will be used to store comments.\nIn order to work correctly, the repo must be public, with the giscus\napp installed, and the discussions feature must be enabled."
@@ -20695,6 +21349,16 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name.",
         "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
+        "The Github repo that will be used to store comments.",
+        "The label that will be assigned to issues created by Utterances.",
+        {
+          short: "The Github theme that should be used for Utterances.",
+          long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
+        },
+        {
+          short: "How posts should be mapped to Github issues",
+          long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
+        },
         "Override the default hypothesis client url with a custom client\nurl.",
         "Controls whether the sidebar opens automatically on startup.",
         "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -20886,6 +21550,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -20902,7 +21567,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Additional parameters to pass when executing a search",
         "Top navigation options",
         "The navbar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "The navbar\u2019s background color (named or hex color).",
@@ -20918,7 +21583,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -20935,7 +21600,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -21046,6 +21711,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -21062,7 +21728,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Additional parameters to pass when executing a search",
         "Top navigation options",
         "The navbar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "The navbar\u2019s background color (named or hex color).",
@@ -21078,7 +21744,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -21095,7 +21761,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -21138,7 +21804,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Book part and chapter files",
         "Book appendix files",
         "Book references file",
-        "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+        "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
         "Cover image (used in HTML and ePub formats)",
         "Alternative text for cover image (used in HTML format)",
         "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -21833,10 +22499,44 @@ var require_yaml_intelligence_resources = __commonJS({
         "Alternative text for the logo, used for accessibility.",
         "Provide definitions and defaults for brand\u2019s logo in various formats\nand sizes.",
         "A dictionary of named logo resources.",
+        "A link or path to the brand\u2019s small-sized logo or icon.",
+        "A link or path to the brand\u2019s medium-sized logo.",
+        "A link or path to the brand\u2019s large- or full-sized logo.",
+        "Provide definitions and defaults for brand\u2019s logo in various formats\nand sizes.",
+        "A dictionary of named logo resources.",
         "A link or path to the brand\u2019s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
         "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
         "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
         "Names of customizeable logos",
+        "Path or brand.yml logo resource name.",
+        "Alternative text for the logo, used for accessibility.",
+        "Path or brand.yml logo resource name.",
+        "Alternative text for the logo, used for accessibility.",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+        "Specification of a light logo",
+        "Specification of a dark logo",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+        "Specification of a light logo",
+        "Specification of a dark logo",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+        "Options for a light logo",
+        "Options for a dark logo",
+        "The brand\u2019s custom color palette and theme.",
+        "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
+        "The foreground color, used for text.",
+        "The background color, used for the page background.",
+        "The primary accent color, i.e.&nbsp;the main theme color. Typically used\nfor hyperlinks, active states, primary action buttons, etc.",
+        "The secondary accent color. Typically used for lighter text or\ndisabled states.",
+        "The tertiary accent color. Typically an even lighter color, used for\nhover states, accents, and wells.",
+        "The color used for positive or successful actions and\ninformation.",
+        "The color used for neutral or informational actions and\ninformation.",
+        "The color used for warning or cautionary actions and information.",
+        "The color used for errors, dangerous actions, or negative\ninformation.",
+        "A bright color, used as a high-contrast foreground color on dark\nelements or low-contrast background color on light elements.",
+        "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
+        "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
+        "A link or path to the brand\u2019s light-colored logo or icon.",
+        "A link or path to the brand\u2019s dark-colored logo or icon.",
         "The brand\u2019s custom color palette and theme.",
         "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
         "The foreground color, used for text.",
@@ -21852,7 +22552,17 @@ var require_yaml_intelligence_resources = __commonJS({
         "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
         "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
         "A color, which may be a named brand color.",
+        "A link or path to the brand\u2019s light-colored logo or icon.",
+        "A link or path to the brand\u2019s dark-colored logo or icon.",
         "A named brand color, taken either from <code>color.theme</code> or\n<code>color.palette</code> (in that order).",
+        "Typography definitions for the brand.",
+        "Font files and definitions for the brand.",
+        "The base font settings for the brand. These are used as the default\nfor all text.",
+        "Settings for headings, or a string specifying the font family\nonly.",
+        "Settings for monospace text, or a string specifying the font family\nonly.",
+        "Settings for inline code, or a string specifying the font family\nonly.",
+        "Settings for code blocks, or a string specifying the font family\nonly.",
+        "Settings for links.",
         "Typography definitions for the brand.",
         "Font files and definitions for the brand.",
         "The base font settings for the brand. These are used as the default\nfor all text.",
@@ -21863,12 +22573,17 @@ var require_yaml_intelligence_resources = __commonJS({
         "Settings for links.",
         "Base typographic options.",
         "Typographic options for headings.",
+        "Typographic options for headings.",
         "Typographic options for monospace elements.",
+        "Typographic options for monospace elements.",
+        "Typographic options for inline monospace elements.",
         "Typographic options for inline monospace elements.",
         "Line height",
         "Typographic options for block monospace elements.",
+        "Typographic options for block monospace elements.",
         "Typographic options for inline monospace elements.",
-        "Names of customizeable fonts",
+        "Typographic options for inline monospace elements.",
+        "Names of customizeable typography elements",
         "Font files and definitions for the brand.",
         "A font weight.",
         "A font style.",
@@ -21896,11 +22611,16 @@ var require_yaml_intelligence_resources = __commonJS({
         "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
         "The path to the font file. This can be a local path or a URL.",
         "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
+        "A path to a brand.yml file, or an object with light and dark paths to\nbrand.yml",
+        "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline (unified) brand definition, or an object with light\nand dark brand paths or definitions.",
+        "The path to a light brand file or an inline light brand\ndefinition.",
+        "The path to a dark brand file or an inline dark brand definition.",
         {
           short: "Unique label for code cell",
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
         },
         "Classes to apply to cell container",
+        "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
         "Array of tags for notebook cell",
         {
           short: "Notebook cell identifier",
@@ -22113,6 +22833,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Document title",
         "Identifies the subtitle of the document.",
         "Document date",
+        "Date format for the document",
         "Document date modified",
         "Author or authors of the document",
         {
@@ -22270,7 +22991,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The title used for appendix.",
         "The delimiter beween appendix number and title.",
         "Enables a hover popup for cross references that shows the item being\nreferenced.",
-        "Logo image (placed on the left side of the navigation bar)",
+        "Logo image(s) (placed on the left side of the navigation bar)",
         "Default orientation for dashboard content (default\n<code>rows</code>)",
         "Use scrolling rather than fill layout (default:\n<code>false</code>)",
         "Make card content expandable (default: <code>true</code>)",
@@ -22680,6 +23401,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Control the <code>\\pagestyle{}</code> for the document.",
         "The paper size for the document.",
+        "The brand mode to use for rendering the document, <code>light</code>\nor <code>dark</code>.",
         {
           short: "The options for margins and text layout for this document.",
           long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.'
@@ -22772,7 +23494,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Open external links in a new browser window or tab (rather than\nnavigating the current tab).",
         {
           short: "A regular expression that can be used to determine whether a link is\nan internal link.",
-          long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith http://www.quarto.org as internal links (and others will be\nconsidered external):"
+          long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith <code>http://www.quarto.org/custom</code> or\n<code>https://www.quarto.org/custom</code> as internal links (and others\nwill be considered external):"
         },
         {
           short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
@@ -22865,7 +23587,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
         "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
-        "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition.",
+        "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
         "Theme name, theme scss file, or a mix of both.",
         "The light theme name, theme scss file, or a mix of both.",
         "The light theme name, theme scss file, or a mix of both.",
@@ -22878,6 +23600,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Enables hover over a section title to see an anchor link.",
         "Enables tabsets to present content.",
         "Enables smooth scrolling within the page.",
+        {
+          short: "Enables setting dark mode based on the\n<code>prefers-color-scheme</code> media query.",
+          long: "If set, Quarto reads the <code>prefers-color-scheme</code> media\nquery to determine whether to show the user a dark or light page.\nOtherwise the author-preferred color scheme is shown."
+        },
         {
           short: "Method use to render math in HTML output",
           long: 'Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href="https://pandoc.org/MANUAL.html#math-rendering-in-html">Math\nRendering in HTML</a> for additional details.'
@@ -22911,11 +23637,15 @@ var require_yaml_intelligence_resources = __commonJS({
         "The image for the title slide.",
         "Controls navigation symbols for the presentation (<code>empty</code>,\n<code>frame</code>, <code>vertical</code>, or\n<code>horizontal</code>)",
         "Whether to enable title pages for new sections.",
-        "The Beamer color theme for this presentation.",
-        "The Beamer font theme for this presentation.",
-        "The Beamer inner theme for this presentation.",
-        "The Beamer outer theme for this presentation.",
-        "Options passed to LaTeX Beamer themes.",
+        "The Beamer color theme for this presentation, passed to\n<code>\\usecolortheme</code>.",
+        "The Beamer color theme options for this presentation, passed to\n<code>\\usecolortheme</code>.",
+        "The Beamer font theme for this presentation, passed to\n<code>\\usefonttheme</code>.",
+        "The Beamer font theme options for this presentation, passed to\n<code>\\usefonttheme</code>.",
+        "The Beamer inner theme for this presentation, passed to\n<code>\\useinnertheme</code>.",
+        "The Beamer inner theme options for this presentation, passed to\n<code>\\useinnertheme</code>.",
+        "The Beamer outer theme for this presentation, passed to\n<code>\\useoutertheme</code>.",
+        "The Beamer outer theme options for this presentation, passed to\n<code>\\useoutertheme</code>.",
+        "Options passed to LaTeX Beamer themes inside\n<code>\\usetheme</code>.",
         "The section number in man pages.",
         "Enable and disable extensions for markdown output (e.g.&nbsp;\u201C+emoji\u201D)",
         "Specify whether to use <code>atx</code> (<code>#</code>-prefixed) or\n<code>setext</code> (underlined) headings for level 1 and 2 headings\n(<code>atx</code> or <code>setext</code>).",
@@ -23251,7 +23981,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Print a list of figures in the document.",
         "Print a list of tables in the document.",
         "Setting this to false prevents this document from being included in\nsearches.",
-        "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
+        "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page. Other possible values are <code>none</code> or\none or more of <code>edit</code>, <code>source</code>, and\n<code>issue</code>, <em>e.g.</em>\n<code>[edit, source, issue]</code>.",
         {
           short: "Links to source repository actions",
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -23283,6 +24013,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "HTML library (JS/CSS/etc.) directory",
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
+        "Path to brand.yml or object with light and dark paths to\nbrand.yml",
         "Options for <code>quarto preview</code>",
         "Scripts to run as a pre-render step",
         "Scripts to run as a post-render step",
@@ -23366,6 +24097,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -23382,7 +24114,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Additional parameters to pass when executing a search",
         "Top navigation options",
         "The navbar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "The navbar\u2019s background color (named or hex color).",
@@ -23398,7 +24130,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -23415,7 +24147,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -23458,7 +24190,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Book part and chapter files",
         "Book appendix files",
         "Book references file",
-        "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+        "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
         "Cover image (used in HTML and ePub formats)",
         "Alternative text for cover image (used in HTML format)",
         "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -23616,6 +24348,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+        "When defined, run axe-core accessibility tests on the document.",
+        "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
+        "The logo image.",
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -23627,6 +24363,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "HTML library (JS/CSS/etc.) directory",
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
+        "Path to brand.yml or object with light and dark paths to\nbrand.yml",
         "Options for <code>quarto preview</code>",
         "Scripts to run as a pre-render step",
         "Scripts to run as a post-render step",
@@ -23710,6 +24447,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -23726,7 +24464,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Additional parameters to pass when executing a search",
         "Top navigation options",
         "The navbar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "The navbar\u2019s background color (named or hex color).",
@@ -23742,7 +24480,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -23759,7 +24497,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -23802,7 +24540,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Book part and chapter files",
         "Book appendix files",
         "Book references file",
-        "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+        "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
         "Cover image (used in HTML and ePub formats)",
         "Alternative text for cover image (used in HTML format)",
         "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -23959,7 +24697,8 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
       ],
       "schema/external-schemas.yml": [
         {
@@ -24188,12 +24927,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 193535,
+        _internalId: 197539,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 193527,
+            _internalId: 197531,
             type: "enum",
             enum: [
               "png",
@@ -24209,7 +24948,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 193534,
+            _internalId: 197538,
             type: "anyOf",
             anyOf: [
               {
@@ -24249,7 +24988,46 @@ var require_yaml_intelligence_resources = __commonJS({
           "case-detection": true
         },
         $id: "handlers/mermaid"
-      }
+      },
+      "schema/document-a11y.yml": [
+        {
+          name: "axe",
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                object: {
+                  properties: {
+                    output: {
+                      enum: [
+                        "json",
+                        "console",
+                        "document"
+                      ],
+                      description: "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          description: "When defined, run axe-core accessibility tests on the document."
+        }
+      ],
+      "schema/document-typst.yml": [
+        {
+          name: "logo",
+          schema: {
+            ref: "logo-light-dark-specifier-path-optional"
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: "The logo image."
+        }
+      ]
     };
   }
 });
@@ -24734,8 +25512,7 @@ function mappedConcat(strings) {
   const mappedStrings = strings.map((s) => {
     if (typeof s === "string") {
       return asMappedString(s);
-    } else
-      return s;
+    } else return s;
   });
   let currentOffset = 0;
   const offsets = [0];
@@ -24974,10 +25751,8 @@ function isObject(subject) {
   return typeof subject === "object" && subject !== null;
 }
 function toArray(sequence) {
-  if (Array.isArray(sequence))
-    return sequence;
-  else if (isNothing(sequence))
-    return [];
+  if (Array.isArray(sequence)) return sequence;
+  else if (isNothing(sequence)) return [];
   return [sequence];
 }
 function extend(target, source) {
@@ -25017,8 +25792,7 @@ var common = {
 };
 function formatError(exception2, compact) {
   var where = "", message = exception2.reason || "(unknown reason)";
-  if (!exception2.mark)
-    return message;
+  if (!exception2.mark) return message;
   if (exception2.mark.name) {
     where += 'in "' + exception2.mark.name + '" ';
   }
@@ -25068,16 +25842,11 @@ function padStart(string, max) {
 }
 function makeSnippet(mark, options) {
   options = Object.create(options || null);
-  if (!mark.buffer)
-    return null;
-  if (!options.maxLength)
-    options.maxLength = 79;
-  if (typeof options.indent !== "number")
-    options.indent = 1;
-  if (typeof options.linesBefore !== "number")
-    options.linesBefore = 3;
-  if (typeof options.linesAfter !== "number")
-    options.linesAfter = 2;
+  if (!mark.buffer) return null;
+  if (!options.maxLength) options.maxLength = 79;
+  if (typeof options.indent !== "number") options.indent = 1;
+  if (typeof options.linesBefore !== "number") options.linesBefore = 3;
+  if (typeof options.linesAfter !== "number") options.linesAfter = 2;
   var re = /\r?\n|\r|\0/g;
   var lineStarts = [0];
   var lineEnds = [];
@@ -25090,8 +25859,7 @@ function makeSnippet(mark, options) {
       foundLineNo = lineStarts.length - 2;
     }
   }
-  if (foundLineNo < 0)
-    foundLineNo = lineStarts.length - 1;
+  if (foundLineNo < 0) foundLineNo = lineStarts.length - 1;
   var result = "", i, line;
   var lineNoLength = Math.min(
     mark.line + options.linesAfter,
@@ -25099,8 +25867,7 @@ function makeSnippet(mark, options) {
   ).toString().length;
   var maxLineLength = options.maxLength - (options.indent + lineNoLength + 3);
   for (i = 1; i <= options.linesBefore; i++) {
-    if (foundLineNo - i < 0)
-      break;
+    if (foundLineNo - i < 0) break;
     line = getLine(
       mark.buffer,
       lineStarts[foundLineNo - i],
@@ -25120,8 +25887,7 @@ function makeSnippet(mark, options) {
   result += common.repeat(" ", options.indent) + padStart((mark.line + 1).toString(), lineNoLength) + " | " + line.str + "\n";
   result += common.repeat("-", options.indent + lineNoLength + 3 + line.pos) + "^\n";
   for (i = 1; i <= options.linesAfter; i++) {
-    if (foundLineNo + i >= lineEnds.length)
-      break;
+    if (foundLineNo + i >= lineEnds.length) break;
     line = getLine(
       mark.buffer,
       lineStarts[foundLineNo + i],
@@ -25240,10 +26006,8 @@ Schema$1.prototype.extend = function extend2(definition) {
   } else if (Array.isArray(definition)) {
     explicit = explicit.concat(definition);
   } else if (definition && (Array.isArray(definition.implicit) || Array.isArray(definition.explicit))) {
-    if (definition.implicit)
-      implicit = implicit.concat(definition.implicit);
-    if (definition.explicit)
-      explicit = explicit.concat(definition.explicit);
+    if (definition.implicit) implicit = implicit.concat(definition.implicit);
+    if (definition.explicit) explicit = explicit.concat(definition.explicit);
   } else {
     throw new exception(
       "Schema.extend argument should be a Type, [ Type ], or a schema definition ({ implicit: [...], explicit: [...] })"
@@ -25307,8 +26071,7 @@ var failsafe = new schema({
   explicit: [str, seq, map]
 });
 function resolveYamlNull(data) {
-  if (data === null)
-    return true;
+  if (data === null) return true;
   var max = data.length;
   return max === 1 && data === "~" || max === 4 && (data === "null" || data === "Null" || data === "NULL");
 }
@@ -25343,8 +26106,7 @@ var _null = new type("tag:yaml.org,2002:null", {
   defaultStyle: "lowercase"
 });
 function resolveYamlBoolean(data) {
-  if (data === null)
-    return false;
+  if (data === null) return false;
   var max = data.length;
   return max === 4 && (data === "true" || data === "True" || data === "TRUE") || max === 5 && (data === "false" || data === "False" || data === "FALSE");
 }
@@ -25382,27 +26144,22 @@ function isDecCode(c) {
   return 48 <= c && c <= 57;
 }
 function resolveYamlInteger(data) {
-  if (data === null)
-    return false;
+  if (data === null) return false;
   var max = data.length, index = 0, hasDigits = false, ch;
-  if (!max)
-    return false;
+  if (!max) return false;
   ch = data[index];
   if (ch === "-" || ch === "+") {
     ch = data[++index];
   }
   if (ch === "0") {
-    if (index + 1 === max)
-      return true;
+    if (index + 1 === max) return true;
     ch = data[++index];
     if (ch === "b") {
       index++;
       for (; index < max; index++) {
         ch = data[index];
-        if (ch === "_")
-          continue;
-        if (ch !== "0" && ch !== "1")
-          return false;
+        if (ch === "_") continue;
+        if (ch !== "0" && ch !== "1") return false;
         hasDigits = true;
       }
       return hasDigits && ch !== "_";
@@ -25411,10 +26168,8 @@ function resolveYamlInteger(data) {
       index++;
       for (; index < max; index++) {
         ch = data[index];
-        if (ch === "_")
-          continue;
-        if (!isHexCode(data.charCodeAt(index)))
-          return false;
+        if (ch === "_") continue;
+        if (!isHexCode(data.charCodeAt(index))) return false;
         hasDigits = true;
       }
       return hasDigits && ch !== "_";
@@ -25423,28 +26178,23 @@ function resolveYamlInteger(data) {
       index++;
       for (; index < max; index++) {
         ch = data[index];
-        if (ch === "_")
-          continue;
-        if (!isOctCode(data.charCodeAt(index)))
-          return false;
+        if (ch === "_") continue;
+        if (!isOctCode(data.charCodeAt(index))) return false;
         hasDigits = true;
       }
       return hasDigits && ch !== "_";
     }
   }
-  if (ch === "_")
-    return false;
+  if (ch === "_") return false;
   for (; index < max; index++) {
     ch = data[index];
-    if (ch === "_")
-      continue;
+    if (ch === "_") continue;
     if (!isDecCode(data.charCodeAt(index))) {
       return false;
     }
     hasDigits = true;
   }
-  if (!hasDigits || ch === "_")
-    return false;
+  if (!hasDigits || ch === "_") return false;
   return true;
 }
 function constructYamlInteger(data) {
@@ -25454,20 +26204,15 @@ function constructYamlInteger(data) {
   }
   ch = value[0];
   if (ch === "-" || ch === "+") {
-    if (ch === "-")
-      sign = -1;
+    if (ch === "-") sign = -1;
     value = value.slice(1);
     ch = value[0];
   }
-  if (value === "0")
-    return 0;
+  if (value === "0") return 0;
   if (ch === "0") {
-    if (value[1] === "b")
-      return sign * parseInt(value.slice(2), 2);
-    if (value[1] === "x")
-      return sign * parseInt(value.slice(2), 16);
-    if (value[1] === "o")
-      return sign * parseInt(value.slice(2), 8);
+    if (value[1] === "b") return sign * parseInt(value.slice(2), 2);
+    if (value[1] === "x") return sign * parseInt(value.slice(2), 16);
+    if (value[1] === "o") return sign * parseInt(value.slice(2), 8);
   }
   return sign * parseInt(value, 10);
 }
@@ -25505,8 +26250,7 @@ var YAML_FLOAT_PATTERN = new RegExp(
   "^(?:[-+]?(?:[0-9][0-9_]*)(?:\\.[0-9_]*)?(?:[eE][-+]?[0-9]+)?|\\.[0-9_]+(?:[eE][-+]?[0-9]+)?|[-+]?\\.(?:inf|Inf|INF)|\\.(?:nan|NaN|NAN))$"
 );
 function resolveYamlFloat(data) {
-  if (data === null)
-    return false;
+  if (data === null) return false;
   if (!YAML_FLOAT_PATTERN.test(data) || data[data.length - 1] === "_") {
     return false;
   }
@@ -25584,21 +26328,16 @@ var YAML_TIMESTAMP_REGEXP = new RegExp(
   "^([0-9][0-9][0-9][0-9])-([0-9][0-9]?)-([0-9][0-9]?)(?:[Tt]|[ \\t]+)([0-9][0-9]?):([0-9][0-9]):([0-9][0-9])(?:\\.([0-9]*))?(?:[ \\t]*(Z|([-+])([0-9][0-9]?)(?::([0-9][0-9]))?))?$"
 );
 function resolveYamlTimestamp(data) {
-  if (data === null)
-    return false;
-  if (YAML_DATE_REGEXP.exec(data) !== null)
-    return true;
-  if (YAML_TIMESTAMP_REGEXP.exec(data) !== null)
-    return true;
+  if (data === null) return false;
+  if (YAML_DATE_REGEXP.exec(data) !== null) return true;
+  if (YAML_TIMESTAMP_REGEXP.exec(data) !== null) return true;
   return false;
 }
 function constructYamlTimestamp(data) {
   var match, year, month, day, hour, minute, second, fraction = 0, delta = null, tz_hour, tz_minute, date;
   match = YAML_DATE_REGEXP.exec(data);
-  if (match === null)
-    match = YAML_TIMESTAMP_REGEXP.exec(data);
-  if (match === null)
-    throw new Error("Date resolve error");
+  if (match === null) match = YAML_TIMESTAMP_REGEXP.exec(data);
+  if (match === null) throw new Error("Date resolve error");
   year = +match[1];
   month = +match[2] - 1;
   day = +match[3];
@@ -25619,12 +26358,10 @@ function constructYamlTimestamp(data) {
     tz_hour = +match[10];
     tz_minute = +(match[11] || 0);
     delta = (tz_hour * 60 + tz_minute) * 6e4;
-    if (match[9] === "-")
-      delta = -delta;
+    if (match[9] === "-") delta = -delta;
   }
   date = new Date(Date.UTC(year, month, day, hour, minute, second, fraction));
-  if (delta)
-    date.setTime(date.getTime() - delta);
+  if (delta) date.setTime(date.getTime() - delta);
   return date;
 }
 function representYamlTimestamp(object) {
@@ -25646,15 +26383,12 @@ var merge = new type("tag:yaml.org,2002:merge", {
 });
 var BASE64_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r";
 function resolveYamlBinary(data) {
-  if (data === null)
-    return false;
+  if (data === null) return false;
   var code2, idx, bitlen = 0, max = data.length, map2 = BASE64_MAP;
   for (idx = 0; idx < max; idx++) {
     code2 = map2.indexOf(data.charAt(idx));
-    if (code2 > 64)
-      continue;
-    if (code2 < 0)
-      return false;
+    if (code2 > 64) continue;
+    if (code2 < 0) return false;
     bitlen += 6;
   }
   return bitlen % 8 === 0;
@@ -25725,28 +26459,21 @@ var binary = new type("tag:yaml.org,2002:binary", {
 var _hasOwnProperty$3 = Object.prototype.hasOwnProperty;
 var _toString$2 = Object.prototype.toString;
 function resolveYamlOmap(data) {
-  if (data === null)
-    return true;
+  if (data === null) return true;
   var objectKeys = [], index, length, pair, pairKey, pairHasKey, object = data;
   for (index = 0, length = object.length; index < length; index += 1) {
     pair = object[index];
     pairHasKey = false;
-    if (_toString$2.call(pair) !== "[object Object]")
-      return false;
+    if (_toString$2.call(pair) !== "[object Object]") return false;
     for (pairKey in pair) {
       if (_hasOwnProperty$3.call(pair, pairKey)) {
-        if (!pairHasKey)
-          pairHasKey = true;
-        else
-          return false;
+        if (!pairHasKey) pairHasKey = true;
+        else return false;
       }
     }
-    if (!pairHasKey)
-      return false;
-    if (objectKeys.indexOf(pairKey) === -1)
-      objectKeys.push(pairKey);
-    else
-      return false;
+    if (!pairHasKey) return false;
+    if (objectKeys.indexOf(pairKey) === -1) objectKeys.push(pairKey);
+    else return false;
   }
   return true;
 }
@@ -25760,24 +26487,20 @@ var omap = new type("tag:yaml.org,2002:omap", {
 });
 var _toString$1 = Object.prototype.toString;
 function resolveYamlPairs(data) {
-  if (data === null)
-    return true;
+  if (data === null) return true;
   var index, length, pair, keys, result, object = data;
   result = new Array(object.length);
   for (index = 0, length = object.length; index < length; index += 1) {
     pair = object[index];
-    if (_toString$1.call(pair) !== "[object Object]")
-      return false;
+    if (_toString$1.call(pair) !== "[object Object]") return false;
     keys = Object.keys(pair);
-    if (keys.length !== 1)
-      return false;
+    if (keys.length !== 1) return false;
     result[index] = [keys[0], pair[keys[0]]];
   }
   return true;
 }
 function constructYamlPairs(data) {
-  if (data === null)
-    return [];
+  if (data === null) return [];
   var index, length, pair, keys, result, object = data;
   result = new Array(object.length);
   for (index = 0, length = object.length; index < length; index += 1) {
@@ -25794,13 +26517,11 @@ var pairs = new type("tag:yaml.org,2002:pairs", {
 });
 var _hasOwnProperty$2 = Object.prototype.hasOwnProperty;
 function resolveYamlSet(data) {
-  if (data === null)
-    return true;
+  if (data === null) return true;
   var key, object = data;
   for (key in object) {
     if (_hasOwnProperty$2.call(object, key)) {
-      if (object[key] !== null)
-        return false;
+      if (object[key] !== null) return false;
     }
   }
   return true;
@@ -26510,8 +27231,7 @@ function readBlockScalar(state, nodeIndent) {
 }
 function readBlockSequence(state, nodeIndent) {
   var _line, _tag = state.tag, _anchor = state.anchor, _result = [], following, detected = false, ch;
-  if (state.firstTabInLine !== -1)
-    return false;
+  if (state.firstTabInLine !== -1) return false;
   if (state.anchor !== null) {
     state.anchorMap[state.anchor] = _result;
   }
@@ -26559,8 +27279,7 @@ function readBlockSequence(state, nodeIndent) {
 }
 function readBlockMapping(state, nodeIndent, flowIndent) {
   var following, allowCompact, _line, _keyLine, _keyLineStart, _keyPos, _tag = state.tag, _anchor = state.anchor, _result = {}, overridableKeys = /* @__PURE__ */ Object.create(null), keyTag = null, keyNode = null, valueNode = null, atExplicitKey = false, detected = false, ch;
-  if (state.firstTabInLine !== -1)
-    return false;
+  if (state.firstTabInLine !== -1) return false;
   if (state.anchor !== null) {
     state.anchorMap[state.anchor] = _result;
   }
@@ -26722,8 +27441,7 @@ function readBlockMapping(state, nodeIndent, flowIndent) {
 function readTagProperty(state) {
   var _position, isVerbatim = false, isNamed = false, tagHandle, tagName, ch;
   ch = state.input.charCodeAt(state.position);
-  if (ch !== 33)
-    return false;
+  if (ch !== 33) return false;
   if (state.tag !== null) {
     throwError(state, "duplication of a tag property");
   }
@@ -26797,8 +27515,7 @@ function readTagProperty(state) {
 function readAnchorProperty(state) {
   var _position, ch;
   ch = state.input.charCodeAt(state.position);
-  if (ch !== 38)
-    return false;
+  if (ch !== 38) return false;
   if (state.anchor !== null) {
     throwError(state, "duplication of an anchor property");
   }
@@ -26819,8 +27536,7 @@ function readAnchorProperty(state) {
 function readAlias(state) {
   var _position, alias, ch;
   ch = state.input.charCodeAt(state.position);
-  if (ch !== 42)
-    return false;
+  if (ch !== 42) return false;
   ch = state.input.charCodeAt(++state.position);
   _position = state.position;
   while (ch !== 0 && !is_WS_OR_EOL(ch) && !is_FLOW_INDICATOR(ch)) {
@@ -27011,16 +27727,14 @@ function readDocument(state) {
         } while (ch !== 0 && !is_EOL(ch));
         break;
       }
-      if (is_EOL(ch))
-        break;
+      if (is_EOL(ch)) break;
       _position = state.position;
       while (ch !== 0 && !is_WS_OR_EOL(ch)) {
         ch = state.input.charCodeAt(++state.position);
       }
       directiveArgs.push(state.input.slice(_position, state.position));
     }
-    if (ch !== 0)
-      readLineBreak(state);
+    if (ch !== 0) readLineBreak(state);
     if (_hasOwnProperty$1.call(directiveHandlers, directiveName)) {
       directiveHandlers[directiveName](state, directiveName, directiveArgs);
     } else {
@@ -27176,8 +27890,7 @@ var DEPRECATED_BOOLEANS_SYNTAX = [
 var DEPRECATED_BASE60_SYNTAX = /^[-+]?[0-9_]+(?::[0-9_]+)+(?:\.[0-9_]*)?$/;
 function compileStyleMap(schema2, map2) {
   var result, keys, index, length, tag, style, type2;
-  if (map2 === null)
-    return {};
+  if (map2 === null) return {};
   result = {};
   keys = Object.keys(map2);
   for (index = 0, length = keys.length; index < length; index += 1) {
@@ -27248,8 +27961,7 @@ function indentString(string, spaces) {
       line = string.slice(position, next + 1);
       position = next + 1;
     }
-    if (line.length && line !== "\n")
-      result += ind;
+    if (line.length && line !== "\n") result += ind;
     result += line;
   }
   return result;
@@ -27426,8 +28138,7 @@ function foldString(string, width) {
   return result;
 }
 function foldLine(line, width) {
-  if (line === "" || line[0] === " ")
-    return line;
+  if (line === "" || line[0] === " ") return line;
   var breakRe = / [^ ]/g;
   var match;
   var start = 0, end, curr = 0, next = 0;
@@ -27458,8 +28169,7 @@ function escapeString(string) {
     escapeSeq = ESCAPE_SEQUENCES[char];
     if (!escapeSeq && isPrintable(char)) {
       result += string[i];
-      if (char >= 65536)
-        result += string[i + 1];
+      if (char >= 65536) result += string[i + 1];
     } else {
       result += escapeSeq || encodeHex(char);
     }
@@ -27474,8 +28184,7 @@ function writeFlowSequence(state, level, object) {
       value = state.replacer.call(object, String(index), value);
     }
     if (writeNode(state, level, value, false, false) || typeof value === "undefined" && writeNode(state, level, null, false, false)) {
-      if (_result !== "")
-        _result += "," + (!state.condenseFlow ? " " : "");
+      if (_result !== "") _result += "," + (!state.condenseFlow ? " " : "");
       _result += state.dump;
     }
   }
@@ -27508,10 +28217,8 @@ function writeFlowMapping(state, level, object) {
   var _result = "", _tag = state.tag, objectKeyList = Object.keys(object), index, length, objectKey, objectValue, pairBuffer;
   for (index = 0, length = objectKeyList.length; index < length; index += 1) {
     pairBuffer = "";
-    if (_result !== "")
-      pairBuffer += ", ";
-    if (state.condenseFlow)
-      pairBuffer += '"';
+    if (_result !== "") pairBuffer += ", ";
+    if (state.condenseFlow) pairBuffer += '"';
     objectKey = objectKeyList[index];
     objectValue = object[objectKey];
     if (state.replacer) {
@@ -27520,8 +28227,7 @@ function writeFlowMapping(state, level, object) {
     if (!writeNode(state, level, objectKey, false, false)) {
       continue;
     }
-    if (state.dump.length > 1024)
-      pairBuffer += "? ";
+    if (state.dump.length > 1024) pairBuffer += "? ";
     pairBuffer += state.dump + (state.condenseFlow ? '"' : "") + ":" + (state.condenseFlow ? "" : " ");
     if (!writeNode(state, level, objectValue, false, false)) {
       continue;
@@ -27674,8 +28380,7 @@ function writeNode(state, level, object, block, compact, iskey, isblockseq) {
     } else if (type2 === "[object Undefined]") {
       return false;
     } else {
-      if (state.skipInvalid)
-        return false;
+      if (state.skipInvalid) return false;
       throw new exception("unacceptable kind of an object to dump " + type2);
     }
     if (state.tag !== null && state.tag !== "?") {
@@ -27728,14 +28433,12 @@ function inspectNode(object, objects, duplicatesIndexes) {
 function dump$1(input, options) {
   options = options || {};
   var state = new State(options);
-  if (!state.noRefs)
-    getDuplicateReferences(input, state);
+  if (!state.noRefs) getDuplicateReferences(input, state);
   var value = input;
   if (state.replacer) {
     value = state.replacer.call({ "": value }, "", value);
   }
-  if (writeNode(state, 0, value, true, true))
-    return state.dump + "\n";
+  if (writeNode(state, 0, value, true, true)) return state.dump + "\n";
   return "";
 }
 var dump_1 = dump$1;
@@ -30752,6 +31455,27 @@ function createLocalizedError(obj) {
   };
 }
 
+// ../is-circular.ts
+var isCircular = (obj) => {
+  const objectSet = /* @__PURE__ */ new WeakSet();
+  const detect = (obj2) => {
+    if (obj2 && typeof obj2 === "object") {
+      if (objectSet.has(obj2)) {
+        return true;
+      }
+      objectSet.add(obj2);
+      for (const key in obj2) {
+        if (Object.hasOwn(obj2, key) && detect(obj2[key])) {
+          return true;
+        }
+      }
+      objectSet.delete(obj2);
+    }
+    return false;
+  };
+  return detect(obj);
+};
+
 // annotated-yaml.ts
 function postProcessAnnotation(parse) {
   if (parse.components.length === 1 && parse.start === parse.components[0].start && parse.end === parse.components[0].end) {
@@ -30902,16 +31626,10 @@ function buildJsYamlAnnotation(mappedYaml) {
       `Expected a single result, got ${results.length} instead`
     );
   }
-  try {
-    JSON.stringify(results[0]);
-  } catch (e) {
-    if (e.message.match("invalid string length")) {
-    } else if (e.message.match(/circular structure/)) {
-      throw new InternalError(
-        `Circular structure detected in parsed yaml: ${e.message}`
-      );
-    } else {
-    }
+  if (isCircular(results[0])) {
+    throw new InternalError(
+      `Circular structure detected in yaml`
+    );
   }
   return postProcessAnnotation(results[0]);
 }
@@ -31157,6 +31875,7 @@ function locateCursor(annotation, position) {
       annotation: innermostAnnotation
     };
   } catch (e) {
+    if (!(e instanceof Error)) throw e;
     if (e.message === kInternalLocateError) {
       return {
         withError: true
@@ -31289,6 +32008,51 @@ function guessChunkOptionsFormat(options) {
 }
 
 // ../yaml-validation/validator.ts
+function createNiceError(obj) {
+  const {
+    violatingObject,
+    source,
+    message
+  } = obj;
+  const locF = mappedIndexToLineCol(source);
+  let location;
+  try {
+    location = {
+      start: locF(violatingObject.start),
+      end: locF(violatingObject.end)
+    };
+  } catch (_e) {
+    location = {
+      start: { line: 0, column: 0 },
+      end: { line: 0, column: 0 }
+    };
+  }
+  const mapResult = source.map(violatingObject.start);
+  const fileName = mapResult ? mapResult.originalString.fileName : void 0;
+  return {
+    heading: message,
+    error: [],
+    info: {},
+    fileName,
+    location,
+    sourceContext: createSourceContext(violatingObject.source, {
+      start: violatingObject.start,
+      end: violatingObject.end
+    })
+  };
+}
+var NoExprTag = class extends Error {
+  constructor(violatingObject, source) {
+    super(`Unexpected !expr tag`);
+    this.name = "NoExprTag";
+    this.niceError = createNiceError({
+      violatingObject,
+      source,
+      message: "!expr tags are not allowed in Quarto outside of knitr code cells."
+    });
+  }
+  niceError;
+};
 var ValidationContext = class {
   instancePath;
   root;
@@ -31679,6 +32443,9 @@ function validateObject(value, schema2, context) {
           return value.components[i];
         }
       }
+    }
+    if (value.result && typeof value.result === "object" && !Array.isArray(value.result) && value.result.tag === "!expr") {
+      throw new NoExprTag(value, value.source);
     }
     throw new InternalError(`Couldn't locate key ${key}`);
   };
@@ -32110,7 +32877,7 @@ function objectSchema(params = {}) {
       );
       console.error("This is a bug in quarto's schemas.");
       console.error(
-        "Note that we don't throw in order to allow build-js to finish, but the generated schemas will be invalid."
+        "Note that we don't throw in order to allow build-artifacts to finish, but the generated schemas will be invalid."
       );
     }
     result.properties = Object.assign(
@@ -32140,10 +32907,8 @@ function objectSchema(params = {}) {
       result.additionalProperties = allOfSchema(...additionalPropArray);
     }
     const propNamesArray = baseSchema.map((s) => s.propertyNames).filter((s) => {
-      if (typeof s !== "object")
-        return true;
-      if (s.tags === void 0)
-        return true;
+      if (typeof s !== "object") return true;
+      if (s.tags === void 0) return true;
       if (s.tags["case-detection"] === true) {
         return false;
       }
@@ -32312,8 +33077,7 @@ function globToRegExp(glob, {
   const wildcard = "[^/]*";
   const escapePrefix = "\\";
   let newLength = glob.length;
-  for (; newLength > 1 && seps.includes(glob[newLength - 1]); newLength--)
-    ;
+  for (; newLength > 1 && seps.includes(glob[newLength - 1]); newLength--) ;
   glob = glob.slice(0, newLength);
   let regExpString = "";
   for (let j = 0; j < glob.length; ) {
@@ -32355,34 +33119,21 @@ function globToRegExp(glob, {
           }
           if (glob[k + 1] == ":" && glob[k + 2] == "]") {
             i = k + 2;
-            if (value == "alnum")
-              segment += "\\dA-Za-z";
-            else if (value == "alpha")
-              segment += "A-Za-z";
-            else if (value == "ascii")
-              segment += "\0-\x7F";
-            else if (value == "blank")
-              segment += "	 ";
-            else if (value == "cntrl")
-              segment += "\0-\x7F";
-            else if (value == "digit")
-              segment += "\\d";
-            else if (value == "graph")
-              segment += "!-~";
-            else if (value == "lower")
-              segment += "a-z";
-            else if (value == "print")
-              segment += " -~";
+            if (value == "alnum") segment += "\\dA-Za-z";
+            else if (value == "alpha") segment += "A-Za-z";
+            else if (value == "ascii") segment += "\0-\x7F";
+            else if (value == "blank") segment += "	 ";
+            else if (value == "cntrl") segment += "\0-\x7F";
+            else if (value == "digit") segment += "\\d";
+            else if (value == "graph") segment += "!-~";
+            else if (value == "lower") segment += "a-z";
+            else if (value == "print") segment += " -~";
             else if (value == "punct") {
               segment += `!"#$%&'()*+,\\-./:;<=>?@[\\\\\\]^_\u2018{|}~`;
-            } else if (value == "space")
-              segment += "\\s\v";
-            else if (value == "upper")
-              segment += "A-Z";
-            else if (value == "word")
-              segment += "\\w";
-            else if (value == "xdigit")
-              segment += "\\dA-Fa-f";
+            } else if (value == "space") segment += "\\s\v";
+            else if (value == "upper") segment += "A-Z";
+            else if (value == "word") segment += "\\w";
+            else if (value == "xdigit") segment += "\\dA-Fa-f";
             continue;
           }
         }
@@ -32492,8 +33243,7 @@ function globToRegExp(glob, {
       regExpString += i < glob.length ? sep : sepMaybe;
       endsWithSep = true;
     }
-    while (seps.includes(glob[i]))
-      i++;
+    while (seps.includes(glob[i])) i++;
     if (!(i > j)) {
       throw new Error("Assertion failure: i > j (potential infinite loop)");
     }
@@ -33195,11 +33945,22 @@ var jupyterEngineSchema = defineCached(
   },
   "engine-jupyter"
 );
+var juliaEnginesSchema = defineCached(
+  // deno-lint-ignore require-await
+  async () => {
+    return {
+      schema: makeEngineSchema("julia"),
+      errorHandlers: []
+    };
+  },
+  "engine-julia"
+);
 async function getEngineOptionsSchema() {
   const obj = {
     markdown: await markdownEngineSchema(),
     knitr: await knitrEngineSchema(),
-    jupyter: await jupyterEngineSchema()
+    jupyter: await jupyterEngineSchema(),
+    julia: await juliaEnginesSchema()
   };
   return obj;
 }
@@ -33575,9 +34336,7 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
       } else if (cell_type === "directive") {
         cell.source = mappedString(src, mappedChunks.slice(1, -1), fileName);
       }
-      if (mdTrimEmptyLines(lines(cell.sourceVerbatim.value)).length > 0 || cell.options !== void 0) {
-        nb.cells.push(cell);
-      }
+      nb.cells.push(cell);
       lineBuffer.splice(0, lineBuffer.length);
     }
   };
@@ -33638,24 +34397,6 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
   }
   await flushLineBuffer("markdown", srcLines.length);
   return nb;
-}
-function mdTrimEmptyLines(lines2) {
-  const firstNonEmpty = lines2.findIndex((line) => line.trim().length > 0);
-  if (firstNonEmpty === -1) {
-    return [];
-  }
-  lines2 = lines2.slice(firstNonEmpty);
-  let lastNonEmpty = -1;
-  for (let i = lines2.length - 1; i >= 0; i--) {
-    if (lines2[i].trim().length > 0) {
-      lastNonEmpty = i;
-      break;
-    }
-  }
-  if (lastNonEmpty > -1) {
-    lines2 = lines2.slice(0, lastNonEmpty + 1);
-  }
-  return lines2;
 }
 
 // ../yaml-schema/format-aliases.ts

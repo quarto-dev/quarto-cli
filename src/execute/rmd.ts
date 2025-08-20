@@ -97,6 +97,7 @@ export const knitrEngine: ExecutionEngine = {
     try {
       metadata = readYamlFromMarkdown(markdown.value);
     } catch (e) {
+      if (!(e instanceof Error)) throw e;
       error(`Error reading metadata from ${file}.\n${e.message}`);
       throw e;
     }
@@ -134,7 +135,10 @@ export const knitrEngine: ExecutionEngine = {
       options.quiet,
       // fixup .rmarkdown file references
       (output) => {
-        output = output.replaceAll(`${inputStem}.rmarkdown`, inputBasename);
+        output = output.replaceAll(
+          `${inputStem}.rmarkdown`,
+          () => inputBasename,
+        );
 
         const m = output.match(/^Quitting from lines (\d+)-(\d+)/m);
         if (m) {
@@ -282,8 +286,8 @@ async function callR<T>(
   try {
     const result = await execProcess(
       {
-        cmd: [
-          await rBinaryPath("Rscript"),
+        cmd: await rBinaryPath("Rscript"),
+        args: [
           ...rscriptArgsArray,
           resourcePath("rmd/rmd.R"),
         ],
@@ -317,6 +321,9 @@ async function callR<T>(
       return Promise.reject();
     }
   } catch (e) {
+    if (!(e instanceof Error)) {
+      throw e;
+    }
     if (reportError) {
       if (e?.message) {
         info("");

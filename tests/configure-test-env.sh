@@ -10,8 +10,8 @@ else
   echo "   > Restoring renv project"
   Rscript -e 'renv::restore()'
   echo "   > Installing dev knitr and rmarkdown"
-  Rscript -e "install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev'))"
-  Rscript -e "install.packages('knitr', repos = c('https://yihui.r-universe.dev'))"
+  Rscript -e "install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev', getOption('repos')))"
+  Rscript -e "install.packages('knitr', repos = c('https://yihui.r-universe.dev', getOption('repos')))"
 fi
 
 
@@ -21,12 +21,12 @@ echo ">>>> Configuring Python environment"
 uv_exist=$(command -v uv)
 if [ -z $uv_exist ]
 then
+  echo "No uv found - Install uv please: https://docs.astral.sh/uv/getting-started/installation/."
+  echo "Using 'uv' is the prefered way. You can still use python and create a .venv in the project."
+else
   echo "Setting up python environnement with uv"
   # create or sync the virtual env in the project
   uv sync --frozen
-else
-  echo "No uv found - Install uv please: https://docs.astral.sh/uv/getting-started/installation/."
-  echo "Using 'uv' is the prefered way. You can still use python and create a .venv in the project."
 fi
 
 # Check Julia environment ---
@@ -37,7 +37,12 @@ then
   echo "No julia found in PATH - Check your PATH or install julia and add to PATH."
 else
   echo "Setting up Julia environment"
-  julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
+  if [ -z $uv_exist ]
+  then
+    uv run --frozen julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
+  else
+    julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
+  fi
 fi
 
 # Update tinytex

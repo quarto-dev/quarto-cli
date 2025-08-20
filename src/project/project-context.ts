@@ -13,7 +13,7 @@ import {
   SEP,
 } from "../deno_ral/path.ts";
 
-import { existsSync, walkSync } from "../deno_ral/fs.ts";
+import { existsSync, walk, walkSync } from "../deno_ral/fs.ts";
 import * as ld from "../core/lodash.ts";
 
 import { ProjectType } from "./types/types.ts";
@@ -69,6 +69,8 @@ import { ExecutionEngine, kMarkdownEngine } from "../execute/types.ts";
 import { projectResourceFiles } from "./project-resources.ts";
 
 import {
+  cleanupFileInformationCache,
+  FileInformationCacheMap,
   ignoreFieldsForProjectType,
   normalizeFormatYaml,
   projectConfigFile,
@@ -99,6 +101,38 @@ import { computeProjectEnvironment } from "./project-environment.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import { MappedString } from "../core/mapped-text.ts";
+import { makeTimedFunctionAsync } from "../core/performance/function-times.ts";
+import { createProjectCache } from "../core/cache/cache.ts";
+import { createTempContext } from "../core/temp.ts";
+
+import { onCleanup } from "../core/cleanup.ts";
+import { once } from "../core/once.ts";
+import { Zod } from "../resources/types/zod/schema-types.ts";
+
+const mergeExtensionMetadata = async (
+  context: ProjectContext,
+  pOptions: RenderOptions,
+) => {
+  // this will mutate context.config.project to merge
+  // in any project metadata from extensions
+  if (context.config) {
+    const extensions = await pOptions.services.extension.extensions(
+      undefined,
+      context.config,
+      context.isSingleFile ? undefined : context.dir,
+      { builtIn: false },
+    );
+    const projectMetadata = extensions.filter((extension) =>
+      extension.contributes.metadata?.project
+    ).map((extension) => {
+      return Zod.ProjectConfig.parse(extension.contributes.metadata!.project);
+    });
+    context.config.project = mergeProjectMetadata(
+      context.config.project,
+      ...projectMetadata,
+    );
+  }
+};
 
 export async function projectContext(
   path: string,
@@ -135,6 +169,16 @@ export async function projectContext(
       cachedEnv = await computeProjectEnvironment(notebookContext, project);
       return cachedEnv;
     }
+  };
+
+  const returnResult = async (
+    context: ProjectContext,
+  ) => {
+    if (renderOptions) {
+      await mergeExtensionMetadata(context, renderOptions);
+    }
+    onCleanup(context.cleanup);
+    return context;
   };
 
   while (true) {
@@ -261,7 +305,13 @@ export async function projectContext(
           );
         }
 
+        const temp = createTempContext({
+          dir: join(dir, ".quarto"),
+          prefix: "quarto-session-temp",
+        });
+        const fileInformationCache = new FileInformationCacheMap();
         const result: ProjectContext = {
+          clone: () => result,
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
           resolveFullMarkdownForFile: (
@@ -280,7 +330,7 @@ export async function projectContext(
           },
           dir,
           engines: [],
-          fileInformationCache: new Map(),
+          fileInformationCache,
           files: {
             input: [],
           },
@@ -303,6 +353,13 @@ export async function projectContext(
             return projectFileMetadata(result, file, force);
           },
           isSingleFile: false,
+          diskCache: await createProjectCache(join(dir, ".quarto")),
+          temp,
+          cleanup: once(() => {
+            cleanupFileInformationCache(result);
+            result.diskCache.close();
+            temp.cleanup();
+          }),
         };
 
         // see if the project [kProjectType] wants to filter the project config
@@ -341,11 +398,16 @@ export async function projectContext(
           config: configFiles,
           configResources: projectConfigResources(dir, projectConfig, type),
         };
-
-        return result;
+        return await returnResult(result);
       } else {
         debug(`projectContext: Found Quarto project in ${dir}`);
+        const temp = createTempContext({
+          dir: join(dir, ".quarto"),
+          prefix: "quarto-session-temp",
+        });
+        const fileInformationCache = new FileInformationCacheMap();
         const result: ProjectContext = {
+          clone: () => result,
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
           resolveFullMarkdownForFile: (
@@ -365,7 +427,7 @@ export async function projectContext(
           dir,
           config: projectConfig,
           engines: [],
-          fileInformationCache: new Map(),
+          fileInformationCache,
           files: {
             input: [],
           },
@@ -385,6 +447,13 @@ export async function projectContext(
           },
           notebookContext,
           isSingleFile: false,
+          diskCache: await createProjectCache(join(dir, ".quarto")),
+          temp,
+          cleanup: once(() => {
+            cleanupFileInformationCache(result);
+            result.diskCache.close();
+            temp.cleanup();
+          }),
         };
         const { files, engines } = await projectInputFiles(
           result,
@@ -397,7 +466,7 @@ export async function projectContext(
           config: configFiles,
           configResources: projectConfigResources(dir, projectConfig),
         };
-        return result;
+        return await returnResult(result);
       }
     } else {
       const nextDir = dirname(dir);
@@ -407,7 +476,13 @@ export async function projectContext(
           dir = originalDir;
           configResolvers.shift();
         } else if (force) {
+          const temp = createTempContext({
+            dir: join(originalDir, ".quarto"),
+            prefix: "quarto-session-temp",
+          });
+          const fileInformationCache = new FileInformationCacheMap();
           const context: ProjectContext = {
+            clone: () => context,
             resolveBrand: async (fileName?: string) =>
               projectResolveBrand(context, fileName),
             resolveFullMarkdownForFile: (
@@ -431,7 +506,7 @@ export async function projectContext(
                 [kProjectOutputDir]: flags?.outputDir,
               },
             },
-            fileInformationCache: new Map(),
+            fileInformationCache,
             files: {
               input: [],
             },
@@ -451,6 +526,13 @@ export async function projectContext(
               return projectFileMetadata(context, file, force);
             },
             isSingleFile: false,
+            diskCache: await createProjectCache(join(temp.baseDir, ".quarto")),
+            temp,
+            cleanup: once(() => {
+              cleanupFileInformationCache(context);
+              context.diskCache.close();
+              temp.cleanup();
+            }),
           };
           if (Deno.statSync(path).isDirectory) {
             const { files, engines } = await projectInputFiles(context);
@@ -463,7 +545,7 @@ export async function projectContext(
             context.files.input = [input];
           }
           debug(`projectContext: Found Quarto project in ${originalDir}`);
-          return context;
+          return await returnResult(context);
         } else {
           return undefined;
         }
@@ -638,11 +720,18 @@ async function resolveProjectExtension(
   return projectConfig;
 }
 
+// migrate 'site' to 'website'
+// TODO make this a deprecation warning
 function migrateProjectConfig(projectConfig: ProjectConfig) {
-  projectConfig = ld.cloneDeep(projectConfig);
-
-  // migrate 'site' to 'website'
   const kSite = "site";
+  if (
+    projectConfig.project[kProjectType] !== kSite &&
+    projectConfig[kSite] === undefined
+  ) {
+    return projectConfig;
+  }
+
+  projectConfig = ld.cloneDeep(projectConfig);
   if (projectConfig.project[kProjectType] === kSite) {
     projectConfig.project[kProjectType] = kWebsite;
   }
@@ -719,7 +808,12 @@ function projectHiddenIgnoreGlob(dir: string) {
     .concat(["**/README.?([Rrq])md"]); // README
 }
 
-export async function projectInputFiles(
+export const projectInputFiles = makeTimedFunctionAsync(
+  "projectInputFiles",
+  projectInputFilesInternal,
+);
+
+async function projectInputFilesInternal(
   project: ProjectContext,
   metadata?: ProjectConfig,
 ): Promise<{ files: string[]; engines: string[] }> {
@@ -771,10 +865,9 @@ export async function projectInputFiles(
     }];
   };
   const addDir = async (dir: string): Promise<FileInclusion[]> => {
-    // ignore selected other globs
-    const walkIterator = walkSync(
-      dir,
-      {
+    const promises: Promise<FileInclusion[]>[] = [];
+    for await (
+      const walkEntry of walk(dir, {
         includeDirs: false,
         // this was done b/c some directories e.g. renv/packrat and potentially python
         // virtualenvs include symblinks to R or Python libraries that are in turn
@@ -785,16 +878,18 @@ export async function projectInputFiles(
             globToRegExp(join(dir, ignore) + SEP)
           ),
         ),
-      },
-    );
-    return Promise.all(
-      Array.from(walkIterator)
-        .filter((walk) => {
-          const pathRelative = pathWithForwardSlashes(relative(dir, walk.path));
-          return !projectIgnores.some((regex) => regex.test(pathRelative));
-        })
-        .map(async (walk) => addFile(walk.path)),
-    ).then((fileInclusions) => fileInclusions.flat());
+      })
+    ) {
+      const pathRelative = pathWithForwardSlashes(
+        relative(dir, walkEntry.path),
+      );
+      if (projectIgnores.some((regex) => regex.test(pathRelative))) {
+        continue;
+      }
+      promises.push(addFile(walkEntry.path));
+    }
+    const inclusions = await Promise.all(promises);
+    return inclusions.flat();
   };
   const addEntry = async (entry: string) => {
     if (Deno.statSync(entry).isDirectory) {
@@ -826,10 +921,9 @@ export async function projectInputFiles(
     inclusion.engineIntermediates
   ).flat();
 
-  const inputFiles = ld.difference(
-    ld.uniq(files),
-    ld.uniq(intermediateFiles),
-  ) as string[];
+  const inputFiles = Array.from(
+    new Set(files).difference(new Set(intermediateFiles)),
+  );
 
   return { files: inputFiles, engines };
 }

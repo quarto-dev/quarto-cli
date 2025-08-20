@@ -1,0 +1,6 @@
+---
+title: Testing dracula code highlight
+highlight-style: dracula
+---
+
+{{< include _body.md >}}

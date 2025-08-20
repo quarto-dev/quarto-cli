@@ -28,8 +28,10 @@ local onDebugHook = function(hookType, line)
   while information ~= nil do
     local source = information.source or "unknown"
     local name = information.name or "anon"
-    if string.match(source, ".lua$") then
+    if source:sub(1, 1) == "@" then
       outputfile:write(name, " ", source, " ", information.linedefined, "\n")
+    else
+      outputfile:write(name, " ", "<inline>", " ", 0, "\n")
     end
     no = no + 1
     information = debug.getinfo(no, "nS")
@@ -45,7 +47,7 @@ end
 function module.start(filename, ms)
   outputfile = io.open(filename, "a")
   if outputfile == nil then
-    error("Could not open profiler.txt for writing")
+    error("Could not open " .. filename .. " for writing")
     return
   end
   debug.sethook(onDebugHook, "t", ms or 5) -- NB: "t" debugging only exists in our patched Lua interpreter/pandoc binary!

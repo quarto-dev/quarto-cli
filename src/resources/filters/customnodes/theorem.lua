@@ -40,11 +40,16 @@ theorem_types = {
     style = "definition",
     title = "Example",
   },
-  exr  = {
+  exr = {
     env = "exercise",
     style = "definition",
     title = "Exercise"
-  }
+  },
+  alg = {
+    env = "algorithm",
+    style = "plain",
+    title = "Algorithm"
+  },
 }
 
 function has_theorem_ref(el)
@@ -93,7 +98,7 @@ local letted_typst_theorem = {}
 local function ensure_typst_theorems(reftype)
   if not included_typst_theorems then
     included_typst_theorems = true
-    quarto.doc.include_text("in-header", "#import \"@preview/ctheorems:1.1.0\": *")
+    quarto.doc.include_text("in-header", "#import \"@preview/ctheorems:1.1.3\": *")
     quarto.doc.include_text("in-header", "#show: thmrules")
   end
   if not letted_typst_theorem[reftype] then

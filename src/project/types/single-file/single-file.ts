@@ -20,20 +20,28 @@ import { RenderFlags } from "../../../command/render/types.ts";
 import { MappedString } from "../../../core/mapped-text.ts";
 import { fileExecutionEngineAndTarget } from "../../../execute/engine.ts";
 import {
+  cleanupFileInformationCache,
+  FileInformationCacheMap,
   projectFileMetadata,
   projectResolveBrand,
   projectResolveFullMarkdownForFile,
 } from "../../project-shared.ts";
 import { ExecutionEngine } from "../../../execute/types.ts";
+import { createProjectCache } from "../../../core/cache/cache.ts";
+import { globalTempContext } from "../../../core/temp.ts";
+import { once } from "../../../core/once.ts";
 
-export function singleFileProjectContext(
+export async function singleFileProjectContext(
   source: string,
   notebookContext: NotebookContext,
   flags?: RenderFlags,
-): ProjectContext {
+): Promise<ProjectContext> {
   const environmentMemoizer = makeProjectEnvironmentMemoizer(notebookContext);
+  const temp = globalTempContext();
+  const projectCacheBaseDir = temp.createDir();
 
   const result: ProjectContext = {
+    clone: () => result,
     resolveBrand: (fileName?: string) => projectResolveBrand(result, fileName),
     dir: normalizePath(dirname(source)),
     engines: [],
@@ -43,7 +51,7 @@ export function singleFileProjectContext(
     notebookContext,
     environment: () => environmentMemoizer(result),
     renderFormats,
-    fileInformationCache: new Map(),
+    fileInformationCache: new FileInformationCacheMap(),
     fileExecutionEngineAndTarget: (
       file: string,
     ) => {
@@ -71,6 +79,17 @@ export function singleFileProjectContext(
       return projectFileMetadata(result, file, force);
     },
     isSingleFile: true,
+    diskCache: await createProjectCache(projectCacheBaseDir),
+    temp,
+    cleanup: once(() => {
+      cleanupFileInformationCache(result);
+      result.diskCache.close();
+    }),
   };
+  // because the single-file project is cleaned up with
+  // the global text context, we don't need to register it
+  // in the same way that we need to register the multi-file
+  // projects.
+  temp.onCleanup(result.cleanup);
   return result;
 }

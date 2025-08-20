@@ -15,6 +15,7 @@ import { which } from "../path.ts";
 
 import { JupyterCapabilities, JupyterKernelspec } from "./types.ts";
 import { warnOnce } from "../log.ts";
+import { debug } from "../../deno_ral/log.ts";
 
 // cache capabilities per language
 const kNoLanguage = "(none)";
@@ -24,11 +25,19 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
   const language = kernelspec?.language || kNoLanguage;
 
   if (!jupyterCapsCache.has(language)) {
+    debug(
+      "Looking for Python binaries and Jupyter capabilities" +
+        (language === kNoLanguage ? "." : ` for language '${language}'.`),
+    );
+
     // if we are targeting julia then prefer the julia installed miniconda
     let juliaCaps: JupyterCapabilities | undefined;
     if (language === "julia") {
       juliaCaps = await getVerifiedJuliaCondaJupyterCapabilities();
       if (juliaCaps) {
+        debug(
+          `Using Jupyter capabilities from Julia conda at '${juliaCaps.executable}'`,
+        );
         jupyterCapsCache.set(language, juliaCaps);
         return juliaCaps;
       }
@@ -37,6 +46,9 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
     // if there is an explicit python requested then use it
     const quartoCaps = await getQuartoJupyterCapabilities();
     if (quartoCaps) {
+      debug(
+        `Python found using QUARTO_PYTHON at '${quartoCaps.executable}'`,
+      );
       jupyterCapsCache.set(language, quartoCaps);
       return quartoCaps;
     }
@@ -45,6 +57,9 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
     if (isWindows && pyPython()) {
       const pyLauncherCaps = await getPyLauncherJupyterCapabilities();
       if (pyLauncherCaps) {
+        debug(
+          `Python found via "py.exe" at ${pyLauncherCaps.executable}.`,
+        );
         jupyterCapsCache.set(language, pyLauncherCaps);
       }
     }
@@ -52,14 +67,21 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
     // default handling (also a fallthrough if launcher didn't work out)
     if (!jupyterCapsCache.has(language)) {
       // look for python from conda (conda doesn't provide python3 on windows or mac)
+      debug("Looking for Jupyter capabilities from conda 'python' binary");
       const condaCaps = await getJupyterCapabilities(["python"]);
       if (condaCaps?.conda) {
+        debug(
+          `Python found using conda at '${condaCaps.executable}'`,
+        );
         jupyterCapsCache.set(language, condaCaps);
       } else {
         const caps = isWindows
           ? await getPyLauncherJupyterCapabilities()
           : await getJupyterCapabilities(["python3"]);
         if (caps) {
+          debug(
+            `Python found at '${caps.executable}'`,
+          );
           jupyterCapsCache.set(language, caps);
         }
       }
@@ -67,6 +89,11 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
       // if the version we discovered doesn't have jupyter and we have a julia provided
       // jupyter then go ahead and use that
       if (!jupyterCapsCache.get(language)?.jupyter_core && juliaCaps) {
+        debug(
+          `No Jupyter capabilities found for '${language}' in ${
+            jupyterCapsCache.get(language)?.executable
+          }, falling back to Julia conda at '${juliaCaps.executable}'`,
+        );
         jupyterCapsCache.set(language, juliaCaps);
       }
     }
@@ -80,6 +107,7 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
 const S_IXUSR = 0o100;
 
 async function getVerifiedJuliaCondaJupyterCapabilities() {
+  debug("Looking for Jupyter capabilities from Julia conda");
   let juliaHome = Deno.env.get("JULIA_HOME");
   if (!juliaHome) {
     const home = isWindows ? Deno.env.get("USERPROFILE") : Deno.env.get("HOME");
@@ -100,8 +128,12 @@ async function getVerifiedJuliaCondaJupyterCapabilities() {
         pythonBin,
       );
       if (existsSync(juliaPython)) {
+        debug(`Checking Jupyter capabilities for '${juliaPython}'`);
         const caps = await getJupyterCapabilities([juliaPython]);
         if (caps?.jupyter_core) {
+          debug(
+            `Python with Jupyter found at '${caps.executable}' from Julia conda`,
+          );
           return caps;
         }
       }
@@ -117,8 +149,12 @@ async function getVerifiedJuliaCondaJupyterCapabilities() {
       if (!(file.isFile && file.mode && (file.mode & S_IXUSR))) {
         continue;
       }
+      debug(`Checking Jupyter capabilities for '${path.path}'`);
       const caps = await getJupyterCapabilities([path.path]);
       if (caps?.jupyter_core) {
+        debug(
+          `Python with Jupyter found at '${caps.executable}' from Julia conda`,
+        );
         return caps;
       }
     }
@@ -128,27 +164,34 @@ async function getVerifiedJuliaCondaJupyterCapabilities() {
 async function getQuartoJupyterCapabilities() {
   let quartoJupyter = Deno.env.get("QUARTO_PYTHON");
   if (quartoJupyter) {
+    debug(`Checking QUARTO_PYTHON set to '${quartoJupyter}'`);
     // if the path is relative then resolve it
     if (!isAbsolute(quartoJupyter)) {
       const path = await which(quartoJupyter);
       if (path) {
         quartoJupyter = path;
+        debug(`Resolved QUARTO_PYTHON to '${quartoJupyter}'`);
       }
     }
     if (existsSync(quartoJupyter)) {
       let quartoJupyterBin: string | undefined = quartoJupyter;
       if (Deno.statSync(quartoJupyter).isDirectory) {
+        debug(
+          `QUARTO_PYTHON '${quartoJupyter}' is a directory, looking for python binary`,
+        );
         const bin = ["python3", "python", "python3.exe", "python.exe"]
           .find((bin) => {
             return existsSync(join(quartoJupyter!, bin));
           });
         if (bin) {
+          debug(`Found python binary '${bin}' in QUARTO_PYTHON`);
           quartoJupyterBin = join(quartoJupyter, bin);
         } else {
           quartoJupyterBin = undefined;
         }
       }
       if (quartoJupyterBin) {
+        debug(`Checking Jupyter capabilities for '${quartoJupyterBin}'`);
         return getJupyterCapabilities([quartoJupyterBin]);
       }
     } else {
@@ -197,14 +240,16 @@ function pyPython() {
 }
 
 function getPyLauncherJupyterCapabilities() {
+  debug("Using 'py.exe' to get Jupyter capabilities");
   return getJupyterCapabilities(["py"], true);
 }
 
 async function getJupyterCapabilities(cmd: string[], pyLauncher = false) {
   try {
     const result = await execProcess({
-      cmd: [
-        ...cmd,
+      cmd: cmd[0],
+      args: [
+        ...cmd.slice(1),
         resourcePath("capabilities/jupyter.py"),
       ],
       stdout: "piped",

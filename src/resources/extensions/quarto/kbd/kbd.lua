@@ -13,8 +13,10 @@ return {
         stylesheets = { 'resources/kbd.css' }
       })
       local kwargs_strs = {}
+      local title_strs = {}
       for k, v in pairs(kwargs) do
         table.insert(kwargs_strs, string.format('data-%s="%s"', osname(k), pandoc.utils.stringify(v)))
+        table.insert(title_strs, osname(k) .. ': ' .. pandoc.utils.stringify(v))
       end
       table.sort(kwargs_strs) -- sort so that the output is deterministic
       local kwargs_str = table.concat(kwargs_strs)
@@ -29,13 +31,38 @@ return {
         default_arg_str = ""
       else
         default_arg_str = pandoc.utils.stringify(args[1])
+        table.insert(title_strs, default_arg_str)
       end
+      table.sort(title_strs) -- sort so that the output is deterministic
+      local title_str = table.concat(title_strs, ', ')
+      if title_str == "" then
+        title_str = default_arg_str
+      end
+      return pandoc.RawInline('html', '<kbd title="' .. title_str .. '" aria-hidden="true" ' .. kwargs_str .. '>' .. default_arg_str .. '</kbd><span class="visually-hidden">' .. default_arg_str .. '</span>')
+    elseif quarto.doc.isFormat("asciidoc") then
+      if args and #args == 1 then
+        -- https://docs.asciidoctor.org/asciidoc/latest/macros/keyboard-macro/
 
-      return pandoc.RawInline('html', '<kbd aria-hidden="true" ' .. kwargs_str .. '>' .. default_arg_str .. '</kbd><span class="visually-hidden">' .. default_arg_str .. '</span>')
-    elseif quarto.doc.isFormat("asciidoc") and args and #args == 1 then
-      -- get the 'first' kbd shortcut as we can only produce on shortcut in asciidoc
-      local shortcutText = pandoc.utils.stringify(args[1]):gsub('-', '+')
-      return pandoc.RawInline("asciidoc", "kbd:[" .. shortcutText .. "]")
+        -- get the 'first' kbd shortcut as we can only produce one shortcut in asciidoc
+        local shortcutText = pandoc.utils.stringify(args[1]):gsub('-', '+')
+
+        -- from the docs:
+        -- If the last key is a backslash (\), it must be followed by a space. 
+        -- Without this space, the processor will not recognize the macro. 
+        -- If one of the keys is a closing square bracket (]), it must be preceded by a backslash. 
+        -- Without the backslash escape, the macro will end prematurely.
+
+        if shortcutText:sub(-1) == "\\" then
+          shortcutText = shortcutText .. " "
+        end
+        if shortcutText:find("]") then
+          shortcutText = shortcutText:gsub("]", "\\]")
+        end
+
+        return pandoc.RawInline("asciidoc", "kbd:[" .. shortcutText .. "]")
+      else
+        return quarto.shortcode.error_output("kbd", "kbd only supports one positional argument", "inline")
+      end
     else
       -- example shortcodes
       -- {{< kbd Shift-Ctrl-P >}}

@@ -16,6 +16,7 @@ import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
 import { parse } from "../../src/core/yaml.ts";
 import { cleanoutput } from "./render/render.ts";
 import {
+  ensureEpubFileRegexMatches,
   ensureDocxRegexMatches,
   ensureDocxXpath,
   ensureFileRegexMatches,
@@ -34,6 +35,9 @@ import {
   ensurePptxMaxSlides,
   ensureLatexFileRegexMatches,
   printsMessage,
+  shouldError,
+  ensureHtmlElementContents,
+  ensureHtmlElementCount,
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
@@ -42,6 +46,7 @@ import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
 import { WalkEntry } from "../../src/deno_ral/fs.ts";
 import { quarto } from "../../src/quarto.ts";
 import { safeExistsSync, safeRemoveSync } from "../../src/core/path.ts";
+import { runningInCI } from "../../src/core/ci-info.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -55,7 +60,16 @@ async function guessFormat(fileName: string): Promise<string[]> {
   for (const cell of cells) {
     if (cell.cell_type === "raw") {
       const src = cell.source.value.replaceAll(/^---$/mg, "");
-      const yaml = parse(src);
+      let yaml;
+      try {
+        yaml = parse(src);
+      } catch (e) {
+        if (!(e instanceof Error)) throw e;
+        if (e.message.includes("unknown tag")) {
+          // assume it's not necessary to guess the format
+          continue;
+        }
+      }
       if (yaml && typeof yaml === "object") {
         // deno-lint-ignore no-explicit-any
         const format = (yaml as Record<string, any>).format;
@@ -77,6 +91,10 @@ async function guessFormat(fileName: string): Promise<string[]> {
   return Array.from(formats);
 }
 
+function skipTestOnCi(metadata: Record<string, any>): boolean {
+  return runningInCI() && metadata["_quarto"]?.["tests-on-ci"] === false;
+}
+
 //deno-lint-ignore no-explicit-any
 function hasTestSpecs(metadata: any, input: string): boolean {
   const hasTestSpecs = metadata?.["_quarto"]?.["tests"] != undefined
@@ -91,6 +109,20 @@ interface QuartoInlineTestSpec {
   verifyFns: Verify[];
 }
 
+// Functions to cleanup leftover testing
+const postRenderCleanupFiles: string[] = [];
+function registerPostRenderCleanupFile(file: string): void {
+  postRenderCleanupFiles.push(file);
+}
+const postRenderCleanup = () => {
+  for (const file of postRenderCleanupFiles) {
+    console.log(`Cleaning up ${file} in ${Deno.cwd()}`);
+    if (safeExistsSync(file)) {
+      Deno.removeSync(file);
+    }
+  }
+}
+
 function resolveTestSpecs(
   input: string,
   // deno-lint-ignore no-explicit-any
@@ -101,7 +133,10 @@ function resolveTestSpecs(
   const result = [];
   // deno-lint-ignore no-explicit-any
   const verifyMap: Record<string, any> = {
+    ensureEpubFileRegexMatches,
     ensureHtmlElements,
+    ensureHtmlElementContents,
+    ensureHtmlElementCount,
     ensureFileRegexMatches,
     ensureLatexFileRegexMatches,
     ensureTypstFileRegexMatches,
@@ -126,7 +161,23 @@ function resolveTestSpecs(
         // deno-lint-ignore no-explicit-any
         const [key, value] of Object.entries(testObj as Record<string, any>)
       ) {
-        if (key === "noErrors") {
+        if (key == "postRenderCleanup") {
+          // This is a special key to register cleanup operations
+          // each entry is a file to cleanup relative to the input file
+          for (let file of value) {
+            // if value has `${input_stem}` in the string, replace by input_stem value (input file name without extension)
+            if (file.includes("${input_stem}")) {
+              const extension = input.endsWith('.qmd') ? '.qmd' : '.ipynb';
+              const inputStem = basename(input, extension);
+              file = file.replace("${input_stem}", inputStem);
+            }
+            // file is registered for cleanup in testQuartoCmd teardown step
+            registerPostRenderCleanupFile(join(dirname(input), file));
+          }
+        } else if (key == "shouldError") {
+          checkWarnings = false;
+          verifyFns.push(shouldError);
+        } else if (key === "noErrors") {
           checkWarnings = false;
           verifyFns.push(noErrors);
         } else {
@@ -160,11 +211,15 @@ function resolveTestSpecs(
               verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
             }
           } else if (key === "printsMessage") {
-            verifyFns.push(verifyMap[key](...value));
+            verifyFns.push(verifyMap[key](value));
+          } else if (key === "ensureEpubFileRegexMatches") {
+            // this ensure function is special because it takes an array of path + regex specifiers,
+            // so we should never use the spread operator
+            verifyFns.push(verifyMap[key](outputFile.outputPath, value));
           } else if (verifyMap[key]) {
             // FIXME: We should find another way that having this requirement of keep-* in the metadata
             if (key === "ensureTypstFileRegexMatches") {
-              if (!metadata.format?.typst?.['keep-typ'] && !metadata['keep-typ']) {
+              if (!metadata.format?.typst?.['keep-typ'] && !metadata['keep-typ'] && metadata.format?.typst?.['output-ext'] !== 'typ' && metadata['output-ext'] !== 'typ') {
                 throw new Error(`Using ensureTypstFileRegexMatches requires setting 'keep-typ: true' in file ${input}`);
               }
             } else if (key === "ensureLatexFileRegexMatches") {
@@ -172,7 +227,9 @@ function resolveTestSpecs(
                 throw new Error(`Using ensureLatexFileRegexMatches requires setting 'keep-tex: true' in file ${input}`);
               }
             }
-            if (typeof value === "object") {
+            
+            if (typeof value === "object" && Array.isArray(value)) {
+              // Only use spread operator for arrays
               verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
             } else {
               verifyFns.push(verifyMap[key](outputFile.outputPath, value));
@@ -232,6 +289,11 @@ for (const { path: fileName } of files) {
   const metadata = input.endsWith("md") // qmd or md
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
+
+  if (skipTestOnCi(metadata) === true) {
+    console.log(`Skipping tests for ${input} as tests-on-ci is false in metadata`);
+    continue;
+  }
 
   const testSpecs: QuartoInlineTestSpec[] = [];
 
@@ -294,6 +356,7 @@ for (const { path: fileName } of files) {
                 },
                 teardown: () => {
                   cleanoutput(input, format, undefined, undefined, metadata);
+                  postRenderCleanup()
                   testSpecResolve(); // Resolve the promise for the testSpec
                   return Promise.resolve();
                 },
@@ -325,7 +388,7 @@ Promise.all(testFilesPromises).then(() => {
   for (const project of testedProjects) {
     // Clean project output directory
     const projectOutDir = join(project, findProjectOutputDir(project));
-    if (safeExistsSync(projectOutDir)) {
+    if (projectOutDir !== project && safeExistsSync(projectOutDir)) {
       safeRemoveSync(projectOutDir, { recursive: true });
     }
     // Clean hidden .quarto directory

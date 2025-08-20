@@ -1,0 +1,6 @@
+---
+title: Testing radical code highlight
+highlight-style: radical
+---
+
+{{< include _body.md >}}

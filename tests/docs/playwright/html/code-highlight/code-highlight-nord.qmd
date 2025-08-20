@@ -1,0 +1,6 @@
+---
+title: Testing nord code highlight
+highlight-style: nord
+---
+
+{{< include _body.md >}}

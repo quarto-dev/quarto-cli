@@ -11,6 +11,7 @@ _quarto.modules = {
   dashboard = require("modules/dashboard"),
   filenames = require("modules/filenames"),
   filters = require("modules/filters"),
+  jog = require("modules/jog"),
   license = require("modules/license"),
   lightbox = require("modules/lightbox"),
   mediabag = require("modules/mediabag"),
@@ -21,3 +22,5 @@ _quarto.modules = {
   tablecolwidths = require("modules/tablecolwidths"),
   typst = require("modules/typst")
 }
+
+quarto.brand = _quarto.modules.brand

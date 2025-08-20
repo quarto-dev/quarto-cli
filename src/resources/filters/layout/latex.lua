@@ -4,7 +4,7 @@ kSideCaptionEnv = 'sidecaption'
 
 _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isLatexOutput()
-end, function(layout)
+end, function (layout)
   local rendered_panel = latexPanel(layout)
   local preamble = layout.preamble
   if preamble == nil then
@@ -18,9 +18,41 @@ end, function(layout)
   return result
 end)
 
+_quarto.ast.add_renderer("PanelLayout", function(_)
+  return _quarto.format.isBeamerOutput()
+end, function(panel)
+  local result = pandoc.Blocks({})
+  if panel.preamble then
+    panel_insert_preamble(result, panel.preamble)
+  end
+
+  for i, row in ipairs(panel.layout) do
+    local beamer_cols = pandoc.Div({}, pandoc.Attr("", { "columns" }))
+    for j, cell in ipairs(row) do
+      local attrs = {}
+      local align = nil
+      -- NB: column "align" in beamer is "valign" in our layouts
+      if cell.attributes["valign"] then
+        align = cell.attributes["valign"]
+      end
+      if cell.attributes["width"] then
+        attrs.width = cell.attributes["width"]
+      end
+      if align then
+        attrs.align = align
+      end
+      local beamer_col = pandoc.Div({}, pandoc.Attr(cell.identifier, { "column" }, attrs))
+      beamer_col.content:extend(cell.content)
+      beamer_cols.content:insert(beamer_col)
+    end
+    result:insert(beamer_cols)
+  end
+
+  return result
+end)
+
 -- function latexPanel(divEl, layout, caption)
 function latexPanel(layout)
-  
   -- begin container
   local env, pos = latexPanelEnv(layout)
   local panel_node, panel = quarto.LatexEnvironment({

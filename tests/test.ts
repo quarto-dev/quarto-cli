@@ -9,7 +9,7 @@ import { AssertionError, fail } from "testing/asserts";
 import { warning } from "../src/deno_ral/log.ts";
 import { initDenoDom } from "../src/core/deno-dom.ts";
 
-import { cleanupLogger, initializeLogger, flushLoggers, logError } from "../src/core/log.ts";
+import { cleanupLogger, initializeLogger, flushLoggers, logError, LogLevel, LogFormat } from "../src/core/log.ts";
 import { quarto } from "../src/quarto.ts";
 import { join } from "../src/deno_ral/path.ts";
 import * as colors from "fmt/colors";
@@ -18,6 +18,17 @@ import { relative, fromFileUrl } from "../src/deno_ral/path.ts";
 import { quartoConfig } from "../src/core/quarto.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
 
+
+export interface TestLogConfig {
+  // Path to log file
+  log?: string;
+
+  // Log level
+  level?: LogLevel;
+
+  // Log format
+  format?: LogFormat;
+}
 export interface TestDescriptor {
   // The name of the test
   name: string;
@@ -33,6 +44,9 @@ export interface TestDescriptor {
 
   // type of test
   type: "smoke" | "unit";
+  
+  // Optional logging configuration
+  logConfig?: TestLogConfig;
 }
 
 export interface TestContext {
@@ -105,7 +119,8 @@ export function testQuartoCmd(
   args: string[],
   verify: Verify[],
   context?: TestContext,
-  name?: string
+  name?: string,
+  logConfig?: TestLogConfig,
 ) {
   if (name === undefined) {
     name = `quarto ${cmd} ${args.join(" ")}`;
@@ -124,6 +139,7 @@ export function testQuartoCmd(
     verify,
     context: context || {},
     type: "smoke",
+    logConfig, // Pass log config to test
   });
 }
 
@@ -201,9 +217,9 @@ export function test(test: TestDescriptor) {
         // Capture the output
         const log = Deno.makeTempFileSync({ suffix: ".json" });
         const handlers = await initializeLogger({
-          log: log,
-          level: "INFO",
-          format: "json-stream",
+          log: test.logConfig?.log || log,
+          level: test.logConfig?.level || "INFO",
+          format: test.logConfig?.format || "json-stream",
           quiet: true,
         });
 
@@ -241,6 +257,7 @@ export function test(test: TestDescriptor) {
             }
           }
         } catch (ex) {
+          if (!(ex instanceof Error)) throw ex;
           const border = "-".repeat(80);
           const coloredName = userSession
             ? colors.brightGreen(colors.italic(testName))
@@ -287,7 +304,7 @@ export function test(test: TestDescriptor) {
             coloredVerify,
             "",
             ex.message,
-            ex.stack,
+            ex.stack ?? "",
             "",
           ];
 
@@ -329,7 +346,7 @@ export function test(test: TestDescriptor) {
   Deno.test(args);
 }
 
-function readExecuteOutput(log: string) {
+export function readExecuteOutput(log: string) {
   const jsonStream = Deno.readTextFileSync(log);
   const lines = jsonStream.split("\n").filter((line) => !!line);
   return lines.map((line) => {

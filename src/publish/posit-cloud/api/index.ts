@@ -15,7 +15,7 @@ import {
   User,
 } from "./types.ts";
 
-import { md5Hash } from "../../../core/hash.ts";
+import { md5HashAsync } from "../../../core/hash.ts";
 import { quartoConfig } from "../../../core/quarto.ts";
 
 import { crypto } from "crypto/crypto";
@@ -201,7 +201,7 @@ export class PositCloudClient {
     body?: string,
   ): Promise<HeadersInit> => {
     const date = new Date().toUTCString();
-    const checksum = md5Hash(body || "");
+    const checksum = await md5HashAsync(body || "");
 
     const canonicalRequest = [
       method,

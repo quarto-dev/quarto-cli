@@ -2,7 +2,7 @@
 name = "tests"
 version = "0.1.0"
 description = "Quarto Tests"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dependencies = [
     "bokeh-sampledata>=2024.2",
     "bokeh>=3.6.0",
@@ -15,4 +15,8 @@ dependencies = [
     "papermill>=2.6.0",
     "seaborn>=0.13.2",
     "shiny>=1.2.0",
+    "great-tables>=0.17.0",
+    "polars>=1.29.0",
+    "pyarrow>=20.0.0",
+    "plotly>=6.1.1",
 ]

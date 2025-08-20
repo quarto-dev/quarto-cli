@@ -28,7 +28,7 @@ ORDER BY manufacturer, displ DESC
 New way to write this option
 
 ```{sql}
-#| connection: con
+--| connection: con
 SELECT manufacturer, displ, cty
 FROM mpg
 ORDER BY manufacturer, displ DESC

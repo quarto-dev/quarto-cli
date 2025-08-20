@@ -427,7 +427,8 @@ function tlmgrCommand(
   const execTlmgr = (tlmgrCmd: string[]) => {
     return execProcess(
       {
-        cmd: tlmgrCmd,
+        cmd: tlmgrCmd[0],
+        args: tlmgrCmd.slice(1),
         stdout: "piped",
         stderr: "piped",
       },
@@ -457,7 +458,8 @@ function fmtutilCommand(context: TexLiveContext) {
   const fmtutil = texLiveCmd("fmtutil-sys", context);
   return execProcess(
     {
-      cmd: [fmtutil.fullPath, "--all"],
+      cmd: fmtutil.fullPath,
+      args: ["--all"],
       stdout: "piped",
       stderr: "piped",
     },

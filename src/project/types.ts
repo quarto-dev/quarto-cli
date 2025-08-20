@@ -7,20 +7,28 @@
 import { RenderServices } from "../command/render/types.ts";
 import { Metadata, PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
-import { Brand } from "../core/brand/brand.ts";
+import {
+  Brand,
+  LightDarkBrand,
+  LightDarkBrandDarkFlag,
+} from "../core/brand/brand.ts";
 import { MappedString } from "../core/mapped-text.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { ExecutionEngine, ExecutionTarget } from "../execute/types.ts";
-import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
+import { InspectedMdCell } from "../inspect/inspect-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import {
-  Brand as BrandJson,
+  LogoLightDarkSpecifier,
   NavigationItem as NavItem,
   NavigationItemObject,
   NavigationItemObject as SidebarTool,
   ProjectConfig as ProjectConfig_Project,
 } from "../resources/types/schema-types.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
+import { ProjectCache } from "../core/cache/cache-types.ts";
+import { TempContext } from "../core/temp-types.ts";
+import { Cloneable } from "../core/safe-clone-deep.ts";
+
 export {
   type NavigationItem as NavItem,
   type NavigationItemObject,
@@ -53,10 +61,10 @@ export type FileInformation = {
   engine?: ExecutionEngine;
   target?: ExecutionTarget;
   metadata?: Metadata;
-  brand?: Brand;
+  brand?: LightDarkBrandDarkFlag;
 };
 
-export interface ProjectContext {
+export interface ProjectContext extends Cloneable<ProjectContext> {
   dir: string;
   engines: string[];
   files: ProjectFiles;
@@ -67,8 +75,12 @@ export interface ProjectContext {
   fileInformationCache: Map<string, FileInformation>;
 
   // This is a cache of _brand.yml for a project
-  brandCache?: { brand?: Brand };
-  resolveBrand: (fileName?: string) => Promise<Brand | undefined>;
+  brandCache?: { brand?: LightDarkBrandDarkFlag };
+  resolveBrand: (
+    fileName?: string,
+  ) => Promise<
+    undefined | LightDarkBrandDarkFlag
+  >;
 
   // expands markdown for a file
   // input file doesn't have to be markdown; it can be, for example, a knitr spin file
@@ -110,6 +122,11 @@ export interface ProjectContext {
   environment: () => Promise<ProjectEnvironment>;
 
   isSingleFile: boolean;
+
+  diskCache: ProjectCache;
+  temp: TempContext;
+
+  cleanup: () => void;
 }
 
 export interface ProjectFiles {
@@ -139,7 +156,7 @@ export const kSidebarMenus = "sidebar-menus";
 
 export interface Navbar {
   title?: string | false;
-  logo?: string;
+  logo?: LogoLightDarkSpecifier;
   [kLogoAlt]?: string;
   [kLogoHref]?: string;
   background:
@@ -185,7 +202,7 @@ export interface Sidebar {
   id?: string;
   title?: string;
   subtitle?: string;
-  logo?: string;
+  logo?: LogoLightDarkSpecifier;
   [kLogoAlt]?: string;
   [kLogoHref]?: string;
   alignment?: "left" | "right" | "center";

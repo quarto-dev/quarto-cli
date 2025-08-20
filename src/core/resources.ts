@@ -117,7 +117,7 @@ export async function rBinaryPath(
   const rHome = Deno.env.get("R_HOME");
   debug(`Looking for '${binary}' in R_HOME: ${rHome}`);
   if (rHome) {
-    let rHomeBin = join(rHome, "bin", binary);
+    let rHomeBin = join(rHome, "bin", isWindows ? binary + ".exe" : binary);
     if (safeExistsSync(rHomeBin)) {
       debug(`Found in ${rHomeBin}`);
       return setPath(rHomeBin);
@@ -181,7 +181,9 @@ export async function rBinaryPath(
   }
 
   // We couldn't find R, just pass the binary itself and hope it works out!
-  debug(`Quarto did no found ${binary} and will try to use it directly.`);
+  debug(
+    `Quarto did not find ${binary} and will try to use it directly from the path.`,
+  );
   return setPath(binary);
 }
 

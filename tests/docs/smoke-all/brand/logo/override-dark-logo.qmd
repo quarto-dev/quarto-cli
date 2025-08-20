@@ -1,0 +1,53 @@
+---
+title: override dark logo
+format:
+  dashboard: default
+  revealjs: default
+  typst:
+    output-ext: typ
+brand-mode: dark
+brand:
+  logo:
+    images:
+      quarto:
+        path: quarto.png
+        alt: quarto logo
+      posit:
+        path: posit-logo-2024.svg
+        alt: posit logo
+      quarto-dark:
+        path: quarto-dark.png
+        alt: quarto dark logo
+      posit-dark:
+        path: posit-dark.svg
+        alt: posit dark logo
+    medium:
+      light: quarto
+      dark: quarto-dark
+    large:
+      light: posit
+      dark: posit-dark
+logo:
+  light: posit
+  dark: quarto-dark
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          - 'img[src="posit-logo-2024.svg"][alt="posit logo"][class="navbar-logo light-content d-inline-block"]'
+          - 'img[src="quarto-dark.png"][alt="quarto dark logo"][class="navbar-logo dark-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="quarto-dark.png"][alt="quarto dark logo"]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("quarto-dark.png", width: 1\.5in, alt: "quarto dark logo"\)\)'
+        - []
+---
+
+{{< lipsum 4 >}}

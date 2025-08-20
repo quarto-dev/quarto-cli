@@ -13,7 +13,9 @@ Should output as a list of one level not two. First spaces should not be trimmed
 
 ```{r}
 knitr::asis_output(
-  paste0(c("", "  * 1", "  * 2", "  * _3_", "  * _1_ and _2_", "", 
-"<!-- end of list -->", ""), collapse = "\n")
+  paste0(c(
+    "", "  * 1", "  * 2", "  * _3_", "  * _1_ and _2_", "",
+    "<!-- end of list -->", ""
+  ), collapse = "\n")
 )
 ```

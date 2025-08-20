@@ -1,0 +1,17 @@
+---
+format: typst
+number-sections: true
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+        - ["1 Section"]
+        - ["0.1 Section"]
+---
+
+## Section
+
+```r
+# this is a comment that shouldn't break quarto
+print("Hello, world")
+```

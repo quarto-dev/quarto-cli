@@ -41,7 +41,7 @@ function layout_panels()
         return nil
       end
       local nested_layout = false
-      _quarto.ast.walk(div, {
+      _quarto.ast.walk(float, {
         PanelLayout = function()
           nested_layout = true
         end
@@ -203,9 +203,13 @@ function layout_cells(float_or_div, cells)
       end
       rows[#rows]:insert(cell)
     end
-    -- convert width units to percentages
-    widthsToPercent(rows, layoutCols)
-    
+    if _quarto.format.isTypstOutput() then
+      widthsToFraction(rows, layoutCols)
+    else
+      -- convert width units to percentages
+      widthsToPercent(rows, layoutCols)
+    end
+
   -- check for layout
   elseif layout ~= nil then
     -- parse the layout

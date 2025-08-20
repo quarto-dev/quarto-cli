@@ -444,8 +444,7 @@ const initChalkboard = function ( Reveal ) {
 			container.style.visibility = 'visible';
 			container.style.pointerEvents = 'none';
 			container.style['backdrop-filter'] = 'none';
-			// for older safari
-			container.style["-webkit-backdrop-filter"] = "none";
+			container.style['-webkit-backdrop-filter'] = 'none';
 
 			var slides = document.querySelector( '.slides' );
 			var aspectRatio = Reveal.getConfig().width / Reveal.getConfig().height;

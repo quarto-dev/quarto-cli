@@ -335,9 +335,8 @@ async function resolveImport(
   projectRoot = projectRoot ?? dirname(referent);
 
   const deno = Deno.execPath();
-  const p = Deno.run({
-    cmd: [
-      deno,
+  const p = new Deno.Command(deno, {
+    args: [
       "check",
       file,
       "-c",
@@ -346,8 +345,9 @@ async function resolveImport(
     ],
     stderr: "piped",
   });
-  const [status, stderr] = await Promise.all([p.status(), p.stderrOutput()]);
-  if (!status.success) {
+  const output = await p.output();
+  const stderr = output.stderr;
+  if (!output.success) {
     error("Compilation of typescript dependencies in ojs cell failed.");
 
     let errStr = new TextDecoder().decode(stderr);
@@ -446,11 +446,17 @@ quarto will only generate javascript files in ${
   }
 
   let fixedSource = jsSource;
-
-  const ast = parseES6(jsSource, {
-    ecmaVersion: "2020",
-    sourceType: "module",
-  });
+  let ast: any = undefined;
+  try {
+    ast = parseES6(jsSource, {
+      ecmaVersion: "latest",
+      sourceType: "module",
+    });
+  } catch (e) {
+    console.error(jsSource);
+    console.error("Error parsing compiled typescript file.");
+    throw e;
+  }
   const recursionList: string[] = [];
   // deno-lint-ignore no-explicit-any
   const patchDeclaration = (node: any) => {
@@ -541,7 +547,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
     const [thisResolvedImportPath, importResource]: [
       string,
       ResourceDescription,
-    ] = imports.entries().next().value;
+    ] = imports.entries().next().value!;
     imports.delete(thisResolvedImportPath);
     if (handled.has(thisResolvedImportPath)) {
       continue;
@@ -574,6 +580,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
             try {
               safeRemoveSync(res.filename);
             } catch (e) {
+              if (!(e instanceof Error)) throw e;
               if (e.name !== "NotFound") {
                 throw e;
               }

@@ -16,12 +16,14 @@ import {
   ProjectContext,
 } from "../../types.ts";
 import {
+  kLogoAlt,
   Navbar,
   NavigationFooter,
   NavItem,
   Sidebar,
   SidebarItem,
 } from "../../types.ts";
+import {} from "../../../resources/types/schema-types.ts";
 import {
   kAnnouncement,
   kBodyFooter,
@@ -43,8 +45,9 @@ import {
 import { cookieConsentEnabled } from "./website-analytics.ts";
 import { Format, FormatExtras } from "../../../config/types.ts";
 import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
-import { md5Hash } from "../../../core/hash.ts";
+import { md5HashAsync } from "../../../core/hash.ts";
 export { type NavigationFooter } from "../../types.ts";
+import { resolveLogo } from "../../../core/brand/brand.ts";
 
 export interface Navigation {
   navbar?: Navbar;
@@ -125,6 +128,21 @@ export async function websiteNavigationConfig(project: ProjectContext) {
     navbar = undefined;
   }
 
+  // note no document-level customization of brand logo #11309
+  const projectBrand = await project.resolveBrand();
+  if (navbar) {
+    let navLogo = navbar.logo;
+    if (navbar[kLogoAlt]) {
+      if (typeof navLogo === "string") {
+        navLogo = { path: navLogo, alt: navbar[kLogoAlt] };
+      }
+    }
+    navbar.logo = resolveLogo(projectBrand, navLogo, [
+      "small",
+      "medium",
+      "large",
+    ]);
+  }
   // read sidebar
   const sidebar = websiteConfig(kSiteSidebar, project.config);
   const sidebars =
@@ -148,6 +166,40 @@ export async function websiteNavigationConfig(project: ProjectContext) {
       sidebars[0].tools = [];
     }
 
+    let sideLogo = sidebars[0].logo;
+    if (sideLogo) {
+      if (sidebars[0][kLogoAlt]) {
+        const alt = sidebars[0][kLogoAlt];
+        if (typeof sideLogo === "string") {
+          sideLogo = { path: sideLogo, alt };
+        }
+        // possible but absurd
+        // else if ("path" in sideLogo) {
+        //   sideLogo = { ...sideLogo, alt };
+        // } else {
+        //   sideLogo = {
+        //     light: !sideLogo.light ? undefined : typeof sideLogo.light === "string"
+        //       ? {
+        //         path: sideLogo.light,
+        //         alt,
+        //       }
+        //       : { ...sideLogo.light, alt },
+        //     dark: !sideLogo.dark ? undefined : typeof sideLogo.dark === "string"
+        //       ? {
+        //         path: sideLogo.dark,
+        //         alt,
+        //       }
+        //       : { ...sideLogo.dark, alt },
+        //   };
+        // }
+      }
+    }
+    sidebars[0].logo = resolveLogo(projectBrand, sideLogo, [
+      "medium",
+      "small",
+      "large",
+    ]);
+
     // convert contents: auto into items
     for (const sb of sidebars) {
       if (sb.contents && !Array.isArray(sb.contents)) {
@@ -161,33 +213,6 @@ export async function websiteNavigationConfig(project: ProjectContext) {
           sb.contents = [sb.contents as SidebarItem];
         }
       }
-    }
-  }
-
-  const projectBrand = await project.resolveBrand();
-  if (
-    projectBrand?.processedData.logo && sidebars?.[0]
-  ) {
-    if (sidebars[0].logo === undefined) {
-      const logo = projectBrand.processedData.logo.medium ??
-        projectBrand.processedData.logo.small ??
-        projectBrand.processedData.logo.large;
-      if (logo) {
-        sidebars[0].logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
-        sidebars[0]["logo-alt"] = logo.light.alt;
-      }
-    }
-  }
-
-  if (
-    projectBrand?.processedData && navbar
-  ) {
-    const logo = projectBrand.processedData.logo.small ??
-      projectBrand.processedData.logo.medium ??
-      projectBrand.processedData.logo.large;
-    if (logo) {
-      navbar.logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
-      navbar["logo-alt"] = logo.light.alt;
     }
   }
 
@@ -246,7 +271,7 @@ export async function websiteNavigationConfig(project: ProjectContext) {
   let announcement: NavigationAnnouncement | undefined;
   if (typeof announcementRaw === "string") {
     announcement = {
-      id: md5Hash(announcementRaw),
+      id: await md5HashAsync(announcementRaw),
       icon: undefined,
       dismissable: true,
       content: announcementRaw,
@@ -255,7 +280,7 @@ export async function websiteNavigationConfig(project: ProjectContext) {
     };
   } else if (announcementRaw && !Array.isArray(announcementRaw)) {
     announcement = {
-      id: md5Hash(announcementRaw.content as string),
+      id: await md5HashAsync(announcementRaw.content as string),
       icon: announcementRaw.icon as string | undefined,
       dismissable: announcementRaw.dismissable !== false,
       content: announcementRaw.content as string,

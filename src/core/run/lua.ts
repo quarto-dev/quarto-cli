@@ -43,7 +43,8 @@ export const luaRunHandler: RunHandler = {
 
     return await execProcess(
       {
-        cmd,
+        cmd: cmd[0],
+        args: cmd.slice(1),
         ...options,
       },
       "",
@@ -96,8 +97,8 @@ setmetatable(_G, meta)
   // call pandoc w/ temp script as --to
   try {
     return await execProcess({
-      cmd: [
-        pandocBinaryPath(),
+      cmd: pandocBinaryPath(),
+      args: [
         "--from",
         "markdown",
         "--to",

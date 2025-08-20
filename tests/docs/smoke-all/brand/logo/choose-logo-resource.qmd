@@ -2,6 +2,9 @@
 title: brand and base logo
 format:
   dashboard: default
+  revealjs: default
+  typst:
+    output-ext: typ
 brand:
   logo:
     images:
@@ -17,14 +20,19 @@ logo: large
 _quarto:
   tests:
     dashboard:
-      ensureFileRegexMatches:
+      ensureHtmlElements:
         -
-          - '<img src="posit-logo-2024\.svg" alt="posit logo"'
+          - 'img[src="posit-logo-2024.svg"][alt="posit logo"]'
         - []
     revealjs:
-      ensureFileRegexMatches:
+      ensureHtmlElements:
         -
-          - '<img src="posit-logo-2024\.svg" class="slide-logo">'
+          - 'img[src="posit-logo-2024.svg"][class="slide-logo"]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("posit-logo-2024.svg", width: 1\.5in, alt: "posit logo"\)\)'
         - []
 ---
 

@@ -130,15 +130,12 @@ end
 
 function hasRawLatexTable(raw)
   if _quarto.format.isRawLatex(raw) and _quarto.format.isLatexOutput() then
-    for i,pattern in ipairs(_quarto.patterns.latexTablePatterns) do
-      if _quarto.modules.patterns.match_all_in_table(pattern)(raw.text) then
-        return true
-      end
+    local matched, _ = _quarto.modules.patterns.match_in_list_of_patterns(raw.text, _quarto.patterns.latexAllTableEnvPatterns)
+    if matched then
+      return true
     end
-    return false
-  else
-    return false
   end
+  return false
 end
 
 local tableCheckers = {

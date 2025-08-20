@@ -8,5 +8,5 @@ code-fold: true
 ```
 
 ```{js}
-#| file: script.js
+//| file: script.js
 ```
