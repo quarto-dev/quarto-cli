@@ -32,7 +32,12 @@ import { InternalError } from "../lib/error.ts";
 import { join, relative } from "../../deno_ral/path.ts";
 import { warnOnce } from "../log.ts";
 import { isCssColorName } from "../css/color-names.ts";
-import { assert } from "testing/asserts";
+import {
+  LogoLightDarkSpecifierPathOptional,
+  LogoOptionsPathOptional,
+  LogoSpecifier,
+  LogoSpecifierPathOptional,
+} from "../../resources/types/schema-types.ts";
 
 type ProcessedBrandData = {
   color: Record<string, string>;
@@ -240,11 +245,13 @@ export class Brand {
   resolvePath(entry: BrandLogoResource) {
     const pathPrefix = relative(this.projectDir, this.brandDir);
     if (typeof entry === "string") {
-      return { path: join(pathPrefix, entry) };
+      return { path: isExternalPath(entry) ? entry : join(pathPrefix, entry) };
     }
     return {
       ...entry,
-      path: join(pathPrefix, entry.path),
+      path: isExternalPath(entry.path)
+        ? entry.path
+        : join(pathPrefix, entry.path),
     };
   }
 
@@ -262,6 +269,10 @@ export class Brand {
     }
     return this.getLogoResource(entry);
   }
+}
+
+function isExternalPath(path: string) {
+  return /^\w+:/.test(path);
 }
 
 export type LightDarkBrand = {
@@ -376,6 +387,62 @@ export function resolveLogo(
   return {
     light,
     dark,
+  };
+}
+
+// this a typst workaround but might as well write it as a proper function
+export function fillLogoPaths(
+  brand: LightDarkBrand | undefined,
+  spec: LogoLightDarkSpecifierPathOptional | undefined,
+  order: BrandNamedLogo[],
+): LogoLightDarkSpecifier | undefined {
+  function findLogoSize(
+    mode: "light" | "dark",
+  ): string | undefined {
+    if (brand?.[mode]) {
+      for (const size of order) {
+        if (brand[mode].processedData.logo[size]) {
+          return size;
+        }
+      }
+    }
+    return undefined;
+  }
+  function resolveMode(
+    mode: "light" | "dark",
+    spec: LogoSpecifierPathOptional | undefined,
+  ): LogoSpecifier | undefined {
+    if (!spec) {
+      return undefined;
+    }
+    if (!spec || typeof spec === "string") {
+      return spec;
+    } else if (spec.path) {
+      return spec as LogoOptions;
+    } else {
+      const size = findLogoSize(mode) ||
+        findLogoSize(mode === "light" ? "dark" : "light");
+      if (size) {
+        return {
+          path: size,
+          ...spec,
+        };
+      }
+    }
+    return undefined;
+  }
+  if (!spec || typeof spec === "string") {
+    return spec;
+  }
+  if ("light" in spec || "dark" in spec) {
+    return {
+      light: resolveMode("light", spec.light),
+      dark: resolveMode("dark", spec.dark),
+    };
+  }
+  return {
+    light: resolveMode("light", spec as LogoOptionsPathOptional),
+    dark: resolveMode("dark", spec as LogoOptionsPathOptional),
   };
 }
 

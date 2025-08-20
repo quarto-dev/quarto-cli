@@ -1,6 +1,9 @@
 ---
-title: brand-mode and revealjs
-format: revealjs
+title: brand-mode and logos
+format:
+  revealjs: default
+  typst:
+    keep-typ: true
 brand:
   logo:
     images:
@@ -33,8 +36,14 @@ _quarto:
           - 'img[src="sun-face.png"][alt="sun face"]'
         -
           - 'img[src="moon-face.png"][alt="moon face"]'
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("sun-face\.png", width: 1\.5in, alt: "sun face"\)\)'
+        -
+          - 'background.*moon-face\.png'
 ---
 
-## Here's a slide
+## Here we go
 
-- in {{< meta brand-mode >}} mode!
+- in default `brand-mode`!

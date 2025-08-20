@@ -1,14 +1,17 @@
 ---
-title: brand-mode and revealjs
-format: revealjs
+title: brand-mode and logos
+format:
+  revealjs: default
+  typst:
+    keep-typ: true
 brand:
   logo:
     images:
       sun: sun-face.png
       moon: moon-face.png
     medium:
-      light: sun
-      dark: moon
+      light: sun           # Named reference
+      dark: moon-face.png  # Direct path
   color:
     foreground: 
       light: '#222'
@@ -21,10 +24,6 @@ brand:
       color:
         light: '#429'
         dark: '#54e'
-brand-mode: dark
-logo:
-  light: moon
-  dark: sun
 _quarto:
   tests:
     revealjs:
@@ -33,8 +32,14 @@ _quarto:
           - 'img[src="sun-face.png"]'
         -
           - 'img[src="moon-face.png"]'
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("sun-face\.png", width: 1\.5in\)\)'
+        -
+          - 'background.*moon-face\.png'
 ---
 
-## Here's a slide
+## Here we go
 
-- in {{< meta brand-mode >}} mode!
+- Testing mixed path types - named reference and direct path

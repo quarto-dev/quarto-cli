@@ -12092,6 +12092,34 @@ try {
             ]
           },
           {
+            id: "logo-light-dark-specifier-path-optional",
+            description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+            anyOf: [
+              {
+                ref: "logo-specifier-path-optional"
+              },
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: {
+                      schema: {
+                        ref: "logo-specifier-path-optional"
+                      },
+                      description: "Specification of a light logo\n"
+                    },
+                    dark: {
+                      schema: {
+                        ref: "logo-specifier-path-optional"
+                      },
+                      description: "Specification of a dark logo\n"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
             id: "normalized-logo-light-dark-specifier",
             description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
             object: {
@@ -13022,6 +13050,22 @@ try {
                 }
               }
             }
+          },
+          {
+            id: "brand-path-only-light-dark",
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: "string",
+                    dark: "string"
+                  }
+                }
+              }
+            ],
+            description: "A path to a brand.yml file, or an object with light and dark paths to brand.yml\n"
           },
           {
             id: "brand-path-bool-light-dark",
@@ -14575,7 +14619,8 @@ try {
               string: {
                 completions: [
                   "jupyter",
-                  "knitr"
+                  "knitr",
+                  "julia"
                 ]
               }
             },
@@ -16117,10 +16162,11 @@ try {
             default: "light",
             tags: {
               formats: [
-                "typst"
+                "typst",
+                "revealjs"
               ]
             },
-            description: "The brand mode to use for rendering the Typst document, `light` or `dark`.\n"
+            description: "The brand mode to use for rendering the document, `light` or `dark`.\n"
           },
           {
             name: "layout",
@@ -18320,7 +18366,7 @@ try {
               ]
             },
             schema: {
-              ref: "logo-specifier"
+              ref: "logo-light-dark-specifier"
             },
             description: "Logo image (placed in bottom right corner of slides)"
           },
@@ -20422,6 +20468,12 @@ try {
                       description: "Additional file resources to be copied to output directory"
                     }
                   },
+                  brand: {
+                    schema: {
+                      ref: "brand-path-only-light-dark"
+                    },
+                    description: "Path to brand.yml or object with light and dark paths to brand.yml\n"
+                  },
                   preview: {
                     description: "Options for `quarto preview`",
                     schema: {
@@ -22465,6 +22517,9 @@ try {
           "Specification of a light logo",
           "Specification of a dark logo",
           "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+          "Specification of a light logo",
+          "Specification of a dark logo",
+          "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
           "Options for a light logo",
           "Options for a dark logo",
           "The brand\u2019s custom color palette and theme.",
@@ -22557,6 +22612,7 @@ try {
           "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
           "The path to the font file. This can be a local path or a URL.",
           "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
+          "A path to a brand.yml file, or an object with light and dark paths to\nbrand.yml",
           "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline (unified) brand definition, or an object with light\nand dark brand paths or definitions.",
           "The path to a light brand file or an inline light brand\ndefinition.",
           "The path to a dark brand file or an inline dark brand definition.",
@@ -23346,7 +23402,7 @@ try {
           },
           "Control the <code>\\pagestyle{}</code> for the document.",
           "The paper size for the document.",
-          "The brand mode to use for rendering the Typst document,\n<code>light</code> or <code>dark</code>.",
+          "The brand mode to use for rendering the document, <code>light</code>\nor <code>dark</code>.",
           {
             short: "The options for margins and text layout for this document.",
             long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.'
@@ -23958,6 +24014,7 @@ try {
           "HTML library (JS/CSS/etc.) directory",
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
+          "Path to brand.yml or object with light and dark paths to\nbrand.yml",
           "Options for <code>quarto preview</code>",
           "Scripts to run as a pre-render step",
           "Scripts to run as a post-render step",
@@ -24307,6 +24364,7 @@ try {
           "HTML library (JS/CSS/etc.) directory",
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
+          "Path to brand.yml or object with light and dark paths to\nbrand.yml",
           "Options for <code>quarto preview</code>",
           "Scripts to run as a pre-render step",
           "Scripts to run as a post-render step",
@@ -24870,12 +24928,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197461,
+          _internalId: 197539,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197453,
+              _internalId: 197531,
               type: "enum",
               enum: [
                 "png",
@@ -24891,7 +24949,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197460,
+              _internalId: 197538,
               type: "anyOf",
               anyOf: [
                 {
@@ -24961,7 +25019,7 @@ try {
           {
             name: "logo",
             schema: {
-              ref: "logo-specifier-path-optional"
+              ref: "logo-light-dark-specifier-path-optional"
             },
             tags: {
               formats: [

@@ -1,0 +1,9 @@
+# minimal brand.yml enabling dark mode
+# replace with your brand colors, logos, and typography!
+color:
+  background:
+    light: "#fff"
+    dark: "#000"
+  foreground:
+    light: "#000"
+    dark: "#fff"

@@ -1272,6 +1272,11 @@ export type LogoLightDarkSpecifier = LogoSpecifier | {
   light?: LogoSpecifier;
 }; /* Any of the ways a logo can be specified: string, object, or light/dark object of string or object */
 
+export type LogoLightDarkSpecifierPathOptional = LogoSpecifierPathOptional | {
+  dark?: LogoSpecifierPathOptional;
+  light?: LogoSpecifierPathOptional;
+}; /* Any of the ways a logo can be specified: string, object, or light/dark object of string or object */
+
 export type NormalizedLogoLightDarkSpecifier = {
   dark?: LogoOptions;
   light?: LogoOptions;
@@ -1548,6 +1553,11 @@ export type BrandUnified = {
   typography?: BrandTypographyUnified;
 };
 
+export type BrandPathOnlyLightDark = string | {
+  dark?: string;
+  light?: string;
+}; /* A path to a brand.yml file, or an object with light and dark paths to brand.yml */
+
 export type BrandPathBoolLightDark =
   | string
   | boolean
@@ -1583,6 +1593,7 @@ export type ProjectConfig = {
   "lib-dir"?: string /* HTML library (JS/CSS/etc.) directory */;
   "pre-render"?: MaybeArrayOf<string>;
   "post-render"?: MaybeArrayOf<string>;
+  brand?: BrandPathOnlyLightDark;
   detect?: ((string)[])[];
   preview?: ProjectPreview;
   render?: (string)[] /* Files to render (defaults to all files) */;
