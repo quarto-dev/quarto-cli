@@ -76,12 +76,14 @@ All changes included in 1.8:
 
 - ([#12615](https://github.com/quarto-dev/quarto-cli/pull/12615)): Adds `algorithm` to theorem environments. (author: @jeremy9959)
 
-## Lua Filters
+## Lua Filters and API
 
 - ([#12727](https://github.com/quarto-dev/quarto-cli/issues/12727)): Do not crash in the presence of malformed tabset contents.
 - ([#12806](https://github.com/quarto-dev/quarto-cli/pull/12806)): Use pandoc APIs to handle codepage conversion on Windows.
 - ([#12811](https://github.com/quarto-dev/quarto-cli/pull/12811)): Add support for YouTube Shorts in `video` shortcode.
-- ([#13128](https://github.com/quarto-dev/quarto-cli/issues/13128)): Meta shortcode could crash on bad input.
+- ([#13112](https://github.com/quarto-dev/quarto-cli/pull/13112)): Add `quarto.format.format_identifier()` API entry.
+- ([#13128](https://github.com/quarto-dev/quarto-cli/issues/13128)): Avoid meta shortcode crash on bad input.
+- ([#13246](https://github.com/quarto-dev/quarto-cli/pull/13246)): Add `quarto.variables.get()` and `quarto.metadata.get()` APIs.
 
 ## Commands
 
@@ -119,6 +121,10 @@ All changes included in 1.8:
 
 - ([#12870](https://github.com/quarto-dev/quarto-cli/pull/12870)): Update `julia` engine from `0.17.0` to `0.17.3` to improve `juliaup` detection on Windows systems and correctly set `Base.source_path()` output to match REPL and script usage.
 
+## Languages
+
+- ([#13098](https://github.com/quarto-dev/quarto-cli/pull/13098)): Fox a minor inappropriate phrasing in the Chinese localization of `environment-proof-title` (@sun123xyz).
+
 ## Other fixes and improvements
 
 - ([#11321](https://github.com/quarto-dev/quarto-cli/issues/11321)): Follow [recommendation from LaTeX project](https://latex-project.org/news/latex2e-news/ltnews40.pdf) and use `lualatex` instead of `xelatex` as the default PDF engine.
@@ -126,3 +132,8 @@ All changes included in 1.8:
 - ([#12853](https://github.com/quarto-dev/quarto-cli/issues/12853)): fix replaceAll() escaping issue with embedded notebooks containing `$` in their Markdown.
 - ([#12939](https://github.com/quarto-dev/quarto-cli/pull/12939)): Upgrade `mermaidjs` to 11.6.0.
 - ([#13031](https://github.com/quarto-dev/quarto-cli/pull/13031)): Add `.quarto_ipynb` files to `.gitignore` by default.
+- ([#13164](https://github.com/quarto-dev/quarto-cli/pull/13164)): add `julia` to execute schema to allow autocomplete suggestions. (@mcanouil)
+
+## Quarto Internals
+
+- ([#13155](https://github.com/quarto-dev/quarto-cli/pull/13155)): Process `pandoc-reader-FORMAT` raw blocks through `pandoc.read(FORMAT)`
