@@ -134,3 +134,7 @@ All changes included in 1.8:
 - ([#13085](https://github.com/quarto-dev/quarto-cli/pull/13085)): Avoid `kbd` shortcode crashes on unknown OS keys.
 - ([#13164](https://github.com/quarto-dev/quarto-cli/pull/13164)): add `julia` to execute schema to allow autocomplete suggestions. (@mcanouil)
 
+
+## Quarto Internals
+
+- ([#13155](https://github.com/quarto-dev/quarto-cli/pull/13155)): Process `pandoc-reader-FORMAT` raw blocks through `pandoc.read(FORMAT)`
