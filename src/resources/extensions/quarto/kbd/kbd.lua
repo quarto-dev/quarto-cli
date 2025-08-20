@@ -1,7 +1,7 @@
 -- todo: i18n :(
 return {
   ['kbd'] = function(args, kwargs, meta)
-    local function osname(v)
+    local function get_osname(v)
       if v == "win" then return "windows" end
       if v == "mac" then return "mac" end
       if v == "linux" then return "linux" end       
@@ -15,8 +15,13 @@ return {
       local kwargs_strs = {}
       local title_strs = {}
       for k, v in pairs(kwargs) do
-        table.insert(kwargs_strs, string.format('data-%s="%s"', osname(k), pandoc.utils.stringify(v)))
-        table.insert(title_strs, osname(k) .. ': ' .. pandoc.utils.stringify(v))
+        local osname = get_osname(k)
+        if osname == nil then
+          quarto.log.warning("unknown os name in kbd shortcode: " .. k .. ", supported names are: win, mac, linux")
+          return quarto.shortcode.error_output("kbd", "unknown os name: " .. k, "inline")
+        end
+        table.insert(kwargs_strs, string.format('data-%s="%s"', osname, pandoc.utils.stringify(v)))
+        table.insert(title_strs, osname .. ': ' .. pandoc.utils.stringify(v))
       end
       table.sort(kwargs_strs) -- sort so that the output is deterministic
       local kwargs_str = table.concat(kwargs_strs)
@@ -78,7 +83,7 @@ return {
         if n_kwargs > 0 then
           table.insert(result, pandoc.Str(' ('))
           for k, v in pairs(kwargs) do
-            table.insert(result, pandoc.Str(osname(k)))
+            table.insert(result, pandoc.Str(get_osname(k)))
             table.insert(result, pandoc.Str(': '))
             table.insert(result, pandoc.Code(pandoc.utils.stringify(v)))
             n_kwargs = n_kwargs - 1
@@ -98,7 +103,7 @@ return {
           for k, v in pairs(kwargs) do
             table.insert(result, pandoc.Code(pandoc.utils.stringify(v)))
             table.insert(result, pandoc.Str(' ('))
-            table.insert(result, pandoc.Str(osname(k)))
+            table.insert(result, pandoc.Str(get_osname(k)))
             table.insert(result, pandoc.Str(')'))
             n_kwargs = n_kwargs - 1
             if n_kwargs > 0 then
