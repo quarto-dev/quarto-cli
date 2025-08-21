@@ -180,6 +180,9 @@ function resolveTestSpecs(
         } else if (key === "noErrors") {
           checkWarnings = false;
           verifyFns.push(noErrors);
+        } else if (key === "noErrorsOrWarnings") {
+          checkWarnings = false;
+          verifyFns.push(noErrorsOrWarnings);
         } else {
           // See if there is a project and grab it's type
           const projectPath = findRootTestsProjectDir(input)
