@@ -180,7 +180,7 @@ function resolveTestSpecs(
         } else if (key === "noErrors") {
           checkWarnings = false;
           verifyFns.push(noErrors);
-        } if (key === "noErrorsOrWarnings") {
+        } else if (key === "noErrorsOrWarnings") {
           checkWarnings = false;
           verifyFns.push(noErrorsOrWarnings);
         } else {
