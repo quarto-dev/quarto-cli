@@ -286,7 +286,7 @@ function bootstrapTabs()
         active = " active"
         selected = "true"
       end
-      return 'class="nav-link' .. active .. '" id="' .. tablinkid .. '" data-bs-toggle="tab" data-bs-target="#' .. tabid .. '" role="tab" aria-controls="' .. tabid .. '" aria-selected="' .. selected .. '"'
+      return 'class="nav-link' .. active .. '" id="' .. tablinkid .. '" data-bs-toggle="tab" data-bs-target="#' .. tabid .. '" role="tab" aria-controls="' .. tabid .. '" aria-selected="' .. selected .. '" href=""'
     end,
     paneAttribs = function(tabid, isActive, headingAttribs)
       local tablinkid = tabid .. "-tab"

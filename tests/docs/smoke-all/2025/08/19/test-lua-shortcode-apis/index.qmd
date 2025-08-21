@@ -1,0 +1,26 @@
+---
+title: "test-lua-shortcode-apis"
+meta1: meta_value
+meta2: 2
+meta3:
+  - foo
+  - bar
+meta4:
+  key1: value1
+  key2: value2
+filters:
+  - set_span_values.lua
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - meta_value
+          - var_value
+---
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+
+[]{#span1}, []{#span2}

@@ -2658,6 +2658,26 @@
             description: >
               Specification of a dark logo
 
+- id: logo-light-dark-specifier-path-optional
+  description: >
+    Any of the ways a logo can be specified: string, object, or light/dark object of
+    string or object
+  anyOf:
+    - ref: logo-specifier-path-optional
+    - object:
+        closed: true
+        properties:
+          light:
+            schema:
+              ref: logo-specifier-path-optional
+            description: >
+              Specification of a light logo
+          dark:
+            schema:
+              ref: logo-specifier-path-optional
+            description: >
+              Specification of a dark logo
+
 # normalized version of logo-light-dark-specifier
 - id: normalized-logo-light-dark-specifier
   description: >
@@ -3322,6 +3342,17 @@
         ref: brand-typography-unified
       defaults:
         ref: brand-defaults
+
+- id: brand-path-only-light-dark
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          light: string
+          dark: string
+  description: |
+    A path to a brand.yml file, or an object with light and dark paths to brand.yml
 
 - id: brand-path-bool-light-dark
   anyOf:

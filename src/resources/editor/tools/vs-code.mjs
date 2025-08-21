@@ -12091,6 +12091,34 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "logo-light-dark-specifier-path-optional",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          anyOf: [
+            {
+              ref: "logo-specifier-path-optional"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "logo-specifier-path-optional"
+                    },
+                    description: "Specification of a light logo\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "logo-specifier-path-optional"
+                    },
+                    description: "Specification of a dark logo\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
           id: "normalized-logo-light-dark-specifier",
           description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
           object: {
@@ -13021,6 +13049,22 @@ var require_yaml_intelligence_resources = __commonJS({
               }
             }
           }
+        },
+        {
+          id: "brand-path-only-light-dark",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: "string",
+                  dark: "string"
+                }
+              }
+            }
+          ],
+          description: "A path to a brand.yml file, or an object with light and dark paths to brand.yml\n"
         },
         {
           id: "brand-path-bool-light-dark",
@@ -14574,7 +14618,8 @@ var require_yaml_intelligence_resources = __commonJS({
             string: {
               completions: [
                 "jupyter",
-                "knitr"
+                "knitr",
+                "julia"
               ]
             }
           },
@@ -16116,10 +16161,11 @@ var require_yaml_intelligence_resources = __commonJS({
           default: "light",
           tags: {
             formats: [
-              "typst"
+              "typst",
+              "revealjs"
             ]
           },
-          description: "The brand mode to use for rendering the Typst document, `light` or `dark`.\n"
+          description: "The brand mode to use for rendering the document, `light` or `dark`.\n"
         },
         {
           name: "layout",
@@ -18319,7 +18365,7 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           schema: {
-            ref: "logo-specifier"
+            ref: "logo-light-dark-specifier"
           },
           description: "Logo image (placed in bottom right corner of slides)"
         },
@@ -20421,6 +20467,12 @@ var require_yaml_intelligence_resources = __commonJS({
                     description: "Additional file resources to be copied to output directory"
                   }
                 },
+                brand: {
+                  schema: {
+                    ref: "brand-path-only-light-dark"
+                  },
+                  description: "Path to brand.yml or object with light and dark paths to brand.yml\n"
+                },
                 preview: {
                   description: "Options for `quarto preview`",
                   schema: {
@@ -22458,6 +22510,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Names of customizeable logos",
         "Path or brand.yml logo resource name.",
         "Alternative text for the logo, used for accessibility.",
+        "Path or brand.yml logo resource name.",
+        "Alternative text for the logo, used for accessibility.",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+        "Specification of a light logo",
+        "Specification of a dark logo",
         "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
         "Specification of a light logo",
         "Specification of a dark logo",
@@ -22554,6 +22611,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
         "The path to the font file. This can be a local path or a URL.",
         "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
+        "A path to a brand.yml file, or an object with light and dark paths to\nbrand.yml",
         "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline (unified) brand definition, or an object with light\nand dark brand paths or definitions.",
         "The path to a light brand file or an inline light brand\ndefinition.",
         "The path to a dark brand file or an inline dark brand definition.",
@@ -23343,7 +23401,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Control the <code>\\pagestyle{}</code> for the document.",
         "The paper size for the document.",
-        "The brand mode to use for rendering the Typst document,\n<code>light</code> or <code>dark</code>.",
+        "The brand mode to use for rendering the document, <code>light</code>\nor <code>dark</code>.",
         {
           short: "The options for margins and text layout for this document.",
           long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.'
@@ -23955,6 +24013,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "HTML library (JS/CSS/etc.) directory",
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
+        "Path to brand.yml or object with light and dark paths to\nbrand.yml",
         "Options for <code>quarto preview</code>",
         "Scripts to run as a pre-render step",
         "Scripts to run as a post-render step",
@@ -24292,6 +24351,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
         "When defined, run axe-core accessibility tests on the document.",
         "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
+        "The logo image.",
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -24303,6 +24363,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "HTML library (JS/CSS/etc.) directory",
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
+        "Path to brand.yml or object with light and dark paths to\nbrand.yml",
         "Options for <code>quarto preview</code>",
         "Scripts to run as a pre-render step",
         "Scripts to run as a post-render step",
@@ -24637,10 +24698,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        "Path or brand.yml logo resource name.",
-        "Alternative text for the logo, used for accessibility.",
-        "The logo image."
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
       ],
       "schema/external-schemas.yml": [
         {
@@ -24869,12 +24927,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197511,
+        _internalId: 197539,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197503,
+            _internalId: 197531,
             type: "enum",
             enum: [
               "png",
@@ -24890,7 +24948,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197510,
+            _internalId: 197538,
             type: "anyOf",
             anyOf: [
               {
@@ -24960,7 +25018,7 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "logo",
           schema: {
-            ref: "logo-specifier-path-optional"
+            ref: "logo-light-dark-specifier-path-optional"
           },
           tags: {
             formats: [
@@ -32819,7 +32877,7 @@ function objectSchema(params = {}) {
       );
       console.error("This is a bug in quarto's schemas.");
       console.error(
-        "Note that we don't throw in order to allow build-js to finish, but the generated schemas will be invalid."
+        "Note that we don't throw in order to allow build-artifacts to finish, but the generated schemas will be invalid."
       );
     }
     result.properties = Object.assign(
