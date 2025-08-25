@@ -137,6 +137,7 @@ All changes included in 1.8:
 - ([#13085](https://github.com/quarto-dev/quarto-cli/pull/13085)): Avoid `kbd` shortcode crashes on unknown OS keys.
 - ([#13164](https://github.com/quarto-dev/quarto-cli/pull/13164)): add `julia` to execute schema to allow autocomplete suggestions. (@mcanouil)
 - ([#13121](https://github.com/quarto-dev/quarto-cli/issues/13121)): Allow `contents` shortcode to find inline elements.
+- ([#13216](https://github.com/quarto-dev/quarto-cli/issues/13216)): Properly disable `downlit` (`code-link`) and enable `code-annotations` when non-R code blocks are present.
 
 
 ## Quarto Internals
