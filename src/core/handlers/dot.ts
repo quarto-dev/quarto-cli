@@ -62,22 +62,21 @@ const dotHandler: LanguageHandler = {
       toFileUrl(resourcePath(join("js", "graphviz-wasm.js"))).href
     );
     let svg;
-    const oldConsoleLog = console.log;
-    const oldConsoleWarn = console.warn;
-    console.log = () => {};
-    console.warn = () => {};
+    // use console["log"] here instead of dot notation
+    // to allow us to lint for the dot notation usage which
+    // we want to disallow throughout the codebase
+    const oldConsoleLog = console["log"];
+    const oldConsoleWarn = console["warn"];
+    console["log"] = () => {};
+    console["warn"] = () => {};
     try {
       svg = await graphvizModule.graphviz().layout(
         cellContent.value,
         "svg",
         options["graph-layout"],
       );
-      console.log = oldConsoleLog;
-      console.warn = oldConsoleWarn;
     } catch (e) {
       if (!(e instanceof Error)) throw e;
-      console.log = oldConsoleLog;
-      console.warn = oldConsoleWarn;
       const m = (e.message as string).match(
         /(.*)syntax error in line (\d+)(.*)/,
       );
@@ -94,10 +93,11 @@ const dotHandler: LanguageHandler = {
             mapResult!.originalString.fileName
           }, line ${line + 1}${m[3]}`,
         );
-        throw e;
-      } else {
-        throw e;
       }
+      throw e;
+    } finally {
+      console["log"] = oldConsoleLog;
+      console["warn"] = oldConsoleWarn;
     }
 
     const makeFigLink = (

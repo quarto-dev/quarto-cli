@@ -132,7 +132,7 @@ export async function withPuppeteerBrowserAndPage<T>(
         (allowedErrorMessages.indexOf(error.message) !== -1) &&
         (attempts < maxAttempts)
       ) {
-        console.log(
+        error(
           `\nEncountered a bad error message from puppeteer: "${error.message}"\n Retrying ${attempts}/${maxAttempts}`,
         );
       } else {
@@ -174,7 +174,7 @@ export async function inPuppeteer(
         (allowedErrorMessages.indexOf(error.message) !== -1) &&
         (attempts < maxAttempts)
       ) {
-        console.log(
+        error(
           `\nEncountered a bad error message from puppeteer: "${error.message}"\n Retrying ${attempts}/${maxAttempts}`,
         );
       } else {
