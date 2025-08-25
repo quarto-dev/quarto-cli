@@ -20,6 +20,7 @@ All changes included in 1.8:
 - ([#726](https://github.com/quarto-dev/quarto-cli/issues/726)): a11y - Provide `.screen-reader-only` callout type when callout text doesn't naturally include the type.
 - ([#5538](https://github.com/quarto-dev/quarto-cli/issues/5538)): Fix code-copy button style so that scrolling behaves properly.
 - ([#5879](https://github.com/quarto-dev/quarto-cli/issues/5879)): Improve font rendering of `kbd` shortcode on macOS. `kbd` will now also be stricter in converting keyboard shortcuts to macOS icons.
+- ([#8568](https://github.com/quarto-dev/quarto-cli/issues/8568)) Default inline code background color to the code block background color if not specified; foreground color is `$pre-color` in dark mode and (remains) purple in light mode.
 - ([#10983](https://github.com/quarto-dev/quarto-cli/issues/10983)): Fix spacing inconsistency between paras and first section headings.
 - ([#12259](https://github.com/quarto-dev/quarto-cli/issues/12259)): Fix conflict between `html-math-method: katex` and crossref popups (author: @benkeks).
 - ([#12341](https://github.com/quarto-dev/quarto-cli/issues/12341)): Enable light and dark logos for html formats (sidebar, navbar, dashboard).
@@ -66,6 +67,7 @@ All changes included in 1.8:
 
 ### `website`
 
+- ([#10284](https://github.com/quarto-dev/quarto-cli/issues/10284)): a11y - Fix keyboard navigation for tabset panels when using an HTML theme. Tabs now properly receive keyboard focus.
 - ([#12551](https://github.com/quarto-dev/quarto-cli/pull/12551)): Improve warning issued when `aliases` would overwrite an existing document.
 - ([#12616](https://github.com/quarto-dev/quarto-cli/issues/12616)): find SVG images in image discovery for listings.
 - ([#12693](https://github.com/quarto-dev/quarto-cli/issues/12693)): Prevent resource exhaustion on large websites by serializing `NotebookContext` information to file instead of the environment.
@@ -75,12 +77,15 @@ All changes included in 1.8:
 
 - ([#12615](https://github.com/quarto-dev/quarto-cli/pull/12615)): Adds `algorithm` to theorem environments. (author: @jeremy9959)
 
-## Lua Filters
+## Lua Filters and API
 
+- ([#11750](https://github.com/quarto-dev/quarto-cli/pull/11750)): Extend filter path resolution to support `at`/`path` filters from extensions.
 - ([#12727](https://github.com/quarto-dev/quarto-cli/issues/12727)): Do not crash in the presence of malformed tabset contents.
 - ([#12806](https://github.com/quarto-dev/quarto-cli/pull/12806)): Use pandoc APIs to handle codepage conversion on Windows.
 - ([#12811](https://github.com/quarto-dev/quarto-cli/pull/12811)): Add support for YouTube Shorts in `video` shortcode.
-- ([#13128](https://github.com/quarto-dev/quarto-cli/issues/13128)): Meta shortcode could crash on bad input.
+- ([#13112](https://github.com/quarto-dev/quarto-cli/pull/13112)): Add `quarto.format.format_identifier()` API entry.
+- ([#13128](https://github.com/quarto-dev/quarto-cli/issues/13128)): Avoid meta shortcode crash on bad input.
+- ([#13246](https://github.com/quarto-dev/quarto-cli/pull/13246)): Add `quarto.variables.get()` and `quarto.metadata.get()` APIs.
 
 ## Commands
 
@@ -108,7 +113,7 @@ All changes included in 1.8:
 
 - ([#12753](https://github.com/quarto-dev/quarto-cli/issues/12753)): Support change in IPython 9+ and import `set_matplotlib_formats` from `matplotlib_inline.backend_inline` in the internal `setup.py` script used to initialize rendering with Jupyter engine.
 - ([#12839](https://github.com/quarto-dev/quarto-cli/issues/12839)): Support for `plotly.py` 6+ which now loads plotly.js using a cdn in script as a module.
-- ([#13026](https://github.com/quarto-dev/quarto-cli/pulls/13026), [#13151](https://github.com/quarto-dev/quarto-cli/pulls/13151)), [#13184](https://github.com/quarto-dev/quarto-cli/pull/13184): Use `jsdelivr` CDN for jupyter widgets dependencies.
+- ([#13026](https://github.com/quarto-dev/quarto-cli/pull/13026), [#13151](https://github.com/quarto-dev/quarto-cli/pull/13151)), [#13184](https://github.com/quarto-dev/quarto-cli/pull/13184): Use `jsdelivr` CDN for jupyter widgets dependencies.
 
 ### `knitr`
 
@@ -118,10 +123,24 @@ All changes included in 1.8:
 
 - ([#12870](https://github.com/quarto-dev/quarto-cli/pull/12870)): Update `julia` engine from `0.17.0` to `0.17.3` to improve `juliaup` detection on Windows systems and correctly set `Base.source_path()` output to match REPL and script usage.
 
+## Languages
+
+- ([#13098](https://github.com/quarto-dev/quarto-cli/pull/13098)): Fox a minor inappropriate phrasing in the Chinese localization of `environment-proof-title` (@sun123xyz).
+
 ## Other fixes and improvements
 
 - ([#11321](https://github.com/quarto-dev/quarto-cli/issues/11321)): Follow [recommendation from LaTeX project](https://latex-project.org/news/latex2e-news/ltnews40.pdf) and use `lualatex` instead of `xelatex` as the default PDF engine.
 - ([#12782](https://github.com/quarto-dev/quarto-cli/pull/12782)): fix bug on `safeRemoveDirSync`'s detection of safe directory boundaries.
 - ([#12853](https://github.com/quarto-dev/quarto-cli/issues/12853)): fix replaceAll() escaping issue with embedded notebooks containing `$` in their Markdown.
 - ([#12939](https://github.com/quarto-dev/quarto-cli/pull/12939)): Upgrade `mermaidjs` to 11.6.0.
+- ([#13031](https://github.com/quarto-dev/quarto-cli/pull/13031)): Add `.quarto_ipynb` files to `.gitignore` by default.
+- ([#13085](https://github.com/quarto-dev/quarto-cli/pull/13085)): Avoid `kbd` shortcode crashes on unknown OS keys.
+- ([#13164](https://github.com/quarto-dev/quarto-cli/pull/13164)): add `julia` to execute schema to allow autocomplete suggestions. (@mcanouil)
+- ([#13121](https://github.com/quarto-dev/quarto-cli/issues/13121)): Allow `contents` shortcode to find inline elements.
 - ([#13216](https://github.com/quarto-dev/quarto-cli/issues/13216)): Properly disable `downlit` (`code-link`) and enable `code-annotations` when non-R code blocks are present.
+
+
+## Quarto Internals
+
+- ([#13155](https://github.com/quarto-dev/quarto-cli/pull/13155)): Process `pandoc-reader-FORMAT` raw blocks through `pandoc.read(FORMAT)`.
+- ([#13255](https://github.com/quarto-dev/quarto-cli/pull/13255)): Move some Lua code to use Pandoc's Lua API.

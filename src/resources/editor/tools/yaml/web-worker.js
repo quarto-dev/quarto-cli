@@ -13052,6 +13052,22 @@ try {
             }
           },
           {
+            id: "brand-path-only-light-dark",
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: "string",
+                    dark: "string"
+                  }
+                }
+              }
+            ],
+            description: "A path to a brand.yml file, or an object with light and dark paths to brand.yml\n"
+          },
+          {
             id: "brand-path-bool-light-dark",
             anyOf: [
               "string",
@@ -14603,7 +14619,8 @@ try {
               string: {
                 completions: [
                   "jupyter",
-                  "knitr"
+                  "knitr",
+                  "julia"
                 ]
               }
             },
@@ -20453,9 +20470,9 @@ try {
                   },
                   brand: {
                     schema: {
-                      ref: "brand-path-bool-light-dark"
+                      ref: "brand-path-only-light-dark"
                     },
-                    description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
+                    description: "Path to brand.yml or object with light and dark paths to brand.yml\n"
                   },
                   preview: {
                     description: "Options for `quarto preview`",
@@ -22595,6 +22612,7 @@ try {
           "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
           "The path to the font file. This can be a local path or a URL.",
           "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
+          "A path to a brand.yml file, or an object with light and dark paths to\nbrand.yml",
           "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline (unified) brand definition, or an object with light\nand dark brand paths or definitions.",
           "The path to a light brand file or an inline light brand\ndefinition.",
           "The path to a dark brand file or an inline dark brand definition.",
@@ -23996,6 +24014,7 @@ try {
           "HTML library (JS/CSS/etc.) directory",
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
+          "Path to brand.yml or object with light and dark paths to\nbrand.yml",
           "Options for <code>quarto preview</code>",
           "Scripts to run as a pre-render step",
           "Scripts to run as a post-render step",
@@ -24345,6 +24364,7 @@ try {
           "HTML library (JS/CSS/etc.) directory",
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
+          "Path to brand.yml or object with light and dark paths to\nbrand.yml",
           "Options for <code>quarto preview</code>",
           "Scripts to run as a pre-render step",
           "Scripts to run as a post-render step",
@@ -24908,12 +24928,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197505,
+          _internalId: 197539,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197497,
+              _internalId: 197531,
               type: "enum",
               enum: [
                 "png",
@@ -24929,7 +24949,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197504,
+              _internalId: 197538,
               type: "anyOf",
               anyOf: [
                 {

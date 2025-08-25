@@ -17,6 +17,7 @@ import {
 } from "../project/types.ts";
 
 import {
+  basename,
   dirname,
   isAbsolute,
   join,
@@ -158,7 +159,10 @@ export function projectExtensionPathResolver(
   return (href: string, projectOffset: string) => {
     const projectRelativeHref = relative(projectOffset, href);
 
-    if (projectRelativeHref.startsWith("_extensions/") || projectRelativeHref.startsWith("_extensions\\")) {
+    if (
+      projectRelativeHref.startsWith("_extensions/") ||
+      projectRelativeHref.startsWith("_extensions\\")
+    ) {
       const projectTargetHref = projectRelativeHref.replace(
         /^_extensions/,
         `${libDir}/quarto-contrib/quarto-project`,
@@ -809,10 +813,17 @@ async function readExtension(
         );
         if (resolved.include.length > 0) {
           if (key === "brand") {
-            (object.project as Record<string, unknown>)[key] = relative(
-              join(extensionDir, "..", ".."),
-              resolved.include[0],
-            );
+            let projectDir = extensionDir, last;
+            do {
+              last = basename(projectDir);
+              projectDir = dirname(projectDir);
+            } while (projectDir && last !== "_extensions");
+            if (projectDir) {
+              (object.project as Record<string, unknown>)[key] = relative(
+                projectDir,
+                resolved.include[0],
+              );
+            }
           } else {
             (object.project as Record<string, unknown>)[key] = resolved.include;
           }
