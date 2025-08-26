@@ -407,7 +407,7 @@ jobs:
       - run: Add-Content $env:GITHUB_PATH "$env:GITHUB_WORKSPACE\bin"
 
       - run: |
-          tar -tzvf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz | head
+          tar -tzvf quarto-${{needs.configure.outputs.version}}-win.zip
           ls -lR
           echo $PATH
         shell: bash
