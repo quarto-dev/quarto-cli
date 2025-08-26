@@ -321,6 +321,16 @@ jobs:
       - run: |
           tar -zxf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
           echo "$GITHUB_WORKSPACE/quarto-${{needs.configure.outputs.version}}/bin" >> $GITHUB_PATH
+
+      # Check for share/preview/quarto-preview.js
+      - name: Ensure share/preview/quarto-preview.js exists
+        shell: bash
+        run: |
+          if [ ! -f "share/preview/quarto-preview.js" ]; then
+            echo "::error file=share/preview/quarto-preview.js::Required file share/preview/quarto-preview.js not found. Check the windows build configure step."
+            exit 1
+          fi
+
       - run: |
           tar -tzvf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz | head
           ls -lR
@@ -431,7 +441,24 @@ jobs:
           path: .
       - run: |
           tar -xf quarto-${{needs.configure.outputs.version}}-win.zip
+
+      # Check for share/preview/quarto-preview.js
+      - name: Ensure share/preview/quarto-preview.js exists
+        shell: bash
+        run: |
+          if [ ! -f "share/preview/quarto-preview.js" ]; then
+            echo "::error file=share/preview/quarto-preview.js::Required file share/preview/quarto-preview.js not found. Check the windows build configure step."
+            exit 1
+          fi
+
       - run: Add-Content $env:GITHUB_PATH "$env:GITHUB_WORKSPACE\bin"
+
+      - run: |
+          tar -tzvf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz | head
+          ls -lR
+          echo $PATH
+        shell: bash
+
       - run: |
           quarto check
           quarto --paths
@@ -525,6 +552,16 @@ jobs:
       - run: |
           tar -zxf quarto-${{needs.configure.outputs.version}}-macos.tar.gz
           echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+
+      # Check for share/preview/quarto-preview.js
+      - name: Ensure share/preview/quarto-preview.js exists
+        shell: bash
+        run: |
+          if [ ! -f "share/preview/quarto-preview.js" ]; then
+            echo "::error file=share/preview/quarto-preview.js::Required file share/preview/quarto-preview.js not found. Check the windows build configure step."
+            exit 1
+          fi
+
       - run: tar -tzvf quarto-${{needs.configure.outputs.version}}-macos.tar.gz | head
       - run: ls -lR
       - run: echo $PATH
