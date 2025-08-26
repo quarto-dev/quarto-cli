@@ -21,4 +21,4 @@ hello
 2 + 2 # <1>
 ```
 
-1. This should be styled as a popup.
+1. This is an annotation that should be properly displayed based on `code-annotations` setting.
