@@ -119,7 +119,7 @@
 
           # look for at least one annotations that is in a code chunk
           for (a in annotations) {
-            if (chunkMap[a]) {
+            if (chunkMap[a] == TRUE) {
               hasAnnotations <- TRUE
               break
             }
