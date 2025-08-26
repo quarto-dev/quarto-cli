@@ -200,6 +200,14 @@ export function removeTrailingSlash(path: string) {
   }
 }
 
+export function ensureLeadingSlash(path: string) {
+  if (path && !path.startsWith("/")) {
+    return "/" + path;
+  } else {
+    return path;
+  }
+}
+
 export function resolveGlobs(
   root: string,
   globs: string[],

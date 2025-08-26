@@ -29,7 +29,7 @@ import {
 } from "../../resources/types/zod/schema-types.ts";
 import { InternalError } from "../lib/error.ts";
 
-import { join, relative } from "../../deno_ral/path.ts";
+import { dirname, join, relative, resolve } from "../../deno_ral/path.ts";
 import { warnOnce } from "../log.ts";
 import { isCssColorName } from "../css/color-names.ts";
 import {
@@ -38,6 +38,7 @@ import {
   LogoSpecifier,
   LogoSpecifierPathOptional,
 } from "../../resources/types/schema-types.ts";
+import { ensureLeadingSlash } from "../path.ts";
 
 type ProcessedBrandData = {
   color: Record<string, string>;
@@ -387,6 +388,35 @@ export function resolveLogo(
   return {
     light,
     dark,
+  };
+}
+
+const ensureLeadingSlashIfNotExternal = (path: string) =>
+  isExternalPath(path) ? path : ensureLeadingSlash(path);
+
+export function logoAddLeadingSlashes(
+  spec: NormalizedLogoLightDarkSpecifier | undefined,
+  brand: LightDarkBrand | undefined,
+  input: string | undefined,
+): NormalizedLogoLightDarkSpecifier | undefined {
+  if (!spec) {
+    return spec;
+  }
+  if (input) {
+    const inputDir = dirname(resolve(input));
+    if (!brand || inputDir === brand.light?.projectDir) {
+      return spec;
+    }
+  }
+  return {
+    light: spec.light && {
+      ...spec.light,
+      path: ensureLeadingSlashIfNotExternal(spec.light.path),
+    },
+    dark: spec.dark && {
+      ...spec.dark,
+      path: ensureLeadingSlashIfNotExternal(spec.dark.path),
+    },
   };
 }
 

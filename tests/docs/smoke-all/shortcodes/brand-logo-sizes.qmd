@@ -9,11 +9,11 @@ brand:
 _quarto:
   tests:
     html:
-      ensureHtmlElements:
+      ensureFileRegexMatches:
         -
-          - 'img[src="small-logo.png"]'
-          - 'img[src="medium-logo.png"]'
-          - 'img[src="large-logo.png"]'
+          - '<img src="\.(/|\\)small-logo\.png".*>'
+          - '<img src="\.(/|\\)medium-logo\.png".*>'
+          - '<img src="\.(/|\\)large-logo\.png".*>'
         - []
 ---
 

@@ -10,14 +10,14 @@ brand:
 _quarto:
   tests:
     html:
-      ensureHtmlElements:
+      ensureFileRegexMatches:
         - 
           # When requesting dark mode explicitly, should get dark logo
-          - 'img[src="dark-logo.png"][class*="dark-content"]'
+          - '<img src="\.(/|\\)dark-logo\.png" class="dark-content.*>'
           # When requesting light mode explicitly (which doesn't exist), should fall back to dark logo but with light-content class
-          - 'img[src="dark-logo.png"][class*="light-content"]'
+          - '<img src="\.(/|\\)dark-logo\.png" class="light-content.*>'
           # When requesting medium size with light mode (doesn't exist), should fall back to dark-medium with light-content class
-          - 'img[src="dark-medium-logo.png"][class*="light-content"]'
+          - '<img src="\.(/|\\)dark-medium-logo\.png" class="light-content.*>'
         - []
 ---
 
