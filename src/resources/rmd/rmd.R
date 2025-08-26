@@ -102,7 +102,14 @@
           # within a code chunk
           for (x in seq_along(chunkStarts)) {
             start <- chunkStarts[x]
-            end <- chunkEnds[x]
+            # Ensure end is greater than start
+            end <- start
+            for (e in chunkEnds) {
+              if (e > start) {
+                end <- e
+                break
+              }
+            }
             for (y in start:end) {
               if (y > start && y < end) {
                 chunkMap[y] <- TRUE
