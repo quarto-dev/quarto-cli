@@ -24,6 +24,7 @@ All changes included in 1.8:
 - ([#10983](https://github.com/quarto-dev/quarto-cli/issues/10983)): Fix spacing inconsistency between paras and first section headings.
 - ([#12259](https://github.com/quarto-dev/quarto-cli/issues/12259)): Fix conflict between `html-math-method: katex` and crossref popups (author: @benkeks).
 - ([#12341](https://github.com/quarto-dev/quarto-cli/issues/12341)): Enable light and dark logos for html formats (sidebar, navbar, dashboard).
+- ([#12501](https://github.com/quarto-dev/quarto-cli/issues/12501)): Enable `source: file` for `brand.yml` fonts in HTML.
 - ([#12643](https://github.com/quarto-dev/quarto-cli/issues/12643)): Ensure brand.yml logos using urls are rendered correctly by passing them through when resolving brand `processedData`, and not processing them as paths.
 - ([#12734](https://github.com/quarto-dev/quarto-cli/issues/12734)): `highlight-style` now correctly supports setting a different `light` and `dark`.
 - ([#12747](https://github.com/quarto-dev/quarto-cli/issues/12747)): Ensure `th` elements are properly restored when Quarto's HTML table processing is happening.
@@ -138,7 +139,6 @@ All changes included in 1.8:
 - ([#13164](https://github.com/quarto-dev/quarto-cli/pull/13164)): add `julia` to execute schema to allow autocomplete suggestions. (@mcanouil)
 - ([#13121](https://github.com/quarto-dev/quarto-cli/issues/13121)): Allow `contents` shortcode to find inline elements.
 - ([#13216](https://github.com/quarto-dev/quarto-cli/issues/13216)): Properly disable `downlit` (`code-link`) and enable `code-annotations` when non-R code blocks are present.
-
 
 ## Quarto Internals
 
