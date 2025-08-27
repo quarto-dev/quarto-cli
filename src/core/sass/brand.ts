@@ -18,6 +18,7 @@ import {
   BrandFont,
   // BrandFontBunny,
   BrandFontCommon,
+  BrandFontFile,
   BrandFontGoogle,
   BrandFontWeight,
   Zod,
@@ -25,6 +26,7 @@ import {
 import { Brand } from "../brand/brand.ts";
 import { darkModeDefault } from "../../format/html/format-html-info.ts";
 import { kBrandMode } from "../../config/constants.ts";
+import { join, relative } from "../../deno_ral/path.ts";
 
 const defaultColorNameMap: Record<string, string> = {
   "link-color": "link",
@@ -147,6 +149,28 @@ const googleFontImportString = (description: BrandFontGoogle) => {
       "+",
     )
   }:${styleString}wght@${weights}&display=${display}');`;
+};
+
+const fileFontImportString = (brand: Brand, description: BrandFontFile) => {
+  const pathPrefix = relative(brand.projectDir, brand.brandDir);
+  const parts = [];
+  for (const file of description.files) {
+    let path, weight, style;
+    if (typeof file === "string") {
+      path = file;
+    } else {
+      path = file.path;
+      weight = file.weight;
+      style = file.style;
+    }
+    parts.push(`@font-face {
+    font-family: '${description.family}';
+    src: url('${join(pathPrefix, path).replace(/\\/g, '/')}');
+    font-weight: ${weight || "normal"};
+    font-style: ${style || "normal"};
+}\n`);
+  }
+  return parts.join("\n");
 };
 
 const brandColorLayer = (
@@ -352,7 +376,7 @@ const brandTypographyLayer = (
   const resolveBunnyFontFamily = (
     font: BrandFont[],
   ): string | undefined => {
-    let googleFamily = "";
+    let bunnyFamily = "";
     for (const _resolvedFont of font) {
       const safeResolvedFont = Zod.BrandFontBunny.safeParse(_resolvedFont);
       if (!safeResolvedFont.success) {
@@ -367,19 +391,49 @@ const brandTypographyLayer = (
       if (!thisFamily) {
         continue;
       }
-      if (googleFamily === "") {
-        googleFamily = thisFamily;
-      } else if (googleFamily !== thisFamily) {
+      if (bunnyFamily === "") {
+        bunnyFamily = thisFamily;
+      } else if (bunnyFamily !== thisFamily) {
         throw new Error(
-          `Inconsistent Google font families found: ${googleFamily} and ${thisFamily}`,
+          `Inconsistent Bunny font families found: ${bunnyFamily} and ${thisFamily}`,
         );
       }
       typographyImports.add(bunnyFontImportString(resolvedFont));
     }
-    if (googleFamily === "") {
+    if (bunnyFamily === "") {
       return undefined;
     }
-    return googleFamily;
+    return bunnyFamily;
+  };
+
+  const resolveFileFontFamily = (
+    brand: Brand,
+    font: BrandFont[],
+  ): string | undefined => {
+    let fileFamily = "";
+    for (const _resolvedFont of font) {
+      const safeResolvedFont = Zod.BrandFontFile.safeParse(_resolvedFont);
+      if (!safeResolvedFont.success) {
+        return undefined;
+      }
+      const resolvedFont = safeResolvedFont.data;
+      const thisFamily = resolvedFont.family;
+      if (!thisFamily) {
+        continue;
+      }
+      if (fileFamily === "") {
+        fileFamily = thisFamily;
+      } else if (fileFamily !== thisFamily) {
+        throw new Error(
+          `Inconsistent Files font families found: ${fileFamily} and ${thisFamily}`,
+        );
+      }
+      typographyImports.add(fileFontImportString(brand, resolvedFont));
+    }
+    if (fileFamily === "") {
+      return undefined;
+    }
+    return fileFamily;
   };
 
   type HTMLFontInformation = { [key: string]: unknown };
@@ -410,7 +464,7 @@ const brandTypographyLayer = (
     const font = getFontFamilies(family);
     result.family = resolveGoogleFontFamily(font) ??
       resolveBunnyFontFamily(font) ??
-      // resolveFilesFontFamily(font) ??
+      resolveFileFontFamily(brand, font) ??
       family;
     for (
       const entry of [

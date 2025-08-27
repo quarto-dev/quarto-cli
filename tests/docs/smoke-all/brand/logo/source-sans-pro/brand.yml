@@ -1,21 +1,22 @@
 typography:
   fonts:
-    - family: "Open Sans"
+    - family: "Source Sans Pro"
       source: file
       files:
-        - resources/fonts/opensans/OpenSans-VariableFont_wdth,wght.ttf
+        - path: fonts/source-sans-pro/source-sans-pro-regular.woff
+
     - family: "Fira Code"
       source: file
       files:
-        - resources/fonts/firacode/FiraCode-VF.ttf
+        - fonts/firacode/FiraCode-VF.ttf
     - family: "Roboto Slab"
       source: file
       files:
-        - path: resources/fonts/robotoslab/RobotoSlab-VariableFont_wght.ttf
+        - path: fonts/robotoslab/RobotoSlab-VariableFont_wght.ttf
           weight: 600
           style: normal
   base:
-    family: Open Sans
+    family: Source Sans Pro
     line-height: 1.25
     size: 1rem
   headings:
