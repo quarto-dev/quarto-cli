@@ -291,9 +291,10 @@ jobs:
         shell: bash
         run: |
           if [ ! -f "share/preview/quarto-preview.js" ]; then
-            echo "::error file=share/preview/quarto-preview.js::Required file share/preview/quarto-preview.js not found. Check the windows build configure step."
+            echo "::error file=share/preview/quarto-preview.js::Required file share/preview/quarto-preview.js not found. Check the linux build Prepare Distribution step."
             exit 1
           fi
+        working-directory: ${{ github.workspace }}/quarto-${{needs.configure.outputs.version}}
 
       - run: |
           tar -tzvf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz | head
@@ -388,11 +389,14 @@ jobs:
     runs-on: windows-latest
     needs: [configure, make-installer-win]
     steps:
-      - uses: actions/download-artifact@v4
+      - name: "Download Windows Zip"
+        uses: actions/download-artifact@v4
         with:
           name: Windows Zip
           path: .
-      - run: |
+
+      - name: "Extract Windows Zip"
+        run: |
           tar -xf quarto-${{needs.configure.outputs.version}}-win.zip
 
       # Check for share/preview/quarto-preview.js
@@ -400,19 +404,21 @@ jobs:
         shell: bash
         run: |
           if [ ! -f "share/preview/quarto-preview.js" ]; then
-            echo "::error file=share/preview/quarto-preview.js::Required file share/preview/quarto-preview.js not found. Check the windows build configure step."
+            echo "::error file=share/preview/quarto-preview.js::Required file share/preview/quarto-preview.js not found. Check the windows build Prepare Distribution step."
             exit 1
           fi
 
-      - run: Add-Content $env:GITHUB_PATH "$env:GITHUB_WORKSPACE\bin"
+      - name: "Add bin to PATH"
+        run: Add-Content $env:GITHUB_PATH "$env:GITHUB_WORKSPACE\bin"
 
-      - run: |
-          tar -tzvf quarto-${{needs.configure.outputs.version}}-win.zip
+      - name: "Show Directory Listing and PATH"
+        run: |
           ls -lR
           echo $PATH
         shell: bash
 
-      - run: |
+      - name: "Run Quarto Commands"
+        run: |
           quarto check
           quarto --paths
           quarto --version
