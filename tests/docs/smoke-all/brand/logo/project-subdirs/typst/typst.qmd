@@ -1,0 +1,22 @@
+---
+title: "tmpsite"
+format:
+  typst:
+    output-ext: typ
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '#set page\(background:.*image\("\.\.(/|\\\\)brand(/|\\\\)images(/|\\\\)favicon\.png'
+          - '#box\(image\("\.\.(/|\\\\)brand(/|\\\\)images(/|\\\\)logo.png"\)\)'
+          - '#box\(image\("\.\.(/|\\\\)brand(/|\\\\)images(/|\\\\)header.png"\)\)'
+        - []
+---
+
+
+{{< brand logo full >}}
+
+Here's some text and [a link](https://example.com).
+
+{{< brand logo header >}}
