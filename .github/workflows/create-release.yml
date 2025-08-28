@@ -338,7 +338,7 @@ jobs:
             echo "::error file=share/preview/quarto-preview.js::Required file share/preview/quarto-preview.js not found. Check the linux build Prepare Distribution step."
             exit 1
           fi
-        working-directory: $GITHUB_WORKSPACE/quarto-${{needs.configure.outputs.version}}
+        working-directory: ${{ github.workspace }}/quarto-${{needs.configure.outputs.version}}
 
       - run: |
           tar -tzvf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz | head
