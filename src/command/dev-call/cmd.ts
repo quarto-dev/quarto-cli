@@ -4,6 +4,7 @@ import { commands } from "../command.ts";
 import { buildJsCommand } from "./build-artifacts/cmd.ts";
 import { validateYamlCommand } from "./validate-yaml/cmd.ts";
 import { showAstTraceCommand } from "./show-ast-trace/cmd.ts";
+import { makeAstDiagramCommand } from "./make-ast-diagram/cmd.ts";
 
 type CommandOptionInfo = {
   name: string;
@@ -73,4 +74,5 @@ export const devCallCommand = new Command()
   .command("cli-info", generateCliInfoCommand)
   .command("validate-yaml", validateYamlCommand)
   .command("build-artifacts", buildJsCommand)
-  .command("show-ast-trace", showAstTraceCommand);
+  .command("show-ast-trace", showAstTraceCommand)
+  .command("make-ast-diagram", makeAstDiagramCommand);
