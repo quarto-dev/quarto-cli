@@ -291,9 +291,10 @@ jobs:
         shell: bash
         run: |
           if [ ! -f "share/preview/quarto-preview.js" ]; then
-            echo "::error file=share/preview/quarto-preview.js::Required file share/preview/quarto-preview.js not found. Check the windows build configure step."
+            echo "::error file=share/preview/quarto-preview.js::Required file share/preview/quarto-preview.js not found. Check the linux build Prepare Distribution step."
             exit 1
           fi
+        working-directory: $GITHUB_WORKSPACE/quarto-${{needs.configure.outputs.version}}
 
       - run: |
           tar -tzvf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz | head
@@ -400,7 +401,7 @@ jobs:
         shell: bash
         run: |
           if [ ! -f "share/preview/quarto-preview.js" ]; then
-            echo "::error file=share/preview/quarto-preview.js::Required file share/preview/quarto-preview.js not found. Check the windows build configure step."
+            echo "::error file=share/preview/quarto-preview.js::Required file share/preview/quarto-preview.js not found. Check the windows build Prepare Distribution step."
             exit 1
           fi
 
