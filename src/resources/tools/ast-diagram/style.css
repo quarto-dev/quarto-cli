@@ -1,0 +1,498 @@
+/* Pandoc AST Block Diagram Styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Nunito Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.5;
+  color: #333;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.pandoc-block-diagram {
+  /* inherits styles from body */
+  margin-left: 15px;
+}
+
+/* Block elements */
+.block {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin: 2px 0;
+  padding: 5px 10px;
+  background-color: #f9f9f9;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: 120px 1fr;
+}
+
+.block-type {
+  font-weight: 600;
+  color: #666;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* Toggle button styles */
+.toggle-button {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  position: relative;
+  top: -0.1em;
+}
+
+/* Folded state */
+.block.folded .block-content {
+  display: none;
+}
+
+.block.folded .toggle-button {
+  transform: rotate(-90deg);
+}
+
+.block-content {
+  padding-left: 15px;
+  border-left: 3px solid #eee;
+  line-height: 2em;
+}
+
+.block.block-bullet-list .block-content {
+  padding-left: 0;
+  border-left: none;
+}
+
+/* Specific Block Types */
+.block-header {
+  background-color: #f3f7fd;
+  border-color: #c5d7f2;
+}
+
+.block-para {
+  background-color: #f9f9f9;
+}
+
+.block-bullet-list {
+  background-color: #f5f9f5;
+  border-color: #d1e7d1;
+}
+
+.block-div {
+  background-color: #fff8f5;
+  border-color: #f5d3bf;
+}
+
+.block-code {
+  background-color: #f5f5f7;
+  border-color: #cfd2e0;
+}
+
+.block-metadata {
+  background-color: #f2f9fd;
+  border-color: #bde0f3;
+}
+
+/* Metadata styling */
+.metadata-entry {
+  margin: 8px 0;
+  padding: 8px;
+  border-left: 3px solid #ddf;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 4px;
+}
+
+.metadata-key {
+  font-weight: 600;
+  color: #446;
+  margin-bottom: 5px;
+  font-size: 0.95em;
+}
+
+.meta-map, .meta-list, .meta-blocks, .meta-inlines, .meta-bool, .meta-string {
+  padding: 5px;
+  border-radius: 3px;
+}
+
+.meta-map {
+  background-color: #f0f8ff;
+  border: 1px solid #e0f0ff;
+}
+
+.meta-list {
+  background-color: #f8f8ff;
+  border: 1px solid #e8e8ff;
+}
+
+.meta-blocks {
+  background-color: #fff8f8;
+  border: 1px solid #ffe8e8;
+}
+
+.meta-inlines {
+  background-color: #f8fff8;
+  border: 1px solid #e8ffe8;
+}
+
+.meta-bool {
+  background-color: #fffff8;
+  border: 1px solid #ffffe8;
+}
+
+.meta-string {
+  background-color: #fff8ff;
+  border: 1px solid #ffe8ff;
+}
+
+.meta-type {
+  font-size: 0.85em;
+  color: #777;
+  margin-bottom: 5px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.meta-map-entry {
+  margin: 6px 0;
+  padding: 5px;
+  border-left: 2px solid #ddf;
+}
+
+.meta-map-key {
+  font-weight: 600;
+  color: #557;
+  font-size: 0.9em;
+  margin-bottom: 3px;
+}
+
+.meta-list-items {
+  margin: 5px 0 5px 20px;
+  padding-left: 10px;
+}
+
+.meta-list-item {
+  margin: 5px 0;
+}
+
+.meta-content {
+  padding-left: 10px;
+}
+
+/* Header Levels */
+.level-1 .block-type,
+.level-2 .block-type,
+.level-3 .block-type,
+.level-4 .block-type {
+  color: #666;
+}
+
+/* List Items */
+.list-item {
+  margin: 8px 0;
+  padding-left: 15px;
+  border-left: 3px solid #eee;
+}
+
+/* Code Formatting */
+pre {
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 3px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.9em;
+  overflow-x: auto;
+}
+
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  background-color: #f5f5f5;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+/* Nested Elements */
+.block .block {
+  margin-left: 5px;
+}
+
+/* Unknown Elements */
+.block-type-unknown, .inline-unknown {
+  background-color: #fcf8e3;
+  border-color: #faebcc;
+  color: #8a6d3b;
+}
+
+/* Inline Elements */
+.inline {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin: 5px;
+  padding: 0 2px 0 2px;
+  background-color: #f9f9f9;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: inline;
+}
+
+.inline-type {
+  font-weight: 600;
+  color: #666;
+  font-size: 0.6em;
+  text-transform: uppercase;
+  display: inline;
+  align-items: center;
+  cursor: pointer;
+  top: -0.15em;
+  position: relative;
+  margin-left: 5px;
+  margin-right: 2px;
+}
+
+.inline-type .toggle-button {
+  padding: 0;
+}
+
+/* Override for inline-type with no content */
+.inline-type.inline-type-no-content {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+div .inline-type.inline-type-no-content-folded-only {
+  display: none;
+}
+
+div.folded .inline-type.inline-type-no-content {
+  display: none;
+}
+div.folded .inline-type.inline-type-no-content-folded-only {
+  display: inherit;
+}
+
+/* Folded state for inline elements */
+.inline.folded .inline-content,
+.inline.folded .inline-classes,
+.inline.folded .inline-attrs,
+.inline.folded .inline-url,
+.inline.folded .inline-title {
+  display: none;
+}
+
+.inline.folded .toggle-button {
+  transform: rotate(-90deg);
+}
+
+.inline-content {
+  display: inline;
+}
+
+/* Link styles with pseudo-elements */
+.inline-url, .inline-title {
+  padding-left: 15px;
+  border-left: 3px solid #eee;
+  margin-bottom: 6px;
+}
+
+.inline-url::before {
+  content: "URL: ";
+  font-weight: 600;
+  color: #666;
+  margin-right: 4px;
+}
+
+.inline-title::before {
+  content: "Title: ";
+  font-weight: 600;
+  color: #666;
+}
+
+.inline-text-content::before {
+  content: "Text: ";
+  font-weight: 600;
+  color: #666;
+}
+
+/* Special link styling */
+.inline-url a {
+  display: inline-block;
+  padding: 4px 8px;
+  margin-left: 4px;
+  background-color: #f0f7ff;
+  border: 1px solid #d0e0f7;
+  border-radius: 3px;
+  word-break: break-all;
+  max-width: calc(100% - 50px);
+}
+
+/* Simple inline element styling */
+.inline-emph {
+  background-color: #f7f9f4;
+  border-color: #dbe7c9;
+}
+
+.inline-strong {
+  background-color: #f9f4f4;
+  border-color: #e7c9c9;
+}
+
+.inline-smallcaps {
+  background-color: #f4f9f9;
+  border-color: #c9e7e7;
+}
+
+.inline-strikeout {
+  background-color: #f9f8f4;
+  border-color: #e7e2c9;
+}
+
+.inline-subscript {
+  background-color: #f4f4f9;
+  border-color: #c9c9e7;
+}
+
+.inline-superscript {
+  background-color: #f9f4f9;
+  border-color: #e7c9e7;
+}
+
+.inline-underline {
+  background-color: #f4f9f4;
+  border-color: #c9e7c9;
+}
+
+a {
+  color: #337ab7;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h2#ast-diagram-heading {
+  display: flex;  
+  justify-content: space-between;
+  align-items: center; /* Optional: vertically centers content */
+}
+
+/* Fold controls */
+.fold-controls {
+  margin: 15px 0 15px 15px;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 5px 10px;
+  background-color: #f9f9f9;
+}
+
+.control-group span {
+  font-weight: 600;
+  margin-right: 10px;
+  color: #666;
+}
+
+.fold-controls button {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 4px 8px;
+  margin-right: 6px;
+  cursor: pointer;
+  font-size: 0.85em;
+}
+
+.fold-controls button:hover {
+  background-color: #e0e0e0;
+}
+
+.fold-controls button:active {
+  background-color: #d0d0d0;
+}
+
+/* Page Layout and Headings */
+h1, h2 {
+  margin-left: 15px;
+  color: #555;
+}
+
+h1 {
+  font-size: 1.6em;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.source-path {
+  margin-left: 15px;
+  color: #777;
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
+h2 {
+  font-size: 1.3em;
+  margin-top: 30px;
+  margin-bottom: 15px;
+}
+
+/* Markdown source code */
+.source-info {
+  margin: 20px 0 20px 15px;
+}
+
+/* Source info heading styles removed as they're now redundant 
+   and inheriting properly from the general h2 styling */
+
+.markdown-source {
+  margin: 15px 0;
+}
+
+/* Clean up: markdown header styles removed since folding is no longer needed */
+
+.markdown-source pre {
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  white-space: pre-wrap;
+}
+
+.language-markdown {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.9em;
+}
+
+/* Node attribute styling */
+.node-id, .node-classes, .node-attrs {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.85em;
+  border-radius: 3px;
+  display: inline-block;
+  margin-left: 5px;
+  margin-right: 5px;
+  padding: 0 4px;
+  text-transform: none;
+  color: #666;
+  background-color: #f7f7f7;
+}
