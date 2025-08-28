@@ -389,11 +389,14 @@ jobs:
     runs-on: windows-latest
     needs: [configure, make-installer-win]
     steps:
-      - uses: actions/download-artifact@v4
+      - name: "Download Windows Zip"
+        uses: actions/download-artifact@v4
         with:
           name: Windows Zip
           path: .
-      - run: |
+
+      - name: "Extract Windows Zip"
+        run: |
           tar -xf quarto-${{needs.configure.outputs.version}}-win.zip
 
       # Check for share/preview/quarto-preview.js
@@ -405,15 +408,17 @@ jobs:
             exit 1
           fi
 
-      - run: Add-Content $env:GITHUB_PATH "$env:GITHUB_WORKSPACE\bin"
+      - name: "Add bin to PATH"
+        run: Add-Content $env:GITHUB_PATH "$env:GITHUB_WORKSPACE\bin"
 
-      - run: |
-          tar -tzvf quarto-${{needs.configure.outputs.version}}-win.zip
+      - name: "Show Directory Listing and PATH"
+        run: |
           ls -lR
           echo $PATH
         shell: bash
 
-      - run: |
+      - name: "Run Quarto Commands"
+        run: |
           quarto check
           quarto --paths
           quarto --version
