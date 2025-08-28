@@ -22,6 +22,7 @@ All changes included in 1.8:
 - ([#5879](https://github.com/quarto-dev/quarto-cli/issues/5879)): Improve font rendering of `kbd` shortcode on macOS. `kbd` will now also be stricter in converting keyboard shortcuts to macOS icons.
 - ([#8568](https://github.com/quarto-dev/quarto-cli/issues/8568)) Default inline code background color to the code block background color if not specified; foreground color is `$pre-color` in dark mode and (remains) purple in light mode.
 - ([#10983](https://github.com/quarto-dev/quarto-cli/issues/10983)): Fix spacing inconsistency between paras and first section headings.
+- ([#11982](https://github.com/quarto-dev/quarto-cli/issues/11982)): Ensure brand.yml logos are resolved correctly when document is in a subdirectory.
 - ([#12259](https://github.com/quarto-dev/quarto-cli/issues/12259)): Fix conflict between `html-math-method: katex` and crossref popups (author: @benkeks).
 - ([#12341](https://github.com/quarto-dev/quarto-cli/issues/12341)): Enable light and dark logos for html formats (sidebar, navbar, dashboard).
 - ([#12501](https://github.com/quarto-dev/quarto-cli/issues/12501)): Enable `source: file` for `brand.yml` fonts in HTML.
@@ -55,6 +56,7 @@ All changes included in 1.8:
 - ([#12815](https://github.com/quarto-dev/quarto-cli/issues/12815)): Do not crash when floats have no content.
 - ([#13119](https://github.com/quarto-dev/quarto-cli/pull/13119)): Expose `brand.logo` metadata as Typst dictionaries.
 - ([#13133](https://github.com/quarto-dev/quarto-cli/pull/13133)): Allow customization of light and dark logos at document level, consistent with other formats.
+- ([#13297](https://github.com/quarto-dev/quarto-cli/pull/13297)): Ensure brand.yml logos are resolved correctly when Typst document is in a subdirectory.
 
 ### `beamer`
 
