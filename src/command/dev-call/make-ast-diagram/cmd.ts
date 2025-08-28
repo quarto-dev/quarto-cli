@@ -12,11 +12,13 @@ import { execProcess } from "../../../core/process.ts";
 export const makeAstDiagramCommand = new Command()
   .name("make-ast-diagram")
   .hidden()
+  .option("-m, --mode <mode:string>", "Diagram mode (default: full)")
   .arguments("<arguments...>")
   .description(
     "Creates a diagram of the Pandoc AST.\n\n",
   )
-  .action(async (_options: unknown, ...args: string[]) => {
+  //deno-lint-ignore no-explicit-any
+  .action(async (options: any, ...args: string[]) => {
     const renderOpts = {
       cmd: Deno.execPath(),
       args: [
@@ -26,6 +28,8 @@ export const makeAstDiagramCommand = new Command()
         "--allow-run",
         resourcePath(join("tools", "ast-diagram", "main.ts")),
         ...args,
+        "--mode",
+        options.mode || "full",
       ],
     };
     await execProcess(renderOpts);
