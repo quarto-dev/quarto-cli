@@ -23,7 +23,7 @@
       - **Publishing Test**: You may elect to publish to test.pypi first by _unchecking_ the `Production Release` option
         - Once complete, test using
           ```bash
-          python3 -m pip install --index-url https://test.pypi.org/ --extra-index-url https://pypi.org/ quarto-cli
+          python3 -m pip install -i https://test.pypi.org/simple --extra-index-url https://pypi.org/simple quarto-cli
           ```
         - You may have to run this command twice as the first time may report the package not found and cause cache invalidation. The next try should succeed.
         - Published to: <https://test.pypi.org/project/quarto-cli/>
