@@ -1666,18 +1666,6 @@
         1.59 real 1.89 user 0.25 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/revealjs/scroll-view-config.qmd
         1.56 real 1.86 user 0.26 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/issues/4820-giscus-dark-mode/lightly-cobalt_only/index.qmd
-        4.34 real 4.81 user 0.46 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/issues/4820-giscus-dark-mode/lightly-default/index.qmd
-        4.30 real 4.77 user 0.54 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/issues/4820-giscus-dark-mode/darkly-light-cobalt/index.qmd
-        4.20 real 4.69 user 0.49 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/issues/4820-giscus-dark-mode/darkly-default/index.qmd
-        4.35 real 4.76 user 0.50 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/issues/4820-giscus-dark-mode/lightly-light-cobalt/index.qmd
-        4.20 real 4.79 user 0.50 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/issues/4820-giscus-dark-mode/darkly-light-dark/index.qmd
-        4.19 real 4.73 user 0.50 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/issues/3473-toc-side-body/left-body.qmd
         2.52 real 2.99 user 0.35 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/issues/3473-toc-side-body/left.qmd
