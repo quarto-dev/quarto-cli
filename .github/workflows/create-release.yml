@@ -617,7 +617,7 @@ jobs:
 
       - name: Prevent Re-run
         if: ${{ inputs.publish-release }}
-        uses: ./.github/workflows/actions/prevent-rerun
+        uses: ./quarto-cli/.github/workflows/actions/prevent-rerun
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4
