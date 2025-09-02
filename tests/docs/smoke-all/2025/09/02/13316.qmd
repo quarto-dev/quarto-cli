@@ -1,0 +1,22 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['pre.sourceCode.number-lines']
+        - ['#cb1[data-code-line-numbers="1"]']
+    revealjs:
+      ensureHtmlElements:
+        - ['#cb1[data-code-line-numbers="1"]', 'pre.sourceCode.number-lines']
+        - []
+execute: 
+  echo: true
+---
+
+```{r}
+#| code-line-numbers: "1"
+mean(
+  c(1, 2, 3, 4, 5)
+)
+```
