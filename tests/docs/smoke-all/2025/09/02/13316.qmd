@@ -1,4 +1,5 @@
 ---
+title: highlight first line
 format: html
 _quarto:
   tests:
@@ -9,6 +10,10 @@ _quarto:
     revealjs:
       ensureHtmlElements:
         - ['#cb1[data-code-line-numbers="1"]', 'pre.sourceCode.number-lines']
+        - []
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - ['[`]{3}r \{1\} showLineNumbers']
         - []
 execute: 
   echo: true

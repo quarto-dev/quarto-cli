@@ -71,6 +71,10 @@ All changes included in 1.8:
 
 - ([#12676](https://github.com/quarto-dev/quarto-cli/issues/12676)): Add support for rendering layout panels that are not floats.
 
+### `docusaurus-md`
+
+- [#13316](https://github.com/quarto-dev/quarto-cli/issues/13316): `code-line-numbers: "1"` correctly highlight the first line now.
+
 ## Projects
 
 ### `website`
