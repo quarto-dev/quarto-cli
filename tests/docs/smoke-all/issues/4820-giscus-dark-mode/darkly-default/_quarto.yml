@@ -4,7 +4,7 @@ project:
 website:
   comments:
     giscus:
-      repo: allenmanning/giscus-examples
+      repo: quarto-dev/quarto-cli
 
 format:
   html:
