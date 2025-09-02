@@ -349,7 +349,7 @@ jobs:
           quarto --version
 
   make-installer-win:
-    runs-on: windows-latest
+    runs-on: windows-2025
     needs: [configure]
 
     steps:
@@ -433,7 +433,7 @@ jobs:
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.zip
 
   test-zip-win:
-    runs-on: windows-latest
+    runs-on: windows-2025
     needs: [configure, make-installer-win]
     steps:
       - uses: actions/checkout@v4

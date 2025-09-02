@@ -45,12 +45,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-2025]
         time-test:
           - ${{ inputs.time-test }}
         exclude:
           # only run timed tests on Linux
-          - os: windows-latest
+          - os: windows-2025
             time-test: true
     runs-on: ${{ matrix.os }}
     steps:
