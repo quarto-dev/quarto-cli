@@ -8,6 +8,7 @@ import { fromFileUrl } from "./path.ts";
 import { resolve, SEP as SEPARATOR } from "./path.ts";
 import { copySync } from "fs/copy";
 import { existsSync } from "fs/exists";
+import { isWindows } from "./platform.ts";
 
 export { ensureDir, ensureDirSync } from "fs/ensure-dir";
 export { existsSync } from "fs/exists";
@@ -116,8 +117,25 @@ export function safeRemoveSync(
   try {
     Deno.removeSync(file, options);
   } catch (e) {
+    let lastError = e;
+    // WINDOWS ONLY: Retry on windows to let time to file to unlock
+    if (isWindows && e.code === "EBUSY") {
+      let nTry: number = 1;
+      // high number to prevent infinite loop
+      const maxTry: number = 500;
+      let eCode = e.code;
+      while (eCode === "EBUSY" && nTry <= maxTry) {
+        try {
+          Deno.removeSync(file, options);
+        } catch (e) {
+          lastError = e;
+          eCode = e.code;
+          nTry++;
+        }
+      }
+    }
     if (existsSync(file)) {
-      throw e;
+      throw lastError;
     }
   }
 }
