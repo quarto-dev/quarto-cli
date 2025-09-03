@@ -33,7 +33,7 @@ export function publishProviders() {
 export function findProvider(name?: string) {
   if (name === "posit-cloud") {
     warning(
-      `The Posit Cloud publishing destination is no longer supported.`,
+      `The Posit Cloud publishing destination is no longer supported. See https://docs.posit.co/cloud/whats_new/#october-2024 for details.`,
     );
   }
   return kPublishProviders.find((provider) => provider.name === name);
