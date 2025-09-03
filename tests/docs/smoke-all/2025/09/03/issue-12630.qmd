@@ -1,0 +1,11 @@
+---
+title: hello
+_quarto:
+  tests:
+    gfm:
+      ensureFileRegexMatches:
+        - - "\\!\\[\\]\\(local.mp4\\)"
+        - []
+---
+
+{{< video local.mp4 >}}
