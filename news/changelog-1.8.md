@@ -10,7 +10,7 @@ All changes included in 1.8:
 
 ## Backwards-compatibility breaking changes
 
-- ([#13014](https://github.com/quarto-dev/quarto-cli/issues/13014)): Remove `posit-cloud` as `quarto publish` destination. See <https://docs.posit.co/cloud/whats_new/#october-2024> for details.
+- ([#13104](https://github.com/quarto-dev/quarto-cli/issues/13104)): Remove `posit-cloud` as `quarto publish` destination. See <https://docs.posit.co/cloud/whats_new/#october-2024> for details.
 
 ## Dependencies
 
