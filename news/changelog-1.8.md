@@ -42,6 +42,7 @@ All changes included in 1.8:
 - ([#12598](https://github.com/quarto-dev/quarto-cli/pull/12598)): Ensure `.fragment` on an image with caption applies to whole figure.
 - ([#12716](https://github.com/quarto-dev/quarto-cli/issues/12716)): Correctly resolve `"brand"` set in `theme` configuration for document in subdirectory from project root.
 - Use `cdn.jsdelivr.net` for mathjax dependencies to ensure consistent CDN usage across formats. Previously, `cdnjs.cloudflare.com` was used for `revealjs` mathjax dependencies, while `cdn.jsdelivr.net` was used for html format.
+- [#13316](https://github.com/quarto-dev/quarto-cli/issues/13316): `code-line-numbers: "1"` correctly highlight the first line now.
 
 ### `docx`
 
@@ -69,6 +70,10 @@ All changes included in 1.8:
 ### `hugo-md`
 
 - ([#12676](https://github.com/quarto-dev/quarto-cli/issues/12676)): Add support for rendering layout panels that are not floats.
+
+### `docusaurus-md`
+
+- [#13316](https://github.com/quarto-dev/quarto-cli/issues/13316): `code-line-numbers: "1"` correctly highlight the first line now.
 
 ## Projects
 
