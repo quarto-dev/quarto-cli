@@ -79,6 +79,10 @@ All changes included in 1.8:
 
 - [#13316](https://github.com/quarto-dev/quarto-cli/issues/13316): `code-line-numbers: "1"` correctly highlight the first line now.
 
+### `markdown` formats
+
+- ([#12630])(https://github.com/quarto-dev/quarto-cli/issues/12630)): emit image element for `video` shortcodes targeting local videos.
+
 ## Projects
 
 ### `website`

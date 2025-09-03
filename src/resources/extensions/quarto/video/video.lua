@@ -346,6 +346,15 @@ return {
       return htmlVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio)
     elseif quarto.doc.is_format("asciidoc") then
       return asciidocVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio)
+    elseif quarto.doc.is_format("markdown") then
+      if srcValue:sub(1, 4) == "http" then
+        -- For remote videos, we can emit a link
+        return pandoc.Link(srcValue, titleValue or srcValue)
+      else
+        -- For local
+        -- use an image to allow markdown previewers to show video
+        return pandoc.Image(quarto.utils.as_inlines(titleValue), srcValue)
+      end
     else
       -- Fall-back to a link of the source
       return pandoc.Link(srcValue, srcValue)
