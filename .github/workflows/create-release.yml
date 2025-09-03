@@ -481,7 +481,7 @@ jobs:
           quarto --version
 
   make-installer-mac:
-    runs-on: macos-latest
+    runs-on: macos-15
     needs: [configure]
     steps:
       - uses: actions/checkout@v4
@@ -550,7 +550,7 @@ jobs:
           security delete-keychain build.keychain
 
   test-zip-mac:
-    runs-on: macos-latest
+    runs-on: macos-15
     needs: [configure, make-installer-mac]
     steps:
       - uses: actions/checkout@v4
