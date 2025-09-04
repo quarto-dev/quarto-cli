@@ -141,8 +141,8 @@ function processMetadata(
 ): string {
   let html = `<div class="block block-metadata">
   <div class="block-type">
-    <button class="toggle-button" aria-label="Toggle content">▼</button>
     Meta
+    <button class="toggle-button" aria-label="Toggle content">▼</button>
   </div>
   <div class="block-content">`;
 
