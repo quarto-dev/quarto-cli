@@ -194,7 +194,7 @@ function processMetaMap(
   const map = value.c;
 
   let html = `<div class="meta-map">
-    <div class="meta-type">Map</div>
+    <div class="meta-type">MetaMap</div>
     <div class="meta-content">`;
 
   for (const [key, mapValue] of Object.entries(map)) {
@@ -220,7 +220,7 @@ function processMetaList(
   const list = value.c;
 
   let html = `<div class="meta-list">
-    <div class="meta-type">List</div>
+    <div class="meta-type">MetaList</div>
     <div class="meta-content">
       <ul class="meta-list-items">`;
 
@@ -245,7 +245,7 @@ function processMetaBlocks(
   const blocks = value.c;
 
   const html = `<div class="meta-blocks">
-    <div class="meta-type">Blocks</div>
+    <div class="meta-type">MetaBlocks</div>
     <div class="meta-content">${processBlocks(blocks, mode)}</div>
   </div>`;
 

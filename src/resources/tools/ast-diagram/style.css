@@ -156,11 +156,11 @@ body {
 }
 
 .meta-type {
+  font-family: "Inconsolata", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 0.85em;
   color: #777;
   margin-bottom: 5px;
   font-weight: 600;
-  text-transform: uppercase;
 }
 
 .meta-map-entry {
@@ -209,13 +209,13 @@ pre {
   background-color: #f5f5f5;
   padding: 10px;
   border-radius: 3px;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-family: "Inconsolata", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 0.9em;
   overflow-x: auto;
 }
 
 code {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-family: "Inconsolata", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   padding: 2px 4px;
   border-radius: 3px;
   font-size: 0.9em;
@@ -245,10 +245,10 @@ code {
 }
 
 .inline-type {
+  font-family: "Inconsolata", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-weight: 600;
   color: #666;
-  font-size: 0.6em;
-  text-transform: uppercase;
+  font-size: 0.8em;
   display: inline;
   align-items: center;
   cursor: pointer;
@@ -311,12 +311,18 @@ div.folded .inline-type.inline-type-no-content-folded-only {
 }
 
 .inline-title::before {
+  font-size: 0.75em;
+  position: relative;
+  top: -0.125em;
   content: "Title: ";
   font-weight: 600;
   color: #666;
 }
 
 .inline-alt-text::before {
+  font-size: 0.75em;
+  position: relative;
+  top: -0.125em;
   content: "Alt: ";
   color: #666;
   margin-right: 4px;
@@ -324,6 +330,9 @@ div.folded .inline-type.inline-type-no-content-folded-only {
 }
 
 .inline-text-content::before {
+  font-size: 0.75em;
+  position: relative;
+  top: -0.125em;
   content: "Text: ";
   color: #666;
   margin-right: 4px;
@@ -370,6 +379,10 @@ div.folded .inline-type.inline-type-no-content-folded-only {
 .inline-underline {
   background-color: #f4f9f4;
   border-color: #c9e7c9;
+}
+
+.inline-str {
+  padding-right: 5px;
 }
 
 a {
@@ -479,7 +492,7 @@ h2 {
 }
 
 .language-markdown {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-family: "Inconsolata", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 0.75em;
   top: -0.125em;
   position: relative;
@@ -487,11 +500,14 @@ h2 {
 
 /* Node attribute styling */
 .node-id, .node-classes, .node-attrs {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-family: "Inconsolata", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 0.85em;
   border-radius: 3px;
   display: inline-block;
   padding: 0 4px;
-  text-transform: none;
   color: #666;
+}
+
+div.meta-map-key, div.meta-map-value, div.metadata-key, div.metadata-value {
+  display: inline-block;
 }
