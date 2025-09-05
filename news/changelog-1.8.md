@@ -106,6 +106,7 @@ All changes included in 1.8:
 - ([#13112](https://github.com/quarto-dev/quarto-cli/pull/13112)): Add `quarto.format.format_identifier()` API entry.
 - ([#13128](https://github.com/quarto-dev/quarto-cli/issues/13128)): Avoid meta shortcode crash on bad input.
 - ([#13246](https://github.com/quarto-dev/quarto-cli/pull/13246)): Add `quarto.variables.get()` and `quarto.metadata.get()` APIs.
+- ([#13334](https://github.com/quarto-dev/quarto-cli/issues/13334)): Fix wrong function being called on `is_html_slide_output` and `is_markdown_with_html_output`.
 
 ## Commands
 
