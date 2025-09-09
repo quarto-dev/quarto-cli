@@ -1148,21 +1148,12 @@ export async function runPandoc(
         continue;
       }
 
-      if (
-        (typeof pandocMetadata[key] === "object" &&
-          typeof engineMetadata[key] === "object") ||
-        (Array.isArray(pandocMetadata[key]) &&
-          Array.isArray(engineMetadata[key]))
-      ) {
-        // Merge objects and arrays instead of replacing
-        pandocMetadata[key] = mergeConfigs(
-          pandocMetadata[key],
-          engineMetadata[key],
-        );
-      } else {
-        // Replace values otherwise
-        pandocMetadata[key] = engineMetadata[key];
-      }
+      // to handle all possible objects correctly when merging,
+      // we call mergeConfigs on temporary objects so the structure
+      // matches what that function expects
+      const a = { content: pandocMetadata[key] };
+      const b = { content: engineMetadata[key] };
+      pandocMetadata[key] = mergeConfigs(a, b).content;
     }
   }
 
