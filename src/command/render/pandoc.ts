@@ -1147,8 +1147,22 @@ export async function runPandoc(
       if (key === kFieldCategories && projectIsWebsite(options.project)) {
         continue;
       }
-      // perform the override
-      pandocMetadata[key] = engineMetadata[key];
+
+      if (
+        (typeof pandocMetadata[key] === "object" &&
+          typeof engineMetadata[key] === "object") ||
+        (Array.isArray(pandocMetadata[key]) &&
+          Array.isArray(engineMetadata[key]))
+      ) {
+        // Merge objects and arrays instead of replacing
+        pandocMetadata[key] = mergeConfigs(
+          pandocMetadata[key],
+          engineMetadata[key],
+        );
+      } else {
+        // Replace values otherwise
+        pandocMetadata[key] = engineMetadata[key];
+      }
     }
   }
 
