@@ -259,7 +259,7 @@ export class Brand {
   getLogoResource(name: string): BrandLogoExplicitResource {
     const entry = this.data.logo?.images?.[name];
     if (!entry) {
-      return { path: name };
+      return this.resolvePath(name);
     }
     return this.resolvePath(entry);
   }
