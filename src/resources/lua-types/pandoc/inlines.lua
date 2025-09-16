@@ -94,7 +94,7 @@ function pandoc.Code:clone() end
 Emphasized text
 ]]
 ---@class pandoc.Emph : pandoc.Inline
----@field content pandoc.List Inline content (list of inlines)
+---@field content pandoc.Inlines Inline content (list of inlines)
 ---@field t "Emph"
 ---@field tag "Emph"
 pandoc.Emph = {}
