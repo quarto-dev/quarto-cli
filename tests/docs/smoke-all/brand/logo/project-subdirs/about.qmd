@@ -1,0 +1,8 @@
+---
+title: "Other"
+---
+
+Testing branding in subdirectories
+
+- [slides, root directory](slides.qmd)
+- [slides, subdirectory](revealjs/slides.qmd)

@@ -856,7 +856,7 @@ async function publish(
     const [publishResult, hasAttachments] = await publishDocument();
     if (hasAttachments) {
       info(
-        "\nNote: The published content includes attachments or images. You may see a placeholder for a few moments while Confluence processes the image or atachment.\n",
+        "\nNote: The published content includes attachments or images. You may see a placeholder for a few moments while Confluence processes the image or attachment.\n",
       );
     }
     return publishResult;
@@ -864,7 +864,7 @@ async function publish(
     const [publishResult, hasAttachments] = await publishSite();
     if (hasAttachments) {
       info(
-        "\nNote: The published content includes attachments or images. You may see a placeholder for a few moments while Confluence processes the image or atachment.\n",
+        "\nNote: The published content includes attachments or images. You may see a placeholder for a few moments while Confluence processes the image or attachment.\n",
       );
     }
     return publishResult;

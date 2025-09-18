@@ -9690,9 +9690,8 @@ try {
                             description: "The navbar title. Uses the project title if none is specified."
                           },
                           logo: {
-                            path: {
-                              description: "Path to a logo image that will be displayed to the left of the title."
-                            }
+                            ref: "logo-light-dark-specifier",
+                            description: "Specification of image that will be displayed to the left of the title."
                           },
                           "logo-alt": {
                             string: {
@@ -9816,9 +9815,8 @@ try {
                               description: "The sidebar title. Uses the project title if none is specified."
                             },
                             logo: {
-                              path: {
-                                description: "Path to a logo image that will be displayed in the sidebar."
-                              }
+                              ref: "logo-light-dark-specifier",
+                              description: "Specification of image that will be displayed in the sidebar."
                             },
                             "logo-alt": {
                               string: {
@@ -12009,6 +12007,140 @@ try {
             ]
           },
           {
+            id: "logo-options",
+            object: {
+              closed: false,
+              properties: {
+                path: {
+                  schema: "path",
+                  description: "Path or brand.yml logo resource name.\n"
+                },
+                alt: {
+                  schema: "string",
+                  description: "Alternative text for the logo, used for accessibility.\n"
+                }
+              },
+              required: [
+                "path"
+              ]
+            }
+          },
+          {
+            id: "logo-specifier",
+            anyOf: [
+              "string",
+              {
+                schema: {
+                  ref: "logo-options"
+                }
+              }
+            ]
+          },
+          {
+            id: "logo-options-path-optional",
+            object: {
+              closed: false,
+              properties: {
+                path: {
+                  schema: "path",
+                  description: "Path or brand.yml logo resource name.\n"
+                },
+                alt: {
+                  schema: "string",
+                  description: "Alternative text for the logo, used for accessibility.\n"
+                }
+              }
+            }
+          },
+          {
+            id: "logo-specifier-path-optional",
+            anyOf: [
+              "string",
+              {
+                schema: {
+                  ref: "logo-options-path-optional"
+                }
+              }
+            ]
+          },
+          {
+            id: "logo-light-dark-specifier",
+            description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+            anyOf: [
+              {
+                ref: "logo-specifier"
+              },
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: {
+                      schema: {
+                        ref: "logo-specifier"
+                      },
+                      description: "Specification of a light logo\n"
+                    },
+                    dark: {
+                      schema: {
+                        ref: "logo-specifier"
+                      },
+                      description: "Specification of a dark logo\n"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            id: "logo-light-dark-specifier-path-optional",
+            description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+            anyOf: [
+              {
+                ref: "logo-specifier-path-optional"
+              },
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: {
+                      schema: {
+                        ref: "logo-specifier-path-optional"
+                      },
+                      description: "Specification of a light logo\n"
+                    },
+                    dark: {
+                      schema: {
+                        ref: "logo-specifier-path-optional"
+                      },
+                      description: "Specification of a dark logo\n"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            id: "normalized-logo-light-dark-specifier",
+            description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+            object: {
+              closed: true,
+              properties: {
+                light: {
+                  schema: {
+                    ref: "logo-options"
+                  },
+                  description: "Options for a light logo\n"
+                },
+                dark: {
+                  schema: {
+                    ref: "logo-options"
+                  },
+                  description: "Options for a dark logo\n"
+                }
+              }
+            }
+          },
+          {
             id: "brand-color-value",
             schema: "string"
           },
@@ -12882,7 +13014,7 @@ try {
                   ref: "brand-meta"
                 },
                 logo: {
-                  ref: "brand-logo-unified"
+                  ref: "brand-logo-single"
                 },
                 color: {
                   ref: "brand-color-single"
@@ -12918,6 +13050,22 @@ try {
                 }
               }
             }
+          },
+          {
+            id: "brand-path-only-light-dark",
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: "string",
+                    dark: "string"
+                  }
+                }
+              }
+            ],
+            description: "A path to a brand.yml file, or an object with light and dark paths to brand.yml\n"
           },
           {
             id: "brand-path-bool-light-dark",
@@ -13981,8 +14129,10 @@ try {
                 "dashboard"
               ]
             },
-            schema: "path",
-            description: "Logo image (placed on the left side of the navigation bar)"
+            schema: {
+              ref: "logo-light-dark-specifier"
+            },
+            description: "Logo image(s) (placed on the left side of the navigation bar)"
           },
           {
             name: "orientation",
@@ -14469,7 +14619,8 @@ try {
               string: {
                 completions: [
                   "jupyter",
-                  "knitr"
+                  "knitr",
+                  "julia"
                 ]
               }
             },
@@ -16011,10 +16162,11 @@ try {
             default: "light",
             tags: {
               formats: [
-                "typst"
+                "typst",
+                "revealjs"
               ]
             },
-            description: "The brand mode to use for rendering the Typst document, `light` or `dark`.\n"
+            description: "The brand mode to use for rendering the document, `light` or `dark`.\n"
           },
           {
             name: "layout",
@@ -18210,15 +18362,11 @@ try {
             name: "logo",
             tags: {
               formats: [
-                "revealjs",
-                "typst"
+                "revealjs"
               ]
             },
             schema: {
-              anyOf: [
-                "string",
-                "object"
-              ]
+              ref: "logo-light-dark-specifier"
             },
             description: "Logo image (placed in bottom right corner of slides)"
           },
@@ -20320,6 +20468,12 @@ try {
                       description: "Additional file resources to be copied to output directory"
                     }
                   },
+                  brand: {
+                    schema: {
+                      ref: "brand-path-only-light-dark"
+                    },
+                    description: "Path to brand.yml or object with light and dark paths to brand.yml\n"
+                  },
                   preview: {
                     description: "Options for `quarto preview`",
                     schema: {
@@ -21414,7 +21568,7 @@ try {
           "Additional parameters to pass when executing a search",
           "Top navigation options",
           "The navbar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed to the left of the\ntitle.",
+          "Specification of image that will be displayed to the left of the\ntitle.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "The navbar\u2019s background color (named or hex color).",
@@ -21430,7 +21584,7 @@ try {
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed in the sidebar.",
+          "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
@@ -21447,7 +21601,7 @@ try {
           "Markdown to place below sidebar content (text or file path)",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed in the sidebar.",
+          "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
@@ -21575,7 +21729,7 @@ try {
           "Additional parameters to pass when executing a search",
           "Top navigation options",
           "The navbar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed to the left of the\ntitle.",
+          "Specification of image that will be displayed to the left of the\ntitle.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "The navbar\u2019s background color (named or hex color).",
@@ -21591,7 +21745,7 @@ try {
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed in the sidebar.",
+          "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
@@ -21608,7 +21762,7 @@ try {
           "Markdown to place below sidebar content (text or file path)",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed in the sidebar.",
+          "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
@@ -22355,6 +22509,19 @@ try {
           "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
           "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
           "Names of customizeable logos",
+          "Path or brand.yml logo resource name.",
+          "Alternative text for the logo, used for accessibility.",
+          "Path or brand.yml logo resource name.",
+          "Alternative text for the logo, used for accessibility.",
+          "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+          "Specification of a light logo",
+          "Specification of a dark logo",
+          "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+          "Specification of a light logo",
+          "Specification of a dark logo",
+          "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+          "Options for a light logo",
+          "Options for a dark logo",
           "The brand\u2019s custom color palette and theme.",
           "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
           "The foreground color, used for text.",
@@ -22445,6 +22612,7 @@ try {
           "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
           "The path to the font file. This can be a local path or a URL.",
           "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
+          "A path to a brand.yml file, or an object with light and dark paths to\nbrand.yml",
           "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline (unified) brand definition, or an object with light\nand dark brand paths or definitions.",
           "The path to a light brand file or an inline light brand\ndefinition.",
           "The path to a dark brand file or an inline dark brand definition.",
@@ -22824,7 +22992,7 @@ try {
           "The title used for appendix.",
           "The delimiter beween appendix number and title.",
           "Enables a hover popup for cross references that shows the item being\nreferenced.",
-          "Logo image (placed on the left side of the navigation bar)",
+          "Logo image(s) (placed on the left side of the navigation bar)",
           "Default orientation for dashboard content (default\n<code>rows</code>)",
           "Use scrolling rather than fill layout (default:\n<code>false</code>)",
           "Make card content expandable (default: <code>true</code>)",
@@ -23234,7 +23402,7 @@ try {
           },
           "Control the <code>\\pagestyle{}</code> for the document.",
           "The paper size for the document.",
-          "The brand mode to use for rendering the Typst document,\n<code>light</code> or <code>dark</code>.",
+          "The brand mode to use for rendering the document, <code>light</code>\nor <code>dark</code>.",
           {
             short: "The options for margins and text layout for this document.",
             long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.'
@@ -23846,6 +24014,7 @@ try {
           "HTML library (JS/CSS/etc.) directory",
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
+          "Path to brand.yml or object with light and dark paths to\nbrand.yml",
           "Options for <code>quarto preview</code>",
           "Scripts to run as a pre-render step",
           "Scripts to run as a post-render step",
@@ -23946,7 +24115,7 @@ try {
           "Additional parameters to pass when executing a search",
           "Top navigation options",
           "The navbar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed to the left of the\ntitle.",
+          "Specification of image that will be displayed to the left of the\ntitle.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "The navbar\u2019s background color (named or hex color).",
@@ -23962,7 +24131,7 @@ try {
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed in the sidebar.",
+          "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
@@ -23979,7 +24148,7 @@ try {
           "Markdown to place below sidebar content (text or file path)",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed in the sidebar.",
+          "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
@@ -24183,6 +24352,7 @@ try {
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
           "When defined, run axe-core accessibility tests on the document.",
           "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
+          "The logo image.",
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -24194,6 +24364,7 @@ try {
           "HTML library (JS/CSS/etc.) directory",
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
+          "Path to brand.yml or object with light and dark paths to\nbrand.yml",
           "Options for <code>quarto preview</code>",
           "Scripts to run as a pre-render step",
           "Scripts to run as a post-render step",
@@ -24294,7 +24465,7 @@ try {
           "Additional parameters to pass when executing a search",
           "Top navigation options",
           "The navbar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed to the left of the\ntitle.",
+          "Specification of image that will be displayed to the left of the\ntitle.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "The navbar\u2019s background color (named or hex color).",
@@ -24310,7 +24481,7 @@ try {
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed in the sidebar.",
+          "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
@@ -24327,7 +24498,7 @@ try {
           "Markdown to place below sidebar content (text or file path)",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "Path to a logo image that will be displayed in the sidebar.",
+          "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
@@ -24757,12 +24928,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197308,
+          _internalId: 197539,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197300,
+              _internalId: 197531,
               type: "enum",
               enum: [
                 "png",
@@ -24778,7 +24949,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197307,
+              _internalId: 197538,
               type: "anyOf",
               anyOf: [
                 {
@@ -24842,6 +25013,20 @@ try {
               ]
             },
             description: "When defined, run axe-core accessibility tests on the document."
+          }
+        ],
+        "schema/document-typst.yml": [
+          {
+            name: "logo",
+            schema: {
+              ref: "logo-light-dark-specifier-path-optional"
+            },
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: "The logo image."
           }
         ]
       };
@@ -32706,7 +32891,7 @@ ${tidyverseInfo(
         );
         console.error("This is a bug in quarto's schemas.");
         console.error(
-          "Note that we don't throw in order to allow build-js to finish, but the generated schemas will be invalid."
+          "Note that we don't throw in order to allow build-artifacts to finish, but the generated schemas will be invalid."
         );
       }
       result.properties = Object.assign(

@@ -1,5 +1,8 @@
 ---
 title: "knitr dark mode - ggplot"
+format:
+  revealjs: default
+  html: default
 brand:
   light: united-brand.yml
   dark: slate-brand.yml
@@ -16,6 +19,14 @@ _quarto:
           - 'div.cell div.dark-content'
           - 'div.cell div.cell-code pre.code-with-copy'
         - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[data-src="ggplot-duobrand_files/figure-revealjs/cars-1.png"]'
+        -
+          - 'img[data-src="ggplot-duobrand_files/figure-revealjs/cars-2.png"]'
+          - 'div.light-content'
+          - 'div.dark-content'
 ---
 
 ```{r}
@@ -51,79 +62,16 @@ slate_theme <- brand_ggplot("slate-brand.yml")
 colour_scale <- scale_colour_manual(values = c("darkorange", "purple", "cyan4"))
 ```
 
-### no crossref, no caption
-
 ```{r}
-#| renderings: [light, dark]
-ggplot(mtcars, aes(mpg, wt)) +
-  geom_point(aes(colour = factor(cyl))) +
-  united_theme +
-  colour_scale
-ggplot(mtcars, aes(mpg, wt)) +
-  geom_point(aes(colour = factor(cyl))) +
-  slate_theme +
-  colour_scale
-```
-
-### with crossref but no caption
-
-and `echo: true`
-
-::: {#fig-ggplot}
-
-```{r}
+#| label: cars
 #| echo: true
-#| renderings:
-#|   - dark
-#|   - light
-ggplot(mtcars, aes(mpg, disp)) +
-  geom_point(aes(colour = factor(cyl))) +
-  slate_theme +
-  colour_scale
-ggplot(mtcars, aes(mpg, disp)) +
-  geom_point(aes(colour = factor(cyl))) +
-  united_theme +
-  colour_scale
-```
-
-:::
-
-
-### with caption but no crossref
-
-<div>
-
-```{r}
-#| renderings: [dark]
-ggplot(mtcars, aes(mpg, disp)) +
-  geom_point(aes(colour = factor(cyl))) +
-  slate_theme +
-  colour_scale
-```
-
-ggplot - dark only
-
-</div>
-
-
-### with crossref and caption
-
-::: {#fig-ggplot-mpg-hp}
-```{r}
 #| renderings: [light, dark]
-ggplot(mtcars, aes(mpg, hp)) +
+ggplot(mtcars, aes(mpg, wt)) +
   geom_point(aes(colour = factor(cyl))) +
   united_theme +
   colour_scale
-ggplot(mtcars, aes(mpg, hp)) +
+ggplot(mtcars, aes(mpg, wt)) +
   geom_point(aes(colour = factor(cyl))) +
   slate_theme +
   colour_scale
 ```
-
-mtcars - mpg vs hp
-:::
-
-Here's a [link](https://example.com).
-
-{{< lipsum 3 >}}

@@ -35,6 +35,12 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
   assertFound("! LaTeX Error: File `framed.sty' not found.", "framed.sty");
   assertFound("/usr/local/bin/mktexpk: line 123: mf: command not found", "mf");
   assertFound("or the language definition file ngerman.ldf was not found", "ngerman.ldf");
+  assertFound(`Package babel Error: Unknown option 'ngerman'. Either you misspelled it
+    (babel)                or the language definition file ngerman.ldf
+    (babel)                was not found.
+    (babel)                There is a locale ini file for this language.
+    (babel)                If it’s the main language, try adding \`provide=*'
+    (babel)                to the babel package options.`, "ngerman.ldf")
   assertFound("!pdfTeX error: pdflatex (file 8r.enc): cannot open encoding file for reading", "8r.enc");
   assertFound("! CTeX fontset `fandol' is unavailable in current mode", "fandol");
   assertFound('Package widetext error: Install the flushend package which is a part of sttools', "flushend.sty");

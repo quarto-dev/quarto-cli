@@ -10,8 +10,8 @@ import * as colors from "fmt/colors";
 import {
   isJupyterHubServer,
   isJupyterServer,
+  isPositWorkbench,
   isRStudioServer,
-  isRStudioWorkbench,
   isVSCodeServer,
   isVSCodeTerminal,
   jupyterHubHttpReferrer,
@@ -58,7 +58,7 @@ export async function printBrowsePreviewMessage(
   path: string,
 ) {
   if (
-    (isJupyterServer() || isVSCodeTerminal()) && isRStudioWorkbench()
+    (isJupyterServer() || isVSCodeTerminal()) && isPositWorkbench()
   ) {
     const url = await rswURL(port, path);
     info(`\nPreview server: ${previewURL(host, port, path = "")}`);

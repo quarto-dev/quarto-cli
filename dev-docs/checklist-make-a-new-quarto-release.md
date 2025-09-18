@@ -3,6 +3,7 @@
   - `git checkout -b v1.4`
   - `git push origin v1.4`
 - [ ] mark the current release as the new release in the `main` branch
+  - [ ] switch your repo back to `main`: `git checkout main`
   - [ ] edit QUARTO_VERSION line in `/configuration` to be the new version (e.g. `1.5`)
   - [ ] push the changes to the `main` branch
   - [ ] kick off a v1.5 build in GHA: https://github.com/quarto-dev/quarto-cli/actions/workflows/create-release.yml
@@ -77,4 +78,4 @@
         - This is community maintained, so no action is needed from us.
       - Scoop: This will be updated automatically in the manifests repo. No action is needed from us. Maintained as personal project by @cderv.
       - Homebrew: This is automated through an homebrew bot to update the cask <https://github.com/Homebrew/homebrew-cask>
-        - Manisfest: <https://github.com/Homebrew/homebrew-cask/blob/master/Casks/q/quarto.rb>
+        - Manifest: <https://github.com/Homebrew/homebrew-cask/blob/master/Casks/q/quarto.rb>

@@ -2,6 +2,8 @@
 title: Mermaid
 format: 
   docusaurus-md: {}
+_quarto:
+  tests-on-ci: false 
 ---
 
 ::: {.content-visible when-format="docusaurus-md"}

@@ -2,17 +2,14 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- append values to table
-function tappend(t, values)
-  for i,value in pairs(values) do
-    table.insert(t, value)
-  end
-end
+tappend = pandoc.List.extend
 
 -- prepend values to table
 function tprepend(t, values)
-  for i=1, #values do
-   table.insert(t, 1, values[#values + 1 - i])
-  end
+  local nvals = #values
+  table.move(t, 1, #t, nvals + 1)     -- shift elements to make space
+  table.move(values, 1, nvals, 1, t)  -- copy values into t
+  return t
 end
 
 -- slice elements out of a table
@@ -39,30 +36,19 @@ function tisarray(t)
 end
 
 -- map elements of a table
-function tmap(tbl, f)
-  local t = pandoc.List({})
-  for k,v in pairs(tbl) do
-      t[k] = f(v)
-  end
-  return t
-end
+tmap = pandoc.List.map
 
 -- does the table contain a value
 function tcontains(t,value)
   if t and type(t)=="table" and value then
-    for _, v in ipairs (t) do
-      if v == value then
-        return true
-      end
-    end
-    return false
+    return pandoc.List.includes(t, value)
   end
   return false
 end
 
 -- clear a table
 function tclear(t)
-  for k,v in pairs(t) do
+  for k,_ in pairs(t) do
     t[k] = nil
   end
 end
@@ -70,10 +56,8 @@ end
 -- get keys from table
 function tkeys(t)
   local keyset=pandoc.List({})
-  local n=0
-  for k,v in pairs(t) do
-    n=n+1
-    keyset[n]=k
+  for key in pairs(t) do
+    keyset:insert(key)
   end
   return keyset
 end

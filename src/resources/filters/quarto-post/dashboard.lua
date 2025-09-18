@@ -738,41 +738,10 @@ function render_dashboard()
         end
       end
     }, {
-      -- todo: dark mode
       Meta = function(meta)
-        local logo = meta.logo
-        local resolved
-        if logo then
-          local which
-          if pandoc.utils.type(logo) == 'Inlines' then 
-            which = logo[1].text
-            local brandLogo = _quarto.modules.brand.get_logo('light', logo[1].text)
-            resolved = brandLogo and brandLogo.light
-          elseif type(logo) == 'table' then
-            local brandLogo = _quarto.modules.brand.get_logo('light', logo.path[1].text)
-            if brandLogo then
-              resolved = brandLogo.light
-              if logo.alt then
-                resolved.alt = logo.alt
-              end
-            else
-              resolved = {
-                path = logo.path,
-                alt = logo.alt
-              }
-            end
-          end
-        else
-          logo = _quarto.modules.brand.get_logo('light', 'small')
-            or _quarto.modules.brand.get_logo('light', 'medium')
-            or _quarto.modules.brand.get_logo('light', 'large')
-          resolved = logo and logo.light
-        end
-        if resolved then
-          meta.logo = resolved.path
-          meta['logo-alt'] = resolved.alt
-        end
-
+        -- forward the fully-resolved {light,dark} logo
+        -- calculated in format-dashboard.ts
+        meta.logo = param('logo')
         return meta
       end
     }

@@ -472,8 +472,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
       boolean /* Collapse the navbar into a menu when the display becomes narrow. */;
     foreground?:
       string /* The navbar's foreground color (named or hex color). */;
-    logo?:
-      string /* Path to a logo image that will be displayed to the left of the title. */;
+    logo?: LogoLightDarkSpecifier;
     left?:
       (NavigationItem)[] /* List of items for the left side of the navbar. */;
     pinned?: boolean /* Always show the navbar (keeping it pinned). */;
@@ -542,8 +541,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
           string
         > /* Markdown to place above sidebar content (text or file path) */;
         id?: string /* The identifier for this sidebar. */;
-        logo?:
-          string /* Path to a logo image that will be displayed in the sidebar. */;
+        logo?: LogoLightDarkSpecifier;
         pinned?:
           boolean /* When collapsed, pin the collapsed sidebar to the top of the page. */;
         search?: boolean /* Include a search control in the sidebar. */;
@@ -1261,6 +1259,29 @@ export type BrandNamedLogo =
   | "medium"
   | "large"; /* Names of customizeable logos */
 
+export type LogoOptions = { alt?: string; path: string };
+
+export type LogoSpecifier = string | LogoOptions;
+
+export type LogoOptionsPathOptional = { alt?: string; path?: string };
+
+export type LogoSpecifierPathOptional = string | LogoOptionsPathOptional;
+
+export type LogoLightDarkSpecifier = LogoSpecifier | {
+  dark?: LogoSpecifier;
+  light?: LogoSpecifier;
+}; /* Any of the ways a logo can be specified: string, object, or light/dark object of string or object */
+
+export type LogoLightDarkSpecifierPathOptional = LogoSpecifierPathOptional | {
+  dark?: LogoSpecifierPathOptional;
+  light?: LogoSpecifierPathOptional;
+}; /* Any of the ways a logo can be specified: string, object, or light/dark object of string or object */
+
+export type NormalizedLogoLightDarkSpecifier = {
+  dark?: LogoOptions;
+  light?: LogoOptions;
+}; /* Any of the ways a logo can be specified: string, object, or light/dark object of string or object */
+
 export type BrandColorValue = string;
 
 export type BrandColorSingle = {
@@ -1519,7 +1540,7 @@ export type BrandFontFamily = string;
 export type BrandSingle = {
   color?: BrandColorSingle;
   defaults?: BrandDefaults;
-  logo?: BrandLogoUnified;
+  logo?: BrandLogoSingle;
   meta?: BrandMeta;
   typography?: BrandTypographySingle;
 };
@@ -1531,6 +1552,11 @@ export type BrandUnified = {
   meta?: BrandMeta;
   typography?: BrandTypographyUnified;
 };
+
+export type BrandPathOnlyLightDark = string | {
+  dark?: string;
+  light?: string;
+}; /* A path to a brand.yml file, or an object with light and dark paths to brand.yml */
 
 export type BrandPathBoolLightDark =
   | string
@@ -1567,6 +1593,7 @@ export type ProjectConfig = {
   "lib-dir"?: string /* HTML library (JS/CSS/etc.) directory */;
   "pre-render"?: MaybeArrayOf<string>;
   "post-render"?: MaybeArrayOf<string>;
+  brand?: BrandPathOnlyLightDark;
   detect?: ((string)[])[];
   preview?: ProjectPreview;
   render?: (string)[] /* Files to render (defaults to all files) */;

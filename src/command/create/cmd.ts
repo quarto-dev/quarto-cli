@@ -8,7 +8,10 @@ import { extensionArtifactCreator } from "./artifacts/extension.ts";
 import { projectArtifactCreator } from "./artifacts/project.ts";
 import { kEditorInfos, scanForEditors } from "./editor.ts";
 
-import { isInteractiveTerminal } from "../../core/platform.ts";
+import {
+  isInteractiveTerminal,
+  isPositWorkbench,
+} from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
 
 import { Command } from "cliffy/command/mod.ts";
@@ -55,6 +58,16 @@ export const createCommand = new Command()
         // Compute a sane default for prompting
         const isInteractive = isInteractiveTerminal() && !runningInCI();
         const allowPrompt = isInteractive && !!options.prompt && !options.json;
+
+        // Specific case where opening automatically in an editor is not allowed
+        if (options.open !== false && isPositWorkbench()) {
+          if (options.open !== undefined) {
+            info(
+              `The --open option is not supported in Posit Workbench - ignoring`,
+            );
+          }
+          options.open = false;
+        }
 
         // Resolve the type into an artifact
         const resolved = await resolveArtifact(

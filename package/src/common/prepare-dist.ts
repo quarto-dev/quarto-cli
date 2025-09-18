@@ -30,9 +30,6 @@ export async function prepareDist(
   // copy from resources dir to the 'share' dir (which is resources)
   //   config.directoryInfo.share
 
-  // FIXME holding off on prepareDist building assets until we fix
-  // this issue: https://github.com/quarto-dev/quarto-cli/runs/4229822735?check_suite_focus=true
-
   // Moving appropriate binaries into place
 
   // Get each dependency extracted into the 'bin' folder

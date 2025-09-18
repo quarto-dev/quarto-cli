@@ -1,7 +1,7 @@
 - name: engine
   schema:
     string:
-      completions: [jupyter, knitr]
+      completions: [jupyter, knitr, julia]
   description: "Engine used for executable code blocks."
 
 - name: jupyter

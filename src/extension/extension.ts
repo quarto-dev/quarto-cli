@@ -17,6 +17,7 @@ import {
 } from "../project/types.ts";
 
 import {
+  basename,
   dirname,
   isAbsolute,
   join,
@@ -158,10 +159,13 @@ export function projectExtensionPathResolver(
   return (href: string, projectOffset: string) => {
     const projectRelativeHref = relative(projectOffset, href);
 
-    if (projectRelativeHref.startsWith("_extensions/")) {
+    if (
+      projectRelativeHref.startsWith("_extensions/") ||
+      projectRelativeHref.startsWith("_extensions\\")
+    ) {
       const projectTargetHref = projectRelativeHref.replace(
-        /^_extensions\//,
-        `${libDir}/quarto-contrib/quarto-project/`,
+        /^_extensions/,
+        `${libDir}/quarto-contrib/quarto-project`,
       );
 
       copyResourceFile(
@@ -791,7 +795,7 @@ async function readExtension(
   const metadata = contributes?.metadata as Record<string, unknown> | undefined;
 
   // resolve metadata/project pre- and post-render scripts to their full path
-  for (const key of ["pre-render", "post-render"]) {
+  for (const key of ["pre-render", "post-render", "brand"]) {
     for (const object of [metadata, project]) {
       if (!object?.project || typeof object.project !== "object") {
         continue;
@@ -808,8 +812,21 @@ async function readExtension(
           [],
         );
         if (resolved.include.length > 0) {
-          (object.project as Record<string, unknown>)[key] = resolved
-            .include;
+          if (key === "brand") {
+            let projectDir = extensionDir, last;
+            do {
+              last = basename(projectDir);
+              projectDir = dirname(projectDir);
+            } while (projectDir && last !== "_extensions");
+            if (projectDir) {
+              (object.project as Record<string, unknown>)[key] = relative(
+                projectDir,
+                resolved.include[0],
+              );
+            }
+          } else {
+            (object.project as Record<string, unknown>)[key] = resolved.include;
+          }
         }
       }
     }

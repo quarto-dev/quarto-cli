@@ -38,7 +38,11 @@ $code-block-theme-dark-threshhold: 40% !default;
 
 /* Inline Code Formatting */
 // $code-bg, $code-color, $code-padding
-$code-color: #7d12ba !default;
+$code-color: if(
+  variable-exists(pre-color) and $pre-color != null,
+  $pre-color,
+  #7d12ba
+) !default;
 
 // Set a default body emphasis color
 $code-bg: $gray-100 !default;

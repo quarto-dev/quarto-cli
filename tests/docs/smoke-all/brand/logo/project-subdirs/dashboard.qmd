@@ -1,0 +1,20 @@
+---
+title: "tmpsite"
+format: dashboard
+_quarto:
+  tests:
+    dashboard:
+      ensureFileRegexMatches:
+        -
+          - '<img src="\.(/|\\)brand(/|\\)images(/|\\)favicon.png"'
+          - '<img src="\.(/|\\)brand(/|\\)images(/|\\)logo.png"'
+          - '<img src="\.(/|\\)brand(/|\\)images(/|\\)header.png"'
+        - []
+---
+
+
+{{< brand logo full >}}
+
+Here's some text and [a link](https://example.com).
+
+{{< brand logo header >}}

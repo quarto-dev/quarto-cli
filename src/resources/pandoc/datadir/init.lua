@@ -1031,6 +1031,20 @@ quarto = {
           end
       end,
   },
+  metadata = {
+    get = function(key)
+      return option(key, nil)
+    end
+  },
+  variables = {
+    get = function(name)
+      local value = var(name, nil)
+      if value then
+         value = pandoc.utils.stringify(value)
+      end
+      return value
+    end
+  }
 }
 
 -- alias old names for backwards compatibility

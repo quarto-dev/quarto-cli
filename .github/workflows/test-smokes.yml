@@ -142,6 +142,16 @@ jobs:
         env:
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Show R session information
+        working-directory: tests
+        run: |
+          # Session info
+          cat("::group::Session info\n")
+          renv::install("sessioninfo")
+          sessioninfo::session_info(pkgs = "installed", include_base = TRUE)
+          cat("::endgroup::\n")
+        shell: Rscript {0}
+
       - name: Install uv for Python
         uses: astral-sh/setup-uv@v3
         with:
@@ -225,7 +235,7 @@ jobs:
           readarray -t my_array < <(echo '${{ inputs.buckets }}' | jq -rc '.[]')
           for file in "${my_array[@]}"; do 
             echo ">>> ./run-tests.sh ${file}"
-            ./run-tests.sh $file
+            shopt -s globstar && ./run-tests.sh $file
             status=$?
             [ $status -eq 0 ] && echo ">>> No error in this test file" || haserror=1
           done

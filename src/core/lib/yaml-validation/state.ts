@@ -43,7 +43,7 @@ export async function initState() {
 // many entry points. In addition, the CLI itself can have a number
 // of different initializers depending on the command being called:
 //
-// - quarto build-js uses an initializer that skips precompiled modules
+// - quarto dev-call build-artifacts uses an initializer that skips precompiled modules
 //
 // - Some of the test suite uses an initializer with precompiled
 //   modules and includes tree-sitter (so the behavior is as close to

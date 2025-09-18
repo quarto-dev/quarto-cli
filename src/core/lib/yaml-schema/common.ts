@@ -281,7 +281,7 @@ export function objectSchema(params: {
       );
       console.error("This is a bug in quarto's schemas.");
       console.error(
-        "Note that we don't throw in order to allow build-js to finish, but the generated schemas will be invalid.",
+        "Note that we don't throw in order to allow build-artifacts to finish, but the generated schemas will be invalid.",
       );
     }
 

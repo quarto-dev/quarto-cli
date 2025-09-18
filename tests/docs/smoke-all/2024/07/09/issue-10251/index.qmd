@@ -3,11 +3,11 @@ title: "issue-10251"
 _quarto:
   tests:
     html:
-      ensureFileRegexMatches:
-        - [
-            '<img src="https://quarto.org/quarto.png" alt="this is the alt text that for the logo in the sidebar" class="sidebar-logo py-0 d-lg-inline d-none">',
-            '<img src="https://quarto.org/quarto.png" alt="this is the alt text that for the logo in the navbar" class="navbar-logo">'
-          ]
+      ensureHtmlElements:
+        -
+          - 'img[src="https://quarto.org/quarto.png"][alt="this is the alt text that for the logo in the sidebar"][class*="sidebar-logo light-content"]'
+          - 'img[src="https://quarto.org/quarto.png"][alt="this is the alt text that for the logo in the navbar"][class*="navbar-logo light-content"]'
+        - []
 ---
 
 This is a Quarto website.

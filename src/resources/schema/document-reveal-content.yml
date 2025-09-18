@@ -1,10 +1,8 @@
 - name: logo
   tags:
-    formats: [revealjs, typst]
+    formats: [revealjs]
   schema:
-    anyOf:
-      - string
-      - object # typst: location, padding, padding-*, width, source
+    ref: logo-light-dark-specifier
   description: "Logo image (placed in bottom right corner of slides)"
 
 - name: footer

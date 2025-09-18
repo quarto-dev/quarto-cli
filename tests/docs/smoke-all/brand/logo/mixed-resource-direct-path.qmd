@@ -1,0 +1,44 @@
+---
+title: mixed logo types
+format:
+  dashboard: default
+  revealjs: default
+  typst:
+    output-ext: typ
+brand:
+  logo:
+    images:
+      quarto:
+        path: quarto.png
+        alt: quarto logo
+      posit:
+        path: posit-logo-2024.svg
+        alt: posit logo
+    medium:
+      light: quarto
+      dark: custom-dark.png
+    large:
+      light: custom-light.svg
+      dark: posit
+brand-mode: dark
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          - 'img[src="quarto.png"][alt="quarto logo"][class="navbar-logo light-content d-inline-block"]'
+          - 'img[src="custom-dark.png"][alt=""][class="navbar-logo dark-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="custom-dark.png"]:not([alt])'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("custom-dark.png", width: 1\.5in\)\)'
+        - []
+---
+
+{{< lipsum 4 >}}

@@ -32,6 +32,11 @@
           maybeArrayOf:
             schema: path
             description: "Additional file resources to be copied to output directory"
+        brand:
+          schema:
+            ref: brand-path-only-light-dark
+          description: |
+            Path to brand.yml or object with light and dark paths to brand.yml
         preview:
           description: Options for `quarto preview`
           schema:

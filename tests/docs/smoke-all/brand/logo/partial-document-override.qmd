@@ -1,0 +1,48 @@
+---
+title: Partial Document-Level Override
+format:
+  dashboard: default
+  revealjs: default
+  typst:
+    output-ext: typ
+brand-mode: dark
+brand:
+  logo:
+    images:
+      quarto:
+        path: quarto.png
+        alt: quarto logo
+      posit:
+        path: posit-logo-2024.svg
+        alt: posit logo
+      custom:
+        path: custom.svg
+        alt: custom logo
+    medium: # brand enables dark mode here
+      light: quarto
+      dark: posit
+logo:
+  # Only override the light variant, dark should come from brand
+  light: custom
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          # Light from document-level, dark from brand-level
+          - 'img[src="custom.svg"][alt="custom logo"][class="navbar-logo light-content d-inline-block"]'
+          - 'img[src="posit-logo-2024.svg"][alt="posit logo"][class="navbar-logo dark-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="posit-logo-2024.svg"][alt="posit logo"]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("posit-logo-2024.svg", width: 1\.5in, alt: "posit logo"\)\)'
+        - []
+---
+
+{{< lipsum 4 >}}

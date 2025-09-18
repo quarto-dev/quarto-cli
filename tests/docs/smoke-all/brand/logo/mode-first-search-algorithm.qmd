@@ -1,0 +1,49 @@
+---
+title: Cross-Size Mode Fallbacks
+format:
+  dashboard: default
+  revealjs: default
+  typst:
+    output-ext: typ
+brand-mode: dark
+brand:
+  logo:
+    images:
+      light-small:
+        path: light-small.png
+        alt: light small logo
+      light-med:
+        path: light-med.png
+        alt: light medium logo
+      dark-large:
+        path: dark-large.png
+        alt: dark large logo
+    small: # currently light, dark independently look for small, medium, large
+      light: light-small
+    medium:
+      light: light-med
+      # No dark medium defined - what happens?
+    large:
+      dark: dark-large
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          # Medium is default, light is defined, dark should use cross-size fallback
+          - 'img[src="light-small.png"][alt="light small logo"][class="navbar-logo light-content d-inline-block"]'
+          - 'img[src="dark-large.png"][alt="dark large logo"][class="navbar-logo dark-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="dark-large.png"][alt="dark large logo"]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("dark-large.png", width: 1\.5in, alt: "dark large logo"\)\)'
+        - []
+---
+
+{{< lipsum 4 >}}

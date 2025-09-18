@@ -51,6 +51,7 @@ import { Zod } from "../resources/types/zod/schema-types.ts";
 import {
   Brand,
   LightDarkBrand,
+  LightDarkBrandDarkFlag,
   splitUnifiedBrand,
 } from "../core/brand/brand.ts";
 import { assert } from "testing/asserts";
@@ -520,7 +521,7 @@ export const ensureFileInformationCache = (
 export async function projectResolveBrand(
   project: ProjectContext,
   fileName?: string,
-): Promise<{ light?: Brand; dark?: Brand } | undefined> {
+): Promise<LightDarkBrandDarkFlag | undefined> {
   async function loadSingleBrand(brandPath: string): Promise<Brand> {
     const brand = await readAndValidateYamlFromFile(
       brandPath,
@@ -529,7 +530,9 @@ export async function projectResolveBrand(
     );
     return new Brand(brand, dirname(brandPath), project.dir);
   }
-  async function loadUnifiedBrand(brandPath: string): Promise<LightDarkBrand> {
+  async function loadUnifiedBrand(
+    brandPath: string,
+  ): Promise<LightDarkBrandDarkFlag> {
     const brand = await readAndValidateYamlFromFile(
       brandPath,
       refSchema("brand-unified", "Format-independent brand configuration."),
@@ -557,10 +560,14 @@ export async function projectResolveBrand(
     let fileNames = ["_brand.yml", "_brand.yaml"].map((file) =>
       join(project.dir, file)
     );
-    const brand = project?.config?.brand as boolean | string | {
-      light?: string;
-      dark?: string;
-    };
+    const brand = (project?.config?.brand ??
+      project?.config?.project.brand) as
+        | boolean
+        | string
+        | {
+          light?: string;
+          dark?: string;
+        };
     if (brand === false) {
       project.brandCache.brand = undefined;
       return project.brandCache.brand;
@@ -576,6 +583,7 @@ export async function projectResolveBrand(
         dark: brand.dark
           ? await loadSingleBrand(resolveBrandPath(brand.dark, project.dir))
           : undefined,
+        enablesDarkMode: !!brand.dark,
       };
       return project.brandCache.brand;
     }
@@ -631,7 +639,7 @@ export async function projectResolveBrand(
             project.dir,
           );
         }
-        fileInformation.brand = { light, dark };
+        fileInformation.brand = { light, dark, enablesDarkMode: !!dark };
       } else {
         fileInformation.brand = splitUnifiedBrand(
           brand,

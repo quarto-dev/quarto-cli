@@ -14,6 +14,7 @@ import {
   kFigFormat,
   kFigHeight,
   kFigWidth,
+  kLogo,
   kNumberSections,
   kSectionNumbering,
   kShiftHeadingLevelBy,
@@ -30,6 +31,12 @@ import {
 import { formatResourcePath } from "../../core/resources.ts";
 import { createFormat } from "../formats-shared.ts";
 import { hasLevelOneHeadings as hasL1Headings } from "../../core/lib/markdown-analysis/level-one-headings.ts";
+import {
+  BrandNamedLogo,
+  LogoLightDarkSpecifier,
+} from "../../resources/types/schema-types.ts";
+import { fillLogoPaths, resolveLogo } from "../../core/brand/brand.ts";
+import { LogoLightDarkSpecifierPathOptional } from "../../resources/types/zod/schema-types.ts";
 
 export function typstFormat(): Format {
   return createFormat("Typst", "pdf", {
@@ -78,6 +85,19 @@ export function typstFormat(): Format {
         pandoc[kShiftHeadingLevelBy] = -1;
       }
 
+      const brand = format.render.brand;
+      const logoSpec = format
+        .metadata[kLogo] as LogoLightDarkSpecifierPathOptional;
+      const sizeOrder: BrandNamedLogo[] = [
+        "small",
+        "medium",
+        "large",
+      ];
+      // temporary: if document logo has object or light/dark objects
+      // without path, do our own findLogo to add the path
+      // typst is the exception not needing path but we'll probably deprecate this
+      const logo = fillLogoPaths(brand, logoSpec, sizeOrder);
+      format.metadata[kLogo] = resolveLogo(brand, logo, sizeOrder);
       // force columns to wrap and move any 'columns' setting to metadata
       const columns = format.pandoc[kColumns];
       if (columns) {
@@ -92,6 +112,7 @@ export function typstFormat(): Format {
         partials: [
           "definitions.typ",
           "typst-template.typ",
+          "page.typ",
           "typst-show.typ",
           "notes.typ",
           "biblio.typ",

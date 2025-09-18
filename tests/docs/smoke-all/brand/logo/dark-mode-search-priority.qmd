@@ -1,0 +1,53 @@
+---
+title: Size Inheritance
+format:
+  dashboard: default
+  revealjs: default
+  typst:
+    output-ext: typ
+brand-mode: dark
+brand:
+  logo:
+    images:
+      small-logo:
+        path: small-logo.png
+        alt: small logo
+      medium-logo:
+        path: medium-logo.png
+        alt: medium logo
+      dark-logo:
+        path: dark-logo.png
+        alt: dark logo
+    # Define small and medium with light variants only
+    small:
+      light: small-logo
+    medium:
+      light: medium-logo
+    # Define large with dark variant only
+    large:
+      dark: dark-logo
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          # Small is default for dashboard navbar
+          # Light mode: should use small.light
+          # Dark mode: small and medium.dark are missing, should use large.dark (not any .light)
+          - 'img[src="small-logo.png"][alt="small logo"][class="navbar-logo light-content d-inline-block"]'
+          - 'img[src="dark-logo.png"][alt="dark logo"][class="navbar-logo dark-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          # In dark mode with revealjs, should use large.dark
+          - 'img[src="dark-logo.png"][alt="dark logo"]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("dark-logo.png", width: 1\.5in, alt: "dark logo"\)\)'
+        - []
+---
+
+{{< lipsum 4 >}}

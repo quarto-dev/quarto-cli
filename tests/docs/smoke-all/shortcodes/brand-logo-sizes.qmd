@@ -1,0 +1,27 @@
+---
+title: Test brand logo size variants
+format: html
+brand:
+  logo:
+    small: small-logo.png
+    medium: medium-logo.png
+    large: large-logo.png
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<img src="\.(/|\\)small-logo\.png".*>'
+          - '<img src="\.(/|\\)medium-logo\.png".*>'
+          - '<img src="\.(/|\\)large-logo\.png".*>'
+        - []
+---
+
+### Small Logo
+{{< brand logo small >}}
+
+### Medium Logo
+{{< brand logo medium >}}
+
+### Large Logo
+{{< brand logo large >}}

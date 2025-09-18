@@ -1,0 +1,38 @@
+---
+title: brand-mode and logos
+format:
+  revealjs: default
+  typst:
+    keep-typ: true
+brand:
+  logo:
+    medium:
+      light: sun-face.png
+      # dark mode missing
+  color:
+    foreground: 
+      light: '#222'
+      dark: '#eee'
+    background:
+      light: '#eee'
+      dark: '#222'
+  typography:
+    headings:
+      color:
+        light: '#429'
+        dark: '#54e'
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="sun-face.png"]'
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("sun-face\.png", width: 1\.5in\)\)'
+---
+
+## Here we go
+
+- Testing missing dark mode logo

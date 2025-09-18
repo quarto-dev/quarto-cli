@@ -750,12 +750,25 @@ function htmlFormatPostprocessor(
 
       // insert code copy button (with specfic attribute when inside a modal)
       if (codeCopy) {
-        code.classList.add("code-with-copy");
+        // the interaction of code copy button fixed position
+        // and scrolling overflow behavior requires a scaffold div to be inserted
+        // as a parent of the code block and the copy button both
+        // (see #13009, #5538, and #12787)
+        const outerScaffold = doc.createElement("div");
+        outerScaffold.classList.add("code-copy-outer-scaffold");
+
         const copyButton = createCodeCopyButton(doc, format);
         if (EmbedSourceModal && EmbedSourceModal.contains(code)) {
           copyButton.setAttribute("data-in-quarto-modal", "");
         }
-        code.appendChild(copyButton);
+        code.classList.add("code-with-copy");
+
+        const sourceCodeDiv = code.parentElement!;
+        const sourceCodeDivParent = code.parentElement?.parentElement;
+        sourceCodeDivParent!.replaceChild(outerScaffold, sourceCodeDiv);
+
+        outerScaffold.appendChild(sourceCodeDiv);
+        outerScaffold.appendChild(copyButton);
       }
 
       // insert example iframe

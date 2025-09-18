@@ -1,10 +1,12 @@
 ---
 title: title is `#context text.font`{=typst} `#context text.weight`{=typst} `#context text.style`{=typst} `#context text.size`{=typst}
-format: typst
+format:
+  typst:
+    include-in-header:
+      text: |
+        #set text(fallback: false)
+  html: default
 brand: branding/brand.yml
-include-in-header:
-  text: |
-    #set text(fallback: false)
 _quarto:
   tests:
     typst:

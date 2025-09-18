@@ -1,0 +1,10 @@
+---
+title: test
+format: 
+  revealjs:
+    theme: [custom.scss, brand]
+---
+
+# content
+
+content

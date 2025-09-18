@@ -1,0 +1,33 @@
+---
+title: Test brand light/dark shortcodes
+format: html
+brand:
+  light:
+    logo:
+      images:
+        sun: 
+          path: sun.png
+          alt: sun
+      small: sun
+  dark:
+    logo:
+      images:
+        moon:
+          path: moon.png
+          alt: moon
+      small: moon
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<img src="\.(/|\\)sun\.png" class="light-content.*alt="sun">'
+          - '<img src="\.(/|\\)moon\.png" class="dark-content.*alt="moon">'
+        - []
+---
+
+::: {}
+
+{{< brand logo small >}}
+
+:::

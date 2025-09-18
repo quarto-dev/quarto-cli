@@ -1,11 +1,10 @@
 /*
-* yaml-schema.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * yaml-schema.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
-// FIXME needs refactoring. This is mostly only used at build-js time,
+// FIXME needs refactoring. This is mostly only used at build-artifacts time,
 // except for "parseAndValidate".
 
 import { YAMLSchema } from "../lib/yaml-validation/yaml-schema.ts";

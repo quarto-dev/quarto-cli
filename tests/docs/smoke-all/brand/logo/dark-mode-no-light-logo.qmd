@@ -1,0 +1,47 @@
+---
+title: Dark Mode with No Light Logo
+format:
+  dashboard:
+    theme:
+      light: default
+      dark: darkly
+  revealjs: default
+  typst:
+    keep-typ: true
+brand-mode: dark
+brand:
+  color:
+    foreground: 
+      light: '#222'
+      dark: '#eee'
+    background:
+      light: '#eee'
+      dark: '#222'
+  logo:
+    images:
+      dark-logo:
+        path: posit-logo-2024.svg
+        alt: dark logo
+    medium:
+      dark: dark-logo
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          - 'img[src="posit-logo-2024.svg"][alt="dark logo"][class="navbar-logo dark-content d-inline-block"]'
+          - 'img[src="posit-logo-2024.svg"][alt="dark logo"][class="navbar-logo light-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="posit-logo-2024.svg"][alt="dark logo"]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("posit-logo-2024.svg", width: 1\.5in, alt: "dark logo"\)\)'
+        - []
+---
+
+{{< lipsum 4 >}}

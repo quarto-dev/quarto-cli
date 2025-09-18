@@ -1,0 +1,13 @@
+project:
+  type: website
+format:
+  html:
+    theme:
+      light: brand
+      dark: [brand, dark-fixups.scss]
+website:
+  sidebar:
+    style: "docked"
+    search: true
+    contents:
+      - test.qmd

@@ -1,0 +1,25 @@
+---
+title: "Logo with Directional Padding"
+format:
+  typst:
+    keep-typ: true
+logo:
+  location: center-middle
+  padding-top: 30px
+  padding-right: 50px
+  padding-bottom: 10px
+  padding-left: 20px
+  width: 180px
+brand:
+  logo:
+    large: quarto/quarto.png
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+      - 
+        - '#set page\(background: align\(center\+horizon, box\(inset: \(bottom: 7.5pt, left: 15pt, right: 37.5pt, top: 22.5pt\), image\("quarto(/|\\\\)quarto.png", width: 135pt\)\)\)\)'
+      - []
+---
+
+{{< lipsum 4 >}}
