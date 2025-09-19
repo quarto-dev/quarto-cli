@@ -10,7 +10,7 @@ import { mainRunner } from "../../src/core/main.ts";
 
 import { prepareDist } from "./common/prepare-dist.ts";
 import { updateHtmlDependencies } from "./common/update-html-dependencies.ts";
-import { makeInstallerDeb } from "./linux/installer.ts";
+import { makeInstallerDeb, makeInstallerRpm } from "./linux/installer.ts";
 import { makeInstallerMac } from "./macos/installer.ts";
 import {
   compileQuartoLatexmkCommand,
@@ -95,6 +95,10 @@ function getCommands() {
   commands.push(
     packageCommand(makeInstallerDeb, "make-installer-deb")
       .description("Builds Linux deb installer"),
+  );
+  commands.push(
+    packageCommand(makeInstallerRpm, "make-installer-rpm")
+      .description("Builds Linux rpm installer"),
   );
   commands.push(
     packageCommand(makeInstallerWindows, "make-installer-win")
