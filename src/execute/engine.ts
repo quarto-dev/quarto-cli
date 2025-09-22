@@ -19,8 +19,15 @@ import { kBaseFormat, kEngine } from "../config/constants.ts";
 
 import { knitrEngine } from "./rmd.ts";
 import { jupyterEngine } from "./jupyter/jupyter.ts";
-import { kMdExtensions, markdownEngine } from "./markdown.ts";
-import { ExecutionEngine, kQmdExtensions } from "./types.ts";
+import { ExternalEngine } from "../resources/types/schema-types.ts";
+import { kMdExtensions, markdownEngineDiscovery } from "./markdown.ts";
+import {
+  ExecutionEngine,
+  ExecutionEngineDiscovery,
+  ExecutionEngineInstance,
+  ExecutionTarget,
+  kQmdExtensions,
+} from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
 import { languages as handlerLanguages } from "../core/handlers/base.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
@@ -30,7 +37,10 @@ import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
 import { gitignoreEntries } from "../project/project-gitignore.ts";
 import { juliaEngine } from "./julia.ts";
 import { ensureFileInformationCache } from "../project/project-shared.ts";
+import { engineProjectContext } from "../project/engine-project-context.ts";
+import { asEngineInstance } from "./as-engine-instance.ts";
 import { Command } from "cliffy/command/mod.ts";
+import { quartoAPI } from "../core/quarto-api.ts";
 
 const kEngines: Map<string, ExecutionEngine> = new Map();
 
@@ -42,17 +52,29 @@ export function executionEngine(name: string) {
   return kEngines.get(name);
 }
 
-for (
-  const engine of [knitrEngine, jupyterEngine, markdownEngine, juliaEngine]
-) {
-  registerExecutionEngine(engine);
-}
+// Register the standard engines
+registerExecutionEngine(knitrEngine);
+registerExecutionEngine(jupyterEngine);
+
+// Register markdownEngine using Object.assign to add _discovery flag
+registerExecutionEngine(Object.assign(
+  markdownEngineDiscovery as unknown as ExecutionEngine,
+  { _discovery: true },
+));
+
+registerExecutionEngine(juliaEngine);
 
 export function registerExecutionEngine(engine: ExecutionEngine) {
   if (kEngines.has(engine.name)) {
     throw new Error(`Execution engine ${engine.name} already registered`);
   }
   kEngines.set(engine.name, engine);
+  if ((engine as any)._discovery === true) {
+    const discoveryEngine = engine as unknown as ExecutionEngineDiscovery;
+    if (discoveryEngine.init) {
+      discoveryEngine.init(quartoAPI);
+    }
+  }
 }
 
 export function executionEngineKeepMd(context: RenderContext) {
@@ -67,7 +89,7 @@ export function executionEngineKeepMd(context: RenderContext) {
 
 // for the project crawl
 export function executionEngineIntermediateFiles(
-  engine: ExecutionEngine,
+  engine: ExecutionEngineInstance,
   input: string,
 ) {
   // all files of the form e.g. .html.md or -html.md are interemediate
@@ -97,10 +119,11 @@ export function engineValidExtensions(): string[] {
 }
 
 export function markdownExecutionEngine(
+  project: ProjectContext,
   markdown: string,
   reorderedEngines: Map<string, ExecutionEngine>,
   flags?: RenderFlags,
-) {
+): ExecutionEngineInstance {
   // read yaml and see if the engine is declared in yaml
   // (note that if the file were a non text-file like ipynb
   //  it would have already been claimed via extension)
@@ -112,11 +135,11 @@ export function markdownExecutionEngine(
       yaml = mergeConfigs(yaml, flags?.metadata);
       for (const [_, engine] of reorderedEngines) {
         if (yaml[engine.name]) {
-          return engine;
+          return asEngineInstance(engine, engineProjectContext(project));
         }
         const format = metadataAsFormat(yaml);
         if (format.execute?.[kEngine] === engine.name) {
-          return engine;
+          return asEngineInstance(engine, engineProjectContext(project));
         }
       }
     }
@@ -129,7 +152,7 @@ export function markdownExecutionEngine(
   for (const language of languages) {
     for (const [_, engine] of reorderedEngines) {
       if (engine.claimsLanguage(language)) {
-        return engine;
+        return asEngineInstance(engine, engineProjectContext(project));
       }
     }
   }
@@ -138,18 +161,48 @@ export function markdownExecutionEngine(
   // if there is a non-cell handler language then this must be jupyter
   for (const language of languages) {
     if (language !== "ojs" && !handlerLanguagesVal.includes(language)) {
-      return jupyterEngine;
+      return asEngineInstance(jupyterEngine, engineProjectContext(project));
     }
   }
 
   // if there is no computational engine discovered then bind
   // to the markdown engine;
-  return markdownEngine;
+  return markdownEngineDiscovery.launch(engineProjectContext(project));
 }
 
-function reorderEngines(project: ProjectContext) {
-  const userSpecifiedOrder: string[] =
-    project.config?.engines as string[] | undefined ?? [];
+async function reorderEngines(project: ProjectContext) {
+  const userSpecifiedOrder: string[] = [];
+  const projectEngines = project.config?.engines as
+    | (string | ExternalEngine)[]
+    | undefined;
+
+  for (const engine of projectEngines ?? []) {
+    if (typeof engine === "object") {
+      try {
+        const extEngine = (await import(engine.path))
+          .default as ExecutionEngine;
+        userSpecifiedOrder.push(extEngine.name);
+        kEngines.set(extEngine.name, extEngine);
+        if ((extEngine as any)._discovery === true) {
+          const discoveryEngine =
+            extEngine as unknown as ExecutionEngineDiscovery;
+          if (discoveryEngine.init) {
+            console.log("here");
+            discoveryEngine.init(quartoAPI);
+          }
+        }
+      } catch (err: any) {
+        // Throw error for engine import failures as this is a serious configuration issue
+        throw new Error(
+          `Failed to import engine from ${engine.path}: ${
+            err.message || "Unknown error"
+          }`,
+        );
+      }
+    } else {
+      userSpecifiedOrder.push(engine);
+    }
+  }
 
   for (const key of userSpecifiedOrder) {
     if (!kEngines.has(key)) {
@@ -182,7 +235,7 @@ export async function fileExecutionEngine(
   file: string,
   flags: RenderFlags | undefined,
   project: ProjectContext,
-) {
+): Promise<ExecutionEngineInstance | undefined> {
   // get the extension and validate that it can be handled by at least one of our engines
   const ext = extname(file).toLowerCase();
   if (
@@ -193,12 +246,12 @@ export async function fileExecutionEngine(
     return undefined;
   }
 
-  const reorderedEngines = reorderEngines(project);
+  const reorderedEngines = await reorderEngines(project);
 
   // try to find an engine that claims this extension outright
   for (const [_, engine] of reorderedEngines) {
     if (engine.claimsFile(file, ext)) {
-      return engine;
+      return asEngineInstance(engine, engineProjectContext(project));
     }
   }
 
@@ -211,6 +264,7 @@ export async function fileExecutionEngine(
     // with the filename so that the user knows which file is the problem.
     try {
       return markdownExecutionEngine(
+        project,
         markdown ? markdown.value : Deno.readTextFileSync(file),
         reorderedEngines,
         flags,
@@ -230,29 +284,30 @@ export async function fileExecutionEngine(
 export async function fileExecutionEngineAndTarget(
   file: string,
   flags: RenderFlags | undefined,
-  // markdown: MappedString | undefined,
   project: ProjectContext,
-) {
+): Promise<{ engine: ExecutionEngineInstance; target: ExecutionTarget }> {
   const cached = ensureFileInformationCache(project, file);
   if (cached && cached.engine && cached.target) {
     return { engine: cached.engine, target: cached.target };
   }
 
+  // Get the launched engine
   const engine = await fileExecutionEngine(file, flags, project);
   if (!engine) {
     throw new Error("Can't determine execution engine for " + file);
   }
-  const markdown = await project.resolveFullMarkdownForFile(engine, file);
 
-  const target = await engine.target(file, flags?.quiet, markdown, project);
+  const markdown = await project.resolveFullMarkdownForFile(engine, file);
+  const target = await engine.target(file, flags?.quiet, markdown);
   if (!target) {
     throw new Error("Can't determine execution target for " + file);
   }
 
+  // Cache the ExecutionEngineInstance
   cached.engine = engine;
   cached.target = target;
-  const result = { engine, target };
-  return result;
+
+  return { engine, target };
 }
 
 export function engineIgnoreDirs() {
