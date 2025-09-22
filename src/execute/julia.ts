@@ -3,7 +3,11 @@ import { join } from "../deno_ral/path.ts";
 import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { readYamlFromMarkdown } from "../core/yaml.ts";
-import { asMappedString } from "../core/lib/mapped-text.ts";
+import {
+  asMappedString,
+  mappedIndexToLineCol,
+  mappedLines,
+} from "../core/lib/mapped-text.ts";
 import { ProjectContext } from "../project/types.ts";
 import {
   DependenciesOptions,
@@ -52,6 +56,12 @@ import {
   isJupyterPercentScript,
   markdownFromJupyterPercentScript,
 } from "./jupyter/percent.ts";
+
+export interface SourceRange {
+  lines: [number, number];
+  file?: string;
+  sourceLines?: [number, number];
+}
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
   oneShot: boolean; // if true, the file's worker process is closed before and after running
@@ -578,6 +588,62 @@ function getConsoleColumns(): number | null {
   }
 }
 
+function buildSourceRanges(markdown: MappedString): Array<SourceRange> {
+  const lines = mappedLines(markdown);
+  const sourceRanges: Array<SourceRange> = [];
+  let currentRange: SourceRange | null = null;
+
+  lines.forEach((line, index) => {
+    // Get mapping info directly from the line's MappedString
+    const mapResult = line.map(0, true);
+    if (mapResult) {
+      const { originalString } = mapResult;
+      const lineColFunc = mappedIndexToLineCol(originalString);
+      const lineCol = lineColFunc(mapResult.index);
+      const fileName = originalString.fileName;
+      const sourceLineNum = lineCol.line;
+
+      // Check if this line continues the current range
+      if (
+        currentRange &&
+        currentRange.file === fileName &&
+        fileName !== undefined &&
+        currentRange.sourceLines &&
+        currentRange.sourceLines[1] === sourceLineNum
+      ) {
+        // Extend current range
+        currentRange.lines[1] = index + 1; // +1 because lines are 1-indexed
+        currentRange.sourceLines[1] = sourceLineNum + 1;
+      } else {
+        // Start new range
+        if (currentRange) {
+          sourceRanges.push(currentRange);
+        }
+        currentRange = {
+          lines: [index + 1, index + 1], // +1 because lines are 1-indexed
+        };
+        if (fileName !== undefined) {
+          currentRange.file = fileName;
+          currentRange.sourceLines = [sourceLineNum + 1, sourceLineNum + 1];
+        }
+      }
+    } else {
+      // No mapping available - treat as separate range
+      if (currentRange) {
+        sourceRanges.push(currentRange);
+        currentRange = null;
+      }
+    }
+  });
+
+  // Don't forget the last range
+  if (currentRange) {
+    sourceRanges.push(currentRange);
+  }
+
+  return sourceRanges;
+}
+
 async function executeJulia(
   options: JuliaExecuteOptions,
 ): Promise<JupyterNotebook> {
@@ -600,9 +666,12 @@ async function executeJulia(
       );
     }
   }
+
+  const sourceRanges = buildSourceRanges(options.target.markdown);
+
   const response = await writeJuliaCommand(
     conn,
-    { type: "run", content: { file, options } },
+    { type: "run", content: { file, options, sourceRanges } },
     transportOptions.key,
     options,
     (update: ProgressUpdate) => {
@@ -643,7 +712,14 @@ interface ProgressUpdate {
 type empty = Record<string | number | symbol, never>;
 
 type ServerCommand =
-  | { type: "run"; content: { file: string; options: JuliaExecuteOptions } }
+  | {
+    type: "run";
+    content: {
+      file: string;
+      options: JuliaExecuteOptions;
+      sourceRanges: Array<SourceRange>;
+    };
+  }
   | { type: "close"; content: { file: string } }
   | { type: "forceclose"; content: { file: string } }
   | { type: "isopen"; content: { file: string } }
@@ -854,7 +930,9 @@ function populateJuliaEngineCommand(command: Command) {
       "Get status information on the currently running Julia server process.",
     ).action(logStatus)
     .command("kill", "Kill server")
-    .description("Kill the control server if it is currently running. This will also kill all notebook worker processes.")
+    .description(
+      "Kill the control server if it is currently running. This will also kill all notebook worker processes.",
+    )
     .action(killJuliaServer)
     .command("log", "Print julia server log")
     .description(
