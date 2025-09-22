@@ -287,6 +287,17 @@
           description: The language that should be used when displaying the commenting interface.
     required: [repo]
 
+- id: external-engine
+  schema:
+    object:
+      closed: true
+      properties:
+        path:
+          path:
+            description: Path to the TypeScript module for the execution engine
+      required: [path]
+    description: An execution engine not pre-loaded in Quarto
+
 - id: document-comments-configuration
   anyOf:
     - enum: [false]

@@ -59,7 +59,10 @@ import {
 } from "../../core/language.ts";
 import { defaultWriterFormat } from "../../format/formats.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
+import {
+  ExecutionEngineInstance,
+  ExecutionTarget,
+} from "../../execute/types.ts";
 import {
   deleteProjectMetadata,
   directoryMetadataForInputFile,
@@ -296,7 +299,7 @@ export async function renderContexts(
 
     // if this isn't for execute then cleanup context
     if (!forExecute && engine.executeTargetSkipped) {
-      engine.executeTargetSkipped(target, formats[formatKey].format, project);
+      engine.executeTargetSkipped(target, formats[formatKey].format);
     }
   }
   return contexts;
@@ -394,7 +397,7 @@ function mergeQuartoConfigs(
 async function resolveFormats(
   file: RenderFile,
   target: ExecutionTarget,
-  engine: ExecutionEngine,
+  engine: ExecutionEngineInstance,
   options: RenderOptions,
   _notebookContext: NotebookContext,
   project: ProjectContext,

@@ -37,7 +37,7 @@ import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
 import { createTempContext } from "../core/temp.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { LanguageCellHandlerOptions } from "../core/handlers/types.ts";
-import { ExecutionEngine } from "../execute/types.ts";
+import { ExecutionEngineInstance } from "../execute/types.ts";
 import { InspectedMdCell } from "../inspect/inspect-types.ts";
 import { breakQuartoMd, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
 import { partitionCellOptionsText } from "../core/lib/partition-cell-options.ts";
@@ -356,7 +356,7 @@ export async function directoryMetadataForInputFile(
 
 const mdForFile = async (
   _project: ProjectContext,
-  engine: ExecutionEngine | undefined,
+  engine: ExecutionEngineInstance | undefined,
   file: string,
 ): Promise<MappedString> => {
   if (engine) {
@@ -369,7 +369,7 @@ const mdForFile = async (
 
 export async function projectResolveCodeCellsForFile(
   project: ProjectContext,
-  engine: ExecutionEngine | undefined,
+  engine: ExecutionEngineInstance | undefined,
   file: string,
   markdown?: MappedString,
   force?: boolean,
@@ -461,7 +461,7 @@ export async function projectFileMetadata(
 
 export async function projectResolveFullMarkdownForFile(
   project: ProjectContext,
-  engine: ExecutionEngine | undefined,
+  engine: ExecutionEngineInstance | undefined,
   file: string,
   markdown?: MappedString,
   force?: boolean,

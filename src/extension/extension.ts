@@ -56,6 +56,7 @@ import {
   ExtensionOptions,
   RevealPluginInline,
 } from "./types.ts";
+import { ExternalEngine } from "../resources/types/schema-types.ts";
 
 import { cloneDeep } from "../core/lodash.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
@@ -357,6 +358,8 @@ function findExtensions(
       contributes === kRevealJSPlugins && ext.contributes[kRevealJSPlugins]
     ) {
       return true;
+    } else if (contributes === "engines" && ext.contributes.engines) {
+      return true;
     } else {
       return contributes === undefined;
     }
@@ -632,6 +635,7 @@ function validateExtension(extension: Extension) {
     extension.contributes.project,
     extension.contributes[kRevealJSPlugins],
     extension.contributes.metadata,
+    extension.contributes.engines,
   ];
   contribs.forEach((contrib) => {
     if (contrib) {
@@ -837,6 +841,23 @@ async function readExtension(
     return resolveRevealPlugin(extensionDir, plugin);
   });
 
+  // Process engine contributions
+  const engines =
+    ((contributes?.engines || []) as Array<string | ExternalEngine>).map(
+      (engine) => {
+        if (typeof engine === "string") {
+          return engine;
+        } else if (typeof engine === "object" && engine.path) {
+          // Convert relative path to absolute path
+          return {
+            ...engine,
+            path: join(extensionDir, engine.path),
+          };
+        }
+        return engine;
+      },
+    );
+
   // Create the extension data structure
   const result = {
     title,
@@ -852,6 +873,7 @@ async function readExtension(
       formats,
       project: project ?? {},
       [kRevealJSPlugins]: revealJSPlugins,
+      engines: engines.length > 0 ? engines : undefined,
     },
   };
   validateExtension(result);
