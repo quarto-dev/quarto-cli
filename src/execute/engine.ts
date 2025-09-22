@@ -19,6 +19,7 @@ import { kBaseFormat, kEngine } from "../config/constants.ts";
 
 import { knitrEngine } from "./rmd.ts";
 import { jupyterEngine } from "./jupyter/jupyter.ts";
+import { ExternalEngine } from "../resources/types/schema-types.ts";
 import { kMdExtensions, markdownEngine } from "./markdown.ts";
 import { ExecutionEngine, kQmdExtensions } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
@@ -147,9 +148,21 @@ export function markdownExecutionEngine(
   return markdownEngine;
 }
 
-function reorderEngines(project: ProjectContext) {
-  const userSpecifiedOrder: string[] =
-    project.config?.engines as string[] | undefined ?? [];
+async function reorderEngines(project: ProjectContext) {
+  const userSpecifiedOrder: string[] = [];
+  const projectEngines = project.config?.engines as
+    | (string | ExternalEngine)[]
+    | undefined;
+
+  for (const engine of projectEngines ?? []) {
+    if (typeof engine === "object") {
+      const extEngine = (await import(engine.url)).default as ExecutionEngine;
+      userSpecifiedOrder.push(extEngine.name);
+      kEngines.set(extEngine.name, extEngine);
+    } else {
+      userSpecifiedOrder.push(engine);
+    }
+  }
 
   for (const key of userSpecifiedOrder) {
     if (!kEngines.has(key)) {
@@ -193,7 +206,7 @@ export async function fileExecutionEngine(
     return undefined;
   }
 
-  const reorderedEngines = reorderEngines(project);
+  const reorderedEngines = await reorderEngines(project);
 
   // try to find an engine that claims this extension outright
   for (const [_, engine] of reorderedEngines) {
