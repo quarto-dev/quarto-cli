@@ -147,7 +147,7 @@ export async function render(
 
   if (!renderResult.error && engine?.postRender) {
     for (const file of renderResult.files) {
-      await engine.postRender(file, renderResult.context);
+      await engine.postRender(file);
     }
   }
 

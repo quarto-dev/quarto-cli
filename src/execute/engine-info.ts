@@ -1,14 +1,17 @@
 /*
-* engine-info.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * engine-info.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
-import { ExecutionEngine, ExecutionTarget } from "./types.ts";
+import {
+  ExecutionEngine,
+  ExecutionEngineInstance,
+  ExecutionTarget,
+} from "./types.ts";
 
 export function executionEngineCanKeepSource(
-  engine: ExecutionEngine,
+  engine: ExecutionEngineInstance,
   target: ExecutionTarget,
 ) {
   return !engine.canKeepSource || engine.canKeepSource(target);

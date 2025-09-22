@@ -418,6 +418,7 @@ export async function renderForPreview(
   pandocArgs: string[],
   project?: ProjectContext,
 ): Promise<RenderForPreviewResult> {
+
   // render
   const renderResult = await render(file, {
     services,
