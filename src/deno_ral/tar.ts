@@ -8,6 +8,7 @@
 
 import { TarStream, type TarStreamInput } from "tar/tar-stream";
 import { join } from "../deno_ral/path.ts";
+import { pathWithForwardSlashes } from "../core/path.ts";
 
 /**
  * Creates a tar archive from the specified files and directories.
@@ -31,7 +32,7 @@ export async function createTarFromFiles(
       const stat = await Deno.stat(fullPath);
 
       // Use original path for archive, full path for reading
-      const archivePath = path;
+      const archivePath = pathWithForwardSlashes(path);
 
       if (stat.isDirectory) {
         // Handle directory
