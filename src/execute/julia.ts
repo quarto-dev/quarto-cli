@@ -56,6 +56,7 @@ import {
   isJupyterPercentScript,
   markdownFromJupyterPercentScript,
 } from "./jupyter/percent.ts";
+import { resolve } from "path";
 
 export interface SourceRange {
   lines: [number, number];
@@ -600,7 +601,9 @@ function buildSourceRanges(markdown: MappedString): Array<SourceRange> {
       const { originalString } = mapResult;
       const lineColFunc = mappedIndexToLineCol(originalString);
       const lineCol = lineColFunc(mapResult.index);
-      const fileName = originalString.fileName;
+      const fileName = originalString.fileName
+        ? resolve(originalString.fileName) // resolve to absolute path using cwd
+        : undefined;
       const sourceLineNum = lineCol.line;
 
       // Check if this line continues the current range
