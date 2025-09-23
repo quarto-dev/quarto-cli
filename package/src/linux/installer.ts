@@ -88,14 +88,7 @@ async function createNfpmConfig(
     // Add Debian-specific metadata
     config.section = "user/text";
     config.priority = "optional";
-  } else if (format === 'rpm') {
-    config.overrides.rpm = {
-      compression: "gzip",
-      summary: "Academic, scientific, and technical publishing system",
-      group: "Applications/Publishing",
-    };
   }
-
   return config;
 }
 
