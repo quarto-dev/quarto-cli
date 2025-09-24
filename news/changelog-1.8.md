@@ -1,4 +1,10 @@
-All changes included in 1.8:
+# v1.9 backports
+
+## In this release
+
+- ([#13396](https://github.com/quarto-dev/quarto-cli/issues/13396)): Fix `quarto publish connect` regression.
+
+# v1.8 changes
 
 ## Regression fixes
 
