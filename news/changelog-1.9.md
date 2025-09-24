@@ -13,4 +13,4 @@ All changes included in 1.9:
 
 ### `html`
 
-- ([#13413](https://github.com/quarto-dev/quarto-cli/issues/13413)): Fix uncentered play button in videos from cross-reference divs.
+- ([#13413](https://github.com/quarto-dev/quarto-cli/issues/13413)): Fix uncentered play button in `video` shortcodes from cross-reference divs. (author: @bruvellu)
