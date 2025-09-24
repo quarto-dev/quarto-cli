@@ -1,0 +1,9 @@
+title: Typst-brand-typography-example
+author: Gordon Woodhull
+version: 1.0.0
+quarto-required: ">=99.9.0"
+contributes:
+  metadata:
+    project:
+      brand: brand.yml
+

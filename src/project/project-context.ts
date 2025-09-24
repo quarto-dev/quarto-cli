@@ -109,7 +109,7 @@ import { onCleanup } from "../core/cleanup.ts";
 import { once } from "../core/once.ts";
 import { Zod } from "../resources/types/zod/schema-types.ts";
 
-const mergeExtensionMetadata = async (
+export const mergeExtensionMetadata = async (
   context: ProjectContext,
   pOptions: RenderOptions,
 ) => {
@@ -119,7 +119,7 @@ const mergeExtensionMetadata = async (
     const extensions = await pOptions.services.extension.extensions(
       undefined,
       context.config,
-      context.isSingleFile ? undefined : context.dir,
+      context.dir,
       { builtIn: false },
     );
     const projectMetadata = extensions.filter((extension) =>
