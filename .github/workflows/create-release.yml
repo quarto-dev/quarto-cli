@@ -194,6 +194,8 @@ jobs:
 
   make-tarball-rhel:
     runs-on: ubuntu-latest
+    # temporarily disable due to unavailability of latest deno in conda-forge
+    if: false
     needs: [configure]
     steps:
       - uses: actions/checkout@v4
