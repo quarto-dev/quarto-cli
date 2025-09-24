@@ -85,3 +85,53 @@ function spairs(t, order)
       end
   end
 end
+
+--- Checks if two tables are equal
+function tequals(o1, o2)
+  if o1 == o2 then
+    return true
+  end
+  local o1type = type(o1)
+  local o2type = type(o2)
+  if o1type ~= o2type or o1type ~= 'table' then
+    return false
+  end
+
+  local keys = {}
+
+  for key1, value1 in pairs(o1) do
+    local value2 = o2[key1]
+    if value2 == nil or tequals(value1, value2) == false then
+      return false
+    end
+    keys[key1] = true
+  end
+
+  for key2 in pairs(o2) do
+    if not keys[key2] then return false end
+  end
+  return true
+end
+
+--- Create a deep copy of a table.
+function tcopy (tbl, seen)
+  local tp = type(tbl)
+  if tp == 'table' then
+    if seen[tbl] then
+      return seen[tbl]
+    end
+    local copy = {}
+    -- Iterate 'raw' pairs, i.e., without using metamethods
+    for key, value in next, tbl, nil do
+      copy[tcopy(key, seen)] = tcopy(value)
+    end
+    copy = setmetatable(copy, getmetatable(tbl))
+    seen[tbl] = copy
+    return copy
+  elseif tp == 'userdata' then
+    return tbl:clone()
+  else -- number, string, boolean, etc
+    return tbl
+  end
+end
+
