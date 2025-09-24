@@ -160,7 +160,7 @@ local videoJSBuilder = function(params)
   VIDEO_SHORTCODE_NUM_VIDEOJS = VIDEO_SHORTCODE_NUM_VIDEOJS + 1
   local id = "video_shortcode_videojs_video" .. VIDEO_SHORTCODE_NUM_VIDEOJS
 
-  local SNIPPET = [[<video id="{id}"{width}{height} class="video-js vjs-default-skin {fluid}" controls preload="auto" data-setup='{}' title="{title}"><source src="{src}"></video>]]
+  local SNIPPET = [[<video id="{id}"{width}{height} class="video-js vjs-default-skin vjs-big-play-centered {fluid}" controls preload="auto" data-setup='{}' title="{title}"><source src="{src}"></video>]]
   local snippet = params.snippet or SNIPPET
   snippet = replaceCommonAttributes(snippet, params)
   snippet = interpolate {
