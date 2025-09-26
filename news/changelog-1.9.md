@@ -19,6 +19,10 @@ All changes included in 1.9:
 
 - ([#13413](https://github.com/quarto-dev/quarto-cli/issues/13413)): Fix uncentered play button in `video` shortcodes from cross-reference divs. (author: @bruvellu)
 
+### `typst`
+
+- ([#13362](https://github.com/quarto-dev/quarto-cli/issues/13362)): Remove unused `blockquote` definitions from template.
+
 ## `publish`
 
 ### Confluence
