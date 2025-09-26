@@ -174,12 +174,14 @@ function initShortcodeHandlers()
       end
       local images = {}
       if lightLogo then
+        local classes = brandMode == 'both' and {"light-content"} or {}
         table.insert(images, pandoc.Image(pandoc.Inlines {}, add_leading_slash(lightLogo.path), "",
-          pandoc.Attr("", {"light-content"}, {alt = lightLogo.alt})))
+          pandoc.Attr("", classes, {alt = lightLogo.alt})))
       end
       if darkLogo then
+        local classes = brandMode == 'both' and {"dark-content"} or {}
         table.insert(images, pandoc.Image(pandoc.Inlines {}, add_leading_slash(darkLogo.path), "",
-          pandoc.Attr("", {"dark-content"}, {alt = darkLogo.alt})))
+          pandoc.Attr("", classes, {alt = darkLogo.alt})))
       end
       if context == "block" then
         return pandoc.Blocks(images)
