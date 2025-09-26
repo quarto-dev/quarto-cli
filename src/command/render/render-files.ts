@@ -351,13 +351,9 @@ export async function renderFiles(
 
     return await pandocRenderer.onComplete(false, options.flags?.quiet);
   } catch (error) {
-    if (!(error instanceof Error)) {
-      warn("Should not have arrived here:", error);
-      throw error;
-    }
     return {
       files: (await pandocRenderer.onComplete(true)).files,
-      error: error || new Error(),
+      error: error instanceof Error ? error : new Error(),
     };
   } finally {
     tempContext.cleanup();
@@ -408,13 +404,9 @@ export async function renderFile(
     }
     return await pandocRenderer.onComplete(false, options.flags?.quiet);
   } catch (error) {
-    if (!(error instanceof Error)) {
-      warn("Should not have arrived here:", error);
-      throw error;
-    }
     return {
       files: (await pandocRenderer.onComplete(true)).files,
-      error: error || new Error(),
+      error: error instanceof Error ? error : new Error(),
     };
   } finally {
     if (Deno.env.get("QUARTO_PROFILER_OUTPUT")) {
