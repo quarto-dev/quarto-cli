@@ -3,7 +3,8 @@
 ## In this release
 
 - ([#13396](https://github.com/quarto-dev/quarto-cli/issues/13396)): Fix `quarto publish connect` regression.
-- ([#13418](https://github.com/quarto-dev/quarto-cli/issues/13418): Resolve logo paths specified directly in `brand.logo.{size}`.
+- ([#13418](https://github.com/quarto-dev/quarto-cli/issues/13418)): Resolve logo paths specified directly in `brand.logo.{size}`.
+- ([#13445](https://github.com/quarto-dev/quarto-cli/pull/13445)): Brand logo shortcode will not add `.light-content`, `.dark-content` classes when `light` or `dark` is specifically requested.
 
 # v1.8 changes
 
