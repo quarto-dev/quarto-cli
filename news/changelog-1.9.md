@@ -11,6 +11,10 @@ All changes included in 1.9:
 
 ## Formats
 
+### `gfm`
+
+- ([#13421](https://github.com/quarto-dev/quarto-cli/issues/13421)): Do not word-wrap titles in header.
+
 ### `html`
 
 - ([#13413](https://github.com/quarto-dev/quarto-cli/issues/13413)): Fix uncentered play button in `video` shortcodes from cross-reference divs. (author: @bruvellu)
