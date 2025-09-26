@@ -351,9 +351,14 @@ export async function renderFiles(
 
     return await pandocRenderer.onComplete(false, options.flags?.quiet);
   } catch (error) {
+    if (!(error instanceof Error)) {
+      warn(`Error encountered when rendering files`);
+    }
     return {
       files: (await pandocRenderer.onComplete(true)).files,
-      error: error instanceof Error ? error : new Error(),
+      error: error instanceof Error
+        ? error
+        : new Error(error ? String(error) : undefined),
     };
   } finally {
     tempContext.cleanup();
@@ -404,9 +409,14 @@ export async function renderFile(
     }
     return await pandocRenderer.onComplete(false, options.flags?.quiet);
   } catch (error) {
+    if (!(error instanceof Error)) {
+      warn(`Error encountered when rendering ${file.path}`);
+    }
     return {
       files: (await pandocRenderer.onComplete(true)).files,
-      error: error instanceof Error ? error : new Error(),
+      error: error instanceof Error
+        ? error
+        : new Error(error ? String(error) : undefined),
     };
   } finally {
     if (Deno.env.get("QUARTO_PROFILER_OUTPUT")) {
