@@ -82,11 +82,11 @@
 
         show figure: it => {
           let num = numbering(subcapnumbering, n-super, quartosubfloatcounter.get().first() + 1)
-          show figure.caption: it => {
+          show figure.caption: it => block({
             num.slice(2) // I don't understand why the numbering contains output that it really shouldn't, but this fixes it shrug?
             [ ]
             it.body
-          }
+          })
 
           quartosubfloatcounter.step()
           it
