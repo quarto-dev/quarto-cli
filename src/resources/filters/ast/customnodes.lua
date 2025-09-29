@@ -41,7 +41,51 @@ function is_regular_node(node, name)
   return node
 end
 
-function run_emulated_filter(doc, filter, traverser)
+--- Checks if a filter follows the "nondestructive" property.
+-- The nondestructive property is fulfilled if filter functions returns
+-- an explicit object, or if it returns `nil` while leaving the passed
+-- in object unmodified.
+--
+-- An error is raised if the property is violated.
+--
+-- Only filters with this property can use jog safely, without
+-- unintended consequences.
+local function check_nondestructive_property (filter, filtername)
+  for name, fn in pairs(filter or {}) do
+    if type(fn) == 'function' then
+      local copy = function (x)
+        local tp = type(x)
+        return tp ~= 'table' and x:clone() or
+          (pandoc.utils.type(x) == 'Meta' and pandoc.Meta(x) or tcopy(x, {}))
+      end
+      filter[name] = function (obj, context)
+        local orig = copy(obj)
+        local result, descend = fn(obj, context)
+        if result == nil then
+          if type(obj) ~= 'table' and not tequals(obj, orig) then
+            warn(
+              "\nFunction '" .. name ..
+              "' in filter '" .. (filtername or '<unknown>') ..
+              "' returned `nil`, but modified the input."
+            )
+          end
+        elseif result.t == obj.t and not rawequal(result, obj) then
+          warn(
+            "\nFunction '" .. name ..
+            "' in filter '" .. (filtername or '<unknown>') ..
+            "' returned a new object instead of passing the original one through."
+          )
+        end
+        return result, descend
+      end
+    end
+  end
+  return filter
+end
+
+
+function run_emulated_filter(doc, filter, traverser, name)
+  name = name or '<unnamed>'
   if doc == nil then
     return nil
   end
@@ -79,6 +123,11 @@ function run_emulated_filter(doc, filter, traverser)
       _quarto.traverser = _quarto.utils.walk
     elseif traverser == 'jog' then
       _quarto.traverser = _quarto.modules.jog
+    elseif traverser == 'checked-jog' then
+      _quarto.traverser = function(obj, filter_functions)
+        check_nondestructive_property(filter_functions, name)
+        return old_traverse(obj, filter_functions)
+      end
     elseif type(traverser) == 'function' then
       _quarto.traverser = traverser
     else
