@@ -24927,12 +24927,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197539,
+        _internalId: 197477,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197531,
+            _internalId: 197469,
             type: "enum",
             enum: [
               "png",
@@ -24948,7 +24948,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197538,
+            _internalId: 197476,
             type: "anyOf",
             anyOf: [
               {
@@ -24992,6 +24992,11 @@ var require_yaml_intelligence_resources = __commonJS({
       "schema/document-a11y.yml": [
         {
           name: "axe",
+          tags: {
+            formats: [
+              "$html-files"
+            ]
+          },
           schema: {
             anyOf: [
               "boolean",

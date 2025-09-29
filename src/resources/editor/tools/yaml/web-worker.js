@@ -24928,12 +24928,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197539,
+          _internalId: 197477,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197531,
+              _internalId: 197469,
               type: "enum",
               enum: [
                 "png",
@@ -24949,7 +24949,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197538,
+              _internalId: 197476,
               type: "anyOf",
               anyOf: [
                 {
@@ -24993,6 +24993,11 @@ try {
         "schema/document-a11y.yml": [
           {
             name: "axe",
+            tags: {
+              formats: [
+                "$html-files"
+              ]
+            },
             schema: {
               anyOf: [
                 "boolean",

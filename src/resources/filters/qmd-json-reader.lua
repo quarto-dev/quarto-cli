@@ -1,0 +1,19 @@
+-- json-reader.lua
+-- A Pandoc reader for quarto-markdown's json format
+-- 
+-- Copyright (C) 2025 by RStudio, PBC
+
+local readqmd = require("readqmd")
+
+function Reader (inputs, opts)
+  -- the custom Pandoc reader apparently runs on a different Lua context than the
+  -- other filters, so we cannot use global state to share the options.
+  -- as a result, we'll inject the options into the document metadata
+  -- and extract it later.
+
+  local result = pandoc.read(tostring(inputs), "json")
+
+  result.meta.quarto_pandoc_reader_opts = readqmd.options_to_meta(opts)
+
+  return result
+end
