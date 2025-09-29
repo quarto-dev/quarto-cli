@@ -165,7 +165,7 @@ const fileFontImportString = (brand: Brand, description: BrandFontFile) => {
     }
     parts.push(`@font-face {
     font-family: '${description.family}';
-    src: url('${join(pathPrefix, path).replace(/\\/g, '/')}');
+    src: url('${join(pathPrefix, path).replace(/\\/g, "/")}');
     font-weight: ${weight || "normal"};
     font-style: ${style || "normal"};
 }\n`);

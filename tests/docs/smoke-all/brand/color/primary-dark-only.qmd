@@ -1,0 +1,22 @@
+---
+title: primary only
+brand:
+  color:
+    background:
+      light: '#f3f3f8'
+      dark: '#0f0412'
+    foreground:
+      light: '#113322'
+      dark: '#f8f8f8'
+    primary:
+      dark: '#20bbff'
+_quarto:
+  tests: 
+    html:
+      printsMessage:
+        level: WARN
+        regex: '"[a-z]*" is not a valid CSS color name'
+        negate: true
+---
+
+Here is some text [with a link](https://example.com).
