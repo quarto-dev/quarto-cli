@@ -2,6 +2,8 @@
 
 ## In this release
 
+## In previous releases
+
 - ([#13369](https://github.com/quarto-dev/quarto-cli/issues/13369)): Fix failure in theme compilation when `brand.color.primary` is specified for light or dark but not both.
 - ([#13383](https://github.com/quarto-dev/quarto-cli/issues/13383)): Fix failure when combining `minimal: true` with brand.yml.
 - ([#13396](https://github.com/quarto-dev/quarto-cli/issues/13396)): Fix `quarto publish connect` regression.
