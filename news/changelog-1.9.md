@@ -3,6 +3,7 @@ All changes included in 1.9:
 ## Regression fixes
 
 - ([#13396](https://github.com/quarto-dev/quarto-cli/issues/13396)): Fix `quarto publish connect` regression.
+- ([#13441](https://github.com/quarto-dev/quarto-cli/pull/13441)): Catch `undefined` exceptions in Pandoc failure to avoid spurious error message.
 
 ## Dependencies
 
