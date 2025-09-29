@@ -24992,6 +24992,11 @@ var require_yaml_intelligence_resources = __commonJS({
       "schema/document-a11y.yml": [
         {
           name: "axe",
+          tags: {
+            formats: [
+              "$html-files"
+            ]
+          },
           schema: {
             anyOf: [
               "boolean",
