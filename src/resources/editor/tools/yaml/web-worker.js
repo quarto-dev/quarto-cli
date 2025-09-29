@@ -24993,6 +24993,11 @@ try {
         "schema/document-a11y.yml": [
           {
             name: "axe",
+            tags: {
+              formats: [
+                "$html-files"
+              ]
+            },
             schema: {
               anyOf: [
                 "boolean",
@@ -28082,7 +28087,7 @@ ${heading}`;
     return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE;
   }
   function writeScalar(state, string, level, iskey, inblock) {
-    state.dump = function() {
+    state.dump = (function() {
       if (string.length === 0) {
         return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''";
       }
@@ -28120,7 +28125,7 @@ ${heading}`;
         default:
           throw new exception("impossible error: invalid scalar style");
       }
-    }();
+    })();
   }
   function blockHeader(string, indentPerLevel) {
     var indentIndicator = needIndentIndicator(string) ? String(indentPerLevel) : "";
@@ -28134,12 +28139,12 @@ ${heading}`;
   }
   function foldString(string, width) {
     var lineRe = /(\n+)([^\n]*)/g;
-    var result = function() {
+    var result = (function() {
       var nextLF = string.indexOf("\n");
       nextLF = nextLF !== -1 ? nextLF : string.length;
       lineRe.lastIndex = nextLF;
       return foldLine(string.slice(0, nextLF), width);
-    }();
+    })();
     var prevMoreIndented = string[0] === "\n" || string[0] === " ";
     var moreIndented;
     var match;
@@ -32226,8 +32231,8 @@ ${tidyverseInfo(
       "boolean": (schema2) => validateBoolean(value, schema2, context),
       "number": (schema2) => validateNumber(value, schema2, context),
       "string": (schema2) => validateString(value, schema2, context),
-      "null": (schema2) => validateNull(value, schema2, context),
-      "enum": (schema2) => validateEnum(value, schema2, context),
+      "null": ((schema2) => validateNull(value, schema2, context)),
+      "enum": ((schema2) => validateEnum(value, schema2, context)),
       "anyOf": (schema2) => validateAnyOf(value, schema2, context),
       "allOf": (schema2) => validateAllOf(value, schema2, context),
       "array": (schema2) => validateArray(value, schema2, context),
