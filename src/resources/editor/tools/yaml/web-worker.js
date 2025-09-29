@@ -24993,6 +24993,11 @@ try {
         "schema/document-a11y.yml": [
           {
             name: "axe",
+            tags: {
+              formats: [
+                "$html-files"
+              ]
+            },
             schema: {
               anyOf: [
                 "boolean",
