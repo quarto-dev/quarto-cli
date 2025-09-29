@@ -17,6 +17,7 @@
 - ([#12780](https://github.com/quarto-dev/quarto-cli/issues/12780)): `keep-ipynb: true` now works again correctly and intermediate `.quarto_ipynb` is not removed.
 - ([#13051](https://github.com/quarto-dev/quarto-cli/issues/13051)): Fixed support for captioned Markdown table inside Div syntax for crossref. This is special handling, but this could be output by function like `knitr::kable()` with old option support.
 - ([#13441](https://github.com/quarto-dev/quarto-cli/pull/13441)): Catch `undefined` exceptions in Pandoc failure to avoid spurious error message.
+- ([#13456](https://github.com/quarto-dev/quarto-cli/pull/13456)): Ensure that the `axe` YAML completion only appears in HTML formats.
 
 ## Backwards-compatibility breaking changes
 
