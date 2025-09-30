@@ -108,13 +108,15 @@ jobs:
       - name: Restore Renv package cache
         id: cache-renv-packages-restore
         uses: actions/cache/restore@v4
+        env:
+          RENV_CONFIG_PAK_ENABLED: TRUE
         with:
           path: |
             ${{ env.RENV_PATHS_ROOT }}
             renv/library
-          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-3-${{ hashFiles('tests/renv.lock') }}
+          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-${{ hashFiles('tests/renv.lock') }}
           restore-keys: |
-            ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-3-
+            ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-
 
       - name: Install missing system deps
         if: runner.os == 'Linux'
