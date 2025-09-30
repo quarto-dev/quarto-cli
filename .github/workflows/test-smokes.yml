@@ -108,8 +108,6 @@ jobs:
       - name: Restore Renv package cache
         id: cache-renv-packages-restore
         uses: actions/cache/restore@v4
-        env:
-          RENV_CONFIG_PAK_ENABLED: TRUE
         with:
           path: |
             ${{ env.RENV_PATHS_ROOT }}
@@ -143,6 +141,7 @@ jobs:
         shell: Rscript {0}
         env:
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+          RENV_CONFIG_PAK_ENABLED: TRUE
 
       - name: Show R session information
         working-directory: tests
