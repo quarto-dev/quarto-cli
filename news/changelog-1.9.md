@@ -18,6 +18,7 @@ All changes included in 1.9:
 
 ### `html`
 
+- ([#11929](https://github.com/quarto-dev/quarto-cli/issues/11929)): Import all `brand.typography.fonts` in CSS, whether or not fonts are referenced by typography elements.
 - ([#13413](https://github.com/quarto-dev/quarto-cli/issues/13413)): Fix uncentered play button in `video` shortcodes from cross-reference divs. (author: @bruvellu)
 
 ### `typst`
