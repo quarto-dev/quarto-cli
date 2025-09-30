@@ -356,13 +356,9 @@ const brandTypographyLayer = (
       resolvedFontOptions = { family: resolvedFontOptions };
     }
     const result: HTMLFontInformation = {};
-    // This is an ugly hack:
-    //   resolvedFontOptions doesn't always have 'family', but at this
-    //   point in the code we know resolvedFontOptions is an object
-    //   that we can attempt to extract the family from.
-    const family =
-      (resolvedFontOptions as Record<string, string | undefined>).family;
-    result.family = family;
+    if ("family" in resolvedFontOptions) {
+      result.family = resolvedFontOptions.family;
+    }
     for (
       const entry of [
         "line-height",
