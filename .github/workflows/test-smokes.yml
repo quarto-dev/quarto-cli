@@ -182,7 +182,7 @@ jobs:
       - name: Setup Julia
         uses: julia-actions/setup-julia@v2
         with:
-          version: "1.11.3"
+          version: "1.11.7"
 
       - name: Cache Julia Packages
         uses: julia-actions/cache@v2
