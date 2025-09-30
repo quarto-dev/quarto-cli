@@ -3168,7 +3168,7 @@
     #
     # in Quarto, the default source for typst is `google`
     # and the default source for html formats is `bunny`
-    - ref: brand-font-common
+
 - id: brand-font-weight
   description: A font weight.
   enum:
@@ -3237,6 +3237,7 @@
     properties:
       source:
         enum: [system]
+    required: [source]
 
 - id: brand-font-google
   description: A font definition from Google Fonts.
@@ -3247,6 +3248,7 @@
     properties:
       source:
         enum: [google]
+    required: [source]
 
 - id: brand-font-bunny
   description: A font definition from fonts.bunny.net.
@@ -3257,6 +3259,7 @@
     properties:
       source:
         enum: [bunny]
+    required: [source]
 
 - id: brand-font-file
   description: A method for providing font files directly, either locally or from an online location.
