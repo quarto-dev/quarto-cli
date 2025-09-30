@@ -329,7 +329,9 @@ function render_typst_brand_yaml()
       end
       meta.brand.typography = meta.brand.typography or {}
       local base = _quarto.modules.brand.get_typography(brandMode, 'base')
-      if base and next(base) then
+      if base and next(base) or meta['mainfont'] then
+        if not base then base = {} end
+        if meta['mainfont'] then base.family = inlinesToString(meta['mainfont']) end
         meta.brand.typography.base = {
           family = base.family and pandoc.RawInline('typst', _quarto.modules.typst.css.translate_font_family_list(base.family)),
           size = base.size,

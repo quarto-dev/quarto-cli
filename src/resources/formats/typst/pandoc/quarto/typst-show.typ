@@ -29,9 +29,7 @@ $if(abstract)$
   abstract: [$abstract$],
   abstract-title: "$labels.abstract$",
 $endif$
-$if(mainfont)$
-  font: ("$mainfont$",),
-$elseif(brand.typography.base.family)$
+$if(brand.typography.base.family)$
   font: $brand.typography.base.family$,
 $endif$
 $if(fontsize)$

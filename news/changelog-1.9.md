@@ -23,6 +23,7 @@ All changes included in 1.9:
 ### `typst`
 
 - ([#13362](https://github.com/quarto-dev/quarto-cli/issues/13362)): Remove unused `blockquote` definitions from template.
+- ([#13474](https://github.com/quarto-dev/quarto-cli/issues/13474)): Heading font for title should default to `mainfont`.
 
 ## `publish`
 
