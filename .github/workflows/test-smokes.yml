@@ -68,7 +68,7 @@ jobs:
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
-          r-version: "4.5.0"
+          r-version: "4.5.1"
           use-public-rspm: true
           # required to avoid rtools bin in path
           windows-path-include-rtools: false
@@ -112,9 +112,9 @@ jobs:
           path: |
             ${{ env.RENV_PATHS_ROOT }}
             renv/library
-          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-3-${{ hashFiles('tests/renv.lock') }}
+          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-${{ hashFiles('tests/renv.lock') }}
           restore-keys: |
-            ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-3-
+            ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-
 
       - name: Install missing system deps
         if: runner.os == 'Linux'
@@ -141,6 +141,7 @@ jobs:
         shell: Rscript {0}
         env:
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+          RENV_CONFIG_PAK_ENABLED: TRUE
 
       - name: Show R session information
         working-directory: tests
