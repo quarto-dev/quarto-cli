@@ -745,7 +745,7 @@ of field names. By default all fields of the listing will be used
 when filtering. */;
   "date-format"?:
     string /* The date format to use when displaying dates (e.g. d-M-yyy).
-Learn more about supported date formatting values [here](https://deno.land/std@0.125.0/datetime). */;
+Learn more about supported date formatting values [here](https://quarto.org/docs/reference/dates.html). */;
   "max-description-length"?:
     number /* The maximum length (in characters) of the description displayed in the listing.
 Defaults to 175. */;

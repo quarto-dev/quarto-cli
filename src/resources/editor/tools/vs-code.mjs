@@ -10604,7 +10604,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 string: {
                   description: {
                     short: "The date format to use when displaying dates (e.g. d-M-yyy).",
-                    long: "The date format to use when displaying dates (e.g. d-M-yyy). \nLearn more about supported date formatting values [here](https://deno.land/std@0.125.0/datetime).\n"
+                    long: "The date format to use when displaying dates (e.g. d-M-yyy). \nLearn more about supported date formatting values [here](https://quarto.org/docs/reference/dates.html).\n"
                   }
                 }
               },
@@ -24927,12 +24927,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197539,
+        _internalId: 197477,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197531,
+            _internalId: 197469,
             type: "enum",
             enum: [
               "png",
@@ -24948,7 +24948,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197538,
+            _internalId: 197476,
             type: "anyOf",
             anyOf: [
               {
