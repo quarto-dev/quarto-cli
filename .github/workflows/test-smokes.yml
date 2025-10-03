@@ -38,6 +38,11 @@ on:
   schedule:
     - cron: "0 6 * * *"
 
+# this is require to cleanup julia cache
+permissions:
+  actions: write
+  contents: read
+
 jobs:
   run-smokes:
     name: Run smoke (${{ matrix.os }})${{ matrix.time-test && ' with timed file' || ''}}${{ inputs.extra-r-packages && ' - with some extra R packages'|| ''}}
@@ -182,10 +187,13 @@ jobs:
       - name: Setup Julia
         uses: julia-actions/setup-julia@v2
         with:
-          version: "1.11.3"
+          version: "1.11.7"
 
-      - name: Cache Julia Packages
+      - name: Load Julia packages from cache
         uses: julia-actions/cache@v2
+
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
 
       - name: Restore Julia Packages
         working-directory: tests
