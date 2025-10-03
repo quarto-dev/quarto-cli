@@ -41,15 +41,6 @@ async function createNfpmConfig(
     "share",
   );
 
-  // Calculate installed size
-  const fileSizes = [];
-  for await (const entry of walk(configuration.directoryInfo.pkgWorking.root)) {
-    if (entry.isFile) {
-      fileSizes.push((await Deno.stat(entry.path)).size);
-    }
-  }
-  const size = fileSizes.reduce((accum, target) => accum + target, 0);
-
   const config: any = {
     name: configuration.productName.toLowerCase(),
     version: configuration.version,
