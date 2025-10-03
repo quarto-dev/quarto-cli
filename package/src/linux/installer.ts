@@ -41,6 +41,35 @@ async function createNfpmConfig(
     "share",
   );
 
+  const contents: any[] = [
+    {
+      src: workingBinPath,
+      dst: "/opt/quarto/bin",
+      type: "tree",
+    },
+    {
+      src: workingSharePath,
+      dst: "/opt/quarto/share",
+      type: "tree",
+    },
+  ];
+
+  // Add copyright file for DEB packages
+  if (format === 'deb') {
+    const copyrightFile = join(
+      workingDir,
+      "usr",
+      "share",
+      "doc",
+      configuration.productName.toLowerCase(),
+      "copyright",
+    );
+    contents.push({
+      src: copyrightFile,
+      dst: `/usr/share/doc/${configuration.productName.toLowerCase()}/copyright`,
+    });
+  }
+
   const config: any = {
     name: configuration.productName.toLowerCase(),
     version: configuration.version,
@@ -50,18 +79,7 @@ async function createNfpmConfig(
     homepage: "https://github.com/quarto-dev/quarto-cli",
     license: "MIT",
 
-    contents: [
-      {
-        src: workingBinPath,
-        dst: "/opt/quarto/bin",
-        type: "tree",
-      },
-      {
-        src: workingSharePath,
-        dst: "/opt/quarto/share",
-        type: "tree",
-      },
-    ],
+    contents: contents,
 
     scripts: {
       postinstall: join(configuration.directoryInfo.pkg, "scripts", "linux", format, "postinst"),
@@ -122,6 +140,23 @@ async function buildPackageWithNfpm(
   copySync(configuration.directoryInfo.pkgWorking.share, workingSharePath, {
     overwrite: true,
   });
+
+  // Create copyright file for DEB packages
+  if (format === 'deb') {
+    info("Creating copyright file");
+    const url = "https://github.com/quarto-dev/quarto-cli";
+    const copyrightText = `Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Quarto
+Source: ${url}
+
+Files: *
+Copyright: Posit, PBC.
+License: MIT`;
+
+    const copyrightDir = join(workingDir, "usr", "share", "doc", configuration.productName.toLowerCase());
+    ensureDirSync(copyrightDir);
+    Deno.writeTextFileSync(join(copyrightDir, "copyright"), copyrightText);
+  }
 
   // Create nfpm configuration
   const nfpmConfig = await createNfpmConfig(configuration, format, workingDir);
