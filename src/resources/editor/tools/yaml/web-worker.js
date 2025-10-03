@@ -12807,9 +12807,6 @@ try {
               },
               {
                 ref: "brand-font-system"
-              },
-              {
-                ref: "brand-font-common"
               }
             ]
           },
@@ -12911,7 +12908,10 @@ try {
                     "system"
                   ]
                 }
-              }
+              },
+              required: [
+                "source"
+              ]
             }
           },
           {
@@ -12928,7 +12928,10 @@ try {
                     "google"
                   ]
                 }
-              }
+              },
+              required: [
+                "source"
+              ]
             }
           },
           {
@@ -12945,7 +12948,10 @@ try {
                     "bunny"
                   ]
                 }
-              }
+              },
+              required: [
+                "source"
+              ]
             }
           },
           {
@@ -21909,7 +21915,7 @@ try {
           "The path to an XML stylesheet (XSL file) used to style the RSS\nfeed.",
           {
             short: "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
-            long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://deno.land/std@0.125.0/datetime">here</a>.'
+            long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://quarto.org/docs/reference/dates.html">here</a>.'
           },
           {
             short: "The maximum length (in characters) of the description displayed in\nthe listing.",
@@ -24928,12 +24934,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197477,
+          _internalId: 197474,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197469,
+              _internalId: 197466,
               type: "enum",
               enum: [
                 "png",
@@ -24949,7 +24955,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197476,
+              _internalId: 197473,
               type: "anyOf",
               anyOf: [
                 {

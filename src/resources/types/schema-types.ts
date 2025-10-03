@@ -1469,8 +1469,7 @@ export type BrandFont =
   | BrandFontGoogle
   | BrandFontBunny
   | BrandFontFile
-  | BrandFontSystem
-  | BrandFontCommon; /* Font files and definitions for the brand. */
+  | BrandFontSystem; /* Font files and definitions for the brand. */
 
 export type BrandFontWeight =
   | 100
@@ -1514,15 +1513,15 @@ export type BrandFontCommon = {
 };
 
 export type BrandFontSystem =
-  & { source?: "system" }
+  & { source: "system" }
   & BrandFontCommon; /* A system font definition. */
 
 export type BrandFontGoogle =
-  & { source?: "google" }
+  & { source: "google" }
   & BrandFontCommon; /* A font definition from Google Fonts. */
 
 export type BrandFontBunny =
-  & { source?: "bunny" }
+  & { source: "bunny" }
   & BrandFontCommon; /* A font definition from fonts.bunny.net. */
 
 export type BrandFontFile = {

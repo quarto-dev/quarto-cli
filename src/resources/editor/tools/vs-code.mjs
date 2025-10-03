@@ -12806,9 +12806,6 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             {
               ref: "brand-font-system"
-            },
-            {
-              ref: "brand-font-common"
             }
           ]
         },
@@ -12910,7 +12907,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   "system"
                 ]
               }
-            }
+            },
+            required: [
+              "source"
+            ]
           }
         },
         {
@@ -12927,7 +12927,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   "google"
                 ]
               }
-            }
+            },
+            required: [
+              "source"
+            ]
           }
         },
         {
@@ -12944,7 +12947,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   "bunny"
                 ]
               }
-            }
+            },
+            required: [
+              "source"
+            ]
           }
         },
         {
@@ -21908,7 +21914,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The path to an XML stylesheet (XSL file) used to style the RSS\nfeed.",
         {
           short: "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
-          long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://deno.land/std@0.125.0/datetime">here</a>.'
+          long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://quarto.org/docs/reference/dates.html">here</a>.'
         },
         {
           short: "The maximum length (in characters) of the description displayed in\nthe listing.",
@@ -24927,12 +24933,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197477,
+        _internalId: 197474,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197469,
+            _internalId: 197466,
             type: "enum",
             enum: [
               "png",
@@ -24948,7 +24954,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197476,
+            _internalId: 197473,
             type: "anyOf",
             anyOf: [
               {
