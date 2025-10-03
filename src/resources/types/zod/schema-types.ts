@@ -1624,7 +1624,6 @@ export const ZodBrandFont = z.union([
   z.lazy(() => ZodBrandFontBunny),
   z.lazy(() => ZodBrandFontFile),
   z.lazy(() => ZodBrandFontSystem),
-  z.lazy(() => ZodBrandFontCommon),
 ]);
 
 export const ZodBrandFontWeight = z.union([
@@ -1685,7 +1684,7 @@ export const ZodBrandFontSystem = z.object({
   ]),
   display: z.enum(["auto", "block", "swap", "fallback", "optional"] as const),
   source: z.enum(["system"] as const),
-}).strict().partial();
+}).strict().partial().required({ source: true });
 
 export const ZodBrandFontGoogle = z.object({
   family: z.string(),
@@ -1699,7 +1698,7 @@ export const ZodBrandFontGoogle = z.object({
   ]),
   display: z.enum(["auto", "block", "swap", "fallback", "optional"] as const),
   source: z.enum(["google"] as const),
-}).strict().partial();
+}).strict().partial().required({ source: true });
 
 export const ZodBrandFontBunny = z.object({
   family: z.string(),
@@ -1713,7 +1712,7 @@ export const ZodBrandFontBunny = z.object({
   ]),
   display: z.enum(["auto", "block", "swap", "fallback", "optional"] as const),
   source: z.enum(["bunny"] as const),
-}).strict().partial();
+}).strict().partial().required({ source: true });
 
 export const ZodBrandFontFile = z.object({
   source: z.enum(["file"] as const),
