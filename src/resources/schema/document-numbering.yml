@@ -78,10 +78,10 @@
     formats: [typst]
   description:
     short: |
-      Schema to use for numbering pages, e.g. `"1"` or  `"i"`, or an empty string, 
+      Schema to use for numbering pages, e.g. `1` or  `i`, or an empty string, 
       `""`, to omit page numbering.
     long: |
-      Schema to use for numbering pages, e.g. `"1"` or  `"i"`, or an empty string, 
+      Schema to use for numbering pages, e.g. `1` or  `i`, or an empty string, 
       `""`, to omit page numbering.
 
       See [Typst Numbering](https://typst.app/docs/reference/model/numbering/) 
