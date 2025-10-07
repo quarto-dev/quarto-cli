@@ -17231,8 +17231,8 @@ try {
               ]
             },
             description: {
-              short: 'Schema to use for numbering pages, e.g. `"1"` or  `"i"`, or an empty string, \n`""`, to omit page numbering.\n',
-              long: 'Schema to use for numbering pages, e.g. `"1"` or  `"i"`, or an empty string, \n`""`, to omit page numbering.\n\nSee [Typst Numbering](https://typst.app/docs/reference/model/numbering/) \nfor additional information.\n'
+              short: 'Schema to use for numbering pages, e.g. `1` or  `i`, or an empty string, \n`""`, to omit page numbering.\n',
+              long: 'Schema to use for numbering pages, e.g. `1` or  `i`, or an empty string, \n`""`, to omit page numbering.\n\nSee [Typst Numbering](https://typst.app/docs/reference/model/numbering/) \nfor additional information.\n'
             }
           },
           {
@@ -24951,12 +24951,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197907,
+          _internalId: 197619,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197899,
+              _internalId: 197611,
               type: "enum",
               enum: [
                 "png",
@@ -24972,7 +24972,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197906,
+              _internalId: 197618,
               type: "anyOf",
               anyOf: [
                 {
