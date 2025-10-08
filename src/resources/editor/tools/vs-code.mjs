@@ -17223,15 +17223,20 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "page-numbering",
-          schema: "string",
+          schema: {
+            anyOf: [
+              "boolean",
+              "string"
+            ]
+          },
           tags: {
             formats: [
               "typst"
             ]
           },
           description: {
-            short: 'Schema to use for numbering pages, e.g. `1` or  `i`, or an empty string, \n`""`, to omit page numbering.\n',
-            long: 'Schema to use for numbering pages, e.g. `1` or  `i`, or an empty string, \n`""`, to omit page numbering.\n\nSee [Typst Numbering](https://typst.app/docs/reference/model/numbering/) \nfor additional information.\n'
+            short: "Schema to use for numbering pages, e.g. `1` or  `i`, or `false` to omit page numbering.\n",
+            long: "Schema to use for numbering pages, e.g. `1` or  `i`, or `false` to omit page numbering.\n\nSee [Typst Numbering](https://typst.app/docs/reference/model/numbering/) \nfor additional information.\n"
           }
         },
         {
@@ -23597,8 +23602,8 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings, and level 3 headings become level 2 headings. Headings\ncannot have a level less than 1, so a heading that would be shifted\nbelow level 1 becomes a regular paragraph. Exception: with a shift of\n-N, a level-N heading at the beginning of the document replaces the\nmetadata title."
         },
         {
-          short: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or an empty string, <code>""</code>, to omit page\nnumbering.',
-          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or an empty string, <code>""</code>, to omit page\nnumbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
+          short: "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
+          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
         },
         {
           short: "Sets the page numbering style and location for the document.",
@@ -24950,12 +24955,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197619,
+        _internalId: 197624,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197611,
+            _internalId: 197616,
             type: "enum",
             enum: [
               "png",
@@ -24971,7 +24976,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197618,
+            _internalId: 197623,
             type: "anyOf",
             anyOf: [
               {
