@@ -37,3 +37,4 @@ All changes included in 1.9:
 ## Other fixes and improvements
 
 - ([#13402](https://github.com/quarto-dev/quarto-cli/issues/13402)): `nfpm` (<https://nfpm.goreleaser.com/>) is now used to create the `.deb` package, and new `.rpm` package. Both Linux packages are also now built for `x86_64` (`amd64`) and `aarch64` (`arm64`) architectures.
+- ([#13528](https://github.com/quarto-dev/quarto-cli/pull/13528)): Adds support for table specification using nested lists and the `list-table` class.
