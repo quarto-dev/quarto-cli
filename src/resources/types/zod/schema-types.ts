@@ -299,6 +299,7 @@ export const ZodBaseWebsite = z.object({
       version: z.union([z.literal(3), z.literal(4)]),
     }).passthrough().partial(),
   ]),
+  "plausible-analytics": z.string(),
   announcement: z.union([
     z.string(),
     z.object({
@@ -473,6 +474,7 @@ export const ZodBookSchema = z.object({
       version: z.union([z.literal(3), z.literal(4)]),
     }).passthrough().partial(),
   ]),
+  "plausible-analytics": z.string(),
   announcement: z.union([
     z.string(),
     z.object({

@@ -751,6 +751,23 @@
 
                       This is automatically detected based upon the `tracking-id`, but you may specify it.
         description: "Enable Google Analytics for this website"
+      plausible-analytics:
+        schema: string
+        description:
+          short: "Enable Plausible Analytics for this website by inserting scrips snippets to add in site `<head>`"
+          long: |
+            Enable Plausible Analytics for this website by pasting the script snippet from your Plausible dashboard.
+
+            Plausible is a privacy-friendly, GDPR-compliant web analytics service that does not use cookies and does not require cookie consent.
+
+            To get your script snippet:
+
+            1. Log into your Plausible account at <https://plausible.io>
+            2. Go to your site settings
+            3. Copy the JavaScript snippet provided
+            4. Paste it here
+
+            For more information, see <https://plausible.io/docs/plausible-script>
       announcement:
         anyOf:
           - string
