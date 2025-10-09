@@ -33,6 +33,7 @@ All changes included in 1.9:
 ### `website`
 
 - Algolia Insights now uses privacy-friendly defaults: `useCookie: false` with random session tokens when cookie consent is not configured. When `cookie-consent: true` is enabled, Algolia scripts are deferred and only use cookies after user grants "tracking" consent, ensuring GDPR compliance.
+- Add support for Plausible Analytics via `plausible-analytics` configuration option. Users can paste their Plausible script snippet directly from their Plausible dashboard.
 
 ## `publish`
 
