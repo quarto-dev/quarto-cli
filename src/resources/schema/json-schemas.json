@@ -819,6 +819,9 @@
               }
             ]
           },
+          "plausible-analytics": {
+            "type": "string"
+          },
           "announcement": {
             "anyOf": [
               {

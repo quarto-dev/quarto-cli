@@ -9428,6 +9428,13 @@ try {
                   ],
                   description: "Enable Google Analytics for this website"
                 },
+                "plausible-analytics": {
+                  schema: "string",
+                  description: {
+                    short: "Enable Plausible Analytics for this website",
+                    long: "Enable Plausible Analytics for this website by pasting the script snippet from your Plausible dashboard.\n\nPlausible is a privacy-friendly, GDPR-compliant web analytics service that does not use cookies and does not require cookie consent.\n\nTo get your script snippet:\n\n1. Log into your Plausible account at <https://plausible.io>\n2. Go to your site settings\n3. Copy the JavaScript snippet provided\n4. Paste it here\n\nFor more information, see <https://plausible.io/docs/plausible-script>\n"
+                  }
+                },
                 announcement: {
                   anyOf: [
                     "string",
@@ -24934,12 +24941,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197474,
+          _internalId: 197475,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197466,
+              _internalId: 197467,
               type: "enum",
               enum: [
                 "png",
@@ -24955,7 +24962,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197473,
+              _internalId: 197474,
               type: "anyOf",
               anyOf: [
                 {
