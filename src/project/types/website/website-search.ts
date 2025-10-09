@@ -117,6 +117,7 @@ const kTitle = "title";
 const kText = "text";
 const kAnalyticsEvents = "analytics-events";
 const kShowLogo = "show-logo";
+const kCookieConsentEnabled = "cookie-consent-enabled";
 
 interface SearchOptionsAlgolia {
   [kSearchOnlyApiKey]?: string;
@@ -131,6 +132,7 @@ interface SearchOptionsAlgolia {
   [kSearchParams]?: Record<string, unknown>;
   [kAnalyticsEvents]?: boolean;
   [kShowLogo]?: boolean;
+  [kCookieConsentEnabled]?: boolean;
 }
 
 export type SearchInputLocation = "navbar" | "sidebar";
@@ -624,6 +626,8 @@ export async function websiteSearchIncludeInHeader(
     includes.push(kAlogioSearchApiScript);
     if (options[kAlgolia]?.[kAnalyticsEvents]) {
       const cookieConsent = cookieConsentEnabled(project);
+      // Pass cookie consent status to JavaScript for Algolia Insights configuration
+      options[kAlgolia][kCookieConsentEnabled] = cookieConsent;
       includes.push(algoliaSearchInsightsScript(cookieConsent));
       includes.push(autocompleteInsightsPluginScript(cookieConsent));
     }
