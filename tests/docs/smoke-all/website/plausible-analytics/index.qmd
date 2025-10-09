@@ -1,0 +1,14 @@
+---
+title: "Plausible Custom Script Test"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'script[async][src="https://plausible.io/js/pa-TESTCODE123.js"]'
+      ensureFileRegexMatches:
+        - ['window\.plausible', 'plausible\.init']
+---
+
+This test verifies that Plausible Analytics with custom script (pa-XXXX.js format)
+and initialization code is correctly injected into the HTML output.
