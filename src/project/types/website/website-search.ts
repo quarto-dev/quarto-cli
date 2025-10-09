@@ -617,21 +617,27 @@ export async function websiteSearchIncludeInHeader(
     }
   });
 
-  const searchOptionsJson = JSON.stringify(options, null, 2);
-  const searchOptionsScript =
-    `<script id="quarto-search-options" type="application/json">${searchOptionsJson}</script>`;
-  const includes = [searchOptionsScript];
+  const includes: string[] = [];
 
+  // Process all Algolia configuration and scripts
   if (options[kAlgolia]) {
     includes.push(kAlogioSearchApiScript);
-    if (options[kAlgolia]?.[kAnalyticsEvents]) {
+    if (options[kAlgolia][kAnalyticsEvents]) {
       const cookieConsent = cookieConsentEnabled(project);
-      // Pass cookie consent status to JavaScript for Algolia Insights configuration
+      // Set cookie consent flag for JavaScript configuration
       options[kAlgolia][kCookieConsentEnabled] = cookieConsent;
+      // Add Algolia Insights scripts with proper consent handling
       includes.push(algoliaSearchInsightsScript(cookieConsent));
       includes.push(autocompleteInsightsPluginScript(cookieConsent));
     }
   }
+
+  // Serialize search options to JSON after all modifications
+  const searchOptionsJson = JSON.stringify(options, null, 2);
+  const searchOptionsScript =
+    `<script id="quarto-search-options" type="application/json">${searchOptionsJson}</script>`;
+  // Prepend search options script to beginning of includes
+  includes.unshift(searchOptionsScript);
 
   Deno.writeTextFileSync(websiteSearchScript, includes.join("\n"));
   return websiteSearchScript;
