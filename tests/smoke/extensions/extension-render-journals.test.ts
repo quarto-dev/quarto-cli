@@ -42,6 +42,10 @@ for (const journalRepo of journalRepos) {
     // Sets up the test
     setup: async () => {
       console.log(`using quarto-journals/${journalRepo.repo}`);
+
+      // FIXME THIS DOESN'T WORK
+      // WE CANNOT GUARANTEE THAT CHDIR WILL BE CONSTANT
+      // THROUGHOUT THE ASYNC CALL
       const wd = Deno.cwd();
       Deno.chdir(workingDir);
       await quarto([
