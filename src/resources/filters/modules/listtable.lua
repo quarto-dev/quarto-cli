@@ -120,26 +120,39 @@ local function new_cell(contents)
 end
 
 local function process(div)
-    if (div.attr.classes[1] ~= "list-table" and
-        div.attr.classes[1] ~= "list-table-body") then return nil end
-    local class = div.attr.classes[1]
-    table.remove(div.attr.classes, 1)
-
+    local class
+    local target_classes = {"list-table", "list-table-body"}
+    for _, target in ipairs(target_classes) do
+        if div.attr.classes:find(target) then
+            class = target
+            div.attr.classes = div.attr.classes:filter(
+                function(cls) return cls ~= target end)
+        end
+    end
+    if class == nil then return nil end
     if #div.content == 0 then return nil end
 
     local content = blocks_skip_data_pos(div.content)
 
     local caption = {}
+
+    -- look for a caption in front
     if content[1].t == "Para" then
         local para = table.remove(content, 1)
         caption = {pandoc.Plain(para.content)}
     end
-
     if #content == 0 then return nil end
 
     assert_(content[1].t == "BulletList",
             "expected bullet list, found " .. content[1].t, content[1])
     local list = content[1]
+
+    -- also look for a caption in back
+    if content[2] and content[2].t == "Para" then
+        local para = table.remove(content, 2)
+        caption = {pandoc.Plain(para.content)}
+    end
+
 
     -- rows points to the current body's rows
     local bodies = {attr=nil, {rows={}}}
