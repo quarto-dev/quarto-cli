@@ -265,12 +265,6 @@ local quarto_pre_filters = {
     traverser = 'jog',
   },
 
-  { name = "pre-process-list-tables",
-    filters = _quarto.modules.listtable.list_table_filter(),
-    flags = { "has_list_tables" },
-    traverser = 'jog',
-  },
-
   { name = "pre-server-shiny",
     filter = server_shiny(),
     traverser = 'jog',

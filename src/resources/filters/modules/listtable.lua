@@ -247,6 +247,6 @@ end
 
 return {
     list_table_filter = function()
-        return {{Div = process}}
+        return {Div = process}
     end
 }
