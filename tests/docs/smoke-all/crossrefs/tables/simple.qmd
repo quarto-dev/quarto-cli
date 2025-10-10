@@ -4,7 +4,12 @@ _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - []
+        - - "div#tbl-list table"
+          - "div#tbl-list-2 table"
+          - "div#tbl-letters table"
+          - "div#tbl-panel table"
+          - "div#tbl-first table"
+          - "div#tbl-second table"
         - []
 ---
 
@@ -48,7 +53,7 @@ See @tbl-panel for details, especially @tbl-second.
 
 ::: {#tbl-list .list-table}
 
-This has a caption. {tbl-colwidths=[20,40,40]}
+This is a table caption. {tbl-colwidths=[20,40,40]}
 
 * - Row 1, Col 1
   - Row 1, Col 2
@@ -61,3 +66,21 @@ This has a caption. {tbl-colwidths=[20,40,40]}
 :::
 
 see @tbl-list.
+
+Quarto syntax extension for `list-tables`: table ordering compatible with fenced-div crossrefs.
+
+::: {#tbl-list-2 .list-table}
+
+* - Row 1, Col 1
+  - Row 1, Col 2
+  - Row 1, Col 3
+
+* - Row 2, Col 1
+  - Row 2, Col 2
+  - Row 2, Col 3
+
+This is a table caption. {tbl-colwidths=[20,40,40]}
+
+:::
+
+See @tbl-list-2.

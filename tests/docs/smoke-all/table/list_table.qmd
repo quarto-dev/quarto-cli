@@ -4,7 +4,9 @@ _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - ["table"]
+        - - "table"
+          - "div#fig-list-table table" # fenced div syntax using a different prefix
+          - "div#tbl-list-table-2 table"   # fenced div syntax inside list-table (ie, captions last)
         - ["div.list-table"]
 ---
 
@@ -57,3 +59,40 @@ _quarto:
     * `QUARTO_LOG_FORMAT` is the same as using `--log-format` at command line. It is used to set the format for the log. Possible values are `plain` (default) and `json-stream`.
 
 :::
+
+
+::: {#fig-list-table}
+
+::: {.list-table widths="0.2,0.4,0.4"}
+
+* - Row 1, Col 1
+  - Row 1, Col 2
+  - Row 1, Col 3
+
+* - Row 2, Col 1
+  - Row 2, Col 2
+  - Row 2, Col 3
+
+:::
+
+A caption.
+
+:::
+
+see @fig-list-table.
+
+::: {#tbl-list-table-2 .list-table}
+
+* - Row 1, Col 1
+  - Row 1, Col 2
+  - Row 1, Col 3
+
+* - Row 2, Col 1
+  - Row 2, Col 2
+  - Row 2, Col 3
+
+This has a caption. {tbl-colwidths=[20,40,40]}
+
+:::
+
+see @tbl-list-table-2.
