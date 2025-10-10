@@ -1,5 +1,11 @@
 ---
 title: Table Crossref Test
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - []
 ---
 
 ## Simple Crossref Table
