@@ -5,6 +5,7 @@
  */
 import { Document } from "../../../core/deno-dom.ts";
 import { join } from "../../../deno_ral/path.ts";
+import { existsSync } from "../../../deno_ral/fs.ts";
 import { kLang, kTitle } from "../../../config/constants.ts";
 import { Format, Metadata } from "../../../config/types.ts";
 import { projectTypeResourcePath } from "../../../core/resources.ts";
@@ -28,6 +29,7 @@ const kVersion = "version";
 
 // Plausible analytics
 export const kPlausibleAnalytics = "plausible-analytics";
+const kPlausiblePath = "path";
 
 // Cookie consent properties
 export const kCookieConsent = "cookie-consent";
@@ -119,8 +121,26 @@ export function websiteAnalyticsScriptFile(
 
     // Plausible Analytics
     const plausibleSnippet = siteMeta[kPlausibleAnalytics];
-    if (plausibleSnippet && typeof plausibleSnippet === "string") {
-      scripts.push(plausibleSnippet);
+    if (plausibleSnippet) {
+      if (typeof plausibleSnippet === "string") {
+        // Inline snippet provided directly in YAML
+        scripts.push(plausibleSnippet);
+      } else if (typeof plausibleSnippet === "object") {
+        // Path to file containing snippet
+        const plausibleMeta = plausibleSnippet as Metadata;
+        const snippetPath = plausibleMeta[kPlausiblePath] as string;
+        if (snippetPath) {
+          const absolutePath = join(project.dir, snippetPath);
+          if (existsSync(absolutePath)) {
+            const snippetContent = Deno.readTextFileSync(absolutePath);
+            scripts.push(snippetContent);
+          } else {
+            throw new Error(
+              `Plausible Analytics snippet file not found: ${snippetPath}`,
+            );
+          }
+        }
+      }
     }
   }
 
