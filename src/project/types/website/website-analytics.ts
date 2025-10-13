@@ -277,7 +277,7 @@ function cookieConsentConfiguration(
 ): CookieConsentConfiguration {
   return {
     siteName: "",
-    type: type || "implied",
+    type: type || "express",
     style: style || "simple",
     palette: palette || "light",
     policyUrl,
@@ -378,6 +378,8 @@ gtag('js', new Date());`);
   ].join("\n");
 }
 
+// configuration for the script are defined in
+// https://github.com/termsfeed/termsfeed-cookie-consent-4-0/blob/main/README.md
 function cookieConsentScript(
   config: CookieConsentConfiguration,
 ) {
