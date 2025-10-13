@@ -5,4 +5,4 @@ config:
   multiplex:
     secret: null
     id: null
-    url: "https://reveal-multiplex.glitch.me/"
+    url: "https://multiplex.up.railway.app/"
