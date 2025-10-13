@@ -9428,10 +9428,27 @@ var require_yaml_intelligence_resources = __commonJS({
                 description: "Enable Google Analytics for this website"
               },
               "plausible-analytics": {
-                schema: "string",
+                anyOf: [
+                  "string",
+                  {
+                    object: {
+                      closed: true,
+                      properties: {
+                        path: {
+                          path: {
+                            description: "Path to a file containing the Plausible Analytics script snippet"
+                          }
+                        }
+                      },
+                      required: [
+                        "path"
+                      ]
+                    }
+                  }
+                ],
                 description: {
-                  short: "Enable Plausible Analytics for this website",
-                  long: "Enable Plausible Analytics for this website by pasting the script snippet from your Plausible dashboard.\n\nPlausible is a privacy-friendly, GDPR-compliant web analytics service that does not use cookies and does not require cookie consent.\n\nTo get your script snippet:\n\n1. Log into your Plausible account at <https://plausible.io>\n2. Go to your site settings\n3. Copy the JavaScript snippet provided\n4. Paste it here\n\nFor more information, see <https://plausible.io/docs/plausible-script>\n"
+                  short: "Enable Plausible Analytics for this website by providing a script snippet or path to snippet file",
+                  long: 'Enable Plausible Analytics for this website by pasting the script snippet from your Plausible dashboard,\nor by providing a path to a file containing the snippet.\n\nPlausible is a privacy-friendly, GDPR-compliant web analytics service that does not use cookies and does not require cookie consent.\n\n**Option 1: Inline snippet**\n\n```yaml\nwebsite:\n  plausible-analytics: |\n    <script async src="https://plausible.io/js/script.js"><\/script>\n```\n\n**Option 2: File path**\n\n```yaml\nwebsite:\n  plausible-analytics:\n    path: _plausible_snippet.html\n```\n\nTo get your script snippet:\n\n1. Log into your Plausible account at <https://plausible.io>\n2. Go to your site settings\n3. Copy the JavaScript snippet provided\n4. Either paste it directly in your configuration or save it to a file\n\nFor more information, see <https://plausible.io/docs/plausible-script>\n'
                 }
               },
               announcement: {
@@ -21520,6 +21537,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -21681,6 +21703,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -24067,6 +24094,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -24417,6 +24449,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -24940,12 +24977,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197475,
+        _internalId: 197491,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197467,
+            _internalId: 197483,
             type: "enum",
             enum: [
               "png",
@@ -24961,7 +24998,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197474,
+            _internalId: 197490,
             type: "anyOf",
             anyOf: [
               {

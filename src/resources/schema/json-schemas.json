@@ -820,7 +820,20 @@
             ]
           },
           "plausible-analytics": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "object": {
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            ]
           },
           "announcement": {
             "anyOf": [
