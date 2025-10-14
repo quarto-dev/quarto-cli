@@ -32,8 +32,8 @@ All changes included in 1.9:
 
 ### `website`
 
-- Algolia Insights now uses privacy-friendly defaults: `useCookie: false` with random session tokens when cookie consent is not configured. When `cookie-consent: true` is enabled, Algolia scripts are deferred and only use cookies after user grants "tracking" consent, ensuring GDPR compliance.
-- Add support for Plausible Analytics via `plausible-analytics` configuration option. Users can either paste their Plausible script snippet directly in YAML or provide a path to a file containing the snippet using `plausible-analytics: { path: _plausible_snippet.html }`.
+- ([#13524](https://github.com/quarto-dev/quarto-cli/issues/13524)): Add support for Plausible Analytics via `plausible-analytics` configuration option. Users can either paste their Plausible script snippet directly in YAML or provide a path to a file containing the snippet using `plausible-analytics: { path: _plausible_snippet.html }`.
+- ([#13525](https://github.com/quarto-dev/quarto-cli/issues/13525)): Algolia Insights now uses privacy-friendly defaults: `useCookie: false` with random session tokens when cookie consent is not configured. When `cookie-consent: true` is enabled, Algolia scripts are deferred and only use cookies after user grants "tracking" consent, ensuring GDPR compliance.
 
 ## `publish`
 
