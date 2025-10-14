@@ -434,9 +434,9 @@ For more information, see <https://plausible.io/docs/plausible-script> */;
       | "express"
       | "implied"; /* The type of consent that should be requested, using one of these two values:
 
-- `implied`: This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.
+- `express` (default): This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).
 
-- `express` (default): This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree). */
+- `implied`: This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences. */
   } /* Quarto includes the ability to request cookie consent before enabling scripts that set cookies, using [Cookie Consent](https://www.cookieconsent.com/).
 
 The user’s cookie preferences will automatically control Google Analytics (if enabled) and can be used to control custom scripts you add as well. For more information see [Custom Scripts and Cookie Consent](https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent). */;

@@ -9528,7 +9528,7 @@ try {
                             ],
                             description: {
                               short: "The type of consent that should be requested",
-                              long: "The type of consent that should be requested, using one of these two values:\n\n- `implied`: This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n\n- `express` (default): This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn\u2019t agree).\n"
+                              long: "The type of consent that should be requested, using one of these two values:\n\n- `express` (default): This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn\u2019t agree).\n\n- `implied`: This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n"
                             }
                           },
                           style: {
