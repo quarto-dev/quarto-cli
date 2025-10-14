@@ -784,7 +784,7 @@ jobs:
       matrix:
         arch: [x86_64, aarch64]
         format: [deb, rpm]
-        repo: [open, pro]
+        repo: [open]
     steps:
       - uses: actions/checkout@v4
         with:
