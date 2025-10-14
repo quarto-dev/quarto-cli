@@ -19270,7 +19270,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     url: {
                       string: {
-                        default: "https://reveal-multiplex.glitch.me/",
+                        default: "https://multiplex.up.railway.app/",
                         description: "Multiplex token server (defaults to Reveal-hosted server)\n"
                       }
                     },
@@ -21908,7 +21908,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The path to an XML stylesheet (XSL file) used to style the RSS\nfeed.",
         {
           short: "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
-          long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://deno.land/std@0.125.0/datetime">here</a>.'
+          long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://quarto.org/docs/reference/dates.html">here</a>.'
         },
         {
           short: "The maximum length (in characters) of the description displayed in\nthe listing.",
@@ -24927,12 +24927,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197539,
+        _internalId: 197474,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197531,
+            _internalId: 197466,
             type: "enum",
             enum: [
               "png",
@@ -24948,7 +24948,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197538,
+            _internalId: 197473,
             type: "anyOf",
             anyOf: [
               {
