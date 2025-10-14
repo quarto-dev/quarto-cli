@@ -16,6 +16,8 @@ import { execProcess } from "../../src/core/process.ts";
 import { quartoDevCmd } from "../utils.ts";
 import { fail } from "testing/asserts";
 import { isWindows } from "../../src/deno_ral/platform.ts";
+import { join } from "../../src/deno_ral/path.ts";
+import { existsSync } from "../../src/deno_ral/fs.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -29,6 +31,19 @@ const globOutput = Deno.args.length
 
 setInitializer(fullInit);
 await initState();
+
+// Install multiplex server dependencies if needed
+const multiplexServerPath = "integration/playwright/multiplex-server";
+const multiplexNodeModules = join(multiplexServerPath, "node_modules");
+if (!existsSync(multiplexNodeModules)) {
+  console.log("Installing multiplex server dependencies...");
+  await execProcess({
+    cmd: isWindows ? "npm.cmd" : "npm",
+    args: ["install", "--loglevel=error"],
+    cwd: multiplexServerPath,
+  });
+  console.log("Multiplex server dependencies installed.");
+}
 
 // const promises = [];
 const fileNames: string[] = [];
@@ -52,7 +67,7 @@ for (const { path: fileName } of globOutput) {
   // mediabag inspection if we don't wait all renders
   // individually. This is very slow..
   await execProcess({
-    cmd: quartoDevCmd(), 
+    cmd: quartoDevCmd(),
     args: ["render", input, ...options],
   });
   fileNames.push(fileName);

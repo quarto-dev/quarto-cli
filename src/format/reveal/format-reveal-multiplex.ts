@@ -104,7 +104,7 @@ interface RevealMultiplexToken {
   url: string;
 }
 
-const kDefaultMultiplexUrl = "https://reveal-multiplex.glitch.me/";
+const kDefaultMultiplexUrl = "https://multiplex.up.railway.app/";
 
 async function revealMultiplexToken(
   format: Format,

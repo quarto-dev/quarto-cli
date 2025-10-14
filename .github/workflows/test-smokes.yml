@@ -83,6 +83,15 @@ jobs:
         with:
           node-version: 20
 
+      - name: Cache multiplex server node_modules
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        uses: actions/cache@v4
+        with:
+          path: tests/integration/playwright/multiplex-server/node_modules
+          key: ${{ runner.os }}-multiplex-server-${{ hashFiles('tests/integration/playwright/multiplex-server/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-multiplex-server-
+
       - name: Install node dependencies
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
         run: yarn

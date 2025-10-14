@@ -19300,7 +19300,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     url: {
                       string: {
-                        default: "https://reveal-multiplex.glitch.me/",
+                        default: "https://multiplex.up.railway.app/",
                         description: "Multiplex token server (defaults to Reveal-hosted server)\n"
                       }
                     },
