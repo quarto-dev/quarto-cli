@@ -891,8 +891,8 @@
                   "properties": {
                     "type": {
                       "enum": [
-                        "implied",
-                        "express"
+                        "express",
+                        "implied"
                       ]
                     },
                     "style": {
