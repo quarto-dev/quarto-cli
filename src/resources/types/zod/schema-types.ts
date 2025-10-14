@@ -299,6 +299,10 @@ export const ZodBaseWebsite = z.object({
       version: z.union([z.literal(3), z.literal(4)]),
     }).passthrough().partial(),
   ]),
+  "plausible-analytics": z.union([
+    z.string(),
+    z.object({ path: z.string() }).strict().partial().required({ path: true }),
+  ]),
   announcement: z.union([
     z.string(),
     z.object({
@@ -472,6 +476,10 @@ export const ZodBookSchema = z.object({
       "anonymize-ip": z.boolean(),
       version: z.union([z.literal(3), z.literal(4)]),
     }).passthrough().partial(),
+  ]),
+  "plausible-analytics": z.union([
+    z.string(),
+    z.object({ path: z.string() }).strict().partial().required({ path: true }),
   ]),
   announcement: z.union([
     z.string(),

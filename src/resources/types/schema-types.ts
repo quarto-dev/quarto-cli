@@ -378,6 +378,38 @@ For more about choosing storage options see [Storage](https://quarto.org/docs/we
 
 This is automatically detected based upon the `tracking-id`, but you may specify it. */
   } /* Enable Google Analytics for this website */;
+  "plausible-analytics"?: string | {
+    path:
+      string; /* Path to a file containing the Plausible Analytics script snippet */
+  } /* Enable Plausible Analytics for this website by pasting the script snippet from your Plausible dashboard,
+or by providing a path to a file containing the snippet.
+
+Plausible is a privacy-friendly, GDPR-compliant web analytics service that does not use cookies and does not require cookie consent.
+
+**Option 1: Inline snippet**
+
+```yaml
+website:
+  plausible-analytics: |
+    <script async src="https://plausible.io/js/script.js"></script>
+```
+
+**Option 2: File path**
+
+```yaml
+website:
+  plausible-analytics:
+    path: _plausible_snippet.html
+```
+
+To get your script snippet:
+
+1. Log into your Plausible account at <https://plausible.io>
+2. Go to your site settings
+3. Copy the JavaScript snippet provided
+4. Either paste it directly in your configuration or save it to a file
+
+For more information, see <https://plausible.io/docs/plausible-script> */;
   "cookie-consent"?: ("express" | "implied") | boolean | {
     "policy-url"?: string;
     "prefs-text"?: string;
