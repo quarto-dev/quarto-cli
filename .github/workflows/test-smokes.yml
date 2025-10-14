@@ -186,11 +186,14 @@ jobs:
 
       - name: Setup Julia
         uses: julia-actions/setup-julia@v2
+        id: setup-julia
         with:
           version: "1.11.7"
 
       - name: Load Julia packages from cache
         uses: julia-actions/cache@v2
+        with:
+          cache-name: julia-cache;workflow=${{ github.workflow }};job=${{ github.job }};julia=${{ steps.setup-julia.outputs.julia-version }}
 
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
