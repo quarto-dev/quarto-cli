@@ -845,15 +845,15 @@
           - object:
               properties:
                 type:
-                  enum: [implied, express]
+                  enum: [express, implied]
                   description:
                     short: "The type of consent that should be requested"
                     long: |
                       The type of consent that should be requested, using one of these two values:
 
-                      - `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.
+                      - `implied`: This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.
 
-                      - `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).
+                      - `express` (default): This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).
                 style:
                   enum: [simple, headline, interstitial, standalone]
                   description:
