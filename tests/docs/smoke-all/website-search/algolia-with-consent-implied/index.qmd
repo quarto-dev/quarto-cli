@@ -15,8 +15,8 @@ _quarto:
           - '"cookie-consent-enabled":\s*true'
           # Scripts should be deferred with cookie-consent attribute
           - 'type="text/plain"[^>]*cookie-consent="tracking"[^>]*>[\s\S]*search-insights'
-          # Default type should be express
-          - 'cookieconsent.run\(\{[^}]*"consent_type":"express"'
+          # type should be implied per config
+          - 'cookieconsent.run\(\{[^}]*"consent_type":"implied"'
 ---
 
 This test verifies that when `cookie-consent` is configured in the website settings:

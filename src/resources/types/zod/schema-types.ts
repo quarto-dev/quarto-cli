@@ -328,7 +328,7 @@ export const ZodBaseWebsite = z.object({
     z.enum(["express", "implied"] as const),
     z.boolean(),
     z.object({
-      type: z.enum(["implied", "express"] as const),
+      type: z.enum(["express", "implied"] as const),
       style: z.enum(
         ["simple", "headline", "interstitial", "standalone"] as const,
       ),
@@ -506,7 +506,7 @@ export const ZodBookSchema = z.object({
     z.enum(["express", "implied"] as const),
     z.boolean(),
     z.object({
-      type: z.enum(["implied", "express"] as const),
+      type: z.enum(["express", "implied"] as const),
       style: z.enum(
         ["simple", "headline", "interstitial", "standalone"] as const,
       ),
