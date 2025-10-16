@@ -559,7 +559,8 @@ function navigationHtmlPostprocessor(
       const navLinkHref = navLink.getAttribute("href");
 
       const sidebarLink = doc.querySelector(
-        '.sidebar-navigation a[href="' + navLinkHref + '"]',
+        '.sidebar-navigation a[href="' + navLinkHref +
+          '"]:not(.sidebar-logo-link)',
       );
       // if the link is either for the current window href or appears on the
       // sidebar then set it to active
