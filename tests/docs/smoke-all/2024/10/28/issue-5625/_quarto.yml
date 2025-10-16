@@ -13,8 +13,8 @@ website:
     right:
       - icon: github
         href: https://github.com/
-      - icon: twitter
-        href: https://twitter.com
+      - icon: bluesky
+        href: https://bsky.app
 
 format:
   html:
