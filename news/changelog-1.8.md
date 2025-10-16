@@ -3,6 +3,7 @@
 ## In this release
 
 - ([#13046](https://github.com/quarto-dev/quarto-cli/issues/13046)): Use new url for multiplex socket.io server <https://multiplex.up.railway.app/> as default for `format: revealjs` and `revealjs.multiplex: true`.
+- ([#13506](https://github.com/quarto-dev/quarto-cli/issues/13506)): Fix navbar active state detection when sidebar has no logo configured. Prevents empty logo links from interfering with navigation highlighting.
 
 ## In previous releases
 
