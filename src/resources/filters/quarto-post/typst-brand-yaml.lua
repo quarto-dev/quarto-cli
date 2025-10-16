@@ -251,7 +251,7 @@ function render_typst_brand_yaml()
       end
       -- logo
       local logo = param('logo')
-      if not next(logo) then
+      if logo and not next(logo) then
         meta.logo = nil
       end
       local logoOptions = {}
