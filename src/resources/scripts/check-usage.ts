@@ -18,7 +18,7 @@ if (import.meta.main) {
     } else if (size.endsWith("B")) {
       sizeNo = Number(size.slice(0, -1));
     } else {
-      console.log(`Don't know how to read ${size}`);
+      console["log"](`Don't know how to read ${size}`);
       continue;
     }
     if (
@@ -34,8 +34,8 @@ if (import.meta.main) {
   sizedEntriesArray.sort((a, b) => a[1] - b[1]);
   let sum = 0;
   for (const entry of sizedEntriesArray) {
-    console.log(`${entry[0]} ${entry[1]}`);
+    console["log"](`${entry[0]} ${entry[1]}`);
     sum += entry[1];
   }
-  console.log(`Overall: ${sum}`);
+  console["log"](`Overall: ${sum}`);
 }

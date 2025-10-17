@@ -454,7 +454,6 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
           0,
         );
         warning(error.message);
-        console.log("");
         return await makeDefault();
       } else {
         if (isRevealjsOutput(handlerContext.options.context.format.pandoc)) {
@@ -467,7 +466,6 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
             0,
           );
           warning(error.message);
-          console.log("");
         }
         return await makeJs();
       }

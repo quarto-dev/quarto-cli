@@ -1,3 +1,5 @@
+import { warn } from "../../../deno_ral/log.ts";
+
 export const propagateDeclarationTypes = (ast: any) => {
   const declarationsToTrack = new Map<string, any>();
 
@@ -81,12 +83,12 @@ export const propagateDeclarationTypes = (ast: any) => {
         // let's not be this loud
         //
         // else {
-        //   console.log(Deno.env.get("QUARTO_DEBUG"));
-        //   console.log(
+        //   info(Deno.env.get("QUARTO_DEBUG"));
+        //   info(
         //     "Warning: variable redeclaration with conflicting default settings",
         //   );
-        //   console.log("variable: ", varName);
-        //   console.log("lines ", prevDeclaration?.line, node?.line);
+        //   info("variable: ", varName);
+        //   info("lines ", prevDeclaration?.line, node?.line);
         // }
       }
     } else {
@@ -180,8 +182,8 @@ export const propagateDeclarationTypes = (ast: any) => {
         !declarationsToTrack.has(nodeVariableName) &&
         !namesToIgnore.has(nodeVariableName)
       ) {
-        console.log("Warning: variable used before declaration");
-        console.log("variable: ", nodeVariableName, valueNode.line);
+        warn("Warning: variable used before declaration");
+        warn(`variable: ${nodeVariableName} ${valueNode.line}`);
         return undefined;
       } else {
         const valueType = declarationsToTrack.get(nodeVariableName)?.valueType;
@@ -213,15 +215,15 @@ export const propagateDeclarationTypes = (ast: any) => {
   // // now warn about variables with unknown types
   // for (const [name, node] of declarationsToTrack) {
   //   if (node.valueType === "color") {
-  //     console.log(name, node.line)
+  //     warn(name, node.line)
   //   }
   //   if (!node.valueType && node.value.value.length === 1) {
   //     // ignore unknown types for multi-value declarations, assume they're arrays which we don't care about.
   //     if (node.value.value[0]?.type === "parentheses") {
   //       continue;
   //     }
-  //     console.log("Warning: variable with unknown type");
-  //     console.log("variable: ", name, node);
+  //     warn("Warning: variable with unknown type");
+  //     warn("variable: ", name, node);
   //   }
   // }
 };

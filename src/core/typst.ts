@@ -167,7 +167,7 @@ export async function typstWatch(
         typstProgressDone();
       }
       child.status.then((status) => {
-        console.log(`typst exited with status ${status.code}`);
+        error(`typst exited with status ${status.code}`);
       });
       break;
     }

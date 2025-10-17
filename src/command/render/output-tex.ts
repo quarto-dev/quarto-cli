@@ -99,7 +99,6 @@ export function texToPdfOutputRecipe(
 
       // Clean the output directory if it is empty
       if (pdfOutputDir) {
-        console.log({ pdfOutputDir });
         try {
           // Remove the outputDir if it is empty
           safeRemoveSync(pdfOutputDir, { recursive: false });
