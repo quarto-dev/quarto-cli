@@ -4,9 +4,9 @@ about:
   template: jolla
   image: profile.jpg
   links:
-    - icon: twitter
-      text: Twitter
-      href: https://www.twitter.com
+    - icon: bluesky
+      text: Bluesky
+      href: https://bsky.app
     - icon: linkedin
       text: LinkedIn
       href: https://www.linkedin.com

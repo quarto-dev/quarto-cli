@@ -13,14 +13,14 @@ website:
       - posts/draft-post/index.qmd
       - icon: github
         href: https://github.com/
-      - icon: twitter
-        href: https://twitter.com
+      - icon: bluesky
+        href: https://bsky.app
   sidebar:
     contents: posts
   page-footer:
-    left: 
+    left:
       - posts/draft-post/index.qmd
-  site-url: https://www.charlesteague.com   
+  site-url: https://www.charlesteague.com
   draft-mode: gone
 
 format:
@@ -28,6 +28,5 @@ format:
     theme: cosmo
     css: styles.css
 
-metadata-files: 
+metadata-files:
   - _drafts.yml
-
