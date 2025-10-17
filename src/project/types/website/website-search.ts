@@ -299,6 +299,12 @@ export async function updateSearchIndex(
         }
       });
 
+      // Remove all page elements that should be excluded from the search index
+      const exclusions = doc.querySelectorAll(".quarto-exclude-from-search-index");
+      for (const exclusion of exclusions) {
+        exclusion._remove();
+      }
+
       // We always take the first child of the main region (whether that is a p or section)
       // and create an index entry for the page itself (with no hash). If there is other
       // 'unsectioned' content on the page, we include that as well.
