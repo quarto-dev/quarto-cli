@@ -8540,8 +8540,8 @@ var require_yaml_intelligence_resources = __commonJS({
               icon: {
                 string: {
                   description: {
-                    short: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
-                    long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                    short: "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)",
+                    long: "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
                   }
                 }
               },
@@ -8722,6 +8722,25 @@ var require_yaml_intelligence_resources = __commonJS({
             required: [
               "repo"
             ]
+          }
+        },
+        {
+          id: "external-engine",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                url: {
+                  string: {
+                    description: "URL to the TypeScript module for the execution engine"
+                  }
+                }
+              },
+              required: [
+                "url"
+              ]
+            },
+            description: "An execution engine not pre-loaded in Quarto"
           }
         },
         {
@@ -20578,7 +20597,14 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "engines",
           schema: {
-            arrayOf: "string"
+            arrayOf: {
+              anyOf: [
+                "string",
+                {
+                  ref: "external-engine"
+                }
+              ]
+            }
           },
           description: "List execution engines you want to give priority when determining which engine should render a notebook. If two engines have support for a notebook, the one listed earlier will be chosen. Quarto's default order is 'knitr', 'jupyter', 'markdown', 'julia'."
         }
@@ -24748,7 +24774,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+        "An execution engine not pre-loaded in Quarto",
+        "URL to the TypeScript module for the execution engine"
       ],
       "schema/external-schemas.yml": [
         {
@@ -24977,12 +25005,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197491,
+        _internalId: 197504,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197483,
+            _internalId: 197496,
             type: "enum",
             enum: [
               "png",
@@ -24998,7 +25026,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197490,
+            _internalId: 197503,
             type: "anyOf",
             anyOf: [
               {
