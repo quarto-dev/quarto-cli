@@ -1,0 +1,39 @@
+{
+  "name": "@quarto/types",
+  "version": "0.1.0",
+  "description": "TypeScript type definitions for Quarto engine development",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "quarto",
+    "typescript",
+    "types",
+    "engine"
+  ],
+  "author": "Quarto",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quarto-dev/quarto-cli.git",
+    "directory": "packages/quarto-types"
+  },
+  "bugs": {
+    "url": "https://github.com/quarto-dev/quarto-cli/issues"
+  },
+  "homepage": "https://github.com/quarto-dev/quarto-cli/tree/main/packages/quarto-types#readme",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
