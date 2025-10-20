@@ -79,7 +79,7 @@ export type NavigationItemObject = {
   "aria-label"?: string /* Accessible label for the item. */;
   file?: string /* Alias for href */;
   href?: string /* Link to file contained with the project or external URL */;
-  icon?: string /* Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
+  icon?: string /* Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)
 See <https://icons.getbootstrap.com/> for a list of available icons */;
   id?: string;
   menu?: (NavigationItem)[];
@@ -153,6 +153,10 @@ website:
         dark: dark_dimmed # giscus theme used for dark website theme
 ``` */
 };
+
+export type ExternalEngine = {
+  url: string; /* URL to the TypeScript module for the execution engine */
+}; /* An execution engine not pre-loaded in Quarto */
 
 export type DocumentCommentsConfiguration = false | {
   giscus?: GiscusConfiguration;
