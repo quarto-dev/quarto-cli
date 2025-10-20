@@ -1512,8 +1512,8 @@
           "icon": {
             "string": {
               "description": {
-                "short": "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
-                "long": "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                "short": "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)",
+                "long": "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
               }
             }
           },
@@ -1694,6 +1694,25 @@
         "required": [
           "repo"
         ]
+      }
+    },
+    {
+      "id": "external-engine",
+      "schema": {
+        "object": {
+          "closed": true,
+          "properties": {
+            "url": {
+              "string": {
+                "description": "URL to the TypeScript module for the execution engine"
+              }
+            }
+          },
+          "required": [
+            "url"
+          ]
+        },
+        "description": "An execution engine not pre-loaded in Quarto"
       }
     },
     {
@@ -13550,7 +13569,14 @@
     {
       "name": "engines",
       "schema": {
-        "arrayOf": "string"
+        "arrayOf": {
+          "anyOf": [
+            "string",
+            {
+              "ref": "external-engine"
+            }
+          ]
+        }
       },
       "description": "List execution engines you want to give priority when determining which engine should render a notebook. If two engines have support for a notebook, the one listed earlier will be chosen. Quarto's default order is 'knitr', 'jupyter', 'markdown', 'julia'."
     }
@@ -17720,7 +17746,9 @@
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "Manuscript configuration",
     "internal-schema-hack",
-    "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’."
+    "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’.",
+    "An execution engine not pre-loaded in Quarto",
+    "URL to the TypeScript module for the execution engine"
   ],
   "schema/external-schemas.yml": [
     {
@@ -17949,12 +17977,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 197491,
+    "_internalId": 197504,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 197483,
+        "_internalId": 197496,
         "type": "enum",
         "enum": [
           "png",
@@ -17970,7 +17998,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 197490,
+        "_internalId": 197503,
         "type": "anyOf",
         "anyOf": [
           {
