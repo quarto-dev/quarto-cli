@@ -178,6 +178,13 @@ export interface EngineProjectContext {
   fileInformationCache: Map<string, FileInformation>;
 
   /**
+   * Get the output directory for the project
+   *
+   * @returns Path to output directory
+   */
+  getOutputDirectory: () => string;
+
+  /**
    * Resolves full markdown content for a file, including expanding includes
    *
    * @param engine - The execution engine
@@ -199,7 +206,7 @@ export interface EngineProjectContext {
    * @param markdown - Markdown content with YAML frontmatter
    * @returns Parsed metadata object
    */
-  readYamlFromMarkdown: (markdown: string) => Promise<Metadata>;
+  readYamlFromMarkdown: (markdown: string) => Metadata;
 
   /**
    * Split markdown into YAML, headings, and content
@@ -210,12 +217,12 @@ export interface EngineProjectContext {
   partitionMarkdown: (markdown: string) => PartitionedMarkdown;
 
   /**
-   * Read a file with source mapping information
+   * Extract languages used in markdown code blocks
    *
-   * @param path - Path to the file
-   * @returns Mapped string with source information
+   * @param markdown - Markdown content to analyze
+   * @returns Set of language identifiers found in code blocks
    */
-  readMappedFile: (path: string) => MappedString;
+  languagesInMarkdown: (markdown: string) => Set<string>;
 
   /**
    * Normalize newlines in markdown while maintaining source mapping
@@ -226,20 +233,21 @@ export interface EngineProjectContext {
   normalizeMarkdown: (markdown: MappedString) => MappedString;
 
   /**
-   * Get the output directory for the project
-   *
-   * @returns Path to output directory
-   */
-  getOutputDirectory: () => string;
-
-  /**
    * Create a mapped string from text
    *
    * @param text - Text content
    * @param fileName - Optional filename
    * @returns Mapped string
    */
-  createMappedString: (text: string, fileName?: string) => MappedString;
+  mappedStringFromString: (text: string, fileName?: string) => MappedString;
+
+  /**
+   * Read a file and create a mapped string from its contents
+   *
+   * @param path - Path to the file
+   * @returns Mapped string with source information
+   */
+  mappedStringFromFile: (path: string) => MappedString;
 }
 
 export const kAriaLabel = "aria-label";
