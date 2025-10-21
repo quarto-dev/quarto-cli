@@ -18,6 +18,9 @@ export * from './project-context';
 // Export execution engine types
 export * from './execution-engine';
 
+// Export external engine types
+export * from './external-engine';
+
 /**
  * Utility to check if a project context satisfies EngineProjectContext interface
  */
@@ -37,10 +40,11 @@ export function isEngineProjectContext(
     typeof context.resolveFullMarkdownForFile === 'function' &&
     typeof context.readYamlFromMarkdown === 'function' &&
     typeof context.partitionMarkdown === 'function' &&
-    typeof context.readMappedFile === 'function' &&
+    typeof context.languagesInMarkdown === 'function' &&
     typeof context.normalizeMarkdown === 'function' &&
     typeof context.getOutputDirectory === 'function' &&
-    typeof context.createMappedString === 'function'
+    typeof context.mappedStringFromString === 'function' &&
+    typeof context.mappedStringFromFile === 'function'
   );
 }
 
