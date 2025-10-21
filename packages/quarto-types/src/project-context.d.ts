@@ -5,6 +5,7 @@
 import { MappedString } from './text-types';
 import { kProjectOutputDir } from './constants';
 import { ExecutionEngine } from './execution-engine';
+import { ExternalEngine } from './external-engine';
 
 /**
  * Information about a file being processed
@@ -22,6 +23,16 @@ export interface FileInformation {
     source: string;
     target: string;
   }[];
+
+  /**
+   * The launched execution engine for this file
+   */
+  engine?: import('./execution-engine').LaunchedExecutionEngine;
+
+  /**
+   * The execution target for this file
+   */
+  target?: import('./execution-engine').ExecutionTarget;
 }
 
 /**
@@ -44,7 +55,7 @@ export interface EngineProjectContext {
    * Used primarily for config?.engines access
    */
   config?: {
-    engines?: string[];
+    engines?: (string | ExternalEngine)[];
     project?: {
       [kProjectOutputDir]?: string;
     };
