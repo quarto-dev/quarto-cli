@@ -9,14 +9,19 @@ import {
   asMappedString,
   mappedNormalizeNewlines,
   MappedString,
-  mappedStringFromFile
+  mappedStringFromFile,
 } from "../core/mapped-text.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { readYamlFromMarkdown } from "../core/yaml.ts";
 import { ExecutionEngine } from "../execute/types.ts";
+import { languagesInMarkdown } from "../execute/engine-shared.ts";
 import { projectOutputDir } from "./project-shared.ts";
-import { EngineProjectContext, FileInformation, ProjectContext } from "./types.ts";
+import {
+  EngineProjectContext,
+  FileInformation,
+  ProjectContext,
+} from "./types.ts";
 
 /**
  * Creates an EngineProjectContext adapter from a ProjectContext
@@ -25,18 +30,29 @@ import { EngineProjectContext, FileInformation, ProjectContext } from "./types.t
  * @param context The source ProjectContext
  * @returns An EngineProjectContext adapter
  */
-export function engineProjectContext(context: ProjectContext): EngineProjectContext {
+export function engineProjectContext(
+  context: ProjectContext,
+): EngineProjectContext {
   return {
     // Core properties
     dir: context.dir,
     isSingleFile: context.isSingleFile,
-    config: context.config ? {
-      engines: context.config.engines,
-      project: context.config.project ? {
-        "output-dir": context.config.project["output-dir"]
-      } : undefined
-    } : undefined,
+    config: context.config
+      ? {
+        engines: context.config.engines,
+        project: context.config.project
+          ? {
+            "output-dir": context.config.project["output-dir"],
+          }
+          : undefined,
+      }
+      : undefined,
     fileInformationCache: context.fileInformationCache,
+
+    // Path utilities
+    getOutputDirectory: () => {
+      return projectOutputDir(context);
+    },
 
     // Core methods
     resolveFullMarkdownForFile: (
@@ -47,7 +63,7 @@ export function engineProjectContext(context: ProjectContext): EngineProjectCont
     ) => context.resolveFullMarkdownForFile(engine, file, markdown, force),
 
     // YAML utilities
-    readYamlFromMarkdown: async (markdown: string | MappedString) => {
+    readYamlFromMarkdown: (markdown: string) => {
       return readYamlFromMarkdown(markdown);
     },
 
@@ -56,24 +72,22 @@ export function engineProjectContext(context: ProjectContext): EngineProjectCont
       return partitionMarkdown(markdown);
     },
 
-    // Source mapping utilities
-    readMappedFile: (path: string) => {
-      return mappedStringFromFile(path);
+    languagesInMarkdown: (markdown: string) => {
+      return languagesInMarkdown(markdown);
     },
 
     normalizeMarkdown: (markdown: MappedString) => {
       return mappedNormalizeNewlines(markdown);
     },
 
-    // Path utilities
-    getOutputDirectory: () => {
-      return projectOutputDir(context);
+    // Mapped string utilities
+    mappedStringFromString: (text: string, fileName?: string) => {
+      return asMappedString(text, fileName);
     },
 
-    // Text utilities
-    createMappedString: (text: string, fileName?: string) => {
-      return asMappedString(text, fileName);
-    }
+    mappedStringFromFile: (path: string) => {
+      return mappedStringFromFile(path);
+    },
   };
 }
 
@@ -83,15 +97,17 @@ export function engineProjectContext(context: ProjectContext): EngineProjectCont
  * @param obj Object to check
  * @returns Whether the object is an EngineProjectContext
  */
-export function isEngineProjectContext(obj: unknown): obj is EngineProjectContext {
+export function isEngineProjectContext(
+  obj: unknown,
+): obj is EngineProjectContext {
   if (!obj) return false;
 
   const ctx = obj as Partial<EngineProjectContext>;
   return (
-    typeof ctx.dir === 'string' &&
-    typeof ctx.isSingleFile === 'boolean' &&
-    typeof ctx.resolveFullMarkdownForFile === 'function' &&
-    typeof ctx.readYamlFromMarkdown === 'function' &&
-    typeof ctx.partitionMarkdown === 'function'
+    typeof ctx.dir === "string" &&
+    typeof ctx.isSingleFile === "boolean" &&
+    typeof ctx.resolveFullMarkdownForFile === "function" &&
+    typeof ctx.readYamlFromMarkdown === "function" &&
+    typeof ctx.partitionMarkdown === "function"
   );
 }
