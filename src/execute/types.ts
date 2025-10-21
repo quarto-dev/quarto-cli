@@ -14,7 +14,7 @@ import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { RenderOptions, RenderResultFile } from "../command/render/types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
 import { HandlerContextResults } from "../core/handlers/types.ts";
-import { ProjectContext } from "../project/types.ts";
+import { EngineProjectContext, ProjectContext } from "../project/types.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 export const kQmdExtensions = [".qmd"];
@@ -24,6 +24,80 @@ export const kKnitrEngine = "knitr";
 export const kJupyterEngine = "jupyter";
 export const kJuliaEngine = "julia";
 
+/**
+ * Interface for the static discovery phase of execution engines
+ * Used to determine which engine should handle a file
+ */
+export interface ExecutionEngineDiscovery {
+  name: string;
+  defaultExt: string;
+  defaultYaml: (kernel?: string) => string[];
+  defaultContent: (kernel?: string) => string[];
+  validExtensions: () => string[];
+  claimsFile: (file: string, ext: string) => boolean;
+  claimsLanguage: (language: string) => boolean;
+  canFreeze: boolean;
+  generatesFigures: boolean;
+  ignoreDirs?: () => string[] | undefined;
+
+  /**
+   * Launch a dynamic execution engine with project context
+   */
+  launch: (context: EngineProjectContext) => LaunchedExecutionEngine;
+}
+
+/**
+ * Interface for the dynamic execution phase of execution engines
+ * Used after a file has been assigned to an engine
+ */
+export interface LaunchedExecutionEngine {
+  markdownForFile(file: string): Promise<MappedString>;
+
+  target: (
+    file: string,
+    quiet?: boolean,
+    markdown?: MappedString,
+  ) => Promise<ExecutionTarget | undefined>;
+
+  partitionedMarkdown: (
+    file: string,
+    format?: Format,
+  ) => Promise<PartitionedMarkdown>;
+
+  filterFormat?: (
+    source: string,
+    options: RenderOptions,
+    format: Format,
+  ) => Format;
+
+  execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
+
+  executeTargetSkipped?: (
+    target: ExecutionTarget,
+    format: Format,
+  ) => void;
+
+  dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
+
+  postprocess: (options: PostProcessOptions) => Promise<void>;
+
+  canKeepSource?: (target: ExecutionTarget) => boolean;
+
+  intermediateFiles?: (input: string) => string[] | undefined;
+
+  run?: (options: RunOptions) => Promise<void>;
+
+  postRender?: (
+    file: RenderResultFile,
+  ) => Promise<void>;
+
+  populateCommand?: (command: Command) => void;
+}
+
+/**
+ * Legacy interface that combines both discovery and execution phases
+ * @deprecated Use ExecutionEngineDiscovery and LaunchedExecutionEngine instead
+ */
 export interface ExecutionEngine {
   name: string;
   defaultExt: string;
