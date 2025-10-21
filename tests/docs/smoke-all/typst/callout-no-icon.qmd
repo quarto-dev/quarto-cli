@@ -34,11 +34,13 @@ This is a warning callout without an icon.
 ## Tip Callouts with icon=false {#no-icon-tip}
 
 
-::: {.callout-tip icon="false"}
+::: {#tip-example .callout-tip icon="false"}
 
 A tip without a title and without an icon.
 
 :::
+
+See @tip-example
 
 ## Regular callout with icon {#with-icon-important}
 
