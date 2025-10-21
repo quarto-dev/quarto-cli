@@ -275,7 +275,16 @@ function _callout_main()
         end
       end
     end
-    if callout.attr.identifier == "" then
+    -- Check if identifier has a valid crossref category
+    local ref_type = refType(callout.attr.identifier)
+    local category = ref_type ~= nil and crossref.categories.by_ref_type[ref_type] or nil
+
+    -- Warn if identifier was provided but category is invalid
+    if callout.attr.identifier ~= "" and category == nil then
+      warn("Callout ID '" .. callout.attr.identifier .. "' has unknown reference type '" .. (ref_type or "none") .. "'. Rendering as regular callout without cross-reference support.")
+    end
+
+    if category == nil then
       return _quarto.format.typst.function_call("callout", {
         { "body", _quarto.format.typst.as_typst_content(callout.content) },
         { "title", _quarto.format.typst.as_typst_content(
@@ -298,8 +307,6 @@ function _callout_main()
       { "icon", pandoc.RawInline("typst", callout.icon == false and "none" or ("" .. icon .. "()"))},
       { "body_background_color", pandoc.RawInline("typst", body_background_color)}
     })
-
-    local category = crossref.categories.by_ref_type[refType(callout.attr.identifier)]
     return make_typst_figure {
       content = typst_callout,
       caption_location = "top",

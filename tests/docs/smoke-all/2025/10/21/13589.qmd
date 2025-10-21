@@ -1,0 +1,32 @@
+---
+title: "Callout with invalid ID prefix"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#callout\(']
+        - []
+      printsMessage:
+        level: INFO
+        regex: 'WARNING(.*)Callout ID ''random-id'' has unknown reference type ''random'''
+      noErrors: true
+---
+
+## Test callout with invalid crossref ID
+
+This tests that callouts with invalid ID prefixes (not matching any known crossref category)
+should render with a warning instead of crashing.
+
+::: {#random-id .callout-note}
+
+## Note with invalid ID
+
+This callout uses `#random-id` which has an unknown prefix "random".
+The valid prefixes are: fig, tbl, lst, nte, wrn, cau, tip, imp, prf, rem, sol.
+
+This should render successfully with a warning, not crash.
+
+:::
