@@ -49,6 +49,9 @@ export function engineProjectContext(
       : undefined,
     fileInformationCache: context.fileInformationCache,
 
+    // Hidden property for adapter access to full ProjectContext
+    _project: context,
+
     // Path utilities
     getOutputDirectory: () => {
       return projectOutputDir(context);

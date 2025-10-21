@@ -20,17 +20,28 @@ import { kBaseFormat, kEngine } from "../config/constants.ts";
 import { knitrEngine } from "./rmd.ts";
 import { jupyterEngine } from "./jupyter/jupyter.ts";
 import { ExternalEngine } from "../resources/types/schema-types.ts";
-import { kMdExtensions, markdownEngine } from "./markdown.ts";
-import { ExecutionEngine, kQmdExtensions } from "./types.ts";
+import { kMdExtensions, markdownEngineDiscovery } from "./markdown.ts";
+import {
+  DependenciesOptions,
+  ExecuteOptions,
+  ExecutionEngine,
+  ExecutionEngineDiscovery,
+  LaunchedExecutionEngine,
+  PostProcessOptions,
+  kQmdExtensions
+} from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
 import { languages as handlerLanguages } from "../core/handlers/base.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { ProjectContext } from "../project/types.ts";
+import { MappedString } from "../core/mapped-text.ts";
+import { EngineProjectContext, ProjectContext } from "../project/types.ts";
 import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
 import { gitignoreEntries } from "../project/project-gitignore.ts";
 import { juliaEngine } from "./julia.ts";
 import { ensureFileInformationCache } from "../project/project-shared.ts";
+import { engineProjectContext } from "../project/engine-project-context.ts";
+import { asLaunchedEngine } from "./as-launched-engine.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 const kEngines: Map<string, ExecutionEngine> = new Map();
@@ -43,11 +54,55 @@ export function executionEngine(name: string) {
   return kEngines.get(name);
 }
 
-for (
-  const engine of [knitrEngine, jupyterEngine, markdownEngine, juliaEngine]
-) {
-  registerExecutionEngine(engine);
-}
+// Register the standard engines
+registerExecutionEngine(knitrEngine);
+registerExecutionEngine(jupyterEngine);
+registerExecutionEngine(juliaEngine);
+
+// Register markdownEngine using the new discovery/launch pattern
+registerExecutionEngine({
+  ...markdownEngineDiscovery,
+
+  // Legacy methods for backward compatibility
+  markdownForFile: (file: string) => {
+    const context = engineProjectContext({} as ProjectContext);
+    const launchedEngine = markdownEngineDiscovery.launch(context);
+    return launchedEngine.markdownForFile(file);
+  },
+
+  target: (file: string, quiet?: boolean, markdown?: MappedString, project?: ProjectContext) => {
+    if (!project) {
+      throw new Error("Project context required for markdownEngine.target");
+    }
+    const context = engineProjectContext(project);
+    const launchedEngine = markdownEngineDiscovery.launch(context);
+    return launchedEngine.target(file, quiet, markdown);
+  },
+
+  partitionedMarkdown: (file: string) => {
+    const context = engineProjectContext({} as ProjectContext);
+    const launchedEngine = markdownEngineDiscovery.launch(context);
+    return launchedEngine.partitionedMarkdown(file);
+  },
+
+  execute: (options: ExecuteOptions) => {
+    const context = engineProjectContext(options.project);
+    const launchedEngine = markdownEngineDiscovery.launch(context);
+    return launchedEngine.execute(options);
+  },
+
+  dependencies: (options: DependenciesOptions) => {
+    const context = engineProjectContext({} as ProjectContext);
+    const launchedEngine = markdownEngineDiscovery.launch(context);
+    return launchedEngine.dependencies(options);
+  },
+
+  postprocess: (options: PostProcessOptions) => {
+    const context = engineProjectContext({} as ProjectContext);
+    const launchedEngine = markdownEngineDiscovery.launch(context);
+    return launchedEngine.postprocess(options);
+  }
+});
 
 export function registerExecutionEngine(engine: ExecutionEngine) {
   if (kEngines.has(engine.name)) {
@@ -243,7 +298,6 @@ export async function fileExecutionEngine(
 export async function fileExecutionEngineAndTarget(
   file: string,
   flags: RenderFlags | undefined,
-  // markdown: MappedString | undefined,
   project: ProjectContext,
 ) {
   const cached = ensureFileInformationCache(project, file);
@@ -251,21 +305,31 @@ export async function fileExecutionEngineAndTarget(
     return { engine: cached.engine, target: cached.target };
   }
 
-  const engine = await fileExecutionEngine(file, flags, project);
-  if (!engine) {
+  // Get the discovery engine
+  const discoveryEngine = await fileExecutionEngine(file, flags, project);
+  if (!discoveryEngine) {
     throw new Error("Can't determine execution engine for " + file);
   }
-  const markdown = await project.resolveFullMarkdownForFile(engine, file);
 
-  const target = await engine.target(file, flags?.quiet, markdown, project);
+  // Create engine project context
+  const context = engineProjectContext(project);
+
+  // Launch the engine (using adapter for legacy engines or direct launch for markdownEngine)
+  const launchedEngine = discoveryEngine.name === markdownEngineDiscovery.name
+    ? markdownEngineDiscovery.launch(context)
+    : asLaunchedEngine(discoveryEngine, context);
+
+  const markdown = await project.resolveFullMarkdownForFile(discoveryEngine, file);
+  const target = await launchedEngine.target(file, flags?.quiet, markdown);
   if (!target) {
     throw new Error("Can't determine execution target for " + file);
   }
 
-  cached.engine = engine;
+  // Cache the LaunchedExecutionEngine
+  cached.engine = launchedEngine;
   cached.target = target;
-  const result = { engine, target };
-  return result;
+
+  return { engine: launchedEngine, target };
 }
 
 export function engineIgnoreDirs() {

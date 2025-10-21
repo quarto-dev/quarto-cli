@@ -14,7 +14,7 @@ import {
 } from "../core/brand/brand.ts";
 import { MappedString } from "../core/mapped-text.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
-import { ExecutionEngine, ExecutionTarget } from "../execute/types.ts";
+import { ExecutionTarget, LaunchedExecutionEngine } from "../execute/types.ts";
 import { InspectedMdCell } from "../inspect/inspect-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import {
@@ -58,7 +58,7 @@ export type FileInformation = {
   fullMarkdown?: MappedString;
   includeMap?: FileInclusion[];
   codeCells?: InspectedMdCell[];
-  engine?: ExecutionEngine;
+  engine?: LaunchedExecutionEngine;
   target?: ExecutionTarget;
   metadata?: Metadata;
   brand?: LightDarkBrandDarkFlag;
