@@ -203,7 +203,6 @@ export async function renderExecute(
           context.engine.executeTargetSkipped(
             context.target,
             context.format,
-            context.project,
           );
         }
 

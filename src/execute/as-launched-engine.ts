@@ -13,9 +13,9 @@ import {
   ExecutionTarget,
   LaunchedExecutionEngine,
   PostProcessOptions,
-  RenderResultFile,
   RunOptions,
 } from "./types.ts";
+import { RenderResultFile } from "../command/render/types.ts";
 import { EngineProjectContext } from "../project/types.ts";
 import { Format } from "../config/types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
@@ -42,6 +42,9 @@ export function asLaunchedEngine(
   }
 
   return {
+    name: engine.name,
+    canFreeze: engine.canFreeze,
+
     /**
      * Read file and convert to markdown with source mapping
      */

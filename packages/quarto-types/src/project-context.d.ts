@@ -33,6 +33,11 @@ export interface FileInformation {
    * The execution target for this file
    */
   target?: import('./execution-engine').ExecutionTarget;
+
+  /**
+   * Document metadata
+   */
+  metadata?: import('./metadata-types').Metadata;
 }
 
 /**
