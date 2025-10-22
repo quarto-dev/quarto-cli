@@ -58,52 +58,15 @@ export function executionEngine(name: string) {
 // Register the standard engines
 registerExecutionEngine(knitrEngine);
 registerExecutionEngine(jupyterEngine);
+
+// Register markdownEngine using Object.assign to add _discovery flag
+registerExecutionEngine(Object.assign(
+  markdownEngineDiscovery as unknown as ExecutionEngine,
+  { _discovery: true }
+));
+
+// Register juliaEngine (moved after markdown)
 registerExecutionEngine(juliaEngine);
-
-// Register markdownEngine using the new discovery/launch pattern
-registerExecutionEngine({
-  ...markdownEngineDiscovery,
-
-  // Legacy methods for backward compatibility
-  markdownForFile: (file: string) => {
-    const context = engineProjectContext({} as ProjectContext);
-    const launchedEngine = markdownEngineDiscovery.launch(context);
-    return launchedEngine.markdownForFile(file);
-  },
-
-  target: (file: string, quiet?: boolean, markdown?: MappedString, project?: ProjectContext) => {
-    if (!project) {
-      throw new Error("Project context required for markdownEngine.target");
-    }
-    const context = engineProjectContext(project);
-    const launchedEngine = markdownEngineDiscovery.launch(context);
-    return launchedEngine.target(file, quiet, markdown);
-  },
-
-  partitionedMarkdown: (file: string) => {
-    const context = engineProjectContext({} as ProjectContext);
-    const launchedEngine = markdownEngineDiscovery.launch(context);
-    return launchedEngine.partitionedMarkdown(file);
-  },
-
-  execute: (options: ExecuteOptions) => {
-    const context = engineProjectContext(options.project);
-    const launchedEngine = markdownEngineDiscovery.launch(context);
-    return launchedEngine.execute(options);
-  },
-
-  dependencies: (options: DependenciesOptions) => {
-    const context = engineProjectContext({} as ProjectContext);
-    const launchedEngine = markdownEngineDiscovery.launch(context);
-    return launchedEngine.dependencies(options);
-  },
-
-  postprocess: (options: PostProcessOptions) => {
-    const context = engineProjectContext({} as ProjectContext);
-    const launchedEngine = markdownEngineDiscovery.launch(context);
-    return launchedEngine.postprocess(options);
-  }
-});
 
 export function registerExecutionEngine(engine: ExecutionEngine) {
   if (kEngines.has(engine.name)) {
