@@ -26,7 +26,7 @@ import {
   projectResolveBrand,
   projectResolveFullMarkdownForFile,
 } from "../../project-shared.ts";
-import { ExecutionEngine } from "../../../execute/types.ts";
+import { LaunchedExecutionEngine } from "../../../execute/types.ts";
 import { createProjectCache } from "../../../core/cache/cache.ts";
 import { globalTempContext } from "../../../core/temp.ts";
 import { once } from "../../../core/once.ts";
@@ -62,7 +62,7 @@ export async function singleFileProjectContext(
       );
     },
     resolveFullMarkdownForFile: (
-      engine: ExecutionEngine | undefined,
+      engine: LaunchedExecutionEngine | undefined,
       file: string,
       markdown?: MappedString,
       force?: boolean,
