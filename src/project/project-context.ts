@@ -64,7 +64,7 @@ import {
   fileExecutionEngineAndTarget,
   projectIgnoreGlobs,
 } from "../execute/engine.ts";
-import { ExecutionEngine, kMarkdownEngine } from "../execute/types.ts";
+import { kMarkdownEngine, LaunchedExecutionEngine } from "../execute/types.ts";
 
 import { projectResourceFiles } from "./project-resources.ts";
 
@@ -315,7 +315,7 @@ export async function projectContext(
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
           resolveFullMarkdownForFile: (
-            engine: ExecutionEngine | undefined,
+            engine: LaunchedExecutionEngine | undefined,
             file: string,
             markdown?: MappedString,
             force?: boolean,
@@ -411,7 +411,7 @@ export async function projectContext(
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
           resolveFullMarkdownForFile: (
-            engine: ExecutionEngine | undefined,
+            engine: LaunchedExecutionEngine | undefined,
             file: string,
             markdown?: MappedString,
             force?: boolean,
@@ -486,7 +486,7 @@ export async function projectContext(
             resolveBrand: async (fileName?: string) =>
               projectResolveBrand(context, fileName),
             resolveFullMarkdownForFile: (
-              engine: ExecutionEngine | undefined,
+              engine: LaunchedExecutionEngine | undefined,
               file: string,
               markdown?: MappedString,
               force?: boolean,
