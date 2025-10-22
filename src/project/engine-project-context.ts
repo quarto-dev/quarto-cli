@@ -14,7 +14,7 @@ import {
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { readYamlFromMarkdown } from "../core/yaml.ts";
-import { ExecutionEngine } from "../execute/types.ts";
+import { LaunchedExecutionEngine } from "../execute/types.ts";
 import { languagesInMarkdown } from "../execute/engine-shared.ts";
 import { projectOutputDir } from "./project-shared.ts";
 import {
@@ -33,13 +33,13 @@ import {
 export function engineProjectContext(
   context: ProjectContext,
 ): EngineProjectContext {
-  return {
+  const project: EngineProjectContext = {
     // Core properties
     dir: context.dir,
     isSingleFile: context.isSingleFile,
     config: context.config
       ? {
-        engines: context.config.engines,
+        engines: context.config.engines as string[] | undefined,
         project: context.config.project
           ? {
             "output-dir": context.config.project["output-dir"],
@@ -49,9 +49,6 @@ export function engineProjectContext(
       : undefined,
     fileInformationCache: context.fileInformationCache,
 
-    // Hidden property for adapter access to full ProjectContext
-    _project: context,
-
     // Path utilities
     getOutputDirectory: () => {
       return projectOutputDir(context);
@@ -59,7 +56,7 @@ export function engineProjectContext(
 
     // Core methods
     resolveFullMarkdownForFile: (
-      engine: ExecutionEngine | undefined,
+      engine: LaunchedExecutionEngine | undefined,
       file: string,
       markdown?: MappedString,
       force?: boolean,
@@ -92,6 +89,11 @@ export function engineProjectContext(
       return mappedStringFromFile(path);
     },
   };
+
+  // Add hidden property for adapter access to full ProjectContext
+  return Object.assign(project, {
+    _project: context,
+  });
 }
 
 /**

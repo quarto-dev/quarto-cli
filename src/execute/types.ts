@@ -51,6 +51,9 @@ export interface ExecutionEngineDiscovery {
  * Used after a file has been assigned to an engine
  */
 export interface LaunchedExecutionEngine {
+  name: string;
+  canFreeze: boolean;
+
   markdownForFile(file: string): Promise<MappedString>;
 
   target: (
@@ -225,7 +228,7 @@ export interface DependenciesResult {
 
 // post processing options
 export interface PostProcessOptions {
-  engine: ExecutionEngine;
+  engine: LaunchedExecutionEngine;
   target: ExecutionTarget;
   format: Format;
   output: string;

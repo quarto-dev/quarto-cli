@@ -44,6 +44,9 @@ export const markdownEngineDiscovery: ExecutionEngineDiscovery = {
    */
   launch: (context: EngineProjectContext): LaunchedExecutionEngine => {
     return {
+      name: markdownEngineDiscovery.name,
+      canFreeze: markdownEngineDiscovery.canFreeze,
+
       markdownForFile(file: string): Promise<MappedString> {
         return Promise.resolve(context.mappedStringFromFile(file));
       },

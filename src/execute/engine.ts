@@ -26,6 +26,7 @@ import {
   ExecuteOptions,
   ExecutionEngine,
   ExecutionEngineDiscovery,
+  ExecutionTarget,
   LaunchedExecutionEngine,
   PostProcessOptions,
   kQmdExtensions
@@ -123,7 +124,7 @@ export function executionEngineKeepMd(context: RenderContext) {
 
 // for the project crawl
 export function executionEngineIntermediateFiles(
-  engine: ExecutionEngine,
+  engine: LaunchedExecutionEngine,
   input: string,
 ) {
   // all files of the form e.g. .html.md or -html.md are interemediate
@@ -153,10 +154,11 @@ export function engineValidExtensions(): string[] {
 }
 
 export function markdownExecutionEngine(
+  project: ProjectContext,
   markdown: string,
   reorderedEngines: Map<string, ExecutionEngine>,
   flags?: RenderFlags,
-) {
+): LaunchedExecutionEngine {
   // read yaml and see if the engine is declared in yaml
   // (note that if the file were a non text-file like ipynb
   //  it would have already been claimed via extension)
@@ -168,11 +170,11 @@ export function markdownExecutionEngine(
       yaml = mergeConfigs(yaml, flags?.metadata);
       for (const [_, engine] of reorderedEngines) {
         if (yaml[engine.name]) {
-          return engine;
+          return asLaunchedEngine(engine, engineProjectContext(project));
         }
         const format = metadataAsFormat(yaml);
         if (format.execute?.[kEngine] === engine.name) {
-          return engine;
+          return asLaunchedEngine(engine, engineProjectContext(project));
         }
       }
     }
@@ -185,7 +187,7 @@ export function markdownExecutionEngine(
   for (const language of languages) {
     for (const [_, engine] of reorderedEngines) {
       if (engine.claimsLanguage(language)) {
-        return engine;
+        return asLaunchedEngine(engine, engineProjectContext(project));
       }
     }
   }
@@ -194,13 +196,13 @@ export function markdownExecutionEngine(
   // if there is a non-cell handler language then this must be jupyter
   for (const language of languages) {
     if (language !== "ojs" && !handlerLanguagesVal.includes(language)) {
-      return jupyterEngine;
+      return asLaunchedEngine(jupyterEngine, engineProjectContext(project));
     }
   }
 
   // if there is no computational engine discovered then bind
   // to the markdown engine;
-  return markdownEngine;
+  return markdownEngineDiscovery.launch(engineProjectContext(project));
 }
 
 async function reorderEngines(project: ProjectContext) {
@@ -250,7 +252,7 @@ export async function fileExecutionEngine(
   file: string,
   flags: RenderFlags | undefined,
   project: ProjectContext,
-) {
+): Promise<LaunchedExecutionEngine | undefined> {
   // get the extension and validate that it can be handled by at least one of our engines
   const ext = extname(file).toLowerCase();
   if (
@@ -266,7 +268,7 @@ export async function fileExecutionEngine(
   // try to find an engine that claims this extension outright
   for (const [_, engine] of reorderedEngines) {
     if (engine.claimsFile(file, ext)) {
-      return engine;
+      return asLaunchedEngine(engine, engineProjectContext(project));
     }
   }
 
@@ -279,6 +281,7 @@ export async function fileExecutionEngine(
     // with the filename so that the user knows which file is the problem.
     try {
       return markdownExecutionEngine(
+        project,
         markdown ? markdown.value : Deno.readTextFileSync(file),
         reorderedEngines,
         flags,
@@ -299,37 +302,29 @@ export async function fileExecutionEngineAndTarget(
   file: string,
   flags: RenderFlags | undefined,
   project: ProjectContext,
-) {
+): Promise<{ engine: LaunchedExecutionEngine; target: ExecutionTarget }> {
   const cached = ensureFileInformationCache(project, file);
   if (cached && cached.engine && cached.target) {
     return { engine: cached.engine, target: cached.target };
   }
 
-  // Get the discovery engine
-  const discoveryEngine = await fileExecutionEngine(file, flags, project);
-  if (!discoveryEngine) {
+  // Get the launched engine
+  const engine = await fileExecutionEngine(file, flags, project);
+  if (!engine) {
     throw new Error("Can't determine execution engine for " + file);
   }
 
-  // Create engine project context
-  const context = engineProjectContext(project);
-
-  // Launch the engine (using adapter for legacy engines or direct launch for markdownEngine)
-  const launchedEngine = discoveryEngine.name === markdownEngineDiscovery.name
-    ? markdownEngineDiscovery.launch(context)
-    : asLaunchedEngine(discoveryEngine, context);
-
-  const markdown = await project.resolveFullMarkdownForFile(discoveryEngine, file);
-  const target = await launchedEngine.target(file, flags?.quiet, markdown);
+  const markdown = await project.resolveFullMarkdownForFile(engine, file);
+  const target = await engine.target(file, flags?.quiet, markdown);
   if (!target) {
     throw new Error("Can't determine execution target for " + file);
   }
 
   // Cache the LaunchedExecutionEngine
-  cached.engine = launchedEngine;
+  cached.engine = engine;
   cached.target = target;
 
-  return { engine: launchedEngine, target };
+  return { engine, target };
 }
 
 export function engineIgnoreDirs() {
