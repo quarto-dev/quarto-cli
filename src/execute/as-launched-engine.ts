@@ -10,6 +10,7 @@ import {
   ExecuteOptions,
   ExecuteResult,
   ExecutionEngine,
+  ExecutionEngineDiscovery,
   ExecutionTarget,
   LaunchedExecutionEngine,
   PostProcessOptions,
@@ -34,6 +35,12 @@ export function asLaunchedEngine(
   engine: ExecutionEngine,
   context: EngineProjectContext
 ): LaunchedExecutionEngine {
+  // Check if the engine is actually a discovery engine with the _discovery flag
+  if ((engine as any)._discovery === true) {
+    // Cast to ExecutionEngineDiscovery and call launch()
+    return (engine as unknown as ExecutionEngineDiscovery).launch(context);
+  }
+
   // Access the hidden _project property via type cast
   const project = (context as any)._project as ProjectContext;
 
