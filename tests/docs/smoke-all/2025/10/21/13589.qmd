@@ -1,0 +1,38 @@
+---
+title: "Callout with invalid ID prefix (#13589)"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Should render as plain callout with body parameter
+          - '#callout\(\s*body:'
+        -
+          # Should NOT be wrapped in figure+block structure
+          - '#figure\(\[(\r\n?|\n)#block\[(\r\n?|\n)#callout'
+      printsMessage:
+        level: INFO
+        regex: 'WARNING(.*)Callout ID ''random-id'' has unknown reference type ''random'''
+      noErrors: true
+---
+
+## Test callout with invalid crossref ID
+
+This tests the fix for issue #13589: callouts with invalid ID prefixes
+(not matching any known crossref category) should render with a warning
+instead of crashing with "attempt to index a nil value".
+
+::: {#random-id .callout-note}
+
+## Note with invalid ID
+
+This callout uses `#random-id` with unknown prefix "random".
+
+Valid prefixes are: fig, tbl, lst, nte, wrn, cau, tip, imp, prf, rem, sol.
+
+Expected behavior: renders as plain callout (no figure wrapping) with warning.
+
+:::
