@@ -276,7 +276,7 @@ function _callout_main()
       end
     end
     if callout.attr.identifier == "" then
-      return _quarto.format.typst.function_call("callout", { 
+      return _quarto.format.typst.function_call("callout", {
         { "body", _quarto.format.typst.as_typst_content(callout.content) },
         { "title", _quarto.format.typst.as_typst_content(
           (not quarto.utils.is_empty_node(callout.title) and callout.title) or
@@ -284,18 +284,18 @@ function _callout_main()
         )},
         { "background_color", pandoc.RawInline("typst", background_color) },
         { "icon_color", pandoc.RawInline("typst", icon_color) },
-        { "icon", pandoc.RawInline("typst", "" .. icon .. "()")},
+        { "icon", pandoc.RawInline("typst", callout.icon == false and "none" or ("" .. icon .. "()"))},
         { "body_background_color", pandoc.RawInline("typst", body_background_color)}
       })
     end
 
-    local typst_callout = _quarto.format.typst.function_call("callout", { 
+    local typst_callout = _quarto.format.typst.function_call("callout", {
       { "body", _quarto.format.typst.as_typst_content(callout.content) },
       { "title", _quarto.format.typst.as_typst_content(callout.title, "inlines")
        },
       { "background_color", pandoc.RawInline("typst", background_color) },
       { "icon_color", pandoc.RawInline("typst", icon_color) },
-      { "icon", pandoc.RawInline("typst", "" .. icon .. "()")},
+      { "icon", pandoc.RawInline("typst", callout.icon == false and "none" or ("" .. icon .. "()"))},
       { "body_background_color", pandoc.RawInline("typst", body_background_color)}
     })
 
