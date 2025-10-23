@@ -1,0 +1,43 @@
+---
+title: "Callout with title but no body (#13603)"
+format: gfm
+_quarto:
+  tests:
+    gfm:
+      ensureFileRegexMatches:
+        -
+          # Should render both callouts with proper GFM structure
+          - '\[!TIP\]'
+          - '\[!NOTE\]'
+          # Both should be in blockquotes with titles
+          - '>\s*###\s*Title Only'
+          - '>\s*###\s*With Body'
+          # The second callout should have content
+          - '>\s*Content here'
+        - []
+      noErrors: true
+---
+
+## Test callout with title but no body
+
+This tests the fix for issue #13603: callouts with a title but no body content
+should render to GitHub Flavored Markdown without crashing.
+
+The issue occurred because the GFM renderer didn't handle the case where
+`callout.content` is nil/empty.
+
+::: {.callout-tip}
+
+## Title Only
+
+:::
+
+## Callout with title and body (for comparison)
+
+::: {.callout-note}
+
+## With Body
+
+Content here.
+
+:::

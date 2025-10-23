@@ -207,11 +207,12 @@ function _callout_main()
     if tt ~= "nil" then 
       result:insert(pandoc.Header(3, quarto.utils.as_inlines(callout.title)))
     end
-    local ct = pandoc.utils.type(callout.content)
+    local content = callout.content or pandoc.Blocks({})
+    local ct = pandoc.utils.type(content)
     if ct == "Block" then
-      result:insert(callout.content)
+      result:insert(content)
     elseif ct == "Blocks" then
-      result:extend(callout.content)
+      result:extend(content)
     else
       internal_error()
     end
