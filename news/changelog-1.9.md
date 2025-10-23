@@ -11,6 +11,7 @@ All changes included in 1.9:
 
 - Update `esbuild` to 0.25.10
 - Update `deno` to 2.4.5
+- Update `mermaid` to 11.12.0
 
 ## Formats
 
