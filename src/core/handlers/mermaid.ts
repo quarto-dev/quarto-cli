@@ -329,7 +329,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
           svg,
           options,
           undefined,
-          new Set(["fig-width", "fig-height", "mermaid-format"]),
+          new Set([kFigWidth, kFigHeight, kMermaidFormat]),
         );
       }
     };
@@ -370,7 +370,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
           )),
           options,
           undefined,
-          new Set(["fig-width", "fig-height", "mermaid-format"]),
+          new Set([kFigWidth, kFigHeight, kMermaidFormat]),
         );
       }
     };
@@ -414,7 +414,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
         ]),
         options,
         attrs,
-        new Set(["mermaid-format"]),
+        new Set([kMermaidFormat]),
       );
     };
 
