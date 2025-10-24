@@ -155,7 +155,7 @@ website:
 };
 
 export type ExternalEngine = {
-  url: string; /* URL to the TypeScript module for the execution engine */
+  path: string; /* Path to the TypeScript module for the execution engine */
 }; /* An execution engine not pre-loaded in Quarto */
 
 export type DocumentCommentsConfiguration = false | {

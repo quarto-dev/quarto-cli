@@ -8730,14 +8730,14 @@ var require_yaml_intelligence_resources = __commonJS({
             object: {
               closed: true,
               properties: {
-                url: {
-                  string: {
-                    description: "URL to the TypeScript module for the execution engine"
+                path: {
+                  path: {
+                    description: "Path to the TypeScript module for the execution engine"
                   }
                 }
               },
               required: [
-                "url"
+                "path"
               ]
             },
             description: "An execution engine not pre-loaded in Quarto"
@@ -20159,6 +20159,16 @@ var require_yaml_intelligence_resources = __commonJS({
                 },
                 formats: {
                   schema: "object"
+                },
+                engines: {
+                  arrayOf: {
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "external-engine"
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -21368,8 +21378,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Alias for href",
         "Link to file contained with the project or external URL",
         {
-          short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>)",
-          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+          short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>)",
+          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
         },
         "Text to display for item (defaults to the document title if not\nprovided)",
         "Alias for href",
@@ -21405,6 +21415,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name.",
         "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
+        "An execution engine not pre-loaded in Quarto",
+        "URL to the TypeScript module for the execution engine",
         "The Github repo that will be used to store comments.",
         "The label that will be assigned to issues created by Utterances.",
         {
@@ -24774,9 +24786,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        "An execution engine not pre-loaded in Quarto",
-        "URL to the TypeScript module for the execution engine"
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
       ],
       "schema/external-schemas.yml": [
         {
@@ -25005,12 +25015,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197504,
+        _internalId: 197523,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197496,
+            _internalId: 197515,
             type: "enum",
             enum: [
               "png",
@@ -25026,7 +25036,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197503,
+            _internalId: 197522,
             type: "anyOf",
             anyOf: [
               {

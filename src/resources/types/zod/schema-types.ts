@@ -135,8 +135,8 @@ export const ZodGiscusConfiguration = z.object({
   language: z.string(),
 }).strict().partial().required({ repo: true });
 
-export const ZodExternalEngine = z.object({ url: z.string() }).strict()
-  .partial().required({ url: true });
+export const ZodExternalEngine = z.object({ path: z.string() }).strict()
+  .partial().required({ path: true });
 
 export const ZodDocumentCommentsConfiguration = z.union([
   z.literal(false),
