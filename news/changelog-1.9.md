@@ -17,6 +17,7 @@ All changes included in 1.9:
 ### `gfm`
 
 - ([#13421](https://github.com/quarto-dev/quarto-cli/issues/13421)): Do not word-wrap titles in header.
+- ([#13603](https://github.com/quarto-dev/quarto-cli/issues/13603)): Fix callouts with title but no body content causing fatal error when rendering to GitHub Flavored Markdown.
 
 ### `html`
 
