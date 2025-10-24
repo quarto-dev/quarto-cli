@@ -96,7 +96,6 @@ import { ConcreteSchema } from "../core/lib/yaml-schema/types.ts";
 import { ExtensionContext } from "../extension/types.ts";
 import { asArray } from "../core/array.ts";
 import { renderFormats } from "../command/render/render-contexts.ts";
-import { debug } from "../deno_ral/log.ts";
 import { computeProjectEnvironment } from "./project-environment.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
@@ -108,6 +107,7 @@ import { createTempContext } from "../core/temp.ts";
 import { onCleanup } from "../core/cleanup.ts";
 import { once } from "../core/once.ts";
 import { Zod } from "../resources/types/zod/schema-types.ts";
+import { ExternalEngine } from "../resources/types/schema-types.ts";
 
 const mergeExtensionMetadata = async (
   context: ProjectContext,
@@ -122,6 +122,7 @@ const mergeExtensionMetadata = async (
       context.isSingleFile ? undefined : context.dir,
       { builtIn: false },
     );
+    // Handle project metadata extensions
     const projectMetadata = extensions.filter((extension) =>
       extension.contributes.metadata?.project
     ).map((extension) => {
@@ -211,6 +212,15 @@ export async function projectContext(
         );
         const metadata = includedMeta.metadata;
         projectConfig = mergeProjectMetadata(projectConfig, metadata);
+      }
+
+      // Process engine extensions
+      if (extensionContext) {
+        projectConfig = await resolveEngineExtensions(
+          extensionContext,
+          projectConfig,
+          dir
+        );
       }
 
       // collect then merge configuration profiles
@@ -381,7 +391,6 @@ export async function projectContext(
           return undefined;
         }
 
-        debug(`projectContext: Found Quarto project in ${dir}`);
 
         if (type.formatExtras) {
           result.formatExtras = async (
@@ -400,7 +409,6 @@ export async function projectContext(
         };
         return await returnResult(result);
       } else {
-        debug(`projectContext: Found Quarto project in ${dir}`);
         const temp = createTempContext({
           dir: join(dir, ".quarto"),
           prefix: "quarto-session-temp",
@@ -544,7 +552,6 @@ export async function projectContext(
             context.engines = [engine?.name ?? kMarkdownEngine];
             context.files.input = [input];
           }
-          debug(`projectContext: Found Quarto project in ${originalDir}`);
           return await returnResult(context);
         } else {
           return undefined;
@@ -717,6 +724,44 @@ async function resolveProjectExtension(
       );
     }
   }
+  return projectConfig;
+}
+
+async function resolveEngineExtensions(
+  context: ExtensionContext,
+  projectConfig: ProjectConfig,
+  dir: string,
+) {
+  // Find all extensions that contribute engines
+  const extensions = await context.extensions(
+    undefined,
+    projectConfig,
+    dir,
+    { builtIn: false },
+  );
+
+  // Filter to only those with engines
+  const engineExtensions = extensions.filter((extension) =>
+    extension.contributes.engines !== undefined &&
+    extension.contributes.engines.length > 0
+  );
+
+  if (engineExtensions.length > 0) {
+    // Initialize engines array if needed
+    if (!projectConfig.engines) {
+      projectConfig.engines = [];
+    }
+
+    const existingEngines = projectConfig.engines as (string | ExternalEngine)[];
+
+    // Extract and merge engines
+    const extensionEngines = engineExtensions
+      .map((extension) => extension.contributes.engines)
+      .flat();
+
+    projectConfig.engines = [...existingEngines, ...extensionEngines];
+  }
+
   return projectConfig;
 }
 

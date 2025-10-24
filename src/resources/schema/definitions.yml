@@ -292,10 +292,10 @@
     object:
       closed: true
       properties:
-        url:
-          string:
-            description: URL to the TypeScript module for the execution engine
-      required: [url]
+        path:
+          path:
+            description: Path to the TypeScript module for the execution engine
+      required: [path]
     description: An execution engine not pre-loaded in Quarto
 
 - id: document-comments-configuration
