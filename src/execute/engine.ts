@@ -174,15 +174,22 @@ async function reorderEngines(project: ProjectContext) {
     | (string | ExternalEngine)[]
     | undefined;
 
+
   for (const engine of projectEngines ?? []) {
     if (typeof engine === "object") {
-      const extEngine = (await import(engine.url)).default as ExecutionEngine;
-      userSpecifiedOrder.push(extEngine.name);
-      kEngines.set(extEngine.name, extEngine);
+      try {
+        const extEngine = (await import(engine.path)).default as ExecutionEngine;
+        userSpecifiedOrder.push(extEngine.name);
+        kEngines.set(extEngine.name, extEngine);
+      } catch (err: any) {
+        // Throw error for engine import failures as this is a serious configuration issue
+        throw new Error(`Failed to import engine from ${engine.path}: ${err.message || 'Unknown error'}`);
+      }
     } else {
       userSpecifiedOrder.push(engine);
     }
   }
+
 
   for (const key of userSpecifiedOrder) {
     if (!kEngines.has(key)) {
