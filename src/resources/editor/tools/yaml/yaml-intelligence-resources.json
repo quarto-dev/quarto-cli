@@ -1702,14 +1702,14 @@
         "object": {
           "closed": true,
           "properties": {
-            "url": {
-              "string": {
-                "description": "URL to the TypeScript module for the execution engine"
+            "path": {
+              "path": {
+                "description": "Path to the TypeScript module for the execution engine"
               }
             }
           },
           "required": [
-            "url"
+            "path"
           ]
         },
         "description": "An execution engine not pre-loaded in Quarto"
@@ -13131,6 +13131,16 @@
             },
             "formats": {
               "schema": "object"
+            },
+            "engines": {
+              "arrayOf": {
+                "anyOf": [
+                  "string",
+                  {
+                    "ref": "external-engine"
+                  }
+                ]
+              }
             }
           }
         }
@@ -14340,8 +14350,8 @@
     "Alias for href",
     "Link to file contained with the project or external URL",
     {
-      "short": "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>)",
-      "long": "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href=\"https://icons.getbootstrap.com/\" class=\"uri\">https://icons.getbootstrap.com/</a> for a list of available\nicons"
+      "short": "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>)",
+      "long": "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>) See <a href=\"https://icons.getbootstrap.com/\" class=\"uri\">https://icons.getbootstrap.com/</a> for a list of available\nicons"
     },
     "Text to display for item (defaults to the document title if not\nprovided)",
     "Alias for href",
@@ -14377,6 +14387,8 @@
     "The light theme name.",
     "The dark theme name.",
     "The language that should be used when displaying the commenting\ninterface.",
+    "An execution engine not pre-loaded in Quarto",
+    "URL to the TypeScript module for the execution engine",
     "The Github repo that will be used to store comments.",
     "The label that will be assigned to issues created by Utterances.",
     {
@@ -17746,9 +17758,7 @@
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "Manuscript configuration",
     "internal-schema-hack",
-    "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’.",
-    "An execution engine not pre-loaded in Quarto",
-    "URL to the TypeScript module for the execution engine"
+    "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’."
   ],
   "schema/external-schemas.yml": [
     {
@@ -17977,12 +17987,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 197504,
+    "_internalId": 197523,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 197496,
+        "_internalId": 197515,
         "type": "enum",
         "enum": [
           "png",
@@ -17998,7 +18008,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 197503,
+        "_internalId": 197522,
         "type": "anyOf",
         "anyOf": [
           {
