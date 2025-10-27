@@ -42,29 +42,55 @@ jobs:
           if [ -f .cache/regex.json ]; then
             if git diff --no-index --quiet .cache/regex.json regex.json; then
               echo "changed=false" >> $GITHUB_OUTPUT
+              echo "first_run=false" >> $GITHUB_OUTPUT
               echo "✓ No changes detected"
             else
               echo "changed=true" >> $GITHUB_OUTPUT
+              echo "first_run=false" >> $GITHUB_OUTPUT
               echo "✗ Changes detected"
               git diff --no-index .cache/regex.json regex.json > pattern-diff.txt || true
             fi
           else
-            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "first_run=true" >> $GITHUB_OUTPUT
             echo "⚠ No cached version (first run)"
-            echo "First run - no previous version to compare" > pattern-diff.txt
           fi
 
+      - name: Handle first run
+        if: steps.compare.outputs.first_run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Get tinytex commit SHA
+          TINYTEX_COMMIT=$(gh api repos/rstudio/tinytex/commits/main --jq '.sha')
+          TINYTEX_SHORT=$(echo $TINYTEX_COMMIT | cut -c1-7)
+
+          # Count patterns and categories
+          PATTERN_COUNT=$(jq '[.[] | length] | add' regex.json)
+          CATEGORY_COUNT=$(jq 'keys | length' regex.json)
+
+          # Write GitHub Actions summary
+          echo "## TinyTeX Pattern Baseline Established" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Date:** $(date +%Y-%m-%d)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **TinyTeX commit:** [\`$TINYTEX_SHORT\`](https://github.com/rstudio/tinytex/commit/$TINYTEX_COMMIT)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Pattern source:** [R/latex.R](https://github.com/rstudio/tinytex/blob/$TINYTEX_COMMIT/R/latex.R)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Baseline:** $PATTERN_COUNT patterns across $CATEGORY_COUNT categories" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Cache key:** tinytex-regex-latest" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "No issue created (first run - baseline established)." >> "$GITHUB_STEP_SUMMARY"
+
+          # Prepare cache directory
+          mkdir -p .cache
+          cp regex.json .cache/regex.json
+
+          echo "✓ Baseline established - cache will be saved"
+
       - name: Exit if unchanged
-        if: steps.compare.outputs.changed == 'false'
+        if: steps.compare.outputs.changed == 'false' && steps.compare.outputs.first_run == 'false'
         run: |
           echo "No pattern changes detected. Cache hit - exiting."
           exit 0
-
-      - name: Prepare cache directory
-        if: steps.compare.outputs.changed == 'true'
-        run: |
-          mkdir -p .cache
-          cp regex.json .cache/regex.json
 
       - name: Prepare readable diff
         if: steps.compare.outputs.changed == 'true'
@@ -116,8 +142,15 @@ jobs:
             gh issue comment "$ISSUE_NUM" --body-file comment-body.md
           fi
 
-      - name: Save new cache
+      - name: Update cache with new patterns
         if: steps.compare.outputs.changed == 'true'
+        run: |
+          mkdir -p .cache
+          cp regex.json .cache/regex.json
+          echo "✓ Cache updated with new patterns"
+
+      - name: Save new cache
+        if: steps.compare.outputs.changed == 'true' || steps.compare.outputs.first_run == 'true'
         uses: actions/cache/save@v4
         with:
           path: .cache/regex.json
@@ -126,7 +159,9 @@ jobs:
       - name: Summary
         if: always()
         run: |
-          if [ "${{ steps.compare.outputs.changed }}" == "true" ]; then
+          if [ "${{ steps.compare.outputs.first_run }}" == "true" ]; then
+            echo "✓ Baseline established - cache created"
+          elif [ "${{ steps.compare.outputs.changed }}" == "true" ]; then
             echo "✗ Pattern changes detected - issue created/updated"
           else
             echo "✓ No pattern changes - cache hit"
