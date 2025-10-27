@@ -52,24 +52,16 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
 
   // Additional test cases from tinytex R package examples (latex.R lines 537-607)
   // https://github.com/rstudio/tinytex/blob/e96be3143b9af07768a124215b5fb5a1e6d183d3/R/latex.R#L538-L558
-  // xdvipdfmx variant of TFM error
   assertFound('xdvipdfmx:fatal: Unable to find TFM file "rsfs10"', fontSearchTerm("rsfs10"));
-  // biblatex bibliography style file
   assertFound("Package biblatex Info: ... file 'trad-abbrv.bbx' not found", "trad-abbrv.bbx");
-  // epstopdf - eps-converted-to.pdf pattern
   assertFound("! Package pdftex.def Error: File `logo-mdpi-eps-converted-to.pdf' not found", "epstopdf");
-  // epstopdf - pdf_ref_obj pattern
   assertFound("! xdvipdfmx:fatal: pdf_ref_obj(): passed invalid object.", "epstopdf");
-  // tikz library with error context
   assertFound(
     "! Package tikz Error: I did not find the tikz library 'hobby'. This error message was issued because the library or one of its sublibraries could not be found, probably because of a misspelling. Processed options: \"library={hobby}\". The possibly misspelled library name is \"hobby\". The library name should be one of the following (or you misspelled it): named tikzlibraryhobby.code.tex",
     "tikzlibraryhobby.code.tex"
   );
-  // support file missing
   assertFound("support file `supp-pdf.mkii' (supp-pdf.tex) is missing", "supp-pdf.mkii");
-  // pdfx color profile error
   assertFound("! Package pdfx Error: No color profile sRGB_IEC61966-2-1_black_scaled.icc found", "colorprofiles.sty");
-  // font definition file (converted to lowercase)
   assertFound("No file LGRcmr.fd. ! LaTeX Error: This NFSS system isn't set up properly.", "lgrcmr.fd");
 },{
   cwd: () => "unit/latexmk/"
