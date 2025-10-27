@@ -267,6 +267,12 @@ const packageMatchers = [
       return "lua-uni-algos.lua";
     },
   },
+  {
+    regex: /.* Package pdfx Error: No color profile ([^\s]*).*/g,
+    filter: (_match: string, _text: string) => {
+      return "colorprofiles.sty";
+    },
+  },
   { regex: /.* Loading '([^']+)' aborted!.*/g },
   { regex: /.*! LaTeX Error: File `([^']+)' not found.*/g },
   { regex: /.* [fF]ile ['`]?([^' ]+)'? not found.*/g },

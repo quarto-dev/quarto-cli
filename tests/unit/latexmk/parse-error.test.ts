@@ -67,11 +67,12 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
   );
   // support file missing
   assertFound("support file `supp-pdf.mkii' (supp-pdf.tex) is missing", "supp-pdf.mkii");
+  // pdfx color profile error
+  assertFound("! Package pdfx Error: No color profile sRGB_IEC61966-2-1_black_scaled.icc found", "colorprofiles.sty");
 
-  // Note: The following error types from tinytex are not yet testable because
-  // patterns don't exist in parse-error.ts:
+  // Note: The following error type from tinytex is not yet testable because
+  // the pattern doesn't exist in parse-error.ts:
   // - .fd files: "No file LGRcmr.fd. ! LaTeX Error: This NFSS system isn't set up properly."
-  // - pdfx color profiles: "! Package pdfx Error: No color profile sRGB_IEC61966-2-1_black_scaled.icc found"
 },{
   cwd: () => "unit/latexmk/"
 })
