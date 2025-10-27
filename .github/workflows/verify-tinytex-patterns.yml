@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   issues: write
+  actions: write
 
 jobs:
   verify:
@@ -148,6 +149,14 @@ jobs:
           mkdir -p .cache
           cp regex.json .cache/regex.json
           echo "✓ Cache updated with new patterns"
+
+      - name: Delete old cache
+        if: steps.compare.outputs.changed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh cache delete tinytex-regex-latest || echo "No existing cache to delete"
 
       - name: Save new cache
         if: steps.compare.outputs.changed == 'true' || steps.compare.outputs.first_run == 'true'
