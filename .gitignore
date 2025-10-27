@@ -13,6 +13,7 @@ package/dist/**
 /tests/test-out.json
 *~
 .env
+.private-journal/
 # deno_std library
 src/resources/deno_std/cache
 src/vendor-*
