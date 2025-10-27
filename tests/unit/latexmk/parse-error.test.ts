@@ -48,6 +48,7 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
   assertFound("! Package fontenc Error: Encoding file `t2aenc.def' not found.", "t2aenc.def");
   assertFound("! I can't find file `hyph-de-1901.ec.tex'.", "hyph-de-1901.ec.tex");
   assertFound("luaotfload-features.lua:835: module 'lua-uni-normalize' not found:", "lua-uni-algos.lua");
+  assertFound("! LuaTeX-ja error: File 'jfm-zh_CN.lua' not found.", "jfm-zh_CN.lua");
 },{
   cwd: () => "unit/latexmk/"
 })

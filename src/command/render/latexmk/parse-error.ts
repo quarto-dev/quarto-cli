@@ -269,7 +269,7 @@ const packageMatchers = [
   },
   { regex: /.* Loading '([^']+)' aborted!.*/g },
   { regex: /.*! LaTeX Error: File `([^']+)' not found.*/g },
-  { regex: /.* file ['`]?([^' ]+)'? not found.*/g },
+  { regex: /.* [fF]ile ['`]?([^' ]+)'? not found.*/g },
   { regex: /.*the language definition file ([^\s]*).*/g },
   { regex: /.* \\(file ([^)]+)\\): cannot open .*/g },
   { regex: /.*file `([^']+)' .*is missing.*/g },
