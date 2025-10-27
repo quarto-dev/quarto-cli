@@ -33,6 +33,7 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
   assertFound('(fontspec)                The font "LibertinusSerif-Regular" cannot be', fontSearchTerm("LibertinusSerif-Regular"));
   assertFound('! Font \\JY3/mc/m/n/10=file:HaranoAjiMincho-Regular.otf:-kern;jfm=ujis at 9.24713pt not loadable: metric data not found or bad.', "HaranoAjiMincho-Regular.otf");
   assertFound("! LaTeX Error: File `framed.sty' not found.", "framed.sty");
+  assertFound("! LaTeX Error: File 'framed.sty' not found.", "framed.sty");
   assertFound("/usr/local/bin/mktexpk: line 123: mf: command not found", "mf");
   assertFound("or the language definition file ngerman.ldf was not found", "ngerman.ldf");
   assertFound(`Package babel Error: Unknown option 'ngerman'. Either you misspelled it
@@ -43,10 +44,12 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
     (babel)                to the babel package options.`, "ngerman.ldf")
   assertFound("!pdfTeX error: pdflatex (file 8r.enc): cannot open encoding file for reading", "8r.enc");
   assertFound("! CTeX fontset `fandol' is unavailable in current mode", "fandol");
+  assertFound("! CTeX fontset 'fandol' is unavailable in current mode", "fandol");
   assertFound('Package widetext error: Install the flushend package which is a part of sttools', "flushend.sty");
   assertFound('! Package isodate.sty Error: Package file substr.sty not found.', "substr.sty");
   assertFound("! Package fontenc Error: Encoding file `t2aenc.def' not found.", "t2aenc.def");
   assertFound("! I can't find file `hyph-de-1901.ec.tex'.", "hyph-de-1901.ec.tex");
+  assertFound("! I can't find file 'hyph-de-1901.ec.tex'.", "hyph-de-1901.ec.tex");
   assertFound("luaotfload-features.lua:835: module 'lua-uni-normalize' not found:", "lua-uni-algos.lua");
   assertFound("! LuaTeX-ja error: File 'jfm-zh_CN.lua' not found.", "jfm-zh_CN.lua");
 
@@ -55,12 +58,14 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
   assertFound('xdvipdfmx:fatal: Unable to find TFM file "rsfs10"', fontSearchTerm("rsfs10"));
   assertFound("Package biblatex Info: ... file 'trad-abbrv.bbx' not found", "trad-abbrv.bbx");
   assertFound("! Package pdftex.def Error: File `logo-mdpi-eps-converted-to.pdf' not found", "epstopdf");
+  assertFound("! Package pdftex.def Error: File 'logo-mdpi-eps-converted-to.pdf' not found", "epstopdf");
   assertFound("! xdvipdfmx:fatal: pdf_ref_obj(): passed invalid object.", "epstopdf");
   assertFound(
     "! Package tikz Error: I did not find the tikz library 'hobby'. This error message was issued because the library or one of its sublibraries could not be found, probably because of a misspelling. Processed options: \"library={hobby}\". The possibly misspelled library name is \"hobby\". The library name should be one of the following (or you misspelled it): named tikzlibraryhobby.code.tex",
     "tikzlibraryhobby.code.tex"
   );
   assertFound("support file `supp-pdf.mkii' (supp-pdf.tex) is missing", "supp-pdf.mkii");
+  assertFound("support file 'supp-pdf.mkii' (supp-pdf.tex) is missing", "supp-pdf.mkii");
   assertFound("! Package pdfx Error: No color profile sRGB_IEC61966-2-1_black_scaled.icc found", "colorprofiles.sty");
   assertFound("No file LGRcmr.fd. ! LaTeX Error: This NFSS system isn't set up properly.", "lgrcmr.fd");
 },{
