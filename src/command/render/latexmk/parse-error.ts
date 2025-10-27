@@ -248,7 +248,7 @@ const packageMatchers = [
       return `${match}.sty`;
     },
   },
-  { regex: /.* File `(.+eps-converted-to.pdf)'.*/g, filter: estoPdfFilter },
+  { regex: /.* File [`'](.+eps-converted-to.pdf)'.*/g, filter: estoPdfFilter },
   { regex: /.*xdvipdfmx:fatal: pdf_ref_obj.*/g, filter: estoPdfFilter },
 
   {
@@ -267,15 +267,27 @@ const packageMatchers = [
       return "lua-uni-algos.lua";
     },
   },
+  {
+    regex: /.* Package pdfx Error: No color profile ([^\s]*).*/g,
+    filter: (_match: string, _text: string) => {
+      return "colorprofiles.sty";
+    },
+  },
+  {
+    regex: /.*No file ([^`'. ]+[.]fd)[.].*/g,
+    filter: (match: string, _text: string) => {
+      return match.toLowerCase();
+    },
+  },
   { regex: /.* Loading '([^']+)' aborted!.*/g },
-  { regex: /.*! LaTeX Error: File `([^']+)' not found.*/g },
+  { regex: /.*! LaTeX Error: File [`']([^']+)' not found.*/g },
   { regex: /.* [fF]ile ['`]?([^' ]+)'? not found.*/g },
   { regex: /.*the language definition file ([^\s]*).*/g },
   { regex: /.* \\(file ([^)]+)\\): cannot open .*/g },
-  { regex: /.*file `([^']+)' .*is missing.*/g },
-  { regex: /.*! CTeX fontset `([^']+)' is unavailable.*/g },
+  { regex: /.*file [`']([^']+)' .*is missing.*/g },
+  { regex: /.*! CTeX fontset [`']([^']+)' is unavailable.*/g },
   { regex: /.*: ([^:]+): command not found.*/g },
-  { regex: /.*! I can't find file `([^']+)'.*/g },
+  { regex: /.*! I can't find file [`']([^']+)'.*/g },
 ];
 
 function fontSearchTerm(font: string): string {
