@@ -44,6 +44,7 @@ tinytex R package and Quarto LaTeX engine use patterns differently:
    ```
 
 3. **Filter functions** for post-processing:
+
    ```typescript
    {
      regex: /.*! Font [^=]+=([^ ]+).+ not loadable.*/g,
@@ -96,6 +97,18 @@ The automated workflow runs daily:
 **Workflow location**: [.github/workflows/verify-tinytex-patterns.yml](../.github/workflows/verify-tinytex-patterns.yml)
 
 **Manual trigger**: Run workflow from GitHub Actions tab when testing or after TinyTeX release announcement
+
+## Current Coverage
+
+**Pattern implementation:** 22 of 23 patterns from TinyTeX (96%)
+
+**Not implemented:**
+- `l3backend` pattern for LaTeX3 version mismatch detection
+- Reason: Complex context-aware logic required, rare error case
+
+**Test coverage:** All documented TinyTeX error examples are tested
+
+**Important:** Patterns should support both backtick (`` ` ``) and single quote (`'`) for LaTeX error messages
 
 ## Resources
 
