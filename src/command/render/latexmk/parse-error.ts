@@ -273,6 +273,12 @@ const packageMatchers = [
       return "colorprofiles.sty";
     },
   },
+  {
+    regex: /.*No file ([^`'. ]+[.]fd)[.].*/g,
+    filter: (match: string, _text: string) => {
+      return match.toLowerCase();
+    },
+  },
   { regex: /.* Loading '([^']+)' aborted!.*/g },
   { regex: /.*! LaTeX Error: File `([^']+)' not found.*/g },
   { regex: /.* [fF]ile ['`]?([^' ]+)'? not found.*/g },
