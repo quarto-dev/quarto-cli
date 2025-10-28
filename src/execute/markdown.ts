@@ -11,9 +11,9 @@ import {
   ExecuteOptions,
   ExecutionEngineDiscovery,
   ExecutionTarget,
-  LaunchedExecutionEngine,
   kMarkdownEngine,
   kQmdExtensions,
+  LaunchedExecutionEngine,
   PostProcessOptions,
 } from "./types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
@@ -48,25 +48,25 @@ export const markdownEngineDiscovery: ExecutionEngineDiscovery = {
       canFreeze: markdownEngineDiscovery.canFreeze,
 
       markdownForFile(file: string): Promise<MappedString> {
-        return Promise.resolve(context.mappedStringFromFile(file));
+        return Promise.resolve(context.quarto.mappedString.fromFile(file));
       },
 
       target: (file: string, _quiet?: boolean, markdown?: MappedString) => {
         if (markdown === undefined) {
-          markdown = context.mappedStringFromFile(file);
+          markdown = context.quarto.mappedString.fromFile(file);
         }
         const target: ExecutionTarget = {
           source: file,
           input: file,
           markdown,
-          metadata: context.readYamlFromMarkdown(markdown.value),
+          metadata: context.quarto.markdownRegex.extractYaml(markdown.value),
         };
         return Promise.resolve(target);
       },
 
       partitionedMarkdown: (file: string) => {
         return Promise.resolve(
-          context.partitionMarkdown(Deno.readTextFileSync(file)),
+          context.quarto.markdownRegex.partition(Deno.readTextFileSync(file)),
         );
       },
 
@@ -76,7 +76,7 @@ export const markdownEngineDiscovery: ExecutionEngineDiscovery = {
 
         // if it's plain md, validate that it doesn't have executable cells in it
         if (extname(options.target.input).toLowerCase() === ".md") {
-          const languages = context.languagesInMarkdown(markdown);
+          const languages = context.quarto.markdownRegex.getLanguages(markdown);
           if (languages.size > 0) {
             throw new Error(
               "You must use the .qmd extension for documents with executable code.",
@@ -100,5 +100,5 @@ export const markdownEngineDiscovery: ExecutionEngineDiscovery = {
 
       postprocess: (_options: PostProcessOptions) => Promise.resolve(),
     };
-  }
+  },
 };

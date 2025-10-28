@@ -21,6 +21,9 @@ export * from './execution-engine';
 // Export external engine types
 export * from './external-engine';
 
+// Export Quarto API types
+export * from './quarto-api';
+
 /**
  * Utility to check if a project context satisfies EngineProjectContext interface
  */
@@ -38,13 +41,8 @@ export function isEngineProjectContext(
     typeof context.isSingleFile === 'boolean' &&
     context.fileInformationCache instanceof Map &&
     typeof context.resolveFullMarkdownForFile === 'function' &&
-    typeof context.readYamlFromMarkdown === 'function' &&
-    typeof context.partitionMarkdown === 'function' &&
-    typeof context.languagesInMarkdown === 'function' &&
-    typeof context.normalizeMarkdown === 'function' &&
     typeof context.getOutputDirectory === 'function' &&
-    typeof context.mappedStringFromString === 'function' &&
-    typeof context.mappedStringFromFile === 'function'
+    !!context.quarto
   );
 }
 

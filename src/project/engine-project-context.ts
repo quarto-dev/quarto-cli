@@ -4,24 +4,15 @@
  * Copyright (C) 2023 Posit Software, PBC
  */
 
-import { Metadata } from "../config/types.ts";
-import {
-  asMappedString,
-  mappedNormalizeNewlines,
-  MappedString,
-  mappedStringFromFile,
-} from "../core/mapped-text.ts";
-import { PartitionedMarkdown } from "../core/pandoc/types.ts";
-import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
-import { readYamlFromMarkdown } from "../core/yaml.ts";
+import { MappedString } from "../core/mapped-text.ts";
 import { LaunchedExecutionEngine } from "../execute/types.ts";
-import { languagesInMarkdown } from "../execute/engine-shared.ts";
 import { projectOutputDir } from "./project-shared.ts";
 import {
   EngineProjectContext,
   FileInformation,
   ProjectContext,
 } from "./types.ts";
+import { quartoAPI } from "../core/quarto-api.ts";
 
 /**
  * Creates an EngineProjectContext adapter from a ProjectContext
@@ -62,32 +53,8 @@ export function engineProjectContext(
       force?: boolean,
     ) => context.resolveFullMarkdownForFile(engine, file, markdown, force),
 
-    // YAML utilities
-    readYamlFromMarkdown: (markdown: string) => {
-      return readYamlFromMarkdown(markdown);
-    },
-
-    // Markdown utilities
-    partitionMarkdown: (markdown: string) => {
-      return partitionMarkdown(markdown);
-    },
-
-    languagesInMarkdown: (markdown: string) => {
-      return languagesInMarkdown(markdown);
-    },
-
-    normalizeMarkdown: (markdown: MappedString) => {
-      return mappedNormalizeNewlines(markdown);
-    },
-
-    // Mapped string utilities
-    mappedStringFromString: (text: string, fileName?: string) => {
-      return asMappedString(text, fileName);
-    },
-
-    mappedStringFromFile: (path: string) => {
-      return mappedStringFromFile(path);
-    },
+    // Reference to the global Quarto API
+    quarto: quartoAPI,
   };
 
   // Add hidden property for adapter access to full ProjectContext
@@ -112,7 +79,6 @@ export function isEngineProjectContext(
     typeof ctx.dir === "string" &&
     typeof ctx.isSingleFile === "boolean" &&
     typeof ctx.resolveFullMarkdownForFile === "function" &&
-    typeof ctx.readYamlFromMarkdown === "function" &&
-    typeof ctx.partitionMarkdown === "function"
+    !!ctx.quarto
   );
 }
