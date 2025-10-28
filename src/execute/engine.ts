@@ -39,7 +39,7 @@ import { MappedString } from "../core/mapped-text.ts";
 import { EngineProjectContext, ProjectContext } from "../project/types.ts";
 import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
 import { gitignoreEntries } from "../project/project-gitignore.ts";
-import { juliaEngine } from "./julia.ts";
+import { juliaEngineDiscovery } from "./julia.ts";
 import { ensureFileInformationCache } from "../project/project-shared.ts";
 import { engineProjectContext } from "../project/engine-project-context.ts";
 import { asLaunchedEngine } from "./as-launched-engine.ts";
@@ -65,8 +65,11 @@ registerExecutionEngine(Object.assign(
   { _discovery: true },
 ));
 
-// Register juliaEngine (moved after markdown)
-registerExecutionEngine(juliaEngine);
+// Register juliaEngine using Object.assign to add _discovery flag
+registerExecutionEngine(Object.assign(
+  juliaEngineDiscovery as unknown as ExecutionEngine,
+  { _discovery: true },
+));
 
 export function registerExecutionEngine(engine: ExecutionEngine) {
   if (kEngines.has(engine.name)) {
