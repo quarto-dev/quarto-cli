@@ -1,0 +1,15 @@
+---
+title: "Raw tex in content-visible div (#13616)"
+_quarto:
+  tests:
+    pdf:
+      noErrors: true
+---
+
+::: {.content-visible when-format="pdf"}
+
+```{=tex}
+\textbf{Hello World}
+```
+
+:::
