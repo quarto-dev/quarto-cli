@@ -10,9 +10,40 @@ export type Metadata = {
 };
 
 /**
- * Minimal Format type - just enough for engine interfaces
+ * Format identifier information
+ */
+export interface FormatIdentifier {
+  "base-format"?: string;
+  "target-format"?: string;
+  "display-name"?: string;
+  "extension-name"?: string;
+}
+
+/**
+ * Format language/localization strings
+ */
+export interface FormatLanguage {
+  [key: string]: string | undefined;
+}
+
+/**
+ * Complete Format type for engine interfaces
  */
 export interface Format {
+  /**
+   * Format identifier
+   */
+  identifier: FormatIdentifier;
+
+  /**
+   * Format language/localization strings
+   */
+  language: FormatLanguage;
+
+  /**
+   * Document metadata
+   */
+  metadata: Metadata;
   /**
    * Format rendering options
    */
