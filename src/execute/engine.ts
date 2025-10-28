@@ -42,7 +42,7 @@ import { gitignoreEntries } from "../project/project-gitignore.ts";
 import { juliaEngineDiscovery } from "./julia.ts";
 import { ensureFileInformationCache } from "../project/project-shared.ts";
 import { engineProjectContext } from "../project/engine-project-context.ts";
-import { asLaunchedEngine } from "./as-launched-engine.ts";
+import { asEngineInstance } from "./as-engine-instance.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 const kEngines: Map<string, ExecutionEngine> = new Map();
@@ -136,11 +136,11 @@ export function markdownExecutionEngine(
       yaml = mergeConfigs(yaml, flags?.metadata);
       for (const [_, engine] of reorderedEngines) {
         if (yaml[engine.name]) {
-          return asLaunchedEngine(engine, engineProjectContext(project));
+          return asEngineInstance(engine, engineProjectContext(project));
         }
         const format = metadataAsFormat(yaml);
         if (format.execute?.[kEngine] === engine.name) {
-          return asLaunchedEngine(engine, engineProjectContext(project));
+          return asEngineInstance(engine, engineProjectContext(project));
         }
       }
     }
@@ -153,7 +153,7 @@ export function markdownExecutionEngine(
   for (const language of languages) {
     for (const [_, engine] of reorderedEngines) {
       if (engine.claimsLanguage(language)) {
-        return asLaunchedEngine(engine, engineProjectContext(project));
+        return asEngineInstance(engine, engineProjectContext(project));
       }
     }
   }
@@ -162,7 +162,7 @@ export function markdownExecutionEngine(
   // if there is a non-cell handler language then this must be jupyter
   for (const language of languages) {
     if (language !== "ojs" && !handlerLanguagesVal.includes(language)) {
-      return asLaunchedEngine(jupyterEngine, engineProjectContext(project));
+      return asEngineInstance(jupyterEngine, engineProjectContext(project));
     }
   }
 
@@ -244,7 +244,7 @@ export async function fileExecutionEngine(
   // try to find an engine that claims this extension outright
   for (const [_, engine] of reorderedEngines) {
     if (engine.claimsFile(file, ext)) {
-      return asLaunchedEngine(engine, engineProjectContext(project));
+      return asEngineInstance(engine, engineProjectContext(project));
     }
   }
 

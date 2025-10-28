@@ -1,5 +1,5 @@
 /*
- * as-launched-engine.ts
+ * as-engine-instance.ts
  *
  * Copyright (C) 2023 Posit Software, PBC
  */
@@ -31,7 +31,7 @@ import { ProjectContext } from "../project/types.ts";
  * @param context The EngineProjectContext to use
  * @returns An ExecutionEngineInstance that delegates to the legacy engine
  */
-export function asLaunchedEngine(
+export function asEngineInstance(
   engine: ExecutionEngine,
   context: EngineProjectContext,
 ): ExecutionEngineInstance {
