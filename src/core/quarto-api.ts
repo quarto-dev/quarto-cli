@@ -76,6 +76,24 @@ export interface QuartoAPI {
      * @returns MappedString with \r\n converted to \n
      */
     normalizeNewlines: (markdown: MappedString) => MappedString;
+
+    /**
+     * Split a MappedString into lines
+     *
+     * @param str - MappedString to split
+     * @param keepNewLines - Whether to keep newline characters (default: false)
+     * @returns Array of MappedStrings, one per line
+     */
+    splitLines: (str: MappedString, keepNewLines?: boolean) => MappedString[];
+
+    /**
+     * Convert character offset to line/column coordinates
+     *
+     * @param str - MappedString to query
+     * @param offset - Character offset to convert
+     * @returns Line and column numbers (1-indexed)
+     */
+    indexToLineCol: (str: MappedString, offset: number) => { line: number; column: number };
   };
 
   /**
@@ -145,7 +163,9 @@ import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { languagesInMarkdown } from "../execute/engine-shared.ts";
 import {
   asMappedString,
-  mappedNormalizeNewlines
+  mappedNormalizeNewlines,
+  mappedLines,
+  mappedIndexToLineCol,
 } from "../core/lib/mapped-text.ts";
 import { mappedStringFromFile } from "../core/mapped-text.ts";
 import { jupyterAssets, jupyterToMarkdown } from "../core/jupyter/jupyter.ts";
@@ -171,7 +191,14 @@ export const quartoAPI: QuartoAPI = {
   mappedString: {
     fromString: asMappedString,
     fromFile: mappedStringFromFile,
-    normalizeNewlines: mappedNormalizeNewlines
+    normalizeNewlines: mappedNormalizeNewlines,
+    splitLines: (str: MappedString, keepNewLines?: boolean) => {
+      return mappedLines(str, keepNewLines);
+    },
+    indexToLineCol: (str: MappedString, offset: number) => {
+      const fn = mappedIndexToLineCol(str);
+      return fn(offset);
+    },
   },
 
   jupyter: {
