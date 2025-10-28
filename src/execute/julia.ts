@@ -1,24 +1,23 @@
 import { error, info } from "../deno_ral/log.ts";
 import { join } from "../deno_ral/path.ts";
-import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
-import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
-import { readYamlFromMarkdown } from "../core/yaml.ts";
 import {
   asMappedString,
   mappedIndexToLineCol,
   mappedLines,
 } from "../core/lib/mapped-text.ts";
-import { ProjectContext } from "../project/types.ts";
 import {
   DependenciesOptions,
   ExecuteOptions,
   ExecuteResult,
-  ExecutionEngine,
+  ExecutionEngineDiscovery,
+  ExecutionEngineInstance,
   ExecutionTarget,
   kJuliaEngine,
   PandocIncludes,
   PostProcessOptions,
 } from "./types.ts";
+import { MappedString } from "../core/lib/text-types.ts";
+import { EngineProjectContext } from "../project/types.ts";
 import { jupyterAssets, jupyterToMarkdown } from "../core/jupyter/jupyter.ts";
 import {
   kExecuteDaemon,
@@ -72,7 +71,7 @@ function isJuliaPercentScript(file: string) {
   return isJupyterPercentScript(file, [".jl"]);
 }
 
-export const juliaEngine: ExecutionEngine = {
+export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
   name: kJuliaEngine,
 
   defaultExt: ".qmd",
@@ -95,26 +94,6 @@ export const juliaEngine: ExecutionEngine = {
     return language.toLowerCase() === "julia";
   },
 
-  partitionedMarkdown: async (file: string) => {
-    return partitionMarkdown(Deno.readTextFileSync(file));
-  },
-
-  // TODO: ask dragonstyle what to do here
-  executeTargetSkipped: () => false,
-
-  // TODO: just return dependencies from execute and this can do nothing
-  dependencies: (_options: DependenciesOptions) => {
-    const includes: PandocIncludes = {};
-    return Promise.resolve({
-      includes,
-    });
-  },
-
-  // TODO: this can also probably do nothing
-  postprocess: (_options: PostProcessOptions) => {
-    return Promise.resolve();
-  },
-
   canFreeze: true,
 
   generatesFigures: true,
@@ -123,154 +102,191 @@ export const juliaEngine: ExecutionEngine = {
     return [];
   },
 
-  canKeepSource: (_target: ExecutionTarget) => {
-    return true;
-  },
-
-  markdownForFile(file: string): Promise<MappedString> {
-    if (isJuliaPercentScript(file)) {
-      return Promise.resolve(
-        asMappedString(markdownFromJupyterPercentScript(file)),
-      );
-    } else {
-      return Promise.resolve(mappedStringFromFile(file));
-    }
-  },
-
-  execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
-    options.target.source;
-
-    // use daemon by default if we are in an interactive session (terminal
-    // or rstudio) and not running in a CI system.
-    let executeDaemon = options.format.execute[kExecuteDaemon];
-    if (executeDaemon === null || executeDaemon === undefined) {
-      executeDaemon = isInteractiveSession() && !runningInCI();
-    }
-
-    const execOptions = {
-      ...options,
-      target: {
-        ...options.target,
-        input: normalizePath(options.target.input),
-      },
-    };
-
-    const juliaExecOptions: JuliaExecuteOptions = {
-      oneShot: !executeDaemon,
-      ...execOptions,
-    };
-
-    // TODO: executeDaemon can take a number for timeout of kernels, but
-    // QuartoNotebookRunner currently doesn't support that
-    const nb = await executeJulia(juliaExecOptions);
-
-    if (!nb) {
-      error("Execution of notebook returned undefined");
-      return Promise.reject();
-    }
-
-    // NOTE: the following is all mostly copied from the jupyter kernel file
-
-    // there isn't really a "kernel" as we don't execute via Jupyter
-    // but this seems to be needed later to assign the correct language markers to code cells etc.)
-    nb.metadata.kernelspec = {
-      display_name: "Julia",
-      name: "julia",
-      language: "julia",
-    };
-
-    const assets = jupyterAssets(
-      options.target.input,
-      options.format.pandoc.to,
-    );
-
-    // NOTE: for perforance reasons the 'nb' is mutated in place
-    // by jupyterToMarkdown (we don't want to make a copy of a
-    // potentially very large notebook) so should not be relied
-    // on subseuqent to this call
-
-    const result = await jupyterToMarkdown(
-      nb,
-      {
-        executeOptions: options,
-        language: nb.metadata.kernelspec.language.toLowerCase(),
-        assets,
-        execute: options.format.execute,
-        keepHidden: options.format.render[kKeepHidden],
-        toHtml: isHtmlCompatible(options.format),
-        toLatex: isLatexOutput(options.format.pandoc),
-        toMarkdown: isMarkdownOutput(options.format),
-        toIpynb: isIpynbOutput(options.format.pandoc),
-        toPresentation: isPresentationOutput(options.format.pandoc),
-        figFormat: options.format.execute[kFigFormat],
-        figDpi: options.format.execute[kFigDpi],
-        figPos: options.format.render[kFigPos],
-        // preserveCellMetadata,
-        preserveCodeCellYaml:
-          options.format.render[kIpynbProduceSourceNotebook] === true,
-      },
-    );
-
-    // return dependencies as either includes or raw dependencies
-    let includes: PandocIncludes | undefined;
-    let engineDependencies: Record<string, Array<unknown>> | undefined;
-    if (options.dependencies) {
-      includes = executeResultIncludes(options.tempDir, result.dependencies);
-    } else {
-      const dependencies = executeResultEngineDependencies(result.dependencies);
-      if (dependencies) {
-        engineDependencies = {
-          [kJuliaEngine]: dependencies,
-        };
-      }
-    }
-
-    // Create markdown from the result
-    const outputs = result.cellOutputs.map((output) => output.markdown);
-    if (result.notebookOutputs) {
-      if (result.notebookOutputs.prefix) {
-        outputs.unshift(result.notebookOutputs.prefix);
-      }
-      if (result.notebookOutputs.suffix) {
-        outputs.push(result.notebookOutputs.suffix);
-      }
-    }
-    const markdown = outputs.join("");
-
-    // return results
+  /**
+   * Launch a dynamic execution engine with project context
+   */
+  launch: (context: EngineProjectContext): ExecutionEngineInstance => {
     return {
-      engine: kJuliaEngine,
-      markdown: markdown,
-      supporting: [join(assets.base_dir, assets.supporting_dir)],
-      filters: [],
-      pandoc: result.pandoc,
-      includes,
-      engineDependencies,
-      preserve: result.htmlPreserve,
-      postProcess: result.htmlPreserve &&
-        (Object.keys(result.htmlPreserve).length > 0),
+      name: juliaEngineDiscovery.name,
+      canFreeze: juliaEngineDiscovery.canFreeze,
+
+      partitionedMarkdown: (file: string) => {
+        return Promise.resolve(
+          context.quarto.markdownRegex.partition(Deno.readTextFileSync(file)),
+        );
+      },
+
+      // TODO: ask dragonstyle what to do here
+      executeTargetSkipped: () => false,
+
+      // TODO: just return dependencies from execute and this can do nothing
+      dependencies: (_options: DependenciesOptions) => {
+        const includes: PandocIncludes = {};
+        return Promise.resolve({
+          includes,
+        });
+      },
+
+      // TODO: this can also probably do nothing
+      postprocess: (_options: PostProcessOptions) => {
+        return Promise.resolve();
+      },
+
+      canKeepSource: (_target: ExecutionTarget) => {
+        return true;
+      },
+
+      markdownForFile(file: string): Promise<MappedString> {
+        if (isJuliaPercentScript(file)) {
+          return Promise.resolve(
+            asMappedString(markdownFromJupyterPercentScript(file)),
+          );
+        } else {
+          return Promise.resolve(context.quarto.mappedString.fromFile(file));
+        }
+      },
+
+      execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
+        options.target.source;
+
+        // use daemon by default if we are in an interactive session (terminal
+        // or rstudio) and not running in a CI system.
+        let executeDaemon = options.format.execute[kExecuteDaemon];
+        if (executeDaemon === null || executeDaemon === undefined) {
+          executeDaemon = isInteractiveSession() && !runningInCI();
+        }
+
+        const execOptions = {
+          ...options,
+          target: {
+            ...options.target,
+            input: normalizePath(options.target.input),
+          },
+        };
+
+        const juliaExecOptions: JuliaExecuteOptions = {
+          oneShot: !executeDaemon,
+          ...execOptions,
+        };
+
+        // TODO: executeDaemon can take a number for timeout of kernels, but
+        // QuartoNotebookRunner currently doesn't support that
+        const nb = await executeJulia(juliaExecOptions);
+
+        if (!nb) {
+          error("Execution of notebook returned undefined");
+          return Promise.reject();
+        }
+
+        // NOTE: the following is all mostly copied from the jupyter kernel file
+
+        // there isn't really a "kernel" as we don't execute via Jupyter
+        // but this seems to be needed later to assign the correct language markers to code cells etc.)
+        nb.metadata.kernelspec = {
+          display_name: "Julia",
+          name: "julia",
+          language: "julia",
+        };
+
+        const assets = jupyterAssets(
+          options.target.input,
+          options.format.pandoc.to,
+        );
+
+        // NOTE: for perforance reasons the 'nb' is mutated in place
+        // by jupyterToMarkdown (we don't want to make a copy of a
+        // potentially very large notebook) so should not be relied
+        // on subseuqent to this call
+
+        const result = await jupyterToMarkdown(
+          nb,
+          {
+            executeOptions: options,
+            language: nb.metadata.kernelspec.language.toLowerCase(),
+            assets,
+            execute: options.format.execute,
+            keepHidden: options.format.render[kKeepHidden],
+            toHtml: isHtmlCompatible(options.format),
+            toLatex: isLatexOutput(options.format.pandoc),
+            toMarkdown: isMarkdownOutput(options.format),
+            toIpynb: isIpynbOutput(options.format.pandoc),
+            toPresentation: isPresentationOutput(options.format.pandoc),
+            figFormat: options.format.execute[kFigFormat],
+            figDpi: options.format.execute[kFigDpi],
+            figPos: options.format.render[kFigPos],
+            // preserveCellMetadata,
+            preserveCodeCellYaml:
+              options.format.render[kIpynbProduceSourceNotebook] === true,
+          },
+        );
+
+        // return dependencies as either includes or raw dependencies
+        let includes: PandocIncludes | undefined;
+        let engineDependencies: Record<string, Array<unknown>> | undefined;
+        if (options.dependencies) {
+          includes = executeResultIncludes(
+            options.tempDir,
+            result.dependencies,
+          );
+        } else {
+          const dependencies = executeResultEngineDependencies(
+            result.dependencies,
+          );
+          if (dependencies) {
+            engineDependencies = {
+              [kJuliaEngine]: dependencies,
+            };
+          }
+        }
+
+        // Create markdown from the result
+        const outputs = result.cellOutputs.map((output) => output.markdown);
+        if (result.notebookOutputs) {
+          if (result.notebookOutputs.prefix) {
+            outputs.unshift(result.notebookOutputs.prefix);
+          }
+          if (result.notebookOutputs.suffix) {
+            outputs.push(result.notebookOutputs.suffix);
+          }
+        }
+        const markdown = outputs.join("");
+
+        // return results
+        return {
+          engine: kJuliaEngine,
+          markdown: markdown,
+          supporting: [join(assets.base_dir, assets.supporting_dir)],
+          filters: [],
+          pandoc: result.pandoc,
+          includes,
+          engineDependencies,
+          preserve: result.htmlPreserve,
+          postProcess: result.htmlPreserve &&
+            (Object.keys(result.htmlPreserve).length > 0),
+        };
+      },
+
+      target: (
+        file: string,
+        _quiet?: boolean,
+        markdown?: MappedString,
+      ): Promise<ExecutionTarget | undefined> => {
+        if (markdown === undefined) {
+          markdown = context.quarto.mappedString.fromFile(file);
+        }
+        const target: ExecutionTarget = {
+          source: file,
+          input: file,
+          markdown,
+          metadata: context.quarto.markdownRegex.extractYaml(markdown.value),
+        };
+        return Promise.resolve(target);
+      },
+
+      // CLI command integration
+      populateCommand: populateJuliaEngineCommand,
     };
   },
-
-  target: async (
-    file: string,
-    _quiet?: boolean,
-    markdown?: MappedString,
-    _project?: ProjectContext,
-  ): Promise<ExecutionTarget | undefined> => {
-    if (markdown === undefined) {
-      markdown = mappedStringFromFile(file);
-    }
-    const target: ExecutionTarget = {
-      source: file,
-      input: file,
-      markdown,
-      metadata: readYamlFromMarkdown(markdown.value),
-    };
-    return Promise.resolve(target);
-  },
-
-  populateCommand: populateJuliaEngineCommand,
 };
 
 function juliaCmd() {
