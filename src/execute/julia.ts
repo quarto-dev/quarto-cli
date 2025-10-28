@@ -1,11 +1,6 @@
 import { error, info } from "../deno_ral/log.ts";
 import { join } from "../deno_ral/path.ts";
 import {
-  asMappedString,
-  mappedIndexToLineCol,
-  mappedLines,
-} from "../core/lib/mapped-text.ts";
-import {
   DependenciesOptions,
   ExecuteOptions,
   ExecuteResult,
@@ -135,7 +130,7 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
       markdownForFile(file: string): Promise<MappedString> {
         if (isJuliaPercentScript(file)) {
           return Promise.resolve(
-            asMappedString(context.quarto.jupyter.percentScriptToMarkdown(file)),
+            context.quarto.mappedString.fromString(context.quarto.jupyter.percentScriptToMarkdown(file)),
           );
         } else {
           return Promise.resolve(context.quarto.mappedString.fromFile(file));
@@ -167,7 +162,7 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
 
         // TODO: executeDaemon can take a number for timeout of kernels, but
         // QuartoNotebookRunner currently doesn't support that
-        const nb = await executeJulia(juliaExecOptions);
+        const nb = await executeJulia(juliaExecOptions, context);
 
         if (!nb) {
           error("Execution of notebook returned undefined");
@@ -601,8 +596,8 @@ function getConsoleColumns(): number | null {
   }
 }
 
-function buildSourceRanges(markdown: MappedString): Array<SourceRange> {
-  const lines = mappedLines(markdown);
+function buildSourceRanges(markdown: MappedString, context: EngineProjectContext): Array<SourceRange> {
+  const lines = context.quarto.mappedString.splitLines(markdown);
   const sourceRanges: Array<SourceRange> = [];
   let currentRange: SourceRange | null = null;
 
@@ -611,8 +606,7 @@ function buildSourceRanges(markdown: MappedString): Array<SourceRange> {
     const mapResult = line.map(0, true);
     if (mapResult) {
       const { originalString } = mapResult;
-      const lineColFunc = mappedIndexToLineCol(originalString);
-      const lineCol = lineColFunc(mapResult.index);
+      const lineCol = context.quarto.mappedString.indexToLineCol(originalString, mapResult.index);
       const fileName = originalString.fileName
         ? resolve(originalString.fileName) // resolve to absolute path using cwd
         : undefined;
@@ -661,6 +655,7 @@ function buildSourceRanges(markdown: MappedString): Array<SourceRange> {
 
 async function executeJulia(
   options: JuliaExecuteOptions,
+  context: EngineProjectContext,
 ): Promise<JupyterNotebook> {
   const conn = await getJuliaServerConnection(options);
   const transportOptions = await pollTransportFile(options);
@@ -682,7 +677,7 @@ async function executeJulia(
     }
   }
 
-  const sourceRanges = buildSourceRanges(options.target.markdown);
+  const sourceRanges = buildSourceRanges(options.target.markdown, context);
 
   const response = await writeJuliaCommand(
     conn,
