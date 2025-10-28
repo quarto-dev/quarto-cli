@@ -11,8 +11,8 @@ import {
   ExecuteResult,
   ExecutionEngine,
   ExecutionEngineDiscovery,
+  ExecutionEngineInstance,
   ExecutionTarget,
-  LaunchedExecutionEngine,
   PostProcessOptions,
   RunOptions,
 } from "./types.ts";
@@ -25,16 +25,16 @@ import { RenderOptions } from "../command/render/types.ts";
 import { ProjectContext } from "../project/types.ts";
 
 /**
- * Creates a LaunchedExecutionEngine adapter for legacy ExecutionEngine implementations
+ * Creates an ExecutionEngineInstance adapter for legacy ExecutionEngine implementations
  *
  * @param engine The legacy ExecutionEngine to adapt
  * @param context The EngineProjectContext to use
- * @returns A LaunchedExecutionEngine that delegates to the legacy engine
+ * @returns An ExecutionEngineInstance that delegates to the legacy engine
  */
 export function asLaunchedEngine(
   engine: ExecutionEngine,
-  context: EngineProjectContext
-): LaunchedExecutionEngine {
+  context: EngineProjectContext,
+): ExecutionEngineInstance {
   // Check if the engine is actually a discovery engine with the _discovery flag
   if ((engine as any)._discovery === true) {
     // Cast to ExecutionEngineDiscovery and call launch()
@@ -62,14 +62,21 @@ export function asLaunchedEngine(
     /**
      * Create an execution target for a file
      */
-    target(file: string, quiet?: boolean, markdown?: MappedString): Promise<ExecutionTarget | undefined> {
+    target(
+      file: string,
+      quiet?: boolean,
+      markdown?: MappedString,
+    ): Promise<ExecutionTarget | undefined> {
       return engine.target(file, quiet, markdown, project);
     },
 
     /**
      * Extract partitioned markdown from a file
      */
-    partitionedMarkdown(file: string, format?: Format): Promise<PartitionedMarkdown> {
+    partitionedMarkdown(
+      file: string,
+      format?: Format,
+    ): Promise<PartitionedMarkdown> {
       return engine.partitionedMarkdown(file, format);
     },
 
@@ -85,7 +92,7 @@ export function asLaunchedEngine(
       // We need to ensure the project is correctly set
       return engine.execute({
         ...options,
-        project: project
+        project: project,
       });
     },
 
@@ -94,8 +101,8 @@ export function asLaunchedEngine(
      */
     executeTargetSkipped: engine.executeTargetSkipped
       ? (target: ExecutionTarget, format: Format): void => {
-          engine.executeTargetSkipped!(target, format, project);
-        }
+        engine.executeTargetSkipped!(target, format, project);
+      }
       : undefined,
 
     /**
@@ -127,8 +134,8 @@ export function asLaunchedEngine(
      */
     run: engine.run
       ? (options: RunOptions): Promise<void> => {
-          return engine.run!(options);
-        }
+        return engine.run!(options);
+      }
       : undefined,
 
     /**
@@ -136,8 +143,8 @@ export function asLaunchedEngine(
      */
     postRender: engine.postRender
       ? (file: RenderResultFile): Promise<void> => {
-          return engine.postRender!(file, project);
-        }
+        return engine.postRender!(file, project);
+      }
       : undefined,
 
     /**

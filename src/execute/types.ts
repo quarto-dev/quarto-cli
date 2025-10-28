@@ -43,14 +43,14 @@ export interface ExecutionEngineDiscovery {
   /**
    * Launch a dynamic execution engine with project context
    */
-  launch: (context: EngineProjectContext) => LaunchedExecutionEngine;
+  launch: (context: EngineProjectContext) => ExecutionEngineInstance;
 }
 
 /**
  * Interface for the dynamic execution phase of execution engines
  * Used after a file has been assigned to an engine
  */
-export interface LaunchedExecutionEngine {
+export interface ExecutionEngineInstance {
   name: string;
   canFreeze: boolean;
 
@@ -99,7 +99,7 @@ export interface LaunchedExecutionEngine {
 
 /**
  * Legacy interface that combines both discovery and execution phases
- * @deprecated Use ExecutionEngineDiscovery and LaunchedExecutionEngine instead
+ * @deprecated Use ExecutionEngineDiscovery and ExecutionEngineInstance instead
  */
 export interface ExecutionEngine {
   name: string;
@@ -228,7 +228,7 @@ export interface DependenciesResult {
 
 // post processing options
 export interface PostProcessOptions {
-  engine: LaunchedExecutionEngine;
+  engine: ExecutionEngineInstance;
   target: ExecutionTarget;
   format: Format;
   output: string;

@@ -2,16 +2,13 @@
   "name": "@quarto/types",
   "version": "0.1.0",
   "description": "TypeScript type definitions for Quarto engine development",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "src/index.ts",
   "files": [
-    "dist",
+    "src",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc",
-    "prepare": "npm run build"
   },
   "keywords": [
     "quarto",

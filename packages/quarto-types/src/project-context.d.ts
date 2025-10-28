@@ -2,10 +2,10 @@
  * Project context interfaces for Quarto engines
  */
 
-import { MappedString } from './text-types';
-import { kProjectOutputDir } from './constants';
-import { ExecutionEngine } from './execution-engine';
-import { ExternalEngine } from './external-engine';
+import type { MappedString } from "./text-types";
+import type { ExecutionEngineInstance, ExecutionTarget } from "./execution-engine";
+import type { ExternalEngine } from "./external-engine";
+import type { Metadata } from "./metadata-types";
 
 /**
  * Information about a file being processed
@@ -27,17 +27,17 @@ export interface FileInformation {
   /**
    * The launched execution engine for this file
    */
-  engine?: import('./execution-engine').LaunchedExecutionEngine;
+  engine?: ExecutionEngineInstance;
 
   /**
    * The execution target for this file
    */
-  target?: import('./execution-engine').ExecutionTarget;
+  target?: ExecutionTarget;
 
   /**
    * Document metadata
    */
-  metadata?: import('./metadata-types').Metadata;
+  metadata?: Metadata;
 }
 
 /**
@@ -62,7 +62,7 @@ export interface EngineProjectContext {
   config?: {
     engines?: (string | ExternalEngine)[];
     project?: {
-      [kProjectOutputDir]?: string;
+      outputDir?: string;
     };
   };
 
@@ -89,7 +89,7 @@ export interface EngineProjectContext {
    * @returns Promise resolving to mapped markdown string
    */
   resolveFullMarkdownForFile: (
-    engine: ExecutionEngine | undefined,
+    engine: ExecutionEngineInstance | undefined,
     file: string,
     markdown?: MappedString,
     force?: boolean,
@@ -98,5 +98,5 @@ export interface EngineProjectContext {
   /**
    * Reference to the global Quarto API
    */
-  quarto: import('./quarto-api').QuartoAPI;
+  quarto: import("./quarto-api").QuartoAPI;
 }

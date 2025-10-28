@@ -64,7 +64,7 @@ import {
   fileExecutionEngineAndTarget,
   projectIgnoreGlobs,
 } from "../execute/engine.ts";
-import { kMarkdownEngine, LaunchedExecutionEngine } from "../execute/types.ts";
+import { ExecutionEngineInstance, kMarkdownEngine } from "../execute/types.ts";
 
 import { projectResourceFiles } from "./project-resources.ts";
 
@@ -219,7 +219,7 @@ export async function projectContext(
         projectConfig = await resolveEngineExtensions(
           extensionContext,
           projectConfig,
-          dir
+          dir,
         );
       }
 
@@ -325,7 +325,7 @@ export async function projectContext(
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
           resolveFullMarkdownForFile: (
-            engine: LaunchedExecutionEngine | undefined,
+            engine: ExecutionEngineInstance | undefined,
             file: string,
             markdown?: MappedString,
             force?: boolean,
@@ -391,7 +391,6 @@ export async function projectContext(
           return undefined;
         }
 
-
         if (type.formatExtras) {
           result.formatExtras = async (
             source: string,
@@ -419,7 +418,7 @@ export async function projectContext(
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
           resolveFullMarkdownForFile: (
-            engine: LaunchedExecutionEngine | undefined,
+            engine: ExecutionEngineInstance | undefined,
             file: string,
             markdown?: MappedString,
             force?: boolean,
@@ -494,7 +493,7 @@ export async function projectContext(
             resolveBrand: async (fileName?: string) =>
               projectResolveBrand(context, fileName),
             resolveFullMarkdownForFile: (
-              engine: LaunchedExecutionEngine | undefined,
+              engine: ExecutionEngineInstance | undefined,
               file: string,
               markdown?: MappedString,
               force?: boolean,
@@ -734,18 +733,22 @@ async function resolveEngineExtensions(
 ) {
   // First, resolve any relative paths in existing project engines
   if (projectConfig.engines) {
-    projectConfig.engines = (projectConfig.engines as (string | ExternalEngine)[]).map(
-      (engine) => {
-        if (typeof engine === "object" && engine.path && !isAbsolute(engine.path)) {
-          // Convert relative path to absolute path based on project directory
-          return {
-            ...engine,
-            path: join(dir, engine.path),
-          };
-        }
-        return engine;
-      }
-    );
+    projectConfig.engines =
+      (projectConfig.engines as (string | ExternalEngine)[]).map(
+        (engine) => {
+          if (
+            typeof engine === "object" && engine.path &&
+            !isAbsolute(engine.path)
+          ) {
+            // Convert relative path to absolute path based on project directory
+            return {
+              ...engine,
+              path: join(dir, engine.path),
+            };
+          }
+          return engine;
+        },
+      );
   }
 
   // Find all extensions that contribute engines
@@ -768,7 +771,8 @@ async function resolveEngineExtensions(
       projectConfig.engines = [];
     }
 
-    const existingEngines = projectConfig.engines as (string | ExternalEngine)[];
+    const existingEngines = projectConfig
+      .engines as (string | ExternalEngine)[];
 
     // Extract and merge engines
     const extensionEngines = engineExtensions

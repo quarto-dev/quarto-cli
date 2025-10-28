@@ -59,7 +59,10 @@ import {
 } from "../../core/language.ts";
 import { defaultWriterFormat } from "../../format/formats.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { ExecutionTarget, LaunchedExecutionEngine } from "../../execute/types.ts";
+import {
+  ExecutionEngineInstance,
+  ExecutionTarget,
+} from "../../execute/types.ts";
 import {
   deleteProjectMetadata,
   directoryMetadataForInputFile,
@@ -394,7 +397,7 @@ function mergeQuartoConfigs(
 async function resolveFormats(
   file: RenderFile,
   target: ExecutionTarget,
-  engine: LaunchedExecutionEngine,
+  engine: ExecutionEngineInstance,
   options: RenderOptions,
   _notebookContext: NotebookContext,
   project: ProjectContext,

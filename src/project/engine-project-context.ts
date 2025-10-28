@@ -5,7 +5,7 @@
  */
 
 import { MappedString } from "../core/mapped-text.ts";
-import { LaunchedExecutionEngine } from "../execute/types.ts";
+import { ExecutionEngineInstance } from "../execute/types.ts";
 import { projectOutputDir } from "./project-shared.ts";
 import {
   EngineProjectContext,
@@ -47,7 +47,7 @@ export function engineProjectContext(
 
     // Core methods
     resolveFullMarkdownForFile: (
-      engine: LaunchedExecutionEngine | undefined,
+      engine: ExecutionEngineInstance | undefined,
       file: string,
       markdown?: MappedString,
       force?: boolean,
