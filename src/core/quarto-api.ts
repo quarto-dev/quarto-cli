@@ -174,6 +174,8 @@ export interface QuartoAPI {
   path: {
     absolute: (path: string | URL) => string;
     toForwardSlashes: (path: string) => string;
+    runtime: (subdir?: string) => string;
+    resource: (...parts: string[]) => string;
   };
 }
 
@@ -209,6 +211,8 @@ import {
   normalizePath,
   pathWithForwardSlashes,
 } from "../core/path.ts";
+import { quartoRuntimeDir } from "../core/appdirs.ts";
+import { resourcePath } from "../core/resources.ts";
 
 /**
  * Global Quarto API implementation
@@ -259,5 +263,17 @@ export const quartoAPI: QuartoAPI = {
   path: {
     absolute: normalizePath,
     toForwardSlashes: pathWithForwardSlashes,
+    runtime: quartoRuntimeDir,
+    resource: (...parts: string[]) => {
+      if (parts.length === 0) {
+        return resourcePath();
+      } else if (parts.length === 1) {
+        return resourcePath(parts[0]);
+      } else {
+        // Join multiple parts with the first one
+        const joined = parts.join("/");
+        return resourcePath(joined);
+      }
+    },
   }
 };
