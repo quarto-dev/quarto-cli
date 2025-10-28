@@ -732,6 +732,22 @@ async function resolveEngineExtensions(
   projectConfig: ProjectConfig,
   dir: string,
 ) {
+  // First, resolve any relative paths in existing project engines
+  if (projectConfig.engines) {
+    projectConfig.engines = (projectConfig.engines as (string | ExternalEngine)[]).map(
+      (engine) => {
+        if (typeof engine === "object" && engine.path && !isAbsolute(engine.path)) {
+          // Convert relative path to absolute path based on project directory
+          return {
+            ...engine,
+            path: join(dir, engine.path),
+          };
+        }
+        return engine;
+      }
+    );
+  }
+
   // Find all extensions that contribute engines
   const extensions = await context.extensions(
     undefined,
