@@ -167,7 +167,7 @@ export interface DependenciesResult {
  */
 export interface PostProcessOptions {
   /** The execution engine */
-  engine: LaunchedExecutionEngine;
+  engine: ExecutionEngineInstance;
 
   /** The execution target */
   target: ExecutionTarget;
@@ -311,9 +311,9 @@ export interface ExecutionEngineDiscovery {
    * This is called when the engine is needed for execution
    *
    * @param context The restricted project context
-   * @returns LaunchedExecutionEngine that can execute documents
+   * @returns ExecutionEngineInstance that can execute documents
    */
-  launch: (context: EngineProjectContext) => LaunchedExecutionEngine;
+  launch: (context: EngineProjectContext) => ExecutionEngineInstance;
 }
 
 /**
@@ -321,7 +321,7 @@ export interface ExecutionEngineDiscovery {
  * This represents an engine that has been instantiated with a project context
  * and is ready to execute documents
  */
-export interface LaunchedExecutionEngine {
+export interface ExecutionEngineInstance {
   /**
    * Name of the engine
    */

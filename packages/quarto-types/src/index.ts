@@ -4,65 +4,19 @@
  */
 
 // Export text types
-export * from './text-types';
-
-// Export constants
-export * from './constants';
+export type * from "./text-types.d.ts";
 
 // Export metadata types
-export * from './metadata-types';
-
-// Export project context types
-export * from './project-context';
-
-// Export execution engine types
-export * from './execution-engine';
+export type * from "./metadata-types.d.ts";
 
 // Export external engine types
-export * from './external-engine';
+export type * from "./external-engine.d.ts";
+
+// Export project context types
+export type * from "./project-context.d.ts";
+
+// Export execution engine types
+export type * from "./execution-engine.d.ts";
 
 // Export Quarto API types
-export * from './quarto-api';
-
-/**
- * Utility to check if a project context satisfies EngineProjectContext interface
- */
-import { EngineProjectContext } from './project-context';
-
-export function isEngineProjectContext(
-  ctx: unknown
-): ctx is EngineProjectContext {
-  if (!ctx) return false;
-
-  const context = ctx as Partial<EngineProjectContext>;
-
-  return (
-    typeof context.dir === 'string' &&
-    typeof context.isSingleFile === 'boolean' &&
-    context.fileInformationCache instanceof Map &&
-    typeof context.resolveFullMarkdownForFile === 'function' &&
-    typeof context.getOutputDirectory === 'function' &&
-    !!context.quarto
-  );
-}
-
-/**
- * Utility to get the output directory from a project context
- */
-import { kProjectOutputDir } from './constants';
-import { resolve, join, isAbsolute } from 'path';
-
-export function projectOutputDir(context: EngineProjectContext): string {
-  let outputDir = context.config?.project?.[kProjectOutputDir];
-
-  if (outputDir) {
-    if (!isAbsolute(outputDir)) {
-      outputDir = join(context.dir, outputDir);
-    }
-  } else {
-    outputDir = context.dir;
-  }
-
-  // Normalize the path
-  return resolve(outputDir);
-}
+export type * from "./quarto-api.d.ts";

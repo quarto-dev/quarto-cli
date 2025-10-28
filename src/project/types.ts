@@ -15,10 +15,10 @@ import {
 import { MappedString } from "../core/mapped-text.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import {
-  ExecutionTarget,
-  LaunchedExecutionEngine,
   ExecutionEngine,
-  ExecutionEngineDiscovery
+  ExecutionEngineDiscovery,
+  ExecutionEngineInstance,
+  ExecutionTarget,
 } from "../execute/types.ts";
 import { InspectedMdCell } from "../inspect/inspect-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
@@ -63,7 +63,7 @@ export type FileInformation = {
   fullMarkdown?: MappedString;
   includeMap?: FileInclusion[];
   codeCells?: InspectedMdCell[];
-  engine?: LaunchedExecutionEngine;
+  engine?: ExecutionEngineInstance;
   target?: ExecutionTarget;
   metadata?: Metadata;
   brand?: LightDarkBrandDarkFlag;
@@ -92,7 +92,7 @@ export interface ProjectContext extends Cloneable<ProjectContext> {
   // output file is always markdown, though, and it is cached in the project
 
   resolveFullMarkdownForFile: (
-    engine: LaunchedExecutionEngine | undefined,
+    engine: ExecutionEngineInstance | undefined,
     file: string,
     markdown?: MappedString,
     force?: boolean,
@@ -101,7 +101,7 @@ export interface ProjectContext extends Cloneable<ProjectContext> {
   fileExecutionEngineAndTarget: (
     file: string,
     force?: boolean,
-  ) => Promise<{ engine: LaunchedExecutionEngine; target: ExecutionTarget }>;
+  ) => Promise<{ engine: ExecutionEngineInstance; target: ExecutionTarget }>;
 
   fileMetadata: (
     file: string,
@@ -199,7 +199,7 @@ export interface EngineProjectContext {
    * @returns Promise resolving to mapped markdown string
    */
   resolveFullMarkdownForFile: (
-    engine: LaunchedExecutionEngine | undefined,
+    engine: ExecutionEngineInstance | undefined,
     file: string,
     markdown?: MappedString,
     force?: boolean,

@@ -10,10 +10,10 @@ import {
   DependenciesOptions,
   ExecuteOptions,
   ExecutionEngineDiscovery,
+  ExecutionEngineInstance,
   ExecutionTarget,
   kMarkdownEngine,
   kQmdExtensions,
-  LaunchedExecutionEngine,
   PostProcessOptions,
 } from "./types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
@@ -42,7 +42,7 @@ export const markdownEngineDiscovery: ExecutionEngineDiscovery = {
   /**
    * Launch a dynamic execution engine with project context
    */
-  launch: (context: EngineProjectContext): LaunchedExecutionEngine => {
+  launch: (context: EngineProjectContext): ExecutionEngineInstance => {
     return {
       name: markdownEngineDiscovery.name,
       canFreeze: markdownEngineDiscovery.canFreeze,
