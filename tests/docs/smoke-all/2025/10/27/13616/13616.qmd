@@ -1,5 +1,5 @@
 ---
-title: "Raw tex in content-visible div (#13616)"
+title: "Conditional Block in manuscript article"
 _quarto:
   tests:
     pdf:
@@ -8,8 +8,6 @@ _quarto:
 
 ::: {.content-visible when-format="pdf"}
 
-```{=tex}
-\textbf{Hello World}
-```
+Something
 
 :::
