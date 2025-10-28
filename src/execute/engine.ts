@@ -26,10 +26,10 @@ import {
   ExecuteOptions,
   ExecutionEngine,
   ExecutionEngineDiscovery,
+  ExecutionEngineInstance,
   ExecutionTarget,
-  LaunchedExecutionEngine,
+  kQmdExtensions,
   PostProcessOptions,
-  kQmdExtensions
 } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
 import { languages as handlerLanguages } from "../core/handlers/base.ts";
@@ -62,7 +62,7 @@ registerExecutionEngine(jupyterEngine);
 // Register markdownEngine using Object.assign to add _discovery flag
 registerExecutionEngine(Object.assign(
   markdownEngineDiscovery as unknown as ExecutionEngine,
-  { _discovery: true }
+  { _discovery: true },
 ));
 
 // Register juliaEngine (moved after markdown)
@@ -87,7 +87,7 @@ export function executionEngineKeepMd(context: RenderContext) {
 
 // for the project crawl
 export function executionEngineIntermediateFiles(
-  engine: LaunchedExecutionEngine,
+  engine: ExecutionEngineInstance,
   input: string,
 ) {
   // all files of the form e.g. .html.md or -html.md are interemediate
@@ -121,7 +121,7 @@ export function markdownExecutionEngine(
   markdown: string,
   reorderedEngines: Map<string, ExecutionEngine>,
   flags?: RenderFlags,
-): LaunchedExecutionEngine {
+): ExecutionEngineInstance {
   // read yaml and see if the engine is declared in yaml
   // (note that if the file were a non text-file like ipynb
   //  it would have already been claimed via extension)
@@ -174,22 +174,25 @@ async function reorderEngines(project: ProjectContext) {
     | (string | ExternalEngine)[]
     | undefined;
 
-
   for (const engine of projectEngines ?? []) {
     if (typeof engine === "object") {
       try {
-        const extEngine = (await import(engine.path)).default as ExecutionEngine;
+        const extEngine = (await import(engine.path))
+          .default as ExecutionEngine;
         userSpecifiedOrder.push(extEngine.name);
         kEngines.set(extEngine.name, extEngine);
       } catch (err: any) {
         // Throw error for engine import failures as this is a serious configuration issue
-        throw new Error(`Failed to import engine from ${engine.path}: ${err.message || 'Unknown error'}`);
+        throw new Error(
+          `Failed to import engine from ${engine.path}: ${
+            err.message || "Unknown error"
+          }`,
+        );
       }
     } else {
       userSpecifiedOrder.push(engine);
     }
   }
-
 
   for (const key of userSpecifiedOrder) {
     if (!kEngines.has(key)) {
@@ -222,7 +225,7 @@ export async function fileExecutionEngine(
   file: string,
   flags: RenderFlags | undefined,
   project: ProjectContext,
-): Promise<LaunchedExecutionEngine | undefined> {
+): Promise<ExecutionEngineInstance | undefined> {
   // get the extension and validate that it can be handled by at least one of our engines
   const ext = extname(file).toLowerCase();
   if (
@@ -272,7 +275,7 @@ export async function fileExecutionEngineAndTarget(
   file: string,
   flags: RenderFlags | undefined,
   project: ProjectContext,
-): Promise<{ engine: LaunchedExecutionEngine; target: ExecutionTarget }> {
+): Promise<{ engine: ExecutionEngineInstance; target: ExecutionTarget }> {
   const cached = ensureFileInformationCache(project, file);
   if (cached && cached.engine && cached.target) {
     return { engine: cached.engine, target: cached.target };
@@ -290,7 +293,7 @@ export async function fileExecutionEngineAndTarget(
     throw new Error("Can't determine execution target for " + file);
   }
 
-  // Cache the LaunchedExecutionEngine
+  // Cache the ExecutionEngineInstance
   cached.engine = engine;
   cached.target = target;
 
