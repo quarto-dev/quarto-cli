@@ -25,9 +25,10 @@ import {
   kKeepHidden,
 } from "../config/constants.ts";
 // Format utilities now accessed via context.quarto.format
+// Path utilities now accessed via context.quarto.path
 import { resourcePath } from "../core/resources.ts";
 import { quartoRuntimeDir } from "../core/appdirs.ts";
-import { normalizePath, pathWithForwardSlashes } from "../core/path.ts";
+import { normalizePath } from "../core/path.ts"; // Used in CLI commands (no context available)
 import { isInteractiveSession } from "../core/platform.ts";
 import { runningInCI } from "../core/ci-info.ts";
 import { sleep } from "../core/async.ts";
@@ -88,6 +89,11 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
   },
 
   /**
+   * Populate engine-specific CLI commands
+   */
+  populateCommand: populateJuliaEngineCommand,
+
+  /**
    * Launch a dynamic execution engine with project context
    */
   launch: (context: EngineProjectContext): ExecutionEngineInstance => {
@@ -145,7 +151,7 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
           ...options,
           target: {
             ...options.target,
-            input: normalizePath(options.target.input),
+            input: context.quarto.path.absolute(options.target.input),
           },
         };
 
@@ -267,9 +273,6 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
         };
         return Promise.resolve(target);
       },
-
-      // CLI command integration
-      populateCommand: populateJuliaEngineCommand,
     };
   },
 };
@@ -286,6 +289,7 @@ function powershell_argument_list_to_string(...args: string[]): string {
 
 async function startOrReuseJuliaServer(
   options: JuliaExecuteOptions,
+  context: EngineProjectContext,
 ): Promise<{ reused: boolean }> {
   const transportFile = juliaTransportFile();
   if (!existsSync(transportFile)) {
@@ -301,7 +305,7 @@ async function startOrReuseJuliaServer(
       await ensureQuartoNotebookRunnerEnvironment(options);
       juliaProject = juliaRuntimeDir();
     } else {
-      juliaProject = pathWithForwardSlashes(juliaProject);
+      juliaProject = context.quarto.path.toForwardSlashes(juliaProject);
       trace(
         options,
         `Custom julia project set via QUARTO_JULIA_PROJECT="${juliaProject}". Checking if QuartoNotebookRunner can be loaded.`,
@@ -507,8 +511,9 @@ async function getReadyServerConnection(
 
 async function getJuliaServerConnection(
   options: JuliaExecuteOptions,
+  context: EngineProjectContext,
 ): Promise<Deno.TcpConn> {
-  const { reused } = await startOrReuseJuliaServer(options);
+  const { reused } = await startOrReuseJuliaServer(options, context);
 
   let transportOptions: JuliaTransportFile;
   try {
@@ -549,7 +554,7 @@ async function getJuliaServerConnection(
         "Connecting to server failed, a transport file was reused so it might be stale. Delete transport file and retry.",
       );
       safeRemoveSync(juliaTransportFile());
-      return await getJuliaServerConnection(options);
+      return await getJuliaServerConnection(options, context);
     } else {
       error(
         "Connecting to server failed. A transport file was successfully created by the server process, so something in the server process might be broken.",
@@ -651,7 +656,7 @@ async function executeJulia(
   options: JuliaExecuteOptions,
   context: EngineProjectContext,
 ): Promise<JupyterNotebook> {
-  const conn = await getJuliaServerConnection(options);
+  const conn = await getJuliaServerConnection(options, context);
   const transportOptions = await pollTransportFile(options);
   const file = options.target.input;
   if (options.oneShot || options.format.execute[kExecuteDaemonRestart]) {

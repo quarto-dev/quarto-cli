@@ -5,6 +5,7 @@
 import { MappedString } from "./text-types";
 import { Format, Metadata } from "./metadata-types";
 import { EngineProjectContext } from "./project-context";
+import type { Command } from "cliffy/command/mod.ts";
 
 /**
  * Execution target (filename and context)
@@ -314,6 +315,14 @@ export interface ExecutionEngineDiscovery {
    * @returns ExecutionEngineInstance that can execute documents
    */
   launch: (context: EngineProjectContext) => ExecutionEngineInstance;
+
+  /**
+   * Populate engine-specific CLI commands (optional)
+   * Called at module initialization to register commands like 'quarto enginename status'
+   *
+   * @param command The CLI command to populate with subcommands
+   */
+  populateCommand?: (command: Command) => void;
 }
 
 /**
