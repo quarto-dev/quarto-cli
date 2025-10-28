@@ -26,9 +26,10 @@ import {
 } from "../config/constants.ts";
 // Format utilities now accessed via context.quarto.format
 // Path utilities now accessed via context.quarto.path
-import { resourcePath } from "../core/resources.ts";
-import { quartoRuntimeDir } from "../core/appdirs.ts";
+// resourcePath now accessed via context.quarto.path.resource
+// quartoRuntimeDir now accessed via context.quarto.path.runtime (but kept as direct import for CLI commands)
 import { normalizePath } from "../core/path.ts"; // Used in CLI commands (no context available)
+import { quartoRuntimeDir } from "../core/appdirs.ts"; // Used in CLI command helper functions (juliaTransportFile, etc.)
 import { isInteractiveSession } from "../core/platform.ts";
 import { runningInCI } from "../core/ci-info.ts";
 import { sleep } from "../core/async.ts";
@@ -302,8 +303,8 @@ async function startOrReuseJuliaServer(
     let juliaProject = Deno.env.get("QUARTO_JULIA_PROJECT");
 
     if (juliaProject === undefined) {
-      await ensureQuartoNotebookRunnerEnvironment(options);
-      juliaProject = juliaRuntimeDir();
+      await ensureQuartoNotebookRunnerEnvironment(options, context);
+      juliaProject = context.quarto.path.runtime("julia");
     } else {
       juliaProject = context.quarto.path.toForwardSlashes(juliaProject);
       trace(
@@ -354,7 +355,7 @@ async function startOrReuseJuliaServer(
             powershell_argument_list_to_string(
               "--startup-file=no",
               `--project=${juliaProject}`,
-              resourcePath("julia/quartonotebookrunner.jl"),
+              context.quarto.path.resource("julia", "quartonotebookrunner.jl"),
               transportFile,
               juliaServerLogFile(),
             ),
@@ -378,10 +379,10 @@ async function startOrReuseJuliaServer(
       const command = new Deno.Command(juliaCmd(), {
         args: [
           "--startup-file=no",
-          resourcePath("julia/start_quartonotebookrunner_detached.jl"),
+          context.quarto.path.resource("julia", "start_quartonotebookrunner_detached.jl"),
           juliaCmd(),
           juliaProject,
-          resourcePath("julia/quartonotebookrunner.jl"),
+          context.quarto.path.resource("julia", "quartonotebookrunner.jl"),
           transportFile,
           juliaServerLogFile(),
         ],
@@ -410,15 +411,17 @@ async function startOrReuseJuliaServer(
 
 async function ensureQuartoNotebookRunnerEnvironment(
   options: JuliaExecuteOptions,
+  context: EngineProjectContext,
 ) {
-  const projectTomlTemplate = juliaResourcePath("Project.toml");
-  const projectToml = join(juliaRuntimeDir(), "Project.toml");
+  const runtimeDir = context.quarto.path.runtime("julia");
+  const projectTomlTemplate = context.quarto.path.resource("julia", "Project.toml");
+  const projectToml = join(runtimeDir, "Project.toml");
   Deno.writeFileSync(projectToml, Deno.readFileSync(projectTomlTemplate));
   const command = new Deno.Command(juliaCmd(), {
     args: [
       "--startup-file=no",
-      `--project=${juliaRuntimeDir()}`,
-      juliaResourcePath("ensure_environment.jl"),
+      `--project=${runtimeDir}`,
+      context.quarto.path.resource("julia", "ensure_environment.jl"),
     ],
   });
   const proc = command.spawn();
@@ -427,10 +430,6 @@ async function ensureQuartoNotebookRunnerEnvironment(
     throw (new Error("Ensuring an updated julia server environment failed"));
   }
   return Promise.resolve();
-}
-
-function juliaResourcePath(...parts: string[]) {
-  return join(resourcePath("julia"), ...parts);
 }
 
 interface JuliaTransportFile {
