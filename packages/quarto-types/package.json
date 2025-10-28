@@ -9,6 +9,8 @@
     "LICENSE"
   ],
   "scripts": {
+    "build": "tsc",
+    "bundle": "dts-bundle-generator -o ./dist/index.d.ts --export-referenced-types=false ./src/index.ts"
   },
   "keywords": [
     "quarto",
@@ -32,6 +34,7 @@
   "homepage": "https://github.com/quarto-dev/quarto-cli/tree/main/packages/quarto-types#readme",
   "devDependencies": {
     "@types/node": "^24.9.1",
+    "dts-bundle-generator": "^9.5.1",
     "typescript": "^5.9.3"
   }
 }

@@ -38,7 +38,7 @@ import {
 } from "./types.ts";
 import { postProcessRestorePreservedHtml } from "./engine-shared.ts";
 import { mappedStringFromFile } from "../core/mapped-text.ts";
-import { asLaunchedEngine } from "./as-launched-engine.ts";
+import { asEngineInstance } from "./as-engine-instance.ts";
 import { engineProjectContext } from "../project/engine-project-context.ts";
 import {
   asMappedString,
@@ -91,7 +91,7 @@ export const knitrEngine: ExecutionEngine = {
     project: ProjectContext,
   ): Promise<ExecutionTarget | undefined> => {
     markdown = await project.resolveFullMarkdownForFile(
-      asLaunchedEngine(knitrEngine, engineProjectContext(project)),
+      asEngineInstance(knitrEngine, engineProjectContext(project)),
       file,
       markdown,
     );

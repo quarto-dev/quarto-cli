@@ -22,28 +22,25 @@ import { jupyterEngine } from "./jupyter/jupyter.ts";
 import { ExternalEngine } from "../resources/types/schema-types.ts";
 import { kMdExtensions, markdownEngineDiscovery } from "./markdown.ts";
 import {
-  DependenciesOptions,
-  ExecuteOptions,
   ExecutionEngine,
   ExecutionEngineDiscovery,
   ExecutionEngineInstance,
   ExecutionTarget,
   kQmdExtensions,
-  PostProcessOptions,
 } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
 import { languages as handlerLanguages } from "../core/handlers/base.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { MappedString } from "../core/mapped-text.ts";
-import { EngineProjectContext, ProjectContext } from "../project/types.ts";
+import { ProjectContext } from "../project/types.ts";
 import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
 import { gitignoreEntries } from "../project/project-gitignore.ts";
 import { juliaEngine } from "./julia.ts";
 import { ensureFileInformationCache } from "../project/project-shared.ts";
 import { engineProjectContext } from "../project/engine-project-context.ts";
-import { asLaunchedEngine } from "./as-launched-engine.ts";
+import { asEngineInstance } from "./as-engine-instance.ts";
 import { Command } from "cliffy/command/mod.ts";
+import { quartoAPI } from "../core/quarto-api.ts";
 
 const kEngines: Map<string, ExecutionEngine> = new Map();
 
@@ -65,7 +62,6 @@ registerExecutionEngine(Object.assign(
   { _discovery: true },
 ));
 
-// Register juliaEngine (moved after markdown)
 registerExecutionEngine(juliaEngine);
 
 export function registerExecutionEngine(engine: ExecutionEngine) {
@@ -73,6 +69,12 @@ export function registerExecutionEngine(engine: ExecutionEngine) {
     throw new Error(`Execution engine ${engine.name} already registered`);
   }
   kEngines.set(engine.name, engine);
+  if ((engine as any)._discovery === true) {
+    const discoveryEngine = engine as unknown as ExecutionEngineDiscovery;
+    if (discoveryEngine.init) {
+      discoveryEngine.init(quartoAPI);
+    }
+  }
 }
 
 export function executionEngineKeepMd(context: RenderContext) {
@@ -133,11 +135,11 @@ export function markdownExecutionEngine(
       yaml = mergeConfigs(yaml, flags?.metadata);
       for (const [_, engine] of reorderedEngines) {
         if (yaml[engine.name]) {
-          return asLaunchedEngine(engine, engineProjectContext(project));
+          return asEngineInstance(engine, engineProjectContext(project));
         }
         const format = metadataAsFormat(yaml);
         if (format.execute?.[kEngine] === engine.name) {
-          return asLaunchedEngine(engine, engineProjectContext(project));
+          return asEngineInstance(engine, engineProjectContext(project));
         }
       }
     }
@@ -150,7 +152,7 @@ export function markdownExecutionEngine(
   for (const language of languages) {
     for (const [_, engine] of reorderedEngines) {
       if (engine.claimsLanguage(language)) {
-        return asLaunchedEngine(engine, engineProjectContext(project));
+        return asEngineInstance(engine, engineProjectContext(project));
       }
     }
   }
@@ -159,7 +161,7 @@ export function markdownExecutionEngine(
   // if there is a non-cell handler language then this must be jupyter
   for (const language of languages) {
     if (language !== "ojs" && !handlerLanguagesVal.includes(language)) {
-      return asLaunchedEngine(jupyterEngine, engineProjectContext(project));
+      return asEngineInstance(jupyterEngine, engineProjectContext(project));
     }
   }
 
@@ -181,6 +183,14 @@ async function reorderEngines(project: ProjectContext) {
           .default as ExecutionEngine;
         userSpecifiedOrder.push(extEngine.name);
         kEngines.set(extEngine.name, extEngine);
+        if ((extEngine as any)._discovery === true) {
+          const discoveryEngine =
+            extEngine as unknown as ExecutionEngineDiscovery;
+          if (discoveryEngine.init) {
+            console.log("here");
+            discoveryEngine.init(quartoAPI);
+          }
+        }
       } catch (err: any) {
         // Throw error for engine import failures as this is a serious configuration issue
         throw new Error(
@@ -241,7 +251,7 @@ export async function fileExecutionEngine(
   // try to find an engine that claims this extension outright
   for (const [_, engine] of reorderedEngines) {
     if (engine.claimsFile(file, ext)) {
-      return asLaunchedEngine(engine, engineProjectContext(project));
+      return asEngineInstance(engine, engineProjectContext(project));
     }
   }
 

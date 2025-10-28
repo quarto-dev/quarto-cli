@@ -94,9 +94,4 @@ export interface EngineProjectContext {
     markdown?: MappedString,
     force?: boolean,
   ) => Promise<MappedString>;
-
-  /**
-   * Reference to the global Quarto API
-   */
-  quarto: import("./quarto-api").QuartoAPI;
 }

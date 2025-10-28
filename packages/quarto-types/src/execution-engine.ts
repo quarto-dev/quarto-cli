@@ -5,6 +5,8 @@
 import { MappedString } from "./text-types";
 import { Format, Metadata } from "./metadata-types";
 import { EngineProjectContext } from "./project-context";
+import type { Command } from "./cli-types";
+import type { QuartoAPI } from "./quarto-api";
 
 /**
  * Execution target (filename and context)
@@ -27,18 +29,20 @@ export interface ExecutionTarget {
 }
 
 /**
- * Pandoc includes for headers, body, etc.
+ * Valid Pandoc include locations
  */
-export interface PandocIncludes {
-  /** Content to include in header */
-  "include-in-header"?: string[];
+export type PandocIncludeLocation =
+  | "include-in-header"
+  | "include-before-body"
+  | "include-after-body";
 
-  /** Content to include before body */
-  "include-before-body"?: string[];
-
-  /** Content to include after body */
-  "include-after-body"?: string[];
-}
+/**
+ * Pandoc includes for headers, body, etc.
+ * Mapped type that allows any of the valid include locations
+ */
+export type PandocIncludes = {
+  [K in PandocIncludeLocation]?: string[];
+};
 
 /**
  * Options for execution
@@ -230,6 +234,89 @@ export interface RunOptions {
 }
 
 /**
+ * Render flags (extends pandoc flags)
+ */
+export interface RenderFlags {
+  // Output options
+  outputDir?: string;
+  siteUrl?: string;
+  executeDir?: string;
+
+  // Execution options
+  execute?: boolean;
+  executeCache?: true | false | "refresh";
+  executeDaemon?: number;
+  executeDaemonRestart?: boolean;
+  executeDebug?: boolean;
+  useFreezer?: boolean;
+
+  // Metadata
+  metadata?: { [key: string]: unknown };
+  pandocMetadata?: { [key: string]: unknown };
+  params?: { [key: string]: unknown };
+  paramsFile?: string;
+
+  // Other flags
+  clean?: boolean;
+  debug?: boolean;
+  quiet?: boolean;
+  version?: string;
+
+  // Pandoc-specific flags (subset)
+  to?: string;
+  output?: string;
+  [key: string]: unknown; // Allow other pandoc flags
+}
+
+/**
+ * Render options (simplified)
+ * Note: The internal Quarto version includes a 'services' field with
+ * RenderServices, which has been omitted as it requires internal dependencies.
+ */
+export interface RenderOptions {
+  flags?: RenderFlags;
+  pandocArgs?: string[];
+  progress?: boolean;
+  useFreezer?: boolean;
+  devServerReload?: boolean;
+  previewServer?: boolean;
+  setProjectDir?: boolean;
+  forceClean?: boolean;
+  echo?: boolean;
+  warning?: boolean;
+  quietPandoc?: boolean;
+}
+
+/**
+ * Result file from rendering
+ */
+export interface RenderResultFile {
+  /** Input file path */
+  input: string;
+
+  /** Markdown content */
+  markdown: string;
+
+  /** Format used for rendering */
+  format: Format;
+
+  /** Output file path */
+  file: string;
+
+  /** Whether this is a transient file */
+  isTransient?: boolean;
+
+  /** Supporting files generated */
+  supporting?: string[];
+
+  /** Resource files */
+  resourceFiles: string[];
+
+  /** Whether this is a supplemental file */
+  supplemental?: boolean;
+}
+
+/**
  * A partitioned markdown document
  */
 export interface PartitionedMarkdown {
@@ -262,6 +349,15 @@ export interface PartitionedMarkdown {
  */
 export interface ExecutionEngineDiscovery {
   /**
+   * Initialize the engine with the Quarto API (optional)
+   * May be called multiple times but always with the same QuartoAPI object.
+   * Engines should store the reference to use throughout their lifecycle.
+   *
+   * @param quarto - The Quarto API for accessing utilities
+   */
+  init?: (quarto: QuartoAPI) => void;
+
+  /**
    * Name of the engine
    */
   name: string;
@@ -288,6 +384,10 @@ export interface ExecutionEngineDiscovery {
 
   /**
    * Whether this engine can handle the given file
+   *
+   * @param file - The file path to check
+   * @param ext - The file extension
+   * @returns True if this engine can handle the file
    */
   claimsFile: (file: string, ext: string) => boolean;
 
@@ -305,6 +405,19 @@ export interface ExecutionEngineDiscovery {
    * Whether this engine generates figures
    */
   generatesFigures: boolean;
+
+  /**
+   * Directories to ignore during processing (optional)
+   */
+  ignoreDirs?: () => string[] | undefined;
+
+  /**
+   * Populate engine-specific CLI commands (optional)
+   * Called at module initialization to register commands like 'quarto enginename status'
+   *
+   * @param command - The CLI command to populate with subcommands
+   */
+  populateCommand?: (command: Command) => void;
 
   /**
    * Launch a dynamic execution engine with project context
@@ -359,7 +472,7 @@ export interface ExecutionEngineInstance {
    */
   filterFormat?: (
     source: string,
-    options: any,
+    options: RenderOptions,
     format: Format,
   ) => Format;
 
@@ -404,5 +517,5 @@ export interface ExecutionEngineInstance {
   /**
    * Post-render processing
    */
-  postRender?: (file: any) => Promise<void>;
+  postRender?: (file: RenderResultFile) => Promise<void>;
 }

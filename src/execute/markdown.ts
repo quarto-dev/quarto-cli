@@ -15,16 +15,23 @@ import {
   kMarkdownEngine,
   kQmdExtensions,
   PostProcessOptions,
+  QuartoAPI,
 } from "./types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
 import { EngineProjectContext } from "../project/types.ts";
 
 export const kMdExtensions = [".md", ".markdown"];
 
+let quarto: QuartoAPI;
+
 /**
  * Markdown engine implementation with discovery and launch capabilities
  */
 export const markdownEngineDiscovery: ExecutionEngineDiscovery = {
+  init: (quartoAPI) => {
+    quarto = quartoAPI;
+  },
+
   name: kMarkdownEngine,
   defaultExt: ".qmd",
   defaultYaml: () => [],
@@ -48,25 +55,23 @@ export const markdownEngineDiscovery: ExecutionEngineDiscovery = {
       canFreeze: markdownEngineDiscovery.canFreeze,
 
       markdownForFile(file: string): Promise<MappedString> {
-        return Promise.resolve(context.quarto.mappedString.fromFile(file));
+        return Promise.resolve(quarto.mappedString.fromFile(file));
       },
 
       target: (file: string, _quiet?: boolean, markdown?: MappedString) => {
-        if (markdown === undefined) {
-          markdown = context.quarto.mappedString.fromFile(file);
-        }
+        const md = markdown ?? quarto.mappedString.fromFile(file);
         const target: ExecutionTarget = {
           source: file,
           input: file,
-          markdown,
-          metadata: context.quarto.markdownRegex.extractYaml(markdown.value),
+          markdown: md,
+          metadata: quarto.markdownRegex.extractYaml(md.value),
         };
         return Promise.resolve(target);
       },
 
       partitionedMarkdown: (file: string) => {
         return Promise.resolve(
-          context.quarto.markdownRegex.partition(Deno.readTextFileSync(file)),
+          quarto.markdownRegex.partition(Deno.readTextFileSync(file)),
         );
       },
 
@@ -76,7 +81,7 @@ export const markdownEngineDiscovery: ExecutionEngineDiscovery = {
 
         // if it's plain md, validate that it doesn't have executable cells in it
         if (extname(options.target.input).toLowerCase() === ".md") {
-          const languages = context.quarto.markdownRegex.getLanguages(markdown);
+          const languages = quarto.markdownRegex.getLanguages(markdown);
           if (languages.size > 0) {
             throw new Error(
               "You must use the .qmd extension for documents with executable code.",

@@ -16,6 +16,9 @@ import { MappedString } from "../core/lib/text-types.ts";
 import { HandlerContextResults } from "../core/handlers/types.ts";
 import { EngineProjectContext, ProjectContext } from "../project/types.ts";
 import { Command } from "cliffy/command/mod.ts";
+import type { QuartoAPI } from "../core/quarto-api.ts";
+
+export type { QuartoAPI };
 
 export const kQmdExtensions = [".qmd"];
 
@@ -29,6 +32,13 @@ export const kJuliaEngine = "julia";
  * Used to determine which engine should handle a file
  */
 export interface ExecutionEngineDiscovery {
+  /**
+   * Initialize the engine with the Quarto API (optional)
+   * May be called multiple times but always with the same QuartoAPI object.
+   * Engines should store the reference to use throughout their lifecycle.
+   */
+  init?: (quarto: QuartoAPI) => void;
+
   name: string;
   defaultExt: string;
   defaultYaml: (kernel?: string) => string[];
@@ -39,6 +49,11 @@ export interface ExecutionEngineDiscovery {
   canFreeze: boolean;
   generatesFigures: boolean;
   ignoreDirs?: () => string[] | undefined;
+
+  /**
+   * Populate engine-specific CLI commands (optional)
+   */
+  populateCommand?: (command: Command) => void;
 
   /**
    * Launch a dynamic execution engine with project context
@@ -93,8 +108,6 @@ export interface ExecutionEngineInstance {
   postRender?: (
     file: RenderResultFile,
   ) => Promise<void>;
-
-  populateCommand?: (command: Command) => void;
 }
 
 /**
