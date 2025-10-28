@@ -44,6 +44,11 @@ export interface ExecutionEngineDiscovery {
    * Launch a dynamic execution engine with project context
    */
   launch: (context: EngineProjectContext) => ExecutionEngineInstance;
+
+  /**
+   * Populate engine-specific CLI commands (optional)
+   */
+  populateCommand?: (command: Command) => void;
 }
 
 /**
@@ -93,8 +98,6 @@ export interface ExecutionEngineInstance {
   postRender?: (
     file: RenderResultFile,
   ) => Promise<void>;
-
-  populateCommand?: (command: Command) => void;
 }
 
 /**

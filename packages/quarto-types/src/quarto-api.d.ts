@@ -210,6 +210,30 @@ export interface QuartoAPI {
      */
     isHtmlDashboardOutput: (format?: string) => boolean;
   };
+
+  /**
+   * Path manipulation utilities
+   */
+  path: {
+    /**
+     * Convert path to absolute form with platform-specific handling
+     *
+     * Handles URL to file path conversion, makes relative paths absolute,
+     * normalizes the path, and uppercases Windows drive letters.
+     *
+     * @param path - Path string or URL to make absolute
+     * @returns Absolute, normalized path with Windows-specific fixes
+     */
+    absolute: (path: string | URL) => string;
+
+    /**
+     * Convert path to use forward slashes
+     *
+     * @param path - Path with backslashes or forward slashes
+     * @returns Path with only forward slashes
+     */
+    toForwardSlashes: (path: string) => string;
+  };
 }
 
 /**

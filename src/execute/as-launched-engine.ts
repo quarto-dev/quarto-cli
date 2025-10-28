@@ -146,10 +146,5 @@ export function asLaunchedEngine(
         return engine.postRender!(file, project);
       }
       : undefined,
-
-    /**
-     * Populate CLI command if supported
-     */
-    populateCommand: engine.populateCommand,
   };
 }
