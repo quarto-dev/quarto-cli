@@ -48,10 +48,9 @@ import { encodeBase64 } from "encoding/base64";
 // executeResultEngineDependencies and executeResultIncludes now accessed via context.quarto.jupyter
 import { isWindows } from "../deno_ral/platform.ts";
 import { Command } from "cliffy/command/mod.ts";
-import {
-  isJupyterPercentScript,
-  markdownFromJupyterPercentScript,
-} from "./jupyter/percent.ts";
+// isJupyterPercentScript used at module level (claimsFile), keep direct import
+// markdownFromJupyterPercentScript accessed via context.quarto.jupyter inside launch()
+import { isJupyterPercentScript } from "./jupyter/percent.ts";
 import { resolve } from "path";
 
 export interface SourceRange {
@@ -136,7 +135,7 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
       markdownForFile(file: string): Promise<MappedString> {
         if (isJuliaPercentScript(file)) {
           return Promise.resolve(
-            asMappedString(markdownFromJupyterPercentScript(file)),
+            asMappedString(context.quarto.jupyter.percentScriptToMarkdown(file)),
           );
         } else {
           return Promise.resolve(context.quarto.mappedString.fromFile(file));
