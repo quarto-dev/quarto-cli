@@ -233,6 +233,32 @@ export interface QuartoAPI {
      * @returns Path with only forward slashes
      */
     toForwardSlashes: (path: string) => string;
+
+    /**
+     * Get platform-specific runtime directory for Quarto
+     *
+     * Returns the appropriate runtime/state directory based on platform:
+     * - macOS: ~/Library/Caches/quarto/{subdir}
+     * - Windows: %LOCALAPPDATA%/quarto/{subdir}
+     * - Linux: $XDG_RUNTIME_DIR or ~/.local/share/quarto/{subdir}
+     *
+     * Automatically creates the directory if it doesn't exist.
+     *
+     * @param subdir - Optional subdirectory within the runtime directory
+     * @returns Absolute path to the runtime directory
+     */
+    runtime: (subdir?: string) => string;
+
+    /**
+     * Get path to a Quarto resource file
+     *
+     * Returns the path to bundled resource files in Quarto's share directory.
+     * Can accept multiple path segments that will be joined.
+     *
+     * @param parts - Path segments to join (e.g., "julia", "script.jl")
+     * @returns Absolute path to the resource file
+     */
+    resource: (...parts: string[]) => string;
   };
 }
 
