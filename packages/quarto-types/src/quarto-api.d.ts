@@ -120,6 +120,23 @@ export interface QuartoAPI {
      * @returns Array of widget dependencies or undefined
      */
     resultEngineDependencies: (dependencies?: JupyterWidgetDependencies) => Array<JupyterWidgetDependencies> | undefined;
+
+    /**
+     * Check if a file is a Jupyter percent script
+     *
+     * @param file - File path to check
+     * @param extensions - Optional array of extensions to check (default: ['.py', '.jl', '.r'])
+     * @returns True if file is a Jupyter percent script
+     */
+    isPercentScript: (file: string, extensions?: string[]) => boolean;
+
+    /**
+     * Convert a Jupyter percent script to markdown
+     *
+     * @param file - Path to the percent script file
+     * @returns Converted markdown content
+     */
+    percentScriptToMarkdown: (file: string) => string;
   };
 }
 
