@@ -167,6 +167,14 @@ export interface QuartoAPI {
     isPresentationOutput: (format: FormatPandoc) => boolean;
     isHtmlDashboardOutput: (format?: string) => boolean;
   };
+
+  /**
+   * Path manipulation utilities
+   */
+  path: {
+    absolute: (path: string | URL) => string;
+    toForwardSlashes: (path: string) => string;
+  };
 }
 
 // Create the implementation of the quartoAPI
@@ -197,6 +205,10 @@ import {
   isPresentationOutput,
   isHtmlDashboardOutput,
 } from "../config/format.ts";
+import {
+  normalizePath,
+  pathWithForwardSlashes,
+} from "../core/path.ts";
 
 /**
  * Global Quarto API implementation
@@ -242,5 +254,10 @@ export const quartoAPI: QuartoAPI = {
     isMarkdownOutput,
     isPresentationOutput,
     isHtmlDashboardOutput: (format?: string) => !!isHtmlDashboardOutput(format),
+  },
+
+  path: {
+    absolute: normalizePath,
+    toForwardSlashes: pathWithForwardSlashes,
   }
 };
