@@ -166,11 +166,3 @@ export interface JupyterToMarkdownResult {
   pandoc?: Record<string, unknown>;
 }
 
-/**
- * Pandoc includes structure for injecting content
- */
-export interface PandocIncludes {
-  "include-before-body"?: string[];
-  "include-after-body"?: string[];
-  "include-in-header"?: string[];
-}
