@@ -1,19 +1,22 @@
-// src/core/quarto-api.ts
+/*
+ * quarto-api.d.ts
+ *
+ * Copyright (C) 2023 Posit Software, PBC
+ */
 
-// Import types from quarto-cli, not quarto-types
-import { MappedString } from "./lib/text-types.ts";
-import { Format, Metadata, FormatPandoc } from "../config/types.ts";
-import { PartitionedMarkdown } from "./pandoc/types.ts";
+import { MappedString } from './text-types';
+import { Metadata } from './metadata-types';
+import { PartitionedMarkdown } from './execution-engine';
 import type {
   JupyterNotebook,
   JupyterToMarkdownOptions,
   JupyterToMarkdownResult,
-  JupyterWidgetDependencies,
-} from "./jupyter/types.ts";
-import type {
   JupyterNotebookAssetPaths,
-} from "./jupyter/jupyter.ts";
-import type { PandocIncludes } from "../execute/types.ts";
+  JupyterWidgetDependencies,
+  FormatPandoc,
+} from './jupyter-types';
+import { PandocIncludes } from './execution-engine';
+import { Format } from './metadata-types';
 
 /**
  * Global Quarto API interface
@@ -160,11 +163,53 @@ export interface QuartoAPI {
    * Format detection utilities
    */
   format: {
+    /**
+     * Check if format is HTML compatible
+     *
+     * @param format - Format to check
+     * @returns True if format is HTML compatible
+     */
     isHtmlCompatible: (format: Format) => boolean;
+
+    /**
+     * Check if format is Jupyter notebook output
+     *
+     * @param format - Format pandoc options to check
+     * @returns True if format is ipynb
+     */
     isIpynbOutput: (format: FormatPandoc) => boolean;
+
+    /**
+     * Check if format is LaTeX output
+     *
+     * @param format - Format pandoc options to check
+     * @returns True if format is LaTeX (pdf, latex, or beamer)
+     */
     isLatexOutput: (format: FormatPandoc) => boolean;
+
+    /**
+     * Check if format is markdown output
+     *
+     * @param format - Format to check
+     * @param flavors - Optional array of markdown flavors to check
+     * @returns True if format is markdown
+     */
     isMarkdownOutput: (format: Format, flavors?: string[]) => boolean;
+
+    /**
+     * Check if format is presentation output
+     *
+     * @param format - Format pandoc options to check
+     * @returns True if format is a presentation format
+     */
     isPresentationOutput: (format: FormatPandoc) => boolean;
+
+    /**
+     * Check if format is HTML dashboard output
+     *
+     * @param format - Optional format string to check
+     * @returns True if format is a dashboard
+     */
     isHtmlDashboardOutput: (format?: string) => boolean;
   };
 
@@ -172,9 +217,49 @@ export interface QuartoAPI {
    * Path manipulation utilities
    */
   path: {
+    /**
+     * Convert path to absolute form with platform-specific handling
+     *
+     * Handles URL to file path conversion, makes relative paths absolute,
+     * normalizes the path, and uppercases Windows drive letters.
+     *
+     * @param path - Path string or URL to make absolute
+     * @returns Absolute, normalized path with Windows-specific fixes
+     */
     absolute: (path: string | URL) => string;
+
+    /**
+     * Convert path to use forward slashes
+     *
+     * @param path - Path with backslashes or forward slashes
+     * @returns Path with only forward slashes
+     */
     toForwardSlashes: (path: string) => string;
+
+    /**
+     * Get platform-specific runtime directory for Quarto
+     *
+     * Returns the appropriate runtime/state directory based on platform:
+     * - macOS: ~/Library/Caches/quarto/{subdir}
+     * - Windows: %LOCALAPPDATA%/quarto/{subdir}
+     * - Linux: $XDG_RUNTIME_DIR or ~/.local/share/quarto/{subdir}
+     *
+     * Automatically creates the directory if it doesn't exist.
+     *
+     * @param subdir - Optional subdirectory within the runtime directory
+     * @returns Absolute path to the runtime directory
+     */
     runtime: (subdir?: string) => string;
+
+    /**
+     * Get path to a Quarto resource file
+     *
+     * Returns the path to bundled resource files in Quarto's share directory.
+     * Can accept multiple path segments that will be joined.
+     *
+     * @param parts - Path segments to join (e.g., "julia", "script.jl")
+     * @returns Absolute path to the resource file
+     */
     resource: (...parts: string[]) => string;
   };
 
@@ -182,113 +267,37 @@ export interface QuartoAPI {
    * System and environment detection utilities
    */
   system: {
+    /**
+     * Check if running in an interactive session
+     *
+     * Detects if Quarto is running in an interactive environment such as:
+     * - RStudio IDE
+     * - VS Code output channel
+     * - Interactive terminal (TTY)
+     *
+     * @returns True if running in an interactive environment
+     */
     isInteractiveSession: () => boolean;
+
+    /**
+     * Check if running in a CI/CD environment
+     *
+     * Detects if Quarto is running in a continuous integration environment by checking
+     * for common CI environment variables across 40+ CI/CD platforms including:
+     * - GitHub Actions
+     * - GitLab CI
+     * - Jenkins
+     * - CircleCI
+     * - Travis CI
+     * - And many more
+     *
+     * @returns True if running in a CI/CD environment
+     */
     runningInCI: () => boolean;
   };
 }
 
-// Create the implementation of the quartoAPI
-import { readYamlFromMarkdown } from "../core/yaml.ts";
-import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
-import { languagesInMarkdown } from "../execute/engine-shared.ts";
-import {
-  asMappedString,
-  mappedNormalizeNewlines,
-  mappedLines,
-  mappedIndexToLineCol,
-} from "../core/lib/mapped-text.ts";
-import { mappedStringFromFile } from "../core/mapped-text.ts";
-import { jupyterAssets, jupyterToMarkdown } from "../core/jupyter/jupyter.ts";
-import {
-  executeResultEngineDependencies,
-  executeResultIncludes,
-} from "../execute/jupyter/jupyter.ts";
-import {
-  isJupyterPercentScript,
-  markdownFromJupyterPercentScript,
-} from "../execute/jupyter/percent.ts";
-import {
-  isHtmlCompatible,
-  isIpynbOutput,
-  isLatexOutput,
-  isMarkdownOutput,
-  isPresentationOutput,
-  isHtmlDashboardOutput,
-} from "../config/format.ts";
-import {
-  normalizePath,
-  pathWithForwardSlashes,
-} from "../core/path.ts";
-import { quartoRuntimeDir } from "../core/appdirs.ts";
-import { resourcePath } from "../core/resources.ts";
-import { isInteractiveSession } from "../core/platform.ts";
-import { runningInCI } from "../core/ci-info.ts";
-
 /**
- * Global Quarto API implementation
+ * Global Quarto API object
  */
-export const quartoAPI: QuartoAPI = {
-  markdownRegex: {
-    extractYaml: readYamlFromMarkdown,
-    partition: partitionMarkdown,
-    getLanguages: languagesInMarkdown
-  },
-
-  mappedString: {
-    fromString: asMappedString,
-    fromFile: mappedStringFromFile,
-    normalizeNewlines: mappedNormalizeNewlines,
-    splitLines: (str: MappedString, keepNewLines?: boolean) => {
-      return mappedLines(str, keepNewLines);
-    },
-    indexToLineCol: (str: MappedString, offset: number) => {
-      const fn = mappedIndexToLineCol(str);
-      return fn(offset);
-    },
-  },
-
-  jupyter: {
-    assets: jupyterAssets,
-    toMarkdown: jupyterToMarkdown,
-    resultIncludes: (tempDir: string, dependencies?: JupyterWidgetDependencies) => {
-      return executeResultIncludes(tempDir, dependencies) || {};
-    },
-    resultEngineDependencies: (dependencies?: JupyterWidgetDependencies) => {
-      const result = executeResultEngineDependencies(dependencies);
-      return result as Array<JupyterWidgetDependencies> | undefined;
-    },
-    isPercentScript: isJupyterPercentScript,
-    percentScriptToMarkdown: markdownFromJupyterPercentScript
-  },
-
-  format: {
-    isHtmlCompatible,
-    isIpynbOutput,
-    isLatexOutput,
-    isMarkdownOutput,
-    isPresentationOutput,
-    isHtmlDashboardOutput: (format?: string) => !!isHtmlDashboardOutput(format),
-  },
-
-  path: {
-    absolute: normalizePath,
-    toForwardSlashes: pathWithForwardSlashes,
-    runtime: quartoRuntimeDir,
-    resource: (...parts: string[]) => {
-      if (parts.length === 0) {
-        return resourcePath();
-      } else if (parts.length === 1) {
-        return resourcePath(parts[0]);
-      } else {
-        // Join multiple parts with the first one
-        const joined = parts.join("/");
-        return resourcePath(joined);
-      }
-    },
-  },
-
-  system: {
-    isInteractiveSession,
-    runningInCI,
-  }
-};
+export declare const quartoAPI: QuartoAPI;

@@ -204,11 +204,6 @@ export interface EngineProjectContext {
     markdown?: MappedString,
     force?: boolean,
   ) => Promise<MappedString>;
-
-  /**
-   * Reference to the global Quarto API
-   */
-  quarto: import("../core/quarto-api.ts").QuartoAPI;
 }
 
 export const kAriaLabel = "aria-label";
