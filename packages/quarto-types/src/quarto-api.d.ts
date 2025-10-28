@@ -156,6 +156,60 @@ export interface QuartoAPI {
      */
     percentScriptToMarkdown: (file: string) => string;
   };
+
+  /**
+   * Format detection utilities
+   */
+  format: {
+    /**
+     * Check if format is HTML compatible
+     *
+     * @param format - Format to check
+     * @returns True if format is HTML compatible
+     */
+    isHtmlCompatible: (format: Format) => boolean;
+
+    /**
+     * Check if format is Jupyter notebook output
+     *
+     * @param format - Format pandoc options to check
+     * @returns True if format is ipynb
+     */
+    isIpynbOutput: (format: FormatPandoc) => boolean;
+
+    /**
+     * Check if format is LaTeX output
+     *
+     * @param format - Format pandoc options to check
+     * @returns True if format is LaTeX (pdf, latex, or beamer)
+     */
+    isLatexOutput: (format: FormatPandoc) => boolean;
+
+    /**
+     * Check if format is markdown output
+     *
+     * @param format - Format to check
+     * @param flavors - Optional array of markdown flavors to check
+     * @returns True if format is markdown
+     */
+    isMarkdownOutput: (format: Format, flavors?: string[]) => boolean;
+
+    /**
+     * Check if format is presentation output
+     *
+     * @param format - Format pandoc options to check
+     * @returns True if format is a presentation format
+     */
+    isPresentationOutput: (format: FormatPandoc) => boolean;
+
+    /**
+     * Check if format is HTML dashboard output
+     *
+     * @param format - Optional format string to check
+     * @returns True if format is a dashboard
+     */
+    isHtmlDashboardOutput: (format?: string) => boolean;
+  };
 }
 
 /**

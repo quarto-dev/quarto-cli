@@ -24,13 +24,7 @@ import {
   kIpynbProduceSourceNotebook,
   kKeepHidden,
 } from "../config/constants.ts";
-import {
-  isHtmlCompatible,
-  isIpynbOutput,
-  isLatexOutput,
-  isMarkdownOutput,
-  isPresentationOutput,
-} from "../config/format.ts";
+// Format utilities now accessed via context.quarto.format
 import { resourcePath } from "../core/resources.ts";
 import { quartoRuntimeDir } from "../core/appdirs.ts";
 import { normalizePath, pathWithForwardSlashes } from "../core/path.ts";
@@ -197,11 +191,11 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
             assets,
             execute: options.format.execute,
             keepHidden: options.format.render[kKeepHidden],
-            toHtml: isHtmlCompatible(options.format),
-            toLatex: isLatexOutput(options.format.pandoc),
-            toMarkdown: isMarkdownOutput(options.format),
-            toIpynb: isIpynbOutput(options.format.pandoc),
-            toPresentation: isPresentationOutput(options.format.pandoc),
+            toHtml: context.quarto.format.isHtmlCompatible(options.format),
+            toLatex: context.quarto.format.isLatexOutput(options.format.pandoc),
+            toMarkdown: context.quarto.format.isMarkdownOutput(options.format),
+            toIpynb: context.quarto.format.isIpynbOutput(options.format.pandoc),
+            toPresentation: context.quarto.format.isPresentationOutput(options.format.pandoc),
             figFormat: options.format.execute[kFigFormat],
             figDpi: options.format.execute[kFigDpi],
             figPos: options.format.render[kFigPos],
