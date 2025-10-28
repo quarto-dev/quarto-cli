@@ -77,6 +77,24 @@ export interface QuartoAPI {
      * @returns MappedString with \r\n converted to \n
      */
     normalizeNewlines: (markdown: MappedString) => MappedString;
+
+    /**
+     * Split a MappedString into lines
+     *
+     * @param str - MappedString to split
+     * @param keepNewLines - Whether to keep newline characters (default: false)
+     * @returns Array of MappedStrings, one per line
+     */
+    splitLines: (str: MappedString, keepNewLines?: boolean) => MappedString[];
+
+    /**
+     * Convert character offset to line/column coordinates
+     *
+     * @param str - MappedString to query
+     * @param offset - Character offset to convert
+     * @returns Line and column numbers (1-indexed)
+     */
+    indexToLineCol: (str: MappedString, offset: number) => { line: number; column: number };
   };
 
   /**
