@@ -20,3 +20,6 @@ export type * from "./execution-engine.d.ts";
 
 // Export Quarto API types
 export type * from "./quarto-api.d.ts";
+
+// Export Jupyter types
+export type * from "./jupyter-types.d.ts";

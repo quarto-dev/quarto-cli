@@ -18,7 +18,7 @@ import {
 } from "./types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
 import { EngineProjectContext } from "../project/types.ts";
-import { jupyterAssets, jupyterToMarkdown } from "../core/jupyter/jupyter.ts";
+// jupyterAssets and jupyterToMarkdown now accessed via context.quarto.jupyter
 import {
   kExecuteDaemon,
   kExecuteDaemonRestart,
@@ -45,10 +45,7 @@ import { sleep } from "../core/async.ts";
 import { JupyterNotebook } from "../core/jupyter/types.ts";
 import { existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
 import { encodeBase64 } from "encoding/base64";
-import {
-  executeResultEngineDependencies,
-  executeResultIncludes,
-} from "./jupyter/jupyter.ts";
+// executeResultEngineDependencies and executeResultIncludes now accessed via context.quarto.jupyter
 import { isWindows } from "../deno_ral/platform.ts";
 import { Command } from "cliffy/command/mod.ts";
 import {
@@ -188,7 +185,7 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
           language: "julia",
         };
 
-        const assets = jupyterAssets(
+        const assets = context.quarto.jupyter.assets(
           options.target.input,
           options.format.pandoc.to,
         );
@@ -198,7 +195,7 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
         // potentially very large notebook) so should not be relied
         // on subseuqent to this call
 
-        const result = await jupyterToMarkdown(
+        const result = await context.quarto.jupyter.toMarkdown(
           nb,
           {
             executeOptions: options,
@@ -224,12 +221,12 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
         let includes: PandocIncludes | undefined;
         let engineDependencies: Record<string, Array<unknown>> | undefined;
         if (options.dependencies) {
-          includes = executeResultIncludes(
+          includes = context.quarto.jupyter.resultIncludes(
             options.tempDir,
             result.dependencies,
           );
         } else {
-          const dependencies = executeResultEngineDependencies(
+          const dependencies = context.quarto.jupyter.resultEngineDependencies(
             result.dependencies,
           );
           if (dependencies) {

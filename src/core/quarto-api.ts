@@ -4,6 +4,16 @@
 import { MappedString } from "./lib/text-types.ts";
 import { Metadata } from "../config/types.ts";
 import { PartitionedMarkdown } from "./pandoc/types.ts";
+import type {
+  JupyterNotebook,
+  JupyterToMarkdownOptions,
+  JupyterToMarkdownResult,
+  JupyterWidgetDependencies,
+} from "./jupyter/types.ts";
+import type {
+  JupyterNotebookAssetPaths,
+} from "./jupyter/jupyter.ts";
+import type { PandocIncludes } from "../execute/types.ts";
 
 /**
  * Global Quarto API interface
@@ -67,6 +77,49 @@ export interface QuartoAPI {
      */
     normalizeNewlines: (markdown: MappedString) => MappedString;
   };
+
+  /**
+   * Jupyter notebook integration utilities
+   */
+  jupyter: {
+    /**
+     * Create asset paths for Jupyter notebook output
+     *
+     * @param input - Input file path
+     * @param to - Output format (optional)
+     * @returns Asset paths for files, figures, and supporting directories
+     */
+    assets: (input: string, to?: string) => JupyterNotebookAssetPaths;
+
+    /**
+     * Convert a Jupyter notebook to markdown
+     *
+     * @param nb - Jupyter notebook to convert
+     * @param options - Conversion options
+     * @returns Converted markdown with cell outputs and dependencies
+     */
+    toMarkdown: (
+      nb: JupyterNotebook,
+      options: JupyterToMarkdownOptions
+    ) => Promise<JupyterToMarkdownResult>;
+
+    /**
+     * Convert result dependencies to Pandoc includes
+     *
+     * @param tempDir - Temporary directory for includes
+     * @param dependencies - Widget dependencies from execution result
+     * @returns Pandoc includes structure
+     */
+    resultIncludes: (tempDir: string, dependencies?: JupyterWidgetDependencies) => PandocIncludes;
+
+    /**
+     * Extract engine dependencies from result dependencies
+     *
+     * @param dependencies - Widget dependencies from execution result
+     * @returns Array of widget dependencies or undefined
+     */
+    resultEngineDependencies: (dependencies?: JupyterWidgetDependencies) => Array<JupyterWidgetDependencies> | undefined;
+  };
 }
 
 // Create the implementation of the quartoAPI
@@ -78,6 +131,11 @@ import {
   mappedNormalizeNewlines
 } from "../core/lib/mapped-text.ts";
 import { mappedStringFromFile } from "../core/mapped-text.ts";
+import { jupyterAssets, jupyterToMarkdown } from "../core/jupyter/jupyter.ts";
+import {
+  executeResultEngineDependencies,
+  executeResultIncludes,
+} from "../execute/jupyter/jupyter.ts";
 
 /**
  * Global Quarto API implementation
@@ -93,5 +151,17 @@ export const quartoAPI: QuartoAPI = {
     fromString: asMappedString,
     fromFile: mappedStringFromFile,
     normalizeNewlines: mappedNormalizeNewlines
+  },
+
+  jupyter: {
+    assets: jupyterAssets,
+    toMarkdown: jupyterToMarkdown,
+    resultIncludes: (tempDir: string, dependencies?: JupyterWidgetDependencies) => {
+      return executeResultIncludes(tempDir, dependencies) || {};
+    },
+    resultEngineDependencies: (dependencies?: JupyterWidgetDependencies) => {
+      const result = executeResultEngineDependencies(dependencies);
+      return result as Array<JupyterWidgetDependencies> | undefined;
+    }
   }
 };
