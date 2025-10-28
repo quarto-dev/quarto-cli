@@ -206,53 +206,9 @@ export interface EngineProjectContext {
   ) => Promise<MappedString>;
 
   /**
-   * Extract and parse YAML frontmatter from markdown
-   *
-   * @param markdown - Markdown content with YAML frontmatter
-   * @returns Parsed metadata object
+   * Reference to the global Quarto API
    */
-  readYamlFromMarkdown: (markdown: string) => Metadata;
-
-  /**
-   * Split markdown into YAML, headings, and content
-   *
-   * @param markdown - Markdown content
-   * @returns Partitioned markdown object
-   */
-  partitionMarkdown: (markdown: string) => PartitionedMarkdown;
-
-  /**
-   * Extract languages used in markdown code blocks
-   *
-   * @param markdown - Markdown content to analyze
-   * @returns Set of language identifiers found in code blocks
-   */
-  languagesInMarkdown: (markdown: string) => Set<string>;
-
-  /**
-   * Normalize newlines in markdown while maintaining source mapping
-   *
-   * @param markdown - Mapped string to normalize
-   * @returns Normalized mapped string
-   */
-  normalizeMarkdown: (markdown: MappedString) => MappedString;
-
-  /**
-   * Create a mapped string from text
-   *
-   * @param text - Text content
-   * @param fileName - Optional filename
-   * @returns Mapped string
-   */
-  mappedStringFromString: (text: string, fileName?: string) => MappedString;
-
-  /**
-   * Read a file and create a mapped string from its contents
-   *
-   * @param path - Path to the file
-   * @returns Mapped string with source information
-   */
-  mappedStringFromFile: (path: string) => MappedString;
+  quarto: import("../core/quarto-api.ts").QuartoAPI;
 }
 
 export const kAriaLabel = "aria-label";
