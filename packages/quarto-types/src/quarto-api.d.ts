@@ -7,6 +7,14 @@
 import { MappedString } from './text-types';
 import { Metadata } from './metadata-types';
 import { PartitionedMarkdown } from './execution-engine';
+import type {
+  JupyterNotebook,
+  JupyterToMarkdownOptions,
+  JupyterToMarkdownResult,
+  JupyterNotebookAssetPaths,
+  PandocIncludes,
+  JupyterWidgetDependencies,
+} from './jupyter-types';
 
 /**
  * Global Quarto API interface
@@ -69,6 +77,49 @@ export interface QuartoAPI {
      * @returns MappedString with \r\n converted to \n
      */
     normalizeNewlines: (markdown: MappedString) => MappedString;
+  };
+
+  /**
+   * Jupyter notebook integration utilities
+   */
+  jupyter: {
+    /**
+     * Create asset paths for Jupyter notebook output
+     *
+     * @param input - Input file path
+     * @param to - Output format (optional)
+     * @returns Asset paths for files, figures, and supporting directories
+     */
+    assets: (input: string, to?: string) => JupyterNotebookAssetPaths;
+
+    /**
+     * Convert a Jupyter notebook to markdown
+     *
+     * @param nb - Jupyter notebook to convert
+     * @param options - Conversion options
+     * @returns Converted markdown with cell outputs and dependencies
+     */
+    toMarkdown: (
+      nb: JupyterNotebook,
+      options: JupyterToMarkdownOptions
+    ) => Promise<JupyterToMarkdownResult>;
+
+    /**
+     * Convert result dependencies to Pandoc includes
+     *
+     * @param tempDir - Temporary directory for includes
+     * @param dependencies - Widget dependencies from execution result
+     * @returns Pandoc includes structure
+     */
+    resultIncludes: (tempDir: string, dependencies?: JupyterWidgetDependencies) => PandocIncludes;
+
+    /**
+     * Extract engine dependencies from result dependencies
+     *
+     * @param dependencies - Widget dependencies from execution result
+     * @returns Array of widget dependencies or undefined
+     */
+    resultEngineDependencies: (dependencies?: JupyterWidgetDependencies) => Array<JupyterWidgetDependencies> | undefined;
   };
 }
 
