@@ -2,7 +2,7 @@
 
 // Import types from quarto-cli, not quarto-types
 import { MappedString } from "./lib/text-types.ts";
-import { Metadata } from "../config/types.ts";
+import { Format, Metadata, FormatPandoc } from "../config/types.ts";
 import { PartitionedMarkdown } from "./pandoc/types.ts";
 import type {
   JupyterNotebook,
@@ -155,6 +155,18 @@ export interface QuartoAPI {
      */
     percentScriptToMarkdown: (file: string) => string;
   };
+
+  /**
+   * Format detection utilities
+   */
+  format: {
+    isHtmlCompatible: (format: Format) => boolean;
+    isIpynbOutput: (format: FormatPandoc) => boolean;
+    isLatexOutput: (format: FormatPandoc) => boolean;
+    isMarkdownOutput: (format: Format, flavors?: string[]) => boolean;
+    isPresentationOutput: (format: FormatPandoc) => boolean;
+    isHtmlDashboardOutput: (format?: string) => boolean;
+  };
 }
 
 // Create the implementation of the quartoAPI
@@ -177,6 +189,14 @@ import {
   isJupyterPercentScript,
   markdownFromJupyterPercentScript,
 } from "../execute/jupyter/percent.ts";
+import {
+  isHtmlCompatible,
+  isIpynbOutput,
+  isLatexOutput,
+  isMarkdownOutput,
+  isPresentationOutput,
+  isHtmlDashboardOutput,
+} from "../config/format.ts";
 
 /**
  * Global Quarto API implementation
@@ -213,5 +233,14 @@ export const quartoAPI: QuartoAPI = {
     },
     isPercentScript: isJupyterPercentScript,
     percentScriptToMarkdown: markdownFromJupyterPercentScript
+  },
+
+  format: {
+    isHtmlCompatible,
+    isIpynbOutput,
+    isLatexOutput,
+    isMarkdownOutput,
+    isPresentationOutput,
+    isHtmlDashboardOutput: (format?: string) => !!isHtmlDashboardOutput(format),
   }
 };
