@@ -28,9 +28,8 @@ import {
 // Format utilities now accessed via context.quarto.format
 // Path utilities now accessed via context.quarto.path
 // resourcePath now accessed via context.quarto.path.resource
-// quartoRuntimeDir now accessed via context.quarto.path.runtime (but kept as direct import for CLI command helpers)
+// quartoRuntimeDir now accessed via quarto.path.runtime
 // isJupyterPercentScript now accessed via quarto.jupyter.isPercentScript
-import { quartoRuntimeDir } from "../core/appdirs.ts"; // Used in CLI command helper functions (juliaTransportFile, etc.)
 import { isInteractiveSession } from "../core/platform.ts";
 import { runningInCI } from "../core/ci-info.ts";
 import { sleep } from "../core/async.ts";
@@ -286,7 +285,7 @@ async function startOrReuseJuliaServer(
   options: JuliaExecuteOptions,
   context: EngineProjectContext,
 ): Promise<{ reused: boolean }> {
-  const transportFile = juliaTransportFile();
+  const transportFile = juliaTransportFile(context.quarto);
   if (!existsSync(transportFile)) {
     trace(
       options,
@@ -351,7 +350,7 @@ async function startOrReuseJuliaServer(
               `--project=${juliaProject}`,
               context.quarto.path.resource("julia", "quartonotebookrunner.jl"),
               transportFile,
-              juliaServerLogFile(),
+              juliaServerLogFile(context.quarto),
             ),
             "-WindowStyle",
             "Hidden",
@@ -378,7 +377,7 @@ async function startOrReuseJuliaServer(
           juliaProject,
           context.quarto.path.resource("julia", "quartonotebookrunner.jl"),
           transportFile,
-          juliaServerLogFile(),
+          juliaServerLogFile(context.quarto),
         ],
         env: {
           "JULIA_LOAD_PATH": "@:@stdlib", // ignore the main env
@@ -437,8 +436,9 @@ interface JuliaTransportFile {
 
 async function pollTransportFile(
   options: JuliaExecuteOptions,
+  context: EngineProjectContext,
 ): Promise<JuliaTransportFile> {
-  const transportFile = juliaTransportFile();
+  const transportFile = juliaTransportFile(context.quarto);
 
   for (let i = 0; i < 15; i++) {
     if (existsSync(transportFile)) {
@@ -510,14 +510,14 @@ async function getJuliaServerConnection(
 
   let transportOptions: JuliaTransportFile;
   try {
-    transportOptions = await pollTransportFile(options);
+    transportOptions = await pollTransportFile(options, context);
   } catch (err) {
     if (!reused) {
       info(
         "No transport file was found after the timeout. This is the log from the server process:",
       );
       info("#### BEGIN LOG ####");
-      printJuliaServerLog();
+      printJuliaServerLog(context.quarto);
       info("#### END LOG ####");
     }
     throw err;
@@ -546,7 +546,7 @@ async function getJuliaServerConnection(
         options,
         "Connecting to server failed, a transport file was reused so it might be stale. Delete transport file and retry.",
       );
-      safeRemoveSync(juliaTransportFile());
+      safeRemoveSync(juliaTransportFile(context.quarto));
       return await getJuliaServerConnection(options, context);
     } else {
       error(
@@ -650,7 +650,7 @@ async function executeJulia(
   context: EngineProjectContext,
 ): Promise<JupyterNotebook> {
   const conn = await getJuliaServerConnection(options, context);
-  const transportOptions = await pollTransportFile(options);
+  const transportOptions = await pollTransportFile(options, context);
   const file = options.target.input;
   if (options.oneShot || options.format.execute[kExecuteDaemonRestart]) {
     const isopen = await writeJuliaCommand(
@@ -893,9 +893,9 @@ async function writeJuliaCommand<T extends ServerCommand["type"]>(
   }
 }
 
-function juliaRuntimeDir(): string {
+function juliaRuntimeDir(quarto: QuartoAPI): string {
   try {
-    return quartoRuntimeDir("julia");
+    return quarto.path.runtime("julia");
   } catch (e) {
     error("Could not create julia runtime directory.");
     error(
@@ -911,12 +911,12 @@ function juliaRuntimeDir(): string {
   }
 }
 
-export function juliaTransportFile() {
-  return join(juliaRuntimeDir(), "julia_transport.txt");
+export function juliaTransportFile(quarto: QuartoAPI) {
+  return join(juliaRuntimeDir(quarto), "julia_transport.txt");
 }
 
-export function juliaServerLogFile() {
-  return join(juliaRuntimeDir(), "julia_server_log.txt");
+export function juliaServerLogFile(quarto: QuartoAPI) {
+  return join(juliaRuntimeDir(quarto), "julia_server_log.txt");
 }
 
 function trace(options: ExecuteOptions, msg: string) {
@@ -930,17 +930,17 @@ function populateJuliaEngineCommand(quarto: QuartoAPI, command: Command) {
     .command("status", "Status")
     .description(
       "Get status information on the currently running Julia server process.",
-    ).action(logStatus)
+    ).action(() => logStatus(quarto))
     .command("kill", "Kill server")
     .description(
       "Kill the control server if it is currently running. This will also kill all notebook worker processes.",
     )
-    .action(killJuliaServer)
+    .action(() => killJuliaServer(quarto))
     .command("log", "Print julia server log")
     .description(
       "Print the content of the julia server log file if it exists which can be used to diagnose problems.",
     )
-    .action(printJuliaServerLog)
+    .action(() => printJuliaServerLog(quarto))
     .command(
       "close",
       "Close the worker for a given notebook. If it is currently running, it will not be interrupted.",
@@ -958,12 +958,12 @@ function populateJuliaEngineCommand(quarto: QuartoAPI, command: Command) {
     .description(
       "Send a message to the server that it should close all notebooks and exit. This will fail if any notebooks are not idle.",
     )
-    .action(stopServer);
+    .action(() => stopServer(quarto));
   return;
 }
 
-async function logStatus() {
-  const transportFile = juliaTransportFile();
+async function logStatus(quarto: QuartoAPI) {
+  const transportFile = juliaTransportFile(quarto);
   if (!existsSync(transportFile)) {
     info("Julia control server is not running.");
     return;
@@ -992,8 +992,8 @@ async function logStatus() {
   }
 }
 
-function killJuliaServer() {
-  const transportFile = juliaTransportFile();
+function killJuliaServer(quarto: QuartoAPI) {
+  const transportFile = juliaTransportFile(quarto);
   if (!existsSync(transportFile)) {
     info("Julia control server is not running.");
     return;
@@ -1003,9 +1003,9 @@ function killJuliaServer() {
   info("Sent SIGTERM to server process");
 }
 
-function printJuliaServerLog() {
-  if (existsSync(juliaServerLogFile())) {
-    Deno.stdout.writeSync(Deno.readFileSync(juliaServerLogFile()));
+function printJuliaServerLog(quarto: QuartoAPI) {
+  if (existsSync(juliaServerLogFile(quarto))) {
+    Deno.stdout.writeSync(Deno.readFileSync(juliaServerLogFile(quarto)));
   } else {
     info("Server log file doesn't exist");
   }
@@ -1019,9 +1019,10 @@ function printJuliaServerLog() {
 async function connectAndWriteJuliaCommandToRunningServer<
   T extends ServerCommand["type"],
 >(
+  quarto: QuartoAPI,
   command: Extract<ServerCommand, { type: T }>,
 ): Promise<ServerCommandResponse<T>> {
-  const transportFile = juliaTransportFile();
+  const transportFile = juliaTransportFile(quarto);
   if (!existsSync(transportFile)) {
     throw new Error("Julia control server is not running.");
   }
@@ -1051,15 +1052,15 @@ async function connectAndWriteJuliaCommandToRunningServer<
 
 async function closeWorker(quarto: QuartoAPI, file: string, force: boolean) {
   const absfile = quarto.path.absolute(file);
-  await connectAndWriteJuliaCommandToRunningServer({
+  await connectAndWriteJuliaCommandToRunningServer(quarto, {
     type: force ? "forceclose" : "close",
     content: { file: absfile },
   });
   info(`Worker ${force ? "force-" : ""}closed successfully.`);
 }
 
-async function stopServer() {
-  const result = await connectAndWriteJuliaCommandToRunningServer({
+async function stopServer(quarto: QuartoAPI) {
+  const result = await connectAndWriteJuliaCommandToRunningServer(quarto, {
     type: "stop",
     content: {},
   });
