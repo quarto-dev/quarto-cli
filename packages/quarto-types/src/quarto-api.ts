@@ -12,9 +12,11 @@ import type {
   JupyterToMarkdownOptions,
   JupyterToMarkdownResult,
   JupyterNotebookAssetPaths,
-  PandocIncludes,
   JupyterWidgetDependencies,
+  FormatPandoc,
 } from './jupyter-types';
+import { PandocIncludes } from './execution-engine';
+import { Format } from './metadata-types';
 
 /**
  * Global Quarto API interface
