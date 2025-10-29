@@ -16,6 +16,7 @@ import { MappedString } from "../core/lib/text-types.ts";
 import { HandlerContextResults } from "../core/handlers/types.ts";
 import { EngineProjectContext, ProjectContext } from "../project/types.ts";
 import { Command } from "cliffy/command/mod.ts";
+import type { QuartoAPI } from "../core/quarto-api.ts";
 
 export const kQmdExtensions = [".qmd"];
 
@@ -34,7 +35,7 @@ export interface ExecutionEngineDiscovery {
   defaultYaml: (kernel?: string) => string[];
   defaultContent: (kernel?: string) => string[];
   validExtensions: () => string[];
-  claimsFile: (file: string, ext: string) => boolean;
+  claimsFile: (quarto: QuartoAPI, file: string, ext: string) => boolean;
   claimsLanguage: (language: string) => boolean;
   canFreeze: boolean;
   generatesFigures: boolean;
@@ -48,7 +49,7 @@ export interface ExecutionEngineDiscovery {
   /**
    * Populate engine-specific CLI commands (optional)
    */
-  populateCommand?: (command: Command) => void;
+  populateCommand?: (quarto: QuartoAPI, command: Command) => void;
 }
 
 /**

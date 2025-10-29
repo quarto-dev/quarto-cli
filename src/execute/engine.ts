@@ -44,6 +44,7 @@ import { ensureFileInformationCache } from "../project/project-shared.ts";
 import { engineProjectContext } from "../project/engine-project-context.ts";
 import { asEngineInstance } from "./as-engine-instance.ts";
 import { Command } from "cliffy/command/mod.ts";
+import { quartoAPI } from "../core/quarto-api.ts";
 
 const kEngines: Map<string, ExecutionEngine> = new Map();
 
@@ -243,7 +244,13 @@ export async function fileExecutionEngine(
 
   // try to find an engine that claims this extension outright
   for (const [_, engine] of reorderedEngines) {
-    if (engine.claimsFile(file, ext)) {
+    // Check if this is a discovery engine (has _discovery flag) or legacy engine
+    const claims = (engine as any)._discovery === true
+      ? (engine as unknown as ExecutionEngineDiscovery)
+        .claimsFile(quartoAPI, file, ext)
+      : engine.claimsFile(file, ext);
+
+    if (claims) {
       return asEngineInstance(engine, engineProjectContext(project));
     }
   }
@@ -348,7 +355,13 @@ kEngines.forEach((engine, name) => {
         engineSubcommand.showHelp();
         Deno.exit(1);
       });
-    engine.populateCommand(engineSubcommand);
+    // Check if this is a discovery engine (has _discovery flag) or legacy engine
+    if ((engine as any)._discovery === true) {
+      (engine as unknown as ExecutionEngineDiscovery)
+        .populateCommand!(quartoAPI, engineSubcommand);
+    } else {
+      engine.populateCommand(engineSubcommand);
+    }
     engineCommand.command(name, engineSubcommand);
   }
 });

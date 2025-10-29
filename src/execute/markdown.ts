@@ -30,7 +30,7 @@ export const markdownEngineDiscovery: ExecutionEngineDiscovery = {
   defaultYaml: () => [],
   defaultContent: () => [],
   validExtensions: () => kQmdExtensions.concat(kMdExtensions),
-  claimsFile: (_file: string, ext: string) => {
+  claimsFile: (_quarto, _file: string, ext: string) => {
     return kMdExtensions.includes(ext.toLowerCase());
   },
   claimsLanguage: (_language: string) => {
