@@ -12,69 +12,44 @@ import { docs } from "../../utils.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { fileExists, pathDoNotExists } from "../../verify.ts";
 import { testRender } from "./render.ts";
+import type { Verify } from "../../test.ts";
 
 if (isWindows) {
   const inputDir = docs("render-output-dir/");
   const quartoDir = ".quarto";
   const outputDir = "output-test-dir";
 
+  const cleanupDirs = async () => {
+    if (existsSync(outputDir)) {
+      safeRemoveSync(outputDir, { recursive: true });
+    }
+    if (existsSync(quartoDir)) {
+      safeRemoveSync(quartoDir, { recursive: true });
+    }
+  };
+
+  const testOutputDirRender = (
+    quartoVerify: Verify,
+    extraArgs: string[] = [],
+  ) => {
+    testRender(
+      "test.qmd",
+      "html",
+      false,
+      [quartoVerify],
+      {
+        cwd: () => inputDir,
+        setup: cleanupDirs,
+        teardown: cleanupDirs,
+      },
+      ["--output-dir", outputDir, ...extraArgs],
+      outputDir,
+    );
+  };
+
   // Test 1: Default behavior (clean=true) - .quarto should be removed
-  testRender(
-    "test.qmd",
-    "html",
-    false,
-    [pathDoNotExists(quartoDir)],
-    {
-      cwd: () => inputDir,
-      setup: async () => {
-        // Ensure output and quarto dirs are removed before test
-        if (existsSync(outputDir)) {
-          safeRemoveSync(outputDir, { recursive: true });
-        }
-        if (existsSync(quartoDir)) {
-          safeRemoveSync(quartoDir, { recursive: true });
-        }
-      },
-      teardown: async () => {
-        if (existsSync(outputDir)) {
-          safeRemoveSync(outputDir, { recursive: true });
-        }
-        if (existsSync(quartoDir)) {
-          safeRemoveSync(quartoDir, { recursive: true });
-        }
-      },
-    },
-    ["--output-dir", outputDir],
-    outputDir,
-  );
+  testOutputDirRender(pathDoNotExists(quartoDir));
 
   // Test 2: With --no-clean flag - .quarto should be preserved
-  testRender(
-    "test.qmd",
-    "html",
-    false,
-    [fileExists(quartoDir)],
-    {
-      cwd: () => inputDir,
-      setup: async () => {
-        // Ensure output and quarto dirs are removed before test
-        if (existsSync(outputDir)) {
-          safeRemoveSync(outputDir, { recursive: true });
-        }
-        if (existsSync(quartoDir)) {
-          safeRemoveSync(quartoDir, { recursive: true });
-        }
-      },
-      teardown: async () => {
-        if (existsSync(outputDir)) {
-          safeRemoveSync(outputDir, { recursive: true });
-        }
-        if (existsSync(quartoDir)) {
-          safeRemoveSync(quartoDir, { recursive: true });
-        }
-      },
-    },
-    ["--output-dir", outputDir, "--no-clean"],
-    outputDir,
-  );
+  testOutputDirRender(fileExists(quartoDir), ["--no-clean"]);
 }
