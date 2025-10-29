@@ -177,6 +177,14 @@ export interface QuartoAPI {
     runtime: (subdir?: string) => string;
     resource: (...parts: string[]) => string;
   };
+
+  /**
+   * System and environment detection utilities
+   */
+  system: {
+    isInteractiveSession: () => boolean;
+    runningInCI: () => boolean;
+  };
 }
 
 // Create the implementation of the quartoAPI
@@ -213,6 +221,8 @@ import {
 } from "../core/path.ts";
 import { quartoRuntimeDir } from "../core/appdirs.ts";
 import { resourcePath } from "../core/resources.ts";
+import { isInteractiveSession } from "../core/platform.ts";
+import { runningInCI } from "../core/ci-info.ts";
 
 /**
  * Global Quarto API implementation
@@ -275,5 +285,10 @@ export const quartoAPI: QuartoAPI = {
         return resourcePath(joined);
       }
     },
+  },
+
+  system: {
+    isInteractiveSession,
+    runningInCI,
   }
 };

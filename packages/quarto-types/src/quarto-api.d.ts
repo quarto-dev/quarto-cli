@@ -260,6 +260,39 @@ export interface QuartoAPI {
      */
     resource: (...parts: string[]) => string;
   };
+
+  /**
+   * System and environment detection utilities
+   */
+  system: {
+    /**
+     * Check if running in an interactive session
+     *
+     * Detects if Quarto is running in an interactive environment such as:
+     * - RStudio IDE
+     * - VS Code output channel
+     * - Interactive terminal (TTY)
+     *
+     * @returns True if running in an interactive environment
+     */
+    isInteractiveSession: () => boolean;
+
+    /**
+     * Check if running in a CI/CD environment
+     *
+     * Detects if Quarto is running in a continuous integration environment by checking
+     * for common CI environment variables across 40+ CI/CD platforms including:
+     * - GitHub Actions
+     * - GitLab CI
+     * - Jenkins
+     * - CircleCI
+     * - Travis CI
+     * - And many more
+     *
+     * @returns True if running in a CI/CD environment
+     */
+    runningInCI: () => boolean;
+  };
 }
 
 /**
