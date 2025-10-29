@@ -13,6 +13,7 @@ import {
 } from "./types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
 import { EngineProjectContext } from "../project/types.ts";
+import type { QuartoAPI } from "../core/quarto-api.ts";
 // jupyterAssets and jupyterToMarkdown now accessed via context.quarto.jupyter
 import {
   kExecuteDaemon,
@@ -27,8 +28,8 @@ import {
 // Format utilities now accessed via context.quarto.format
 // Path utilities now accessed via context.quarto.path
 // resourcePath now accessed via context.quarto.path.resource
-// quartoRuntimeDir now accessed via context.quarto.path.runtime (but kept as direct import for CLI commands)
-import { normalizePath } from "../core/path.ts"; // Used in CLI commands (no context available)
+// quartoRuntimeDir now accessed via context.quarto.path.runtime (but kept as direct import for CLI command helpers)
+// isJupyterPercentScript now accessed via quarto.jupyter.isPercentScript
 import { quartoRuntimeDir } from "../core/appdirs.ts"; // Used in CLI command helper functions (juliaTransportFile, etc.)
 import { isInteractiveSession } from "../core/platform.ts";
 import { runningInCI } from "../core/ci-info.ts";
@@ -39,9 +40,6 @@ import { encodeBase64 } from "encoding/base64";
 // executeResultEngineDependencies and executeResultIncludes now accessed via context.quarto.jupyter
 import { isWindows } from "../deno_ral/platform.ts";
 import { Command } from "cliffy/command/mod.ts";
-// isJupyterPercentScript used at module level (claimsFile), keep direct import
-// markdownFromJupyterPercentScript accessed via context.quarto.jupyter inside launch()
-import { isJupyterPercentScript } from "./jupyter/percent.ts";
 import { resolve } from "path";
 
 export interface SourceRange {
@@ -52,10 +50,6 @@ export interface SourceRange {
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
   oneShot: boolean; // if true, the file's worker process is closed before and after running
-}
-
-function isJuliaPercentScript(file: string) {
-  return isJupyterPercentScript(file, [".jl"]);
 }
 
 export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
@@ -73,8 +67,8 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
 
   validExtensions: () => [],
 
-  claimsFile: (file: string, _ext: string) => {
-    return isJuliaPercentScript(file);
+  claimsFile: (quarto, file: string, _ext: string) => {
+    return quarto.jupyter.isPercentScript(file, [".jl"]);
   },
 
   claimsLanguage: (language: string) => {
@@ -92,7 +86,7 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
   /**
    * Populate engine-specific CLI commands
    */
-  populateCommand: populateJuliaEngineCommand,
+  populateCommand: (quarto, command) => populateJuliaEngineCommand(quarto, command),
 
   /**
    * Launch a dynamic execution engine with project context
@@ -129,7 +123,7 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
       },
 
       markdownForFile(file: string): Promise<MappedString> {
-        if (isJuliaPercentScript(file)) {
+        if (context.quarto.jupyter.isPercentScript(file, [".jl"])) {
           return Promise.resolve(
             context.quarto.mappedString.fromString(context.quarto.jupyter.percentScriptToMarkdown(file)),
           );
@@ -931,7 +925,7 @@ function trace(options: ExecuteOptions, msg: string) {
   }
 }
 
-function populateJuliaEngineCommand(command: Command) {
+function populateJuliaEngineCommand(quarto: QuartoAPI, command: Command) {
   command
     .command("status", "Status")
     .description(
@@ -958,7 +952,7 @@ function populateJuliaEngineCommand(command: Command) {
       { default: false },
     )
     .action(async (options, file) => {
-      await closeWorker(file, options.force);
+      await closeWorker(quarto, file, options.force);
     })
     .command("stop", "Stop the server")
     .description(
@@ -1055,8 +1049,8 @@ async function connectAndWriteJuliaCommandToRunningServer<
   }
 }
 
-async function closeWorker(file: string, force: boolean) {
-  const absfile = normalizePath(file);
+async function closeWorker(quarto: QuartoAPI, file: string, force: boolean) {
+  const absfile = quarto.path.absolute(file);
   await connectAndWriteJuliaCommandToRunningServer({
     type: force ? "forceclose" : "close",
     content: { file: absfile },

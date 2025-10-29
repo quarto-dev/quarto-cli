@@ -6,6 +6,7 @@ import { MappedString } from "./text-types";
 import { Format, Metadata } from "./metadata-types";
 import { EngineProjectContext } from "./project-context";
 import type { Command } from "cliffy/command/mod.ts";
+import type { QuartoAPI } from "./quarto-api";
 
 /**
  * Execution target (filename and context)
@@ -289,8 +290,13 @@ export interface ExecutionEngineDiscovery {
 
   /**
    * Whether this engine can handle the given file
+   *
+   * @param quarto - The Quarto API for accessing utilities
+   * @param file - The file path to check
+   * @param ext - The file extension
+   * @returns True if this engine can handle the file
    */
-  claimsFile: (file: string, ext: string) => boolean;
+  claimsFile: (quarto: QuartoAPI, file: string, ext: string) => boolean;
 
   /**
    * Whether this engine can handle the given language
@@ -320,9 +326,10 @@ export interface ExecutionEngineDiscovery {
    * Populate engine-specific CLI commands (optional)
    * Called at module initialization to register commands like 'quarto enginename status'
    *
-   * @param command The CLI command to populate with subcommands
+   * @param quarto - The Quarto API for accessing utilities
+   * @param command - The CLI command to populate with subcommands
    */
-  populateCommand?: (command: Command) => void;
+  populateCommand?: (quarto: QuartoAPI, command: Command) => void;
 }
 
 /**
