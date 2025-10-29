@@ -5,7 +5,7 @@
 import { MappedString } from "./text-types";
 import { Format, Metadata } from "./metadata-types";
 import { EngineProjectContext } from "./project-context";
-import type { Command } from "cliffy/command/mod.ts";
+import type { Command } from "./cli-types";
 import type { QuartoAPI } from "./quarto-api";
 
 /**

@@ -3,6 +3,9 @@
  * TypeScript type definitions for Quarto execution engines
  */
 
+// Export CLI types
+export type * from "./cli-types.d.ts";
+
 // Export text types
 export type * from "./text-types.d.ts";
 
