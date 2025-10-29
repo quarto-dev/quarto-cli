@@ -14,42 +14,41 @@ import { fileExists, pathDoNotExists } from "../../verify.ts";
 import { testRender } from "./render.ts";
 import type { Verify } from "../../test.ts";
 
-if (isWindows) {
-  const inputDir = docs("render-output-dir/");
-  const quartoDir = ".quarto";
-  const outputDir = "output-test-dir";
 
-  const cleanupDirs = async () => {
-    if (existsSync(outputDir)) {
-      safeRemoveSync(outputDir, { recursive: true });
-    }
-    if (existsSync(quartoDir)) {
-      safeRemoveSync(quartoDir, { recursive: true });
-    }
-  };
+const inputDir = docs("render-output-dir/");
+const quartoDir = ".quarto";
+const outputDir = "output-test-dir";
 
-  const testOutputDirRender = (
-    quartoVerify: Verify,
-    extraArgs: string[] = [],
-  ) => {
-    testRender(
-      "test.qmd",
-      "html",
-      false,
-      [quartoVerify],
-      {
-        cwd: () => inputDir,
-        setup: cleanupDirs,
-        teardown: cleanupDirs,
-      },
-      ["--output-dir", outputDir, ...extraArgs],
-      outputDir,
-    );
-  };
+const cleanupDirs = async () => {
+  if (existsSync(outputDir)) {
+    safeRemoveSync(outputDir, { recursive: true });
+  }
+  if (existsSync(quartoDir)) {
+    safeRemoveSync(quartoDir, { recursive: true });
+  }
+};
 
-  // Test 1: Default behavior (clean=true) - .quarto should be removed
-  testOutputDirRender(pathDoNotExists(quartoDir));
+const testOutputDirRender = (
+  quartoVerify: Verify,
+  extraArgs: string[] = [],
+) => {
+  testRender(
+    "test.qmd",
+    "html",
+    false,
+    [quartoVerify],
+    {
+      cwd: () => inputDir,
+      setup: cleanupDirs,
+      teardown: cleanupDirs,
+    },
+    ["--output-dir", outputDir, ...extraArgs],
+    outputDir,
+  );
+};
 
-  // Test 2: With --no-clean flag - .quarto should be preserved
-  testOutputDirRender(fileExists(quartoDir), ["--no-clean"]);
-}
+// Test 1: Default behavior (clean=true) - .quarto should be removed
+testOutputDirRender(pathDoNotExists(quartoDir));
+
+// Test 2: With --no-clean flag - .quarto should be preserved
+testOutputDirRender(fileExists(quartoDir), ["--no-clean"]);
