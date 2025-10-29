@@ -2,12 +2,11 @@
 * render-output-dir.test.ts
 *
 * Test for Windows file locking issue with --output-dir flag
-* Regression test for: https://github.com/quarto-dev/quarto-cli/issues/XXXXX
+* Regression test for: https://github.com/quarto-dev/quarto-cli/issues/13625
 *
 * Copyright (C) 2020-2025 Posit Software, PBC
 *
 */
-import { dirname, join } from "../../../src/deno_ral/path.ts";
 import { existsSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 import { docs } from "../../utils.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
@@ -22,7 +21,7 @@ if (isWindows) {
   testRender(
     "test.qmd",
     "html",
-    true,
+    false,
     [pathDoNotExists(quartoDir)],
     {
       cwd: () => inputDir,
