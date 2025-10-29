@@ -30,9 +30,8 @@ import {
 // resourcePath now accessed via context.quarto.path.resource
 // quartoRuntimeDir now accessed via quarto.path.runtime
 // isJupyterPercentScript now accessed via quarto.jupyter.isPercentScript
-import { isInteractiveSession } from "../core/platform.ts";
-import { runningInCI } from "../core/ci-info.ts";
-import { sleep } from "../core/async.ts";
+// isInteractiveSession now accessed via quarto.system.isInteractiveSession
+// runningInCI now accessed via quarto.system.runningInCI
 import { JupyterNotebook } from "../core/jupyter/types.ts";
 import { existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
 import { encodeBase64 } from "encoding/base64";
@@ -40,6 +39,9 @@ import { encodeBase64 } from "encoding/base64";
 import { isWindows } from "../deno_ral/platform.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { resolve } from "path";
+
+// Simple async delay helper (equivalent to Deno std's delay)
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export interface SourceRange {
   lines: [number, number];
@@ -138,7 +140,7 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
         // or rstudio) and not running in a CI system.
         let executeDaemon = options.format.execute[kExecuteDaemon];
         if (executeDaemon === null || executeDaemon === undefined) {
-          executeDaemon = isInteractiveSession() && !runningInCI();
+          executeDaemon = context.quarto.system.isInteractiveSession() && !context.quarto.system.runningInCI();
         }
 
         const execOptions = {
@@ -442,17 +444,17 @@ async function pollTransportFile(
 
   for (let i = 0; i < 15; i++) {
     if (existsSync(transportFile)) {
-      const transportOptions = readTransportFile(transportFile);
+      const transportOptions = await readTransportFile(transportFile);
       trace(options, "Transport file read successfully.");
       return transportOptions;
     }
     trace(options, "Transport file did not exist, yet.");
-    await sleep(i * 100);
+    await delay(i * 100);
   }
   return Promise.reject();
 }
 
-function readTransportFile(transportFile: string): JuliaTransportFile {
+async function readTransportFile(transportFile: string): Promise<JuliaTransportFile> {
   // As we know the json file ends with \n but we might accidentally read
   // it too quickly once it exists, for example when not the whole string
   // has been written to it, yet, we just repeat reading until the string
@@ -460,7 +462,7 @@ function readTransportFile(transportFile: string): JuliaTransportFile {
   let content = Deno.readTextFileSync(transportFile);
   let i = 0;
   while (i < 20 && !content.endsWith("\n")) {
-    sleep(100);
+    await delay(100);
     content = Deno.readTextFileSync(transportFile);
     i += 1;
   }
@@ -968,7 +970,7 @@ async function logStatus(quarto: QuartoAPI) {
     info("Julia control server is not running.");
     return;
   }
-  const transportOptions = readTransportFile(transportFile);
+  const transportOptions = await readTransportFile(transportFile);
 
   const conn = await getReadyServerConnection(
     transportOptions,
@@ -992,13 +994,13 @@ async function logStatus(quarto: QuartoAPI) {
   }
 }
 
-function killJuliaServer(quarto: QuartoAPI) {
+async function killJuliaServer(quarto: QuartoAPI) {
   const transportFile = juliaTransportFile(quarto);
   if (!existsSync(transportFile)) {
     info("Julia control server is not running.");
     return;
   }
-  const transportOptions = readTransportFile(transportFile);
+  const transportOptions = await readTransportFile(transportFile);
   Deno.kill(transportOptions.pid, "SIGTERM");
   info("Sent SIGTERM to server process");
 }
@@ -1026,7 +1028,7 @@ async function connectAndWriteJuliaCommandToRunningServer<
   if (!existsSync(transportFile)) {
     throw new Error("Julia control server is not running.");
   }
-  const transportOptions = readTransportFile(transportFile);
+  const transportOptions = await readTransportFile(transportFile);
 
   const conn = await getReadyServerConnection(
     transportOptions,
