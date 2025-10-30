@@ -17,6 +17,7 @@ import type {
 } from './jupyter-types.ts';
 import { PandocIncludes } from './execution-engine.ts';
 import { Format } from './metadata-types.ts';
+import { EngineProjectContext } from './project-context.ts';
 
 /**
  * Process execution result
@@ -231,19 +232,15 @@ export interface QuartoAPI {
      * Convert Quarto markdown to Jupyter notebook
      *
      * @param markdown - Markdown content with YAML frontmatter
-     * @param kernelspec - Jupyter kernelspec for the notebook
-     * @param title - Optional title for the notebook
-     * @param format - Optional format information
-     * @param options - Optional conversion options
-     * @returns Jupyter notebook generated from markdown
+     * @param includeIds - Whether to include cell IDs
+     * @param project - Optional project context for config merging
+     * @returns Promise resolving to Jupyter notebook generated from markdown
      */
     quartoMdToJupyter: (
       markdown: string,
-      kernelspec: JupyterKernelspec,
-      title?: string,
-      format?: Format,
-      options?: QuartoMdToJupyterOptions
-    ) => JupyterNotebook;
+      includeIds: boolean,
+      project?: EngineProjectContext
+    ) => Promise<JupyterNotebook>;
 
     // 3. Notebook Processing & Assets
 
