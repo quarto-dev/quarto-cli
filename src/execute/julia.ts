@@ -1,20 +1,25 @@
 import { error, info } from "../deno_ral/log.ts";
 import { join } from "../deno_ral/path.ts";
+import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
+import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
+import { readYamlFromMarkdown } from "../core/yaml.ts";
+import {
+  asMappedString,
+  mappedIndexToLineCol,
+  mappedLines,
+} from "../core/lib/mapped-text.ts";
+import { ProjectContext } from "../project/types.ts";
 import {
   DependenciesOptions,
   ExecuteOptions,
   ExecuteResult,
-  ExecutionEngineDiscovery,
-  ExecutionEngineInstance,
+  ExecutionEngine,
   ExecutionTarget,
   kJuliaEngine,
   PandocIncludes,
   PostProcessOptions,
 } from "./types.ts";
-import { MappedString } from "../core/lib/text-types.ts";
-import { EngineProjectContext } from "../project/types.ts";
-import type { QuartoAPI } from "../core/quarto-api.ts";
-// jupyterAssets and jupyterToMarkdown now accessed via context.quarto.jupyter
+import { jupyterAssets, jupyterToMarkdown } from "../core/jupyter/jupyter.ts";
 import {
   kExecuteDaemon,
   kExecuteDaemonRestart,
@@ -25,23 +30,33 @@ import {
   kIpynbProduceSourceNotebook,
   kKeepHidden,
 } from "../config/constants.ts";
-// Format utilities now accessed via context.quarto.format
-// Path utilities now accessed via context.quarto.path
-// resourcePath now accessed via context.quarto.path.resource
-// quartoRuntimeDir now accessed via quarto.path.runtime
-// isJupyterPercentScript now accessed via quarto.jupyter.isPercentScript
-// isInteractiveSession now accessed via quarto.system.isInteractiveSession
-// runningInCI now accessed via quarto.system.runningInCI
+import {
+  isHtmlCompatible,
+  isIpynbOutput,
+  isLatexOutput,
+  isMarkdownOutput,
+  isPresentationOutput,
+} from "../config/format.ts";
+import { resourcePath } from "../core/resources.ts";
+import { quartoRuntimeDir } from "../core/appdirs.ts";
+import { normalizePath, pathWithForwardSlashes } from "../core/path.ts";
+import { isInteractiveSession } from "../core/platform.ts";
+import { runningInCI } from "../core/ci-info.ts";
+import { sleep } from "../core/async.ts";
 import { JupyterNotebook } from "../core/jupyter/types.ts";
 import { existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
 import { encodeBase64 } from "encoding/base64";
-// executeResultEngineDependencies and executeResultIncludes now accessed via context.quarto.jupyter
+import {
+  executeResultEngineDependencies,
+  executeResultIncludes,
+} from "./jupyter/jupyter.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 import { Command } from "cliffy/command/mod.ts";
+import {
+  isJupyterPercentScript,
+  markdownFromJupyterPercentScript,
+} from "./jupyter/percent.ts";
 import { resolve } from "path";
-
-// Simple async delay helper (equivalent to Deno std's delay)
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export interface SourceRange {
   lines: [number, number];
@@ -53,7 +68,11 @@ export interface JuliaExecuteOptions extends ExecuteOptions {
   oneShot: boolean; // if true, the file's worker process is closed before and after running
 }
 
-export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
+function isJuliaPercentScript(file: string) {
+  return isJupyterPercentScript(file, [".jl"]);
+}
+
+export const juliaEngine: ExecutionEngine = {
   name: kJuliaEngine,
 
   defaultExt: ".qmd",
@@ -68,12 +87,32 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
 
   validExtensions: () => [],
 
-  claimsFile: (quarto, file: string, _ext: string) => {
-    return quarto.jupyter.isPercentScript(file, [".jl"]);
+  claimsFile: (file: string, _ext: string) => {
+    return isJuliaPercentScript(file);
   },
 
   claimsLanguage: (language: string) => {
     return language.toLowerCase() === "julia";
+  },
+
+  partitionedMarkdown: async (file: string) => {
+    return partitionMarkdown(Deno.readTextFileSync(file));
+  },
+
+  // TODO: ask dragonstyle what to do here
+  executeTargetSkipped: () => false,
+
+  // TODO: just return dependencies from execute and this can do nothing
+  dependencies: (_options: DependenciesOptions) => {
+    const includes: PandocIncludes = {};
+    return Promise.resolve({
+      includes,
+    });
+  },
+
+  // TODO: this can also probably do nothing
+  postprocess: (_options: PostProcessOptions) => {
+    return Promise.resolve();
   },
 
   canFreeze: true,
@@ -84,193 +123,154 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
     return [];
   },
 
-  /**
-   * Populate engine-specific CLI commands
-   */
-  populateCommand: (quarto, command) => populateJuliaEngineCommand(quarto, command),
+  canKeepSource: (_target: ExecutionTarget) => {
+    return true;
+  },
 
-  /**
-   * Launch a dynamic execution engine with project context
-   */
-  launch: (context: EngineProjectContext): ExecutionEngineInstance => {
-    return {
-      name: juliaEngineDiscovery.name,
-      canFreeze: juliaEngineDiscovery.canFreeze,
+  markdownForFile(file: string): Promise<MappedString> {
+    if (isJuliaPercentScript(file)) {
+      return Promise.resolve(
+        asMappedString(markdownFromJupyterPercentScript(file)),
+      );
+    } else {
+      return Promise.resolve(mappedStringFromFile(file));
+    }
+  },
 
-      partitionedMarkdown: (file: string) => {
-        return Promise.resolve(
-          context.quarto.markdownRegex.partition(Deno.readTextFileSync(file)),
-        );
-      },
+  execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
+    options.target.source;
 
-      // TODO: ask dragonstyle what to do here
-      executeTargetSkipped: () => false,
+    // use daemon by default if we are in an interactive session (terminal
+    // or rstudio) and not running in a CI system.
+    let executeDaemon = options.format.execute[kExecuteDaemon];
+    if (executeDaemon === null || executeDaemon === undefined) {
+      executeDaemon = isInteractiveSession() && !runningInCI();
+    }
 
-      // TODO: just return dependencies from execute and this can do nothing
-      dependencies: (_options: DependenciesOptions) => {
-        const includes: PandocIncludes = {};
-        return Promise.resolve({
-          includes,
-        });
-      },
-
-      // TODO: this can also probably do nothing
-      postprocess: (_options: PostProcessOptions) => {
-        return Promise.resolve();
-      },
-
-      canKeepSource: (_target: ExecutionTarget) => {
-        return true;
-      },
-
-      markdownForFile(file: string): Promise<MappedString> {
-        if (context.quarto.jupyter.isPercentScript(file, [".jl"])) {
-          return Promise.resolve(
-            context.quarto.mappedString.fromString(context.quarto.jupyter.percentScriptToMarkdown(file)),
-          );
-        } else {
-          return Promise.resolve(context.quarto.mappedString.fromFile(file));
-        }
-      },
-
-      execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
-        options.target.source;
-
-        // use daemon by default if we are in an interactive session (terminal
-        // or rstudio) and not running in a CI system.
-        let executeDaemon = options.format.execute[kExecuteDaemon];
-        if (executeDaemon === null || executeDaemon === undefined) {
-          executeDaemon = context.quarto.system.isInteractiveSession() && !context.quarto.system.runningInCI();
-        }
-
-        const execOptions = {
-          ...options,
-          target: {
-            ...options.target,
-            input: context.quarto.path.absolute(options.target.input),
-          },
-        };
-
-        const juliaExecOptions: JuliaExecuteOptions = {
-          oneShot: !executeDaemon,
-          ...execOptions,
-        };
-
-        // TODO: executeDaemon can take a number for timeout of kernels, but
-        // QuartoNotebookRunner currently doesn't support that
-        const nb = await executeJulia(juliaExecOptions, context);
-
-        if (!nb) {
-          error("Execution of notebook returned undefined");
-          return Promise.reject();
-        }
-
-        // NOTE: the following is all mostly copied from the jupyter kernel file
-
-        // there isn't really a "kernel" as we don't execute via Jupyter
-        // but this seems to be needed later to assign the correct language markers to code cells etc.)
-        nb.metadata.kernelspec = {
-          display_name: "Julia",
-          name: "julia",
-          language: "julia",
-        };
-
-        const assets = context.quarto.jupyter.assets(
-          options.target.input,
-          options.format.pandoc.to,
-        );
-
-        // NOTE: for perforance reasons the 'nb' is mutated in place
-        // by jupyterToMarkdown (we don't want to make a copy of a
-        // potentially very large notebook) so should not be relied
-        // on subseuqent to this call
-
-        const result = await context.quarto.jupyter.toMarkdown(
-          nb,
-          {
-            executeOptions: options,
-            language: nb.metadata.kernelspec.language.toLowerCase(),
-            assets,
-            execute: options.format.execute,
-            keepHidden: options.format.render[kKeepHidden],
-            toHtml: context.quarto.format.isHtmlCompatible(options.format),
-            toLatex: context.quarto.format.isLatexOutput(options.format.pandoc),
-            toMarkdown: context.quarto.format.isMarkdownOutput(options.format),
-            toIpynb: context.quarto.format.isIpynbOutput(options.format.pandoc),
-            toPresentation: context.quarto.format.isPresentationOutput(options.format.pandoc),
-            figFormat: options.format.execute[kFigFormat],
-            figDpi: options.format.execute[kFigDpi],
-            figPos: options.format.render[kFigPos],
-            // preserveCellMetadata,
-            preserveCodeCellYaml:
-              options.format.render[kIpynbProduceSourceNotebook] === true,
-          },
-        );
-
-        // return dependencies as either includes or raw dependencies
-        let includes: PandocIncludes | undefined;
-        let engineDependencies: Record<string, Array<unknown>> | undefined;
-        if (options.dependencies) {
-          includes = context.quarto.jupyter.resultIncludes(
-            options.tempDir,
-            result.dependencies,
-          );
-        } else {
-          const dependencies = context.quarto.jupyter.resultEngineDependencies(
-            result.dependencies,
-          );
-          if (dependencies) {
-            engineDependencies = {
-              [kJuliaEngine]: dependencies,
-            };
-          }
-        }
-
-        // Create markdown from the result
-        const outputs = result.cellOutputs.map((output) => output.markdown);
-        if (result.notebookOutputs) {
-          if (result.notebookOutputs.prefix) {
-            outputs.unshift(result.notebookOutputs.prefix);
-          }
-          if (result.notebookOutputs.suffix) {
-            outputs.push(result.notebookOutputs.suffix);
-          }
-        }
-        const markdown = outputs.join("");
-
-        // return results
-        return {
-          engine: kJuliaEngine,
-          markdown: markdown,
-          supporting: [join(assets.base_dir, assets.supporting_dir)],
-          filters: [],
-          pandoc: result.pandoc,
-          includes,
-          engineDependencies,
-          preserve: result.htmlPreserve,
-          postProcess: result.htmlPreserve &&
-            (Object.keys(result.htmlPreserve).length > 0),
-        };
-      },
-
-      target: (
-        file: string,
-        _quiet?: boolean,
-        markdown?: MappedString,
-      ): Promise<ExecutionTarget | undefined> => {
-        if (markdown === undefined) {
-          markdown = context.quarto.mappedString.fromFile(file);
-        }
-        const target: ExecutionTarget = {
-          source: file,
-          input: file,
-          markdown,
-          metadata: context.quarto.markdownRegex.extractYaml(markdown.value),
-        };
-        return Promise.resolve(target);
+    const execOptions = {
+      ...options,
+      target: {
+        ...options.target,
+        input: normalizePath(options.target.input),
       },
     };
+
+    const juliaExecOptions: JuliaExecuteOptions = {
+      oneShot: !executeDaemon,
+      ...execOptions,
+    };
+
+    // TODO: executeDaemon can take a number for timeout of kernels, but
+    // QuartoNotebookRunner currently doesn't support that
+    const nb = await executeJulia(juliaExecOptions);
+
+    if (!nb) {
+      error("Execution of notebook returned undefined");
+      return Promise.reject();
+    }
+
+    // NOTE: the following is all mostly copied from the jupyter kernel file
+
+    // there isn't really a "kernel" as we don't execute via Jupyter
+    // but this seems to be needed later to assign the correct language markers to code cells etc.)
+    nb.metadata.kernelspec = {
+      display_name: "Julia",
+      name: "julia",
+      language: "julia",
+    };
+
+    const assets = jupyterAssets(
+      options.target.input,
+      options.format.pandoc.to,
+    );
+
+    // NOTE: for perforance reasons the 'nb' is mutated in place
+    // by jupyterToMarkdown (we don't want to make a copy of a
+    // potentially very large notebook) so should not be relied
+    // on subseuqent to this call
+
+    const result = await jupyterToMarkdown(
+      nb,
+      {
+        executeOptions: options,
+        language: nb.metadata.kernelspec.language.toLowerCase(),
+        assets,
+        execute: options.format.execute,
+        keepHidden: options.format.render[kKeepHidden],
+        toHtml: isHtmlCompatible(options.format),
+        toLatex: isLatexOutput(options.format.pandoc),
+        toMarkdown: isMarkdownOutput(options.format),
+        toIpynb: isIpynbOutput(options.format.pandoc),
+        toPresentation: isPresentationOutput(options.format.pandoc),
+        figFormat: options.format.execute[kFigFormat],
+        figDpi: options.format.execute[kFigDpi],
+        figPos: options.format.render[kFigPos],
+        // preserveCellMetadata,
+        preserveCodeCellYaml:
+          options.format.render[kIpynbProduceSourceNotebook] === true,
+      },
+    );
+
+    // return dependencies as either includes or raw dependencies
+    let includes: PandocIncludes | undefined;
+    let engineDependencies: Record<string, Array<unknown>> | undefined;
+    if (options.dependencies) {
+      includes = executeResultIncludes(options.tempDir, result.dependencies);
+    } else {
+      const dependencies = executeResultEngineDependencies(result.dependencies);
+      if (dependencies) {
+        engineDependencies = {
+          [kJuliaEngine]: dependencies,
+        };
+      }
+    }
+
+    // Create markdown from the result
+    const outputs = result.cellOutputs.map((output) => output.markdown);
+    if (result.notebookOutputs) {
+      if (result.notebookOutputs.prefix) {
+        outputs.unshift(result.notebookOutputs.prefix);
+      }
+      if (result.notebookOutputs.suffix) {
+        outputs.push(result.notebookOutputs.suffix);
+      }
+    }
+    const markdown = outputs.join("");
+
+    // return results
+    return {
+      engine: kJuliaEngine,
+      markdown: markdown,
+      supporting: [join(assets.base_dir, assets.supporting_dir)],
+      filters: [],
+      pandoc: result.pandoc,
+      includes,
+      engineDependencies,
+      preserve: result.htmlPreserve,
+      postProcess: result.htmlPreserve &&
+        (Object.keys(result.htmlPreserve).length > 0),
+    };
   },
+
+  target: async (
+    file: string,
+    _quiet?: boolean,
+    markdown?: MappedString,
+    _project?: ProjectContext,
+  ): Promise<ExecutionTarget | undefined> => {
+    if (markdown === undefined) {
+      markdown = mappedStringFromFile(file);
+    }
+    const target: ExecutionTarget = {
+      source: file,
+      input: file,
+      markdown,
+      metadata: readYamlFromMarkdown(markdown.value),
+    };
+    return Promise.resolve(target);
+  },
+
+  populateCommand: populateJuliaEngineCommand,
 };
 
 function juliaCmd() {
@@ -285,9 +285,8 @@ function powershell_argument_list_to_string(...args: string[]): string {
 
 async function startOrReuseJuliaServer(
   options: JuliaExecuteOptions,
-  context: EngineProjectContext,
 ): Promise<{ reused: boolean }> {
-  const transportFile = juliaTransportFile(context.quarto);
+  const transportFile = juliaTransportFile();
   if (!existsSync(transportFile)) {
     trace(
       options,
@@ -298,10 +297,10 @@ async function startOrReuseJuliaServer(
     let juliaProject = Deno.env.get("QUARTO_JULIA_PROJECT");
 
     if (juliaProject === undefined) {
-      await ensureQuartoNotebookRunnerEnvironment(options, context);
-      juliaProject = context.quarto.path.runtime("julia");
+      await ensureQuartoNotebookRunnerEnvironment(options);
+      juliaProject = juliaRuntimeDir();
     } else {
-      juliaProject = context.quarto.path.toForwardSlashes(juliaProject);
+      juliaProject = pathWithForwardSlashes(juliaProject);
       trace(
         options,
         `Custom julia project set via QUARTO_JULIA_PROJECT="${juliaProject}". Checking if QuartoNotebookRunner can be loaded.`,
@@ -350,9 +349,9 @@ async function startOrReuseJuliaServer(
             powershell_argument_list_to_string(
               "--startup-file=no",
               `--project=${juliaProject}`,
-              context.quarto.path.resource("julia", "quartonotebookrunner.jl"),
+              resourcePath("julia/quartonotebookrunner.jl"),
               transportFile,
-              juliaServerLogFile(context.quarto),
+              juliaServerLogFile(),
             ),
             "-WindowStyle",
             "Hidden",
@@ -374,12 +373,12 @@ async function startOrReuseJuliaServer(
       const command = new Deno.Command(juliaCmd(), {
         args: [
           "--startup-file=no",
-          context.quarto.path.resource("julia", "start_quartonotebookrunner_detached.jl"),
+          resourcePath("julia/start_quartonotebookrunner_detached.jl"),
           juliaCmd(),
           juliaProject,
-          context.quarto.path.resource("julia", "quartonotebookrunner.jl"),
+          resourcePath("julia/quartonotebookrunner.jl"),
           transportFile,
-          juliaServerLogFile(context.quarto),
+          juliaServerLogFile(),
         ],
         env: {
           "JULIA_LOAD_PATH": "@:@stdlib", // ignore the main env
@@ -406,17 +405,15 @@ async function startOrReuseJuliaServer(
 
 async function ensureQuartoNotebookRunnerEnvironment(
   options: JuliaExecuteOptions,
-  context: EngineProjectContext,
 ) {
-  const runtimeDir = context.quarto.path.runtime("julia");
-  const projectTomlTemplate = context.quarto.path.resource("julia", "Project.toml");
-  const projectToml = join(runtimeDir, "Project.toml");
+  const projectTomlTemplate = juliaResourcePath("Project.toml");
+  const projectToml = join(juliaRuntimeDir(), "Project.toml");
   Deno.writeFileSync(projectToml, Deno.readFileSync(projectTomlTemplate));
   const command = new Deno.Command(juliaCmd(), {
     args: [
       "--startup-file=no",
-      `--project=${runtimeDir}`,
-      context.quarto.path.resource("julia", "ensure_environment.jl"),
+      `--project=${juliaRuntimeDir()}`,
+      juliaResourcePath("ensure_environment.jl"),
     ],
   });
   const proc = command.spawn();
@@ -425,6 +422,10 @@ async function ensureQuartoNotebookRunnerEnvironment(
     throw (new Error("Ensuring an updated julia server environment failed"));
   }
   return Promise.resolve();
+}
+
+function juliaResourcePath(...parts: string[]) {
+  return join(resourcePath("julia"), ...parts);
 }
 
 interface JuliaTransportFile {
@@ -438,23 +439,22 @@ interface JuliaTransportFile {
 
 async function pollTransportFile(
   options: JuliaExecuteOptions,
-  context: EngineProjectContext,
 ): Promise<JuliaTransportFile> {
-  const transportFile = juliaTransportFile(context.quarto);
+  const transportFile = juliaTransportFile();
 
   for (let i = 0; i < 15; i++) {
     if (existsSync(transportFile)) {
-      const transportOptions = await readTransportFile(transportFile);
+      const transportOptions = readTransportFile(transportFile);
       trace(options, "Transport file read successfully.");
       return transportOptions;
     }
     trace(options, "Transport file did not exist, yet.");
-    await delay(i * 100);
+    await sleep(i * 100);
   }
   return Promise.reject();
 }
 
-async function readTransportFile(transportFile: string): Promise<JuliaTransportFile> {
+function readTransportFile(transportFile: string): JuliaTransportFile {
   // As we know the json file ends with \n but we might accidentally read
   // it too quickly once it exists, for example when not the whole string
   // has been written to it, yet, we just repeat reading until the string
@@ -462,7 +462,7 @@ async function readTransportFile(transportFile: string): Promise<JuliaTransportF
   let content = Deno.readTextFileSync(transportFile);
   let i = 0;
   while (i < 20 && !content.endsWith("\n")) {
-    await delay(100);
+    sleep(100);
     content = Deno.readTextFileSync(transportFile);
     i += 1;
   }
@@ -506,20 +506,19 @@ async function getReadyServerConnection(
 
 async function getJuliaServerConnection(
   options: JuliaExecuteOptions,
-  context: EngineProjectContext,
 ): Promise<Deno.TcpConn> {
-  const { reused } = await startOrReuseJuliaServer(options, context);
+  const { reused } = await startOrReuseJuliaServer(options);
 
   let transportOptions: JuliaTransportFile;
   try {
-    transportOptions = await pollTransportFile(options, context);
+    transportOptions = await pollTransportFile(options);
   } catch (err) {
     if (!reused) {
       info(
         "No transport file was found after the timeout. This is the log from the server process:",
       );
       info("#### BEGIN LOG ####");
-      printJuliaServerLog(context.quarto);
+      printJuliaServerLog();
       info("#### END LOG ####");
     }
     throw err;
@@ -548,8 +547,8 @@ async function getJuliaServerConnection(
         options,
         "Connecting to server failed, a transport file was reused so it might be stale. Delete transport file and retry.",
       );
-      safeRemoveSync(juliaTransportFile(context.quarto));
-      return await getJuliaServerConnection(options, context);
+      safeRemoveSync(juliaTransportFile());
+      return await getJuliaServerConnection(options);
     } else {
       error(
         "Connecting to server failed. A transport file was successfully created by the server process, so something in the server process might be broken.",
@@ -590,8 +589,8 @@ function getConsoleColumns(): number | null {
   }
 }
 
-function buildSourceRanges(markdown: MappedString, context: EngineProjectContext): Array<SourceRange> {
-  const lines = context.quarto.mappedString.splitLines(markdown);
+function buildSourceRanges(markdown: MappedString): Array<SourceRange> {
+  const lines = mappedLines(markdown);
   const sourceRanges: Array<SourceRange> = [];
   let currentRange: SourceRange | null = null;
 
@@ -600,7 +599,8 @@ function buildSourceRanges(markdown: MappedString, context: EngineProjectContext
     const mapResult = line.map(0, true);
     if (mapResult) {
       const { originalString } = mapResult;
-      const lineCol = context.quarto.mappedString.indexToLineCol(originalString, mapResult.index);
+      const lineColFunc = mappedIndexToLineCol(originalString);
+      const lineCol = lineColFunc(mapResult.index);
       const fileName = originalString.fileName
         ? resolve(originalString.fileName) // resolve to absolute path using cwd
         : undefined;
@@ -649,10 +649,9 @@ function buildSourceRanges(markdown: MappedString, context: EngineProjectContext
 
 async function executeJulia(
   options: JuliaExecuteOptions,
-  context: EngineProjectContext,
 ): Promise<JupyterNotebook> {
-  const conn = await getJuliaServerConnection(options, context);
-  const transportOptions = await pollTransportFile(options, context);
+  const conn = await getJuliaServerConnection(options);
+  const transportOptions = await pollTransportFile(options);
   const file = options.target.input;
   if (options.oneShot || options.format.execute[kExecuteDaemonRestart]) {
     const isopen = await writeJuliaCommand(
@@ -671,7 +670,7 @@ async function executeJulia(
     }
   }
 
-  const sourceRanges = buildSourceRanges(options.target.markdown, context);
+  const sourceRanges = buildSourceRanges(options.target.markdown);
 
   const response = await writeJuliaCommand(
     conn,
@@ -895,9 +894,9 @@ async function writeJuliaCommand<T extends ServerCommand["type"]>(
   }
 }
 
-function juliaRuntimeDir(quarto: QuartoAPI): string {
+function juliaRuntimeDir(): string {
   try {
-    return quarto.path.runtime("julia");
+    return quartoRuntimeDir("julia");
   } catch (e) {
     error("Could not create julia runtime directory.");
     error(
@@ -913,12 +912,12 @@ function juliaRuntimeDir(quarto: QuartoAPI): string {
   }
 }
 
-export function juliaTransportFile(quarto: QuartoAPI) {
-  return join(juliaRuntimeDir(quarto), "julia_transport.txt");
+export function juliaTransportFile() {
+  return join(juliaRuntimeDir(), "julia_transport.txt");
 }
 
-export function juliaServerLogFile(quarto: QuartoAPI) {
-  return join(juliaRuntimeDir(quarto), "julia_server_log.txt");
+export function juliaServerLogFile() {
+  return join(juliaRuntimeDir(), "julia_server_log.txt");
 }
 
 function trace(options: ExecuteOptions, msg: string) {
@@ -927,22 +926,22 @@ function trace(options: ExecuteOptions, msg: string) {
   }
 }
 
-function populateJuliaEngineCommand(quarto: QuartoAPI, command: Command) {
+function populateJuliaEngineCommand(command: Command) {
   command
     .command("status", "Status")
     .description(
       "Get status information on the currently running Julia server process.",
-    ).action(() => logStatus(quarto))
+    ).action(logStatus)
     .command("kill", "Kill server")
     .description(
       "Kill the control server if it is currently running. This will also kill all notebook worker processes.",
     )
-    .action(() => killJuliaServer(quarto))
+    .action(killJuliaServer)
     .command("log", "Print julia server log")
     .description(
       "Print the content of the julia server log file if it exists which can be used to diagnose problems.",
     )
-    .action(() => printJuliaServerLog(quarto))
+    .action(printJuliaServerLog)
     .command(
       "close",
       "Close the worker for a given notebook. If it is currently running, it will not be interrupted.",
@@ -954,23 +953,23 @@ function populateJuliaEngineCommand(quarto: QuartoAPI, command: Command) {
       { default: false },
     )
     .action(async (options, file) => {
-      await closeWorker(quarto, file, options.force);
+      await closeWorker(file, options.force);
     })
     .command("stop", "Stop the server")
     .description(
       "Send a message to the server that it should close all notebooks and exit. This will fail if any notebooks are not idle.",
     )
-    .action(() => stopServer(quarto));
+    .action(stopServer);
   return;
 }
 
-async function logStatus(quarto: QuartoAPI) {
-  const transportFile = juliaTransportFile(quarto);
+async function logStatus() {
+  const transportFile = juliaTransportFile();
   if (!existsSync(transportFile)) {
     info("Julia control server is not running.");
     return;
   }
-  const transportOptions = await readTransportFile(transportFile);
+  const transportOptions = readTransportFile(transportFile);
 
   const conn = await getReadyServerConnection(
     transportOptions,
@@ -994,20 +993,20 @@ async function logStatus(quarto: QuartoAPI) {
   }
 }
 
-async function killJuliaServer(quarto: QuartoAPI) {
-  const transportFile = juliaTransportFile(quarto);
+function killJuliaServer() {
+  const transportFile = juliaTransportFile();
   if (!existsSync(transportFile)) {
     info("Julia control server is not running.");
     return;
   }
-  const transportOptions = await readTransportFile(transportFile);
+  const transportOptions = readTransportFile(transportFile);
   Deno.kill(transportOptions.pid, "SIGTERM");
   info("Sent SIGTERM to server process");
 }
 
-function printJuliaServerLog(quarto: QuartoAPI) {
-  if (existsSync(juliaServerLogFile(quarto))) {
-    Deno.stdout.writeSync(Deno.readFileSync(juliaServerLogFile(quarto)));
+function printJuliaServerLog() {
+  if (existsSync(juliaServerLogFile())) {
+    Deno.stdout.writeSync(Deno.readFileSync(juliaServerLogFile()));
   } else {
     info("Server log file doesn't exist");
   }
@@ -1021,14 +1020,13 @@ function printJuliaServerLog(quarto: QuartoAPI) {
 async function connectAndWriteJuliaCommandToRunningServer<
   T extends ServerCommand["type"],
 >(
-  quarto: QuartoAPI,
   command: Extract<ServerCommand, { type: T }>,
 ): Promise<ServerCommandResponse<T>> {
-  const transportFile = juliaTransportFile(quarto);
+  const transportFile = juliaTransportFile();
   if (!existsSync(transportFile)) {
     throw new Error("Julia control server is not running.");
   }
-  const transportOptions = await readTransportFile(transportFile);
+  const transportOptions = readTransportFile(transportFile);
 
   const conn = await getReadyServerConnection(
     transportOptions,
@@ -1052,17 +1050,17 @@ async function connectAndWriteJuliaCommandToRunningServer<
   }
 }
 
-async function closeWorker(quarto: QuartoAPI, file: string, force: boolean) {
-  const absfile = quarto.path.absolute(file);
-  await connectAndWriteJuliaCommandToRunningServer(quarto, {
+async function closeWorker(file: string, force: boolean) {
+  const absfile = normalizePath(file);
+  await connectAndWriteJuliaCommandToRunningServer({
     type: force ? "forceclose" : "close",
     content: { file: absfile },
   });
   info(`Worker ${force ? "force-" : ""}closed successfully.`);
 }
 
-async function stopServer(quarto: QuartoAPI) {
-  const result = await connectAndWriteJuliaCommandToRunningServer(quarto, {
+async function stopServer() {
+  const result = await connectAndWriteJuliaCommandToRunningServer({
     type: "stop",
     content: {},
   });
