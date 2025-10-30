@@ -2,11 +2,11 @@
  * Execution engine interfaces for Quarto
  */
 
-import { MappedString } from "./text-types";
-import { Format, Metadata } from "./metadata-types";
-import { EngineProjectContext } from "./project-context";
-import type { Command } from "./cli-types";
-import type { QuartoAPI } from "./quarto-api";
+import { MappedString } from "./text-types.ts";
+import { Format, Metadata } from "./metadata-types.ts";
+import { EngineProjectContext } from "./project-context.ts";
+import type { Command } from "./cli-types.ts";
+import type { QuartoAPI } from "./quarto-api.ts";
 
 /**
  * Execution target (filename and context)

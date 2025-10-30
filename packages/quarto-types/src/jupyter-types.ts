@@ -6,8 +6,8 @@
 
 // deno-lint-ignore-file camelcase
 
-import { ExecuteOptions } from './execution-engine';
-import { Metadata } from './metadata-types';
+import { ExecuteOptions } from './execution-engine.ts';
+import { Metadata } from './metadata-types.ts';
 
 /**
  * Jupyter notebook kernelspec
