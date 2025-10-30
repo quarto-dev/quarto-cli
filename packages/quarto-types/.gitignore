@@ -5,8 +5,6 @@ yarn-error.log
 yarn-debug.log
 
 # Output directories
-/dist/
-/lib/
 
 # TypeScript cache
 *.tsbuildinfo
