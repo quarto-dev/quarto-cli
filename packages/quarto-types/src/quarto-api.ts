@@ -4,19 +4,30 @@
  * Copyright (C) 2023 Posit Software, PBC
  */
 
-import { MappedString } from './text-types';
-import { Metadata } from './metadata-types';
-import { PartitionedMarkdown } from './execution-engine';
+import type { MappedString } from "./text.ts";
+import type { Metadata } from "./metadata.ts";
+import type { Format } from "./format.ts";
+import type { PartitionedMarkdown } from "./markdown.ts";
+import type { EngineProjectContext } from "./project-context.ts";
 import type {
   JupyterNotebook,
   JupyterToMarkdownOptions,
   JupyterToMarkdownResult,
-  JupyterNotebookAssetPaths,
   JupyterWidgetDependencies,
+  JupyterKernelspec,
+  JupyterCapabilities,
+  JupyterNotebookAssetPaths,
   FormatPandoc,
-} from './jupyter-types';
-import { PandocIncludes } from './execution-engine';
-import { Format } from './metadata-types';
+} from "./jupyter.ts";
+import type { PandocIncludes } from "./pandoc.ts";
+import type { PostProcessOptions } from "./execution.ts";
+import type {
+  PreviewServer,
+  ProcessResult,
+  ExecProcessOptions,
+  TempContext,
+} from "./system.ts";
+import type { QuartoMdChunks, QuartoMdCell } from "./markdown.ts";
 
 /**
  * Global Quarto API interface
@@ -49,6 +60,20 @@ export interface QuartoAPI {
      * @returns Set of language identifiers found in fenced code blocks
      */
     getLanguages: (markdown: string) => Set<string>;
+
+    /**
+     * Break Quarto markdown into cells
+     *
+     * @param src - Markdown string or MappedString
+     * @param validate - Whether to validate cells (default: false)
+     * @param lenient - Whether to use lenient parsing (default: false)
+     * @returns Promise resolving to chunks with cells
+     */
+    breakQuartoMd: (
+      src: string | MappedString,
+      validate?: boolean,
+      lenient?: boolean,
+    ) => Promise<QuartoMdChunks>;
   };
 
   /**
@@ -96,50 +121,25 @@ export interface QuartoAPI {
      * @param offset - Character offset to convert
      * @returns Line and column numbers (1-indexed)
      */
-    indexToLineCol: (str: MappedString, offset: number) => { line: number; column: number };
+    indexToLineCol: (
+      str: MappedString,
+      offset: number,
+    ) => { line: number; column: number };
   };
 
   /**
    * Jupyter notebook integration utilities
    */
   jupyter: {
-    /**
-     * Create asset paths for Jupyter notebook output
-     *
-     * @param input - Input file path
-     * @param to - Output format (optional)
-     * @returns Asset paths for files, figures, and supporting directories
-     */
-    assets: (input: string, to?: string) => JupyterNotebookAssetPaths;
+    // 1. Notebook Detection & Introspection
 
     /**
-     * Convert a Jupyter notebook to markdown
+     * Check if a file is a Jupyter notebook
      *
-     * @param nb - Jupyter notebook to convert
-     * @param options - Conversion options
-     * @returns Converted markdown with cell outputs and dependencies
+     * @param file - File path to check
+     * @returns True if file is a Jupyter notebook (.ipynb)
      */
-    toMarkdown: (
-      nb: JupyterNotebook,
-      options: JupyterToMarkdownOptions
-    ) => Promise<JupyterToMarkdownResult>;
-
-    /**
-     * Convert result dependencies to Pandoc includes
-     *
-     * @param tempDir - Temporary directory for includes
-     * @param dependencies - Widget dependencies from execution result
-     * @returns Pandoc includes structure
-     */
-    resultIncludes: (tempDir: string, dependencies?: JupyterWidgetDependencies) => PandocIncludes;
-
-    /**
-     * Extract engine dependencies from result dependencies
-     *
-     * @param dependencies - Widget dependencies from execution result
-     * @returns Array of widget dependencies or undefined
-     */
-    resultEngineDependencies: (dependencies?: JupyterWidgetDependencies) => Array<JupyterWidgetDependencies> | undefined;
+    isJupyterNotebook: (file: string) => boolean;
 
     /**
      * Check if a file is a Jupyter percent script
@@ -151,12 +151,191 @@ export interface QuartoAPI {
     isPercentScript: (file: string, extensions?: string[]) => boolean;
 
     /**
+     * List of Jupyter notebook file extensions
+     */
+    notebookExtensions: string[];
+
+    /**
+     * Extract kernelspec from markdown content
+     *
+     * @param markdown - Markdown content with YAML frontmatter
+     * @returns Extracted kernelspec or undefined if not found
+     */
+    kernelspecFromMarkdown: (markdown: string) => JupyterKernelspec | undefined;
+
+    /**
+     * Convert JSON string to Jupyter notebook
+     *
+     * @param nbJson - JSON string containing notebook data
+     * @returns Parsed Jupyter notebook object
+     */
+    fromJSON: (nbJson: string) => JupyterNotebook;
+
+    // 2. Notebook Conversion
+
+    /**
+     * Convert a Jupyter notebook to markdown
+     *
+     * @param nb - Jupyter notebook to convert
+     * @param options - Conversion options
+     * @returns Converted markdown with cell outputs and dependencies
+     */
+    toMarkdown: (
+      nb: JupyterNotebook,
+      options: JupyterToMarkdownOptions,
+    ) => Promise<JupyterToMarkdownResult>;
+
+    /**
+     * Convert Jupyter notebook file to markdown
+     *
+     * @param file - Path to notebook file
+     * @param format - Optional format to use for conversion
+     * @returns Markdown content extracted from notebook
+     */
+    markdownFromNotebookFile: (file: string, format?: Format) => string;
+
+    /**
+     * Convert Jupyter notebook JSON to markdown
+     *
+     * @param nbJson - Notebook JSON string
+     * @returns Markdown content extracted from notebook
+     */
+    markdownFromNotebookJSON: (nbJson: string) => string;
+
+    /**
      * Convert a Jupyter percent script to markdown
      *
      * @param file - Path to the percent script file
      * @returns Converted markdown content
      */
     percentScriptToMarkdown: (file: string) => string;
+
+    /**
+     * Convert Quarto markdown to Jupyter notebook
+     *
+     * @param markdown - Markdown content with YAML frontmatter
+     * @param includeIds - Whether to include cell IDs
+     * @param project - Optional project context for config merging
+     * @returns Promise resolving to Jupyter notebook generated from markdown
+     */
+    quartoMdToJupyter: (
+      markdown: string,
+      includeIds: boolean,
+      project?: EngineProjectContext,
+    ) => Promise<JupyterNotebook>;
+
+    // 3. Notebook Processing & Assets
+
+    /**
+     * Apply filters to a Jupyter notebook
+     *
+     * @param nb - Jupyter notebook to filter
+     * @param filters - Array of filter strings to apply
+     * @returns Filtered notebook
+     */
+    notebookFiltered: (
+      nb: JupyterNotebook,
+      filters: string[],
+    ) => JupyterNotebook;
+
+    /**
+     * Create asset paths for Jupyter notebook output
+     *
+     * @param input - Input file path
+     * @param to - Output format (optional)
+     * @returns Asset paths for files, figures, and supporting directories
+     */
+    assets: (input: string, to?: string) => JupyterNotebookAssetPaths;
+
+    /**
+     * Generate Pandoc includes for Jupyter widget dependencies
+     *
+     * @param deps - Widget dependencies
+     * @param tempDir - Temporary directory for includes
+     * @returns Pandoc includes structure
+     */
+    widgetDependencyIncludes: (
+      deps: JupyterWidgetDependencies,
+      tempDir: string,
+    ) => PandocIncludes;
+
+    /**
+     * Convert result dependencies to Pandoc includes
+     *
+     * @param tempDir - Temporary directory for includes
+     * @param dependencies - Widget dependencies from execution result
+     * @returns Pandoc includes structure
+     */
+    resultIncludes: (
+      tempDir: string,
+      dependencies?: JupyterWidgetDependencies,
+    ) => PandocIncludes;
+
+    /**
+     * Extract engine dependencies from result dependencies
+     *
+     * @param dependencies - Widget dependencies from execution result
+     * @returns Array of widget dependencies or undefined
+     */
+    resultEngineDependencies: (
+      dependencies?: JupyterWidgetDependencies,
+    ) => Array<JupyterWidgetDependencies> | undefined;
+
+    // 4. Runtime & Environment
+
+    /**
+     * Get Python executable command
+     *
+     * @param python - Optional Python executable override
+     * @returns Promise resolving to array of command line arguments
+     */
+    pythonExec: (python?: string) => Promise<string[]>;
+
+    /**
+     * Get Jupyter capabilities
+     *
+     * @param python - Optional Python executable override
+     * @param jupyter - Optional Jupyter executable override
+     * @returns Promise resolving to Jupyter capabilities
+     */
+    capabilities: (
+      python?: string,
+      jupyter?: string,
+    ) => Promise<JupyterCapabilities>;
+
+    /**
+     * Generate capabilities message
+     *
+     * @param caps - Jupyter capabilities
+     * @param extraMessage - Optional additional message
+     * @returns Formatted capabilities message
+     */
+    capabilitiesMessage: (
+      caps: JupyterCapabilities,
+      extraMessage?: string,
+    ) => string;
+
+    /**
+     * Generate Jupyter installation message
+     *
+     * @param python - Python executable path
+     * @returns Installation message
+     */
+    installationMessage: (python: string) => string;
+
+    /**
+     * Generate message about unactivated environment
+     *
+     * @returns Message about unactivated environment
+     */
+    unactivatedEnvMessage: () => string;
+
+    /**
+     * Generate message about Python installation
+     *
+     * @returns Message about Python installation
+     */
+    pythonInstallationMessage: () => string;
   };
 
   /**
@@ -211,6 +390,26 @@ export interface QuartoAPI {
      * @returns True if format is a dashboard
      */
     isHtmlDashboardOutput: (format?: string) => boolean;
+
+    /**
+     * Check if format is a Shiny server document
+     *
+     * @param format - Optional format to check
+     * @returns True if format has server: shiny
+     */
+    isServerShiny: (format?: Format) => boolean;
+
+    /**
+     * Check if format is a Python Shiny server document with Jupyter engine
+     *
+     * @param format - Format to check
+     * @param engine - Execution engine name
+     * @returns True if format is server: shiny with jupyter engine
+     */
+    isServerShinyPython: (
+      format: Format,
+      engine: string | undefined,
+    ) => boolean;
   };
 
   /**
@@ -261,6 +460,38 @@ export interface QuartoAPI {
      * @returns Absolute path to the resource file
      */
     resource: (...parts: string[]) => string;
+
+    /**
+     * Split a file path into directory and stem (filename without extension)
+     *
+     * @param file - File path to split
+     * @returns Tuple of [directory, filename stem]
+     */
+    dirAndStem: (file: string) => [string, string];
+
+    /**
+     * Check if a file is a Quarto markdown file (.qmd)
+     *
+     * @param file - File path to check
+     * @returns True if file has .qmd extension
+     */
+    isQmdFile: (file: string) => boolean;
+
+    /**
+     * Get platform-specific user data directory for Quarto
+     *
+     * Returns the appropriate data directory based on platform:
+     * - macOS: ~/Library/Application Support/quarto/{subdir}
+     * - Windows: %LOCALAPPDATA%/quarto/{subdir} (or %APPDATA% if roaming)
+     * - Linux: $XDG_DATA_HOME/quarto/{subdir} or ~/.local/share/quarto/{subdir}
+     *
+     * Automatically creates the directory if it doesn't exist.
+     *
+     * @param subdir - Optional subdirectory within the data directory
+     * @param roaming - Optional flag for Windows roaming profile (default: false)
+     * @returns Absolute path to the data directory
+     */
+    dataDir: (subdir?: string, roaming?: boolean) => string;
   };
 
   /**
@@ -294,6 +525,128 @@ export interface QuartoAPI {
      * @returns True if running in a CI/CD environment
      */
     runningInCI: () => boolean;
+
+    /**
+     * Execute an external process
+     *
+     * @param options - Process execution options
+     * @param stdin - Optional stdin content
+     * @param mergeOutput - Optional output stream merging
+     * @param stderrFilter - Optional stderr filter function
+     * @param respectStreams - Optional flag to respect stream separation
+     * @param timeout - Optional timeout in milliseconds
+     * @returns Promise resolving to process result
+     */
+    execProcess: (
+      options: ExecProcessOptions,
+      stdin?: string,
+      mergeOutput?: "stderr>stdout" | "stdout>stderr",
+      stderrFilter?: (output: string) => string,
+      respectStreams?: boolean,
+      timeout?: number,
+    ) => Promise<ProcessResult>;
+
+    /**
+     * Run an external preview server
+     *
+     * @param options - Server options including command and ready pattern
+     * @returns PreviewServer instance for managing the server lifecycle
+     */
+    runExternalPreviewServer: (options: {
+      cmd: string[];
+      readyPattern: RegExp;
+      env?: Record<string, string>;
+      cwd?: string;
+    }) => PreviewServer;
+
+    /**
+     * Register a cleanup handler to run on process exit
+     *
+     * @param handler - Function to run on cleanup (can be async)
+     */
+    onCleanup: (handler: () => void | Promise<void>) => void;
+
+    /**
+     * Get global temporary context for managing temporary files and directories
+     *
+     * @returns Global TempContext instance
+     */
+    tempContext: () => TempContext;
+  };
+
+  /**
+   * Text processing utilities
+   */
+  text: {
+    /**
+     * Split text into lines
+     *
+     * @param text - Text to split
+     * @returns Array of lines
+     */
+    lines: (text: string) => string[];
+
+    /**
+     * Trim empty lines from array
+     *
+     * @param lines - Array of lines
+     * @param trim - Which empty lines to trim (default: "all")
+     * @returns Trimmed array of lines
+     */
+    trimEmptyLines: (
+      lines: string[],
+      trim?: "leading" | "trailing" | "all",
+    ) => string[];
+
+    /**
+     * Restore preserved HTML in post-processing
+     *
+     * @param options - Post-processing options including output path and preserve map
+     */
+    postProcessRestorePreservedHtml: (options: PostProcessOptions) => void;
+
+    /**
+     * Convert line/column position to character index
+     *
+     * @param text - Text to search in
+     * @returns Function that converts position to index
+     */
+    lineColToIndex: (
+      text: string,
+    ) => (position: { line: number; column: number }) => number;
+
+    /**
+     * Create a handler for executing inline code
+     *
+     * @param language - Programming language identifier
+     * @param exec - Function to execute code expression
+     * @returns Handler function that processes code strings
+     */
+    executeInlineCodeHandler: (
+      language: string,
+      exec: (expr: string) => string | undefined,
+    ) => (code: string) => string;
+
+    /**
+     * Convert metadata object to YAML text
+     *
+     * @param metadata - Metadata object to convert
+     * @returns YAML formatted string
+     */
+    asYamlText: (metadata: Metadata) => string;
+  };
+
+  /**
+   * Cryptographic utilities
+   */
+  crypto: {
+    /**
+     * Generate MD5 hash of content
+     *
+     * @param content - String content to hash
+     * @returns MD5 hash as hexadecimal string
+     */
+    md5Hash: (content: string) => string;
   };
 }
 

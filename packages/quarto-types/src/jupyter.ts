@@ -6,8 +6,9 @@
 
 // deno-lint-ignore-file camelcase
 
-import { ExecuteOptions } from './execution-engine';
-import { Metadata } from './metadata-types';
+import type { ExecuteOptions } from './execution.ts';
+import type { Metadata } from './metadata.ts';
+import type { Format } from './format.ts';
 
 /**
  * Jupyter notebook kernelspec
@@ -18,6 +19,17 @@ export interface JupyterKernelspec {
   display_name: string;
   path?: string;
 }
+
+/**
+ * Jupyter language info
+ */
+export type JupyterLanguageInfo = {
+  name: string;
+  codemirror_mode?: string | Record<string, unknown>;
+  file_extension?: string;
+  mimetype?: string;
+  pygments_lexer?: string;
+};
 
 /**
  * Jupyter notebook cell metadata
@@ -39,6 +51,46 @@ export interface JupyterOutput {
 }
 
 /**
+ * Jupyter output stream
+ */
+export interface JupyterOutputStream extends JupyterOutput {
+  name: "stdout" | "stderr";
+  text: string[] | string;
+}
+
+/**
+ * Jupyter output display data
+ */
+export interface JupyterOutputDisplayData extends JupyterOutput {
+  data: { [mimeType: string]: unknown };
+  metadata: { [mimeType: string]: Record<string, unknown> };
+  noCaption?: boolean;
+}
+
+/**
+ * Jupyter output figure options
+ */
+export interface JupyterOutputFigureOptions {
+  [key: string]: unknown;
+}
+
+/**
+ * Jupyter cell options
+ */
+export interface JupyterCellOptions extends JupyterOutputFigureOptions {
+  [key: string]: unknown;
+}
+
+/**
+ * Jupyter cell with options
+ */
+export interface JupyterCellWithOptions extends JupyterCell {
+  id: string;
+  options: JupyterCellOptions;
+  optionsSource: string[];
+}
+
+/**
  * Jupyter notebook cell
  */
 export interface JupyterCell {
@@ -56,12 +108,44 @@ export interface JupyterCell {
 }
 
 /**
+ * Jupyter user expression
+ */
+export interface JupyterUserExpression {
+  expression: string;
+  result: JupyterUserExpressionResult;
+}
+
+/**
+ * Jupyter user expression result
+ */
+export interface JupyterUserExpressionResult extends JupyterCellOutputData {
+  metadata: Metadata;
+  status: string;
+}
+
+/**
+ * Jupyter cell output data
+ */
+export interface JupyterCellOutputData {
+  data: { [mimeType: string]: unknown };
+}
+
+/**
+ * Jupyter cell slideshow
+ */
+export interface JupyterCellSlideshow {
+  [key: string]: string;
+}
+
+/**
  * Jupyter notebook structure
  */
 export interface JupyterNotebook {
   cells: JupyterCell[];
   metadata: {
     kernelspec: JupyterKernelspec;
+    widgets?: Record<string, unknown>;
+    language_info?: JupyterLanguageInfo;
     [key: string]: unknown;
   };
   nbformat: number;
@@ -120,6 +204,33 @@ export interface JupyterWidgetDependencies {
 }
 
 /**
+ * Jupyter capabilities
+ */
+export interface JupyterCapabilities {
+  versionMajor: number;
+  versionMinor: number;
+  versionPatch: number;
+  versionStr: string;
+  execPrefix: string;
+  executable: string;
+  conda: boolean;
+  pyLauncher: boolean;
+  jupyter_core: string | null;
+  nbformat: string | null;
+  nbclient: string | null;
+  ipykernel: string | null;
+  shiny: string | null;
+}
+
+/**
+ * Extended Jupyter capabilities
+ */
+export interface JupyterCapabilitiesEx extends JupyterCapabilities {
+  kernels?: JupyterKernelspec[];
+  venv?: boolean;
+}
+
+/**
  * Cell output with markdown
  */
 export interface JupyterCellOutput {
@@ -150,6 +261,14 @@ export interface JupyterToMarkdownOptions {
   preserveCodeCellYaml?: boolean;
   outputPrefix?: string;
   fixups?: string | unknown[];
+}
+
+/**
+ * Options for converting Quarto markdown to Jupyter notebook
+ */
+export interface QuartoMdToJupyterOptions {
+  title?: string;
+  format?: Format;
 }
 
 /**

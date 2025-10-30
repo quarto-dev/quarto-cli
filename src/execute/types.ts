@@ -18,7 +18,7 @@ import { EngineProjectContext, ProjectContext } from "../project/types.ts";
 import { Command } from "cliffy/command/mod.ts";
 import type { QuartoAPI } from "../core/quarto-api.ts";
 
-export type { QuartoAPI };
+export type { EngineProjectContext };
 
 export const kQmdExtensions = [".qmd"];
 

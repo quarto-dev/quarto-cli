@@ -153,7 +153,7 @@ import {
   removeIfEmptyDir,
 } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
-import { kProjectType, ProjectContext } from "../../project/types.ts";
+import { kProjectType, EngineProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
 import { encodeBase64 } from "encoding/base64";
 import {
@@ -290,7 +290,7 @@ const ticksForCode = (code: string[]) => {
 export async function quartoMdToJupyter(
   markdown: string,
   includeIds: boolean,
-  project?: ProjectContext,
+  project?: EngineProjectContext,
 ): Promise<JupyterNotebook> {
   const [kernelspec, metadata] = await jupyterKernelspecFromMarkdown(
     markdown,
@@ -500,7 +500,7 @@ export async function quartoMdToJupyter(
 
 export async function jupyterKernelspecFromMarkdown(
   markdown: string,
-  project?: ProjectContext,
+  project?: EngineProjectContext,
 ): Promise<[JupyterKernelspec, Metadata]> {
   const config = project?.config;
   const yaml = config

@@ -10,13 +10,12 @@ import { basename, extname } from "../deno_ral/path.ts";
 
 import * as colors from "fmt/colors";
 
-import { execProcess } from "../core/process.ts";
-import { rBinaryPath, resourcePath } from "../core/resources.ts";
-import { readYamlFromMarkdown } from "../core/yaml.ts";
-import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
+// Import quartoAPI directly since we're in core codebase
+import { quartoAPI as quarto } from "../core/quarto-api.ts";
+
+import { rBinaryPath } from "../core/resources.ts";
 
 import { kCodeLink } from "../config/constants.ts";
-import { isServerShiny } from "../core/render.ts";
 
 import {
   checkRBinary,
@@ -30,29 +29,28 @@ import {
   DependenciesResult,
   ExecuteOptions,
   ExecuteResult,
-  ExecutionEngine,
   ExecutionTarget,
   kKnitrEngine,
   PostProcessOptions,
   RunOptions,
+  ExecutionEngineDiscovery,
+  ExecutionEngineInstance,
+  EngineProjectContext,
 } from "./types.ts";
-import { postProcessRestorePreservedHtml } from "./engine-shared.ts";
-import { mappedStringFromFile } from "../core/mapped-text.ts";
-import { asEngineInstance } from "./as-engine-instance.ts";
-import { engineProjectContext } from "../project/engine-project-context.ts";
 import {
   asMappedString,
   mappedIndexToLineCol,
   MappedString,
 } from "../core/lib/mapped-text.ts";
-import { lineColToIndex } from "../core/lib/text.ts";
-import { executeInlineCodeHandler } from "../core/execute-inline.ts";
-import { globalTempContext } from "../core/temp.ts";
-import { ProjectContext } from "../project/types.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
-export const knitrEngine: ExecutionEngine = {
+export const knitrEngineDiscovery: ExecutionEngineDiscovery & {
+  _discovery: boolean;
+} = {
+  _discovery: true,
+
+  // Discovery methods
   name: kKnitrEngine,
 
   defaultExt: ".qmd",
@@ -76,180 +74,194 @@ export const knitrEngine: ExecutionEngine = {
     return language.toLowerCase() === "r";
   },
 
-  async markdownForFile(file: string): Promise<MappedString> {
-    const isSpin = isKnitrSpinScript(file);
-    if (isSpin) {
-      return asMappedString(await markdownFromKnitrSpinScript(file));
-    }
-    return mappedStringFromFile(file);
-  },
-
-  target: async (
-    file: string,
-    _quiet: boolean | undefined,
-    markdown: MappedString | undefined,
-    project: ProjectContext,
-  ): Promise<ExecutionTarget | undefined> => {
-    markdown = await project.resolveFullMarkdownForFile(
-      asEngineInstance(knitrEngine, engineProjectContext(project)),
-      file,
-      markdown,
-    );
-    let metadata;
-    try {
-      metadata = readYamlFromMarkdown(markdown.value);
-    } catch (e) {
-      if (!(e instanceof Error)) throw e;
-      error(`Error reading metadata from ${file}.\n${e.message}`);
-      throw e;
-    }
-    const target: ExecutionTarget = {
-      source: file,
-      input: file,
-      markdown,
-      metadata,
-    };
-    return Promise.resolve(target);
-  },
-
-  partitionedMarkdown: async (file: string) => {
-    if (isKnitrSpinScript(file)) {
-      return partitionMarkdown(await markdownFromKnitrSpinScript(file));
-    } else {
-      return partitionMarkdown(Deno.readTextFileSync(file));
-    }
-  },
-
-  execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
-    const inputBasename = basename(options.target.input);
-    const inputStem = basename(inputBasename, extname(inputBasename));
-
-    const result = await callR<ExecuteResult>(
-      "execute",
-      {
-        ...options,
-        target: undefined,
-        input: options.target.input,
-        markdown: resolveInlineExecute(options.target.markdown.value),
-      },
-      options.tempDir,
-      options.project?.isSingleFile ? undefined : options.projectDir,
-      options.quiet,
-      // fixup .rmarkdown file references
-      (output) => {
-        output = output.replaceAll(
-          `${inputStem}.rmarkdown`,
-          () => inputBasename,
-        );
-
-        const m = output.match(/^Quitting from lines (\d+)-(\d+)/m);
-        if (m) {
-          const f1 = lineColToIndex(options.target.markdown.value);
-          const f2 = mappedIndexToLineCol(options.target.markdown);
-
-          const newLine1 = f2(f1({ line: Number(m[1]) - 1, column: 0 })).line +
-            1;
-          const newLine2 = f2(f1({ line: Number(m[2]) - 1, column: 0 })).line +
-            1;
-          output = output.replace(
-            /^Quitting from lines (\d+)-(\d+)/m,
-            `\n\nQuitting from lines ${newLine1}-${newLine2}`,
-          );
-        }
-
-        output = filterAlwaysAllowHtml(output);
-
-        return output;
-      },
-    );
-    const includes = result.includes as unknown;
-    // knitr appears to return [] instead of {} as the value for includes.
-    if (Array.isArray(includes) && includes.length === 0) {
-      result.includes = {};
-    }
-    return result;
-  },
-
-  dependencies: (options: DependenciesOptions) => {
-    return callR<DependenciesResult>(
-      "dependencies",
-      { ...options, target: undefined, input: options.target.input },
-      options.tempDir,
-      options.projectDir,
-      options.quiet,
-    );
-  },
-
-  postprocess: async (options: PostProcessOptions) => {
-    // handle preserved html in js-land
-    postProcessRestorePreservedHtml(options);
-
-    // see if we can code link
-    if (options.format.render?.[kCodeLink]) {
-      // When using shiny document, code-link proceesing is not supported
-      // https://github.com/quarto-dev/quarto-cli/issues/9208
-      if (isServerShiny(options.format)) {
-        warning(
-          `'code-link' option will be ignored as it is not supported for 'server: shiny' due to 'downlit' R package limitation (https://github.com/quarto-dev/quarto-cli/issues/9208).`,
-        );
-        return Promise.resolve();
-      }
-      // Current knitr engine postprocess is all about applying downlit processing to the HTML output
-      await callR<void>(
-        "postprocess",
-        {
-          ...options,
-          target: undefined,
-          preserve: undefined,
-          input: options.target.input,
-        },
-        options.tempDir,
-        options.projectDir,
-        options.quiet,
-        undefined,
-        false,
-      ).then(() => {
-        return Promise.resolve();
-      }, () => {
-        warning(
-          `Unable to perform code-link (code-link requires R packages rmarkdown, downlit, and xml2)`,
-        );
-        return Promise.resolve();
-      });
-    }
-  },
-
   canFreeze: true,
+
   generatesFigures: true,
 
   ignoreDirs: () => {
     return ["renv", "packrat", "rsconnect"];
   },
 
-  run: (options: RunOptions) => {
-    let running = false;
-    return callR<void>(
-      "run",
-      options,
-      options.tempDir,
-      options.projectDir,
-      undefined,
-      // wait for 'listening' to call onReady
-      (output) => {
-        const kListeningPattern = /(Listening on) (https?:\/\/[^\n]*)/;
-        if (!running) {
-          const listeningMatch = output.match(kListeningPattern);
-          if (listeningMatch) {
-            running = true;
-            output = output.replace(kListeningPattern, "");
-            if (options.onReady) {
-              options.onReady();
-            }
-          }
+  // Launch method that returns an instance with context closure
+  launch: (context: EngineProjectContext): ExecutionEngineInstance => {
+    return {
+      // Instance properties (required by interface)
+      name: kKnitrEngine,
+      canFreeze: true,
+
+      // Instance methods
+      async markdownForFile(file: string): Promise<MappedString> {
+        const isSpin = isKnitrSpinScript(file);
+        if (isSpin) {
+          return asMappedString(await markdownFromKnitrSpinScript(file));
         }
-        return output;
+        return quarto.mappedString.fromFile(file);
       },
-    );
+
+      target: async (
+        file: string,
+        _quiet?: boolean,
+        markdown?: MappedString,
+      ): Promise<ExecutionTarget | undefined> => {
+        const resolvedMarkdown = await context.resolveFullMarkdownForFile(
+          knitrEngineDiscovery.launch(context),
+          file,
+          markdown,
+        );
+        let metadata;
+        try {
+          metadata = quarto.markdownRegex.extractYaml(resolvedMarkdown.value);
+        } catch (e) {
+          if (!(e instanceof Error)) throw e;
+          error(`Error reading metadata from ${file}.\n${e.message}`);
+          throw e;
+        }
+        const target: ExecutionTarget = {
+          source: file,
+          input: file,
+          markdown: resolvedMarkdown,
+          metadata,
+        };
+        return Promise.resolve(target);
+      },
+
+      partitionedMarkdown: async (file: string) => {
+        if (isKnitrSpinScript(file)) {
+          return quarto.markdownRegex.partition(
+            await markdownFromKnitrSpinScript(file),
+          );
+        } else {
+          return quarto.markdownRegex.partition(Deno.readTextFileSync(file));
+        }
+      },
+
+      execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
+        const inputBasename = basename(options.target.input);
+        const inputStem = basename(inputBasename, extname(inputBasename));
+
+        const result = await callR<ExecuteResult>(
+          "execute",
+          {
+            ...options,
+            target: undefined,
+            input: options.target.input,
+            markdown: resolveInlineExecute(options.target.markdown.value),
+          },
+          options.tempDir,
+          options.project?.isSingleFile ? undefined : options.projectDir,
+          options.quiet,
+          // fixup .rmarkdown file references
+          (output) => {
+            output = output.replaceAll(
+              `${inputStem}.rmarkdown`,
+              () => inputBasename,
+            );
+
+            const m = output.match(/^Quitting from lines (\d+)-(\d+)/m);
+            if (m) {
+              const f1 = quarto.text.lineColToIndex(
+                options.target.markdown.value,
+              );
+              const f2 = mappedIndexToLineCol(options.target.markdown);
+
+              const newLine1 = f2(f1({ line: Number(m[1]) - 1, column: 0 }))
+                .line + 1;
+              const newLine2 = f2(f1({ line: Number(m[2]) - 1, column: 0 }))
+                .line + 1;
+              output = output.replace(
+                /^Quitting from lines (\d+)-(\d+)/m,
+                `\n\nQuitting from lines ${newLine1}-${newLine2}`,
+              );
+            }
+
+            output = filterAlwaysAllowHtml(output);
+
+            return output;
+          },
+        );
+        const includes = result.includes as unknown;
+        // knitr appears to return [] instead of {} as the value for includes.
+        if (Array.isArray(includes) && includes.length === 0) {
+          result.includes = {};
+        }
+        return result;
+      },
+
+      dependencies: (options: DependenciesOptions) => {
+        return callR<DependenciesResult>(
+          "dependencies",
+          { ...options, target: undefined, input: options.target.input },
+          options.tempDir,
+          options.projectDir,
+          options.quiet,
+        );
+      },
+
+      postprocess: async (options: PostProcessOptions) => {
+        // handle preserved html in js-land
+        quarto.text.postProcessRestorePreservedHtml(options);
+
+        // see if we can code link
+        if (options.format.render?.[kCodeLink]) {
+          // When using shiny document, code-link proceesing is not supported
+          // https://github.com/quarto-dev/quarto-cli/issues/9208
+          if (quarto.format.isServerShiny(options.format)) {
+            warning(
+              `'code-link' option will be ignored as it is not supported for 'server: shiny' due to 'downlit' R package limitation (https://github.com/quarto-dev/quarto-cli/issues/9208).`,
+            );
+            return Promise.resolve();
+          }
+          // Current knitr engine postprocess is all about applying downlit processing to the HTML output
+          await callR<void>(
+            "postprocess",
+            {
+              ...options,
+              target: undefined,
+              preserve: undefined,
+              input: options.target.input,
+            },
+            options.tempDir,
+            options.projectDir,
+            options.quiet,
+            undefined,
+            false,
+          ).then(() => {
+            return Promise.resolve();
+          }, () => {
+            warning(
+              `Unable to perform code-link (code-link requires R packages rmarkdown, downlit, and xml2)`,
+            );
+            return Promise.resolve();
+          });
+        }
+      },
+
+      run: (options: RunOptions) => {
+        let running = false;
+        return callR<void>(
+          "run",
+          options,
+          options.tempDir,
+          options.projectDir,
+          undefined,
+          // wait for 'listening' to call onReady
+          (output) => {
+            const kListeningPattern = /(Listening on) (https?:\/\/[^\n]*)/;
+            if (!running) {
+              const listeningMatch = output.match(kListeningPattern);
+              if (listeningMatch) {
+                running = true;
+                output = output.replace(kListeningPattern, "");
+                if (options.onReady) {
+                  options.onReady();
+                }
+              }
+            }
+            return output;
+          },
+        );
+      },
+    };
   },
 };
 
@@ -286,12 +298,12 @@ async function callR<T>(
   );
 
   try {
-    const result = await execProcess(
+    const result = await quarto.system.execProcess(
       {
         cmd: await rBinaryPath("Rscript"),
         args: [
           ...rscriptArgsArray,
-          resourcePath("rmd/rmd.R"),
+          quarto.path.resource("rmd/rmd.R"),
         ],
         cwd,
         stderr: quiet ? "piped" : "inherit",
@@ -410,7 +422,7 @@ function filterAlwaysAllowHtml(s: string): string {
 }
 
 function resolveInlineExecute(code: string) {
-  return executeInlineCodeHandler(
+  return quarto.text.executeInlineCodeHandler(
     "r",
     (expr) => `${"`"}r .QuartoInlineRender(${expr})${"`"}`,
   )(code);
@@ -435,7 +447,7 @@ export async function markdownFromKnitrSpinScript(file: string) {
   // 2. Second as part of renderProject() call to get `partitioned` information to get `resourcesFrom` with `resourceFilesFromRenderedFile()`
 
   // we need a temp dir for `CallR` to work but we don't have access to usual options.tempDir.
-  const tempDir = globalTempContext().createDir();
+  const tempDir = quarto.system.tempContext().createDir();
 
   const result = await callR<string>(
     "spin",

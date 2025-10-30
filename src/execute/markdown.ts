@@ -15,10 +15,10 @@ import {
   kMarkdownEngine,
   kQmdExtensions,
   PostProcessOptions,
-  QuartoAPI,
 } from "./types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
 import { EngineProjectContext } from "../project/types.ts";
+import type { QuartoAPI } from "../core/quarto-api.ts";
 
 export const kMdExtensions = [".md", ".markdown"];
 
@@ -27,7 +27,10 @@ let quarto: QuartoAPI;
 /**
  * Markdown engine implementation with discovery and launch capabilities
  */
-export const markdownEngineDiscovery: ExecutionEngineDiscovery = {
+export const markdownEngineDiscovery: ExecutionEngineDiscovery & {
+  _discovery: boolean;
+} = {
+  _discovery: true,
   init: (quartoAPI) => {
     quarto = quartoAPI;
   },

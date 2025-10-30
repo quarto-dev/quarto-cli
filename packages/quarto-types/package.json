@@ -9,8 +9,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc",
-    "bundle": "dts-bundle-generator -o ./dist/index.d.ts --export-referenced-types=false ./src/index.ts"
+    "typecheck": "tsc --noEmit",
+    "build": "dts-bundle-generator -o ./dist/index.d.ts --export-referenced-types=false ./src/index.ts",
+    "prebuild": "npm run typecheck"
   },
   "keywords": [
     "quarto",
