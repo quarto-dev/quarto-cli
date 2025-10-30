@@ -9,23 +9,15 @@ import { join } from "../../deno_ral/path.ts";
 import { error, info, warning } from "../../deno_ral/log.ts";
 
 import { sleep } from "../../core/async.ts";
-import { quartoDataDir, quartoRuntimeDir } from "../../core/appdirs.ts";
+import { quartoDataDir } from "../../core/appdirs.ts";
 import { execProcess } from "../../core/process.ts";
 import { ProcessResult } from "../../core/process-types.ts";
 import { md5HashSync } from "../../core/hash.ts";
-import { resourcePath } from "../../core/resources.ts";
-import { pythonExec } from "../../core/jupyter/exec.ts";
 import {
   JupyterCapabilities,
   JupyterKernelspec,
 } from "../../core/jupyter/types.ts";
-import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
-import {
-  jupyterCapabilitiesMessage,
-  jupyterInstallationMessage,
-  jupyterUnactivatedEnvMessage,
-  pythonInstallationMessage,
-} from "../../core/jupyter/jupyter-shared.ts";
+import { quartoAPI as quarto } from "../../core/quarto-api.ts";
 
 import {
   kExecuteDaemon,
@@ -34,7 +26,6 @@ import {
 } from "../../config/constants.ts";
 
 import { ExecuteOptions } from "../types.ts";
-import { normalizePath } from "../../core/path.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 
 export interface JupyterExecuteOptions extends ExecuteOptions {
@@ -188,13 +179,13 @@ async function execJupyter(
   kernelspec: JupyterKernelspec,
 ): Promise<ProcessResult> {
   try {
-    const cmd = await pythonExec(kernelspec);
+    const cmd = await quarto.jupyter.pythonExec(kernelspec);
     const result = await execProcess(
       {
         cmd: cmd[0],
         args: [
           ...cmd.slice(1),
-          resourcePath("jupyter/jupyter.py"),
+          quarto.path.resource("jupyter", "jupyter.py"),
         ],
         env: {
           // Force default matplotlib backend. something simillar is done here:
@@ -231,19 +222,19 @@ export async function printExecDiagnostics(
   kernelspec: JupyterKernelspec,
   stderr?: string,
 ) {
-  const caps = await jupyterCapabilities(kernelspec);
+  const caps = await quarto.jupyter.capabilities(kernelspec);
   if (caps && !caps.jupyter_core) {
     info("Python 3 installation:");
-    info(await jupyterCapabilitiesMessage(caps, "  "));
+    info(quarto.jupyter.capabilitiesMessage(caps, "  "));
     info("");
-    info(jupyterInstallationMessage(caps));
+    info(quarto.jupyter.installationMessage(caps));
     info("");
     maybePrintUnactivatedEnvMessage(caps);
   } else if (caps && !haveRequiredPython(caps)) {
     info(pythonVersionMessage());
-    info(await jupyterCapabilitiesMessage(caps, "  "));
+    info(quarto.jupyter.capabilitiesMessage(caps, "  "));
   } else if (!caps) {
-    info(pythonInstallationMessage());
+    info(quarto.jupyter.pythonInstallationMessage());
     info("");
   } else if (stderr && (stderr.indexOf("ModuleNotFoundError") !== -1)) {
     maybePrintUnactivatedEnvMessage(caps);
@@ -259,7 +250,7 @@ function pythonVersionMessage() {
 }
 
 function maybePrintUnactivatedEnvMessage(caps: JupyterCapabilities) {
-  const envMessage = jupyterUnactivatedEnvMessage(caps);
+  const envMessage = quarto.jupyter.unactivatedEnvMessage(caps);
   if (envMessage) {
     info(envMessage);
     info("");
@@ -313,7 +304,7 @@ function kernelTransportFile(target: string) {
   let transportsDir: string;
 
   try {
-    transportsDir = quartoRuntimeDir("jt");
+    transportsDir = quarto.path.runtime("jt");
   } catch (e) {
     console.error("Could create runtime directory for jupyter transport.");
     console.error(
@@ -327,7 +318,7 @@ function kernelTransportFile(target: string) {
     );
     throw e;
   }
-  const targetFile = normalizePath(target);
+  const targetFile = quarto.path.absolute(target);
   const hash = md5HashSync(targetFile).slice(0, 20);
   return join(transportsDir, hash);
 }

@@ -4,16 +4,56 @@
 import { MappedString } from "./lib/text-types.ts";
 import { Format, Metadata, FormatPandoc } from "../config/types.ts";
 import { PartitionedMarkdown } from "./pandoc/types.ts";
+import type { ProjectContext } from "../project/types.ts";
 import type {
   JupyterNotebook,
   JupyterToMarkdownOptions,
   JupyterToMarkdownResult,
   JupyterWidgetDependencies,
+  JupyterKernelspec,
+  JupyterCapabilities,
 } from "./jupyter/types.ts";
+import {
+  isJupyterNotebook,
+  jupyterAssets,
+  jupyterToMarkdown,
+  jupyterKernelspecFromMarkdown,
+  quartoMdToJupyter,
+  jupyterFromJSON,
+  kJupyterNotebookExtensions,
+} from "./jupyter/jupyter.ts";
+import {
+  markdownFromNotebookFile,
+  markdownFromNotebookJSON,
+  jupyterNotebookFiltered,
+} from "./jupyter/jupyter-filters.ts";
+import {
+  includesForJupyterWidgetDependencies,
+} from "./jupyter/widgets.ts";
+import {
+  pythonExec,
+} from "./jupyter/exec.ts";
+import {
+  jupyterCapabilities,
+} from "./jupyter/capabilities.ts";
+import {
+  jupyterCapabilitiesMessage,
+  jupyterInstallationMessage,
+  jupyterUnactivatedEnvMessage,
+  pythonInstallationMessage,
+} from "./jupyter/jupyter-shared.ts";
 import type {
   JupyterNotebookAssetPaths,
 } from "./jupyter/jupyter.ts";
 import type { PandocIncludes } from "../execute/types.ts";
+import {
+  isJupyterPercentScript,
+  markdownFromJupyterPercentScript,
+} from "../execute/jupyter/percent.ts";
+import {
+  executeResultIncludes,
+  executeResultEngineDependencies,
+} from "../execute/jupyter/jupyter.ts";
 
 /**
  * Global Quarto API interface
@@ -100,59 +140,29 @@ export interface QuartoAPI {
    * Jupyter notebook integration utilities
    */
   jupyter: {
-    /**
-     * Create asset paths for Jupyter notebook output
-     *
-     * @param input - Input file path
-     * @param to - Output format (optional)
-     * @returns Asset paths for files, figures, and supporting directories
-     */
+    notebookExtensions: string[];
+    isJupyterNotebook: (file: string) => boolean;
+    fromJSON: (nbJson: string) => JupyterNotebook;
+    kernelspecFromMarkdown: (markdown: string, project?: ProjectContext) => Promise<[JupyterKernelspec, Metadata]>;
+    markdownFromNotebookFile: (file: string, format?: Format) => Promise<string>;
+    markdownFromNotebookJSON: (nb: JupyterNotebook) => string;
+    quartoMdToJupyter: (markdown: string, includeIds: boolean, project?: ProjectContext) => Promise<JupyterNotebook>;
+    notebookFiltered: (input: string, filters: string[]) => Promise<string>;
+    widgetDependencyIncludes: (deps: JupyterWidgetDependencies[], tempDir: string) => { inHeader?: string; afterBody?: string };
+    pythonExec: (kernelspec?: JupyterKernelspec) => Promise<string[]>;
+    capabilities: (kernelspec?: JupyterKernelspec) => Promise<JupyterCapabilities | undefined>;
+    capabilitiesMessage: (caps: JupyterCapabilities, indent?: string) => Promise<string>;
+    installationMessage: (caps: JupyterCapabilities) => string;
+    unactivatedEnvMessage: (caps: JupyterCapabilities) => string | undefined;
+    pythonInstallationMessage: () => string;
     assets: (input: string, to?: string) => JupyterNotebookAssetPaths;
-
-    /**
-     * Convert a Jupyter notebook to markdown
-     *
-     * @param nb - Jupyter notebook to convert
-     * @param options - Conversion options
-     * @returns Converted markdown with cell outputs and dependencies
-     */
     toMarkdown: (
       nb: JupyterNotebook,
       options: JupyterToMarkdownOptions
     ) => Promise<JupyterToMarkdownResult>;
-
-    /**
-     * Convert result dependencies to Pandoc includes
-     *
-     * @param tempDir - Temporary directory for includes
-     * @param dependencies - Widget dependencies from execution result
-     * @returns Pandoc includes structure
-     */
     resultIncludes: (tempDir: string, dependencies?: JupyterWidgetDependencies) => PandocIncludes;
-
-    /**
-     * Extract engine dependencies from result dependencies
-     *
-     * @param dependencies - Widget dependencies from execution result
-     * @returns Array of widget dependencies or undefined
-     */
     resultEngineDependencies: (dependencies?: JupyterWidgetDependencies) => Array<JupyterWidgetDependencies> | undefined;
-
-    /**
-     * Check if a file is a Jupyter percent script
-     *
-     * @param file - File path to check
-     * @param extensions - Optional array of extensions to check (default: ['.py', '.jl', '.r'])
-     * @returns True if file is a Jupyter percent script
-     */
     isPercentScript: (file: string, extensions?: string[]) => boolean;
-
-    /**
-     * Convert a Jupyter percent script to markdown
-     *
-     * @param file - Path to the percent script file
-     * @returns Converted markdown content
-     */
     percentScriptToMarkdown: (file: string) => string;
   };
 
@@ -198,15 +208,6 @@ import {
   mappedIndexToLineCol,
 } from "../core/lib/mapped-text.ts";
 import { mappedStringFromFile } from "../core/mapped-text.ts";
-import { jupyterAssets, jupyterToMarkdown } from "../core/jupyter/jupyter.ts";
-import {
-  executeResultEngineDependencies,
-  executeResultIncludes,
-} from "../execute/jupyter/jupyter.ts";
-import {
-  isJupyterPercentScript,
-  markdownFromJupyterPercentScript,
-} from "../execute/jupyter/percent.ts";
 import {
   isHtmlCompatible,
   isIpynbOutput,
@@ -248,6 +249,21 @@ export const quartoAPI: QuartoAPI = {
   },
 
   jupyter: {
+    notebookExtensions: kJupyterNotebookExtensions,
+    isJupyterNotebook,
+    fromJSON: jupyterFromJSON,
+    kernelspecFromMarkdown: jupyterKernelspecFromMarkdown,
+    markdownFromNotebookFile,
+    markdownFromNotebookJSON,
+    quartoMdToJupyter,
+    notebookFiltered: jupyterNotebookFiltered,
+    widgetDependencyIncludes: includesForJupyterWidgetDependencies,
+    pythonExec,
+    capabilities: jupyterCapabilities,
+    capabilitiesMessage: jupyterCapabilitiesMessage,
+    installationMessage: jupyterInstallationMessage,
+    unactivatedEnvMessage: jupyterUnactivatedEnvMessage,
+    pythonInstallationMessage,
     assets: jupyterAssets,
     toMarkdown: jupyterToMarkdown,
     resultIncludes: (tempDir: string, dependencies?: JupyterWidgetDependencies) => {
