@@ -4,9 +4,9 @@
  * Copyright (C) 2023 Posit Software, PBC
  */
 
-import { MappedString } from './text-types';
-import { Metadata } from './metadata-types';
-import { PartitionedMarkdown } from './execution-engine';
+import { MappedString } from './text-types.ts';
+import { Metadata } from './metadata-types.ts';
+import { PartitionedMarkdown } from './execution-engine.ts';
 import type {
   JupyterNotebook,
   JupyterToMarkdownOptions,
@@ -14,9 +14,9 @@ import type {
   JupyterNotebookAssetPaths,
   JupyterWidgetDependencies,
   FormatPandoc,
-} from './jupyter-types';
-import { PandocIncludes } from './execution-engine';
-import { Format } from './metadata-types';
+} from './jupyter-types.ts';
+import { PandocIncludes } from './execution-engine.ts';
+import { Format } from './metadata-types.ts';
 
 /**
  * Global Quarto API interface
