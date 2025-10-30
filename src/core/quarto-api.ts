@@ -4,7 +4,7 @@
 import { MappedString } from "./lib/text-types.ts";
 import { Format, Metadata, FormatPandoc } from "../config/types.ts";
 import { PartitionedMarkdown } from "./pandoc/types.ts";
-import type { ProjectContext } from "../project/types.ts";
+import type { EngineProjectContext } from "../project/types.ts";
 import type {
   JupyterNotebook,
   JupyterToMarkdownOptions,
@@ -144,7 +144,7 @@ export interface QuartoAPI {
     isJupyterNotebook: (file: string) => boolean;
     isPercentScript: (file: string, extensions?: string[]) => boolean;
     notebookExtensions: string[];
-    kernelspecFromMarkdown: (markdown: string, project?: ProjectContext) => Promise<[JupyterKernelspec, Metadata]>;
+    kernelspecFromMarkdown: (markdown: string, project?: EngineProjectContext) => Promise<[JupyterKernelspec, Metadata]>;
     fromJSON: (nbJson: string) => JupyterNotebook;
 
     // 2. Notebook Conversion
@@ -155,7 +155,7 @@ export interface QuartoAPI {
     markdownFromNotebookFile: (file: string, format?: Format) => Promise<string>;
     markdownFromNotebookJSON: (nb: JupyterNotebook) => string;
     percentScriptToMarkdown: (file: string) => string;
-    quartoMdToJupyter: (markdown: string, includeIds: boolean, project?: ProjectContext) => Promise<JupyterNotebook>;
+    quartoMdToJupyter: (markdown: string, includeIds: boolean, project?: EngineProjectContext) => Promise<JupyterNotebook>;
 
     // 3. Notebook Processing & Assets
     notebookFiltered: (input: string, filters: string[]) => Promise<string>;

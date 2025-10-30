@@ -168,12 +168,14 @@ export interface EngineProjectContext {
   /**
    * Config object containing project configuration
    * Used primarily for config?.engines access
+   * Can contain arbitrary configuration properties
    */
   config?: {
     engines?: string[];
     project?: {
       [kProjectOutputDir]?: string;
     };
+    [key: string]: unknown;
   };
 
   /**
