@@ -70,7 +70,6 @@ interface JupyterTargetData {
 import { quartoAPI as quarto } from "../../core/quarto-api.ts";
 import { postProcessRestorePreservedHtml } from "../engine-shared.ts";
 import { MappedString } from "../../core/mapped-text.ts";
-import { ProjectContext } from "../../project/types.ts";
 import { isQmdFile } from "../qmd.ts";
 import { kJupyterPercentScriptExtensions } from "./percent.ts";
 import {
@@ -670,7 +669,7 @@ function fixupShinyliveCodeCells(nb: JupyterNotebook) {
 
 async function createNotebookforTarget(
   target: ExecutionTarget,
-  project?: ProjectContext,
+  project?: EngineProjectContext,
 ) {
   const nb = await quarto.jupyter.quartoMdToJupyter(target.markdown.value, true, project);
   Deno.writeTextFileSync(target.input, JSON.stringify(nb, null, 2));
