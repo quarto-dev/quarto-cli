@@ -13,9 +13,6 @@ import { error } from "../../deno_ral/log.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import { readYamlFromMarkdown } from "../../core/yaml.ts";
-import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
-
 
 import {
   kBaseFormat,
@@ -35,14 +32,6 @@ import {
   kRemoveHidden,
 } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
-import {
-  isHtmlCompatible,
-  isHtmlDashboardOutput,
-  isIpynbOutput,
-  isLatexOutput,
-  isMarkdownOutput,
-  isPresentationOutput,
-} from "../../config/format.ts";
 
 import {
   executeKernelKeepalive,
@@ -240,15 +229,15 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
 
       partitionedMarkdown: async (file: string, format?: Format) => {
         if (quarto.jupyter.isJupyterNotebook(file)) {
-          return partitionMarkdown(
+          return quarto.markdownRegex.partition(
             await quarto.jupyter.markdownFromNotebookFile(file, format),
           );
         } else if (quarto.jupyter.isPercentScript(file)) {
-          return partitionMarkdown(
+          return quarto.markdownRegex.partition(
             quarto.jupyter.percentScriptToMarkdown(file),
           );
         } else {
-          return partitionMarkdown(Deno.readTextFileSync(file));
+          return quarto.markdownRegex.partition(Deno.readTextFileSync(file));
         }
       },
 
@@ -398,7 +387,7 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
         // that is coming from a non-qmd source
         const preserveCellMetadata =
           options.format.render[kNotebookPreserveCells] === true ||
-          (isHtmlDashboardOutput(options.format.identifier[kBaseFormat]) &&
+          (quarto.format.isHtmlDashboardOutput(options.format.identifier[kBaseFormat]) &&
             !isQmdFile(options.target.source));
 
         // NOTE: for perforance reasons the 'nb' is mutated in place
@@ -413,11 +402,11 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
             assets,
             execute: options.format.execute,
             keepHidden: options.format.render[kKeepHidden],
-            toHtml: isHtmlCompatible(options.format),
-            toLatex: isLatexOutput(options.format.pandoc),
-            toMarkdown: isMarkdownOutput(options.format),
-            toIpynb: isIpynbOutput(options.format.pandoc),
-            toPresentation: isPresentationOutput(options.format.pandoc),
+            toHtml: quarto.format.isHtmlCompatible(options.format),
+            toLatex: quarto.format.isLatexOutput(options.format.pandoc),
+            toMarkdown: quarto.format.isMarkdownOutput(options.format),
+            toIpynb: quarto.format.isIpynbOutput(options.format.pandoc),
+            toPresentation: quarto.format.isPresentationOutput(options.format.pandoc),
             figFormat: options.format.execute[kFigFormat],
             figDpi: options.format.execute[kFigDpi],
             figPos: options.format.render[kFigPos],
@@ -651,7 +640,7 @@ async function ensureYamlKernelspec(
   kernelspec: JupyterKernelspec,
 ) {
   const markdown = target.markdown.value;
-  const yamlJupyter = readYamlFromMarkdown(markdown)?.jupyter;
+  const yamlJupyter = quarto.markdownRegex.extractYaml(markdown)?.jupyter;
   if (yamlJupyter && typeof yamlJupyter !== "boolean") {
     const [yamlKernelspec, _] = await quarto.jupyter.kernelspecFromMarkdown(markdown);
     if (yamlKernelspec.name !== kernelspec?.name) {
