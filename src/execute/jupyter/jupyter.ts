@@ -16,14 +16,7 @@ import * as ld from "../../core/lodash.ts";
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
-import { dirAndStem } from "../../core/path.ts";
 
-import {
-  jupyterFromJSON,
-  jupyterKernelspecFromMarkdown,
-  kJupyterNotebookExtensions,
-  quartoMdToJupyter,
-} from "../../core/jupyter/jupyter.ts";
 import {
   kBaseFormat,
   kExecuteDaemon,
@@ -97,8 +90,6 @@ import { isQmdFile } from "../qmd.ts";
 import { kJupyterPercentScriptExtensions } from "./percent.ts";
 import {
   inputFilesDir,
-  isServerShiny,
-  isServerShinyPython,
 } from "../../core/render.ts";
 import { runExternalPreviewServer } from "../../preview/preview-server.ts";
 import { onCleanup } from "../../core/cleanup.ts";
@@ -132,12 +123,12 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
     }
   },
   validExtensions: () => [
-    ...kJupyterNotebookExtensions,
+    ...quarto.jupyter.notebookExtensions,
     ...kJupyterPercentScriptExtensions,
     ...kQmdExtensions,
   ],
   claimsFile: (file: string, ext: string) => {
-    return kJupyterNotebookExtensions.includes(ext.toLowerCase()) ||
+    return quarto.jupyter.notebookExtensions.includes(ext.toLowerCase()) ||
       quarto.jupyter.isPercentScript(file);
   },
   claimsLanguage: (language: string) => {
@@ -216,7 +207,7 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
         // if this is a text markdown file then create a notebook for use as the execution target
         if (isQmdFile(file) || isPercentScript) {
           // write a transient notebook
-          const [fileDir, fileStem] = dirAndStem(file);
+          const [fileDir, fileStem] = quarto.path.dirAndStem(file);
           // See #4802
           // I don't love using an extension other than .ipynb for this file,
           // but doing something like .quarto.ipynb would require a lot
@@ -269,7 +260,7 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
         // if this is shiny server and the user hasn't set keep-hidden then
         // set it as well as the attibutes required to remove the hidden blocks
         if (
-          isServerShinyPython(format, kJupyterEngine) &&
+          quarto.format.isServerShinyPython(format, kJupyterEngine) &&
           format.render[kKeepHidden] !== true
         ) {
           format = {
@@ -520,7 +511,7 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
 
       intermediateFiles: (input: string) => {
         const files: string[] = [];
-        const [fileDir, fileStem] = dirAndStem(input);
+        const [fileDir, fileStem] = quarto.path.dirAndStem(input);
 
         if (!quarto.jupyter.isJupyterNotebook(input)) {
           files.push(join(fileDir, fileStem + ".ipynb"));
@@ -567,7 +558,7 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
           throw new Error();
         }
 
-        const [_dir] = dirAndStem(options.input);
+        const [_dir] = quarto.path.dirAndStem(options.input);
         const appFile = "app.py";
         const cmd = [
           ...await quarto.jupyter.pythonExec(),
@@ -611,8 +602,8 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
 
       postRender: async (file: RenderResultFile) => {
         // discover non _files dir resources for server: shiny and amend app.py with them
-        if (isServerShiny(file.format)) {
-          const [dir] = dirAndStem(file.input);
+        if (quarto.format.isServerShiny(file.format)) {
+          const [dir] = quarto.path.dirAndStem(file.input);
           const filesDir = join(dir, inputFilesDir(file.input));
           const extraResources = file.resourceFiles
             .filter((resource) => !resource.startsWith(filesDir))
@@ -662,9 +653,9 @@ async function ensureYamlKernelspec(
   const markdown = target.markdown.value;
   const yamlJupyter = readYamlFromMarkdown(markdown)?.jupyter;
   if (yamlJupyter && typeof yamlJupyter !== "boolean") {
-    const [yamlKernelspec, _] = await jupyterKernelspecFromMarkdown(markdown);
+    const [yamlKernelspec, _] = await quarto.jupyter.kernelspecFromMarkdown(markdown);
     if (yamlKernelspec.name !== kernelspec?.name) {
-      const nb = jupyterFromJSON(Deno.readTextFileSync(target.source));
+      const nb = quarto.jupyter.fromJSON(Deno.readTextFileSync(target.source));
       nb.metadata.kernelspec = yamlKernelspec;
       Deno.writeTextFileSync(target.source, JSON.stringify(nb, null, 2));
       return yamlKernelspec;
@@ -696,7 +687,7 @@ async function createNotebookforTarget(
   target: ExecutionTarget,
   project?: ProjectContext,
 ) {
-  const nb = await quartoMdToJupyter(target.markdown.value, true, project);
+  const nb = await quarto.jupyter.quartoMdToJupyter(target.markdown.value, true, project);
   Deno.writeTextFileSync(target.input, JSON.stringify(nb, null, 2));
   return nb;
 }
