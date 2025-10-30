@@ -43,9 +43,6 @@ import {
   JupyterNotebook,
   JupyterWidgetDependencies,
 } from "../../core/jupyter/types.ts";
-import {
-  includesForJupyterWidgetDependencies,
-} from "../../core/jupyter/widgets.ts";
 
 import { RenderOptions, RenderResultFile } from "../../command/render/types.ts";
 import {
@@ -73,7 +70,6 @@ interface JupyterTargetData {
 import { quartoAPI as quarto } from "../../core/quarto-api.ts";
 import { postProcessRestorePreservedHtml } from "../engine-shared.ts";
 import { MappedString } from "../../core/mapped-text.ts";
-import { breakQuartoMd } from "../../core/lib/break-quarto-md.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { isQmdFile } from "../qmd.ts";
 import { kJupyterPercentScriptExtensions } from "./percent.ts";
@@ -698,7 +694,7 @@ async function disableDaemonForNotebook(target: ExecutionTarget) {
     "rm",
     "rmdir",
   ];
-  const nb = await breakQuartoMd(target.markdown);
+  const nb = await quarto.markdown.breakQuartoMd(target.markdown);
   for (const cell of nb.cells) {
     if (ld.isObject(cell.cell_type)) {
       const language = (cell.cell_type as { language: string }).language;
@@ -744,7 +740,7 @@ export function executeResultIncludes(
 ): PandocIncludes | undefined {
   if (widgetDependencies) {
     const includes: PandocIncludes = {};
-    const includeFiles = includesForJupyterWidgetDependencies(
+    const includeFiles = quarto.jupyter.widgetDependencyIncludes(
       [widgetDependencies],
       tempDir,
     );
