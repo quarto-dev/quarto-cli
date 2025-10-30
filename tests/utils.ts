@@ -146,9 +146,13 @@ export function outputForInput(
 
   const outputPath: string = projectRoot && projectOutDir !== undefined
       ? join(projectRoot, projectOutDir, dir, `${stem}.${outputExt}`)
+      : projectOutDir !== undefined
+      ? join(projectOutDir, dir, `${stem}.${outputExt}`)
       : join(dir, `${stem}.${outputExt}`);
   const supportPath: string = projectRoot && projectOutDir !== undefined
     ? join(projectRoot, projectOutDir, dir, `${stem}_files`)
+    : projectOutDir !== undefined
+    ? join(projectOutDir, dir, `${stem}_files`)
     : join(dir, `${stem}_files`);
 
   return {
