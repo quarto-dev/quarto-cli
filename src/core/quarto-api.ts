@@ -140,30 +140,37 @@ export interface QuartoAPI {
    * Jupyter notebook integration utilities
    */
   jupyter: {
-    notebookExtensions: string[];
+    // 1. Notebook Detection & Introspection
     isJupyterNotebook: (file: string) => boolean;
-    fromJSON: (nbJson: string) => JupyterNotebook;
+    isPercentScript: (file: string, extensions?: string[]) => boolean;
+    notebookExtensions: string[];
     kernelspecFromMarkdown: (markdown: string, project?: ProjectContext) => Promise<[JupyterKernelspec, Metadata]>;
+    fromJSON: (nbJson: string) => JupyterNotebook;
+
+    // 2. Notebook Conversion
+    toMarkdown: (
+      nb: JupyterNotebook,
+      options: JupyterToMarkdownOptions
+    ) => Promise<JupyterToMarkdownResult>;
     markdownFromNotebookFile: (file: string, format?: Format) => Promise<string>;
     markdownFromNotebookJSON: (nb: JupyterNotebook) => string;
+    percentScriptToMarkdown: (file: string) => string;
     quartoMdToJupyter: (markdown: string, includeIds: boolean, project?: ProjectContext) => Promise<JupyterNotebook>;
+
+    // 3. Notebook Processing & Assets
     notebookFiltered: (input: string, filters: string[]) => Promise<string>;
+    assets: (input: string, to?: string) => JupyterNotebookAssetPaths;
     widgetDependencyIncludes: (deps: JupyterWidgetDependencies[], tempDir: string) => { inHeader?: string; afterBody?: string };
+    resultIncludes: (tempDir: string, dependencies?: JupyterWidgetDependencies) => PandocIncludes;
+    resultEngineDependencies: (dependencies?: JupyterWidgetDependencies) => Array<JupyterWidgetDependencies> | undefined;
+
+    // 4. Runtime & Environment
     pythonExec: (kernelspec?: JupyterKernelspec) => Promise<string[]>;
     capabilities: (kernelspec?: JupyterKernelspec) => Promise<JupyterCapabilities | undefined>;
     capabilitiesMessage: (caps: JupyterCapabilities, indent?: string) => Promise<string>;
     installationMessage: (caps: JupyterCapabilities) => string;
     unactivatedEnvMessage: (caps: JupyterCapabilities) => string | undefined;
     pythonInstallationMessage: () => string;
-    assets: (input: string, to?: string) => JupyterNotebookAssetPaths;
-    toMarkdown: (
-      nb: JupyterNotebook,
-      options: JupyterToMarkdownOptions
-    ) => Promise<JupyterToMarkdownResult>;
-    resultIncludes: (tempDir: string, dependencies?: JupyterWidgetDependencies) => PandocIncludes;
-    resultEngineDependencies: (dependencies?: JupyterWidgetDependencies) => Array<JupyterWidgetDependencies> | undefined;
-    isPercentScript: (file: string, extensions?: string[]) => boolean;
-    percentScriptToMarkdown: (file: string) => string;
   };
 
   /**
@@ -176,6 +183,8 @@ export interface QuartoAPI {
     isMarkdownOutput: (format: Format, flavors?: string[]) => boolean;
     isPresentationOutput: (format: FormatPandoc) => boolean;
     isHtmlDashboardOutput: (format?: string) => boolean;
+    isServerShiny: (format?: Format) => boolean;
+    isServerShinyPython: (format: Format, engine: string | undefined) => boolean;
   };
 
   /**
@@ -186,6 +195,7 @@ export interface QuartoAPI {
     toForwardSlashes: (path: string) => string;
     runtime: (subdir?: string) => string;
     resource: (...parts: string[]) => string;
+    dirAndStem: (file: string) => [string, string];
   };
 
   /**
@@ -219,11 +229,13 @@ import {
 import {
   normalizePath,
   pathWithForwardSlashes,
+  dirAndStem,
 } from "../core/path.ts";
 import { quartoRuntimeDir } from "../core/appdirs.ts";
 import { resourcePath } from "../core/resources.ts";
 import { isInteractiveSession } from "../core/platform.ts";
 import { runningInCI } from "../core/ci-info.ts";
+import { isServerShiny, isServerShinyPython } from "../core/render.ts";
 
 /**
  * Global Quarto API implementation
@@ -249,23 +261,24 @@ export const quartoAPI: QuartoAPI = {
   },
 
   jupyter: {
-    notebookExtensions: kJupyterNotebookExtensions,
+    // 1. Notebook Detection & Introspection
     isJupyterNotebook,
-    fromJSON: jupyterFromJSON,
+    isPercentScript: isJupyterPercentScript,
+    notebookExtensions: kJupyterNotebookExtensions,
     kernelspecFromMarkdown: jupyterKernelspecFromMarkdown,
+    fromJSON: jupyterFromJSON,
+
+    // 2. Notebook Conversion
+    toMarkdown: jupyterToMarkdown,
     markdownFromNotebookFile,
     markdownFromNotebookJSON,
+    percentScriptToMarkdown: markdownFromJupyterPercentScript,
     quartoMdToJupyter,
+
+    // 3. Notebook Processing & Assets
     notebookFiltered: jupyterNotebookFiltered,
-    widgetDependencyIncludes: includesForJupyterWidgetDependencies,
-    pythonExec,
-    capabilities: jupyterCapabilities,
-    capabilitiesMessage: jupyterCapabilitiesMessage,
-    installationMessage: jupyterInstallationMessage,
-    unactivatedEnvMessage: jupyterUnactivatedEnvMessage,
-    pythonInstallationMessage,
     assets: jupyterAssets,
-    toMarkdown: jupyterToMarkdown,
+    widgetDependencyIncludes: includesForJupyterWidgetDependencies,
     resultIncludes: (tempDir: string, dependencies?: JupyterWidgetDependencies) => {
       return executeResultIncludes(tempDir, dependencies) || {};
     },
@@ -273,8 +286,14 @@ export const quartoAPI: QuartoAPI = {
       const result = executeResultEngineDependencies(dependencies);
       return result as Array<JupyterWidgetDependencies> | undefined;
     },
-    isPercentScript: isJupyterPercentScript,
-    percentScriptToMarkdown: markdownFromJupyterPercentScript
+
+    // 4. Runtime & Environment
+    pythonExec,
+    capabilities: jupyterCapabilities,
+    capabilitiesMessage: jupyterCapabilitiesMessage,
+    installationMessage: jupyterInstallationMessage,
+    unactivatedEnvMessage: jupyterUnactivatedEnvMessage,
+    pythonInstallationMessage,
   },
 
   format: {
@@ -284,6 +303,8 @@ export const quartoAPI: QuartoAPI = {
     isMarkdownOutput,
     isPresentationOutput,
     isHtmlDashboardOutput: (format?: string) => !!isHtmlDashboardOutput(format),
+    isServerShiny,
+    isServerShinyPython,
   },
 
   path: {
@@ -301,6 +322,7 @@ export const quartoAPI: QuartoAPI = {
         return resourcePath(joined);
       }
     },
+    dirAndStem,
   },
 
   system: {
