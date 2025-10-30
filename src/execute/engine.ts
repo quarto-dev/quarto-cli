@@ -18,7 +18,7 @@ import { metadataAsFormat } from "../config/metadata.ts";
 import { kBaseFormat, kEngine } from "../config/constants.ts";
 
 import { knitrEngine } from "./rmd.ts";
-import { jupyterEngine } from "./jupyter/jupyter.ts";
+import { jupyterEngineDiscovery } from "./jupyter/jupyter.ts";
 import { ExternalEngine } from "../resources/types/schema-types.ts";
 import { kMdExtensions, markdownEngineDiscovery } from "./markdown.ts";
 import {
@@ -54,7 +54,9 @@ export function executionEngine(name: string) {
 
 // Register the standard engines
 registerExecutionEngine(knitrEngine);
-registerExecutionEngine(jupyterEngine);
+
+// Register jupyter engine with discovery interface
+registerExecutionEngine(jupyterEngineDiscovery as unknown as ExecutionEngine);
 
 // Register markdownEngine using Object.assign to add _discovery flag
 registerExecutionEngine(markdownEngineDiscovery as unknown as ExecutionEngine);
@@ -158,7 +160,7 @@ export function markdownExecutionEngine(
   // if there is a non-cell handler language then this must be jupyter
   for (const language of languages) {
     if (language !== "ojs" && !handlerLanguagesVal.includes(language)) {
-      return asEngineInstance(jupyterEngine, engineProjectContext(project));
+      return jupyterEngineDiscovery.launch(engineProjectContext(project));
     }
   }
 

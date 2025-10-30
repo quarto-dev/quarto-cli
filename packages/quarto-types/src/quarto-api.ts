@@ -104,6 +104,148 @@ export interface QuartoAPI {
    */
   jupyter: {
     /**
+     * List of Jupyter notebook file extensions
+     */
+    notebookExtensions: string[];
+
+    /**
+     * Check if a file is a Jupyter notebook
+     *
+     * @param file - File path to check
+     * @returns True if file is a Jupyter notebook (.ipynb)
+     */
+    isJupyterNotebook: (file: string) => boolean;
+
+    /**
+     * Convert JSON string to Jupyter notebook
+     *
+     * @param nbJson - JSON string containing notebook data
+     * @returns Parsed Jupyter notebook object
+     */
+    fromJSON: (nbJson: string) => JupyterNotebook;
+
+    /**
+     * Extract kernelspec from markdown content
+     *
+     * @param markdown - Markdown content with YAML frontmatter
+     * @returns Extracted kernelspec or undefined if not found
+     */
+    kernelspecFromMarkdown: (markdown: string) => JupyterKernelspec | undefined;
+
+    /**
+     * Convert Jupyter notebook file to markdown
+     *
+     * @param file - Path to notebook file
+     * @param format - Optional format to use for conversion
+     * @returns Markdown content extracted from notebook
+     */
+    markdownFromNotebookFile: (file: string, format?: Format) => string;
+
+    /**
+     * Convert Jupyter notebook JSON to markdown
+     *
+     * @param nbJson - Notebook JSON string
+     * @returns Markdown content extracted from notebook
+     */
+    markdownFromNotebookJSON: (nbJson: string) => string;
+
+    /**
+     * Convert Quarto markdown to Jupyter notebook
+     *
+     * @param markdown - Markdown content with YAML frontmatter
+     * @param kernelspec - Jupyter kernelspec for the notebook
+     * @param title - Optional title for the notebook
+     * @param format - Optional format information
+     * @param options - Optional conversion options
+     * @returns Jupyter notebook generated from markdown
+     */
+    quartoMdToJupyter: (
+      markdown: string,
+      kernelspec: JupyterKernelspec,
+      title?: string,
+      format?: Format,
+      options?: QuartoMdToJupyterOptions
+    ) => JupyterNotebook;
+
+    /**
+     * Apply filters to a Jupyter notebook
+     *
+     * @param nb - Jupyter notebook to filter
+     * @param filters - Array of filter strings to apply
+     * @returns Filtered notebook
+     */
+    notebookFiltered: (
+      nb: JupyterNotebook,
+      filters: string[]
+    ) => JupyterNotebook;
+
+    /**
+     * Generate Pandoc includes for Jupyter widget dependencies
+     *
+     * @param deps - Widget dependencies
+     * @param tempDir - Temporary directory for includes
+     * @returns Pandoc includes structure
+     */
+    widgetDependencyIncludes: (
+      deps: JupyterWidgetDependencies,
+      tempDir: string
+    ) => PandocIncludes;
+
+    /**
+     * Get Python executable command
+     *
+     * @param python - Optional Python executable override
+     * @returns Promise resolving to array of command line arguments
+     */
+    pythonExec: (python?: string) => Promise<string[]>;
+
+    /**
+     * Get Jupyter capabilities
+     *
+     * @param python - Optional Python executable override
+     * @param jupyter - Optional Jupyter executable override
+     * @returns Promise resolving to Jupyter capabilities
+     */
+    capabilities: (
+      python?: string,
+      jupyter?: string
+    ) => Promise<JupyterCapabilities>;
+
+    /**
+     * Generate capabilities message
+     *
+     * @param caps - Jupyter capabilities
+     * @param extraMessage - Optional additional message
+     * @returns Formatted capabilities message
+     */
+    capabilitiesMessage: (
+      caps: JupyterCapabilities,
+      extraMessage?: string
+    ) => string;
+
+    /**
+     * Generate Jupyter installation message
+     *
+     * @param python - Python executable path
+     * @returns Installation message
+     */
+    installationMessage: (python: string) => string;
+
+    /**
+     * Generate message about unactivated environment
+     *
+     * @returns Message about unactivated environment
+     */
+    unactivatedEnvMessage: () => string;
+
+    /**
+     * Generate message about Python installation
+     *
+     * @returns Message about Python installation
+     */
+    pythonInstallationMessage: () => string;
+
+    /**
      * Create asset paths for Jupyter notebook output
      *
      * @param input - Input file path
