@@ -57,10 +57,7 @@ registerExecutionEngine(knitrEngine);
 registerExecutionEngine(jupyterEngine);
 
 // Register markdownEngine using Object.assign to add _discovery flag
-registerExecutionEngine(Object.assign(
-  markdownEngineDiscovery as unknown as ExecutionEngine,
-  { _discovery: true },
-));
+registerExecutionEngine(markdownEngineDiscovery as unknown as ExecutionEngine);
 
 registerExecutionEngine(juliaEngine);
 
