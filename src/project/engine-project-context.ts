@@ -12,7 +12,6 @@ import {
   FileInformation,
   ProjectContext,
 } from "./types.ts";
-import { quartoAPI } from "../core/quarto-api.ts";
 
 /**
  * Creates an EngineProjectContext adapter from a ProjectContext
@@ -52,9 +51,6 @@ export function engineProjectContext(
       markdown?: MappedString,
       force?: boolean,
     ) => context.resolveFullMarkdownForFile(engine, file, markdown, force),
-
-    // Reference to the global Quarto API
-    quarto: quartoAPI,
   };
 
   // Add hidden property for adapter access to full ProjectContext
@@ -78,7 +74,6 @@ export function isEngineProjectContext(
   return (
     typeof ctx.dir === "string" &&
     typeof ctx.isSingleFile === "boolean" &&
-    typeof ctx.resolveFullMarkdownForFile === "function" &&
-    !!ctx.quarto
+    typeof ctx.resolveFullMarkdownForFile === "function"
   );
 }

@@ -18,6 +18,8 @@ import { EngineProjectContext, ProjectContext } from "../project/types.ts";
 import { Command } from "cliffy/command/mod.ts";
 import type { QuartoAPI } from "../core/quarto-api.ts";
 
+export type { QuartoAPI };
+
 export const kQmdExtensions = [".qmd"];
 
 export const kMarkdownEngine = "markdown";
@@ -30,26 +32,33 @@ export const kJuliaEngine = "julia";
  * Used to determine which engine should handle a file
  */
 export interface ExecutionEngineDiscovery {
+  /**
+   * Initialize the engine with the Quarto API (optional)
+   * May be called multiple times but always with the same QuartoAPI object.
+   * Engines should store the reference to use throughout their lifecycle.
+   */
+  init?: (quarto: QuartoAPI) => void;
+
   name: string;
   defaultExt: string;
   defaultYaml: (kernel?: string) => string[];
   defaultContent: (kernel?: string) => string[];
   validExtensions: () => string[];
-  claimsFile: (quarto: QuartoAPI, file: string, ext: string) => boolean;
+  claimsFile: (file: string, ext: string) => boolean;
   claimsLanguage: (language: string) => boolean;
   canFreeze: boolean;
   generatesFigures: boolean;
   ignoreDirs?: () => string[] | undefined;
 
   /**
+   * Populate engine-specific CLI commands (optional)
+   */
+  populateCommand?: (command: Command) => void;
+
+  /**
    * Launch a dynamic execution engine with project context
    */
   launch: (context: EngineProjectContext) => ExecutionEngineInstance;
-
-  /**
-   * Populate engine-specific CLI commands (optional)
-   */
-  populateCommand?: (quarto: QuartoAPI, command: Command) => void;
 }
 
 /**

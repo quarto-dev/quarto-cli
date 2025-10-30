@@ -29,18 +29,20 @@ export interface ExecutionTarget {
 }
 
 /**
- * Pandoc includes for headers, body, etc.
+ * Valid Pandoc include locations
  */
-export interface PandocIncludes {
-  /** Content to include in header */
-  "include-in-header"?: string[];
+export type PandocIncludeLocation =
+  | "include-in-header"
+  | "include-before-body"
+  | "include-after-body";
 
-  /** Content to include before body */
-  "include-before-body"?: string[];
-
-  /** Content to include after body */
-  "include-after-body"?: string[];
-}
+/**
+ * Pandoc includes for headers, body, etc.
+ * Mapped type that allows any of the valid include locations
+ */
+export type PandocIncludes = {
+  [K in PandocIncludeLocation]?: string[];
+};
 
 /**
  * Options for execution
@@ -264,6 +266,15 @@ export interface PartitionedMarkdown {
  */
 export interface ExecutionEngineDiscovery {
   /**
+   * Initialize the engine with the Quarto API (optional)
+   * May be called multiple times but always with the same QuartoAPI object.
+   * Engines should store the reference to use throughout their lifecycle.
+   *
+   * @param quarto - The Quarto API for accessing utilities
+   */
+  init?: (quarto: QuartoAPI) => void;
+
+  /**
    * Name of the engine
    */
   name: string;
@@ -291,12 +302,11 @@ export interface ExecutionEngineDiscovery {
   /**
    * Whether this engine can handle the given file
    *
-   * @param quarto - The Quarto API for accessing utilities
    * @param file - The file path to check
    * @param ext - The file extension
    * @returns True if this engine can handle the file
    */
-  claimsFile: (quarto: QuartoAPI, file: string, ext: string) => boolean;
+  claimsFile: (file: string, ext: string) => boolean;
 
   /**
    * Whether this engine can handle the given language
@@ -314,6 +324,14 @@ export interface ExecutionEngineDiscovery {
   generatesFigures: boolean;
 
   /**
+   * Populate engine-specific CLI commands (optional)
+   * Called at module initialization to register commands like 'quarto enginename status'
+   *
+   * @param command - The CLI command to populate with subcommands
+   */
+  populateCommand?: (command: Command) => void;
+
+  /**
    * Launch a dynamic execution engine with project context
    * This is called when the engine is needed for execution
    *
@@ -321,15 +339,6 @@ export interface ExecutionEngineDiscovery {
    * @returns ExecutionEngineInstance that can execute documents
    */
   launch: (context: EngineProjectContext) => ExecutionEngineInstance;
-
-  /**
-   * Populate engine-specific CLI commands (optional)
-   * Called at module initialization to register commands like 'quarto enginename status'
-   *
-   * @param quarto - The Quarto API for accessing utilities
-   * @param command - The CLI command to populate with subcommands
-   */
-  populateCommand?: (quarto: QuartoAPI, command: Command) => void;
 }
 
 /**
