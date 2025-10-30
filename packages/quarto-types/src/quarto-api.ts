@@ -103,10 +103,7 @@ export interface QuartoAPI {
    * Jupyter notebook integration utilities
    */
   jupyter: {
-    /**
-     * List of Jupyter notebook file extensions
-     */
-    notebookExtensions: string[];
+    // 1. Notebook Detection & Introspection
 
     /**
      * Check if a file is a Jupyter notebook
@@ -117,12 +114,18 @@ export interface QuartoAPI {
     isJupyterNotebook: (file: string) => boolean;
 
     /**
-     * Convert JSON string to Jupyter notebook
+     * Check if a file is a Jupyter percent script
      *
-     * @param nbJson - JSON string containing notebook data
-     * @returns Parsed Jupyter notebook object
+     * @param file - File path to check
+     * @param extensions - Optional array of extensions to check (default: ['.py', '.jl', '.r'])
+     * @returns True if file is a Jupyter percent script
      */
-    fromJSON: (nbJson: string) => JupyterNotebook;
+    isPercentScript: (file: string, extensions?: string[]) => boolean;
+
+    /**
+     * List of Jupyter notebook file extensions
+     */
+    notebookExtensions: string[];
 
     /**
      * Extract kernelspec from markdown content
@@ -131,6 +134,28 @@ export interface QuartoAPI {
      * @returns Extracted kernelspec or undefined if not found
      */
     kernelspecFromMarkdown: (markdown: string) => JupyterKernelspec | undefined;
+
+    /**
+     * Convert JSON string to Jupyter notebook
+     *
+     * @param nbJson - JSON string containing notebook data
+     * @returns Parsed Jupyter notebook object
+     */
+    fromJSON: (nbJson: string) => JupyterNotebook;
+
+    // 2. Notebook Conversion
+
+    /**
+     * Convert a Jupyter notebook to markdown
+     *
+     * @param nb - Jupyter notebook to convert
+     * @param options - Conversion options
+     * @returns Converted markdown with cell outputs and dependencies
+     */
+    toMarkdown: (
+      nb: JupyterNotebook,
+      options: JupyterToMarkdownOptions
+    ) => Promise<JupyterToMarkdownResult>;
 
     /**
      * Convert Jupyter notebook file to markdown
@@ -150,6 +175,14 @@ export interface QuartoAPI {
     markdownFromNotebookJSON: (nbJson: string) => string;
 
     /**
+     * Convert a Jupyter percent script to markdown
+     *
+     * @param file - Path to the percent script file
+     * @returns Converted markdown content
+     */
+    percentScriptToMarkdown: (file: string) => string;
+
+    /**
      * Convert Quarto markdown to Jupyter notebook
      *
      * @param markdown - Markdown content with YAML frontmatter
@@ -167,6 +200,8 @@ export interface QuartoAPI {
       options?: QuartoMdToJupyterOptions
     ) => JupyterNotebook;
 
+    // 3. Notebook Processing & Assets
+
     /**
      * Apply filters to a Jupyter notebook
      *
@@ -180,6 +215,15 @@ export interface QuartoAPI {
     ) => JupyterNotebook;
 
     /**
+     * Create asset paths for Jupyter notebook output
+     *
+     * @param input - Input file path
+     * @param to - Output format (optional)
+     * @returns Asset paths for files, figures, and supporting directories
+     */
+    assets: (input: string, to?: string) => JupyterNotebookAssetPaths;
+
+    /**
      * Generate Pandoc includes for Jupyter widget dependencies
      *
      * @param deps - Widget dependencies
@@ -190,6 +234,25 @@ export interface QuartoAPI {
       deps: JupyterWidgetDependencies,
       tempDir: string
     ) => PandocIncludes;
+
+    /**
+     * Convert result dependencies to Pandoc includes
+     *
+     * @param tempDir - Temporary directory for includes
+     * @param dependencies - Widget dependencies from execution result
+     * @returns Pandoc includes structure
+     */
+    resultIncludes: (tempDir: string, dependencies?: JupyterWidgetDependencies) => PandocIncludes;
+
+    /**
+     * Extract engine dependencies from result dependencies
+     *
+     * @param dependencies - Widget dependencies from execution result
+     * @returns Array of widget dependencies or undefined
+     */
+    resultEngineDependencies: (dependencies?: JupyterWidgetDependencies) => Array<JupyterWidgetDependencies> | undefined;
+
+    // 4. Runtime & Environment
 
     /**
      * Get Python executable command
@@ -244,61 +307,6 @@ export interface QuartoAPI {
      * @returns Message about Python installation
      */
     pythonInstallationMessage: () => string;
-
-    /**
-     * Create asset paths for Jupyter notebook output
-     *
-     * @param input - Input file path
-     * @param to - Output format (optional)
-     * @returns Asset paths for files, figures, and supporting directories
-     */
-    assets: (input: string, to?: string) => JupyterNotebookAssetPaths;
-
-    /**
-     * Convert a Jupyter notebook to markdown
-     *
-     * @param nb - Jupyter notebook to convert
-     * @param options - Conversion options
-     * @returns Converted markdown with cell outputs and dependencies
-     */
-    toMarkdown: (
-      nb: JupyterNotebook,
-      options: JupyterToMarkdownOptions
-    ) => Promise<JupyterToMarkdownResult>;
-
-    /**
-     * Convert result dependencies to Pandoc includes
-     *
-     * @param tempDir - Temporary directory for includes
-     * @param dependencies - Widget dependencies from execution result
-     * @returns Pandoc includes structure
-     */
-    resultIncludes: (tempDir: string, dependencies?: JupyterWidgetDependencies) => PandocIncludes;
-
-    /**
-     * Extract engine dependencies from result dependencies
-     *
-     * @param dependencies - Widget dependencies from execution result
-     * @returns Array of widget dependencies or undefined
-     */
-    resultEngineDependencies: (dependencies?: JupyterWidgetDependencies) => Array<JupyterWidgetDependencies> | undefined;
-
-    /**
-     * Check if a file is a Jupyter percent script
-     *
-     * @param file - File path to check
-     * @param extensions - Optional array of extensions to check (default: ['.py', '.jl', '.r'])
-     * @returns True if file is a Jupyter percent script
-     */
-    isPercentScript: (file: string, extensions?: string[]) => boolean;
-
-    /**
-     * Convert a Jupyter percent script to markdown
-     *
-     * @param file - Path to the percent script file
-     * @returns Converted markdown content
-     */
-    percentScriptToMarkdown: (file: string) => string;
   };
 
   /**
@@ -353,6 +361,23 @@ export interface QuartoAPI {
      * @returns True if format is a dashboard
      */
     isHtmlDashboardOutput: (format?: string) => boolean;
+
+    /**
+     * Check if format is a Shiny server document
+     *
+     * @param format - Optional format to check
+     * @returns True if format has server: shiny
+     */
+    isServerShiny: (format?: Format) => boolean;
+
+    /**
+     * Check if format is a Python Shiny server document with Jupyter engine
+     *
+     * @param format - Format to check
+     * @param engine - Execution engine name
+     * @returns True if format is server: shiny with jupyter engine
+     */
+    isServerShinyPython: (format: Format, engine: string | undefined) => boolean;
   };
 
   /**
@@ -403,6 +428,14 @@ export interface QuartoAPI {
      * @returns Absolute path to the resource file
      */
     resource: (...parts: string[]) => string;
+
+    /**
+     * Split a file path into directory and stem (filename without extension)
+     *
+     * @param file - File path to split
+     * @returns Tuple of [directory, filename stem]
+     */
+    dirAndStem: (file: string) => [string, string];
   };
 
   /**
