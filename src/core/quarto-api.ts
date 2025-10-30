@@ -204,6 +204,37 @@ export interface QuartoAPI {
   system: {
     isInteractiveSession: () => boolean;
     runningInCI: () => boolean;
+    execProcess: (
+      options: ExecProcessOptions,
+      stdin?: string,
+      mergeOutput?: "stderr>stdout" | "stdout>stderr",
+      stderrFilter?: (output: string) => string,
+      respectStreams?: boolean,
+      timeout?: number
+    ) => Promise<ProcessResult>;
+  };
+
+  /**
+   * Markdown processing utilities
+   */
+  markdown: {
+    asYamlText: (metadata: Metadata) => string;
+    breakQuartoMd: (src: string | MappedString, validate?: boolean, lenient?: boolean) => Promise<QuartoMdChunks>;
+  };
+
+  /**
+   * Text processing utilities
+   */
+  text: {
+    lines: (text: string) => string[];
+    trimEmptyLines: (lines: string[], trim?: "leading" | "trailing" | "all") => string[];
+  };
+
+  /**
+   * Cryptographic utilities
+   */
+  crypto: {
+    md5Hash: (content: string) => string;
   };
 }
 
@@ -236,6 +267,14 @@ import { resourcePath } from "../core/resources.ts";
 import { isInteractiveSession } from "../core/platform.ts";
 import { runningInCI } from "../core/ci-info.ts";
 import { isServerShiny, isServerShinyPython } from "../core/render.ts";
+import { execProcess } from "../core/process.ts";
+import type { ExecProcessOptions } from "../core/process.ts";
+import type { ProcessResult } from "../core/process-types.ts";
+import { asYamlText } from "../core/jupyter/jupyter-fixups.ts";
+import { breakQuartoMd } from "../core/lib/break-quarto-md.ts";
+import type { QuartoMdChunks, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
+import { lines, trimEmptyLines } from "../core/lib/text.ts";
+import { md5HashSync } from "../core/hash.ts";
 
 /**
  * Global Quarto API implementation
@@ -328,5 +367,20 @@ export const quartoAPI: QuartoAPI = {
   system: {
     isInteractiveSession,
     runningInCI,
+    execProcess,
+  },
+
+  markdown: {
+    asYamlText,
+    breakQuartoMd,
+  },
+
+  text: {
+    lines,
+    trimEmptyLines,
+  },
+
+  crypto: {
+    md5Hash: md5HashSync,
   }
 };

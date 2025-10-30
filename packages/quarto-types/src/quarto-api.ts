@@ -19,6 +19,51 @@ import { PandocIncludes } from './execution-engine.ts';
 import { Format } from './metadata-types.ts';
 
 /**
+ * Process execution result
+ */
+export interface ProcessResult {
+  success: boolean;
+  code: number;
+  stdout?: string;
+  stderr?: string;
+}
+
+/**
+ * Process execution options
+ */
+export type ExecProcessOptions = {
+  cmd: string;
+  args?: string[];
+  cwd?: string;
+  env?: Record<string, string>;
+  stdout?: "piped" | "inherit" | "null";
+  stderr?: "piped" | "inherit" | "null";
+  stdin?: "piped" | "inherit" | "null";
+};
+
+/**
+ * Cell type from breaking Quarto markdown
+ */
+export interface QuartoMdCell {
+  id?: string;
+  cell_type: { language: string } | "markdown" | "raw";
+  options?: Record<string, unknown>;
+  source: MappedString;
+  sourceVerbatim: MappedString;
+  sourceWithYaml?: MappedString;
+  sourceOffset: number;
+  sourceStartLine: number;
+  cellStartLine: number;
+}
+
+/**
+ * Result from breaking Quarto markdown
+ */
+export interface QuartoMdChunks {
+  cells: QuartoMdCell[];
+}
+
+/**
  * Global Quarto API interface
  */
 export interface QuartoAPI {
@@ -469,6 +514,84 @@ export interface QuartoAPI {
      * @returns True if running in a CI/CD environment
      */
     runningInCI: () => boolean;
+
+    /**
+     * Execute an external process
+     *
+     * @param options - Process execution options
+     * @param stdin - Optional stdin content
+     * @param mergeOutput - Optional output stream merging
+     * @param stderrFilter - Optional stderr filter function
+     * @param respectStreams - Optional flag to respect stream separation
+     * @param timeout - Optional timeout in milliseconds
+     * @returns Promise resolving to process result
+     */
+    execProcess: (
+      options: ExecProcessOptions,
+      stdin?: string,
+      mergeOutput?: "stderr>stdout" | "stdout>stderr",
+      stderrFilter?: (output: string) => string,
+      respectStreams?: boolean,
+      timeout?: number
+    ) => Promise<ProcessResult>;
+  };
+
+  /**
+   * Markdown processing utilities
+   */
+  markdown: {
+    /**
+     * Convert metadata object to YAML text
+     *
+     * @param metadata - Metadata object to convert
+     * @returns YAML formatted string
+     */
+    asYamlText: (metadata: Metadata) => string;
+
+    /**
+     * Break Quarto markdown into cells
+     *
+     * @param src - Markdown string or MappedString
+     * @param validate - Whether to validate cells (default: false)
+     * @param lenient - Whether to use lenient parsing (default: false)
+     * @returns Promise resolving to chunks with cells
+     */
+    breakQuartoMd: (src: string | MappedString, validate?: boolean, lenient?: boolean) => Promise<QuartoMdChunks>;
+  };
+
+  /**
+   * Text processing utilities
+   */
+  text: {
+    /**
+     * Split text into lines
+     *
+     * @param text - Text to split
+     * @returns Array of lines
+     */
+    lines: (text: string) => string[];
+
+    /**
+     * Trim empty lines from array
+     *
+     * @param lines - Array of lines
+     * @param trim - Which empty lines to trim (default: "all")
+     * @returns Trimmed array of lines
+     */
+    trimEmptyLines: (lines: string[], trim?: "leading" | "trailing" | "all") => string[];
+  };
+
+  /**
+   * Cryptographic utilities
+   */
+  crypto: {
+    /**
+     * Generate MD5 hash of content
+     *
+     * @param content - String content to hash
+     * @returns MD5 hash as hexadecimal string
+     */
+    md5Hash: (content: string) => string;
   };
 }
 

@@ -10,14 +10,12 @@ import { error, info, warning } from "../../deno_ral/log.ts";
 
 import { sleep } from "../../core/async.ts";
 import { quartoDataDir } from "../../core/appdirs.ts";
-import { execProcess } from "../../core/process.ts";
-import { ProcessResult } from "../../core/process-types.ts";
-import { md5HashSync } from "../../core/hash.ts";
 import {
   JupyterCapabilities,
   JupyterKernelspec,
 } from "../../core/jupyter/types.ts";
 import { quartoAPI as quarto } from "../../core/quarto-api.ts";
+import type { ProcessResult } from "../../core/process-types.ts";
 
 import {
   kExecuteDaemon,
@@ -180,7 +178,7 @@ async function execJupyter(
 ): Promise<ProcessResult> {
   try {
     const cmd = await quarto.jupyter.pythonExec(kernelspec);
-    const result = await execProcess(
+    const result = await quarto.system.execProcess(
       {
         cmd: cmd[0],
         args: [
@@ -319,7 +317,7 @@ function kernelTransportFile(target: string) {
     throw e;
   }
   const targetFile = quarto.path.absolute(target);
-  const hash = md5HashSync(targetFile).slice(0, 20);
+  const hash = quarto.crypto.md5Hash(targetFile).slice(0, 20);
   return join(transportsDir, hash);
 }
 
