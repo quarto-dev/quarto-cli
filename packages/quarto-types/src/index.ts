@@ -3,26 +3,32 @@
  * TypeScript type definitions for Quarto execution engines
  */
 
-// Export CLI types
-export type * from "./cli-types";
+// Core engine interfaces (starting points)
+export type * from "./execution-engine.ts";
+export type * from "./project-context.ts";
+export type * from "./quarto-api.ts";
 
-// Export text types
-export type * from "./text-types";
+// Execution & rendering
+export type * from "./execution.ts";
+export type * from "./render.ts";
+export type * from "./check.ts";
 
-// Export metadata types
-export type * from "./metadata-types";
+// Format & metadata
+export type * from "./metadata.ts";
+export type * from "./format.ts";
 
-// Export external engine types
-export type * from "./external-engine";
+// Text & markdown
+export type * from "./text.ts";
+export type * from "./markdown.ts";
 
-// Export project context types
-export type * from "./project-context";
+// System & process
+export type * from "./system.ts";
+export type * from "./console.ts";
+export type * from "./pandoc.ts";
 
-// Export execution engine types
-export type * from "./execution-engine";
+// Engine-specific
+export type * from "./jupyter.ts";
+export type * from "./external-engine.ts";
 
-// Export Quarto API types
-export type * from "./quarto-api";
-
-// Export Jupyter types
-export type * from "./jupyter-types";
+// CLI
+export type * from "./cli.ts";

@@ -2,11 +2,28 @@
  * Execution engine interfaces for Quarto
  */
 
-import { MappedString } from "./text-types";
-import { Format, Metadata } from "./metadata-types";
-import { EngineProjectContext } from "./project-context";
-import type { Command } from "./cli-types";
-import type { QuartoAPI } from "./quarto-api";
+import type { MappedString } from "./text.ts";
+import type { Format } from "./format.ts";
+import type { Metadata } from "./metadata.ts";
+import type { EngineProjectContext } from "./project-context.ts";
+import type { Command } from "./cli.ts";
+import type { QuartoAPI } from "./quarto-api.ts";
+import type {
+  ExecuteOptions,
+  ExecuteResult,
+  DependenciesOptions,
+  DependenciesResult,
+  PostProcessOptions,
+  RunOptions,
+} from "./execution.ts";
+import type {
+  RenderFlags,
+  RenderOptions,
+  RenderResultFile,
+} from "./render.ts";
+import type { PartitionedMarkdown } from "./markdown.ts";
+import type { PandocIncludes, PandocIncludeLocation } from "./pandoc.ts";
+import type { CheckConfiguration } from "./check.ts";
 
 /**
  * Execution target (filename and context)
@@ -26,321 +43,6 @@ export interface ExecutionTarget {
 
   /** Optional target-specific data */
   data?: unknown;
-}
-
-/**
- * Valid Pandoc include locations
- */
-export type PandocIncludeLocation =
-  | "include-in-header"
-  | "include-before-body"
-  | "include-after-body";
-
-/**
- * Pandoc includes for headers, body, etc.
- * Mapped type that allows any of the valid include locations
- */
-export type PandocIncludes = {
-  [K in PandocIncludeLocation]?: string[];
-};
-
-/**
- * Options for execution
- */
-export interface ExecuteOptions {
-  /** The execution target */
-  target: ExecutionTarget;
-
-  /** Format to render to */
-  format: Format;
-
-  /** Directory for resources */
-  resourceDir: string;
-
-  /** Directory for temporary files */
-  tempDir: string;
-
-  /** Whether to include dependencies */
-  dependencies: boolean;
-
-  /** Project directory if applicable */
-  projectDir?: string;
-
-  /** Library directory */
-  libDir?: string;
-
-  /** Current working directory */
-  cwd: string;
-
-  /** Parameters passed to document */
-  params?: { [key: string]: unknown };
-
-  /** Whether to suppress output */
-  quiet?: boolean;
-
-  /** Whether execution is for preview server */
-  previewServer?: boolean;
-
-  /** List of languages handled by cell language handlers */
-  handledLanguages: string[];
-
-  /** Project context */
-  project: EngineProjectContext;
-}
-
-/**
- * Result of execution
- */
-export interface ExecuteResult {
-  /** Resulting markdown content */
-  markdown: string;
-
-  /** Supporting files */
-  supporting: string[];
-
-  /** Filter scripts */
-  filters: string[];
-
-  /** Updated metadata */
-  metadata?: Metadata;
-
-  /** Pandoc options */
-  pandoc?: Record<string, unknown>;
-
-  /** Pandoc includes */
-  includes?: PandocIncludes;
-
-  /** Engine name */
-  engine?: string;
-
-  /** Engine-specific dependencies */
-  engineDependencies?: Record<string, Array<unknown>>;
-
-  /** Content to preserve during processing */
-  preserve?: Record<string, string>;
-
-  /** Whether post-processing is required */
-  postProcess?: boolean;
-
-  /** Additional resource files */
-  resourceFiles?: string[];
-}
-
-/**
- * Options for retrieving dependencies
- */
-export interface DependenciesOptions {
-  /** The execution target */
-  target: ExecutionTarget;
-
-  /** Format to render to */
-  format: Format;
-
-  /** Output file path */
-  output: string;
-
-  /** Directory for resources */
-  resourceDir: string;
-
-  /** Directory for temporary files */
-  tempDir: string;
-
-  /** Project directory if applicable */
-  projectDir?: string;
-
-  /** Library directory */
-  libDir?: string;
-
-  /** Dependencies to include */
-  dependencies?: Array<unknown>;
-
-  /** Whether to suppress output */
-  quiet?: boolean;
-}
-
-/**
- * Result of retrieving dependencies
- */
-export interface DependenciesResult {
-  /** Pandoc includes */
-  includes: PandocIncludes;
-}
-
-/**
- * Options for post-processing
- */
-export interface PostProcessOptions {
-  /** The execution engine */
-  engine: ExecutionEngineInstance;
-
-  /** The execution target */
-  target: ExecutionTarget;
-
-  /** Format to render to */
-  format: Format;
-
-  /** Output file path */
-  output: string;
-
-  /** Directory for temporary files */
-  tempDir: string;
-
-  /** Project directory if applicable */
-  projectDir?: string;
-
-  /** Content to preserve during processing */
-  preserve?: Record<string, string>;
-
-  /** Whether to suppress output */
-  quiet?: boolean;
-}
-
-/**
- * Options for running the engine
- */
-export interface RunOptions {
-  /** Input file path */
-  input: string;
-
-  /** Whether to render */
-  render: boolean;
-
-  /** Whether to open in browser */
-  browser: boolean;
-
-  /** Directory for temporary files */
-  tempDir: string;
-
-  /** Whether to reload */
-  reload?: boolean;
-
-  /** Target format */
-  format?: string;
-
-  /** Project directory if applicable */
-  projectDir?: string;
-
-  /** Port for server */
-  port?: number;
-
-  /** Host for server */
-  host?: string;
-
-  /** Whether to suppress output */
-  quiet?: boolean;
-
-  /** Callback when ready */
-  onReady?: () => Promise<void>;
-}
-
-/**
- * Render flags (extends pandoc flags)
- */
-export interface RenderFlags {
-  // Output options
-  outputDir?: string;
-  siteUrl?: string;
-  executeDir?: string;
-
-  // Execution options
-  execute?: boolean;
-  executeCache?: true | false | "refresh";
-  executeDaemon?: number;
-  executeDaemonRestart?: boolean;
-  executeDebug?: boolean;
-  useFreezer?: boolean;
-
-  // Metadata
-  metadata?: { [key: string]: unknown };
-  pandocMetadata?: { [key: string]: unknown };
-  params?: { [key: string]: unknown };
-  paramsFile?: string;
-
-  // Other flags
-  clean?: boolean;
-  debug?: boolean;
-  quiet?: boolean;
-  version?: string;
-
-  // Pandoc-specific flags (subset)
-  to?: string;
-  output?: string;
-  [key: string]: unknown; // Allow other pandoc flags
-}
-
-/**
- * Render options (simplified)
- * Note: The internal Quarto version includes a 'services' field with
- * RenderServices, which has been omitted as it requires internal dependencies.
- */
-export interface RenderOptions {
-  flags?: RenderFlags;
-  pandocArgs?: string[];
-  progress?: boolean;
-  useFreezer?: boolean;
-  devServerReload?: boolean;
-  previewServer?: boolean;
-  setProjectDir?: boolean;
-  forceClean?: boolean;
-  echo?: boolean;
-  warning?: boolean;
-  quietPandoc?: boolean;
-}
-
-/**
- * Result file from rendering
- */
-export interface RenderResultFile {
-  /** Input file path */
-  input: string;
-
-  /** Markdown content */
-  markdown: string;
-
-  /** Format used for rendering */
-  format: Format;
-
-  /** Output file path */
-  file: string;
-
-  /** Whether this is a transient file */
-  isTransient?: boolean;
-
-  /** Supporting files generated */
-  supporting?: string[];
-
-  /** Resource files */
-  resourceFiles: string[];
-
-  /** Whether this is a supplemental file */
-  supplemental?: boolean;
-}
-
-/**
- * A partitioned markdown document
- */
-export interface PartitionedMarkdown {
-  /** YAML frontmatter as parsed metadata */
-  yaml?: Metadata;
-
-  /** Text of the first heading */
-  headingText?: string;
-
-  /** Attributes of the first heading */
-  headingAttr?: {
-    id: string;
-    classes: string[];
-    keyvalue: Array<[string, string]>;
-  };
-
-  /** Whether the document contains references */
-  containsRefs: boolean;
-
-  /** Complete markdown content */
-  markdown: string;
-
-  /** Markdown without YAML frontmatter */
-  srcMarkdownNoYaml: string;
 }
 
 /**
@@ -412,12 +114,32 @@ export interface ExecutionEngineDiscovery {
   ignoreDirs?: () => string[] | undefined;
 
   /**
+   * Semver range specifying the minimum required Quarto version for this engine
+   * Examples: ">= 1.6.0", "^1.5.0", "1.*"
+   *
+   * When specified, Quarto will check at engine registration time whether the
+   * current version satisfies this requirement. If not, an error will be thrown.
+   */
+  quartoRequired?: string;
+
+  /**
    * Populate engine-specific CLI commands (optional)
    * Called at module initialization to register commands like 'quarto enginename status'
    *
    * @param command - The CLI command to populate with subcommands
    */
   populateCommand?: (command: Command) => void;
+
+  /**
+   * Check installation and capabilities for this engine (optional)
+   * Used by `quarto check <engine-name>` command
+   *
+   * Engines implementing this method will automatically be available as targets
+   * for the check command (e.g., `quarto check jupyter`, `quarto check knitr`).
+   *
+   * @param conf - Check configuration with output settings and services
+   */
+  checkInstallation?: (conf: CheckConfiguration) => Promise<void>;
 
   /**
    * Launch a dynamic execution engine with project context

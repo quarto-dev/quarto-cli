@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { extname, join } from "../deno_ral/path.ts";
+import { extname, join, toFileUrl } from "../deno_ral/path.ts";
 
 import * as ld from "../core/lodash.ts";
 
@@ -17,12 +17,11 @@ import { dirAndStem } from "../core/path.ts";
 import { metadataAsFormat } from "../config/metadata.ts";
 import { kBaseFormat, kEngine } from "../config/constants.ts";
 
-import { knitrEngine } from "./rmd.ts";
-import { jupyterEngine } from "./jupyter/jupyter.ts";
+import { knitrEngineDiscovery } from "./rmd.ts";
+import { jupyterEngineDiscovery } from "./jupyter/jupyter.ts";
 import { ExternalEngine } from "../resources/types/schema-types.ts";
 import { kMdExtensions, markdownEngineDiscovery } from "./markdown.ts";
 import {
-  ExecutionEngine,
   ExecutionEngineDiscovery,
   ExecutionEngineInstance,
   ExecutionTarget,
@@ -35,16 +34,43 @@ import { mergeConfigs } from "../core/config.ts";
 import { ProjectContext } from "../project/types.ts";
 import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
 import { gitignoreEntries } from "../project/project-gitignore.ts";
-import { juliaEngine } from "./julia.ts";
 import { ensureFileInformationCache } from "../project/project-shared.ts";
 import { engineProjectContext } from "../project/engine-project-context.ts";
-import { asEngineInstance } from "./as-engine-instance.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { quartoAPI } from "../core/quarto-api.ts";
+import { satisfies } from "semver/mod.ts";
+import { quartoConfig } from "../core/quarto.ts";
+import { initializeProjectContextAndEngines } from "../command/command-utils.ts";
 
-const kEngines: Map<string, ExecutionEngine> = new Map();
+const kEngines: Map<string, ExecutionEngineDiscovery> = new Map();
 
-export function executionEngines(): ExecutionEngine[] {
+/**
+ * Check if an engine's Quarto version requirement is satisfied
+ * @param engine The engine to check
+ * @throws Error if the version requirement is not met or is invalid
+ */
+function checkEngineVersionRequirement(engine: ExecutionEngineDiscovery): void {
+  if (engine.quartoRequired) {
+    const ourVersion = quartoConfig.version();
+    try {
+      if (!satisfies(ourVersion, engine.quartoRequired)) {
+        throw new Error(
+          `Execution engine '${engine.name}' requires Quarto ${engine.quartoRequired}, ` +
+            `but you have ${ourVersion}. Please upgrade Quarto to use this engine.`,
+        );
+      }
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("Invalid")) {
+        throw new Error(
+          `Execution engine '${engine.name}' has invalid version constraint: ${engine.quartoRequired}`,
+        );
+      }
+      throw e;
+    }
+  }
+}
+
+export function executionEngines(): ExecutionEngineDiscovery[] {
   return [...kEngines.values()];
 }
 
@@ -52,28 +78,26 @@ export function executionEngine(name: string) {
   return kEngines.get(name);
 }
 
-// Register the standard engines
-registerExecutionEngine(knitrEngine);
-registerExecutionEngine(jupyterEngine);
+// Register the standard engines with discovery interface
+registerExecutionEngine(knitrEngineDiscovery);
 
-// Register markdownEngine using Object.assign to add _discovery flag
-registerExecutionEngine(Object.assign(
-  markdownEngineDiscovery as unknown as ExecutionEngine,
-  { _discovery: true },
-));
+// Register jupyter engine with discovery interface
+registerExecutionEngine(jupyterEngineDiscovery);
 
-registerExecutionEngine(juliaEngine);
+// Register markdown engine with discovery interface
+registerExecutionEngine(markdownEngineDiscovery);
 
-export function registerExecutionEngine(engine: ExecutionEngine) {
+export function registerExecutionEngine(engine: ExecutionEngineDiscovery) {
   if (kEngines.has(engine.name)) {
     throw new Error(`Execution engine ${engine.name} already registered`);
   }
+
+  // Check if engine's Quarto version requirement is satisfied
+  checkEngineVersionRequirement(engine);
+
   kEngines.set(engine.name, engine);
-  if ((engine as any)._discovery === true) {
-    const discoveryEngine = engine as unknown as ExecutionEngineDiscovery;
-    if (discoveryEngine.init) {
-      discoveryEngine.init(quartoAPI);
-    }
+  if (engine.init) {
+    engine.init(quartoAPI);
   }
 }
 
@@ -121,7 +145,7 @@ export function engineValidExtensions(): string[] {
 export function markdownExecutionEngine(
   project: ProjectContext,
   markdown: string,
-  reorderedEngines: Map<string, ExecutionEngine>,
+  reorderedEngines: Map<string, ExecutionEngineDiscovery>,
   flags?: RenderFlags,
 ): ExecutionEngineInstance {
   // read yaml and see if the engine is declared in yaml
@@ -135,11 +159,11 @@ export function markdownExecutionEngine(
       yaml = mergeConfigs(yaml, flags?.metadata);
       for (const [_, engine] of reorderedEngines) {
         if (yaml[engine.name]) {
-          return asEngineInstance(engine, engineProjectContext(project));
+          return engine.launch(engineProjectContext(project));
         }
         const format = metadataAsFormat(yaml);
         if (format.execute?.[kEngine] === engine.name) {
-          return asEngineInstance(engine, engineProjectContext(project));
+          return engine.launch(engineProjectContext(project));
         }
       }
     }
@@ -152,7 +176,7 @@ export function markdownExecutionEngine(
   for (const language of languages) {
     for (const [_, engine] of reorderedEngines) {
       if (engine.claimsLanguage(language)) {
-        return asEngineInstance(engine, engineProjectContext(project));
+        return engine.launch(engineProjectContext(project));
       }
     }
   }
@@ -161,7 +185,7 @@ export function markdownExecutionEngine(
   // if there is a non-cell handler language then this must be jupyter
   for (const language of languages) {
     if (language !== "ojs" && !handlerLanguagesVal.includes(language)) {
-      return asEngineInstance(jupyterEngine, engineProjectContext(project));
+      return jupyterEngineDiscovery.launch(engineProjectContext(project));
     }
   }
 
@@ -170,7 +194,7 @@ export function markdownExecutionEngine(
   return markdownEngineDiscovery.launch(engineProjectContext(project));
 }
 
-async function reorderEngines(project: ProjectContext) {
+export async function reorderEngines(project: ProjectContext) {
   const userSpecifiedOrder: string[] = [];
   const projectEngines = project.config?.engines as
     | (string | ExternalEngine)[]
@@ -179,17 +203,16 @@ async function reorderEngines(project: ProjectContext) {
   for (const engine of projectEngines ?? []) {
     if (typeof engine === "object") {
       try {
-        const extEngine = (await import(engine.path))
-          .default as ExecutionEngine;
+        const extEngine = (await import(toFileUrl(engine.path).href))
+          .default as ExecutionEngineDiscovery;
+
+        // Check if engine's Quarto version requirement is satisfied
+        checkEngineVersionRequirement(extEngine);
+
         userSpecifiedOrder.push(extEngine.name);
         kEngines.set(extEngine.name, extEngine);
-        if ((extEngine as any)._discovery === true) {
-          const discoveryEngine =
-            extEngine as unknown as ExecutionEngineDiscovery;
-          if (discoveryEngine.init) {
-            console.log("here");
-            discoveryEngine.init(quartoAPI);
-          }
+        if (extEngine.init) {
+          extEngine.init(quartoAPI);
         }
       } catch (err: any) {
         // Throw error for engine import failures as this is a serious configuration issue
@@ -214,7 +237,7 @@ async function reorderEngines(project: ProjectContext) {
     }
   }
 
-  const reorderedEngines = new Map<string, ExecutionEngine>();
+  const reorderedEngines = new Map<string, ExecutionEngineDiscovery>();
 
   // Add keys in the order of userSpecifiedOrder first
   for (const key of userSpecifiedOrder) {
@@ -251,7 +274,7 @@ export async function fileExecutionEngine(
   // try to find an engine that claims this extension outright
   for (const [_, engine] of reorderedEngines) {
     if (engine.claimsFile(file, ext)) {
-      return asEngineInstance(engine, engineProjectContext(project));
+      return engine.launch(engineProjectContext(project));
     }
   }
 
@@ -338,24 +361,36 @@ export const engineCommand = new Command()
   .description(
     `Access functionality specific to quarto's different rendering engines.`,
   )
-  .action(() => {
-    engineCommand.showHelp();
-    Deno.exit(1);
-  });
+  .stopEarly()
+  .arguments("<engine-name:string> [args...:string]")
+  .action(async (options, engineName: string, ...args: string[]) => {
+    // Initialize project context and register external engines
+    await initializeProjectContextAndEngines();
 
-kEngines.forEach((engine, name) => {
-  if (engine.populateCommand) {
-    const engineSubcommand = new Command();
-    // fill in some default behavior for each engine command
-    engineSubcommand
+    // Get the engine (now includes external ones)
+    const engine = executionEngine(engineName);
+    if (!engine) {
+      console.error(`Unknown engine: ${engineName}`);
+      console.error(
+        `Available engines: ${
+          executionEngines().map((e) => e.name).join(", ")
+        }`,
+      );
+      Deno.exit(1);
+    }
+
+    if (!engine.populateCommand) {
+      console.error(`Engine ${engineName} does not support subcommands`);
+      Deno.exit(1);
+    }
+
+    // Create temporary command and let engine populate it
+    const engineSubcommand = new Command()
       .description(
-        `Access functionality specific to the ${name} rendering engine.`,
-      )
-      .action(() => {
-        engineSubcommand.showHelp();
-        Deno.exit(1);
-      });
+        `Access functionality specific to the ${engineName} rendering engine.`,
+      );
     engine.populateCommand(engineSubcommand);
-    engineCommand.command(name, engineSubcommand);
-  }
-});
+
+    // Recursively parse remaining arguments
+    await engineSubcommand.parse(args);
+  });

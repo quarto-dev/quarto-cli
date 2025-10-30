@@ -15,7 +15,6 @@ import {
 import { MappedString } from "../core/mapped-text.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import {
-  ExecutionEngine,
   ExecutionEngineDiscovery,
   ExecutionEngineInstance,
   ExecutionTarget,
@@ -169,12 +168,14 @@ export interface EngineProjectContext {
   /**
    * Config object containing project configuration
    * Used primarily for config?.engines access
+   * Can contain arbitrary configuration properties
    */
   config?: {
     engines?: string[];
     project?: {
       [kProjectOutputDir]?: string;
     };
+    [key: string]: unknown;
   };
 
   /**

@@ -1,23 +1,24 @@
 /**
- * Basic metadata types used across Quarto
+ * Format type definitions for Quarto output formats
  */
 
+import type { Metadata } from "./metadata.ts";
+
 /**
- * Generic metadata key-value store
+ * Valid format identifier keys
  */
-export type Metadata = {
-  [key: string]: unknown;
-};
+export type FormatIdentifierKey =
+  | "base-format"
+  | "target-format"
+  | "display-name"
+  | "extension-name";
 
 /**
  * Format identifier information
  */
-export interface FormatIdentifier {
-  "base-format"?: string;
-  "target-format"?: string;
-  "display-name"?: string;
-  "extension-name"?: string;
-}
+export type FormatIdentifier = {
+  [K in FormatIdentifierKey]?: string;
+};
 
 /**
  * Format language/localization strings
@@ -44,10 +45,11 @@ export interface Format {
    * Document metadata
    */
   metadata: Metadata;
+
   /**
    * Format rendering options
    */
-  render?: Record<string, unknown>;
+  render: Record<string, unknown>;
 
   /**
    * Format execution options
