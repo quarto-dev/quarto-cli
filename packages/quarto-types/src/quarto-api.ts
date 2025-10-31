@@ -79,6 +79,18 @@ export interface PreviewServer {
 }
 
 /**
+ * Temporary context for managing temporary files and directories
+ */
+export interface TempContext {
+  /** Create a temporary directory and return its path */
+  createDir: () => string;
+  /** Clean up all temporary resources */
+  cleanup: () => void;
+  /** Register a cleanup handler */
+  onCleanup: (handler: VoidFunction) => void;
+}
+
+/**
  * Global Quarto API interface
  */
 export interface QuartoAPI {
@@ -600,6 +612,13 @@ export interface QuartoAPI {
      * @param handler - Function to run on cleanup (can be async)
      */
     onCleanup: (handler: () => void | Promise<void>) => void;
+
+    /**
+     * Get global temporary context for managing temporary files and directories
+     *
+     * @returns Global TempContext instance
+     */
+    tempContext: () => TempContext;
   };
 
   /**
@@ -659,6 +678,28 @@ export interface QuartoAPI {
      * @param options - Post-processing options including output path and preserve map
      */
     postProcessRestorePreservedHtml: (options: PostProcessOptions) => void;
+
+    /**
+     * Convert line/column position to character index
+     *
+     * @param text - Text to search in
+     * @returns Function that converts position to index
+     */
+    lineColToIndex: (
+      text: string,
+    ) => (position: { line: number; column: number }) => number;
+
+    /**
+     * Create a handler for executing inline code
+     *
+     * @param language - Programming language identifier
+     * @param exec - Function to execute code expression
+     * @returns Handler function that processes code strings
+     */
+    executeInlineCodeHandler: (
+      language: string,
+      exec: (expr: string) => string | undefined,
+    ) => (code: string) => string;
   };
 
   /**

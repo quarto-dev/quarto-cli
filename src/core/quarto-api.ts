@@ -67,6 +67,11 @@ import {
 export type { PreviewServer };
 
 /**
+ * Temporary context for managing temporary files and directories
+ */
+export type { TempContext };
+
+/**
  * Global Quarto API interface
  */
 export interface QuartoAPI {
@@ -232,6 +237,7 @@ export interface QuartoAPI {
       cwd?: string;
     }) => PreviewServer;
     onCleanup: (handler: () => void | Promise<void>) => void;
+    tempContext: () => TempContext;
   };
 
   /**
@@ -249,6 +255,11 @@ export interface QuartoAPI {
     lines: (text: string) => string[];
     trimEmptyLines: (lines: string[], trim?: "leading" | "trailing" | "all") => string[];
     postProcessRestorePreservedHtml: (options: PostProcessOptions) => void;
+    lineColToIndex: (text: string) => (position: { line: number; column: number }) => number;
+    executeInlineCodeHandler: (
+      language: string,
+      exec: (expr: string) => string | undefined
+    ) => (code: string) => string;
   };
 
   /**
@@ -294,8 +305,11 @@ import type { ProcessResult } from "../core/process-types.ts";
 import { asYamlText } from "../core/jupyter/jupyter-fixups.ts";
 import { breakQuartoMd } from "../core/lib/break-quarto-md.ts";
 import type { QuartoMdChunks, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
-import { lines, trimEmptyLines } from "../core/lib/text.ts";
+import { lines, trimEmptyLines, lineColToIndex } from "../core/lib/text.ts";
 import { md5HashSync } from "../core/hash.ts";
+import { executeInlineCodeHandler } from "../core/execute-inline.ts";
+import { globalTempContext } from "../core/temp.ts";
+import type { TempContext } from "../core/temp-types.ts";
 
 /**
  * Global Quarto API implementation
@@ -393,6 +407,7 @@ export const quartoAPI: QuartoAPI = {
     execProcess,
     runExternalPreviewServer,
     onCleanup,
+    tempContext: globalTempContext,
   },
 
   markdown: {
@@ -404,6 +419,8 @@ export const quartoAPI: QuartoAPI = {
     lines,
     trimEmptyLines,
     postProcessRestorePreservedHtml,
+    lineColToIndex,
+    executeInlineCodeHandler,
   },
 
   crypto: {
