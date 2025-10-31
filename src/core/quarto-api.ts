@@ -45,15 +45,24 @@ import {
 import type {
   JupyterNotebookAssetPaths,
 } from "./jupyter/jupyter.ts";
-import type { PandocIncludes } from "../execute/types.ts";
+import type { PandocIncludes, PostProcessOptions } from "../execute/types.ts";
 import {
   isJupyterPercentScript,
   markdownFromJupyterPercentScript,
 } from "../execute/jupyter/percent.ts";
+import { runExternalPreviewServer } from "../preview/preview-server.ts";
+import type { PreviewServer } from "../preview/preview-server.ts";
+import { isQmdFile } from "../execute/qmd.ts";
+import { postProcessRestorePreservedHtml } from "../execute/engine-shared.ts";
 import {
   executeResultIncludes,
   executeResultEngineDependencies,
 } from "../execute/jupyter/jupyter.ts";
+
+/**
+ * Preview server interface
+ */
+export type { PreviewServer };
 
 /**
  * Global Quarto API interface
@@ -196,6 +205,7 @@ export interface QuartoAPI {
     runtime: (subdir?: string) => string;
     resource: (...parts: string[]) => string;
     dirAndStem: (file: string) => [string, string];
+    isQmdFile: (file: string) => boolean;
   };
 
   /**
@@ -212,6 +222,12 @@ export interface QuartoAPI {
       respectStreams?: boolean,
       timeout?: number
     ) => Promise<ProcessResult>;
+    runExternalPreviewServer: (options: {
+      cmd: string[];
+      readyPattern: RegExp;
+      env?: Record<string, string>;
+      cwd?: string;
+    }) => PreviewServer;
   };
 
   /**
@@ -228,6 +244,7 @@ export interface QuartoAPI {
   text: {
     lines: (text: string) => string[];
     trimEmptyLines: (lines: string[], trim?: "leading" | "trailing" | "all") => string[];
+    postProcessRestorePreservedHtml: (options: PostProcessOptions) => void;
   };
 
   /**
@@ -362,12 +379,14 @@ export const quartoAPI: QuartoAPI = {
       }
     },
     dirAndStem,
+    isQmdFile,
   },
 
   system: {
     isInteractiveSession,
     runningInCI,
     execProcess,
+    runExternalPreviewServer,
   },
 
   markdown: {
@@ -378,6 +397,7 @@ export const quartoAPI: QuartoAPI = {
   text: {
     lines,
     trimEmptyLines,
+    postProcessRestorePreservedHtml,
   },
 
   crypto: {
