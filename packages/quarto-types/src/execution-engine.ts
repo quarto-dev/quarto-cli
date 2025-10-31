@@ -220,21 +220,3 @@ export interface ExecutionEngineInstance {
    */
   postRender?: (file: RenderResultFile) => Promise<void>;
 }
-
-/**
- * Re-export types for convenience
- */
-export type {
-  ExecuteOptions,
-  ExecuteResult,
-  DependenciesOptions,
-  DependenciesResult,
-  PostProcessOptions,
-  RunOptions,
-  RenderFlags,
-  RenderOptions,
-  RenderResultFile,
-  PartitionedMarkdown,
-  PandocIncludes,
-  PandocIncludeLocation,
-};

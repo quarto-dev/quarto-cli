@@ -30,18 +30,6 @@ import type {
 import type { QuartoMdChunks, QuartoMdCell } from "./markdown.ts";
 
 /**
- * Re-exported types for convenience
- */
-export type {
-  PreviewServer,
-  TempContext,
-  ProcessResult,
-  ExecProcessOptions,
-  QuartoMdChunks,
-  QuartoMdCell,
-};
-
-/**
  * Global Quarto API interface
  */
 export interface QuartoAPI {
