@@ -4,20 +4,22 @@
  * Copyright (C) 2023 Posit Software, PBC
  */
 
-import { MappedString } from './text-types.ts';
-import { Metadata } from './metadata-types.ts';
-import { PartitionedMarkdown } from './execution-engine.ts';
+import { MappedString } from "./text-types.ts";
+import { Metadata } from "./metadata-types.ts";
+import { PartitionedMarkdown } from "./execution-engine.ts";
 import type {
+  FormatPandoc,
+  JupyterCapabilities,
+  JupyterKernelspec,
   JupyterNotebook,
+  JupyterNotebookAssetPaths,
   JupyterToMarkdownOptions,
   JupyterToMarkdownResult,
-  JupyterNotebookAssetPaths,
   JupyterWidgetDependencies,
-  FormatPandoc,
-} from './jupyter-types.ts';
-import { PandocIncludes, PostProcessOptions } from './execution-engine.ts';
-import { Format } from './metadata-types.ts';
-import { EngineProjectContext } from './project-context.ts';
+} from "./jupyter-types.ts";
+import { PandocIncludes, PostProcessOptions } from "./execution-engine.ts";
+import { Format } from "./metadata-types.ts";
+import { EngineProjectContext } from "./project-context.ts";
 
 /**
  * Process execution result
@@ -154,7 +156,10 @@ export interface QuartoAPI {
      * @param offset - Character offset to convert
      * @returns Line and column numbers (1-indexed)
      */
-    indexToLineCol: (str: MappedString, offset: number) => { line: number; column: number };
+    indexToLineCol: (
+      str: MappedString,
+      offset: number,
+    ) => { line: number; column: number };
   };
 
   /**
@@ -212,7 +217,7 @@ export interface QuartoAPI {
      */
     toMarkdown: (
       nb: JupyterNotebook,
-      options: JupyterToMarkdownOptions
+      options: JupyterToMarkdownOptions,
     ) => Promise<JupyterToMarkdownResult>;
 
     /**
@@ -251,7 +256,7 @@ export interface QuartoAPI {
     quartoMdToJupyter: (
       markdown: string,
       includeIds: boolean,
-      project?: EngineProjectContext
+      project?: EngineProjectContext,
     ) => Promise<JupyterNotebook>;
 
     // 3. Notebook Processing & Assets
@@ -265,7 +270,7 @@ export interface QuartoAPI {
      */
     notebookFiltered: (
       nb: JupyterNotebook,
-      filters: string[]
+      filters: string[],
     ) => JupyterNotebook;
 
     /**
@@ -286,7 +291,7 @@ export interface QuartoAPI {
      */
     widgetDependencyIncludes: (
       deps: JupyterWidgetDependencies,
-      tempDir: string
+      tempDir: string,
     ) => PandocIncludes;
 
     /**
@@ -296,7 +301,10 @@ export interface QuartoAPI {
      * @param dependencies - Widget dependencies from execution result
      * @returns Pandoc includes structure
      */
-    resultIncludes: (tempDir: string, dependencies?: JupyterWidgetDependencies) => PandocIncludes;
+    resultIncludes: (
+      tempDir: string,
+      dependencies?: JupyterWidgetDependencies,
+    ) => PandocIncludes;
 
     /**
      * Extract engine dependencies from result dependencies
@@ -304,7 +312,9 @@ export interface QuartoAPI {
      * @param dependencies - Widget dependencies from execution result
      * @returns Array of widget dependencies or undefined
      */
-    resultEngineDependencies: (dependencies?: JupyterWidgetDependencies) => Array<JupyterWidgetDependencies> | undefined;
+    resultEngineDependencies: (
+      dependencies?: JupyterWidgetDependencies,
+    ) => Array<JupyterWidgetDependencies> | undefined;
 
     // 4. Runtime & Environment
 
@@ -325,7 +335,7 @@ export interface QuartoAPI {
      */
     capabilities: (
       python?: string,
-      jupyter?: string
+      jupyter?: string,
     ) => Promise<JupyterCapabilities>;
 
     /**
@@ -337,7 +347,7 @@ export interface QuartoAPI {
      */
     capabilitiesMessage: (
       caps: JupyterCapabilities,
-      extraMessage?: string
+      extraMessage?: string,
     ) => string;
 
     /**
@@ -431,7 +441,10 @@ export interface QuartoAPI {
      * @param engine - Execution engine name
      * @returns True if format is server: shiny with jupyter engine
      */
-    isServerShinyPython: (format: Format, engine: string | undefined) => boolean;
+    isServerShinyPython: (
+      format: Format,
+      engine: string | undefined,
+    ) => boolean;
   };
 
   /**
@@ -565,7 +578,7 @@ export interface QuartoAPI {
       mergeOutput?: "stderr>stdout" | "stdout>stderr",
       stderrFilter?: (output: string) => string,
       respectStreams?: boolean,
-      timeout?: number
+      timeout?: number,
     ) => Promise<ProcessResult>;
 
     /**
@@ -609,7 +622,11 @@ export interface QuartoAPI {
      * @param lenient - Whether to use lenient parsing (default: false)
      * @returns Promise resolving to chunks with cells
      */
-    breakQuartoMd: (src: string | MappedString, validate?: boolean, lenient?: boolean) => Promise<QuartoMdChunks>;
+    breakQuartoMd: (
+      src: string | MappedString,
+      validate?: boolean,
+      lenient?: boolean,
+    ) => Promise<QuartoMdChunks>;
   };
 
   /**
@@ -631,7 +648,10 @@ export interface QuartoAPI {
      * @param trim - Which empty lines to trim (default: "all")
      * @returns Trimmed array of lines
      */
-    trimEmptyLines: (lines: string[], trim?: "leading" | "trailing" | "all") => string[];
+    trimEmptyLines: (
+      lines: string[],
+      trim?: "leading" | "trailing" | "all",
+    ) => string[];
 
     /**
      * Restore preserved HTML in post-processing
