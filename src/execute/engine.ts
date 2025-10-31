@@ -17,7 +17,7 @@ import { dirAndStem } from "../core/path.ts";
 import { metadataAsFormat } from "../config/metadata.ts";
 import { kBaseFormat, kEngine } from "../config/constants.ts";
 
-import { knitrEngine } from "./rmd.ts";
+import { knitrEngineDiscovery } from "./rmd.ts";
 import { jupyterEngineDiscovery } from "./jupyter/jupyter.ts";
 import { ExternalEngine } from "../resources/types/schema-types.ts";
 import { kMdExtensions, markdownEngineDiscovery } from "./markdown.ts";
@@ -52,8 +52,8 @@ export function executionEngine(name: string) {
   return kEngines.get(name);
 }
 
-// Register the standard engines
-registerExecutionEngine(knitrEngine);
+// Register the standard engines with discovery interface
+registerExecutionEngine(knitrEngineDiscovery as unknown as ExecutionEngine);
 
 // Register jupyter engine with discovery interface
 registerExecutionEngine(jupyterEngineDiscovery as unknown as ExecutionEngine);
