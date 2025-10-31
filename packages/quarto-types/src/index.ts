@@ -4,29 +4,29 @@
  */
 
 // Core engine interfaces (starting points)
-export type * from "./execution-engine";
-export type * from "./project-context";
-export type * from "./quarto-api";
+export type * from "./execution-engine.ts";
+export type * from "./project-context.ts";
+export type * from "./quarto-api.ts";
 
 // Execution & rendering
-export type * from "./execution";
-export type * from "./render";
+export type * from "./execution.ts";
+export type * from "./render.ts";
 
 // Format & metadata
-export type * from "./metadata";
-export type * from "./format";
+export type * from "./metadata.ts";
+export type * from "./format.ts";
 
 // Text & markdown
-export type * from "./text";
-export type * from "./markdown";
+export type * from "./text.ts";
+export type * from "./markdown.ts";
 
 // System & process
-export type * from "./system";
-export type * from "./pandoc";
+export type * from "./system.ts";
+export type * from "./pandoc.ts";
 
 // Engine-specific
-export type * from "./jupyter";
-export type * from "./external-engine";
+export type * from "./jupyter.ts";
+export type * from "./external-engine.ts";
 
 // CLI
-export type * from "./cli";
+export type * from "./cli.ts";
