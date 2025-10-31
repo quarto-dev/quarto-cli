@@ -9,7 +9,6 @@ import { join } from "../../deno_ral/path.ts";
 import { error, info, warning } from "../../deno_ral/log.ts";
 
 import { sleep } from "../../core/async.ts";
-import { quartoDataDir } from "../../core/appdirs.ts";
 import {
   JupyterCapabilities,
   JupyterKernelspec,
@@ -322,7 +321,7 @@ function kernelTransportFile(target: string) {
 }
 
 function kernelLogFile() {
-  const logsDir = quartoDataDir("logs");
+  const logsDir = quarto.path.dataDir("logs");
   const kernelLog = join(logsDir, "jupyter-kernel.log");
   if (!existsSync(kernelLog)) {
     Deno.writeTextFileSync(kernelLog, "");

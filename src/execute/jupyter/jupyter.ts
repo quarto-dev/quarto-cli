@@ -73,7 +73,6 @@ import { kJupyterPercentScriptExtensions } from "./percent.ts";
 import {
   inputFilesDir,
 } from "../../core/render.ts";
-import { onCleanup } from "../../core/cleanup.ts";
 
 export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
   _discovery: boolean;
@@ -568,7 +567,7 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
         await server.start();
 
         // stop the server onCleanup
-        onCleanup(async () => {
+        quarto.system.onCleanup(async () => {
           await server.stop();
         });
 
