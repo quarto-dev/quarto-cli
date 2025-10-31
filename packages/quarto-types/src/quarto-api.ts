@@ -15,7 +15,7 @@ import type {
   JupyterWidgetDependencies,
   FormatPandoc,
 } from './jupyter-types.ts';
-import { PandocIncludes } from './execution-engine.ts';
+import { PandocIncludes, PostProcessOptions } from './execution-engine.ts';
 import { Format } from './metadata-types.ts';
 import { EngineProjectContext } from './project-context.ts';
 
@@ -62,6 +62,18 @@ export interface QuartoMdCell {
  */
 export interface QuartoMdChunks {
   cells: QuartoMdCell[];
+}
+
+/**
+ * Preview server interface
+ */
+export interface PreviewServer {
+  /** Start the server and return the URL to browse to */
+  start: () => Promise<string | undefined>;
+  /** Run the server (blocking) */
+  serve: () => Promise<void>;
+  /** Stop the server */
+  stop: () => Promise<void>;
 }
 
 /**
@@ -478,6 +490,14 @@ export interface QuartoAPI {
      * @returns Tuple of [directory, filename stem]
      */
     dirAndStem: (file: string) => [string, string];
+
+    /**
+     * Check if a file is a Quarto markdown file (.qmd)
+     *
+     * @param file - File path to check
+     * @returns True if file has .qmd extension
+     */
+    isQmdFile: (file: string) => boolean;
   };
 
   /**
@@ -531,6 +551,19 @@ export interface QuartoAPI {
       respectStreams?: boolean,
       timeout?: number
     ) => Promise<ProcessResult>;
+
+    /**
+     * Run an external preview server
+     *
+     * @param options - Server options including command and ready pattern
+     * @returns PreviewServer instance for managing the server lifecycle
+     */
+    runExternalPreviewServer: (options: {
+      cmd: string[];
+      readyPattern: RegExp;
+      env?: Record<string, string>;
+      cwd?: string;
+    }) => PreviewServer;
   };
 
   /**
@@ -576,6 +609,13 @@ export interface QuartoAPI {
      * @returns Trimmed array of lines
      */
     trimEmptyLines: (lines: string[], trim?: "leading" | "trailing" | "all") => string[];
+
+    /**
+     * Restore preserved HTML in post-processing
+     *
+     * @param options - Post-processing options including output path and preserve map
+     */
+    postProcessRestorePreservedHtml: (options: PostProcessOptions) => void;
   };
 
   /**

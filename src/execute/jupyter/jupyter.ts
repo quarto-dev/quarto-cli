@@ -68,14 +68,11 @@ interface JupyterTargetData {
 
 // Import quartoAPI directly since we're in core codebase
 import { quartoAPI as quarto } from "../../core/quarto-api.ts";
-import { postProcessRestorePreservedHtml } from "../engine-shared.ts";
 import { MappedString } from "../../core/mapped-text.ts";
-import { isQmdFile } from "../qmd.ts";
 import { kJupyterPercentScriptExtensions } from "./percent.ts";
 import {
   inputFilesDir,
 } from "../../core/render.ts";
-import { runExternalPreviewServer } from "../../preview/preview-server.ts";
 import { onCleanup } from "../../core/cleanup.ts";
 
 export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
@@ -189,7 +186,7 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
         const metadata = quarto.markdownRegex.extractYaml(markdown!.value);
 
         // if this is a text markdown file then create a notebook for use as the execution target
-        if (isQmdFile(file) || isPercentScript) {
+        if (quarto.path.isQmdFile(file) || isPercentScript) {
           // write a transient notebook
           const [fileDir, fileStem] = quarto.path.dirAndStem(file);
           // See #4802
@@ -304,7 +301,7 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
         // create the target input if we need to (could have been removed
         // by the cleanup step of another render in this invocation)
         if (
-          (isQmdFile(options.target.source) ||
+          (quarto.path.isQmdFile(options.target.source) ||
             quarto.jupyter.isPercentScript(options.target.source)) &&
           !existsSync(options.target.input)
         ) {
@@ -383,7 +380,7 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
         const preserveCellMetadata =
           options.format.render[kNotebookPreserveCells] === true ||
           (quarto.format.isHtmlDashboardOutput(options.format.identifier[kBaseFormat]) &&
-            !isQmdFile(options.target.source));
+            !quarto.path.isQmdFile(options.target.source));
 
         // NOTE: for perforance reasons the 'nb' is mutated in place
         // by jupyterToMarkdown (we don't want to make a copy of a
@@ -485,7 +482,7 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
       },
 
       postprocess: (options: PostProcessOptions) => {
-        postProcessRestorePreservedHtml(options);
+        quarto.text.postProcessRestorePreservedHtml(options);
         return Promise.resolve();
       },
 
@@ -563,7 +560,7 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
         // start server
         const readyPattern =
           /(http:\/\/(?:localhost|127\.0\.0\.1)\:\d+\/?[^\s]*)/;
-        const server = runExternalPreviewServer({
+        const server = quarto.system.runExternalPreviewServer({
           cmd,
           readyPattern,
           cwd: dirname(options.input),
