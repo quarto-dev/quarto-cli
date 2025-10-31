@@ -2,13 +2,13 @@
  * Project context interfaces for Quarto engines
  */
 
-import type { MappedString } from "./text-types.ts";
+import type { MappedString } from "./text.ts";
 import type {
   ExecutionEngineInstance,
   ExecutionTarget,
 } from "./execution-engine.ts";
 import type { ExternalEngine } from "./external-engine.ts";
-import type { Metadata } from "./metadata-types.ts";
+import type { Metadata } from "./metadata.ts";
 
 /**
  * Information about a file being processed

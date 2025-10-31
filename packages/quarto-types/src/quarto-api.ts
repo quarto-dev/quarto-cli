@@ -4,91 +4,42 @@
  * Copyright (C) 2023 Posit Software, PBC
  */
 
-import { MappedString } from "./text-types.ts";
-import { Metadata } from "./metadata-types.ts";
-import { PartitionedMarkdown } from "./execution-engine.ts";
+import type { MappedString } from "./text.ts";
+import type { Metadata } from "./metadata.ts";
+import type { Format } from "./format.ts";
+import type { PartitionedMarkdown } from "./markdown.ts";
+import type { EngineProjectContext } from "./project-context.ts";
 import type {
-  FormatPandoc,
-  JupyterCapabilities,
-  JupyterKernelspec,
   JupyterNotebook,
-  JupyterNotebookAssetPaths,
   JupyterToMarkdownOptions,
   JupyterToMarkdownResult,
   JupyterWidgetDependencies,
-} from "./jupyter-types.ts";
-import { PandocIncludes, PostProcessOptions } from "./execution-engine.ts";
-import { Format } from "./metadata-types.ts";
-import { EngineProjectContext } from "./project-context.ts";
+  JupyterKernelspec,
+  JupyterCapabilities,
+  JupyterNotebookAssetPaths,
+  FormatPandoc,
+} from "./jupyter.ts";
+import type { PandocIncludes } from "./pandoc.ts";
+import type { PostProcessOptions } from "./execution.ts";
+import type {
+  PreviewServer,
+  ProcessResult,
+  ExecProcessOptions,
+  TempContext,
+} from "./system.ts";
+import type { QuartoMdChunks, QuartoMdCell } from "./markdown.ts";
 
 /**
- * Process execution result
+ * Re-exported types for convenience
  */
-export interface ProcessResult {
-  success: boolean;
-  code: number;
-  stdout?: string;
-  stderr?: string;
-}
-
-/**
- * Process execution options
- */
-export type ExecProcessOptions = {
-  cmd: string;
-  args?: string[];
-  cwd?: string;
-  env?: Record<string, string>;
-  stdout?: "piped" | "inherit" | "null";
-  stderr?: "piped" | "inherit" | "null";
-  stdin?: "piped" | "inherit" | "null";
+export type {
+  PreviewServer,
+  TempContext,
+  ProcessResult,
+  ExecProcessOptions,
+  QuartoMdChunks,
+  QuartoMdCell,
 };
-
-/**
- * Cell type from breaking Quarto markdown
- */
-export interface QuartoMdCell {
-  id?: string;
-  cell_type: { language: string } | "markdown" | "raw";
-  options?: Record<string, unknown>;
-  source: MappedString;
-  sourceVerbatim: MappedString;
-  sourceWithYaml?: MappedString;
-  sourceOffset: number;
-  sourceStartLine: number;
-  cellStartLine: number;
-}
-
-/**
- * Result from breaking Quarto markdown
- */
-export interface QuartoMdChunks {
-  cells: QuartoMdCell[];
-}
-
-/**
- * Preview server interface
- */
-export interface PreviewServer {
-  /** Start the server and return the URL to browse to */
-  start: () => Promise<string | undefined>;
-  /** Run the server (blocking) */
-  serve: () => Promise<void>;
-  /** Stop the server */
-  stop: () => Promise<void>;
-}
-
-/**
- * Temporary context for managing temporary files and directories
- */
-export interface TempContext {
-  /** Create a temporary directory and return its path */
-  createDir: () => string;
-  /** Clean up all temporary resources */
-  cleanup: () => void;
-  /** Register a cleanup handler */
-  onCleanup: (handler: VoidFunction) => void;
-}
 
 /**
  * Global Quarto API interface

@@ -1,13 +1,8 @@
 /**
- * Basic metadata types used across Quarto
+ * Format type definitions for Quarto output formats
  */
 
-/**
- * Generic metadata key-value store
- */
-export type Metadata = {
-  [key: string]: unknown;
-};
+import type { Metadata } from "./metadata.ts";
 
 /**
  * Format identifier information
@@ -44,6 +39,7 @@ export interface Format {
    * Document metadata
    */
   metadata: Metadata;
+
   /**
    * Format rendering options
    */
