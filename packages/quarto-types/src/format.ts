@@ -5,14 +5,20 @@
 import type { Metadata } from "./metadata.ts";
 
 /**
+ * Valid format identifier keys
+ */
+export type FormatIdentifierKey =
+  | "base-format"
+  | "target-format"
+  | "display-name"
+  | "extension-name";
+
+/**
  * Format identifier information
  */
-export interface FormatIdentifier {
-  "base-format"?: string;
-  "target-format"?: string;
-  "display-name"?: string;
-  "extension-name"?: string;
-}
+export type FormatIdentifier = {
+  [K in FormatIdentifierKey]?: string;
+};
 
 /**
  * Format language/localization strings
