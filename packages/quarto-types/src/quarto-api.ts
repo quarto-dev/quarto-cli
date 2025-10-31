@@ -498,6 +498,22 @@ export interface QuartoAPI {
      * @returns True if file has .qmd extension
      */
     isQmdFile: (file: string) => boolean;
+
+    /**
+     * Get platform-specific user data directory for Quarto
+     *
+     * Returns the appropriate data directory based on platform:
+     * - macOS: ~/Library/Application Support/quarto/{subdir}
+     * - Windows: %LOCALAPPDATA%/quarto/{subdir} (or %APPDATA% if roaming)
+     * - Linux: $XDG_DATA_HOME/quarto/{subdir} or ~/.local/share/quarto/{subdir}
+     *
+     * Automatically creates the directory if it doesn't exist.
+     *
+     * @param subdir - Optional subdirectory within the data directory
+     * @param roaming - Optional flag for Windows roaming profile (default: false)
+     * @returns Absolute path to the data directory
+     */
+    dataDir: (subdir?: string, roaming?: boolean) => string;
   };
 
   /**
@@ -564,6 +580,13 @@ export interface QuartoAPI {
       env?: Record<string, string>;
       cwd?: string;
     }) => PreviewServer;
+
+    /**
+     * Register a cleanup handler to run on process exit
+     *
+     * @param handler - Function to run on cleanup (can be async)
+     */
+    onCleanup: (handler: () => void | Promise<void>) => void;
   };
 
   /**

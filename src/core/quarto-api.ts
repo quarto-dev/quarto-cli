@@ -54,6 +54,8 @@ import { runExternalPreviewServer } from "../preview/preview-server.ts";
 import type { PreviewServer } from "../preview/preview-server.ts";
 import { isQmdFile } from "../execute/qmd.ts";
 import { postProcessRestorePreservedHtml } from "../execute/engine-shared.ts";
+import { onCleanup } from "../core/cleanup.ts";
+import { quartoDataDir } from "../core/appdirs.ts";
 import {
   executeResultIncludes,
   executeResultEngineDependencies,
@@ -206,6 +208,7 @@ export interface QuartoAPI {
     resource: (...parts: string[]) => string;
     dirAndStem: (file: string) => [string, string];
     isQmdFile: (file: string) => boolean;
+    dataDir: (subdir?: string, roaming?: boolean) => string;
   };
 
   /**
@@ -228,6 +231,7 @@ export interface QuartoAPI {
       env?: Record<string, string>;
       cwd?: string;
     }) => PreviewServer;
+    onCleanup: (handler: () => void | Promise<void>) => void;
   };
 
   /**
@@ -380,6 +384,7 @@ export const quartoAPI: QuartoAPI = {
     },
     dirAndStem,
     isQmdFile,
+    dataDir: quartoDataDir,
   },
 
   system: {
@@ -387,6 +392,7 @@ export const quartoAPI: QuartoAPI = {
     runningInCI,
     execProcess,
     runExternalPreviewServer,
+    onCleanup,
   },
 
   markdown: {
