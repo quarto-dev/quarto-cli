@@ -689,7 +689,7 @@ async function disableDaemonForNotebook(target: ExecutionTarget) {
     "rm",
     "rmdir",
   ];
-  const nb = await quarto.markdown.breakQuartoMd(target.markdown);
+  const nb = await quarto.markdownRegex.breakQuartoMd(target.markdown);
   for (const cell of nb.cells) {
     if (ld.isObject(cell.cell_type)) {
       const language = (cell.cell_type as { language: string }).language;

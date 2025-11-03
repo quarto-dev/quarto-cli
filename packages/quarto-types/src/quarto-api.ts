@@ -60,6 +60,20 @@ export interface QuartoAPI {
      * @returns Set of language identifiers found in fenced code blocks
      */
     getLanguages: (markdown: string) => Set<string>;
+
+    /**
+     * Break Quarto markdown into cells
+     *
+     * @param src - Markdown string or MappedString
+     * @param validate - Whether to validate cells (default: false)
+     * @param lenient - Whether to use lenient parsing (default: false)
+     * @returns Promise resolving to chunks with cells
+     */
+    breakQuartoMd: (
+      src: string | MappedString,
+      validate?: boolean,
+      lenient?: boolean,
+    ) => Promise<QuartoMdChunks>;
   };
 
   /**
@@ -561,33 +575,6 @@ export interface QuartoAPI {
   };
 
   /**
-   * Markdown processing utilities
-   */
-  markdown: {
-    /**
-     * Convert metadata object to YAML text
-     *
-     * @param metadata - Metadata object to convert
-     * @returns YAML formatted string
-     */
-    asYamlText: (metadata: Metadata) => string;
-
-    /**
-     * Break Quarto markdown into cells
-     *
-     * @param src - Markdown string or MappedString
-     * @param validate - Whether to validate cells (default: false)
-     * @param lenient - Whether to use lenient parsing (default: false)
-     * @returns Promise resolving to chunks with cells
-     */
-    breakQuartoMd: (
-      src: string | MappedString,
-      validate?: boolean,
-      lenient?: boolean,
-    ) => Promise<QuartoMdChunks>;
-  };
-
-  /**
    * Text processing utilities
    */
   text: {
@@ -639,6 +626,14 @@ export interface QuartoAPI {
       language: string,
       exec: (expr: string) => string | undefined,
     ) => (code: string) => string;
+
+    /**
+     * Convert metadata object to YAML text
+     *
+     * @param metadata - Metadata object to convert
+     * @returns YAML formatted string
+     */
+    asYamlText: (metadata: Metadata) => string;
   };
 
   /**
