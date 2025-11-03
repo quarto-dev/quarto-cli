@@ -36,8 +36,8 @@ import { executionEngines } from "../../execute/engine.ts";
 
 export function getTargets(): readonly string[] {
   const checkableEngineNames = executionEngines()
-    .filter(engine => engine.checkInstallation)
-    .map(engine => engine.name);
+    .filter((engine) => engine.checkInstallation)
+    .map((engine) => engine.name);
 
   return ["install", "info", ...checkableEngineNames, "versions", "all"];
 }
@@ -111,7 +111,9 @@ export async function check(
 
     // Dynamic engine checks
     for (const engine of executionEngines()) {
-      if (engine.checkInstallation && (target === engine.name || target === "all")) {
+      if (
+        engine.checkInstallation && (target === engine.name || target === "all")
+      ) {
         await engine.checkInstallation(conf);
       }
     }

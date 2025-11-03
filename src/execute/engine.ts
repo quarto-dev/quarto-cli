@@ -196,7 +196,7 @@ export function markdownExecutionEngine(
   return markdownEngineDiscovery.launch(engineProjectContext(project));
 }
 
-async function reorderEngines(project: ProjectContext) {
+export async function reorderEngines(project: ProjectContext) {
   const userSpecifiedOrder: string[] = [];
   const projectEngines = project.config?.engines as
     | (string | ExternalEngine)[]
