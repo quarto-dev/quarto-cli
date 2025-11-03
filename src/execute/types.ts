@@ -110,54 +110,6 @@ export interface ExecutionEngineInstance {
   ) => Promise<void>;
 }
 
-/**
- * Legacy interface that combines both discovery and execution phases
- * @deprecated Use ExecutionEngineDiscovery and ExecutionEngineInstance instead
- */
-export interface ExecutionEngine {
-  name: string;
-  defaultExt: string;
-  defaultYaml: (kernel?: string) => string[];
-  defaultContent: (kernel?: string) => string[];
-  validExtensions: () => string[];
-  claimsFile: (file: string, ext: string) => boolean;
-  claimsLanguage: (language: string) => boolean;
-  markdownForFile(file: string): Promise<MappedString>;
-  target: (
-    file: string,
-    quiet: boolean | undefined,
-    markdown: MappedString | undefined,
-    project: ProjectContext,
-  ) => Promise<ExecutionTarget | undefined>;
-  partitionedMarkdown: (
-    file: string,
-    format?: Format,
-  ) => Promise<PartitionedMarkdown>;
-  filterFormat?: (
-    source: string,
-    options: RenderOptions,
-    format: Format,
-  ) => Format;
-  execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
-  executeTargetSkipped?: (
-    target: ExecutionTarget,
-    format: Format,
-    project: ProjectContext,
-  ) => void;
-  dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
-  postprocess: (options: PostProcessOptions) => Promise<void>;
-  canFreeze: boolean;
-  generatesFigures: boolean;
-  canKeepSource?: (target: ExecutionTarget) => boolean;
-  intermediateFiles?: (input: string) => string[] | undefined;
-  ignoreDirs?: () => string[] | undefined;
-  run?: (options: RunOptions) => Promise<void>;
-  postRender?: (
-    file: RenderResultFile,
-    project?: ProjectContext,
-  ) => Promise<void>;
-  populateCommand?: (command: Command) => void;
-}
 
 // execution target (filename and context 'cookie')
 export interface ExecutionTarget {

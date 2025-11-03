@@ -45,11 +45,7 @@ import {
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
-export const knitrEngineDiscovery: ExecutionEngineDiscovery & {
-  _discovery: boolean;
-} = {
-  _discovery: true,
-
+export const knitrEngineDiscovery: ExecutionEngineDiscovery = {
   // Discovery methods
   name: kKnitrEngine,
 

@@ -70,11 +70,7 @@ export interface JuliaExecuteOptions extends ExecuteOptions {
   oneShot: boolean; // if true, the file's worker process is closed before and after running
 }
 
-export const juliaEngineDiscovery: ExecutionEngineDiscovery & {
-  _discovery: boolean;
-} = {
-  _discovery: true,
-
+export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
   init: (quartoAPI: QuartoAPI) => {
     quarto = quartoAPI;
   },

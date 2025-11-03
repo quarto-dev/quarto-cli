@@ -21,7 +21,6 @@ import {
   kKeepSource,
 } from "../../config/constants.ts";
 import {
-  ExecutionEngine,
   ExecutionEngineInstance,
   ExecutionTarget,
 } from "../../execute/types.ts";

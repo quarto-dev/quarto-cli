@@ -22,7 +22,6 @@ import { jupyterEngineDiscovery } from "./jupyter/jupyter.ts";
 import { ExternalEngine } from "../resources/types/schema-types.ts";
 import { kMdExtensions, markdownEngineDiscovery } from "./markdown.ts";
 import {
-  ExecutionEngine,
   ExecutionEngineDiscovery,
   ExecutionEngineInstance,
   ExecutionTarget,
