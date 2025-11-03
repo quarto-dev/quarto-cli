@@ -74,11 +74,7 @@ import {
   inputFilesDir,
 } from "../../core/render.ts";
 
-export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
-  _discovery: boolean;
-} = {
-  _discovery: true,
-
+export const jupyterEngineDiscovery: ExecutionEngineDiscovery = {
   // we don't need init() because we use Quarto API directly
   name: kJupyterEngine,
   defaultExt: ".qmd",
