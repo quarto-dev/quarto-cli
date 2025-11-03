@@ -52,6 +52,7 @@ import {
   executeResultEngineDependencies,
   executeResultIncludes,
 } from "../execute/jupyter/jupyter.ts";
+import { completeMessage, withSpinner } from "./console.ts";
 
 export interface QuartoAPI {
   markdownRegex: {
@@ -180,6 +181,13 @@ export interface QuartoAPI {
       exec: (expr: string) => string | undefined,
     ) => (code: string) => string;
     asYamlText: (metadata: Metadata) => string;
+  };
+  console: {
+    withSpinner: <T>(
+      options: { message: string | (() => string); doneMessage?: string | boolean },
+      fn: () => Promise<T>,
+    ) => Promise<T>;
+    completeMessage: (message: string) => void;
   };
   crypto: {
     md5Hash: (content: string) => string;
@@ -340,6 +348,11 @@ export const quartoAPI: QuartoAPI = {
     lineColToIndex,
     executeInlineCodeHandler,
     asYamlText,
+  },
+
+  console: {
+    withSpinner,
+    completeMessage,
   },
 
   crypto: {

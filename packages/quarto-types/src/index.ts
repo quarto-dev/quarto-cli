@@ -23,6 +23,7 @@ export type * from "./markdown.ts";
 
 // System & process
 export type * from "./system.ts";
+export type * from "./console.ts";
 export type * from "./pandoc.ts";
 
 // Engine-specific
