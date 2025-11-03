@@ -53,10 +53,7 @@ export function engineProjectContext(
     ) => context.resolveFullMarkdownForFile(engine, file, markdown, force),
   };
 
-  // Add hidden property for adapter access to full ProjectContext
-  return Object.assign(project, {
-    _project: context,
-  });
+  return project;
 }
 
 /**
