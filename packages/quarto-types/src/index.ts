@@ -11,6 +11,7 @@ export type * from "./quarto-api.ts";
 // Execution & rendering
 export type * from "./execution.ts";
 export type * from "./render.ts";
+export type * from "./check.ts";
 
 // Format & metadata
 export type * from "./metadata.ts";

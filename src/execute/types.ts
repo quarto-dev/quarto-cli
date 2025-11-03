@@ -17,6 +17,7 @@ import { HandlerContextResults } from "../core/handlers/types.ts";
 import { EngineProjectContext, ProjectContext } from "../project/types.ts";
 import { Command } from "cliffy/command/mod.ts";
 import type { QuartoAPI } from "../core/quarto-api.ts";
+import type { CheckConfiguration } from "../command/check/check.ts";
 
 export type { EngineProjectContext };
 
@@ -60,6 +61,17 @@ export interface ExecutionEngineDiscovery {
    * Populate engine-specific CLI commands (optional)
    */
   populateCommand?: (command: Command) => void;
+
+  /**
+   * Check installation and capabilities for this engine (optional)
+   * Used by `quarto check <engine-name>` command
+   *
+   * Engines implementing this method will automatically be available as targets
+   * for the check command (e.g., `quarto check jupyter`, `quarto check knitr`).
+   *
+   * @param conf - Check configuration with output settings and services
+   */
+  checkInstallation?: (conf: CheckConfiguration) => Promise<void>;
 
   /**
    * Launch a dynamic execution engine with project context
