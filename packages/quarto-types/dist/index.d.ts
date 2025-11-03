@@ -1358,6 +1358,14 @@ export interface ExecutionEngineDiscovery {
 	 */
 	ignoreDirs?: () => string[] | undefined;
 	/**
+	 * Semver range specifying the minimum required Quarto version for this engine
+	 * Examples: ">= 1.6.0", "^1.5.0", "1.*"
+	 *
+	 * When specified, Quarto will check at engine registration time whether the
+	 * current version satisfies this requirement. If not, an error will be thrown.
+	 */
+	quartoRequired?: string;
+	/**
 	 * Populate engine-specific CLI commands (optional)
 	 * Called at module initialization to register commands like 'quarto enginename status'
 	 *
