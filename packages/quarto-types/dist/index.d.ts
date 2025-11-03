@@ -912,32 +912,36 @@ export interface QuartoAPI {
 		 */
 		capabilities: (python?: string, jupyter?: string) => Promise<JupyterCapabilities>;
 		/**
-		 * Generate capabilities message
+		 * Generate formatted capabilities message with version, path, jupyter version, and kernels
 		 *
 		 * @param caps - Jupyter capabilities
-		 * @param extraMessage - Optional additional message
-		 * @returns Formatted capabilities message
+		 * @param indent - Optional indentation string (default: "")
+		 * @returns Promise resolving to formatted capabilities message with indentation
 		 */
-		capabilitiesMessage: (caps: JupyterCapabilities, extraMessage?: string) => string;
+		capabilitiesMessage: (caps: JupyterCapabilities, indent?: string) => Promise<string>;
 		/**
-		 * Generate Jupyter installation message
+		 * Generate Jupyter installation instructions
 		 *
-		 * @param python - Python executable path
+		 * @param caps - Jupyter capabilities (to determine conda vs pip)
+		 * @param indent - Optional indentation string (default: "")
+		 * @returns Installation message with appropriate package manager
+		 */
+		installationMessage: (caps: JupyterCapabilities, indent?: string) => string;
+		/**
+		 * Check for and generate warning about unactivated Python environments
+		 *
+		 * @param caps - Jupyter capabilities (to check if python is from venv)
+		 * @param indent - Optional indentation string (default: "")
+		 * @returns Warning message if unactivated env found, undefined otherwise
+		 */
+		unactivatedEnvMessage: (caps: JupyterCapabilities, indent?: string) => string | undefined;
+		/**
+		 * Generate Python installation instructions
+		 *
+		 * @param indent - Optional indentation string (default: "")
 		 * @returns Installation message
 		 */
-		installationMessage: (python: string) => string;
-		/**
-		 * Generate message about unactivated environment
-		 *
-		 * @returns Message about unactivated environment
-		 */
-		unactivatedEnvMessage: () => string;
-		/**
-		 * Generate message about Python installation
-		 *
-		 * @returns Message about Python installation
-		 */
-		pythonInstallationMessage: () => string;
+		pythonInstallationMessage: (indent?: string) => string;
 	};
 	/**
 	 * Format detection utilities
