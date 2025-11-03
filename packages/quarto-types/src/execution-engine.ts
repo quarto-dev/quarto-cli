@@ -23,6 +23,7 @@ import type {
 } from "./render.ts";
 import type { PartitionedMarkdown } from "./markdown.ts";
 import type { PandocIncludes, PandocIncludeLocation } from "./pandoc.ts";
+import type { CheckConfiguration } from "./check.ts";
 
 /**
  * Execution target (filename and context)
@@ -128,6 +129,17 @@ export interface ExecutionEngineDiscovery {
    * @param command - The CLI command to populate with subcommands
    */
   populateCommand?: (command: Command) => void;
+
+  /**
+   * Check installation and capabilities for this engine (optional)
+   * Used by `quarto check <engine-name>` command
+   *
+   * Engines implementing this method will automatically be available as targets
+   * for the check command (e.g., `quarto check jupyter`, `quarto check knitr`).
+   *
+   * @param conf - Check configuration with output settings and services
+   */
+  checkInstallation?: (conf: CheckConfiguration) => Promise<void>;
 
   /**
    * Launch a dynamic execution engine with project context

@@ -1286,6 +1286,43 @@ export interface RenderResultFile {
 	supplemental?: boolean;
 }
 /**
+ * Render services available during check operations
+ * Simplified version containing only what check operations need
+ */
+export interface CheckRenderServices {
+	/** Temporary file management */
+	temp: TempContext;
+	/** Placeholder for extension context (not used by check) */
+	extension?: unknown;
+	/** Placeholder for notebook context (not used by check) */
+	notebook?: unknown;
+}
+/**
+ * Render services with cleanup capability
+ */
+export interface CheckRenderServiceWithLifetime extends CheckRenderServices {
+	/** Cleanup function to release resources */
+	cleanup: () => void;
+	/** Optional lifetime management */
+	lifetime?: unknown;
+}
+/**
+ * Configuration for check command operations
+ * Used by engines implementing checkInstallation()
+ */
+export interface CheckConfiguration {
+	/** Whether to run strict checks */
+	strict: boolean;
+	/** Target being checked (e.g., "jupyter", "knitr", "all") */
+	target: string;
+	/** Optional output file path for JSON results */
+	output: string | undefined;
+	/** Render services (primarily for temp file management) */
+	services: CheckRenderServiceWithLifetime;
+	/** JSON result object (undefined if not outputting JSON) */
+	jsonResult: Record<string, unknown> | undefined;
+}
+/**
  * Execution target (filename and context)
  */
 export interface ExecutionTarget {
@@ -1372,6 +1409,16 @@ export interface ExecutionEngineDiscovery {
 	 * @param command - The CLI command to populate with subcommands
 	 */
 	populateCommand?: (command: Command) => void;
+	/**
+	 * Check installation and capabilities for this engine (optional)
+	 * Used by `quarto check <engine-name>` command
+	 *
+	 * Engines implementing this method will automatically be available as targets
+	 * for the check command (e.g., `quarto check jupyter`, `quarto check knitr`).
+	 *
+	 * @param conf - Check configuration with output settings and services
+	 */
+	checkInstallation?: (conf: CheckConfiguration) => Promise<void>;
 	/**
 	 * Launch a dynamic execution engine with project context
 	 * This is called when the engine is needed for execution

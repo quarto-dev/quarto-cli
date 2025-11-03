@@ -50,23 +50,27 @@ import { quartoCacheDir } from "../../core/appdirs.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { makeStringEnumTypeEnforcer } from "../../typing/dynamic.ts";
 import { findChrome } from "../../core/puppeteer.ts";
+import { executionEngines } from "../../execute/engine.ts";
 
-export const kTargets = [
-  "install",
-  "info",
-  "jupyter",
-  "knitr",
-  "versions",
-  "all",
-] as const;
-export type Target = typeof kTargets[number];
-export const enforceTargetType = makeStringEnumTypeEnforcer(...kTargets);
+export function getTargets(): readonly string[] {
+  const checkableEngineNames = executionEngines()
+    .filter(engine => engine.checkInstallation)
+    .map(engine => engine.name);
+
+  return ["install", "info", ...checkableEngineNames, "versions", "all"];
+}
+
+export type Target = string;
+export function enforceTargetType(value: unknown): Target {
+  const targets = getTargets();
+  return makeStringEnumTypeEnforcer(...targets)(value);
+}
 
 const kIndent = "      ";
 
 type CheckJsonResult = Record<string, unknown>;
 
-type CheckConfiguration = {
+export type CheckConfiguration = {
   strict: boolean;
   target: Target;
   output: string | undefined;
@@ -110,17 +114,23 @@ export async function check(
     }
     checkInfoMsg(conf, `Quarto ${quartoConfig.version()}`);
 
+    // Fixed checks (non-engine)
     for (
       const [name, checker] of [
         ["info", checkInfo],
         ["versions", checkVersions],
         ["install", checkInstall],
-        ["jupyter", checkJupyterInstallation],
-        ["knitr", checkKnitrInstallation],
       ] as const
     ) {
       if (target === name || target === "all") {
         await checker(conf);
+      }
+    }
+
+    // Dynamic engine checks
+    for (const engine of executionEngines()) {
+      if (engine.checkInstallation && (target === engine.name || target === "all")) {
+        await engine.checkInstallation(conf);
       }
     }
 
