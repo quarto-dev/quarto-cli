@@ -19,7 +19,7 @@ import { projectType } from "./types/project-types.ts";
 import { renderEjs } from "../core/ejs.ts";
 
 import { executionEngine } from "../execute/engine.ts";
-import { ExecutionEngine } from "../execute/types.ts";
+import { ExecutionEngineDiscovery } from "../execute/types.ts";
 
 import { projectConfigFile } from "./project-shared.ts";
 import { ensureGitignore } from "./project-gitignore.ts";
@@ -191,7 +191,7 @@ function projectMarkdownFile(
   dir: string,
   name: string,
   content: string,
-  engine: ExecutionEngine,
+  engine: ExecutionEngineDiscovery,
   kernel?: string,
   title?: string,
   noEngineContent?: boolean,
