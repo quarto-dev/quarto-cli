@@ -51,6 +51,12 @@ export interface ExecutionEngineDiscovery {
   ignoreDirs?: () => string[] | undefined;
 
   /**
+   * Semver range specifying the minimum required Quarto version for this engine
+   * Examples: ">= 1.6.0", "^1.5.0", "1.*"
+   */
+  quartoRequired?: string;
+
+  /**
    * Populate engine-specific CLI commands (optional)
    */
   populateCommand?: (command: Command) => void;
