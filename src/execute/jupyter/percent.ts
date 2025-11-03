@@ -6,13 +6,11 @@
 
 import { extname } from "../../deno_ral/path.ts";
 
-import { lines } from "../../core/text.ts";
-import { trimEmptyLines } from "../../core/lib/text.ts";
 import { Metadata } from "../../config/types.ts";
-import { asYamlText } from "../../core/jupyter/jupyter-fixups.ts";
 import { pandocAttrKeyvalueFromText } from "../../core/pandoc/pandoc-attr.ts";
 import { kCellRawMimeType } from "../../config/constants.ts";
 import { mdFormatOutput, mdRawOutput } from "../../core/jupyter/jupyter.ts";
+import { quartoAPI as quarto } from "../../core/quarto-api.ts";
 
 export const kJupyterPercentScriptExtensions = [
   ".py",
@@ -39,7 +37,7 @@ export function markdownFromJupyterPercentScript(file: string) {
   // break into cells
   const cells: PercentCell[] = [];
   const activeCell = () => cells[cells.length - 1];
-  for (const line of lines(Deno.readTextFileSync(file).trim())) {
+  for (const line of quarto.text.lines(Deno.readTextFileSync(file).trim())) {
     const header = percentCellHeader(line);
     if (header) {
       cells.push({ header, lines: [] });
@@ -65,11 +63,11 @@ export function markdownFromJupyterPercentScript(file: string) {
   };
 
   return cells.reduce((markdown, cell) => {
-    const cellLines = trimEmptyLines(cell.lines);
+    const cellLines = quarto.text.trimEmptyLines(cell.lines);
     if (cell.header.type === "code") {
       if (cell.header.metadata) {
-        const yamlText = asYamlText(cell.header.metadata);
-        cellLines.unshift(...lines(yamlText).map((line) => `#| ${line}`));
+        const yamlText = quarto.text.asYamlText(cell.header.metadata);
+        cellLines.unshift(...quarto.text.lines(yamlText).map((line) => `#| ${line}`));
       }
       markdown += asCell(["```{" + language + "}", ...cellLines, "```"]);
     } else if (cell.header.type === "markdown") {
@@ -79,10 +77,10 @@ export function markdownFromJupyterPercentScript(file: string) {
       const format = cell.header?.metadata?.["format"];
       const mimeType = cell.header.metadata?.[kCellRawMimeType];
       if (typeof mimeType === "string") {
-        const rawBlock = mdRawOutput(mimeType, lines(rawContent));
+        const rawBlock = mdRawOutput(mimeType, quarto.text.lines(rawContent));
         rawContent = rawBlock || rawContent;
       } else if (typeof format === "string") {
-        rawContent = mdFormatOutput(format, lines(rawContent));
+        rawContent = mdFormatOutput(format, quarto.text.lines(rawContent));
       }
       markdown += rawContent;
     }
