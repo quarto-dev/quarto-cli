@@ -4,8 +4,18 @@ TypeScript type definitions for developing Quarto execution engines.
 
 ## Installation
 
+The goal in a couple of releases is for you to be able to do
+
 ```bash
 npm install @quarto/types
+```
+
+But this package is not published yet, because the interfaces are still in flux.
+
+Instead, build the package and copy dist/index.d.ts to types/quarto-types.d.ts in your engine repo.
+
+```bash
+npm run build
 ```
 
 ## Usage
@@ -13,11 +23,11 @@ npm install @quarto/types
 This package provides TypeScript type definitions for implementing custom execution engines for Quarto.
 
 ```typescript
-import { ExecutionEngine, EngineProjectContext } from '@quarto/types';
+import { ExecutionEngine, EngineProjectContext } from "@quarto/types";
 
 export const customEngine: ExecutionEngine = {
-  name: 'custom',
-  defaultExt: '.qmd',
+  name: "custom",
+  defaultExt: ".qmd",
 
   // Implement required methods...
 
@@ -25,10 +35,10 @@ export const customEngine: ExecutionEngine = {
     file: string,
     quiet: boolean | undefined,
     markdown: MappedString | undefined,
-    project: EngineProjectContext, // Using the restricted context interface
+    project: EngineProjectContext // Using the restricted context interface
   ) => {
     // Implementation...
-  }
+  },
 };
 ```
 
@@ -66,7 +76,9 @@ When accessing properties from these records, use type assertions as needed:
 
 ```typescript
 const figFormat = options.format.execute["fig-format"] as string | undefined;
-const keepHidden = options.format.render?.["keep-hidden"] as boolean | undefined;
+const keepHidden = options.format.render?.["keep-hidden"] as
+  | boolean
+  | undefined;
 const writer = options.format.pandoc.to; // Type-safe access to 'to'
 const standalone = options.format.pandoc["standalone"] as boolean | undefined;
 ```

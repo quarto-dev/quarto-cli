@@ -23,6 +23,7 @@ import type {
 } from "./render.ts";
 import type { PartitionedMarkdown } from "./markdown.ts";
 import type { PandocIncludes, PandocIncludeLocation } from "./pandoc.ts";
+import type { CheckConfiguration } from "./check.ts";
 
 /**
  * Execution target (filename and context)
@@ -113,12 +114,32 @@ export interface ExecutionEngineDiscovery {
   ignoreDirs?: () => string[] | undefined;
 
   /**
+   * Semver range specifying the minimum required Quarto version for this engine
+   * Examples: ">= 1.6.0", "^1.5.0", "1.*"
+   *
+   * When specified, Quarto will check at engine registration time whether the
+   * current version satisfies this requirement. If not, an error will be thrown.
+   */
+  quartoRequired?: string;
+
+  /**
    * Populate engine-specific CLI commands (optional)
    * Called at module initialization to register commands like 'quarto enginename status'
    *
    * @param command - The CLI command to populate with subcommands
    */
   populateCommand?: (command: Command) => void;
+
+  /**
+   * Check installation and capabilities for this engine (optional)
+   * Used by `quarto check <engine-name>` command
+   *
+   * Engines implementing this method will automatically be available as targets
+   * for the check command (e.g., `quarto check jupyter`, `quarto check knitr`).
+   *
+   * @param conf - Check configuration with output settings and services
+   */
+  checkInstallation?: (conf: CheckConfiguration) => Promise<void>;
 
   /**
    * Launch a dynamic execution engine with project context

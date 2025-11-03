@@ -27,10 +27,7 @@ let quarto: QuartoAPI;
 /**
  * Markdown engine implementation with discovery and launch capabilities
  */
-export const markdownEngineDiscovery: ExecutionEngineDiscovery & {
-  _discovery: boolean;
-} = {
-  _discovery: true,
+export const markdownEngineDiscovery: ExecutionEngineDiscovery = {
   init: (quartoAPI) => {
     quarto = quartoAPI;
   },

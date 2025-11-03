@@ -9,7 +9,7 @@ import { satisfies } from "semver/mod.ts";
 
 import { existsSync } from "../../deno_ral/fs.ts";
 
-import { error } from "../../deno_ral/log.ts";
+import { error, info } from "../../deno_ral/log.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -39,6 +39,7 @@ import {
   JupyterExecuteOptions,
 } from "./jupyter-kernel.ts";
 import {
+  JupyterCapabilities,
   JupyterKernelspec,
   JupyterNotebook,
   JupyterWidgetDependencies,
@@ -70,15 +71,9 @@ interface JupyterTargetData {
 import { quartoAPI as quarto } from "../../core/quarto-api.ts";
 import { MappedString } from "../../core/mapped-text.ts";
 import { kJupyterPercentScriptExtensions } from "./percent.ts";
-import {
-  inputFilesDir,
-} from "../../core/render.ts";
+import type { CheckConfiguration } from "../../command/check/check.ts";
 
-export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
-  _discovery: boolean;
-} = {
-  _discovery: true,
-
+export const jupyterEngineDiscovery: ExecutionEngineDiscovery = {
   // we don't need init() because we use Quarto API directly
   name: kJupyterEngine,
   defaultExt: ".qmd",
@@ -120,6 +115,125 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
   generatesFigures: true,
   ignoreDirs: () => {
     return ["venv", "env"];
+  },
+
+  checkInstallation: async (conf: CheckConfiguration) => {
+    const kIndent = "      ";
+
+    // Helper functions (inline)
+    const checkCompleteMessage = (message: string) => {
+      if (!conf.jsonResult) {
+        quarto.console.completeMessage(message);
+      }
+    };
+    const checkInfoMsg = (message: string) => {
+      if (!conf.jsonResult) {
+        info(message);
+      }
+    };
+
+    // Render check helper (inline)
+    const checkJupyterRender = async () => {
+      const json: Record<string, unknown> = {};
+      if (conf.jsonResult) {
+        (conf.jsonResult.render as Record<string, unknown>).jupyter = json;
+      }
+
+      const result = await quarto.system.checkRender({
+        content: `
+---
+title: "Title"
+---
+
+## Header
+
+\`\`\`{python}
+1 + 1
+\`\`\`
+`,
+        language: "python",
+        services: conf.services,
+      });
+
+      if (result.error) {
+        if (!conf.jsonResult) {
+          throw result.error;
+        } else {
+          json["error"] = result.error;
+        }
+      } else {
+        json["ok"] = true;
+      }
+    };
+
+    // Main check logic
+    const kMessage = "Checking Python 3 installation....";
+    const jupyterJson: Record<string, unknown> = {};
+    if (conf.jsonResult) {
+      (conf.jsonResult.tools as Record<string, unknown>).jupyter = jupyterJson;
+    }
+    let caps: JupyterCapabilities | undefined;
+    if (conf.jsonResult) {
+      caps = await quarto.jupyter.capabilities();
+    } else {
+      await quarto.console.withSpinner({
+        message: kMessage,
+        doneMessage: false,
+      }, async () => {
+        caps = await quarto.jupyter.capabilities();
+      });
+    }
+    if (caps) {
+      checkCompleteMessage(kMessage + "OK");
+      if (conf.jsonResult) {
+        jupyterJson["capabilities"] = await quarto.jupyter.capabilitiesJson(caps);
+      } else {
+        checkInfoMsg(await quarto.jupyter.capabilitiesMessage(caps, kIndent));
+      }
+      checkInfoMsg("");
+      if (caps.jupyter_core) {
+        if (await quarto.jupyter.kernelspecForLanguage("python")) {
+          const kJupyterMessage = "Checking Jupyter engine render....";
+          if (conf.jsonResult) {
+            await checkJupyterRender();
+          } else {
+            await quarto.console.withSpinner({
+              message: kJupyterMessage,
+              doneMessage: kJupyterMessage + "OK\n",
+            }, async () => {
+              await checkJupyterRender();
+            });
+          }
+        } else {
+          jupyterJson["kernels"] = [];
+          checkInfoMsg(
+            kIndent + "NOTE: No Jupyter kernel for Python found",
+          );
+          checkInfoMsg("");
+        }
+      } else {
+        const installMessage = quarto.jupyter.installationMessage(caps, kIndent);
+        checkInfoMsg(installMessage);
+        checkInfoMsg("");
+        jupyterJson["installed"] = false;
+        jupyterJson["how-to-install"] = installMessage;
+        const envMessage = quarto.jupyter.unactivatedEnvMessage(caps, kIndent);
+        if (envMessage) {
+          checkInfoMsg(envMessage);
+          checkInfoMsg("");
+          jupyterJson["env"] = {
+            "warning": envMessage,
+          };
+        }
+      }
+    } else {
+      checkCompleteMessage(kMessage + "(None)\n");
+      const msg = quarto.jupyter.pythonInstallationMessage(kIndent);
+      jupyterJson["installed"] = false;
+      jupyterJson["how-to-install-python"] = msg;
+      checkInfoMsg(msg);
+      checkInfoMsg("");
+    }
   },
 
   // Launch method will return an instance with context
@@ -584,7 +698,7 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
         // discover non _files dir resources for server: shiny and amend app.py with them
         if (quarto.format.isServerShiny(file.format)) {
           const [dir] = quarto.path.dirAndStem(file.input);
-          const filesDir = join(dir, inputFilesDir(file.input));
+          const filesDir = join(dir, quarto.path.inputFilesDir(file.input));
           const extraResources = file.resourceFiles
             .filter((resource) => !resource.startsWith(filesDir))
             .map((resource) => relative(dir, resource));
@@ -593,7 +707,7 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery & {
           if (existsSync(appScript)) {
             // compute static assets
             const staticAssets = [
-              inputFilesDir(file.input),
+              quarto.path.inputFilesDir(file.input),
               ...extraResources,
             ];
 

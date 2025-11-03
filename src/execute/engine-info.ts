@@ -5,7 +5,6 @@
  */
 
 import {
-  ExecutionEngine,
   ExecutionEngineInstance,
   ExecutionTarget,
 } from "./types.ts";
