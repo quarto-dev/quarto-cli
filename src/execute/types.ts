@@ -17,6 +17,7 @@ import { HandlerContextResults } from "../core/handlers/types.ts";
 import { EngineProjectContext, ProjectContext } from "../project/types.ts";
 import { Command } from "cliffy/command/mod.ts";
 import type { QuartoAPI } from "../core/quarto-api.ts";
+import type { CheckConfiguration } from "../command/check/check.ts";
 
 export type { EngineProjectContext };
 
@@ -51,9 +52,26 @@ export interface ExecutionEngineDiscovery {
   ignoreDirs?: () => string[] | undefined;
 
   /**
+   * Semver range specifying the minimum required Quarto version for this engine
+   * Examples: ">= 1.6.0", "^1.5.0", "1.*"
+   */
+  quartoRequired?: string;
+
+  /**
    * Populate engine-specific CLI commands (optional)
    */
   populateCommand?: (command: Command) => void;
+
+  /**
+   * Check installation and capabilities for this engine (optional)
+   * Used by `quarto check <engine-name>` command
+   *
+   * Engines implementing this method will automatically be available as targets
+   * for the check command (e.g., `quarto check jupyter`, `quarto check knitr`).
+   *
+   * @param conf - Check configuration with output settings and services
+   */
+  checkInstallation?: (conf: CheckConfiguration) => Promise<void>;
 
   /**
    * Launch a dynamic execution engine with project context
@@ -110,54 +128,6 @@ export interface ExecutionEngineInstance {
   ) => Promise<void>;
 }
 
-/**
- * Legacy interface that combines both discovery and execution phases
- * @deprecated Use ExecutionEngineDiscovery and ExecutionEngineInstance instead
- */
-export interface ExecutionEngine {
-  name: string;
-  defaultExt: string;
-  defaultYaml: (kernel?: string) => string[];
-  defaultContent: (kernel?: string) => string[];
-  validExtensions: () => string[];
-  claimsFile: (file: string, ext: string) => boolean;
-  claimsLanguage: (language: string) => boolean;
-  markdownForFile(file: string): Promise<MappedString>;
-  target: (
-    file: string,
-    quiet: boolean | undefined,
-    markdown: MappedString | undefined,
-    project: ProjectContext,
-  ) => Promise<ExecutionTarget | undefined>;
-  partitionedMarkdown: (
-    file: string,
-    format?: Format,
-  ) => Promise<PartitionedMarkdown>;
-  filterFormat?: (
-    source: string,
-    options: RenderOptions,
-    format: Format,
-  ) => Format;
-  execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
-  executeTargetSkipped?: (
-    target: ExecutionTarget,
-    format: Format,
-    project: ProjectContext,
-  ) => void;
-  dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
-  postprocess: (options: PostProcessOptions) => Promise<void>;
-  canFreeze: boolean;
-  generatesFigures: boolean;
-  canKeepSource?: (target: ExecutionTarget) => boolean;
-  intermediateFiles?: (input: string) => string[] | undefined;
-  ignoreDirs?: () => string[] | undefined;
-  run?: (options: RunOptions) => Promise<void>;
-  postRender?: (
-    file: RenderResultFile,
-    project?: ProjectContext,
-  ) => Promise<void>;
-  populateCommand?: (command: Command) => void;
-}
 
 // execution target (filename and context 'cookie')
 export interface ExecutionTarget {

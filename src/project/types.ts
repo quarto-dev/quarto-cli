@@ -15,7 +15,6 @@ import {
 import { MappedString } from "../core/mapped-text.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import {
-  ExecutionEngine,
   ExecutionEngineDiscovery,
   ExecutionEngineInstance,
   ExecutionTarget,

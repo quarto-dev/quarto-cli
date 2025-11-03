@@ -27,6 +27,11 @@ import type {
   ExecProcessOptions,
   TempContext,
 } from "./system.ts";
+import type { SpinnerOptions } from "./console.ts";
+import type {
+  CheckRenderOptions,
+  CheckRenderResult,
+} from "./check.ts";
 import type { QuartoMdChunks, QuartoMdCell } from "./markdown.ts";
 
 /**
@@ -162,6 +167,16 @@ export interface QuartoAPI {
      * @returns Extracted kernelspec or undefined if not found
      */
     kernelspecFromMarkdown: (markdown: string) => JupyterKernelspec | undefined;
+
+    /**
+     * Find a Jupyter kernelspec that supports a given language
+     *
+     * @param language - Language to find kernel for (e.g., "python", "julia", "r")
+     * @returns Promise resolving to matching kernelspec or undefined if not found
+     */
+    kernelspecForLanguage: (
+      language: string,
+    ) => Promise<JupyterKernelspec | undefined>;
 
     /**
      * Convert JSON string to Jupyter notebook
@@ -304,38 +319,61 @@ export interface QuartoAPI {
     ) => Promise<JupyterCapabilities>;
 
     /**
-     * Generate capabilities message
+     * Generate formatted capabilities message with version, path, jupyter version, and kernels
      *
      * @param caps - Jupyter capabilities
-     * @param extraMessage - Optional additional message
-     * @returns Formatted capabilities message
+     * @param indent - Optional indentation string (default: "")
+     * @returns Promise resolving to formatted capabilities message with indentation
      */
     capabilitiesMessage: (
       caps: JupyterCapabilities,
-      extraMessage?: string,
+      indent?: string,
+    ) => Promise<string>;
+
+    /**
+     * Generate capabilities with kernels list for JSON output
+     *
+     * Enriches capabilities with full kernels array for structured output.
+     * Used by check command JSON output.
+     *
+     * @param caps - Jupyter capabilities
+     * @returns Promise resolving to capabilities with kernels array
+     */
+    capabilitiesJson: (
+      caps: JupyterCapabilities,
+    ) => Promise<JupyterCapabilities & { kernels: JupyterKernelspec[] }>;
+
+    /**
+     * Generate Jupyter installation instructions
+     *
+     * @param caps - Jupyter capabilities (to determine conda vs pip)
+     * @param indent - Optional indentation string (default: "")
+     * @returns Installation message with appropriate package manager
+     */
+    installationMessage: (
+      caps: JupyterCapabilities,
+      indent?: string,
     ) => string;
 
     /**
-     * Generate Jupyter installation message
+     * Check for and generate warning about unactivated Python environments
      *
-     * @param python - Python executable path
+     * @param caps - Jupyter capabilities (to check if python is from venv)
+     * @param indent - Optional indentation string (default: "")
+     * @returns Warning message if unactivated env found, undefined otherwise
+     */
+    unactivatedEnvMessage: (
+      caps: JupyterCapabilities,
+      indent?: string,
+    ) => string | undefined;
+
+    /**
+     * Generate Python installation instructions
+     *
+     * @param indent - Optional indentation string (default: "")
      * @returns Installation message
      */
-    installationMessage: (python: string) => string;
-
-    /**
-     * Generate message about unactivated environment
-     *
-     * @returns Message about unactivated environment
-     */
-    unactivatedEnvMessage: () => string;
-
-    /**
-     * Generate message about Python installation
-     *
-     * @returns Message about Python installation
-     */
-    pythonInstallationMessage: () => string;
+    pythonInstallationMessage: (indent?: string) => string;
   };
 
   /**
@@ -478,6 +516,21 @@ export interface QuartoAPI {
     isQmdFile: (file: string) => boolean;
 
     /**
+     * Get the standard supporting files directory name for an input file
+     *
+     * Returns the conventional `{stem}_files` directory name where Quarto
+     * stores supporting resources (images, data files, etc.) for a document.
+     *
+     * @param input - Input file path
+     * @returns Directory name in format `{stem}_files`
+     * @example
+     * ```typescript
+     * inputFilesDir("/path/to/document.qmd") // returns "document_files"
+     * ```
+     */
+    inputFilesDir: (input: string) => string;
+
+    /**
      * Get platform-specific user data directory for Quarto
      *
      * Returns the appropriate data directory based on platform:
@@ -572,6 +625,18 @@ export interface QuartoAPI {
      * @returns Global TempContext instance
      */
     tempContext: () => TempContext;
+
+    /**
+     * Test-render a document for validation during check operations
+     *
+     * Creates a temporary file with the provided content, renders it with
+     * appropriate engine settings, and returns success/failure status.
+     * Used by checkInstallation implementations to verify engines work.
+     *
+     * @param options - Check render options with content and services
+     * @returns Promise resolving to render result with success status
+     */
+    checkRender: (options: CheckRenderOptions) => Promise<CheckRenderResult>;
   };
 
   /**
@@ -634,6 +699,36 @@ export interface QuartoAPI {
      * @returns YAML formatted string
      */
     asYamlText: (metadata: Metadata) => string;
+  };
+
+  /**
+   * Console and UI utilities
+   */
+  console: {
+    /**
+     * Execute an async operation with a spinner displayed in the console
+     *
+     * Shows a spinner with a message while the operation runs, then displays
+     * a completion message when done.
+     *
+     * @param options - Spinner display options
+     * @param fn - Async function to execute
+     * @returns Promise resolving to the function's return value
+     */
+    withSpinner: <T>(
+      options: SpinnerOptions,
+      fn: () => Promise<T>,
+    ) => Promise<T>;
+
+    /**
+     * Display a completion message in the console
+     *
+     * Shows a message with a checkmark indicator (or equivalent) to indicate
+     * successful completion of an operation.
+     *
+     * @param message - Message to display
+     */
+    completeMessage: (message: string) => void;
   };
 
   /**

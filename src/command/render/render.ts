@@ -24,7 +24,6 @@ import {
   executionEngine,
   executionEngineKeepMd,
 } from "../../execute/engine.ts";
-import { asEngineInstance } from "../../execute/as-engine-instance.ts";
 import { engineProjectContext } from "../../project/engine-project-context.ts";
 
 import {
@@ -92,7 +91,7 @@ export async function renderPandoc(
   if (executeResult.engineDependencies) {
     for (const engineName of Object.keys(executeResult.engineDependencies)) {
       const engine = executionEngine(engineName)!;
-      const engineInstance = asEngineInstance(engine, engineProjectContext(context.project));
+      const engineInstance = engine.launch(engineProjectContext(context.project));
       const dependenciesResult = await engineInstance.dependencies({
         target: context.target,
         format,

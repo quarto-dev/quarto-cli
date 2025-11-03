@@ -30,7 +30,9 @@ import {
 import { includesForJupyterWidgetDependencies } from "./jupyter/widgets.ts";
 import { pythonExec } from "./jupyter/exec.ts";
 import { jupyterCapabilities } from "./jupyter/capabilities.ts";
+import { jupyterKernelspecForLanguage } from "./jupyter/kernels.ts";
 import {
+  jupyterCapabilitiesJson,
   jupyterCapabilitiesMessage,
   jupyterInstallationMessage,
   jupyterUnactivatedEnvMessage,
@@ -47,11 +49,15 @@ import type { PreviewServer } from "../preview/preview-server.ts";
 import { isQmdFile } from "../execute/qmd.ts";
 import { postProcessRestorePreservedHtml } from "../execute/engine-shared.ts";
 import { onCleanup } from "../core/cleanup.ts";
+import { inputFilesDir, isServerShiny, isServerShinyPython } from "./render.ts";
 import { quartoDataDir } from "../core/appdirs.ts";
 import {
   executeResultEngineDependencies,
   executeResultIncludes,
 } from "../execute/jupyter/jupyter.ts";
+import { completeMessage, withSpinner } from "./console.ts";
+import { checkRender } from "../command/check/check-render.ts";
+import type { RenderServiceWithLifetime } from "../command/render/types.ts";
 
 export interface QuartoAPI {
   markdownRegex: {
@@ -82,6 +88,9 @@ export interface QuartoAPI {
       markdown: string,
       project?: EngineProjectContext,
     ) => Promise<[JupyterKernelspec, Metadata]>;
+    kernelspecForLanguage: (
+      language: string,
+    ) => Promise<JupyterKernelspec | undefined>;
     fromJSON: (nbJson: string) => JupyterNotebook;
     toMarkdown: (
       nb: JupyterNotebook,
@@ -119,9 +128,12 @@ export interface QuartoAPI {
       caps: JupyterCapabilities,
       indent?: string,
     ) => Promise<string>;
-    installationMessage: (caps: JupyterCapabilities) => string;
-    unactivatedEnvMessage: (caps: JupyterCapabilities) => string | undefined;
-    pythonInstallationMessage: () => string;
+    capabilitiesJson: (
+      caps: JupyterCapabilities,
+    ) => Promise<JupyterCapabilities & { kernels: JupyterKernelspec[] }>;
+    installationMessage: (caps: JupyterCapabilities, indent?: string) => string;
+    unactivatedEnvMessage: (caps: JupyterCapabilities, indent?: string) => string | undefined;
+    pythonInstallationMessage: (indent?: string) => string;
   };
   format: {
     isHtmlCompatible: (format: Format) => boolean;
@@ -143,6 +155,7 @@ export interface QuartoAPI {
     resource: (...parts: string[]) => string;
     dirAndStem: (file: string) => [string, string];
     isQmdFile: (file: string) => boolean;
+    inputFilesDir: (input: string) => string;
     dataDir: (subdir?: string, roaming?: boolean) => string;
   };
   system: {
@@ -164,6 +177,11 @@ export interface QuartoAPI {
     }) => PreviewServer;
     onCleanup: (handler: () => void | Promise<void>) => void;
     tempContext: () => TempContext;
+    checkRender: (options: {
+      content: string;
+      language: string;
+      services: RenderServiceWithLifetime;
+    }) => Promise<{ success: boolean; error?: Error }>;
   };
   text: {
     lines: (text: string) => string[];
@@ -180,6 +198,13 @@ export interface QuartoAPI {
       exec: (expr: string) => string | undefined,
     ) => (code: string) => string;
     asYamlText: (metadata: Metadata) => string;
+  };
+  console: {
+    withSpinner: <T>(
+      options: { message: string | (() => string); doneMessage?: string | boolean },
+      fn: () => Promise<T>,
+    ) => Promise<T>;
+    completeMessage: (message: string) => void;
   };
   crypto: {
     md5Hash: (content: string) => string;
@@ -214,7 +239,6 @@ import { quartoRuntimeDir } from "../core/appdirs.ts";
 import { resourcePath } from "../core/resources.ts";
 import { isInteractiveSession } from "../core/platform.ts";
 import { runningInCI } from "../core/ci-info.ts";
-import { isServerShiny, isServerShinyPython } from "../core/render.ts";
 import { execProcess } from "../core/process.ts";
 import type { ExecProcessOptions } from "../core/process.ts";
 import type { ProcessResult } from "../core/process-types.ts";
@@ -260,6 +284,7 @@ export const quartoAPI: QuartoAPI = {
     isPercentScript: isJupyterPercentScript,
     notebookExtensions: kJupyterNotebookExtensions,
     kernelspecFromMarkdown: jupyterKernelspecFromMarkdown,
+    kernelspecForLanguage: jupyterKernelspecForLanguage,
     fromJSON: jupyterFromJSON,
 
     // 2. Notebook Conversion
@@ -288,6 +313,7 @@ export const quartoAPI: QuartoAPI = {
     pythonExec,
     capabilities: jupyterCapabilities,
     capabilitiesMessage: jupyterCapabilitiesMessage,
+    capabilitiesJson: jupyterCapabilitiesJson,
     installationMessage: jupyterInstallationMessage,
     unactivatedEnvMessage: jupyterUnactivatedEnvMessage,
     pythonInstallationMessage,
@@ -321,6 +347,7 @@ export const quartoAPI: QuartoAPI = {
     },
     dirAndStem,
     isQmdFile,
+    inputFilesDir,
     dataDir: quartoDataDir,
   },
 
@@ -331,6 +358,7 @@ export const quartoAPI: QuartoAPI = {
     runExternalPreviewServer,
     onCleanup,
     tempContext: globalTempContext,
+    checkRender,
   },
 
   text: {
@@ -340,6 +368,11 @@ export const quartoAPI: QuartoAPI = {
     lineColToIndex,
     executeInlineCodeHandler,
     asYamlText,
+  },
+
+  console: {
+    withSpinner,
+    completeMessage,
   },
 
   crypto: {

@@ -41,8 +41,17 @@ export interface PreviewServer {
  * Temporary context for managing temporary files and directories
  */
 export interface TempContext {
+  /** Base directory for temporary files */
+  baseDir: string;
+  /** Create a temporary file from string content and return its path */
+  createFileFromString: (
+    content: string,
+    options?: { suffix?: string; prefix?: string; dir?: string },
+  ) => string;
+  /** Create a temporary file and return its path */
+  createFile: (options?: { suffix?: string; prefix?: string; dir?: string }) => string;
   /** Create a temporary directory and return its path */
-  createDir: () => string;
+  createDir: (options?: { suffix?: string; prefix?: string; dir?: string }) => string;
   /** Clean up all temporary resources */
   cleanup: () => void;
   /** Register a cleanup handler */

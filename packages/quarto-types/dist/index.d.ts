@@ -689,12 +689,99 @@ export interface PreviewServer {
  * Temporary context for managing temporary files and directories
  */
 export interface TempContext {
+	/** Base directory for temporary files */
+	baseDir: string;
+	/** Create a temporary file from string content and return its path */
+	createFileFromString: (content: string, options?: {
+		suffix?: string;
+		prefix?: string;
+		dir?: string;
+	}) => string;
+	/** Create a temporary file and return its path */
+	createFile: (options?: {
+		suffix?: string;
+		prefix?: string;
+		dir?: string;
+	}) => string;
 	/** Create a temporary directory and return its path */
-	createDir: () => string;
+	createDir: (options?: {
+		suffix?: string;
+		prefix?: string;
+		dir?: string;
+	}) => string;
 	/** Clean up all temporary resources */
 	cleanup: () => void;
 	/** Register a cleanup handler */
 	onCleanup: (handler: VoidFunction) => void;
+}
+/**
+ * Console and UI types for Quarto
+ */
+/**
+ * Options for displaying a spinner in the console
+ */
+export interface SpinnerOptions {
+	/** Message to display with the spinner (or function that returns message) */
+	message: string | (() => string);
+	/** Message to display when done, or false to hide, or true to keep original message */
+	doneMessage?: string | boolean;
+}
+/**
+ * Render services available during check operations
+ * Simplified version containing only what check operations need
+ */
+export interface CheckRenderServices {
+	/** Temporary file management */
+	temp: TempContext;
+	/** Placeholder for extension context (not used by check) */
+	extension?: unknown;
+	/** Placeholder for notebook context (not used by check) */
+	notebook?: unknown;
+}
+/**
+ * Render services with cleanup capability
+ */
+export interface CheckRenderServiceWithLifetime extends CheckRenderServices {
+	/** Cleanup function to release resources */
+	cleanup: () => void;
+	/** Optional lifetime management */
+	lifetime?: unknown;
+}
+/**
+ * Configuration for check command operations
+ * Used by engines implementing checkInstallation()
+ */
+export interface CheckConfiguration {
+	/** Whether to run strict checks */
+	strict: boolean;
+	/** Target being checked (e.g., "jupyter", "knitr", "all") */
+	target: string;
+	/** Optional output file path for JSON results */
+	output: string | undefined;
+	/** Render services (primarily for temp file management) */
+	services: CheckRenderServiceWithLifetime;
+	/** JSON result object (undefined if not outputting JSON) */
+	jsonResult: Record<string, unknown> | undefined;
+}
+/**
+ * Options for test-rendering a document during check operations
+ */
+export interface CheckRenderOptions {
+	/** Markdown content to render */
+	content: string;
+	/** Language identifier (e.g., "python", "r", "julia") */
+	language: string;
+	/** Render services for temp file management */
+	services: CheckRenderServiceWithLifetime;
+}
+/**
+ * Result of a check render operation
+ */
+export interface CheckRenderResult {
+	/** Whether the render succeeded */
+	success: boolean;
+	/** Error if render failed */
+	error?: Error;
 }
 /**
  * Global Quarto API interface
@@ -812,6 +899,13 @@ export interface QuartoAPI {
 		 */
 		kernelspecFromMarkdown: (markdown: string) => JupyterKernelspec | undefined;
 		/**
+		 * Find a Jupyter kernelspec that supports a given language
+		 *
+		 * @param language - Language to find kernel for (e.g., "python", "julia", "r")
+		 * @returns Promise resolving to matching kernelspec or undefined if not found
+		 */
+		kernelspecForLanguage: (language: string) => Promise<JupyterKernelspec | undefined>;
+		/**
 		 * Convert JSON string to Jupyter notebook
 		 *
 		 * @param nbJson - JSON string containing notebook data
@@ -912,32 +1006,48 @@ export interface QuartoAPI {
 		 */
 		capabilities: (python?: string, jupyter?: string) => Promise<JupyterCapabilities>;
 		/**
-		 * Generate capabilities message
+		 * Generate formatted capabilities message with version, path, jupyter version, and kernels
 		 *
 		 * @param caps - Jupyter capabilities
-		 * @param extraMessage - Optional additional message
-		 * @returns Formatted capabilities message
+		 * @param indent - Optional indentation string (default: "")
+		 * @returns Promise resolving to formatted capabilities message with indentation
 		 */
-		capabilitiesMessage: (caps: JupyterCapabilities, extraMessage?: string) => string;
+		capabilitiesMessage: (caps: JupyterCapabilities, indent?: string) => Promise<string>;
 		/**
-		 * Generate Jupyter installation message
+		 * Generate capabilities with kernels list for JSON output
 		 *
-		 * @param python - Python executable path
+		 * Enriches capabilities with full kernels array for structured output.
+		 * Used by check command JSON output.
+		 *
+		 * @param caps - Jupyter capabilities
+		 * @returns Promise resolving to capabilities with kernels array
+		 */
+		capabilitiesJson: (caps: JupyterCapabilities) => Promise<JupyterCapabilities & {
+			kernels: JupyterKernelspec[];
+		}>;
+		/**
+		 * Generate Jupyter installation instructions
+		 *
+		 * @param caps - Jupyter capabilities (to determine conda vs pip)
+		 * @param indent - Optional indentation string (default: "")
+		 * @returns Installation message with appropriate package manager
+		 */
+		installationMessage: (caps: JupyterCapabilities, indent?: string) => string;
+		/**
+		 * Check for and generate warning about unactivated Python environments
+		 *
+		 * @param caps - Jupyter capabilities (to check if python is from venv)
+		 * @param indent - Optional indentation string (default: "")
+		 * @returns Warning message if unactivated env found, undefined otherwise
+		 */
+		unactivatedEnvMessage: (caps: JupyterCapabilities, indent?: string) => string | undefined;
+		/**
+		 * Generate Python installation instructions
+		 *
+		 * @param indent - Optional indentation string (default: "")
 		 * @returns Installation message
 		 */
-		installationMessage: (python: string) => string;
-		/**
-		 * Generate message about unactivated environment
-		 *
-		 * @returns Message about unactivated environment
-		 */
-		unactivatedEnvMessage: () => string;
-		/**
-		 * Generate message about Python installation
-		 *
-		 * @returns Message about Python installation
-		 */
-		pythonInstallationMessage: () => string;
+		pythonInstallationMessage: (indent?: string) => string;
 	};
 	/**
 	 * Format detection utilities
@@ -1065,6 +1175,20 @@ export interface QuartoAPI {
 		 */
 		isQmdFile: (file: string) => boolean;
 		/**
+		 * Get the standard supporting files directory name for an input file
+		 *
+		 * Returns the conventional `{stem}_files` directory name where Quarto
+		 * stores supporting resources (images, data files, etc.) for a document.
+		 *
+		 * @param input - Input file path
+		 * @returns Directory name in format `{stem}_files`
+		 * @example
+		 * ```typescript
+		 * inputFilesDir("/path/to/document.qmd") // returns "document_files"
+		 * ```
+		 */
+		inputFilesDir: (input: string) => string;
+		/**
 		 * Get platform-specific user data directory for Quarto
 		 *
 		 * Returns the appropriate data directory based on platform:
@@ -1146,6 +1270,17 @@ export interface QuartoAPI {
 		 * @returns Global TempContext instance
 		 */
 		tempContext: () => TempContext;
+		/**
+		 * Test-render a document for validation during check operations
+		 *
+		 * Creates a temporary file with the provided content, renders it with
+		 * appropriate engine settings, and returns success/failure status.
+		 * Used by checkInstallation implementations to verify engines work.
+		 *
+		 * @param options - Check render options with content and services
+		 * @returns Promise resolving to render result with success status
+		 */
+		checkRender: (options: CheckRenderOptions) => Promise<CheckRenderResult>;
 	};
 	/**
 	 * Text processing utilities
@@ -1197,6 +1332,31 @@ export interface QuartoAPI {
 		 * @returns YAML formatted string
 		 */
 		asYamlText: (metadata: Metadata) => string;
+	};
+	/**
+	 * Console and UI utilities
+	 */
+	console: {
+		/**
+		 * Execute an async operation with a spinner displayed in the console
+		 *
+		 * Shows a spinner with a message while the operation runs, then displays
+		 * a completion message when done.
+		 *
+		 * @param options - Spinner display options
+		 * @param fn - Async function to execute
+		 * @returns Promise resolving to the function's return value
+		 */
+		withSpinner: <T>(options: SpinnerOptions, fn: () => Promise<T>) => Promise<T>;
+		/**
+		 * Display a completion message in the console
+		 *
+		 * Shows a message with a checkmark indicator (or equivalent) to indicate
+		 * successful completion of an operation.
+		 *
+		 * @param message - Message to display
+		 */
+		completeMessage: (message: string) => void;
 	};
 	/**
 	 * Cryptographic utilities
@@ -1358,12 +1518,30 @@ export interface ExecutionEngineDiscovery {
 	 */
 	ignoreDirs?: () => string[] | undefined;
 	/**
+	 * Semver range specifying the minimum required Quarto version for this engine
+	 * Examples: ">= 1.6.0", "^1.5.0", "1.*"
+	 *
+	 * When specified, Quarto will check at engine registration time whether the
+	 * current version satisfies this requirement. If not, an error will be thrown.
+	 */
+	quartoRequired?: string;
+	/**
 	 * Populate engine-specific CLI commands (optional)
 	 * Called at module initialization to register commands like 'quarto enginename status'
 	 *
 	 * @param command - The CLI command to populate with subcommands
 	 */
 	populateCommand?: (command: Command) => void;
+	/**
+	 * Check installation and capabilities for this engine (optional)
+	 * Used by `quarto check <engine-name>` command
+	 *
+	 * Engines implementing this method will automatically be available as targets
+	 * for the check command (e.g., `quarto check jupyter`, `quarto check knitr`).
+	 *
+	 * @param conf - Check configuration with output settings and services
+	 */
+	checkInstallation?: (conf: CheckConfiguration) => Promise<void>;
 	/**
 	 * Launch a dynamic execution engine with project context
 	 * This is called when the engine is needed for execution
