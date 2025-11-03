@@ -697,6 +697,18 @@ export interface TempContext {
 	onCleanup: (handler: VoidFunction) => void;
 }
 /**
+ * Console and UI types for Quarto
+ */
+/**
+ * Options for displaying a spinner in the console
+ */
+export interface SpinnerOptions {
+	/** Message to display with the spinner (or function that returns message) */
+	message: string | (() => string);
+	/** Message to display when done, or false to hide, or true to keep original message */
+	doneMessage?: string | boolean;
+}
+/**
  * Global Quarto API interface
  */
 export interface QuartoAPI {
@@ -1201,6 +1213,31 @@ export interface QuartoAPI {
 		 * @returns YAML formatted string
 		 */
 		asYamlText: (metadata: Metadata) => string;
+	};
+	/**
+	 * Console and UI utilities
+	 */
+	console: {
+		/**
+		 * Execute an async operation with a spinner displayed in the console
+		 *
+		 * Shows a spinner with a message while the operation runs, then displays
+		 * a completion message when done.
+		 *
+		 * @param options - Spinner display options
+		 * @param fn - Async function to execute
+		 * @returns Promise resolving to the function's return value
+		 */
+		withSpinner: <T>(options: SpinnerOptions, fn: () => Promise<T>) => Promise<T>;
+		/**
+		 * Display a completion message in the console
+		 *
+		 * Shows a message with a checkmark indicator (or equivalent) to indicate
+		 * successful completion of an operation.
+		 *
+		 * @param message - Message to display
+		 */
+		completeMessage: (message: string) => void;
 	};
 	/**
 	 * Cryptographic utilities
