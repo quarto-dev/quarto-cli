@@ -39,8 +39,36 @@ import { ensureFileInformationCache } from "../project/project-shared.ts";
 import { engineProjectContext } from "../project/engine-project-context.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { quartoAPI } from "../core/quarto-api.ts";
+import { satisfies } from "semver/mod.ts";
+import { quartoConfig } from "../core/quarto.ts";
 
 const kEngines: Map<string, ExecutionEngineDiscovery> = new Map();
+
+/**
+ * Check if an engine's Quarto version requirement is satisfied
+ * @param engine The engine to check
+ * @throws Error if the version requirement is not met or is invalid
+ */
+function checkEngineVersionRequirement(engine: ExecutionEngineDiscovery): void {
+  if (engine.quartoRequired) {
+    const ourVersion = quartoConfig.version();
+    try {
+      if (!satisfies(ourVersion, engine.quartoRequired)) {
+        throw new Error(
+          `Execution engine '${engine.name}' requires Quarto ${engine.quartoRequired}, ` +
+          `but you have ${ourVersion}. Please upgrade Quarto to use this engine.`,
+        );
+      }
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("Invalid")) {
+        throw new Error(
+          `Execution engine '${engine.name}' has invalid version constraint: ${engine.quartoRequired}`,
+        );
+      }
+      throw e;
+    }
+  }
+}
 
 export function executionEngines(): ExecutionEngineDiscovery[] {
   return [...kEngines.values()];
@@ -65,6 +93,10 @@ export function registerExecutionEngine(engine: ExecutionEngineDiscovery) {
   if (kEngines.has(engine.name)) {
     throw new Error(`Execution engine ${engine.name} already registered`);
   }
+
+  // Check if engine's Quarto version requirement is satisfied
+  checkEngineVersionRequirement(engine);
+
   kEngines.set(engine.name, engine);
   if (engine.init) {
     engine.init(quartoAPI);
@@ -175,6 +207,10 @@ async function reorderEngines(project: ProjectContext) {
       try {
         const extEngine = (await import(engine.path))
           .default as ExecutionEngineDiscovery;
+
+        // Check if engine's Quarto version requirement is satisfied
+        checkEngineVersionRequirement(extEngine);
+
         userSpecifiedOrder.push(extEngine.name);
         kEngines.set(extEngine.name, extEngine);
         if (extEngine.init) {
