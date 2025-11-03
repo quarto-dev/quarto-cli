@@ -9,7 +9,7 @@ import { satisfies } from "semver/mod.ts";
 
 import { existsSync } from "../../deno_ral/fs.ts";
 
-import { error } from "../../deno_ral/log.ts";
+import { error, info } from "../../deno_ral/log.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -39,6 +39,7 @@ import {
   JupyterExecuteOptions,
 } from "./jupyter-kernel.ts";
 import {
+  JupyterCapabilities,
   JupyterKernelspec,
   JupyterNotebook,
   JupyterWidgetDependencies,
@@ -73,6 +74,18 @@ import { kJupyterPercentScriptExtensions } from "./percent.ts";
 import {
   inputFilesDir,
 } from "../../core/render.ts";
+import type { CheckConfiguration } from "../../command/check/check.ts";
+import { render } from "../../command/render/render-shared.ts";
+import { completeMessage, withSpinner } from "../../core/console.ts";
+import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
+import { jupyterKernelspecForLanguage } from "../../core/jupyter/kernels.ts";
+import {
+  jupyterCapabilitiesJson,
+  jupyterCapabilitiesMessage,
+  jupyterInstallationMessage,
+  jupyterUnactivatedEnvMessage,
+  pythonInstallationMessage,
+} from "../../core/jupyter/jupyter-shared.ts";
 
 export const jupyterEngineDiscovery: ExecutionEngineDiscovery = {
   // we don't need init() because we use Quarto API directly
@@ -116,6 +129,128 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery = {
   generatesFigures: true,
   ignoreDirs: () => {
     return ["venv", "env"];
+  },
+
+  checkInstallation: async (conf: CheckConfiguration) => {
+    const kIndent = "      ";
+
+    // Helper functions (inline)
+    const checkCompleteMessage = (message: string) => {
+      if (!conf.jsonResult) {
+        completeMessage(message);
+      }
+    };
+    const checkInfoMsg = (message: string) => {
+      if (!conf.jsonResult) {
+        info(message);
+      }
+    };
+
+    // Render check helper (inline)
+    const checkJupyterRender = async () => {
+      const { services } = conf;
+      const json: Record<string, unknown> = {};
+      if (conf.jsonResult) {
+        (conf.jsonResult.render as Record<string, unknown>).jupyter = json;
+      }
+      const qmdPath = services.temp.createFile({ suffix: "check.qmd" });
+      Deno.writeTextFileSync(
+        qmdPath,
+        `
+---
+title: "Title"
+---
+
+## Header
+
+\`\`\`{python}
+1 + 1
+\`\`\`
+`,
+      );
+      const result = await render(qmdPath, {
+        services,
+        flags: { quiet: true, executeDaemon: 0 },
+      });
+      if (result.error) {
+        if (!conf.jsonResult) {
+          throw result.error;
+        } else {
+          json["error"] = result.error;
+        }
+      } else {
+        json["ok"] = true;
+      }
+    };
+
+    // Main check logic
+    const kMessage = "Checking Python 3 installation....";
+    const jupyterJson: Record<string, unknown> = {};
+    if (conf.jsonResult) {
+      (conf.jsonResult.tools as Record<string, unknown>).jupyter = jupyterJson;
+    }
+    let caps: JupyterCapabilities | undefined;
+    if (conf.jsonResult) {
+      caps = await jupyterCapabilities();
+    } else {
+      await withSpinner({
+        message: kMessage,
+        doneMessage: false,
+      }, async () => {
+        caps = await jupyterCapabilities();
+      });
+    }
+    if (caps) {
+      checkCompleteMessage(kMessage + "OK");
+      if (conf.jsonResult) {
+        jupyterJson["capabilities"] = await jupyterCapabilitiesJson(caps);
+      } else {
+        checkInfoMsg(await jupyterCapabilitiesMessage(caps, kIndent));
+      }
+      checkInfoMsg("");
+      if (caps.jupyter_core) {
+        if (await jupyterKernelspecForLanguage("python")) {
+          const kJupyterMessage = "Checking Jupyter engine render....";
+          if (conf.jsonResult) {
+            await checkJupyterRender();
+          } else {
+            await withSpinner({
+              message: kJupyterMessage,
+              doneMessage: kJupyterMessage + "OK\n",
+            }, async () => {
+              await checkJupyterRender();
+            });
+          }
+        } else {
+          jupyterJson["kernels"] = [];
+          checkInfoMsg(
+            kIndent + "NOTE: No Jupyter kernel for Python found",
+          );
+          checkInfoMsg("");
+        }
+      } else {
+        const installMessage = jupyterInstallationMessage(caps, kIndent);
+        checkInfoMsg(installMessage);
+        checkInfoMsg("");
+        jupyterJson["installed"] = false;
+        jupyterJson["how-to-install"] = installMessage;
+        const envMessage = jupyterUnactivatedEnvMessage(caps, kIndent);
+        if (envMessage) {
+          checkInfoMsg(envMessage);
+          checkInfoMsg("");
+          jupyterJson["env"] = {
+            "warning": envMessage,
+          };
+        }
+      }
+    } else {
+      checkCompleteMessage(kMessage + "(None)\n");
+      const msg = pythonInstallationMessage(kIndent);
+      jupyterJson["installed"] = false;
+      jupyterJson["how-to-install-python"] = msg;
+      checkInfoMsg(msg);
+      checkInfoMsg("");
+    }
   },
 
   // Launch method will return an instance with context
