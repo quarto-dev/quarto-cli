@@ -2,49 +2,41 @@
 
 // Import types from quarto-cli, not quarto-types
 import { MappedString } from "./lib/text-types.ts";
-import { Format, Metadata, FormatPandoc } from "../config/types.ts";
+import { Format, FormatPandoc, Metadata } from "../config/types.ts";
 import { PartitionedMarkdown } from "./pandoc/types.ts";
 import type { EngineProjectContext } from "../project/types.ts";
 import type {
+  JupyterCapabilities,
+  JupyterKernelspec,
   JupyterNotebook,
   JupyterToMarkdownOptions,
   JupyterToMarkdownResult,
   JupyterWidgetDependencies,
-  JupyterKernelspec,
-  JupyterCapabilities,
 } from "./jupyter/types.ts";
 import {
   isJupyterNotebook,
   jupyterAssets,
-  jupyterToMarkdown,
-  jupyterKernelspecFromMarkdown,
-  quartoMdToJupyter,
   jupyterFromJSON,
+  jupyterKernelspecFromMarkdown,
+  jupyterToMarkdown,
   kJupyterNotebookExtensions,
+  quartoMdToJupyter,
 } from "./jupyter/jupyter.ts";
 import {
+  jupyterNotebookFiltered,
   markdownFromNotebookFile,
   markdownFromNotebookJSON,
-  jupyterNotebookFiltered,
 } from "./jupyter/jupyter-filters.ts";
-import {
-  includesForJupyterWidgetDependencies,
-} from "./jupyter/widgets.ts";
-import {
-  pythonExec,
-} from "./jupyter/exec.ts";
-import {
-  jupyterCapabilities,
-} from "./jupyter/capabilities.ts";
+import { includesForJupyterWidgetDependencies } from "./jupyter/widgets.ts";
+import { pythonExec } from "./jupyter/exec.ts";
+import { jupyterCapabilities } from "./jupyter/capabilities.ts";
 import {
   jupyterCapabilitiesMessage,
   jupyterInstallationMessage,
   jupyterUnactivatedEnvMessage,
   pythonInstallationMessage,
 } from "./jupyter/jupyter-shared.ts";
-import type {
-  JupyterNotebookAssetPaths,
-} from "./jupyter/jupyter.ts";
+import type { JupyterNotebookAssetPaths } from "./jupyter/jupyter.ts";
 import type { PandocIncludes, PostProcessOptions } from "../execute/types.ts";
 import {
   isJupyterPercentScript,
@@ -57,141 +49,80 @@ import { postProcessRestorePreservedHtml } from "../execute/engine-shared.ts";
 import { onCleanup } from "../core/cleanup.ts";
 import { quartoDataDir } from "../core/appdirs.ts";
 import {
-  executeResultIncludes,
   executeResultEngineDependencies,
+  executeResultIncludes,
 } from "../execute/jupyter/jupyter.ts";
 
-/**
- * Preview server interface
- */
-export type { PreviewServer };
-
-/**
- * Temporary context for managing temporary files and directories
- */
-export type { TempContext };
-
-/**
- * Global Quarto API interface
- */
 export interface QuartoAPI {
-  /**
-   * Markdown processing utilities using regex patterns
-   */
   markdownRegex: {
-    /**
-     * Extract and parse YAML frontmatter from markdown
-     *
-     * @param markdown - Markdown content with YAML frontmatter
-     * @returns Parsed metadata object
-     */
     extractYaml: (markdown: string) => Metadata;
-
-    /**
-     * Split markdown into components (YAML, heading, content)
-     *
-     * @param markdown - Markdown content
-     * @returns Partitioned markdown with yaml, heading, and content sections
-     */
     partition: (markdown: string) => PartitionedMarkdown;
-
-    /**
-     * Extract programming languages from code blocks
-     *
-     * @param markdown - Markdown content to analyze
-     * @returns Set of language identifiers found in fenced code blocks
-     */
     getLanguages: (markdown: string) => Set<string>;
+    breakQuartoMd: (
+      src: string | MappedString,
+      validate?: boolean,
+      lenient?: boolean,
+    ) => Promise<QuartoMdChunks>;
   };
-
-  /**
-   * MappedString utilities for source location tracking
-   */
   mappedString: {
-    /**
-     * Create a mapped string from plain text
-     *
-     * @param text - Text content
-     * @param fileName - Optional filename for source tracking
-     * @returns MappedString with identity mapping
-     */
     fromString: (text: string, fileName?: string) => MappedString;
-
-    /**
-     * Read a file and create a mapped string
-     *
-     * @param path - Path to the file to read
-     * @returns MappedString with file content and source information
-     */
     fromFile: (path: string) => MappedString;
-
-    /**
-     * Normalize newlines while preserving source mapping
-     *
-     * @param markdown - MappedString to normalize
-     * @returns MappedString with \r\n converted to \n
-     */
     normalizeNewlines: (markdown: MappedString) => MappedString;
-
-    /**
-     * Split a MappedString into lines
-     *
-     * @param str - MappedString to split
-     * @param keepNewLines - Whether to keep newline characters (default: false)
-     * @returns Array of MappedStrings, one per line
-     */
     splitLines: (str: MappedString, keepNewLines?: boolean) => MappedString[];
-
-    /**
-     * Convert character offset to line/column coordinates
-     *
-     * @param str - MappedString to query
-     * @param offset - Character offset to convert
-     * @returns Line and column numbers (1-indexed)
-     */
-    indexToLineCol: (str: MappedString, offset: number) => { line: number; column: number };
+    indexToLineCol: (
+      str: MappedString,
+      offset: number,
+    ) => { line: number; column: number };
   };
-
-  /**
-   * Jupyter notebook integration utilities
-   */
   jupyter: {
-    // 1. Notebook Detection & Introspection
     isJupyterNotebook: (file: string) => boolean;
     isPercentScript: (file: string, extensions?: string[]) => boolean;
     notebookExtensions: string[];
-    kernelspecFromMarkdown: (markdown: string, project?: EngineProjectContext) => Promise<[JupyterKernelspec, Metadata]>;
+    kernelspecFromMarkdown: (
+      markdown: string,
+      project?: EngineProjectContext,
+    ) => Promise<[JupyterKernelspec, Metadata]>;
     fromJSON: (nbJson: string) => JupyterNotebook;
-
-    // 2. Notebook Conversion
     toMarkdown: (
       nb: JupyterNotebook,
-      options: JupyterToMarkdownOptions
+      options: JupyterToMarkdownOptions,
     ) => Promise<JupyterToMarkdownResult>;
-    markdownFromNotebookFile: (file: string, format?: Format) => Promise<string>;
+    markdownFromNotebookFile: (
+      file: string,
+      format?: Format,
+    ) => Promise<string>;
     markdownFromNotebookJSON: (nb: JupyterNotebook) => string;
     percentScriptToMarkdown: (file: string) => string;
-    quartoMdToJupyter: (markdown: string, includeIds: boolean, project?: EngineProjectContext) => Promise<JupyterNotebook>;
-
-    // 3. Notebook Processing & Assets
+    quartoMdToJupyter: (
+      markdown: string,
+      includeIds: boolean,
+      project?: EngineProjectContext,
+    ) => Promise<JupyterNotebook>;
     notebookFiltered: (input: string, filters: string[]) => Promise<string>;
     assets: (input: string, to?: string) => JupyterNotebookAssetPaths;
-    widgetDependencyIncludes: (deps: JupyterWidgetDependencies[], tempDir: string) => { inHeader?: string; afterBody?: string };
-    resultIncludes: (tempDir: string, dependencies?: JupyterWidgetDependencies) => PandocIncludes;
-    resultEngineDependencies: (dependencies?: JupyterWidgetDependencies) => Array<JupyterWidgetDependencies> | undefined;
-
-    // 4. Runtime & Environment
+    widgetDependencyIncludes: (
+      deps: JupyterWidgetDependencies[],
+      tempDir: string,
+    ) => { inHeader?: string; afterBody?: string };
+    resultIncludes: (
+      tempDir: string,
+      dependencies?: JupyterWidgetDependencies,
+    ) => PandocIncludes;
+    resultEngineDependencies: (
+      dependencies?: JupyterWidgetDependencies,
+    ) => Array<JupyterWidgetDependencies> | undefined;
     pythonExec: (kernelspec?: JupyterKernelspec) => Promise<string[]>;
-    capabilities: (kernelspec?: JupyterKernelspec) => Promise<JupyterCapabilities | undefined>;
-    capabilitiesMessage: (caps: JupyterCapabilities, indent?: string) => Promise<string>;
+    capabilities: (
+      kernelspec?: JupyterKernelspec,
+    ) => Promise<JupyterCapabilities | undefined>;
+    capabilitiesMessage: (
+      caps: JupyterCapabilities,
+      indent?: string,
+    ) => Promise<string>;
     installationMessage: (caps: JupyterCapabilities) => string;
     unactivatedEnvMessage: (caps: JupyterCapabilities) => string | undefined;
     pythonInstallationMessage: () => string;
   };
-
-  /**
-   * Format detection utilities
-   */
   format: {
     isHtmlCompatible: (format: Format) => boolean;
     isIpynbOutput: (format: FormatPandoc) => boolean;
@@ -200,12 +131,11 @@ export interface QuartoAPI {
     isPresentationOutput: (format: FormatPandoc) => boolean;
     isHtmlDashboardOutput: (format?: string) => boolean;
     isServerShiny: (format?: Format) => boolean;
-    isServerShinyPython: (format: Format, engine: string | undefined) => boolean;
+    isServerShinyPython: (
+      format: Format,
+      engine: string | undefined,
+    ) => boolean;
   };
-
-  /**
-   * Path manipulation utilities
-   */
   path: {
     absolute: (path: string | URL) => string;
     toForwardSlashes: (path: string) => string;
@@ -215,10 +145,6 @@ export interface QuartoAPI {
     isQmdFile: (file: string) => boolean;
     dataDir: (subdir?: string, roaming?: boolean) => string;
   };
-
-  /**
-   * System and environment detection utilities
-   */
   system: {
     isInteractiveSession: () => boolean;
     runningInCI: () => boolean;
@@ -228,7 +154,7 @@ export interface QuartoAPI {
       mergeOutput?: "stderr>stdout" | "stdout>stderr",
       stderrFilter?: (output: string) => string,
       respectStreams?: boolean,
-      timeout?: number
+      timeout?: number,
     ) => Promise<ProcessResult>;
     runExternalPreviewServer: (options: {
       cmd: string[];
@@ -239,32 +165,22 @@ export interface QuartoAPI {
     onCleanup: (handler: () => void | Promise<void>) => void;
     tempContext: () => TempContext;
   };
-
-  /**
-   * Markdown processing utilities
-   */
-  markdown: {
-    asYamlText: (metadata: Metadata) => string;
-    breakQuartoMd: (src: string | MappedString, validate?: boolean, lenient?: boolean) => Promise<QuartoMdChunks>;
-  };
-
-  /**
-   * Text processing utilities
-   */
   text: {
     lines: (text: string) => string[];
-    trimEmptyLines: (lines: string[], trim?: "leading" | "trailing" | "all") => string[];
+    trimEmptyLines: (
+      lines: string[],
+      trim?: "leading" | "trailing" | "all",
+    ) => string[];
     postProcessRestorePreservedHtml: (options: PostProcessOptions) => void;
-    lineColToIndex: (text: string) => (position: { line: number; column: number }) => number;
+    lineColToIndex: (
+      text: string,
+    ) => (position: { line: number; column: number }) => number;
     executeInlineCodeHandler: (
       language: string,
-      exec: (expr: string) => string | undefined
+      exec: (expr: string) => string | undefined,
     ) => (code: string) => string;
+    asYamlText: (metadata: Metadata) => string;
   };
-
-  /**
-   * Cryptographic utilities
-   */
   crypto: {
     md5Hash: (content: string) => string;
   };
@@ -276,23 +192,23 @@ import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { languagesInMarkdown } from "../execute/engine-shared.ts";
 import {
   asMappedString,
-  mappedNormalizeNewlines,
-  mappedLines,
   mappedIndexToLineCol,
+  mappedLines,
+  mappedNormalizeNewlines,
 } from "../core/lib/mapped-text.ts";
 import { mappedStringFromFile } from "../core/mapped-text.ts";
 import {
   isHtmlCompatible,
+  isHtmlDashboardOutput,
   isIpynbOutput,
   isLatexOutput,
   isMarkdownOutput,
   isPresentationOutput,
-  isHtmlDashboardOutput,
 } from "../config/format.ts";
 import {
+  dirAndStem,
   normalizePath,
   pathWithForwardSlashes,
-  dirAndStem,
 } from "../core/path.ts";
 import { quartoRuntimeDir } from "../core/appdirs.ts";
 import { resourcePath } from "../core/resources.ts";
@@ -304,8 +220,11 @@ import type { ExecProcessOptions } from "../core/process.ts";
 import type { ProcessResult } from "../core/process-types.ts";
 import { asYamlText } from "../core/jupyter/jupyter-fixups.ts";
 import { breakQuartoMd } from "../core/lib/break-quarto-md.ts";
-import type { QuartoMdChunks, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
-import { lines, trimEmptyLines, lineColToIndex } from "../core/lib/text.ts";
+import type {
+  QuartoMdCell,
+  QuartoMdChunks,
+} from "../core/lib/break-quarto-md.ts";
+import { lineColToIndex, lines, trimEmptyLines } from "../core/lib/text.ts";
 import { md5HashSync } from "../core/hash.ts";
 import { executeInlineCodeHandler } from "../core/execute-inline.ts";
 import { globalTempContext } from "../core/temp.ts";
@@ -318,7 +237,8 @@ export const quartoAPI: QuartoAPI = {
   markdownRegex: {
     extractYaml: readYamlFromMarkdown,
     partition: partitionMarkdown,
-    getLanguages: languagesInMarkdown
+    getLanguages: languagesInMarkdown,
+    breakQuartoMd,
   },
 
   mappedString: {
@@ -353,7 +273,10 @@ export const quartoAPI: QuartoAPI = {
     notebookFiltered: jupyterNotebookFiltered,
     assets: jupyterAssets,
     widgetDependencyIncludes: includesForJupyterWidgetDependencies,
-    resultIncludes: (tempDir: string, dependencies?: JupyterWidgetDependencies) => {
+    resultIncludes: (
+      tempDir: string,
+      dependencies?: JupyterWidgetDependencies,
+    ) => {
       return executeResultIncludes(tempDir, dependencies) || {};
     },
     resultEngineDependencies: (dependencies?: JupyterWidgetDependencies) => {
@@ -410,20 +333,16 @@ export const quartoAPI: QuartoAPI = {
     tempContext: globalTempContext,
   },
 
-  markdown: {
-    asYamlText,
-    breakQuartoMd,
-  },
-
   text: {
     lines,
     trimEmptyLines,
     postProcessRestorePreservedHtml,
     lineColToIndex,
     executeInlineCodeHandler,
+    asYamlText,
   },
 
   crypto: {
     md5Hash: md5HashSync,
-  }
+  },
 };
