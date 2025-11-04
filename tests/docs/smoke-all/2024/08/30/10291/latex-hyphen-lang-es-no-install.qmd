@@ -1,11 +1,14 @@
 ---
 format: pdf
-# new babel support in Pandoc 3.6.3 solves missing package when specific lang is used.
 lang: es
 latex-auto-install: false
 _quarto:
   tests:
-    pdf: default
+    pdf:
+      noErrors: true 
+      printsMessage:
+        - WARN
+        - 'missing hyphenation.*hyphen-spanish'
 ---
 
 ```{r}
