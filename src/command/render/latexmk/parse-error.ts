@@ -133,7 +133,7 @@ export function findMissingHyphenationFiles(logText: string) {
   const babelWarningRegex = /^Package babel Warning:/m;
   const hasWarning = logText.match(babelWarningRegex);
   if (hasWarning) {
-    const languageRegex = /^\(babel\).* language `(\S+)'.*$/m;
+    const languageRegex = /^\(babel\).* language [`'](\S+)[`'].*$/m;
     const languageMatch = logText.match(languageRegex);
     if (languageMatch) {
       return filterLang(languageMatch[1]);
