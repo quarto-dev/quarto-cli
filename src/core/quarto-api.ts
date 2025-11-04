@@ -53,6 +53,7 @@ import {
   executeResultIncludes,
 } from "../execute/jupyter/jupyter.ts";
 import { completeMessage, withSpinner } from "./console.ts";
+import { checkRender } from "../command/check/check-render.ts";
 
 export interface QuartoAPI {
   markdownRegex: {
@@ -165,6 +166,17 @@ export interface QuartoAPI {
     }) => PreviewServer;
     onCleanup: (handler: () => void | Promise<void>) => void;
     tempContext: () => TempContext;
+    checkRender: (options: {
+      content: string;
+      language: string;
+      services: {
+        temp: TempContext;
+        cleanup: () => void;
+        extension?: unknown;
+        notebook?: unknown;
+        lifetime?: unknown;
+      };
+    }) => Promise<{ success: boolean; error?: Error }>;
   };
   text: {
     lines: (text: string) => string[];
@@ -339,6 +351,7 @@ export const quartoAPI: QuartoAPI = {
     runExternalPreviewServer,
     onCleanup,
     tempContext: globalTempContext,
+    checkRender,
   },
 
   text: {

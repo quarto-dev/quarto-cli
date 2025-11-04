@@ -50,3 +50,28 @@ export interface CheckConfiguration {
   /** JSON result object (undefined if not outputting JSON) */
   jsonResult: Record<string, unknown> | undefined;
 }
+
+/**
+ * Options for test-rendering a document during check operations
+ */
+export interface CheckRenderOptions {
+  /** Markdown content to render */
+  content: string;
+
+  /** Language identifier (e.g., "python", "r", "julia") */
+  language: string;
+
+  /** Render services for temp file management */
+  services: CheckRenderServiceWithLifetime;
+}
+
+/**
+ * Result of a check render operation
+ */
+export interface CheckRenderResult {
+  /** Whether the render succeeded */
+  success: boolean;
+
+  /** Error if render failed */
+  error?: Error;
+}
