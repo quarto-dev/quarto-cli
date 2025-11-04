@@ -28,6 +28,10 @@ import type {
   TempContext,
 } from "./system.ts";
 import type { SpinnerOptions } from "./console.ts";
+import type {
+  CheckRenderOptions,
+  CheckRenderResult,
+} from "./check.ts";
 import type { QuartoMdChunks, QuartoMdCell } from "./markdown.ts";
 
 /**
@@ -583,6 +587,18 @@ export interface QuartoAPI {
      * @returns Global TempContext instance
      */
     tempContext: () => TempContext;
+
+    /**
+     * Test-render a document for validation during check operations
+     *
+     * Creates a temporary file with the provided content, renders it with
+     * appropriate engine settings, and returns success/failure status.
+     * Used by checkInstallation implementations to verify engines work.
+     *
+     * @param options - Check render options with content and services
+     * @returns Promise resolving to render result with success status
+     */
+    checkRender: (options: CheckRenderOptions) => Promise<CheckRenderResult>;
   };
 
   /**
