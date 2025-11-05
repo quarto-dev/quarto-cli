@@ -6,7 +6,7 @@
 
 import { Command } from "cliffy/command/mod.ts";
 import { gitCmdOutput, gitCmds } from "../../../core/git.ts";
-import { info, error } from "../../../deno_ral/log.ts";
+import { error, info } from "../../../deno_ral/log.ts";
 
 interface SubtreeConfig {
   name: string;
@@ -24,9 +24,9 @@ interface Author {
 // Subtree configurations - update these with actual repositories
 const SUBTREES: SubtreeConfig[] = [
   {
-    name: "example-filter",
-    prefix: "src/resources/filters/example-filter",
-    remoteUrl: "https://github.com/example/example-filter",
+    name: "julia-engine",
+    prefix: "src/resources/extensions/julia-engine",
+    remoteUrl: "https://github.com/gordonwoodhull/quarto-julia-engine.git",
     remoteBranch: "main",
   },
   // Add more subtrees here as needed
@@ -153,7 +153,9 @@ async function pullSubtree(
   const coAuthors = authors.slice(1);
 
   info(
-    `Primary author: ${formatAuthor(primaryAuthor)} (${primaryAuthor.count} commit(s))`,
+    `Primary author: ${
+      formatAuthor(primaryAuthor)
+    } (${primaryAuthor.count} commit(s))`,
   );
 
   // Do the squash merge
