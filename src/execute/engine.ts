@@ -34,7 +34,6 @@ import { mergeConfigs } from "../core/config.ts";
 import { ProjectContext } from "../project/types.ts";
 import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
 import { gitignoreEntries } from "../project/project-gitignore.ts";
-import { juliaEngineDiscovery } from "./julia.ts";
 import { ensureFileInformationCache } from "../project/project-shared.ts";
 import { engineProjectContext } from "../project/engine-project-context.ts";
 import { Command } from "cliffy/command/mod.ts";
@@ -56,7 +55,7 @@ function checkEngineVersionRequirement(engine: ExecutionEngineDiscovery): void {
       if (!satisfies(ourVersion, engine.quartoRequired)) {
         throw new Error(
           `Execution engine '${engine.name}' requires Quarto ${engine.quartoRequired}, ` +
-          `but you have ${ourVersion}. Please upgrade Quarto to use this engine.`,
+            `but you have ${ourVersion}. Please upgrade Quarto to use this engine.`,
         );
       }
     } catch (e) {
@@ -86,8 +85,6 @@ registerExecutionEngine(jupyterEngineDiscovery);
 
 // Register markdown engine with discovery interface
 registerExecutionEngine(markdownEngineDiscovery);
-
-registerExecutionEngine(juliaEngineDiscovery);
 
 export function registerExecutionEngine(engine: ExecutionEngineDiscovery) {
   if (kEngines.has(engine.name)) {

@@ -277,6 +277,60 @@ export function filterExtensions(
   }
 }
 
+// Read bundled extensions with support for three patterns:
+// 1. Organization directories with raw extensions (quarto/kbd/)
+// 2. Top-level orgless raw extensions (my-extension/)
+// 3. Top-level git subtree wrappers (julia-engine/_extensions/PumasAI/julia-engine/)
+const readBundledExtensions = async (bundledDir: string): Promise<Extension[]> => {
+  const extensions: Extension[] = [];
+
+  const topLevelDirs = safeExistsSync(bundledDir) &&
+      Deno.statSync(bundledDir).isDirectory
+    ? Deno.readDirSync(bundledDir)
+    : [];
+
+  for (const topLevelDir of topLevelDirs) {
+    if (!topLevelDir.isDirectory) continue;
+
+    const dirName = topLevelDir.name;
+    const dirPath = join(bundledDir, dirName);
+    const extFile = extensionFile(dirPath);
+
+    if (extFile) {
+      // Pattern 2: Top-level orgless raw extension
+      const extensionId = { name: dirName, organization: undefined };
+      const extension = await readExtension(extensionId, extFile);
+      extensions.push(extension);
+    } else {
+      // Check for Pattern 3: Git subtree wrapper with _extensions/ subdirectory
+      const subtreeExtensionsPath = join(dirPath, kExtensionDir);
+      if (safeExistsSync(subtreeExtensionsPath)) {
+        // Read extensions preserving their natural organization
+        const exts = await readExtensions(subtreeExtensionsPath);
+        extensions.push(...exts);
+      } else {
+        // Pattern 1: Organization directory - look for raw extensions inside
+        const extensionDirs = Deno.readDirSync(dirPath);
+        for (const extensionDir of extensionDirs) {
+          if (!extensionDir.isDirectory) continue;
+
+          const extensionName = extensionDir.name;
+          const extensionPath = join(dirPath, extensionName);
+          const innerExtFile = extensionFile(extensionPath);
+
+          if (innerExtFile) {
+            const extensionId = { name: extensionName, organization: dirName };
+            const extension = await readExtension(extensionId, innerExtFile);
+            extensions.push(extension);
+          }
+        }
+      }
+    }
+  }
+
+  return extensions;
+};
+
 // Loads all extensions for a given input
 // (note this needs to be sure to return copies from
 // the cache in the event that the objects are mutated)
@@ -287,6 +341,7 @@ const loadExtensions = async (
 ) => {
   const extensionPath = inputExtensionDirs(input, projectDir);
   const allExtensions: Record<string, Extension> = {};
+  const bundledPath = builtinExtensions();
 
   for (const extensionDir of extensionPath) {
     if (cache[extensionDir]) {
@@ -294,7 +349,10 @@ const loadExtensions = async (
         allExtensions[extensionIdString(ext.id)] = cloneDeep(ext);
       });
     } else {
-      const extensions = await readExtensions(extensionDir);
+      // Check if this is the bundled extensions directory
+      const extensions = extensionDir === bundledPath
+        ? await readBundledExtensions(extensionDir)
+        : await readExtensions(extensionDir);
       extensions.forEach((extension) => {
         allExtensions[extensionIdString(extension.id)] = cloneDeep(extension);
       });

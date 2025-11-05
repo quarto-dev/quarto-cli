@@ -17,4 +17,5 @@ export DENO_NO_UPDATE_CHECK=1
 
 # TODO: Consider generating a source map or something to get a good stack
 # Create the Deno bundle
-"$QUARTO_DENO" run --no-check --unstable-kv --unstable-ffi --allow-all --v8-flags=--stack-trace-limit=100 --importmap="${SCRIPT_PATH}/../../src/import_map.json" "$SCRIPT_PATH/bld.ts" $@
+# --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
+"$QUARTO_DENO" run --no-check --unstable-kv --unstable-ffi --allow-all --v8-flags=--enable-experimental-regexp-engine,--stack-trace-limit=100 --importmap="${SCRIPT_PATH}/../../src/import_map.json" "$SCRIPT_PATH/bld.ts" $@
