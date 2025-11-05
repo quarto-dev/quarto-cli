@@ -7,17 +7,17 @@ _quarto:
   tests-on-ci: false
   tests:
     pdf:
-      shouldError: true 
+      noErrors: true
       printsMessage:
-        level: INFO
-        regex: "Unknown option 'spanish'"
+        level: WARN
+        regex: "Possibly missing hyphenation"
 ---
 
 ** This test is to be run manually as we don't want to uninstall and reinstall package in CI**
 
 ```{r}
 #| include: false
-
+#| messages: 'NA'
 # Remove the hyphen package for spanish so that the test is meaningful
 if (tinytex::check_installed("hyphen-spanish")) {
   message("Removing 'hyphen-spanish' package for the render")
