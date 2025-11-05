@@ -899,6 +899,13 @@ export interface QuartoAPI {
 		 */
 		kernelspecFromMarkdown: (markdown: string) => JupyterKernelspec | undefined;
 		/**
+		 * Find a Jupyter kernelspec that supports a given language
+		 *
+		 * @param language - Language to find kernel for (e.g., "python", "julia", "r")
+		 * @returns Promise resolving to matching kernelspec or undefined if not found
+		 */
+		kernelspecForLanguage: (language: string) => Promise<JupyterKernelspec | undefined>;
+		/**
 		 * Convert JSON string to Jupyter notebook
 		 *
 		 * @param nbJson - JSON string containing notebook data
@@ -1006,6 +1013,18 @@ export interface QuartoAPI {
 		 * @returns Promise resolving to formatted capabilities message with indentation
 		 */
 		capabilitiesMessage: (caps: JupyterCapabilities, indent?: string) => Promise<string>;
+		/**
+		 * Generate capabilities with kernels list for JSON output
+		 *
+		 * Enriches capabilities with full kernels array for structured output.
+		 * Used by check command JSON output.
+		 *
+		 * @param caps - Jupyter capabilities
+		 * @returns Promise resolving to capabilities with kernels array
+		 */
+		capabilitiesJson: (caps: JupyterCapabilities) => Promise<JupyterCapabilities & {
+			kernels: JupyterKernelspec[];
+		}>;
 		/**
 		 * Generate Jupyter installation instructions
 		 *
@@ -1155,6 +1174,20 @@ export interface QuartoAPI {
 		 * @returns True if file has .qmd extension
 		 */
 		isQmdFile: (file: string) => boolean;
+		/**
+		 * Get the standard supporting files directory name for an input file
+		 *
+		 * Returns the conventional `{stem}_files` directory name where Quarto
+		 * stores supporting resources (images, data files, etc.) for a document.
+		 *
+		 * @param input - Input file path
+		 * @returns Directory name in format `{stem}_files`
+		 * @example
+		 * ```typescript
+		 * inputFilesDir("/path/to/document.qmd") // returns "document_files"
+		 * ```
+		 */
+		inputFilesDir: (input: string) => string;
 		/**
 		 * Get platform-specific user data directory for Quarto
 		 *

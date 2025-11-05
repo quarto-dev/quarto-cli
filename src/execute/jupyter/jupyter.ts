@@ -71,19 +71,7 @@ interface JupyterTargetData {
 import { quartoAPI as quarto } from "../../core/quarto-api.ts";
 import { MappedString } from "../../core/mapped-text.ts";
 import { kJupyterPercentScriptExtensions } from "./percent.ts";
-import {
-  inputFilesDir,
-} from "../../core/render.ts";
 import type { CheckConfiguration } from "../../command/check/check.ts";
-import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
-import { jupyterKernelspecForLanguage } from "../../core/jupyter/kernels.ts";
-import {
-  jupyterCapabilitiesJson,
-  jupyterCapabilitiesMessage,
-  jupyterInstallationMessage,
-  jupyterUnactivatedEnvMessage,
-  pythonInstallationMessage,
-} from "../../core/jupyter/jupyter-shared.ts";
 
 export const jupyterEngineDiscovery: ExecutionEngineDiscovery = {
   // we don't need init() because we use Quarto API directly
@@ -186,25 +174,25 @@ title: "Title"
     }
     let caps: JupyterCapabilities | undefined;
     if (conf.jsonResult) {
-      caps = await jupyterCapabilities();
+      caps = await quarto.jupyter.capabilities();
     } else {
       await quarto.console.withSpinner({
         message: kMessage,
         doneMessage: false,
       }, async () => {
-        caps = await jupyterCapabilities();
+        caps = await quarto.jupyter.capabilities();
       });
     }
     if (caps) {
       checkCompleteMessage(kMessage + "OK");
       if (conf.jsonResult) {
-        jupyterJson["capabilities"] = await jupyterCapabilitiesJson(caps);
+        jupyterJson["capabilities"] = await quarto.jupyter.capabilitiesJson(caps);
       } else {
-        checkInfoMsg(await jupyterCapabilitiesMessage(caps, kIndent));
+        checkInfoMsg(await quarto.jupyter.capabilitiesMessage(caps, kIndent));
       }
       checkInfoMsg("");
       if (caps.jupyter_core) {
-        if (await jupyterKernelspecForLanguage("python")) {
+        if (await quarto.jupyter.kernelspecForLanguage("python")) {
           const kJupyterMessage = "Checking Jupyter engine render....";
           if (conf.jsonResult) {
             await checkJupyterRender();
@@ -224,12 +212,12 @@ title: "Title"
           checkInfoMsg("");
         }
       } else {
-        const installMessage = jupyterInstallationMessage(caps, kIndent);
+        const installMessage = quarto.jupyter.installationMessage(caps, kIndent);
         checkInfoMsg(installMessage);
         checkInfoMsg("");
         jupyterJson["installed"] = false;
         jupyterJson["how-to-install"] = installMessage;
-        const envMessage = jupyterUnactivatedEnvMessage(caps, kIndent);
+        const envMessage = quarto.jupyter.unactivatedEnvMessage(caps, kIndent);
         if (envMessage) {
           checkInfoMsg(envMessage);
           checkInfoMsg("");
@@ -240,7 +228,7 @@ title: "Title"
       }
     } else {
       checkCompleteMessage(kMessage + "(None)\n");
-      const msg = pythonInstallationMessage(kIndent);
+      const msg = quarto.jupyter.pythonInstallationMessage(kIndent);
       jupyterJson["installed"] = false;
       jupyterJson["how-to-install-python"] = msg;
       checkInfoMsg(msg);
@@ -710,7 +698,7 @@ title: "Title"
         // discover non _files dir resources for server: shiny and amend app.py with them
         if (quarto.format.isServerShiny(file.format)) {
           const [dir] = quarto.path.dirAndStem(file.input);
-          const filesDir = join(dir, inputFilesDir(file.input));
+          const filesDir = join(dir, quarto.path.inputFilesDir(file.input));
           const extraResources = file.resourceFiles
             .filter((resource) => !resource.startsWith(filesDir))
             .map((resource) => relative(dir, resource));
@@ -719,7 +707,7 @@ title: "Title"
           if (existsSync(appScript)) {
             // compute static assets
             const staticAssets = [
-              inputFilesDir(file.input),
+              quarto.path.inputFilesDir(file.input),
               ...extraResources,
             ];
 
