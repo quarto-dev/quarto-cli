@@ -19,6 +19,12 @@ import { testRender } from "./render.ts";
 
 // Update extensions to latest versions before testing
 // Falls back to committed versions on network failure
+//
+// Maintenance note: Committed extension files serve as fallback for offline/CI
+// failure scenarios. They don't need frequent updates since tests always fetch
+// latest versions. When extension-related issues occur, consider updating the
+// committed files to document the working version (see commits c3149a9ba and
+// b8421caf9 for example).
 const updateExtensions = async () => {
   try {
     console.log("Updating quarto-journals extensions to latest versions...");
