@@ -133,7 +133,7 @@ export function findMissingHyphenationFiles(logText: string) {
   const babelWarningRegex = /^Package babel Warning:/m;
   const hasWarning = logText.match(babelWarningRegex);
   if (hasWarning) {
-    const languageRegex = /^\(babel\).* language `(\S+)'.*$/m;
+    const languageRegex = /^\(babel\).* language [`'](\S+)[`'].*$/m;
     const languageMatch = logText.match(languageRegex);
     if (languageMatch) {
       return filterLang(languageMatch[1]);
@@ -283,6 +283,12 @@ const packageMatchers = [
   { regex: /.*! LaTeX Error: File [`']([^']+)' not found.*/g },
   { regex: /.* [fF]ile ['`]?([^' ]+)'? not found.*/g },
   { regex: /.*the language definition file ([^\s]*).*/g },
+  {
+    regex: /.*! Package babel Error: Unknown option [`']([^'`]+)'[.].*/g,
+    filter: (match: string, _text: string) => {
+      return `${match}.ldf`;
+    },
+  },
   { regex: /.* \\(file ([^)]+)\\): cannot open .*/g },
   { regex: /.*file [`']([^']+)' .*is missing.*/g },
   { regex: /.*! CTeX fontset [`']([^']+)' is unavailable.*/g },
