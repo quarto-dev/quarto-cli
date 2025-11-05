@@ -3,21 +3,20 @@ $for(by-author)$
 $if(by-author.affiliations)$
 $if(by-author.affiliations/first)$
 $for(by-author.affiliations/first)$
-\affiliation{$print-affiliation.tex()$}
+\affiliation{$_affiliation.tex()$}
 $endfor$
 $if(by-author.affiliations/rest/first)$
 $for(by-author.affiliations/rest/first)$
-\alsoaffiliation{$print-affiliation.tex()$}
+\affiliation{$_affiliation.tex()$}
 $endfor$
 $endif$
-$if(by-author.affiliations/rest/rest/first)$
-$for(by-author.affiliations/rest/rest/first)$
-\altaffiliation{$print-affiliation.tex()$}
-$endfor$
 $endif$
 $endif$
 
+$if(by-author.note.text)$
+\altaffiliation{$by-author.note.text$}
 $endif$
+
 $if(by-author.email)$
 \email{$by-author.email$}
 $endif$
@@ -30,12 +29,12 @@ $endif$
 $endfor$
 
 $if(abbr)$
-\abbreviations{$abbr$}
+\abbreviations{$journal.abbreviations$}
 $endif$
 
 $if(keywords)$
 \keywords{$keywords$}
 $endif$
 
-\title[$title-short$]{$title-formatted$}
+\title[$title-short$]{$title$}
 \makeatletter
