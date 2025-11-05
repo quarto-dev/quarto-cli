@@ -54,6 +54,7 @@ import {
 } from "../execute/jupyter/jupyter.ts";
 import { completeMessage, withSpinner } from "./console.ts";
 import { checkRender } from "../command/check/check-render.ts";
+import type { RenderServiceWithLifetime } from "../command/render/types.ts";
 
 export interface QuartoAPI {
   markdownRegex: {
@@ -169,13 +170,7 @@ export interface QuartoAPI {
     checkRender: (options: {
       content: string;
       language: string;
-      services: {
-        temp: TempContext;
-        cleanup: () => void;
-        extension?: unknown;
-        notebook?: unknown;
-        lifetime?: unknown;
-      };
+      services: RenderServiceWithLifetime;
     }) => Promise<{ success: boolean; error?: Error }>;
   };
   text: {

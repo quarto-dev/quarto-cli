@@ -5,10 +5,29 @@
  */
 
 import { render } from "../render/render-shared.ts";
-import type {
-  CheckRenderOptions,
-  CheckRenderResult,
-} from "../../../packages/quarto-types/src/check.ts";
+import type { RenderServiceWithLifetime } from "../render/types.ts";
+
+/**
+ * Options for test-rendering a document during check operations
+ */
+export interface CheckRenderOptions {
+  /** Markdown content to render */
+  content: string;
+  /** Language identifier (e.g., "python", "r", "julia") */
+  language: string;
+  /** Render services for temp file management and rendering */
+  services: RenderServiceWithLifetime;
+}
+
+/**
+ * Result of a check render operation
+ */
+export interface CheckRenderResult {
+  /** Whether the render succeeded */
+  success: boolean;
+  /** Error if render failed */
+  error?: Error;
+}
 
 /**
  * Test-render a document for validation during check operations
@@ -29,10 +48,8 @@ export async function checkRender(
   Deno.writeTextFileSync(tempFile, content);
 
   // Render with appropriate flags
-  // Cast services to any to avoid type mismatch - CheckRenderServiceWithLifetime
-  // is a simplified version that contains what render() needs
   const result = await render(tempFile, {
-    services: services as any,
+    services,
     flags: { quiet: true, executeDaemon: 0 },
   });
 

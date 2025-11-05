@@ -75,8 +75,6 @@ import {
   inputFilesDir,
 } from "../../core/render.ts";
 import type { CheckConfiguration } from "../../command/check/check.ts";
-import { render } from "../../command/render/render-shared.ts";
-import { completeMessage, withSpinner } from "../../core/console.ts";
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import { jupyterKernelspecForLanguage } from "../../core/jupyter/kernels.ts";
 import {
@@ -137,7 +135,7 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery = {
     // Helper functions (inline)
     const checkCompleteMessage = (message: string) => {
       if (!conf.jsonResult) {
-        completeMessage(message);
+        quarto.console.completeMessage(message);
       }
     };
     const checkInfoMsg = (message: string) => {
@@ -148,15 +146,13 @@ export const jupyterEngineDiscovery: ExecutionEngineDiscovery = {
 
     // Render check helper (inline)
     const checkJupyterRender = async () => {
-      const { services } = conf;
       const json: Record<string, unknown> = {};
       if (conf.jsonResult) {
         (conf.jsonResult.render as Record<string, unknown>).jupyter = json;
       }
-      const qmdPath = services.temp.createFile({ suffix: "check.qmd" });
-      Deno.writeTextFileSync(
-        qmdPath,
-        `
+
+      const result = await quarto.system.checkRender({
+        content: `
 ---
 title: "Title"
 ---
@@ -167,11 +163,10 @@ title: "Title"
 1 + 1
 \`\`\`
 `,
-      );
-      const result = await render(qmdPath, {
-        services,
-        flags: { quiet: true, executeDaemon: 0 },
+        language: "python",
+        services: conf.services,
       });
+
       if (result.error) {
         if (!conf.jsonResult) {
           throw result.error;
@@ -193,7 +188,7 @@ title: "Title"
     if (conf.jsonResult) {
       caps = await jupyterCapabilities();
     } else {
-      await withSpinner({
+      await quarto.console.withSpinner({
         message: kMessage,
         doneMessage: false,
       }, async () => {
@@ -214,7 +209,7 @@ title: "Title"
           if (conf.jsonResult) {
             await checkJupyterRender();
           } else {
-            await withSpinner({
+            await quarto.console.withSpinner({
               message: kJupyterMessage,
               doneMessage: kJupyterMessage + "OK\n",
             }, async () => {
