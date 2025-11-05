@@ -259,7 +259,8 @@ export const pullGitSubtreeCommand = new Command()
         await pullSubtree(quartoRoot, config);
         successCount++;
       } catch (err) {
-        error(`Failed to pull subtree ${config.name}: ${err.message}`);
+        const message = err instanceof Error ? err.message : String(err);
+        error(`Failed to pull subtree ${config.name}: ${message}`);
         errorCount++;
       }
     }
