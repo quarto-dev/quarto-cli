@@ -6,7 +6,7 @@
 
 import { Command } from "cliffy/command/mod.ts";
 import { check, enforceTargetType } from "./check.ts";
-import { projectContextForDirectory } from "../../project/project-context.ts";
+import { projectContext } from "../../project/project-context.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { reorderEngines } from "../../execute/engine.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
@@ -34,9 +34,12 @@ export const checkCommand = new Command()
     // Initialize YAML intelligence resources (required for project context)
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    // Load project context and register external engines from project config
-    const project = await projectContextForDirectory(Deno.cwd(), notebookContext());
-    await reorderEngines(project);
+    // Load project context if we're in a project directory
+    // and register external engines from project config
+    const project = await projectContext(Deno.cwd(), notebookContext());
+    if (project) {
+      await reorderEngines(project);
+    }
 
     // Validate target (now that all engines including external ones are loaded)
     const target = enforceTargetType(targetStr);
