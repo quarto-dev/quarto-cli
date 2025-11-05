@@ -39,8 +39,6 @@ import {
   EngineProjectContext,
 } from "./types.ts";
 import type { CheckConfiguration } from "../command/check/check.ts";
-import { render } from "../command/render/render-shared.ts";
-import { completeMessage, withSpinner } from "../core/console.ts";
 import {
   asMappedString,
   mappedIndexToLineCol,
@@ -88,7 +86,7 @@ export const knitrEngineDiscovery: ExecutionEngineDiscovery = {
     // Helper functions (inline)
     const checkCompleteMessage = (message: string) => {
       if (!conf.jsonResult) {
-        completeMessage(message);
+        quarto.console.completeMessage(message);
       }
     };
     const checkInfoMsg = (message: string) => {
@@ -99,15 +97,13 @@ export const knitrEngineDiscovery: ExecutionEngineDiscovery = {
 
     // Render check helper (inline)
     const checkKnitrRender = async () => {
-      const { services } = conf;
       const json: Record<string, unknown> = {};
       if (conf.jsonResult) {
         (conf.jsonResult.render as Record<string, unknown>).knitr = json;
       }
-      const rmdPath = services.temp.createFile({ suffix: "check.rmd" });
-      Deno.writeTextFileSync(
-        rmdPath,
-        `
+
+      const result = await quarto.system.checkRender({
+        content: `
 ---
 title: "Title"
 ---
@@ -118,11 +114,10 @@ title: "Title"
 1 + 1
 \`\`\`
 `,
-      );
-      const result = await render(rmdPath, {
-        services,
-        flags: { quiet: true },
+        language: "r",
+        services: conf.services,
       });
+
       if (result.error) {
         if (!conf.jsonResult) {
           throw result.error;
@@ -149,7 +144,7 @@ title: "Title"
     if (conf.jsonResult) {
       await knitrCb();
     } else {
-      await withSpinner({
+      await quarto.console.withSpinner({
         message: kMessage,
         doneMessage: false,
       }, knitrCb);
@@ -167,7 +162,7 @@ title: "Title"
         if (conf.jsonResult) {
           await checkKnitrRender();
         } else {
-          await withSpinner({
+          await quarto.console.withSpinner({
             message: kKnitrMessage,
             doneMessage: kKnitrMessage + "OK\n",
           }, async () => {
