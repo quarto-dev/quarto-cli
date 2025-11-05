@@ -4,9 +4,16 @@ format: pdf
 lang: es
 latex-auto-install: false
 _quarto:
+  tests-on-ci: false
   tests:
-    pdf: default
+    pdf:
+      shouldError: true 
+      printsMessage:
+        level: INFO
+        regex: "Unknown option 'spanish'"
 ---
+
+** This test is to be run manually as we don't want to uninstall and reinstall package in CI**
 
 ```{r}
 #| include: false

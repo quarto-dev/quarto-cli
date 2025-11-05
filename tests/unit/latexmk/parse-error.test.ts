@@ -5,7 +5,7 @@
 *
 */
 
-import { findMissingFontsAndPackages } from "../../../src/command/render/latexmk/parse-error.ts"
+import { findMissingFontsAndPackages, findMissingHyphenationFiles } from "../../../src/command/render/latexmk/parse-error.ts"
 import { unitTest } from "../../test.ts";
 import { assert } from "testing/asserts";
 
@@ -42,6 +42,9 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
     (babel)                If it’s the main language, try adding \`provide=*'
     (babel)                to the babel package options.`, "ngerman.ldf")
   assertFound("! Package babel Error: Unknown option 'english'.", "english.ldf");
+  assertFound(`! Package babel Error: Unknown option 'ngerman'.
+(babel)                Suggested actions:
+(babel)                * Make sure you haven't misspelled it`, "ngerman.ldf");
   assertFound("!pdfTeX error: pdflatex (file 8r.enc): cannot open encoding file for reading", "8r.enc");
   assertFound("! CTeX fontset `fandol' is unavailable in current mode", "fandol");
   assertFound('Package widetext error: Install the flushend package which is a part of sttools', "flushend.sty");
@@ -50,5 +53,62 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
   assertFound("! I can't find file `hyph-de-1901.ec.tex'.", "hyph-de-1901.ec.tex");
   assertFound("luaotfload-features.lua:835: module 'lua-uni-normalize' not found:", "lua-uni-algos.lua");
 },{
+  cwd: () => "unit/latexmk/"
+})
+
+unitTest("Detect missing hyphenation with babel warnings", async () => {
+  // Test backtick-quote format (old format)
+  const logWithBacktick = `Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language \`Spanish' into the format.
+(babel)                Please, configure your TeX system to add them and
+(babel)                rebuild the format. Now I will use the patterns
+(babel)                preloaded for \\language=0 instead on input line 51.`;
+  assert(
+    findMissingHyphenationFiles(logWithBacktick) === "hyphen-spanish",
+    "Should detect hyphen-spanish from backtick-quote format"
+  );
+
+  // Test straight-quote format (new format - the bug we're fixing)
+  const logWithStraightQuotes = `Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language 'Spanish' into the format.
+(babel)                Please, configure your TeX system to add them and
+(babel)                rebuild the format. Now I will use the patterns
+(babel)                preloaded for \\language=0 instead on input line 51.`;
+  assert(
+    findMissingHyphenationFiles(logWithStraightQuotes) === "hyphen-spanish",
+    "Should detect hyphen-spanish from straight-quote format"
+  );
+
+  // Test ngerman special case (should return hyphen-german, not hyphen-ngerman)
+  const logGerman = `Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language 'ngerman' into the format.`;
+  assert(
+    findMissingHyphenationFiles(logGerman) === "hyphen-german",
+    "Should map ngerman to hyphen-german"
+  );
+
+  // Test Chinese - no hyphen package exists
+  const logChinese = `Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language 'chinese' into the format.`;
+  assert(
+    findMissingHyphenationFiles(logChinese) === undefined,
+    "Should return undefined for Chinese (no hyphen package)"
+  );
+
+  // Test alternative Info pattern (issue #10291)
+  const logInfoChinese = `Package babel Info: Hyphen rules for 'chinese-hans' set to \\l@nil
+(babel)             (\\language10). Reported on input line 143.`;
+  assert(
+    findMissingHyphenationFiles(logInfoChinese) === undefined,
+    "Should return undefined for chinese-hans via Info pattern"
+  );
+
+  // Test no warning present
+  const logNoWarning = "Some other log text without babel warnings";
+  assert(
+    findMissingHyphenationFiles(logNoWarning) === undefined,
+    "Should return undefined when no babel warning present"
+  );
+}, {
   cwd: () => "unit/latexmk/"
 })

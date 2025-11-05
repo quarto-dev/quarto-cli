@@ -8,7 +8,9 @@ _quarto:
 ---
 
 ```{r}
+#| eval: !expr isFALSE(as.logical(Sys.getenv("CI", "false")))
 #| include: false
+#| messages: "NA"
 
 # Remove babel-english package to test auto-installation
 if (tinytex::check_installed("babel-english")) {
