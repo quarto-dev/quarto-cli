@@ -71,7 +71,7 @@ function latexPanel(layout)
   local vAlign = "top"
   if layout.valign_class ~= nil then
     local vAlignClass = layout.valign_class
-    vAlign = vAlignClass:gsub("quarto-layout-valign-","")
+    vAlign = vAlignClass:gsub("quarto%-layout%-valign%-","")
   end
   
   vAlign = validatedVAlign(vAlign)
