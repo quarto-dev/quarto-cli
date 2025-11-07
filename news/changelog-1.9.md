@@ -40,6 +40,7 @@ All changes included in 1.9:
 
 - ([#10291](https://github.com/quarto-dev/quarto-cli/issues/10291)): Fix detection of babel hyphenation warnings with straight-quote format instead of backtick-quote format.
 - ([rstudio/tinytex-releases#49](https://github.com/rstudio/tinytex-releases/issues/49)): Fix detection of LuaTeX-ja missing file errors by matching both "File" and "file" in error messages.
+- ([#9091](https://github.com/quarto-dev/quarto-cli/issues/9091)): Fix vertical alignment div has no effect for pdf output
 
 ## Projects
 
