@@ -1,0 +1,20 @@
+---
+title: "Empty lang option should not produce invalid class (#13656)"
+format: html
+keep-md: true
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - ['\{\. \.cell-code\}']  # Should NOT have invalid literal class in HTML
+---
+
+## Test Case
+
+R code cell with empty lang option should not produce invalid class:
+
+```{r}
+#| lang: ""
+23
+```
