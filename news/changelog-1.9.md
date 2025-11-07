@@ -61,3 +61,4 @@ All changes included in 1.9:
 - ([#13402](https://github.com/quarto-dev/quarto-cli/issues/13402)): `nfpm` (<https://nfpm.goreleaser.com/>) is now used to create the `.deb` package, and new `.rpm` package. Both Linux packages are also now built for `x86_64` (`amd64`) and `aarch64` (`arm64`) architectures.
 - ([#13528](https://github.com/quarto-dev/quarto-cli/pull/13528)): Adds support for table specification using nested lists and the `list-table` class.
 - ([#13575](https://github.com/quarto-dev/quarto-cli/pull/13575)): Improve CPU architecture detection/reporting in macOS to allow quarto to run in virtualized environments such as OpenAI's `codex`.
+- ([#13656](https://github.com/quarto-dev/quarto-cli/issues/13656)): Fix R code cells with empty `lang: ""` option producing invalid markdown class attributes.
