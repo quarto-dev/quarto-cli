@@ -1,0 +1,1 @@
+- the directory claude-notes/ contains notes you wrote to yourself about this repository. Read it when necessary, and update with information as you deem relevant.

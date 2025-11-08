@@ -378,6 +378,17 @@ local quarto_pre_filters = {
     filter = write_results(),
     traverser = 'jog',
   },
+  {
+    name = "embed-json",
+    filter = {
+      Pandoc = function(doc)
+        local out = pandoc.write(doc, "json")
+        out = out:gsub("</script>", "&lt;/script&gt;");
+        doc.blocks:insert(pandoc.RawBlock("html", "<script type=\"application/json\" id=\"quarto-ast\">" .. out .. "</script>"))
+        return doc
+      end
+    }
+  },
 }
 
 local quarto_post_filters = {

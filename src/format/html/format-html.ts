@@ -5,8 +5,9 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { join, relative } from "../../deno_ral/path.ts";
+import { basename, join, relative } from "../../deno_ral/path.ts";
 import { warning } from "../../deno_ral/log.ts";
+import { pandocToOxa } from "../../core/oxa/pandoc-to-oxa.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -94,6 +95,8 @@ import {
 } from "../../project/types/website/website-constants.ts";
 import {
   HtmlPostProcessResult,
+  PandocInputTraits,
+  RenderedFormat,
   RenderServices,
 } from "../../command/render/types.ts";
 import {
@@ -234,6 +237,43 @@ export function htmlFormat(
       },
     },
   );
+}
+
+async function exportQuartoJsonAST(doc: Document, options: {
+  inputMetadata: Metadata;
+  inputTraits: PandocInputTraits;
+  renderedFormats: RenderedFormat[];
+}): Promise<HtmlPostProcessResult> {
+  // what to do with more than one html-like format?
+  const fmt = options.renderedFormats.find((fmt) =>
+    fmt.format.identifier["base-format"] === "html"
+  );
+
+  const result: HtmlPostProcessResult = {
+    resources: [],
+    supporting: [],
+  };
+
+  const el = doc.getElementById("quarto-ast");
+  assert(fmt);
+  assert(el);
+
+  const jsonText = el.innerText;
+  let json = JSON.parse(jsonText);
+  json = pandocToOxa(json);
+  console.log(JSON.stringify(json, null, 2));
+
+  el.remove();
+  const jsonPath = basename(fmt.path, ".html") + ".json";
+
+  Deno.writeTextFileSync(jsonPath, JSON.stringify(json, null, 2``));
+  result.resources.push(jsonPath);
+  const head = doc.getElementsByTagName("head")[0];
+  const meta = doc.createElement("meta");
+  meta.setAttribute("name", "document-ast");
+  meta.setAttribute("content", "hello.json");
+  head.appendChild(meta);
+  return result;
 }
 
 export async function htmlFormatExtras(
@@ -644,6 +684,7 @@ export async function htmlFormatExtras(
   const htmlPostProcessors = [
     htmlFormatPostprocessor(format, featureDefaults),
     metadataPostProcessor(input, format, offset),
+    exportQuartoJsonAST,
   ];
   const viewStyle = format.render[kNotebookViewStyle];
   if (viewStyle === kNotebookViewStyleNotebook) {
