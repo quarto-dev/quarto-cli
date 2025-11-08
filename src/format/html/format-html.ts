@@ -266,7 +266,7 @@ async function exportQuartoJsonAST(doc: Document, options: {
   el.remove();
   const jsonPath = basename(fmt.path, ".html") + ".json";
 
-  Deno.writeTextFileSync(jsonPath, JSON.stringify(json, null, 2``));
+  Deno.writeTextFileSync(jsonPath, JSON.stringify(json, null, 2));
   result.resources.push(jsonPath);
   const head = doc.getElementsByTagName("head")[0];
   const meta = doc.createElement("meta");

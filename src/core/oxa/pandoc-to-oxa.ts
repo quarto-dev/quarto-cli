@@ -5,23 +5,79 @@
  */
 
 import { assert } from "testing/asserts";
+import { Attr, Block, Document, Inline, Section } from "./types.ts";
 
-function inlineToOxa(inline: any): any {
+const idToOxa = (id: any) => id === "" ? undefined : id;
+
+const attrsToOxa = (attr: any): Attr => {
+  return {
+    id: idToOxa(attr[0]),
+    classes: attr[1],
+    data: Object.fromEntries(attr[2]),
+  };
+};
+
+function inlineToOxa(inline: any): Inline {
+  const nameMap: Record<string, string> = {
+    "Emph": "Emphasis",
+  };
+  const empty: Attr = {
+    classes: [],
+    data: {},
+  };
   switch (inline.t) {
     case "Str":
       return {
         type: "Text",
         value: inline.c,
+        ...empty,
       };
     case "Space":
       return {
         type: "Text",
         value: " ",
+        ...empty,
       };
+    case "Span": {
+      const attrs = attrsToOxa(inline.c[0]);
+      if (
+        attrs.classes.length === 0 && (
+          attrs.classes[0] === "underline" || attrs.classes[0] === "ul"
+        )
+      ) {
+        return {
+          type: "Underline",
+          children: inlinesToOxa(inline.c),
+          ...empty,
+        };
+      }
+      if (
+        attrs.classes.length === 0 &&
+        (attrs.classes[0] === "smallcaps" || attrs.classes[0] === "sc")
+      ) {
+        return {
+          type: "SmallCaps",
+          children: inlinesToOxa(inline.c),
+          ...empty,
+        };
+      }
+      return {
+        type: "Span",
+        ...attrs,
+        children: inlinesToOxa(inline.c),
+      };
+    }
+    case "Emph":
+    case "Strikeout":
+    case "Superscript":
+    case "Subscript":
+    case "Underline":
+    case "SmallCaps":
     case "Strong":
       return {
-        type: "Strong",
+        type: (nameMap[inline.t] ?? inline.t) as any,
         children: inlinesToOxa(inline.c),
+        ...empty,
       };
     case "Cite":
       console.log("Cite");
@@ -39,12 +95,14 @@ function inlineToOxa(inline: any): any {
           };
         }),
         children: inlinesToOxa(inline.c[1]),
+        ...empty,
       };
     case "Math": {
       const t = inline.c[0].t === "DisplayMath" ? "DisplayMath" : "InlineMath";
       return {
         type: t,
         value: inline.c[1],
+        ...empty,
       };
     }
     case "Image": {
@@ -52,7 +110,7 @@ function inlineToOxa(inline: any): any {
         type: "Image",
         children: inlinesToOxa(inline.c[1]),
         title: inline.c[2][1],
-        url: inline.c[2][0],
+        uri: inline.c[2][0],
         ...attrsToOxa(inline.c[0]),
       };
     }
@@ -62,8 +120,8 @@ function inlineToOxa(inline: any): any {
   }
 }
 
-const inlinesToOxa = (inlines: any): any => {
-  const result: any = [];
+const inlinesToOxa = (inlines: any): Inline[] => {
+  const result: Inline[] = [];
   let current;
   console.log({ inlines });
   for (const inline of inlines) {
@@ -91,17 +149,8 @@ const inlinesToOxa = (inlines: any): any => {
   return result;
 };
 
-const idToOxa = (id: any) => id === "" ? undefined : id;
-
-const attrsToOxa = (attr: any): any => {
-  return {
-    id: idToOxa(attr[0]),
-    classes: attr[1],
-    data: Object.fromEntries(attr[2]),
-  };
-};
-
-const blockToOxa = (block: any): any => {
+const blockToOxa = (block: any): Block => {
+  const empty: Attr = { classes: [], data: {} };
   switch (block.t) {
     case "Header":
       return {
@@ -114,6 +163,7 @@ const blockToOxa = (block: any): any => {
       return {
         type: "Paragraph",
         children: inlinesToOxa(block.c),
+        ...empty,
       };
     case "Div":
       return {
@@ -134,20 +184,23 @@ const blockToOxa = (block: any): any => {
       return {
         type: "Plain",
         children: inlinesToOxa(block.c),
+        ...empty,
       };
   }
   console.log(JSON.stringify(block, null, 2));
   assert(false, "unimplemented");
 };
 
-const blocksToOxa = (blocks: any): any => {
-  const result: any = [];
-  let current: any;
-  let currentSectionLevel: any;
-  const newSection = (block: any) => {
+const blocksToOxa = (blocks: any): Block[] => {
+  const result: Block[] = [];
+  let current: Block | undefined;
+  let currentSectionLevel: number = -Infinity;
+  const empty: Attr = { classes: [], data: {} };
+  const newSection = (block: any): Section => {
     return {
       type: "Section",
       children: [blockToOxa(block)],
+      ...empty,
     };
   };
   for (const block of blocks) {
@@ -188,9 +241,10 @@ const blocksToOxa = (blocks: any): any => {
   return result;
 };
 
-export const pandocToOxa = (pandocJson: any): Record<string, unknown> => {
-  const result: Record<string, unknown> = {};
-  result.title = inlinesToOxa(pandocJson.meta.title.c);
-  result.children = blocksToOxa(pandocJson.blocks);
-  return result;
+export const pandocToOxa = (pandocJson: any): Document => {
+  return {
+    metadata: {}, // FIXME
+    title: inlinesToOxa((pandocJson.meta.title ?? { c: [] }).c),
+    children: blocksToOxa(pandocJson.blocks),
+  };
 };
