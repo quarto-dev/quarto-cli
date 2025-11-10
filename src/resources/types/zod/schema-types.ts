@@ -1247,6 +1247,7 @@ export const ZodQuartoDevSchema = z.object({
   _quarto: z.object({
     "trace-filters": z.string(),
     tests: z.object({}).passthrough(),
+    "tests-on-ci": z.boolean(),
   }).passthrough().partial(),
 }).passthrough().partial();
 
