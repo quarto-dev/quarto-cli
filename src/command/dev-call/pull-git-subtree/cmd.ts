@@ -6,7 +6,8 @@
 
 import { Command } from "cliffy/command/mod.ts";
 import { gitCmdOutput, gitCmds } from "../../../core/git.ts";
-import { error, info } from "../../../deno_ral/log.ts";
+import { debug, error, info } from "../../../deno_ral/log.ts";
+import { logLevel } from "../../../core/log.ts";
 
 interface SubtreeConfig {
   name: string;
@@ -37,21 +38,30 @@ async function findLastSplit(
   prefix: string,
 ): Promise<string | null> {
   try {
+    debug(
+      `Searching for last split with grep pattern: git-subtree-dir: ${prefix}$`,
+    );
     const log = await gitCmdOutput(quartoRoot, [
       "log",
       `--grep=git-subtree-dir: ${prefix}$`,
-      "--all",
       "-1",
       "--pretty=%b",
     ]);
 
+    debug(`Git log output: ${log}`);
     const splitLine = log.split("\n").find((line) =>
       line.startsWith("git-subtree-split:")
     );
-    if (!splitLine) return null;
+    if (!splitLine) {
+      debug("No split line found in log output");
+      return null;
+    }
 
-    return splitLine.split(/\s+/)[1];
-  } catch {
+    const splitCommit = splitLine.split(/\s+/)[1];
+    debug(`Found last split commit: ${splitCommit}`);
+    return splitCommit;
+  } catch (e) {
+    debug(`Error finding last split: ${e}`);
     return null;
   }
 }
@@ -61,13 +71,20 @@ async function getAuthorsByCommitCount(
   range: string,
 ): Promise<Author[] | null> {
   try {
+    debug(`Getting authors for range: ${range}`);
     const log = await gitCmdOutput(quartoRoot, [
       "log",
       "--pretty=%an <%ae>",
       range,
     ]);
 
+    debug(
+      `Git log output (${log.trim().length} chars): ${
+        log.trim() ? log.trim().substring(0, 200) : "(empty)"
+      }`,
+    );
     if (!log.trim()) {
+      debug("No commits found in range");
       return null;
     }
 
@@ -91,8 +108,10 @@ async function getAuthorsByCommitCount(
       })
       .sort((a, b) => b.count - a.count);
 
+    debug(`Found ${authors.length} unique author(s)`);
     return authors;
-  } catch {
+  } catch (e) {
+    debug(`Error getting authors: ${e}`);
     return null;
   }
 }
@@ -120,6 +139,21 @@ async function pullSubtree(
     ["fetch", config.remoteUrl, config.remoteBranch],
   ]);
 
+  // Check what FETCH_HEAD points to
+  const fetchHead = await gitCmdOutput(quartoRoot, ["rev-parse", "FETCH_HEAD"]);
+  debug(`FETCH_HEAD resolves to: ${fetchHead.trim()}`);
+
+  // Check if prefix directory exists
+  const prefixPath = `${quartoRoot}/${config.prefix}`;
+  let prefixExists = false;
+  try {
+    const stat = await Deno.stat(prefixPath);
+    prefixExists = stat.isDirectory;
+    debug(`Prefix directory exists: ${prefixExists} (${prefixPath})`);
+  } catch {
+    debug(`Prefix directory does not exist: ${prefixPath}`);
+  }
+
   // Find last split point
   let lastSplit = await findLastSplit(quartoRoot, config.prefix);
 
@@ -136,14 +170,21 @@ async function pullSubtree(
       ],
     ]);
     lastSplit = await gitCmdOutput(quartoRoot, ["rev-parse", "FETCH_HEAD^"]);
+    debug(`After subtree add, lastSplit set to: ${lastSplit.trim()}`);
   }
 
   // Check for new commits
   const commitRange = `${lastSplit}..FETCH_HEAD`;
+  debug(`Checking commit range: ${commitRange}`);
   const authors = await getAuthorsByCommitCount(quartoRoot, commitRange);
 
   if (!authors) {
     info("No new commits to merge");
+    debug(`Commit range ${commitRange} has no commits`);
+    if (!prefixExists) {
+      info("WARNING: Prefix directory doesn't exist but no new commits found!");
+      debug("This may indicate lastSplit was found on a different branch");
+    }
     return;
   }
 
@@ -230,6 +271,19 @@ export const pullGitSubtreeCommand = new Command()
         "QUARTO_ROOT environment variable not set. This command requires a development version of Quarto.",
       );
       Deno.exit(1);
+    }
+
+    // Show current branch for debugging (only if debug logging enabled)
+    if (logLevel() === "DEBUG") {
+      try {
+        const currentBranch = await gitCmdOutput(quartoRoot, [
+          "branch",
+          "--show-current",
+        ]);
+        debug(`Current branch: ${currentBranch.trim()}`);
+      } catch (e) {
+        debug(`Unable to determine current branch: ${e}`);
+      }
     }
 
     // Determine which subtrees to pull
