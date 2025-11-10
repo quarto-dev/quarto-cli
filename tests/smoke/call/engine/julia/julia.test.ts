@@ -1,8 +1,9 @@
 import { assert, assertStringIncludes } from "testing/asserts";
 import { docs, quartoDevCmd } from "../../../../utils.ts";
 import { existsSync } from "fs/exists";
-import { juliaServerLogFile, juliaTransportFile } from "../../../../../src/resources/extensions/julia-engine/_extensions/julia-engine/julia-engine.ts";
 import { sleep } from "../../../../../src/core/wait.ts";
+import { quartoRuntimeDir } from "../../../../../src/core/appdirs.ts";
+import { join } from "../../../../../src/deno_ral/path.ts";
 
 const juliaTestDir = docs("call/engine/julia");
 const sleepQmd = "sleep.qmd";
@@ -24,17 +25,22 @@ function assertStderrIncludes(output: Deno.CommandOutput, str: string) {
   assertStringIncludes(new TextDecoder().decode(output.stderr), str);
 }
 
-// make sure we don't have a server process running by sending a kill command
-// and then also try to remove the transport file in case one still exists
-const killcmd = new Deno.Command(
-  quartoDevCmd(),
-  {args: ["call", "engine", "julia", "kill"], cwd: juliaTestDir}
-).outputSync();
-assertSuccess(killcmd);
-try {
-  await Deno.remove(juliaTransportFile());
-} catch {
-}
+Deno.test("cleanup transport file", async () => {
+  // Make sure we don't have a server process running by sending a kill command
+  const killcmd = new Deno.Command(
+    quartoDevCmd(),
+    {args: ["call", "engine", "julia", "kill"], cwd: juliaTestDir}
+  ).outputSync();
+  assertSuccess(killcmd);
+
+  // Remove the transport file if it exists
+  const transportFile = join(quartoRuntimeDir("julia"), "julia_transport.txt");
+  try {
+    await Deno.remove(transportFile);
+  } catch {
+    // File might not exist, that's okay
+  }
+});
 
 Deno.test("kill without server running", () => {
   const output = new Deno.Command(
@@ -54,10 +60,15 @@ Deno.test("status without server running", () => {
   assertStderrIncludes(output, "Julia control server is not running.");
 });
 
-try {
-  await Deno.remove(juliaServerLogFile());
-} catch {
-}
+Deno.test("cleanup log file", async () => {
+  // Construct the log file path directly without heavy initialization
+  const logFile = join(quartoRuntimeDir("julia"), "julia_server_log.txt");
+  try {
+    await Deno.remove(logFile);
+  } catch {
+    // File might not exist, that's okay
+  }
+});
 
 Deno.test("log file doesn't exist", () => {
   const log_output = new Deno.Command(

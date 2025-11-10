@@ -40,9 +40,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { quartoAPI } from "../core/quarto-api.ts";
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../core/quarto.ts";
-import { initYamlIntelligenceResourcesFromFilesystem } from "../core/schema/utils.ts";
-import { projectContext } from "../project/project-context.ts";
-import { notebookContext } from "../render/notebook/notebook-context.ts";
+import { initializeProjectContextAndEngines } from "../command/command-utils.ts";
 
 const kEngines: Map<string, ExecutionEngineDiscovery> = new Map();
 
@@ -366,15 +364,8 @@ export const engineCommand = new Command()
   .stopEarly()
   .arguments("<engine-name:string> [args...:string]")
   .action(async (options, engineName: string, ...args: string[]) => {
-    // Initialize YAML intelligence resources (required for project context)
-    await initYamlIntelligenceResourcesFromFilesystem();
-
-    // Load project context if we're in a project directory
-    // and register external engines from project config
-    const project = await projectContext(Deno.cwd(), notebookContext());
-    if (project) {
-      await reorderEngines(project);
-    }
+    // Initialize project context and register external engines
+    await initializeProjectContextAndEngines();
 
     // Get the engine (now includes external ones)
     const engine = executionEngine(engineName);
