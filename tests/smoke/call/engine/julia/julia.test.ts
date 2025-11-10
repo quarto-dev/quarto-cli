@@ -5,8 +5,8 @@ import { juliaServerLogFile, juliaTransportFile } from "../../../../../src/resou
 import { sleep } from "../../../../../src/core/wait.ts";
 
 const juliaTestDir = docs("call/engine/julia");
-const sleepQmd = docs("call/engine/julia/sleep.qmd");
-assert(existsSync(sleepQmd));
+const sleepQmd = "sleep.qmd";
+assert(existsSync(docs("call/engine/julia/sleep.qmd")));
 
 function assertSuccess(output: Deno.CommandOutput) {
   if (!output.success) {
