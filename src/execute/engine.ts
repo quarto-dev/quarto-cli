@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { extname, join } from "../deno_ral/path.ts";
+import { extname, join, toFileUrl } from "../deno_ral/path.ts";
 
 import * as ld from "../core/lodash.ts";
 
@@ -202,7 +202,7 @@ export async function reorderEngines(project: ProjectContext) {
   for (const engine of projectEngines ?? []) {
     if (typeof engine === "object") {
       try {
-        const extEngine = (await import(engine.path))
+        const extEngine = (await import(toFileUrl(engine.path).href))
           .default as ExecutionEngineDiscovery;
 
         // Check if engine's Quarto version requirement is satisfied
