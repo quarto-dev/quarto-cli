@@ -16,12 +16,6 @@ interface SubtreeConfig {
   remoteBranch: string;
 }
 
-interface Author {
-  name: string;
-  email: string;
-  count: number;
-}
-
 // Subtree configurations - update these with actual repositories
 const SUBTREES: SubtreeConfig[] = [
   {
@@ -64,64 +58,6 @@ async function findLastSplit(
     debug(`Error finding last split: ${e}`);
     return null;
   }
-}
-
-async function getAuthorsByCommitCount(
-  quartoRoot: string,
-  range: string,
-): Promise<Author[] | null> {
-  try {
-    debug(`Getting authors for range: ${range}`);
-    const log = await gitCmdOutput(quartoRoot, [
-      "log",
-      "--pretty=%an <%ae>",
-      range,
-    ]);
-
-    debug(
-      `Git log output (${log.trim().length} chars): ${
-        log.trim() ? log.trim().substring(0, 200) : "(empty)"
-      }`,
-    );
-    if (!log.trim()) {
-      debug("No commits found in range");
-      return null;
-    }
-
-    // Count occurrences of each author
-    const authorCounts = new Map<string, number>();
-    for (const line of log.split("\n").filter((l) => l.trim())) {
-      authorCounts.set(line, (authorCounts.get(line) || 0) + 1);
-    }
-
-    // Convert to Author objects and sort by count (descending)
-    const authors: Author[] = Array.from(authorCounts.entries())
-      .map(([authorLine, count]) => {
-        const match = authorLine.match(/^(.+)\s+<(.+)>$/);
-        if (!match) throw new Error(`Invalid author format: ${authorLine}`);
-
-        return {
-          name: match[1],
-          email: match[2],
-          count,
-        };
-      })
-      .sort((a, b) => b.count - a.count);
-
-    debug(`Found ${authors.length} unique author(s)`);
-    return authors;
-  } catch (e) {
-    debug(`Error getting authors: ${e}`);
-    return null;
-  }
-}
-
-async function getCommitMessage(quartoRoot: string): Promise<string> {
-  return await gitCmdOutput(quartoRoot, ["log", "-1", "--pretty=%B"]);
-}
-
-function formatAuthor(author: Author): string {
-  return `${author.name} <${author.email}>`;
 }
 
 async function pullSubtree(
@@ -176,9 +112,15 @@ async function pullSubtree(
   // Check for new commits
   const commitRange = `${lastSplit}..FETCH_HEAD`;
   debug(`Checking commit range: ${commitRange}`);
-  const authors = await getAuthorsByCommitCount(quartoRoot, commitRange);
 
-  if (!authors) {
+  const hasNewCommits = await gitCmdOutput(quartoRoot, [
+    "log",
+    "--oneline",
+    commitRange,
+    "-1",
+  ]);
+
+  if (!hasNewCommits.trim()) {
     info("No new commits to merge");
     debug(`Commit range ${commitRange} has no commits`);
     if (!prefixExists) {
@@ -188,18 +130,9 @@ async function pullSubtree(
     return;
   }
 
-  info(`Found ${authors.reduce((sum, a) => sum + a.count, 0)} new commit(s)`);
+  debug(`Found new commits in range ${commitRange}`);
 
-  const primaryAuthor = authors[0];
-  const coAuthors = authors.slice(1);
-
-  info(
-    `Primary author: ${
-      formatAuthor(primaryAuthor)
-    } (${primaryAuthor.count} commit(s))`,
-  );
-
-  // Do the squash merge
+  // Do the subtree pull
   info("Running git subtree pull --squash...");
   await gitCmds(quartoRoot, [
     [
@@ -212,42 +145,6 @@ async function pullSubtree(
     ],
   ]);
 
-  // Amend to change author and add co-author trailers
-  info("Amending with proper attribution...");
-
-  if (coAuthors.length > 0) {
-    // Get existing message and append co-authors
-    const existingMsg = await getCommitMessage(quartoRoot);
-    const coAuthorLines = coAuthors
-      .map((author) => `Co-authored-by: ${formatAuthor(author)}`)
-      .join("\n");
-
-    await gitCmds(quartoRoot, [
-      [
-        "commit",
-        "--amend",
-        `--author=${formatAuthor(primaryAuthor)}`,
-        "-m",
-        `${existingMsg}\n\n${coAuthorLines}`,
-      ],
-    ]);
-
-    info("Co-authors:");
-    coAuthors.forEach((author) => {
-      info(`  ${formatAuthor(author)}`);
-    });
-  } else {
-    // Just change author, keep message as-is
-    await gitCmds(quartoRoot, [
-      [
-        "commit",
-        "--amend",
-        `--author=${formatAuthor(primaryAuthor)}`,
-        "--no-edit",
-      ],
-    ]);
-  }
-
   info("✓ Done!");
 }
 
@@ -256,10 +153,11 @@ export const pullGitSubtreeCommand = new Command()
   .hidden()
   .arguments("[name:string]")
   .description(
-    "Pull configured git subtrees with proper attribution.\n\n" +
-      "This command pulls from configured subtree repositories, " +
-      "using --squash and attributing the primary author " +
-      "(most commits) with other authors as co-authors.\n\n" +
+    "Pull configured git subtrees.\n\n" +
+      "This command pulls from configured subtree repositories " +
+      "using --squash, which creates two commits: a squash commit " +
+      "containing the subtree changes and a merge commit that " +
+      "integrates it into your branch.\n\n" +
       "Arguments:\n" +
       "  [name]  Name of subtree to pull (use 'all' or omit to pull all)",
   )
