@@ -8541,8 +8541,8 @@ try {
                 icon: {
                   string: {
                     description: {
-                      short: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
-                      long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                      short: "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)",
+                      long: "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
                     }
                   }
                 },
@@ -11676,7 +11676,8 @@ try {
                     object: {
                       properties: {
                         "trace-filters": "string",
-                        tests: "object"
+                        tests: "object",
+                        "tests-on-ci": "boolean"
                       }
                     }
                   }
@@ -24978,12 +24979,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197491,
+          _internalId: 197493,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197483,
+              _internalId: 197485,
               type: "enum",
               enum: [
                 "png",
@@ -24999,7 +25000,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197490,
+              _internalId: 197492,
               type: "anyOf",
               anyOf: [
                 {

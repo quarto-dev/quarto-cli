@@ -2422,6 +2422,7 @@
             properties:
               trace-filters: string
               tests: object
+              tests-on-ci: boolean
 
 - id: notebook-view-schema
   schema:

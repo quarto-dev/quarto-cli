@@ -2919,6 +2919,9 @@
                 },
                 "tests": {
                   "type": "object"
+                },
+                "tests-on-ci": {
+                  "type": "boolean"
                 }
               }
             }
