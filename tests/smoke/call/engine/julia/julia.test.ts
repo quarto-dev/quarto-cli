@@ -1,9 +1,10 @@
 import { assert, assertStringIncludes } from "testing/asserts";
 import { docs, quartoDevCmd } from "../../../../utils.ts";
 import { existsSync } from "fs/exists";
-import { juliaServerLogFile, juliaTransportFile } from "../../../../../src/execute/julia.ts";
+import { juliaServerLogFile, juliaTransportFile } from "../../../../../src/resources/extensions/julia-engine/_extensions/julia-engine/julia-engine.ts";
 import { sleep } from "../../../../../src/core/wait.ts";
 
+const juliaTestDir = docs("call/engine/julia");
 const sleepQmd = docs("call/engine/julia/sleep.qmd");
 assert(existsSync(sleepQmd));
 
@@ -27,7 +28,7 @@ function assertStderrIncludes(output: Deno.CommandOutput, str: string) {
 // and then also try to remove the transport file in case one still exists
 const killcmd = new Deno.Command(
   quartoDevCmd(),
-  {args: ["call", "engine", "julia", "kill"]}
+  {args: ["call", "engine", "julia", "kill"], cwd: juliaTestDir}
 ).outputSync();
 assertSuccess(killcmd);
 try {
@@ -38,7 +39,7 @@ try {
 Deno.test("kill without server running", () => {
   const output = new Deno.Command(
     quartoDevCmd(),
-    {args: ["call", "engine", "julia", "kill"]}
+    {args: ["call", "engine", "julia", "kill"], cwd: juliaTestDir}
   ).outputSync();
   assertSuccess(output);
   assertStderrIncludes(output, "Julia control server is not running.");
@@ -47,7 +48,7 @@ Deno.test("kill without server running", () => {
 Deno.test("status without server running", () => {
   const output = new Deno.Command(
     quartoDevCmd(),
-    {args: ["call", "engine", "julia", "status"]}
+    {args: ["call", "engine", "julia", "status"], cwd: juliaTestDir}
   ).outputSync();
   assertSuccess(output);
   assertStderrIncludes(output, "Julia control server is not running.");
@@ -61,7 +62,7 @@ try {
 Deno.test("log file doesn't exist", () => {
   const log_output = new Deno.Command(
     quartoDevCmd(),
-    {args: ["call", "engine", "julia", "log"]}
+    {args: ["call", "engine", "julia", "log"], cwd: juliaTestDir}
   ).outputSync();
   assertSuccess(log_output);
   assertStderrIncludes(log_output, "Server log file doesn't exist");
@@ -70,13 +71,13 @@ Deno.test("log file doesn't exist", () => {
 Deno.test("status with server and worker running", () => {
   const render_output = new Deno.Command(
     quartoDevCmd(),
-    {args: ["render", sleepQmd, "-P", "sleep_duration:0", "--execute-daemon", "60"]}
+    {args: ["render", sleepQmd, "-P", "sleep_duration:0", "--execute-daemon", "60"], cwd: juliaTestDir}
   ).outputSync();
   assertSuccess(render_output);
 
   const status_output = new Deno.Command(
     quartoDevCmd(),
-    {args: ["call", "engine", "julia", "status"]}
+    {args: ["call", "engine", "julia", "status"], cwd: juliaTestDir}
   ).outputSync();
   assertSuccess(status_output);
   assertStdoutIncludes(status_output, "workers active: 1");
@@ -85,14 +86,14 @@ Deno.test("status with server and worker running", () => {
 Deno.test("closing an idling worker", () => {
   const close_output = new Deno.Command(
     quartoDevCmd(),
-    {args: ["call", "engine", "julia", "close", sleepQmd]}
+    {args: ["call", "engine", "julia", "close", sleepQmd], cwd: juliaTestDir}
   ).outputSync();
   assertSuccess(close_output);
   assertStderrIncludes(close_output, "Worker closed successfully");
 
   const status_output = new Deno.Command(
     quartoDevCmd(),
-    {args: ["call", "engine", "julia", "status"]}
+    {args: ["call", "engine", "julia", "status"], cwd: juliaTestDir}
   ).outputSync();
   assertSuccess(status_output);
   assertStdoutIncludes(status_output, "workers active: 0");
@@ -102,34 +103,34 @@ Deno.test("force-closing a running worker", async () => {
   // spawn a long-running command
   const render_cmd = new Deno.Command(
     quartoDevCmd(),
-    {args: ["render", sleepQmd, "-P", "sleep_duration:30"]}
+    {args: ["render", sleepQmd, "-P", "sleep_duration:30"], cwd: juliaTestDir}
   ).output();
 
   await sleep(3000);
 
   const close_output = new Deno.Command(
     quartoDevCmd(),
-    {args: ["call", "engine", "julia", "close", sleepQmd]}
+    {args: ["call", "engine", "julia", "close", sleepQmd], cwd: juliaTestDir}
   ).outputSync();
   assertStderrIncludes(close_output, "worker is busy");
 
   const status_output = new Deno.Command(
     quartoDevCmd(),
-    {args: ["call", "engine", "julia", "status"]}
+    {args: ["call", "engine", "julia", "status"], cwd: juliaTestDir}
   ).outputSync();
   assertSuccess(status_output);
   assertStdoutIncludes(status_output, "workers active: 1");
 
   const force_close_output = new Deno.Command(
     quartoDevCmd(),
-    {args: ["call", "engine", "julia", "close", "--force", sleepQmd]}
+    {args: ["call", "engine", "julia", "close", "--force", sleepQmd], cwd: juliaTestDir}
   ).outputSync();
   assertSuccess(force_close_output);
   assertStderrIncludes(force_close_output, "Worker force-closed successfully");
 
   const status_output_2 = new Deno.Command(
     quartoDevCmd(),
-    {args: ["call", "engine", "julia", "status"]}
+    {args: ["call", "engine", "julia", "status"], cwd: juliaTestDir}
   ).outputSync();
   assertSuccess(status_output_2);
   assertStdoutIncludes(status_output_2, "workers active: 0");
@@ -141,7 +142,7 @@ Deno.test("force-closing a running worker", async () => {
 Deno.test("log exists", () => {
   const log_output = new Deno.Command(
     quartoDevCmd(),
-    {args: ["call", "engine", "julia", "log"]}
+    {args: ["call", "engine", "julia", "log"], cwd: juliaTestDir}
   ).outputSync();
   assertSuccess(log_output);
   assertStdoutIncludes(log_output, "Log started at");
@@ -150,7 +151,7 @@ Deno.test("log exists", () => {
 Deno.test("stop the idling server", async () => {
   const stop_output = new Deno.Command(
     quartoDevCmd(),
-    {args: ["call", "engine", "julia", "stop"]}
+    {args: ["call", "engine", "julia", "stop"], cwd: juliaTestDir}
   ).outputSync();
   assertSuccess(stop_output);
   assertStderrIncludes(stop_output, "Server stopped");
@@ -159,7 +160,7 @@ Deno.test("stop the idling server", async () => {
 
   const log_output = new Deno.Command(
     quartoDevCmd(),
-    {args: ["call", "engine", "julia", "log"]}
+    {args: ["call", "engine", "julia", "log"], cwd: juliaTestDir}
   ).outputSync();
   assertSuccess(log_output);
   assertStdoutIncludes(log_output, "Server stopped");

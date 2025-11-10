@@ -40,6 +40,9 @@ import { Command } from "cliffy/command/mod.ts";
 import { quartoAPI } from "../core/quarto-api.ts";
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../core/quarto.ts";
+import { initYamlIntelligenceResourcesFromFilesystem } from "../core/schema/utils.ts";
+import { projectContext } from "../project/project-context.ts";
+import { notebookContext } from "../render/notebook/notebook-context.ts";
 
 const kEngines: Map<string, ExecutionEngineDiscovery> = new Map();
 
@@ -360,24 +363,43 @@ export const engineCommand = new Command()
   .description(
     `Access functionality specific to quarto's different rendering engines.`,
   )
-  .action(() => {
-    engineCommand.showHelp();
-    Deno.exit(1);
-  });
+  .stopEarly()
+  .arguments("<engine-name:string> [args...:string]")
+  .action(async (options, engineName: string, ...args: string[]) => {
+    // Initialize YAML intelligence resources (required for project context)
+    await initYamlIntelligenceResourcesFromFilesystem();
 
-kEngines.forEach((engine, name) => {
-  if (engine.populateCommand) {
-    const engineSubcommand = new Command();
-    // fill in some default behavior for each engine command
-    engineSubcommand
+    // Load project context if we're in a project directory
+    // and register external engines from project config
+    const project = await projectContext(Deno.cwd(), notebookContext());
+    if (project) {
+      await reorderEngines(project);
+    }
+
+    // Get the engine (now includes external ones)
+    const engine = executionEngine(engineName);
+    if (!engine) {
+      console.error(`Unknown engine: ${engineName}`);
+      console.error(
+        `Available engines: ${
+          executionEngines().map((e) => e.name).join(", ")
+        }`,
+      );
+      Deno.exit(1);
+    }
+
+    if (!engine.populateCommand) {
+      console.error(`Engine ${engineName} does not support subcommands`);
+      Deno.exit(1);
+    }
+
+    // Create temporary command and let engine populate it
+    const engineSubcommand = new Command()
       .description(
-        `Access functionality specific to the ${name} rendering engine.`,
-      )
-      .action(() => {
-        engineSubcommand.showHelp();
-        Deno.exit(1);
-      });
+        `Access functionality specific to the ${engineName} rendering engine.`,
+      );
     engine.populateCommand(engineSubcommand);
-    engineCommand.command(name, engineSubcommand);
-  }
-});
+
+    // Recursively parse remaining arguments
+    await engineSubcommand.parse(args);
+  });
