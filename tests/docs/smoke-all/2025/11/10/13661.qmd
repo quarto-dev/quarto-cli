@@ -1,0 +1,35 @@
+---
+title: "Mermaid SVG format with Beamer (#13661)"
+format:
+  beamer:
+    mermaid-format: svg
+    keep-tex: true
+  pdf:
+    mermaid-format: svg
+    keep-tex: true
+_quarto:
+  tests:
+    beamer:
+      ensureLatexFileRegexMatches:
+        - ["\\\\includesvg(\\[.*?\\])?\\{[^}]*mermaid-figure-[^}]*\\}"]
+        - ["<script[^>]*>", "mermaid-postprocess-shim"]
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ["\\\\includesvg(\\[.*?\\])?\\{[^}]*mermaid-figure-[^}]*\\}"]
+        - ["<script[^>]*>", "mermaid-postprocess-shim"]
+---
+
+## Test Diagram
+
+Simple mermaid diagram to test SVG format with PDF/Beamer outputs:
+
+```{mermaid}
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Good]
+    B -->|No| D[Bad]
+    C --> E[End]
+    D --> E
+```
+
+This should generate an SVG file and use LaTeX's `\includesvg` command without any HTML script tags.
