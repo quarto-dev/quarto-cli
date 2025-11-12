@@ -37,6 +37,7 @@ local function convert_svg(image)
     local output = stem .. '.pdf'
     if not _quarto.file.exists(output) then
       warn("Skipping SVG conversion for " .. image.src .. " because use-rsvg-convert is false, but required PDF file does not exist: " .. output)
+      return nil
     else
       image.src = output
       return image
