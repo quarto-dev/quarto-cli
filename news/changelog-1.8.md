@@ -2,12 +2,6 @@
 
 ## In this release
 
-- ([#13046](https://github.com/quarto-dev/quarto-cli/issues/13046)): Use new url for multiplex socket.io server <https://multiplex.up.railway.app/> as default for `format: revealjs` and `revealjs.multiplex: true`.
-- ([#13506](https://github.com/quarto-dev/quarto-cli/issues/13506)): Fix navbar active state detection when sidebar has no logo configured. Prevents empty logo links from interfering with navigation highlighting.
-- ([#13616](https://github.com/quarto-dev/quarto-cli/issues/13616)): Fix fatal error when rendering manuscript projects with custom blocks like ConditionalBlock.
-- ([#13625](https://github.com/quarto-dev/quarto-cli/issues/13625)): Fix Windows file locking error (os error 32) when rendering with `--output-dir` flag. Context cleanup now happens before removing the temporary `.quarto` directory, ensuring file handles are properly closed.
-- ([#13633](https://github.com/quarto-dev/quarto-cli/issues/13633)): Fix detection and auto-installation of babel language packages from newer error format that doesn't explicitly mention `.ldf` filename.
-
 ## In previous releases
 
 - ([#13369](https://github.com/quarto-dev/quarto-cli/issues/13369)): Fix failure in theme compilation when `brand.color.primary` is specified for light or dark but not both.
@@ -15,6 +9,11 @@
 - ([#13396](https://github.com/quarto-dev/quarto-cli/issues/13396)): Fix `quarto publish connect` regression.
 - ([#13418](https://github.com/quarto-dev/quarto-cli/issues/13418)): Resolve logo paths specified directly in `brand.logo.{size}`.
 - ([#13445](https://github.com/quarto-dev/quarto-cli/pull/13445)): Brand logo shortcode will not add `.light-content`, `.dark-content` classes when `light` or `dark` is specifically requested.
+- ([#13046](https://github.com/quarto-dev/quarto-cli/issues/13046)): Use new url for multiplex socket.io server <https://multiplex.up.railway.app/> as default for `format: revealjs` and `revealjs.multiplex: true`.
+- ([#13506](https://github.com/quarto-dev/quarto-cli/issues/13506)): Fix navbar active state detection when sidebar has no logo configured. Prevents empty logo links from interfering with navigation highlighting.
+- ([#13616](https://github.com/quarto-dev/quarto-cli/issues/13616)): Fix fatal error when rendering manuscript projects with custom blocks like ConditionalBlock.
+- ([#13625](https://github.com/quarto-dev/quarto-cli/issues/13625)): Fix Windows file locking error (os error 32) when rendering with `--output-dir` flag. Context cleanup now happens before removing the temporary `.quarto` directory, ensuring file handles are properly closed.
+- ([#13633](https://github.com/quarto-dev/quarto-cli/issues/13633)): Fix detection and auto-installation of babel language packages from newer error format that doesn't explicitly mention `.ldf` filename.
 
 # v1.8 changes
 
