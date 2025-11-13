@@ -17,6 +17,8 @@ Extension for generating email components needed for Posit Connect
    (this can be disabled by setting `email-preview: false` in the YAML header)
 --]]
 
+local constants = require("modules/constants")
+
 -- Get the file extension of any file residing on disk
 function get_file_extension(file_path)
   local pattern = "%.([^%.]+)$"
@@ -61,6 +63,71 @@ function str_truthy_falsy(str)
     end
   end
   return false
+end
+
+-- Parse Connect version from SPARK_CONNECT_USER_AGENT
+-- Format: 	posit-connect/2024.09.0
+---         posit-connect/2024.09.0-dev+26-g51b853f70e
+---         posit-connect/2024.09.0-dev+26-dirty-g51b853f70e
+-- Returns: "2024.09.0" or nil
+function get_connect_version()
+  local user_agent = os.getenv("SPARK_CONNECT_USER_AGENT")
+  if not user_agent then
+    return nil
+  end
+  
+  -- Extract the version after "posit-connect/"
+  local version_with_suffix = string.match(user_agent, "posit%-connect/([%d%.%-+a-z]+)")
+  if not version_with_suffix then
+    return nil
+  end
+  
+  -- Strip everything after the first "-" (e.g., "-dev+88-gda902918eb")
+  local idx = string.find(version_with_suffix, "-")
+  if idx then
+    return string.sub(version_with_suffix, 1, idx - 1)
+  end
+  
+  return version_with_suffix
+end
+
+-- Parse a version string into components
+-- Versions are in format "X.Y.Z", with all integral components (e.g., "2025.11.0")
+-- Returns: {major=2025, minor=11, patch=0} or nil
+function parse_version_components(version_string)
+  if not version_string then
+    return nil
+  end
+  
+  -- Parse version (e.g., "2025.11.0" or "2025.11")
+  local major, minor, patch = string.match(version_string, "^(%d+)%.(%d+)%.?(%d*)$")
+  if not major then
+    return nil
+  end
+  
+  return {
+    major = tonumber(major),
+    minor = tonumber(minor),
+    patch = patch ~= "" and tonumber(patch) or 0
+  }
+end
+
+-- Check if Connect version is >= target version
+-- Versions are in format "YYYY.MM.patch" (e.g., "2025.11.0")
+function is_connect_version_at_least(target_version)
+  local current_version = get_connect_version()
+  local current = parse_version_components(current_version)
+  local target = parse_version_components(target_version)
+  
+  if not current or not target then
+    return false
+  end
+  
+  -- Convert to numeric YYYYMMPP format and compare
+  local current_num = current.major * 10000 + current.minor * 100 + current.patch
+  local target_num = target.major * 10000 + target.minor * 100 + target.patch
+  
+  return current_num >= target_num
 end
 
 local html_email_template_1 = [[
@@ -190,6 +257,7 @@ local email_images = {}
 local image_tbl = {}
 local suppress_scheduled_email = false
 local found_email_div = false
+local use_new_email_format = false
 
 function process_meta(meta)
   if not found_email_div then
@@ -200,6 +268,12 @@ function process_meta(meta)
 
   local meta_email_attachments = meta["email-attachments"]
   meta_email_preview = meta["email-preview"]
+  
+  -- Auto-detect Connect version and use appropriate email format
+  -- Connect 2025.11+ uses new format (no rsc_ prefix)
+  if is_connect_version_at_least(constants.kConnectEmailMetadataChangeVersion) then
+    use_new_email_format = true
+  end
   
   if meta_email_attachments ~= nil then
     for _, v in pairs(meta_email_attachments) do
@@ -306,6 +380,25 @@ function extract_email_div_str(doc)
   return pandoc.write(pandoc.Pandoc( {doc} ), "html")
 end
 
+-- Function to build email metadata with appropriate field names
+function build_email_metadata(subject, attachments, html_email_body, email_text, email_images, suppress_scheduled_email)
+  local prefix = use_new_email_format and "" or "rsc_"
+  
+  local metadata = {}
+  metadata[prefix .. "email_subject"] = subject
+  metadata[prefix .. "email_attachments"] = attachments
+  metadata[prefix .. "email_body_html"] = html_email_body
+  metadata[prefix .. "email_body_text"] = email_text
+  metadata[prefix .. "email_suppress_report_attachment"] = true
+  metadata[prefix .. "email_suppress_scheduled"] = suppress_scheduled_email
+  
+  if not is_empty_table(email_images) then
+    metadata[prefix .. "email_images"] = email_images
+  end
+  
+  return metadata
+end
+
 function process_document(doc)
 
   if not found_email_div then
@@ -374,30 +467,18 @@ function process_document(doc)
 
   -- Encode all of the strings and tables of strings into the JSON file
   -- (`.output_metadata.json`) that's needed for Connect's email feature
+  -- Uses the appropriate field names based on Connect version/configuration
 
-  if (is_empty_table(email_images)) then
-
-    metadata_str = quarto.json.encode({
-      rsc_email_subject = subject,
-      rsc_email_attachments = attachments,
-      rsc_email_body_html = html_email_body,
-      rsc_email_body_text = email_text,
-      rsc_email_suppress_report_attachment = true,
-      rsc_email_suppress_scheduled = suppress_scheduled_email
-    })
-
-  else
-
-    metadata_str = quarto.json.encode({
-      rsc_email_subject = subject,
-      rsc_email_attachments = attachments,
-      rsc_email_body_html = html_email_body,
-      rsc_email_body_text = email_text,
-      rsc_email_images = email_images,
-      rsc_email_suppress_report_attachment = true,
-      rsc_email_suppress_scheduled = suppress_scheduled_email
-    })
-  end
+  local metadata = build_email_metadata(
+    subject,
+    attachments,
+    html_email_body,
+    email_text,
+    email_images,
+    suppress_scheduled_email
+  )
+  
+  metadata_str = quarto.json.encode(metadata)
 
   -- Determine the location of the Quarto project directory; if not defined
   -- by the user then set to the location of the input file

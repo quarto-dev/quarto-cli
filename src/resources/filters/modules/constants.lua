@@ -161,6 +161,9 @@ local kBackgroundColorCaution = "ffe5d0"
 local kIncremental = "incremental"
 local kNonIncremental = "nonincremental"
 
+-- Connect version requirements
+local kConnectEmailMetadataChangeVersion = "2025.11"
+
 return {
   kCitation = kCitation,
   kContainerId = kContainerId,
@@ -254,5 +257,7 @@ return {
   kBackgroundColorCaution = kBackgroundColorCaution,
 
   kIncremental = kIncremental,
-  kNonIncremental = kNonIncremental
+  kNonIncremental = kNonIncremental,
+
+  kConnectEmailMetadataChangeVersion = kConnectEmailMetadataChangeVersion
 }
