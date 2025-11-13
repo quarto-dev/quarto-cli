@@ -30,11 +30,7 @@ const kExampleEngine = "<%= filesafename %>";
 /**
  * Example engine implementation with discovery and launch capabilities
  */
-export const exampleEngineDiscovery: ExecutionEngineDiscovery & {
-  _discovery: boolean;
-} = {
-  _discovery: true,
-
+const exampleEngineDiscovery: ExecutionEngineDiscovery = {
   init: (quartoAPI: QuartoAPI) => {
     quarto = quartoAPI;
   },
@@ -43,7 +39,7 @@ export const exampleEngineDiscovery: ExecutionEngineDiscovery & {
   defaultExt: ".qmd",
   defaultYaml: () => [],
   defaultContent: () => [
-    `\`\`\`{${kExampleEngine}}`,
+    "```{" + kExampleEngine + "}",
     "# Example code cell",
     "print('Hello from <%= filesafename %>!')",
     "```",
@@ -92,21 +88,42 @@ export const exampleEngineDiscovery: ExecutionEngineDiscovery & {
         );
       },
 
-      execute: (options: ExecuteOptions): Promise<ExecuteResult> => {
-        // Read the markdown
-        const markdown = options.target.markdown.value;
+      execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
+        // Break markdown into cells to process code blocks individually
+        const chunks = await quarto.markdownRegex.breakQuartoMd(
+          options.target.markdown,
+        );
 
-        // CHANGE THIS: Add your custom processing here
-        // This example just prepends a heading to the document
-        const processedMarkdown = "# Example Engine - <%= filesafename %>\n\n" +
-          markdown;
+        // Process each cell
+        const processedCells: string[] = [];
+        for (const cell of chunks.cells) {
+          if (
+            typeof cell.cell_type === "object" &&
+            cell.cell_type.language === kExampleEngine
+          ) {
+            // CHANGE THIS: Add your custom processing here
+            // This example adds the engine name three times at the start of the cell
+            const processed =
+              [kExampleEngine, kExampleEngine, kExampleEngine].join(" ") +
+              "\n" +
+              cell.source.value;
+            processedCells.push(
+              cell.sourceVerbatim.value.replace(cell.source.value, processed),
+            );
+          } else {
+            // Not our language - pass through unchanged
+            processedCells.push(cell.sourceVerbatim.value);
+          }
+        }
 
-        return Promise.resolve({
+        const processedMarkdown = processedCells.join("");
+
+        return {
           engine: kExampleEngine,
           markdown: processedMarkdown,
           supporting: [],
           filters: [],
-        });
+        };
       },
 
       dependencies: (_options: DependenciesOptions) => {
@@ -119,3 +136,5 @@ export const exampleEngineDiscovery: ExecutionEngineDiscovery & {
     };
   },
 };
+
+export default exampleEngineDiscovery;
