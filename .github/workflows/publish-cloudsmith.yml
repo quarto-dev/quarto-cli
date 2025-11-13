@@ -123,6 +123,7 @@ jobs:
           echo "All required packages present in release"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: quarto-dev/quarto-cli
 
   publish-cloudsmith:
     runs-on: ubuntu-latest
@@ -171,6 +172,7 @@ jobs:
           echo "✓ Successfully downloaded and validated: $FILE_NAME"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: quarto-dev/quarto-cli
 
       - name: Install and authenticate Cloudsmith CLI
         uses: cloudsmith-io/cloudsmith-cli-action@v1.0.8
