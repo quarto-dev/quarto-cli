@@ -163,6 +163,14 @@ export async function prepareDist(
     );
   }
 
+  // Copy quarto-types for engine extension template
+  info("Copying quarto-types.d.ts for engine extension template");
+  copySync(
+    join(config.directoryInfo.root, "packages/quarto-types/dist/index.d.ts"),
+    join(config.directoryInfo.pkgWorking.share, "quarto-types.d.ts"),
+    { overwrite: true },
+  );
+
   // Remove the config directory, if present
   info(`Cleaning config`);
   const configDir = join(config.directoryInfo.dist, "config");
