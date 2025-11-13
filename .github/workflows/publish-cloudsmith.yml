@@ -173,7 +173,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install and authenticate Cloudsmith CLI
-        uses: cloudsmith-io/cloudsmith-cli-action@v1
+        uses: cloudsmith-io/cloudsmith-cli-action@v1.0.8
         with:
           api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
 
