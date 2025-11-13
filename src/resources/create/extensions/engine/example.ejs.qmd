@@ -5,25 +5,25 @@ engine: <%= filesafename %>
 
 ## Example Content
 
-This demonstrates the `<%= filesafename %>` engine processing cells with the `<%= filesafename %>` language.
+This demonstrates the `<%= filesafename %>` engine processing cells with the `<%= cellLanguage %>` language.
 
-```{<%= filesafename %>}
+```{<%= cellLanguage %>}
 # This cell will be processed by the <%= filesafename %> engine
 print("Hello from <%= filesafename %> engine!")
 ```
 
 ## Other Engines
 
-Cells with other languages are not processed by this engine:
+Currently there can only be one execution engine. 
+So this python code won't execute:
 
 ```{python}
-# This will be handled by the python engine (if available)
 print("Hello from Python!")
 ```
 
 ## More Example Cells
 
-```{<%= filesafename %>}
+```{<%= cellLanguage %>}
 # Another example cell
 x = 42
 print(f"The answer is {x}")

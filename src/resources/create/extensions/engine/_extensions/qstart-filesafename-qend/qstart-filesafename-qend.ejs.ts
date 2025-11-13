@@ -25,7 +25,8 @@ import type {
 let quarto: QuartoAPI;
 
 // Engine name constant
-const kExampleEngine = "<%= filesafename %>";
+const kEngineName = "<%= filesafename %>";
+const kCellLanguage = "<%= cellLanguage %>";
 
 /**
  * Example engine implementation with discovery and launch capabilities
@@ -35,11 +36,11 @@ const exampleEngineDiscovery: ExecutionEngineDiscovery = {
     quarto = quartoAPI;
   },
 
-  name: kExampleEngine,
+  name: kEngineName,
   defaultExt: ".qmd",
   defaultYaml: () => [],
   defaultContent: () => [
-    "```{" + kExampleEngine + "}",
+    "```{" + kCellLanguage + "}",
     "# Example code cell",
     "print('Hello from <%= filesafename %>!')",
     "```",
@@ -53,7 +54,7 @@ const exampleEngineDiscovery: ExecutionEngineDiscovery = {
 
   claimsLanguage: (language: string) => {
     // This engine claims cells with its own language name
-    return language.toLowerCase() === kExampleEngine.toLowerCase();
+    return language.toLowerCase() === kCellLanguage.toLowerCase();
   },
 
   canFreeze: false,
@@ -99,12 +100,12 @@ const exampleEngineDiscovery: ExecutionEngineDiscovery = {
         for (const cell of chunks.cells) {
           if (
             typeof cell.cell_type === "object" &&
-            cell.cell_type.language === kExampleEngine
+            cell.cell_type.language === kCellLanguage
           ) {
             // CHANGE THIS: Add your custom processing here
-            // This example adds the engine name three times at the start of the cell
+            // This example adds the cell language name three times at the start of the cell
             const processed =
-              [kExampleEngine, kExampleEngine, kExampleEngine].join(" ") +
+              [kCellLanguage, kCellLanguage, kCellLanguage].join(" ") +
               "\n" +
               cell.source.value;
             processedCells.push(
@@ -119,7 +120,7 @@ const exampleEngineDiscovery: ExecutionEngineDiscovery = {
         const processedMarkdown = processedCells.join("");
 
         return {
-          engine: kExampleEngine,
+          engine: kEngineName,
           markdown: processedMarkdown,
           supporting: [],
           filters: [],

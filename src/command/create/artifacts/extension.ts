@@ -21,6 +21,7 @@ import { copySync, ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
 const kType = "type";
 const kSubType = "subtype";
 const kName = "name";
+const kCellLanguage = "cellLanguage";
 
 const kTypeExtension = "extension";
 
@@ -125,6 +126,7 @@ function finalizeOptions(createOptions: CreateContext) {
       createOptions.options[kName] as string,
     ),
     template,
+    options: createOptions.options,
   } as CreateDirective;
 }
 
@@ -171,6 +173,19 @@ function nextPrompt(
       name: kName,
       message: "Extension Name",
       type: Input,
+    };
+  }
+
+  // Collect cell language for engine extensions
+  if (
+    createOptions.options[kType] === "engine" &&
+    !createOptions.options[kCellLanguage]
+  ) {
+    return {
+      name: kCellLanguage,
+      message: "Default cell language name",
+      type: Input,
+      default: createOptions.options[kName] as string,
     };
   }
 }
