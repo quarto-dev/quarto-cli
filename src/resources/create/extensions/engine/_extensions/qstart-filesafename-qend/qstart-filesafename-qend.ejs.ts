@@ -43,7 +43,7 @@ export const exampleEngineDiscovery: ExecutionEngineDiscovery & {
   defaultExt: ".qmd",
   defaultYaml: () => [],
   defaultContent: () => [
-    "```{example}",
+    `\`\`\`{${kExampleEngine}}`,
     "# Example code cell",
     "print('Hello from <%= filesafename %>!')",
     "```",
@@ -56,8 +56,8 @@ export const exampleEngineDiscovery: ExecutionEngineDiscovery & {
   },
 
   claimsLanguage: (language: string) => {
-    // This engine claims cells with language "example"
-    return language.toLowerCase() === "example";
+    // This engine claims cells with its own language name
+    return language.toLowerCase() === kExampleEngine.toLowerCase();
   },
 
   canFreeze: false,
