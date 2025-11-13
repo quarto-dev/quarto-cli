@@ -1,4 +1,6 @@
 ---
+engines:
+- path: /home/runner/work/quarto-cli/quarto-cli/src/resources/extension-subtrees/julia-engine/\_extensions/julia-engine/julia-engine.ts
 foo: bar
 toc-title: Table of contents
 ---
