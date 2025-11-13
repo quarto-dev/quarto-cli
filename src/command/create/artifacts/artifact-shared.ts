@@ -145,6 +145,8 @@ export async function ejsData(
     author: author.trim(),
     version,
     quartoversion,
+    cellLanguage: (createDirective.options?.cellLanguage as string) ||
+      filesafename,
   };
 }
 

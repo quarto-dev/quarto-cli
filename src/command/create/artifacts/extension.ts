@@ -15,12 +15,13 @@ import { ejsData, renderAndCopyArtifacts } from "./artifact-shared.ts";
 import { resourcePath } from "../../../core/resources.ts";
 
 import { Input, Select } from "cliffy/prompt/mod.ts";
-import { join } from "../../../deno_ral/path.ts";
-import { existsSync } from "../../../deno_ral/fs.ts";
+import { dirname, join } from "../../../deno_ral/path.ts";
+import { copySync, ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
 
 const kType = "type";
 const kSubType = "subtype";
 const kName = "name";
+const kCellLanguage = "cellLanguage";
 
 const kTypeExtension = "extension";
 
@@ -42,6 +43,7 @@ const kExtensionTypes: Array<string | ExtensionType> = [
   { name: "custom format", value: "format", openfiles: ["template.qmd"] },
   { name: "metadata", value: "metadata", openfiles: [] },
   { name: "brand", value: "brand", openfiles: [] },
+  { name: "engine", value: "engine", openfiles: ["example.qmd"] },
 ];
 
 const kExtensionSubtypes: Record<string, string[]> = {
@@ -124,6 +126,7 @@ function finalizeOptions(createOptions: CreateContext) {
       createOptions.options[kName] as string,
     ),
     template,
+    options: createOptions.options,
   } as CreateDirective;
 }
 
@@ -170,6 +173,19 @@ function nextPrompt(
       name: kName,
       message: "Extension Name",
       type: Input,
+    };
+  }
+
+  // Collect cell language for engine extensions
+  if (
+    createOptions.options[kType] === "engine" &&
+    !createOptions.options[kCellLanguage]
+  ) {
+    return {
+      name: kCellLanguage,
+      message: "Default cell language name",
+      type: Input,
+      default: createOptions.options[kName] as string,
     };
   }
 }
@@ -232,6 +248,34 @@ async function createExtension(
     data,
     quiet,
   );
+
+  // For engine extensions, copy the current quarto-types
+  const createType = typeFromTemplate(createDirective.template);
+  if (createType === "engine") {
+    // Try to find types in the distribution (production)
+    let typesSource = resourcePath("quarto-types.d.ts");
+
+    if (!existsSync(typesSource)) {
+      // Development build - get from source tree
+      const quartoRoot = Deno.env.get("QUARTO_ROOT");
+      if (!quartoRoot) {
+        throw new Error(
+          "Cannot find quarto-types.d.ts. QUARTO_ROOT environment variable not set.",
+        );
+      }
+      typesSource = join(quartoRoot, "packages/quarto-types/dist/index.d.ts");
+    }
+
+    const typesTarget = join(
+      target,
+      "_extensions",
+      createDirective.name,
+      "types",
+      "quarto-types.d.ts",
+    );
+    ensureDirSync(dirname(typesTarget));
+    copySync(typesSource, typesTarget);
+  }
 
   return filesCreated[0];
 }

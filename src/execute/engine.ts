@@ -206,6 +206,27 @@ export async function reorderEngines(project: ProjectContext) {
         const extEngine = (await import(toFileUrl(engine.path).href))
           .default as ExecutionEngineDiscovery;
 
+        // Validate that the module exports an ExecutionEngineDiscovery object
+        if (!extEngine) {
+          throw new Error(
+            `Engine module must export a default ExecutionEngineDiscovery object. ` +
+              `Check that your engine file exports 'export default yourEngineDiscovery;'`,
+          );
+        }
+
+        // Validate required properties
+        const missing: string[] = [];
+        if (!extEngine.name) missing.push("name");
+        if (!extEngine.launch) missing.push("launch");
+        if (!extEngine.claimsLanguage) missing.push("claimsLanguage");
+
+        if (missing.length > 0) {
+          throw new Error(
+            `Engine is missing required properties: ${missing.join(", ")}. ` +
+              `Ensure your engine implements the ExecutionEngineDiscovery interface.`,
+          );
+        }
+
         // Check if engine's Quarto version requirement is satisfied
         checkEngineVersionRequirement(extEngine);
 

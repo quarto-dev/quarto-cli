@@ -277,54 +277,28 @@ export function filterExtensions(
   }
 }
 
-// Read bundled extensions with support for three patterns:
-// 1. Organization directories with raw extensions (quarto/kbd/)
-// 2. Top-level orgless raw extensions (my-extension/)
-// 3. Top-level git subtree wrappers (julia-engine/_extensions/PumasAI/julia-engine/)
-const readBundledExtensions = async (bundledDir: string): Promise<Extension[]> => {
+// Read git subtree extensions (pattern 3 only)
+// Looks for top-level directories containing _extensions/ subdirectories
+const readSubtreeExtensions = async (
+  subtreeDir: string,
+): Promise<Extension[]> => {
   const extensions: Extension[] = [];
 
-  const topLevelDirs = safeExistsSync(bundledDir) &&
-      Deno.statSync(bundledDir).isDirectory
-    ? Deno.readDirSync(bundledDir)
+  const topLevelDirs = safeExistsSync(subtreeDir) &&
+      Deno.statSync(subtreeDir).isDirectory
+    ? Deno.readDirSync(subtreeDir)
     : [];
 
   for (const topLevelDir of topLevelDirs) {
     if (!topLevelDir.isDirectory) continue;
 
-    const dirName = topLevelDir.name;
-    const dirPath = join(bundledDir, dirName);
-    const extFile = extensionFile(dirPath);
+    const dirPath = join(subtreeDir, topLevelDir.name);
+    const subtreeExtensionsPath = join(dirPath, kExtensionDir);
 
-    if (extFile) {
-      // Pattern 2: Top-level orgless raw extension
-      const extensionId = { name: dirName, organization: undefined };
-      const extension = await readExtension(extensionId, extFile);
-      extensions.push(extension);
-    } else {
-      // Check for Pattern 3: Git subtree wrapper with _extensions/ subdirectory
-      const subtreeExtensionsPath = join(dirPath, kExtensionDir);
-      if (safeExistsSync(subtreeExtensionsPath)) {
-        // Read extensions preserving their natural organization
-        const exts = await readExtensions(subtreeExtensionsPath);
-        extensions.push(...exts);
-      } else {
-        // Pattern 1: Organization directory - look for raw extensions inside
-        const extensionDirs = Deno.readDirSync(dirPath);
-        for (const extensionDir of extensionDirs) {
-          if (!extensionDir.isDirectory) continue;
-
-          const extensionName = extensionDir.name;
-          const extensionPath = join(dirPath, extensionName);
-          const innerExtFile = extensionFile(extensionPath);
-
-          if (innerExtFile) {
-            const extensionId = { name: extensionName, organization: dirName };
-            const extension = await readExtension(extensionId, innerExtFile);
-            extensions.push(extension);
-          }
-        }
-      }
+    if (safeExistsSync(subtreeExtensionsPath)) {
+      // This is a git subtree wrapper - read extensions preserving their natural organization
+      const exts = await readExtensions(subtreeExtensionsPath);
+      extensions.push(...exts);
     }
   }
 
@@ -341,7 +315,7 @@ const loadExtensions = async (
 ) => {
   const extensionPath = inputExtensionDirs(input, projectDir);
   const allExtensions: Record<string, Extension> = {};
-  const bundledPath = builtinExtensions();
+  const subtreePath = builtinSubtreeExtensions();
 
   for (const extensionDir of extensionPath) {
     if (cache[extensionDir]) {
@@ -349,9 +323,9 @@ const loadExtensions = async (
         allExtensions[extensionIdString(ext.id)] = cloneDeep(ext);
       });
     } else {
-      // Check if this is the bundled extensions directory
-      const extensions = extensionDir === bundledPath
-        ? await readBundledExtensions(extensionDir)
+      // Check if this is the subtree extensions directory
+      const extensions = extensionDir === subtreePath
+        ? await readSubtreeExtensions(extensionDir)
         : await readExtensions(extensionDir);
       extensions.forEach((extension) => {
         allExtensions[extensionIdString(extension.id)] = cloneDeep(extension);
@@ -578,7 +552,10 @@ export function inputExtensionDirs(input?: string, projectDir?: string) {
   };
 
   // read extensions (start with built-in)
-  const extensionDirectories: string[] = [builtinExtensions()];
+  const extensionDirectories: string[] = [
+    builtinExtensions(),
+    builtinSubtreeExtensions(),
+  ];
   if (projectDir && input) {
     let currentDir = normalizePath(inputDirName(input));
     do {
@@ -681,6 +658,11 @@ export function discoverExtensionPath(
 // Path for built-in extensions
 function builtinExtensions() {
   return resourcePath("extensions");
+}
+
+// Path for built-in subtree extensions
+function builtinSubtreeExtensions() {
+  return resourcePath("extension-subtrees");
 }
 
 // Validate the extension
