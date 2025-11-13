@@ -135,6 +135,9 @@ export const ZodGiscusConfiguration = z.object({
   language: z.string(),
 }).strict().partial().required({ repo: true });
 
+export const ZodExternalEngine = z.object({ path: z.string() }).strict()
+  .partial().required({ path: true });
+
 export const ZodDocumentCommentsConfiguration = z.union([
   z.literal(false),
   z.object({
@@ -1827,6 +1830,8 @@ export type GiscusThemes = z.infer<typeof ZodGiscusThemes>;
 
 export type GiscusConfiguration = z.infer<typeof ZodGiscusConfiguration>;
 
+export type ExternalEngine = z.infer<typeof ZodExternalEngine>;
+
 export type DocumentCommentsConfiguration = z.infer<
   typeof ZodDocumentCommentsConfiguration
 >;
@@ -2061,6 +2066,7 @@ export const Zod = {
   NavigationItemObject: ZodNavigationItemObject,
   GiscusThemes: ZodGiscusThemes,
   GiscusConfiguration: ZodGiscusConfiguration,
+  ExternalEngine: ZodExternalEngine,
   DocumentCommentsConfiguration: ZodDocumentCommentsConfiguration,
   SocialMetadata: ZodSocialMetadata,
   PageFooterRegion: ZodPageFooterRegion,
