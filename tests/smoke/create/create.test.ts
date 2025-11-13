@@ -22,6 +22,7 @@ const kCreateTypes: Record<string, string[]> = {
     "format:pdf",
     "format:docx",
     "format:revealjs",
+    "engine",
   ],
 };
 
