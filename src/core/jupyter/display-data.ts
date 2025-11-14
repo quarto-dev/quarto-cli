@@ -75,7 +75,8 @@ export function displayDataMimeType(
       kTextHtml,
     );
   } else if (options.toLatex) {
-    displayPriority.push(
+    // latex and pdf should be preferred over the other mime types
+    displayPriority.unshift(
       kTextLatex,
       kApplicationPdf,
     );
