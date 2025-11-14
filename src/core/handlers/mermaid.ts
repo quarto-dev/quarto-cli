@@ -314,12 +314,12 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
         isMarkdownOutput(handlerContext.options.format, ["gfm"]) ||
         !isJavascriptCompatible(handlerContext.options.format)
       ) {
-        // Emit info message for PDF/LaTeX formats (which require external tooling)
-        if (isLatexOutput(handlerContext.options.format.pandoc)) {
+        // Emit info message for non-JS formats (excluding GFM which doesn't have the issue)
+        if (!isMarkdownOutput(handlerContext.options.format, ["gfm"])) {
           info(
             `Using mermaid-format: svg with ${
-              handlerContext.options.format.pandoc.to ?? "PDF"
-            } format requires external tooling (rsvg-convert or Inkscape). Consider using mermaid-format: png if you encounter issues.`,
+              handlerContext.options.format.pandoc.to ?? "non-HTML"
+            } format. Note: diagrams with multi-line text labels may experience clipping. Consider using mermaid-format: png if issues occur.`,
           );
         }
         const { sourceName, fullName } = handlerContext

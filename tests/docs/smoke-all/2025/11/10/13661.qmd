@@ -1,34 +1,27 @@
 ---
-title: "Mermaid SVG format with LaTeX - No script tags (#13661)"
-# Test strategy: Use format:latex with use-rsvg-convert:false to:
-# - Test mermaid-format:svg (the actual bug scenario)
-# - Generate .tex file without compiling PDF (avoids needing rsvg-convert/Inkscape in CI)
-# - Verify warning message about external tooling
-# - Verify LaTeX uses \includesvg (not \includegraphics)
-# - Verify NO HTML <script> tags in LaTeX output (the original bug)
+title: "Mermaid SVG format with Beamer (#13661)"
 format:
-  latex:
+  beamer:
     mermaid-format: svg
-    use-rsvg-convert: false
+    keep-tex: true
+  pdf:
+    mermaid-format: svg
+    keep-tex: true
 _quarto:
   tests:
-    latex:
-      printsMessage:
-        level: INFO
-        regex: 'requires external tooling'
-      ensureFileRegexMatches:
+    beamer:
+      ensureLatexFileRegexMatches:
+        - ["\\\\includesvg(\\[.*?\\])?\\{[^}]*mermaid-figure-[^}]*\\}"]
+        - ["<script[^>]*>", "mermaid-postprocess-shim"]
+    pdf:
+      ensureLatexFileRegexMatches:
         - ["\\\\includesvg(\\[.*?\\])?\\{[^}]*mermaid-figure-[^}]*\\}"]
         - ["<script[^>]*>", "mermaid-postprocess-shim"]
 ---
 
 ## Test Diagram
 
-Simple mermaid diagram to test SVG format with LaTeX output.
-
-**What this tests:**
-- Bug fix: HTML script tags should NOT appear in LaTeX output
-- Warning: Should emit INFO about requiring external tooling (rsvg-convert or Inkscape)
-- LaTeX structure: Should use `\includesvg` command for SVG files
+Simple mermaid diagram to test SVG format with PDF/Beamer outputs:
 
 ```{mermaid}
 graph TD
@@ -38,3 +31,5 @@ graph TD
     C --> E[End]
     D --> E
 ```
+
+This should generate an SVG file and use LaTeX's `\includesvg` command without any HTML script tags.
