@@ -429,6 +429,22 @@ export async function runPandoc(
     // Don't print _quarto.tests
     // This can cause issue on regex test for printed output
     cleanQuartoTestsMetadata(metadata);
+
+    // Filter out bundled engines from the engines array
+    if (Array.isArray(metadata.engines)) {
+      const filteredEngines = metadata.engines.filter((engine) => {
+        const enginePath = typeof engine === "string" ? engine : engine.path;
+        // Keep user engines, filter out bundled ones
+        return !enginePath?.includes("/src/resources/extension-subtrees/");
+      });
+
+      // Remove the engines key entirely if empty, otherwise assign filtered array
+      if (filteredEngines.length === 0) {
+        delete metadata.engines;
+      } else {
+        metadata.engines = filteredEngines;
+      }
+    }
   };
 
   cleanMetadataForPrinting(printMetadata);
