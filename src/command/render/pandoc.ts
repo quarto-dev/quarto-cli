@@ -1309,6 +1309,23 @@ export async function runPandoc(
   // and it breaks ensureFileRegexMatches
   cleanQuartoTestsMetadata(pandocPassedMetadata);
 
+  // Filter out bundled engines from metadata passed to Pandoc
+  if (Array.isArray(pandocPassedMetadata.engines)) {
+    const filteredEngines = pandocPassedMetadata.engines.filter((engine) => {
+      const enginePath = typeof engine === "string" ? engine : engine.path;
+      if (!enginePath) return true;
+
+      const normalizedPath = enginePath.replace(/\\/g, "/");
+      return !normalizedPath.includes("extension-subtrees/");
+    });
+
+    if (filteredEngines.length === 0) {
+      delete pandocPassedMetadata.engines;
+    } else {
+      pandocPassedMetadata.engines = filteredEngines;
+    }
+  }
+
   Deno.writeTextFileSync(
     metadataTemp,
     stringify(pandocPassedMetadata, {
