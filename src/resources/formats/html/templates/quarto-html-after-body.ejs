@@ -27,14 +27,77 @@
     <% } %>
   
     <% if (tabby) {  %>
-  
+
     const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
     tabsets.forEach(function(tabset) {
       const tabby = new Tabby('#' + tabset.id);
     });
-  
+
     <% } %>
-  
+
+    // Activate Bootstrap tab based on URL hash
+    const activateTabFromHash = function() {
+      if (!window.location.hash) return;
+
+      // Check if hash corresponds to a tab pane
+      const hash = window.location.hash;
+      const pane = document.querySelector(hash + '.tab-pane');
+
+      if (pane && window.bootstrap) {
+        // Find the tab link that targets this pane
+        const tabLink = document.querySelector('[data-bs-toggle="tab"][data-bs-target="' + hash + '"]');
+        if (tabLink) {
+          const tab = new window.bootstrap.Tab(tabLink);
+          tab.show();
+
+          // Scroll to the entire tabset after a brief delay to ensure it's shown
+          setTimeout(function() {
+            const tabset = pane.closest('.panel-tabset');
+            if (tabset) {
+              tabset.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 100);
+        }
+      }
+    };
+
+    // Activate on page load
+    activateTabFromHash();
+
+    // Activate on hash change (when clicking anchor links)
+    window.addEventListener('hashchange', activateTabFromHash);
+
+    // Handle clicks on links to tab panes (even if hash is already set)
+    document.addEventListener('click', function(event) {
+      const link = event.target.closest('a[href^="#"]');
+      if (!link) return;
+
+      const hash = link.getAttribute('href');
+      const pane = document.querySelector(hash + '.tab-pane');
+
+      if (pane && window.bootstrap) {
+        const tabLink = document.querySelector('[data-bs-toggle="tab"][data-bs-target="' + hash + '"]');
+        if (tabLink) {
+          event.preventDefault();
+          const tab = new window.bootstrap.Tab(tabLink);
+          tab.show();
+
+          // Update URL without triggering hashchange
+          if (window.location.hash !== hash) {
+            window.location.hash = hash;
+          }
+
+          // Scroll to the entire tabset
+          setTimeout(function() {
+            const tabset = pane.closest('.panel-tabset');
+            if (tabset) {
+              tabset.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 100);
+        }
+      }
+    });
+
     <% if (anchors) { %>
   
     const icon = "<%= anchors === true ? '' : anchors %>";

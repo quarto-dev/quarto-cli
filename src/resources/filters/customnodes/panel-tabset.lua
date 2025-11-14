@@ -6,7 +6,7 @@
 --[[
 Create a Tab AST node (represented as a Lua table)
 ]]
----@param params { content:nil|pandoc.Blocks|string, title:pandoc.Inlines|string, active:nil|boolean }
+---@param params { content:nil|pandoc.Blocks|string, title:pandoc.Inlines|string, active:nil|boolean, identifier:nil|string }
 ---@return quarto.Tab
 quarto.Tab = function(params)
   local content
@@ -21,11 +21,13 @@ quarto.Tab = function(params)
   if type(params.active) == "boolean" then
     active = params.active
   end
+  local identifier = params.identifier or ""
 
   return {
     active = active,
     content = content,
-    title = pandoc.Inlines(params.title)
+    title = pandoc.Inlines(params.title),
+    identifier = identifier
   }
 end
 
@@ -33,7 +35,7 @@ local function render_quarto_tab(tbl, tabset)
   local content = quarto.utils.as_blocks(tbl.content)
   local title = quarto.utils.as_inlines(tbl.title)
   local inner_content = pandoc.List()
-  local attr = pandoc.Attr("", {}, {})
+  local attr = pandoc.Attr(tbl.identifier or "", {}, {})
   if tbl.active then
     attr.classes:insert("active")
   end
@@ -52,9 +54,10 @@ function parse_tabset_contents(div)
     for i=1,#div.content do 
       local el = div.content[i]
       if el.t == "Header" and el.level == level then
-        tab = quarto.Tab({ 
-          title = el.content, 
-          active = el.attr.classes:includes("active") 
+        tab = quarto.Tab({
+          title = el.content,
+          active = el.attr.classes:includes("active"),
+          identifier = el.attr.identifier
         })
         tabs:insert(tab)
       elseif tab ~= nil then
@@ -70,6 +73,9 @@ end
 local tabsetidx = 1
 
 function render_tabset(attr, tabs, renderer)
+  -- Track used IDs to detect conflicts
+  local usedIds = {}
+
   -- create a unique id for the tabset
   local tabsetid = "tabset-" .. tabsetidx
   tabsetidx = tabsetidx + 1
@@ -108,8 +114,27 @@ function render_tabset(attr, tabs, renderer)
     local heading = tab.content[1]
     tab.content:remove(1)
 
-    -- tab id
-    local tabid = tabsetid .. "-" .. i
+    -- Use custom ID if provided, otherwise auto-generate
+    local customId = heading.attr.identifier
+    local tabid
+
+    if customId and customId ~= "" then
+      -- Validate custom ID
+      if usedIds[customId] then
+        warn("Duplicate tab ID '" .. customId .. "' in tabset. Using auto-generated ID instead.")
+        tabid = tabsetid .. "-" .. i
+      elseif customId:match("^tabset%-") then
+        warn("Tab ID '" .. customId .. "' conflicts with auto-generated pattern. Using auto-generated ID instead.")
+        tabid = tabsetid .. "-" .. i
+      else
+        tabid = customId
+      end
+    else
+      tabid = tabsetid .. "-" .. i
+    end
+
+    print("DEBUG: Tab " .. i .. " using ID: '" .. tabid .. "'")
+    usedIds[tabid] = true
     local tablinkid = tabid .. "-tab" -- FIXME unused from before?
 
     -- navigation
@@ -155,7 +180,8 @@ _quarto.ast.add_handler({
       __quarto_custom_node = node,
       level = params.level or 2,
       attr = params.attr or pandoc.Attr("", {"panel-tabset"}),
-      actives = params.tabs:map(function(tab) return tab.active end)
+      actives = params.tabs:map(function(tab) return tab.active end),
+      identifiers = params.tabs:map(function(tab) return tab.identifier or "" end)
     }
     local outer_custom_data = custom_data
 
@@ -166,6 +192,7 @@ _quarto.ast.add_handler({
       }
       local result = {
         active = outer_custom_data.actives[index],
+        identifier = outer_custom_data.identifiers[index],
       }
       setmetatable(result, _quarto.ast.create_proxy_metatable(
         function(key) return forwarder[key] end,
