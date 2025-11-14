@@ -1,27 +1,34 @@
 ---
-title: "Mermaid SVG format with Beamer (#13661)"
+title: "Mermaid SVG format with LaTeX - No script tags (#13661)"
+# Test strategy: Use format:latex with use-rsvg-convert:false to:
+# - Test mermaid-format:svg (the actual bug scenario)
+# - Generate .tex file without compiling PDF (avoids needing rsvg-convert/Inkscape in CI)
+# - Verify warning message about clipping + external tooling
+# - Verify LaTeX uses \includesvg (not \includegraphics)
+# - Verify NO HTML <script> tags in LaTeX output (the original bug)
 format:
-  beamer:
+  latex:
     mermaid-format: svg
-    keep-tex: true
-  pdf:
-    mermaid-format: svg
-    keep-tex: true
+    use-rsvg-convert: false
 _quarto:
   tests:
-    beamer:
-      ensureLatexFileRegexMatches:
-        - ["\\\\includesvg(\\[.*?\\])?\\{[^}]*mermaid-figure-[^}]*\\}"]
-        - ["<script[^>]*>", "mermaid-postprocess-shim"]
-    pdf:
-      ensureLatexFileRegexMatches:
+    latex:
+      printsMessage:
+        level: INFO
+        regex: 'multi-line text labels may experience clipping.*requires external tooling'
+      ensureFileRegexMatches:
         - ["\\\\includesvg(\\[.*?\\])?\\{[^}]*mermaid-figure-[^}]*\\}"]
         - ["<script[^>]*>", "mermaid-postprocess-shim"]
 ---
 
 ## Test Diagram
 
-Simple mermaid diagram to test SVG format with PDF/Beamer outputs:
+Simple mermaid diagram to test SVG format with LaTeX output.
+
+**What this tests:**
+- Bug fix: HTML script tags should NOT appear in LaTeX output
+- Warning: Should emit INFO about clipping AND requiring external tooling
+- LaTeX structure: Should use `\includesvg` command for SVG files
 
 ```{mermaid}
 graph TD
@@ -31,5 +38,3 @@ graph TD
     C --> E[End]
     D --> E
 ```
-
-This should generate an SVG file and use LaTeX's `\includesvg` command without any HTML script tags.
