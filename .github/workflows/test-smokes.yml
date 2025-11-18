@@ -139,6 +139,13 @@ jobs:
           sudo apt-get install -y libharfbuzz-dev libfribidi-dev
           sudo apt-get install -y poppler-utils
 
+      - name: Install rsvg-convert for SVG conversion tests
+        # Only do it on linux runner, and only if we are running the relevant tests
+        if: runner.os == 'Linux' && contains(inputs.buckets, 'render-pdf-svg-conversion')
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y librsvg2-bin
+
       - name: Restore R packages
         working-directory: tests
         run: |
