@@ -1,0 +1,38 @@
+---
+title: "GFM with mermaid-format:svg"
+format: gfm
+mermaid-format: svg
+_quarto:
+  tests:
+    gfm:
+      ensureFileRegexMatches:
+        - ['img.*mermaid-figure-.*?\.svg']  # Verify markdown image link to SVG
+        - []
+      printsMessage:
+        level: INFO
+        regex: 'Using mermaid-format: svg'
+        negate: true  # Should NOT print warning for GFM
+---
+
+## GFM Mermaid Test
+
+This tests that GFM format correctly handles mermaid-format:svg without warnings.
+
+```{mermaid}
+graph LR
+  A[Start] --> B{Decision}
+  B -->|Yes| C[Option 1]
+  B -->|No| D[Option 2]
+  C --> E[End]
+  D --> E
+```
+
+## Multi-line Labels Test
+
+Testing that multi-line labels work (even though GFM doesn't have the clipping issue that LaTeX has):
+
+```{mermaid}
+graph TD
+  A["This is a very long label<br/>with multiple lines<br/>of text content"] --> B["Another multi-line<br/>label here"]
+  B --> C[Short]
+```
