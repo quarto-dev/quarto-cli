@@ -65,8 +65,10 @@ export const extensionArtifactCreator: ArtifactCreator = {
 function resolveOptions(args: string[]): Record<string, unknown> {
   // The first argument is the extension type
   // The second argument is the name
+  // The third argument is the cell language (for engine extensions)
   const typeRaw = args.length > 0 ? args[0] : undefined;
   const nameRaw = args.length > 1 ? args[1] : undefined;
+  const cellLanguageRaw = args.length > 2 ? args[2] : undefined;
 
   const options: Record<string, unknown> = {};
 
@@ -80,6 +82,11 @@ function resolveOptions(args: string[]): Record<string, unknown> {
   // Populate a directory, if provided
   if (nameRaw) {
     options[kName] = nameRaw;
+  }
+
+  // For engine type, populate the cell language if provided
+  if (cellLanguageRaw && options[kType] === "engine") {
+    options[kCellLanguage] = cellLanguageRaw;
   }
 
   return options;
