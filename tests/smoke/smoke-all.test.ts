@@ -11,6 +11,7 @@ import {
   initState,
   setInitializer,
 } from "../../src/core/lib/yaml-validation/state.ts";
+import { os } from "../../src/deno_ral/platform.ts";
 
 import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
 import { parse } from "../../src/core/yaml.ts";
@@ -103,18 +104,16 @@ function skipTest(metadata: Record<string, any>): string | undefined {
   // Skip on specific OS if skip-on-os is set
   const skipOnOs = quartoMeta?.["skip-on-os"];
   if (skipOnOs !== undefined) {
-    const currentOs = Deno.build.os; // Returns: "linux" | "darwin" | "windows"
-
     // Handle array of OSes
     if (Array.isArray(skipOnOs)) {
-      if (skipOnOs.includes(currentOs)) {
-        return `skip-on-os includes ${currentOs}`;
+      if (skipOnOs.includes(os)) {
+        return `skip-on-os includes ${os}`;
       }
     }
 
     // Handle single OS string
-    if (typeof skipOnOs === "string" && skipOnOs === currentOs) {
-      return `skip-on-os is ${currentOs}`;
+    if (typeof skipOnOs === "string" && skipOnOs === os) {
+      return `skip-on-os is ${os}`;
     }
   }
 
