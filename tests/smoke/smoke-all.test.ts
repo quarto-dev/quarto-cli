@@ -91,29 +91,34 @@ async function guessFormat(fileName: string): Promise<string[]> {
   return Array.from(formats);
 }
 
-function skipTest(metadata: Record<string, any>): boolean {
+function skipTest(metadata: Record<string, any>): string | undefined {
+  // deno-lint-ignore no-explicit-any
+  const quartoMeta = metadata["_quarto"] as any;
+
   // Skip on CI if tests-on-ci: false
-  if (runningInCI() && metadata["_quarto"]?.["tests-on-ci"] === false) {
-    return true;
+  if (runningInCI() && quartoMeta?.["tests-on-ci"] === false) {
+    return "tests-on-ci is false";
   }
 
   // Skip on specific OS if skip-on-os is set
-  const skipOnOs = metadata["_quarto"]?.["skip-on-os"];
+  const skipOnOs = quartoMeta?.["skip-on-os"];
   if (skipOnOs !== undefined) {
     const currentOs = Deno.build.os; // Returns: "linux" | "darwin" | "windows"
 
     // Handle array of OSes
     if (Array.isArray(skipOnOs)) {
-      return skipOnOs.includes(currentOs);
+      if (skipOnOs.includes(currentOs)) {
+        return `skip-on-os includes ${currentOs}`;
+      }
     }
 
     // Handle single OS string
-    if (typeof skipOnOs === "string") {
-      return skipOnOs === currentOs;
+    if (typeof skipOnOs === "string" && skipOnOs === currentOs) {
+      return `skip-on-os is ${currentOs}`;
     }
   }
 
-  return false;
+  return undefined;
 }
 
 //deno-lint-ignore no-explicit-any
@@ -314,13 +319,9 @@ for (const { path: fileName } of files) {
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
 
-  if (skipTest(metadata) === true) {
-    // deno-lint-ignore no-explicit-any
-    const quartoMeta = metadata["_quarto"] as any;
-    const reason = quartoMeta?.["tests-on-ci"] === false
-      ? "tests-on-ci is false"
-      : `skip-on-os includes ${Deno.build.os}`;
-    console.log(`Skipping tests for ${input}: ${reason}`);
+  const skipReason = skipTest(metadata);
+  if (skipReason !== undefined) {
+    console.log(`Skipping tests for ${input}: ${skipReason}`);
     continue;
   }
 
