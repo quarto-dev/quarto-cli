@@ -91,8 +91,29 @@ async function guessFormat(fileName: string): Promise<string[]> {
   return Array.from(formats);
 }
 
-function skipTestOnCi(metadata: Record<string, any>): boolean {
-  return runningInCI() && metadata["_quarto"]?.["tests-on-ci"] === false;
+function skipTest(metadata: Record<string, any>): boolean {
+  // Skip on CI if tests-on-ci: false
+  if (runningInCI() && metadata["_quarto"]?.["tests-on-ci"] === false) {
+    return true;
+  }
+
+  // Skip on specific OS if skip-on-os is set
+  const skipOnOs = metadata["_quarto"]?.["skip-on-os"];
+  if (skipOnOs !== undefined) {
+    const currentOs = Deno.build.os; // Returns: "linux" | "darwin" | "windows"
+
+    // Handle array of OSes
+    if (Array.isArray(skipOnOs)) {
+      return skipOnOs.includes(currentOs);
+    }
+
+    // Handle single OS string
+    if (typeof skipOnOs === "string") {
+      return skipOnOs === currentOs;
+    }
+  }
+
+  return false;
 }
 
 //deno-lint-ignore no-explicit-any
@@ -293,8 +314,13 @@ for (const { path: fileName } of files) {
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
 
-  if (skipTestOnCi(metadata) === true) {
-    console.log(`Skipping tests for ${input} as tests-on-ci is false in metadata`);
+  if (skipTest(metadata) === true) {
+    // deno-lint-ignore no-explicit-any
+    const quartoMeta = metadata["_quarto"] as any;
+    const reason = quartoMeta?.["tests-on-ci"] === false
+      ? "tests-on-ci is false"
+      : `skip-on-os includes ${Deno.build.os}`;
+    console.log(`Skipping tests for ${input}: ${reason}`);
     continue;
   }
 

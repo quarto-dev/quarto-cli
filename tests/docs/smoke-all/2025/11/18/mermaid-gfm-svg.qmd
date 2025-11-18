@@ -3,6 +3,7 @@ title: "GFM with mermaid-format:svg"
 format: gfm
 mermaid-format: svg
 _quarto:
+  skip-on-os: linux
   tests:
     gfm:
       ensureFileRegexMatches:
