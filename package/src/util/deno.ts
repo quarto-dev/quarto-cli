@@ -54,6 +54,8 @@ export async function compile(
   denoBundleCmd.push("compile");
   denoBundleCmd.push("--unstable-kv");
   denoBundleCmd.push("--unstable-ffi");
+  // --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
+  denoBundleCmd.push("--v8-flags=--enable-experimental-regexp-engine,--stack-trace-limit=100");
   denoBundleCmd.push(
     "--importmap=" + configuration.importmap,
   );
