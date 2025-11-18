@@ -48,9 +48,9 @@ import { runExternalPreviewServer } from "../preview/preview-server.ts";
 import type { PreviewServer } from "../preview/preview-server.ts";
 import { isQmdFile } from "../execute/qmd.ts";
 import { postProcessRestorePreservedHtml } from "../execute/engine-shared.ts";
-import { onCleanup } from "../core/cleanup.ts";
+import { onCleanup } from "./cleanup.ts";
 import { inputFilesDir, isServerShiny, isServerShinyPython } from "./render.ts";
-import { quartoDataDir } from "../core/appdirs.ts";
+import { quartoDataDir } from "./appdirs.ts";
 import {
   executeResultEngineDependencies,
   executeResultIncludes,
@@ -132,7 +132,10 @@ export interface QuartoAPI {
       caps: JupyterCapabilities,
     ) => Promise<JupyterCapabilities & { kernels: JupyterKernelspec[] }>;
     installationMessage: (caps: JupyterCapabilities, indent?: string) => string;
-    unactivatedEnvMessage: (caps: JupyterCapabilities, indent?: string) => string | undefined;
+    unactivatedEnvMessage: (
+      caps: JupyterCapabilities,
+      indent?: string,
+    ) => string | undefined;
     pythonInstallationMessage: (indent?: string) => string;
   };
   format: {
@@ -201,7 +204,10 @@ export interface QuartoAPI {
   };
   console: {
     withSpinner: <T>(
-      options: { message: string | (() => string); doneMessage?: string | boolean },
+      options: {
+        message: string | (() => string);
+        doneMessage?: string | boolean;
+      },
       fn: () => Promise<T>,
     ) => Promise<T>;
     completeMessage: (message: string) => void;
@@ -212,16 +218,16 @@ export interface QuartoAPI {
 }
 
 // Create the implementation of the quartoAPI
-import { readYamlFromMarkdown } from "../core/yaml.ts";
-import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
+import { readYamlFromMarkdown } from "./yaml.ts";
+import { partitionMarkdown } from "./pandoc/pandoc-partition.ts";
 import { languagesInMarkdown } from "../execute/engine-shared.ts";
 import {
   asMappedString,
   mappedIndexToLineCol,
   mappedLines,
   mappedNormalizeNewlines,
-} from "../core/lib/mapped-text.ts";
-import { mappedStringFromFile } from "../core/mapped-text.ts";
+} from "./lib/mapped-text.ts";
+import { mappedStringFromFile } from "./mapped-text.ts";
 import {
   isHtmlCompatible,
   isHtmlDashboardOutput,
@@ -230,29 +236,22 @@ import {
   isMarkdownOutput,
   isPresentationOutput,
 } from "../config/format.ts";
-import {
-  dirAndStem,
-  normalizePath,
-  pathWithForwardSlashes,
-} from "../core/path.ts";
-import { quartoRuntimeDir } from "../core/appdirs.ts";
-import { resourcePath } from "../core/resources.ts";
-import { isInteractiveSession } from "../core/platform.ts";
-import { runningInCI } from "../core/ci-info.ts";
-import { execProcess } from "../core/process.ts";
-import type { ExecProcessOptions } from "../core/process.ts";
-import type { ProcessResult } from "../core/process-types.ts";
-import { asYamlText } from "../core/jupyter/jupyter-fixups.ts";
-import { breakQuartoMd } from "../core/lib/break-quarto-md.ts";
-import type {
-  QuartoMdCell,
-  QuartoMdChunks,
-} from "../core/lib/break-quarto-md.ts";
-import { lineColToIndex, lines, trimEmptyLines } from "../core/lib/text.ts";
-import { md5HashSync } from "../core/hash.ts";
-import { executeInlineCodeHandler } from "../core/execute-inline.ts";
-import { globalTempContext } from "../core/temp.ts";
-import type { TempContext } from "../core/temp-types.ts";
+import { dirAndStem, normalizePath, pathWithForwardSlashes } from "./path.ts";
+import { quartoRuntimeDir } from "./appdirs.ts";
+import { resourcePath } from "./resources.ts";
+import { isInteractiveSession } from "./platform.ts";
+import { runningInCI } from "./ci-info.ts";
+import { execProcess } from "./process.ts";
+import type { ExecProcessOptions } from "./process.ts";
+import type { ProcessResult } from "./process-types.ts";
+import { asYamlText } from "./jupyter/jupyter-fixups.ts";
+import { breakQuartoMd } from "./lib/break-quarto-md.ts";
+import type { QuartoMdCell, QuartoMdChunks } from "./lib/break-quarto-md.ts";
+import { lineColToIndex, lines, trimEmptyLines } from "./lib/text.ts";
+import { md5HashSync } from "./hash.ts";
+import { executeInlineCodeHandler } from "./execute-inline.ts";
+import { globalTempContext } from "./temp.ts";
+import type { TempContext } from "./temp-types.ts";
 
 /**
  * Global Quarto API implementation
