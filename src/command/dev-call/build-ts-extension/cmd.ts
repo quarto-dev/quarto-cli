@@ -13,6 +13,7 @@ import {
 import { execProcess } from "../../../core/process.ts";
 import { basename, dirname, extname, join } from "../../../deno_ral/path.ts";
 import { existsSync } from "../../../deno_ral/fs.ts";
+import { expandGlobSync } from "../../../core/deno/expand-glob.ts";
 
 interface DenoConfig {
   compilerOptions?: Record<string, unknown>;
@@ -184,23 +185,60 @@ function inferOutputPath(entryPoint: string): string {
   // Get the base name without extension
   const fileName = basename(entryPoint, extname(entryPoint));
 
-  // Try to determine extension name from directory structure or use filename
-  let extensionName = fileName;
-
-  // Check if _extension.yml exists to get extension name
-  const extensionYml = "_extension.yml";
-  if (existsSync(extensionYml)) {
-    try {
-      // Simple extraction - look for extension name in path or use filename
-      // For MVP, we'll just use the filename
-    } catch {
-      // Ignore errors, use filename
-    }
+  // Find the extension directory by looking for _extension.yml
+  const extensionsDir = "_extensions";
+  if (!existsSync(extensionsDir)) {
+    error("Error: No _extensions/ directory found.");
+    error("");
+    error(
+      "Extension projects must have an _extensions/ directory with _extension.yml.",
+    );
+    error("Create the extension structure:");
+    error(`  mkdir -p _extensions/${fileName}`);
+    error(`  touch _extensions/${fileName}/_extension.yml`);
+    Deno.exit(1);
   }
 
-  // Output to _extensions/<name>/<name>.js
-  const outputDir = join("_extensions", extensionName);
-  return join(outputDir, `${fileName}.js`);
+  // Find all _extension.yml files using glob pattern
+  const extensionYmlFiles: string[] = [];
+  for (const entry of expandGlobSync("_extensions/**/_extension.yml")) {
+    extensionYmlFiles.push(dirname(entry.path));
+  }
+
+  if (extensionYmlFiles.length === 0) {
+    error("Error: No _extension.yml found in _extensions/ subdirectories.");
+    error("");
+    error(
+      "Extension projects must have _extension.yml in a subdirectory of _extensions/.",
+    );
+    error("Create the extension metadata:");
+    error(`  touch _extensions/${fileName}/_extension.yml`);
+    Deno.exit(1);
+  }
+
+  if (extensionYmlFiles.length > 1) {
+    const extensionNames = extensionYmlFiles.map((path) =>
+      path.replace("_extensions/", "")
+    );
+    error(
+      `Error: Multiple extension directories found: ${
+        extensionNames.join(", ")
+      }`,
+    );
+    error("");
+    error("Specify the output path in deno.json:");
+    error("  {");
+    error('    "quartoExtension": {');
+    error(
+      `      "outputFile": "${extensionYmlFiles[0]}/${fileName}.js"`,
+    );
+    error("    }");
+    error("  }");
+    Deno.exit(1);
+  }
+
+  // Use the single extension directory found
+  return join(extensionYmlFiles[0], `${fileName}.js`);
 }
 
 async function bundle(
