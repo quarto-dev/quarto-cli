@@ -12,8 +12,7 @@
     "fs/": "jsr:/@std/fs@1.0.16/",
     "encoding/": "jsr:/@std/encoding@1.0.9/"
   },
-  "quartoExtension": {
-    "entryPoint": "src/test-engine.ts",
-    "outputFile": "_extensions/test-engine/test-engine.js"
+  "bundle": {
+    "entryPoint": "src/test-engine.ts"
   }
 }
