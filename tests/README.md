@@ -120,30 +120,6 @@ $env:QUARTO_TESTS_NO_CONFIG=$true
 
 `docs/smoke-all/` is a specific folder to run some tests written directly within `.qmd`, `.md` or `.ipynb` files (but files starting with `_` will be ignored). They are run through the `smoke/smoke-all.tests.ts` script. To ease running smoke-all tests, `run-tests.sh` has a special behavior where it will run `./smoke/smoke-all.tests.ts` when passed a `.qmd`, `.md` or `.ipynb` file, not starting with `_`.
 
-##### Controlling test execution with metadata
-
-Smoke-all tests support metadata in the `_quarto` key to control when tests are run:
-
-**Skip tests on CI:**
-
-```yaml
-_quarto:
-  tests-on-ci: false
-```
-
-**Skip tests on specific operating systems:**
-
-```yaml
-_quarto:
-  skip-on-os: linux              # Skip only on Linux
-  skip-on-os: [linux, darwin]    # Skip on Linux and macOS
-  skip-on-os: windows             # Skip only on Windows
-```
-
-Valid OS values are: `linux`, `darwin` (macOS), `windows`
-
-This is useful when tests require platform-specific dependencies or have known platform-specific issues that need separate investigation.
-
 ```bash
 # run tests for all documents in docs/smoke-all/
 ./run-tests.sh smoke/smoke-all.tests.ts
@@ -242,6 +218,30 @@ ok | 1 passed | 0 failed (2s)
 ```
 
 </details>
+
+##### Controlling test execution with metadata
+
+Smoke-all tests support metadata in the `_quarto` key to control when tests are run:
+
+**Skip tests on CI:**
+
+```yaml
+_quarto:
+  tests-on-ci: false
+```
+
+**Skip tests on specific operating systems:**
+
+```yaml
+_quarto:
+  skip-on-os: linux              # Skip only on Linux
+  skip-on-os: [linux, darwin]    # Skip on Linux and macOS
+  skip-on-os: windows             # Skip only on Windows
+```
+
+Valid OS values are: `linux`, `darwin` (macOS), `windows`
+
+This is useful when tests require platform-specific dependencies or have known platform-specific issues that need separate investigation.
 
 ### Limitations
 
