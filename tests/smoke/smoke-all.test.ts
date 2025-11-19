@@ -11,6 +11,8 @@ import {
   initState,
   setInitializer,
 } from "../../src/core/lib/yaml-validation/state.ts";
+import { os } from "../../src/deno_ral/platform.ts";
+import { asArray } from "../../src/core/array.ts";
 
 import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
 import { parse } from "../../src/core/yaml.ts";
@@ -91,8 +93,22 @@ async function guessFormat(fileName: string): Promise<string[]> {
   return Array.from(formats);
 }
 
-function skipTestOnCi(metadata: Record<string, any>): boolean {
-  return runningInCI() && metadata["_quarto"]?.["tests-on-ci"] === false;
+function skipTest(metadata: Record<string, any>): string | undefined {
+  // deno-lint-ignore no-explicit-any
+  const quartoMeta = metadata["_quarto"] as any;
+
+  // Skip on CI if tests-on-ci: false
+  if (runningInCI() && quartoMeta?.["tests-on-ci"] === false) {
+    return "tests-on-ci is false";
+  }
+
+  // Skip on specific OS if skip-on-os is set
+  const skipOnOs = quartoMeta?.["skip-on-os"];
+  if (skipOnOs !== undefined && asArray(skipOnOs).includes(os)) {
+    return `skip-on-os includes ${os}`;
+  }
+
+  return undefined;
 }
 
 //deno-lint-ignore no-explicit-any
@@ -293,8 +309,9 @@ for (const { path: fileName } of files) {
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
 
-  if (skipTestOnCi(metadata) === true) {
-    console.log(`Skipping tests for ${input} as tests-on-ci is false in metadata`);
+  const skipReason = skipTest(metadata);
+  if (skipReason !== undefined) {
+    console.log(`Skipping tests for ${input}: ${skipReason}`);
     continue;
   }
 

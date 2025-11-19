@@ -41,6 +41,7 @@ All changes included in 1.9:
 ### `pdf`
 
 - ([#10291](https://github.com/quarto-dev/quarto-cli/issues/10291)): Fix detection of babel hyphenation warnings with straight-quote format instead of backtick-quote format.
+- ([#13661](https://github.com/quarto-dev/quarto-cli/issues/13661)): Fix LaTeX compilation errors when using `mermaid-format: svg` with PDF/LaTeX output. SVG diagrams are now written directly without HTML script tags. Note: `mermaid-format: png` is recommended for best compatibility. SVG format requires `rsvg-convert` (or Inkscape with `use-rsvg-convert: false`) in PATH for conversion to PDF, and may experience text clipping in diagrams with multi-line labels.
 - ([rstudio/tinytex-releases#49](https://github.com/rstudio/tinytex-releases/issues/49)): Fix detection of LuaTeX-ja missing file errors by matching both "File" and "file" in error messages.
 - ([#13667](https://github.com/quarto-dev/quarto-cli/issues/13667)): Fix LaTeX compilation error with Python error output containing caret characters.
 
