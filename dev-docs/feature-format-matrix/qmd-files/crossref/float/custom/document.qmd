@@ -10,7 +10,7 @@ format:
 _quarto:
   tests:
     run:
-      ci: false 
+      not_os: [linux] 
 ---
 
 ::: {#dia-1}
