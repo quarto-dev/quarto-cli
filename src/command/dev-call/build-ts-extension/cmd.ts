@@ -29,6 +29,7 @@ interface DenoConfig {
 
 interface BuildOptions {
   check?: boolean;
+  initConfig?: boolean;
 }
 
 async function resolveConfig(): Promise<
@@ -259,6 +260,51 @@ async function bundle(
   info(`✓ Built ${entryPoint} → ${outputPath}`);
 }
 
+async function initializeConfig(): Promise<void> {
+  const configPath = "deno.json";
+
+  // Check if deno.json already exists
+  if (existsSync(configPath)) {
+    error("Error: deno.json already exists");
+    error("");
+    error("To use Quarto's default config, remove the existing deno.json.");
+    error("Or manually add the importMap to your existing config:");
+    const importMapPath = resourcePath("extension-build/import-map.json");
+    info(`  "importMap": "${importMapPath}"`);
+    Deno.exit(1);
+  }
+
+  // Get absolute path to Quarto's import map
+  const importMapPath = resourcePath("extension-build/import-map.json");
+
+  // Create minimal config
+  const config = {
+    compilerOptions: {
+      strict: true,
+      lib: ["DOM", "ES2021"],
+    },
+    importMap: importMapPath,
+  };
+
+  // Write deno.json
+  Deno.writeTextFileSync(
+    configPath,
+    JSON.stringify(config, null, 2) + "\n",
+  );
+
+  // Inform user
+  info("✓ Created deno.json");
+  info(`  Import map: ${importMapPath}`);
+  info("");
+  info("Customize as needed:");
+  info('  - Add "quartoExtension" section for build options:');
+  info('      "entryPoint": "src/my-engine.ts"');
+  info('      "outputFile": "_extensions/my-engine/my-engine.js"');
+  info('      "minify": true');
+  info('      "sourcemap": true');
+  info('  - Modify "compilerOptions" for type-checking behavior');
+}
+
 export const buildTsExtensionCommand = new Command()
   .name("build-ts-extension")
   .hidden()
@@ -272,8 +318,18 @@ export const buildTsExtensionCommand = new Command()
       "  3. src/mod.ts (if multiple .ts files exist)",
   )
   .option("--check", "Type-check only (skip bundling)")
+  .option(
+    "--init-config",
+    "Generate deno.json with absolute importMap path",
+  )
   .action(async (options: BuildOptions) => {
     try {
+      // Handle --init-config flag first (don't build)
+      if (options.initConfig) {
+        await initializeConfig();
+        return;
+      }
+
       // 1. Resolve configuration
       const { config, configPath } = await resolveConfig();
 
