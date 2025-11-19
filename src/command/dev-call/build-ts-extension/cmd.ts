@@ -156,9 +156,15 @@ async function autoDetectEntryPoint(
   Deno.exit(1);
 }
 
-function inferOutputPath(entryPoint: string): string {
-  // Get the base name without extension
+function inferFilename(entryPoint: string): string {
+  // Get the base name without extension, add .js
   const fileName = basename(entryPoint, extname(entryPoint));
+  return `${fileName}.js`;
+}
+
+function inferOutputPath(outputFilename: string): string {
+  // Derive extension name from filename for error messages
+  const extensionName = basename(outputFilename, extname(outputFilename));
 
   // Find the extension directory by looking for _extension.yml
   const extensionsDir = "_extensions";
@@ -169,8 +175,8 @@ function inferOutputPath(entryPoint: string): string {
       "Extension projects must have an _extensions/ directory with _extension.yml.",
     );
     error("Create the extension structure:");
-    error(`  mkdir -p _extensions/${fileName}`);
-    error(`  touch _extensions/${fileName}/_extension.yml`);
+    error(`  mkdir -p _extensions/${extensionName}`);
+    error(`  touch _extensions/${extensionName}/_extension.yml`);
     Deno.exit(1);
   }
 
@@ -187,7 +193,7 @@ function inferOutputPath(entryPoint: string): string {
       "Extension projects must have _extension.yml in a subdirectory of _extensions/.",
     );
     error("Create the extension metadata:");
-    error(`  touch _extensions/${fileName}/_extension.yml`);
+    error(`  touch _extensions/${extensionName}/_extension.yml`);
     Deno.exit(1);
   }
 
@@ -205,7 +211,7 @@ function inferOutputPath(entryPoint: string): string {
     error("  {");
     error('    "bundle": {');
     error(
-      `      "outputFile": "${extensionYmlFiles[0]}/${fileName}.js"`,
+      `      "outputFile": "${extensionYmlFiles[0]}/${outputFilename}"`,
     );
     error("    }");
     error("  }");
@@ -213,7 +219,7 @@ function inferOutputPath(entryPoint: string): string {
   }
 
   // Use the single extension directory found
-  return join(extensionYmlFiles[0], `${fileName}.js`);
+  return join(extensionYmlFiles[0], outputFilename);
 }
 
 async function bundle(
@@ -227,8 +233,22 @@ async function bundle(
     architectureToolsPath("deno");
 
   // Determine output path
-  const outputPath = config.bundle?.outputFile ||
-    inferOutputPath(entryPoint);
+  let outputPath: string;
+  if (config.bundle?.outputFile) {
+    const specifiedOutput = config.bundle.outputFile;
+    // Check if it's just a filename (no path separators)
+    if (!specifiedOutput.includes("/") && !specifiedOutput.includes("\\")) {
+      // Just filename - infer directory from _extension.yml
+      outputPath = inferOutputPath(specifiedOutput);
+    } else {
+      // Full path specified - use as-is
+      outputPath = specifiedOutput;
+    }
+  } else {
+    // Nothing specified - infer both directory and filename
+    const filename = inferFilename(entryPoint);
+    outputPath = inferOutputPath(filename);
+  }
 
   // Ensure output directory exists
   const outputDir = dirname(outputPath);
