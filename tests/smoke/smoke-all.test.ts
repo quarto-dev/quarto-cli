@@ -125,11 +125,16 @@ function skipTest(metadata: Record<string, any>): string | undefined {
 
 //deno-lint-ignore no-explicit-any
 function hasTestSpecs(metadata: any, input: string): boolean {
-  const hasTestSpecs = metadata?.["_quarto"]?.["tests"] != undefined
-  if (!hasTestSpecs && metadata?.["_quarto"]?.["test"] != undefined) {
+  const tests = metadata?.["_quarto"]?.["tests"];
+  if (!tests && metadata?.["_quarto"]?.["test"] != undefined) {
     throw new Error(`Test is ${input} is using 'test' in metadata instead of 'tests'. This is probably a typo.`);
   }
-  return hasTestSpecs
+  // Check if tests has any format specs (keys other than 'run')
+  if (tests && typeof tests === "object") {
+    const formatKeys = Object.keys(tests).filter(key => key !== "run");
+    return formatKeys.length > 0;
+  }
+  return false;
 }
 
 interface QuartoInlineTestSpec {
