@@ -2,6 +2,8 @@
 
 ## In this release
 
+- ([#13694](https://github.com/quarto-dev/quarto-cli/issues/13694)): Fix `notebook-view.url` being ignored - external notebook links now properly use specified URLs instead of local preview files.
+
 ## In previous releases
 
 - ([#13369](https://github.com/quarto-dev/quarto-cli/issues/13369)): Fix failure in theme compilation when `brand.color.primary` is specified for light or dark but not both.
