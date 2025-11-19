@@ -92,7 +92,9 @@ async function autoDetectEntryPoint(
     error("  mkdir -p src");
     error("  touch src/my-engine.ts");
     error("");
-    error("Or specify entry point in deno.json:");
+    error("Or specify entry point as argument or in deno.json:");
+    error("  quarto dev-call build-ts-extension src/my-engine.ts");
+    error("  OR in deno.json:");
     error("  {");
     error('    "quartoExtension": {');
     error('      "entryPoint": "path/to/file.ts"');
@@ -140,7 +142,9 @@ async function autoDetectEntryPoint(
 
   error(`Error: Multiple .ts files found in src/: ${tsFiles.join(", ")}`);
   error("");
-  error("Specify entry point in deno.json:");
+  error("Specify entry point as argument or in deno.json:");
+  error("  quarto dev-call build-ts-extension src/my-engine.ts");
+  error("  OR in deno.json:");
   error("  {");
   error('    "quartoExtension": {');
   error('      "entryPoint": "src/my-engine.ts"');
@@ -357,21 +361,23 @@ async function initializeConfig(): Promise<void> {
 export const buildTsExtensionCommand = new Command()
   .name("build-ts-extension")
   .hidden()
+  .arguments("[entry-point:string]")
   .description(
     "Build TypeScript execution engine extensions.\n\n" +
       "This command type-checks and bundles TypeScript extensions " +
-      "into single JavaScript files using Quarto's bundled esbuild.\n\n" +
+      "into single JavaScript files using Quarto's bundled deno bundle.\n\n" +
       "The entry point is determined by:\n" +
-      "  1. quartoExtension.entryPoint in deno.json (if specified)\n" +
-      "  2. Single .ts file in src/ directory\n" +
-      "  3. src/mod.ts (if multiple .ts files exist)",
+      "  1. [entry-point] command-line argument (if specified)\n" +
+      "  2. quartoExtension.entryPoint in deno.json (if specified)\n" +
+      "  3. Single .ts file in src/ directory\n" +
+      "  4. src/mod.ts (if multiple .ts files exist)",
   )
   .option("--check", "Type-check only (skip bundling)")
   .option(
     "--init-config",
     "Generate deno.json with absolute importMap path",
   )
-  .action(async (options: BuildOptions) => {
+  .action(async (options: BuildOptions, entryPointArg?: string) => {
     try {
       // Handle --init-config flag first (don't build)
       if (options.initConfig) {
@@ -382,10 +388,11 @@ export const buildTsExtensionCommand = new Command()
       // 1. Resolve configuration
       const { config, configPath } = await resolveConfig();
 
-      // 2. Resolve entry point
-      const entryPoint = await autoDetectEntryPoint(
-        config.quartoExtension?.entryPoint,
-      );
+      // 2. Resolve entry point (CLI arg takes precedence)
+      const entryPoint = entryPointArg ||
+        await autoDetectEntryPoint(
+          config.quartoExtension?.entryPoint,
+        );
       info(`Entry point: ${entryPoint}`);
 
       // 3. Type-check or bundle
