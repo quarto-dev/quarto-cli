@@ -6,19 +6,22 @@ This directory contains default configuration files for TypeScript execution eng
 
 - **deno.json** - Default TypeScript compiler configuration
 - **import-map.json** - Import mappings for @quarto/types and Deno standard library
-- **quarto-types.d.ts** - Type definitions for Quarto API (copied from packages/quarto-types/dist/ during build)
+- **quarto-types.d.ts** - Type definitions (copied from packages/quarto-types/dist/ during packaging)
 
 ## Usage
 
 These files are used by `quarto dev-call build-ts-extension` when a user project doesn't have its own `deno.json`.
 
-In dev mode: accessed via `resourcePath("extension-build/")`
-In distribution: copied to `share/extension-build/` during packaging
+**Dev mode:** Accessed via `resourcePath("extension-build/")`
+- `import-map.json` points to `../../../packages/quarto-types/dist/index.d.ts`
+- This relative path works from `src/resources/extension-build/`
+
+**Distribution mode:** Copied to `share/extension-build/` during packaging
+- `import-map.json` is transformed by `updateImportMap()` in prepare-dist.ts
+- `@quarto/types` path changed to `./quarto-types.d.ts`
+- Deno std versions updated from `src/import_map.json`
 
 ## Updating Versions
 
-When updating Deno standard library versions:
-1. Update `src/import_map.json` (main Quarto CLI import map)
-2. Update `import-map.json` in this directory to match
-
-The versions should stay in sync with Quarto CLI's dependencies.
+Deno std library versions are automatically synced from `src/import_map.json` during packaging.
+No manual updates needed to this directory's import-map.json versions.
