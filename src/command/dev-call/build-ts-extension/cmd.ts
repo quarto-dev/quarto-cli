@@ -21,7 +21,7 @@ interface DenoConfig {
   compilerOptions?: Record<string, unknown>;
   importMap?: string;
   imports?: Record<string, string>;
-  quartoExtension?: {
+  bundle?: {
     entryPoint?: string;
     outputFile?: string;
     minify?: boolean;
@@ -96,7 +96,7 @@ async function autoDetectEntryPoint(
     error("  quarto dev-call build-ts-extension src/my-engine.ts");
     error("  OR in deno.json:");
     error("  {");
-    error('    "quartoExtension": {');
+    error('    "bundle": {');
     error('      "entryPoint": "path/to/file.ts"');
     error("    }");
     error("  }");
@@ -146,7 +146,7 @@ async function autoDetectEntryPoint(
   error("  quarto dev-call build-ts-extension src/my-engine.ts");
   error("  OR in deno.json:");
   error("  {");
-  error('    "quartoExtension": {');
+  error('    "bundle": {');
   error('      "entryPoint": "src/my-engine.ts"');
   error("    }");
   error("  }");
@@ -203,7 +203,7 @@ function inferOutputPath(entryPoint: string): string {
     error("");
     error("Specify the output path in deno.json:");
     error("  {");
-    error('    "quartoExtension": {');
+    error('    "bundle": {');
     error(
       `      "outputFile": "${extensionYmlFiles[0]}/${fileName}.js"`,
     );
@@ -227,7 +227,7 @@ async function bundle(
     architectureToolsPath("deno");
 
   // Determine output path
-  const outputPath = config.quartoExtension?.outputFile ||
+  const outputPath = config.bundle?.outputFile ||
     inferOutputPath(entryPoint);
 
   // Ensure output directory exists
@@ -245,12 +245,12 @@ async function bundle(
   ];
 
   // Add optional flags
-  if (config.quartoExtension?.minify) {
+  if (config.bundle?.minify) {
     args.push("--minify");
   }
 
-  if (config.quartoExtension?.sourcemap) {
-    const sourcemapValue = config.quartoExtension.sourcemap;
+  if (config.bundle?.sourcemap) {
+    const sourcemapValue = config.bundle.sourcemap;
     if (typeof sourcemapValue === "string") {
       args.push(`--sourcemap=${sourcemapValue}`);
     } else {
@@ -350,7 +350,7 @@ async function initializeConfig(): Promise<void> {
   info(`  Import map: ${importMapPath}`);
   info("");
   info("Customize as needed:");
-  info('  - Add "quartoExtension" section for build options:');
+  info('  - Add "bundle" section for build options:');
   info('      "entryPoint": "src/my-engine.ts"');
   info('      "outputFile": "_extensions/my-engine/my-engine.js"');
   info('      "minify": true');
@@ -368,7 +368,7 @@ export const buildTsExtensionCommand = new Command()
       "into single JavaScript files using Quarto's bundled deno bundle.\n\n" +
       "The entry point is determined by:\n" +
       "  1. [entry-point] command-line argument (if specified)\n" +
-      "  2. quartoExtension.entryPoint in deno.json (if specified)\n" +
+      "  2. bundle.entryPoint in deno.json (if specified)\n" +
       "  3. Single .ts file in src/ directory\n" +
       "  4. src/mod.ts (if multiple .ts files exist)",
   )
@@ -391,7 +391,7 @@ export const buildTsExtensionCommand = new Command()
       // 2. Resolve entry point (CLI arg takes precedence)
       const entryPoint = entryPointArg ||
         await autoDetectEntryPoint(
-          config.quartoExtension?.entryPoint,
+          config.bundle?.entryPoint,
         );
       info(`Entry point: ${entryPoint}`);
 
