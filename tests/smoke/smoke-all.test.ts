@@ -96,16 +96,28 @@ async function guessFormat(fileName: string): Promise<string[]> {
 function skipTest(metadata: Record<string, any>): string | undefined {
   // deno-lint-ignore no-explicit-any
   const quartoMeta = metadata["_quarto"] as any;
+  const runConfig = quartoMeta?.tests?.run;
 
-  // Skip on CI if tests-on-ci: false
-  if (runningInCI() && quartoMeta?.["tests-on-ci"] === false) {
-    return "tests-on-ci is false";
+  // No run config means run everywhere
+  if (!runConfig) {
+    return undefined;
   }
 
-  // Skip on specific OS if skip-on-os is set
-  const skipOnOs = quartoMeta?.["skip-on-os"];
-  if (skipOnOs !== undefined && asArray(skipOnOs).includes(os)) {
-    return `skip-on-os includes ${os}`;
+  // Check CI
+  if (runningInCI() && runConfig.ci === false) {
+    return "tests.run.ci is false";
+  }
+
+  // Check OS blacklist (not_os)
+  const notOs = runConfig.not_os;
+  if (notOs !== undefined && asArray(notOs).includes(os)) {
+    return `tests.run.not_os includes ${os}`;
+  }
+
+  // Check OS whitelist (os) - if specified, must match
+  const onlyOs = runConfig.os;
+  if (onlyOs !== undefined && !asArray(onlyOs).includes(os)) {
+    return `tests.run.os does not include ${os}`;
   }
 
   return undefined;
@@ -113,11 +125,16 @@ function skipTest(metadata: Record<string, any>): string | undefined {
 
 //deno-lint-ignore no-explicit-any
 function hasTestSpecs(metadata: any, input: string): boolean {
-  const hasTestSpecs = metadata?.["_quarto"]?.["tests"] != undefined
-  if (!hasTestSpecs && metadata?.["_quarto"]?.["test"] != undefined) {
+  const tests = metadata?.["_quarto"]?.["tests"];
+  if (!tests && metadata?.["_quarto"]?.["test"] != undefined) {
     throw new Error(`Test is ${input} is using 'test' in metadata instead of 'tests'. This is probably a typo.`);
   }
-  return hasTestSpecs
+  // Check if tests has any format specs (keys other than 'run')
+  if (tests && typeof tests === "object") {
+    const formatKeys = Object.keys(tests).filter(key => key !== "run");
+    return formatKeys.length > 0;
+  }
+  return false;
 }
 
 interface QuartoInlineTestSpec {
@@ -170,6 +187,10 @@ function resolveTestSpecs(
   };
 
   for (const [format, testObj] of Object.entries(specs)) {
+    // Skip the 'run' key - it's not a format
+    if (format === "run") {
+      continue;
+    }
     let checkWarnings = true;
     const verifyFns: Verify[] = [];
     if (testObj && typeof testObj === "object") {

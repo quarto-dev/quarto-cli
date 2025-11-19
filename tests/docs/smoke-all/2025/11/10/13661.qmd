@@ -11,8 +11,9 @@ format:
     mermaid-format: svg
     use-rsvg-convert: false
 _quarto:
-  skip-on-os: linux
   tests:
+    run:
+      not_os: linux
     latex:
       printsMessage:
         level: INFO

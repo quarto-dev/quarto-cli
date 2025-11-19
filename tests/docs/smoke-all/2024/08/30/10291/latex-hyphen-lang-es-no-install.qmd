@@ -3,8 +3,9 @@ format: pdf
 lang: es
 latex-auto-install: false
 _quarto:
-  tests-on-ci: false
   tests:
+    run:
+      ci: false
     pdf:
       noErrors: true
       printsMessage:

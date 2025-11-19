@@ -1210,8 +1210,25 @@ export type BadParseSchema = JsonObject;
 export type QuartoDevSchema = {
   _quarto?: {
     "trace-filters"?: string;
-    "tests-on-ci"?: boolean;
-    tests?: JsonObject;
+    tests?: {
+      run?: {
+        ci?: boolean /* Run tests on CI (true = run, false = skip) */;
+        not_os?:
+          | ("linux" | "darwin" | "windows")
+          | ((
+            | "linux"
+            | "darwin"
+            | "windows"
+          ))[] /* Don't run tests on these platforms (blacklist) */;
+        os?:
+          | ("linux" | "darwin" | "windows")
+          | ((
+            | "linux"
+            | "darwin"
+            | "windows"
+          ))[]; /* Run tests ONLY on these platforms (whitelist) */
+      }; /* Control when tests should run */
+    };
   };
 };
 
