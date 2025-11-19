@@ -4,4 +4,4 @@ version: <%= version %>
 quarto-required: ">=<%= quartoversion %>"
 contributes:
   engines:
-    - path: <%= filesafename %>.ts
+    - path: <%= filesafename %>.js

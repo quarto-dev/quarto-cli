@@ -70,6 +70,19 @@ for (const type of Object.keys(kCreateTypes)) {
           `Artifact ${type} ${template} failed to produce any files to open.`,
         );
 
+        // Build engine extensions before rendering
+        if (template === "engine") {
+          const buildCmd = [quartoDevCmd(), "call", "build-ts-extension"];
+          const buildProcess = await execProcess({
+            cmd: buildCmd[0],
+            args: buildCmd.slice(1),
+            cwd: path,
+            stdout: "piped",
+            stderr: "piped",
+          });
+          assert(buildProcess.success, buildProcess.stderr);
+        }
+
         for (const file of openfiles) {
           if (file.endsWith(".qmd")) {
             // provide a step name and function

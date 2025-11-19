@@ -7,7 +7,7 @@
  * It demonstrates the basic structure of an execution engine.
  */
 
-// Type imports from bundled quarto-types
+// Type imports from Quarto via import map
 import type {
   DependenciesOptions,
   EngineProjectContext,
@@ -19,7 +19,7 @@ import type {
   MappedString,
   PostProcessOptions,
   QuartoAPI,
-} from "./types/quarto-types.d.ts";
+} from "@quarto/types";
 
 // Module-level quarto API reference
 let quarto: QuartoAPI;
