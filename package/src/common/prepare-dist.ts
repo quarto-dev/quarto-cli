@@ -168,14 +168,6 @@ export async function prepareDist(
     );
   }
 
-  // Copy quarto-types for engine extension template (backward compatibility)
-  info("Copying quarto-types.d.ts for engine extension template");
-  copySync(
-    join(config.directoryInfo.root, "packages/quarto-types/dist/index.d.ts"),
-    join(config.directoryInfo.pkgWorking.share, "quarto-types.d.ts"),
-    { overwrite: true },
-  );
-
   // Copy quarto-types to extension-build directory
   // Note: deno.json and import-map.json are copied by supportingFiles() and
   // import-map.json is then updated by updateImportMap() for distribution

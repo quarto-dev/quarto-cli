@@ -281,7 +281,7 @@ async function initializeConfig(): Promise<void> {
   const config = {
     compilerOptions: {
       strict: true,
-      lib: ["DOM", "ES2021"],
+      lib: ["deno.ns", "DOM", "ES2021"],
     },
     importMap: importMapPath,
   };

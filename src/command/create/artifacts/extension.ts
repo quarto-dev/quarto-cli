@@ -256,34 +256,6 @@ async function createExtension(
     quiet,
   );
 
-  // For engine extensions, copy the current quarto-types
-  const createType = typeFromTemplate(createDirective.template);
-  if (createType === "engine") {
-    // Try to find types in the distribution (production)
-    let typesSource = resourcePath("quarto-types.d.ts");
-
-    if (!existsSync(typesSource)) {
-      // Development build - get from source tree
-      const quartoRoot = Deno.env.get("QUARTO_ROOT");
-      if (!quartoRoot) {
-        throw new Error(
-          "Cannot find quarto-types.d.ts. QUARTO_ROOT environment variable not set.",
-        );
-      }
-      typesSource = join(quartoRoot, "packages/quarto-types/dist/index.d.ts");
-    }
-
-    const typesTarget = join(
-      target,
-      "_extensions",
-      createDirective.name,
-      "types",
-      "quarto-types.d.ts",
-    );
-    ensureDirSync(dirname(typesTarget));
-    copySync(typesSource, typesTarget);
-  }
-
   return filesCreated[0];
 }
 
