@@ -48,12 +48,10 @@ async function resolveConfig(): Promise<
 
     // Validate that both importMap and imports are not present
     if (config.importMap && config.imports) {
-      error('Error: deno.json contains both "importMap" and "imports"');
-      error("");
+      error('deno.json contains both "importMap" and "imports"\n');
       error(
-        'deno.json can use either "importMap" (path to file) OR "imports" (inline mappings), but not both.',
+        'deno.json can use either "importMap" (path to file) OR "imports" (inline mappings), but not both.\n',
       );
-      error("");
       error("Please remove one of these fields from your deno.json.");
       Deno.exit(1);
     }
@@ -65,8 +63,7 @@ async function resolveConfig(): Promise<
   const defaultConfigPath = resourcePath("extension-build/deno.json");
 
   if (!existsSync(defaultConfigPath)) {
-    error("Error: Could not find default extension-build configuration.");
-    error("");
+    error("Could not find default extension-build configuration.\n");
     error("This may indicate that Quarto was not built correctly.");
     error("Expected config at: " + defaultConfigPath);
     Deno.exit(1);
@@ -86,12 +83,10 @@ async function autoDetectEntryPoint(
 
   // Check if src/ exists
   if (!existsSync(srcDir)) {
-    error("Error: No src/ directory found.");
-    error("");
+    error("No src/ directory found.\n");
     error("Create a TypeScript file in src/:");
     error("  mkdir -p src");
-    error("  touch src/my-engine.ts");
-    error("");
+    error("  touch src/my-engine.ts\n");
     error("Or specify entry point as argument or in deno.json:");
     error("  quarto dev-call build-ts-extension src/my-engine.ts");
     error("  OR in deno.json:");
@@ -107,7 +102,7 @@ async function autoDetectEntryPoint(
   if (configEntryPoint) {
     if (!existsSync(configEntryPoint)) {
       error(
-        `Error: Entry point specified in deno.json does not exist: ${configEntryPoint}`,
+        `Entry point specified in deno.json does not exist: ${configEntryPoint}`,
       );
       Deno.exit(1);
     }
@@ -124,8 +119,7 @@ async function autoDetectEntryPoint(
 
   // Resolution logic
   if (tsFiles.length === 0) {
-    error("Error: No .ts files found in src/");
-    error("");
+    error("No .ts files found in src/\n");
     error("Create a TypeScript file:");
     error("  touch src/my-engine.ts");
     Deno.exit(1);
@@ -140,8 +134,7 @@ async function autoDetectEntryPoint(
     return join(srcDir, "mod.ts");
   }
 
-  error(`Error: Multiple .ts files found in src/: ${tsFiles.join(", ")}`);
-  error("");
+  error(`Multiple .ts files found in src/: ${tsFiles.join(", ")}\n`);
   error("Specify entry point as argument or in deno.json:");
   error("  quarto dev-call build-ts-extension src/my-engine.ts");
   error("  OR in deno.json:");
@@ -149,8 +142,7 @@ async function autoDetectEntryPoint(
   error('    "bundle": {');
   error('      "entryPoint": "src/my-engine.ts"');
   error("    }");
-  error("  }");
-  error("");
+  error("  }\n");
   error("Or rename one file to mod.ts:");
   error(`  mv src/${tsFiles[0]} src/mod.ts`);
   Deno.exit(1);
@@ -169,8 +161,7 @@ function inferOutputPath(outputFilename: string): string {
   // Find the extension directory by looking for _extension.yml
   const extensionsDir = "_extensions";
   if (!existsSync(extensionsDir)) {
-    error("Error: No _extensions/ directory found.");
-    error("");
+    error("No _extensions/ directory found.\n");
     error(
       "Extension projects must have an _extensions/ directory with _extension.yml.",
     );
@@ -187,8 +178,7 @@ function inferOutputPath(outputFilename: string): string {
   }
 
   if (extensionYmlFiles.length === 0) {
-    error("Error: No _extension.yml found in _extensions/ subdirectories.");
-    error("");
+    error("No _extension.yml found in _extensions/ subdirectories.\n");
     error(
       "Extension projects must have _extension.yml in a subdirectory of _extensions/.",
     );
@@ -202,17 +192,12 @@ function inferOutputPath(outputFilename: string): string {
       path.replace("_extensions/", "")
     );
     error(
-      `Error: Multiple extension directories found: ${
-        extensionNames.join(", ")
-      }`,
+      `Multiple extension directories found: ${extensionNames.join(", ")}\n`,
     );
-    error("");
     error("Specify the output path in deno.json:");
     error("  {");
     error('    "bundle": {');
-    error(
-      `      "outputFile": "${extensionYmlFiles[0]}/${outputFilename}"`,
-    );
+    error(`      "outputFile": "${extensionYmlFiles[0]}/${outputFilename}"`);
     error("    }");
     error("  }");
     Deno.exit(1);
@@ -285,7 +270,7 @@ async function bundle(
   });
 
   if (!result.success) {
-    error("Error: deno bundle failed");
+    error("deno bundle failed");
     if (result.stderr) {
       error(result.stderr);
     }
@@ -317,14 +302,10 @@ function validateExtensionYml(outputPath: string): void {
       for (const engine of engines) {
         const enginePath = typeof engine === "string" ? engine : engine?.path;
         if (enginePath && enginePath !== outputFilename) {
-          warning("");
           warning(
-            `Warning: _extension.yml specifies engine path "${enginePath}" but built file is "${outputFilename}"`,
+            `_extension.yml specifies engine path "${enginePath}" but built file is "${outputFilename}"`,
           );
-          warning(
-            `  Update _extension.yml to: path: ${outputFilename}`,
-          );
-          warning("");
+          warning(`  Update _extension.yml to: path: ${outputFilename}`);
         }
       }
     }
@@ -338,11 +319,10 @@ async function initializeConfig(): Promise<void> {
 
   // Check if deno.json already exists
   if (existsSync(configPath)) {
-    error("Error: deno.json already exists");
-    error("");
+    const importMapPath = resourcePath("extension-build/import-map.json");
+    error("deno.json already exists\n");
     error("To use Quarto's default config, remove the existing deno.json.");
     error("Or manually add the importMap to your existing config:");
-    const importMapPath = resourcePath("extension-build/import-map.json");
     info(`  "importMap": "${importMapPath}"`);
     Deno.exit(1);
   }
@@ -427,8 +407,7 @@ export const buildTsExtensionCommand = new Command()
           cwd: Deno.cwd(),
         });
         if (!result.success) {
-          error("Error: Type check failed");
-          error("");
+          error("Type check failed\n");
           error(
             "See errors above. Fix type errors in your code or adjust compilerOptions in deno.json.",
           );
@@ -441,9 +420,9 @@ export const buildTsExtensionCommand = new Command()
       }
     } catch (e) {
       if (e instanceof Error) {
-        error(`Error: ${e.message}`);
+        error(e.message);
       } else {
-        error(`Error: ${String(e)}`);
+        error(String(e));
       }
       Deno.exit(1);
     }
