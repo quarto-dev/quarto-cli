@@ -14,6 +14,8 @@ import { execProcess } from "../../../core/process.ts";
 import { basename, dirname, extname, join } from "../../../deno_ral/path.ts";
 import { existsSync } from "../../../deno_ral/fs.ts";
 import { expandGlobSync } from "../../../core/deno/expand-glob.ts";
+import { readYaml } from "../../../core/yaml.ts";
+import { warning } from "../../../deno_ral/log.ts";
 
 interface DenoConfig {
   compilerOptions?: Record<string, unknown>;
@@ -23,9 +25,7 @@ interface DenoConfig {
     entryPoint?: string;
     outputFile?: string;
     minify?: boolean;
-    sourcemap?: boolean;
-    target?: string;
-    externals?: string[];
+    sourcemap?: boolean | string;
   };
 }
 
@@ -152,36 +152,6 @@ async function autoDetectEntryPoint(
   Deno.exit(1);
 }
 
-async function typeCheck(
-  entryPoint: string,
-  configPath: string,
-): Promise<void> {
-  info("Type-checking...");
-
-  const denoBinary = Deno.env.get("QUARTO_DENO") ||
-    architectureToolsPath("deno");
-
-  const result = await execProcess({
-    cmd: denoBinary,
-    args: ["check", `--config=${configPath}`, entryPoint],
-    cwd: Deno.cwd(),
-  });
-
-  if (!result.success) {
-    error("Error: Type check failed");
-    error("");
-    error(
-      "See errors above. Fix type errors in your code or adjust compilerOptions in deno.json.",
-    );
-    error("");
-    error("To see just type errors without building:");
-    error("  quarto dev-call build-ts-extension --check");
-    Deno.exit(1);
-  }
-
-  info("✓ Type check passed");
-}
-
 function inferOutputPath(entryPoint: string): string {
   // Get the base name without extension
   const fileName = basename(entryPoint, extname(entryPoint));
@@ -245,11 +215,12 @@ function inferOutputPath(entryPoint: string): string {
 async function bundle(
   entryPoint: string,
   config: DenoConfig,
+  configPath: string,
 ): Promise<void> {
   info("Bundling...");
 
-  const esbuildBinary = Deno.env.get("QUARTO_ESBUILD") ||
-    architectureToolsPath("esbuild");
+  const denoBinary = Deno.env.get("QUARTO_DENO") ||
+    architectureToolsPath("deno");
 
   // Determine output path
   const outputPath = config.quartoExtension?.outputFile ||
@@ -261,17 +232,13 @@ async function bundle(
     Deno.mkdirSync(outputDir, { recursive: true });
   }
 
-  // Build esbuild arguments
+  // Build deno bundle arguments
   const args = [
+    "bundle",
+    `--config=${configPath}`,
+    `--output=${outputPath}`,
     entryPoint,
-    "--bundle",
-    "--format=esm",
-    `--outfile=${outputPath}`,
   ];
-
-  // Add target
-  const target = config.quartoExtension?.target || "es2022";
-  args.push(`--target=${target}`);
 
   // Add optional flags
   if (config.quartoExtension?.minify) {
@@ -279,31 +246,67 @@ async function bundle(
   }
 
   if (config.quartoExtension?.sourcemap) {
-    args.push("--sourcemap");
-  }
-
-  // Add external dependencies (not bundled)
-  if (config.quartoExtension?.externals) {
-    for (const external of config.quartoExtension.externals) {
-      args.push(`--external:${external}`);
+    const sourcemapValue = config.quartoExtension.sourcemap;
+    if (typeof sourcemapValue === "string") {
+      args.push(`--sourcemap=${sourcemapValue}`);
+    } else {
+      args.push("--sourcemap");
     }
   }
 
   const result = await execProcess({
-    cmd: esbuildBinary,
+    cmd: denoBinary,
     args,
     cwd: Deno.cwd(),
   });
 
   if (!result.success) {
-    error("Error: esbuild bundling failed");
+    error("Error: deno bundle failed");
     if (result.stderr) {
       error(result.stderr);
     }
     Deno.exit(1);
   }
 
+  // Validate that _extension.yml path matches output filename
+  validateExtensionYml(outputPath);
+
   info(`✓ Built ${entryPoint} → ${outputPath}`);
+}
+
+function validateExtensionYml(outputPath: string): void {
+  // Find _extension.yml in the same directory as output
+  const extensionDir = dirname(outputPath);
+  const extensionYmlPath = join(extensionDir, "_extension.yml");
+
+  if (!existsSync(extensionYmlPath)) {
+    return; // No _extension.yml, can't validate
+  }
+
+  try {
+    const yml = readYaml(extensionYmlPath);
+    const engines = yml?.contributes?.engines;
+
+    if (Array.isArray(engines)) {
+      const outputFilename = basename(outputPath);
+
+      for (const engine of engines) {
+        const enginePath = typeof engine === "string" ? engine : engine?.path;
+        if (enginePath && enginePath !== outputFilename) {
+          warning("");
+          warning(
+            `Warning: _extension.yml specifies engine path "${enginePath}" but built file is "${outputFilename}"`,
+          );
+          warning(
+            `  Update _extension.yml to: path: ${outputFilename}`,
+          );
+          warning("");
+        }
+      }
+    }
+  } catch {
+    // Ignore YAML parsing errors
+  }
 }
 
 async function initializeConfig(): Promise<void> {
@@ -385,14 +388,29 @@ export const buildTsExtensionCommand = new Command()
       );
       info(`Entry point: ${entryPoint}`);
 
-      // 3. Type-check with Deno
-      await typeCheck(entryPoint, configPath);
-
-      // 4. Bundle with esbuild (unless --check)
-      if (!options.check) {
-        await bundle(entryPoint, config);
+      // 3. Type-check or bundle
+      if (options.check) {
+        // Just type-check
+        info("Type-checking...");
+        const denoBinary = Deno.env.get("QUARTO_DENO") ||
+          architectureToolsPath("deno");
+        const result = await execProcess({
+          cmd: denoBinary,
+          args: ["check", `--config=${configPath}`, entryPoint],
+          cwd: Deno.cwd(),
+        });
+        if (!result.success) {
+          error("Error: Type check failed");
+          error("");
+          error(
+            "See errors above. Fix type errors in your code or adjust compilerOptions in deno.json.",
+          );
+          Deno.exit(1);
+        }
+        info("✓ Type check passed");
       } else {
-        info("Skipping bundle (--check flag specified)");
+        // Type-check and bundle (deno bundle does both)
+        await bundle(entryPoint, config, configPath);
       }
     } catch (e) {
       if (e instanceof Error) {

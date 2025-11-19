@@ -237,8 +237,32 @@ function updateImportMap(config: Configuration) {
   );
   const importMapContent = JSON.parse(Deno.readTextFileSync(importMapPath));
 
-  // Update @quarto/types path from dev (../../../packages/...) to dist (./quarto-types.d.ts)
-  importMapContent.imports["@quarto/types"] = "./quarto-types.d.ts";
+  // Read the source import map to get current Deno std versions
+  const sourceImportMapPath = join(config.directoryInfo.src, "import_map.json");
+  const sourceImportMap = JSON.parse(Deno.readTextFileSync(sourceImportMapPath));
+  const sourceImports = sourceImportMap.imports as Record<string, string>;
+
+  // Update the import map for distribution:
+  // 1. Change @quarto/types path from dev (../../../packages/...) to dist (./quarto-types.d.ts)
+  // 2. Update all other imports (Deno std versions) from source import map
+  const updatedImports: Record<string, string> = {
+    "@quarto/types": "./quarto-types.d.ts",
+  };
+
+  // Copy all other imports from source, updating versions
+  for (const key in importMapContent.imports) {
+    if (key !== "@quarto/types") {
+      const sourceValue = sourceImports[key];
+      if (!sourceValue) {
+        throw new Error(
+          `Import map key "${key}" not found in source import_map.json`,
+        );
+      }
+      updatedImports[key] = sourceValue;
+    }
+  }
+
+  importMapContent.imports = updatedImports;
 
   // Write back the updated import map
   Deno.writeTextFileSync(
