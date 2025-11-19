@@ -4,8 +4,9 @@ format:
   docx:
     mermaid-format: svg
 _quarto:
-  skip-on-os: linux
   tests:
+    run:
+      not_os: linux
     docx:
       printsMessage:
         level: INFO

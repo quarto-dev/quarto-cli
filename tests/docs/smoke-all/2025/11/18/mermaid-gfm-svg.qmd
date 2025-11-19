@@ -3,8 +3,9 @@ title: "GFM with mermaid-format:svg"
 format: gfm
 mermaid-format: svg
 _quarto:
-  skip-on-os: linux
   tests:
+    run:
+      not_os: linux
     gfm:
       ensureFileRegexMatches:
         - ['img.*mermaid-figure-.*?\.svg']  # Verify markdown image link to SVG

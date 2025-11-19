@@ -221,23 +221,37 @@ ok | 1 passed | 0 failed (2s)
 
 ##### Controlling test execution with metadata
 
-Smoke-all tests support metadata in the `_quarto` key to control when tests are run:
+Smoke-all tests support metadata in the `_quarto.tests.run` key to control when tests are run:
 
-**Skip tests on CI:**
+- Skip tests on CI:
 
-```yaml
-_quarto:
-  tests-on-ci: false
-```
+  ```yaml
+  _quarto:
+    tests:
+      run:
+        ci: false
+  ```
 
-**Skip tests on specific operating systems:**
+- Skip tests on specific operating systems (blacklist):
 
-```yaml
-_quarto:
-  skip-on-os: linux              # Skip only on Linux
-  skip-on-os: [linux, darwin]    # Skip on Linux and macOS
-  skip-on-os: windows             # Skip only on Windows
-```
+  ```yaml
+  _quarto:
+    tests:
+      run:
+        not_os: linux                # Don't run on Linux
+        not_os: [linux, darwin]      # Don't run on Linux or macOS
+        not_os: windows              # Don't run on Windows
+  ```
+
+- Run tests only on specific operating systems (whitelist):
+
+  ```yaml
+  _quarto:
+    tests:
+      run:
+        os: darwin                   # Run only on macOS
+        os: [windows, darwin]        # Run only on Windows or macOS
+  ```
 
 Valid OS values are: `linux`, `darwin` (macOS), `windows`
 

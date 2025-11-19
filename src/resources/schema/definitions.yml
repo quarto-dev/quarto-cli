@@ -2421,8 +2421,29 @@
           object:
             properties:
               trace-filters: string
-              tests: object
-              tests-on-ci: boolean
+              tests:
+                object:
+                  properties:
+                    run:
+                      object:
+                        description: "Control when tests should run"
+                        properties:
+                          ci:
+                            boolean:
+                              description: "Run tests on CI (true = run, false = skip)"
+                              default: true
+                          os:
+                            description: "Run tests ONLY on these platforms (whitelist)"
+                            anyOf:
+                              - enum: [linux, darwin, windows]
+                              - arrayOf:
+                                  enum: [linux, darwin, windows]
+                          not_os:
+                            description: "Don't run tests on these platforms (blacklist)"
+                            anyOf:
+                              - enum: [linux, darwin, windows]
+                              - arrayOf:
+                                  enum: [linux, darwin, windows]
 
 - id: notebook-view-schema
   schema:
