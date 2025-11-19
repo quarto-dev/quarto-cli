@@ -163,11 +163,25 @@ export async function prepareDist(
     );
   }
 
-  // Copy quarto-types for engine extension template
+  // Copy quarto-types for engine extension template (backward compatibility)
   info("Copying quarto-types.d.ts for engine extension template");
   copySync(
     join(config.directoryInfo.root, "packages/quarto-types/dist/index.d.ts"),
     join(config.directoryInfo.pkgWorking.share, "quarto-types.d.ts"),
+    { overwrite: true },
+  );
+
+  // Copy quarto-types to extension-build directory
+  // Note: src/resources/extension-build/ already has deno.json and import-map.json
+  // which are copied automatically by supportingFiles()
+  info("Copying quarto-types.d.ts to extension-build directory");
+  const extensionBuildDir = join(
+    config.directoryInfo.pkgWorking.share,
+    "extension-build",
+  );
+  copySync(
+    join(config.directoryInfo.root, "packages/quarto-types/dist/index.d.ts"),
+    join(extensionBuildDir, "quarto-types.d.ts"),
     { overwrite: true },
   );
 

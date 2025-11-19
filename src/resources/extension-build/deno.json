@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "lib": ["DOM", "ES2021"]
+  },
+  "importMap": "./import-map.json"
+}
