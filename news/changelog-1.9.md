@@ -9,6 +9,7 @@ All changes included in 1.9:
 - ([#13616](https://github.com/quarto-dev/quarto-cli/issues/13616)): Fix fatal error when rendering manuscript projects with custom blocks like ConditionalBlock.
 - ([#13625](https://github.com/quarto-dev/quarto-cli/issues/13625)): Fix Windows file locking error (os error 32) when rendering with `--output-dir` flag. Context cleanup now happens before removing the temporary `.quarto` directory, ensuring file handles are properly closed.
 - ([#13633](https://github.com/quarto-dev/quarto-cli/issues/13633)): Fix detection and auto-installation of babel language packages from newer error format that doesn't explicitly mention `.ldf` filename.
+- ([#13694](https://github.com/quarto-dev/quarto-cli/issues/13694)): Fix `notebook-view.url` being ignored - external notebook links now properly use specified URLs instead of local preview files.
 
 ## Dependencies
 
