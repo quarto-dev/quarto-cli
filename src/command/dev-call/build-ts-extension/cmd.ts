@@ -25,6 +25,7 @@ interface DenoConfig {
     minify?: boolean;
     sourcemap?: boolean;
     target?: string;
+    externals?: string[];
   };
 }
 
@@ -279,6 +280,13 @@ async function bundle(
 
   if (config.quartoExtension?.sourcemap) {
     args.push("--sourcemap");
+  }
+
+  // Add external dependencies (not bundled)
+  if (config.quartoExtension?.externals) {
+    for (const external of config.quartoExtension.externals) {
+      args.push(`--external:${external}`);
+    }
   }
 
   const result = await execProcess({

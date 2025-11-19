@@ -3,5 +3,8 @@
     "strict": true,
     "lib": ["deno.ns", "DOM", "ES2021"]
   },
-  "importMap": "./import-map.json"
+  "importMap": "./import-map.json",
+  "quartoExtension": {
+    "externals": ["jsr:*", "npm:*", "https:*", "http:*"]
+  }
 }
