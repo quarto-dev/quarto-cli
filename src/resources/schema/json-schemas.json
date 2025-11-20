@@ -324,6 +324,15 @@
         }
       }
     },
+    "ExternalEngine": {
+      "object": {
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "DocumentCommentsConfiguration": {
       "anyOf": [
         {
