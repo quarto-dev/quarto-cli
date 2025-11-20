@@ -88,11 +88,11 @@ async function autoDetectEntryPoint(
     error("  mkdir -p src");
     error("  touch src/my-engine.ts\n");
     error("Or specify entry point as argument:");
-    error("  quarto call build-ts-extension src/my-engine.ts");
+    error("  quarto call build-ts-extension src/my-engine.ts\n");
 
     // Only show deno.json config if it already exists
     if (existsSync("deno.json")) {
-      error("\nOr configure in deno.json:");
+      error("Or configure in deno.json:");
       error("  {");
       error('    "bundle": {');
       error('      "entryPoint": "path/to/file.ts"');
@@ -140,13 +140,13 @@ async function autoDetectEntryPoint(
 
   error(`Multiple .ts files found in src/: ${tsFiles.join(", ")}\n`);
   error("Specify entry point as argument:");
-  error("  quarto call build-ts-extension src/my-engine.ts");
-  error("\nOr rename one file to mod.ts:");
-  error(`  mv src/${tsFiles[0]} src/mod.ts`);
+  error("  quarto call build-ts-extension src/my-engine.ts\n");
+  error("Or rename one file to mod.ts:");
+  error(`  mv src/${tsFiles[0]} src/mod.ts\n`);
 
   // Only show deno.json config if it already exists
   if (existsSync("deno.json")) {
-    error("\nOr configure in deno.json:");
+    error("Or configure in deno.json:");
     error("  {");
     error('    "bundle": {');
     error('      "entryPoint": "src/my-engine.ts"');
