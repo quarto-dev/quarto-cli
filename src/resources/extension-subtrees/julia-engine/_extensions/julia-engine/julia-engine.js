@@ -918,6 +918,16 @@ var juliaEngineDiscovery = {
    */
   populateCommand: (command) => populateJuliaEngineCommand(command),
   /**
+   * Check Julia installation
+   */
+  checkInstallation: async () => {
+    await quarto.console.withSpinner({
+      message: "Checking Julia installation..."
+    }, async () => {
+      await delay(3e3);
+    });
+  },
+  /**
    * Launch a dynamic execution engine with project context
    */
   launch: (context) => {

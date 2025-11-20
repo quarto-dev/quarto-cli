@@ -112,6 +112,19 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
     populateJuliaEngineCommand(command),
 
   /**
+   * Check Julia installation
+   */
+  checkInstallation: async () => {
+    await quarto.console.withSpinner(
+      { message: "Checking Julia installation..." },
+      async () => {
+        // Simulate checking Julia installation by waiting 3 seconds
+        await delay(3000);
+      },
+    );
+  },
+
+  /**
    * Launch a dynamic execution engine with project context
    */
   launch: (context: EngineProjectContext): ExecutionEngineInstance => {
