@@ -1,0 +1,6 @@
+title: Quarto Julia Engine Extension
+version: 0.1.0
+quarto-required: ">=1.9.0"
+contributes:
+  engines:
+    - path: julia-engine.js
