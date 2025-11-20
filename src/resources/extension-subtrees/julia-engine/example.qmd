@@ -1,0 +1,80 @@
+---
+title: "Julia Violin Plots Example"
+author: us.anthropic.claude-sonnet-4-5-20250929-v1:0
+format:
+  html:
+    code-fold: true
+    fig-width: 7
+    fig-height: 5
+    fig-format: svg
+    fig-responsive: true
+    html-math-method: katex
+    code-tools: true
+engine: julia
+---
+
+## Iris Dataset Visualization
+
+This example demonstrates how to create violin plots with Julia. We'll visualize the famous Iris dataset which contains measurements for three species of iris flowers.
+
+```{julia}
+#| label: fig-violin-grid
+# Load required packages
+using RDatasets
+using Plots
+using StatsPlots
+
+# Load the Iris dataset
+iris = dataset("datasets", "iris")
+
+# Create four violin plots - one for each measurement
+p1 = @df iris violin(:Species, :SepalLength,
+                legend=false,
+                ylabel="Sepal Length (cm)",
+                fillalpha=0.7,
+                title="Sepal Length",
+                size=(300, 250))
+
+p2 = @df iris violin(:Species, :SepalWidth,
+                legend=false,
+                ylabel="Sepal Width (cm)",
+                fillalpha=0.7,
+                color=:green,
+                title="Sepal Width",
+                size=(300, 250))
+
+p3 = @df iris violin(:Species, :PetalLength,
+                legend=false,
+                ylabel="Petal Length (cm)",
+                fillalpha=0.7,
+                color=:orange,
+                title="Petal Length",
+                size=(300, 250))
+
+p4 = @df iris violin(:Species, :PetalWidth,
+                legend=false,
+                ylabel="Petal Width (cm)",
+                fillalpha=0.7,
+                color=:red,
+                title="Petal Width",
+                size=(300, 250))
+
+plot(p1, p2, p3, p4,
+     layout=(2,2),
+     size=(800, 800),
+     titlefontsize=10,
+     guidefontsize=9,
+     tickfontsize=7)
+```
+
+::: {.callout-note}
+## What is a violin plot?
+
+A violin plot shows the distribution of data across categories. The width of each "violin" represents the density of data points at that value, making it easy to compare distributions between groups.
+
+In this example, we can see that:
+
+- *Setosa* has the shortest petals but widest sepals
+- *Virginica* has the longest petals and sepals
+- *Versicolor* falls between the other two species for most measurements
+:::
