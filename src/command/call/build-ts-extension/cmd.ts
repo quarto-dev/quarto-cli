@@ -88,7 +88,7 @@ async function autoDetectEntryPoint(
     error("  mkdir -p src");
     error("  touch src/my-engine.ts\n");
     error("Or specify entry point as argument or in deno.json:");
-    error("  quarto dev-call build-ts-extension src/my-engine.ts");
+    error("  quarto call build-ts-extension src/my-engine.ts");
     error("  OR in deno.json:");
     error("  {");
     error('    "bundle": {');
@@ -136,7 +136,7 @@ async function autoDetectEntryPoint(
 
   error(`Multiple .ts files found in src/: ${tsFiles.join(", ")}\n`);
   error("Specify entry point as argument or in deno.json:");
-  error("  quarto dev-call build-ts-extension src/my-engine.ts");
+  error("  quarto call build-ts-extension src/my-engine.ts");
   error("  OR in deno.json:");
   error("  {");
   error('    "bundle": {');
@@ -360,7 +360,6 @@ async function initializeConfig(): Promise<void> {
 
 export const buildTsExtensionCommand = new Command()
   .name("build-ts-extension")
-  .hidden()
   .arguments("[entry-point:string]")
   .description(
     "Build TypeScript execution engine extensions.\n\n" +
