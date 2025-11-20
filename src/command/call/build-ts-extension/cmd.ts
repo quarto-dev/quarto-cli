@@ -87,14 +87,18 @@ async function autoDetectEntryPoint(
     error("Create a TypeScript file in src/:");
     error("  mkdir -p src");
     error("  touch src/my-engine.ts\n");
-    error("Or specify entry point as argument or in deno.json:");
+    error("Or specify entry point as argument:");
     error("  quarto call build-ts-extension src/my-engine.ts");
-    error("  OR in deno.json:");
-    error("  {");
-    error('    "bundle": {');
-    error('      "entryPoint": "path/to/file.ts"');
-    error("    }");
-    error("  }");
+
+    // Only show deno.json config if it already exists
+    if (existsSync("deno.json")) {
+      error("\nOr configure in deno.json:");
+      error("  {");
+      error('    "bundle": {');
+      error('      "entryPoint": "path/to/file.ts"');
+      error("    }");
+      error("  }");
+    }
     Deno.exit(1);
   }
 
@@ -135,16 +139,21 @@ async function autoDetectEntryPoint(
   }
 
   error(`Multiple .ts files found in src/: ${tsFiles.join(", ")}\n`);
-  error("Specify entry point as argument or in deno.json:");
+  error("Specify entry point as argument:");
   error("  quarto call build-ts-extension src/my-engine.ts");
-  error("  OR in deno.json:");
-  error("  {");
-  error('    "bundle": {');
-  error('      "entryPoint": "src/my-engine.ts"');
-  error("    }");
-  error("  }\n");
-  error("Or rename one file to mod.ts:");
+  error("\nOr rename one file to mod.ts:");
   error(`  mv src/${tsFiles[0]} src/mod.ts`);
+
+  // Only show deno.json config if it already exists
+  if (existsSync("deno.json")) {
+    error("\nOr configure in deno.json:");
+    error("  {");
+    error('    "bundle": {');
+    error('      "entryPoint": "src/my-engine.ts"');
+    error("    }");
+    error("  }");
+  }
+
   Deno.exit(1);
 }
 
@@ -194,12 +203,27 @@ function inferOutputPath(outputFilename: string): string {
     error(
       `Multiple extension directories found: ${extensionNames.join(", ")}\n`,
     );
-    error("Specify the output path in deno.json:");
-    error("  {");
-    error('    "bundle": {');
-    error(`      "outputFile": "${extensionYmlFiles[0]}/${outputFilename}"`);
-    error("    }");
-    error("  }");
+
+    if (existsSync("deno.json")) {
+      // User already has deno.json - show them how to configure it
+      // Use relative path in example (strip absolute path prefix)
+      const relativeExtPath = extensionYmlFiles[0].replace(
+        /^.*\/_extensions\//,
+        "_extensions/",
+      );
+      error("Specify the output path in deno.json:");
+      error("  {");
+      error('    "bundle": {');
+      error(`      "outputFile": "${relativeExtPath}/${outputFilename}"`);
+      error("    }");
+      error("  }");
+    } else {
+      // No deno.json - guide them to create one if this is intentional
+      error("This tool doesn't currently support multi-extension projects.");
+      error(
+        "Use `quarto call build-ts-extension --init-config` to create a deno.json if this is intentional.",
+      );
+    }
     Deno.exit(1);
   }
 
