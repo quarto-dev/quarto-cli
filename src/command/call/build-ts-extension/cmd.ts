@@ -79,9 +79,20 @@ async function resolveConfig(): Promise<
 async function autoDetectEntryPoint(
   configEntryPoint?: string,
 ): Promise<string> {
+  // If config specifies entry point, use it (check this first, before src/ validation)
+  if (configEntryPoint) {
+    if (!existsSync(configEntryPoint)) {
+      error(
+        `Entry point specified in deno.json does not exist: ${configEntryPoint}`,
+      );
+      Deno.exit(1);
+    }
+    return configEntryPoint;
+  }
+
   const srcDir = "src";
 
-  // Check if src/ exists
+  // Check if src/ exists (only needed for auto-detection)
   if (!existsSync(srcDir)) {
     error("No src/ directory found.\n");
     error("Create a TypeScript file in src/:");
@@ -100,17 +111,6 @@ async function autoDetectEntryPoint(
       error("  }");
     }
     Deno.exit(1);
-  }
-
-  // If config specifies entry point, use it
-  if (configEntryPoint) {
-    if (!existsSync(configEntryPoint)) {
-      error(
-        `Entry point specified in deno.json does not exist: ${configEntryPoint}`,
-      );
-      Deno.exit(1);
-    }
-    return configEntryPoint;
   }
 
   // Find .ts files in src/
@@ -163,7 +163,10 @@ function inferFilename(entryPoint: string): string {
   return `${fileName}.js`;
 }
 
-function inferOutputPath(outputFilename: string): string {
+function inferOutputPath(
+  outputFilename: string,
+  userSpecifiedFilename?: string,
+): string {
   // Derive extension name from filename for error messages
   const extensionName = basename(outputFilename, extname(outputFilename));
 
@@ -171,10 +174,23 @@ function inferOutputPath(outputFilename: string): string {
   const extensionsDir = "_extensions";
   if (!existsSync(extensionsDir)) {
     error("No _extensions/ directory found.\n");
-    error(
-      "Extension projects must have an _extensions/ directory with _extension.yml.",
-    );
-    error("Create the extension structure:");
+
+    if (userSpecifiedFilename) {
+      // User specified a filename in deno.json - offer path prefix option
+      error(
+        `You specified outputFile: "${userSpecifiedFilename}" in deno.json.`,
+      );
+      error("To write to the current directory, use a path prefix:");
+      error(`  "outputFile": "./${userSpecifiedFilename}"\n`);
+      error("Or create an extension structure:");
+    } else {
+      // Auto-detection mode - standard error
+      error(
+        "Extension projects must have an _extensions/ directory with _extension.yml.",
+      );
+      error("Create the extension structure:");
+    }
+
     error(`  mkdir -p _extensions/${extensionName}`);
     error(`  touch _extensions/${extensionName}/_extension.yml`);
     Deno.exit(1);
@@ -248,7 +264,8 @@ async function bundle(
     // Check if it's just a filename (no path separators)
     if (!specifiedOutput.includes("/") && !specifiedOutput.includes("\\")) {
       // Just filename - infer directory from _extension.yml
-      outputPath = inferOutputPath(specifiedOutput);
+      // Pass the user-specified filename for better error messages
+      outputPath = inferOutputPath(specifiedOutput, specifiedOutput);
     } else {
       // Full path specified - use as-is
       outputPath = specifiedOutput;
