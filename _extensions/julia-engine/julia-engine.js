@@ -19,16 +19,16 @@ var CHAR_BACKWARD_SLASH = 92;
 var CHAR_COLON = 58;
 
 // deno:https://jsr.io/@std/path/1.0.8/posix/_util.ts
-function isPosixPathSeparator(code2) {
-  return code2 === CHAR_FORWARD_SLASH;
+function isPosixPathSeparator(code) {
+  return code === CHAR_FORWARD_SLASH;
 }
 
 // deno:https://jsr.io/@std/path/1.0.8/windows/_util.ts
-function isPathSeparator(code2) {
-  return code2 === CHAR_FORWARD_SLASH || code2 === CHAR_BACKWARD_SLASH;
+function isPathSeparator(code) {
+  return code === CHAR_FORWARD_SLASH || code === CHAR_BACKWARD_SLASH;
 }
-function isWindowsDeviceRoot(code2) {
-  return code2 >= CHAR_LOWERCASE_A && code2 <= CHAR_LOWERCASE_Z || code2 >= CHAR_UPPERCASE_A && code2 <= CHAR_UPPERCASE_Z;
+function isWindowsDeviceRoot(code) {
+  return code >= CHAR_LOWERCASE_A && code <= CHAR_LOWERCASE_Z || code >= CHAR_UPPERCASE_A && code <= CHAR_UPPERCASE_Z;
 }
 
 // deno:https://jsr.io/@std/path/1.0.8/_common/normalize.ts
@@ -43,12 +43,12 @@ function normalizeString(path, allowAboveRoot, separator, isPathSeparator2) {
   let lastSegmentLength = 0;
   let lastSlash = -1;
   let dots = 0;
-  let code2;
+  let code;
   for (let i = 0; i <= path.length; ++i) {
-    if (i < path.length) code2 = path.charCodeAt(i);
-    else if (isPathSeparator2(code2)) break;
-    else code2 = CHAR_FORWARD_SLASH;
-    if (isPathSeparator2(code2)) {
+    if (i < path.length) code = path.charCodeAt(i);
+    else if (isPathSeparator2(code)) break;
+    else code = CHAR_FORWARD_SLASH;
+    if (isPathSeparator2(code)) {
       if (lastSlash === i - 1 || dots === 1) {
       } else if (lastSlash !== i - 1 && dots === 2) {
         if (res.length < 2 || lastSegmentLength !== 2 || res.charCodeAt(res.length - 1) !== CHAR_DOT || res.charCodeAt(res.length - 2) !== CHAR_DOT) {
@@ -84,7 +84,7 @@ function normalizeString(path, allowAboveRoot, separator, isPathSeparator2) {
       }
       lastSlash = i;
       dots = 0;
-    } else if (code2 === CHAR_DOT && dots !== -1) {
+    } else if (code === CHAR_DOT && dots !== -1) {
       ++dots;
     } else {
       dots = -1;
@@ -120,9 +120,9 @@ function normalize2(path) {
   let rootEnd = 0;
   let device;
   let isAbsolute3 = false;
-  const code2 = path.charCodeAt(0);
+  const code = path.charCodeAt(0);
   if (len > 1) {
-    if (isPathSeparator(code2)) {
+    if (isPathSeparator(code)) {
       isAbsolute3 = true;
       if (isPathSeparator(path.charCodeAt(1))) {
         let j = 2;
@@ -152,7 +152,7 @@ function normalize2(path) {
       } else {
         rootEnd = 1;
       }
-    } else if (isWindowsDeviceRoot(code2)) {
+    } else if (isWindowsDeviceRoot(code)) {
       if (path.charCodeAt(1) === CHAR_COLON) {
         device = path.slice(0, 2);
         rootEnd = 2;
@@ -164,7 +164,7 @@ function normalize2(path) {
         }
       }
     }
-  } else if (isPathSeparator(code2)) {
+  } else if (isPathSeparator(code)) {
     return "\\";
   }
   let tail;
@@ -236,11 +236,11 @@ function resolve(...pathSegments) {
     let path;
     if (i >= 0) path = pathSegments[i];
     else {
-      const { Deno: Deno3 } = globalThis;
-      if (typeof Deno3?.cwd !== "function") {
+      const { Deno: Deno2 } = globalThis;
+      if (typeof Deno2?.cwd !== "function") {
         throw new TypeError("Resolved a relative path without a current working directory (CWD)");
       }
-      path = Deno3.cwd();
+      path = Deno2.cwd();
     }
     assertPath(path);
     if (path.length === 0) {
@@ -264,19 +264,19 @@ function resolve2(...pathSegments) {
   let resolvedAbsolute = false;
   for (let i = pathSegments.length - 1; i >= -1; i--) {
     let path;
-    const { Deno: Deno3 } = globalThis;
+    const { Deno: Deno2 } = globalThis;
     if (i >= 0) {
       path = pathSegments[i];
     } else if (!resolvedDevice) {
-      if (typeof Deno3?.cwd !== "function") {
+      if (typeof Deno2?.cwd !== "function") {
         throw new TypeError("Resolved a drive-letter-less path without a current working directory (CWD)");
       }
-      path = Deno3.cwd();
+      path = Deno2.cwd();
     } else {
-      if (typeof Deno3?.env?.get !== "function" || typeof Deno3?.cwd !== "function") {
+      if (typeof Deno2?.env?.get !== "function" || typeof Deno2?.cwd !== "function") {
         throw new TypeError("Resolved a relative path without a current working directory (CWD)");
       }
-      path = Deno3.cwd();
+      path = Deno2.cwd();
       if (path === void 0 || path.slice(0, 3).toLowerCase() !== `${resolvedDevice.toLowerCase()}\\`) {
         path = `${resolvedDevice}\\`;
       }
@@ -287,9 +287,9 @@ function resolve2(...pathSegments) {
     let rootEnd = 0;
     let device = "";
     let isAbsolute3 = false;
-    const code2 = path.charCodeAt(0);
+    const code = path.charCodeAt(0);
     if (len > 1) {
-      if (isPathSeparator(code2)) {
+      if (isPathSeparator(code)) {
         isAbsolute3 = true;
         if (isPathSeparator(path.charCodeAt(1))) {
           let j = 2;
@@ -320,7 +320,7 @@ function resolve2(...pathSegments) {
         } else {
           rootEnd = 1;
         }
-      } else if (isWindowsDeviceRoot(code2)) {
+      } else if (isWindowsDeviceRoot(code)) {
         if (path.charCodeAt(1) === CHAR_COLON) {
           device = path.slice(0, 2);
           rootEnd = 2;
@@ -332,7 +332,7 @@ function resolve2(...pathSegments) {
           }
         }
       }
-    } else if (isPathSeparator(code2)) {
+    } else if (isPathSeparator(code)) {
       rootEnd = 1;
       isAbsolute3 = true;
     }
@@ -357,396 +357,8 @@ function resolve3(...pathSegments) {
   return isWindows ? resolve2(...pathSegments) : resolve(...pathSegments);
 }
 
-// deno:https://jsr.io/@std/log/0.224.0/levels.ts
-var LogLevels = {
-  NOTSET: 0,
-  DEBUG: 10,
-  INFO: 20,
-  WARN: 30,
-  ERROR: 40,
-  CRITICAL: 50
-};
-var LogLevelNames = Object.keys(LogLevels).filter((key) => isNaN(Number(key)));
-var byLevel = {
-  [LogLevels.NOTSET]: "NOTSET",
-  [LogLevels.DEBUG]: "DEBUG",
-  [LogLevels.INFO]: "INFO",
-  [LogLevels.WARN]: "WARN",
-  [LogLevels.ERROR]: "ERROR",
-  [LogLevels.CRITICAL]: "CRITICAL"
-};
-function getLevelByName(name) {
-  const level = LogLevels[name];
-  if (level !== void 0) {
-    return level;
-  }
-  throw new Error(`no log level found for name: ${name}`);
-}
-function getLevelName(level) {
-  const levelName = byLevel[level];
-  if (levelName) {
-    return levelName;
-  }
-  throw new Error(`no level name found for level: ${level}`);
-}
-
-// deno:https://jsr.io/@std/log/0.224.0/base_handler.ts
-var _computedKey;
-var DEFAULT_FORMATTER = ({ levelName, msg }) => `${levelName} ${msg}`;
-_computedKey = Symbol.dispose;
-var BaseHandler = class {
-  #levelName;
-  #level;
-  formatter;
-  constructor(levelName, { formatter = DEFAULT_FORMATTER } = {}) {
-    this.#levelName = levelName;
-    this.#level = getLevelByName(levelName);
-    this.formatter = formatter;
-  }
-  get level() {
-    return this.#level;
-  }
-  set level(level) {
-    this.#level = level;
-    this.#levelName = getLevelName(level);
-  }
-  get levelName() {
-    return this.#levelName;
-  }
-  set levelName(levelName) {
-    this.#levelName = levelName;
-    this.#level = getLevelByName(levelName);
-  }
-  handle(logRecord) {
-    if (this.level > logRecord.level) return;
-    const msg = this.format(logRecord);
-    this.log(msg);
-  }
-  format(logRecord) {
-    return this.formatter(logRecord);
-  }
-  log(_msg) {
-  }
-  setup() {
-  }
-  destroy() {
-  }
-  [_computedKey]() {
-    this.destroy();
-  }
-};
-
-// deno:https://jsr.io/@std/fmt/0.224.0/colors.ts
-var { Deno: Deno2 } = globalThis;
-var noColor = typeof Deno2?.noColor === "boolean" ? Deno2.noColor : false;
-var enabled = !noColor;
-function code(open, close) {
-  return {
-    open: `\x1B[${open.join(";")}m`,
-    close: `\x1B[${close}m`,
-    regexp: new RegExp(`\\x1b\\[${close}m`, "g")
-  };
-}
-function run(str, code2) {
-  return enabled ? `${code2.open}${str.replace(code2.regexp, code2.open)}${code2.close}` : str;
-}
-function bold(str) {
-  return run(str, code([
-    1
-  ], 22));
-}
-function red(str) {
-  return run(str, code([
-    31
-  ], 39));
-}
-function yellow(str) {
-  return run(str, code([
-    33
-  ], 39));
-}
-function blue(str) {
-  return run(str, code([
-    34
-  ], 39));
-}
-var ANSI_PATTERN = new RegExp([
-  "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
-  "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TXZcf-nq-uy=><~]))"
-].join("|"), "g");
-
-// deno:https://jsr.io/@std/log/0.224.0/console_handler.ts
-var ConsoleHandler = class extends BaseHandler {
-  #useColors;
-  constructor(levelName, options = {}) {
-    super(levelName, options);
-    this.#useColors = options.useColors ?? true;
-  }
-  format(logRecord) {
-    let msg = super.format(logRecord);
-    if (this.#useColors) {
-      msg = this.applyColors(msg, logRecord.level);
-    }
-    return msg;
-  }
-  applyColors(msg, level) {
-    switch (level) {
-      case LogLevels.INFO:
-        msg = blue(msg);
-        break;
-      case LogLevels.WARN:
-        msg = yellow(msg);
-        break;
-      case LogLevels.ERROR:
-        msg = red(msg);
-        break;
-      case LogLevels.CRITICAL:
-        msg = bold(red(msg));
-        break;
-      default:
-        break;
-    }
-    return msg;
-  }
-  log(msg) {
-    console.log(msg);
-  }
-};
-
-// deno:https://jsr.io/@std/log/0.224.0/logger.ts
-var LogRecord = class {
-  msg;
-  #args;
-  #datetime;
-  level;
-  levelName;
-  loggerName;
-  constructor(options) {
-    this.msg = options.msg;
-    this.#args = [
-      ...options.args
-    ];
-    this.level = options.level;
-    this.loggerName = options.loggerName;
-    this.#datetime = /* @__PURE__ */ new Date();
-    this.levelName = getLevelName(options.level);
-  }
-  get args() {
-    return [
-      ...this.#args
-    ];
-  }
-  get datetime() {
-    return new Date(this.#datetime.getTime());
-  }
-};
-var Logger = class {
-  #level;
-  handlers;
-  #loggerName;
-  constructor(loggerName, levelName, options = {}) {
-    this.#loggerName = loggerName;
-    this.#level = getLevelByName(levelName);
-    this.handlers = options.handlers || [];
-  }
-  /** Use this to retrieve the current numeric log level. */
-  get level() {
-    return this.#level;
-  }
-  /** Use this to set the numeric log level. */
-  set level(level) {
-    try {
-      this.#level = getLevelByName(getLevelName(level));
-    } catch (_) {
-      throw new TypeError(`Invalid log level: ${level}`);
-    }
-  }
-  get levelName() {
-    return getLevelName(this.#level);
-  }
-  set levelName(levelName) {
-    this.#level = getLevelByName(levelName);
-  }
-  get loggerName() {
-    return this.#loggerName;
-  }
-  /**
-   * If the level of the logger is greater than the level to log, then nothing
-   * is logged, otherwise a log record is passed to each log handler.  `msg` data
-   * passed in is returned.  If a function is passed in, it is only evaluated
-   * if the msg will be logged and the return value will be the result of the
-   * function, not the function itself, unless the function isn't called, in which
-   * case undefined is returned.  All types are coerced to strings for logging.
-   */
-  #log(level, msg, ...args) {
-    if (this.level > level) {
-      return msg instanceof Function ? void 0 : msg;
-    }
-    let fnResult;
-    let logMessage;
-    if (msg instanceof Function) {
-      fnResult = msg();
-      logMessage = this.asString(fnResult);
-    } else {
-      logMessage = this.asString(msg);
-    }
-    const record = new LogRecord({
-      msg: logMessage,
-      args,
-      level,
-      loggerName: this.loggerName
-    });
-    this.handlers.forEach((handler) => {
-      handler.handle(record);
-    });
-    return msg instanceof Function ? fnResult : msg;
-  }
-  asString(data, isProperty = false) {
-    if (typeof data === "string") {
-      if (isProperty) return `"${data}"`;
-      return data;
-    } else if (data === null || typeof data === "number" || typeof data === "bigint" || typeof data === "boolean" || typeof data === "undefined" || typeof data === "symbol") {
-      return String(data);
-    } else if (data instanceof Error) {
-      return data.stack;
-    } else if (typeof data === "object") {
-      return `{${Object.entries(data).map(([k, v]) => `"${k}":${this.asString(v, true)}`).join(",")}}`;
-    }
-    return "undefined";
-  }
-  debug(msg, ...args) {
-    return this.#log(LogLevels.DEBUG, msg, ...args);
-  }
-  info(msg, ...args) {
-    return this.#log(LogLevels.INFO, msg, ...args);
-  }
-  warn(msg, ...args) {
-    return this.#log(LogLevels.WARN, msg, ...args);
-  }
-  error(msg, ...args) {
-    return this.#log(LogLevels.ERROR, msg, ...args);
-  }
-  critical(msg, ...args) {
-    return this.#log(LogLevels.CRITICAL, msg, ...args);
-  }
-};
-
-// deno:https://jsr.io/@std/assert/0.224.0/assertion_error.ts
-var AssertionError = class extends Error {
-  /** Constructs a new instance. */
-  constructor(message) {
-    super(message);
-    this.name = "AssertionError";
-  }
-};
-
-// deno:https://jsr.io/@std/assert/0.224.0/assert.ts
-function assert(expr, msg = "") {
-  if (!expr) {
-    throw new AssertionError(msg);
-  }
-}
-
-// deno:https://jsr.io/@std/log/0.224.0/_config.ts
-var DEFAULT_LEVEL = "INFO";
-var DEFAULT_CONFIG = {
-  handlers: {
-    default: new ConsoleHandler(DEFAULT_LEVEL)
-  },
-  loggers: {
-    default: {
-      level: DEFAULT_LEVEL,
-      handlers: [
-        "default"
-      ]
-    }
-  }
-};
-
-// deno:https://jsr.io/@std/log/0.224.0/_state.ts
-var state = {
-  handlers: /* @__PURE__ */ new Map(),
-  loggers: /* @__PURE__ */ new Map(),
-  config: DEFAULT_CONFIG
-};
-
-// deno:https://jsr.io/@std/log/0.224.0/get_logger.ts
-function getLogger(name) {
-  if (!name) {
-    const d = state.loggers.get("default");
-    assert(d !== void 0, `"default" logger must be set for getting logger without name`);
-    return d;
-  }
-  const result = state.loggers.get(name);
-  if (!result) {
-    const logger = new Logger(name, "NOTSET", {
-      handlers: []
-    });
-    state.loggers.set(name, logger);
-    return logger;
-  }
-  return result;
-}
-
-// deno:https://jsr.io/@std/log/0.224.0/error.ts
-function error(msg, ...args) {
-  if (msg instanceof Function) {
-    return getLogger("default").error(msg, ...args);
-  }
-  return getLogger("default").error(msg, ...args);
-}
-
-// deno:https://jsr.io/@std/log/0.224.0/info.ts
-function info(msg, ...args) {
-  if (msg instanceof Function) {
-    return getLogger("default").info(msg, ...args);
-  }
-  return getLogger("default").info(msg, ...args);
-}
-
-// deno:https://jsr.io/@std/log/0.224.0/setup.ts
-function setup(config) {
-  state.config = {
-    handlers: {
-      ...DEFAULT_CONFIG.handlers,
-      ...config.handlers
-    },
-    loggers: {
-      ...DEFAULT_CONFIG.loggers,
-      ...config.loggers
-    }
-  };
-  state.handlers.forEach((handler) => {
-    handler.destroy();
-  });
-  state.handlers.clear();
-  const handlers = state.config.handlers || {};
-  for (const [handlerName, handler] of Object.entries(handlers)) {
-    handler.setup();
-    state.handlers.set(handlerName, handler);
-  }
-  state.loggers.clear();
-  const loggers = state.config.loggers || {};
-  for (const [loggerName, loggerConfig] of Object.entries(loggers)) {
-    const handlerNames = loggerConfig.handlers || [];
-    const handlers2 = [];
-    handlerNames.forEach((handlerName) => {
-      const handler = state.handlers.get(handlerName);
-      if (handler) {
-        handlers2.push(handler);
-      }
-    });
-    const levelName = loggerConfig.level || DEFAULT_LEVEL;
-    const logger = new Logger(loggerName, levelName, {
-      handlers: handlers2
-    });
-    state.loggers.set(loggerName, logger);
-  }
-}
-setup(DEFAULT_CONFIG);
-
 // deno:https://jsr.io/@std/fs/1.0.16/exists.ts
-function existsSync2(path, options) {
+function existsSync(path, options) {
   try {
     const stat = Deno.statSync(path);
     if (options && (options.isReadable || options.isDirectory || options.isFile)) {
@@ -761,11 +373,11 @@ function existsSync2(path, options) {
       }
     }
     return true;
-  } catch (error2) {
-    if (error2 instanceof Deno.errors.NotFound) {
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
       return false;
     }
-    if (error2 instanceof Deno.errors.PermissionDenied) {
+    if (error instanceof Deno.errors.PermissionDenied) {
       if (Deno.permissions.querySync({
         name: "read",
         path
@@ -773,7 +385,7 @@ function existsSync2(path, options) {
         return !options?.isReadable;
       }
     }
-    throw error2;
+    throw error;
   }
 }
 function fileIsReadable(stat) {
@@ -881,7 +493,7 @@ function safeRemoveSync(file, options = {}) {
   try {
     Deno.removeSync(file, options);
   } catch (e) {
-    if (existsSync2(file)) {
+    if (existsSync(file)) {
       throw e;
     }
   }
@@ -981,7 +593,7 @@ var juliaEngineDiscovery = {
         };
         const nb = await executeJulia(juliaExecOptions);
         if (!nb) {
-          error("Execution of notebook returned undefined");
+          quarto.console.error("Execution of notebook returned undefined");
           return Promise.reject();
         }
         nb.metadata.kernelspec = {
@@ -1068,9 +680,9 @@ function powershell_argument_list_to_string(...args) {
 }
 async function startOrReuseJuliaServer(options) {
   const transportFile = juliaTransportFile();
-  if (!existsSync2(transportFile)) {
+  if (!existsSync(transportFile)) {
     trace(options, `Transport file ${transportFile} doesn't exist`);
-    info("Starting julia control server process. This might take a while...");
+    quarto.console.info("Starting julia control server process. This might take a while...");
     let juliaProject = Deno.env.get("QUARTO_JULIA_PROJECT");
     if (juliaProject === void 0) {
       await ensureQuartoNotebookRunnerEnvironment(options);
@@ -1170,7 +782,7 @@ async function ensureQuartoNotebookRunnerEnvironment(options) {
 async function pollTransportFile(options) {
   const transportFile = juliaTransportFile();
   for (let i = 0; i < 15; i++) {
-    if (existsSync2(transportFile)) {
+    if (existsSync(transportFile)) {
       const transportOptions = await readTransportFile(transportFile);
       trace(options, "Transport file read successfully.");
       return transportOptions;
@@ -1225,15 +837,15 @@ async function getJuliaServerConnection(options) {
     transportOptions = await pollTransportFile(options);
   } catch (err) {
     if (!reused) {
-      info("No transport file was found after the timeout. This is the log from the server process:");
-      info("#### BEGIN LOG ####");
+      quarto.console.info("No transport file was found after the timeout. This is the log from the server process:");
+      quarto.console.info("#### BEGIN LOG ####");
       printJuliaServerLog();
-      info("#### END LOG ####");
+      quarto.console.info("#### END LOG ####");
     }
     throw err;
   }
   if (!reused) {
-    info("Julia server process started.");
+    quarto.console.info("Julia server process started.");
   }
   trace(options, `Connecting to server at port ${transportOptions.port}, pid ${transportOptions.pid}`);
   try {
@@ -1249,7 +861,7 @@ async function getJuliaServerConnection(options) {
       safeRemoveSync(juliaTransportFile());
       return await getJuliaServerConnection(options);
     } else {
-      error("Connecting to server failed. A transport file was successfully created by the server process, so something in the server process might be broken.");
+      quarto.console.error("Connecting to server failed. A transport file was successfully created by the server process, so something in the server process might be broken.");
       throw e;
     }
   }
@@ -1355,7 +967,7 @@ async function executeJulia(options) {
     const firstPart = `Running [${i_padded}/${n}] at line ${update.line}:  `;
     const firstPartLength = firstPart.length;
     const sigLine = firstSignificantLine(update.source, Math.max(0, ncols - firstPartLength));
-    info(`${firstPart}${sigLine}`);
+    quarto.console.info(`${firstPart}${sigLine}`);
   });
   if (options.oneShot) {
     await writeJuliaCommand(conn, {
@@ -1478,10 +1090,10 @@ function juliaRuntimeDir() {
   try {
     return quarto.path.runtime("julia");
   } catch (e) {
-    error("Could not create julia runtime directory.");
-    error("This is possibly a permission issue in the environment Quarto is running in.");
-    error("Please consult the following documentation for more information:");
-    error("https://github.com/quarto-dev/quarto-cli/issues/4594#issuecomment-1619177667");
+    quarto.console.error("Could not create julia runtime directory.");
+    quarto.console.error("This is possibly a permission issue in the environment Quarto is running in.");
+    quarto.console.error("Please consult the following documentation for more information:");
+    quarto.console.error("https://github.com/quarto-dev/quarto-cli/issues/4594#issuecomment-1619177667");
     throw e;
   }
 }
@@ -1493,7 +1105,7 @@ function juliaServerLogFile() {
 }
 function trace(options, msg) {
   if (options.format?.execute[kExecuteDebug] === true) {
-    info("- " + msg, {
+    quarto.console.info("- " + msg, {
       bold: true
     });
   }
@@ -1508,8 +1120,8 @@ function populateJuliaEngineCommand(command) {
 }
 async function logStatus() {
   const transportFile = juliaTransportFile();
-  if (!existsSync2(transportFile)) {
-    info("Julia control server is not running.");
+  if (!existsSync(transportFile)) {
+    quarto.console.info("Julia control server is not running.");
     return;
   }
   const transportOptions = await readTransportFile(transportFile);
@@ -1523,30 +1135,30 @@ async function logStatus() {
     Deno.stdout.writeSync(new TextEncoder().encode(status));
     conn.close();
   } else {
-    info(`Found transport file but can't connect to control server.`);
+    quarto.console.info(`Found transport file but can't connect to control server.`);
   }
 }
 async function killJuliaServer() {
   const transportFile = juliaTransportFile();
-  if (!existsSync2(transportFile)) {
-    info("Julia control server is not running.");
+  if (!existsSync(transportFile)) {
+    quarto.console.info("Julia control server is not running.");
     return;
   }
   const transportOptions = await readTransportFile(transportFile);
   Deno.kill(transportOptions.pid, "SIGTERM");
-  info("Sent SIGTERM to server process");
+  quarto.console.info("Sent SIGTERM to server process");
 }
 function printJuliaServerLog() {
-  if (existsSync2(juliaServerLogFile())) {
+  if (existsSync(juliaServerLogFile())) {
     Deno.stdout.writeSync(Deno.readFileSync(juliaServerLogFile()));
   } else {
-    info("Server log file doesn't exist");
+    quarto.console.info("Server log file doesn't exist");
   }
   return;
 }
 async function connectAndWriteJuliaCommandToRunningServer(command) {
   const transportFile = juliaTransportFile();
-  if (!existsSync2(transportFile)) {
+  if (!existsSync(transportFile)) {
     throw new Error("Julia control server is not running.");
   }
   const transportOptions = await readTransportFile(transportFile);
@@ -1568,14 +1180,14 @@ async function closeWorker(file, force) {
       file: absfile
     }
   });
-  info(`Worker ${force ? "force-" : ""}closed successfully.`);
+  quarto.console.info(`Worker ${force ? "force-" : ""}closed successfully.`);
 }
 async function stopServer() {
   const result = await connectAndWriteJuliaCommandToRunningServer({
     type: "stop",
     content: {}
   });
-  info(result.message);
+  quarto.console.info(result.message);
 }
 export {
   julia_engine_default as default,
