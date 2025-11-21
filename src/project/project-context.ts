@@ -759,7 +759,6 @@ export async function resolveEngineExtensions(
     undefined,
     projectConfig,
     dir,
-    { builtIn: false },
   );
 
   // Filter to only those with engines

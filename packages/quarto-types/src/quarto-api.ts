@@ -27,7 +27,7 @@ import type {
   ExecProcessOptions,
   TempContext,
 } from "./system.ts";
-import type { SpinnerOptions } from "./console.ts";
+import type { LogMessageOptions, SpinnerOptions } from "./console.ts";
 import type {
   CheckRenderOptions,
   CheckRenderResult,
@@ -729,6 +729,39 @@ export interface QuartoAPI {
      * @param message - Message to display
      */
     completeMessage: (message: string) => void;
+
+    /**
+     * Log an informational message to stderr
+     *
+     * Writes an info-level message to stderr using Quarto's custom logging handler.
+     * Supports formatting options like indentation, bold text, and color control.
+     *
+     * @param message - Message to log
+     * @param options - Optional formatting options
+     */
+    info: (message: string, options?: LogMessageOptions) => void;
+
+    /**
+     * Log a warning message to stderr
+     *
+     * Writes a warning-level message to stderr with yellow color and "WARNING:" prefix.
+     * Uses Quarto's custom logging handler.
+     *
+     * @param message - Warning message to log
+     * @param options - Optional formatting options
+     */
+    warning: (message: string, options?: LogMessageOptions) => void;
+
+    /**
+     * Log an error message to stderr
+     *
+     * Writes an error-level message to stderr with bright red color and "ERROR:" prefix.
+     * Uses Quarto's custom logging handler.
+     *
+     * @param message - Error message to log
+     * @param options - Optional formatting options
+     */
+    error: (message: string, options?: LogMessageOptions) => void;
   };
 
   /**

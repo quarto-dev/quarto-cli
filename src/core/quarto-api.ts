@@ -58,6 +58,8 @@ import {
 import { completeMessage, withSpinner } from "./console.ts";
 import { checkRender } from "../command/check/check-render.ts";
 import type { RenderServiceWithLifetime } from "../command/render/types.ts";
+import type { LogMessageOptions } from "./log.ts";
+import * as log from "../deno_ral/log.ts";
 
 export interface QuartoAPI {
   markdownRegex: {
@@ -211,6 +213,9 @@ export interface QuartoAPI {
       fn: () => Promise<T>,
     ) => Promise<T>;
     completeMessage: (message: string) => void;
+    info: (message: string, options?: LogMessageOptions) => void;
+    warning: (message: string, options?: LogMessageOptions) => void;
+    error: (message: string, options?: LogMessageOptions) => void;
   };
   crypto: {
     md5Hash: (content: string) => string;
@@ -372,6 +377,12 @@ export const quartoAPI: QuartoAPI = {
   console: {
     withSpinner,
     completeMessage,
+    info: (message: string, options?: LogMessageOptions) =>
+      log.info(message, options),
+    warning: (message: string, options?: LogMessageOptions) =>
+      log.warning(message, options),
+    error: (message: string, options?: LogMessageOptions) =>
+      log.error(message, options),
   },
 
   crypto: {
