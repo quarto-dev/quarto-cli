@@ -79,7 +79,7 @@ export type NavigationItemObject = {
   "aria-label"?: string /* Accessible label for the item. */;
   file?: string /* Alias for href */;
   href?: string /* Link to file contained with the project or external URL */;
-  icon?: string /* Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
+  icon?: string /* Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)
 See <https://icons.getbootstrap.com/> for a list of available icons */;
   id?: string;
   menu?: (NavigationItem)[];
@@ -1208,7 +1208,28 @@ export type ProjectProfile = {
 export type BadParseSchema = JsonObject;
 
 export type QuartoDevSchema = {
-  _quarto?: { "trace-filters"?: string; tests?: JsonObject };
+  _quarto?: {
+    "trace-filters"?: string;
+    tests?: {
+      run?: {
+        ci?: boolean /* Run tests on CI (true = run, false = skip) */;
+        not_os?:
+          | ("linux" | "darwin" | "windows")
+          | ((
+            | "linux"
+            | "darwin"
+            | "windows"
+          ))[] /* Don't run tests on these platforms (blacklist) */;
+        os?:
+          | ("linux" | "darwin" | "windows")
+          | ((
+            | "linux"
+            | "darwin"
+            | "windows"
+          ))[]; /* Run tests ONLY on these platforms (whitelist) */
+      }; /* Control when tests should run */
+    };
+  };
 };
 
 export type NotebookViewSchema = {

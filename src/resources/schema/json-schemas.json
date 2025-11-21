@@ -2918,7 +2918,61 @@
                   "type": "string"
                 },
                 "tests": {
-                  "type": "object"
+                  "object": {
+                    "properties": {
+                      "run": {
+                        "object": {
+                          "properties": {
+                            "ci": {
+                              "type": "boolean"
+                            },
+                            "os": {
+                              "anyOf": [
+                                {
+                                  "enum": [
+                                    "linux",
+                                    "darwin",
+                                    "windows"
+                                  ]
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "enum": [
+                                      "linux",
+                                      "darwin",
+                                      "windows"
+                                    ]
+                                  }
+                                }
+                              ]
+                            },
+                            "not_os": {
+                              "anyOf": [
+                                {
+                                  "enum": [
+                                    "linux",
+                                    "darwin",
+                                    "windows"
+                                  ]
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "enum": [
+                                      "linux",
+                                      "darwin",
+                                      "windows"
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }

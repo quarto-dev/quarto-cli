@@ -38,7 +38,7 @@ on:
   schedule:
     - cron: "0 6 * * *"
 
-# this is require to cleanup julia cache
+# this is required to cleanup julia cache
 permissions:
   actions: write
   contents: read
@@ -138,6 +138,13 @@ jobs:
           sudo apt-get install -y libxml2-utils
           sudo apt-get install -y libharfbuzz-dev libfribidi-dev
           sudo apt-get install -y poppler-utils
+
+      - name: Install rsvg-convert for SVG conversion tests
+        # Only do it on linux runner, and only if we are running the relevant tests
+        if: runner.os == 'Linux' && contains(inputs.buckets, 'render-pdf-svg-conversion')
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y librsvg2-bin
 
       - name: Restore R packages
         working-directory: tests
@@ -289,35 +296,9 @@ jobs:
         working-directory: tests
         shell: pwsh
 
-      - name: Create Pull Request for new tests timing
-        if: matrix.time-test
-        id: cpr
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          add-paths: tests/timing-for-ci.txt
-          commit-message: |
-            timing for new tests [auto PR]
-          branch: updates/timing-for-ci
-          delete-branch: true
-          assignees: cderv
-          reviewers: cderv
-          title: |
-            [CI] Update timing file
-          body: |
-            This PR was created automatically with new timing test file for our parallel smoke tests. 
-            Please review and merge to trigger a new build of the website.
-
-      - name: Check auto PR outputs
-        if: steps.cpr.outcome == 'success'
-        run: |
-          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
-          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
-          echo "Pull Request Action Performed - ${{ steps.cpr.outputs.pull-request-operation }}"
-
       - name: Upload test timing file
         uses: actions/upload-artifact@v4
-        if: matrix.time-test && ( failure() || cancelled())
+        if: matrix.time-test
         with:
           name: timed test file
           path: tests/timing-for-ci.txt

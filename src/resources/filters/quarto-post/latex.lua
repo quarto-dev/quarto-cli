@@ -602,7 +602,7 @@ function render_latex_fixups()
 
         -- obtained by a local call to uuid and removing dashes
         local uuid = "edbdf4a3bc424f5b8ac0e95c92ef5015"
-        return line:gsub("[\\]", uuid):gsub("([{}$%&%_])", "\\%1"):gsub("[%^]", "\\textasciicaret{}"):gsub("[~]", "\\textasciitilde{}"):gsub(uuid, "\\textbackslash{}")
+        return line:gsub("[\\]", uuid):gsub("([{}$%&%_])", "\\%1"):gsub("[%^]", "\\textasciicircum{}"):gsub("[~]", "\\textasciitilde{}"):gsub(uuid, "\\textbackslash{}")
       end
       if code.text:match("\027%[[0-9;]+m") and #code.classes == 0 then
         local lines = split(code.text, "\n")

@@ -11,6 +11,8 @@ import {
   initState,
   setInitializer,
 } from "../../src/core/lib/yaml-validation/state.ts";
+import { os } from "../../src/deno_ral/platform.ts";
+import { asArray } from "../../src/core/array.ts";
 
 import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
 import { parse } from "../../src/core/yaml.ts";
@@ -91,17 +93,48 @@ async function guessFormat(fileName: string): Promise<string[]> {
   return Array.from(formats);
 }
 
-function skipTestOnCi(metadata: Record<string, any>): boolean {
-  return runningInCI() && metadata["_quarto"]?.["tests-on-ci"] === false;
+function skipTest(metadata: Record<string, any>): string | undefined {
+  // deno-lint-ignore no-explicit-any
+  const quartoMeta = metadata["_quarto"] as any;
+  const runConfig = quartoMeta?.tests?.run;
+
+  // No run config means run everywhere
+  if (!runConfig) {
+    return undefined;
+  }
+
+  // Check CI
+  if (runningInCI() && runConfig.ci === false) {
+    return "tests.run.ci is false";
+  }
+
+  // Check OS blacklist (not_os)
+  const notOs = runConfig.not_os;
+  if (notOs !== undefined && asArray(notOs).includes(os)) {
+    return `tests.run.not_os includes ${os}`;
+  }
+
+  // Check OS whitelist (os) - if specified, must match
+  const onlyOs = runConfig.os;
+  if (onlyOs !== undefined && !asArray(onlyOs).includes(os)) {
+    return `tests.run.os does not include ${os}`;
+  }
+
+  return undefined;
 }
 
 //deno-lint-ignore no-explicit-any
 function hasTestSpecs(metadata: any, input: string): boolean {
-  const hasTestSpecs = metadata?.["_quarto"]?.["tests"] != undefined
-  if (!hasTestSpecs && metadata?.["_quarto"]?.["test"] != undefined) {
+  const tests = metadata?.["_quarto"]?.["tests"];
+  if (!tests && metadata?.["_quarto"]?.["test"] != undefined) {
     throw new Error(`Test is ${input} is using 'test' in metadata instead of 'tests'. This is probably a typo.`);
   }
-  return hasTestSpecs
+  // Check if tests has any format specs (keys other than 'run')
+  if (tests && typeof tests === "object") {
+    const formatKeys = Object.keys(tests).filter(key => key !== "run");
+    return formatKeys.length > 0;
+  }
+  return false;
 }
 
 interface QuartoInlineTestSpec {
@@ -154,6 +187,10 @@ function resolveTestSpecs(
   };
 
   for (const [format, testObj] of Object.entries(specs)) {
+    // Skip the 'run' key - it's not a format
+    if (format === "run") {
+      continue;
+    }
     let checkWarnings = true;
     const verifyFns: Verify[] = [];
     if (testObj && typeof testObj === "object") {
@@ -293,8 +330,9 @@ for (const { path: fileName } of files) {
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
 
-  if (skipTestOnCi(metadata) === true) {
-    console.log(`Skipping tests for ${input} as tests-on-ci is false in metadata`);
+  const skipReason = skipTest(metadata);
+  if (skipReason !== undefined) {
+    console.log(`Skipping tests for ${input}: ${skipReason}`);
     continue;
   }
 

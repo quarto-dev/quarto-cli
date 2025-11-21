@@ -8541,8 +8541,8 @@ try {
                 icon: {
                   string: {
                     description: {
-                      short: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
-                      long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                      short: "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)",
+                      long: "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
                     }
                   }
                 },
@@ -11676,7 +11676,67 @@ try {
                     object: {
                       properties: {
                         "trace-filters": "string",
-                        tests: "object"
+                        tests: {
+                          object: {
+                            properties: {
+                              run: {
+                                object: {
+                                  description: "Control when tests should run",
+                                  properties: {
+                                    ci: {
+                                      boolean: {
+                                        description: "Run tests on CI (true = run, false = skip)",
+                                        default: true
+                                      }
+                                    },
+                                    os: {
+                                      description: "Run tests ONLY on these platforms (whitelist)",
+                                      anyOf: [
+                                        {
+                                          enum: [
+                                            "linux",
+                                            "darwin",
+                                            "windows"
+                                          ]
+                                        },
+                                        {
+                                          arrayOf: {
+                                            enum: [
+                                              "linux",
+                                              "darwin",
+                                              "windows"
+                                            ]
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    not_os: {
+                                      description: "Don't run tests on these platforms (blacklist)",
+                                      anyOf: [
+                                        {
+                                          enum: [
+                                            "linux",
+                                            "darwin",
+                                            "windows"
+                                          ]
+                                        },
+                                        {
+                                          arrayOf: {
+                                            enum: [
+                                              "linux",
+                                              "darwin",
+                                              "windows"
+                                            ]
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
                       }
                     }
                   }
@@ -21343,8 +21403,8 @@ try {
           "Alias for href",
           "Link to file contained with the project or external URL",
           {
-            short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>)",
-            long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+            short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>)",
+            long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
           },
           "Text to display for item (defaults to the document title if not\nprovided)",
           "Alias for href",
@@ -24978,12 +25038,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197491,
+          _internalId: 197523,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197483,
+              _internalId: 197515,
               type: "enum",
               enum: [
                 "png",
@@ -24999,7 +25059,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197490,
+              _internalId: 197522,
               type: "anyOf",
               anyOf: [
                 {

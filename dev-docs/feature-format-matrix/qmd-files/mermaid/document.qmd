@@ -3,7 +3,9 @@ title: Mermaid
 format: 
   docusaurus-md: {}
 _quarto:
-  tests-on-ci: false 
+  tests:
+    run:
+      not_os: [linux] 
 ---
 
 ::: {.content-visible when-format="docusaurus-md"}

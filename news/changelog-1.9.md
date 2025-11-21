@@ -6,7 +6,10 @@ All changes included in 1.9:
 - ([#13441](https://github.com/quarto-dev/quarto-cli/pull/13441)): Catch `undefined` exceptions in Pandoc failure to avoid spurious error message.
 - ([#13046](https://github.com/quarto-dev/quarto-cli/issues/13046)): Use new url for multiplex socket.io server <https://multiplex.up.railway.app/> as default for `format: revealjs` and `revealjs.multiplex: true`.
 - ([#13506](https://github.com/quarto-dev/quarto-cli/issues/13506)): Fix navbar active state detection when sidebar has no logo configured. Prevents empty logo links from interfering with navigation highlighting.
+- ([#13616](https://github.com/quarto-dev/quarto-cli/issues/13616)): Fix fatal error when rendering manuscript projects with custom blocks like ConditionalBlock.
+- ([#13625](https://github.com/quarto-dev/quarto-cli/issues/13625)): Fix Windows file locking error (os error 32) when rendering with `--output-dir` flag. Context cleanup now happens before removing the temporary `.quarto` directory, ensuring file handles are properly closed.
 - ([#13633](https://github.com/quarto-dev/quarto-cli/issues/13633)): Fix detection and auto-installation of babel language packages from newer error format that doesn't explicitly mention `.ldf` filename.
+- ([#13694](https://github.com/quarto-dev/quarto-cli/issues/13694)): Fix `notebook-view.url` being ignored - external notebook links now properly use specified URLs instead of local preview files.
 
 ## Dependencies
 
@@ -39,8 +42,10 @@ All changes included in 1.9:
 ### `pdf`
 
 - ([#10291](https://github.com/quarto-dev/quarto-cli/issues/10291)): Fix detection of babel hyphenation warnings with straight-quote format instead of backtick-quote format.
+- ([#13661](https://github.com/quarto-dev/quarto-cli/issues/13661)): Fix LaTeX compilation errors when using `mermaid-format: svg` with PDF/LaTeX output. SVG diagrams are now written directly without HTML script tags. Note: `mermaid-format: png` is recommended for best compatibility. SVG format requires `rsvg-convert` (or Inkscape with `use-rsvg-convert: false`) in PATH for conversion to PDF, and may experience text clipping in diagrams with multi-line labels.
 - ([rstudio/tinytex-releases#49](https://github.com/rstudio/tinytex-releases/issues/49)): Fix detection of LuaTeX-ja missing file errors by matching both "File" and "file" in error messages.
 - ([#9091](https://github.com/quarto-dev/quarto-cli/issues/9091)): Fix vertical alignment div has no effect for pdf output
+- ([#13667](https://github.com/quarto-dev/quarto-cli/issues/13667)): Fix LaTeX compilation error with Python error output containing caret characters.
 
 ## Projects
 

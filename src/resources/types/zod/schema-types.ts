@@ -1246,7 +1246,19 @@ export const ZodBadParseSchema = z.object({}).passthrough().partial();
 export const ZodQuartoDevSchema = z.object({
   _quarto: z.object({
     "trace-filters": z.string(),
-    tests: z.object({}).passthrough(),
+    tests: z.object({
+      run: z.object({
+        ci: z.boolean(),
+        os: z.union([
+          z.enum(["linux", "darwin", "windows"] as const),
+          z.array(z.enum(["linux", "darwin", "windows"] as const)),
+        ]),
+        not_os: z.union([
+          z.enum(["linux", "darwin", "windows"] as const),
+          z.array(z.enum(["linux", "darwin", "windows"] as const)),
+        ]),
+      }).passthrough().partial(),
+    }).passthrough().partial(),
   }).passthrough().partial(),
 }).passthrough().partial();
 
