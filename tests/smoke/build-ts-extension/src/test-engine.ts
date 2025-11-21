@@ -12,6 +12,7 @@ import type {
   PostProcessOptions,
   PartitionedMarkdown,
 } from "@quarto/types";
+import { extname } from "path";
 
 let quarto: QuartoAPI;
 
@@ -73,6 +74,8 @@ const testEngineDiscovery: ExecutionEngineDiscovery = {
 
       execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
         // Simple passthrough - no actual execution
+        // Use extname to ensure it gets bundled
+        const _ext = extname(options.target.input);
         return {
           markdown: options.target.markdown.value,
           supporting: [],
