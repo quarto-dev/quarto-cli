@@ -727,6 +727,25 @@ export interface SpinnerOptions {
 	doneMessage?: string | boolean;
 }
 /**
+ * Options for log messages (info, warning, error)
+ */
+export interface LogMessageOptions {
+	/** Whether to add a trailing newline (default: true) */
+	newline?: boolean;
+	/** Apply bold formatting */
+	bold?: boolean;
+	/** Apply dim/gray formatting */
+	dim?: boolean;
+	/** Number of spaces to indent each line */
+	indent?: number;
+	/** Custom format function applied to each line */
+	format?: (line: string) => string;
+	/** Enable color formatting (default: true) */
+	colorize?: boolean;
+	/** Remove ANSI escape codes from output */
+	stripAnsiCode?: boolean;
+}
+/**
  * Render services available during check operations
  * Simplified version containing only what check operations need
  */
@@ -1357,6 +1376,36 @@ export interface QuartoAPI {
 		 * @param message - Message to display
 		 */
 		completeMessage: (message: string) => void;
+		/**
+		 * Log an informational message to stderr
+		 *
+		 * Writes an info-level message to stderr using Quarto's custom logging handler.
+		 * Supports formatting options like indentation, bold text, and color control.
+		 *
+		 * @param message - Message to log
+		 * @param options - Optional formatting options
+		 */
+		info: (message: string, options?: LogMessageOptions) => void;
+		/**
+		 * Log a warning message to stderr
+		 *
+		 * Writes a warning-level message to stderr with yellow color and "WARNING:" prefix.
+		 * Uses Quarto's custom logging handler.
+		 *
+		 * @param message - Warning message to log
+		 * @param options - Optional formatting options
+		 */
+		warning: (message: string, options?: LogMessageOptions) => void;
+		/**
+		 * Log an error message to stderr
+		 *
+		 * Writes an error-level message to stderr with bright red color and "ERROR:" prefix.
+		 * Uses Quarto's custom logging handler.
+		 *
+		 * @param message - Error message to log
+		 * @param options - Optional formatting options
+		 */
+		error: (message: string, options?: LogMessageOptions) => void;
 	};
 	/**
 	 * Cryptographic utilities
