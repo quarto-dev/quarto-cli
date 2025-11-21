@@ -6,7 +6,6 @@
 
 // Standard library imports
 import { join, resolve } from "path";
-import { error, info } from "log";
 import { existsSync } from "fs/exists";
 import { encodeBase64 } from "encoding/base64";
 
@@ -199,7 +198,7 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
         const nb = await executeJulia(juliaExecOptions);
 
         if (!nb) {
-          error("Execution of notebook returned undefined");
+          quarto.console.error("Execution of notebook returned undefined");
           return Promise.reject();
         }
 
@@ -334,7 +333,7 @@ async function startOrReuseJuliaServer(
       options,
       `Transport file ${transportFile} doesn't exist`,
     );
-    info("Starting julia control server process. This might take a while...");
+    quarto.console.info("Starting julia control server process. This might take a while...");
 
     let juliaProject = Deno.env.get("QUARTO_JULIA_PROJECT");
 
@@ -561,18 +560,18 @@ async function getJuliaServerConnection(
     transportOptions = await pollTransportFile(options);
   } catch (err) {
     if (!reused) {
-      info(
+      quarto.console.info(
         "No transport file was found after the timeout. This is the log from the server process:",
       );
-      info("#### BEGIN LOG ####");
+      quarto.console.info("#### BEGIN LOG ####");
       printJuliaServerLog();
-      info("#### END LOG ####");
+      quarto.console.info("#### END LOG ####");
     }
     throw err;
   }
 
   if (!reused) {
-    info("Julia server process started.");
+    quarto.console.info("Julia server process started.");
   }
 
   trace(
@@ -597,7 +596,7 @@ async function getJuliaServerConnection(
       safeRemoveSync(juliaTransportFile());
       return await getJuliaServerConnection(options);
     } else {
-      error(
+      quarto.console.error(
         "Connecting to server failed. A transport file was successfully created by the server process, so something in the server process might be broken.",
       );
       throw e;
@@ -739,7 +738,7 @@ async function executeJulia(
         update.source,
         Math.max(0, ncols - firstPartLength),
       );
-      info(`${firstPart}${sigLine}`);
+      quarto.console.info(`${firstPart}${sigLine}`);
     },
   );
 
@@ -949,14 +948,14 @@ function juliaRuntimeDir(): string {
   try {
     return quarto.path.runtime("julia");
   } catch (e) {
-    error("Could not create julia runtime directory.");
-    error(
+    quarto.console.error("Could not create julia runtime directory.");
+    quarto.console.error(
       "This is possibly a permission issue in the environment Quarto is running in.",
     );
-    error(
+    quarto.console.error(
       "Please consult the following documentation for more information:",
     );
-    error(
+    quarto.console.error(
       "https://github.com/quarto-dev/quarto-cli/issues/4594#issuecomment-1619177667",
     );
     throw e;
@@ -973,7 +972,7 @@ export function juliaServerLogFile() {
 
 function trace(options: ExecuteOptions, msg: string) {
   if (options.format?.execute[kExecuteDebug] === true) {
-    info("- " + msg, { bold: true });
+    quarto.console.info("- " + msg, { bold: true });
   }
 }
 
@@ -1017,7 +1016,7 @@ function populateJuliaEngineCommand(command: Command) {
 async function logStatus() {
   const transportFile = juliaTransportFile();
   if (!existsSync(transportFile)) {
-    info("Julia control server is not running.");
+    quarto.console.info("Julia control server is not running.");
     return;
   }
   const transportOptions = await readTransportFile(transportFile);
@@ -1040,26 +1039,26 @@ async function logStatus() {
 
     conn.close();
   } else {
-    info(`Found transport file but can't connect to control server.`);
+    quarto.console.info(`Found transport file but can't connect to control server.`);
   }
 }
 
 async function killJuliaServer() {
   const transportFile = juliaTransportFile();
   if (!existsSync(transportFile)) {
-    info("Julia control server is not running.");
+    quarto.console.info("Julia control server is not running.");
     return;
   }
   const transportOptions = await readTransportFile(transportFile);
   Deno.kill(transportOptions.pid, "SIGTERM");
-  info("Sent SIGTERM to server process");
+  quarto.console.info("Sent SIGTERM to server process");
 }
 
 function printJuliaServerLog() {
   if (existsSync(juliaServerLogFile())) {
     Deno.stdout.writeSync(Deno.readFileSync(juliaServerLogFile()));
   } else {
-    info("Server log file doesn't exist");
+    quarto.console.info("Server log file doesn't exist");
   }
   return;
 }
@@ -1107,7 +1106,7 @@ async function closeWorker(file: string, force: boolean) {
     type: force ? "forceclose" : "close",
     content: { file: absfile },
   });
-  info(`Worker ${force ? "force-" : ""}closed successfully.`);
+  quarto.console.info(`Worker ${force ? "force-" : ""}closed successfully.`);
 }
 
 async function stopServer() {
@@ -1115,5 +1114,5 @@ async function stopServer() {
     type: "stop",
     content: {},
   });
-  info(result.message);
+  quarto.console.info(result.message);
 }
