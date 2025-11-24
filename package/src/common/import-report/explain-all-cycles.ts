@@ -156,15 +156,19 @@ if (import.meta.main) {
 between all files reachable from some source file.
 
 Usage:
-  $ quarto run explain-all-cycles.ts <entry-point.ts> 
+  $ quarto run --dev explain-all-cycles.ts <entry-point.ts> [--simplify <prefixes...>] [--graph|--toon [filename]]
+
+Options:
+  --simplify <prefixes...>  Collapse paths with given prefixes (must be first if used)
+  --graph [filename]        Output .dot specification (default: graph.dot)
+  --toon [filename]         Output edges in TOON format (default: cycles.toon)
 
 Examples:
+  $ quarto run --dev package/src/common/import-report/explain-all-cycles.ts src/quarto.ts
+  $ quarto run --dev package/src/common/import-report/explain-all-cycles.ts src/quarto.ts --simplify core/ command/ --toon
+  $ quarto run --dev package/src/common/import-report/explain-all-cycles.ts src/quarto.ts --graph cycles.dot
 
-  From ./src:
-
-  $ quarto run quarto.ts
-
-If the second parameter is "--graph", then this program outputs the .dot specification to the file given by the third parameter, rather opening a full report.
+If no output option is given, opens an interactive preview.
 `,
     );
     Deno.exit(1);
@@ -187,7 +191,17 @@ If the second parameter is "--graph", then this program outputs the .dot specifi
 
   result = dropTypesFiles(result);
 
-  if (args[1] === "--graph") {
+  if (args[1] === "--toon") {
+    // Output in TOON format
+    const lines = [`edges[${result.length}]{from,to}:`];
+    for (const { from, to } of result) {
+      lines.push(`  ${from},${to}`);
+    }
+    Deno.writeTextFileSync(
+      args[2] ?? "cycles.toon",
+      lines.join("\n") + "\n",
+    );
+  } else if (args[1] === "--graph") {
     Deno.writeTextFileSync(
       args[2] ?? "graph.dot",
       generateGraph(result),
