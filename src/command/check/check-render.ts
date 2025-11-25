@@ -4,7 +4,6 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { render } from "../render/render-shared.ts";
 import type { RenderServiceWithLifetime } from "../render/types.ts";
 
 /**
@@ -39,6 +38,9 @@ export interface CheckRenderResult {
 export async function checkRender(
   options: CheckRenderOptions,
 ): Promise<CheckRenderResult> {
+  // Dynamic import to break cycle
+  const { render } = await import("../render/render-shared.ts");
+
   const { content, services } = options;
 
   // Create temporary file
