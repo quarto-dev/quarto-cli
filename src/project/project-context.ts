@@ -353,6 +353,7 @@ export async function projectContext(
             return projectFileMetadata(result, file, force);
           },
           isSingleFile: false,
+          previewServer: renderOptions?.previewServer,
           diskCache: await createProjectCache(join(dir, ".quarto")),
           temp,
           cleanup: once(() => {
@@ -447,6 +448,7 @@ export async function projectContext(
           },
           notebookContext,
           isSingleFile: false,
+          previewServer: renderOptions?.previewServer,
           diskCache: await createProjectCache(join(dir, ".quarto")),
           temp,
           cleanup: once(() => {
@@ -526,6 +528,7 @@ export async function projectContext(
               return projectFileMetadata(context, file, force);
             },
             isSingleFile: false,
+            previewServer: renderOptions?.previewServer,
             diskCache: await createProjectCache(join(temp.baseDir, ".quarto")),
             temp,
             cleanup: once(() => {
