@@ -78,7 +78,6 @@ import { figuresDir, inputFilesDir } from "../render.ts";
 import { ensureDirSync } from "../../deno_ral/fs.ts";
 import { mappedStringFromFile } from "../mapped-text.ts";
 import { error } from "../../deno_ral/log.ts";
-import { withCriClient } from "../cri/cri.ts";
 import { normalizePath } from "../path.ts";
 import {
   InvalidShortcodeError,
@@ -88,6 +87,12 @@ import { standaloneInclude } from "./include-standalone.ts";
 import { LocalizedError } from "../lib/located-error.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
+
+// Dynamic import helper for CRI client to break async propagation chain
+async function getCriClient() {
+  const { withCriClient } = await import("../cri/cri.ts");
+  return withCriClient;
+}
 
 let globalFigureCounter: Record<string, number> = {};
 
@@ -143,6 +148,7 @@ function makeHandlerContext(
       Deno.writeTextFileSync(fileName, content);
       const url = `file://${fileName}`;
 
+      const withCriClient = await getCriClient();
       return await withCriClient(async (client) => {
         await client.open(url);
         return await client.contents(selector);
@@ -177,6 +183,7 @@ function makeHandlerContext(
       Deno.writeTextFileSync(fileName, content);
       const url = `file://${fileName}`;
 
+      const withCriClient = await getCriClient();
       const { elements, images } = await withCriClient(async (client) => {
         await client.open(url);
         const elements = await client.contents(selector);
