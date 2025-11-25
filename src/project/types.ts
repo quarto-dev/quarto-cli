@@ -122,6 +122,7 @@ export interface ProjectContext extends Cloneable<ProjectContext> {
   environment: () => Promise<ProjectEnvironment>;
 
   isSingleFile: boolean;
+  previewServer?: boolean;
 
   diskCache: ProjectCache;
   temp: TempContext;
