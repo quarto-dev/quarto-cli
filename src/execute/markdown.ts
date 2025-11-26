@@ -18,7 +18,7 @@ import {
 } from "./types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
 import { EngineProjectContext } from "../project/types.ts";
-import type { QuartoAPI } from "../core/quarto-api.ts";
+import type { QuartoAPI } from "../core/api/index.ts";
 
 export const kMdExtensions = [".md", ".markdown"];
 

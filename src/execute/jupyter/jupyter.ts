@@ -13,7 +13,6 @@ import { error, info } from "../../deno_ral/log.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-
 import {
   kBaseFormat,
   kExecuteDaemon,
@@ -68,13 +67,18 @@ interface JupyterTargetData {
 }
 
 // Import quartoAPI directly since we're in core codebase
-import { quartoAPI as quarto } from "../../core/quarto-api.ts";
+import type { QuartoAPI } from "../../core/api/index.ts";
+
+let quarto: QuartoAPI;
 import { MappedString } from "../../core/mapped-text.ts";
-import { kJupyterPercentScriptExtensions } from "./percent.ts";
+import { kJupyterPercentScriptExtensions } from "../../core/jupyter/percent.ts";
 import type { CheckConfiguration } from "../../command/check/check.ts";
 
 export const jupyterEngineDiscovery: ExecutionEngineDiscovery = {
-  // we don't need init() because we use Quarto API directly
+  init: (quartoAPI) => {
+    quarto = quartoAPI;
+  },
+
   name: kJupyterEngine,
   defaultExt: ".qmd",
   defaultYaml: (kernel?: string) => [
@@ -186,7 +190,9 @@ title: "Title"
     if (caps) {
       checkCompleteMessage(kMessage + "OK");
       if (conf.jsonResult) {
-        jupyterJson["capabilities"] = await quarto.jupyter.capabilitiesJson(caps);
+        jupyterJson["capabilities"] = await quarto.jupyter.capabilitiesJson(
+          caps,
+        );
       } else {
         checkInfoMsg(await quarto.jupyter.capabilitiesMessage(caps, kIndent));
       }
@@ -212,7 +218,10 @@ title: "Title"
           checkInfoMsg("");
         }
       } else {
-        const installMessage = quarto.jupyter.installationMessage(caps, kIndent);
+        const installMessage = quarto.jupyter.installationMessage(
+          caps,
+          kIndent,
+        );
         checkInfoMsg(installMessage);
         checkInfoMsg("");
         jupyterJson["installed"] = false;
@@ -492,7 +501,9 @@ title: "Title"
         // that is coming from a non-qmd source
         const preserveCellMetadata =
           options.format.render[kNotebookPreserveCells] === true ||
-          (quarto.format.isHtmlDashboardOutput(options.format.identifier[kBaseFormat]) &&
+          (quarto.format.isHtmlDashboardOutput(
+            options.format.identifier[kBaseFormat],
+          ) &&
             !quarto.path.isQmdFile(options.target.source));
 
         // NOTE: for perforance reasons the 'nb' is mutated in place
@@ -511,7 +522,9 @@ title: "Title"
             toLatex: quarto.format.isLatexOutput(options.format.pandoc),
             toMarkdown: quarto.format.isMarkdownOutput(options.format),
             toIpynb: quarto.format.isIpynbOutput(options.format.pandoc),
-            toPresentation: quarto.format.isPresentationOutput(options.format.pandoc),
+            toPresentation: quarto.format.isPresentationOutput(
+              options.format.pandoc,
+            ),
             figFormat: options.format.execute[kFigFormat],
             figDpi: options.format.execute[kFigDpi],
             figPos: options.format.render[kFigPos],
@@ -747,7 +760,9 @@ async function ensureYamlKernelspec(
   const markdown = target.markdown.value;
   const yamlJupyter = quarto.markdownRegex.extractYaml(markdown)?.jupyter;
   if (yamlJupyter && typeof yamlJupyter !== "boolean") {
-    const [yamlKernelspec, _] = await quarto.jupyter.kernelspecFromMarkdown(markdown);
+    const [yamlKernelspec, _] = await quarto.jupyter.kernelspecFromMarkdown(
+      markdown,
+    );
     if (yamlKernelspec.name !== kernelspec?.name) {
       const nb = quarto.jupyter.fromJSON(Deno.readTextFileSync(target.source));
       nb.metadata.kernelspec = yamlKernelspec;
@@ -781,7 +796,11 @@ async function createNotebookforTarget(
   target: ExecutionTarget,
   project?: EngineProjectContext,
 ) {
-  const nb = await quarto.jupyter.quartoMdToJupyter(target.markdown.value, true, project);
+  const nb = await quarto.jupyter.quartoMdToJupyter(
+    target.markdown.value,
+    true,
+    project,
+  );
   Deno.writeTextFileSync(target.input, JSON.stringify(nb, null, 2));
   return nb;
 }
@@ -841,36 +860,4 @@ function cleanupNotebook(
 interface JupyterTargetData {
   transient: boolean;
   kernelspec: JupyterKernelspec;
-}
-
-export function executeResultIncludes(
-  tempDir: string,
-  widgetDependencies?: JupyterWidgetDependencies,
-): PandocIncludes | undefined {
-  if (widgetDependencies) {
-    const includes: PandocIncludes = {};
-    const includeFiles = quarto.jupyter.widgetDependencyIncludes(
-      [widgetDependencies],
-      tempDir,
-    );
-    if (includeFiles.inHeader) {
-      includes[kIncludeInHeader] = [includeFiles.inHeader];
-    }
-    if (includeFiles.afterBody) {
-      includes[kIncludeAfterBody] = [includeFiles.afterBody];
-    }
-    return includes;
-  } else {
-    return undefined;
-  }
-}
-
-export function executeResultEngineDependencies(
-  widgetDependencies?: JupyterWidgetDependencies,
-): Array<unknown> | undefined {
-  if (widgetDependencies) {
-    return [widgetDependencies];
-  } else {
-    return undefined;
-  }
 }

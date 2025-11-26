@@ -16,7 +16,7 @@ import { MappedString } from "../core/lib/text-types.ts";
 import { HandlerContextResults } from "../core/handlers/types.ts";
 import { EngineProjectContext, ProjectContext } from "../project/types.ts";
 import { Command } from "cliffy/command/mod.ts";
-import type { QuartoAPI } from "../core/quarto-api.ts";
+import type { QuartoAPI } from "../core/api/index.ts";
 import type { CheckConfiguration } from "../command/check/check.ts";
 
 export type { EngineProjectContext };
@@ -127,7 +127,6 @@ export interface ExecutionEngineInstance {
     file: RenderResultFile,
   ) => Promise<void>;
 }
-
 
 // execution target (filename and context 'cookie')
 export interface ExecutionTarget {

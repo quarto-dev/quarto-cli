@@ -13,7 +13,7 @@ import {
   JupyterCapabilities,
   JupyterKernelspec,
 } from "../../core/jupyter/types.ts";
-import { quartoAPI as quarto } from "../../core/quarto-api.ts";
+import { getQuartoAPI } from "../../core/api/index.ts";
 import type { ProcessResult } from "../../core/process-types.ts";
 
 import {
@@ -175,6 +175,7 @@ async function execJupyter(
   options: Record<string, unknown>,
   kernelspec: JupyterKernelspec,
 ): Promise<ProcessResult> {
+  const quarto = getQuartoAPI();
   try {
     const cmd = await quarto.jupyter.pythonExec(kernelspec);
     const result = await quarto.system.execProcess(
@@ -219,6 +220,7 @@ export async function printExecDiagnostics(
   kernelspec: JupyterKernelspec,
   stderr?: string,
 ) {
+  const quarto = getQuartoAPI();
   const caps = await quarto.jupyter.capabilities(kernelspec);
   if (caps && !caps.jupyter_core) {
     info("Python 3 installation:");
@@ -247,6 +249,7 @@ function pythonVersionMessage() {
 }
 
 function maybePrintUnactivatedEnvMessage(caps: JupyterCapabilities) {
+  const quarto = getQuartoAPI();
   const envMessage = quarto.jupyter.unactivatedEnvMessage(caps);
   if (envMessage) {
     info(envMessage);
@@ -298,6 +301,7 @@ interface KernelTransport {
 }
 
 function kernelTransportFile(target: string) {
+  const quarto = getQuartoAPI();
   let transportsDir: string;
 
   try {
@@ -321,6 +325,7 @@ function kernelTransportFile(target: string) {
 }
 
 function kernelLogFile() {
+  const quarto = getQuartoAPI();
   const logsDir = quarto.path.dataDir("logs");
   const kernelLog = join(logsDir, "jupyter-kernel.log");
   if (!existsSync(kernelLog)) {

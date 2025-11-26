@@ -7,7 +7,7 @@
 import { initYamlIntelligenceResourcesFromFilesystem } from "../core/schema/utils.ts";
 import { projectContext } from "../project/project-context.ts";
 import { notebookContext } from "../render/notebook/notebook-context.ts";
-import { reorderEngines } from "../execute/engine.ts";
+import { resolveEngines } from "../execute/engine.ts";
 import { ProjectContext } from "../project/types.ts";
 
 /**
@@ -68,5 +68,5 @@ export async function initializeProjectContextAndEngines(
     await zeroFileProjectContext(dir);
 
   // Register external engines from project config
-  await reorderEngines(context);
+  await resolveEngines(context);
 }

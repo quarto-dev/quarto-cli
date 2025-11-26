@@ -11,7 +11,9 @@ import { basename, extname } from "../deno_ral/path.ts";
 import * as colors from "fmt/colors";
 
 // Import quartoAPI directly since we're in core codebase
-import { quartoAPI as quarto } from "../core/quarto-api.ts";
+import type { QuartoAPI } from "../core/api/index.ts";
+
+let quarto: QuartoAPI;
 
 import { rBinaryPath } from "../core/resources.ts";
 
@@ -28,15 +30,15 @@ import {
 import {
   DependenciesOptions,
   DependenciesResult,
+  EngineProjectContext,
   ExecuteOptions,
   ExecuteResult,
+  ExecutionEngineDiscovery,
+  ExecutionEngineInstance,
   ExecutionTarget,
   kKnitrEngine,
   PostProcessOptions,
   RunOptions,
-  ExecutionEngineDiscovery,
-  ExecutionEngineInstance,
-  EngineProjectContext,
 } from "./types.ts";
 import type { CheckConfiguration } from "../command/check/check.ts";
 import {
@@ -48,6 +50,10 @@ import {
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
 export const knitrEngineDiscovery: ExecutionEngineDiscovery = {
+  init: (quartoAPI) => {
+    quarto = quartoAPI;
+  },
+
   // Discovery methods
   name: kKnitrEngine,
 

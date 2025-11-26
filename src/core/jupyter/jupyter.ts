@@ -61,7 +61,10 @@ import {
   isCaptionableData,
   isDisplayData,
 } from "./display-data.ts";
-import { extractJupyterWidgetDependencies } from "./widgets.ts";
+import {
+  extractJupyterWidgetDependencies,
+  includesForJupyterWidgetDependencies,
+} from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
 import { pandocAsciify, pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/types.ts";
@@ -112,6 +115,8 @@ import {
   kFigCapLoc,
   kHtmlTableProcessing,
   kInclude,
+  kIncludeAfterBody,
+  kIncludeInHeader,
   kLayout,
   kLayoutAlign,
   kLayoutNcol,
@@ -142,19 +147,21 @@ import {
   JupyterOutputStream,
   JupyterToMarkdownOptions,
   JupyterToMarkdownResult,
+  JupyterWidgetDependencies,
 } from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines, trimEmptyLines } from "../lib/text.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
-import { languagesInMarkdown } from "../../execute/engine-shared.ts";
+import { languagesInMarkdown } from "../pandoc/pandoc-partition.ts";
 import {
   normalizePath,
   pathWithForwardSlashes,
   removeIfEmptyDir,
 } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
-import { kProjectType, EngineProjectContext } from "../../project/types.ts";
+import { EngineProjectContext, kProjectType } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
+import type { PandocIncludes } from "../../execute/types.ts";
 import { encodeBase64 } from "encoding/base64";
 import {
   isHtmlOutput,
@@ -2139,4 +2146,38 @@ function outputTypeCssClass(output_type: string) {
     output_type = "display";
   }
   return `cell-output-${output_type}`;
+}
+
+// Engine helper functions for processing execute results
+// These are used by multiple engines (Jupyter, etc.) to handle widget dependencies
+export function executeResultIncludes(
+  tempDir: string,
+  widgetDependencies?: JupyterWidgetDependencies,
+): PandocIncludes | undefined {
+  if (widgetDependencies) {
+    const includes: PandocIncludes = {};
+    const includeFiles = includesForJupyterWidgetDependencies(
+      [widgetDependencies],
+      tempDir,
+    );
+    if (includeFiles.inHeader) {
+      includes[kIncludeInHeader] = [includeFiles.inHeader];
+    }
+    if (includeFiles.afterBody) {
+      includes[kIncludeAfterBody] = [includeFiles.afterBody];
+    }
+    return includes;
+  } else {
+    return undefined;
+  }
+}
+
+export function executeResultEngineDependencies(
+  widgetDependencies?: JupyterWidgetDependencies,
+): Array<unknown> | undefined {
+  if (widgetDependencies) {
+    return [widgetDependencies];
+  } else {
+    return undefined;
+  }
 }
