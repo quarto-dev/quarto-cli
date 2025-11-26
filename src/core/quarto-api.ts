@@ -54,7 +54,7 @@ import { quartoDataDir } from "./appdirs.ts";
 import {
   executeResultEngineDependencies,
   executeResultIncludes,
-} from "../execute/jupyter/jupyter.ts";
+} from "./jupyter/jupyter.ts";
 import { completeMessage, withSpinner } from "./console.ts";
 import { checkRender } from "../command/check/check-render.ts";
 import type { RenderServiceWithLifetime } from "../command/render/types.ts";
