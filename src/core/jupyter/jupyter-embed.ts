@@ -68,6 +68,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { logProgress } from "../log.ts";
 import * as ld from "../../../src/core/lodash.ts";
 import { texSafeFilename } from "../tex.ts";
+import { ExecuteOptions } from "../../execute/types.ts";
 
 export interface JupyterNotebookAddress {
   path: string;
@@ -415,7 +416,7 @@ export async function notebookMarkdown(
 
   // Wrap any injected cells with a div that includes a back link to
   // the notebook that originated the cells
-  const notebookMarkdown = (
+  const notebookMarkdownInner = (
     nbAbsPath: string,
     cells: JupyterCellOutput[],
     title?: string,
@@ -454,7 +455,7 @@ export async function notebookMarkdown(
         return cell;
       }
     });
-    return notebookMarkdown(nbAbsPath, theCells, notebookInfo.title);
+    return notebookMarkdownInner(nbAbsPath, theCells, notebookInfo.title);
   } else if (nbAddress.indexes) {
     // Filter and sort based upon cell indexes
     const theCells = nbAddress.indexes.map((idx) => {
@@ -472,11 +473,11 @@ export async function notebookMarkdown(
         return cell;
       }
     });
-    return notebookMarkdown(nbAbsPath, theCells, notebookInfo.title);
+    return notebookMarkdownInner(nbAbsPath, theCells, notebookInfo.title);
   } else {
     // Return all the cell outputs as there is no addtional
     // specification of cells
-    const notebookMd = notebookMarkdown(
+    const notebookMd = notebookMarkdownInner(
       nbAbsPath,
       notebookInfo.outputs,
       notebookInfo.title,
@@ -595,7 +596,8 @@ async function getCachedNotebookInfo(
 
     // Get the markdown for the notebook
     const format = context.format;
-    const executeOptions = {
+    const executeOptions: ExecuteOptions = {
+      env: {},
       target: context.target,
       resourceDir: resourcePath(),
       tempDir: context.options.services.temp.createDir(),

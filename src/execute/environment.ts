@@ -13,9 +13,9 @@ export const setExecuteEnvironment: (options: ExecuteOptions) => void = (
   options,
 ) => {
   if (options.projectDir) {
-    Deno.env.set("QUARTO_PROJECT_ROOT", options.projectDir);
-    Deno.env.set("QUARTO_DOCUMENT_PATH", dirname(options.target.source));
-    Deno.env.set("QUARTO_DOCUMENT_FILE", basename(options.target.source));
+    options.env["QUARTO_PROJECT_ROOT"] = options.projectDir;
+    options.env["QUARTO_DOCUMENT_PATH"] = dirname(options.target.source);
+    options.env["QUARTO_DOCUMENT_FILE"] = basename(options.target.source);
   } else {
     // FIXME: This should not be passthrough anymore as singleFileProjectContext always set `options.projectDir`
     // https://github.com/quarto-dev/quarto-cli/pull/8771
@@ -24,9 +24,9 @@ export const setExecuteEnvironment: (options: ExecuteOptions) => void = (
         "No project directory or current working directory",
       );
     }
-    Deno.env.set("QUARTO_PROJECT_ROOT", options.cwd);
-    Deno.env.set("QUARTO_DOCUMENT_PATH", options.cwd);
-    Deno.env.set("QUARTO_DOCUMENT_FILE", basename(options.target.source));
+    options.env["QUARTO_PROJECT_ROOT"] = options.cwd;
+    options.env["QUARTO_DOCUMENT_PATH"] = options.cwd;
+    options.env["QUARTO_DOCUMENT_FILE"] = basename(options.target.source);
   }
 
   const executeInfo: Record<string, unknown> = {
