@@ -43,11 +43,10 @@ import type { PandocIncludes, PostProcessOptions } from "../execute/types.ts";
 import {
   isJupyterPercentScript,
   markdownFromJupyterPercentScript,
-} from "../execute/jupyter/percent.ts";
+} from "./jupyter/percent.ts";
+import { postProcessRestorePreservedHtml } from "./jupyter/preserve.ts";
 import { runExternalPreviewServer } from "../preview/preview-server.ts";
 import type { PreviewServer } from "../preview/preview-server.ts";
-import { isQmdFile } from "../execute/qmd.ts";
-import { postProcessRestorePreservedHtml } from "../execute/engine-shared.ts";
 import { onCleanup } from "./cleanup.ts";
 import { inputFilesDir, isServerShiny, isServerShinyPython } from "./render.ts";
 import { quartoDataDir } from "./appdirs.ts";
@@ -224,8 +223,10 @@ export interface QuartoAPI {
 
 // Create the implementation of the quartoAPI
 import { readYamlFromMarkdown } from "./yaml.ts";
-import { partitionMarkdown } from "./pandoc/pandoc-partition.ts";
-import { languagesInMarkdown } from "../execute/engine-shared.ts";
+import {
+  languagesInMarkdown,
+  partitionMarkdown,
+} from "./pandoc/pandoc-partition.ts";
 import {
   asMappedString,
   mappedIndexToLineCol,
@@ -241,7 +242,12 @@ import {
   isMarkdownOutput,
   isPresentationOutput,
 } from "../config/format.ts";
-import { dirAndStem, normalizePath, pathWithForwardSlashes } from "./path.ts";
+import {
+  dirAndStem,
+  isQmdFile,
+  normalizePath,
+  pathWithForwardSlashes,
+} from "./path.ts";
 import { quartoRuntimeDir } from "./appdirs.ts";
 import { resourcePath } from "./resources.ts";
 import { isInteractiveSession } from "./platform.ts";

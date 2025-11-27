@@ -69,7 +69,7 @@ interface JupyterTargetData {
 // Import quartoAPI directly since we're in core codebase
 import { quartoAPI as quarto } from "../../core/quarto-api.ts";
 import { MappedString } from "../../core/mapped-text.ts";
-import { kJupyterPercentScriptExtensions } from "./percent.ts";
+import { kJupyterPercentScriptExtensions } from "../../core/jupyter/percent.ts";
 import type { CheckConfiguration } from "../../command/check/check.ts";
 
 export const jupyterEngineDiscovery: ExecutionEngineDiscovery = {

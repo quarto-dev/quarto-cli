@@ -152,7 +152,7 @@ import {
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines, trimEmptyLines } from "../lib/text.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
-import { languagesInMarkdown } from "../../execute/engine-shared.ts";
+import { languagesInMarkdown } from "../pandoc/pandoc-partition.ts";
 import {
   normalizePath,
   pathWithForwardSlashes,

@@ -92,6 +92,12 @@ export function dirAndStem(file: string): [string, string] {
   ];
 }
 
+export function isQmdFile(file: string) {
+  const ext = extname(file).toLowerCase();
+  const kQmdExtensions = [".qmd"];
+  return kQmdExtensions.includes(ext);
+}
+
 export function expandPath(path: string) {
   if (path === "~") {
     return getenv("HOME", "~");
