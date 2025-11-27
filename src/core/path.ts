@@ -85,7 +85,7 @@ export function isModifiedAfter(file: string, otherFile: string) {
   }
 }
 
-export function dirAndStem(file: string) {
+export function dirAndStem(file: string): [string, string] {
   return [
     dirname(file),
     basename(file, extname(file)),

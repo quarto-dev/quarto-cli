@@ -8725,6 +8725,25 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "external-engine",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                path: {
+                  path: {
+                    description: "Path to the TypeScript module for the execution engine"
+                  }
+                }
+              },
+              required: [
+                "path"
+              ]
+            },
+            description: "An execution engine not pre-loaded in Quarto"
+          }
+        },
+        {
           id: "document-comments-configuration",
           anyOf: [
             {
@@ -20200,6 +20219,16 @@ var require_yaml_intelligence_resources = __commonJS({
                 },
                 formats: {
                   schema: "object"
+                },
+                engines: {
+                  arrayOf: {
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "external-engine"
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -20638,7 +20667,14 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "engines",
           schema: {
-            arrayOf: "string"
+            arrayOf: {
+              anyOf: [
+                "string",
+                {
+                  ref: "external-engine"
+                }
+              ]
+            }
           },
           description: "List execution engines you want to give priority when determining which engine should render a notebook. If two engines have support for a notebook, the one listed earlier will be chosen. Quarto's default order is 'knitr', 'jupyter', 'markdown', 'julia'."
         }
@@ -22560,6 +22596,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify a default profile and profile groups",
         "Default profile to apply if QUARTO_PROFILE is not defined.",
         "Define a profile group for which at least one profile is always\nactive.",
+        "Control when tests should run",
+        "Run tests on CI (true = run, false = skip)",
+        "Run tests ONLY on these platforms (whitelist)",
+        "Don\u2019t run tests on these platforms (blacklist)",
         "The path to the locally referenced notebook.",
         "The title of the notebook when viewed.",
         "The url to use when viewing this notebook.",
@@ -24808,7 +24848,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+        "An execution engine not pre-loaded in Quarto",
+        "Path to the TypeScript module for the execution engine"
       ],
       "schema/external-schemas.yml": [
         {
@@ -25037,12 +25079,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197523,
+        _internalId: 197564,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197515,
+            _internalId: 197556,
             type: "enum",
             enum: [
               "png",
@@ -25058,7 +25100,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197522,
+            _internalId: 197563,
             type: "anyOf",
             anyOf: [
               {

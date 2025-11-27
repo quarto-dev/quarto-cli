@@ -276,23 +276,15 @@ jobs:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $haserror=$false
           foreach ($file in ('${{ inputs.buckets }}' | ConvertFrom-Json)) {
             Write-Host ">>> ./run-tests.ps1 ${file}"
             ./run-tests.ps1 $file
-            $status=$LASTEXITCODE
-            if ($status -eq 1) {
-              Write-Host ">>> Error found in test file"
-              $haserror=$true
-            } else {
-              Write-Host ">>> No error in this test file"
+            if ($LASTEXITCODE -ne 0) {
+              Exit 1
             }
+            Write-Host ">>> No error in this test file"
           }
-          if ($haserror) {
-            Exit 1
-          } else {
-            Write-Host ">>> All tests have passed"
-          }
+          Write-Host ">>> All tests have passed"
         working-directory: tests
         shell: pwsh
 

@@ -7,6 +7,7 @@
 import { dirname, isAbsolute, join, relative } from "../deno_ral/path.ts";
 
 import * as ld from "../core/lodash.ts";
+import { inputTargetIndexCacheMetrics } from "./target-index-cache-metrics.ts";
 
 import {
   InputTarget,
@@ -213,11 +214,6 @@ export function inputTargetIsEmpty(index: InputTargetIndex) {
 }
 
 const inputTargetIndexCache = new Map<string, InputTargetIndex>();
-export const inputTargetIndexCacheMetrics = {
-  hits: 0,
-  misses: 0,
-  invalidations: 0,
-};
 
 function readInputTargetIndexIfStillCurrent(projectDir: string, input: string) {
   const inputFile = join(projectDir, input);

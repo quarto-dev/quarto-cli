@@ -1,0 +1,4 @@
+[deps]
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+RDatasets = "ce6b1742-4840-55fa-b093-852dadbb1d8b"
+StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
