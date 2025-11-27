@@ -29,6 +29,7 @@ import {
   kFigPos,
   kIpynbProduceSourceNotebook,
   kKeepHidden,
+  kKeepIpynb,
 } from "../config/constants.ts";
 import {
   isHtmlCompatible,
@@ -39,7 +40,11 @@ import {
 } from "../config/format.ts";
 import { resourcePath } from "../core/resources.ts";
 import { quartoRuntimeDir } from "../core/appdirs.ts";
-import { normalizePath, pathWithForwardSlashes } from "../core/path.ts";
+import {
+  dirAndStem,
+  normalizePath,
+  pathWithForwardSlashes,
+} from "../core/path.ts";
 import { isInteractiveSession } from "../core/platform.ts";
 import { runningInCI } from "../core/ci-info.ts";
 import { sleep } from "../core/async.ts";
@@ -210,6 +215,13 @@ export const juliaEngine: ExecutionEngine = {
           options.format.render[kIpynbProduceSourceNotebook] === true,
       },
     );
+
+    // Write notebook to file if keep-ipynb is set
+    if (options.format.execute[kKeepIpynb]) {
+      const [fileDir, fileStem] = dirAndStem(options.target.source);
+      const ipynbPath = join(fileDir, fileStem + ".ipynb");
+      Deno.writeTextFileSync(ipynbPath, JSON.stringify(nb, null, 2));
+    }
 
     // return dependencies as either includes or raw dependencies
     let includes: PandocIncludes | undefined;
