@@ -1,5 +1,5 @@
 import { Command } from "cliffy/command/mod.ts";
-import { engineCommand } from "../../execute/engine.ts";
+import { engineCommand } from "./engine-cmd.ts";
 import { buildTsExtensionCommand } from "./build-ts-extension/cmd.ts";
 
 export const callCommand = new Command()
