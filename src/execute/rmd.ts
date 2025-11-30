@@ -11,7 +11,7 @@ import { basename, extname } from "../deno_ral/path.ts";
 import * as colors from "fmt/colors";
 
 // Import quartoAPI directly since we're in core codebase
-import { quartoAPI as quarto } from "../core/quarto-api.ts";
+import { quartoAPI as quarto } from "../core/api/index.ts";
 
 import { rBinaryPath } from "../core/resources.ts";
 
@@ -28,15 +28,15 @@ import {
 import {
   DependenciesOptions,
   DependenciesResult,
+  EngineProjectContext,
   ExecuteOptions,
   ExecuteResult,
+  ExecutionEngineDiscovery,
+  ExecutionEngineInstance,
   ExecutionTarget,
   kKnitrEngine,
   PostProcessOptions,
   RunOptions,
-  ExecutionEngineDiscovery,
-  ExecutionEngineInstance,
-  EngineProjectContext,
 } from "./types.ts";
 import type { CheckConfiguration } from "../command/check/check.ts";
 import {

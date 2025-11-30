@@ -37,7 +37,7 @@ import { gitignoreEntries } from "../project/project-gitignore.ts";
 import { ensureFileInformationCache } from "../project/project-shared.ts";
 import { engineProjectContext } from "../project/engine-project-context.ts";
 import { Command } from "cliffy/command/mod.ts";
-import { quartoAPI } from "../core/quarto-api.ts";
+import { quartoAPI } from "../core/api/index.ts";
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../core/quarto.ts";
 import { initializeProjectContextAndEngines } from "../command/command-utils.ts";

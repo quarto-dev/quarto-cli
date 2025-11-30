@@ -13,7 +13,7 @@ import {
   JupyterCapabilities,
   JupyterKernelspec,
 } from "../../core/jupyter/types.ts";
-import { quartoAPI as quarto } from "../../core/quarto-api.ts";
+import { quartoAPI as quarto } from "../../core/api/index.ts";
 import type { ProcessResult } from "../../core/process-types.ts";
 
 import {

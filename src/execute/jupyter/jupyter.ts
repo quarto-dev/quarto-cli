@@ -67,7 +67,7 @@ interface JupyterTargetData {
 }
 
 // Import quartoAPI directly since we're in core codebase
-import { quartoAPI as quarto } from "../../core/quarto-api.ts";
+import { quartoAPI as quarto } from "../../core/api/index.ts";
 import { MappedString } from "../../core/mapped-text.ts";
 import { kJupyterPercentScriptExtensions } from "../../core/jupyter/percent.ts";
 import type { CheckConfiguration } from "../../command/check/check.ts";
