@@ -8,7 +8,7 @@ import { initYamlIntelligenceResourcesFromFilesystem } from "../core/schema/util
 import { projectContext } from "../project/project-context.ts";
 import { notebookContext } from "../render/notebook/notebook-context.ts";
 import { resolveEngines } from "../execute/engine.ts";
-import { ProjectContext } from "../project/types.ts";
+import type { ProjectContext } from "../project/types.ts";
 
 /**
  * Create a minimal "zero-file" project context for loading bundled engine extensions
