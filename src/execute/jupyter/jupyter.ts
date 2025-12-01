@@ -67,13 +67,18 @@ interface JupyterTargetData {
 }
 
 // Import quartoAPI directly since we're in core codebase
-import { quartoAPI as quarto } from "../../core/api/index.ts";
+import type { QuartoAPI } from "../../core/api/index.ts";
+
+let quarto: QuartoAPI;
 import { MappedString } from "../../core/mapped-text.ts";
 import { kJupyterPercentScriptExtensions } from "../../core/jupyter/percent.ts";
 import type { CheckConfiguration } from "../../command/check/check.ts";
 
 export const jupyterEngineDiscovery: ExecutionEngineDiscovery = {
-  // we don't need init() because we use Quarto API directly
+  init: (quartoAPI) => {
+    quarto = quartoAPI;
+  },
+
   name: kJupyterEngine,
   defaultExt: ".qmd",
   defaultYaml: (kernel?: string) => [

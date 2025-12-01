@@ -36,11 +36,20 @@ import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
 import { gitignoreEntries } from "../project/project-gitignore.ts";
 import { ensureFileInformationCache } from "../project/project-shared.ts";
 import { engineProjectContext } from "../project/engine-project-context.ts";
-import { quartoAPI } from "../core/api/index.ts";
+import { getQuartoAPI } from "../core/api/index.ts";
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../core/quarto.ts";
 
 const kEngines: Map<string, ExecutionEngineDiscovery> = new Map();
+
+// Standard engines to register on first resolveEngines() call
+const kStandardEngines: ExecutionEngineDiscovery[] = [
+  knitrEngineDiscovery,
+  jupyterEngineDiscovery,
+  markdownEngineDiscovery,
+];
+
+let enginesRegistered = false;
 
 /**
  * Check if an engine's Quarto version requirement is satisfied
@@ -76,15 +85,6 @@ export function executionEngine(name: string) {
   return kEngines.get(name);
 }
 
-// Register the standard engines with discovery interface
-registerExecutionEngine(knitrEngineDiscovery);
-
-// Register jupyter engine with discovery interface
-registerExecutionEngine(jupyterEngineDiscovery);
-
-// Register markdown engine with discovery interface
-registerExecutionEngine(markdownEngineDiscovery);
-
 export function registerExecutionEngine(engine: ExecutionEngineDiscovery) {
   if (kEngines.has(engine.name)) {
     throw new Error(`Execution engine ${engine.name} already registered`);
@@ -95,7 +95,7 @@ export function registerExecutionEngine(engine: ExecutionEngineDiscovery) {
 
   kEngines.set(engine.name, engine);
   if (engine.init) {
-    engine.init(quartoAPI);
+    engine.init(getQuartoAPI());
   }
 }
 
@@ -192,7 +192,15 @@ export function markdownExecutionEngine(
   return markdownEngineDiscovery.launch(engineProjectContext(project));
 }
 
-export async function reorderEngines(project: ProjectContext) {
+export async function resolveEngines(project: ProjectContext) {
+  // Register standard engines on first call
+  if (!enginesRegistered) {
+    enginesRegistered = true;
+    for (const engine of kStandardEngines) {
+      registerExecutionEngine(engine);
+    }
+  }
+
   const userSpecifiedOrder: string[] = [];
   const projectEngines = project.config?.engines as
     | (string | ExternalEngine)[]
@@ -231,7 +239,7 @@ export async function reorderEngines(project: ProjectContext) {
         userSpecifiedOrder.push(extEngine.name);
         kEngines.set(extEngine.name, extEngine);
         if (extEngine.init) {
-          extEngine.init(quartoAPI);
+          extEngine.init(getQuartoAPI());
         }
       } catch (err: any) {
         // Throw error for engine import failures as this is a serious configuration issue
@@ -278,6 +286,9 @@ export async function fileExecutionEngine(
   flags: RenderFlags | undefined,
   project: ProjectContext,
 ): Promise<ExecutionEngineInstance | undefined> {
+  // Resolve engines first (registers standard engines on first call)
+  const engines = await resolveEngines(project);
+
   // get the extension and validate that it can be handled by at least one of our engines
   const ext = extname(file).toLowerCase();
   if (
@@ -288,10 +299,8 @@ export async function fileExecutionEngine(
     return undefined;
   }
 
-  const reorderedEngines = await reorderEngines(project);
-
   // try to find an engine that claims this extension outright
-  for (const [_, engine] of reorderedEngines) {
+  for (const [_, engine] of engines) {
     if (engine.claimsFile(file, ext)) {
       return engine.launch(engineProjectContext(project));
     }
@@ -308,7 +317,7 @@ export async function fileExecutionEngine(
       return markdownExecutionEngine(
         project,
         markdown ? markdown.value : Deno.readTextFileSync(file),
-        reorderedEngines,
+        engines,
         flags,
       );
     } catch (error) {

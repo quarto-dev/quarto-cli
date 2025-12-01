@@ -13247,6 +13247,36 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         }
       ],
+      "schema/document-a11y.yml": [
+        {
+          name: "axe",
+          tags: {
+            formats: [
+              "$html-files"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                object: {
+                  properties: {
+                    output: {
+                      enum: [
+                        "json",
+                        "console",
+                        "document"
+                      ],
+                      description: "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          description: "When defined, run axe-core accessibility tests on the document."
+        }
+      ],
       "schema/document-about.yml": [
         {
           name: "about",
@@ -20068,6 +20098,20 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Print a list of tables in the document."
         }
       ],
+      "schema/document-typst.yml": [
+        {
+          name: "logo",
+          schema: {
+            ref: "logo-light-dark-specifier-path-optional"
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: "The logo image."
+        }
+      ],
       "schema/document-website.yml": [
         {
           name: "search",
@@ -21475,6 +21519,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name.",
         "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
+        "An execution engine not pre-loaded in Quarto",
+        "Path to the TypeScript module for the execution engine",
         "The Github repo that will be used to store comments.",
         "The label that will be assigned to issues created by Utterances.",
         {
@@ -22966,6 +23012,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Attribute(s) for message output",
         "Class name(s) for error output",
         "Attribute(s) for error output",
+        "When defined, run axe-core accessibility tests on the document.",
+        "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
         {
           short: "Specifies that the page is an \u2018about\u2019 page and which template to use\nwhen laying out the page.",
           long: "Specifies that the page is an \u2018about\u2019 page and which template to use\nwhen laying out the page.\nThe allowed values are either:"
@@ -24120,6 +24168,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
         "Print a list of figures in the document.",
         "Print a list of tables in the document.",
+        "The logo image.",
         "Setting this to false prevents this document from being included in\nsearches.",
         "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page. Other possible values are <code>none</code> or\none or more of <code>edit</code>, <code>source</code>, and\n<code>issue</code>, <em>e.g.</em>\n<code>[edit, source, issue]</code>.",
         {
@@ -24494,9 +24543,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Manuscript configuration",
         "internal-schema-hack",
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        "When defined, run axe-core accessibility tests on the document.",
-        "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
-        "The logo image.",
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -24848,9 +24894,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        "An execution engine not pre-loaded in Quarto",
-        "Path to the TypeScript module for the execution engine"
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
       ],
       "schema/external-schemas.yml": [
         {
@@ -25079,12 +25123,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197564,
+        _internalId: 192092,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197556,
+            _internalId: 192084,
             type: "enum",
             enum: [
               "png",
@@ -25100,7 +25144,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197563,
+            _internalId: 192091,
             type: "anyOf",
             anyOf: [
               {
@@ -25140,51 +25184,7 @@ var require_yaml_intelligence_resources = __commonJS({
           "case-detection": true
         },
         $id: "handlers/mermaid"
-      },
-      "schema/document-a11y.yml": [
-        {
-          name: "axe",
-          tags: {
-            formats: [
-              "$html-files"
-            ]
-          },
-          schema: {
-            anyOf: [
-              "boolean",
-              {
-                object: {
-                  properties: {
-                    output: {
-                      enum: [
-                        "json",
-                        "console",
-                        "document"
-                      ],
-                      description: "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
-                    }
-                  }
-                }
-              }
-            ]
-          },
-          description: "When defined, run axe-core accessibility tests on the document."
-        }
-      ],
-      "schema/document-typst.yml": [
-        {
-          name: "logo",
-          schema: {
-            ref: "logo-light-dark-specifier-path-optional"
-          },
-          tags: {
-            formats: [
-              "typst"
-            ]
-          },
-          description: "The logo image."
-        }
-      ]
+      }
     };
   }
 });
