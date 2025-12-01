@@ -129,7 +129,7 @@ export const createProjectCommand = new Command()
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, dir?: string) => {
     // Initialize project context and register engines (including external ones)
-    await initializeProjectContextAndEngines(dir);
+    await initializeProjectContextAndEngines();
 
     if (dir === undefined || dir === ".") {
       dir = Deno.cwd();
