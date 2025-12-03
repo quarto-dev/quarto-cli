@@ -22,6 +22,13 @@
  * SOFTWARE.
  */
 
+/**
+ * Author: Mickaël Canouil
+ * Version: 1.0.0
+ * License: MIT
+ * Source: https://github.com/mcanouil/quarto-revealjs-tabset
+ */
+
 window.RevealJsTabset = function () {
   return {
     id: "RevealJsTabset",
