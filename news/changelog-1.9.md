@@ -48,6 +48,10 @@ All changes included in 1.9:
 - ([#13667](https://github.com/quarto-dev/quarto-cli/issues/13667)): Fix LaTeX compilation error with Python error output containing caret characters.
 - ([#13730](https://github.com/quarto-dev/quarto-cli/issues/13730)): Fix TinyTeX detection when `~/.TinyTeX/` directory exists without binaries. Quarto now verifies that the bin directory and tlmgr binary exist before reporting TinyTeX as available, allowing proper fallback to system PATH installations.
 
+### `revealjs`
+
+- ([#13712](https://github.com/quarto-dev/quarto-cli/issues/13712)): Add support for tabset fragments in Reveal.js presentations, allowing content within tabs to be revealed incrementally during presentations.
+
 ## Projects
 
 ### `website`
