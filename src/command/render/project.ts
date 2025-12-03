@@ -792,7 +792,7 @@ export async function renderProject(
         context,
       );
       if (engine?.postRender) {
-        await engine.postRender(file, projResults.context);
+        await engine.postRender(file);
       }
     }
 
