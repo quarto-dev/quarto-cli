@@ -315,7 +315,7 @@ function kernelTransportFile(target: string) {
   try {
     transportsDir = quartoRuntimeDir("jt");
   } catch (e) {
-    console.error("Could create runtime directory for jupyter transport.");
+    console.error("Could not create runtime directory for jupyter transport.");
     console.error(
       "This is possibly a permission issue in the environment Quarto is running in.",
     );
