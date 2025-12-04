@@ -1,0 +1,16 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["jupyter.qmd"]
+        - []
+---
+
+```{python}
+import os
+
+print(os.environ.get("QUARTO_DOCUMENT_FILE", ""))
+print("Hello, world")
+```

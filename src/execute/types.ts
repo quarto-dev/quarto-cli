@@ -81,6 +81,7 @@ export interface ExecutionTarget {
 
 // execute options
 export interface ExecuteOptions {
+  env: Record<string, string>;
   target: ExecutionTarget;
   format: Format;
   resourceDir: string;

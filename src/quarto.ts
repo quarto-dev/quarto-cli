@@ -77,15 +77,11 @@ const checkReconfiguration = async () => {
   }
 };
 
-const passThroughPandoc = async (
-  args: string[],
-  env?: Record<string, string>,
-) => {
+const passThroughPandoc = async (args: string[]) => {
   const result = await execProcess(
     {
       cmd: pandocBinaryPath(),
       args: args.slice(1),
-      env,
     },
     undefined,
     undefined,
@@ -95,10 +91,7 @@ const passThroughPandoc = async (
   Deno.exit(result.code);
 };
 
-const passThroughTypst = async (
-  args: string[],
-  env?: Record<string, string>,
-) => {
+const passThroughTypst = async (args: string[]) => {
   if (args[1] === "update") {
     error(
       "The 'typst update' command is not supported.\n" +
@@ -109,7 +102,6 @@ const passThroughTypst = async (
   const result = await execProcess({
     cmd: typstBinaryPath(),
     args: args.slice(1),
-    env,
   });
   Deno.exit(result.code);
 };
@@ -117,20 +109,19 @@ const passThroughTypst = async (
 export async function quarto(
   args: string[],
   cmdHandler?: (command: Command) => Command,
-  env?: Record<string, string>,
 ) {
   await checkReconfiguration();
   checkVersionRequirement();
   if (args[0] === "pandoc" && args[1] !== "help") {
-    await passThroughPandoc(args, env);
+    await passThroughPandoc(args);
   }
   if (args[0] === "typst") {
-    await passThroughTypst(args, env);
+    await passThroughTypst(args);
   }
 
   // passthrough to run handlers
   if (args[0] === "run" && args[1] !== "help" && args[1] !== "--help") {
-    const result = await runScript(args.slice(1), env);
+    const result = await runScript(args.slice(1));
     Deno.exit(result.code);
   }
 
@@ -154,13 +145,6 @@ export async function quarto(
   }
 
   debug("Quarto version: " + quartoConfig.version());
-
-  const oldEnv: Record<string, string | undefined> = {};
-  for (const [key, value] of Object.entries(env || {})) {
-    const oldV = Deno.env.get(key);
-    oldEnv[key] = oldV;
-    Deno.env.set(key, value);
-  }
 
   const quartoCommand = new Command()
     .name("quarto")
@@ -191,13 +175,6 @@ export async function quarto(
 
   try {
     await promise;
-    for (const [key, value] of Object.entries(oldEnv)) {
-      if (value === undefined) {
-        Deno.env.delete(key);
-      } else {
-        Deno.env.set(key, value);
-      }
-    }
     if (commandFailed()) {
       exitWithCleanup(1);
     }
