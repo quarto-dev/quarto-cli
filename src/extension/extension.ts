@@ -11,6 +11,8 @@ import { isSubdir } from "../deno_ral/fs.ts";
 import { coerce, Range, satisfies } from "semver/mod.ts";
 
 import {
+  kProjectPostRender,
+  kProjectPreRender,
   kProjectType,
   ProjectConfig,
   ProjectContext,
@@ -71,7 +73,7 @@ import {
 import { resourcePath } from "../core/resources.ts";
 import { warnOnce } from "../core/log.ts";
 import { existsSync1 } from "../core/file.ts";
-import { kFormatResources } from "../config/constants.ts";
+import { kBrand, kFormatResources } from "../config/constants.ts";
 
 // This is where we maintain a list of extensions that have been promoted
 // to 'built-in' status. If we see these extensions, we will filter them
@@ -795,7 +797,7 @@ async function readExtension(
   const metadata = contributes?.metadata as Record<string, unknown> | undefined;
 
   // resolve metadata/project pre- and post-render scripts to their full path
-  for (const key of ["pre-render", "post-render", "brand"]) {
+  for (const key of [kProjectPreRender, kProjectPostRender, kBrand]) {
     for (const object of [metadata, project]) {
       if (!object?.project || typeof object.project !== "object") {
         continue;
@@ -812,7 +814,7 @@ async function readExtension(
           [],
         );
         if (resolved.include.length > 0) {
-          if (key === "brand") {
+          if (key === kBrand) {
             let projectDir = extensionDir, last;
             do {
               last = basename(projectDir);
@@ -824,7 +826,7 @@ async function readExtension(
                 resolved.include[0],
               );
             }
-          } else if (key === "pre-render" || key === "post-render") {
+          } else if (key === kProjectPreRender || key === kProjectPostRender) {
             // Quote absolute paths containing spaces for shell execution
             const quotedPaths = resolved.include.map((path) =>
               path.includes(" ") ? `"${path}"` : path
