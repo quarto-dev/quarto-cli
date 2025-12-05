@@ -825,7 +825,11 @@ async function readExtension(
               );
             }
           } else {
-            (object.project as Record<string, unknown>)[key] = resolved.include;
+            // Quote absolute paths containing spaces for shell execution
+            const quotedPaths = resolved.include.map((path) =>
+              path.includes(" ") ? `"${path}"` : path
+            );
+            (object.project as Record<string, unknown>)[key] = quotedPaths;
           }
         }
       }

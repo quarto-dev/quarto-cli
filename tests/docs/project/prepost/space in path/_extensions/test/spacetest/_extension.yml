@@ -1,0 +1,9 @@
+title: Space Test Extension
+author: test
+version: 1.0.0
+quarto-required: ">=1.2.0"
+contributes:
+  metadata:
+    project:
+      post-render:
+        - scripts/post-render.ts
