@@ -29,6 +29,7 @@ window.QuartoLineHighlight = function () {
 
   const kCodeLineNumbersAttr = "data-code-line-numbers";
   const kFragmentIndex = "data-fragment-index";
+  const kCodeLineFragmentIndicesAttr = "data-code-line-fragment-indices";
 
   function initQuartoLineHighlight(deck) {
     const divSourceCode = deck
@@ -39,6 +40,16 @@ window.QuartoLineHighlight = function () {
       if (el.hasAttribute(kCodeLineNumbersAttr)) {
         const codeLineAttr = el.getAttribute(kCodeLineNumbersAttr);
         el.removeAttribute(kCodeLineNumbersAttr);
+        // Get fragment index attribute if present
+        let fragmentIndices = null;
+        if (el.hasAttribute(kCodeLineFragmentIndicesAttr)) {
+          const fragmentIndexAttr = el.getAttribute(kCodeLineFragmentIndicesAttr);
+          fragmentIndices = fragmentIndexAttr.split(',').map((x) => {
+            const v = parseInt(x.trim(), 10);
+            return isNaN(v) ? null : v;
+          });
+          el.removeAttribute(kCodeLineFragmentIndicesAttr);
+        }
         if (handleLinesSelector(deck, codeLineAttr)) {
           // Only process if attr is a string to select lines to highlights
           // e.g "1|3,6|8-11"
@@ -52,6 +63,10 @@ window.QuartoLineHighlight = function () {
             // Check if there are steps and duplicate code block accordingly
             const highlightSteps = splitLineNumbers(codeLineAttr);
             if (highlightSteps.length > 1) {
+              if (fragmentIndices.length != highlightSteps.length) {
+                // Don't use provided fragment indices if they don't match the number of steps
+                fragmentIndices = null;
+              }
               // If the original code block has a fragment-index,
               // each clone should follow in an incremental sequence
               let fragmentIndex = parseInt(
@@ -66,7 +81,7 @@ window.QuartoLineHighlight = function () {
               let stepN = 1;
               highlightSteps.slice(1).forEach(
                 // Generate fragments for all steps except the original block
-                (step) => {
+                (step, idx) => {
                   var fragmentBlock = code.cloneNode(true);
                   fragmentBlock.setAttribute(
                     "data-code-line-numbers",
@@ -92,8 +107,10 @@ window.QuartoLineHighlight = function () {
 
                   // Each new <code> element is highlighted based on the new attributes value
                   highlightCodeBlock(fragmentBlock);
-
-                  if (typeof fragmentIndex === "number") {
+                  // Use fragmentIndices if present instead of incrementing
+                  if (fragmentIndices && fragmentIndices.length > idx + 1) {
+                    fragmentBlock.setAttribute(kFragmentIndex, fragmentIndices[idx + 1]);
+                  } else if (typeof fragmentIndex === "number") {
                     fragmentBlock.setAttribute(kFragmentIndex, fragmentIndex);
                     fragmentIndex += 1;
                   } else {
@@ -166,10 +183,10 @@ window.QuartoLineHighlight = function () {
           spanToHighlight = [].slice.call(
             codeBlock.querySelectorAll(
               ":scope > span:nth-of-type(n+" +
-                highlight.first +
-                "):nth-of-type(-n+" +
-                highlight.last +
-                ")"
+              highlight.first +
+              "):nth-of-type(-n+" +
+              highlight.last +
+              ")"
             )
           );
         } else if (typeof highlight.first === "number") {
@@ -221,7 +238,7 @@ window.QuartoLineHighlight = function () {
       highlightBounds.top +
       (Math.min(highlightBounds.bottom - highlightBounds.top, viewportHeight) -
         viewportHeight) /
-        2;
+      2;
 
     // Make sure the scroll target is within bounds
     targetTop = Math.max(
