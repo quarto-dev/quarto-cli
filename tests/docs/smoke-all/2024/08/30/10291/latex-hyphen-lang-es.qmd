@@ -1,5 +1,7 @@
 ---
-format: pdf
+format: 
+  pdf: 
+    documentclass: article
 lang: es
 _quarto:
   tests:
