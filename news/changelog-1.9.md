@@ -70,7 +70,7 @@ All changes included in 1.9:
 
 ## Quarto Lua API
 
-- Add `quarto.paths.typst()` to Quarto's Lua API to resolve Typst binary path in Lua filters and extensions consistently with Quarto itself. (author: @mcanouil)
+- ([#13762](https://github.com/quarto-dev/quarto-cli/issues/13762)): Add `quarto.paths.typst()` to Quarto's Lua API to resolve Typst binary path in Lua filters and extensions consistently with Quarto itself. (author: @mcanouil)
 
 ## Other fixes and improvements
 
