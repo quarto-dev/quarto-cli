@@ -824,12 +824,15 @@ async function readExtension(
                 resolved.include[0],
               );
             }
-          } else {
+          } else if (key === "pre-render" || key === "post-render") {
             // Quote absolute paths containing spaces for shell execution
             const quotedPaths = resolved.include.map((path) =>
               path.includes(" ") ? `"${path}"` : path
             );
             (object.project as Record<string, unknown>)[key] = quotedPaths;
+          } else {
+            // Other keys: store unquoted
+            (object.project as Record<string, unknown>)[key] = resolved.include;
           }
         }
       }
