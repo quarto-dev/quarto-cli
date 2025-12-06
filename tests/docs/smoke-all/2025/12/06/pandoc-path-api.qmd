@@ -1,0 +1,12 @@
+---
+format: html
+shortcodes:
+  - pandoc-path-api.lua
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["<p>The Pandoc path is .+.</p>"]
+---
+
+The Pandoc path is "{{< pandoc >}}".

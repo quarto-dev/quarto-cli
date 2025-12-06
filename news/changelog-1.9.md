@@ -68,6 +68,10 @@ All changes included in 1.9:
 
 - ([#13414](https://github.com/quarto-dev/quarto-cli/issues/13414)): Be more forgiving when Confluence server returns malformed JSON response. (author: @m1no)
 
+## Lua API
+
+- Added `quarto.paths.pandoc()` to expose the path to the Pandoc binary that Quarto uses for rendering. This respects the `QUARTO_PANDOC` environment variable if set, or returns the path to the bundled Pandoc binary.
+
 ## Other fixes and improvements
 
 - ([#13402](https://github.com/quarto-dev/quarto-cli/issues/13402)): `nfpm` (<https://nfpm.goreleaser.com/>) is now used to create the `.deb` package, and new `.rpm` package. Both Linux packages are also now built for `x86_64` (`amd64`) and `aarch64` (`arm64`) architectures.

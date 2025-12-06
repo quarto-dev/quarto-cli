@@ -990,6 +990,9 @@ quarto = {
     tinytex_bin_dir = function()
       return param('quarto-environment', nil).paths.TinyTexBinDir
     end,
+    pandoc = function()
+      return param('quarto-environment', nil).paths.Pandoc
+    end,
   },
   json = json,
   base64 = base64,
