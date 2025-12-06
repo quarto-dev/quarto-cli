@@ -687,6 +687,7 @@ async function readExtension(
   const author = yaml[kAuthor] as string;
   const versionRaw = yaml[kVersion] as string | undefined;
   const quartoVersionRaw = yaml[kQuartoRequired] as string | undefined;
+  const source = yaml.source as string | undefined;
   const versionParsed = versionRaw ? coerce(versionRaw) : undefined;
   const quartoVersion = quartoVersionRaw
     ? readVersionRange(quartoVersionRaw)
@@ -843,6 +844,7 @@ async function readExtension(
     author,
     version,
     quartoVersion,
+    source,
     id: extensionId,
     path: extensionDir,
     contributes: {
