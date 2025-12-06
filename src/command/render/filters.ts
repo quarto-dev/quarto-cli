@@ -67,7 +67,7 @@ import { QuartoFilterSpec } from "./types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kProjectType } from "../../project/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
-import { rBinaryPath, resourcePath } from "../../core/resources.ts";
+import { rBinaryPath, resourcePath, pandocBinaryPath } from "../../core/resources.ts";
 import { crossrefFilterActive, crossrefFilterParams } from "./crossref.ts";
 import { layoutFilterParams } from "./layout.ts";
 import { pandocMetadataPath } from "./render-paths.ts";
@@ -204,6 +204,7 @@ async function quartoEnvironmentParams(_options: PandocOptions) {
     "paths": {
       "Rscript": await rBinaryPath("Rscript"),
       "TinyTexBinDir": tinyTexBinDir(), // will be undefined if no tinytex found and quarto will look in PATH
+      "Pandoc": pandocBinaryPath(),
     },
   };
 }
