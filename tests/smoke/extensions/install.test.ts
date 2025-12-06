@@ -105,6 +105,102 @@ testQuartoCmd(
   },
 );
 
+// Verify that @TAG is trimmed from source field for GitHub extensions
+testQuartoCmd(
+  "install",
+  ["extension", "quarto-ext/lightbox@v0.1.4", "--no-prompt"],
+  [
+    noErrorsOrWarnings,
+    verifySubDirCount("_extensions", 1),
+    verifySubDirName("_extensions", "quarto-ext"),
+    verifyExtensionSourceField(
+      join("_extensions", "quarto-ext", "lightbox"),
+      "quarto-ext/lightbox",
+    ),
+  ],
+  {
+    cwd: () => {
+      return workingDir;
+    },
+    teardown: () => {
+      Deno.removeSync("_extensions", { recursive: true });
+      return Promise.resolve();
+    },
+  },
+);
+
+// Verify that @TAG with slash (branch name) is trimmed from source field
+testQuartoCmd(
+  "install",
+  ["extension", "quarto-ext/lightbox@test/use-in-quarto-cli", "--no-prompt"],
+  [
+    noErrorsOrWarnings,
+    verifySubDirCount("_extensions", 1),
+    verifySubDirName("_extensions", "quarto-ext"),
+    verifyExtensionSourceField(
+      join("_extensions", "quarto-ext", "lightbox"),
+      "quarto-ext/lightbox",
+    ),
+  ],
+  {
+    cwd: () => {
+      return workingDir;
+    },
+    teardown: () => {
+      Deno.removeSync("_extensions", { recursive: true });
+      return Promise.resolve();
+    },
+  },
+);
+
+// Verify that updating an extension uses the normalized source
+testQuartoCmd(
+  "install",
+  ["extension", "quarto-ext/lightbox@v0.1.4", "--no-prompt"],
+  [
+    noErrorsOrWarnings,
+    verifySubDirCount("_extensions", 1),
+    verifySubDirName("_extensions", "quarto-ext"),
+    verifyExtensionSourceField(
+      join("_extensions", "quarto-ext", "lightbox"),
+      "quarto-ext/lightbox",
+    ),
+  ],
+  {
+    cwd: () => {
+      return workingDir;
+    },
+    teardown: () => {
+      Deno.removeSync("_extensions", { recursive: true });
+      return Promise.resolve();
+    },
+  },
+);
+
+// Verify that 'quarto update extension' uses the normalized source from manifest
+testQuartoCmd(
+  "update",
+  ["extension", "quarto-ext/lightbox", "--no-prompt"],
+  [
+    noErrorsOrWarnings,
+    verifySubDirCount("_extensions", 1),
+    verifySubDirName("_extensions", "quarto-ext"),
+    verifyExtensionSourceField(
+      join("_extensions", "quarto-ext", "lightbox"),
+      "quarto-ext/lightbox",
+    ),
+  ],
+  {
+    cwd: () => {
+      return workingDir;
+    },
+    teardown: () => {
+      Deno.removeSync("_extensions", { recursive: true });
+      return Promise.resolve();
+    },
+  },
+);
+
 // Verify install using urls
 const extUrls = [
   "quarto-ext/lightbox",

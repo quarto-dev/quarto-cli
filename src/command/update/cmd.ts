@@ -81,12 +81,21 @@ export const updateCommand = new Command()
             const source = await findExtensionSource(extensionPath);
             if (source) {
               // Found an installed extension, use its source for update
-              sourceToUpdate = source;
               info(
                 `Found installed extension at _extensions/${resolved.name}`,
               );
+              // Normalize the source by trimming @TAG for GitHub-style sources
+              // (GitHub refs are like "org/repo" or "org/repo/subdir" with optional @tag)
+              const githubExtensionRegex = /^[a-zA-Z0-9-_.]+\/[a-zA-Z0-9-_.]+(?:\/[^@]*)?(?:@.+)?$/;
+              if (source.match(githubExtensionRegex)) {
+                // GitHub-style source, trim @TAG if present
+                sourceToUpdate = source.replace(/@.+$/, "");
+              } else {
+                // URL or local path, use as-is
+                sourceToUpdate = source;
+              }
               info(
-                `Using installation source: ${source}`,
+                `Using installation source: ${sourceToUpdate}`,
               );
             } else {
               // Extension not found locally, use the provided target
