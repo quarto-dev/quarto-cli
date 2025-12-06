@@ -32,6 +32,7 @@ export interface Extension extends Record<string, unknown> {
   author: string;
   version?: SemVer;
   quartoVersion?: Range;
+  source?: string;
   path: string;
   contributes: {
     metadata?: Metadata;
