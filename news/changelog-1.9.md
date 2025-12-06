@@ -70,7 +70,7 @@ All changes included in 1.9:
 
 ## Lua API
 
-- Added `quarto.paths.pandoc()` to expose the path to the Pandoc binary that Quarto uses for rendering. This respects the `QUARTO_PANDOC` environment variable if set, or returns the path to the bundled Pandoc binary.
+- ([#13763](https://github.com/quarto-dev/quarto-cli/issues/13763)): Add `quarto.paths.pandoc()` to expose the path to the Pandoc binary. (author: @mcanouil)
 
 ## Other fixes and improvements
 
