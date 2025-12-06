@@ -14,7 +14,7 @@
 export DENO=v2.4.5
 # TODO figure out where 0.1.41 apple silicon libs are available
 export DENO_DOM=v0.1.41-alpha-artifacts
-export PANDOC=3.6.3
+export PANDOC=3.7.0.2
 export DARTSASS=1.87.0
 export ESBUILD=0.25.10
 export TYPST=0.13.0
