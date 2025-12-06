@@ -74,3 +74,4 @@ All changes included in 1.9:
 - ([#13528](https://github.com/quarto-dev/quarto-cli/pull/13528)): Adds support for table specification using nested lists and the `list-table` class.
 - ([#13575](https://github.com/quarto-dev/quarto-cli/pull/13575)): Improve CPU architecture detection/reporting in macOS to allow quarto to run in virtualized environments such as OpenAI's `codex`.
 - ([#13656](https://github.com/quarto-dev/quarto-cli/issues/13656)): Fix R code cells with empty `lang: ""` option producing invalid markdown class attributes.
+- ([#13764](https://github.com/quarto-dev/quarto-cli/issues/13764)): Add `source` field to extension metadata to track installation source. Extension updates now automatically detect and reuse the original installation source when available, improving the update experience for locally installed extensions. (author: @mcanouil)
