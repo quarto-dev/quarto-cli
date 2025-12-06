@@ -6,7 +6,7 @@ _quarto:
   tests:
     html:
       ensureFileRegexMatches:
-        - ["<p>The Pandoc path is .+.</p>"]
+        - ["<p>The Pandoc path is <code>.+pandoc</code>.</p>"]
 ---
 
-The Pandoc path is "{{< pandoc >}}".
+The Pandoc path is `{{< pandoc >}}`.
