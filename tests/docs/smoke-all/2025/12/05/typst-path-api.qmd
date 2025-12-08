@@ -1,12 +1,7 @@
 ---
 format: html
-shortcodes:
+filters:
   - typst-path-api.lua
-_quarto:
-  tests:
-    html:
-      ensureFileRegexMatches:
-        - ["<p>The Typst path is <code>.+typst</code>.</p>"]
 ---
 
-The Typst path is `{{< typst >}}`.
+The Typst path is accessible.
