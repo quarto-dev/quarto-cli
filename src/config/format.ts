@@ -159,8 +159,11 @@ export function isIpynbOutput(format: FormatPandoc) {
   return isFormatTo(format, "ipynb");
 }
 
-function isFormatTo(format: FormatPandoc, to: string) {
-  return !!format.to && format.to.startsWith(to);
+function isFormatTo(format: string | FormatPandoc, to: string) {
+  const formatStr = typeof format === "string"
+    ? format
+    : (format?.to || "html");
+  return formatStr.startsWith(to);
 }
 
 export function isMarkdownOutput(
