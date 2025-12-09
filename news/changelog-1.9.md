@@ -48,6 +48,10 @@ All changes included in 1.9:
 - ([#13667](https://github.com/quarto-dev/quarto-cli/issues/13667)): Fix LaTeX compilation error with Python error output containing caret characters.
 - ([#13730](https://github.com/quarto-dev/quarto-cli/issues/13730)): Fix TinyTeX detection when `~/.TinyTeX/` directory exists without binaries. Quarto now verifies that the bin directory and tlmgr binary exist before reporting TinyTeX as available, allowing proper fallback to system PATH installations.
 
+### `revealjs`
+
+- ([#13722](https://github.com/quarto-dev/quarto-cli/issues/13722)): Improve handling of light and dark content in `revealjs` format. `light-content` and `dark-content` SCSS rules are now included in the proper SCSS file, ensuring proper styling for light and dark modes divs, mostly for multiformat documents. (author: @mcanouil)
+
 ## Projects
 
 ### `website`
