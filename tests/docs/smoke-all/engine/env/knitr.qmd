@@ -1,0 +1,13 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["knitr.qmd"]
+        - []
+---
+
+```{r}
+print(Sys.getenv("QUARTO_DOCUMENT_FILE"))
+```
