@@ -23,10 +23,7 @@ export function isLatexOutput(format: FormatPandoc) {
 export function isTypstOutput(format: string): boolean;
 export function isTypstOutput(format: FormatPandoc): boolean;
 export function isTypstOutput(format: string | FormatPandoc) {
-  if (typeof (format) !== "string") {
-    format = format?.to || "html";
-  }
-  return format === "typst";
+  return isFormatTo(format, "typst");
 }
 
 export function isBeamerOutput(format: FormatPandoc) {
