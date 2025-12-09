@@ -58,6 +58,10 @@ All changes included in 1.9:
 - ([#13570](https://github.com/quarto-dev/quarto-cli/pull/13570)): Replace Twitter with Bluesky in default blog template and documentation examples. New blog projects now include Bluesky social links instead of Twitter.
 - ([#13716](https://github.com/quarto-dev/quarto-cli/issues/13716)): Fix draft pages showing blank during preview when pre-render scripts are configured.
 
+### `book`
+
+- ([#13769](https://github.com/quarto-dev/quarto-cli/issues/13769)): Apply `repo-link-target` and `repo-link-rel` options to tools in book sidebar for consistent link attribute handling with website projects. (author: @mcanouil)
+
 ### `manuscript`
 
 - ([#10031](https://github.com/quarto-dev/quarto-cli/issues/10031)): Fix manuscript rendering prompting for GitHub credentials when origin points to private repository. Auto-detection of manuscript URL now fails gracefully with a warning instead of blocking renders.
