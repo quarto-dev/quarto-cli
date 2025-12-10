@@ -24,7 +24,7 @@ export function isTypstOutput(format: string | FormatPandoc) {
 }
 
 export function isBeamerOutput(format: FormatPandoc) {
-  return ["beamer"].includes(format.to || "");
+  return isFormatTo(format, "beamer");
 }
 
 export function isEpubOutput(format: string): boolean;
