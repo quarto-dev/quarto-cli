@@ -1,0 +1,29 @@
+---
+format: html
+title: Light and dark content
+---
+
+## Inline content
+
+This is normal content.
+
+[This text is visible only in light mode]{.light-content}
+
+[This text is visible only in dark mode]{.dark-content}
+
+## Block content
+
+:::: {.light-content}
+This is a block that is visible only in light mode.
+:::
+
+:::: {.dark-content}
+This is a block that is visible only in dark mode.
+:::
+
+## Mixed content
+
+- Normal list item.
+- [Light mode list item]{.light-content}
+- [Dark mode list item]{.dark-content}
+
