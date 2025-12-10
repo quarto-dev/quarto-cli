@@ -1,0 +1,15 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['rel="noreferrer"']
+        - ['target="_blank"']
+---
+
+# Preface
+
+This is a Quarto book.
+
+To learn more about Quarto books visit <https://quarto.org/docs/books>.
