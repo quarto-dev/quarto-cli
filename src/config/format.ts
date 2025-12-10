@@ -39,10 +39,7 @@ export function isEpubOutput(format: string | FormatPandoc): boolean {
 export function isDocxOutput(format: string): boolean;
 export function isDocxOutput(format: FormatPandoc): boolean;
 export function isDocxOutput(format: string | FormatPandoc): boolean {
-  if (typeof format !== "string") {
-    format = format?.to || "html";
-  }
-  return format === "docx";
+  return isFormatTo(format, "docx");
 }
 
 export function isHtmlFileOutput(format: string): boolean;
