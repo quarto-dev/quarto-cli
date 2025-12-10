@@ -1,8 +1,23 @@
 ---
 title: "Test"
-format: latex-smart
+format: 
+  latex:
+    variant: -smart
+  latex+without: default
+  latex-smart: default
 _quarto:
   tests:
+    latex:
+      ensureFileRegexMatches:
+        - 
+         - 'linkcolor=\{blue\}'
+        - 
+          # setting extensions to format works
+          - "``marks''"
+          - "`here'"
+      printsMessage:
+        level: INFO
+        regex: "to: latex-smart\n" 
     latex-smart:
       ensureFileRegexMatches:
         - 
@@ -11,6 +26,19 @@ _quarto:
           # setting extensions to format works
           - "``marks''"
           - "`here'"
+      printsMessage:
+        level: INFO
+        regex: "to: latex-smart\n"  
+    latex+without:
+      ensureFileRegexMatches:
+        - 
+          - 'linkcolor=\{blue\}'
+          - "``marks''"
+          - "`here'"
+        - []
+      printsMessage:
+        level: INFO
+        regex: "to: latex\n"
 ---
 
 ## Quarto
