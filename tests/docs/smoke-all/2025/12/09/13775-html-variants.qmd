@@ -1,0 +1,56 @@
+---
+title: "Test variants are detected for HTML specific feature"
+format: 
+  html: 
+    variant: +literate_haskell
+  html+without: 
+    output-file: without
+  html+literate_haskell: 
+    output-file: with_ext
+reference-location: margin
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - 'div.column-margin div#fn1' # this prove `isHtmlDocOutput()` is working
+        - []
+      printsMessage:
+        level: INFO
+        regex: "to: html\\+literate\\_haskell\n" 
+    html+literate_haskell:
+      ensureHtmlElements:
+        - 
+          - 'div.column-margin div#fn1' # this prove `isHtmlDocOutput()` is working
+        - []
+      printsMessage:
+        level: INFO
+        regex: "to: html\\+literate\\_haskell\n"  
+    html+without:
+      ensureHtmlElements:
+        - 
+          - 'div.column-margin div#fn1' # this prove `isHtmlDocOutput()` is working
+          - 'pre.sourceCode.haskell'
+        - ['pre.sourceCode.literatehaskell']
+      printsMessage:
+        level: INFO
+        regex: "to: html\n"
+---
+
+This documents tests that `isHtmlDocOutput()` is correctly detecting HTML even if there is a variant by checking some basic article layout feature are correctly working.
+
+## Ref in margin should work
+
+This is a reference[^1]
+
+[^1]: This is the footnote text.
+
+## see if extension is working (literate_haskell)
+
+This is just to see if setting variants works correctly in Quarto
+                    
+````{.haskell .literate}
+unsplit :: (Arrow a) => (b -> c -> d) -> a (b, c) d
+unsplit = arr . uncurry
+          -- arr (\op (x,y) -> x `op` y)
+````

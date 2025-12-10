@@ -10,7 +10,7 @@ import { Format, FormatPandoc } from "./types.ts";
 export function isPdfOutput(format: string): boolean;
 export function isPdfOutput(format: FormatPandoc): boolean;
 export function isPdfOutput(format: string | FormatPandoc): boolean {
-  if (typeof (format) !== "string") {
+  if (typeof format !== "string") {
     format = format?.to || "html";
   }
   return format === "pdf" || format === "beamer";
@@ -33,7 +33,7 @@ export function isBeamerOutput(format: FormatPandoc) {
 export function isEpubOutput(format: string): boolean;
 export function isEpubOutput(format: FormatPandoc): boolean;
 export function isEpubOutput(format: string | FormatPandoc): boolean {
-  if (typeof (format) !== "string") {
+  if (typeof format !== "string") {
     format = format?.to || "html";
   }
   return ["epub", "epub2", "epub3"].includes(format || "");
@@ -42,7 +42,7 @@ export function isEpubOutput(format: string | FormatPandoc): boolean {
 export function isDocxOutput(format: string): boolean;
 export function isDocxOutput(format: FormatPandoc): boolean;
 export function isDocxOutput(format: string | FormatPandoc): boolean {
-  if (typeof (format) !== "string") {
+  if (typeof format !== "string") {
     format = format?.to || "html";
   }
   return format === "docx";
@@ -51,7 +51,7 @@ export function isDocxOutput(format: string | FormatPandoc): boolean {
 export function isHtmlFileOutput(format: string): boolean;
 export function isHtmlFileOutput(format: FormatPandoc): boolean;
 export function isHtmlFileOutput(format?: string | FormatPandoc): boolean {
-  if (typeof (format) !== "string") {
+  if (typeof format !== "string") {
     format = format?.to || "html";
   }
   return isHtmlDocOutput(format) || isHtmlSlideOutput(format);
@@ -63,7 +63,7 @@ export function isHtmlOutput(
   format?: string | FormatPandoc,
   strict?: boolean,
 ): boolean {
-  if (typeof (format) !== "string") {
+  if (typeof format !== "string") {
     format = format?.to;
   }
   format = format || "html";
@@ -78,19 +78,12 @@ export function isHtmlOutput(
   }
 }
 
-export function isHtmlDocOutput(format?: string | FormatPandoc) {
-  if (typeof (format) !== "string") {
-    format = format?.to || "html";
-  }
-  return [
-    "html",
-    "html4",
-    "html5",
-  ].includes(format);
+export function isHtmlDocOutput(format: string | FormatPandoc) {
+  return ["html", "html4", "html5"].some((fmt) => isFormatTo(format, fmt));
 }
 
 export function isHtmlSlideOutput(format?: string | FormatPandoc) {
-  if (typeof (format) !== "string") {
+  if (typeof format !== "string") {
     format = format?.to || "html";
   }
   return [
@@ -107,7 +100,7 @@ export function isHtmlDashboardOutput(format?: string) {
 }
 
 export function isJatsOutput(format?: string | FormatPandoc) {
-  if (typeof (format) !== "string") {
+  if (typeof format !== "string") {
     format = format?.to || "html";
   }
 
@@ -133,7 +126,7 @@ export function isPresentationOutput(format: FormatPandoc) {
 export function isRevealjsOutput(format: string): boolean;
 export function isRevealjsOutput(format: FormatPandoc): boolean;
 export function isRevealjsOutput(format?: string | FormatPandoc) {
-  if (typeof (format) !== "string") {
+  if (typeof format !== "string") {
     format = format?.to;
   }
   format = format || "html";
