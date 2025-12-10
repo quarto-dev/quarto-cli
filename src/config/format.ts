@@ -33,7 +33,7 @@ export function isEpubOutput(format: string | FormatPandoc): boolean {
   if (typeof format !== "string") {
     format = format?.to || "html";
   }
-  return ["epub", "epub2", "epub3"].includes(format || "");
+  return ["epub", "epub2", "epub3"].some((fmt) => isFormatTo(format, fmt));
 }
 
 export function isDocxOutput(format: string): boolean;
