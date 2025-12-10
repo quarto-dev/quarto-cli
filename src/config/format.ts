@@ -17,7 +17,7 @@ export function isPdfOutput(format: string | FormatPandoc): boolean {
 }
 
 export function isLatexOutput(format: FormatPandoc) {
-  return ["pdf", "latex", "beamer"].includes(format.to || "");
+  return ["pdf", "latex", "beamer"].some((fmt) => isFormatTo(format, fmt));
 }
 
 export function isTypstOutput(format: string): boolean;

@@ -1,0 +1,19 @@
+---
+title: "Test"
+format: latex-smart
+_quarto:
+  tests:
+    latex-smart:
+      ensureFileRegexMatches:
+        - 
+         - 'linkcolor=\{blue\}'
+        - 
+          # setting extensions to format works
+          - "``marks''"
+          - "`here'"
+---
+
+## Quarto
+
+
+Test the quotation "marks" here and 'here'.
