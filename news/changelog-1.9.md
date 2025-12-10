@@ -50,7 +50,7 @@ All changes included in 1.9:
 
 ### `revealjs`
 
-- ([#13722](https://github.com/quarto-dev/quarto-cli/issues/13722)): Improve handling of light and dark content in `revealjs` format. `light-content` and `dark-content` SCSS rules are now included in the proper SCSS file, ensuring proper styling for light and dark modes divs, mostly for multiformat documents. (author: @mcanouil)
+- ([#13722](https://github.com/quarto-dev/quarto-cli/issues/13722)): Fix `light-content` / `dark-content` SCSS rules not included in Reveal.js format. (author: @mcanouil)
 
 ## Projects
 
