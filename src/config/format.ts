@@ -76,17 +76,14 @@ export function isHtmlDocOutput(format: string | FormatPandoc) {
   return ["html", "html4", "html5"].some((fmt) => isFormatTo(format, fmt));
 }
 
-export function isHtmlSlideOutput(format?: string | FormatPandoc) {
-  if (typeof format !== "string") {
-    format = format?.to || "html";
-  }
+export function isHtmlSlideOutput(format: string | FormatPandoc) {
   return [
     "s5",
     "dzslides",
     "slidy",
     "slideous",
     "revealjs",
-  ].includes(format);
+  ].some((fmt) => isFormatTo(format, fmt));
 }
 
 export function isHtmlDashboardOutput(format?: string) {
