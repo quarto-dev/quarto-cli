@@ -1,11 +1,9 @@
 ---
-format: html
 _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - ['rel="noreferrer"']
-        - ['target="_blank"']
+        - ['a[rel="noreferrer"][target="_blank"][href="https://github.com/quarto-dev/quarto-cli"][class~="quarto-navigation-tool"]']
 ---
 
 # Preface
