@@ -8725,6 +8725,25 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "external-engine",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                path: {
+                  path: {
+                    description: "Path to the TypeScript module for the execution engine"
+                  }
+                }
+              },
+              required: [
+                "path"
+              ]
+            },
+            description: "An execution engine not pre-loaded in Quarto"
+          }
+        },
+        {
           id: "document-comments-configuration",
           anyOf: [
             {
@@ -20200,6 +20219,16 @@ var require_yaml_intelligence_resources = __commonJS({
                 },
                 formats: {
                   schema: "object"
+                },
+                engines: {
+                  arrayOf: {
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "external-engine"
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -20638,7 +20667,14 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "engines",
           schema: {
-            arrayOf: "string"
+            arrayOf: {
+              anyOf: [
+                "string",
+                {
+                  ref: "external-engine"
+                }
+              ]
+            }
           },
           description: "List execution engines you want to give priority when determining which engine should render a notebook. If two engines have support for a notebook, the one listed earlier will be chosen. Quarto's default order is 'knitr', 'jupyter', 'markdown', 'julia'."
         }
@@ -21439,6 +21475,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name.",
         "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
+        "An execution engine not pre-loaded in Quarto",
+        "Path to the TypeScript module for the execution engine",
         "The Github repo that will be used to store comments.",
         "The label that will be assigned to issues created by Utterances.",
         {
@@ -22560,6 +22598,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify a default profile and profile groups",
         "Default profile to apply if QUARTO_PROFILE is not defined.",
         "Define a profile group for which at least one profile is always\nactive.",
+        "Control when tests should run",
+        "Run tests on CI (true = run, false = skip)",
+        "Run tests ONLY on these platforms (whitelist)",
+        "Don\u2019t run tests on these platforms (blacklist)",
         "The path to the locally referenced notebook.",
         "The title of the notebook when viewed.",
         "The url to use when viewing this notebook.",
@@ -25037,12 +25079,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197523,
+        _internalId: 197583,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197515,
+            _internalId: 197575,
             type: "enum",
             enum: [
               "png",
@@ -25058,7 +25100,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197522,
+            _internalId: 197582,
             type: "anyOf",
             anyOf: [
               {

@@ -104,10 +104,9 @@ import { manuscriptRenderer } from "./manuscript-render.ts";
 import { outputFile } from "../../../render/notebook/notebook-contributor-html.ts";
 import { Document } from "../../../core/deno-dom.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
-import { isQmdFile } from "../../../execute/qmd.ts";
 
 import * as ld from "../../../core/lodash.ts";
-import { safeExistsSync } from "../../../core/path.ts";
+import { isQmdFile, safeExistsSync } from "../../../core/path.ts";
 
 import {
   copySync,

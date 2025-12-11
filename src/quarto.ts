@@ -50,6 +50,9 @@ import "./project/types/register.ts";
 // ensures writer formats are registered
 import "./format/imports.ts";
 
+// ensures API namespaces are registered
+import "./core/api/register.ts";
+
 import { kCliffyImplicitCwd } from "./config/constants.ts";
 import { mainRunner } from "./core/main.ts";
 

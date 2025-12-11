@@ -6,13 +6,12 @@
 
 import { extname } from "../../deno_ral/path.ts";
 
-import { lines } from "../../core/text.ts";
-import { trimEmptyLines } from "../../core/lib/text.ts";
 import { Metadata } from "../../config/types.ts";
-import { asYamlText } from "../../core/jupyter/jupyter-fixups.ts";
-import { pandocAttrKeyvalueFromText } from "../../core/pandoc/pandoc-attr.ts";
+import { pandocAttrKeyvalueFromText } from "../pandoc/pandoc-attr.ts";
 import { kCellRawMimeType } from "../../config/constants.ts";
-import { mdFormatOutput, mdRawOutput } from "../../core/jupyter/jupyter.ts";
+import { mdFormatOutput, mdRawOutput } from "./jupyter.ts";
+import { lines, trimEmptyLines } from "../lib/text.ts";
+import { asYamlText } from "./jupyter-fixups.ts";
 
 export const kJupyterPercentScriptExtensions = [
   ".py",

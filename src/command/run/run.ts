@@ -12,7 +12,15 @@ import { handlerForScript } from "../../core/run/run.ts";
 import { exitWithCleanup } from "../../core/cleanup.ts";
 
 export async function runScript(args: string[], env?: Record<string, string>) {
-  const script = args[0];
+  // Check for --dev flag
+  let dev = false;
+  let scriptArgs = args;
+  if (args[0] === "--dev") {
+    dev = true;
+    scriptArgs = args.slice(1);
+  }
+
+  const script = scriptArgs[0];
   if (!script) {
     error("quarto run: no script specified");
     exitWithCleanup(1);
@@ -29,7 +37,10 @@ export async function runScript(args: string[], env?: Record<string, string>) {
     exitWithCleanup(1);
     throw new Error(); // unreachable
   }
-  return await handler.run(script, args.slice(1), undefined, { env });
+  return await handler.run(script, scriptArgs.slice(1), undefined, {
+    env,
+    dev,
+  });
 }
 
 // run 'command' (this is a fake command that is here just for docs,
@@ -42,4 +53,7 @@ export const runCommand = new Command()
     "Run a TypeScript, R, Python, or Lua script.\n\n" +
       "Run a utility script written in a variety of languages. For details, see:\n" +
       "https://quarto.org/docs/projects/scripts.html#periodic-scripts",
-  );
+  )
+  .option("--dev", "Use development import map (when running from source)", {
+    hidden: true,
+  });
