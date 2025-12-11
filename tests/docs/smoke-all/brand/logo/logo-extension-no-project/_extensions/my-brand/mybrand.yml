@@ -1,0 +1,18 @@
+logo:
+  images:
+    sun:
+      path: sun-face.png
+      alt: sun face
+    moon:
+      path: moon-face.png
+      alt: moon face
+  medium:
+    light: sun
+    dark: moon
+color:
+  background:
+    light: "#def"
+    dark: "#042"
+  foreground:
+    light: "#411"
+    dark: "#ffe"

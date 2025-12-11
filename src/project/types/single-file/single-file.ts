@@ -16,7 +16,7 @@ import { NotebookContext } from "../../../render/notebook/notebook-types.ts";
 import { makeProjectEnvironmentMemoizer } from "../../project-environment.ts";
 import { ProjectContext } from "../../types.ts";
 import { renderFormats } from "../../../command/render/render-contexts.ts";
-import { RenderFlags } from "../../../command/render/types.ts";
+import { RenderFlags, RenderOptions } from "../../../command/render/types.ts";
 import { MappedString } from "../../../core/mapped-text.ts";
 import { fileExecutionEngineAndTarget } from "../../../execute/engine.ts";
 import {
@@ -30,11 +30,12 @@ import { ExecutionEngine } from "../../../execute/types.ts";
 import { createProjectCache } from "../../../core/cache/cache.ts";
 import { globalTempContext } from "../../../core/temp.ts";
 import { once } from "../../../core/once.ts";
+import { mergeExtensionMetadata } from "../../project-context.ts";
 
 export async function singleFileProjectContext(
   source: string,
   notebookContext: NotebookContext,
-  flags?: RenderFlags,
+  renderOptions?: RenderOptions,
 ): Promise<ProjectContext> {
   const environmentMemoizer = makeProjectEnvironmentMemoizer(notebookContext);
   const temp = globalTempContext();
@@ -57,7 +58,7 @@ export async function singleFileProjectContext(
     ) => {
       return fileExecutionEngineAndTarget(
         file,
-        flags,
+        renderOptions?.flags,
         result,
       );
     },
@@ -86,6 +87,12 @@ export async function singleFileProjectContext(
       result.diskCache.close();
     }),
   };
+  if (renderOptions) {
+    result.config = {
+      project: {},
+    };
+    await mergeExtensionMetadata(result, renderOptions);
+  }
   // because the single-file project is cleaned up with
   // the global text context, we don't need to register it
   // in the same way that we need to register the multi-file
