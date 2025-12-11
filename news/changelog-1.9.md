@@ -39,6 +39,7 @@ All changes included in 1.9:
 - ([#13555](https://github.com/quarto-dev/quarto-cli/issues/13555)): Add support for `icon=false` in callouts when used in `format: typst`.
 - ([#13589](https://github.com/quarto-dev/quarto-cli/issues/13589)): Fix callouts with invalid ID prefixes crashing with "attempt to index a nil value". Callouts with unknown reference types now render as non-crossreferenceable callouts with a warning, ignoring the invalid ID.
 - ([#13602](https://github.com/quarto-dev/quarto-cli/issues/13602)): Fix support for multiple files set in `bibliography` field in `biblio.typ` template partial.
+- ([#13775](https://github.com/quarto-dev/quarto-cli/issues/13775)): Fix brand fonts not being applied when using `citeproc: true` with Typst format. Format detection now properly handles Pandoc format variants like `typst-citations`.
 
 ### `pdf`
 
@@ -61,6 +62,10 @@ All changes included in 1.9:
 - ([#13547](https://github.com/quarto-dev/quarto-cli/issues/13547))`cookie-content: { type: express }` is now the default. Previously it was `type: implied`. It now means this will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn't agree).
 - ([#13570](https://github.com/quarto-dev/quarto-cli/pull/13570)): Replace Twitter with Bluesky in default blog template and documentation examples. New blog projects now include Bluesky social links instead of Twitter.
 - ([#13716](https://github.com/quarto-dev/quarto-cli/issues/13716)): Fix draft pages showing blank during preview when pre-render scripts are configured.
+
+### `book`
+
+- ([#13769](https://github.com/quarto-dev/quarto-cli/issues/13769)): Apply `repo-link-target` and `repo-link-rel` options to tools in book sidebar for consistent link attribute handling with website projects. (author: @mcanouil)
 
 ### `manuscript`
 
