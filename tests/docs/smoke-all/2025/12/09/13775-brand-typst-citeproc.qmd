@@ -1,0 +1,22 @@
+---
+title: brand font not handled
+format: typst
+brand: 
+  typography: 
+    fonts:
+      - family: Sarabun
+        source: google
+    base:
+      family: Sarabun
+      size: 12pt
+citeproc: true
+_quarto:
+  tests: 
+    typst:
+      printsMessage:
+        level: INFO
+        regex: 'warning: unknown font family: sarabun'
+        negate: true
+---
+
+Content using Sarabun font.

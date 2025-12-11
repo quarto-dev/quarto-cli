@@ -1,0 +1,47 @@
+---
+title: "Test"
+format: 
+  latex:
+    variant: -smart
+  latex+without: default
+  latex-smart: default
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - 
+         - 'linkcolor=\{blue\}'
+        - 
+          # setting extensions to format works
+          - "``marks''"
+          - "`here'"
+      printsMessage:
+        level: INFO
+        regex: "to: latex-smart\n" 
+    latex-smart:
+      ensureFileRegexMatches:
+        - 
+         - 'linkcolor=\{blue\}'
+        - 
+          # setting extensions to format works
+          - "``marks''"
+          - "`here'"
+      printsMessage:
+        level: INFO
+        regex: "to: latex-smart\n"  
+    latex+without:
+      ensureFileRegexMatches:
+        - 
+          - 'linkcolor=\{blue\}'
+          - "``marks''"
+          - "`here'"
+        - []
+      printsMessage:
+        level: INFO
+        regex: "to: latex\n"
+---
+
+## Quarto
+
+
+Test the quotation "marks" here and 'here'.
