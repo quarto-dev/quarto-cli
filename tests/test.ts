@@ -246,9 +246,6 @@ export function test(test: TestDescriptor) {
         };
         let lastVerify;
 
-        // Start a group for this test (collapsed by default)
-        gha.startGroup(testName);
-
         try {
 
           try {
@@ -274,14 +271,8 @@ export function test(test: TestDescriptor) {
               await ver.verify(testOutput);
             }
           }
-
-          // Test passed - end the group
-          gha.endGroup();
         } catch (ex) {
           if (!(ex instanceof Error)) throw ex;
-
-          // Test failed - end the group first so error is visible
-          gha.endGroup();
 
           const border = "-".repeat(80);
           const coloredName = userSession
