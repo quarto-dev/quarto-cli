@@ -259,14 +259,36 @@ jobs:
           QUARTO_LOG_LEVEL: DEBUG
         run: |
           haserror=0
+          failed_tests=()
           readarray -t my_array < <(echo '${{ inputs.buckets }}' | jq -rc '.[]')
-          for file in "${my_array[@]}"; do 
+          for file in "${my_array[@]}"; do
+            echo "::group::Running ${file}"
             echo ">>> ./run-tests.sh ${file}"
-            shopt -s globstar && ./run-tests.sh $file
+            # Run tests without -e so we don't exit on first failure
+            set +e
+            shopt -s globstar && ./run-tests.sh "$file"
             status=$?
-            [ $status -eq 0 ] && echo ">>> No error in this test file" || haserror=1
+            set -e
+            if [ $status -eq 0 ]; then
+              echo ">>> No error in this test file"
+            else
+              echo "::error file=${file},title=Test Bucket Failed::Test bucket ${file} failed with exit code ${status}"
+              echo ">>> Error found in test file: ${file}"
+              haserror=1
+              failed_tests+=("$file")
+            fi
+            echo "::endgroup::"
           done
-          [ $haserror -eq 0 ] && echo ">>> All tests passed" || exit 1
+          if [ $haserror -eq 1 ]; then
+            echo "::error title=Test Failures::Failed test buckets: ${failed_tests[*]}"
+            echo ">>> The following test buckets failed:"
+            for failed in "${failed_tests[@]}"; do
+              echo "    - $failed"
+            done
+            exit 1
+          else
+            echo ">>> All tests passed"
+          fi
         working-directory: tests
         shell: bash
 
@@ -277,18 +299,28 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $haserror=$false
+          $failed_tests=@()
           foreach ($file in ('${{ inputs.buckets }}' | ConvertFrom-Json)) {
+            Write-Host "::group::Running ${file}"
             Write-Host ">>> ./run-tests.ps1 ${file}"
             ./run-tests.ps1 $file
             $status=$LASTEXITCODE
-            if ($status -eq 1) {
-              Write-Host ">>> Error found in test file"
-              $haserror=$true
-            } else {
+            if ($status -eq 0) {
               Write-Host ">>> No error in this test file"
+            } else {
+              Write-Host "::error file=${file},title=Test Bucket Failed::Test bucket ${file} failed with exit code ${status}"
+              Write-Host ">>> Error found in test file: ${file}"
+              $haserror=$true
+              $failed_tests+=$file
             }
+            Write-Host "::endgroup::"
           }
           if ($haserror) {
+            Write-Host "::error title=Test Failures::Failed test buckets: $($failed_tests -join ', ')"
+            Write-Host ">>> The following test buckets failed:"
+            foreach ($failed in $failed_tests) {
+              Write-Host "    - $failed"
+            }
             Exit 1
           } else {
             Write-Host ">>> All tests have passed"

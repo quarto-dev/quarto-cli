@@ -17,6 +17,7 @@ import { runningInCI } from "../src/core/ci-info.ts";
 import { relative, fromFileUrl } from "../src/deno_ral/path.ts";
 import { quartoConfig } from "../src/core/quarto.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
+import * as gha from "./github-actions.ts";
 
 
 export interface TestLogConfig {
@@ -244,6 +245,10 @@ export function test(test: TestDescriptor) {
           }
         };
         let lastVerify;
+
+        // Start a group for this test (collapsed by default)
+        gha.startGroup(testName);
+
         try {
 
           try {
@@ -269,8 +274,15 @@ export function test(test: TestDescriptor) {
               await ver.verify(testOutput);
             }
           }
+
+          // Test passed - end the group
+          gha.endGroup();
         } catch (ex) {
           if (!(ex instanceof Error)) throw ex;
+
+          // Test failed - end the group first so error is visible
+          gha.endGroup();
+
           const border = "-".repeat(80);
           const coloredName = userSession
             ? colors.brightGreen(colors.italic(testName))
@@ -330,6 +342,16 @@ export function test(test: TestDescriptor) {
               });
             });
           }
+
+          // Emit GitHub Actions error annotation
+          gha.error(
+            `Test failed: ${testName}\nVerify: ${lastVerify ? lastVerify.name : "unknown"}\n${ex.message}`,
+            {
+              file: relPath,
+              title: `Test Failure: ${testName}`,
+            }
+          );
+
           fail(output.join("\n"));
         } finally {
           safeRemoveSync(log);
