@@ -11,6 +11,7 @@ import { rBinaryPath, resourcePath } from "./resources.ts";
 import { readYamlFromString } from "./yaml.ts";
 import { coerce, satisfies } from "semver/mod.ts";
 import { debug } from "../deno_ral/log.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 export interface KnitrCapabilities {
   versionMajor: number;
@@ -18,6 +19,7 @@ export interface KnitrCapabilities {
   versionPatch: number;
   home: string;
   libPaths: string[];
+  platform?: string;
   packages: KnitrRequiredPackages;
 }
 
@@ -68,6 +70,29 @@ export async function checkRBinary() {
   }
 }
 
+export class WindowsArmX64RError extends Error {
+  constructor(msg: string) {
+    super(msg);
+  }
+}
+
+function checkWindowsArmR(platform: string | undefined): void {
+  if (!platform) return;
+
+  const isWindowsArm = isWindows && Deno.build.arch === "aarch64";
+  const isX64R = platform.includes("x86_64") || platform.includes("i386");
+
+  if (isWindowsArm && isX64R) {
+    throw new WindowsArmX64RError(
+      "x64 R detected on Windows ARM.\n\n" +
+        "x64 R runs under emulation and is not reliable for Quarto.\n" +
+        "Please install native ARM64 R. \n" +
+        "Read about R on 64-bit Windows ARM at https://blog.r-project.org/2024/04/23/r-on-64-bit-arm-windows/\n" +
+        "After installation, set QUARTO_R environment variable if the correct version is not correctly found.",
+    );
+  }
+}
+
 export async function knitrCapabilities(rBin: string | undefined) {
   if (!rBin) return undefined;
   try {
@@ -105,6 +130,8 @@ export async function knitrCapabilities(rBin: string | undefined) {
           Object.values(pkgVersRequirement["rmarkdown"]).join(" "),
         )
         : false;
+
+      checkWindowsArmR(caps.platform);
       return caps;
     } else {
       debug("\n++ Problem with results of knitr capabilities check.");
@@ -115,9 +142,35 @@ export async function knitrCapabilities(rBin: string | undefined) {
       if (result.stderr) {
         debug(`    with stderr from R:\n${result.stderr}`);
       }
+
+      // Check if this is x64 R on Windows ARM
+      if (result.stdout) {
+        try {
+          const yamlMatch = result.stdout.match(
+            /--- YAML_START ---(.*)--- YAML_END ---/s,
+          );
+          if (yamlMatch) {
+            const yamlLines = yamlMatch[1];
+            const caps = readYamlFromString(yamlLines) as KnitrCapabilities;
+            checkWindowsArmR(caps.platform);
+          }
+        } catch (e) {
+          // If it's our specific x64-on-ARM error, rethrow it
+          if (e instanceof WindowsArmX64RError) {
+            throw e;
+          }
+          // Otherwise YAML parse failed, continue to return undefined
+          debug("    Failed to parse YAML for architecture detection");
+        }
+      }
+
       return undefined;
     }
-  } catch {
+  } catch (e) {
+    // Rethrow x64-on-ARM errors - these have helpful messages
+    if (e instanceof WindowsArmX64RError) {
+      throw e;
+    }
     debug(
       `\n++ Error while running 'capabilities/knitr.R' ${
         rBin ? "with " + rBin : ""
@@ -136,6 +189,12 @@ export function knitrCapabilitiesMessage(caps: KnitrCapabilities, indent = "") {
   for (const path of caps.libPaths) {
     lines.push(`  - ${path}`);
   }
+
+  // Show platform information if available
+  if (caps.platform) {
+    lines.push(`Platform: ${caps.platform}`);
+  }
+
   lines.push(`knitr: ${caps.packages.knitr || "(None)"}`);
   if (caps.packages.knitr && !caps.packages.knitrVersOk) {
     lines.push(

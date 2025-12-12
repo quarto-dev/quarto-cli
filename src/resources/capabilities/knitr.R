@@ -8,6 +8,7 @@ cat("libPaths:\n")
 for (lib in .libPaths()) {
   cat(paste0('  - ', shQuote(lib)), "\n")
 }
+cat("platform:", R.version[['platform']], "\n")
 cat("packages:\n")
 cat("  knitr: ")
 if (requireNamespace("knitr", quietly = TRUE)) {

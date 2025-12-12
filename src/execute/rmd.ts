@@ -26,6 +26,7 @@ import {
   knitrCapabilitiesMessage,
   knitrInstallationMessage,
   rInstallationMessage,
+  WindowsArmX64RError,
 } from "../core/knitr.ts";
 import {
   DependenciesOptions,
@@ -139,13 +140,23 @@ title: "Title"
     const kMessage = "Checking R installation...........";
     let caps: KnitrCapabilities | undefined;
     let rBin: string | undefined;
+    let x64ArmError: WindowsArmX64RError | undefined;
     const json: Record<string, unknown> = {};
     if (conf.jsonResult) {
       (conf.jsonResult.tools as Record<string, unknown>).knitr = json;
     }
     const knitrCb = async () => {
       rBin = await checkRBinary();
-      caps = await knitrCapabilities(rBin);
+      try {
+        caps = await knitrCapabilities(rBin);
+      } catch (e) {
+        if (e instanceof WindowsArmX64RError) {
+          x64ArmError = e;
+          // Don't rethrow - let caps stay undefined but capture error
+        } else {
+          throw e; // Rethrow other errors
+        }
+      }
     };
     if (conf.jsonResult) {
       await knitrCb();
@@ -204,6 +215,16 @@ title: "Title"
       const msg = rInstallationMessage(kIndent);
       checkInfoMsg(msg);
       json["installed"] = false;
+      checkInfoMsg("");
+    } else if (x64ArmError) {
+      // x64 R on Windows ARM detected - show specific error
+      json["installed"] = false;
+      checkCompleteMessage(kMessage + "(None)\n");
+      const errorLines = x64ArmError.message.split("\n");
+      errorLines.forEach((line) => {
+        checkInfoMsg(line);
+      });
+      json["error"] = x64ArmError.message;
       checkInfoMsg("");
     } else if (caps === undefined) {
       json["installed"] = false;
