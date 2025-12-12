@@ -272,7 +272,7 @@ jobs:
             if [ $status -eq 0 ]; then
               echo ">>> No error in this test file"
             else
-              echo "::error file=${file},title=Test Bucket Failed::Test bucket ${file} failed with exit code ${status}"
+              echo "::error title=Test Bucket Failed::Test bucket ${file} failed with exit code ${status}"
               echo ">>> Error found in test file: ${file}"
               haserror=1
               failed_tests+=("$file")
@@ -308,7 +308,7 @@ jobs:
             if ($status -eq 0) {
               Write-Host ">>> No error in this test file"
             } else {
-              Write-Host "::error file=${file},title=Test Bucket Failed::Test bucket ${file} failed with exit code ${status}"
+              Write-Host "::error title=Test Bucket Failed::Test bucket ${file} failed with exit code ${status}"
               Write-Host ">>> Error found in test file: ${file}"
               $haserror=$true
               $failed_tests+=$file

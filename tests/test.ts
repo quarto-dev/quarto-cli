@@ -310,9 +310,18 @@ export function test(test: TestDescriptor) {
             : verifyFailed;
 
           const logMessages = logOutput(log);
+
+          // Create distinctive failure marker for easy log navigation
+          // This helps users find the failure when clicking GitHub Actions annotations
+          const failureMarker = `━━━ TEST FAILURE: ${testName}`;
+          const coloredFailureMarker = userSession
+            ? colors.red(colors.bold(failureMarker))
+            : failureMarker;
+
           const output: string[] = [
             "",
             "",
+            coloredFailureMarker,
             border,
             coloredName,
             coloredTestCommand,
@@ -338,8 +347,7 @@ export function test(test: TestDescriptor) {
           gha.error(
             `Test failed: ${testName}\nVerify: ${lastVerify ? lastVerify.name : "unknown"}\n${ex.message}`,
             {
-              file: relPath,
-              title: `Test Failure: ${testName}`,
+              title: `Test Failure [${relPath}]: ${testName}`,
             }
           );
 
