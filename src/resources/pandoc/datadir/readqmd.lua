@@ -182,7 +182,7 @@ local function readqmd(txt, opts)
     Image = function (i)
       i = filter_attrs(i)
       -- Replace UUID-encoded shortcodes in i.src
-      i.src = i.src:gsb(uuid_pattern, hex_to_string)
+      i.src = i.src:gsub(uuid_pattern, hex_to_string)
       return i
     end,
     Str = function(str_node)
