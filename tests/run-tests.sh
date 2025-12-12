@@ -9,6 +9,12 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 export SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
+# Check if verbose mode is enabled (GitHub Actions debug mode or explicit flag)
+VERBOSE_MODE=false
+if [[ "$RUNNER_DEBUG" == "1" ]] || [[ "$QUARTO_TEST_VERBOSE" == "true" ]]; then
+  VERBOSE_MODE=true
+fi
+
 source $SCRIPT_PATH/../package/scripts/common/utils.sh
 
 export QUARTO_ROOT="`cd "$SCRIPT_PATH/.." > /dev/null 2>&1 && pwd`"
@@ -42,10 +48,14 @@ if [[ -z $QUARTO_TESTS_FORCE_NO_VENV ]]
 then
   # Save possible activated virtualenv for later restauration
   OLD_VIRTUAL_ENV=$VIRTUAL_ENV
-  echo "> Activating virtualenv from .venv for Python tests in Quarto"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Activating virtualenv from .venv for Python tests in Quarto"
+  fi
   source "${QUARTO_ROOT}/tests/.venv/bin/activate"
-  echo "> Using Python from $(which python)"
-  echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Using Python from $(which python)"
+    echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  fi
   quarto_venv_activated="true"
 fi
 
@@ -126,20 +136,28 @@ else
   SUCCESS=$?
 fi
 
-if [[ $quarto_venv_activated == "true" ]] 
+if [[ $quarto_venv_activated == "true" ]]
 then
-  echo "> Exiting virtualenv activated for tests"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Exiting virtualenv activated for tests"
+  fi
   deactivate
-  echo "> Using Python from $(which python)"
-  echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Using Python from $(which python)"
+    echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  fi
   unset quarto_venv_activated
 fi
 if [[ -n $OLD_VIRTUAL_ENV ]]
 then
-  echo "> Reactivating original virtualenv"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Reactivating original virtualenv"
+  fi
   source $OLD_VIRTUAL_ENV/bin/activate
-  echo "> Using Python from $(which python)"
-  echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Using Python from $(which python)"
+    echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  fi
   unset OLD_VIRTUAL_ENV
 fi
 
