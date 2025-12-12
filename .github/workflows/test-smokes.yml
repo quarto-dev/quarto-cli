@@ -269,6 +269,7 @@ jobs:
             shopt -s globstar && ./run-tests.sh "$file"
             status=$?
             set -e
+            echo "::endgroup::"
             if [ $status -eq 0 ]; then
               echo ">>> No error in this test file"
             else
@@ -277,10 +278,8 @@ jobs:
               haserror=1
               failed_tests+=("$file")
             fi
-            echo "::endgroup::"
           done
           if [ $haserror -eq 1 ]; then
-            echo "::error title=Test Failures::Failed test buckets: ${failed_tests[*]}"
             echo ">>> The following test buckets failed:"
             for failed in "${failed_tests[@]}"; do
               echo "    - $failed"
@@ -305,6 +304,7 @@ jobs:
             Write-Host ">>> ./run-tests.ps1 ${file}"
             ./run-tests.ps1 $file
             $status=$LASTEXITCODE
+            Write-Host "::endgroup::"
             if ($status -eq 0) {
               Write-Host ">>> No error in this test file"
             } else {
@@ -313,10 +313,8 @@ jobs:
               $haserror=$true
               $failed_tests+=$file
             }
-            Write-Host "::endgroup::"
           }
           if ($haserror) {
-            Write-Host "::error title=Test Failures::Failed test buckets: $($failed_tests -join ', ')"
             Write-Host ">>> The following test buckets failed:"
             foreach ($failed in $failed_tests) {
               Write-Host "    - $failed"
