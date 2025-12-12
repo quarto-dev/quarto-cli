@@ -38,6 +38,22 @@ testRender(docs("email/email-attach.qmd"), "email", false, [fileExists(previewFi
 // Test an email render that has no subject line, this verifies that `rsc_email_subject` key is present and the value is an empty string
 testRender(docs("email/email-no-subject.qmd"), "email", false, [fileExists(previewFile), validJsonWithFields(jsonFile, {"rsc_email_subject": ""})], cleanupCtx);
 
+// Test a basic email render, verifies that the outputs are without the rsc_ prefix
+testRender(docs("email/email.qmd"), "email", false, [validJsonWithFields(jsonFile, {"email_subject": "The subject line."})], {
+  ...cleanupCtx,
+  env: {
+    "SPARK_CONNECT_USER_AGENT": "posit-connect/2025.11.0"
+  }
+});
+
+// Test a basic email render, verifies that the outputs are with the rsc_ prefix given a 2024 version
+testRender(docs("email/email.qmd"), "email", false, [validJsonWithFields(jsonFile, {"rsc_email_subject": "The subject line."})], {
+  ...cleanupCtx,
+  env: {
+    "SPARK_CONNECT_USER_AGENT": "posit-connect/2024.12.0-dev+26-g51b853f70e"
+  }
+});
+
 // Render in a project with an output directory set in _quarto.yml and confirm that everything ends up in the output directory
 testProjectRender(docs("email/project/email-attach.qmd"), "email", (outputDir: string) => {
   const verify: Verify[]= [];
@@ -50,3 +66,6 @@ testProjectRender(docs("email/project/email-attach.qmd"), "email", (outputDir: s
   verify.push(validJsonWithFields(json, {"rsc_email_subject": "The subject line.", "rsc_email_attachments": ["raw_data.csv"]}));
   return verify;
 });
+
+
+
