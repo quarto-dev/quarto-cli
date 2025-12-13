@@ -126,6 +126,7 @@ local function readqmd(txt, opts)
   txt = md_fenced_div.attempt_to_fix_fenced_div(txt)
   txt, tags = escape_invalid_tags(txt)
   txt = md_shortcode.parse_md_shortcode_2(txt)
+  print(txt)
   local flavor = {
     format = "markdown",
     extensions = {},
@@ -153,8 +154,21 @@ local function readqmd(txt, opts)
 
   local function filter_attrs(el)
     for k,v in pairs(el.attributes) do
-      if type(v) == "string" then 
-        el.attributes[k] = v:gsub(uuid_pattern, hex_to_string)
+      if type(v) == "string" then
+        local new_str = v:gsub(uuid_pattern, hex_to_string)
+        -- we avoid always assigning to slightly workaround 
+        -- what appears to be a foundational problem with Pandoc's Lua API
+        -- while accessing attributes with repeated keys.
+        -- Quarto is still going to be broken for the case
+        -- where there are shortcodes inside values of attributes with
+        -- repeated keys:
+        --
+        -- []{k='{{< meta k1 >}}' k='{{< meta k2 >}}'}
+        --
+        -- But I don't know how to work around this.
+        if new_str ~= v then
+          el.attributes[k] = new_str
+        end
       end
     end
     return el
