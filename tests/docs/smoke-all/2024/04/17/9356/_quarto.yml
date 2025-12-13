@@ -9,8 +9,8 @@ website:
       - about.qmd
       - icon: github
         href: https://github.com/
-      - icon: twitter
-        href: https://twitter.com
+      - icon: bluesky
+        href: https://bsky.app
   sidebar:
     logo: "https://quarto.org/quarto.png"
 format:

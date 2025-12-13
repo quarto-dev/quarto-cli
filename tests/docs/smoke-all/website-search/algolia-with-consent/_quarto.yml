@@ -1,0 +1,16 @@
+project:
+  type: website
+
+website:
+  title: "Algolia With Cookie Consent Test"
+  search:
+    algolia:
+      application-id: "TEST_APP_ID"
+      search-only-api-key: "TEST_API_KEY"
+      index-name: "test-index"
+      analytics-events: true
+  cookie-consent: true
+
+format:
+  html:
+    theme: cosmo

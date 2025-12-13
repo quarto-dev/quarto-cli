@@ -19,10 +19,10 @@ brand:
 _quarto:
   tests:
     html:
-      ensureHtmlElements:
+      ensureFileRegexMatches:
         -
-          - 'img[src="sun.png"][alt="sun"][class*="light-content"]'
-          - 'img[src="moon.png"][alt="moon"][class*="dark-content"]'
+          - '<img src="\.(/|\\)sun\.png" class="light-content.*alt="sun">'
+          - '<img src="\.(/|\\)moon\.png" class="dark-content.*alt="moon">'
         - []
 ---
 

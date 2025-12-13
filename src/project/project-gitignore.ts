@@ -15,7 +15,7 @@ import { lines } from "../core/text.ts";
 import { isEnvDir } from "../core/jupyter/capabilities.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 
-export const kQuartoIgnore = [`/${kQuartoScratch}/`];
+export const kQuartoIgnore = [`/${kQuartoScratch}/`, `**/*.quarto_ipynb`];
 
 export async function ensureGitignore(
   dir: string,

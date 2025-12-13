@@ -1,0 +1,22 @@
+---
+format: html
+code-copy: true
+code-annotations: hover
+_quarto:
+  tests:
+    html:
+      # we need to check two things:
+      # 1. the parent of the button is the scaffold div
+      # 2. the scaffold div contains the code element
+      ensureHtmlElements:
+        - - "div.code-copy-outer-scaffold > button.code-copy-button"
+          - "div.code-copy-outer-scaffold code.sourceCode"
+        - []
+---
+
+```python
+# A commented line
+print("Hello, World!") # <1>
+```
+
+1. This line prints "Hello, World!" to the console.

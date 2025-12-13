@@ -11,3 +11,5 @@
   - New release prerelease should be on Github at <https://github.com/quarto-dev/quarto-cli/releases>
   - A new tag should be on main for the new prerelease version
   - `version.txt` on main should have been updated by the workflow to the pre-release version just released: https://github.com/quarto-dev/quarto-cli/blob/main/version.txt
+
+Note: Cloudsmith publishing is skipped for prereleases (only runs for stable releases).

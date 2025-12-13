@@ -1,5 +1,5 @@
 $if(title)$
-# $title$
+# $title/nowrap$
 $endif$
 $for(by-author)$$it.name.literal$$sep$, $endfor$
 $if(date)$

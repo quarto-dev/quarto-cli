@@ -238,7 +238,7 @@ async function installPackage(
       quiet,
     );
     if (updateResult.code !== 0) {
-      return Promise.reject("Problem running `tlgmr update`.");
+      return Promise.reject("Problem running `tlmgr update`.");
     }
 
     // Rebuild format tree
@@ -277,7 +277,7 @@ async function installPackage(
       quiet,
     );
     if (updateResult.code !== 0) {
-      return Promise.reject("Problem running `tlgmr update`.");
+      return Promise.reject("Problem running `tlmgr update`.");
     }
 
     // Rebuild format tree

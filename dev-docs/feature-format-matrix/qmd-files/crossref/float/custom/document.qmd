@@ -8,7 +8,9 @@ crossref:
 format:
   docusaurus-md: {}
 _quarto:
-  tests-on-ci: false 
+  tests:
+    run:
+      not_os: [linux] 
 ---
 
 ::: {#dia-1}

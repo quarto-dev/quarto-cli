@@ -251,7 +251,7 @@ function render_typst_brand_yaml()
       end
       -- logo
       local logo = param('logo')
-      if not next(logo) then
+      if logo and not next(logo) then
         meta.logo = nil
       end
       local logoOptions = {}
@@ -318,6 +318,10 @@ function render_typst_brand_yaml()
           imageFilename = imageFilename and imageFilename:gsub('\\_', '_')
         else
           -- backslashes need to be doubled for Windows
+          if imageFilename[1] ~= "/" and _quarto.projectOffset() ~= "." then
+            local offset = _quarto.projectOffset()
+            imageFilename = pandoc.path.join({offset, imageFilename})
+          end
           imageFilename = string.gsub(imageFilename, '\\', '\\\\')
         end
         logoOptions.path = pandoc.RawInline('typst', imageFilename)

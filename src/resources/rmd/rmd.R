@@ -34,8 +34,11 @@
     knit_meta <- lapply(data, jsonlite::unserializeJSON)
 
     # determine files_dir
-    files_dir <- if (!is.null(libDir)) libDir else
+    files_dir <- if (!is.null(libDir)) {
+      libDir
+    } else {
       rmarkdown:::knitr_files_dir(output)
+    }
 
     # yield pandoc format
     list(
@@ -60,7 +63,9 @@
 
     # bail if we don't have any perserved chunks and aren't doing code linking
     code_link <- isHTML && isTRUE(format$render$`code-link`)
-    if (length(preserved_chunks) == 0 && code_link == FALSE) return()
+    if (length(preserved_chunks) == 0 && code_link == FALSE) {
+      return()
+    }
 
     # change to input dir and make input relative
     oldwd <- setwd(dirname(rmarkdown:::abs_path(input)))
@@ -97,7 +102,14 @@
           # within a code chunk
           for (x in seq_along(chunkStarts)) {
             start <- chunkStarts[x]
-            end <- chunkEnds[x]
+            # Ensure end is greater than start
+            end <- start
+            for (e in chunkEnds) {
+              if (e > start) {
+                end <- e
+                break
+              }
+            }
             for (y in start:end) {
               if (y > start && y < end) {
                 chunkMap[y] <- TRUE
@@ -191,8 +203,12 @@
 
   run <- function(input, port, host) {
     shiny_args <- list()
-    if (!is.null(port)) shiny_args$port <- port
-    if (!is.null(host)) shiny_args$host <- host
+    if (!is.null(port)) {
+      shiny_args$port <- port
+    }
+    if (!is.null(host)) {
+      shiny_args$host <- host
+    }
 
     # we already ran quarto render before the call to run
     Sys.setenv(RMARKDOWN_RUN_PRERENDER = "0")
@@ -226,7 +242,9 @@
   # print execute-debug message ("spin" and "run" don't pass format option)
   debug <- (!request$action %in% c("spin", "run")) &&
     isTRUE(params$format$execute[["debug"]])
-  if (debug) message("[knitr engine]: ", request$action)
+  if (debug) {
+    message("[knitr engine]: ", request$action)
+  }
 
   # dispatch request
   if (request$action == "spin") {
@@ -267,7 +285,9 @@
   }
 
   # write results
-  if (debug) message("[knitr engine]: writing results")
+  if (debug) {
+    message("[knitr engine]: writing results")
+  }
   resultJson <- jsonlite::toJSON(auto_unbox = TRUE, result)
   xfun:::write_utf8(paste(resultJson, collapse = "\n"), request[["results"]])
   if (debug) message("[knitr engine]: exiting")

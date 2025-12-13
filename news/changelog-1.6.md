@@ -2,7 +2,7 @@ All changes included in 1.6:
 
 ## Breaking changes
 
-- The syntax for standard library imports in `quarto run` TypeScript files (`*.ts`) changed. Please see <https://prerelease.quarto.org/docs/projects/scripts.html#deno-scripts> for how to make the necessary changes.
+- The syntax for standard library imports in `quarto run` TypeScript files (`*.ts`) changed. Please see <https://quarto.org/docs/projects/scripts.html#deno-scripts> for how to make the necessary changes.
 
 ## Shortcodes
 

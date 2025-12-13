@@ -95,6 +95,7 @@ import { pythonExec } from "../../core/jupyter/exec.ts";
 import { kTocIndent } from "../../config/constants.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { tinyTexBinDir } from "../../tools/impl/tinytex-info.ts";
+import { typstBinaryPath } from "../../core/typst.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -204,6 +205,7 @@ async function quartoEnvironmentParams(_options: PandocOptions) {
     "paths": {
       "Rscript": await rBinaryPath("Rscript"),
       "TinyTexBinDir": tinyTexBinDir(), // will be undefined if no tinytex found and quarto will look in PATH
+      "Typst": typstBinaryPath(),
     },
   };
 }
@@ -851,19 +853,28 @@ async function resolveFilterExtension(
   // Resolve any filters that are provided by an extension
   const results: (QuartoFilter | QuartoFilter[])[] = [];
   const getFilter = async (filter: QuartoFilter) => {
-    // Look for extension names in the filter list and result them
+    // Look for extension names in the filter list and resolve them
     // into the filters provided by the extension
-    if (
-      filter !== kQuartoFilterMarker && filter !== kQuartoCiteProcMarker &&
-      typeof filter === "string"
-    ) {
+    if (filter === kQuartoFilterMarker || filter === kQuartoCiteProcMarker) {
+      return filter;
+    }
+
+    let pathToResolve: string | null = null;
+    
+    if (typeof filter === "string") {
+      pathToResolve = filter;
+    } else if (typeof filter === "object" && filter.path) {
+      pathToResolve = filter.path;
+    }
+
+    if (pathToResolve) {
       // The filter string points to an executable file which exists
-      if (existsSync(filter) && !Deno.statSync(filter).isDirectory) {
+      if (existsSync(pathToResolve) && !Deno.statSync(pathToResolve).isDirectory) {
         return filter;
       }
 
       const extensions = await options.services.extension?.find(
-        filter,
+        pathToResolve,
         options.source,
         "filters",
         options.project?.config,
@@ -873,15 +884,35 @@ async function resolveFilterExtension(
       // Filter this list of extensions
       const filteredExtensions = filterExtensions(
         extensions || [],
-        filter,
+        pathToResolve,
         "filter",
       );
       // Return any contributed plugins
       if (filteredExtensions.length > 0) {
         // This matches an extension, use the contributed filters
-        const filters = extensions[0].contributes.filters;
-        if (filters) {
-          return filters;
+        const extensionFilters = extensions[0].contributes.filters;
+        if (extensionFilters) {
+          // After "path" resolution, "at" needs to be preserved
+          if (typeof filter === "string") {
+            return extensionFilters;
+          } else if (isFilterEntryPoint(filter)) {
+            return extensionFilters.map(extFilter => {
+              if (typeof extFilter === "string") {
+                return {
+                  type: extFilter.endsWith(".lua") ? "lua" : "json" as "lua" | "json",
+                  path: extFilter,
+                  at: filter.at
+                };
+              } else {
+                return {
+                  ...extFilter,
+                  at: filter.at
+                };
+              }
+            });
+          } else {
+            return extensionFilters;
+          }
         } else {
           return filter;
         }

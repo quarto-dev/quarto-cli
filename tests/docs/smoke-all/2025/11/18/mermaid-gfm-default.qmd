@@ -1,0 +1,37 @@
+---
+title: "GFM with default mermaid format"
+format: gfm
+_quarto:
+  tests:
+    gfm:
+      ensureFileRegexMatches:
+        - ['``` mermaid\s+graph']  # Verify raw mermaid code block is preserved (note space after ```)
+        - ['mermaid-figure-.*?\.svg']  # Should NOT have SVG files
+      printsMessage:
+        level: INFO
+        regex: 'Using mermaid-format'
+        negate: true  # Should NOT print any mermaid-format warnings
+---
+
+## GFM Default Mermaid Test
+
+This tests that GFM format uses GitHub's native mermaid code block support by default.
+
+```{mermaid}
+graph LR
+  A[Start] --> B{Decision}
+  B -->|Yes| C[Option 1]
+  B -->|No| D[Option 2]
+  C --> E[End]
+  D --> E
+```
+
+## Multi-line Labels Test
+
+GitHub's native mermaid renderer should handle this:
+
+```{mermaid}
+graph TD
+  A["This is a very long label<br/>with multiple lines<br/>of text content"] --> B["Another multi-line<br/>label here"]
+  B --> C[Short]
+```

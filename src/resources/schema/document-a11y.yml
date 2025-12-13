@@ -1,4 +1,6 @@
 - name: axe
+  tags:
+    formats: [$html-files]
   schema:
     anyOf:
       - boolean

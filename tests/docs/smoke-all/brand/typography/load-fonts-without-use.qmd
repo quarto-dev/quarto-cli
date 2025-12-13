@@ -1,0 +1,23 @@
+---
+title: Load all brand fonts
+
+brand:
+  typography:
+    fonts:
+      - family: Barrio
+        source: google
+      - family: Roboto
+        source: google
+    base: Roboto
+    # headings: Barrio
+---
+
+## Base font
+
+{{< lipsum 1 >}}
+
+## Barrio font
+
+::: {style="font-family: Barrio"}
+{{< lipsum 1 >}}
+:::

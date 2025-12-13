@@ -113,23 +113,20 @@ local function unescape_invalid_tags(str, tags)
   return str
 end
 
-local function urldecode(url)
-  if url == nil then
-    return
-  end
-    url = url:gsub("+", " ")
-    url = url:gsub("%%(%x%x)", function(x)
-      return string.char(tonumber(x, 16))
-    end)
-    url = url:gsub('%&quot%;', '"')
-  return url
+-- Convert a hexadecimal string back to the original string
+local function hex_to_string(hex)
+    return (hex:gsub('..', function(cc)
+        return string.char(tonumber(cc, 16))
+    end))
 end
 
 local function readqmd(txt, opts)
+  local uuid_pattern = "b58fc729%-690b%-4000%-b19f%-365a4093b2ff%-([A-Fa-f0-9]+)%-"
   local tags
   txt = md_fenced_div.attempt_to_fix_fenced_div(txt)
   txt, tags = escape_invalid_tags(txt)
-  txt = md_shortcode.parse_md_shortcode(txt)
+  txt = md_shortcode.parse_md_shortcode_2(txt)
+  print(txt)
   local flavor = {
     format = "markdown",
     extensions = {},
@@ -151,17 +148,27 @@ local function readqmd(txt, opts)
   -- so we need to undo that damage here
 
   local unshortcode_text = function (c)
-    if c.text:match("data%-is%-shortcode%=%\"1%\"") then
-      c.text = md_shortcode.unparse_md_shortcode(c.text)
-    end
+    c.text = c.text:gsub(uuid_pattern, hex_to_string)
     return c
   end
 
   local function filter_attrs(el)
     for k,v in pairs(el.attributes) do
-      if type(v) == "string" and v:match("data%-is%-shortcode%=%\"1%\"") then
-        local new_v = md_shortcode.unparse_md_shortcode(v)
-        el.attributes[k] = new_v
+      if type(v) == "string" then
+        local new_str = v:gsub(uuid_pattern, hex_to_string)
+        -- we avoid always assigning to slightly workaround 
+        -- what appears to be a foundational problem with Pandoc's Lua API
+        -- while accessing attributes with repeated keys.
+        -- Quarto is still going to be broken for the case
+        -- where there are shortcodes inside values of attributes with
+        -- repeated keys:
+        --
+        -- []{k='{{< meta k1 >}}' k='{{< meta k2 >}}'}
+        --
+        -- But I don't know how to work around this.
+        if new_str ~= v then
+          el.attributes[k] = new_str
+        end
       end
     end
     return el
@@ -170,9 +177,7 @@ local function readqmd(txt, opts)
   local doc = pandoc.read(txt or "", flavor, opts):walk {
     CodeBlock = function (cb)
       cb.classes = cb.classes:map(restore_invalid_tags)
-      if cb.text:match("data%-is%-shortcode%=%\"1%\"") then
-        cb.text = md_shortcode.unparse_md_shortcode(cb.text)
-      end
+      cb.text = cb.text:gsub(uuid_pattern, hex_to_string)
       cb.text = unescape_invalid_tags(cb.text, tags)
       return cb
     end,
@@ -184,20 +189,61 @@ local function readqmd(txt, opts)
     Div = filter_attrs,
     Link = function (l)
       l = filter_attrs(l)
-      if l.target:match("data%-is%-shortcode%=%%221%%22") then
-        l.target = md_shortcode.unparse_md_shortcode(urldecode(l.target))
-        return l
-      end
+      l.target = l.target:gsub(uuid_pattern, hex_to_string)
       return l
     end,
     Image = function (i)
       i = filter_attrs(i)
-      if i.src:match("data%-is%-shortcode%=%%221%%22") then
-        i.src = md_shortcode.unparse_md_shortcode(urldecode(i.src))
-        return i
-      end
+      -- Replace UUID-encoded shortcodes in i.src
+      i.src = i.src:gsub(uuid_pattern, hex_to_string)
       return i
     end,
+    Str = function(str_node)
+      local str = str_node.text
+      -- Quick check: if UUID not present at all, return as-is
+      if not str:find("b58fc729-690b-4000-b19f-365a4093b2ff", 1, true) then
+        return nil
+      end
+
+      local result = pandoc.Inlines{}
+      local pos = 1
+
+      while true do
+        local match_start, match_end, hex_content = str:find(uuid_pattern, pos)
+
+        if not match_start then
+          -- No more matches; append remaining string if any
+          if pos <= #str then
+            table.insert(result, pandoc.Str(str:sub(pos)))
+          end
+          break
+        end
+
+        -- Append prefix before the match as a Str node (if non-empty)
+        if match_start > pos then
+          table.insert(result, pandoc.Str(str:sub(pos, match_start - 1)))
+        end
+
+        -- Convert hex to original shortcode string
+        local shortcode_text = hex_to_string(hex_content)
+
+        -- Parse the shortcode to markdown span syntax
+        local parsed_md = md_shortcode.parse_md_shortcode(shortcode_text) or ""
+
+        -- Convert to Pandoc inlines via pandoc.read
+        local doc = pandoc.read(parsed_md, "markdown")
+        local inlines = doc.blocks[1] and doc.blocks[1].content or pandoc.Inlines{}
+        -- Append the inlines to result
+        for _, inline in ipairs(inlines) do
+          table.insert(result, inline)
+        end
+
+        -- Move position past the match
+        pos = match_end + 1
+      end
+
+      return result
+    end
   }
   return doc
 end

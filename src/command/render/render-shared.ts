@@ -48,12 +48,14 @@ export async function render(
   // determine target context/files
   let context = await projectContext(path, nbContext, options);
 
-  // if there is no project parent and an output-dir was passed, then force a project
+  // Create a synthetic project when --output-dir is used without a project file
+  // This creates a temporary .quarto directory to manage the render, which must
+  // be fully cleaned up afterward to avoid leaving debris (see #9745)
   if (!context && options.flags?.outputDir) {
-    // recompute context
     context = await projectContextForDirectory(path, nbContext, options);
 
-    // force clean as --output-dir implies fully overwrite the target
+    // forceClean signals this is a synthetic project that needs full cleanup
+    // including removing the .quarto scratch directory after rendering (#13625)
     options.forceClean = options.flags.clean !== false;
   }
 
@@ -98,7 +100,7 @@ export async function render(
 
   assert(!context, "Expected no context here");
   // NB: singleFileProjectContext is currently not fully-featured
-  context = await singleFileProjectContext(path, nbContext, options.flags);
+  context = await singleFileProjectContext(path, nbContext, options);
 
   // otherwise it's just a file render
   const result = await renderFiles(
@@ -145,7 +147,7 @@ export async function render(
 
   if (!renderResult.error && engine?.postRender) {
     for (const file of renderResult.files) {
-      await engine.postRender(file, renderResult.context);
+      await engine.postRender(file);
     }
   }
 

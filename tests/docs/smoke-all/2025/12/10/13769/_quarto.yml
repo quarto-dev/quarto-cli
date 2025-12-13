@@ -1,0 +1,20 @@
+project:
+  type: book
+
+book:
+  title: "issue13769"
+  author: "Norah Jones"
+  date: "12/10/2025"
+  repo-url: "https://github.com/quarto-dev/quarto-cli"
+  repo-link-target: "_blank"
+  repo-link-rel: "noreferrer"
+  repo-actions: none
+  chapters:
+    - index.qmd
+
+
+format:
+  html:
+    theme:
+      - cosmo
+      - brand

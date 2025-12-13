@@ -1,0 +1,22 @@
+---
+title: "Babel English Auto-Install (#13633)"
+format: pdf
+lang: en
+_quarto:
+  tests:
+    pdf: null
+---
+
+```{r}
+#| eval: !expr isFALSE(as.logical(Sys.getenv("CI", "false")))
+#| include: false
+#| messages: "NA"
+
+# Remove babel-english package to test auto-installation
+if (tinytex::check_installed("babel-english")) {
+  message("Removing 'babel-english' package for the render")
+  tinytex::tlmgr_remove("babel-english")
+}
+```
+
+This document tests that Quarto correctly detects and auto-installs babel-english when rendering with `lang: en`.

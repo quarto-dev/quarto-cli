@@ -1,0 +1,18 @@
+---
+title: "Document 2"
+format:
+  html:
+    template-partials:
+      - metadata.html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+      - ['<title>This text will be overwritten.</title>']
+---
+
+This is sample document 2.
+
+The `format` metadata is redundant with that in `_quarto.yml`,
+but it's here to show that if you remove those options from `_quarto.yml`
+but leave them here, the bug will remain the same.

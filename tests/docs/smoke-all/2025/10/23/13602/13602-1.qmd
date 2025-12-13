@@ -1,0 +1,15 @@
+---
+title: Multiple bib in typst
+format: typst
+keep-typ: true
+bibliography: references.bib
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['\#bibliography\(\("references.bib"\)\)']
+        - []
+---
+
+A reference from the first file @smith1776inquirynaturecauses
+

@@ -112,6 +112,13 @@ function initShortcodeHandlers()
       return quarto.shortcode.error_output("brand", args, context)
     end
 
+    local add_leading_slash = function(path)
+      if path:match '^https?:' or path[1] == "/" then
+        return path
+      end
+      return "/" .. path
+    end
+
     if brandCommand == "color" then 
       local brandMode = 'light'
       if #args > 2 then
@@ -167,12 +174,14 @@ function initShortcodeHandlers()
       end
       local images = {}
       if lightLogo then
-        table.insert(images, pandoc.Image(pandoc.Inlines {}, lightLogo.path, "",
-          pandoc.Attr("", {"light-content"}, {alt = lightLogo.alt})))
+        local classes = brandMode == 'both' and {"light-content"} or {}
+        table.insert(images, pandoc.Image(pandoc.Inlines {}, add_leading_slash(lightLogo.path), "",
+          pandoc.Attr("", classes, {alt = lightLogo.alt})))
       end
       if darkLogo then
-        table.insert(images, pandoc.Image(pandoc.Inlines {}, darkLogo.path, "",
-          pandoc.Attr("", {"dark-content"}, {alt = darkLogo.alt})))
+        local classes = brandMode == 'both' and {"dark-content"} or {}
+        table.insert(images, pandoc.Image(pandoc.Inlines {}, add_leading_slash(darkLogo.path), "",
+          pandoc.Attr("", classes, {alt = darkLogo.alt})))
       end
       if context == "block" then
         return pandoc.Blocks(images)

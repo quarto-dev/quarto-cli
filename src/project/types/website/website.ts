@@ -472,7 +472,7 @@ function websiteTemplate(
           noEngineContent: true,
           title,
           yaml:
-            'listing:\n  contents: posts\n  sort: "date desc"\n  type: default\n  categories: true\n  sort-ui: false\n  filter-ui: false\npage-layout: full\ntitle-block-banner: true',
+            'listing:\n  contents: posts\n  feed: true\n  sort: "date desc"\n  type: default\n  categories: true\n  sort-ui: false\n  filter-ui: false\npage-layout: full\ntitle-block-banner: true',
         },
         {
           name: "index",
@@ -503,7 +503,7 @@ function websiteTemplate(
           title: "About",
           content: "About this blog",
           yaml:
-            `image: profile.jpg\nabout:\n  template: jolla\n  links:\n    - icon: twitter\n      text: Twitter\n      href: https://twitter.com\n    - icon: linkedin\n      text: LinkedIn\n      href: https://linkedin.com\n    - icon: github\n      text: Github\n      href: https://github.com\n`,
+            `image: profile.jpg\nabout:\n  template: jolla\n  links:\n    - icon: bluesky\n      text: Bluesky\n      href: https://bsky.app/\n    - icon: linkedin\n      text: LinkedIn\n      href: https://linkedin.com\n    - icon: github\n      text: Github\n      href: https://github.com\n`,
           supporting: [
             join(resourceDir, "templates", "blog", "profile.jpg"),
           ],

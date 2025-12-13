@@ -1,0 +1,14 @@
+---
+title: Source Sans Pro
+---
+
+This text **should be** in Source Sans Pro, _and_ some ***variants***.
+
+{{< lipsum 1 >}}
+
+**{{< lipsum 1 >}}**
+
+*{{< lipsum 1 >}}*
+
+***{{< lipsum 1 >}}***
+

@@ -1,0 +1,19 @@
+{
+  "name": "reveal-multiplex",
+  "version": "0.1.0",
+  "description": "reveal.js multiplex plugin - local test server",
+  "homepage": "https://revealjs.com",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "~4.17.1",
+    "mustache": "~4.0.0",
+    "socket.io": "^2.5.0"
+  },
+  "license": "MIT"
+}

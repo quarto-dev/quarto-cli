@@ -252,7 +252,7 @@ export const notebookPreviewer = (
         // to form links to this notebook
         const nbPreview = {
           title: resolvedTitle,
-          href: relative(inputDir, renderedNotebook[kHtmlPreview].hrefPath),
+          href: descriptor?.url || relative(inputDir, renderedNotebook[kHtmlPreview].hrefPath),
           supporting,
           resources,
           order: work.order,

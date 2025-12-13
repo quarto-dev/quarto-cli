@@ -47,7 +47,10 @@ import { Format, FormatExtras } from "../../../config/types.ts";
 import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
 import { md5HashAsync } from "../../../core/hash.ts";
 export { type NavigationFooter } from "../../types.ts";
-import { resolveLogo } from "../../../core/brand/brand.ts";
+import {
+  logoAddLeadingSlashes,
+  resolveLogo,
+} from "../../../core/brand/brand.ts";
 
 export interface Navigation {
   navbar?: Navbar;
@@ -137,11 +140,13 @@ export async function websiteNavigationConfig(project: ProjectContext) {
         navLogo = { path: navLogo, alt: navbar[kLogoAlt] };
       }
     }
-    navbar.logo = resolveLogo(projectBrand, navLogo, [
+    let logo = resolveLogo(projectBrand, navLogo, [
       "small",
       "medium",
       "large",
     ]);
+    logo = logoAddLeadingSlashes(logo, projectBrand, undefined);
+    navbar.logo = logo;
   }
   // read sidebar
   const sidebar = websiteConfig(kSiteSidebar, project.config);
@@ -194,11 +199,13 @@ export async function websiteNavigationConfig(project: ProjectContext) {
         // }
       }
     }
-    sidebars[0].logo = resolveLogo(projectBrand, sideLogo, [
+    let logo = resolveLogo(projectBrand, sideLogo, [
       "medium",
       "small",
       "large",
     ]);
+    logo = logoAddLeadingSlashes(logo, projectBrand, undefined);
+    sidebars[0].logo = logo;
 
     // convert contents: auto into items
     for (const sb of sidebars) {

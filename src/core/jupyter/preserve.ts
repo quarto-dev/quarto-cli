@@ -1,10 +1,10 @@
 /*
-* preserve.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * preserve.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
+import { dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 import { kTextHtml, kTextMarkdown } from "../mime.ts";
 import { isDisplayData } from "./display-data.ts";
 import { JupyterNotebook, JupyterOutputDisplayData } from "./types.ts";
@@ -57,4 +57,28 @@ export function restorePreservedHtml(
 
 export function isPreservedHtml(_html: string) {
   return false;
+}
+
+export function postProcessRestorePreservedHtml(options: PostProcessOptions) {
+  // read the output file
+
+  const outputPath = isAbsolute(options.output)
+    ? options.output
+    : join(dirname(options.target.input), options.output);
+  let output = Deno.readTextFileSync(outputPath);
+
+  // substitute
+  output = restorePreservedHtml(
+    output,
+    options.preserve,
+  );
+
+  // re-write the output
+  Deno.writeTextFileSync(outputPath, output);
+}
+
+interface PostProcessOptions {
+  target: { input: string };
+  output: string;
+  preserve?: Record<string, string>;
 }

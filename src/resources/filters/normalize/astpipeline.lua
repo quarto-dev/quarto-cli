@@ -323,6 +323,11 @@ function quarto_ast_pipeline()
   end
 
   return {
+    { name = "astpipeline-process-list-tables",
+      filter = _quarto.modules.listtable.list_table_filter(),
+      traverser = 'jog',
+    },
+    
     { name = "astpipeline-process-tables",
       filter = astpipeline_process_tables(),
       traverser = 'jog',

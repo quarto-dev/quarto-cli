@@ -1,0 +1,188 @@
+name: Publish to Cloudsmith
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version/tag (e.g., v1.9.123 or 1.9.123, or 'latest' for most recent)"
+        required: false
+        type: string
+        default: "latest"
+      dry-run:
+        description: "Dry run (don't actually publish)"
+        required: false
+        type: boolean
+        default: true
+  workflow_call:
+    inputs:
+      version:
+        description: "Release version/tag"
+        required: true
+        type: string
+      dry-run:
+        description: "Dry run (don't actually publish)"
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      CLOUDSMITH_API_KEY:
+        required: true
+
+jobs:
+  determine-version:
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.resolve.outputs.tag_name }}
+      version: ${{ steps.resolve.outputs.version }}
+      is_prerelease: ${{ steps.resolve.outputs.is_prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github
+
+      - name: Resolve version and tag
+        id: resolve
+        run: |
+          VERSION_INPUT="${{ inputs.version }}"
+
+          # If version is "latest" or empty, get the latest release
+          if [ "$VERSION_INPUT" == "latest" ] || [ -z "$VERSION_INPUT" ]; then
+            echo "Fetching latest release..."
+            TAG_NAME=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+            IS_PRERELEASE=$(gh release view "$TAG_NAME" --json isPrerelease --jq '.isPrerelease')
+          else
+            # Ensure tag has 'v' prefix
+            if [[ "$VERSION_INPUT" == v* ]]; then
+              TAG_NAME="$VERSION_INPUT"
+            else
+              TAG_NAME="v$VERSION_INPUT"
+            fi
+
+            # Check if release exists and get prerelease status
+            if ! gh release view "$TAG_NAME" > /dev/null 2>&1; then
+              echo "::error::Release $TAG_NAME not found"
+              exit 1
+            fi
+            IS_PRERELEASE=$(gh release view "$TAG_NAME" --json isPrerelease --jq '.isPrerelease')
+          fi
+
+          # Extract version without 'v' prefix
+          VERSION="${TAG_NAME#v}"
+
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+
+          echo "Resolved to: $TAG_NAME (version: $VERSION, prerelease: $IS_PRERELEASE)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check not prerelease
+        if: steps.resolve.outputs.is_prerelease == 'true'
+        run: |
+          echo "::error::Release ${{ steps.resolve.outputs.tag_name }} is a prerelease. Cloudsmith publishing is only for stable releases."
+          exit 1
+
+  validate-all-assets:
+    runs-on: ubuntu-latest
+    needs: [determine-version]
+    steps:
+      - name: Validate all packages exist in release
+        run: |
+          TAG_NAME="${{ needs.determine-version.outputs.tag_name }}"
+          VERSION="${{ needs.determine-version.outputs.version }}"
+
+          echo "Validating packages for release $TAG_NAME..."
+
+          # Get list of assets from release (API call, no download)
+          ASSETS=$(gh release view "$TAG_NAME" --json assets --jq '.assets[].name')
+
+          MISSING=0
+          REQUIRED_FILES=(
+            "quarto-${VERSION}-linux-amd64.deb"
+            "quarto-${VERSION}-linux-arm64.deb"
+            "quarto-${VERSION}-linux-x86_64.rpm"
+            "quarto-${VERSION}-linux-aarch64.rpm"
+          )
+
+          for FILE in "${REQUIRED_FILES[@]}"; do
+            if echo "$ASSETS" | grep -q "^${FILE}$"; then
+              echo "✓ Found: $FILE"
+            else
+              echo "::error::Missing: $FILE"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+
+          if [ $MISSING -gt 0 ]; then
+            echo "::error::$MISSING package(s) missing from release. All 4 packages required for Cloudsmith publishing."
+            exit 1
+          fi
+
+          echo "All required packages present in release"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: quarto-dev/quarto-cli
+
+  publish-cloudsmith:
+    runs-on: ubuntu-latest
+    needs: [determine-version, validate-all-assets]
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+        format: [deb, rpm]
+    steps:
+      - name: Set package architecture name
+        id: pkg_arch
+        run: |
+          if [ "${{ matrix.format }}" == "deb" ]; then
+            if [ "${{ matrix.arch }}" == "x86_64" ]; then
+              echo "arch_name=amd64" >> $GITHUB_OUTPUT
+            else
+              echo "arch_name=arm64" >> $GITHUB_OUTPUT
+            fi
+          else
+            if [ "${{ matrix.arch }}" == "x86_64" ]; then
+              echo "arch_name=x86_64" >> $GITHUB_OUTPUT
+            else
+              echo "arch_name=aarch64" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Download and validate package from release
+        run: |
+          TAG_NAME="${{ needs.determine-version.outputs.tag_name }}"
+          VERSION="${{ needs.determine-version.outputs.version }}"
+          ARCH_NAME="${{ steps.pkg_arch.outputs.arch_name }}"
+          FILE_NAME="quarto-${VERSION}-linux-${ARCH_NAME}.${{ matrix.format }}"
+
+          echo "Downloading $FILE_NAME from release $TAG_NAME..."
+
+          if ! gh release download "$TAG_NAME" --pattern "$FILE_NAME"; then
+            echo "::error::Failed to download $FILE_NAME from release $TAG_NAME"
+            exit 1
+          fi
+
+          if [ ! -f "$FILE_NAME" ]; then
+            echo "::error::Package file $FILE_NAME not found in release"
+            exit 1
+          fi
+
+          echo "✓ Successfully downloaded and validated: $FILE_NAME"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: quarto-dev/quarto-cli
+
+      - name: Install and authenticate Cloudsmith CLI
+        uses: cloudsmith-io/cloudsmith-cli-action@v1.0.8
+        with:
+          api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
+
+      - name: Push ${{ matrix.format }} ${{ matrix.arch }} to Cloudsmith${{ inputs.dry-run && ' (DRY RUN)' || '' }}
+        run: |
+          cloudsmith push ${{ matrix.format }} \
+            posit/open/any-distro/any-version \
+            "quarto-${{ needs.determine-version.outputs.version }}-linux-${{ steps.pkg_arch.outputs.arch_name }}.${{ matrix.format }}" \
+            --republish \
+            ${{ inputs.dry-run && '--dry-run' || '' }}

@@ -3,6 +3,7 @@
   - `git checkout -b v1.4`
   - `git push origin v1.4`
 - [ ] mark the current release as the new release in the `main` branch
+  - [ ] switch your repo back to `main`: `git checkout main`
   - [ ] edit QUARTO_VERSION line in `/configuration` to be the new version (e.g. `1.5`)
   - [ ] push the changes to the `main` branch
   - [ ] kick off a v1.5 build in GHA: https://github.com/quarto-dev/quarto-cli/actions/workflows/create-release.yml
@@ -71,10 +72,12 @@
           - Published to: <https://pypi.org/project/quarto-cli/>
       - Take a sip of tea ☕, bask in the glory of automation.
   - Others installers
+    - Cloudsmith: Automatically published by Build Installers workflow. No action needed.
+      - See [cloudsmith-publishing.md](cloudsmith-publishing.md) for manual republishing if needed.
     - conda-forge: An automated PR will be created to update the package version in the feedstock <github.com/conda-forge/quarto-feedstock>
       - This is community maintained, so no action is needed from us - except maybe helping if there are issues with the PR. We are assigned as reviewers to the PR.
-      - Winget: An automated PR will be created by a winget bot in <github.com/microsoft/winget-pkgs/>.
-        - This is community maintained, so no action is needed from us.
-      - Scoop: This will be updated automatically in the manifests repo. No action is needed from us. Maintained as personal project by @cderv.
-      - Homebrew: This is automated through an homebrew bot to update the cask <https://github.com/Homebrew/homebrew-cask>
-        - Manisfest: <https://github.com/Homebrew/homebrew-cask/blob/master/Casks/q/quarto.rb>
+    - Winget: An automated PR will be created by a winget bot in <github.com/microsoft/winget-pkgs/>.
+      - This is community maintained, so no action is needed from us.
+    - Scoop: This will be updated automatically in the manifests repo. No action is needed from us. Maintained as personal project by @cderv.
+    - Homebrew: This is automated through an homebrew bot to update the cask <https://github.com/Homebrew/homebrew-cask>
+      - Manifest: <https://github.com/Homebrew/homebrew-cask/blob/master/Casks/q/quarto.rb>

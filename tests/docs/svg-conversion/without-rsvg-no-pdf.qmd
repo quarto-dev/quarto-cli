@@ -1,0 +1,13 @@
+---
+title: "SVG without rsvg-convert (PDF missing - warning expected)"
+format: latex
+use-rsvg-convert: false
+---
+
+This test verifies that a warning is emitted when rsvg-convert is disabled and no pre-converted PDF exists.
+
+Using format: latex (not pdf) to generate .tex file without compiling, avoiding LaTeX/Inkscape dependencies.
+
+The filter should warn about missing PDF but still generate LaTeX output.
+
+![Test SVG image without pre-converted PDF](test-no-pdf.svg)

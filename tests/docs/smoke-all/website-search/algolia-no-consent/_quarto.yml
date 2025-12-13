@@ -1,0 +1,17 @@
+project:
+  type: website
+
+website:
+  title: "Algolia Without Cookie Consent Test"
+  search:
+    algolia:
+      application-id: "TEST_APP_ID"
+      search-only-api-key: "TEST_API_KEY"
+      index-name: "test-index"
+      analytics-events: true
+  # This is the default and should act as such
+  # cookie-consent: false
+
+format:
+  html:
+    theme: cosmo
