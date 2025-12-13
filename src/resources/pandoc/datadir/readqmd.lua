@@ -153,9 +153,8 @@ local function readqmd(txt, opts)
 
   local function filter_attrs(el)
     for k,v in pairs(el.attributes) do
-      if type(v) == "string" and v:match("data%-is%-shortcode%=%\"1%\"") then
-        local new_v = md_shortcode.unparse_md_shortcode(v)
-        el.attributes[k] = new_v
+      if type(v) == "string" then 
+        el.attributes[k] = v:gsub(uuid_pattern, hex_to_string)
       end
     end
     return el
