@@ -280,7 +280,8 @@ jobs:
             fi
           done
           if [ $haserror -eq 1 ]; then
-            echo ">>> The following test buckets failed:"
+            echo "---- FAILING TESTS SUMMARY ----"
+            echo "    The following test buckets failed:"
             for failed in "${failed_tests[@]}"; do
               echo "    - $failed"
             done
@@ -315,7 +316,8 @@ jobs:
             }
           }
           if ($haserror) {
-            Write-Host ">>> The following test buckets failed:"
+            Write-Host "---- FAILING TESTS SUMMARY ----"
+            Write-Host "    The following test buckets failed:"
             foreach ($failed in $failed_tests) {
               Write-Host "    - $failed"
             }
