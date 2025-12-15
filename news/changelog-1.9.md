@@ -11,12 +11,19 @@ All changes included in 1.9:
 - ([#13633](https://github.com/quarto-dev/quarto-cli/issues/13633)): Fix detection and auto-installation of babel language packages from newer error format that doesn't explicitly mention `.ldf` filename.
 - ([#13694](https://github.com/quarto-dev/quarto-cli/issues/13694)): Fix `notebook-view.url` being ignored - external notebook links now properly use specified URLs instead of local preview files.
 - ([#13732](https://github.com/quarto-dev/quarto-cli/issues/13732)): Fix automatic font package installation for fonts with spaces in their names (e.g., "Noto Emoji", "DejaVu Sans"). Font file search patterns now match both with and without spaces.
+- ([#13798](https://github.com/quarto-dev/quarto-cli/pull/13798)): Directories specified in `ExecutionEngineDiscovery.ignoreDirs` were not getting ignored.
 
 ## Dependencies
 
 - Update `esbuild` to 0.25.10
 - Update `deno` to 2.4.5
 - ([#13601](https://github.com/quarto-dev/quarto-cli/pull/13601)): Update `mermaid` to 11.12.0 (author: @multimeric)
+
+## Extensions
+
+- Metadata and brand extensions now work without a `_quarto.yml` project. (Engine extensions do too.) A temporary default project is created in memory.
+
+- New **Engine Extensions**, to allow other execution engines than knitr, jupyter, julia. Julia is now a bundled extension. See [the prerelease notes](https://prerelease.quarto.org/docs/prerelease/1.9/) and [engine extension documentation](https://prerelease.quarto.org/docs/extensions/engine.html).
 
 ## Formats
 
