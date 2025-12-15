@@ -270,9 +270,7 @@ jobs:
             status=$?
             set -e
             echo "::endgroup::"
-            if [ $status -eq 0 ]; then
-              echo ">>> No error in this test file"
-            else
+            if [ $status -ne 0 ]; then
               echo "::error title=Test Bucket Failed::Test bucket ${file} failed with exit code ${status}"
               echo ">>> Error found in test file: ${file}"
               haserror=1
@@ -306,9 +304,7 @@ jobs:
             ./run-tests.ps1 $file
             $status=$LASTEXITCODE
             Write-Host "::endgroup::"
-            if ($status -eq 0) {
-              Write-Host ">>> No error in this test file"
-            } else {
+            if ($status -ne 0) {
               Write-Host "::error title=Test Bucket Failed::Test bucket ${file} failed with exit code ${status}"
               Write-Host ">>> Error found in test file: ${file}"
               $haserror=$true
