@@ -4,10 +4,127 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { runningInCI } from "../core/ci-info.ts";
 import { GitHubRelease } from "./types.ts";
 
 // deno-lint-ignore-file camelcase
+
+// GitHub Actions Detection
+export function isGitHubActions(): boolean {
+  return Deno.env.get("GITHUB_ACTIONS") === "true";
+}
+
+export function isVerboseMode(): boolean {
+  return Deno.env.get("RUNNER_DEBUG") === "1" ||
+    Deno.env.get("QUARTO_TEST_VERBOSE") === "true";
+}
+
+// GitHub Actions Workflow Command Escaping
+// See: https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions
+export function escapeData(s: string): string {
+  return s
+    .replace(/%/g, "%25")
+    .replace(/\r/g, "%0D")
+    .replace(/\n/g, "%0A");
+}
+
+export function escapeProperty(s: string): string {
+  return s
+    .replace(/%/g, "%25")
+    .replace(/\r/g, "%0D")
+    .replace(/\n/g, "%0A")
+    .replace(/:/g, "%3A")
+    .replace(/,/g, "%2C");
+}
+
+// GitHub Actions Annotations
+export interface AnnotationProperties {
+  file?: string;
+  line?: number;
+  endLine?: number;
+  title?: string;
+}
+
+function formatProperties(props: AnnotationProperties): string {
+  const parts: string[] = [];
+  if (props.file !== undefined) {
+    parts.push(`file=${escapeProperty(props.file)}`);
+  }
+  if (props.line !== undefined) parts.push(`line=${props.line}`);
+  if (props.endLine !== undefined) parts.push(`endLine=${props.endLine}`);
+  if (props.title !== undefined) {
+    parts.push(`title=${escapeProperty(props.title)}`);
+  }
+  return parts.length > 0 ? " " + parts.join(",") : "";
+}
+
+export function error(
+  message: string,
+  properties?: AnnotationProperties,
+): void {
+  if (!isGitHubActions()) return;
+  const props = properties ? formatProperties(properties) : "";
+  console.log(`::error${props}::${escapeData(message)}`);
+}
+
+export function warning(
+  message: string,
+  properties?: AnnotationProperties,
+): void {
+  if (!isGitHubActions()) return;
+  const props = properties ? formatProperties(properties) : "";
+  console.log(`::warning${props}::${escapeData(message)}`);
+}
+
+export function notice(
+  message: string,
+  properties?: AnnotationProperties,
+): void {
+  if (!isGitHubActions()) return;
+  const props = properties ? formatProperties(properties) : "";
+  console.log(`::notice${props}::${escapeData(message)}`);
+}
+
+// GitHub Actions Log Grouping
+export function startGroup(title: string): void {
+  if (!isGitHubActions()) return;
+  console.log(`::group::${escapeData(title)}`);
+}
+
+export function endGroup(): void {
+  if (!isGitHubActions()) return;
+  console.log("::endgroup::");
+}
+
+export function withGroup<T>(title: string, fn: () => T): T {
+  startGroup(title);
+  try {
+    return fn();
+  } finally {
+    endGroup();
+  }
+}
+
+export async function withGroupAsync<T>(
+  title: string,
+  fn: () => Promise<T>,
+): Promise<T> {
+  startGroup(title);
+  try {
+    return await fn();
+  } finally {
+    endGroup();
+  }
+}
+
+// Legacy group function for backward compatibility and alia
+export async function group<T>(
+  title: string,
+  fn: () => Promise<T>,
+): Promise<T> {
+  return await withGroupAsync(title, fn);
+}
+
+// GitHub API
 
 // A Github Release for a Github Repo
 
@@ -24,39 +141,5 @@ export async function getLatestRelease(repo: string): Promise<GitHubRelease> {
     );
   } else {
     return response.json();
-  }
-}
-
-// NB we do not escape these here - it's the caller's responsibility to do so
-function githubActionsWorkflowCommand(
-  command: string,
-  value = "",
-  params?: Record<string, string>,
-) {
-  let paramsStr = "";
-  if (params) {
-    paramsStr = " ";
-    let first = false;
-    for (const [key, val] of Object.entries(params)) {
-      if (!first) {
-        first = true;
-      } else {
-        paramsStr += ",";
-      }
-      paramsStr += `${key}=${val}`;
-    }
-  }
-  return `::${command}${paramsStr}::${value}`;
-}
-
-export async function group<T>(title: string, fn: () => Promise<T>) {
-  if (!runningInCI()) {
-    return fn();
-  }
-  console.log(githubActionsWorkflowCommand("group", title));
-  try {
-    return await fn();
-  } finally {
-    console.log(githubActionsWorkflowCommand("endgroup"));
   }
 }

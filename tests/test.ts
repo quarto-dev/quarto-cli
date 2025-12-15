@@ -17,7 +17,6 @@ import { runningInCI } from "../src/core/ci-info.ts";
 import { relative, fromFileUrl } from "../src/deno_ral/path.ts";
 import { quartoConfig } from "../src/core/quarto.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
-import * as gha from "./github-actions.ts";
 
 
 export interface TestLogConfig {
@@ -342,14 +341,6 @@ export function test(test: TestDescriptor) {
               });
             });
           }
-
-          // Emit GitHub Actions error annotation
-          gha.error(
-            `Test failed: ${testName}\nVerify: ${lastVerify ? lastVerify.name : "unknown"}\n${ex.message}`,
-            {
-              title: `Test Failure [${relPath}]: ${testName}`,
-            }
-          );
 
           fail(output.join("\n"));
         } finally {
