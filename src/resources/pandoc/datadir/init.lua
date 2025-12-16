@@ -645,9 +645,16 @@ local function inputFile()
       return source
    else
       local projectDir = projectDirectory()
-      -- we now always have a projectDir, even in single-file settings
-      assert(projectDir)
-      return pandoc.path.join({projectDir, source})
+      if projectDir then
+         return pandoc.path.join({projectDir, source})
+      else
+         -- outside of a project, quarto already changes 
+         -- pwd to the file's directory prior to calling pandoc,
+         -- so we should just use the filename
+         -- https://github.com/quarto-dev/quarto-cli/issues/7424
+         local path_parts = pandoc.path.split(source)
+         return pandoc.path.join({pandoc.system.get_working_directory(), path_parts[#path_parts]})
+      end   
    end
 end
 
@@ -655,6 +662,10 @@ local function outputFile()
    local projectOutDir = projectOutputDirectory()
    if projectOutDir then
       local projectDir = projectDirectory()
+      print("---")
+      print(projectDir)
+      print(pandoc.path.directory(inputFile()))
+      print("---")
       if projectDir then
          local input = pandoc.path.directory(inputFile())
          local relativeDir = pandoc.path.make_relative(input, projectDir)
