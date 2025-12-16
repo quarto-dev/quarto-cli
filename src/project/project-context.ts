@@ -105,7 +105,6 @@ import { createProjectCache } from "../core/cache/cache.ts";
 import { createTempContext } from "../core/temp.ts";
 
 import { onCleanup } from "../core/cleanup.ts";
-import { once } from "../core/once.ts";
 import { Zod } from "../resources/types/zod/schema-types.ts";
 import { ExternalEngine } from "../resources/types/schema-types.ts";
 
@@ -366,11 +365,11 @@ export async function projectContext(
           previewServer: renderOptions?.previewServer,
           diskCache: await createProjectCache(join(dir, ".quarto")),
           temp,
-          cleanup: once(() => {
+          cleanup: () => {
             cleanupFileInformationCache(result);
             result.diskCache.close();
             temp.cleanup();
-          }),
+          },
         };
 
         // see if the project [kProjectType] wants to filter the project config
@@ -458,11 +457,11 @@ export async function projectContext(
           previewServer: renderOptions?.previewServer,
           diskCache: await createProjectCache(join(dir, ".quarto")),
           temp,
-          cleanup: once(() => {
+          cleanup: () => {
             cleanupFileInformationCache(result);
             result.diskCache.close();
             temp.cleanup();
-          }),
+          },
         };
         const { files, engines } = await projectInputFiles(
           result,
@@ -538,11 +537,11 @@ export async function projectContext(
             previewServer: renderOptions?.previewServer,
             diskCache: await createProjectCache(join(temp.baseDir, ".quarto")),
             temp,
-            cleanup: once(() => {
+            cleanup: () => {
               cleanupFileInformationCache(context);
               context.diskCache.close();
               temp.cleanup();
-            }),
+            },
           };
           if (Deno.statSync(path).isDirectory) {
             const { files, engines } = await projectInputFiles(context);
