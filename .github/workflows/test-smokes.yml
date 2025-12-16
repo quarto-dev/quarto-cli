@@ -149,15 +149,23 @@ jobs:
       - name: Restore R packages
         working-directory: tests
         run: |
+          cat("::group::Installing renv if needed\n")
           if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
+          cat("::endgroup::\n")
+          cat("::group::Restoring R packages from renv.lock\n")
           renv::restore()
+          cat("::endgroup::\n")
+          cat("::group::Installing dev versions of knitr and rmarkdown\n")
           # Install dev versions for our testing
           # Use r-universe to avoid github api calls
           try(install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev', getOption('repos'))))
           try(install.packages('knitr', repos = c('https://yihui.r-universe.dev', getOption('repos'))))
+          cat("::endgroup::\n")
           if ('${{ inputs.extra-r-packages }}' != '') {
             cat(sprintf("::notice::Running with the following extra R packages for renv: %s\n", "${{ inputs.extra-r-packages }}"))
+            cat("::group::Installing extra R packages\n")
             renv::install(strsplit("${{ inputs.extra-r-packages }}", split = ",")[[1]])
+            cat("::endgroup::\n")
           }
         shell: Rscript {0}
         env:
