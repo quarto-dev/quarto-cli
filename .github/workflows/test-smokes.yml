@@ -149,15 +149,23 @@ jobs:
       - name: Restore R packages
         working-directory: tests
         run: |
+          cat("::group::Installing renv if needed\n")
           if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
+          cat("::endgroup::\n")
+          cat("::group::Restoring R packages from renv.lock\n")
           renv::restore()
+          cat("::endgroup::\n")
+          cat("::group::Installing dev versions of knitr and rmarkdown\n")
           # Install dev versions for our testing
           # Use r-universe to avoid github api calls
           try(install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev', getOption('repos'))))
           try(install.packages('knitr', repos = c('https://yihui.r-universe.dev', getOption('repos'))))
+          cat("::endgroup::\n")
           if ('${{ inputs.extra-r-packages }}' != '') {
             cat(sprintf("::notice::Running with the following extra R packages for renv: %s\n", "${{ inputs.extra-r-packages }}"))
+            cat("::group::Installing extra R packages\n")
             renv::install(strsplit("${{ inputs.extra-r-packages }}", split = ",")[[1]])
+            cat("::endgroup::\n")
           }
         shell: Rscript {0}
         env:
@@ -259,14 +267,34 @@ jobs:
           QUARTO_LOG_LEVEL: DEBUG
         run: |
           haserror=0
+          failed_tests=()
           readarray -t my_array < <(echo '${{ inputs.buckets }}' | jq -rc '.[]')
-          for file in "${my_array[@]}"; do 
+          for file in "${my_array[@]}"; do
+            echo "::group::Running ${file}"
             echo ">>> ./run-tests.sh ${file}"
-            shopt -s globstar && ./run-tests.sh $file
+            # Run tests without -e so we don't exit on first failure
+            set +e
+            shopt -s globstar && ./run-tests.sh "$file"
             status=$?
-            [ $status -eq 0 ] && echo ">>> No error in this test file" || haserror=1
+            set -e
+            echo "::endgroup::"
+            if [ $status -ne 0 ]; then
+              echo "::error title=Test Bucket Failed::Test bucket ${file} failed with exit code ${status}"
+              echo ">>> Error found in test file: ${file}"
+              haserror=1
+              failed_tests+=("$file")
+            fi
           done
-          [ $haserror -eq 0 ] && echo ">>> All tests passed" || exit 1
+          if [ $haserror -eq 1 ]; then
+            echo "---- FAILING TESTS SUMMARY ----"
+            echo "    The following test buckets failed:"
+            for failed in "${failed_tests[@]}"; do
+              echo "    - $failed"
+            done
+            exit 1
+          else
+            echo ">>> All tests passed"
+          fi
         working-directory: tests
         shell: bash
 
@@ -277,18 +305,26 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $haserror=$false
+          $failed_tests=@()
           foreach ($file in ('${{ inputs.buckets }}' | ConvertFrom-Json)) {
+            Write-Host "::group::Running ${file}"
             Write-Host ">>> ./run-tests.ps1 ${file}"
             ./run-tests.ps1 $file
             $status=$LASTEXITCODE
-            if ($status -eq 1) {
-              Write-Host ">>> Error found in test file"
+            Write-Host "::endgroup::"
+            if ($status -ne 0) {
+              Write-Host "::error title=Test Bucket Failed::Test bucket ${file} failed with exit code ${status}"
+              Write-Host ">>> Error found in test file: ${file}"
               $haserror=$true
-            } else {
-              Write-Host ">>> No error in this test file"
+              $failed_tests+=$file
             }
           }
           if ($haserror) {
+            Write-Host "---- FAILING TESTS SUMMARY ----"
+            Write-Host "    The following test buckets failed:"
+            foreach ($failed in $failed_tests) {
+              Write-Host "    - $failed"
+            }
             Exit 1
           } else {
             Write-Host ">>> All tests have passed"
