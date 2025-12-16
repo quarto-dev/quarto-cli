@@ -166,6 +166,17 @@ export async function safeWindowsExec(
 
 // Detect Windows ARM hardware using IsWow64Process2 API
 // Returns true if running on ARM64 hardware (even from x64 Deno under emulation)
+//
+// Background: Deno.build.arch reports the architecture Deno was compiled for,
+// not the actual hardware architecture. When x64 Deno runs on ARM64 under
+// WOW64 emulation, Deno.build.arch still reports "x86_64".
+//
+// Solution: Use Windows IsWow64Process2 API which returns the native machine
+// architecture regardless of emulation. This is a standard Windows API function
+// available since Windows 10 (kernel32.dll is always present on Windows).
+//
+// Reference: Validated approach from https://github.com/cderv/quarto-windows-arm
+// See: https://learn.microsoft.com/en-us/windows/win32/api/wow64apiset/nf-wow64apiset-iswow64process2
 export function isWindowsArm(): boolean {
   if (!isWindows) {
     return false;

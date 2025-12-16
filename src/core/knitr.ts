@@ -82,7 +82,7 @@ function checkWindowsArmR(platform: string | undefined): void {
 
   const isX64R = platform.includes("x86_64") || platform.includes("i386");
 
-  if (isWindowsArm() && isX64R) {
+  if (isX64R && isWindowsArm()) {
     throw new WindowsArmX64RError(
       "x64 R detected on Windows ARM.\n\n" +
         "x64 R runs under emulation and is not reliable for Quarto.\n" +
@@ -131,7 +131,6 @@ export async function knitrCapabilities(rBin: string | undefined) {
         )
         : false;
 
-      checkWindowsArmR(caps.platform);
       return caps;
     } else {
       debug("\n++ Problem with results of knitr capabilities check.");
