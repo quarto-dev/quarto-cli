@@ -12,6 +12,7 @@ import { readYamlFromString } from "./yaml.ts";
 import { coerce, satisfies } from "semver/mod.ts";
 import { debug } from "../deno_ral/log.ts";
 import { isWindows } from "../deno_ral/platform.ts";
+import { isWindowsArm } from "./windows.ts";
 
 export interface KnitrCapabilities {
   versionMajor: number;
@@ -79,10 +80,9 @@ export class WindowsArmX64RError extends Error {
 function checkWindowsArmR(platform: string | undefined): void {
   if (!platform) return;
 
-  const isWindowsArm = isWindows && Deno.build.arch === "aarch64";
   const isX64R = platform.includes("x86_64") || platform.includes("i386");
 
-  if (isWindowsArm && isX64R) {
+  if (isWindowsArm() && isX64R) {
     throw new WindowsArmX64RError(
       "x64 R detected on Windows ARM.\n\n" +
         "x64 R runs under emulation and is not reliable for Quarto.\n" +

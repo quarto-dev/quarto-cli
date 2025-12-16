@@ -163,3 +163,53 @@ export async function safeWindowsExec(
     removeIfExists(tempFile);
   }
 }
+
+// Detect Windows ARM hardware using IsWow64Process2 API
+// Returns true if running on ARM64 hardware (even from x64 Deno under emulation)
+export function isWindowsArm(): boolean {
+  if (!isWindows) {
+    return false;
+  }
+
+  try {
+    // Load kernel32.dll
+    const kernel32 = Deno.dlopen("kernel32.dll", {
+      IsWow64Process2: {
+        parameters: ["pointer", "pointer", "pointer"],
+        result: "i32",
+      },
+      GetCurrentProcess: {
+        parameters: [],
+        result: "pointer",
+      },
+    });
+
+    // Get current process handle
+    const hProcess = kernel32.symbols.GetCurrentProcess();
+
+    // Prepare output parameters - allocate buffer for USHORT (2 bytes each)
+    const processMachineBuffer = new Uint16Array(1);
+    const nativeMachineBuffer = new Uint16Array(1);
+
+    // Call IsWow64Process2 with pointers to buffers
+    const result = kernel32.symbols.IsWow64Process2(
+      hProcess,
+      Deno.UnsafePointer.of(processMachineBuffer),
+      Deno.UnsafePointer.of(nativeMachineBuffer),
+    );
+
+    kernel32.close();
+
+    if (result === 0) {
+      // Function failed
+      return false;
+    }
+
+    // IMAGE_FILE_MACHINE_ARM64 = 0xAA64 = 43620
+    const IMAGE_FILE_MACHINE_ARM64 = 0xAA64;
+    return nativeMachineBuffer[0] === IMAGE_FILE_MACHINE_ARM64;
+  } catch {
+    // IsWow64Process2 not available (Windows < 10) or other error
+    return false;
+  }
+}
