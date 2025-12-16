@@ -187,9 +187,9 @@ QUARTO_DENO_OPTIONS="--unstable-ffi --unstable-kv --no-config --no-lock ${QUARTO
 
 # --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
 if [ "$QUARTO_DENO_V8_OPTIONS" != "" ]; then
-  QUARTO_DENO_V8_OPTIONS="--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192,${QUARTO_DENO_V8_OPTIONS}"
+  QUARTO_DENO_V8_OPTIONS="--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192,--stack-trace-limit=100,${QUARTO_DENO_V8_OPTIONS}"
 else
-  QUARTO_DENO_V8_OPTIONS="--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192"
+  QUARTO_DENO_V8_OPTIONS="--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192,--stack-trace-limit=100"
 fi
 
 if [ "$QUARTO_DENO_EXTRA_OPTIONS" == "" ]; then

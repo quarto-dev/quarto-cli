@@ -33,18 +33,16 @@ import {
 } from "../../core/http.ts";
 import { findOpenPort } from "../../core/port.ts";
 import { handleHttpRequests } from "../../core/http-server.ts";
-import { kLocalhost } from "../../core/port-consts.ts";
 import { normalizePath } from "../../core/path.ts";
 import { previewMonitorResources } from "../../core/quarto.ts";
 import { renderServices } from "../render/render-services.ts";
 import { RenderFlags } from "../render/types.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
-import { isIpynbOutput } from "../../config/format.ts";
 
 export interface PreviewShinyOptions extends RunOptions {
   pandocArgs: string[];
   watchInputs: boolean;
-  project?: ProjectContext;
+  project: ProjectContext;
 }
 
 export async function previewShiny(options: PreviewShinyOptions) {
@@ -128,8 +126,8 @@ function runPreviewControlService(
     return normalizePath(options.input) === normalizePath(prevReq.path) &&
       await previewRenderRequestIsCompatible(
         prevReq,
-        options.format,
         options.project,
+        options.format,
       );
   };
 
