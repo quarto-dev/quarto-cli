@@ -270,14 +270,12 @@ jobs:
           failed_tests=()
           readarray -t my_array < <(echo '${{ inputs.buckets }}' | jq -rc '.[]')
           for file in "${my_array[@]}"; do
-            echo "::group::Running ${file}"
             echo ">>> ./run-tests.sh ${file}"
             # Run tests without -e so we don't exit on first failure
             set +e
             shopt -s globstar && ./run-tests.sh "$file"
             status=$?
             set -e
-            echo "::endgroup::"
             if [ $status -ne 0 ]; then
               echo "::error title=Test Bucket Failed::Test bucket ${file} failed with exit code ${status}"
               echo ">>> Error found in test file: ${file}"
@@ -307,11 +305,9 @@ jobs:
           $haserror=$false
           $failed_tests=@()
           foreach ($file in ('${{ inputs.buckets }}' | ConvertFrom-Json)) {
-            Write-Host "::group::Running ${file}"
             Write-Host ">>> ./run-tests.ps1 ${file}"
             ./run-tests.ps1 $file
             $status=$LASTEXITCODE
-            Write-Host "::endgroup::"
             if ($status -ne 0) {
               Write-Host "::error title=Test Bucket Failed::Test bucket ${file} failed with exit code ${status}"
               Write-Host ">>> Error found in test file: ${file}"
