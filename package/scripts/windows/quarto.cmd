@@ -33,6 +33,8 @@ IF EXIST "!QUARTO_TS_PATH!" (
   call !QUARTO_ROOT!\win_configuration.bat
   REM overrride share path to point to our dev folder instead of dist
   set QUARTO_SHARE_PATH=!QUARTO_ROOT!\src\resources
+  set "QUARTO_BIN_PATH=%SCRIPT_PATH%"
+  set "DENO_DIR=%QUARTO_BIN_PATH%\deno_cache"
 
 	IF NOT DEFINED QUARTO_ACTION (
 		SET QUARTO_ACTION=run
@@ -67,7 +69,7 @@ IF EXIST "!QUARTO_TS_PATH!" (
 		echo !DENO!>"!DENO_VERSION_FILE!"
 	)
 
-	SET QUARTO_CACHE_OPTIONS=
+	SET QUARTO_CACHE_OPTIONS=--cached-only
 
 	REM Turn on type checking for dev version
   SET QUARTO_DENO_OPTIONS=--check
