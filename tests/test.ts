@@ -244,6 +244,7 @@ export function test(test: TestDescriptor) {
           }
         };
         let lastVerify;
+
         try {
 
           try {
@@ -271,6 +272,7 @@ export function test(test: TestDescriptor) {
           }
         } catch (ex) {
           if (!(ex instanceof Error)) throw ex;
+
           const border = "-".repeat(80);
           const coloredName = userSession
             ? colors.brightGreen(colors.italic(testName))
@@ -307,9 +309,18 @@ export function test(test: TestDescriptor) {
             : verifyFailed;
 
           const logMessages = logOutput(log);
+
+          // Create distinctive failure marker for easy log navigation
+          // This helps users find the failure when clicking GitHub Actions annotations
+          const failureMarker = `━━━ TEST FAILURE: ${testName}`;
+          const coloredFailureMarker = userSession
+            ? colors.red(colors.bold(failureMarker))
+            : failureMarker;
+
           const output: string[] = [
             "",
             "",
+            coloredFailureMarker,
             border,
             coloredName,
             coloredTestCommand,
@@ -330,6 +341,7 @@ export function test(test: TestDescriptor) {
               });
             });
           }
+
           fail(output.join("\n"));
         } finally {
           safeRemoveSync(log);

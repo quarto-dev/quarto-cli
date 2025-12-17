@@ -18,6 +18,7 @@ import { fail } from "testing/asserts";
 import { isWindows } from "../../src/deno_ral/platform.ts";
 import { join } from "../../src/deno_ral/path.ts";
 import { existsSync } from "../../src/deno_ral/fs.ts";
+import * as gha from "../../src/tools/github.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -86,9 +87,15 @@ Deno.test({
         cwd: "integration/playwright",
       });
       if (!res.success) {
-        if (Deno.env.get("GITHUB_ACTIONS") && Deno.env.get("GITHUB_REPOSITORY") && Deno.env.get("GITHUB_RUN_ID")) {
+        if (gha.isGitHubActions() && Deno.env.get("GITHUB_REPOSITORY") && Deno.env.get("GITHUB_RUN_ID")) {
           const runUrl = `https://github.com/${Deno.env.get("GITHUB_REPOSITORY")}/actions/runs/${Deno.env.get("GITHUB_RUN_ID")}`;
-          console.log(`::error file=playwright-tests.test.ts, title=Playwright tests::Some tests failed. Download report uploaded as artifact at ${runUrl}`);
+          gha.error(
+            `Some tests failed. Download report uploaded as artifact at ${runUrl}`,
+            {
+              file: "playwright-tests.test.ts",
+              title: "Playwright tests"
+            }
+          );
         }
         fail("Failed tests with playwright. Look at playwright report for more details.")
       }

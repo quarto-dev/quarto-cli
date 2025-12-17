@@ -94,10 +94,6 @@ export function isInteractiveSession() {
   return isRStudio() || isInteractiveTerminal() || isVSCodeOutputChannel();
 }
 
-export function isGithubAction() {
-  return Deno.env.get("GITHUB_ACTIONS") === "true";
-}
-
 export function nullDevice() {
   return isWindows ? "NUL" : "/dev/null";
 }

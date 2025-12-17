@@ -3,9 +3,14 @@
 # Determine the path to this script (we'll use this to figure out relative positions of other files)
 $SOURCE = $MyInvocation.MyCommand.Path
 
+# Check if verbose mode is enabled (GitHub Actions debug mode or explicit flag)
+$VERBOSE_MODE = $env:RUNNER_DEBUG -eq "1" -or $env:QUARTO_TEST_VERBOSE -eq "true"
+
 # ------ Setting all the paths required
 
-Write-Host "> Setting all the paths required..."
+if ($VERBOSE_MODE) {
+  Write-Host "> Setting all the paths required..."
+}
 
 # Tests folder 
 # e.g quarto-cli/tests folder
@@ -42,8 +47,9 @@ If ( $null -eq $Env:GITHUB_ACTION -and $null -eq $Env:QUARTO_TESTS_NO_CONFIG ) {
 
 # ----- Preparing running tests ------------
 
-
-Write-Host "> Preparing running tests..."
+if ($VERBOSE_MODE) {
+  Write-Host "> Preparing running tests..."
+}
 
 # Exporting some variables with paths as env var required for running quarto
 $Env:QUARTO_ROOT = $QUARTO_ROOT
@@ -146,15 +152,21 @@ If ($null -eq $Env:QUARTO_TESTS_FORCE_NO_VENV -and $null -ne $Env:QUARTO_TESTS_F
 If ($null -eq $Env:QUARTO_TESTS_FORCE_NO_VENV) {
   # Save possible activated virtualenv for later restauration
   $OLD_VIRTUAL_ENV=$VIRTUAL_ENV
-  Write-Host "> Activating virtualenv from .venv for Python tests in Quarto"
+  if ($VERBOSE_MODE) {
+    Write-Host "> Activating virtualenv from .venv for Python tests in Quarto"
+  }
   . $(Join-Path $QUARTO_ROOT "tests" ".venv/Scripts/activate.ps1")
-  Write-Host "> Using Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
-  Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
+  if ($VERBOSE_MODE) {
+    Write-Host "> Using Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
+    Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
+  }
   $quarto_venv_activated = $true
 }
 
 
-Write-Host "> Running tests with `"$QUARTO_DENO $DENO_ARGS`" "
+if ($VERBOSE_MODE) {
+  Write-Host "> Running tests with `"$QUARTO_DENO $DENO_ARGS`" "
+}
 
 & $QUARTO_DENO $DENO_ARGS
 
@@ -164,17 +176,25 @@ $DENO_EXIT_CODE = $LASTEXITCODE
 # Add Coverage handling
 
 If($quarto_venv_activated) {
-  Write-Host "> Exiting virtualenv activated for tests"
+  if ($VERBOSE_MODE) {
+    Write-Host "> Exiting virtualenv activated for tests"
+  }
   deactivate
-  Write-Host "> Using Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
-  Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
+  if ($VERBOSE_MODE) {
+    Write-Host "> Using Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
+    Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
+  }
   Remove-Variable quarto_venv_activated
 }
 If($null -ne $OLD_VIRTUAL_ENV) {
-  Write-Host "> Reactivating original virtualenv"
+  if ($VERBOSE_MODE) {
+    Write-Host "> Reactivating original virtualenv"
+  }
   . "$OLD_VIRTUAL_ENV/Scripts/activate.ps1"
-  Write-Host "> New Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
-  Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
+  if ($VERBOSE_MODE) {
+    Write-Host "> New Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
+    Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
+  }
   Remove-Variable OLD_VIRTUAL_ENV
 }
 
