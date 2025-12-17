@@ -59,8 +59,9 @@ IF EXIST "!QUARTO_TS_PATH!" (
 			cd !QUARTO_ROOT!
 			call configure.cmd
       echo
+			echo.
 			echo Quarto required reconfiguration to install Deno !DENO!. Please try command again.
-			GOTO end
+			exit /b 1
 		)
 	) else (
 		echo !DENO!>"!DENO_VERSION_FILE!"
