@@ -65,7 +65,7 @@ $endfor$
     ),
 $endif$
 $if(keywords)$
-  keywords: ($for(keywords)$$keyword$$sep$,$endfor$),
+  keywords: ($for(keywords)$$keywords$$sep$,$endfor$),
 $endif$
 $if(date)$
   date: [$date$],
@@ -76,8 +76,14 @@ $endif$
 $if(region)$
   region: "$region$",
 $endif$
+$if(abstract-title)$
+  abstract-title: [$abstract-title$],
+$endif$
 $if(abstract)$
   abstract: [$abstract$],
+$endif$
+$if(thanks)$
+  thanks: [$thanks$],
 $endif$
 $if(margin)$
   margin: ($for(margin/pairs)$$margin.key$: $margin.value$,$endfor$),
@@ -91,10 +97,28 @@ $endif$
 $if(fontsize)$
   fontsize: $fontsize$,
 $endif$
+$if(mathfont)$
+  mathfont: ($for(mathfont)$"$mathfont$",$endfor$),
+$endif$
+$if(codefont)$
+  codefont: ($for(codefont)$"$codefont$",$endfor$),
+$endif$
+$if(linestretch)$
+  linestretch: $linestretch$,
+$endif$
 $if(section-numbering)$
   sectionnumbering: "$section-numbering$",
 $endif$
   pagenumbering: $if(page-numbering)$"$page-numbering$"$else$none$endif$,
+$if(linkcolor)$
+  linkcolor: [$linkcolor$],
+$endif$
+$if(citecolor)$
+  citecolor: [$citecolor$],
+$endif$
+$if(filecolor)$
+  filecolor: [$filecolor$],
+$endif$
   cols: $if(columns)$$columns$$else$1$endif$,
   doc,
 )
@@ -113,6 +137,9 @@ $endif$
 $body$
 
 $if(citations)$
+$for(nocite-ids)$
+#cite(label("${it}"), form: none)
+$endfor$
 $if(csl)$
 
 #set bibliography(style: "$csl$")
@@ -122,7 +149,7 @@ $elseif(bibliographystyle)$
 $endif$
 $if(bibliography)$
 
-#bibliography($for(bibliography)$"$bibliography$"$sep$,$endfor$)
+#bibliography(($for(bibliography)$"$bibliography$"$sep$,$endfor$)$if(full-bibliography)$, full: true$endif$)
 $endif$
 $endif$
 $for(include-after)$
