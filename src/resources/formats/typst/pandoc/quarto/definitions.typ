@@ -171,3 +171,8 @@
     )
 }
 
+$if(highlighting-definitions)$
+// syntax highlighting functions from skylighting:
+$highlighting-definitions$
+
+$endif$
