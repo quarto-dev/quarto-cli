@@ -13,11 +13,19 @@ IF EXIST "!QUARTO_TS_PATH!" (
 	set QUARTO_DEV_MODE=true
 
 	IF "%1"=="--version" (
+		IF DEFINED QUARTO_FORCE_VERSION (
+			ECHO !QUARTO_FORCE_VERSION!
+			GOTO end
+		)
 		ECHO 99.9.9
 		GOTO end
 	)
 
 	IF "%1"=="-v" (
+		IF DEFINED QUARTO_FORCE_VERSION (
+			ECHO !QUARTO_FORCE_VERSION!
+			GOTO end
+		)
 		ECHO 99.9.9
 		GOTO end
 	)
@@ -70,11 +78,19 @@ IF EXIST "!QUARTO_TS_PATH!" (
 	)
 
 	IF "%1"=="-v" (
+		IF DEFINED QUARTO_FORCE_VERSION (
+			ECHO !QUARTO_FORCE_VERSION!
+			GOTO end
+		)
 		TYPE "!QUARTO_SHARE_PATH!\version"
 		GOTO end
 	)
 
 	IF "%1"=="--version" (
+		IF DEFINED QUARTO_FORCE_VERSION (
+			ECHO !QUARTO_FORCE_VERSION!
+			GOTO end
+		)
 		TYPE "!QUARTO_SHARE_PATH!\version"
 		GOTO end
 	)
