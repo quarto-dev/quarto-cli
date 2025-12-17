@@ -71,7 +71,9 @@ IF EXIST "!QUARTO_TS_PATH!" (
 	SET QUARTO_CACHE_OPTIONS=--cached-only
 
 	REM Turn on type checking for dev version
-  SET QUARTO_DENO_OPTIONS=--check
+	IF NOT DEFINED QUARTO_NO_TYPECHECK (
+		SET QUARTO_DENO_OPTIONS=--check
+	)
 
 ) ELSE (
 
