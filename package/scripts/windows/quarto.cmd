@@ -103,7 +103,7 @@ IF EXIST "!QUARTO_TS_PATH!" (
 	SET "QUARTO_TARGET=%SCRIPT_PATH%\quarto.js"
 	SET "QUARTO_BIN_PATH=%SCRIPT_PATH%"
 	SET "QUARTO_IMPORT_MAP_ARG=--importmap=""%SCRIPT_PATH%\vendor\import_map.json"""
-	SET QUARTO_CACHE_OPTIONS="--cached-only"
+	SET QUARTO_CACHE_OPTIONS=--cached-only
 )
 
 IF "%1"=="--paths" (
