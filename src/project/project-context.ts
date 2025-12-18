@@ -63,6 +63,7 @@ import {
   fileExecutionEngine,
   fileExecutionEngineAndTarget,
   projectIgnoreGlobs,
+  resolveEngines,
 } from "../execute/engine.ts";
 import { ExecutionEngineInstance, kMarkdownEngine } from "../execute/types.ts";
 
@@ -884,6 +885,9 @@ async function projectInputFilesInternal(
   project: ProjectContext,
   metadata?: ProjectConfig,
 ): Promise<{ files: string[]; engines: string[] }> {
+  // Resolve engines so engineIgnoreDirs() uses all engines (including external)
+  await resolveEngines(project);
+
   const { dir } = project;
 
   const outputDir = metadata?.project[kProjectOutputDir];
