@@ -112,7 +112,6 @@ function server_shiny()
     end,
 
     Pandoc = function(doc)
-      print(quarto.doc.output_file)
       codeCells["html_file"] = pandoc.path.split_extension(
         pandoc.path.filename(quarto.doc.output_file)
       ) .. ".html"
