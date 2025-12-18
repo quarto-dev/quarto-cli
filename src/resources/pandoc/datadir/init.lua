@@ -662,10 +662,6 @@ local function outputFile()
    local projectOutDir = projectOutputDirectory()
    if projectOutDir then
       local projectDir = projectDirectory()
-      print("---")
-      print(projectDir)
-      print(pandoc.path.directory(inputFile()))
-      print("---")
       if projectDir then
          local input = pandoc.path.directory(inputFile())
          local relativeDir = pandoc.path.make_relative(input, projectDir)
