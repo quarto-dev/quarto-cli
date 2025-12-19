@@ -61,7 +61,10 @@ export function error(
   message: string,
   properties?: AnnotationProperties,
 ): void {
-  if (!isGitHubActions()) return;
+  if (!isGitHubActions()) {
+    console.log(message);
+    return;
+  }
   const props = properties ? formatProperties(properties) : "";
   console.log(`::error${props}::${escapeData(message)}`);
 }
@@ -70,7 +73,10 @@ export function warning(
   message: string,
   properties?: AnnotationProperties,
 ): void {
-  if (!isGitHubActions()) return;
+  if (!isGitHubActions()) {
+    console.log(message);
+    return;
+  }
   const props = properties ? formatProperties(properties) : "";
   console.log(`::warning${props}::${escapeData(message)}`);
 }
@@ -79,7 +85,10 @@ export function notice(
   message: string,
   properties?: AnnotationProperties,
 ): void {
-  if (!isGitHubActions()) return;
+  if (!isGitHubActions()) {
+    console.log(message);
+    return;
+  }
   const props = properties ? formatProperties(properties) : "";
   console.log(`::notice${props}::${escapeData(message)}`);
 }
@@ -96,6 +105,10 @@ export function endGroup(): void {
 }
 
 export function withGroup<T>(title: string, fn: () => T): T {
+  if (!isGitHubActions()) {
+    console.log(title);
+    return fn();
+  }
   startGroup(title);
   try {
     return fn();
@@ -108,6 +121,10 @@ export async function withGroupAsync<T>(
   title: string,
   fn: () => Promise<T>,
 ): Promise<T> {
+  if (!isGitHubActions()) {
+    console.log(title);
+    return await fn();
+  }
   startGroup(title);
   try {
     return await fn();

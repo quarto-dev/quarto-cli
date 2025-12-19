@@ -62,6 +62,12 @@ if "%QUARTO_VENDOR_BINARIES%" == "true" (
   POPD
 )
 
+IF NOT DEFINED QUARTO_DENO_DIR (
+  SET "DENO_DIR=!QUARTO_BIN_PATH!\deno_cache"
+) ELSE (
+  SET "DENO_DIR=!QUARTO_DENO_DIR!"
+)
+
 PUSHD !QUARTO_PACKAGE_PATH!\src
 ECHO Configuring Quarto from !cd!
 CALL quarto-bld.cmd configure --log-level info

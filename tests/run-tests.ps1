@@ -57,7 +57,14 @@ $Env:QUARTO_BIN_PATH = $QUARTO_BIN_PATH
 $Env:QUARTO_SHARE_PATH = $QUARTO_SHARE_PATH
 
 # Activated debug mode by default for stack trace
-$Env:QUARTO_DEBUG = "true" 
+$Env:QUARTO_DEBUG = "true"
+
+# Set DENO_DIR to cache location (respects QUARTO_DENO_DIR override)
+If ($null -eq $Env:QUARTO_DENO_DIR) {
+  $Env:DENO_DIR = Join-Path $QUARTO_BIN_PATH "deno_cache"
+} Else {
+  $Env:DENO_DIR = $Env:QUARTO_DENO_DIR
+}
 
 # Preparing running Deno with default arguments
 
