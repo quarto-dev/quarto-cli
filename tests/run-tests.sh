@@ -17,15 +17,26 @@ fi
 
 source $SCRIPT_PATH/../package/scripts/common/utils.sh
 
-export QUARTO_ROOT="`cd "$SCRIPT_PATH/.." > /dev/null 2>&1 && pwd`"
+export QUARTO_ROOT="$(cd "$SCRIPT_PATH/.." > /dev/null 2>&1 && pwd)"
 QUARTO_SRC_DIR="$QUARTO_ROOT/src"
+
+# Architecture detection (preserve original DENO_DIR from environment)
 DENO_ARCH_DIR=$DENO_DIR
-DENO_DIR="$QUARTO_ROOT/package/dist/bin/"
+
+# Set bin path explicitly (not derived from DENO_DIR)
+QUARTO_BIN_PATH="$QUARTO_ROOT/package/dist/bin"
+
+# Set DENO_DIR to cache location (respects QUARTO_DENO_DIR override)
+if [ "$QUARTO_DENO_DIR" == "" ]; then
+  export DENO_DIR="$QUARTO_BIN_PATH/deno_cache"
+else
+  export DENO_DIR="$QUARTO_DENO_DIR"
+fi
 
 # Local import map
 QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_DIR/import_map.json
 
-export QUARTO_BIN_PATH=$DENO_DIR
+export QUARTO_BIN_PATH
 export QUARTO_SHARE_PATH="`cd "$QUARTO_ROOT/src/resources/";pwd`"
 export QUARTO_DEBUG=true
 
@@ -83,13 +94,13 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
       SMOKE_ALL_FILES=`find docs/smoke-all/ -type f -regextype "posix-extended" -regex ".*/[^_][^/]*[.]qmd" -o -regex ".*/[^_][^/]*[.]md" -o -regex ".*/[^_][^/]*[.]ipynb"`
       for j in $SMOKE_ALL_FILES; do
         echo "${SMOKE_ALL_TEST_FILE} -- ${j}" >> "$QUARTO_TEST_TIMING"
-        /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" ${SMOKE_ALL_TEST_FILE} -- ${j}
+        /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" ${SMOKE_ALL_TEST_FILE} -- ${j}
       done
       continue
     fi
     # Otherwise we time the individual test.ts test
     echo $i >> "$QUARTO_TEST_TIMING"
-    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $i
+    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $i
   done
   # exit the script with an error code if the timing file shows error
   grep -q 'Command exited with non-zero status' $QUARTO_TEST_TIMING && SUCCESS=1 || SUCCESS=0
@@ -132,7 +143,7 @@ else
       TESTS_TO_RUN="${SMOKE_ALL_TEST_FILE} -- ${SMOKE_ALL_FILES}"
     fi
   fi
-  "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $TESTS_TO_RUN
+  "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $TESTS_TO_RUN
   SUCCESS=$?
 fi
 
@@ -168,7 +179,7 @@ if [[ $@ == *"--coverage"* ]]; then
   [[ $@ =~ .*--coverage=(.+) ]] && export COV="${BASH_REMATCH[1]}"
 
   echo Generating coverage report...
-  ${DENO_DIR}/deno coverage --unstable-kv --unstable-ffi ${COV} --lcov > ${COV}.lcov
+  ${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno coverage --unstable-kv --unstable-ffi ${COV} --lcov > ${COV}.lcov
   genhtml -o ${COV}/html ${COV}.lcov
   open ${COV}/html/index.html
 fi
