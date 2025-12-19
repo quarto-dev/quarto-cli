@@ -1,5 +1,13 @@
 # Quarto API and @quarto/types
 
+## Scope of this document
+
+This document covers **adding or modifying methods in existing namespaces** of the Quarto API.
+
+**Out of scope:** Creating new namespaces, renaming namespaces, or restructuring the API architecture. These operations require reading `src/core/api/*.ts` in depth and should be planned and executed with a human in the loop.
+
+---
+
 ## Building @quarto/types
 
 To build the @quarto/types package:
@@ -18,50 +26,44 @@ This runs typecheck and then bundles all type definitions into `dist/index.d.ts`
 The Quarto API is how external execution engines access Quarto's core functionality. The API exists in two places:
 
 1. **Type definitions** in `packages/quarto-types/` - consumed by external engines (TypeScript)
-2. **Implementation** in `src/core/quarto-api.ts` - used within quarto-cli
+2. **Implementation** in `src/core/api/` - used within quarto-cli
 
-### Step-by-step: Adding to the Quarto API
+### Existing namespaces
 
-Follow these steps in order when adding new functionality to the API:
+The API has these namespaces (each has a corresponding file in `src/core/api/`):
 
-#### 1. Update quarto-types type definitions
+- `system` - Process execution, environment detection, temp files
+- `console` - Logging, spinners, user feedback
+- `path` - Path manipulation and resource locations
+- `format` - Format detection utilities
+- `jupyter` - Jupyter notebook operations
+- `text` - Text processing utilities
+- `mappedString` - Source-mapped string operations
+- `markdownRegex` - Markdown parsing with regex
+- `crypto` - Cryptographic utilities
 
-**Add auxiliary types** (if needed):
+### Step-by-step: Adding a method to an existing namespace
 
-- Types belong in `packages/quarto-types/src/`
-- Follow the existing file organization:
-  - `system.ts` - System/process types (ProcessResult, TempContext, etc.)
-  - `console.ts` - Console/UI types (SpinnerOptions, etc.)
-  - `jupyter.ts` - Jupyter-specific types
-  - `check.ts` - Check command types
-  - `execution.ts` - Execution engine types
-  - etc.
-- Create new files if needed for logical grouping
+Follow these steps when adding a new method to an existing namespace:
 
-**Export types from index.ts:**
+#### 1. Add to quarto-types type definitions
 
-```typescript
-// In packages/quarto-types/src/index.ts
-export type * from "./your-new-file.ts";
-```
-
-**Add to QuartoAPI interface:**
+In `packages/quarto-types/src/quarto-api.ts`, find the namespace and add your method:
 
 ```typescript
-// In packages/quarto-types/src/quarto-api.ts
+system: {
+  // ... existing methods
 
-// 1. Import any new types at the top
-import type { YourNewType } from "./your-file.ts";
-
-// 2. Add to the QuartoAPI interface
-export interface QuartoAPI {
-  // ... existing namespaces
-
-  yourNamespace: {
-    yourMethod: (param: YourNewType) => ReturnType;
-  };
-}
+  /**
+   * Your method description
+   * @param arg - Argument description
+   * @returns Return value description
+   */
+  yourMethod: (arg: ArgType) => ReturnType;
+};
 ```
+
+If your method needs new types, add them to the appropriate file in `packages/quarto-types/src/` (e.g., `system.ts` for system-related types).
 
 #### 2. Test the type definitions
 
@@ -70,106 +72,96 @@ cd packages/quarto-types
 npm run build
 ```
 
-This will:
+This will typecheck and bundle. Fix any errors before proceeding.
 
-- Run `tsc --noEmit` to typecheck
-- Bundle types into `dist/index.d.ts`
-- Show any type errors
+#### 3. Add to internal types
 
-Fix any errors before proceeding.
-
-#### 3. Update the internal QuartoAPI interface
-
-The file `src/core/quarto-api.ts` contains a **duplicate** QuartoAPI interface definition used for the internal implementation. Update it to match:
+In `src/core/api/types.ts`, find the namespace interface and add your method:
 
 ```typescript
-// In src/core/quarto-api.ts (near top of file)
-export interface QuartoAPI {
-  // ... existing namespaces
-
-  yourNamespace: {
-    yourMethod: (param: YourNewType) => ReturnType;
-  };
+export interface SystemNamespace {
+  // ... existing methods
+  yourMethod: (arg: ArgType) => ReturnType;
 }
 ```
 
-**Note:** This interface must match the one in quarto-types, but uses internal types.
+#### 4. Implement the method
 
-#### 4. Wire up the implementation
+In the namespace's implementation file (e.g., `src/core/api/system.ts`):
 
-Still in `src/core/quarto-api.ts`:
-
-**Add imports** (near top):
-
-```typescript
-import { yourMethod } from "./your-module.ts";
-```
-
-**Add to quartoAPI object** (at bottom):
+1. Import any needed functions at the top
+2. Add the method to the returned object
 
 ```typescript
-export const quartoAPI: QuartoAPI = {
-  // ... existing namespaces
+import { yourImplementation } from "../your-module.ts";
 
-  yourNamespace: {
-    yourMethod,
-  },
-};
+globalRegistry.register("system", (): SystemNamespace => {
+  return {
+    // ... existing methods
+    yourMethod: yourImplementation,
+  };
+});
 ```
 
 #### 5. Verify with typecheck
-
-Run the quarto typecheck:
 
 ```bash
 package/dist/bin/quarto
 ```
 
-No output means success! Fix any type errors.
+No output means success.
 
 #### 6. Commit with built artifact
 
 **Always commit the built `dist/index.d.ts` file** along with source changes:
 
 ```bash
-git add packages/quarto-types/src/your-file.ts \
-        packages/quarto-types/src/index.ts \
-        packages/quarto-types/src/quarto-api.ts \
+git add packages/quarto-types/src/quarto-api.ts \
         packages/quarto-types/dist/index.d.ts \
-        src/core/quarto-api.ts
+        src/core/api/types.ts \
+        src/core/api/system.ts
 
-git commit -m "Add yourNamespace to Quarto API"
+git commit -m "Add yourMethod to system namespace"
 ```
 
 ### Using the Quarto API in source files
 
-#### Inside quarto-cli (internal modules)
+#### Execution engines (preferred)
+
+Execution engines receive the API via their `init()` method. Store it for use throughout the engine:
 
 ```typescript
-// Import the quartoAPI instance
-import { quartoAPI as quarto } from "../../core/quarto-api.ts";
+import type { QuartoAPI } from "../../core/api/index.ts";
 
-// Use it
-const caps = await quarto.jupyter.capabilities();
-await quarto.console.withSpinner({ message: "Working..." }, async () => {
-  // do work
-});
-```
-
-#### External engines
-
-External engines receive the API via their `init()` method:
-
-```typescript
 let quarto: QuartoAPI;
 
 export const myEngineDiscovery: ExecutionEngineDiscovery = {
   init: (quartoAPI: QuartoAPI) => {
-    quarto = quartoAPI; // Store for later use
+    quarto = quartoAPI;
   },
 
-  // ... other methods can now use quarto
+  launch: (context) => {
+    return {
+      // ... use quarto throughout
+      markdownForFile(file) {
+        return quarto.mappedString.fromFile(file);
+      },
+    };
+  },
 };
+```
+
+#### When init() API is not available
+
+For helper modules that don't have access to the API via `init()`, use `getQuartoAPI()`:
+
+```typescript
+import { getQuartoAPI } from "../../core/api/index.ts";
+
+function someHelper() {
+  const quarto = getQuartoAPI();
+  const caps = await quarto.jupyter.capabilities();
+}
 ```
 
 #### Removing old imports
@@ -180,8 +172,8 @@ When moving functionality to the API, **remove direct imports** from internal mo
 // ❌ OLD - direct import
 import { withSpinner } from "../../core/console.ts";
 
-// ✅ NEW - use API
-import { quartoAPI as quarto } from "../../core/quarto-api.ts";
+// ✅ NEW - use API via init() or getQuartoAPI()
+const quarto = getQuartoAPI();
 const result = await quarto.console.withSpinner(...);
 ```
 

@@ -837,9 +837,12 @@ export interface QuartoAPI {
 		 * @param src - Markdown string or MappedString
 		 * @param validate - Whether to validate cells (default: false)
 		 * @param lenient - Whether to use lenient parsing (default: false)
+		 * @param startCodeCellRegex - Optional custom regex for detecting code cell starts.
+		 *        Must have capture group 1 for backticks and group 2 for language.
+		 *        Default matches `{language}` syntax.
 		 * @returns Promise resolving to chunks with cells
 		 */
-		breakQuartoMd: (src: string | MappedString, validate?: boolean, lenient?: boolean) => Promise<QuartoMdChunks>;
+		breakQuartoMd: (src: string | MappedString, validate?: boolean, lenient?: boolean, startCodeCellRegex?: RegExp) => Promise<QuartoMdChunks>;
 	};
 	/**
 	 * MappedString utilities for source location tracking
@@ -1300,6 +1303,17 @@ export interface QuartoAPI {
 		 * @returns Promise resolving to render result with success status
 		 */
 		checkRender: (options: CheckRenderOptions) => Promise<CheckRenderResult>;
+		/**
+		 * Execute pandoc with the given arguments
+		 *
+		 * Runs the bundled pandoc binary (or QUARTO_PANDOC override) with
+		 * the specified arguments. Path to pandoc is automatically resolved.
+		 *
+		 * @param args - Command line arguments to pass to pandoc
+		 * @param stdin - Optional stdin content to pipe to pandoc
+		 * @returns Promise resolving to process result with stdout/stderr
+		 */
+		pandoc: (args: string[], stdin?: string) => Promise<ProcessResult>;
 	};
 	/**
 	 * Text processing utilities
