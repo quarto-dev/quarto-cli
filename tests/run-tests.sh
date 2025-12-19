@@ -106,14 +106,12 @@ else
     TESTS_TO_RUN=""
     if [[ ! -z "$*" ]]; then
       for file in "$*"; do
-        echo $file
         filename=$(basename "$file")
         # smoke-all.test.ts works with .qmd, .md and .ipynb but  will ignored file starting with _
         if [[ $filename =~ ^[^_].*[.]qmd$ ]] || [[ $filename =~ ^[^_].*[.]ipynb$ ]] || [[ $filename =~ ^[^_].*[.]md$ ]]; then
           SMOKE_ALL_FILES="${SMOKE_ALL_FILES} ${file}"
         elif [[ $file =~ .*[.]ts$ ]]; then
           TESTS_TO_RUN="${TESTS_TO_RUN} ${file}"
-          echo $TESTS_TO_RUN
         else
           echo "#### WARNING"
           echo "Only .ts, or .qmd, .md and .ipynb passed to smoke-all.test.ts are accepted (file starting with _ are ignored)."
