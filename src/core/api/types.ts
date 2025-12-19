@@ -42,6 +42,7 @@ export interface MarkdownRegexNamespace {
     src: string | MappedString,
     validate?: boolean,
     lenient?: boolean,
+    startCodeCellRegex?: RegExp,
   ) => Promise<QuartoMdChunks>;
 }
 
@@ -179,6 +180,7 @@ export interface SystemNamespace {
     language: string;
     services: RenderServiceWithLifetime;
   }) => Promise<{ success: boolean; error?: Error }>;
+  pandoc: (args: string[], stdin?: string) => Promise<ProcessResult>;
 }
 
 /**
