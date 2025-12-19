@@ -1,0 +1,14 @@
+---
+format: html
+title: Temporary Failing Test
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["THIS_TEXT_WILL_NEVER_EXIST_IN_OUTPUT"]
+---
+
+TEMPORARY FAILING TEST - FOR CI LOG TESTING ONLY
+
+This document is intentionally failing to verify grouping behavior in CI logs.
+The test expects text that doesn't exist in the output, causing a failure.
