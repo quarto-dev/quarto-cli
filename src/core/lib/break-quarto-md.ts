@@ -43,7 +43,7 @@ export async function breakQuartoMd(
 
   // regexes
   const yamlRegEx = /^---\s*$/;
-  const startCodeCellRegEx = startCodeCellRegex ?? new RegExp(
+  const startCodeCellRegEx = startCodeCellRegex || new RegExp(
     "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$",
   );
   const startCodeRegEx = /^```/;
