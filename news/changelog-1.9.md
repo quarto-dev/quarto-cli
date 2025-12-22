@@ -94,3 +94,4 @@ All changes included in 1.9:
 - ([#13528](https://github.com/quarto-dev/quarto-cli/pull/13528)): Adds support for table specification using nested lists and the `list-table` class.
 - ([#13575](https://github.com/quarto-dev/quarto-cli/pull/13575)): Improve CPU architecture detection/reporting in macOS to allow quarto to run in virtualized environments such as OpenAI's `codex`.
 - ([#13656](https://github.com/quarto-dev/quarto-cli/issues/13656)): Fix R code cells with empty `lang: ""` option producing invalid markdown class attributes.
+- ([#8730](https://github.com/quarto-dev/quarto-cli/issues/8730)): Detect x64 R crashes on Windows ARM and provide helpful error message directing users to install native ARM64 R instead of showing generic "check your R installation" error.
