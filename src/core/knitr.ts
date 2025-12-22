@@ -124,6 +124,8 @@ export async function knitrCapabilities(rBin: string | undefined) {
 
       // Check for x64 R crashes on ARM Windows
       // These specific error codes only occur when x64 R crashes on ARM Windows
+      // See: https://github.com/quarto-dev/quarto-cli/issues/8730
+      //      https://github.com/cderv/quarto-windows-arm
       const isX64RCrashOnArm =
         result.code === -1073741569 ||  // STATUS_NOT_SUPPORTED (native ARM hardware)
         result.code === -1073741819;    // STATUS_ACCESS_VIOLATION (Windows ARM VM on Mac)
