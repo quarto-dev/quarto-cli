@@ -132,11 +132,15 @@ export async function knitrCapabilities(rBin: string | undefined) {
 
       if (isX64RCrashOnArm) {
         throw new WindowsArmX64RError(
-          "x64 R detected on Windows ARM.\n\n" +
-            "x64 R runs under emulation and is not reliable for Quarto.\n" +
-            "Please install native ARM64 R. \n" +
-            "Read about R on 64-bit Windows ARM at https://blog.r-project.org/2024/04/23/r-on-64-bit-arm-windows/\n" +
-            "After installation, set QUARTO_R environment variable if the correct version is not correctly found.",
+          `R process crashed with known error code (${result.code}).\n\n` +
+            "This typically indicates x64 R running on Windows 11 ARM.\n" +
+            "x64 R runs under emulation and is not reliable for Quarto.\n\n" +
+            "To fix this issue:\n" +
+            "1. Check your R version with: Rscript -e \"R.version$platform\"\n" +
+            "2. If it shows 'x86_64-w64-mingw32', you need ARM64 R\n" +
+            "3. Install native ARM64 R: https://blog.r-project.org/2024/04/23/r-on-64-bit-arm-windows/\n" +
+            "4. If needed, set QUARTO_R environment variable to point to ARM64 Rscript\n\n" +
+            "More context on this issue: https://github.com/quarto-dev/quarto-cli/issues/8730",
         );
       }
 
