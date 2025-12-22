@@ -68,6 +68,12 @@ export async function checkRBinary() {
   }
 }
 
+export class WindowsArmX64RError extends Error {
+  constructor(msg: string) {
+    super(msg);
+  }
+}
+
 export async function knitrCapabilities(rBin: string | undefined) {
   if (!rBin) return undefined;
   try {
@@ -115,9 +121,30 @@ export async function knitrCapabilities(rBin: string | undefined) {
       if (result.stderr) {
         debug(`    with stderr from R:\n${result.stderr}`);
       }
+
+      // Check for x64 R crashes on ARM Windows
+      // These specific error codes only occur when x64 R crashes on ARM Windows
+      const isX64RCrashOnArm =
+        result.code === -1073741569 ||  // STATUS_NOT_SUPPORTED (native ARM hardware)
+        result.code === -1073741819;    // STATUS_ACCESS_VIOLATION (Windows ARM VM on Mac)
+
+      if (isX64RCrashOnArm) {
+        throw new WindowsArmX64RError(
+          "x64 R detected on Windows ARM.\n\n" +
+            "x64 R runs under emulation and is not reliable for Quarto.\n" +
+            "Please install native ARM64 R. \n" +
+            "Read about R on 64-bit Windows ARM at https://blog.r-project.org/2024/04/23/r-on-64-bit-arm-windows/\n" +
+            "After installation, set QUARTO_R environment variable if the correct version is not correctly found.",
+        );
+      }
+
       return undefined;
     }
-  } catch {
+  } catch (e) {
+    // Rethrow x64-on-ARM errors - these have helpful messages
+    if (e instanceof WindowsArmX64RError) {
+      throw e;
+    }
     debug(
       `\n++ Error while running 'capabilities/knitr.R' ${
         rBin ? "with " + rBin : ""
