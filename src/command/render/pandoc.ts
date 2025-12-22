@@ -435,7 +435,9 @@ export async function runPandoc(
       const filteredEngines = metadata.engines.filter((engine) => {
         const enginePath = typeof engine === "string" ? engine : engine.path;
         // Keep user engines, filter out bundled ones
-        return !enginePath?.includes("/src/resources/extension-subtrees/");
+        return !enginePath?.replace(/\\/g, "/").includes(
+          "resources/extension-subtrees/",
+        );
       });
 
       // Remove the engines key entirely if empty, otherwise assign filtered array
@@ -1314,9 +1316,9 @@ export async function runPandoc(
     const filteredEngines = pandocPassedMetadata.engines.filter((engine) => {
       const enginePath = typeof engine === "string" ? engine : engine.path;
       if (!enginePath) return true;
-
-      const normalizedPath = enginePath.replace(/\\/g, "/");
-      return !normalizedPath.includes("extension-subtrees/");
+      return !enginePath.replace(/\\/g, "/").includes(
+        "resources/extension-subtrees/",
+      );
     });
 
     if (filteredEngines.length === 0) {
