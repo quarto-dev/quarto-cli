@@ -11,6 +11,7 @@ import { rBinaryPath, resourcePath } from "./resources.ts";
 import { readYamlFromString } from "./yaml.ts";
 import { coerce, satisfies } from "semver/mod.ts";
 import { debug } from "../deno_ral/log.ts";
+import { errorOnce } from "./log.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 import { isWindowsArm } from "./windows.ts";
 
@@ -154,21 +155,24 @@ export async function knitrCapabilities(rBin: string | undefined) {
             checkWindowsArmR(caps.platform);
           }
         } catch (e) {
-          // If it's our specific x64-on-ARM error, rethrow it
+          // Log x64-on-ARM errors once, then continue
           if (e instanceof WindowsArmX64RError) {
-            throw e;
+            errorOnce(e.message);
+            // Continue to return undefined below
+          } else {
+            // YAML parse failed, continue to return undefined
+            debug("    Failed to parse YAML for architecture detection");
           }
-          // Otherwise YAML parse failed, continue to return undefined
-          debug("    Failed to parse YAML for architecture detection");
         }
       }
 
       return undefined;
     }
   } catch (e) {
-    // Rethrow x64-on-ARM errors - these have helpful messages
+    // Log x64-on-ARM errors once, then return undefined like other errors
     if (e instanceof WindowsArmX64RError) {
-      throw e;
+      errorOnce(e.message);
+      return undefined;
     }
     debug(
       `\n++ Error while running 'capabilities/knitr.R' ${
