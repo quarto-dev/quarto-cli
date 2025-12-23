@@ -8,6 +8,7 @@ import { fromFileUrl } from "./path.ts";
 import { resolve, SEP as SEPARATOR } from "./path.ts";
 import { copySync } from "fs/copy";
 import { existsSync } from "fs/exists";
+import { isWindows } from "./platform.ts";
 
 export { ensureDir, ensureDirSync } from "fs/ensure-dir";
 export { existsSync } from "fs/exists";
@@ -20,6 +21,15 @@ export type { CopyOptions } from "fs/copy";
 export { moveSync } from "fs/move";
 export { emptyDirSync } from "fs/empty-dir";
 export type { WalkEntry } from "fs/walk";
+
+// Error type guard for file system operations
+interface ErrorWithCode {
+  code: string;
+}
+
+function hasErrorCode(e: unknown): e is ErrorWithCode {
+  return typeof e === "object" && e !== null && "code" in e;
+}
 
 // It looks like these exports disappeared when Deno moved to JSR? :(
 // from https://jsr.io/@std/fs/1.0.3/_get_file_info_type.ts
@@ -116,8 +126,26 @@ export function safeRemoveSync(
   try {
     Deno.removeSync(file, options);
   } catch (e) {
+    let lastError = e;
+    // WINDOWS ONLY: Retry on windows to let time to file to unlock
+    if (isWindows && hasErrorCode(e) && e.code === "EBUSY") {
+      let nTry: number = 1;
+      // high number to prevent infinite loop
+      const maxTry: number = 500;
+      let eCode = e.code;
+      while (eCode === "EBUSY" && nTry <= maxTry) {
+        try {
+          Deno.removeSync(file, options);
+          break; // Success, exit the loop
+        } catch (err) {
+          lastError = err;
+          eCode = hasErrorCode(err) ? err.code : "";
+          nTry++;
+        }
+      }
+    }
     if (existsSync(file)) {
-      throw e;
+      throw lastError;
     }
   }
 }
