@@ -5,16 +5,26 @@
  */
 
 import { kIncludeInHeader } from "../../config/constants.ts";
+import { isRevealjsOutput } from "../../config/format.ts";
 import { Format, FormatExtras } from "../../config/types.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { encodeBase64 } from "../../deno_ral/encoding.ts";
 
 export function axeFormatDependencies(
-  _format: Format,
+  format: Format,
   temp: TempContext,
   options?: unknown,
 ): FormatExtras {
   if (!options) return {};
+
+  // Use reveal-theme for revealjs, bootstrap for other HTML formats.
+  // Note: For revealjs, sass-bundles compile separately from the theme
+  // (which compiles in format-reveal-theme.ts), so the !default values
+  // below are used instead of actual theme colors. This is a known
+  // limitation - see GitHub issue for architectural context.
+  const sassDependency = isRevealjsOutput(format.pandoc)
+    ? "reveal-theme"
+    : "bootstrap";
 
   return {
     [kIncludeInHeader]: [
@@ -28,10 +38,13 @@ export function axeFormatDependencies(
       "sass-bundles": [
         {
           key: "axe",
-          dependency: "bootstrap",
+          dependency: sassDependency,
           user: [{
             uses: "",
-            defaults: "",
+            defaults: `
+$body-color: #222 !default;
+$link-color: #2a76dd !default;
+`,
             functions: "",
             mixins: "",
             rules: `
@@ -51,7 +64,7 @@ body div.quarto-axe-report {
   text-decoration: underline;
   cursor: pointer;
 }
-  
+
 .quarto-axe-hover-highlight {
   background-color: red;
   border: 1px solid $body-color;

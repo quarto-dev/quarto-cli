@@ -1,0 +1,21 @@
+---
+title: "Axe Accessibility - HTML"
+format:
+  html:
+    axe: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['script[src*="axe"]', '#quarto-axe-checker-options']
+        - []
+      ensureFileRegexMatches:
+        - ['quarto-axe-checker-options']
+        - []
+---
+
+## HTML Document
+
+Content for accessibility checking.
+
+This is a regression test to ensure HTML format continues to work with axe enabled.
