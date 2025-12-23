@@ -133,3 +133,38 @@ And what about this?
   const cells = (await breakQuartoMd(qmd, false)).cells;
   assert(cells.length <= 2 || cells[2].cell_type === "markdown");
 });
+
+unitTest("break-quarto-md - hr after content (no blank line before)", async () => {
+  await initYamlIntelligenceResourcesFromFilesystem();
+  // HR directly after heading, followed by blank line, then more content with another HR later
+  // The first HR should NOT start a YAML block that consumes content until the second HR
+  const qmd = `---
+title: marimo + quarto
+format: html
+---
+
+# Heading
+---
+
+Some content here.
+
+---
+
+More content.
+`;
+
+  const cells = (await breakQuartoMd(qmd, false)).cells;
+
+  // Check if there's a spurious raw cell after the front matter
+  const rawCells = cells.filter(cell => cell.cell_type === "raw");
+
+  // The HR on line 7 should NOT create a second raw cell
+  // There should only be 1 raw cell (the front matter)
+  assert(rawCells.length === 1, `Expected 1 raw cell (front matter only), got ${rawCells.length}`);
+
+  // All non-front-matter cells should be markdown
+  assert(
+    cells.slice(1).every(cell => cell.cell_type === "markdown"),
+    "All cells after front matter should be markdown"
+  );
+});
