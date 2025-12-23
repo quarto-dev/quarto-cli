@@ -33,20 +33,23 @@ import { kTextPlain } from "../../core/mime.ts";
 import { normalizePath } from "../../core/path.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
-import { assert } from "testing/asserts";
+import { ProjectContext } from "../../project/types.ts";
 
 export async function render(
   path: string,
   options: RenderOptions,
+  pContext?: ProjectContext,
 ): Promise<RenderResult> {
   // one time initialization of yaml validators
   setInitializer(initYamlIntelligenceResourcesFromFilesystem);
   await initState();
 
-  const nbContext = notebookContext();
+  const nbContext = pContext?.notebookContext || notebookContext();
 
   // determine target context/files
-  let context = await projectContext(path, nbContext, options);
+  // let context = await projectContext(path, nbContext, options);
+  let context = pContext || (await projectContext(path, nbContext, options)) ||
+    (await singleFileProjectContext(path, nbContext, options));
 
   // Create a synthetic project when --output-dir is used without a project file
   // This creates a temporary .quarto directory to manage the render, which must
@@ -61,6 +64,7 @@ export async function render(
 
   // set env var if requested
   if (context && options.setProjectDir) {
+    // FIXME we can't set environment variables like this with asyncs flying around
     Deno.env.set("QUARTO_PROJECT_DIR", context.dir);
   }
 
@@ -97,10 +101,6 @@ export async function render(
 
   // validate that we didn't get any project-only options
   validateDocumentRenderFlags(options.flags);
-
-  assert(!context, "Expected no context here");
-  // NB: singleFileProjectContext is currently not fully-featured
-  context = await singleFileProjectContext(path, nbContext, options);
 
   // otherwise it's just a file render
   const result = await renderFiles(

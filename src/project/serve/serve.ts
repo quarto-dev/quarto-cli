@@ -810,7 +810,7 @@ function previewControlChannelRequestHandler(
       );
       if (
         prevReq &&
-        (await previewRenderRequestIsCompatible(prevReq, flags.to, project))
+        (await previewRenderRequestIsCompatible(prevReq, project, flags.to))
       ) {
         if (isProjectInputFile(prevReq.path, project!)) {
           const services = renderServices(notebookContext());
