@@ -30,3 +30,19 @@ The ships hung in the sky in much the same way that bricks don't. This is a note
 ## Whose Tea Is This?
 On no account allow anyone to make you a conditions-affected beverage. The alarm on Arthur Dent's alarm clock had been going off for several hours when he finally woke up. See @wrn-tea to reference this warning.
 :::
+
+## Section 1.4 - Custom Crossref Dinosaurs
+
+This section tests custom cross-reference types using the user-defined "Dinosaur" category.
+
+::: {#dino-steg}
+**Stegosaurus**
+
+This is the first dinosaur in Chapter 1, a herbivore with distinctive plates. See @dino-steg to self-reference.
+:::
+
+::: {#dino-trex}
+**Tyrannosaurus Rex**
+
+This is the second dinosaur in Chapter 1, the king of predators. See @dino-trex to self-reference, or @dino-steg for the first dinosaur.
+:::
