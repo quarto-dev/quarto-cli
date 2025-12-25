@@ -132,10 +132,19 @@ const verifyTypst = [
     "<dino-trex>",                                      // dinosaur 2 in chapter 1
     "<dino-raptor>",                                    // dinosaur in chapter 2
     "<dino-ptero>",                                     // dinosaur in chapter 3
-    "<dino-appendix>",                                  // dinosaur in appendix
+    "<dino-appendix>",                                  // dinosaur in appendix A
+    "<dino-appendix-b>",                                // dinosaur in appendix B
     "#ref\\(<dino-steg>, supplement: \\[Dinosaur\\]\\)",   // dinosaur reference
     "#ref\\(<dino-raptor>, supplement: \\[Dinosaur\\]\\)", // cross-chapter dinosaur reference
-    "#ref\\(<dino-appendix>, supplement: \\[Dinosaur\\]\\)", // appendix dinosaur reference
+    "#ref\\(<dino-appendix>, supplement: \\[Dinosaur\\]\\)", // appendix A dinosaur reference
+    "#ref\\(<dino-appendix-b>, supplement: \\[Dinosaur\\]\\)", // appendix B dinosaur reference
+    // Appendix B - labels and references
+    "<fig-appendix-b-panel>",                           // appendix B figure label
+    "<fig-appendix-b-panel-a>",                         // appendix B sub-figure label
+    "<wrn-appendix-b>",                                 // appendix B warning label
+    "<tip-appendix-b>",                                 // appendix B tip label
+    "#ref\\(<fig-appendix-b-panel>, supplement: \\[Figure\\]\\)", // appendix B figure reference
+    "#ref\\(<wrn-appendix-b>, supplement: \\[Warning\\]\\)",      // appendix B warning reference
     // Dynamic counter reset show rule should include custom crossref type
     'counter\\(figure\\.where\\(kind: "quarto-float-dino"\\)\\)\\.update\\(0\\)',
   ]),
@@ -207,6 +216,21 @@ const verifyTypst = [
     "See Dinosaur A\\.1 for the appendix dinosaur",             // from chapter 3 to appendix
     // Cross-reference from appendix back to main chapter
     "see Dinosaur 1\\.1 from Chapter 1",                        // from appendix to chapter 1
+    // Appendix B numbering - should use "B" prefix with counter reset (B.1, not A.2)
+    "Figure B\\.1: A panel of sub-figures in Appendix B",       // appendix B figure caption
+    "Figure B\\.1a and Figure B\\.1b individually",             // appendix B sub-figure references
+    "Warning B\\.1: Appendix B Warning",                        // appendix B warning caption
+    "Tip B\\.1: Appendix B Tip",                                // appendix B tip caption
+    "Dinosaur B\\.1: This dinosaur in Appendix B",              // appendix B dinosaur caption
+    // Self-references within Appendix B
+    "See Dinosaur B\\.1 to self",                               // appendix B dinosaur self-ref
+    // Forward references from chapter 3 to Appendix B
+    "See Figure B\\.1 for Appendix B sub-figures",              // from chapter 3 to appendix B figure
+    "See Warning B\\.1 for the Appendix B warning",             // from chapter 3 to appendix B warning
+    "See Tip B\\.1 for the Appendix B tip",                     // from chapter 3 to appendix B tip
+    "See Dinosaur B\\.1 for the Appendix B dinosaur",           // from chapter 3 to appendix B dinosaur
+    // Cross-references from Appendix B to Appendix A
+    "see Figure A\\.1 for Appendix A",                          // from appendix B to appendix A
   ]),
 ];
 testQuartoCmd(

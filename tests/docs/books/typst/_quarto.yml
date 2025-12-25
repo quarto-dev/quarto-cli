@@ -16,6 +16,7 @@ book:
         - chapter3.qmd
   appendices:
     - appendix.qmd
+    - appendix-b.qmd
 
 bibliography: references.bib
 
