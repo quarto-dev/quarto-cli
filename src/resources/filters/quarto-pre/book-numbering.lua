@@ -52,8 +52,21 @@ function book_numbering()
               if file.bookItemNumber == 1 or file.bookItemNumber == nil then
                 local language = param("language", nil)
                 local appendicesTitle = language and language["section-title-appendices"] or "Appendices"
+                -- Use hide-parent: true to work around orange-book bug where unnumbered headings
+                -- (like Bibliography) trigger duplicate "Appendices" TOC entries.
+                -- See plans/orange-emitting-multiple-appendices.md for details.
                 local appendixStart = pandoc.RawBlock('typst',
-                  '#show: appendices.with("' .. appendicesTitle .. '")')
+                  '#show: appendices.with("' .. appendicesTitle .. '", hide-parent: true)')
+
+                -- If this is the synthetic "Appendices" divider heading (has .unnumbered class),
+                -- emit our own Appendices heading for TOC display (since hide-parent: true
+                -- means orange-book won't add one automatically).
+                if el.classes:includes("unnumbered") then
+                  local appendicesHeading = pandoc.RawBlock('typst',
+                    '#heading(level: 1, numbering: none)[' .. appendicesTitle .. ']')
+                  return {appendixStart, appendicesHeading}
+                end
+
                 return {appendixStart, el}
               end
               return el

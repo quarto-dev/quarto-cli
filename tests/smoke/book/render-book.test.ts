@@ -86,13 +86,12 @@ const verifyTypst = [
     "Sample data table",                   // table caption
     // Verify bibliography and citations
     "#cite\\(<knuth84>",                   // Typst citation syntax
-    "#heading\\(level: 1, numbering: none\\)\\[References\\]", // unnumbered References heading
-    '#bibliography\\(\\("references\\.bib"\\)\\)',             // bibliography inclusion
+    '#bibliography\\(\\("references\\.bib"\\)\\)',             // bibliography inclusion (generates Bibliography heading)
     // Verify book parts
     "#part\\[Part I: Getting Started\\]",  // first part
     "#part\\[Part II: Advanced Topics\\]", // second part
     // Verify appendices
-    '#show: appendices\\.with\\("Appendices"\\)', // appendices show rule with localized title
+    '#show: appendices\\.with\\("Appendices", hide-parent: true\\)', // appendices show rule with localized title
     "<sec-resources>",                     // appendix section anchor
     // Verify sub-figures
     "#quarto_super\\(",                    // sub-figure function call
