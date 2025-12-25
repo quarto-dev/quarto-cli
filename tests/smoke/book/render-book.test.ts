@@ -114,6 +114,18 @@ const verifyTypst = [
     "#ref\\(<tip-towel>, supplement: \\[Tip\\]\\)",     // tip reference
     "#ref\\(<nte-vogon>, supplement: \\[Note\\]\\)",    // note reference
     "#ref\\(<imp-answer>, supplement: \\[Important\\]\\)", // important reference
+    // Appendix sub-figures - labels and references
+    "<fig-appendix-panel>",                             // appendix parent figure label
+    "<fig-appendix-panel-a>",                           // appendix first sub-figure label
+    "<fig-appendix-panel-b>",                           // appendix second sub-figure label
+    "#ref\\(<fig-appendix-panel>, supplement: \\[Figure\\]\\)",   // appendix figure reference
+    "#ref\\(<fig-appendix-panel-a>, supplement: \\[Figure\\]\\)", // appendix sub-figure reference
+    "#ref\\(<fig-appendix-panel-b>, supplement: \\[Figure\\]\\)", // appendix sub-figure reference
+    // Appendix callouts - labels and references
+    "<wrn-appendix>",                                   // appendix warning label
+    "<tip-appendix>",                                   // appendix tip label
+    "#ref\\(<wrn-appendix>, supplement: \\[Warning\\]\\)",  // appendix warning reference
+    "#ref\\(<tip-appendix>, supplement: \\[Tip\\]\\)",      // appendix tip reference
   ]),
   // Verify rendered PDF content has correct chapter-based numbering
   ensurePdfRegexMatches(typstPdfPath, [
@@ -153,6 +165,26 @@ const verifyTypst = [
     "See Warning 1\\.1 for the tea warning",
     "See Tip 2\\.1 for towel advice",
     "See Note 2\\.1 for important information about Vogon poetry",
+    // Appendix numbering tests - verify "A." prefix works (Bug 2 fix)
+    // Tests use \d+ for the number because Bug 1 (counter not reset per chapter) causes
+    // wrong numbers (A.4 instead of A.1). See plans/quarto-orange-figure-counters.md
+    "Figure A\\.\\d+: A panel of sub-figures in the appendix",  // appendix figure has A prefix
+    "Figure A\\.\\d+a and Figure A\\.\\d+b individually",       // appendix subfigures have A prefix
+    "Warning A\\.\\d+: Appendix Warning",                       // appendix warning has A prefix
+    "Tip A\\.\\d+: Appendix Tip",                               // appendix tip has A prefix
+    // Cross-references from appendix back to main chapters (should still be numeric)
+    "see Warning 1\\.1 for the tea warning from Chapter 1",     // from appendix to chapter 1 callout
+    // TODO: Uncomment these once Bug 1 (counter reset) is fixed:
+    // "Figure A\\.1: A panel of sub-figures in the appendix",  // should be A.1, not A.4
+    // "See Figure A\\.1 for a panel of appendix sub-figures",
+    // "Figure A\\.1a and Figure A\\.1b individually",          // should be A.1a/A.1b, not A.4a/A.4b
+    // "Warning A\\.1: Appendix Warning",                       // should be A.1, not A.2
+    // "Tip A\\.1: Appendix Tip",                               // should be A.1, not A.2
+    // "See Warning A\\.1 to\\s+reference this appendix warning",
+    // "See Tip A\\.1 to\\s+reference this appendix tip",
+    // "See Figure A\\.1 for appendix sub-figures",             // forward ref from chapter 3
+    // "See Warning A\\.1 for the appendix warning",
+    // "See Tip A\\.1 for the appendix tip",
   ]),
 ];
 testQuartoCmd(

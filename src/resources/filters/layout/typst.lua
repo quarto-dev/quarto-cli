@@ -35,9 +35,11 @@ function make_typst_figure(tbl)
     -- Patterns without "." (e.g., "1") use simple sequential numbering.
     -- This convention matches quarto_super()'s subfigure handling in definitions.typ.
     -- Note: Currently only callout.lua passes a non-nil numbering parameter.
+    -- For chapter-based numbering, we check orange-book's appendix-state to use "A.1" format
+    -- in appendices instead of "1.1" format in regular chapters.
     pandoc.RawInline("typst", numbering and (
       numbering:find("%.") and
-        ("numbering: it => numbering(\"" .. numbering .. "\", counter(heading).get().first(), it), ") or
+        ("numbering: it => { let pattern = if state(\"appendix-state\", none).get() != none { \"A.1\" } else { \"" .. numbering .. "\" }; numbering(pattern, counter(heading).get().first(), it) }, ") or
         ("numbering: \"" .. numbering .. "\", ")
     ) or ""),
     pandoc.RawInline("typst", ")"),

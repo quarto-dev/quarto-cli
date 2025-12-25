@@ -22,3 +22,11 @@ We can reference callouts from previous chapters:
 ## The Answer
 The answer to the ultimate question of life, the universe, and everything is 42. Unfortunately, we have forgotten what the question was. See @imp-answer to reference this important callout.
 :::
+
+## Forward references to appendix
+
+We can also reference content that appears in the appendix:
+
+- See @fig-appendix-panel for appendix sub-figures (should show as Figure A.1)
+- See @wrn-appendix for the appendix warning (should show as Warning A.1)
+- See @tip-appendix for the appendix tip (should show as Tip A.1)
