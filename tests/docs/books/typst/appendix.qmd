@@ -1,0 +1,13 @@
+# Additional Resources {#sec-resources}
+
+This appendix contains additional resources and supplementary material.
+
+## Data Sources
+
+The data used in this book comes from various sources.
+
+## Code Repository
+
+All code examples are available in the companion repository.
+
+See @sec-intro for the main introduction, and @fig-cars for example visualizations.

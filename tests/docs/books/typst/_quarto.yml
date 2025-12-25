@@ -7,8 +7,14 @@ book:
   date: "2024-01-01"
   chapters:
     - index.qmd
-    - chapter1.qmd
-    - chapter2.qmd
+    - part: "Part I: Getting Started"
+      chapters:
+        - chapter1.qmd
+    - part: "Part II: Advanced Topics"
+      chapters:
+        - chapter2.qmd
+  appendices:
+    - appendix.qmd
     - references.qmd
 
 bibliography: references.bib

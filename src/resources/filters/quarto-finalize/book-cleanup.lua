@@ -37,10 +37,15 @@ end
 
 function cleanupBookPart(el)
   if el.attr.classes:includes('quarto-book-part') then
-    -- Keep book parts for LaTeX and Typst, remove for other formats
-    if _quarto.format.isLatexOutput() or _quarto.format.isTypstOutput() then
+    if _quarto.format.isLatexOutput() then
+      -- Keep div for LaTeX (Pandoc's LaTeX writer handles divs without issue)
       return el
+    elseif _quarto.format.isTypstOutput() then
+      -- Unwrap content for Typst to avoid #block[] wrapper that breaks pagebreak()
+      -- The content is already transformed to #part[...] by book-numbering.lua
+      return el.content
     else
+      -- Remove for other formats (HTML etc.) that don't support parts
       return pandoc.Div({})
     end
   end

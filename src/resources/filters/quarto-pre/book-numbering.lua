@@ -48,10 +48,12 @@ function book_numbering()
               return partBlock
             elseif bookItemType == "appendix" then
               -- Switch to appendix mode with alphabetic numbering
-              -- First appendix triggers the show rule
+              -- First appendix triggers the show rule with localized "Appendices" title
               if file.bookItemNumber == 1 or file.bookItemNumber == nil then
+                local language = param("language", nil)
+                local appendicesTitle = language and language["section-title-appendices"] or "Appendices"
                 local appendixStart = pandoc.RawBlock('typst',
-                  '#show: appendices.with("' .. pandoc.utils.stringify(el.content) .. '")')
+                  '#show: appendices.with("' .. appendicesTitle .. '")')
                 return {appendixStart, el}
               end
               return el
