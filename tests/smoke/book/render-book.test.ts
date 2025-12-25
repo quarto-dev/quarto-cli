@@ -1,5 +1,5 @@
 import { testQuartoCmd } from "../../test.ts";
-import { fileExists, noErrorsOrWarnings } from "../../verify.ts";
+import { fileExists, noErrorsOrWarnings, ensureFileRegexMatches } from "../../verify.ts";
 
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { join } from "../../../src/deno_ral/path.ts";
@@ -47,6 +47,38 @@ testQuartoCmd(
       const bookDir = join(vizInput, "docs");
       if (existsSync(bookDir)) {
         await Deno.remove(bookDir, { recursive: true });
+      }
+    },
+  },
+);
+
+// Test a Typst book render
+const typstInput = docs("books/typst");
+const typstPdfPath = join(typstInput, "_book", "Test-Typst-Book.pdf");
+// The intermediate .typ file is kept at the project root as index.typ
+const typstTypPath = join(typstInput, "index.typ");
+const verifyTypst = [
+  fileExists(typstPdfPath),
+  // Verify content from each chapter is included in the merged output
+  ensureFileRegexMatches(typstTypPath, [
+    "test book for Typst output format",  // from index.qmd
+    "first chapter of the book",           // from chapter1.qmd
+    "second chapter of the book",          // from chapter2.qmd
+  ]),
+];
+testQuartoCmd(
+  "render",
+  [typstInput],
+  [noErrorsOrWarnings, ...verifyTypst],
+  {
+    teardown: async () => {
+      const bookDir = join(typstInput, "_book");
+      if (existsSync(bookDir)) {
+        await Deno.remove(bookDir, { recursive: true });
+      }
+      // Clean up the kept .typ file
+      if (existsSync(typstTypPath)) {
+        await Deno.remove(typstTypPath);
       }
     },
   },

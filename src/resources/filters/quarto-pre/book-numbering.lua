@@ -22,7 +22,7 @@ function book_numbering()
               })
               tappend(partPara.content, el.content)
               partPara.content:insert( pandoc.RawInline('latex', '}'))
-              return partPara  
+              return partPara
             elseif bookItemType == "appendix" then
               local appendixPara = pandoc.Para({
                 pandoc.RawInline('latex', '\\cleardoublepage\n\\phantomsection\n\\addcontentsline{toc}{part}{')
@@ -37,6 +37,24 @@ function book_numbering()
                 el
               })
               return bookmarkReset
+            end
+          end
+
+          -- handle typst "part" and "appendix" headers
+          if el.level == 1 and _quarto.format.isTypstOutput() then
+            if bookItemType == "part" then
+              -- Emit #part() function call (imported from orange-book)
+              local partBlock = pandoc.RawBlock('typst', '#part[' .. pandoc.utils.stringify(el.content) .. ']')
+              return partBlock
+            elseif bookItemType == "appendix" then
+              -- Switch to appendix mode with alphabetic numbering
+              -- First appendix triggers the show rule
+              if file.bookItemNumber == 1 or file.bookItemNumber == nil then
+                local appendixStart = pandoc.RawBlock('typst',
+                  '#show: appendices.with("' .. pandoc.utils.stringify(el.content) .. '")')
+                return {appendixStart, el}
+              end
+              return el
             end
           end
 

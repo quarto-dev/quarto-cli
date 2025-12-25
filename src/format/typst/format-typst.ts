@@ -7,6 +7,8 @@
 import { join } from "../../deno_ral/path.ts";
 
 import { RenderServices } from "../../command/render/types.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { BookExtension } from "../../project/types/book/book-shared.ts";
 import {
   kCiteproc,
   kColumns,
@@ -38,6 +40,11 @@ import {
 import { fillLogoPaths, resolveLogo } from "../../core/brand/brand.ts";
 import { LogoLightDarkSpecifierPathOptional } from "../../resources/types/zod/schema-types.ts";
 
+const typstBookExtension: BookExtension = {
+  selfContainedOutput: true,
+  // multiFile defaults to false (single-file book)
+};
+
 export function typstFormat(): Format {
   return createFormat("Typst", "pdf", {
     execute: {
@@ -51,6 +58,9 @@ export function typstFormat(): Format {
       [kWrap]: "none",
       [kCiteproc]: false,
     },
+    extensions: {
+      book: typstBookExtension,
+    },
     resolveFormat: typstResolveFormat,
     formatExtras: async (
       _input: string,
@@ -59,6 +69,8 @@ export function typstFormat(): Format {
       format: Format,
       _libDir: string,
       _services: RenderServices,
+      _offset?: string,
+      project?: ProjectContext,
     ): Promise<FormatExtras> => {
       const pandoc: FormatPandoc = {};
       const metadata: Metadata = {};
@@ -107,17 +119,31 @@ export function typstFormat(): Format {
 
       // Provide a template and partials
       const templateDir = formatResourcePath("typst", join("pandoc", "quarto"));
-      const templateContext = {
-        template: join(templateDir, "template.typ"),
-        partials: [
-          "definitions.typ",
-          "typst-template.typ",
-          "page.typ",
-          "typst-show.typ",
-          "notes.typ",
-          "biblio.typ",
-        ].map((partial) => join(templateDir, partial)),
-      };
+
+      // Check if we're in a book project
+      const isBook = project?.config?.project?.type === "book";
+
+      const templateContext = isBook
+        ? {
+          template: join(templateDir, "book-template.typ"),
+          partials: [
+            "definitions.typ",
+            "book-typst-show.typ",
+            "notes.typ",
+            "biblio.typ",
+          ].map((partial) => join(templateDir, partial)),
+        }
+        : {
+          template: join(templateDir, "template.typ"),
+          partials: [
+            "definitions.typ",
+            "typst-template.typ",
+            "page.typ",
+            "typst-show.typ",
+            "notes.typ",
+            "biblio.typ",
+          ].map((partial) => join(templateDir, partial)),
+        };
 
       return {
         pandoc,
