@@ -31,3 +31,4 @@ crossref:
 format:
   typst:
     keep-typ: true
+    toc-depth: 17
