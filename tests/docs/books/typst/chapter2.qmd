@@ -29,3 +29,21 @@ See @fig-panel for a panel of sub-figures, or @fig-panel-a and @fig-panel-b indi
 
 A panel with two sub-figures showing the same plot.
 :::
+
+## Section 2.4 - More Callouts
+
+Before we continue, recall the important tea-related warning from @sec-intro: see @wrn-tea.
+
+::: {#tip-towel .callout-tip}
+## Whose Towel Is This?
+A towel is about the most massively useful thing an interstellar hitchhiker can have. See @tip-towel to reference this tip.
+:::
+
+::: {.callout-caution}
+Don't Panic. Under no circumstances should you allow yourself to panic, even if you find yourself in the path of a Vogon constructor fleet. This is an unlabeled caution callout.
+:::
+
+::: {#nte-vogon .callout-note}
+## A Note About Vogon Poetry
+Vogon poetry is of course, the third worst in the universe. See @nte-vogon to reference this note.
+:::

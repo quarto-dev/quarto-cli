@@ -29,7 +29,17 @@ function make_typst_figure(tbl)
     pandoc.RawInline("typst", "]), "),
     pandoc.RawInline("typst", "kind: \"" .. kind .. "\", "),
     pandoc.RawInline("typst", supplement and ("supplement: \"" .. supplement .. "\", ") or ""),
-    pandoc.RawInline("typst", numbering and ("numbering: \"" .. numbering .. "\", ") or ""),
+    -- Numbering pattern convention: if the pattern contains "." (e.g., "1.1"), it's treated
+    -- as chapter-based numbering and we emit a Typst function that includes the heading counter.
+    -- This ensures #ref() displays the chapter prefix (e.g., "Note 2.1" instead of "Note 1").
+    -- Patterns without "." (e.g., "1") use simple sequential numbering.
+    -- This convention matches quarto_super()'s subfigure handling in definitions.typ.
+    -- Note: Currently only callout.lua passes a non-nil numbering parameter.
+    pandoc.RawInline("typst", numbering and (
+      numbering:find("%.") and
+        ("numbering: it => numbering(\"" .. numbering .. "\", counter(heading).get().first(), it), ") or
+        ("numbering: \"" .. numbering .. "\", ")
+    ) or ""),
     pandoc.RawInline("typst", ")"),
     pandoc.RawInline("typst", identifier and ("<" .. identifier .. ">") or ""),
     pandoc.RawInline("typst", "\n\n")
