@@ -147,6 +147,19 @@ const verifyTypst = [
     "#ref\\(<wrn-appendix-b>, supplement: \\[Warning\\]\\)",      // appendix B warning reference
     // Dynamic counter reset show rule should include custom crossref type
     'counter\\(figure\\.where\\(kind: "quarto-float-dino"\\)\\)\\.update\\(0\\)',
+    // Equation labels and references
+    "<eq-einstein>",                           // equation label in chapter 1
+    "<eq-newton>",                             // equation label in chapter 1
+    "<eq-quadratic>",                          // equation label in chapter 2
+    "<eq-pythagorean>",                        // equation label in appendix A
+    "#ref\\(<eq-einstein>, supplement: \\[Equation\\]\\)",   // equation reference
+    "#ref\\(<eq-newton>, supplement: \\[Equation\\]\\)",     // equation reference
+    "#ref\\(<eq-quadratic>, supplement: \\[Equation\\]\\)",  // equation reference
+    "#ref\\(<eq-pythagorean>, supplement: \\[Equation\\]\\)", // appendix equation reference
+    // Chapter-based equation numbering function with appendix-state check
+    'math\\.equation\\(block: true, numbering: it => \\{ let pattern = if state\\("appendix-state"',
+    // Math equation counter reset at chapter boundaries
+    'counter\\(math\\.equation\\)\\.update\\(0\\)',
   ]),
   // Verify rendered PDF content has correct chapter-based numbering
   ensurePdfRegexMatches(typstPdfPath, [
@@ -231,6 +244,19 @@ const verifyTypst = [
     "See Dinosaur B\\.1 for the Appendix B dinosaur",           // from chapter 3 to appendix B dinosaur
     // Cross-references from Appendix B to Appendix A
     "see Figure A\\.1 for Appendix A",                          // from appendix B to appendix A
+    // Equation numbering - chapter-based with parentheses
+    "\\(1\\.1\\)",                                              // first equation in chapter 1
+    "\\(1\\.2\\)",                                              // second equation in chapter 1
+    "\\(2\\.1\\)",                                              // equation in chapter 2 (counter reset!)
+    "\\(A\\.1\\)",                                              // equation in appendix A (letter prefix)
+    // Equation references in text
+    "As shown in Equation \\(1\\.1\\), energy and mass",        // self-reference in chapter 1
+    "Newton.s second law \\(Equation \\(1\\.2\\)\\)",           // self-reference in chapter 1 (. matches Unicode apostrophe)
+    "Use Equation \\(2\\.1\\) to solve quadratic equations",    // self-reference in chapter 2
+    "See Equation \\(A\\.1\\) for right triangles",             // self-reference in appendix
+    // Cross-chapter equation references
+    "Recall Equation \\(1\\.1\\) from Chapter 1 and Equation \\(1\\.2\\)", // from chapter 2 to chapter 1
+    "Recall Equation \\(1\\.1\\) from Chapter 1 and Equation \\(2\\.1\\)", // from appendix to chapters 1 and 2
   ]),
 ];
 testQuartoCmd(

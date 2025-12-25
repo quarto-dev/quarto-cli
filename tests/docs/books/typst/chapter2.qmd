@@ -59,3 +59,15 @@ This dinosaur demonstrates clever pack hunting behavior. See @dino-raptor to sel
 :::
 
 We can also reference dinosaurs from the previous chapter: see @dino-steg and @dino-trex from Chapter 1.
+
+## Section 2.6 - Equations
+
+The quadratic formula:
+
+$$
+x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+$$ {#eq-quadratic}
+
+Use @eq-quadratic to solve quadratic equations. This should be Equation 2.1.
+
+Cross-chapter reference: Recall @eq-einstein from Chapter 1 and @eq-newton.

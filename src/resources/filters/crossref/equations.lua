@@ -55,8 +55,16 @@ function process_equations(blockEl)
           
         elseif _quarto.format.isTypstOutput() then
           local is_block = eq.mathtype == "DisplayMath" and "true" or "false"
-          targetInlines:insert(pandoc.RawInline("typst", 
-            "#math.equation(block: " .. is_block .. ", numbering: \"(1)\", " ..
+          local numbering_str
+          if crossrefOption("chapters", false) then
+            -- Chapter-based: "(2.1)" format with appendix support ("(A.1)")
+            -- Uses orange-book's appendix-state to detect appendix chapters
+            numbering_str = "it => { let pattern = if state(\"appendix-state\", none).get() != none { \"(A.1)\" } else { \"(1.1)\" }; numbering(pattern, counter(heading).get().first(), it) }"
+          else
+            numbering_str = "\"(1)\""
+          end
+          targetInlines:insert(pandoc.RawInline("typst",
+            "#math.equation(block: " .. is_block .. ", numbering: " .. numbering_str .. ", " ..
             "[ "))
           targetInlines:insert(eq)
           targetInlines:insert(pandoc.RawInline("typst", " ])<" .. label .. ">"))

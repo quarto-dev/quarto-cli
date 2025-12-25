@@ -54,3 +54,15 @@ This dinosaur in the appendix should be numbered Dinosaur A.1, not Dinosaur 1.1 
 :::
 
 We can reference dinosaurs from main chapters: see @dino-steg from Chapter 1.
+
+## Appendix Equations
+
+The Pythagorean theorem:
+
+$$
+a^2 + b^2 = c^2
+$$ {#eq-pythagorean}
+
+See @eq-pythagorean for right triangles. This should be Equation A.1.
+
+Cross-chapter reference: Recall @eq-einstein from Chapter 1 and @eq-quadratic from Chapter 2.
