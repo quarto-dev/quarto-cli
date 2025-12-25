@@ -1,0 +1,11 @@
+# Results {#sec-results}
+
+This is the third chapter of the book.
+
+## Cross-chapter references
+
+In this chapter, we reference figures from previous chapters to demonstrate cross-chapter sub-figure references.
+
+Recall the panel figure from @sec-methods: see @fig-panel for the complete panel. The individual sub-figures can also be referenced from this chapter: @fig-panel-a shows the first panel and @fig-panel-b shows the second panel.
+
+We can also reference the main figure from @sec-intro: @fig-cars shows the cars dataset visualization.

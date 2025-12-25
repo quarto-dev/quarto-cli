@@ -13,6 +13,7 @@ book:
     - part: "Part II: Advanced Topics"
       chapters:
         - chapter2.qmd
+        - chapter3.qmd
   appendices:
     - appendix.qmd
     - references.qmd

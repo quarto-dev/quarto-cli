@@ -137,7 +137,7 @@ end, function(layout)
       {"label", pandoc.RawInline("typst", "<" .. layout.float.identifier .. ">")},
       {"position", pandoc.RawInline("typst", caption_location)},
       {"supplement", supplement},
-      {"subrefnumbering", "1a"},
+      {"subrefnumbering", crossrefOption("chapters", false) and "1.1a" or "1a"},
       {"subcapnumbering", "(a)"},
       _quarto.format.typst.as_typst_content(cells)
     }, false))

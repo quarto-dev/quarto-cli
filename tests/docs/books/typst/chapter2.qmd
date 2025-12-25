@@ -16,3 +16,16 @@ Some content in section 2.1. See @tbl-data for sample data.
 ## Section 2.2
 
 Some content in section 2.2. Refer back to @fig-cars and @tbl-data.
+
+## Section 2.3 - Sub-figures
+
+See @fig-panel for a panel of sub-figures, or @fig-panel-a and @fig-panel-b individually.
+
+::: {#fig-panel layout-ncol=2}
+
+![First panel](chapter1_files/figure-typst/fig-cars-1.svg){#fig-panel-a}
+
+![Second panel](chapter1_files/figure-typst/fig-cars-1.svg){#fig-panel-b}
+
+A panel with two sub-figures showing the same plot.
+:::
