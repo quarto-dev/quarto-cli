@@ -4,7 +4,7 @@
 -- For Typst books, generate a show rule that resets Quarto's custom figure
 -- counters at each chapter (level-1 heading). Orange-book only resets
 -- kind:image and kind:table, but Quarto uses custom kinds for figures,
--- tables, listings, callouts, and custom crossref categories.
+-- tables, listings, callouts, custom crossref categories, and math equations.
 local function typst_book_counter_reset_rule()
   if not _quarto.format.isTypstOutput() then
     return nil
@@ -44,6 +44,8 @@ local function typst_book_counter_reset_rule()
   for _, kind in ipairs(kinds) do
     lines:insert('  counter(figure.where(kind: "' .. kind .. '")).update(0)')
   end
+  -- Reset math equation counter at chapter boundaries
+  lines:insert('  counter(math.equation).update(0)')
   lines:insert("  it")
   lines:insert("}")
 

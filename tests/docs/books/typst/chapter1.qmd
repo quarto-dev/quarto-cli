@@ -46,3 +46,21 @@ This is the first dinosaur in Chapter 1, a herbivore with distinctive plates. Se
 
 This is the second dinosaur in Chapter 1, the king of predators. See @dino-trex to self-reference, or @dino-steg for the first dinosaur.
 :::
+
+## Section 1.5 - Equations
+
+The fundamental equation of special relativity:
+
+$$
+E = mc^2
+$$ {#eq-einstein}
+
+As shown in @eq-einstein, energy and mass are equivalent.
+
+Another important equation:
+
+$$
+F = ma
+$$ {#eq-newton}
+
+Newton's second law (@eq-newton) relates force to acceleration.
