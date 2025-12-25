@@ -71,12 +71,12 @@
   schema: boolean
   default: false
   tags:
-    formats: [$pdf-all]
+    formats: [$pdf-all, typst]
   description: Print a list of figures in the document.
 
 - name: lot
   schema: boolean
   default: false
   tags:
-    formats: [$pdf-all]
+    formats: [$pdf-all, typst]
   description: Print a list of tables in the document.

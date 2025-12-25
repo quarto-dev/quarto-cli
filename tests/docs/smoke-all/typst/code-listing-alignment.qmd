@@ -1,0 +1,25 @@
+---
+title: Code Listing Alignment Test
+format: typst
+_quarto:
+  tests:
+    typst:
+      ensurePdfTextPositions:
+        - # Code listing should be left-aligned with body text
+          # IMPORTANT: The subject must be the FIRST token in the code block.
+          # pdftotext extracts words separately, so subsequent words appear
+          # offset by their position within the line, not aligned with margin.
+          - subject: "CODESTART_func():"
+            relation: leftAligned
+            object: "BODYTEXT_ALIGN_MARKER"
+            tolerance: 5
+---
+
+BODYTEXT_ALIGN_MARKER is body text that should left-align with code listings.
+
+```{#lst-test .python lst-cap="Test Listing"}
+CODESTART_func():
+    print("Hello, World!")
+```
+
+See @lst-test for the test listing.

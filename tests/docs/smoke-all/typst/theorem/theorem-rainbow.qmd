@@ -1,0 +1,40 @@
+---
+format:
+  typst:
+    keep-typ: true
+    theorem-appearance: rainbow
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - "#import \"@preview/theorion:0\\.4\\.1\": make-frame"
+          - "rainbow-render"
+          - "red\\.darken\\(20%\\)"
+          - "teal\\.darken\\(20%\\)"
+          - "olive\\.darken\\(20%\\)"
+        -
+          - "fancy-box"
+          - "clouds-render"
+          - "simple-theorem-render"
+          - "cosmos\\.fancy"
+---
+
+# Theorem Test - Rainbow Theme
+
+::: {#thm-test}
+## Test Theorem
+Theorems get red left border.
+:::
+
+::: {#lem-test}
+## Test Lemma
+Lemmas get teal left border.
+:::
+
+::: {#def-test}
+## Test Definition
+Definitions get olive left border.
+:::
+
+See @thm-test, @lem-test, and @def-test.

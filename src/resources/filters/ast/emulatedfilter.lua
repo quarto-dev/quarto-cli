@@ -62,17 +62,28 @@ inject_user_filters_at_entry_points = function(filter_list)
         return
       end
     end
-    local filter = {
-      name = entry_point .. "-user-" .. tostring(entry_point_counts[entry_point]),
-      -- The filter might not work as expected when doing a non-lazy jog, so
-      -- make sure it is processed with the default 'walk' function.
-      traverser = 'walk',
-    }
-    if is_many_filters then
-      filter.filters = wrapped
-    else
-      filter.filter = wrapped
+
+    -- Use combineFilters to merge user filter with the entry point's filter.
+    -- This ensures they run in a single Pandoc traversal, so file_metadata()
+    -- can parse metadata comments before user filters access the metadata.
+    local entry_point_entry = filter_list[index]
+    local filters_to_combine = {}
+
+    -- Start with the entry point's existing filter
+    if entry_point_entry.filter then
+      table.insert(filters_to_combine, entry_point_entry.filter)
     end
-    table.insert(filter_list, index, filter)
+
+    -- Add user filter(s)
+    if is_many_filters then
+      for _, f in ipairs(wrapped) do
+        table.insert(filters_to_combine, f)
+      end
+    else
+      table.insert(filters_to_combine, wrapped)
+    end
+
+    -- Combine into a single filter for one traversal
+    entry_point_entry.filter = combineFilters(filters_to_combine)
   end
 end

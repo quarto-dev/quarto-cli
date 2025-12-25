@@ -39,13 +39,13 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", \\[ \\$ E = m c\\^2 \\$ \\]\\)<eq-display-math>"
-          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"Einsteins mass-energy equivalence equation\", \\[ \\$ E = m c\\^2 \\$ \\]\\)<eq-display-alt>"
-          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"Einsteins mass-energy equivalence equation\", \\[ \\$ E = m c\\^2 \\$ \\]\\)<eq-display-alt-spaces>"
-          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"Newton's second law of motion\", \\[ \\$ F = m a \\$ \\]\\)<eq-single-quote>"
-          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"The \\\\\"Pythagorean\\\\\" theorem\", \\[ \\$ a\\^2 \\+ b\\^2 = c\\^2 \\$ \\]\\)<eq-double-quote>"
-          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"This is using \\\\\"quotes\\\\\" but I'm sure it works\", \\[ \\$ x \\+ y = z \\$ \\]\\)<eq-mixed-quotes>"
-          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"This is using 'single quotes' around the \\\\\"quotes\\\\\" but I'm sure it works\", \\[ \\$ x \\+ y = z \\$ \\]\\)<eq-single-quote-alt>"
+          - "#math\\.equation\\(block: true, numbering: equation-numbering, \\[ \\$ E = m c\\^2 \\$ \\]\\)<eq-display-math>"
+          - "#math\\.equation\\(block: true, numbering: equation-numbering, alt: \"Einsteins mass-energy equivalence equation\", \\[ \\$ E = m c\\^2 \\$ \\]\\)<eq-display-alt>"
+          - "#math\\.equation\\(block: true, numbering: equation-numbering, alt: \"Einsteins mass-energy equivalence equation\", \\[ \\$ E = m c\\^2 \\$ \\]\\)<eq-display-alt-spaces>"
+          - "#math\\.equation\\(block: true, numbering: equation-numbering, alt: \"Newton's second law of motion\", \\[ \\$ F = m a \\$ \\]\\)<eq-single-quote>"
+          - "#math\\.equation\\(block: true, numbering: equation-numbering, alt: \"The \\\\\"Pythagorean\\\\\" theorem\", \\[ \\$ a\\^2 \\+ b\\^2 = c\\^2 \\$ \\]\\)<eq-double-quote>"
+          - "#math\\.equation\\(block: true, numbering: equation-numbering, alt: \"This is using \\\\\"quotes\\\\\" but I'm sure it works\", \\[ \\$ x \\+ y = z \\$ \\]\\)<eq-mixed-quotes>"
+          - "#math\\.equation\\(block: true, numbering: equation-numbering, alt: \"This is using 'single quotes' around the \\\\\"quotes\\\\\" but I'm sure it works\", \\[ \\$ x \\+ y = z \\$ \\]\\)<eq-single-quote-alt>"
         - []
 ---
 

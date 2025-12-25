@@ -32,6 +32,10 @@ import("./common/debug.lua")
 import("./common/error.lua")
 import("./common/figures.lua")
 import("./common/filemetadata.lua")
+
+-- Expose file metadata to extension filters.
+quarto.doc.file_metadata = currentFileMetadataState
+
 import("./common/floats.lua")
 import("./common/format.lua")
 import("./common/latex.lua")
@@ -196,6 +200,21 @@ import("./layout/hugo.lua")
 import("./quarto-init/metainit.lua")
 
 -- [/import]
+
+-- Expose filter utilities to extensions via quarto.utils
+-- file_metadata_filter() returns a filter that parses book metadata markers during traversal
+-- combineFilters() merges multiple filters into one for a single traversal
+-- Usage: return quarto.utils.combineFilters({quarto.utils.file_metadata_filter(), yourFilter})
+quarto.utils.file_metadata_filter = file_metadata
+quarto.utils.combineFilters = combineFilters
+
+-- Expose file_metadata state reader to extensions via quarto.doc API
+-- Returns the current file metadata state (file, appendix, include_directory)
+quarto.doc.file_metadata = currentFileMetadataState
+
+-- Expose crossref categories to extensions via quarto.doc.crossref
+-- Provides access to all crossref category definitions (figures, tables, callouts, custom types)
+quarto.doc.crossref.categories = crossref.categories
 
 initCrossrefIndex()
 
@@ -673,7 +692,7 @@ tappend(quarto_filter_list, quarto_pre_filters)
 if enableCrossRef then
   tappend(quarto_filter_list, quarto_crossref_filters)
 end
-table.insert(quarto_filter_list, { name = "post-quarto", filter = {} }) -- entry point for user filters
+table.insert(quarto_filter_list, { name = "post-quarto", filter = file_metadata() }) -- entry point for user filters
 table.insert(quarto_filter_list, { name = "pre-render", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_layout_filters)
 tappend(quarto_filter_list, quarto_post_filters)

@@ -4,6 +4,9 @@
 local drop_class = require("modules/filters").drop_class
 local patterns = require("modules/patterns")
 
+-- Track whether we've injected the Typst show rule for listing alignment
+local injected_listing_align_rule = false
+
 local function split_longtable_start(content_str)
   -- we use a hack here to split the content into params and actual content
   -- see https://github.com/quarto-dev/quarto-cli/issues/7655#issuecomment-1821181132
@@ -975,6 +978,16 @@ end, function(float)
   local kind = "quarto-float-" .. ref
   local supplement = titleString(ref, info.name)
 
+  -- Inject show rule to left-align listing figures (only once per document)
+  -- This overrides any template centering for listing-kind figures
+  -- https://github.com/quarto-dev/quarto-cli/issues/9724
+  if ref == "lst" and not injected_listing_align_rule then
+    injected_listing_align_rule = true
+    quarto.doc.include_text("before-body", [[
+#show figure.where(kind: "quarto-float-lst"): set align(start)
+]])
+  end
+
   -- Check if this is a margin figure (has .column-margin or .aside class)
   -- Skip margin handling for subfloats - the parent handles margin placement
   if hasMarginColumn(float) and not float.parent_id then
@@ -1004,7 +1017,6 @@ end, function(float)
         {"label", pandoc.RawInline("typst", "<" .. float.identifier .. ">")},
         {"position", pandoc.RawInline("typst", caption_location)},
         {"supplement", supplement},
-        {"subrefnumbering", "1a"},
         {"subcapnumbering", "(a)"},
         _quarto.modules.typst.as_typst_content(content)
       }, false))
@@ -1048,10 +1060,6 @@ end, function(float)
   local wideblock_side = getWideblockSide(float.classes)
   if wideblock_side then
     local content = quarto.utils.as_blocks(float.content or {})
-    -- Listings should not be centered inside the figure
-    if ref == "lst" then
-      content:insert(1, pandoc.RawBlock("typst", "#set align(left)"))
-    end
     local caption_location = cap_location(float)
     if caption_location ~= "top" and caption_location ~= "bottom" then
       caption_location = "bottom"
@@ -1095,21 +1103,15 @@ end, function(float)
     caption_location = "bottom"
   end
 
-  if (ref == "lst") then
-    -- FIXME: 
-    -- Listings shouldn't emit centered blocks. 
-    -- We don't know how to disable that right now using #show rules for #figures in template.
-    content:insert(1, pandoc.RawBlock("typst", "#set align(left)"))
-  end
-
   if float.has_subfloats then
+    -- subrefnumbering defaults to subfloat-numbering in quarto_super
+    -- (simple "1a" for articles, chapter-based "1.1a" for books)
     return _quarto.format.typst.function_call("quarto_super", {
       {"kind", kind},
       {"caption", _quarto.modules.typst.as_typst_content(float.caption_long)},
       {"label", pandoc.RawInline("typst", "<" .. float.identifier .. ">")},
       {"position", pandoc.RawInline("typst", caption_location)},
       {"supplement", supplement},
-      {"subrefnumbering", "1a"},
       {"subcapnumbering", "(a)"},
       _quarto.modules.typst.as_typst_content(content)
     }, false)

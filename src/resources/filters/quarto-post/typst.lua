@@ -191,23 +191,15 @@ function render_typst()
         end
       end,
       Header = function(el)
+        -- Add unnumbered class for headings deeper than number-depth
         if number_depth and el.level > number_depth then
           el.classes:insert("unnumbered")
         end
-        if not el.classes:includes("unnumbered") and not el.classes:includes("unlisted") then
-          return nil
-        end
-        local params = pandoc.List({
-          {"level", el.level},
-        })
-        if el.classes:includes("unnumbered") then
-          params:insert({"numbering", pandoc.RawInline("typst", "none")})
-        end
-        if el.classes:includes("unlisted") then
-          params:insert({"outlined", false})
-        end
-        params:insert({_quarto.format.typst.as_typst_content(el.content)})
-        return _quarto.format.typst.function_call("heading", params)
+        -- Let Pandoc handle all headings natively - it correctly converts
+        -- unnumbered/unlisted classes to Typst syntax (numbering: none, outlined: false)
+        -- without wrapping in #block[], which is needed for compatibility with
+        -- Typst templates that use pagebreak() in heading show rules.
+        -- (Pandoc added native .unnumbered support for Typst in v3.1.13, April 2024)
       end,
     }
   }

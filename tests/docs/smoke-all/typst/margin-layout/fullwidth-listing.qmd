@@ -20,6 +20,16 @@ _quarto:
           - subject: "MARGIN-NOTE-LISTING"
             relation: rightOf
             object: "Full Width Listing"
+          # Listing caption should be left-aligned with body text (not centered)
+          - subject: "FULLWIDTH-CSS-STYLES"
+            relation: leftAligned
+            object: "This tests code listings"
+            tolerance: 10
+          # Full-page listing code should be near left page edge (within body margin)
+          - subject: "docker"
+            relation: leftAligned
+            object: { role: "Page", page: 1, edge: "left" }
+            tolerance: 50  # Body margin ~47pt from page edge
         - # Negative: fullwidth listing caption NOT rightOf margin note
           - subject: "FULLWIDTH-CSS-STYLES"
             relation: rightOf

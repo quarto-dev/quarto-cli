@@ -12,8 +12,10 @@ import {
   safeRemoveSync,
 } from "../../deno_ral/fs.ts";
 import {
+  builtinSubtreeExtensions,
   inputExtensionDirs,
   readExtensions,
+  readSubtreeExtensions,
 } from "../../extension/extension.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
 import { resourcePath } from "../../core/resources.ts";
@@ -62,8 +64,12 @@ async function stageTypstPackages(
 
   // 2. Add packages from extensions (can override built-in)
   const extensionDirs = inputExtensionDirs(input, projectDir);
+  const subtreePath = builtinSubtreeExtensions();
   for (const extDir of extensionDirs) {
-    const extensions = await readExtensions(extDir);
+    // Use readSubtreeExtensions for subtree directory, readExtensions for others
+    const extensions = extDir === subtreePath
+      ? await readSubtreeExtensions(extDir)
+      : await readExtensions(extDir);
     for (const ext of extensions) {
       const packagesDir = join(ext.path, "typst/packages");
       if (existsSync(packagesDir)) {
