@@ -245,16 +245,16 @@ async function checkVersions(conf: CheckConfiguration) {
   // with our installers
   const checkData: [string | undefined, string, string][] = strict
     ? [
-      [pandocVersion, "3.6.3", "Pandoc"],
+      [pandocVersion, "3.8.3", "Pandoc"],
       [sassVersion, "1.87.0", "Dart Sass"],
       [denoVersion, "2.4.5", "Deno"],
-      [typstVersion, "0.13.0", "Typst"],
+      [typstVersion, "0.14.0", "Typst"],
     ]
     : [
-      [pandocVersion, ">=3.6.3", "Pandoc"],
+      [pandocVersion, ">=3.8.3", "Pandoc"],
       [sassVersion, ">=1.87.0", "Dart Sass"],
       [denoVersion, ">=2.3.1", "Deno"],
-      [typstVersion, ">=0.13.0", "Typst"],
+      [typstVersion, ">=0.14.0", "Typst"],
     ];
   const fun = strict ? strictCheckVersion : checkVersion;
   for (const [version, constraint, name] of checkData) {

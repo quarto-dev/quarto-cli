@@ -307,7 +307,7 @@ function render_typst_brand_yaml()
           inset = '0.75in'
         end
         logoOptions.width = _quarto.modules.typst.css.translate_length(logoOptions.width or '1.5in')
-        logoOptions.inset = inset
+        logoOptions.inset = pandoc.RawInline('typst', inset)
         logoOptions.location = logoOptions.location and
           location_to_typst_align(logoOptions.location) or 'left+top'
         quarto.log.debug('logo options', logoOptions)
