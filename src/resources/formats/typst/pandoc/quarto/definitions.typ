@@ -76,7 +76,6 @@
   label: none,
   supplement: str,
   position: none,
-  subrefnumbering: "1a",
   subcapnumbering: "(a)",
   body,
 ) = {
@@ -91,16 +90,7 @@
       {
         show figure.where(kind: kind): set figure(numbering: _ => {
           let subfloat-idx = quartosubfloatcounter.get().first() + 1
-          if subrefnumbering.contains(".") {
-            // Chapter-based numbering (e.g., "1.1a" -> "2.3a")
-            // Check orange-book's appendix-state to use "A.1a" format in appendices
-            let chapter = counter(heading).get().first()
-            let pattern = if state("appendix-state", none).get() != none { "A.1a" } else { subrefnumbering }
-            numbering(pattern, chapter, n-super, subfloat-idx)
-          } else {
-            // Simple numbering (e.g., "1a" -> "3a")
-            numbering(subrefnumbering, n-super, subfloat-idx)
-          }
+          quarto-subfloat-numbering(n-super, subfloat-idx)
         })
         show figure.where(kind: kind): set figure.caption(position: position)
 

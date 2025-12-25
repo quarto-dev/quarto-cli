@@ -29,19 +29,11 @@ function make_typst_figure(tbl)
     pandoc.RawInline("typst", "]), "),
     pandoc.RawInline("typst", "kind: \"" .. kind .. "\", "),
     pandoc.RawInline("typst", supplement and ("supplement: \"" .. supplement .. "\", ") or ""),
-    -- Numbering pattern convention: if the pattern contains "." (e.g., "1.1"), it's treated
-    -- as chapter-based numbering and we emit a Typst function that includes the heading counter.
-    -- This ensures #ref() displays the chapter prefix (e.g., "Note 2.1" instead of "Note 1").
-    -- Patterns without "." (e.g., "1") use simple sequential numbering.
-    -- This convention matches quarto_super()'s subfigure handling in definitions.typ.
-    -- Note: Currently only callout.lua passes a non-nil numbering parameter.
-    -- For chapter-based numbering, we check orange-book's appendix-state to use "A.1" format
-    -- in appendices instead of "1.1" format in regular chapters.
-    pandoc.RawInline("typst", numbering and (
-      numbering:find("%.") and
-        ("numbering: it => { let pattern = if state(\"appendix-state\", none).get() != none { \"A.1\" } else { \"" .. numbering .. "\" }; numbering(pattern, counter(heading).get().first(), it) }, ") or
-        ("numbering: \"" .. numbering .. "\", ")
-    ) or ""),
+    -- For callouts, use quarto-callout-numbering variable defined in template
+    -- (simple "1" for articles, chapter-based "1.1" with appendix support for books)
+    pandoc.RawInline("typst", (kind and kind:find("^quarto%-callout%-")) and
+      "numbering: quarto-callout-numbering, " or
+      (numbering and ("numbering: \"" .. numbering .. "\", ") or "")),
     pandoc.RawInline("typst", ")"),
     pandoc.RawInline("typst", identifier and ("<" .. identifier .. ">") or ""),
     pandoc.RawInline("typst", "\n\n")
@@ -143,13 +135,14 @@ end, function(layout)
     })
   end
   if has_subfloats then
+    -- subrefnumbering defaults to quarto-subfloat-numbering in quarto_super
+    -- (simple "1a" for articles, chapter-based "1.1a" for books)
     result:insert(_quarto.format.typst.function_call("quarto_super", {
       {"kind", kind},
       {"caption", _quarto.format.typst.as_typst_content(layout.float.caption_long)},
       {"label", pandoc.RawInline("typst", "<" .. layout.float.identifier .. ">")},
       {"position", pandoc.RawInline("typst", caption_location)},
       {"supplement", supplement},
-      {"subrefnumbering", crossrefOption("chapters", false) and "1.1a" or "1a"},
       {"subcapnumbering", "(a)"},
       _quarto.format.typst.as_typst_content(cells)
     }, false))

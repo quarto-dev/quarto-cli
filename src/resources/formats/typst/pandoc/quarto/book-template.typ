@@ -1,3 +1,5 @@
+$book-numbering.typ()$
+
 $definitions.typ()$
 
 #import "@preview/orange-book:0.6.2": book, part, chapter, appendices

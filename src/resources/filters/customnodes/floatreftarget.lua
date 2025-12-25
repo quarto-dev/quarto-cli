@@ -995,13 +995,14 @@ end, function(float)
   end
 
   if float.has_subfloats then
+    -- subrefnumbering defaults to quarto-subfloat-numbering in quarto_super
+    -- (simple "1a" for articles, chapter-based "1.1a" for books)
     return _quarto.format.typst.function_call("quarto_super", {
       {"kind", kind},
       {"caption", _quarto.modules.typst.as_typst_content(float.caption_long)},
       {"label", pandoc.RawInline("typst", "<" .. float.identifier .. ">")},
       {"position", pandoc.RawInline("typst", caption_location)},
       {"supplement", supplement},
-      {"subrefnumbering", crossrefOption("chapters", false) and "1.1a" or "1a"},
       {"subcapnumbering", "(a)"},
       _quarto.modules.typst.as_typst_content(content)
     }, false)

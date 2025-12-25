@@ -1,3 +1,5 @@
+$numbering.typ()$
+
 $definitions.typ()$
 
 $typst-template.typ()$
