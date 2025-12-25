@@ -33,11 +33,18 @@ This flying reptile soared through Mesozoic skies. See @dino-ptero to self-refer
 
 Cross-chapter dinosaur references: see @dino-steg from Chapter 1 and @dino-raptor from Chapter 2.
 
-## Forward references to appendix
+## Forward references to appendices
 
-We can also reference content that appears in the appendix:
+We can reference content from Appendix A:
 
 - See @fig-appendix-panel for appendix sub-figures (should show as Figure A.1)
 - See @wrn-appendix for the appendix warning (should show as Warning A.1)
 - See @tip-appendix for the appendix tip (should show as Tip A.1)
 - See @dino-appendix for the appendix dinosaur (should show as Dinosaur A.1)
+
+We can also reference content from Appendix B:
+
+- See @fig-appendix-b-panel for Appendix B sub-figures (should show as Figure B.1)
+- See @wrn-appendix-b for the Appendix B warning (should show as Warning B.1)
+- See @tip-appendix-b for the Appendix B tip (should show as Tip B.1)
+- See @dino-appendix-b for the Appendix B dinosaur (should show as Dinosaur B.1)

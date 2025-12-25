@@ -1,0 +1,42 @@
+# Supplementary Data {#sec-supplementary}
+
+This is the second appendix containing supplementary data and additional examples.
+
+## Additional Figures
+
+::: {#fig-appendix-b-panel layout-ncol=2}
+
+![Third appendix panel](chapter1_files/figure-typst/fig-cars-1.svg){#fig-appendix-b-panel-a}
+
+![Fourth appendix panel](chapter1_files/figure-typst/fig-cars-1.svg){#fig-appendix-b-panel-b}
+
+A panel of sub-figures in Appendix B demonstrating B-prefix numbering.
+:::
+
+See @fig-appendix-b-panel for this appendix's panel, or @fig-appendix-b-panel-a and @fig-appendix-b-panel-b individually.
+
+## Additional Callouts
+
+::: {#wrn-appendix-b .callout-warning}
+## Appendix B Warning
+This warning in Appendix B should be numbered Warning B.1. See @wrn-appendix-b to self-reference.
+:::
+
+::: {#tip-appendix-b .callout-tip}
+## Appendix B Tip
+This tip in Appendix B should be numbered Tip B.1. See @tip-appendix-b to self-reference.
+:::
+
+## Additional Dinosaurs
+
+::: {#dino-appendix-b}
+**Brachiosaurus**
+
+This dinosaur in Appendix B should be numbered Dinosaur B.1. See @dino-appendix-b to self-reference.
+:::
+
+## Cross-references
+
+We can reference content from Appendix A: see @fig-appendix-panel for Appendix A's figure panel.
+
+We can also reference content from main chapters: see @dino-trex from Chapter 1 and @wrn-tea for the tea warning.
