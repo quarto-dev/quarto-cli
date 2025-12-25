@@ -19,3 +19,14 @@ Some content in section 1.2. See @fig-visualization for an embedded notebook fig
 {{< embed notebooks/computations.ipynb#fig-visualization >}}
 
 We will discuss methods in @sec-methods.
+
+## Section 1.3 - Callouts
+
+::: {.callout-note}
+The ships hung in the sky in much the same way that bricks don't. This is a note callout without a custom title.
+:::
+
+::: {#wrn-tea .callout-warning}
+## Whose Tea Is This?
+On no account allow anyone to make you a conditions-affected beverage. The alarm on Arthur Dent's alarm clock had been going off for several hours when he finally woke up. See @wrn-tea to reference this warning.
+:::

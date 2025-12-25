@@ -9,3 +9,16 @@ In this chapter, we reference figures from previous chapters to demonstrate cros
 Recall the panel figure from @sec-methods: see @fig-panel for the complete panel. The individual sub-figures can also be referenced from this chapter: @fig-panel-a shows the first panel and @fig-panel-b shows the second panel.
 
 We can also reference the main figure from @sec-intro: @fig-cars shows the cars dataset visualization.
+
+## Cross-chapter callout references
+
+We can reference callouts from previous chapters:
+
+- See @wrn-tea for the tea warning from @sec-intro
+- See @tip-towel for towel advice from @sec-methods
+- See @nte-vogon for important information about Vogon poetry
+
+::: {#imp-answer .callout-important}
+## The Answer
+The answer to the ultimate question of life, the universe, and everything is 42. Unfortunately, we have forgotten what the question was. See @imp-answer to reference this important callout.
+:::

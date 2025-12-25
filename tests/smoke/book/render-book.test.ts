@@ -101,6 +101,20 @@ const verifyTypst = [
     "<fig-panel-b>",                       // second sub-figure label
     "#ref\\(<fig-panel>, supplement: \\[Figure\\]\\)",   // parent figure reference
     "#ref\\(<fig-panel-a>, supplement: \\[Figure\\]\\)", // sub-figure reference
+    // Verify callouts - labels and references
+    "#callout\\(",                         // callout function call
+    'kind: "quarto-callout-Warning"',      // cross-referenceable warning kind
+    'kind: "quarto-callout-Tip"',          // cross-referenceable tip kind
+    'kind: "quarto-callout-Note"',         // cross-referenceable note kind
+    'kind: "quarto-callout-Important"',    // cross-referenceable important kind
+    "<wrn-tea>",                           // warning label in chapter 1
+    "<tip-towel>",                         // tip label in chapter 2
+    "<nte-vogon>",                         // note label in chapter 2
+    "<imp-answer>",                        // important label in chapter 3
+    "#ref\\(<wrn-tea>, supplement: \\[Warning\\]\\)",   // warning reference
+    "#ref\\(<tip-towel>, supplement: \\[Tip\\]\\)",     // tip reference
+    "#ref\\(<nte-vogon>, supplement: \\[Note\\]\\)",    // note reference
+    "#ref\\(<imp-answer>, supplement: \\[Important\\]\\)", // important reference
   ]),
   // Verify rendered PDF content has correct chapter-based numbering
   ensurePdfRegexMatches(typstPdfPath, [
@@ -124,6 +138,22 @@ const verifyTypst = [
     "Figure 2\\.3a shows the first panel and Figure 2\\.3b shows the\\s+second panel",
     // Cross-chapter reference to figure from chapter 1
     "reference the main figure from Chapter 1\\.: Figure 1\\.1 shows the cars",
+    // Callout numbering - chapter-based (each type has its own counter)
+    "Warning 1\\.1: Whose Tea Is This",        // warning in chapter 1
+    "Tip 2\\.1: Whose Towel Is This",          // tip in chapter 2
+    "Note 2\\.1: A Note About Vogon Poetry",   // note in chapter 2 (separate counter from tip)
+    "Important 3\\.1: The Answer",             // important in chapter 3
+    // In-chapter callout self-references (may wrap across lines)
+    "See Warning 1\\.1 to\\s+reference this warning",
+    "See Tip 2\\.1 to\\s+reference this tip",
+    "See Note 2\\.1 to\\s+reference this note",
+    "See Important 3\\.1 to\\s+reference this important",
+    // Cross-chapter callout references from chapter 2 to chapter 1
+    "see Warning 1\\.1",
+    // Cross-chapter callout references from chapter 3 to chapters 1 and 2
+    "See Warning 1\\.1 for the tea warning",
+    "See Tip 2\\.1 for towel advice",
+    "See Note 2\\.1 for important information about Vogon poetry",
   ]),
 ];
 testQuartoCmd(
