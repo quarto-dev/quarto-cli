@@ -4,9 +4,13 @@ This is the first chapter of the book.
 
 ## Section 1.1
 
-Some content in section 1.1. See @fig-simple for an example figure.
+Some content in section 1.1. See @fig-cars for an example figure.
 
-![A simple test figure](figure.png){#fig-simple}
+```{r}
+#| label: fig-cars
+#| fig-cap: "A plot of the cars dataset"
+plot(cars)
+```
 
 ## Section 1.2
 
