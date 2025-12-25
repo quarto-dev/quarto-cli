@@ -69,14 +69,16 @@ const verifyTypst = [
     "#heading\\(level: 1, numbering: none\\)\\[Preface\\]",
     // Verify Typst label anchors are generated
     "<fig-cars>",                          // figure label anchor (from R code execution)
+    "<fig-visualization>",                 // figure label anchor (from embedded notebook)
     "<tbl-data>",                          // table label anchor
     "<sec-intro>",                         // section label anchor for Introduction
     "<sec-methods>",                       // section label anchor for Methods
     // Verify Typst cross-reference links are generated with #ref()
-    "#ref\\(<fig-cars>, supplement: \\[Figure\\]\\)",     // figure reference
-    "#ref\\(<tbl-data>, supplement: \\[Table\\]\\)",      // table reference
-    "#ref\\(<sec-intro>, supplement: \\[Chapter\\]\\)",   // section reference to intro
-    "#ref\\(<sec-methods>, supplement: \\[Chapter\\]\\)", // section reference to methods
+    "#ref\\(<fig-cars>, supplement: \\[Figure\\]\\)",          // figure reference
+    "#ref\\(<fig-visualization>, supplement: \\[Figure\\]\\)", // embedded notebook figure reference
+    "#ref\\(<tbl-data>, supplement: \\[Table\\]\\)",           // table reference
+    "#ref\\(<sec-intro>, supplement: \\[Chapter\\]\\)",        // section reference to intro
+    "#ref\\(<sec-methods>, supplement: \\[Chapter\\]\\)",      // section reference to methods
     // Verify figure and table captions
     "A plot of the cars dataset",          // figure caption (from R plot)
     "Sample data table",                   // table caption
