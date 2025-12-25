@@ -68,17 +68,17 @@ const verifyTypst = [
     // This regex matches Pandoc's native output: #heading(level: 1, numbering: none)[Preface]
     "#heading\\(level: 1, numbering: none\\)\\[Preface\\]",
     // Verify Typst label anchors are generated
-    "<fig-simple>",                        // figure label anchor
+    "<fig-cars>",                          // figure label anchor (from R code execution)
     "<tbl-data>",                          // table label anchor
     "<sec-intro>",                         // section label anchor for Introduction
     "<sec-methods>",                       // section label anchor for Methods
     // Verify Typst cross-reference links are generated with #ref()
-    "#ref\\(<fig-simple>, supplement: \\[Figure\\]\\)",   // figure reference
+    "#ref\\(<fig-cars>, supplement: \\[Figure\\]\\)",     // figure reference
     "#ref\\(<tbl-data>, supplement: \\[Table\\]\\)",      // table reference
     "#ref\\(<sec-intro>, supplement: \\[Chapter\\]\\)",   // section reference to intro
     "#ref\\(<sec-methods>, supplement: \\[Chapter\\]\\)", // section reference to methods
     // Verify figure and table captions
-    "A simple test figure",                // figure caption
+    "A plot of the cars dataset",          // figure caption (from R plot)
     "Sample data table",                   // table caption
   ]),
 ];
