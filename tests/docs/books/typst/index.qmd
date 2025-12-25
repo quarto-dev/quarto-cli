@@ -1,0 +1,7 @@
+# Preface
+
+This is a test book for Typst output format.
+
+## About this book
+
+This book tests the basic Typst book rendering functionality in Quarto.

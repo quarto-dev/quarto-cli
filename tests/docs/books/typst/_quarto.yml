@@ -1,0 +1,15 @@
+project:
+  type: book
+
+book:
+  title: "Test Typst Book"
+  author: "Test Author"
+  date: "2024-01-01"
+  chapters:
+    - index.qmd
+    - chapter1.qmd
+    - chapter2.qmd
+
+format:
+  typst:
+    keep-typ: true

@@ -1,0 +1,17 @@
+#show: book.with(
+$if(title)$
+  title: [$title$],
+$endif$
+$if(subtitle)$
+  subtitle: [$subtitle$],
+$endif$
+$if(by-author)$
+  author: "$for(by-author)$$it.name.literal$$sep$, $endfor$",
+$endif$
+$if(date)$
+  date: "$date$",
+$endif$
+$if(lang)$
+  lang: "$lang$",
+$endif$
+)
