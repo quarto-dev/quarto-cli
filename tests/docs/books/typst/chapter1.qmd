@@ -14,4 +14,8 @@ plot(cars)
 
 ## Section 1.2
 
-Some content in section 1.2. We will discuss methods in @sec-methods.
+Some content in section 1.2. See @fig-visualization for an embedded notebook figure.
+
+{{< embed notebooks/computations.ipynb#fig-visualization >}}
+
+We will discuss methods in @sec-methods.
