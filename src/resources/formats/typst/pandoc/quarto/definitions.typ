@@ -89,7 +89,17 @@
       supplement: supplement,
       caption: caption,
       {
-        show figure.where(kind: kind): set figure(numbering: _ => numbering(subrefnumbering, n-super, quartosubfloatcounter.get().first() + 1))
+        show figure.where(kind: kind): set figure(numbering: _ => {
+          let subfloat-idx = quartosubfloatcounter.get().first() + 1
+          if subrefnumbering.contains(".") {
+            // Chapter-based numbering (e.g., "1.1a" -> "2.3a")
+            let chapter = counter(heading).get().first()
+            numbering(subrefnumbering, chapter, n-super, subfloat-idx)
+          } else {
+            // Simple numbering (e.g., "1a" -> "3a")
+            numbering(subrefnumbering, n-super, subfloat-idx)
+          }
+        })
         show figure.where(kind: kind): set figure.caption(position: position)
 
         show figure: it => {
