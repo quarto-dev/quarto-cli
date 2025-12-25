@@ -1,6 +1,8 @@
 project:
   type: book
 
+brand: _brand.yml
+
 book:
   title: "Test Typst Book"
   author: "Test Author"

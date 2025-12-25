@@ -183,6 +183,13 @@ const verifyTypst = [
     "#ref\\(<lst-quicksort>",                     // listing reference
     "#ref\\(<lst-appendix-example>",              // appendix listing reference
     'kind: "quarto-float-lst"',                   // listing figure kind
+    // Brand color support - colors from _brand.yml
+    '#let brand-color = \\(',                       // brand-color dict with content
+    'primary: rgb\\("#f36619"\\)',                  // primary color from _brand.yml
+    'secondary: rgb\\("#2e86ab"\\)',                // secondary color from _brand.yml
+    '#let brand-color-background = \\(',            // brand-color-background dict with content
+    // main-color uses brand-color.at() with safe default (will get orange from brand)
+    'main-color: brand-color\\.at\\("primary", default: blue\\)',
   ]),
   // Verify rendered PDF content has correct chapter-based numbering
   ensurePdfRegexMatches(typstPdfPath, [
