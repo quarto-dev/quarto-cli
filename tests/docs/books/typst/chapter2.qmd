@@ -87,3 +87,20 @@ A function $f$ is continuous at $c$ if $\lim_{x \to c} f(x) = f(c)$.
 :::
 
 See @def-continuous for the definition.
+
+## Section 2.8 - Code Listings
+
+```{#lst-quicksort .python lst-cap="Quicksort Algorithm"}
+def quicksort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right = [x for x in arr if x > pivot]
+    return quicksort(left) + middle + quicksort(right)
+```
+
+See @lst-quicksort for an efficient sorting algorithm. This should be Listing 2.1.
+
+Cross-chapter references: See @lst-hello and @lst-fibonacci from Chapter 1.
