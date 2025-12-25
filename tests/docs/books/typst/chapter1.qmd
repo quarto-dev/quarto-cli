@@ -64,3 +64,19 @@ F = ma
 $$ {#eq-newton}
 
 Newton's second law (@eq-newton) relates force to acceleration.
+
+## Section 1.6 - Theorems
+
+::: {#thm-pythagorean}
+## Pythagorean Theorem
+For a right triangle with legs $a$ and $b$ and hypotenuse $c$: $a^2 + b^2 = c^2$
+:::
+
+See @thm-pythagorean for the classic result.
+
+::: {#lem-triangle}
+## Triangle Inequality
+For any triangle with sides $a$, $b$, and $c$: $a + b > c$
+:::
+
+See @lem-triangle for the inequality.
