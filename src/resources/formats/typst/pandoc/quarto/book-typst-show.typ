@@ -19,4 +19,7 @@ $endif$
     let logo-info = brand-logo.at("medium", default: none)
     if logo-info != none { image(logo-info.path, alt: logo-info.at("alt", default: none)) }
   },
+$if(toc-depth)$
+  outline-depth: $toc-depth$,
+$endif$
 )

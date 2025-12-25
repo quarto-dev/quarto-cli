@@ -196,6 +196,8 @@ const verifyTypst = [
     'path: "logo\\.svg"',                           // logo path from _brand.yml
     'alt: "Test Logo"',                             // logo alt text from _brand.yml
     'logo: \\{',                                    // logo parameter in book.with()
+    // TOC depth mapping - toc-depth maps to outline-depth
+    'outline-depth: 17,',                           // distinctive value from _quarto.yml
   ]),
   // Verify rendered PDF content has correct chapter-based numbering
   ensurePdfRegexMatches(typstPdfPath, [

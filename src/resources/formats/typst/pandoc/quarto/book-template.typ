@@ -2,7 +2,7 @@ $book-numbering.typ()$
 
 $definitions.typ()$
 
-#import "@preview/orange-book:0.6.2": book, part, chapter, appendices
+#import "@local/orange-book:0.7.0": book, part, chapter, appendices
 
 $for(header-includes)$
 $header-includes$
