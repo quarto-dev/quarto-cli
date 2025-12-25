@@ -14,4 +14,5 @@ $endif$
 $if(lang)$
   lang: "$lang$",
 $endif$
+  main-color: brand-color.at("primary", default: blue),
 )
