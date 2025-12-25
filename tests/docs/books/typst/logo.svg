@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+  <!-- Background with transparency -->
+  <rect width="200" height="100" fill="none"/>
+
+  <!-- Overlapping circles with transparency - modern art style -->
+  <circle cx="50" cy="50" r="40" fill="#F36619" fill-opacity="0.7"/>
+  <circle cx="90" cy="50" r="40" fill="#2E86AB" fill-opacity="0.6"/>
+  <circle cx="130" cy="50" r="40" fill="#F36619" fill-opacity="0.5"/>
+  <circle cx="170" cy="50" r="35" fill="#2E86AB" fill-opacity="0.4"/>
+
+  <!-- Geometric accent lines -->
+  <line x1="20" y1="85" x2="180" y2="85" stroke="#1A1A1A" stroke-width="2" stroke-opacity="0.3"/>
+  <line x1="20" y1="15" x2="100" y2="15" stroke="#F36619" stroke-width="3" stroke-opacity="0.8"/>
+
+  <!-- Abstract triangular shapes -->
+  <polygon points="25,70 45,30 65,70" fill="#2E86AB" fill-opacity="0.4"/>
+  <polygon points="155,75 175,35 195,75" fill="#F36619" fill-opacity="0.3"/>
+</svg>

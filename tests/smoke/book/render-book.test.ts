@@ -190,6 +190,12 @@ const verifyTypst = [
     '#let brand-color-background = \\(',            // brand-color-background dict with content
     // main-color uses brand-color.at() with safe default (will get orange from brand)
     'main-color: brand-color\\.at\\("primary", default: blue\\)',
+    // Brand logo support - medium logo from _brand.yml
+    '#let brand-logo = \\(',                        // brand-logo dict with content
+    'medium:',                                      // medium logo defined
+    'path: "logo\\.svg"',                           // logo path from _brand.yml
+    'alt: "Test Logo"',                             // logo alt text from _brand.yml
+    'logo: \\{',                                    // logo parameter in book.with()
   ]),
   // Verify rendered PDF content has correct chapter-based numbering
   ensurePdfRegexMatches(typstPdfPath, [

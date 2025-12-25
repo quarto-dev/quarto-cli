@@ -98,34 +98,36 @@ function render_typst_brand_yaml()
       local bkDecl = '#let brand-color-background = ' .. (to_typst_dict_indent(themebk) or '(:)')
       quarto.doc.include_text('in-header', bkDecl)
 
-      if brand and brand.processedData then
-        if brand.processedData.logo and next(brand.processedData.logo) then
-          local logo = brand.processedData.logo
-          if logo.images then
-            local declImage = {}
-            for name, image in pairs(logo.images) do
-              declImage[name] = {
-                path = quote_string(image.path):gsub('\\', '\\\\'),
-                alt = quote_string(image.alt),
-              }
-            end
-            if next(declImage) then
-              quarto.doc.include_text('in-header', '#let brand-logo-images = ' .. to_typst_dict_indent(declImage))
-            end
+      -- Always emit brand-logo (empty dict if no logos defined)
+      -- This allows templates to safely use brand-logo.at("medium", default: none)
+      local declLogo = {}
+      local brandLogo = brand and brand.processedData and brand.processedData.logo
+      if brandLogo and next(brandLogo) then
+        if brandLogo.images then
+          local declImage = {}
+          for name, image in pairs(brandLogo.images) do
+            declImage[name] = {
+              path = quote_string(image.path):gsub('\\', '\\\\'),
+              alt = quote_string(image.alt),
+            }
           end
-          local declLogo = {}
-          for _, size in pairs({'small', 'medium', 'large'}) do
-            if logo[size] then
-              declLogo[size] = {
-                path = quote_string(logo[size].path):gsub('\\', '\\\\'),
-                alt = quote_string(logo[size].alt),
-              }
-            end
-          end
-          if next(declLogo) then
-            quarto.doc.include_text('in-header', '#let brand-logo = ' .. to_typst_dict_indent(declLogo))
+          if next(declImage) then
+            quarto.doc.include_text('in-header', '#let brand-logo-images = ' .. to_typst_dict_indent(declImage))
           end
         end
+        for _, size in pairs({'small', 'medium', 'large'}) do
+          if brandLogo[size] then
+            declLogo[size] = {
+              path = quote_string(brandLogo[size].path):gsub('\\', '\\\\'),
+              alt = quote_string(brandLogo[size].alt),
+            }
+          end
+        end
+      end
+      local logoDecl = '#let brand-logo = ' .. (to_typst_dict_indent(declLogo) or '(:)')
+      quarto.doc.include_text('in-header', logoDecl)
+
+      if brand and brand.processedData then
         local function conditional_entry(key, value, quote_strings)
           if quote_strings == null then quote_strings = true end
           if not value then return '' end
