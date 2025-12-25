@@ -126,6 +126,18 @@ const verifyTypst = [
     "<tip-appendix>",                                   // appendix tip label
     "#ref\\(<wrn-appendix>, supplement: \\[Warning\\]\\)",  // appendix warning reference
     "#ref\\(<tip-appendix>, supplement: \\[Tip\\]\\)",      // appendix tip reference
+    // Custom crossref type (Dinosaur) - labels and references
+    'kind: "quarto-float-dino"',                        // custom crossref kind
+    "<dino-steg>",                                      // dinosaur 1 in chapter 1
+    "<dino-trex>",                                      // dinosaur 2 in chapter 1
+    "<dino-raptor>",                                    // dinosaur in chapter 2
+    "<dino-ptero>",                                     // dinosaur in chapter 3
+    "<dino-appendix>",                                  // dinosaur in appendix
+    "#ref\\(<dino-steg>, supplement: \\[Dinosaur\\]\\)",   // dinosaur reference
+    "#ref\\(<dino-raptor>, supplement: \\[Dinosaur\\]\\)", // cross-chapter dinosaur reference
+    "#ref\\(<dino-appendix>, supplement: \\[Dinosaur\\]\\)", // appendix dinosaur reference
+    // Dynamic counter reset show rule should include custom crossref type
+    'counter\\(figure\\.where\\(kind: "quarto-float-dino"\\)\\)\\.update\\(0\\)',
   ]),
   // Verify rendered PDF content has correct chapter-based numbering
   ensurePdfRegexMatches(typstPdfPath, [
@@ -179,6 +191,22 @@ const verifyTypst = [
     "See Tip A\\.1 for the appendix tip",                       // from chapter 3 to appendix tip
     // Cross-references from appendix back to main chapters (should still be numeric)
     "see Warning 1\\.1 for the tea warning from Chapter 1",     // from appendix to chapter 1 callout
+    // Custom crossref type (Dinosaur) - chapter-based numbering with counter reset
+    "Dinosaur 1\\.1: This is the first dinosaur",               // first dinosaur in chapter 1
+    "Dinosaur 1\\.2: This is the second dinosaur",              // second dinosaur in chapter 1
+    "Dinosaur 2\\.1: This dinosaur demonstrates clever",        // first dinosaur in chapter 2 (counter reset!)
+    "Dinosaur 3\\.1: This flying reptile",                      // first dinosaur in chapter 3
+    "Dinosaur A\\.1: This dinosaur in the appendix",            // first dinosaur in appendix (letter prefix)
+    // Custom crossref self-references (hyphenation may break "self-reference" as "selfreference")
+    "See Dinosaur 1\\.1\\s+to self",                            // self-ref in chapter 1
+    "See Dinosaur 2\\.1 to self",                               // self-ref in chapter 2
+    // Cross-chapter custom crossref references (line breaks may occur)
+    "see Dinosaur 1\\.1 and Dinosaur 1\\.2 from\\s+Chapter",    // from chapter 2 to chapter 1
+    "see Dinosaur 1\\.1 from Chapter 1 and Dinosaur 2\\.1",     // from chapter 3
+    // Forward reference from chapter 3 to appendix
+    "See Dinosaur A\\.1 for the appendix dinosaur",             // from chapter 3 to appendix
+    // Cross-reference from appendix back to main chapter
+    "see Dinosaur 1\\.1 from Chapter 1",                        // from appendix to chapter 1
   ]),
 ];
 testQuartoCmd(

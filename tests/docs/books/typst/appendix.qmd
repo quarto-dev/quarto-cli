@@ -42,3 +42,15 @@ This is a tip callout in the appendix. It should be numbered Tip A.1. See @tip-a
 :::
 
 We can also reference callouts from the main chapters: see @wrn-tea for the tea warning from Chapter 1.
+
+## Appendix Custom Crossref Dinosaurs
+
+This section tests custom cross-reference numbering in appendices.
+
+::: {#dino-appendix}
+**Triceratops**
+
+This dinosaur in the appendix should be numbered Dinosaur A.1, not Dinosaur 1.1 or Dinosaur 4.1. See @dino-appendix to self-reference.
+:::
+
+We can reference dinosaurs from main chapters: see @dino-steg from Chapter 1.

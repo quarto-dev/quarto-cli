@@ -47,3 +47,15 @@ Don't Panic. Under no circumstances should you allow yourself to panic, even if 
 ## A Note About Vogon Poetry
 Vogon poetry is of course, the third worst in the universe. See @nte-vogon to reference this note.
 :::
+
+## Section 2.5 - Custom Crossref Dinosaurs
+
+This section tests that custom cross-reference counters reset at chapter boundaries. The first dinosaur here should be Dinosaur 2.1, not Dinosaur 1.3.
+
+::: {#dino-raptor}
+**Velociraptor**
+
+This dinosaur demonstrates clever pack hunting behavior. See @dino-raptor to self-reference.
+:::
+
+We can also reference dinosaurs from the previous chapter: see @dino-steg and @dino-trex from Chapter 1.

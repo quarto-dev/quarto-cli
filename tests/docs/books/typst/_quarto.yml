@@ -19,6 +19,12 @@ book:
 
 bibliography: references.bib
 
+crossref:
+  custom:
+    - kind: float
+      key: dino
+      reference-prefix: Dinosaur
+
 format:
   typst:
     keep-typ: true
