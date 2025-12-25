@@ -127,6 +127,7 @@ export function typstFormat(): Format {
         ? {
           template: join(templateDir, "book-template.typ"),
           partials: [
+            "book-numbering.typ",
             "definitions.typ",
             "book-typst-show.typ",
             "notes.typ",
@@ -136,6 +137,7 @@ export function typstFormat(): Format {
         : {
           template: join(templateDir, "template.typ"),
           partials: [
+            "numbering.typ",
             "definitions.typ",
             "typst-template.typ",
             "page.typ",

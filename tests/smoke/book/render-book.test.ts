@@ -156,14 +156,14 @@ const verifyTypst = [
     "#ref\\(<eq-newton>, supplement: \\[Equation\\]\\)",     // equation reference
     "#ref\\(<eq-quadratic>, supplement: \\[Equation\\]\\)",  // equation reference
     "#ref\\(<eq-pythagorean>, supplement: \\[Equation\\]\\)", // appendix equation reference
-    // Chapter-based equation numbering function with appendix-state check
-    'math\\.equation\\(block: true, numbering: it => \\{ let pattern = if state\\("appendix-state"',
+    // Equation numbering uses template variable (defined in book-template.typ)
+    'math\\.equation\\(block: true, numbering: quarto-equation-numbering',
     // Math equation counter reset at chapter boundaries
     'counter\\(math\\.equation\\)\\.update\\(0\\)',
     // Theorem labels and references (ctheorems package)
     "#import \"@preview/ctheorems:1\\.1\\.3\"",
     "#show: thmrules",
-    'thmbox\\("theorem".*base:\\s*"heading".*base_level:\\s*1',    // chapter-based theorem numbering
+    'thmbox\\("theorem".*\\.\\.quarto-thmbox-args',                 // chapter-based theorem numbering via template variable
     "<thm-pythagorean>",                          // theorem label in chapter 1
     "<lem-triangle>",                             // lemma label in chapter 1
     "<thm-calculus>",                             // theorem label in chapter 2

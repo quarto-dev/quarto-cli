@@ -314,7 +314,7 @@ function _callout_main()
       caption = pandoc.Plain(pandoc.Str("")),
       kind = "quarto-callout-" .. _quarto.modules.callouts.displayName(callout.type),
       supplement = param("crossref-" .. callout.type .. "-prefix") or category.name,
-      numbering = crossrefOption("chapters", false) and "1.1" or "1",
+      numbering = nil,  -- handled by quarto-callout-numbering in template
       identifier = callout.attr.identifier
     }
   end)
