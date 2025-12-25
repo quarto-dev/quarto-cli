@@ -80,3 +80,24 @@ For any triangle with sides $a$, $b$, and $c$: $a + b > c$
 :::
 
 See @lem-triangle for the inequality.
+
+## Section 1.7 - Code Listings
+
+```{#lst-hello .python lst-cap="Hello World in Python"}
+def hello():
+    print("Hello, World!")
+
+if __name__ == "__main__":
+    hello()
+```
+
+See @lst-hello for a simple Python example.
+
+```{#lst-fibonacci .python lst-cap="Fibonacci Sequence"}
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+```
+
+The Fibonacci function (@lst-fibonacci) uses recursion.

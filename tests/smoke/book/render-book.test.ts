@@ -173,6 +173,16 @@ const verifyTypst = [
     "#ref\\(<lem-triangle>",                      // lemma reference
     "#ref\\(<thm-calculus>",                      // theorem reference
     "#ref\\(<thm-appendix>",                      // appendix theorem reference
+    // Listing labels and references
+    "<lst-hello>",                                // listing label in chapter 1
+    "<lst-fibonacci>",                            // listing label in chapter 1
+    "<lst-quicksort>",                            // listing label in chapter 2
+    "<lst-appendix-example>",                     // listing label in appendix
+    "#ref\\(<lst-hello>",                         // listing reference
+    "#ref\\(<lst-fibonacci>",                     // listing reference
+    "#ref\\(<lst-quicksort>",                     // listing reference
+    "#ref\\(<lst-appendix-example>",              // appendix listing reference
+    'kind: "quarto-float-lst"',                   // listing figure kind
   ]),
   // Verify rendered PDF content has correct chapter-based numbering
   ensurePdfRegexMatches(typstPdfPath, [
@@ -289,6 +299,19 @@ const verifyTypst = [
     // check like equations/callouts do. Uncomment these when fixed:
     // "Theorem\\s+A\\.1.*Example Appendix Theorem",               // appendix theorem should be A.1
     // "See Theorem\\s+A\\.1 for the appendix theorem",            // appendix theorem self-reference
+    // Listing numbering - chapter-based (provided by orange-book's global figure numbering)
+    "Listing 1\\.1.*Hello World",                                  // first listing in chapter 1
+    "Listing 1\\.2.*Fibonacci",                                    // second listing in chapter 1
+    "Listing 2\\.1.*Quicksort",                                    // first listing in chapter 2 (counter reset!)
+    "Listing A\\.1.*Appendix Code Example",                        // first listing in appendix (letter prefix!)
+    // Listing references in text
+    "See Listing 1\\.1 for a simple Python example",               // self-reference in chapter 1
+    "Listing 1\\.2.*uses recursion",                               // self-reference in chapter 1
+    "See Listing 2\\.1 for an efficient sorting algorithm",        // self-reference in chapter 2
+    "See Listing A\\.1 for an appendix code example",              // appendix listing self-reference
+    // Cross-chapter listing references
+    "See Listing 1\\.1 and Listing 1\\.2 from Chapter 1",          // from chapter 2 to chapter 1
+    "See Listing 1\\.1 from Chapter 1 and Listing 2\\.1 from Chapter 2", // from appendix to chapters
   ]),
 ];
 testQuartoCmd(

@@ -75,3 +75,16 @@ This theorem demonstrates appendix numbering. It should ideally be Theorem A.1.
 :::
 
 See @thm-appendix for the appendix theorem. Reference @thm-pythagorean from Chapter 1 and @thm-calculus from Chapter 2.
+
+## Appendix Listings
+
+```{#lst-appendix-example .python lst-cap="Appendix Code Example"}
+# This demonstrates appendix listing numbering
+# Should display as Listing A.1
+def appendix_function():
+    return "Appendix example"
+```
+
+See @lst-appendix-example for an appendix code example. This should be Listing A.1.
+
+Cross-chapter references: See @lst-hello from Chapter 1 and @lst-quicksort from Chapter 2.
