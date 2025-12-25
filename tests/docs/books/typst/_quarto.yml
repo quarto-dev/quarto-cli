@@ -9,6 +9,9 @@ book:
     - index.qmd
     - chapter1.qmd
     - chapter2.qmd
+    - references.qmd
+
+bibliography: references.bib
 
 format:
   typst:

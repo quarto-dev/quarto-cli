@@ -82,6 +82,10 @@ const verifyTypst = [
     // Verify figure and table captions
     "A plot of the cars dataset",          // figure caption (from R plot)
     "Sample data table",                   // table caption
+    // Verify bibliography and citations
+    "#cite\\(<knuth84>",                   // Typst citation syntax
+    "#heading\\(level: 1, numbering: none\\)\\[References\\]", // unnumbered References heading
+    '#bibliography\\(\\("references\\.bib"\\)\\)',             // bibliography inclusion
   ]),
 ];
 testQuartoCmd(
