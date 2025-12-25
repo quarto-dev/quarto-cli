@@ -22,4 +22,10 @@ $endif$
 $if(toc-depth)$
   outline-depth: $toc-depth$,
 $endif$
+$if(lof)$
+  list-of-figure-title: "$if(crossref.lof-title)$$crossref.lof-title$$else$$crossref-lof-title$$endif$",
+$endif$
+$if(lot)$
+  list-of-table-title: "$if(crossref.lot-title)$$crossref.lot-title$$else$$crossref-lot-title$$endif$",
+$endif$
 )

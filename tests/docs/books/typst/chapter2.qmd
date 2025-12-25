@@ -2,6 +2,12 @@
 
 This is the second chapter of the book. As discussed in @sec-intro, we now present our methods.
 
+The fundamental problem with any bureaucratic methodology is that it must, by its very nature, assume that the person filling out the forms is lying. This is not because bureaucrats are inherently suspicious people, but because the forms themselves were designed by committees who assumed that clarity was a luxury that could not be afforded in these troubled times.
+
+Consider, for example, the simple act of changing one's address. One might naively suppose that this would involve telling the relevant authorities where one now lives. In practice, it requires filling out seventeen forms, each of which asks for one's previous address in a slightly different format, and all of which must be submitted to different departments who do not, under any circumstances, communicate with each other.
+
+The postal service, meanwhile, continues to deliver mail to addresses that have not existed for thirty years, on the grounds that someone might still be expecting it. This is considered efficiency.
+
 ## Section 2.1
 
 Some content in section 2.1. See @tbl-data for sample data.
