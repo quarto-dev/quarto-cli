@@ -86,6 +86,12 @@ const verifyTypst = [
     "#cite\\(<knuth84>",                   // Typst citation syntax
     "#heading\\(level: 1, numbering: none\\)\\[References\\]", // unnumbered References heading
     '#bibliography\\(\\("references\\.bib"\\)\\)',             // bibliography inclusion
+    // Verify book parts
+    "#part\\[Part I: Getting Started\\]",  // first part
+    "#part\\[Part II: Advanced Topics\\]", // second part
+    // Verify appendices
+    '#show: appendices\\.with\\("Appendices"\\)', // appendices show rule with localized title
+    "<sec-resources>",                     // appendix section anchor
   ]),
 ];
 testQuartoCmd(
