@@ -1,4 +1,4 @@
-# Preface
+# Preface {.unnumbered}
 
 This is a test book for Typst output format.
 

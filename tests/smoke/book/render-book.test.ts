@@ -64,6 +64,9 @@ const verifyTypst = [
     "test book for Typst output format",  // from index.qmd
     "first chapter of the book",           // from chapter1.qmd
     "second chapter of the book",          // from chapter2.qmd
+    // Verify unnumbered heading is emitted correctly (not wrapped in #block[])
+    // This regex matches Pandoc's native output: #heading(level: 1, numbering: none)[Preface]
+    "#heading\\(level: 1, numbering: none\\)\\[Preface\\]",
   ]),
 ];
 testQuartoCmd(
