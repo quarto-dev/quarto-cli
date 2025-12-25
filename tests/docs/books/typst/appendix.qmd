@@ -66,3 +66,12 @@ $$ {#eq-pythagorean}
 See @eq-pythagorean for right triangles. This should be Equation A.1.
 
 Cross-chapter reference: Recall @eq-einstein from Chapter 1 and @eq-quadratic from Chapter 2.
+
+## Appendix Theorems
+
+::: {#thm-appendix}
+## Example Appendix Theorem
+This theorem demonstrates appendix numbering. It should ideally be Theorem A.1.
+:::
+
+See @thm-appendix for the appendix theorem. Reference @thm-pythagorean from Chapter 1 and @thm-calculus from Chapter 2.

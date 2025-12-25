@@ -71,3 +71,19 @@ $$ {#eq-quadratic}
 Use @eq-quadratic to solve quadratic equations. This should be Equation 2.1.
 
 Cross-chapter reference: Recall @eq-einstein from Chapter 1 and @eq-newton.
+
+## Section 2.7 - More Theorems
+
+::: {#thm-calculus}
+## Fundamental Theorem of Calculus
+If $F$ is an antiderivative of $f$ on $[a,b]$, then: $\int_a^b f(x)\,dx = F(b) - F(a)$
+:::
+
+See @thm-calculus. This should be Theorem 2.1. Recall @thm-pythagorean and @lem-triangle from Chapter 1.
+
+::: {#def-continuous}
+## Continuous Function
+A function $f$ is continuous at $c$ if $\lim_{x \to c} f(x) = f(c)$.
+:::
+
+See @def-continuous for the definition.

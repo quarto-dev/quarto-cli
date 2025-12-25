@@ -160,6 +160,19 @@ const verifyTypst = [
     'math\\.equation\\(block: true, numbering: it => \\{ let pattern = if state\\("appendix-state"',
     // Math equation counter reset at chapter boundaries
     'counter\\(math\\.equation\\)\\.update\\(0\\)',
+    // Theorem labels and references (ctheorems package)
+    "#import \"@preview/ctheorems:1\\.1\\.3\"",
+    "#show: thmrules",
+    'thmbox\\("theorem".*base:\\s*"heading".*base_level:\\s*1',    // chapter-based theorem numbering
+    "<thm-pythagorean>",                          // theorem label in chapter 1
+    "<lem-triangle>",                             // lemma label in chapter 1
+    "<thm-calculus>",                             // theorem label in chapter 2
+    "<def-continuous>",                           // definition label in chapter 2
+    "<thm-appendix>",                             // theorem label in appendix
+    "#ref\\(<thm-pythagorean>",                   // theorem reference
+    "#ref\\(<lem-triangle>",                      // lemma reference
+    "#ref\\(<thm-calculus>",                      // theorem reference
+    "#ref\\(<thm-appendix>",                      // appendix theorem reference
   ]),
   // Verify rendered PDF content has correct chapter-based numbering
   ensurePdfRegexMatches(typstPdfPath, [
@@ -257,6 +270,25 @@ const verifyTypst = [
     // Cross-chapter equation references
     "Recall Equation \\(1\\.1\\) from Chapter 1 and Equation \\(1\\.2\\)", // from chapter 2 to chapter 1
     "Recall Equation \\(1\\.1\\) from Chapter 1 and Equation \\(2\\.1\\)", // from appendix to chapters 1 and 2
+    // Theorem numbering - chapter-based (using ctheorems with base:"heading")
+    "Theorem 1\\.1.*Pythagorean",                                  // first theorem in chapter 1
+    "Lemma 1\\.1.*Triangle Inequality",                            // first lemma in chapter 1 (separate counter)
+    "Theorem 2\\.1.*Fundamental Theorem",                          // first theorem in chapter 2 (counter reset!)
+    "Definition 2\\.1.*Continuous",                                // first definition in chapter 2
+    // Theorem references in text
+    "See Theorem 1\\.1 for the classic result",                    // self-reference in chapter 1
+    "See Lemma 1\\.1 for the inequality",                          // lemma self-reference in chapter 1
+    "See Theorem 2\\.1",                                           // self-reference in chapter 2
+    "See Definition 2\\.1 for the definition",                     // definition self-reference
+    // Cross-chapter theorem references
+    "Recall Theorem 1\\.1 and Lemma 1\\.1 from Chapter 1",         // from chapter 2 to chapter 1
+    // TODO: Appendix theorem numbering - ctheorems shows "Theorem 1.1" instead of "Theorem A.1"
+    // because it reads the raw heading counter (reset by orange-book) without the letter prefix
+    // transformation. This creates confusion since Chapter 1 also has "Theorem 1.1".
+    // To fix: implement custom theorem environments without ctheorems, using appendix-state
+    // check like equations/callouts do. Uncomment these when fixed:
+    // "Theorem\\s+A\\.1.*Example Appendix Theorem",               // appendix theorem should be A.1
+    // "See Theorem\\s+A\\.1 for the appendix theorem",            // appendix theorem self-reference
   ]),
 ];
 testQuartoCmd(

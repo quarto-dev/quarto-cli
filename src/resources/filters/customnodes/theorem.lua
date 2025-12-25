@@ -104,8 +104,14 @@ local function ensure_typst_theorems(reftype)
   if not letted_typst_theorem[reftype] then
     letted_typst_theorem[reftype] = true
     local theorem_type = theorem_types[reftype]
+    local base_arg = ""
+    if param("single-file-book", false) and crossrefOption("chapters", false) then
+      -- For books with chapter numbering, tie theorem counter to heading counter
+      -- Use base_level: 1 to number as "Theorem 2.1" not "Theorem 2.7.1"
+      base_arg = ", base: \"heading\", base_level: 1"
+    end
     quarto.doc.include_text("in-header", "#let " .. theorem_type.env .. " = thmbox(\"" ..
-     theorem_type.env .. "\", \"" .. titleString(reftype, theorem_type.title) .. "\")")
+     theorem_type.env .. "\", \"" .. titleString(reftype, theorem_type.title) .. "\"" .. base_arg .. ")")
   end
 end
 
