@@ -133,7 +133,7 @@ const verifyTypst = [
     "Figure 1\\.1: A plot of the cars dataset",
     "Figure 1\\.2: A display of a line",
     "Table 2\\.1: Sample data table",
-    "Figure 2\\.3: A panel with two sub-figures",
+    "Figure 2\\.1: A panel with two sub-figures",
     // Chapter-based figure references in text
     "See Figure 1\\.1 for an example figure",
     "See Figure 1\\.2 for an embedded notebook figure",
@@ -143,10 +143,10 @@ const verifyTypst = [
     "See Chapter 1\\. for the main introduction",
     "As discussed in Chapter 1\\., we now present",
     // Sub-figure references in chapter 2 - should have chapter prefix
-    "See Figure 2\\.3 for a panel.*Figure 2\\.3a and Figure 2\\.3b",
+    "See Figure 2\\.1 for a panel.*Figure 2\\.1a and Figure 2\\.1b",
     // Cross-chapter sub-figure references from chapter 3 to chapter 2 figures
-    "Recall the panel figure from Chapter 2\\.: see Figure 2\\.3 for the complete panel",
-    "Figure 2\\.3a shows the first panel and Figure 2\\.3b shows the\\s+second panel",
+    "Recall the panel figure from Chapter 2\\.: see Figure 2\\.1 for the complete panel",
+    "Figure 2\\.1a shows the first panel and Figure 2\\.1b shows the\\s+second panel",
     // Cross-chapter reference to figure from chapter 1
     "reference the main figure from Chapter 1\\.: Figure 1\\.1 shows the cars",
     // Callout numbering - chapter-based (each type has its own counter)
@@ -165,26 +165,20 @@ const verifyTypst = [
     "See Warning 1\\.1 for the tea warning",
     "See Tip 2\\.1 for towel advice",
     "See Note 2\\.1 for important information about Vogon poetry",
-    // Appendix numbering tests - verify "A." prefix works (Bug 2 fix)
-    // Tests use \d+ for the number because Bug 1 (counter not reset per chapter) causes
-    // wrong numbers (A.4 instead of A.1). See plans/quarto-orange-figure-counters.md
-    "Figure A\\.\\d+: A panel of sub-figures in the appendix",  // appendix figure has A prefix
-    "Figure A\\.\\d+a and Figure A\\.\\d+b individually",       // appendix subfigures have A prefix
-    "Warning A\\.\\d+: Appendix Warning",                       // appendix warning has A prefix
-    "Tip A\\.\\d+: Appendix Tip",                               // appendix tip has A prefix
+    // Appendix numbering - letter-based chapter prefix with correct counter (A.1)
+    "Figure A\\.1: A panel of sub-figures in the appendix",     // appendix figure caption
+    "See Figure A\\.1 for a panel of appendix sub-figures",     // self-reference in appendix
+    "Figure A\\.1a and Figure A\\.1b individually",             // appendix sub-figure references
+    "Warning A\\.1: Appendix Warning",                          // appendix warning caption
+    "Tip A\\.1: Appendix Tip",                                  // appendix tip caption
+    "See Warning A\\.1 to reference this\\s+appendix warning",  // appendix warning self-reference
+    "See Tip A\\.1 to reference this\\s+appendix tip",          // appendix tip self-reference
+    // Cross-references from main chapter to appendix content (forward references)
+    "See Figure A\\.1 for appendix sub-figures",                // from chapter 3 to appendix figure
+    "See Warning A\\.1 for the appendix warning",               // from chapter 3 to appendix warning
+    "See Tip A\\.1 for the appendix tip",                       // from chapter 3 to appendix tip
     // Cross-references from appendix back to main chapters (should still be numeric)
     "see Warning 1\\.1 for the tea warning from Chapter 1",     // from appendix to chapter 1 callout
-    // TODO: Uncomment these once Bug 1 (counter reset) is fixed:
-    // "Figure A\\.1: A panel of sub-figures in the appendix",  // should be A.1, not A.4
-    // "See Figure A\\.1 for a panel of appendix sub-figures",
-    // "Figure A\\.1a and Figure A\\.1b individually",          // should be A.1a/A.1b, not A.4a/A.4b
-    // "Warning A\\.1: Appendix Warning",                       // should be A.1, not A.2
-    // "Tip A\\.1: Appendix Tip",                               // should be A.1, not A.2
-    // "See Warning A\\.1 to\\s+reference this appendix warning",
-    // "See Tip A\\.1 to\\s+reference this appendix tip",
-    // "See Figure A\\.1 for appendix sub-figures",             // forward ref from chapter 3
-    // "See Warning A\\.1 for the appendix warning",
-    // "See Tip A\\.1 for the appendix tip",
   ]),
 ];
 testQuartoCmd(
