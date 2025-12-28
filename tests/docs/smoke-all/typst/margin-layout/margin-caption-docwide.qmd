@@ -1,0 +1,41 @@
+---
+title: "Document-wide Margin Captions"
+papersize: us-letter
+fig-cap-location: margin
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Uses show rule approach for margin captions
+        - ['#show figure.caption:', 'note\(']
+        - []
+      ensurePdfRegexMatches:
+        - - 'Figure 1'
+          - 'Figure 2'
+          - 'CAP-FIRST'
+          - 'CAP-SECOND'
+        - []
+      ensurePdfTextPositions:
+        - - subject: "CAP-FIRST"
+            relation: rightOf
+            object: "This document"
+          - subject: "CAP-FIRST"
+            relation: above
+            object: "CAP-SECOND"
+        - []
+      noErrors: default
+---
+
+This document tests document-wide margin captions with `fig-cap-location: margin`.
+
+![CAP-FIRST](test-image.png){#fig-first}
+
+Some text between figures.
+
+![CAP-SECOND](test-image.png){#fig-second}
+
+References: @fig-first and @fig-second.

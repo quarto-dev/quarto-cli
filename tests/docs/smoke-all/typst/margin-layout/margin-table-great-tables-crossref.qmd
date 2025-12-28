@@ -1,0 +1,59 @@
+---
+title: "Margin Table Cross-ref Test"
+papersize: us-letter
+grid:
+  margin-width: 3.5in
+  gutter-width: 0.25in
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Cell option should produce same output as fenced div: #notefigure
+        # (entire figure including caption should be in margin, like HTML/LaTeX)
+        - ['#notefigure\(', '<tbl-air>']
+        - []
+      ensurePdfRegexMatches:
+        - ['Table 1', 'Air Quality']
+        - []
+      ensurePdfTextPositions:
+        - # Table column header in margin, right of body text - "O3" unique to table
+          - subject: "O3"
+            relation: rightOf
+            object: "This tests"
+        - []
+      noErrors: default
+---
+
+This tests cross-references to margin tables using great_tables.
+
+```{python}
+#| column: margin
+#| classes: plain
+#| echo: false
+#| label: tbl-air
+#| tbl-cap: "NYC Air Quality"
+
+from great_tables import GT
+from great_tables.data import airquality
+
+airquality_mini = airquality.head(5)
+
+(
+    GT(airquality_mini)
+    .tab_header(title="Air Quality")
+    .cols_label(
+        Ozone="O3",
+        Solar_R="Solar",
+        Wind="Wind",
+        Temp="Temp"
+    )
+)
+```
+
+As shown in @tbl-air, the table appears in the margin with a working cross-reference.
+
+The reference should show "Table 1" or similar.

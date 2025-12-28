@@ -1,0 +1,76 @@
+---
+title: "Interleaved Margin Caption Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+        - - 'REF-ALPHA pointing to Figure 1'
+          - 'REF-BETA pointing to Figure 2'
+          - 'REF-GAMMA pointing to Figure 3'
+          - 'REF-DELTA pointing to Figure 4'
+          - 'REF-EPSILON pointing to Figure 5'
+          - 'Figure 1'
+          - 'Figure 2'
+          - 'Figure 3'
+          - 'Figure 4'
+          - 'Figure 5'
+        - []
+      ensurePdfTextPositions:
+        - # Margin captions right of body (same page)
+          - subject: "CAP-ALPHA"
+            relation: rightOf
+            object: "First: Margin"
+          # Cross-refs left of margin captions (same page)
+          - subject: "REF-ALPHA"
+            relation: leftOf
+            object: "CAP-ALPHA"
+        - []
+      noErrors: default
+---
+
+This document tests interleaved margin and regular captions with sequential numbering.
+
+## First: Margin Caption
+
+![CAP-ALPHA with margin caption](test-plot.svg){#fig-alpha cap-location="margin"}
+
+Text with REF-ALPHA pointing to @fig-alpha.
+
+## Second: Regular Caption
+
+![CAP-BETA with regular caption](test-plot.svg){#fig-beta}
+
+Text with REF-BETA pointing to @fig-beta.
+
+## Third: Back to Margin Caption
+
+![CAP-GAMMA with margin caption](test-plot.svg){#fig-gamma cap-location="margin"}
+
+Text with REF-GAMMA pointing to @fig-gamma.
+
+## Fourth: Regular Caption Again
+
+![CAP-DELTA with regular caption](test-plot.svg){#fig-delta}
+
+Text with REF-DELTA pointing to @fig-delta.
+
+## Fifth: Margin Caption Once More
+
+![CAP-EPSILON with margin caption](test-plot.svg){#fig-epsilon cap-location="margin"}
+
+Text with REF-EPSILON pointing to @fig-epsilon.
+
+## Summary
+
+All figures should be numbered sequentially 1-5:
+
+- @fig-alpha should be Figure 1 (margin caption)
+- @fig-beta should be Figure 2 (regular caption)
+- @fig-gamma should be Figure 3 (margin caption)
+- @fig-delta should be Figure 4 (regular caption)
+- @fig-epsilon should be Figure 5 (margin caption)
