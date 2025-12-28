@@ -159,7 +159,7 @@ local function processLicenseMeta(meta)
         end
         meta[constants.kLicense] = normalizedEls
       elseif pandoc.utils.type(licenseMeta) == "Inlines" then
-        meta[constants.kLicense] = {processLicense(licenseMeta, meta)}
+        meta[constants.kLicense] = processLicense(licenseMeta, meta)
       end
     end
 
