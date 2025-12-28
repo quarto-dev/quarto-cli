@@ -257,7 +257,18 @@ function parse_floatreftargets()
     elseif div.attributes[caption_attr_key] ~= nil then
       caption = pandoc.Plain(string_to_quarto_ast_inlines(div.attributes[caption_attr_key]))
       div.attributes[caption_attr_key] = nil
-    else
+    elseif ref == "lst" then
+      -- For listings from cell options, the caption may be on a nested CodeBlock
+      _quarto.ast.walk(content, {
+        CodeBlock = function(code)
+          if code.attr.attributes[caption_attr_key] then
+            caption = pandoc.Plain(string_to_quarto_ast_inlines(code.attr.attributes[caption_attr_key]))
+            code.attr.attributes[caption_attr_key] = nil
+          end
+        end
+      })
+    end
+    if caption == nil then
       -- it's possible that the content of this div includes a table with a caption
       -- so we'll go root around for that.
       local found_caption = false
@@ -331,26 +342,49 @@ function parse_floatreftargets()
       local layout_classes = attr.classes:filter(
         function(c) return c:match("^column-") end
       )
-      if #layout_classes then
-        attr.classes = attr.classes:filter(
-          function(c) return not layout_classes:includes(c) end)
-        div.classes = div.classes:filter(
-          function(c) return not layout_classes:includes(c) end)
-        -- if the div is a cell, then all layout attributes need to be
-        -- forwarded to the cell .cell-output-display content divs
-        content = _quarto.ast.walk(content, {
-          Div = function(div)
-            if div.classes:includes("cell-output-display") then
-              div.classes:extend(layout_classes)
-              return _quarto.ast.walk(div, {
-                Table = function(tbl)
-                  tbl.classes:insert("do-not-create-environment")
-                  return tbl
-                end
-              })
+      if #layout_classes > 0 then
+        -- Check if there are cell-output-display divs to forward to
+        local has_cell_output_display = false
+        _quarto.ast.walk(content, {
+          Div = function(subdiv)
+            if subdiv.classes:includes("cell-output-display") then
+              has_cell_output_display = true
             end
           end
-        })  
+        })
+
+        if has_cell_output_display then
+          -- Forward layout classes to cell-output-display divs
+          content = _quarto.ast.walk(content, {
+            Div = function(subdiv)
+              if subdiv.classes:includes("cell-output-display") then
+                subdiv.classes:extend(layout_classes)
+                return _quarto.ast.walk(subdiv, {
+                  Table = function(tbl)
+                    tbl.classes:insert("do-not-create-environment")
+                    return tbl
+                  end
+                })
+              end
+            end
+          })
+          -- Remove layout classes from div
+          div.classes = div.classes:filter(
+            function(c) return not layout_classes:includes(c) end)
+          -- For margin classes, keep on attr so FloatRefTarget can use notefigure
+          -- For fullwidth classes, strip from attr - columns.lua handles wideblock wrapping
+          local margin_classes = layout_classes:filter(
+            function(c) return c == "column-margin" or c == "aside" end)
+          local fullwidth_classes = layout_classes:filter(
+            function(c) return c ~= "column-margin" and c ~= "aside" end)
+          if #fullwidth_classes > 0 then
+            attr.classes = attr.classes:filter(
+              function(c) return not fullwidth_classes:includes(c) end)
+          end
+          -- margin_classes stay on attr for FloatRefTarget margin placement
+        end
+        -- If no cell-output-display (e.g., listings with echo:true eval:false),
+        -- keep layout_classes on attr so the FloatRefTarget inherits them
       end
     end
 

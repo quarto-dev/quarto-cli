@@ -74,20 +74,109 @@ local function def_columns()
 
     -- for html output that isn't reveal...
     if _quarto.format.isHtmlOutput() and not _quarto.format.isHtmlSlideOutput() then
-  
+
       -- For HTML output, note that any div marked an aside should
-      -- be marked a column-margin element (so that it is processed 
-      -- by post processors). 
+      -- be marked a column-margin element (so that it is processed
+      -- by post processors).
       -- For example: https://github.com/quarto-dev/quarto-cli/issues/2701
       if el.classes and tcontains(el.classes, 'aside') then
         noteHasColumns()
-        el.classes = el.classes:filter(function(attr) 
+        el.classes = el.classes:filter(function(attr)
           return attr ~= "aside"
         end)
         tappend(el.classes, {'column-margin', "margin-aside"})
         return el
       end
-  
+
+    elseif _quarto.format.isTypstOutput() then
+      -- For Typst output, detect column classes to trigger margin layout setup
+      -- Actual margin note rendering is handled in quarto-post/typst.lua
+      if hasMarginColumn(el) or hasColumnClasses(el) then
+        noteHasColumns()
+      end
+      -- Convert aside class to column-margin for consistency
+      if el.classes and tcontains(el.classes, 'aside') then
+        el.classes = el.classes:filter(function(attr)
+          return attr ~= "aside"
+        end)
+        tappend(el.classes, {'column-margin'})
+        return el
+      end
+      -- Handle full-width classes with wideblock
+      local side, clz = getWideblockSide(el.classes)
+      if side then
+        noteHasColumns()  -- Ensure margin layout is activated for wideblock
+        el.classes = el.classes:filter(function(c) return c ~= clz end)
+        return make_typst_wideblock {
+          content = el.content,
+          side = side,
+        }
+      end
+      -- Handle intermediate width classes (body-outset, page-inset, screen-inset)
+      local intermediateInfo, intermediateClz = getIntermediateWidthClass(el.classes)
+      if intermediateInfo then
+        noteHasColumns()  -- Ensure margin layout is activated
+        el.classes = el.classes:filter(function(c) return c ~= intermediateClz end)
+        return make_typst_intermediate_width {
+          content = el.content,
+          func = intermediateInfo.func,
+          side = intermediateInfo.side,
+        }
+      end
+      -- Handle margin figures/tables: propagate .column-margin class to FloatRefTarget
+      -- so they render with notefigure() instead of being wrapped in #note()
+      if hasMarginColumn(el) then
+        local floatRefTargets = el.content:filter(function(contentEl)
+          return is_custom_node(contentEl, "FloatRefTarget")
+        end)
+        if #floatRefTargets > 0 then
+          -- Propagate margin class and attributes to each FloatRefTarget and return unwrapped
+          local result = pandoc.Blocks({})
+          for _, contentEl in ipairs(el.content) do
+            if is_custom_node(contentEl, "FloatRefTarget") then
+              local custom = _quarto.ast.resolve_custom_data(contentEl)
+              if custom ~= nil then
+                -- Add column-margin class to the float
+                if custom.classes == nil then
+                  custom.classes = pandoc.List({'column-margin'})
+                else
+                  custom.classes:insert('column-margin')
+                end
+                -- Propagate margin-related attributes (shift, alignment, dy)
+                if el.attributes then
+                  if custom.attributes == nil then
+                    custom.attributes = {}
+                  end
+                  if el.attributes.shift then
+                    custom.attributes.shift = el.attributes.shift
+                  end
+                  if el.attributes.alignment then
+                    custom.attributes.alignment = el.attributes.alignment
+                  end
+                  if el.attributes.dy then
+                    custom.attributes.dy = el.attributes.dy
+                  end
+                end
+                result:insert(contentEl)
+              end
+            else
+              -- Non-float content stays wrapped in margin note
+              local inner_div = pandoc.Div({contentEl}, pandoc.Attr("", {'column-margin'}))
+              result:insert(inner_div)
+            end
+          end
+          return result
+        else
+          -- For cell-output-display divs with column-margin, the parent FloatRefTarget
+          -- will handle margin placement. Strip the class to prevent quarto-post from
+          -- wrapping it in #note() (which would cause double-wrapping with notefigure).
+          if el.classes:includes("cell-output-display") then
+            removeColumnClasses(el)
+            return el
+          end
+        end
+      end
+
     elseif el.identifier and el.identifier:find("^lst%-") then
       -- for listings, fetch column classes from sourceCode element
       -- and move to the appropriate spot (e.g. caption, container div)
@@ -175,7 +264,7 @@ local function def_columns()
                 -- It also means that divs that want to be both a figure* and a table*
                 -- will never work and we won't get the column-* treatment for 
                 -- everything, just for the table.
-                el.classes = el.classes:filter(function(clz) 
+                el.classes = el.classes:filter(function(clz)
                   return not isStarEnv(clz)
                 end)
               end
@@ -185,14 +274,14 @@ local function def_columns()
               -- the general purpose `sidenote` processing from capturing this
               -- element (since floats know how to deal with margin positioning)
               local custom = _quarto.ast.resolve_custom_data(contentEl)
-              if custom ~= nil then  
+              if custom ~= nil then
                 floatRefTarget = true
                 removeColumnClasses(el)
                 add_column_classes_and_attributes(columnClasses, columnAttributes, custom)
               end
-            end 
+            end
           end
-  
+
           if not figOrTable and not floatRefTarget then
             processOtherContent(el.content)
           end
@@ -267,17 +356,29 @@ local function def_columns()
   
       Span = function(el)
         -- a span that should be placed in the margin
-        if _quarto.format.isLatexOutput() and hasMarginColumn(el) then 
+        if _quarto.format.isLatexOutput() and hasMarginColumn(el) then
           noteHasColumns()
           tprepend(el.content, {latexBeginSidenote(false)})
           tappend(el.content, {latexEndSidenote(el, false)})
           removeColumnClasses(el)
           return el
-        else 
+        elseif _quarto.format.isTypstOutput() and hasMarginColumn(el) then
+          -- For Typst, detect margin spans to trigger margin layout setup
+          -- Actual margin note rendering is handled in quarto-post/typst.lua
+          noteHasColumns()
+          -- Convert aside class to column-margin for consistency
+          if el.classes and tcontains(el.classes, 'aside') then
+            el.classes = el.classes:filter(function(attr)
+              return attr ~= "aside"
+            end)
+            tappend(el.classes, {'column-margin'})
+          end
+          return el
+        else
           -- convert the aside class to a column-margin class
           if el.classes and tcontains(el.classes, 'aside') then
             noteHasColumns()
-            el.classes = el.classes:filter(function(attr) 
+            el.classes = el.classes:filter(function(attr)
               return attr ~= "aside"
             end)
             tappend(el.classes, {'column-margin', 'margin-aside'})

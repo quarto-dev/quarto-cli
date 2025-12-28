@@ -1,0 +1,37 @@
+---
+title: "Shift Fixed Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['shift: false']
+        - []
+      ensurePdfTextPositions:
+        - # All notes in margin, right of body text
+          - subject: "FIXED"
+            relation: rightOf
+            object: "Line with fixed"
+          - subject: "AUTO1"
+            relation: rightOf
+            object: "Line with auto"
+          # Vertical ordering: FIXED above AUTO1 above AUTO2
+          - subject: "FIXED"
+            relation: above
+            object: "AUTO1"
+          - subject: "AUTO1"
+            relation: above
+            object: "AUTO2"
+        - []
+      noErrors: default
+---
+
+This tests `shift: false` where the note stays fixed and other notes move around it.
+
+Line with fixed note [FIXED: I stay exactly where I am placed, others move around me]{.column-margin shift="false"}.
+Line with auto note [AUTO1: I should shift down to avoid the fixed note above]{.column-margin}.
+Line with another auto [AUTO2: I shift down further]{.column-margin}.

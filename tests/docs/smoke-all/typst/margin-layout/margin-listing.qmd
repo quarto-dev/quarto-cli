@@ -1,0 +1,52 @@
+---
+title: "Margin Listing Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Listings in margin divs should use notefigure
+        - ['#notefigure\(', 'kind: "quarto-float-lst"']
+        - []
+      ensurePdfRegexMatches:
+        - ['Listing 1', 'SQLCAP1']
+        - []
+      ensurePdfTextPositions:
+        - # Margin content should be right of body text
+          - subject: "SQLCAP1"
+            relation: rightOf
+            object: "This tests"
+          - subject: "SELECT"
+            relation: rightOf
+            object: "This tests"
+          # Caption above code (caption position: top)
+          - subject: "SQLCAP1"
+            relation: above
+            object: "SELECT"
+          # Body text vertical ordering
+          - subject: "This tests"
+            relation: above
+            object: "More text"
+        - []
+      noErrors: default
+---
+
+This tests code listings placed in the margin.
+
+::: {.column-margin}
+
+```{#lst-margin-sql .sql lst-cap="SQLCAP1"}
+SELECT id, name
+FROM users
+WHERE active = true
+```
+
+:::
+
+See @lst-margin-sql for the SQL query in the margin.
+
+More text in the main column to show the layout.

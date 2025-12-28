@@ -1,0 +1,39 @@
+---
+title: "Margin Figure Caption Above (Document-wide)"
+papersize: us-letter
+fig-cap-location: top
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#notefigure\(', 'position: top']
+        - []
+      ensurePdfTextPositions:
+        - # Both captions right of body
+          - subject: "CAP-FIRST"
+            relation: rightOf
+            object: "This tests"
+          - subject: "CAP-SECOND"
+            relation: rightOf
+            object: "More text"
+          # First caption above second (vertical ordering)
+          - subject: "CAP-FIRST"
+            relation: above
+            object: "CAP-SECOND"
+        - []
+      noErrors: default
+---
+
+This tests document-wide `fig-cap-location: top` applied to margin figures.
+
+![CAP-FIRST](test-plot.svg){#fig-first .column-margin width=100%}
+
+More text in the main column.
+
+![CAP-SECOND](test-plot.svg){#fig-second .column-margin width=100%}
+
+References: @fig-first and @fig-second.

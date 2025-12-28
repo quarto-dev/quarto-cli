@@ -1,0 +1,35 @@
+---
+title: "Multiple Sidenotes"
+papersize: us-letter
+reference-location: margin
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+        - ['FIRST-NOTE', 'SECOND-NOTE', 'THIRD-NOTE']
+        - []
+      ensurePdfTextPositions:
+        - - subject: "FIRST-NOTE"
+            relation: rightOf
+            object: "First point"
+          - subject: "FIRST-NOTE"
+            relation: above
+            object: "SECOND-NOTE"
+          - subject: "SECOND-NOTE"
+            relation: above
+            object: "THIRD-NOTE"
+        - []
+      noErrors: default
+---
+
+First point^[FIRST-NOTE content.]. Second point^[SECOND-NOTE content.].
+
+More text in between.
+
+Third point^[THIRD-NOTE content.].
+
+All three sidenotes should appear in the margin with proper numbering (1, 2, 3).

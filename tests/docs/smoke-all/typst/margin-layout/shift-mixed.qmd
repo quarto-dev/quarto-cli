@@ -1,0 +1,41 @@
+---
+title: "Mixed Shift Modes Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['shift: false', 'shift: auto', 'shift: "avoid"', 'shift: "ignore"']
+        - []
+      ensurePdfTextPositions:
+        - # Positive assertions
+          - subject: "FIXED"
+            relation: above
+            object: "AUTO1"
+          - subject: "AUTO1"
+            relation: above
+            object: "AVOID"
+          - subject: "AVOID"
+            relation: above
+            object: "AUTO2"
+          - subject: "FIXED"
+            relation: rightOf
+            object: "Line 1"
+        - # Negative assertions - IGNORE overlaps AVOID, so NOT below
+          - subject: "IGNORE"
+            relation: below
+            object: "FIXED"
+      noErrors: default
+---
+
+This tests all shift modes interacting in a single document.
+
+Line 1 [FIXED]{.column-margin shift="false"}.
+Line 2 [AUTO1]{.column-margin}.
+Line 3 [AVOID]{.column-margin shift="avoid"}.
+Line 4 [IGNORE]{.column-margin shift="ignore"}.
+Line 5 [AUTO2]{.column-margin}.

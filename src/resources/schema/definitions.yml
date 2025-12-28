@@ -3484,4 +3484,18 @@
                   - string
                   - boolean
                   - number
+- id: marginalia-side-geometry
+  object:
+    closed: true
+    properties:
+      far:
+        string:
+          description: "Distance from page edge to wideblock boundary."
+      width:
+        string:
+          description: "Width of the margin note column."
+      separation:
+        string:
+          description: "Gap between margin column and body text."
+
 # - id: quarto-extension
