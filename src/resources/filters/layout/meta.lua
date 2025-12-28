@@ -164,6 +164,21 @@ function layout_meta_inject_latex_packages()
           end  
         end
       end
+
+      -- enable column layout for Typst (configure page geometry for margin notes)
+      if (layoutState.hasColumns or marginReferences() or marginCitations()) and _quarto.format.isTypstOutput() then
+        -- Only apply automatic geometry if user hasn't set custom margins
+        local userDefinedMargin = meta.margin ~= nil
+
+        if not userDefinedMargin then
+          local paperWidth = typstPaperWidth(meta.papersize)
+          if paperWidth then
+            meta["margin-layout"] = true
+            meta["margin-geometry"] = typstGeometryFromPaperWidth(paperWidth)
+          end
+        end
+      end
+
       return meta
     end
   }
@@ -336,4 +351,37 @@ function textWidth(width)
   return ((width - 2*left(width) - marginParSep(width)) * 2) / 3
 end
 
+-- Typst paper width lookup (reuse kPaperWidthsIn)
+function typstPaperWidth(paperSize)
+  if paperSize ~= nil then
+    local paperSizeStr = pandoc.utils.stringify(paperSize)
+    -- Typst uses lowercase paper names, normalize input
+    paperSizeStr = string.lower(paperSizeStr)
+    -- Map some Typst-specific names
+    if paperSizeStr == "us-letter" then
+      paperSizeStr = "letter"
+    elseif paperSizeStr == "us-legal" then
+      paperSizeStr = "legal"
+    end
+    return kPaperWidthsIn[paperSizeStr]
+  end
+  return nil
+end
+
+-- Compute Typst geometry from paper width
+-- Same ratios as LaTeX: 2/3 text, 1/3 margin
+function typstGeometryFromPaperWidth(paperWidth)
+  local leftMargin = left(paperWidth)
+  local marginSep = marginParSep(paperWidth)
+  local marginWidth = marginParWidth(paperWidth)
+  local txtWidth = textWidth(paperWidth)
+
+  return {
+    ["left"] = string.format("%.3fin", leftMargin),
+    ["right"] = string.format("%.3fin", marginWidth + marginSep + leftMargin),
+    ["margin-width"] = string.format("%.3fin", marginWidth),
+    ["margin-sep"] = string.format("%.3fin", marginSep),
+    ["text-width"] = string.format("%.3fin", txtWidth),
+  }
+end
 

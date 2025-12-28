@@ -74,20 +74,35 @@ local function def_columns()
 
     -- for html output that isn't reveal...
     if _quarto.format.isHtmlOutput() and not _quarto.format.isHtmlSlideOutput() then
-  
+
       -- For HTML output, note that any div marked an aside should
-      -- be marked a column-margin element (so that it is processed 
-      -- by post processors). 
+      -- be marked a column-margin element (so that it is processed
+      -- by post processors).
       -- For example: https://github.com/quarto-dev/quarto-cli/issues/2701
       if el.classes and tcontains(el.classes, 'aside') then
         noteHasColumns()
-        el.classes = el.classes:filter(function(attr) 
+        el.classes = el.classes:filter(function(attr)
           return attr ~= "aside"
         end)
         tappend(el.classes, {'column-margin', "margin-aside"})
         return el
       end
-  
+
+    elseif _quarto.format.isTypstOutput() then
+      -- For Typst output, detect column classes to trigger margin layout setup
+      -- Actual margin note rendering is handled in quarto-post/typst.lua
+      if hasMarginColumn(el) or hasColumnClasses(el) then
+        noteHasColumns()
+      end
+      -- Convert aside class to column-margin for consistency
+      if el.classes and tcontains(el.classes, 'aside') then
+        el.classes = el.classes:filter(function(attr)
+          return attr ~= "aside"
+        end)
+        tappend(el.classes, {'column-margin'})
+        return el
+      end
+
     elseif el.identifier and el.identifier:find("^lst%-") then
       -- for listings, fetch column classes from sourceCode element
       -- and move to the appropriate spot (e.g. caption, container div)
@@ -267,17 +282,29 @@ local function def_columns()
   
       Span = function(el)
         -- a span that should be placed in the margin
-        if _quarto.format.isLatexOutput() and hasMarginColumn(el) then 
+        if _quarto.format.isLatexOutput() and hasMarginColumn(el) then
           noteHasColumns()
           tprepend(el.content, {latexBeginSidenote(false)})
           tappend(el.content, {latexEndSidenote(el, false)})
           removeColumnClasses(el)
           return el
-        else 
+        elseif _quarto.format.isTypstOutput() and hasMarginColumn(el) then
+          -- For Typst, detect margin spans to trigger margin layout setup
+          -- Actual margin note rendering is handled in quarto-post/typst.lua
+          noteHasColumns()
+          -- Convert aside class to column-margin for consistency
+          if el.classes and tcontains(el.classes, 'aside') then
+            el.classes = el.classes:filter(function(attr)
+              return attr ~= "aside"
+            end)
+            tappend(el.classes, {'column-margin'})
+          end
+          return el
+        else
           -- convert the aside class to a column-margin class
           if el.classes and tcontains(el.classes, 'aside') then
             noteHasColumns()
-            el.classes = el.classes:filter(function(attr) 
+            el.classes = el.classes:filter(function(attr)
               return attr ~= "aside"
             end)
             tappend(el.classes, {'column-margin', 'margin-aside'})
