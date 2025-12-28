@@ -6,8 +6,9 @@ _quarto:
   tests:
     html:
       ensureFileRegexMatches:
-        - ['License: Whatever']
-        - ['Copyright: 2024 My Company']
+        - 
+          - "License: Whatever"
+          - "Copyright: 2024 My Company"
 ---
 
 License: {{< meta license.text >}}
