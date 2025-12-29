@@ -32,6 +32,21 @@ function render_typst()
     },
     {
       Div = function(div)
+        -- Handle .column-margin divs (margin notes)
+        if div.classes:includes("column-margin") then
+          div.classes = div.classes:filter(function(c) return c ~= "column-margin" end)
+
+          local dy = div.attributes.dy or "auto"
+          div.attributes.dy = nil
+
+          local result = pandoc.Blocks({})
+          result:insert(pandoc.RawBlock("typst", "#margin-note(dy: " .. dy .. ")["))
+          result:extend(div.content)
+          result:insert(pandoc.RawBlock("typst", "]"))
+          return result
+        end
+
+        -- Handle .block divs
         if div.classes:includes("block") then
           div.classes = div.classes:filter(function(c) return c ~= "block" end)
 
@@ -49,6 +64,21 @@ function render_typst()
           result:extend(preamble)
           result:extend(div.content)
           result:extend(postamble)
+          return result
+        end
+      end,
+      Span = function(span)
+        -- Handle .column-margin spans (inline margin notes)
+        if span.classes:includes("column-margin") then
+          span.classes = span.classes:filter(function(c) return c ~= "column-margin" end)
+
+          local dy = span.attributes.dy or "auto"
+          span.attributes.dy = nil
+
+          local result = pandoc.Inlines({})
+          result:insert(pandoc.RawInline("typst", "#margin-note(dy: " .. dy .. ")["))
+          result:extend(span.content)
+          result:insert(pandoc.RawInline("typst", "]"))
           return result
         end
       end,
