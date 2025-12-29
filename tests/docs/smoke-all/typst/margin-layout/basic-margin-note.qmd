@@ -8,7 +8,7 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        - ['@preview/drafting:0\.2\.2', '#set-page-properties\(\)', '#set-margin-note-defaults\(']
+        - ['@preview/marginalia:0\.3\.1', 'marginalia\.setup\.with\(']
         - []
       noErrors: default
 ---
