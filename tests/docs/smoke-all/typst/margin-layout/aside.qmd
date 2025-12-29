@@ -8,7 +8,7 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        - ['#margin-note\(dy: auto\)\[']
+        - ['#note\(alignment: "baseline"']
         - []
       noErrors: default
 ---

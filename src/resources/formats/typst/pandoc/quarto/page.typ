@@ -1,12 +1,7 @@
 #set page(
   paper: $if(papersize)$"$papersize$"$else$"us-letter"$endif$,
 $if(margin-layout)$
-  margin: (
-    left: $margin-geometry.left$,
-    right: $margin-geometry.right$,
-    top: $if(margin.top)$$margin.top$$else$1.25in$endif$,
-    bottom: $if(margin.bottom)$$margin.bottom$$else$1.25in$endif$,
-  ),
+  // Margins handled by marginalia.setup below
 $elseif(margin)$
   margin: ($for(margin/pairs)$$margin.key$: $margin.value$,$endfor$),
 $else$
@@ -19,12 +14,22 @@ $if(logo)$
 $endif$
 $if(margin-layout)$
 
-#import "@preview/drafting:0.2.2": margin-note, set-page-properties, set-margin-note-defaults
+#import "@preview/marginalia:0.3.1" as marginalia: note, notefigure, wideblock
 
-#set-page-properties()
-#set-margin-note-defaults(
-  stroke: none,
-  side: right,
-  margin-right: $margin-geometry.margin-width$,
+#show: marginalia.setup.with(
+  inner: (
+    far: 0in,
+    width: 0in,
+    sep: $margin-geometry.inner-sep$,
+  ),
+  outer: (
+    far: $margin-geometry.outer-far$,
+    width: $margin-geometry.outer-width$,
+    sep: $margin-geometry.outer-sep$,
+  ),
+  top: $if(margin.top)$$margin.top$$else$1.25in$endif$,
+  bottom: $if(margin.bottom)$$margin.bottom$$else$1.25in$endif$,
+  book: false,
+  clearance: 8pt,
 )
 $endif$

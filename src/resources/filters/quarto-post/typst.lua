@@ -9,6 +9,16 @@
 local typst = require("modules/typst")
 _quarto.format.typst = typst
 
+-- Helper to format marginalia shift parameter
+-- auto/true/false are unquoted, "avoid"/"ignore" are quoted strings
+local function formatShiftParam(shift)
+  if shift == "true" or shift == "false" or shift == "auto" then
+    return shift
+  else
+    return '"' .. shift .. '"'
+  end
+end
+
 function render_typst()
   if not _quarto.format.isTypstOutput() then
     return {}
@@ -32,15 +42,25 @@ function render_typst()
     },
     {
       Div = function(div)
-        -- Handle .column-margin divs (margin notes)
+        -- Handle .column-margin divs (margin notes) using marginalia package
         if div.classes:includes("column-margin") then
           div.classes = div.classes:filter(function(c) return c ~= "column-margin" end)
 
-          local dy = div.attributes.dy or "auto"
+          -- marginalia uses alignment for baseline/top/bottom positioning
+          local alignment = div.attributes.alignment or "baseline"
+          div.attributes.alignment = nil
+
+          -- dy is for additional offset (0pt by default)
+          local dy = div.attributes.dy or "0pt"
           div.attributes.dy = nil
 
+          -- shift controls overlap prevention (auto, true, false, "avoid", "ignore")
+          local shift = div.attributes.shift or "auto"
+          div.attributes.shift = nil
+
           local result = pandoc.Blocks({})
-          result:insert(pandoc.RawBlock("typst", "#margin-note(dy: " .. dy .. ")["))
+          result:insert(pandoc.RawBlock("typst",
+            '#note(alignment: "' .. alignment .. '", dy: ' .. dy .. ', shift: ' .. formatShiftParam(shift) .. ', counter: none)['))
           result:extend(div.content)
           result:insert(pandoc.RawBlock("typst", "]"))
           return result
@@ -68,15 +88,25 @@ function render_typst()
         end
       end,
       Span = function(span)
-        -- Handle .column-margin spans (inline margin notes)
+        -- Handle .column-margin spans (inline margin notes) using marginalia package
         if span.classes:includes("column-margin") then
           span.classes = span.classes:filter(function(c) return c ~= "column-margin" end)
 
-          local dy = span.attributes.dy or "auto"
+          -- marginalia uses alignment for baseline/top/bottom positioning
+          local alignment = span.attributes.alignment or "baseline"
+          span.attributes.alignment = nil
+
+          -- dy is for additional offset (0pt by default)
+          local dy = span.attributes.dy or "0pt"
           span.attributes.dy = nil
 
+          -- shift controls overlap prevention (auto, true, false, "avoid", "ignore")
+          local shift = span.attributes.shift or "auto"
+          span.attributes.shift = nil
+
           local result = pandoc.Inlines({})
-          result:insert(pandoc.RawInline("typst", "#margin-note(dy: " .. dy .. ")["))
+          result:insert(pandoc.RawInline("typst",
+            '#note(alignment: "' .. alignment .. '", dy: ' .. dy .. ', shift: ' .. formatShiftParam(shift) .. ', counter: none)['))
           result:extend(span.content)
           result:insert(pandoc.RawInline("typst", "]"))
           return result

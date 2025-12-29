@@ -368,20 +368,28 @@ function typstPaperWidth(paperSize)
   return nil
 end
 
--- Compute Typst geometry from paper width
+-- Compute Typst geometry from paper width for marginalia package
 -- Same ratios as LaTeX: 2/3 text, 1/3 margin
+-- marginalia uses inner/outer with far+width+sep for each side
 function typstGeometryFromPaperWidth(paperWidth)
   local leftMargin = left(paperWidth)
   local marginSep = marginParSep(paperWidth)
   local marginWidth = marginParWidth(paperWidth)
-  local txtWidth = textWidth(paperWidth)
+
+  -- For marginalia: inner (left) and outer (right) margin config
+  -- inner (left): no notes in Tufte style, so far=0, width=0, sep=leftMargin
+  -- outer (right): far + width + sep = padding + noteColumn + gap
+  --   far = leftMargin (symmetric padding from page edge to note column)
+  --   width = marginWidth (note column width)
+  --   sep = marginSep (gap between text and notes)
 
   return {
-    ["left"] = string.format("%.3fin", leftMargin),
-    ["right"] = string.format("%.3fin", marginWidth + marginSep + leftMargin),
-    ["margin-width"] = string.format("%.3fin", marginWidth),
-    ["margin-sep"] = string.format("%.3fin", marginSep),
-    ["text-width"] = string.format("%.3fin", txtWidth),
+    -- Inner (left) margin - no notes
+    ["inner-sep"] = string.format("%.3fin", leftMargin),
+    -- Outer (right) margin - notes column
+    ["outer-far"] = string.format("%.3fin", leftMargin),
+    ["outer-width"] = string.format("%.3fin", marginWidth),
+    ["outer-sep"] = string.format("%.3fin", marginSep),
   }
 end
 
