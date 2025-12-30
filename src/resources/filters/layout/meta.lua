@@ -167,15 +167,29 @@ function layout_meta_inject_latex_packages()
 
       -- enable column layout for Typst (configure page geometry for margin notes)
       if (layoutState.hasColumns or marginReferences() or marginCitations()) and _quarto.format.isTypstOutput() then
-        -- Only apply automatic geometry if user hasn't set custom margins
-        local userDefinedMargin = meta.margin ~= nil
-
-        if not userDefinedMargin then
-          local paperWidth = typstPaperWidth(meta.papersize)
-          if paperWidth then
-            meta["margin-layout"] = true
-            meta["margin-geometry"] = typstGeometryFromPaperWidth(paperWidth)
+        local paperWidth = typstPaperWidth(meta.papersize)
+        if paperWidth then
+          -- Read margin options (margin.left, margin.right, margin.x)
+          local marginOptions = nil
+          if meta.margin then
+            marginOptions = {
+              left = meta.margin.left or meta.margin.x or nil,
+              right = meta.margin.right or meta.margin.x or nil,
+            }
           end
+
+          -- Read grid options (grid.margin-width, grid.gutter-width)
+          local gridOptions = nil
+          if meta.grid then
+            gridOptions = {
+              ["margin-width"] = meta.grid["margin-width"] or nil,
+              ["body-width"] = meta.grid["body-width"] or nil,
+              ["gutter-width"] = meta.grid["gutter-width"] or nil,
+            }
+          end
+
+          meta["margin-layout"] = true
+          meta["margin-geometry"] = typstGeometryFromPaperWidth(paperWidth, marginOptions, gridOptions)
         end
       end
 
@@ -368,28 +382,79 @@ function typstPaperWidth(paperSize)
   return nil
 end
 
+-- Parse CSS/Typst length values (e.g., "250px", "2.5in", "1.5em")
+-- Returns value in inches, or nil if parsing fails
+function parseCssLength(value)
+  if value == nil then return nil end
+  local str = pandoc.utils.stringify(value)
+  local num, unit = string.match(str, "^([%d%.]+)(%a+)$")
+  if num == nil then return nil end
+  num = tonumber(num)
+  if num == nil then return nil end
+
+  -- Convert to inches for marginalia
+  if unit == "in" then
+    return num
+  elseif unit == "px" then
+    return num / 96  -- 96 DPI standard
+  elseif unit == "pt" then
+    return num / 72
+  elseif unit == "cm" then
+    return num / 2.54
+  elseif unit == "mm" then
+    return num / 25.4
+  elseif unit == "em" then
+    return num * 11 / 72  -- Assume 11pt base font
+  else
+    return num  -- Assume inches if no recognized unit
+  end
+end
+
 -- Compute Typst geometry from paper width for marginalia package
 -- Same ratios as LaTeX: 2/3 text, 1/3 margin
 -- marginalia uses inner/outer with far+width+sep for each side
-function typstGeometryFromPaperWidth(paperWidth)
-  local leftMargin = left(paperWidth)
-  local marginSep = marginParSep(paperWidth)
-  local marginWidth = marginParWidth(paperWidth)
+-- marginOptions: table with left, right keys (user margin overrides)
+-- gridOptions: table with margin-width, gutter-width keys (user grid overrides)
+function typstGeometryFromPaperWidth(paperWidth, marginOptions, gridOptions)
+  -- Start with auto-computed defaults from papersize
+  local innerSep = left(paperWidth)       -- left margin
+  local outerFar = left(paperWidth)       -- right padding (symmetric by default)
+  local outerWidth = marginParWidth(paperWidth)  -- note column
+  local outerSep = marginParSep(paperWidth)      -- gutter
 
-  -- For marginalia: inner (left) and outer (right) margin config
-  -- inner (left): no notes in Tufte style, so far=0, width=0, sep=leftMargin
-  -- outer (right): far + width + sep = padding + noteColumn + gap
-  --   far = leftMargin (symmetric padding from page edge to note column)
-  --   width = marginWidth (note column width)
-  --   sep = marginSep (gap between text and notes)
+  -- Apply margin.left override → inner.sep
+  if marginOptions and marginOptions.left then
+    local parsed = parseCssLength(marginOptions.left)
+    if parsed then innerSep = parsed end
+  end
+
+  -- Apply margin.right override → outer.far
+  if marginOptions and marginOptions.right then
+    local parsed = parseCssLength(marginOptions.right)
+    if parsed then outerFar = parsed end
+  end
+
+  -- Apply grid overrides
+  if gridOptions then
+    if gridOptions["margin-width"] then
+      local parsed = parseCssLength(gridOptions["margin-width"])
+      if parsed then outerWidth = parsed end
+    end
+    if gridOptions["gutter-width"] then
+      local parsed = parseCssLength(gridOptions["gutter-width"])
+      if parsed then outerSep = parsed end
+    end
+    -- body-width: if specified, could be used to validate or adjust,
+    -- but typically we let it be computed as the remainder
+  end
 
   return {
     -- Inner (left) margin - no notes
-    ["inner-sep"] = string.format("%.3fin", leftMargin),
+    ["inner-sep"] = string.format("%.3fin", innerSep),
     -- Outer (right) margin - notes column
-    ["outer-far"] = string.format("%.3fin", leftMargin),
-    ["outer-width"] = string.format("%.3fin", marginWidth),
-    ["outer-sep"] = string.format("%.3fin", marginSep),
+    ["outer-far"] = string.format("%.3fin", outerFar),
+    ["outer-width"] = string.format("%.3fin", outerWidth),
+    ["outer-sep"] = string.format("%.3fin", outerSep),
   }
 end
 

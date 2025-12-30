@@ -90,6 +90,8 @@
       docx and odt (8.5 inches with 1 inch for each margins).
 
 - name: grid
+  tags:
+    formats: [$html-doc, typst]
   schema:
     object:
       closed: true
@@ -102,15 +104,15 @@
             description: "The base width of the sidebar (left) column in an HTML page."
         margin-width:
           string:
-            description: "The base width of the margin (right) column in an HTML page."
+            description: "The base width of the margin (right) column. For Typst, this controls the width of the margin note column."
         body-width:
           string:
-            description: "The base width of the body (center) column in an HTML page."
+            description: "The base width of the body (center) column. For Typst, this is computed as the remainder after other columns."
         gutter-width:
           string:
-            description: "The width of the gutter that appears between columns in an HTML page."
+            description: "The width of the gutter that appears between columns. For Typst, this is the gap between the text column and margin notes."
   description:
-    short: "Properties of the grid system used to layout Quarto HTML pages."
+    short: "Properties of the grid system used to layout Quarto HTML and Typst pages."
 
 - name: appendix-style
   schema:
