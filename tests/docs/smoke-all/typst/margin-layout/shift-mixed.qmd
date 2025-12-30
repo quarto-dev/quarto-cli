@@ -8,10 +8,8 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        - ['shift: false']
-        - ['shift: auto']
-        - ['shift: "avoid"']
-        - ['shift: "ignore"']
+        - ['shift: false', 'shift: auto', 'shift: "avoid"', 'shift: "ignore"']
+        - []
       noErrors: default
 ---
 

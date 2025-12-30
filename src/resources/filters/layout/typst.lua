@@ -1,6 +1,64 @@
 -- typst.lua
 -- Copyright (C) 2023 Posit Software, PBC
 
+-- Helper to format shift parameter for marginalia
+-- auto/true/false are unquoted, "avoid"/"ignore" are quoted strings
+local function formatShiftParam(shift)
+  if shift == "true" or shift == "false" or shift == "auto" then
+    return shift
+  else
+    return '"' .. shift .. '"'
+  end
+end
+
+-- Render a figure in the margin using marginalia's notefigure
+function make_typst_margin_figure(tbl)
+  local content = tbl.content or pandoc.Div({})
+  local caption = tbl.caption
+  local identifier = tbl.identifier
+  local shift = tbl.shift or "auto"
+  local alignment = tbl.alignment or "baseline"
+  local dy = tbl.dy or "0pt"
+  local kind = tbl.kind or "quarto-float-fig"
+  local supplement = tbl.supplement or "Figure"
+
+  local result = pandoc.Blocks({})
+
+  -- Start notefigure call with parameters
+  -- Include kind and supplement to share counter with regular figures
+  result:insert(pandoc.RawBlock("typst",
+    '#notefigure(alignment: "' .. alignment .. '", dy: ' .. dy ..
+    ', shift: ' .. formatShiftParam(shift) .. ', counter: none' ..
+    ', kind: "' .. kind .. '", supplement: "' .. supplement .. '", '))
+
+  -- Add figure content
+  result:insert(pandoc.RawBlock("typst", '['))
+  result:extend(quarto.utils.as_blocks(content))
+  result:insert(pandoc.RawBlock("typst", ']'))
+
+  -- Add caption if present
+  if caption and not quarto.utils.is_empty_node(caption) then
+    result:insert(pandoc.RawBlock("typst", ', caption: ['))
+    if pandoc.utils.type(caption) == "Blocks" then
+      result:extend(caption)
+    else
+      result:insert(caption)
+    end
+    result:insert(pandoc.RawBlock("typst", ']'))
+  end
+
+  -- Close notefigure
+  result:insert(pandoc.RawBlock("typst", ')'))
+
+  -- Add label for cross-references
+  if identifier and identifier ~= "" then
+    result:insert(pandoc.RawBlock("typst", '<' .. identifier .. '>'))
+  end
+
+  result:insert(pandoc.RawBlock("typst", '\n\n'))
+  return result
+end
+
 function make_typst_figure(tbl)
   local content = tbl.content or pandoc.Div({})
   local caption_location = tbl.caption_location

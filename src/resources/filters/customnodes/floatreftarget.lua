@@ -961,6 +961,7 @@ end)
 _quarto.ast.add_renderer("FloatRefTarget", function(_)
   return _quarto.format.isTypstOutput()
 end, function(float)
+  -- Get crossref info first (needed for both margin and regular figures)
   local ref = ref_type_from_float(float)
   local info = crossref.categories.by_ref_type[ref]
   if info == nil then
@@ -971,6 +972,28 @@ end, function(float)
   end
   local kind = "quarto-float-" .. ref
   local supplement = titleString(ref, info.name)
+
+  -- Check if this is a margin figure (has .column-margin or .aside class)
+  if hasMarginColumn(float) then
+    -- Use marginalia's notefigure for margin placement
+    local content = quarto.utils.as_blocks(float.content or {})
+
+    -- Get optional attributes
+    local shift = float.attributes and float.attributes["shift"] or "auto"
+    local alignment = float.attributes and float.attributes["alignment"] or "baseline"
+    local dy = float.attributes and float.attributes["dy"] or "0pt"
+
+    return make_typst_margin_figure {
+      content = content,
+      caption = float.caption_long,
+      identifier = float.identifier,
+      shift = shift,
+      alignment = alignment,
+      dy = dy,
+      kind = kind,
+      supplement = supplement
+    }
+  end
   -- FIXME: custom numbering doesn't work yet
   -- local numbering = ""
   -- if float.parent_id then
