@@ -994,6 +994,23 @@ end, function(float)
       supplement = supplement
     }
   end
+
+  -- Check for margin caption (figure in main column, caption in margin)
+  if hasMarginCaption(float) then
+    local content = quarto.utils.as_blocks(float.content or {})
+    -- Tables default to top alignment, figures to bottom (matches default cap-location)
+    local alignment = (ref == "tbl") and "top" or "bottom"
+
+    return make_typst_margin_caption_figure {
+      content = content,
+      caption = float.caption_long,
+      identifier = float.identifier,
+      kind = kind,
+      supplement = supplement,
+      alignment = alignment,
+    }
+  end
+
   -- FIXME: custom numbering doesn't work yet
   -- local numbering = ""
   -- if float.parent_id then
@@ -1004,8 +1021,12 @@ end, function(float)
   local content = quarto.utils.as_blocks(float.content or {})
   local caption_location = cap_location(float)
 
-  if (caption_location ~= "top" and caption_location ~= "bottom") then
-    -- warn this is not supported and default to bottom
+  if caption_location == "margin" then
+    -- Margin captions should have been caught by hasMarginCaption check above.
+    -- If we reach here, margin-layout may not be active. Fall back to bottom.
+    caption_location = "bottom"
+  elseif caption_location ~= "top" and caption_location ~= "bottom" then
+    -- Unknown caption location, warn and default to bottom
     warn("Typst does not support this caption location: " .. caption_location .. ". Defaulting to bottom for '" .. float.identifier .. "'.")
     caption_location = "bottom"
   end

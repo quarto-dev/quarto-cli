@@ -59,6 +59,67 @@ function make_typst_margin_figure(tbl)
   return result
 end
 
+-- Render a figure in main column with caption in margin
+function make_typst_margin_caption_figure(tbl)
+  local content = tbl.content or pandoc.Div({})
+  local caption = tbl.caption
+  local identifier = tbl.identifier
+  local kind = tbl.kind or "quarto-float-fig"
+  local supplement = tbl.supplement or "Figure"
+  -- Caption alignment: tables default to top, figures default to bottom
+  -- This matches the default cap-location for each type
+  local alignment = tbl.alignment or "bottom"
+
+  local result = pandoc.Blocks({})
+
+  -- Helper to build the caption note block
+  local function build_caption_note()
+    local note_blocks = pandoc.Blocks({})
+    -- dy: -0.01pt for top alignment places caption above wide figures (per marginalia README)
+    local dy = alignment == "top" and "-0.01pt" or "0pt"
+    note_blocks:insert(pandoc.RawBlock("typst",
+      '#note(alignment: "' .. alignment .. '", dy: ' .. dy .. ', counter: none, shift: "avoid", keep-order: true)['))
+    note_blocks:insert(pandoc.RawBlock("typst",
+      '#text(size: 0.9em)[#strong[' .. supplement .. ' '))
+    -- Use context to query the figure counter AT THE LABELED FIGURE
+    -- This ensures correct numbering even when note is emitted before the figure (top-aligned captions)
+    -- .at() returns an array, so use .first() to get the number
+    note_blocks:insert(pandoc.RawBlock("typst",
+      '#context counter(figure.where(kind: "' .. kind .. '")).at(<' .. identifier .. '>).first()]: '))
+    if pandoc.utils.type(caption) == "Blocks" then
+      note_blocks:extend(caption)
+    else
+      note_blocks:insert(caption)
+    end
+    note_blocks:insert(pandoc.RawBlock("typst", ']]'))
+    return note_blocks
+  end
+
+  -- For top alignment, caption comes BEFORE the figure
+  if alignment == "top" and caption and not quarto.utils.is_empty_node(caption) then
+    result:extend(build_caption_note())
+  end
+
+  -- Render figure WITHOUT caption but with counter increment
+  result:insert(pandoc.RawBlock("typst", '#figure(['))
+  result:extend(quarto.utils.as_blocks(content))
+  result:insert(pandoc.RawBlock("typst",
+    '], caption: none, kind: "' .. kind .. '", supplement: "' .. supplement .. '")'))
+
+  -- Add label for cross-references
+  if identifier and identifier ~= "" then
+    result:insert(pandoc.RawBlock("typst", '<' .. identifier .. '>'))
+  end
+
+  -- For bottom alignment, caption comes AFTER the figure
+  if alignment == "bottom" and caption and not quarto.utils.is_empty_node(caption) then
+    result:extend(build_caption_note())
+  end
+
+  result:insert(pandoc.RawBlock("typst", '\n\n'))
+  return result
+end
+
 function make_typst_figure(tbl)
   local content = tbl.content or pandoc.Div({})
   local caption_location = tbl.caption_location
