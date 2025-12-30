@@ -1011,6 +1011,33 @@ end, function(float)
     }
   end
 
+  -- Check for full-width classes (column-page-right, column-page, column-screen, etc.)
+  local wideblock_side = getWideblockSide(float.classes)
+  if wideblock_side then
+    local content = quarto.utils.as_blocks(float.content or {})
+    local caption_location = cap_location(float)
+    if caption_location ~= "top" and caption_location ~= "bottom" then
+      caption_location = "bottom"
+    end
+
+    -- Render standard figure first
+    local figure_blocks = make_typst_figure {
+      content = content,
+      caption_location = caption_location,
+      caption = float.caption_long,
+      kind = kind,
+      supplement = supplement,
+      numbering = info.numbering,
+      identifier = float.identifier
+    }
+
+    -- Wrap in wideblock
+    return make_typst_wideblock {
+      content = figure_blocks,
+      side = wideblock_side,
+    }
+  end
+
   -- FIXME: custom numbering doesn't work yet
   -- local numbering = ""
   -- if float.parent_id then
