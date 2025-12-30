@@ -1,0 +1,92 @@
+// Minimal engine to test class-based engine override
+// Claims {python.foo} blocks with priority 2 (higher than Jupyter's 1)
+
+let quarto;
+
+const fooEngineDiscovery = {
+  init: (quartoAPI) => {
+    quarto = quartoAPI;
+  },
+
+  name: "foo",
+  defaultExt: ".qmd",
+  defaultYaml: () => ["engine: foo"],
+  defaultContent: () => ["# Foo Engine Document"],
+  validExtensions: () => [".qmd"],
+
+  claimsFile: (_file, _ext) => false,
+
+  claimsLanguage: (language, firstClass) => {
+    // Claim python.foo with priority 2 (overrides Jupyter's 1)
+    if (language === "python" && firstClass === "foo") {
+      return 2;
+    }
+    return 0;
+  },
+
+  canFreeze: false,
+  generatesFigures: false,
+
+  launch: (context) => {
+    return {
+      name: "foo",
+      canFreeze: false,
+
+      markdownForFile: async (file) => {
+        return quarto.mappedString.fromFile(file);
+      },
+
+      target: async (file, _quiet, markdown) => {
+        if (!markdown) {
+          markdown = quarto.mappedString.fromFile(file);
+        }
+        const metadata = quarto.markdownRegex.extractYaml(markdown.value);
+        return {
+          source: file,
+          input: file,
+          markdown,
+          metadata,
+        };
+      },
+
+      partitionedMarkdown: async (file) => {
+        const markdown = quarto.mappedString.fromFile(file);
+        return quarto.markdownRegex.partition(markdown.value);
+      },
+
+      execute: async (options) => {
+        // Replace python.foo code blocks with a marker div showing we processed them
+        let markdown = options.target.markdown.value;
+
+        // Find and replace {python.foo} blocks with our marker output
+        const codeBlockRegex = /```\{python\.foo[^}]*\}\n([\s\S]*?)```/g;
+        markdown = markdown.replace(codeBlockRegex, (match, code) => {
+          return `
+::: {#foo-engine-marker .foo-engine-output}
+**FOO ENGINE PROCESSED THIS BLOCK**
+
+Original code:
+\`\`\`python
+${code.trim()}
+\`\`\`
+:::
+`;
+        });
+
+        return {
+          markdown: markdown,
+          supporting: [],
+          filters: [],
+        };
+      },
+
+      dependencies: async (_options) => {
+        return { includes: {} };
+      },
+
+      postprocess: async (_options) => {},
+    };
+  },
+};
+
+export default fooEngineDiscovery;
