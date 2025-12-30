@@ -1,6 +1,45 @@
 -- typst.lua
 -- Copyright (C) 2023 Posit Software, PBC
 
+-- Full-width column class mapping for wideblock
+local widthClassToSide = {
+  ["column-page-right"] = "outer",
+  ["column-page-left"] = "inner",
+  ["column-page"] = "both",
+  ["column-screen"] = "both",
+  ["column-screen-inset"] = "both",
+  ["column-screen-inset-left"] = "inner",
+  ["column-screen-inset-right"] = "outer",
+  ["column-screen-left"] = "inner",
+  ["column-screen-right"] = "outer",
+}
+
+-- Check if element has a full-width class and return the wideblock side
+function getWideblockSide(classes)
+  if classes == nil then
+    return nil, nil
+  end
+  for clz, side in pairs(widthClassToSide) do
+    if classes:includes(clz) then
+      return side, clz
+    end
+  end
+  return nil, nil
+end
+
+-- Wrap content in a wideblock for full-width layout
+function make_typst_wideblock(tbl)
+  local content = tbl.content or pandoc.Blocks({})
+  local side = tbl.side or "both"
+
+  local result = pandoc.Blocks({})
+  result:insert(pandoc.RawBlock("typst", '#wideblock(side: "' .. side .. '")['))
+  result:extend(quarto.utils.as_blocks(content))
+  result:insert(pandoc.RawBlock("typst", ']'))
+  result:insert(pandoc.RawBlock("typst", '\n\n'))
+  return result
+end
+
 -- Helper to format shift parameter for marginalia
 -- auto/true/false are unquoted, "avoid"/"ignore" are quoted strings
 local function formatShiftParam(shift)

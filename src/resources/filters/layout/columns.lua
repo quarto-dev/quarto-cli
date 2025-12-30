@@ -102,6 +102,16 @@ local function def_columns()
         tappend(el.classes, {'column-margin'})
         return el
       end
+      -- Handle full-width classes with wideblock
+      local side, clz = getWideblockSide(el.classes)
+      if side then
+        noteHasColumns()  -- Ensure margin layout is activated for wideblock
+        el.classes = el.classes:filter(function(c) return c ~= clz end)
+        return make_typst_wideblock {
+          content = el.content,
+          side = side,
+        }
+      end
 
     elseif el.identifier and el.identifier:find("^lst%-") then
       -- for listings, fetch column classes from sourceCode element

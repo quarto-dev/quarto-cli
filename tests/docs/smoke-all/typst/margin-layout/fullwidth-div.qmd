@@ -1,0 +1,32 @@
+---
+title: "Full Width Div Test"
+papersize: us-letter
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#wideblock\(side: "outer"\)', '#wideblock\(side: "both"\)', '#wideblock\(side: "inner"\)']
+        - []
+      noErrors: default
+---
+
+## Column Page Right
+
+::: {.column-page-right}
+{{< lipsum 1 >}}
+:::
+
+## Column Page (Full Width)
+
+::: {.column-page}
+{{< lipsum 2 >}}
+:::
+
+## Column Page Left
+
+::: {.column-page-left}
+{{< lipsum 1 >}}
+:::
