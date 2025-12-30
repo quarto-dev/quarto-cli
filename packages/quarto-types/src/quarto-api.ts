@@ -67,6 +67,14 @@ export interface QuartoAPI {
     getLanguages: (markdown: string) => Set<string>;
 
     /**
+     * Extract programming languages and their first class from code blocks
+     *
+     * @param markdown - Markdown content to analyze
+     * @returns Map of language identifiers to their first class (or undefined)
+     */
+    getLanguagesWithClasses: (markdown: string) => Map<string, string | undefined>;
+
+    /**
      * Break Quarto markdown into cells
      *
      * @param src - Markdown string or MappedString
