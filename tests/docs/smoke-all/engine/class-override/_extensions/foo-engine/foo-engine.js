@@ -55,26 +55,36 @@ const fooEngineDiscovery = {
       },
 
       execute: async (options) => {
-        // Replace python.foo code blocks with a marker div showing we processed them
-        let markdown = options.target.markdown.value;
+        const chunks = await quarto.markdownRegex.breakQuartoMd(
+          options.target.markdown,
+        );
 
-        // Find and replace {python.foo} blocks with our marker output
-        const codeBlockRegex = /```\{python\.foo[^}]*\}\n([\s\S]*?)```/g;
-        markdown = markdown.replace(codeBlockRegex, (match, code) => {
-          return `
-::: {#foo-engine-marker .foo-engine-output}
+        const processedCells = [];
+        for (const cell of chunks.cells) {
+          if (
+            typeof cell.cell_type === "object" &&
+            cell.cell_type.language === "python"
+          ) {
+            const header = cell.sourceVerbatim.value.split(/\r?\n/)[0];
+            const hasClassFoo = /\.foo\b/.test(header);
+            if (hasClassFoo) {
+              processedCells.push(`::: {#foo-engine-marker .foo-engine-output}
 **FOO ENGINE PROCESSED THIS BLOCK**
 
 Original code:
 \`\`\`python
-${code.trim()}
+${cell.source.value.trim()}
 \`\`\`
 :::
-`;
-        });
+`);
+              continue;
+            }
+          }
+          processedCells.push(cell.sourceVerbatim.value);
+        }
 
         return {
-          markdown: markdown,
+          markdown: processedCells.join(""),
           supporting: [],
           filters: [],
         };
