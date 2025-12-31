@@ -1015,6 +1015,10 @@ end, function(float)
   local wideblock_side = getWideblockSide(float.classes)
   if wideblock_side then
     local content = quarto.utils.as_blocks(float.content or {})
+    -- Listings should not be centered inside the figure
+    if ref == "lst" then
+      content:insert(1, pandoc.RawBlock("typst", "#set align(left)"))
+    end
     local caption_location = cap_location(float)
     if caption_location ~= "top" and caption_location ~= "bottom" then
       caption_location = "bottom"

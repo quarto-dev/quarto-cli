@@ -72,6 +72,10 @@ function make_typst_margin_figure(tbl)
 
   -- Add figure content
   result:insert(pandoc.RawBlock("typst", '['))
+  -- Listings should not be centered inside the figure
+  if kind:match("lst") then
+    result:insert(pandoc.RawBlock("typst", '#set align(left)'))
+  end
   result:extend(quarto.utils.as_blocks(content))
   result:insert(pandoc.RawBlock("typst", ']'))
 
@@ -143,6 +147,10 @@ function make_typst_margin_caption_figure(tbl)
 
   -- Render figure WITHOUT caption but with counter increment
   result:insert(pandoc.RawBlock("typst", '#figure(['))
+  -- Listings should not be centered inside the figure
+  if kind:match("lst") then
+    result:insert(pandoc.RawBlock("typst", '#set align(left)'))
+  end
   result:extend(quarto.utils.as_blocks(content))
   result:insert(pandoc.RawBlock("typst",
     '], caption: none, kind: "' .. kind .. '", supplement: "' .. supplement .. '")'))
