@@ -112,6 +112,51 @@ local function def_columns()
           side = side,
         }
       end
+      -- Handle margin figures/tables: propagate .column-margin class to FloatRefTarget
+      -- so they render with notefigure() instead of being wrapped in #note()
+      if hasMarginColumn(el) then
+        local floatRefTargets = el.content:filter(function(contentEl)
+          return is_custom_node(contentEl, "FloatRefTarget")
+        end)
+        if #floatRefTargets > 0 then
+          -- Propagate margin class and attributes to each FloatRefTarget and return unwrapped
+          local result = pandoc.Blocks({})
+          for _, contentEl in ipairs(el.content) do
+            if is_custom_node(contentEl, "FloatRefTarget") then
+              local custom = _quarto.ast.resolve_custom_data(contentEl)
+              if custom ~= nil then
+                -- Add column-margin class to the float
+                if custom.classes == nil then
+                  custom.classes = pandoc.List({'column-margin'})
+                else
+                  custom.classes:insert('column-margin')
+                end
+                -- Propagate margin-related attributes (shift, alignment, dy)
+                if el.attributes then
+                  if custom.attributes == nil then
+                    custom.attributes = {}
+                  end
+                  if el.attributes.shift then
+                    custom.attributes.shift = el.attributes.shift
+                  end
+                  if el.attributes.alignment then
+                    custom.attributes.alignment = el.attributes.alignment
+                  end
+                  if el.attributes.dy then
+                    custom.attributes.dy = el.attributes.dy
+                  end
+                end
+                result:insert(contentEl)
+              end
+            else
+              -- Non-float content stays wrapped in margin note
+              local inner_div = pandoc.Div({contentEl}, pandoc.Attr("", {'column-margin'}))
+              result:insert(inner_div)
+            end
+          end
+          return result
+        end
+      end
 
     elseif el.identifier and el.identifier:find("^lst%-") then
       -- for listings, fetch column classes from sourceCode element
