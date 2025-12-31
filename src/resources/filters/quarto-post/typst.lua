@@ -127,6 +127,24 @@ function render_typst()
           return result
         end
       end,
+      Cite = function(cite)
+        -- Show full citations in margin when citation-location: margin
+        if marginCitations() then
+          noteHasColumns()  -- Activate margin layout
+
+          -- Build citation keys for Typst labels
+          local keys = pandoc.List({})
+          for _, c in ipairs(cite.citations) do
+            keys:insert("<" .. c.id .. ">")
+          end
+          local keyStr = table.concat(keys, ", ")
+
+          -- Emit: quarto-margin-cite which renders inline cite + full cite in margin
+          local result = pandoc.Inlines({})
+          result:insert(pandoc.RawInline("typst", "#quarto-margin-cite(" .. keyStr .. ")"))
+          return result
+        end
+      end,
       Header = function(el)
         if number_depth and el.level > number_depth then
           el.classes:insert("unnumbered")
