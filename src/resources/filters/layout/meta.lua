@@ -191,6 +191,12 @@ function layout_meta_inject_latex_packages()
           meta["margin-layout"] = true
           meta["margin-geometry"] = typstGeometryFromPaperWidth(paperWidth, marginOptions, gridOptions)
         end
+
+        -- Suppress bibliography when using margin citations (consistent with HTML behavior)
+        -- Full citations appear in margins, no end bibliography needed
+        if marginCitations() then
+          meta["suppress-bibliography"] = true
+        end
       end
 
       return meta
