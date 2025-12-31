@@ -167,7 +167,8 @@ function layout_meta_inject_latex_packages()
 
       -- enable column layout for Typst (configure page geometry for margin notes)
       if (layoutState.hasColumns or marginReferences() or marginCitations()) and _quarto.format.isTypstOutput() then
-        local paperWidth = typstPaperWidth(meta.papersize)
+        -- Use specified papersize, or default to us-letter (matches Quarto's Typst template default)
+        local paperWidth = typstPaperWidth(meta.papersize) or kPaperWidthsIn["letter"]
         if paperWidth then
           -- Read margin options (margin.left, margin.right, margin.x)
           local marginOptions = nil
