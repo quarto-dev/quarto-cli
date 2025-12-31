@@ -112,6 +112,21 @@ function render_typst()
           return result
         end
       end,
+      Note = function(n)
+        -- Convert footnotes to sidenotes when reference-location: margin
+        if marginReferences() then
+          noteHasColumns()  -- Activate margin layout
+
+          -- Convert blocks to inlines for margin note
+          local content = pandoc.utils.blocks_to_inlines(n.content)
+
+          local result = pandoc.Inlines({})
+          result:insert(pandoc.RawInline("typst", "#quarto-sidenote["))
+          result:extend(content)
+          result:insert(pandoc.RawInline("typst", "]"))
+          return result
+        end
+      end,
       Header = function(el)
         if number_depth and el.level > number_depth then
           el.classes:insert("unnumbered")

@@ -32,4 +32,23 @@ $if(margin-layout)$
   book: false,
   clearance: 8pt,
 )
+
+// Render footnote as margin note using standard footnote counter
+// This is consistent with LaTeX's sidenotes package behavior
+#let quarto-sidenote(body) = {
+  counter(footnote).step()
+  context {
+    let num = counter(footnote).display("1")
+    // Superscript mark in text
+    super(num)
+    // Content in margin with matching number
+    note(
+      alignment: "baseline",
+      shift: auto,
+      counter: none,  // We display our own number from footnote counter
+    )[
+      #super(num) #body
+    ]
+  }
+}
 $endif$
