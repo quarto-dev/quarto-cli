@@ -998,8 +998,8 @@ end, function(float)
   -- Check for margin caption (figure in main column, caption in margin)
   if hasMarginCaption(float) then
     local content = quarto.utils.as_blocks(float.content or {})
-    -- Tables default to top alignment, figures to bottom (matches default cap-location)
-    local alignment = (ref == "tbl") and "top" or "bottom"
+    -- Margin captions align with top of content (consistent with HTML visual behavior)
+    local alignment = "top"
 
     return make_typst_margin_caption_figure {
       content = content,
