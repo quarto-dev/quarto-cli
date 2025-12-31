@@ -11,8 +11,8 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        # Tables in margin divs use #notefigure( with crossref label
-        - ['#notefigure\(', '<tbl-air>']
+        # GT tables in margin divs use #note( wrapping #figure( with crossref label
+        - ['#note\(', '<tbl-air>']
         - []
       ensurePdfRegexMatches:
         - ['Table 1']

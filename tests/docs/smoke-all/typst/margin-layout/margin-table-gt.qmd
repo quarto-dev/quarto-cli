@@ -8,8 +8,8 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        # Tables in margin divs use #notefigure( for proper margin placement
-        - ['#notefigure\(', 'kind: "quarto-float-tbl"']
+        # GT tables in margin divs use #note( wrapping #figure(
+        - ['#note\(', 'kind: "quarto-float-tbl"']
         - []
       noErrors: default
 ---
@@ -28,7 +28,7 @@ from great_tables import GT
 from great_tables.data import islands
 
 (
-    GT(islands.head(5), rowname_col="name")
+    GT(islands.head(20), rowname_col="name")
     .fmt_integer(columns="size")
 )
 ```
