@@ -105,9 +105,8 @@ function make_typst_margin_caption_figure(tbl)
   local identifier = tbl.identifier
   local kind = tbl.kind or "quarto-float-fig"
   local supplement = tbl.supplement or "Figure"
-  -- Caption alignment: tables default to top, figures default to bottom
-  -- This matches the default cap-location for each type
-  local alignment = tbl.alignment or "bottom"
+  -- Margin captions align with top of content (consistent with HTML visual behavior)
+  local alignment = tbl.alignment or "top"
 
   local result = pandoc.Blocks({})
 
