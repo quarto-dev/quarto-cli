@@ -8,7 +8,8 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        - ['#note\(alignment: "bottom"', '#note\(alignment: "top"']
+        # All margin captions use top alignment (consistent with HTML visual behavior)
+        - ['#note\(alignment: "top"', '#block\(breakable: false\)']
         - []
       ensurePdfRegexMatches:
         # Check caption labels (anchor text)

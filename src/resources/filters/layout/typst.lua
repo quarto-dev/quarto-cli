@@ -110,6 +110,9 @@ function make_typst_margin_caption_figure(tbl)
 
   local result = pandoc.Blocks({})
 
+  -- Wrap caption + figure in unbreakable block to prevent orphaned margin captions
+  result:insert(pandoc.RawBlock("typst", '#block(breakable: false)['))
+
   -- Helper to build the caption note block
   local function build_caption_note()
     local note_blocks = pandoc.Blocks({})
@@ -153,6 +156,9 @@ function make_typst_margin_caption_figure(tbl)
   if alignment == "bottom" and caption and not quarto.utils.is_empty_node(caption) then
     result:extend(build_caption_note())
   end
+
+  -- Close unbreakable block
+  result:insert(pandoc.RawBlock("typst", ']'))
 
   result:insert(pandoc.RawBlock("typst", '\n\n'))
   return result
