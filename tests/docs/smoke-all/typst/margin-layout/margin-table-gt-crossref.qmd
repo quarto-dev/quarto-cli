@@ -11,8 +11,9 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        # GT tables in margin divs use #note( wrapping #figure( with crossref label
-        - ['#note\(', '<tbl-air>']
+        # Cell option should produce same output as fenced div: #notefigure
+        # (entire figure including caption should be in margin, like HTML/LaTeX)
+        - ['#notefigure\(', '<tbl-air>']
         - []
       ensurePdfRegexMatches:
         - ['Table 1']
@@ -22,9 +23,8 @@ _quarto:
 
 This tests cross-references to margin tables using great_tables.
 
-::: {.column-margin}
-
 ```{python}
+#| column: margin
 #| classes: plain
 #| echo: false
 #| label: tbl-air
@@ -46,8 +46,6 @@ airquality_mini = airquality.head(5)
     )
 )
 ```
-
-:::
 
 As shown in @tbl-air, the table appears in the margin with a working cross-reference.
 

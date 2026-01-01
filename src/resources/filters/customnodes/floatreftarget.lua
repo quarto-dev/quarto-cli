@@ -983,9 +983,16 @@ end, function(float)
     local alignment = float.attributes and float.attributes["alignment"] or "baseline"
     local dy = float.attributes and float.attributes["dy"] or "0pt"
 
+    -- Get caption location (tables default to top, figures to bottom)
+    local caption_location = cap_location(float)
+    if caption_location ~= "top" and caption_location ~= "bottom" then
+      caption_location = "bottom"
+    end
+
     return make_typst_margin_figure {
       content = content,
       caption = float.caption_long,
+      caption_location = caption_location,
       identifier = float.identifier,
       shift = shift,
       alignment = alignment,

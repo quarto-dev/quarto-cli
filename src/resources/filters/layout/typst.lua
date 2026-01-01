@@ -54,6 +54,7 @@ end
 function make_typst_margin_figure(tbl)
   local content = tbl.content or pandoc.Div({})
   local caption = tbl.caption
+  local caption_location = tbl.caption_location or "bottom"
   local identifier = tbl.identifier
   local shift = tbl.shift or "auto"
   local alignment = tbl.alignment or "baseline"
@@ -79,15 +80,15 @@ function make_typst_margin_figure(tbl)
   result:extend(quarto.utils.as_blocks(content))
   result:insert(pandoc.RawBlock("typst", ']'))
 
-  -- Add caption if present
+  -- Add caption if present, with position control
   if caption and not quarto.utils.is_empty_node(caption) then
-    result:insert(pandoc.RawBlock("typst", ', caption: ['))
+    result:insert(pandoc.RawBlock("typst", ', caption: figure.caption(position: ' .. caption_location .. ', ['))
     if pandoc.utils.type(caption) == "Blocks" then
       result:extend(caption)
     else
       result:insert(caption)
     end
-    result:insert(pandoc.RawBlock("typst", ']'))
+    result:insert(pandoc.RawBlock("typst", '])'))
   end
 
   -- Close notefigure

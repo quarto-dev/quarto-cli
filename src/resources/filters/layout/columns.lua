@@ -155,6 +155,14 @@ local function def_columns()
             end
           end
           return result
+        else
+          -- For cell-output-display divs with column-margin, the parent FloatRefTarget
+          -- will handle margin placement. Strip the class to prevent quarto-post from
+          -- wrapping it in #note() (which would cause double-wrapping with notefigure).
+          if el.classes:includes("cell-output-display") then
+            removeColumnClasses(el)
+            return el
+          end
         end
       end
 
@@ -245,7 +253,7 @@ local function def_columns()
                 -- It also means that divs that want to be both a figure* and a table*
                 -- will never work and we won't get the column-* treatment for 
                 -- everything, just for the table.
-                el.classes = el.classes:filter(function(clz) 
+                el.classes = el.classes:filter(function(clz)
                   return not isStarEnv(clz)
                 end)
               end
@@ -255,14 +263,14 @@ local function def_columns()
               -- the general purpose `sidenote` processing from capturing this
               -- element (since floats know how to deal with margin positioning)
               local custom = _quarto.ast.resolve_custom_data(contentEl)
-              if custom ~= nil then  
+              if custom ~= nil then
                 floatRefTarget = true
                 removeColumnClasses(el)
                 add_column_classes_and_attributes(columnClasses, columnAttributes, custom)
               end
-            end 
+            end
           end
-  
+
           if not figOrTable and not floatRefTarget then
             processOtherContent(el.content)
           end
