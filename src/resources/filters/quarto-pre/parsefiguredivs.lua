@@ -355,7 +355,6 @@ function parse_floatreftargets()
 
         if has_cell_output_display then
           -- Forward layout classes to cell-output-display divs
-          -- BUT keep them on attr so FloatRefTarget inherits them for margin placement
           content = _quarto.ast.walk(content, {
             Div = function(subdiv)
               if subdiv.classes:includes("cell-output-display") then
@@ -369,9 +368,20 @@ function parse_floatreftargets()
               end
             end
           })
-          -- Remove layout classes from div but KEEP on attr for FloatRefTarget
+          -- Remove layout classes from div
           div.classes = div.classes:filter(
             function(c) return not layout_classes:includes(c) end)
+          -- For margin classes, keep on attr so FloatRefTarget can use notefigure
+          -- For fullwidth classes, strip from attr - columns.lua handles wideblock wrapping
+          local margin_classes = layout_classes:filter(
+            function(c) return c == "column-margin" or c == "aside" end)
+          local fullwidth_classes = layout_classes:filter(
+            function(c) return c ~= "column-margin" and c ~= "aside" end)
+          if #fullwidth_classes > 0 then
+            attr.classes = attr.classes:filter(
+              function(c) return not fullwidth_classes:includes(c) end)
+          end
+          -- margin_classes stay on attr for FloatRefTarget margin placement
         end
         -- If no cell-output-display (e.g., listings with echo:true eval:false),
         -- keep layout_classes on attr so the FloatRefTarget inherits them

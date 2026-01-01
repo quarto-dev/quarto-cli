@@ -1019,6 +1019,8 @@ end, function(float)
   end
 
   -- Check for full-width classes (column-page-right, column-page, column-screen, etc.)
+  -- Note: For cell outputs, columns.lua wraps the cell-output-display div in wideblock.
+  -- For fenced divs, the FloatRefTarget has the class and needs to wrap itself.
   local wideblock_side = getWideblockSide(float.classes)
   if wideblock_side then
     local content = quarto.utils.as_blocks(float.content or {})
