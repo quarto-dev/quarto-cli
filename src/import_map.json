@@ -57,6 +57,8 @@
 
     "puppeteer": "https://deno.land/x/puppeteer@9.0.2/mod.ts",
 
+    "pdfjs-dist": "npm:pdfjs-dist@4.9.155",
+
     "https://deno.land/std@0.196.0/console/unicode_width.ts": "https://deno.land/std@0.224.0/console/unicode_width.ts",
     "https://deno.land/std@0.161.0/": "https://deno.land/std@0.217.0/",
     "https://deno.land/std@0.101.0/": "https://deno.land/std@0.217.0/",
