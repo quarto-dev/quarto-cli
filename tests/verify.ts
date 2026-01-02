@@ -1079,6 +1079,7 @@ interface PdfTextPositionAssertion {
   subject: string;
   relation: string;
   object: string;
+  tolerance?: number;  // tolerance in points for alignment predicates (default: 2)
 }
 
 interface PdfTextItem {
@@ -1089,13 +1090,30 @@ interface PdfTextItem {
   height: number;
 }
 
+// Extended text item that includes page number
+interface FoundPdfTextItem extends PdfTextItem {
+  page: number;
+}
+
+// Default tolerance for alignment predicates (in points)
+const DEFAULT_ALIGNMENT_TOLERANCE = 2;
+
 // Relation predicates for PDF text position comparisons
 // Coordinate system: origin at top-left, y increases downward (pdf.js-extract converts from PDF's bottom-left origin)
-const pdfPositionRelations: Record<string, (a: PdfTextItem, b: PdfTextItem) => boolean> = {
+type RelationFn = (a: PdfTextItem, b: PdfTextItem, tolerance: number) => boolean;
+
+const pdfPositionRelations: Record<string, RelationFn> = {
+  // Directional predicates (tolerance not used)
   leftOf: (a, b) => a.x + a.width < b.x,   // a ends before b starts horizontally
   rightOf: (a, b) => a.x > b.x + b.width,  // a starts after b ends horizontally
   above: (a, b) => a.y + a.height < b.y,   // a's bottom < b's top (smaller y = higher on page)
   below: (a, b) => a.y > b.y + b.height,   // a's top > b's bottom (larger y = lower on page)
+
+  // Alignment predicates (use tolerance)
+  leftAligned: (a, b, tol) => Math.abs(a.x - b.x) <= tol,       // left edges aligned
+  rightAligned: (a, b, tol) => Math.abs((a.x + a.width) - (b.x + b.width)) <= tol,  // right edges aligned
+  topAligned: (a, b, tol) => Math.abs(a.y - b.y) <= tol,        // top edges aligned
+  bottomAligned: (a, b, tol) => Math.abs((a.y + a.height) - (b.y + b.height)) <= tol,  // bottom edges aligned
 };
 
 // Use this function to verify spatial positions of text in a rendered PDF file
@@ -1129,13 +1147,14 @@ export const ensurePdfTextPositions = (
         }
       }
 
-      // 2. Single pass through PDF to find all text items
-      const foundTexts = new Map<string, PdfTextItem>();
+      // 2. Single pass through PDF to find all text items (with page numbers)
+      const foundTexts = new Map<string, FoundPdfTextItem>();
       for (const page of data.pages) {
+        const pageNum = page.pageInfo.num;
         for (const item of page.content) {
           for (const searchText of searchTexts) {
             if (!foundTexts.has(searchText) && item.str.includes(searchText)) {
-              foundTexts.set(searchText, item);
+              foundTexts.set(searchText, { ...item, page: pageNum });
             }
           }
         }
@@ -1151,7 +1170,7 @@ export const ensurePdfTextPositions = (
       }
 
       // 4. Evaluate positive assertions
-      for (const { subject, relation, object } of assertions) {
+      for (const { subject, relation, object, tolerance } of assertions) {
         const relationFn = pdfPositionRelations[relation];
         assert(
           relationFn !== undefined,
@@ -1161,21 +1180,32 @@ export const ensurePdfTextPositions = (
         const subjectItem = foundTexts.get(subject)!;
         const objectItem = foundTexts.get(object)!;
 
+        // Fail if texts are on different pages
         assert(
-          relationFn(subjectItem, objectItem),
+          subjectItem.page === objectItem.page,
+          `Cannot compare positions: "${subject}" is on page ${subjectItem.page}, ` +
+          `"${object}" is on page ${objectItem.page} in ${file}`,
+        );
+
+        const tol = tolerance ?? DEFAULT_ALIGNMENT_TOLERANCE;
+        assert(
+          relationFn(subjectItem, objectItem, tol),
           `Position assertion failed: "${subject}" is NOT ${relation} "${object}" in ${file}. ` +
-          `Subject at (${subjectItem.x.toFixed(1)}, ${subjectItem.y.toFixed(1)}), ` +
-          `Object at (${objectItem.x.toFixed(1)}, ${objectItem.y.toFixed(1)})`,
+          `Subject at (${subjectItem.x.toFixed(1)}, ${subjectItem.y.toFixed(1)}) page ${subjectItem.page}, ` +
+          `Object at (${objectItem.x.toFixed(1)}, ${objectItem.y.toFixed(1)}) page ${objectItem.page}`,
         );
       }
 
-      // 5. Evaluate negative assertions (skip if either text not found)
+      // 5. Evaluate negative assertions (skip if either text not found or on different pages)
       if (noMatchAssertions) {
-        for (const { subject, relation, object } of noMatchAssertions) {
+        for (const { subject, relation, object, tolerance } of noMatchAssertions) {
           const subjectItem = foundTexts.get(subject);
           const objectItem = foundTexts.get(object);
           if (!subjectItem || !objectItem) {
             continue; // Assertion trivially doesn't hold if text not found
+          }
+          if (subjectItem.page !== objectItem.page) {
+            continue; // Assertion trivially doesn't hold if on different pages
           }
 
           const relationFn = pdfPositionRelations[relation];
@@ -1184,11 +1214,12 @@ export const ensurePdfTextPositions = (
             `Unknown relation "${relation}". Valid relations: ${Object.keys(pdfPositionRelations).join(", ")}`,
           );
 
+          const tol = tolerance ?? DEFAULT_ALIGNMENT_TOLERANCE;
           assert(
-            !relationFn(subjectItem, objectItem),
+            !relationFn(subjectItem, objectItem, tol),
             `Position assertion unexpectedly true: "${subject}" IS ${relation} "${object}" in ${file}. ` +
-            `Subject at (${subjectItem.x.toFixed(1)}, ${subjectItem.y.toFixed(1)}), ` +
-            `Object at (${objectItem.x.toFixed(1)}, ${objectItem.y.toFixed(1)})`,
+            `Subject at (${subjectItem.x.toFixed(1)}, ${subjectItem.y.toFixed(1)}) page ${subjectItem.page}, ` +
+            `Object at (${objectItem.x.toFixed(1)}, ${objectItem.y.toFixed(1)}) page ${objectItem.page}`,
           );
         }
       }

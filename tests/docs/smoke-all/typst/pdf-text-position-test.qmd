@@ -23,9 +23,12 @@ _quarto:
           - subject: "BODY_UNIQUE_TEXT"
             relation: above
             object: "PAGEFOOTER_UNIQUE_TEXT"
-          # Margin content should be to the right of body
+          # Margin content should be to the right of body and on the same row
           - subject: "MARGIN_UNIQUE_TEXT"
             relation: rightOf
+            object: "BODY_UNIQUE_TEXT"
+          - subject: "MARGIN_UNIQUE_TEXT"
+            relation: topAligned
             object: "BODY_UNIQUE_TEXT"
 ---
 
