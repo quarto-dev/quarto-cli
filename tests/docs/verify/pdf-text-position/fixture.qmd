@@ -1,0 +1,31 @@
+---
+title: FIXTURE_TITLE_TEXT
+format: typst
+header-includes: |
+  #set page(
+    header: [FIXTURE_HEADER_TEXT],
+    footer: [FIXTURE_FOOTER_TEXT]
+  )
+---
+
+# FIXTURE_H1_TEXT
+
+This is the first paragraph. FIXTURE_BODY_P1_TEXT is a unique marker in the first paragraph.
+
+## FIXTURE_H2_TEXT
+
+::: {.column-margin}
+FIXTURE_MARGIN_TEXT is in the margin column.
+:::
+
+FIXTURE_BODY_P2_TEXT is a unique marker in the second paragraph, which appears alongside the margin content.
+
+### FIXTURE_H3_TEXT
+
+More body content here. FIXTURE_BODY_P3_TEXT marks the third paragraph.
+
+{{< pagebreak >}}
+
+# FIXTURE_PAGE2_H1_TEXT
+
+FIXTURE_PAGE2_BODY_TEXT is on the second page for testing cross-page assertions.
