@@ -36,10 +36,13 @@ import { ExecuteOutput, Verify } from "./test.ts";
 // ============================================================================
 
 // Extended subject/object selector
+// Note: Label/ID checking is not supported because:
+// 1. Typst does not write labels to PDF StructElem /ID attributes (labels become
+//    named destinations for links, but not structure element identifiers)
+// 2. Even if IDs were present, pdf.js doesn't expose /ID through getStructTree()
 interface TextSelector {
   text: string;
   type?: string;  // PDF 1.4 tag: P, H1, H2, Figure, Table, Span, etc.
-  id?: string;    // Element identifier/label
 }
 
 // Assertion format
@@ -488,15 +491,6 @@ export const ensurePdfTextPositions = (
               `Tag type mismatch for "${a.subject.text}": expected ${a.subject.type}, got ${resolved.structNode.role}`,
             );
           }
-        }
-
-        if (a.subject.id && resolved.structNode) {
-          // Check for id in structure node (if present)
-          // Note: PDF structure tree nodes don't always have human-readable IDs
-          // This would need to be extracted from the /ID attribute if present
-          errors.push(
-            `Tag id assertion not yet implemented for "${a.subject.text}"`,
-          );
         }
 
         if (a.object) {

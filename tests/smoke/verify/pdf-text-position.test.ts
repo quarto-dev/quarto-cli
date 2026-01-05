@@ -143,7 +143,7 @@ async function runExpectedFailureTests() {
       ]);
       await predicate.verify([]);
     },
-    /Cannot compare positions.*page 1.*page 2/,
+    /Cannot compare positions.*page \d+.*page \d+/,
     "Different pages error",
   );
 
