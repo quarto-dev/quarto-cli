@@ -121,8 +121,8 @@ function make_typst_margin_caption_figure(tbl)
   local cap_position = alignment == "top" and "top" or "bottom"
   local dy = alignment == "top" and "-0.01pt" or "0pt"
 
-  result:insert(pandoc.RawBlock("typst", '#block(breakable: false)['))
   -- Scoped show rule: transform figure captions into margin notes
+  result:insert(pandoc.RawBlock("typst", '#['))
   result:insert(pandoc.RawBlock("typst", '#set figure(gap: 0pt)'))
   result:insert(pandoc.RawBlock("typst", '#set figure.caption(position: ' .. cap_position .. ')'))
   result:insert(pandoc.RawBlock("typst",
@@ -153,7 +153,7 @@ function make_typst_margin_caption_figure(tbl)
     result:insert(pandoc.RawBlock("typst", '<' .. identifier .. '>'))
   end
 
-  -- Close unbreakable block
+  -- Close scoping block
   result:insert(pandoc.RawBlock("typst", ']'))
 
   result:insert(pandoc.RawBlock("typst", '\n\n'))

@@ -8,8 +8,8 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        # All margin captions use show rule with top alignment
-        - ['#show figure.caption:', 'note\(alignment: "top"', '#block\(breakable: false\)']
+        # All margin captions use show rule with top alignment, scoped with #[...]
+        - ['#show figure.caption:', 'note\(alignment: "top"', '#\[']
         - []
       ensurePdfRegexMatches:
         # Check caption labels (anchor text)
