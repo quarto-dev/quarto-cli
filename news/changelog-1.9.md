@@ -103,4 +103,4 @@ All changes included in 1.9:
 - ([#13528](https://github.com/quarto-dev/quarto-cli/pull/13528)): Adds support for table specification using nested lists and the `list-table` class.
 - ([#13575](https://github.com/quarto-dev/quarto-cli/pull/13575)): Improve CPU architecture detection/reporting in macOS to allow quarto to run in virtualized environments such as OpenAI's `codex`.
 - ([#13656](https://github.com/quarto-dev/quarto-cli/issues/13656)): Fix R code cells with empty `lang: ""` option producing invalid markdown class attributes.
-- ([#13832](https://github.com/quarto-dev/quarto-cli/pull/13832)): Fix typo that prevented the `license.text` metadata from being set correctly when using an inline license. (author: @mcanouil)
+- ([#13832](https://github.com/quarto-dev/quarto-cli/pull/13832)): Fix `license.text` metadata not being accessible when using an inline license (`license: "text"`), and populate it with the license name for CC licenses instead of empty string. (author: @mcanouil)
