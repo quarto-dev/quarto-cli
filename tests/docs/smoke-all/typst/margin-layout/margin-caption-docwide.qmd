@@ -9,13 +9,22 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        - ['#note\(']
+        # Uses show rule approach for margin captions
+        - ['#show figure.caption:', 'note\(']
         - []
       ensurePdfRegexMatches:
         - - 'Figure 1'
           - 'Figure 2'
           - 'CAP-FIRST'
           - 'CAP-SECOND'
+        - []
+      ensurePdfTextPositions:
+        - - subject: "CAP-FIRST"
+            relation: rightOf
+            object: "This document"
+          - subject: "CAP-FIRST"
+            relation: above
+            object: "CAP-SECOND"
         - []
       noErrors: default
 ---

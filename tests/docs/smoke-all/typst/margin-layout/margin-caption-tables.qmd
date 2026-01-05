@@ -8,8 +8,8 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        # All margin captions use top alignment (consistent with HTML visual behavior)
-        - ['#note\(alignment: "top"', '#block\(breakable: false\)']
+        # All margin captions use show rule with top alignment
+        - ['#show figure.caption:', 'note\(alignment: "top"', '#block\(breakable: false\)']
         - []
       ensurePdfRegexMatches:
         # Check caption labels (anchor text)
@@ -27,6 +27,18 @@ _quarto:
         # Ensure wrong values don't appear
         - - 'Table 0'
           - 'Figure 0'
+      ensurePdfTextPositions:
+        - # First page: margin captions right of body, refs left of captions
+          - subject: "CAP-FIG-ONE"
+            relation: rightOf
+            object: "First Figure"
+          - subject: "REF-FIG-ONE"
+            relation: leftOf
+            object: "CAP-FIG-ONE"
+          - subject: "CAP-FIG-ONE"
+            relation: above
+            object: "CAP-TBL-ONE"
+        - []
       noErrors: default
 ---
 
@@ -34,7 +46,7 @@ This document tests interleaved tables and figures with margin captions, verifyi
 
 ## First Figure
 
-![CAP-FIG-ONE](test-image.png){#fig-one cap-location="margin"}
+![CAP-FIG-ONE](test-plot.svg){#fig-one cap-location="margin"}
 
 Text with REF-FIG-ONE pointing to @fig-one.
 
@@ -51,7 +63,7 @@ Text with REF-TBL-ONE pointing to @tbl-one.
 
 ## Second Figure
 
-![CAP-FIG-TWO](test-image.png){#fig-two cap-location="margin"}
+![CAP-FIG-TWO](test-plot.svg){#fig-two cap-location="margin"}
 
 Text with REF-FIG-TWO pointing to @fig-two.
 
@@ -68,7 +80,7 @@ Text with REF-TBL-TWO pointing to @tbl-two.
 
 ## Third Figure
 
-![CAP-FIG-THREE](test-image.png){#fig-three cap-location="margin"}
+![CAP-FIG-THREE](test-plot.svg){#fig-three cap-location="margin"}
 
 Text with REF-FIG-THREE pointing to @fig-three.
 

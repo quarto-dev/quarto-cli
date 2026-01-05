@@ -8,11 +8,22 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        # Listing with margin caption should use note() for caption
-        - ['#note\(', 'kind: "quarto-float-lst"']
+        # Listing with margin caption uses show rule approach
+        - ['#show figure.caption:', 'note\(', 'kind: "quarto-float-lst"']
         - []
       ensurePdfRegexMatches:
         - ['Listing 1', 'MARGINCAP-SQL-QUERY', 'Listing 2', 'MARGINCAP-PYTHON-FUNC']
+        - []
+      ensurePdfTextPositions:
+        - - subject: "MARGINCAP-SQL-QUERY"
+            relation: rightOf
+            object: "SELECT"
+          - subject: "MARGINCAP-PYTHON-FUNC"
+            relation: rightOf
+            object: "calculate_statistics"
+          - subject: "MARGINCAP-SQL-QUERY"
+            relation: above
+            object: "MARGINCAP-PYTHON-FUNC"
         - []
       noErrors: default
 ---

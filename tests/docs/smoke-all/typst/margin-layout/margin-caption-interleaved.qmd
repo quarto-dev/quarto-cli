@@ -19,6 +19,16 @@ _quarto:
           - 'Figure 4'
           - 'Figure 5'
         - []
+      ensurePdfTextPositions:
+        - # Margin captions right of body (same page)
+          - subject: "CAP-ALPHA"
+            relation: rightOf
+            object: "First: Margin"
+          # Cross-refs left of margin captions (same page)
+          - subject: "REF-ALPHA"
+            relation: leftOf
+            object: "CAP-ALPHA"
+        - []
       noErrors: default
 ---
 
@@ -26,31 +36,31 @@ This document tests interleaved margin and regular captions with sequential numb
 
 ## First: Margin Caption
 
-![CAP-ALPHA with margin caption](test-image.png){#fig-alpha cap-location="margin"}
+![CAP-ALPHA with margin caption](test-plot.svg){#fig-alpha cap-location="margin"}
 
 Text with REF-ALPHA pointing to @fig-alpha.
 
 ## Second: Regular Caption
 
-![CAP-BETA with regular caption](test-image.png){#fig-beta}
+![CAP-BETA with regular caption](test-plot.svg){#fig-beta}
 
 Text with REF-BETA pointing to @fig-beta.
 
 ## Third: Back to Margin Caption
 
-![CAP-GAMMA with margin caption](test-image.png){#fig-gamma cap-location="margin"}
+![CAP-GAMMA with margin caption](test-plot.svg){#fig-gamma cap-location="margin"}
 
 Text with REF-GAMMA pointing to @fig-gamma.
 
 ## Fourth: Regular Caption Again
 
-![CAP-DELTA with regular caption](test-image.png){#fig-delta}
+![CAP-DELTA with regular caption](test-plot.svg){#fig-delta}
 
 Text with REF-DELTA pointing to @fig-delta.
 
 ## Fifth: Margin Caption Once More
 
-![CAP-EPSILON with margin caption](test-image.png){#fig-epsilon cap-location="margin"}
+![CAP-EPSILON with margin caption](test-plot.svg){#fig-epsilon cap-location="margin"}
 
 Text with REF-EPSILON pointing to @fig-epsilon.
 
