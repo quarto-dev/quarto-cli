@@ -1,5 +1,5 @@
 ---
-title: "Margin Listing Cell Option Test"
+title: "Margin Listing with Caption Below"
 papersize: us-letter
 grid:
   margin-width: 3.5in
@@ -11,34 +11,35 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        # Cell option should produce same output as fenced div: #notefigure
-        - ['#notefigure\(', 'kind: "quarto-float-lst"']
+        # Cell option produces #notefigure with position: bottom
+        - ['#notefigure\(', 'kind: "quarto-float-lst"', 'position: bottom']
         - []
       ensurePdfRegexMatches:
-        - ['Listing 1', 'MARGIN-CELL-OPTION-CODE']
+        - ['Listing 1', 'MARGIN-LISTING-BELOW']
         - []
       ensurePdfTextPositions:
         - # Listing in margin, right of body text
-          - subject: "MARGIN-CELL-OPTION-CODE"
+          - subject: "MARGIN-LISTING-BELOW"
             relation: rightOf
             object: "This tests"
           - subject: "greet"
             relation: rightOf
             object: "This tests"
-          # Caption above code (default for listings)
-          - subject: "MARGIN-CELL-OPTION-CODE"
+          # Caption BELOW code (lst-cap-location: bottom)
+          - subject: "greet"
             relation: above
-            object: "greet"
+            object: "MARGIN-LISTING-BELOW"
         - []
       noErrors: default
 ---
 
-This tests a code listing placed in the margin using the `column: margin` cell option.
+This tests a code listing in the margin with caption below using `cap-location: bottom`.
 
 ```{python}
 #| column: margin
-#| label: lst-margin-cell
-#| lst-cap: "MARGIN-CELL-OPTION-CODE"
+#| label: lst-margin-below
+#| lst-cap: "MARGIN-LISTING-BELOW"
+#| lst-cap-location: bottom
 #| echo: true
 #| eval: false
 
@@ -49,6 +50,6 @@ def greet(name):
 print(greet("World"))
 ```
 
-As shown in @lst-margin-cell, the listing should appear entirely in the margin (both code and caption).
+As shown in @lst-margin-below, the listing should appear in the margin with caption below the code.
 
 More text in the main column to demonstrate the layout.

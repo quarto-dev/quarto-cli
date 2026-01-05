@@ -1,5 +1,5 @@
 ---
-title: "Margin Table with great_tables"
+title: "Margin Table with Caption Below"
 papersize: us-letter
 format:
   typst:
@@ -9,7 +9,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         # Cell option produces #notefigure (entire figure in margin)
-        - ['#notefigure\(', 'kind: "quarto-float-tbl"']
+        - ['#notefigure\(', 'kind: "quarto-float-tbl"', 'position: bottom']
         - []
       ensurePdfRegexMatches:
         - ['Table 1', 'Large Landmasses']
@@ -22,19 +22,15 @@ _quarto:
           - subject: "Borneo"
             relation: rightOf
             object: "This tests"
-          # Caption above table content (default for tables)
-          - subject: "Large Landmasses"
+          # Caption BELOW table content (cap-location: bottom)
+          - subject: "Borneo"
             relation: above
-            object: "Borneo"
+            object: "Large Landmasses"
         - []
       noErrors: default
 ---
 
-This tests a great_tables table placed in the margin using 
-
-```
-#| column: margin
-```
+This tests a great_tables table in the margin with caption below using `cap-location="bottom"`.
 
 ```{python}
 #| column: margin
@@ -42,6 +38,7 @@ This tests a great_tables table placed in the margin using
 #| echo: false
 #| label: tbl-islands
 #| tbl-cap: "Large Landmasses"
+#| cap-location: bottom
 
 from great_tables import GT
 from great_tables.data import islands
