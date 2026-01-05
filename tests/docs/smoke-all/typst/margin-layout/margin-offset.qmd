@@ -10,6 +10,15 @@ _quarto:
       ensureTypstFileRegexMatches:
         - ['#note\(alignment: "baseline", dy: -2em']
         - []
+      ensurePdfTextPositions:
+        - - subject: "Offset margin"
+            relation: rightOf
+            object: "Main content"
+          # With negative dy, margin content should be above body text
+          - subject: "Offset margin"
+            relation: above
+            object: "Main content"
+        - []
       noErrors: default
 ---
 

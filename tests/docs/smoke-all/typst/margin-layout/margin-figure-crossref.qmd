@@ -10,12 +10,26 @@ _quarto:
       ensureTypstFileRegexMatches:
         - ['#notefigure\(', '<fig-test>']
         - []
+      ensurePdfTextPositions:
+        - # Caption in margin, right of body
+          - subject: "CROSSREF-FIG-CAP"
+            relation: rightOf
+            object: "This tests"
+          # Plot content (★ marker) in margin
+          - subject: "★"
+            relation: rightOf
+            object: "This tests"
+          # Caption below plot
+          - subject: "★"
+            relation: above
+            object: "CROSSREF-FIG-CAP"
+        - []
       noErrors: default
 ---
 
 This tests cross-references to margin figures.
 
-![Margin figure with reference](test-image.png){#fig-test .column-margin width=100%}
+![CROSSREF-FIG-CAP](test-plot.svg){#fig-test .column-margin width=100%}
 
 As shown in @fig-test, the figure appears in the margin with a working cross-reference.
 

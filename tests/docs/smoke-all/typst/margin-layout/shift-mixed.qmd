@@ -10,6 +10,24 @@ _quarto:
       ensureTypstFileRegexMatches:
         - ['shift: false', 'shift: auto', 'shift: "avoid"', 'shift: "ignore"']
         - []
+      ensurePdfTextPositions:
+        - # Positive assertions
+          - subject: "FIXED"
+            relation: above
+            object: "AUTO"
+          - subject: "AUTO"
+            relation: above
+            object: "AVOID"
+          - subject: "AVOID"
+            relation: above
+            object: "AUTO 2"
+          - subject: "FIXED"
+            relation: rightOf
+            object: "Line 1"
+        - # Negative assertions - IGNORE overlaps AVOID, so NOT below
+          - subject: "IGNORE"
+            relation: below
+            object: "FIXED"
       noErrors: default
 ---
 

@@ -11,6 +11,14 @@ _quarto:
       ensurePdfRegexMatches:
         - ['PARA-ONE', 'PARA-TWO']
         - []
+      ensurePdfTextPositions:
+        - - subject: "PARA-ONE"
+            relation: rightOf
+            object: "Text with a long"
+          - subject: "PARA-ONE"
+            relation: above
+            object: "PARA-TWO"
+        - []
       noErrors: default
 ---
 

@@ -22,6 +22,19 @@ _quarto:
           - 'Figure 3: CAP-GAMMA'
           - 'Figure 4: CAP-DELTA'
         - []
+      ensurePdfTextPositions:
+        - # Margin figure captions right of body
+          - subject: "CAP-ALPHA"
+            relation: rightOf
+            object: "Here is text"
+          - subject: "CAP-GAMMA"
+            relation: rightOf
+            object: "Another margin"
+          # Vertical ordering of margin figures
+          - subject: "CAP-ALPHA"
+            relation: above
+            object: "CAP-GAMMA"
+        - []
       noErrors: default
 ---
 
@@ -31,7 +44,7 @@ This document tests cross-references between margin figures and main-column figu
 
 Here is text before the first figure.
 
-![CAP-ALPHA in margin](test-image.png){#fig-alpha .column-margin width=100%}
+![CAP-ALPHA in margin](test-plot.svg){#fig-alpha .column-margin width=100%}
 
 Text with REF-ALPHA pointing to @fig-alpha.
 
@@ -39,7 +52,7 @@ Text with REF-ALPHA pointing to @fig-alpha.
 
 Now a regular main-column figure.
 
-![CAP-BETA in main](test-image.png){#fig-beta width=50%}
+![CAP-BETA in main](test-plot.svg){#fig-beta width=50%}
 
 Text with REF-BETA pointing to @fig-beta.
 
@@ -47,7 +60,7 @@ Text with REF-BETA pointing to @fig-beta.
 
 Another margin figure to test sequencing.
 
-![CAP-GAMMA in margin](test-image.png){#fig-gamma .column-margin width=100%}
+![CAP-GAMMA in margin](test-plot.svg){#fig-gamma .column-margin width=100%}
 
 Text with REF-GAMMA pointing to @fig-gamma.
 
@@ -55,7 +68,7 @@ Text with REF-GAMMA pointing to @fig-gamma.
 
 Final main-column figure.
 
-![CAP-DELTA in main](test-image.png){#fig-delta width=50%}
+![CAP-DELTA in main](test-plot.svg){#fig-delta width=50%}
 
 Text with REF-DELTA pointing to @fig-delta.
 

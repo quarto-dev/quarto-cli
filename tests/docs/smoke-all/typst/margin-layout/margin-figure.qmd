@@ -10,12 +10,26 @@ _quarto:
       ensureTypstFileRegexMatches:
         - ['#notefigure\(']
         - []
+      ensurePdfTextPositions:
+        - # Caption in margin, right of body
+          - subject: "MARGIN-FIG-CAP"
+            relation: rightOf
+            object: "This tests"
+          # Plot content (★ marker) in margin, right of body
+          - subject: "★"
+            relation: rightOf
+            object: "This tests"
+          # Caption below plot (★ is in plot title area)
+          - subject: "★"
+            relation: above
+            object: "MARGIN-FIG-CAP"
+        - []
       noErrors: default
 ---
 
 This tests a basic figure placed in the margin.
 
-![A margin figure](test-image.png){#fig-margin .column-margin width=100%}
+![MARGIN-FIG-CAP](test-plot.svg){#fig-margin .column-margin width=100%}
 
 See @fig-margin for the figure in the margin.
 

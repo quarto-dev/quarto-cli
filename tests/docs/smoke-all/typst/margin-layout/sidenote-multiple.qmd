@@ -11,6 +11,17 @@ _quarto:
       ensurePdfRegexMatches:
         - ['FIRST-NOTE', 'SECOND-NOTE', 'THIRD-NOTE']
         - []
+      ensurePdfTextPositions:
+        - - subject: "FIRST-NOTE"
+            relation: rightOf
+            object: "First point"
+          - subject: "FIRST-NOTE"
+            relation: above
+            object: "SECOND-NOTE"
+          - subject: "SECOND-NOTE"
+            relation: above
+            object: "THIRD-NOTE"
+        - []
       noErrors: default
 ---
 

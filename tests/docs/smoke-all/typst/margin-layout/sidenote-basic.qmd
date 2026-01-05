@@ -14,6 +14,11 @@ _quarto:
       ensurePdfRegexMatches:
         - ['SIDENOTE-CONTENT', 'Main text']
         - []
+      ensurePdfTextPositions:
+        - - subject: "SIDENOTE-CONTENT"
+            relation: rightOf
+            object: "Main text"
+        - []
       noErrors: default
 ---
 

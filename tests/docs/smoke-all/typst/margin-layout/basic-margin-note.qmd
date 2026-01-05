@@ -10,6 +10,11 @@ _quarto:
       ensureTypstFileRegexMatches:
         - ['@preview/marginalia:0\.3\.1', 'marginalia\.setup\.with\(']
         - []
+      ensurePdfTextPositions:
+        - - subject: "This triggers"
+            relation: rightOf
+            object: "Main content"
+        - []
       noErrors: default
 ---
 

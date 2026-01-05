@@ -14,6 +14,23 @@ _quarto:
       ensurePdfRegexMatches:
         - ['Listing 1', 'MARGIN-SQL-QUERY']
         - []
+      ensurePdfTextPositions:
+        - # Margin content should be right of body text
+          - subject: "MARGIN-SQL-QUERY"
+            relation: rightOf
+            object: "This tests"
+          - subject: "SELECT"
+            relation: rightOf
+            object: "This tests"
+          # Caption above code (caption position: top)
+          - subject: "MARGIN-SQL-QUERY"
+            relation: above
+            object: "SELECT"
+          # Body text vertical ordering
+          - subject: "This tests"
+            relation: above
+            object: "More text"
+        - []
       noErrors: default
 ---
 

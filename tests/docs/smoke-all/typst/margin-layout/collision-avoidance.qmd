@@ -10,6 +10,26 @@ _quarto:
       ensureTypstFileRegexMatches:
         - ['#note\(']
         - []
+      ensurePdfTextPositions:
+        - # All margin notes right of body
+          - subject: "First margin"
+            relation: rightOf
+            object: "Line 1"
+          # Vertical stacking chain
+          - subject: "First margin"
+            relation: above
+            object: "Second note"
+          - subject: "Second note"
+            relation: above
+            object: "Third note"
+          - subject: "Third note"
+            relation: above
+            object: "Fourth note"
+          # Line 5 should be top-aligned with its margin note (enough space)
+          - subject: "Line 5"
+            relation: topAligned
+            object: "This note"
+        - []
       noErrors: default
 ---
 

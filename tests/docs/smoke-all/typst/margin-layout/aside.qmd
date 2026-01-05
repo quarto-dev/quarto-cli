@@ -10,6 +10,11 @@ _quarto:
       ensureTypstFileRegexMatches:
         - ['#note\(alignment: "baseline"']
         - []
+      ensurePdfTextPositions:
+        - - subject: "This aside"
+            relation: rightOf
+            object: "Main content"
+        - []
       noErrors: default
 ---
 
