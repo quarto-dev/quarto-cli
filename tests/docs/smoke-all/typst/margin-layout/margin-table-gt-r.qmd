@@ -8,10 +8,8 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        # R gt in margin divs: #note() contains div content (warnings),
-        # but #figure() is OUTSIDE the note (figure NOT in margin - broken!)
-        # Different from Python gt which wraps figure inside note
-        - ['#note\(', '#figure\(', 'kind: "quarto-float-tbl"']
+        # Cell option produces #notefigure (entire figure in margin)
+        - ['#notefigure\(', 'kind: "quarto-float-tbl"']
         - []
       ensurePdfRegexMatches:
         - ['Table 1', 'Large Landmasses', 'Asia', 'Africa']
@@ -19,11 +17,10 @@ _quarto:
       noErrors: default
 ---
 
-This tests an R gt table placed in the margin using a fenced div.
-
-::: {.column-margin}
+This tests an R gt table placed in the margin using `#| column: margin`.
 
 ```{r}
+#| column: margin
 #| classes: plain
 #| echo: false
 #| label: tbl-islands-r
@@ -42,8 +39,6 @@ islands_tbl <- tibble(
 gt(islands_tbl) |>
   fmt_integer(columns = size)
 ```
-
-:::
 
 See @tbl-islands-r for the table in the margin.
 

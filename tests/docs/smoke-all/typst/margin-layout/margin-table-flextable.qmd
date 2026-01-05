@@ -8,9 +8,9 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        # flextable in margin divs wraps #figure inside #note (like Python gt)
+        # Cell option produces #notefigure (entire figure in margin)
         # Note: flextable renders as PNG image, not native Typst table
-        - ['#note\(', '#figure\(', 'kind: "quarto-float-tbl"']
+        - ['#notefigure\(', 'kind: "quarto-float-tbl"']
         - []
       ensurePdfRegexMatches:
         # Caption text should appear (flextable content is image)
@@ -19,11 +19,10 @@ _quarto:
       noErrors: default
 ---
 
-This tests a flextable placed in the margin using a fenced div.
-
-::: {.column-margin}
+This tests a flextable placed in the margin using `#| column: margin`.
 
 ```{r}
+#| column: margin
 #| classes: plain
 #| echo: false
 #| label: tbl-cars-flex
@@ -39,8 +38,6 @@ flextable(mtcars_mini) |>
   set_header_labels(car = "Car", mpg = "MPG", cyl = "Cyl", disp = "Disp") |>
   autofit()
 ```
-
-:::
 
 See @tbl-cars-flex for the table in the margin.
 

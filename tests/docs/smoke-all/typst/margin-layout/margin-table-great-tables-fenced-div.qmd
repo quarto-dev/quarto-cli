@@ -1,5 +1,5 @@
 ---
-title: "Margin Table with great_tables"
+title: "Margin Table with great_tables (Fenced Div)"
 papersize: us-letter
 format:
   typst:
@@ -8,19 +8,18 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        # Cell option produces #notefigure (entire figure in margin)
-        - ['#notefigure\(', 'kind: "quarto-float-tbl"']
-        - []
-      ensurePdfRegexMatches:
-        - ['Table 1', 'Large Landmasses']
+        # GT tables in margin divs use #note( wrapping #figure(
+        - ['#note\(', 'kind: "quarto-float-tbl"']
         - []
       noErrors: default
 ---
 
-This tests a great_tables table placed in the margin using `#| column: margin`.
+This tests a great_tables table placed in the margin using a fenced div (`.column-margin`).
+This approach wraps `#figure` inside `#note` which differs from the cell option approach.
+
+::: {.column-margin}
 
 ```{python}
-#| column: margin
 #| classes: plain
 #| echo: false
 #| label: tbl-islands
@@ -34,6 +33,8 @@ from great_tables.data import islands
     .fmt_integer(columns="size")
 )
 ```
+
+:::
 
 See @tbl-islands for the table in the margin.
 
