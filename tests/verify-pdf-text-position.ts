@@ -4,6 +4,27 @@
  * PDF text position verification using semantic structure tree.
  * Uses pdfjs-dist directly to access MCIDs and structure tree.
  *
+ * REQUIREMENTS:
+ * This module requires tagged PDFs with PDF 1.4+ structure tree support.
+ * Tagged PDFs contain Marked Content Identifiers (MCIDs) that link text
+ * content to semantic structure elements (P, H1, Figure, Table, etc.).
+ *
+ * Currently confirmed working:
+ * - Typst: Produces tagged PDFs by default
+ *
+ * Not yet working:
+ * - LaTeX: Requires \DocumentMetadata{} before \documentclass for tagging,
+ *   which Quarto doesn't currently support. When LaTeX tagged PDF support
+ *   is available, this module should work with minimal changes since we
+ *   use only basic PDF 1.4 tagged structure features.
+ * - ConTeXt: Pandoc supports +tagging extension, but Quarto's context
+ *   format doesn't compile to PDF.
+ *
+ * SPECIAL TYPES:
+ * - type: "Decoration" - Use for untagged page elements like headers, footers,
+ *   page numbers, and other decorations. These use text item bounds directly
+ *   instead of requiring MCID/structure tree support.
+ *
  * Copyright (C) 2020-2025 Posit Software, PBC
  */
 
@@ -310,15 +331,31 @@ export const ensurePdfTextPositions = (
         tolerance: a.tolerance ?? DEFAULT_ALIGNMENT_TOLERANCE,
       }));
 
+      // Track search texts and their selectors (to know if Decoration type is requested)
       const searchTexts = new Set<string>();
+      const textToSelectors = new Map<string, TextSelector[]>();
+
+      const addSelector = (sel: TextSelector) => {
+        searchTexts.add(sel.text);
+        const existing = textToSelectors.get(sel.text) ?? [];
+        existing.push(sel);
+        textToSelectors.set(sel.text, existing);
+      };
+
       for (const a of normalizedAssertions) {
-        searchTexts.add(a.subject.text);
-        if (a.object) searchTexts.add(a.object.text);
+        addSelector(a.subject);
+        if (a.object) addSelector(a.object);
       }
       for (const a of normalizedNoMatch ?? []) {
-        searchTexts.add(a.subject.text);
-        if (a.object) searchTexts.add(a.object.text);
+        addSelector(a.subject);
+        if (a.object) addSelector(a.object);
       }
+
+      // Helper: check if any selector for this text is a Decoration (untagged content)
+      const isDecoration = (text: string): boolean => {
+        const selectors = textToSelectors.get(text) ?? [];
+        return selectors.some((s) => s.type === "Decoration");
+      };
 
       // Stage 2: Load PDF with pdfjs-dist
       // deno-lint-ignore no-explicit-any
@@ -385,7 +422,21 @@ export const ensurePdfTextPositions = (
         let structNode: StructTreeNode | null = null;
         let bbox: BBox;
 
-        if (textItem.mcid) {
+        // Decoration type: use text item bounds directly (for headers, footers, page decorations)
+        if (isDecoration(searchText)) {
+          bbox = {
+            x: textItem.x,
+            y: textItem.y,
+            width: textItem.width,
+            height: textItem.height,
+            page: textItem.page,
+          };
+        } else if (!textItem.mcid) {
+          errors.push(
+            `Text "${searchText}" has no MCID - PDF may not be tagged. Use type: "Decoration" for untagged page elements like headers/footers.`,
+          );
+          continue;
+        } else {
           structNode = mcidToStructNode.get(textItem.mcid) ?? null;
 
           // Same-MCID approach: compute bbox from all text items sharing this MCID
@@ -395,34 +446,17 @@ export const ensurePdfTextPositions = (
             if (mcidBBox) {
               bbox = mcidBBox;
             } else {
-              // Fallback to text item bounds
-              bbox = {
-                x: textItem.x,
-                y: textItem.y,
-                width: textItem.width,
-                height: textItem.height,
-                page: textItem.page,
-              };
+              errors.push(
+                `Could not compute bbox for "${searchText}" - all text items in MCID are whitespace-only`,
+              );
+              continue;
             }
           } else {
-            // No items for MCID - use text item bounds
-            bbox = {
-              x: textItem.x,
-              y: textItem.y,
-              width: textItem.width,
-              height: textItem.height,
-              page: textItem.page,
-            };
+            errors.push(
+              `No text items found for MCID ${textItem.mcid} containing "${searchText}"`,
+            );
+            continue;
           }
-        } else {
-          // No MCID - use text item bounds (fallback)
-          bbox = {
-            x: textItem.x,
-            y: textItem.y,
-            width: textItem.width,
-            height: textItem.height,
-            page: textItem.page,
-          };
         }
 
         resolvedSelectors.set(searchText, {

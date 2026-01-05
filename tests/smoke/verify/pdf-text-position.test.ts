@@ -60,11 +60,20 @@ testQuartoCmd("render", [fixtureQmd, "--to", "typst"], [], {
  */
 async function runPositiveTests() {
   // Test 1: Basic vertical ordering (header < title < h1 < body < footer)
+  // Note: Headers and footers are page decorations without MCIDs, use type: "Decoration"
   const verticalOrdering = ensurePdfTextPositions(fixturePdf, [
-    { subject: "FIXTURE_HEADER_TEXT", relation: "above", object: "FIXTURE_TITLE_TEXT" },
+    {
+      subject: { text: "FIXTURE_HEADER_TEXT", type: "Decoration" },
+      relation: "above",
+      object: "FIXTURE_TITLE_TEXT",
+    },
     { subject: "FIXTURE_TITLE_TEXT", relation: "above", object: "FIXTURE_H1_TEXT" },
     { subject: "FIXTURE_H1_TEXT", relation: "above", object: "FIXTURE_BODY_P1_TEXT" },
-    { subject: "FIXTURE_BODY_P1_TEXT", relation: "above", object: "FIXTURE_FOOTER_TEXT" },
+    {
+      subject: "FIXTURE_BODY_P1_TEXT",
+      relation: "above",
+      object: { text: "FIXTURE_FOOTER_TEXT", type: "Decoration" },
+    },
   ]);
   await verticalOrdering.verify([]);
 
@@ -128,8 +137,12 @@ async function runExpectedFailureTests() {
   await assertThrowsWithPattern(
     async () => {
       const predicate = ensurePdfTextPositions(fixturePdf, [
-        // Footer is BELOW header, not above
-        { subject: "FIXTURE_FOOTER_TEXT", relation: "above", object: "FIXTURE_HEADER_TEXT" },
+        // Footer is BELOW header, not above (both are Decorations)
+        {
+          subject: { text: "FIXTURE_FOOTER_TEXT", type: "Decoration" },
+          relation: "above",
+          object: { text: "FIXTURE_HEADER_TEXT", type: "Decoration" },
+        },
       ]);
       await predicate.verify([]);
     },
