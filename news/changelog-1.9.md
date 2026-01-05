@@ -62,6 +62,7 @@ All changes included in 1.9:
 - ([#13547](https://github.com/quarto-dev/quarto-cli/issues/13547))`cookie-content: { type: express }` is now the default. Previously it was `type: implied`. It now means this will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn't agree).
 - ([#13570](https://github.com/quarto-dev/quarto-cli/pull/13570)): Replace Twitter with Bluesky in default blog template and documentation examples. New blog projects now include Bluesky social links instead of Twitter.
 - ([#13716](https://github.com/quarto-dev/quarto-cli/issues/13716)): Fix draft pages showing blank during preview when pre-render scripts are configured.
+- ([#13847](https://github.com/quarto-dev/quarto-cli/pull/13847)): Correctly targets the `property` attribute instead of the `name` attribute for `og:site_name` meta tags. (author: @mcanouil)
 
 ### `book`
 
