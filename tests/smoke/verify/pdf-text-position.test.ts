@@ -47,6 +47,7 @@ testQuartoCmd("render", [fixtureQmd, "--to", "typst"], [], {
     // Run the test assertions after render completes
     await runPositiveTests();
     await runExpectedFailureTests();
+    await runSemanticTagTests();
 
     // Cleanup
     if (safeExistsSync(fixturePdf)) {
@@ -180,24 +181,36 @@ async function runExpectedFailureTests() {
     "Negative assertion unexpectedly true error",
   );
 
-  // Test with tag type assertion (if structure tree is available)
-  // Note: This may need adjustment based on actual Typst PDF structure
-  // For now, we test that tag assertions are processed without crashing
-  try {
-    const tagAssertion = ensurePdfTextPositions(fixturePdf, [
-      {
-        subject: { text: "FIXTURE_H1_TEXT", type: "H1" },
-        relation: "above",
-        object: { text: "FIXTURE_BODY_P1_TEXT", type: "P" },
-      },
-    ]);
-    await tagAssertion.verify([]);
-    // If we get here, Typst produced correct tags
-  } catch (e) {
-    // Tag type might not match - this is acceptable for this test
-    // The important thing is that the code processes tag assertions
-    if (!(e instanceof Error) || !e.message.includes("type mismatch")) {
-      throw e; // Re-throw unexpected errors
-    }
-  }
+  // Error 6: Tag type mismatch (wrong semantic type)
+  await assertThrowsWithPattern(
+    async () => {
+      const predicate = ensurePdfTextPositions(fixturePdf, [
+        // H1 is not a Figure
+        { subject: { text: "FIXTURE_H1_TEXT", type: "Figure" }, relation: "above", object: "FIXTURE_BODY_P1_TEXT" },
+      ]);
+      await predicate.verify([]);
+    },
+    /Tag type mismatch.*FIXTURE_H1_TEXT.*expected Figure.*got H1/,
+    "Tag type mismatch error",
+  );
+}
+
+/**
+ * Test semantic tag type assertions
+ */
+async function runSemanticTagTests() {
+  // Test: Correct semantic types should pass
+  const correctTypes = ensurePdfTextPositions(fixturePdf, [
+    {
+      subject: { text: "FIXTURE_H1_TEXT", type: "H1" },
+      relation: "above",
+      object: { text: "FIXTURE_BODY_P1_TEXT", type: "P" },
+    },
+    {
+      subject: { text: "FIXTURE_H2_TEXT", type: "H2" },
+      relation: "above",
+      object: { text: "FIXTURE_H3_TEXT", type: "H3" },
+    },
+  ]);
+  await correctTypes.verify([]);
 }
