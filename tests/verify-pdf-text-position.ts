@@ -400,13 +400,23 @@ export const ensurePdfTextPositions = (
         }
       }
 
-      // Stage 5: Find text items for each search text
+      // Stage 5: Find text items for each search text (must be unique, unless Decoration)
       const foundTexts = new Map<string, MarkedTextItem>();
       for (const searchText of searchTexts) {
-        const item = allTextItems.find((t) => t.str.includes(searchText));
-        if (item) {
-          foundTexts.set(searchText, item);
+        const matches = allTextItems.filter((t) => t.str.includes(searchText));
+        if (matches.length === 1) {
+          foundTexts.set(searchText, matches[0]);
+        } else if (matches.length > 1) {
+          // Decoration types (headers, footers) naturally repeat on each page - allow first match
+          if (isDecoration(searchText)) {
+            foundTexts.set(searchText, matches[0]);
+          } else {
+            errors.push(
+              `Text "${searchText}" is ambiguous - found ${matches.length} matches. Use a more specific search string.`,
+            );
+          }
         }
+        // If matches.length === 0, we'll report "not found" later
       }
 
       // Stage 6 & 7: Resolve selectors to structure nodes and compute bboxes

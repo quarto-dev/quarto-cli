@@ -109,6 +109,19 @@ async function runExpectedFailureTests() {
     "Text not found error",
   );
 
+  // Error 1b: Ambiguous text (appears multiple times)
+  await assertThrowsWithPattern(
+    async () => {
+      const predicate = ensurePdfTextPositions(fixturePdf, [
+        // "paragraph" appears in multiple places in the fixture
+        { subject: "paragraph", relation: "above", object: "FIXTURE_BODY_P1_TEXT" },
+      ]);
+      await predicate.verify([]);
+    },
+    /paragraph.*ambiguous.*matches/i,
+    "Ambiguous text error",
+  );
+
   // Error 2: Unknown relation
   await assertThrowsWithPattern(
     async () => {
