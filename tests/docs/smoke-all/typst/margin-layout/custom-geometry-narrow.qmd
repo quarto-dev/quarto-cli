@@ -19,6 +19,15 @@ _quarto:
           - 'Narrow margin'
           - 'compact notes'
         - []
+      ensurePdfTextPositions:
+        - # Margin notes are in margin (rightOf body text) with narrow geometry
+          - subject: "compact notes"
+            relation: rightOf
+            object: "Narrow Margin Layout"
+          - subject: "compact notes"
+            relation: above
+            object: "Short annotations"
+        - []
       noErrors: default
 ---
 

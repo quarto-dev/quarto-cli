@@ -18,6 +18,19 @@ _quarto:
           - 'XREF1\s+Figure 1'
           - 'XREF2\s+Figure 2'
         - []
+      ensurePdfTextPositions:
+        - # Aside text is in margin (rightOf body text)
+          - subject: "column-page-right"
+            relation: rightOf
+            object: "Page Right"
+          # Aside is rightOf fullwidth caption (aside in far margin, caption spans body)
+          - subject: "column-page-right"
+            relation: rightOf
+            object: "CAP-WIDE-RIGHT"
+        - # Negative: fullwidth caption NOT rightOf aside (caption not in far margin)
+          - subject: "CAP-WIDE-RIGHT"
+            relation: rightOf
+            object: "column-page-right"
       noErrors: default
 ---
 

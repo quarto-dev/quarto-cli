@@ -18,15 +18,15 @@ _quarto:
         - ['Listing 1', 'MARGIN-LISTING-BELOW']
         - []
       ensurePdfTextPositions:
-        - # Listing in margin, right of body text
+        - # Listing in margin, right of body text - "World" unique string in code
           - subject: "MARGIN-LISTING-BELOW"
             relation: rightOf
             object: "This tests"
-          - subject: "greet"
+          - subject: "World"
             relation: rightOf
             object: "This tests"
           # Caption BELOW code (lst-cap-location: bottom)
-          - subject: "greet"
+          - subject: "World"
             relation: above
             object: "MARGIN-LISTING-BELOW"
         - []

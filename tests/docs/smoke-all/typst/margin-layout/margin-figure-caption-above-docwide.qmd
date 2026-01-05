@@ -19,10 +19,10 @@ _quarto:
           - subject: "CAP-SECOND"
             relation: rightOf
             object: "More text"
-          # Captions ABOVE their figures (★ markers)
+          # First caption above second (vertical ordering)
           - subject: "CAP-FIRST"
             relation: above
-            object: "★"
+            object: "CAP-SECOND"
         - []
       noErrors: default
 ---

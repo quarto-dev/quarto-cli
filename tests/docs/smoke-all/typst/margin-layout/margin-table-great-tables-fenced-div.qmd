@@ -11,6 +11,19 @@ _quarto:
         # GT tables in margin divs use #note( wrapping #figure(
         - ['#note\(', 'kind: "quarto-float-tbl"']
         - []
+      ensurePdfTextPositions:
+        - # Table in margin, right of body text
+          - subject: "Large Landmasses"
+            relation: rightOf
+            object: "This tests"
+          - subject: "Borneo"
+            relation: rightOf
+            object: "This tests"
+          # Caption above table content (default for tables)
+          - subject: "Large Landmasses"
+            relation: above
+            object: "Borneo"
+        - []
       noErrors: default
 ---
 

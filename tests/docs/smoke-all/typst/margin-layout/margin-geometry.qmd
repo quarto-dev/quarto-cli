@@ -10,6 +10,12 @@ _quarto:
       ensureTypstFileRegexMatches:
         - ['inner:', 'outer:', 'sep:.*in', 'width:.*in']
         - []
+      ensurePdfTextPositions:
+        - # Margin content is in margin (rightOf body text)
+          - subject: "Margin content"
+            relation: rightOf
+            object: "Text in main column"
+        - []
       noErrors: default
 ---
 

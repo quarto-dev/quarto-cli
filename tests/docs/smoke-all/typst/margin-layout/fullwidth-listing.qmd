@@ -14,10 +14,20 @@ _quarto:
       ensurePdfRegexMatches:
         - ['Listing 1', 'FULLWIDTH-CSS-STYLES', 'Listing 2', 'FULLWIDTH-SHELL-PIPELINE']
         - []
+      ensurePdfTextPositions:
+        - # Margin note is in margin (rightOf body text)
+          - subject: "MARGIN-NOTE-LISTING"
+            relation: rightOf
+            object: "Full Width Listing"
+        - # Negative: fullwidth listing caption NOT rightOf margin note
+          - subject: "FULLWIDTH-CSS-STYLES"
+            relation: rightOf
+            object: "MARGIN-NOTE-LISTING"
       noErrors: default
 ---
 
 This tests code listings that extend into the margins for displaying wide code.
+[MARGIN-NOTE-LISTING: This note stays in the margin while listings extend across.]{.aside}
 
 ## CSS with Long Selectors (Page Right)
 

@@ -67,6 +67,6 @@
 <text x='271.51' y='194.99' text-anchor='middle' style='font-size: 10.00px;fill: #4D4D4D; font-family: "Arial";' textLength='5.56px' lengthAdjust='spacingAndGlyphs'>6</text>
 <text x='161.46' y='207.89' text-anchor='middle' style='font-size: 12.00px; font-family: "Times";' textLength='54.01px' lengthAdjust='spacingAndGlyphs'>▲XAXIS▲</text>
 <text transform='translate(13.42,103.18) rotate(-90)' text-anchor='middle' style='font-size: 12.00px; font-family: "Times";' textLength='54.01px' lengthAdjust='spacingAndGlyphs'>●YAXIS●</text>
-<text x='161.46' y='14.94' text-anchor='middle' style='font-size: 14.00px; font-weight: bold; font-family: "Times";' textLength='102.69px' lengthAdjust='spacingAndGlyphs'>★PLOTTITLE★</text>
+<text x='161.46' y='14.94' text-anchor='middle' style='font-size: 14.00px; font-weight: bold; font-family: "Times";' textLength='102.69px' lengthAdjust='spacingAndGlyphs'>★PLOTTITLE</text>
 </g>
 </svg>

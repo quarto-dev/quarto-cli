@@ -10,6 +10,19 @@ _quarto:
       ensureTypstFileRegexMatches:
         - ['shift: false', 'shift: "avoid"']
         - []
+      ensurePdfTextPositions:
+        - # Both tables in margin, right of body text
+          - subject: "Fixed Position"
+            relation: rightOf
+            object: "Line 1"
+          - subject: "Avoid Overlap"
+            relation: rightOf
+            object: "Line 2"
+          # First table above second
+          - subject: "Fixed Position"
+            relation: above
+            object: "Avoid Overlap"
+        - []
       noErrors: default
 ---
 

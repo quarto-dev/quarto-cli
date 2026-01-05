@@ -15,6 +15,12 @@ _quarto:
       ensurePdfRegexMatches:
         - ['FIRST-CITE-MARKER', 'SECOND-CITE-MARKER', 'MULTI-CITE-MARKER', 'Vindication']
         - []
+      ensurePdfTextPositions:
+        - # Citation in margin (rightOf body text) - "Some hexagon" only in @vindication1738 citation
+          - subject: "Some hexagon"
+            relation: rightOf
+            object: "FIRST-CITE-MARKER"
+        - []
       noErrors: default
 ---
 

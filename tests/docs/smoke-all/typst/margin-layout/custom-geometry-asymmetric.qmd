@@ -23,6 +23,15 @@ _quarto:
           - 'asymmetric'
           - 'tight\s+right\s+padding'
         - []
+      ensurePdfTextPositions:
+        - # Margin notes are in margin (rightOf body text) with asymmetric geometry
+          - subject: "asymmetric layout"
+            relation: rightOf
+            object: "Asymmetric Page Layout"
+          - subject: "asymmetric layout"
+            relation: above
+            object: "pushes the text"
+        - []
       noErrors: default
 ---
 

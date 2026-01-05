@@ -16,6 +16,13 @@ _quarto:
         # Caption text should appear (flextable content is image)
         - ['Table 1', 'Motor Trend Cars']
         - []
+      ensurePdfTextPositions:
+        - # Table caption in margin, right of body text
+          # Note: flextable content is image, so only caption text is testable
+          - subject: "Motor Trend Cars"
+            relation: rightOf
+            object: "This tests"
+        - []
       noErrors: default
 ---
 

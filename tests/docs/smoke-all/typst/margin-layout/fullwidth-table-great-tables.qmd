@@ -18,10 +18,20 @@ _quarto:
           - 'Table 2'
           - 'Oceania'
         - []
+      ensurePdfTextPositions:
+        - # Aside in margin (rightOf body text)
+          - subject: "Palau to Tuvalu"
+            relation: rightOf
+            object: "extends into the right margin"
+        - # Negative: table content NOT rightOf aside (Tonga only in first table)
+          - subject: "Tonga"
+            relation: rightOf
+            object: "Palau to Tuvalu"
       noErrors: default
 ---
 
 ## Full Width Table (Page Right)
+[From Palau to Tuvalu, these island nations span thousands of miles of Pacific Ocean.]{.aside}
 
 This table extends into the right margin using great_tables with Oceania population data.
 
@@ -90,8 +100,6 @@ import polars.selectors as cs
 oceania = {
     "Australasia": ["AU", "NZ"],
     "Melanesia": ["NC", "PG", "SB", "VU"],
-    "Micronesia": ["FM", "GU", "KI", "MH", "MP", "NR", "PW"],
-    "Polynesia": ["PF", "WS", "TO", "TV"],
 }
 
 country_to_region = {
@@ -113,7 +121,7 @@ wide_pops = (
     GT(wide_pops, rowname_col="country_name", groupname_col="region")
     .tab_header(
         title="Populations of Oceania's Countries",
-        subtitle="Full page width layout with seven decades of data"
+        subtitle="Australasia and Melanesia only (seven decades)"
     )
     .tab_spanner(label="Population by Decade", columns=cs.all())
     .fmt_integer()

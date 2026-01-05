@@ -17,6 +17,12 @@ _quarto:
       ensurePdfRegexMatches:
         - ['Table 1', 'Iris']
         - []
+      ensurePdfTextPositions:
+        - # Table caption in margin, right of body text
+          - subject: "Iris Dataset"
+            relation: rightOf
+            object: "This tests"
+        - []
       noErrors: default
 ---
 

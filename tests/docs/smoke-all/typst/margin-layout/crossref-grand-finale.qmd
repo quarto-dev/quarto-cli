@@ -66,6 +66,24 @@ _quarto:
           - 'Equation 5'
           - 'Equation 6'
         - []
+      ensurePdfTextPositions:
+        - # Margin figure caption in margin (rightOf body text) - "Figure 1:" unique to caption
+          - subject: "Figure 1:"
+            relation: rightOf
+            object: "Round 1"
+          # Margin table caption in margin
+          - subject: "Table 1:"
+            relation: rightOf
+            object: "Round 1"
+          # Margin listing caption in margin
+          - subject: "Listing 1:"
+            relation: rightOf
+            object: "Round 1"
+          # Margin caption figure in margin
+          - subject: "Figure 3:"
+            relation: rightOf
+            object: "Round 3"
+        - []
       noErrors: default
 ---
 

@@ -12,7 +12,20 @@ _quarto:
         - ['#notefigure\(', 'kind: "quarto-float-tbl"']
         - []
       ensurePdfRegexMatches:
-        - ['Table 1']
+        - ['Table 1', 'SIMPLE-TBL-CAP', 'Alpha']
+        - []
+      ensurePdfTextPositions:
+        - # Table in margin, right of body text
+          - subject: "SIMPLE-TBL-CAP"
+            relation: rightOf
+            object: "This tests"
+          - subject: "Alpha"
+            relation: rightOf
+            object: "This tests"
+          # Caption above table content (default for tables)
+          - subject: "SIMPLE-TBL-CAP"
+            relation: above
+            object: "Alpha"
         - []
       noErrors: default
 ---
@@ -21,12 +34,12 @@ This tests a simple markdown table placed in the margin.
 
 ::: {.column-margin}
 
-| A | B | C |
-|---|---|---|
-| 1 | 2 | 3 |
-| 4 | 5 | 6 |
+| Col1  | Col2  | Col3  |
+|-------|-------|-------|
+| Alpha | Beta  | Gamma |
+| Delta | Omega | Zeta  |
 
-: Margin Table {#tbl-margin}
+: SIMPLE-TBL-CAP {#tbl-margin}
 
 :::
 

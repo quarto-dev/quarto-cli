@@ -18,17 +18,17 @@ _quarto:
         - ['Listing 1', 'MARGIN-CELL-OPTION-CODE']
         - []
       ensurePdfTextPositions:
-        - # Listing in margin, right of body text
+        - # Listing in margin, right of body text - "World" unique string in code
           - subject: "MARGIN-CELL-OPTION-CODE"
             relation: rightOf
             object: "This tests"
-          - subject: "greet"
+          - subject: "World"
             relation: rightOf
             object: "This tests"
           # Caption above code (default for listings)
           - subject: "MARGIN-CELL-OPTION-CODE"
             relation: above
-            object: "greet"
+            object: "World"
         - []
       noErrors: default
 ---

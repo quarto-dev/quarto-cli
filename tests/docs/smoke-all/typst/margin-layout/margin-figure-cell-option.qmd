@@ -17,6 +17,12 @@ _quarto:
       ensurePdfRegexMatches:
         - ['Figure 1', 'Scatter Plot']
         - []
+      ensurePdfTextPositions:
+        - # Figure in margin, right of body text
+          - subject: "Scatter Plot"
+            relation: rightOf
+            object: "This tests"
+        - []
       noErrors: default
 ---
 

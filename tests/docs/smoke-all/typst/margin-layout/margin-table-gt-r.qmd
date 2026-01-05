@@ -14,6 +14,19 @@ _quarto:
       ensurePdfRegexMatches:
         - ['Table 1', 'Large Landmasses', 'Asia', 'Africa']
         - []
+      ensurePdfTextPositions:
+        - # Table in margin, right of body text
+          - subject: "Large Landmasses"
+            relation: rightOf
+            object: "This tests"
+          - subject: "Asia"
+            relation: rightOf
+            object: "This tests"
+          # Caption above table content (default for tables)
+          - subject: "Large Landmasses"
+            relation: above
+            object: "Asia"
+        - []
       noErrors: default
 ---
 

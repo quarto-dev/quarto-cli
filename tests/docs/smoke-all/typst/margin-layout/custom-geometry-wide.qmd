@@ -20,6 +20,15 @@ _quarto:
           - 'Wide margin'
           - 'This is a note'
         - []
+      ensurePdfTextPositions:
+        - # Margin notes are in margin (rightOf body text) with wide geometry
+          - subject: "This is a note"
+            relation: rightOf
+            object: "Wide Margin Layout"
+          - subject: "This is a note"
+            relation: above
+            object: "Additional context"
+        - []
       noErrors: default
 ---
 

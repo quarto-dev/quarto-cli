@@ -17,6 +17,12 @@ _quarto:
       ensurePdfRegexMatches:
         - ['Universe', 'Library', 'hexagon', 'Vindication', 'Borges']
         - []
+      ensurePdfTextPositions:
+        - # Citation in margin (rightOf body text) - "Editorial Sur" only in citation
+          - subject: "Editorial Sur"
+            relation: rightOf
+            object: "ventilation shaft"
+        - []
       noErrors: default
 ---
 

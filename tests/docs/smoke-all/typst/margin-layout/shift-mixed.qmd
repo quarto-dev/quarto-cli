@@ -14,13 +14,13 @@ _quarto:
         - # Positive assertions
           - subject: "FIXED"
             relation: above
-            object: "AUTO"
-          - subject: "AUTO"
+            object: "AUTO1"
+          - subject: "AUTO1"
             relation: above
             object: "AVOID"
           - subject: "AVOID"
             relation: above
-            object: "AUTO 2"
+            object: "AUTO2"
           - subject: "FIXED"
             relation: rightOf
             object: "Line 1"
@@ -34,7 +34,7 @@ _quarto:
 This tests all shift modes interacting in a single document.
 
 Line 1 [FIXED]{.column-margin shift="false"}.
-Line 2 [AUTO]{.column-margin}.
+Line 2 [AUTO1]{.column-margin}.
 Line 3 [AVOID]{.column-margin shift="avoid"}.
 Line 4 [IGNORE]{.column-margin shift="ignore"}.
-Line 5 [AUTO 2]{.column-margin}.
+Line 5 [AUTO2]{.column-margin}.

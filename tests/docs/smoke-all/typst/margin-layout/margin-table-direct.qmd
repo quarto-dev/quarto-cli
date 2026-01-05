@@ -11,16 +11,29 @@ _quarto:
         # Should use notefigure for margin tables
         - ['#notefigure\(']
         - []
+      ensurePdfTextPositions:
+        - # Table in margin, right of body text
+          - subject: "DIRECT-TBL-CAP"
+            relation: rightOf
+            object: "This tests"
+          - subject: "Kappa"
+            relation: rightOf
+            object: "This tests"
+          # Caption above table content (default for tables)
+          - subject: "DIRECT-TBL-CAP"
+            relation: above
+            object: "Kappa"
+        - []
       noErrors: default
 ---
 
 This tests a table with margin class directly on it.
 
-| A | B | C |
-|---|---|---|
-| 1 | 2 | 3 |
-| 4 | 5 | 6 |
+| Col1  | Col2   | Col3  |
+|-------|--------|-------|
+| Kappa | Lambda | Sigma |
+| Theta | Phi    | Psi   |
 
-: Margin Table {#tbl-margin .column-margin}
+: DIRECT-TBL-CAP {#tbl-margin .column-margin}
 
 See @tbl-margin for the table in the margin.

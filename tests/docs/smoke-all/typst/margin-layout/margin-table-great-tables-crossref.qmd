@@ -16,7 +16,13 @@ _quarto:
         - ['#notefigure\(', '<tbl-air>']
         - []
       ensurePdfRegexMatches:
-        - ['Table 1']
+        - ['Table 1', 'Air Quality']
+        - []
+      ensurePdfTextPositions:
+        - # Table column header in margin, right of body text - "O3" unique to table
+          - subject: "O3"
+            relation: rightOf
+            object: "This tests"
         - []
       noErrors: default
 ---
