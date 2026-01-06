@@ -4,8 +4,10 @@ _quarto:
   render-project: true
   tests:
     html:
-      ensureFileRegexMatches:
-        - 
-          - '\<meta property="og:site_name" content="PR 13847: open graph metadata – Quarto CLI 1.0.0"\>'
+      ensureHtmlElements:
+        -
+          - 'meta[property="og:site_name"][content*="Quarto CLI 1.0.0"]'
         - []
 ---
+
+This test check that the website title is correctly resolved when used in open graph site name, including when using a shortcode.
