@@ -1,0 +1,11 @@
+---
+title: "PR 13847: open graph metadata"
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - '\<meta property="og:site_name" content="PR 13847: open graph metadata – Quarto CLI 1.0.0"\>'
+        - []
+---
