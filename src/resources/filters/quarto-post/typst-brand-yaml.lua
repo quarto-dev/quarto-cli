@@ -71,14 +71,6 @@ function render_typst_brand_yaml()
         for name, _ in pairs(brandColor) do
           colors[name] = _quarto.modules.brand.get_color(brandMode, name)
         end
-        if brandColor.background then
-          quarto.doc.include_text('in-header', '#set page(fill: brand-color.background)')
-        end
-        if brandColor.foreground then
-          quarto.doc.include_text('in-header', '#set text(fill: brand-color.foreground)')
-          quarto.doc.include_text('in-header', '#set table.hline(stroke: (paint: brand-color.foreground))')
-          quarto.doc.include_text('in-header', '#set line(stroke: (paint: brand-color.foreground))')
-        end
         for name, _ in pairs(brandColor) do
           if brandColor.background then
             local brandPercent = 15
@@ -92,11 +84,22 @@ function render_typst_brand_yaml()
           end
         end
       end
-      -- Always emit brand-color and brand-color-background
+      -- Always emit brand-color and brand-color-background FIRST (before any usage)
       local colorDecl = '#let brand-color = ' .. (to_typst_dict_indent(colors) or '(:)')
       quarto.doc.include_text('in-header', colorDecl)
       local bkDecl = '#let brand-color-background = ' .. (to_typst_dict_indent(themebk) or '(:)')
       quarto.doc.include_text('in-header', bkDecl)
+      -- Now emit the #set statements that USE brand-color
+      if brandColor and next(brandColor) then
+        if brandColor.background then
+          quarto.doc.include_text('in-header', '#set page(fill: brand-color.background)')
+        end
+        if brandColor.foreground then
+          quarto.doc.include_text('in-header', '#set text(fill: brand-color.foreground)')
+          quarto.doc.include_text('in-header', '#set table.hline(stroke: (paint: brand-color.foreground))')
+          quarto.doc.include_text('in-header', '#set line(stroke: (paint: brand-color.foreground))')
+        end
+      end
 
       -- Always emit brand-logo (empty dict if no logos defined)
       -- This allows templates to safely use brand-logo.at("medium", default: none)
