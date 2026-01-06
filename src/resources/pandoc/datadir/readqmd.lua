@@ -138,6 +138,11 @@ local function readqmd(txt, opts)
     end
   end
 
+  -- ### Opt-out some extensions that we know we won't support for now ###
+  -- https://pandoc.org/MANUAL.html#extension-table_attributes
+  -- https://github.com/quarto-dev/quarto-cli/pull/13249#issuecomment-3715267414
+  flavor.extensions["table_attributes"] = false
+
   -- Format flavor, i.e., which extensions should be enabled/disabled.
   local function restore_invalid_tags(tag)
     return tags[tag] or tag
