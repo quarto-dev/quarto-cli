@@ -20,7 +20,8 @@ import { unzip } from "../src/core/zip.ts";
 import { dirAndStem, safeRemoveSync, which } from "../src/core/path.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
 import { execProcess, ExecProcessOptions } from "../src/core/process.ts";
-import { canonicalizeSnapshot, checkSnapshot } from "./verify-snapshot.ts";
+import { checkSnapshot, generateSnapshotDiff, generateInlineDiff, WordDiffPart } from "./verify-snapshot.ts";
+import * as colors from "fmt/colors";
 
 export const withDocxContent = async <T>(
   file: string,
@@ -440,6 +441,63 @@ export const ensureHtmlElementCount = (
   };
 };
 
+const printColoredDiff = (diff: string) => {
+  for (const line of diff.split("\n")) {
+    if (line.startsWith("+") && !line.startsWith("+++")) {
+      console.log(colors.green(line));
+    } else if (line.startsWith("-") && !line.startsWith("---")) {
+      console.log(colors.red(line));
+    } else if (line.startsWith("@@")) {
+      console.log(colors.dim(line));
+    } else {
+      console.log(line);
+    }
+  }
+};
+
+const escapeWhitespace = (s: string): string => {
+  return s.replace(/\n/g, "⏎\\n").replace(/\t/g, "→\\t").replace(/ /g, "·");
+};
+
+const printCompactInlineDiff = (parts: WordDiffPart[]) => {
+  const chunks: string[] = [];
+  let currentChunk = "";
+  let hasChanges = false;
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    if (part.added || part.removed) {
+      hasChanges = true;
+      const displayValue = /^\s+$/.test(part.value) ? escapeWhitespace(part.value) : part.value;
+      if (part.added) {
+        currentChunk += colors.bgGreen(colors.black(displayValue));
+      } else {
+        currentChunk += colors.bgRed(colors.white(displayValue));
+      }
+    } else {
+      if (hasChanges) {
+        const contextBefore = part.value.slice(0, 40);
+        chunks.push(currentChunk + colors.dim(contextBefore + (part.value.length > 40 ? "..." : "")));
+        currentChunk = "";
+        hasChanges = false;
+      }
+      const nextHasChange = parts.slice(i + 1).some(p => p.added || p.removed);
+      if (nextHasChange) {
+        const contextAfter = part.value.slice(-40);
+        currentChunk = colors.dim((part.value.length > 40 ? "..." : "") + contextAfter);
+      }
+    }
+  }
+  if (currentChunk) {
+    chunks.push(currentChunk);
+  }
+
+  for (const chunk of chunks) {
+    console.log(chunk);
+    console.log("");
+  }
+};
+
 export const ensureSnapshotMatches = (
   file: string,
 ): Verify => {
@@ -447,11 +505,23 @@ export const ensureSnapshotMatches = (
     name: "Inspecting Snapshot",
     verify: async (_output: ExecuteOutput[]) => {
       const good = await checkSnapshot(file);
+      const diffFile = file + ".diff";
       if (!good) {
-        console.log("output:");
-        console.log(await canonicalizeSnapshot(file));
-        console.log("snapshot:");
-        console.log(await canonicalizeSnapshot(file + ".snapshot"));
+        const diff = await generateSnapshotDiff(file);
+        const inlineParts = await generateInlineDiff(file);
+
+        await Deno.writeTextFile(diffFile, diff);
+        console.log(`\nDiff saved to: ${diffFile}`);
+
+        console.log("\n--- Unified Diff ---");
+        printColoredDiff(diff);
+        console.log("--- End Unified Diff ---\n");
+
+        console.log("--- Word-level Changes (with context) ---");
+        printCompactInlineDiff(inlineParts);
+        console.log("--- End Word-level Changes ---\n");
+      } else {
+        safeRemoveSync(diffFile);
       }
       assert(
         good,
