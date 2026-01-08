@@ -17216,6 +17216,24 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          name: "page-numbering",
+          schema: {
+            anyOf: [
+              "boolean",
+              "string"
+            ]
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n",
+            long: "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n\nSee [Typst Numbering](https://typst.app/docs/reference/model/numbering/) \nfor additional information.\n"
+          }
+        },
+        {
           name: "pagenumbering",
           schema: {
             maybeArrayOf: "string"
@@ -21908,7 +21926,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The path to an XML stylesheet (XSL file) used to style the RSS\nfeed.",
         {
           short: "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
-          long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://quarto.org/docs/reference/dates.html">here</a>.'
+          long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://deno.land/std@0.125.0/datetime">here</a>.'
         },
         {
           short: "The maximum length (in characters) of the description displayed in\nthe listing.",
@@ -24698,7 +24716,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+        {
+          short: "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
+          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -24927,12 +24949,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197474,
+        _internalId: 197484,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197466,
+            _internalId: 197476,
             type: "enum",
             enum: [
               "png",
@@ -24948,7 +24970,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197473,
+            _internalId: 197483,
             type: "anyOf",
             anyOf: [
               {
