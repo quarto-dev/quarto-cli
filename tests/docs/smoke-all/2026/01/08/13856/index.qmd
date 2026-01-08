@@ -1,0 +1,488 @@
+---
+title: "Code Annotation Language Support"
+format: html
+code-annotations: below
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - - "[data-filename='APL'] .code-annotation-code, .code-annotation-code[data-filename='APL']"
+          - "[data-filename='Asymptote'] .code-annotation-code, .code-annotation-code[data-filename='Asymptote']"
+          - "[data-filename='AWK'] .code-annotation-code, .code-annotation-code[data-filename='AWK']"
+          - "[data-filename='Bash'] .code-annotation-code, .code-annotation-code[data-filename='Bash']"
+          - "[data-filename='C'] .code-annotation-code, .code-annotation-code[data-filename='C']"
+          - "[data-filename='CC'] .code-annotation-code, .code-annotation-code[data-filename='CC']"
+          - "[data-filename='CoffeeScript'] .code-annotation-code, .code-annotation-code[data-filename='CoffeeScript']"
+          - "[data-filename='C++'] .code-annotation-code, .code-annotation-code[data-filename='C++']"
+          - "[data-filename='C#'] .code-annotation-code, .code-annotation-code[data-filename='C#']"
+          - "[data-filename='CSS'] .code-annotation-code, .code-annotation-code[data-filename='CSS']"
+          - "[data-filename='D3'] .code-annotation-code, .code-annotation-code[data-filename='D3']"
+          - "[data-filename='Dockerfile'] .code-annotation-code, .code-annotation-code[data-filename='Dockerfile']"
+          - "[data-filename='DOT'] .code-annotation-code, .code-annotation-code[data-filename='DOT']"
+          - "[data-filename='Elm'] .code-annotation-code, .code-annotation-code[data-filename='Elm']"
+          - "[data-filename='Fortran'] .code-annotation-code, .code-annotation-code[data-filename='Fortran']"
+          - "[data-filename='Fortran 95'] .code-annotation-code, .code-annotation-code[data-filename='Fortran 95']"
+          - "[data-filename='F#'] .code-annotation-code, .code-annotation-code[data-filename='F#']"
+          - "[data-filename='GAP'] .code-annotation-code, .code-annotation-code[data-filename='GAP']"
+          - "[data-filename='GAWK'] .code-annotation-code, .code-annotation-code[data-filename='GAWK']"
+          - "[data-filename='Go'] .code-annotation-code, .code-annotation-code[data-filename='Go']"
+          - "[data-filename='Groovy'] .code-annotation-code, .code-annotation-code[data-filename='Groovy']"
+          - "[data-filename='Haskell'] .code-annotation-code, .code-annotation-code[data-filename='Haskell']"
+          - "[data-filename='HTML'] .code-annotation-code, .code-annotation-code[data-filename='HTML']"
+          - "[data-filename='Java'] .code-annotation-code, .code-annotation-code[data-filename='Java']"
+          - "[data-filename='JavaScript'] .code-annotation-code, .code-annotation-code[data-filename='JavaScript']"
+          - "[data-filename='JS'] .code-annotation-code, .code-annotation-code[data-filename='JS']"
+          - "[data-filename='JSON'] .code-annotation-code, .code-annotation-code[data-filename='JSON']"
+          - "[data-filename='Julia'] .code-annotation-code, .code-annotation-code[data-filename='Julia']"
+          - "[data-filename='LaTeX'] .code-annotation-code, .code-annotation-code[data-filename='LaTeX']"
+          - "[data-filename='Lua'] .code-annotation-code, .code-annotation-code[data-filename='Lua']"
+          - "[data-filename='Markdown'] .code-annotation-code, .code-annotation-code[data-filename='Markdown']"
+          - "[data-filename='MATLAB'] .code-annotation-code, .code-annotation-code[data-filename='MATLAB']"
+          - "[data-filename='Mermaid'] .code-annotation-code, .code-annotation-code[data-filename='Mermaid']"
+          - "[data-filename='MySQL'] .code-annotation-code, .code-annotation-code[data-filename='MySQL']"
+          - "[data-filename='Node'] .code-annotation-code, .code-annotation-code[data-filename='Node']"
+          - "[data-filename='OCaml'] .code-annotation-code, .code-annotation-code[data-filename='OCaml']"
+          - "[data-filename='Octave'] .code-annotation-code, .code-annotation-code[data-filename='Octave']"
+          - "[data-filename='Observable JS'] .code-annotation-code, .code-annotation-code[data-filename='Observable JS']"
+          - "[data-filename='Perl'] .code-annotation-code, .code-annotation-code[data-filename='Perl']"
+          - "[data-filename='PowerShell'] .code-annotation-code, .code-annotation-code[data-filename='PowerShell']"
+          - "[data-filename='PostgreSQL'] .code-annotation-code, .code-annotation-code[data-filename='PostgreSQL']"
+          - "[data-filename='Python'] .code-annotation-code, .code-annotation-code[data-filename='Python']"
+          - "[data-filename='R'] .code-annotation-code, .code-annotation-code[data-filename='R']"
+          - "[data-filename='Ruby'] .code-annotation-code, .code-annotation-code[data-filename='Ruby']"
+          - "[data-filename='Rust'] .code-annotation-code, .code-annotation-code[data-filename='Rust']"
+          - "[data-filename='SAS'] .code-annotation-code, .code-annotation-code[data-filename='SAS']"
+          - "[data-filename='Sass'] .code-annotation-code, .code-annotation-code[data-filename='Sass']"
+          - "[data-filename='Scala'] .code-annotation-code, .code-annotation-code[data-filename='Scala']"
+          - "[data-filename='SCSS'] .code-annotation-code, .code-annotation-code[data-filename='SCSS']"
+          - "[data-filename='Sed'] .code-annotation-code, .code-annotation-code[data-filename='Sed']"
+          - "[data-filename='SQL'] .code-annotation-code, .code-annotation-code[data-filename='SQL']"
+          - "[data-filename='Stan'] .code-annotation-code, .code-annotation-code[data-filename='Stan']"
+          - "[data-filename='Stata'] .code-annotation-code, .code-annotation-code[data-filename='Stata']"
+          - "[data-filename='Swift'] .code-annotation-code, .code-annotation-code[data-filename='Swift']"
+          - "[data-filename='TikZ'] .code-annotation-code, .code-annotation-code[data-filename='TikZ']"
+          - "[data-filename='TypeScript'] .code-annotation-code, .code-annotation-code[data-filename='TypeScript']"
+          - "[data-filename='Typst'] .code-annotation-code, .code-annotation-code[data-filename='Typst']"
+          - "[data-filename='VHDL'] .code-annotation-code, .code-annotation-code[data-filename='VHDL']"
+          - "[data-filename='YAML'] .code-annotation-code, .code-annotation-code[data-filename='YAML']"
+        - []
+---
+
+This test verifies code annotation support for all 49 languages from `src/resources/filters/modules/constants.lua`.
+
+## APL
+
+```{.apl filename="APL"}
+x <- 1 ⍝ <1>
+```
+1. APL annotation.
+
+## Asymptote
+
+```{.asy filename="Asymptote"}
+int x = 1; // <1>
+```
+1. Asymptote annotation.
+
+## AWK
+
+```{.awk filename="AWK"}
+x = 1 # <1>
+```
+1. AWK annotation.
+
+## Bash
+
+```{.bash filename="Bash"}
+x=1 # <1>
+```
+1. Bash annotation.
+
+## C
+
+```{.c filename="C"}
+int x = 1; /* <1> */
+```
+1. C annotation.
+
+## CC
+
+```{.cc filename="CC"}
+int x = 1; // <1>
+```
+1. CC annotation.
+
+## CoffeeScript
+
+```{.coffee filename="CoffeeScript"}
+x = 1 # <1>
+```
+1. CoffeeScript annotation.
+
+## C++
+
+```{.cpp filename="C++"}
+int x = 1; // <1>
+```
+1. C++ annotation.
+
+## C#
+
+```{.csharp filename="C#"}
+int x = 1; // <1>
+```
+1. C# annotation.
+
+## CSS
+
+```{.css filename="CSS"}
+.class {
+  color: red; /* <1> */
+}
+```
+1. CSS annotation.
+
+## D3
+
+```{.d3 filename="D3"}
+var x = 1; // <1>
+```
+1. D3 annotation.
+
+## Dockerfile
+
+```{.dockerfile filename="Dockerfile"}
+RUN echo "hello" # <1>
+```
+1. Dockerfile annotation.
+
+## DOT
+
+```{.dot filename="DOT"}
+digraph {
+  a -> b; // <1>
+}
+```
+1. DOT annotation.
+
+## Elm
+
+```{.elm filename="Elm"}
+x = 1 # <1>
+```
+1. Elm annotation.
+
+## Fortran
+
+```{.fortran filename="Fortran"}
+x = 1 ! <1>
+```
+1. Fortran annotation.
+
+## Fortran 95
+
+```{.fortran95 filename="Fortran 95"}
+x = 1 ! <1>
+```
+1. Fortran 95 annotation.
+
+## F#
+
+```{.fsharp filename="F#"}
+let x = 1 // <1>
+```
+1. F# annotation.
+
+## GAP
+
+```{.gap filename="GAP"}
+x := 1; # <1>
+```
+1. GAP annotation.
+
+## GAWK
+
+```{.gawk filename="GAWK"}
+x = 1 # <1>
+```
+1. GAWK annotation.
+
+## Go
+
+```{.go filename="Go"}
+x := 1 // <1>
+```
+1. Go annotation.
+
+## Groovy
+
+```{.groovy filename="Groovy"}
+def x = 1 // <1>
+```
+1. Groovy annotation.
+
+## Haskell
+
+```{.haskell filename="Haskell"}
+x = 1 -- <1>
+```
+1. Haskell annotation.
+
+## HTML
+
+```{.html filename="HTML"}
+<div>content</div> <!-- <1> -->
+```
+1. HTML annotation.
+
+## Java
+
+```{.java filename="Java"}
+int x = 1; // <1>
+```
+1. Java annotation.
+
+## JavaScript
+
+```{.javascript filename="JavaScript"}
+const x = 1; // <1>
+```
+1. JavaScript annotation.
+
+## JS
+
+```{.js filename="JS"}
+const x = 1; // <1>
+```
+1. JS annotation.
+
+## JSON
+
+```{.json filename="JSON"}
+{ "x": 1 } // <1>
+```
+1. JSON annotation.
+
+## Julia
+
+```{.julia filename="Julia"}
+x = 1 # <1>
+```
+1. Julia annotation.
+
+## LaTeX
+
+```{.latex filename="LaTeX"}
+\documentclass{article} % <1>
+```
+1. LaTeX annotation.
+
+## Lua
+
+```{.lua filename="Lua"}
+x = 1 -- <1>
+```
+1. Lua annotation.
+
+## Markdown
+
+```{.markdown filename="Markdown"}
+# Heading <!-- <1> -->
+```
+1. Markdown annotation.
+
+## MATLAB
+
+```{.matlab filename="MATLAB"}
+x = 1 % <1>
+```
+1. MATLAB annotation.
+
+## Mermaid
+
+```{.mermaid filename="Mermaid"}
+graph LR; A-->B; %% <1>
+```
+1. Mermaid annotation.
+
+## MySQL
+
+```{.mysql filename="MySQL"}
+SELECT * FROM t; -- <1>
+```
+1. MySQL annotation.
+
+## Node
+
+```{.node filename="Node"}
+const x = 1; // <1>
+```
+1. Node annotation.
+
+## OCaml
+
+```{.ocaml filename="OCaml"}
+let x = 1 (* <1> *)
+```
+1. OCaml annotation.
+
+## Octave
+
+```{.octave filename="Octave"}
+x = 1 # <1>
+```
+1. Octave annotation.
+
+## Observable JS
+
+```{.ojs filename="Observable JS"}
+x = 1 // <1>
+```
+1. Observable JS annotation.
+
+## Perl
+
+```{.perl filename="Perl"}
+$x = 1; # <1>
+```
+1. Perl annotation.
+
+## PowerShell
+
+```{.powershell filename="PowerShell"}
+$x = 1 # <1>
+```
+1. PowerShell annotation.
+
+## PostgreSQL
+
+```{.psql filename="PostgreSQL"}
+SELECT * FROM t; -- <1>
+```
+1. PostgreSQL annotation.
+
+## Python
+
+```{.python filename="Python"}
+x = 1 # <1>
+```
+1. Python annotation.
+
+## R
+
+```{.r filename="R"}
+x <- 1 # <1>
+```
+1. R annotation.
+
+## Ruby
+
+```{.ruby filename="Ruby"}
+x = 1 # <1>
+```
+1. Ruby annotation.
+
+## Rust
+
+```{.rust filename="Rust"}
+let x = 1; // <1>
+```
+1. Rust annotation.
+
+## SAS
+
+```{.sas filename="SAS"}
+data test; x = 1; * <1> ;
+```
+1. SAS annotation.
+
+## Sass
+
+```{.sass filename="Sass"}
+$x: 1 // <1>
+```
+1. Sass annotation.
+
+## Scala
+
+```{.scala filename="Scala"}
+val x = 1 // <1>
+```
+1. Scala annotation.
+
+## SCSS
+
+```{.scss filename="SCSS"}
+$x: 1; // <1>
+```
+1. SCSS annotation.
+
+## Sed
+
+```{.sed filename="Sed"}
+s/a/b/ # <1>
+```
+1. Sed annotation.
+
+## SQL
+
+```{.sql filename="SQL"}
+SELECT * FROM t; -- <1>
+```
+1. SQL annotation.
+
+## Stan
+
+```{.stan filename="Stan"}
+int x = 1; # <1>
+```
+1. Stan annotation.
+
+## Stata
+
+```{.stata filename="Stata"}
+gen x = 1 * <1>
+```
+1. Stata annotation.
+
+## Swift
+
+```{.swift filename="Swift"}
+let x = 1 // <1>
+```
+1. Swift annotation.
+
+## TikZ
+
+```{.tikz filename="TikZ"}
+\draw (0,0) -- (1,1); % <1>
+```
+1. TikZ annotation.
+
+## TypeScript
+
+```{.typescript filename="TypeScript"}
+const x: number = 1; // <1>
+```
+1. TypeScript annotation.
+
+## Typst
+
+```{.typst filename="Typst"}
+#let x = 1 // <1>
+```
+1. Typst annotation.
+
+## VHDL
+
+```{.vhdl filename="VHDL"}
+signal x : integer; -- <1>
+```
+1. VHDL annotation.
+
+## YAML
+
+```{.yaml filename="YAML"}
+x: 1 # <1>
+```
+1. YAML annotation.
