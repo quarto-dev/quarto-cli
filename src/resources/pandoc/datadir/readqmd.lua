@@ -141,7 +141,11 @@ local function readqmd(txt, opts)
   -- ### Opt-out some extensions that we know we won't support for now ###
   -- https://pandoc.org/MANUAL.html#extension-table_attributes
   -- https://github.com/quarto-dev/quarto-cli/pull/13249#issuecomment-3715267414
-  flavor.extensions["table_attributes"] = false
+  -- Only disable if the extension is actually supported by the format
+  local all_exts = pandoc.format.all_extensions(flavor.format)
+  if all_exts:includes('table_attributes') then
+    flavor.extensions["table_attributes"] = false
+  end
 
   -- Format flavor, i.e., which extensions should be enabled/disabled.
   local function restore_invalid_tags(tag)
