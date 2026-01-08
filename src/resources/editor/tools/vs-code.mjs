@@ -8540,8 +8540,8 @@ var require_yaml_intelligence_resources = __commonJS({
               icon: {
                 string: {
                   description: {
-                    short: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
-                    long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                    short: "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)",
+                    long: "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
                   }
                 }
               },
@@ -8722,6 +8722,25 @@ var require_yaml_intelligence_resources = __commonJS({
             required: [
               "repo"
             ]
+          }
+        },
+        {
+          id: "external-engine",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                path: {
+                  path: {
+                    description: "Path to the TypeScript module for the execution engine"
+                  }
+                }
+              },
+              required: [
+                "path"
+              ]
+            },
+            description: "An execution engine not pre-loaded in Quarto"
           }
         },
         {
@@ -9427,6 +9446,30 @@ var require_yaml_intelligence_resources = __commonJS({
                 ],
                 description: "Enable Google Analytics for this website"
               },
+              "plausible-analytics": {
+                anyOf: [
+                  "string",
+                  {
+                    object: {
+                      closed: true,
+                      properties: {
+                        path: {
+                          path: {
+                            description: "Path to a file containing the Plausible Analytics script snippet"
+                          }
+                        }
+                      },
+                      required: [
+                        "path"
+                      ]
+                    }
+                  }
+                ],
+                description: {
+                  short: "Enable Plausible Analytics for this website by providing a script snippet or path to snippet file",
+                  long: 'Enable Plausible Analytics for this website by pasting the script snippet from your Plausible dashboard,\nor by providing a path to a file containing the snippet.\n\nPlausible is a privacy-friendly, GDPR-compliant web analytics service that does not use cookies and does not require cookie consent.\n\n**Option 1: Inline snippet**\n\n```yaml\nwebsite:\n  plausible-analytics: |\n    <script async src="https://plausible.io/js/script.js"><\/script>\n```\n\n**Option 2: File path**\n\n```yaml\nwebsite:\n  plausible-analytics:\n    path: _plausible_snippet.html\n```\n\nTo get your script snippet:\n\n1. Log into your Plausible account at <https://plausible.io>\n2. Go to your site settings\n3. Copy the JavaScript snippet provided\n4. Either paste it directly in your configuration or save it to a file\n\nFor more information, see <https://plausible.io/docs/plausible-script>\n'
+                }
+              },
               announcement: {
                 anyOf: [
                   "string",
@@ -9498,12 +9541,12 @@ var require_yaml_intelligence_resources = __commonJS({
                       properties: {
                         type: {
                           enum: [
-                            "implied",
-                            "express"
+                            "express",
+                            "implied"
                           ],
                           description: {
                             short: "The type of consent that should be requested",
-                            long: "The type of consent that should be requested, using one of these two values:\n\n- `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n\n- `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn\u2019t agree).\n"
+                            long: "The type of consent that should be requested, using one of these two values:\n\n- `express` (default): This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn\u2019t agree).\n\n- `implied`: This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n"
                           }
                         },
                         style: {
@@ -11651,7 +11694,67 @@ var require_yaml_intelligence_resources = __commonJS({
                   object: {
                     properties: {
                       "trace-filters": "string",
-                      tests: "object"
+                      tests: {
+                        object: {
+                          properties: {
+                            run: {
+                              object: {
+                                description: "Control when tests should run",
+                                properties: {
+                                  ci: {
+                                    boolean: {
+                                      description: "Run tests on CI (true = run, false = skip)",
+                                      default: true
+                                    }
+                                  },
+                                  os: {
+                                    description: "Run tests ONLY on these platforms (whitelist)",
+                                    anyOf: [
+                                      {
+                                        enum: [
+                                          "linux",
+                                          "darwin",
+                                          "windows"
+                                        ]
+                                      },
+                                      {
+                                        arrayOf: {
+                                          enum: [
+                                            "linux",
+                                            "darwin",
+                                            "windows"
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  not_os: {
+                                    description: "Don't run tests on these platforms (blacklist)",
+                                    anyOf: [
+                                      {
+                                        enum: [
+                                          "linux",
+                                          "darwin",
+                                          "windows"
+                                        ]
+                                      },
+                                      {
+                                        arrayOf: {
+                                          enum: [
+                                            "linux",
+                                            "darwin",
+                                            "windows"
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -17235,8 +17338,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: {
-            short: "Schema to use for numbering pages, e.g. `1` or  `i`, or `false` to omit page numbering.\n",
-            long: "Schema to use for numbering pages, e.g. `1` or  `i`, or `false` to omit page numbering.\n\nSee [Typst Numbering](https://typst.app/docs/reference/model/numbering/) \nfor additional information.\n"
+            short: "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n",
+            long: "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n\nSee [Typst Numbering](https://typst.app/docs/reference/model/numbering/) \nfor additional information.\n"
           }
         },
         {
@@ -19294,7 +19397,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     url: {
                       string: {
-                        default: "https://reveal-multiplex.glitch.me/",
+                        default: "https://multiplex.up.railway.app/",
                         description: "Multiplex token server (defaults to Reveal-hosted server)\n"
                       }
                     },
@@ -20134,6 +20237,16 @@ var require_yaml_intelligence_resources = __commonJS({
                 },
                 formats: {
                   schema: "object"
+                },
+                engines: {
+                  arrayOf: {
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "external-engine"
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -20572,7 +20685,14 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "engines",
           schema: {
-            arrayOf: "string"
+            arrayOf: {
+              anyOf: [
+                "string",
+                {
+                  ref: "external-engine"
+                }
+              ]
+            }
           },
           description: "List execution engines you want to give priority when determining which engine should render a notebook. If two engines have support for a notebook, the one listed earlier will be chosen. Quarto's default order is 'knitr', 'jupyter', 'markdown', 'julia'."
         }
@@ -21336,8 +21456,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Alias for href",
         "Link to file contained with the project or external URL",
         {
-          short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>)",
-          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+          short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>)",
+          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
         },
         "Text to display for item (defaults to the document title if not\nprovided)",
         "Alias for href",
@@ -21373,6 +21493,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name.",
         "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
+        "An execution engine not pre-loaded in Quarto",
+        "Path to the TypeScript module for the execution engine",
         "The Github repo that will be used to store comments.",
         "The label that will be assigned to issues created by Utterances.",
         {
@@ -21531,6 +21653,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -21692,6 +21819,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -22484,6 +22616,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify a default profile and profile groups",
         "Default profile to apply if QUARTO_PROFILE is not defined.",
         "Define a profile group for which at least one profile is always\nactive.",
+        "Control when tests should run",
+        "Run tests on CI (true = run, false = skip)",
+        "Run tests ONLY on these platforms (whitelist)",
+        "Don\u2019t run tests on these platforms (blacklist)",
         "The path to the locally referenced notebook.",
         "The title of the notebook when viewed.",
         "The url to use when viewing this notebook.",
@@ -24082,6 +24218,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -24432,6 +24573,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -24955,12 +25101,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197624,
+        _internalId: 198096,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197616,
+            _internalId: 198088,
             type: "enum",
             enum: [
               "png",
@@ -24976,7 +25122,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197623,
+            _internalId: 198095,
             type: "anyOf",
             anyOf: [
               {
@@ -34281,7 +34427,7 @@ function parseShortcode(shortCodeCapture) {
 }
 
 // ../break-quarto-md.ts
-async function breakQuartoMd(src, validate2 = false, lenient = false) {
+async function breakQuartoMd(src, validate2 = false, lenient = false, startCodeCellRegex) {
   if (typeof src === "string") {
     src = asMappedString(src);
   }
@@ -34290,7 +34436,7 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
     cells: []
   };
   const yamlRegEx = /^---\s*$/;
-  const startCodeCellRegEx = new RegExp(
+  const startCodeCellRegEx = startCodeCellRegex || new RegExp(
     "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
   );
   const startCodeRegEx = /^```/;
