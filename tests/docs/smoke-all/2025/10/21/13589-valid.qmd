@@ -1,0 +1,34 @@
+---
+title: "Callout with valid ID prefix"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '#figure\(\[(\r\n?|\n)#block\[(\r\n?|\n)#callout'
+        - []
+      printsMessage:
+        level: INFO
+        regex: 'WARNING(.*)Callout ID(.*)unknown reference type'
+        negate: true
+      noErrors: true
+---
+
+## Test callout with valid crossref ID
+
+This tests that callouts with valid ID prefixes (matching known crossref categories)
+are properly wrapped in figures for cross-reference support.
+
+::: {#nte-valid .callout-note}
+
+## Note with valid ID
+
+This callout uses `#nte-valid` which has the valid prefix "nte" (for notes).
+This should be wrapped in a `figure` for cross-referencing support.
+
+:::
+
+As mentioned in @nte-valid, valid callout IDs should work correctly.

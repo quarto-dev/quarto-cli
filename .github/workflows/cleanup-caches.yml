@@ -12,17 +12,51 @@ jobs:
     steps:
       - name: Cleanup
         run: |
-          echo "Fetching list of cache keys"
-          cacheKeysForPR=$(gh cache list --ref $BRANCH --limit 100 --json id --jq '.[].id')
+          echo "::group::Fetching cache list for PR #${{ github.event.pull_request.number }}"
+          echo "Branch ref: $BRANCH"
+
+          # Get full cache list with details for logging
+          cacheList=$(gh cache list --ref $BRANCH --limit 100 --json id,key,sizeInBytes)
+          cacheCount=$(echo "$cacheList" | jq '. | length')
+
+          echo "Found $cacheCount cache(s) for this PR"
+
+          if [ "$cacheCount" -gt 0 ]; then
+            echo "Cache details:"
+            echo "$cacheList" | jq -r '.[] | "  - ID: \(.id) | Key: \(.key) | Size: \(.sizeInBytes | tonumber / 1024 / 1024 | floor)MB"'
+          fi
+          echo "::endgroup::"
+
+          if [ "$cacheCount" -eq 0 ]; then
+            echo "No caches to delete"
+            exit 0
+          fi
+
+          # Extract just the IDs for deletion
+          cacheKeysForPR=$(echo "$cacheList" | jq -r '.[].id')
 
           ## Setting this to not fail the workflow while deleting cache keys.
           set +e
-          echo "Deleting caches..."
+
+          echo "::group::Deleting caches"
+          deleted=0
+          failed=0
+
           for cacheKey in $cacheKeysForPR
           do
-              gh cache delete $cacheKey
+              echo "Deleting cache ID: $cacheKey"
+              if gh cache delete $cacheKey; then
+                echo "  ✓ Successfully deleted cache $cacheKey"
+                ((deleted++))
+              else
+                echo "  ✗ Failed to delete cache $cacheKey"
+                ((failed++))
+              fi
           done
-          echo "Done"
+
+          echo "::endgroup::"
+
+          echo "::notice::Cache cleanup complete: $deleted deleted, $failed failed out of $cacheCount total"
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}

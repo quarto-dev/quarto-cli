@@ -1,0 +1,98 @@
+---
+title: List tables in Quarto
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - - "table"
+          - "div#fig-list-table table" # fenced div syntax using a different prefix
+          - "div#tbl-list-table-2 table"   # fenced div syntax inside list-table (ie, captions last)
+        - ["div.list-table"]
+---
+
+::: {.list-table widths="0.070833333333333,0.92916666666667" header-rows="1"}
+
+* * Variable
+  * Description
+
+* * `QUARTO_R`
+  * Explicit path to the version of `Rscript` to be used by the `knitr` engine and `quarto run *.R` command.
+
+* * `QUARTO_PYTHON`
+  * Explicit path to the version of `python` to be used by the `jupyter` engine and `quarto run *.py` command.
+
+* * `QUARTO_JULIA`
+  * Explicit path to the version of `julia` to be used by the `julia` engine.
+
+* * `QUARTO_VERSION_REQUIREMENT`
+  * A [`semver`](https://semver.org/) string describing the Quarto version requested by the environment. If this check fails, Quarto will not run.
+
+* * `QUARTO_KNITR_RSCRIPT_ARGS`
+  
+  * Comma separated list of command line argument to pass to `Rscript` started by Quarto when rendering with `knitr` engine, e.g.
+    
+    ```
+    QUARTO_KNITR_RSCRIPT_ARGS="--no-init-file,--max-connections=258"
+    ```
+
+* * `QUARTO_TEXLIVE_BINPATH`
+  * Explicit path to the TeX Live binaries to be passed to `tlmgr option sys_bin` used when setting `tlmgr` and related to `PATH` using `tlmgr add path` . By default, Quarto looks in known places.
+
+* * `QUARTO_CHROMIUM`
+  * Explicit path to binary to use for chrome headless. Quarto uses [Chrome Devtools Protocol](https://chromedevtools.github.io/devtools-protocol/) to do screenshot of HTML diagrams for PDF insertion. The binary must be compatible with this protocol. (e.g. Chrome, Chromium, Chrome Headless Shell, Edge, …)
+
+* * `QUARTO_CHROMIUM_HEADLESS_MODE`
+  * Used for adaption of the `--headless` mode used with `QUARTO_CHROMIUM` binary. Set to `"none"` for `--headless` , or to `"old"` or `"new"` to pass as argument, e.g. `--headless=<QUARTO_CHROMIUM_HEADLESS_MODE>` . Quarto 1.6 sets `"old"` as default, which works from Chrome 112 to 131. Starting Quarto 1.7.13, `"none"` is the default as [Chrome 132 removed old headless mode](https://developer.chrome.com/blog/removing-headless-old-from-chrome).
+
+* * `QUARTO_LOG`
+    
+    `QUARTO_LOG_LEVEL`
+    
+    `QUARTO_LOG_FORMAT`
+  
+  * Those variables controls the logging behavior:
+    
+    * `QUARTO_LOG` is the same as using `--log` at command line. It is used to set the path to the log file
+    
+    * `QUARTO_LOG_LEVEL` is the same as using `--log-level` at command line. It is used to set the max level that will be log. Possible values are `DEBUG`, `INFO`(default), `WARNING`, and `ERROR`.
+    
+    * `QUARTO_LOG_FORMAT` is the same as using `--log-format` at command line. It is used to set the format for the log. Possible values are `plain` (default) and `json-stream`.
+
+:::
+
+
+::: {#fig-list-table}
+
+::: {.list-table widths="0.2,0.4,0.4"}
+
+* - Row 1, Col 1
+  - Row 1, Col 2
+  - Row 1, Col 3
+
+* - Row 2, Col 1
+  - Row 2, Col 2
+  - Row 2, Col 3
+
+:::
+
+A caption.
+
+:::
+
+see @fig-list-table.
+
+::: {#tbl-list-table-2 .list-table}
+
+* - Row 1, Col 1
+  - Row 1, Col 2
+  - Row 1, Col 3
+
+* - Row 2, Col 1
+  - Row 2, Col 2
+  - Row 2, Col 3
+
+This has a caption. {tbl-colwidths=[20,40,40]}
+
+:::
+
+see @tbl-list-table-2.

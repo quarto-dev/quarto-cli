@@ -1,0 +1,6 @@
+---
+title: "Test Output Dir"
+format: html
+---
+
+This is a simple document to test rendering with --output-dir flag.

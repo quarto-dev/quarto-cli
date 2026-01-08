@@ -1,0 +1,13 @@
+---
+title: "Conditional Block in manuscript article"
+_quarto:
+  tests:
+    pdf:
+      noErrors: true
+---
+
+::: {.content-visible when-format="pdf"}
+
+Something
+
+:::

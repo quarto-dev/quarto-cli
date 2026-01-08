@@ -219,6 +219,44 @@ ok | 1 passed | 0 failed (2s)
 
 </details>
 
+##### Controlling test execution with metadata
+
+Smoke-all tests support metadata in the `_quarto.tests.run` key to control when tests are run:
+
+- Skip tests on CI:
+
+  ```yaml
+  _quarto:
+    tests:
+      run:
+        ci: false
+  ```
+
+- Skip tests on specific operating systems (blacklist):
+
+  ```yaml
+  _quarto:
+    tests:
+      run:
+        not_os: linux                # Don't run on Linux
+        not_os: [linux, darwin]      # Don't run on Linux or macOS
+        not_os: windows              # Don't run on Windows
+  ```
+
+- Run tests only on specific operating systems (whitelist):
+
+  ```yaml
+  _quarto:
+    tests:
+      run:
+        os: darwin                   # Run only on macOS
+        os: [windows, darwin]        # Run only on Windows or macOS
+  ```
+
+Valid OS values are: `linux`, `darwin` (macOS), `windows`
+
+This is useful when tests require platform-specific dependencies or have known platform-specific issues that need separate investigation.
+
 ### Limitations
 
 - `smoke-all.test.ts` accept only one argument. You need to use glob pattern to run several smoke-all test documents.

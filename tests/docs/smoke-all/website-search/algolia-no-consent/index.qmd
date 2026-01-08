@@ -1,0 +1,25 @@
+---
+title: "Algolia Search Without Cookie Consent"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        # Ensure search options script exists
+        - ['script#quarto-search-options']
+      ensureFileRegexMatches:
+        - 
+          # Cookie consent should be false
+          - '"cookie-consent-enabled":\s*false'
+          # Scripts should load immediately with type="text/javascript"
+          - '<script[^>]*type="text/javascript">[\s\S]+search-insights'
+        - 
+          # Verify scripts do NOT have cookie-consent attribute
+          - '<script[^>]*cookie-consent[^>]+>[\s\S]*search-insights'
+---
+
+This test verifies that when `cookie-consent` is NOT configured in the website settings:
+
+1. The Algolia search options JSON contains `"cookie-consent-enabled": false` (or the key is absent)
+2. Algolia Insights scripts are loaded immediately with `type="text/javascript"`
+3. Scripts are not deferred behind cookie consent (no `cookie-consent="tracking"` attribute)
+

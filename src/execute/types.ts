@@ -14,8 +14,12 @@ import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { RenderOptions, RenderResultFile } from "../command/render/types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
 import { HandlerContextResults } from "../core/handlers/types.ts";
-import { ProjectContext } from "../project/types.ts";
+import { EngineProjectContext, ProjectContext } from "../project/types.ts";
 import { Command } from "cliffy/command/mod.ts";
+import type { QuartoAPI } from "../core/api/index.ts";
+import type { CheckConfiguration } from "../command/check/check.ts";
+
+export type { EngineProjectContext };
 
 export const kQmdExtensions = [".qmd"];
 
@@ -24,7 +28,18 @@ export const kKnitrEngine = "knitr";
 export const kJupyterEngine = "jupyter";
 export const kJuliaEngine = "julia";
 
-export interface ExecutionEngine {
+/**
+ * Interface for the static discovery phase of execution engines
+ * Used to determine which engine should handle a file
+ */
+export interface ExecutionEngineDiscovery {
+  /**
+   * Initialize the engine with the Quarto API (optional)
+   * May be called multiple times but always with the same QuartoAPI object.
+   * Engines should store the reference to use throughout their lifecycle.
+   */
+  init?: (quarto: QuartoAPI) => void;
+
   name: string;
   defaultExt: string;
   defaultYaml: (kernel?: string) => string[];
@@ -32,41 +47,85 @@ export interface ExecutionEngine {
   validExtensions: () => string[];
   claimsFile: (file: string, ext: string) => boolean;
   claimsLanguage: (language: string) => boolean;
+  canFreeze: boolean;
+  generatesFigures: boolean;
+  ignoreDirs?: () => string[] | undefined;
+
+  /**
+   * Semver range specifying the minimum required Quarto version for this engine
+   * Examples: ">= 1.6.0", "^1.5.0", "1.*"
+   */
+  quartoRequired?: string;
+
+  /**
+   * Populate engine-specific CLI commands (optional)
+   */
+  populateCommand?: (command: Command) => void;
+
+  /**
+   * Check installation and capabilities for this engine (optional)
+   * Used by `quarto check <engine-name>` command
+   *
+   * Engines implementing this method will automatically be available as targets
+   * for the check command (e.g., `quarto check jupyter`, `quarto check knitr`).
+   *
+   * @param conf - Check configuration with output settings and services
+   */
+  checkInstallation?: (conf: CheckConfiguration) => Promise<void>;
+
+  /**
+   * Launch a dynamic execution engine with project context
+   */
+  launch: (context: EngineProjectContext) => ExecutionEngineInstance;
+}
+
+/**
+ * Interface for the dynamic execution phase of execution engines
+ * Used after a file has been assigned to an engine
+ */
+export interface ExecutionEngineInstance {
+  name: string;
+  canFreeze: boolean;
+
   markdownForFile(file: string): Promise<MappedString>;
+
   target: (
     file: string,
-    quiet: boolean | undefined,
-    markdown: MappedString | undefined,
-    project: ProjectContext,
+    quiet?: boolean,
+    markdown?: MappedString,
   ) => Promise<ExecutionTarget | undefined>;
+
   partitionedMarkdown: (
     file: string,
     format?: Format,
   ) => Promise<PartitionedMarkdown>;
+
   filterFormat?: (
     source: string,
     options: RenderOptions,
     format: Format,
   ) => Format;
+
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
+
   executeTargetSkipped?: (
     target: ExecutionTarget,
     format: Format,
-    project: ProjectContext,
   ) => void;
+
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
+
   postprocess: (options: PostProcessOptions) => Promise<void>;
-  canFreeze: boolean;
-  generatesFigures: boolean;
+
   canKeepSource?: (target: ExecutionTarget) => boolean;
+
   intermediateFiles?: (input: string) => string[] | undefined;
-  ignoreDirs?: () => string[] | undefined;
+
   run?: (options: RunOptions) => Promise<void>;
+
   postRender?: (
     file: RenderResultFile,
-    project?: ProjectContext,
   ) => Promise<void>;
-  populateCommand?: (command: Command) => void;
 }
 
 // execution target (filename and context 'cookie')
@@ -151,7 +210,7 @@ export interface DependenciesResult {
 
 // post processing options
 export interface PostProcessOptions {
-  engine: ExecutionEngine;
+  engine: ExecutionEngineInstance;
   target: ExecutionTarget;
   format: Format;
   output: string;

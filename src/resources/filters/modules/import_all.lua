@@ -20,7 +20,8 @@ _quarto.modules = {
   scope = require("modules/scope"),
   string = require("modules/string"),
   tablecolwidths = require("modules/tablecolwidths"),
-  typst = require("modules/typst")
+  typst = require("modules/typst"),
+  listtable = require("modules/listtable")
 }
 
 quarto.brand = _quarto.modules.brand

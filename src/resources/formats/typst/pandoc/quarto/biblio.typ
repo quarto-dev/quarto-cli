@@ -8,6 +8,6 @@ $elseif(bibliographystyle)$
 $endif$
 $if(bibliography)$
 
-#bibliography($for(bibliography)$"$bibliography$"$sep$,$endfor$)
+#bibliography(($for(bibliography)$"$bibliography$"$sep$,$endfor$))
 $endif$
 $endif$

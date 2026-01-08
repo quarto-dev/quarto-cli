@@ -1,0 +1,30 @@
+---
+title: "<%= title %> Example"
+engine: <%= filesafename %>
+---
+
+## Example Content
+
+This demonstrates the `<%= filesafename %>` engine processing cells with the `<%= cellLanguage %>` language.
+
+```{<%= cellLanguage %>}
+# This cell will be processed by the <%= filesafename %> engine
+print("Hello from <%= filesafename %> engine!")
+```
+
+## Other Engines
+
+Currently there can only be one execution engine. 
+So this python code won't execute:
+
+```{python}
+print("Hello from Python!")
+```
+
+## More Example Cells
+
+```{<%= cellLanguage %>}
+# Another example cell
+x = 42
+print(f"The answer is {x}")
+```

@@ -1,0 +1,129 @@
+---
+title: "Manual Test: Mermaid SVG with PDF - External Tooling"
+format:
+  pdf:
+    mermaid-format: svg
+    keep-tex: true
+---
+
+## Purpose
+
+This document is for **manual testing** of mermaid-format:svg with PDF output,
+specifically to verify behavior with different external tooling configurations.
+
+**Why manual?** Automated CI tests cannot easily verify:
+- Actual PDF generation with rsvg-convert
+- Inkscape fallback behavior
+- Platform-specific tooling issues (especially Windows)
+- Full conversion pipeline end-to-end
+
+## Simple Diagram
+
+```{mermaid}
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Good]
+    B -->|No| D[Bad]
+    C --> E[End]
+    D --> E
+```
+
+## Multi-line Labels (Clipping Test)
+
+This tests potential text clipping issues with multi-line labels:
+
+```{mermaid}
+graph TD
+    A["Line 1<br/>Line 2<br/>Line 3"] --> B["Another<br/>Multi<br/>Line<br/>Label"]
+    B --> C["Final<br/>Node"]
+```
+
+## Manual Testing Checklist
+
+### Test 1: With rsvg-convert (Default)
+- [ ] Ensure `rsvg-convert` is on PATH
+- [ ] Run: `quarto render mermaid-svg-pdf-tooling.qmd`
+- [ ] Verify: INFO message includes "requires external tooling"
+- [ ] Verify: PDF generates successfully
+- [ ] Check `.tex` file for `\includesvg` commands
+- [ ] Verify: No script tags in LaTeX output
+- [ ] Open PDF: Diagrams render correctly
+
+### Test 2: Without rsvg-convert
+- [ ] Remove rsvg-convert from PATH or rename binary temporarily
+- [ ] Run: `quarto render mermaid-svg-pdf-tooling.qmd`
+- [ ] Verify: INFO message about tooling requirement
+- [ ] Verify: Error about missing rsvg-convert
+- [ ] Expected behavior: Render fails with clear error
+
+### Test 3: Inkscape Fallback (use-rsvg-convert: false)
+Create variant document with:
+```yaml
+format:
+  pdf:
+    mermaid-format: svg
+    use-rsvg-convert: false
+    pdf-engine-opt: ["-shell-escape"]
+    keep-tex: true
+```
+
+- [ ] Ensure Inkscape is installed
+- [ ] Run render with above config
+- [ ] Verify: INFO message about tooling
+- [ ] Verify: PDF generates via Inkscape (check logs)
+- [ ] Check `.tex` file: uses `\includesvg` with Inkscape
+- [ ] Open PDF: Diagrams render correctly
+
+### Test 4: Windows-Specific
+- [ ] Test on Windows with rsvg-convert (if available via Scoop/other)
+- [ ] Test on Windows without rsvg-convert
+- [ ] Test Inkscape fallback on Windows
+- [ ] Document any Windows-specific issues
+
+### Test 5: Comparison with PNG (Control)
+Create variant with `mermaid-format: png`:
+
+- [ ] Run: `quarto render` with png format
+- [ ] Verify: NO warning about external tooling
+- [ ] Verify: PDF generates successfully
+- [ ] Quality comparison: SVG vs PNG in final PDF
+
+## Expected Results Summary
+
+| Scenario | Warning | PDF Generation | Notes |
+|----------|---------|----------------|-------|
+| rsvg-convert available | ✅ Yes | ✅ Success | Default path |
+| No rsvg-convert | ✅ Yes | ❌ Error | Clear error message |
+| Inkscape + shell-escape | ✅ Yes | ✅ Success | Fallback works |
+| PNG format | ❌ No | ✅ Success | No tooling needed |
+
+## Platform-Specific Notes
+
+### Linux/Mac
+- rsvg-convert typically available via package managers
+- `librsvg` package usually includes rsvg-convert
+- Inkscape widely available
+
+### Windows
+- rsvg-convert NOT easily available (complex setup)
+- Can use Scoop: `scoop install rsvg-convert` (if r-bucket configured)
+- Inkscape available but requires shell-escape configuration
+- Most users should prefer PNG format on Windows
+
+## Recording Results
+
+After completing manual tests, document results in the beads issue notes field
+for quarto-cli-idi. Include:
+
+- Platforms tested (OS, versions)
+- Which scenarios passed/failed
+- Any unexpected behavior
+- Screenshots if helpful
+- Recommendations for users
+
+## See Also
+
+- Automated test: `tests/docs/smoke-all/2025/11/10/13661.qmd`
+- DOCX test: `tests/docs/smoke-all/2025/11/14/mermaid-svg-docx.qmd`
+- Beads issue: quarto-cli-idi
+- GitHub issue: #13661

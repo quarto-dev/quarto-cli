@@ -79,7 +79,7 @@ export type NavigationItemObject = {
   "aria-label"?: string /* Accessible label for the item. */;
   file?: string /* Alias for href */;
   href?: string /* Link to file contained with the project or external URL */;
-  icon?: string /* Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
+  icon?: string /* Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)
 See <https://icons.getbootstrap.com/> for a list of available icons */;
   id?: string;
   menu?: (NavigationItem)[];
@@ -153,6 +153,10 @@ website:
         dark: dark_dimmed # giscus theme used for dark website theme
 ``` */
 };
+
+export type ExternalEngine = {
+  path: string; /* Path to the TypeScript module for the execution engine */
+}; /* An execution engine not pre-loaded in Quarto */
 
 export type DocumentCommentsConfiguration = false | {
   giscus?: GiscusConfiguration;
@@ -378,6 +382,38 @@ For more about choosing storage options see [Storage](https://quarto.org/docs/we
 
 This is automatically detected based upon the `tracking-id`, but you may specify it. */
   } /* Enable Google Analytics for this website */;
+  "plausible-analytics"?: string | {
+    path:
+      string; /* Path to a file containing the Plausible Analytics script snippet */
+  } /* Enable Plausible Analytics for this website by pasting the script snippet from your Plausible dashboard,
+or by providing a path to a file containing the snippet.
+
+Plausible is a privacy-friendly, GDPR-compliant web analytics service that does not use cookies and does not require cookie consent.
+
+**Option 1: Inline snippet**
+
+```yaml
+website:
+  plausible-analytics: |
+    <script async src="https://plausible.io/js/script.js"></script>
+```
+
+**Option 2: File path**
+
+```yaml
+website:
+  plausible-analytics:
+    path: _plausible_snippet.html
+```
+
+To get your script snippet:
+
+1. Log into your Plausible account at <https://plausible.io>
+2. Go to your site settings
+3. Copy the JavaScript snippet provided
+4. Either paste it directly in your configuration or save it to a file
+
+For more information, see <https://plausible.io/docs/plausible-script> */;
   "cookie-consent"?: ("express" | "implied") | boolean | {
     "policy-url"?: string;
     "prefs-text"?: string;
@@ -399,12 +435,12 @@ This is automatically detected based upon the `tracking-id`, but you may specify
 
 - `standalone`: An opaque overlay of the entire website. */;
     type?:
-      | "implied"
-      | "express"; /* The type of consent that should be requested, using one of these two values:
+      | "express"
+      | "implied"; /* The type of consent that should be requested, using one of these two values:
 
-- `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.
+- `express` (default): This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).
 
-- `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree). */
+- `implied`: This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences. */
   } /* Quarto includes the ability to request cookie consent before enabling scripts that set cookies, using [Cookie Consent](https://www.cookieconsent.com/).
 
 The user’s cookie preferences will automatically control Google Analytics (if enabled) and can be used to control custom scripts you add as well. For more information see [Custom Scripts and Cookie Consent](https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent). */;
@@ -1176,7 +1212,28 @@ export type ProjectProfile = {
 export type BadParseSchema = JsonObject;
 
 export type QuartoDevSchema = {
-  _quarto?: { "trace-filters"?: string; tests?: JsonObject };
+  _quarto?: {
+    "trace-filters"?: string;
+    tests?: {
+      run?: {
+        ci?: boolean /* Run tests on CI (true = run, false = skip) */;
+        not_os?:
+          | ("linux" | "darwin" | "windows")
+          | ((
+            | "linux"
+            | "darwin"
+            | "windows"
+          ))[] /* Don't run tests on these platforms (blacklist) */;
+        os?:
+          | ("linux" | "darwin" | "windows")
+          | ((
+            | "linux"
+            | "darwin"
+            | "windows"
+          ))[]; /* Run tests ONLY on these platforms (whitelist) */
+      }; /* Control when tests should run */
+    };
+  };
 };
 
 export type NotebookViewSchema = {

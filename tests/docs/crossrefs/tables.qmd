@@ -1,5 +1,11 @@
 ---
 title: Table Crossref Test
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - []
 ---
 
 ## Simple Crossref Table
@@ -37,3 +43,21 @@ Main Caption
 :::
 
 See @tbl-panel for details, especially @tbl-second.
+
+## List tables
+
+::: {#tbl-list .list-table}
+
+This has a caption. {tbl-colwidths=[20,40,40]}
+
+* - Row 1, Col 1
+  - Row 1, Col 2
+  - Row 1, Col 3
+
+* - Row 2, Col 1
+  - Row 2, Col 2
+  - Row 2, Col 3
+
+:::
+
+see @tbl-list.

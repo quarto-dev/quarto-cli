@@ -1,0 +1,10 @@
+---
+title: "Document 1"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+      - ['<title>This text will be overwritten.</title>']
+---
+
+This is sample document 1.

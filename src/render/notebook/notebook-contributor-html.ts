@@ -45,8 +45,7 @@ import { kNotebookViewStyleNotebook } from "../../format/html/format-html-consta
 import { kAppendixStyle } from "../../format/html/format-html-shared.ts";
 import { basename, dirname, join, relative } from "../../deno_ral/path.ts";
 import { Format } from "../../config/types.ts";
-import { isQmdFile } from "../../execute/qmd.ts";
-import { dirAndStem } from "../../core/path.ts";
+import { dirAndStem, isQmdFile } from "../../core/path.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { existsSync } from "../../deno_ral/fs.ts";
 import { safeCloneDeep } from "../../core/safe-clone-deep.ts";

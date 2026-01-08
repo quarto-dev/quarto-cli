@@ -15,7 +15,12 @@ import { ProjectContext } from "../../types.ts";
 import { warning } from "../../../deno_ral/log.ts";
 import { dirname, extname, join, relative } from "../../../deno_ral/path.ts";
 import { websiteConfigArray, websiteConfigString } from "./website-config.ts";
-import { kDraftMode, kDraftModeGone, kDrafts } from "./website-constants.ts";
+import {
+  kDraftMode,
+  kDraftModeGone,
+  kDraftModeVisible,
+  kDrafts,
+} from "./website-constants.ts";
 
 export function removeChapterNumber(item: Element) {
   const numberSpan = item.querySelector(".chapter-number");
@@ -39,6 +44,11 @@ export function isProjectDraft(
 }
 
 export function projectDraftMode(project: ProjectContext) {
+  // Preview server always shows drafts
+  if (project.previewServer) {
+    return kDraftModeVisible;
+  }
+  // Otherwise read from config
   const draftMode = websiteConfigString(kDraftMode, project.config);
   return draftMode || kDraftModeGone;
 }

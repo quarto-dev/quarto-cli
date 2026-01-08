@@ -86,3 +86,24 @@ export async function gitBranchExists(
 
   return Promise.resolve(undefined);
 }
+
+export async function gitCmdOutput(
+  dir: string,
+  args: string[],
+): Promise<string> {
+  const result = await execProcess({
+    cmd: "git",
+    args,
+    cwd: dir,
+    stdout: "piped",
+    stderr: "piped",
+  });
+
+  if (!result.success) {
+    throw new Error(
+      `Git command failed: git ${args.join(" ")}\n${result.stderr || ""}`,
+    );
+  }
+
+  return result.stdout?.trim() || "";
+}

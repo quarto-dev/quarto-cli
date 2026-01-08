@@ -94,10 +94,23 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   /* We use python for this but we could also try using another tool */
-  webServer: {
-    command: 'uv run python -m http.server 8080',
-    url: 'http://127.0.0.1:8080',
-    reuseExistingServer: !isCI,
-    cwd: '../../docs/playwright',
-  },
+  webServer: [
+    {
+      // HTTP server for rendered HTML files
+      command: 'uv run python -m http.server 8080',
+      url: 'http://127.0.0.1:8080',
+      reuseExistingServer: !isCI,
+      cwd: '../../docs/playwright',
+      stderr: 'ignore',  // Suppress verbose HTTP request logs
+    },
+    {
+      // Socket.IO multiplex server for RevealJS
+      command: 'npm start',
+      url: 'http://127.0.0.1:1948',
+      reuseExistingServer: !isCI,
+      cwd: './multiplex-server',
+      timeout: 10000,
+      stderr: 'ignore',  // Suppress verbose logs
+    }
+  ],
 });

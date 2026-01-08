@@ -1,0 +1,14 @@
+---
+title: "Plausible Path Test"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'script[async][src="https://plausible.io/js/pa-FROMFILE99.js"]'
+      ensureFileRegexMatches:
+        - ['window\.plausibleFile', 'plausibleFile\.init']
+---
+
+This test verifies that Plausible Analytics with a path to an external file
+loads the snippet correctly from the file.

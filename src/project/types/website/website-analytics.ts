@@ -5,6 +5,7 @@
  */
 import { Document } from "../../../core/deno-dom.ts";
 import { join } from "../../../deno_ral/path.ts";
+import { existsSync } from "../../../deno_ral/fs.ts";
 import { kLang, kTitle } from "../../../config/constants.ts";
 import { Format, Metadata } from "../../../config/types.ts";
 import { projectTypeResourcePath } from "../../../core/resources.ts";
@@ -25,6 +26,10 @@ const kTrackingId = "tracking-id";
 const kStorage = "storage";
 const kAnonymizeIp = "anonymize-ip";
 const kVersion = "version";
+
+// Plausible analytics
+export const kPlausibleAnalytics = "plausible-analytics";
+const kPlausiblePath = "path";
 
 // Cookie consent properties
 export const kCookieConsent = "cookie-consent";
@@ -77,21 +82,19 @@ ${contents}
   }
 }
 
-// Generate the script to inject into the head for Google Analytics
+// Generate the script to inject into the head for Google Analytics and/or Plausible
 export function websiteAnalyticsScriptFile(
   project: ProjectContext,
   temp: TempContext,
 ) {
-  // Find the ga tag
   const siteMeta = project.config?.[kWebsite] as Metadata;
-
-  // The google analytics metadata (either from the page or the site)
-  // Deal with page and site options
-  let gaConfig: GaConfiguration | undefined = undefined;
+  const scripts: string[] = [];
 
   if (siteMeta) {
+    // Google Analytics
+    let gaConfig: GaConfiguration | undefined = undefined;
     const siteGa = siteMeta[kGoogleAnalytics];
-    if (typeof (siteGa) === "object") {
+    if (typeof siteGa === "object") {
       const siteGaMeta = siteGa as Metadata;
       // Merge the site and page options and then layer over defaults
       const trackingId = siteGaMeta[kTrackingId] as string;
@@ -105,19 +108,45 @@ export function websiteAnalyticsScriptFile(
         anonymizedIp,
         version,
       );
-    } else if (siteGa && typeof (siteGa) === "string") {
+    } else if (siteGa && typeof siteGa === "string") {
       gaConfig = googleAnalyticsConfig(project, siteGa as string);
+    }
+
+    if (gaConfig) {
+      const gaScript = analyticsScript(gaConfig);
+      if (gaScript) {
+        scripts.push(gaScript);
+      }
+    }
+
+    // Plausible Analytics
+    const plausibleSnippet = siteMeta[kPlausibleAnalytics];
+    if (plausibleSnippet) {
+      if (typeof plausibleSnippet === "string") {
+        // Inline snippet provided directly in YAML
+        scripts.push(plausibleSnippet);
+      } else if (typeof plausibleSnippet === "object") {
+        // Path to file containing snippet
+        const plausibleMeta = plausibleSnippet as Metadata;
+        const snippetPath = plausibleMeta[kPlausiblePath] as string;
+        if (snippetPath) {
+          const absolutePath = join(project.dir, snippetPath);
+          if (existsSync(absolutePath)) {
+            const snippetContent = Deno.readTextFileSync(absolutePath);
+            scripts.push(snippetContent);
+          } else {
+            throw new Error(
+              `Plausible Analytics snippet file not found: ${snippetPath}`,
+            );
+          }
+        }
+      }
     }
   }
 
-  // Generate the actual GA dependencies
-  if (gaConfig) {
-    const script = analyticsScript(gaConfig);
-    if (script) {
-      return scriptFile(script, temp);
-    } else {
-      return undefined;
-    }
+  // Return combined script file if we have any analytics
+  if (scripts.length > 0) {
+    return scriptFile(scripts.join("\n"), temp);
   } else {
     return undefined;
   }
@@ -138,7 +167,7 @@ export function cookieConsentDependencies(
     let configuration: CookieConsentConfiguration | undefined = undefined;
     let changePrefsText: string | undefined = undefined;
     const consent = siteMeta[kCookieConsent];
-    if (typeof (consent) === "object") {
+    if (typeof consent === "object") {
       const cookieMeta = consent as Metadata;
       configuration = cookieConsentConfiguration(
         title,
@@ -248,7 +277,7 @@ function cookieConsentConfiguration(
 ): CookieConsentConfiguration {
   return {
     siteName: "",
-    type: type || "implied",
+    type: type || "express",
     style: style || "simple",
     palette: palette || "light",
     policyUrl,
@@ -349,6 +378,8 @@ gtag('js', new Date());`);
   ].join("\n");
 }
 
+// configuration for the script are defined in
+// https://github.com/termsfeed/termsfeed-cookie-consent-4-0/blob/main/README.md
 function cookieConsentScript(
   config: CookieConsentConfiguration,
 ) {
@@ -384,7 +415,7 @@ cookieconsent.run({
 }
 
 function scriptFile(script: string, temp: TempContext) {
-  const gaScriptFile = temp.createFile({ suffix: "-lytics.js" });
-  Deno.writeTextFileSync(gaScriptFile, script);
-  return gaScriptFile;
+  const analyticsScriptFile = temp.createFile({ suffix: "-lytics.js" });
+  Deno.writeTextFileSync(analyticsScriptFile, script);
+  return analyticsScriptFile;
 }

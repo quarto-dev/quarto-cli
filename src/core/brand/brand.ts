@@ -344,9 +344,14 @@ export function resolveLogo(
     return logo;
   };
   if (!spec) {
+    const lightLogo = findLogo("light", order);
+    const darkLogo = findLogo("dark", order);
+    if (!lightLogo && !darkLogo) {
+      return undefined;
+    }
     return {
-      light: findLogo("light", order) || findLogo("dark", order),
-      dark: findLogo("dark", order) || findLogo("light", order),
+      light: lightLogo || darkLogo,
+      dark: darkLogo || lightLogo,
     };
   }
   if (typeof spec === "string") {
