@@ -61,7 +61,7 @@
     }
    }
 
-  block(below: 1em, width: 100%)[
+  place(top, float: true, scope: "parent", clearance: 4mm)[
     #if title != none {
       align(center, block(inset: 2em)[
         #set par(leading: heading-line-height) if heading-line-height != none
@@ -125,11 +125,7 @@
     ]
   }
 
-  if cols == 1 {
-    doc
-  } else {
-    columns(cols, doc)
-  }
+  doc
 }
 
 #set table(

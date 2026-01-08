@@ -1,0 +1,67 @@
+---
+title: "Two Column with Full Title Block"
+subtitle: "Testing Column-Spanning Title Elements"
+author:
+  - name: Alice Smith
+    email: alice@example.com
+    affiliation: University A
+  - name: Bob Jones
+    email: bob@example.com
+    affiliation: University B
+  - name: Carol White
+    email: carol@example.com
+    affiliation: University C
+date: "2025-01-08"
+keywords:
+  - columns
+  - typst
+  - title-block
+thanks: "We thank the Quarto team for their work."
+abstract: "This document tests that the full title block (title, subtitle, authors, date, abstract, and thanks) correctly spans both columns in a two-column layout."
+format:
+  typst:
+    columns: 2
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - # Patterns that MUST be found
+          # Page columns set via set page()
+          - 'columns: 2,'
+          # Title block wrapped with place(scope: "parent") for column spanning
+          - 'place\(top, float: true, scope: "parent", clearance: 4mm\)'
+          # Title passed to article()
+          - 'title: \[Two Column with Full Title Block\]'
+          # Subtitle passed to article()
+          - 'subtitle: \[Testing Column-Spanning Title Elements\]'
+          # Thanks parameter passed to article()
+          - 'thanks: \[We thank the Quarto team'
+          # Abstract passed to article()
+          - 'abstract: \[This document tests that the full title block'
+          # Authors grid (3 authors = 3 columns)
+          - 'columns: \(1fr,\) \* ncols'
+        - # Patterns that must NOT be found
+          # Should NOT have columns() function call wrapping doc at end of article()
+          - 'columns\(cols, doc\)\n\}'
+---
+
+## Introduction
+
+This document verifies that all title block elements span both columns correctly in a two-column layout.
+
+## First Section
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+## Second Section
+
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+## Third Section
+
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+
+## Conclusion
+
+The title block should appear above both columns, spanning the full page width.
