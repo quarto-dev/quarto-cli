@@ -1,0 +1,99 @@
+---
+title: "Two Column with Landscape Section"
+subtitle: "Testing Column Layout with Page Orientation Changes"
+author:
+  - name: Alice Smith
+    email: alice@example.com
+    affiliation: University A
+  - name: Bob Jones
+    email: bob@example.com
+    affiliation: University B
+date: "2025-01-08"
+abstract: "This document tests combining two-column layout with landscape page sections. The title block should span both columns, and content should flow correctly when switching between portrait and landscape orientations."
+format:
+  typst:
+    columns: 2
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - # Patterns that MUST be found
+          # Page columns set via set page()
+          - 'columns: 2,'
+          # Title block wrapped with place(scope: "parent") for column spanning
+          - 'place\(top, float: true, scope: "parent", clearance: 4mm\)'
+          # Landscape page start
+          - '#set page\(flipped: true\)'
+          # Landscape page end
+          - '#set page\(flipped: false\)'
+        - # Patterns that must NOT be found
+          # Should NOT have columns() function call wrapping doc at end of article()
+          - 'columns\(cols, doc\)\n\}'
+---
+
+## Introduction
+
+This document tests the interaction between two-column layout and landscape page sections. The title block above should span the full page width, while this body content flows in two columns.
+
+## Portrait Section
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+
+Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+
+::: {.landscape}
+
+## Landscape Section
+
+This section appears in landscape orientation. The two-column layout should persist but now on a rotated page, giving more horizontal space for wide content like tables.
+
+### The Bug This Test Catches
+
+When Quarto's `article()` function used `columns(cols, doc)` to wrap the document content (the old approach), landscape sections would crash with the error:
+
+```
+error: page configuration is not allowed inside of containers
+    ┌─ two-column-landscape.typ:351:1
+    │
+351 │ #set page(flipped: true)
+    │  ^^^^^^^^^^^^^^^^^^^^^^^
+```
+
+This happened because `columns()` creates a container, and Typst does not allow `set page()` directives inside containers. The landscape filter emits `#set page(flipped: true)` to rotate the page, which fails when nested inside a `columns()` call.
+
+### The Fix
+
+Pandoc fixed this in October 2024 (commit e01023c1f) for Typst 0.12+ compatibility. They changed from:
+
+```typst
+if cols == 1 { doc } else { columns(cols, doc) }
+```
+
+to using `set page(columns: cols)` at page level, which allows page configuration changes anywhere in the document. This approach also requires wrapping the title block with `place(top, float: true, scope: "parent")` so it spans both columns.
+
+Quarto updated its copy of `template.typst` but missed updating the `article()` function in `typst-template.typ`, leaving the old `columns()` approach in place until this fix.
+
+| Column A | Column B | Column C | Column D | Column E | Column F |
+|----------|----------|----------|----------|----------|----------|
+| Data 1   | Data 2   | Data 3   | Data 4   | Data 5   | Data 6   |
+| Data 7   | Data 8   | Data 9   | Data 10  | Data 11  | Data 12  |
+| Data 13  | Data 14  | Data 15  | Data 16  | Data 17  | Data 18  |
+
+:::
+
+## Back to Portrait
+
+This section returns to portrait orientation with two columns. The content should continue flowing normally after the landscape section.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+## Conclusion
+
+The document demonstrates that two-column layouts work correctly with landscape page sections when using `set page(columns:)` instead of the `columns()` function wrapper.

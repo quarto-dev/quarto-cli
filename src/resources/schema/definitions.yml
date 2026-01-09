@@ -2443,6 +2443,11 @@
                             boolean:
                               description: "Run tests on CI (true = run, false = skip)"
                               default: true
+                          skip:
+                            description: "Skip test unconditionally (true = skip with default message, string = skip with custom message)"
+                            anyOf:
+                              - boolean
+                              - string
                           os:
                             description: "Run tests ONLY on these platforms (whitelist)"
                             anyOf:

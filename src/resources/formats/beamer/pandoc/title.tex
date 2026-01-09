@@ -1,11 +1,11 @@
 $-- Specific title partial for Beamer presentations
 $if(title)$
-\title$if(shorttitle)$[$shorttitle$]$endif${$title$$if(thanks)$\thanks{$thanks$}$endif$}
+\title$if(shorttitle)$[$shorttitle$]$endif${\texorpdfstring{$title$}{$title-meta$}$if(thanks)$\thanks{$thanks$}$endif$}
 $endif$
 $if(subtitle)$
-\subtitle$if(shortsubtitle)$[$shortsubtitle$]$endif${$subtitle$}
+\subtitle$if(shortsubtitle)$[$shortsubtitle$]$endif${\texorpdfstring{$subtitle$}{$subtitle-meta$}}
 $endif$
-$-- This supports QUarto's authors normalization
+$-- This supports QUarto's authors normalization (no support for author-meta yet)
 \author$if(shortauthor)$[$shortauthor$]$endif${$for(authors)$$it.name.literal$$sep$ \and $endfor$}
 \date$if(shortdate)$[$shortdate$]$endif${$date$}
 $if(institute)$

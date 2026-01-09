@@ -455,6 +455,9 @@ end, function(float)
               "triggered this error.")
               return {}
             end
+            -- Strip Pandoc 3.8+ LTcaptype definition since we're adding our own caption
+            -- Keep the { } wrapper (harmless) to avoid orphan braces
+            longtable_preamble = longtable_preamble:gsub("\\def\\LTcaptype{none}[^\n]*\n?", "")
             -- split the content into params and actual content
             -- params are everything in the first line of longtable_content
             -- actual content is everything else

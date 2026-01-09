@@ -8,6 +8,8 @@
 import { testQuartoCmd } from "../../test.ts";
 import { printsMessage } from "../../verify.ts";
 
+// If this test fails, it indicates that there is a version mismatch 
+// Check 'src\command\check\check.ts' for the recorded versions, and compare to 'configuration' file
 testQuartoCmd(
   "check",
   ["versions"],

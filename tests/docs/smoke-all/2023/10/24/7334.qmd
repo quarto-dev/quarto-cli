@@ -2,7 +2,33 @@
 title: "table in a div"
 format:
   html: default
-  pdf: default
+  pdf: 
+    keep-tex: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          # Verify callout-tip div exists
+          - 'div.callout.callout-tip'
+          # Verify table with id inside callout
+          - 'div.callout-tip #tbl-table1'
+          # Verify figcaption exists
+          - '#tbl-table1 figcaption'
+          # Verify cross-reference link
+          - 'a.quarto-xref[href="#tbl-table1"]'
+    pdf:
+      ensureLatexFileRegexMatches:
+        -
+          # Verify tcolorbox for callout-tip exists
+          - '\\begin\{tcolorbox\}\[.*colframe=quarto-callout-tip-color-frame'
+          # Verify longtable with caption and label inside tcolorbox
+          - '\\begin\{tcolorbox\}[\s\S]*\\begin\{longtable\}[\s\S]*\\caption\{\\label\{tbl-table1\}'
+          # Verify tcolorbox ends after longtable
+          - '\\end\{longtable\}[\s\S]*\\end\{tcolorbox\}'
+          # Verify cross-reference to table works
+          - 'Table~\\ref\{tbl-table1\}'
+        - []
 ---
 Table in a div
 
@@ -17,3 +43,5 @@ table <- tribble(~a, ~b, ~c,
 knitr::kable(table)
 ```
 :::
+
+See @tbl-table1 in the callout above
