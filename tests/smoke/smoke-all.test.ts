@@ -458,6 +458,9 @@ for (const { path: fileName } of files) {
 // Wait for all the promises to resolve
 // Meaning all the files have been tested and we can clean
 Promise.all(testFilesPromises).then(() => {
+  if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
+    return;
+  }
   // Clean up any projects that were tested
   for (const project of testedProjects) {
     // Clean project output directory

@@ -97,10 +97,15 @@ export function outputForInput(
   projectRoot = projectRoot ?? findProjectDir(input);
   projectOutDir = projectOutDir ?? findProjectOutputDir(projectRoot);
 
-  // For book projects, use the book title as the output stem and place output directly in _book/
-  const bookStem = findBookOutputStem(projectRoot);
+  // For book projects with single-file output (PDF, Typst, EPUB), use the book title as stem
+  // Multi-file formats (HTML) produce individual chapter files, so use input filename
+  // Single-file formats only produce merged output when rendering the index file
+  const inputBasename = basename(input, extname(input));
+  const isMultiFileFormat = to.startsWith("html") || to === "revealjs";
+  const isSingleFileBookRender = !isMultiFileFormat && inputBasename === "index";
+  const bookStem = isSingleFileBookRender ? findBookOutputStem(projectRoot) : undefined;
   const dir = bookStem ? "" : (projectRoot ? relative(projectRoot, dirname(input)) : dirname(input));
-  let stem = bookStem || metadata?.[kMetadataFormat]?.[to]?.[kOutputFile] || basename(input, extname(input));
+  let stem = bookStem || metadata?.[kMetadataFormat]?.[to]?.[kOutputFile] || inputBasename;
   let ext = metadata?.[kMetadataFormat]?.[to]?.[kOutputExt];
 
   // TODO: there's a bug where output-ext keys from a custom format are 
