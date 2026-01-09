@@ -15,7 +15,7 @@
     "uuid/": "jsr:/@std/uuid@1.0.6/",
     "https://deno.land/std@0.91.0/path/mod.ts": "jsr:/@std/path@1.0.8",
     "https://deno.land/std@0.91.0/path/": "jsr:/@std/path@1.0.8/",
-    
+
     "testing/": "jsr:/@std/testing@0.224.0/",
     "flags": "jsr:/@std/flags@0.224.0",
     "datetime/": "jsr:/@std/datetime@0.225.4/",
@@ -41,7 +41,7 @@
     "dayjs/": "https://cdn.skypack.dev/dayjs@1.8.21/",
     "moment-guess": "https://cdn.skypack.dev/moment-guess@1.2.4",
     "ansi_up": "https://cdn.skypack.dev/ansi_up@v6.0.2",
-    "lodash/": "https://cdn.skypack.dev/lodash@4.17.21/",
+    "lodash/": "npm:/lodash@4.17.21/",
     "acorn-class-fields": "https://cdn.skypack.dev/acorn-class-fields@1.0.0",
     "acorn/acorn": "https://cdn.skypack.dev/acorn@8.4.0",
     "acorn/walk": "https://cdn.skypack.dev/acorn-walk@8.2.0",

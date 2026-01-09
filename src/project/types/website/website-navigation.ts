@@ -1204,7 +1204,7 @@ function nextAndPrevious(
       (sidebarItem: SidebarItem) => {
         return sidebarItem.href || Math.random().toString();
       },
-    );
+    ) as SidebarItem[];
 
     const index = sidebarItemsUniq.findIndex((item) => item.href === href);
     const nextPage = index > -1 && index < sidebarItemsUniq.length - 1 &&
