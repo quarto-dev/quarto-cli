@@ -322,9 +322,8 @@ function createPdfFormat(
           format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard],
         );
         if (pdfStandard.length > 0) {
-          const { version, standards } = normalizePdfStandardForLatex(
-            pdfStandard,
-          );
+          const { version, standards, needsTagging } =
+            normalizePdfStandardForLatex(pdfStandard);
           extras.pandoc.variables = extras.pandoc.variables || {};
           extras.pandoc.variables["pdf-standard"] = true; // Enable the partial
           if (version) {
@@ -334,8 +333,10 @@ function createPdfFormat(
             // Pass as array - Pandoc template will iterate with $for()$
             extras.pandoc.variables["pdf-standards"] = standards;
           }
-          // Always enable tagging for pdf-standard (stable in LaTeX 2025+)
-          extras.pandoc.variables["pdf-tagging"] = true;
+          // Enable tagging only for standards that require it (ua-*, a-*a)
+          if (needsTagging) {
+            extras.pandoc.variables["pdf-tagging"] = true;
+          }
         }
 
         return extras;
@@ -1262,8 +1263,10 @@ const kbeginLongTablesideCap = `{
 
 const kEndLongTableSideCap = "}";
 
-// LaTeX-supported PDF standards
+// LaTeX-supported PDF standards (from latex3/latex2e DocumentMetadata)
+// See: https://github.com/latex3/latex2e - documentmetadata-support.dtx
 const kLatexSupportedStandards = new Set([
+  // PDF/A standards (note: a-1a is NOT supported, only a-1b)
   "a-1b",
   "a-2a",
   "a-2b",
@@ -1272,7 +1275,9 @@ const kLatexSupportedStandards = new Set([
   "a-3b",
   "a-3u",
   "a-4",
+  "a-4e",
   "a-4f",
+  // PDF/X standards
   "x-4",
   "x-4p",
   "x-5g",
@@ -1281,6 +1286,18 @@ const kLatexSupportedStandards = new Set([
   "x-6",
   "x-6n",
   "x-6p",
+  // PDF/UA standards
+  "ua-1",
+  "ua-2",
+]);
+
+// Standards that require PDF tagging (document structure)
+// - PDF/A level "a" variants require tagged structure per PDF/A spec
+// - PDF/UA standards require tagging for universal accessibility
+//   (LaTeX does NOT automatically enable tagging for UA standards)
+const kTaggingRequiredStandards = new Set([
+  "a-2a",
+  "a-3a",
   "ua-1",
   "ua-2",
 ]);
@@ -1289,9 +1306,10 @@ const kVersionPattern = /^(1\.[4-7]|2\.0)$/;
 
 function normalizePdfStandardForLatex(
   standards: unknown[],
-): { version?: string; standards: string[] } {
+): { version?: string; standards: string[]; needsTagging: boolean } {
   let version: string | undefined;
   const result: string[] = [];
+  let needsTagging = false;
 
   for (const s of standards) {
     if (typeof s !== "string") continue;
@@ -1303,6 +1321,10 @@ function normalizePdfStandardForLatex(
     } else if (kLatexSupportedStandards.has(normalized)) {
       // LaTeX is case-insensitive, pass through lowercase
       result.push(normalized);
+      // Check if this standard requires tagging
+      if (kTaggingRequiredStandards.has(normalized)) {
+        needsTagging = true;
+      }
     } else {
       warning(
         `PDF standard '${s}' is not supported by LaTeX and will be ignored`,
@@ -1310,5 +1332,5 @@ function normalizePdfStandardForLatex(
     }
   }
 
-  return { version, standards: result };
+  return { version, standards: result, needsTagging };
 }
