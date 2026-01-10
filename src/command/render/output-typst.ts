@@ -12,8 +12,10 @@ import {
   kKeepTyp,
   kOutputExt,
   kOutputFile,
+  kPdfStandard,
   kVariant,
 } from "../../config/constants.ts";
+import { warning } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
@@ -66,6 +68,11 @@ export function typstPdfOutputRecipe(
     const typstOptions: TypstCompileOptions = {
       quiet: options.flags?.quiet,
       fontPaths: asArray(format.metadata?.[kFontPaths]) as string[],
+      pdfStandard: normalizePdfStandardForTypst(
+        asArray(
+          format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard],
+        ),
+      ),
     };
     if (project?.dir) {
       typstOptions.rootDir = project.dir;
@@ -139,4 +146,42 @@ export function typstPdfOutputRecipe(
   }
 
   return recipe;
+}
+
+// Typst-supported PDF standards
+const kTypstSupportedStandards = new Set([
+  "1.4",
+  "1.5",
+  "1.6",
+  "1.7",
+  "2.0",
+  "a-1b",
+  "a-1a",
+  "a-2b",
+  "a-2u",
+  "a-2a",
+  "a-3b",
+  "a-3u",
+  "a-3a",
+  "a-4",
+  "a-4f",
+  "a-4e",
+  "ua-1",
+]);
+
+function normalizePdfStandardForTypst(standards: unknown[]): string[] {
+  const result: string[] = [];
+  for (const s of standards) {
+    if (typeof s !== "string") continue;
+    // Normalize: lowercase, remove any "pdf" prefix
+    const normalized = s.toLowerCase().replace(/^pdf[/-]?/, "");
+    if (kTypstSupportedStandards.has(normalized)) {
+      result.push(normalized);
+    } else {
+      warning(
+        `PDF standard '${s}' is not supported by Typst and will be ignored`,
+      );
+    }
+  }
+  return result;
 }

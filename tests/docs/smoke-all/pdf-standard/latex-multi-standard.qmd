@@ -1,0 +1,17 @@
+---
+title: "LaTeX multiple PDF standards"
+format: pdf
+pdf-standard: [a-2b, ua-1]
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{a-2b,ua-1\}', 'tagging=on']
+        - []
+---
+
+# Test Document
+
+This tests combined PDF/A-2b + PDF/UA-1 output.
