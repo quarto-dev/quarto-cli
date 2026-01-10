@@ -8,10 +8,11 @@ _quarto:
     pdf:
       noErrors: default
       ensureLatexFileRegexMatches:
-        - ['\\DocumentMetadata\{', 'pdfversion=1\.7', 'tagging=on']
-        - []
+        # Version-only should NOT enable tagging (tagging is independent of version)
+        - ['\\DocumentMetadata\{', 'pdfversion=1\.7']
+        - ['tagging=on']
 ---
 
 # Test Document
 
-This tests explicit PDF version 1.7.
+This tests explicit PDF version 1.7 without any standard requiring tagging.

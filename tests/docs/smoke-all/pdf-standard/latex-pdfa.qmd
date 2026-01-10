@@ -8,10 +8,11 @@ _quarto:
     pdf:
       noErrors: default
       ensureLatexFileRegexMatches:
-        - ['\\DocumentMetadata\{', 'pdfstandard=\{a-2b\}', 'tagging=on']
-        - []
+        # a-2b is "basic" level - does NOT require tagging
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{a-2b\}']
+        - ['tagging=on']
 ---
 
 # Test Document
 
-This tests PDF/A-2b output with LaTeX.
+This tests PDF/A-2b output with LaTeX. The "b" (basic) level does not require tagging.
