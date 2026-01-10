@@ -86,6 +86,7 @@ export const kShortcodes = "shortcodes";
 export const kKeepMd = "keep-md";
 export const kKeepTex = "keep-tex";
 export const kKeepTyp = "keep-typ";
+export const kPdfStandard = "pdf-standard";
 export const kKeepIpynb = "keep-ipynb";
 export const kKeepSource = "keep-source";
 export const kVariant = "variant";
@@ -219,6 +220,7 @@ export const kRenderDefaultsKeys = [
   kLatexTlmgrOpts,
   kLatexOutputDir,
   kLatexTinyTex,
+  kPdfStandard,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kLinkExternalFilter,
@@ -686,6 +688,7 @@ export const kPandocDefaultsKeys = [
   kPdfEngine,
   kPdfEngineOpts,
   kPdfEngineOpt,
+  kPdfStandard,
   kWrap,
   kColumns,
   "dpi",

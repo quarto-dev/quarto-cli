@@ -21,6 +21,7 @@ import {
   findLatexError,
   findMissingFontsAndPackages,
   findMissingHyphenationFiles,
+  findPdfAccessibilityWarnings,
   kMissingFontLog,
   needsRecompilation,
 } from "./parse-error.ts";
@@ -196,6 +197,25 @@ async function initialCompileLatex(
         warning(
           `Possibly missing hyphenation file: '${missingHyphenationFile}'. See more in logfile (by setting 'latex-clean: false').\n`,
         );
+      }
+
+      // Check for accessibility warnings (e.g., missing alt text, language with PDF/UA)
+      const accessibilityWarnings = findPdfAccessibilityWarnings(logText);
+      if (accessibilityWarnings.missingAltText.length > 0) {
+        const fileList = accessibilityWarnings.missingAltText.join(", ");
+        warning(
+          `PDF accessibility: Missing alt text for image(s): ${fileList}. Add alt text using ![alt text](image.png) syntax for PDF/UA compliance.\n`,
+        );
+      }
+      if (accessibilityWarnings.missingLanguage) {
+        warning(
+          `PDF accessibility: Document language not set. Add 'lang: en' (or appropriate language) to document metadata for PDF/UA compliance.\n`,
+        );
+      }
+      if (accessibilityWarnings.otherWarnings.length > 0) {
+        for (const warn of accessibilityWarnings.otherWarnings) {
+          warning(`PDF accessibility: ${warn}\n`);
+        }
       }
     } else if (pkgMgr.autoInstall) {
       // try autoinstalling

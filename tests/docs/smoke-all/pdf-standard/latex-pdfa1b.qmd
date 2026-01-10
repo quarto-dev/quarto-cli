@@ -1,0 +1,24 @@
+---
+title: "PDF/A-1b compliance test"
+lang: en
+pdf-standard: a-1b
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      # PDF/A-1b requires PDF 1.4 - this is automatically set for LaTeX
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\DocumentMetadata\{', 'pdfversion=1\.4', 'pdfstandard=\{a-1b\}']
+        - []
+    typst:
+      # Typst automatically uses PDF 1.4 for PDF/A-1b
+      noErrors: default
+---
+
+# PDF/A-1b Test
+
+PDF/A-1b is based on ISO 19005-1 and requires PDF 1.4.
+
+Both LaTeX and Typst automatically use PDF 1.4 when `pdf-standard: a-1b`
+is specified, since PDF/A-1 is not compatible with higher PDF versions.
