@@ -176,6 +176,7 @@ import {
   kPdfEngine,
   kPdfEngineOpt,
   kPdfEngineOpts,
+  kPdfStandard,
   kPlotlyConnected,
   kPreferHtml,
   kPreserveYaml,
@@ -492,6 +493,7 @@ export interface FormatRender {
   [kLatexMinRuns]?: number;
   [kLatexMaxRuns]?: number;
   [kLatexClean]?: boolean;
+  [kPdfStandard]?: string | string[];
   [kLatexInputPaths]?: string[];
   [kLatexMakeIndex]?: string;
   [kLatexMakeIndexOpts]?: string[];

@@ -41,6 +41,7 @@ export type TypstCompileOptions = {
   fontPaths?: string[];
   rootDir?: string;
   packagePath?: string;
+  pdfStandard?: string[];
 };
 
 export async function typstCompile(
@@ -71,6 +72,9 @@ export async function typstCompile(
     if (existsSync(previewDir)) {
       cmd.push("--package-cache-path", options.packagePath);
     }
+  }
+  if (options.pdfStandard && options.pdfStandard.length > 0) {
+    cmd.push("--pdf-standard", options.pdfStandard.join(","));
   }
   cmd.push(
     input,

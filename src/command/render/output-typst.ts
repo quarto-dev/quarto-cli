@@ -23,8 +23,10 @@ import {
   kKeepTyp,
   kOutputExt,
   kOutputFile,
+  kPdfStandard,
   kVariant,
 } from "../../config/constants.ts";
+import { error, warning } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
@@ -38,6 +40,7 @@ import {
 } from "../../core/typst.ts";
 import { asArray } from "../../core/array.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { validatePdfStandards } from "../../core/verapdf.ts";
 
 // Stage typst packages to .quarto/typst-packages/
 // First stages built-in packages, then extension packages (which can override)
@@ -137,6 +140,11 @@ export function typstPdfOutputRecipe(
     const typstOptions: TypstCompileOptions = {
       quiet: options.flags?.quiet,
       fontPaths: asArray(format.metadata?.[kFontPaths]) as string[],
+      pdfStandard: normalizePdfStandardForTypst(
+        asArray(
+          format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard],
+        ),
+      ),
     };
     if (project?.dir) {
       typstOptions.rootDir = project.dir;
@@ -153,7 +161,21 @@ export function typstPdfOutputRecipe(
       typstOptions,
     );
     if (!result.success) {
-      throw new Error();
+      // Log the error so test framework can detect it via shouldError
+      if (result.stderr) {
+        error(result.stderr);
+      }
+      throw new Error("Typst compilation failed");
+    }
+
+    // Validate PDF against specified standards using verapdf (if available)
+    const pdfStandards = asArray(
+      format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard],
+    ) as string[];
+    if (pdfStandards.length > 0) {
+      await validatePdfStandards(pdfOutput, pdfStandards, {
+        quiet: options.flags?.quiet,
+      });
     }
 
     // keep typ if requested
@@ -216,4 +238,51 @@ export function typstPdfOutputRecipe(
   }
 
   return recipe;
+}
+
+// Typst-supported PDF standards
+const kTypstSupportedStandards = new Set([
+  "1.4",
+  "1.5",
+  "1.6",
+  "1.7",
+  "2.0",
+  "a-1b",
+  "a-1a",
+  "a-2b",
+  "a-2u",
+  "a-2a",
+  "a-3b",
+  "a-3u",
+  "a-3a",
+  "a-4",
+  "a-4f",
+  "a-4e",
+  "ua-1",
+]);
+
+function normalizePdfStandardForTypst(standards: unknown[]): string[] {
+  const result: string[] = [];
+  for (const s of standards) {
+    // Convert to string - YAML may parse versions like 2.0 as integer 2
+    let str: string;
+    if (typeof s === "number") {
+      // Handle YAML numeric parsing: integer 2 -> "2.0", float 1.4 -> "1.4"
+      str = Number.isInteger(s) ? `${s}.0` : String(s);
+    } else if (typeof s === "string") {
+      str = s;
+    } else {
+      continue;
+    }
+    // Normalize: lowercase, remove any "pdf" prefix
+    const normalized = str.toLowerCase().replace(/^pdf[/-]?/, "");
+    if (kTypstSupportedStandards.has(normalized)) {
+      result.push(normalized);
+    } else {
+      warning(
+        `PDF standard '${s}' is not supported by Typst and will be ignored`,
+      );
+    }
+  }
+  return result;
 }

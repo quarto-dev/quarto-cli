@@ -1,0 +1,17 @@
+---
+title: "LaTeX version + standards combined"
+format: pdf
+pdf-standard: ["1.7", a-2b, ua-1]
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\DocumentMetadata\{', 'pdfversion=1\.7', 'pdfstandard=\{a-2b,ua-1\}', 'tagging=on']
+        - []
+---
+
+# Test Document
+
+This tests PDF 1.7 with PDF/A-2b + PDF/UA-1.
