@@ -1,0 +1,17 @@
+---
+title: "LaTeX PDF/A-2b standard"
+format: pdf
+pdf-standard: a-2b
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{a-2b\}', 'tagging=on']
+        - []
+---
+
+# Test Document
+
+This tests PDF/A-2b output with LaTeX.

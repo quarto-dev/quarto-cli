@@ -1,0 +1,32 @@
+---
+title: "UA-1 missing alt text"
+pdf-standard: ua-1
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{ua-1\}', 'tagging=on']
+        - []
+      printsMessage:
+        level: WARN
+        regex: "PDF accessibility:"
+    typst:
+      shouldError: default
+---
+
+# Test Document
+
+This image has no alt text. Typst should fail UA-1 validation; LaTeX should warn.
+
+<!--
+TODO: Even with alt text like ![alt text](image.png), LaTeX still warns because
+Quarto/Pandoc doesn't currently pass markdown alt text through to LaTeX's
+\includegraphics[alt={...}] attribute. Pandoc supports this (see mbalt in
+Text.Pandoc.Writers.LaTeX.hs), but Quarto's graphics handling doesn't propagate it.
+Fix needed in Quarto's Lua filters or graphics template.
+-->
+
+![](test-image.png)

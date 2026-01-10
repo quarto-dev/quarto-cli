@@ -39,6 +39,7 @@ export type TypstCompileOptions = {
   quiet?: boolean;
   fontPaths?: string[];
   rootDir?: string;
+  pdfStandard?: string[];
 };
 
 export async function typstCompile(
@@ -57,6 +58,9 @@ export async function typstCompile(
   ];
   if (options.rootDir) {
     cmd.push("--root", options.rootDir);
+  }
+  if (options.pdfStandard && options.pdfStandard.length > 0) {
+    cmd.push("--pdf-standard", options.pdfStandard.join(","));
   }
   cmd.push(
     input,

@@ -1,0 +1,17 @@
+---
+title: "LaTeX PDF version"
+format: pdf
+pdf-standard: "1.7"
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\DocumentMetadata\{', 'pdfversion=1\.7', 'tagging=on']
+        - []
+---
+
+# Test Document
+
+This tests explicit PDF version 1.7.

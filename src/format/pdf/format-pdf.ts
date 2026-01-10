@@ -31,12 +31,15 @@ import {
   kNumberSections,
   kPaperSize,
   kPdfEngine,
+  kPdfStandard,
   kReferenceLocation,
   kShiftHeadingLevelBy,
   kTblCapLoc,
   kTopLevelDivision,
   kWarning,
 } from "../../config/constants.ts";
+import { warning } from "../../deno_ral/log.ts";
+import { asArray } from "../../core/array.ts";
 import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 
 import { createFormat } from "../formats-shared.ts";
@@ -254,6 +257,7 @@ function createPdfFormat(
         const partialNamesPandoc: string[] = [
           "after-header-includes",
           "common",
+          "document-metadata",
           "font-settings",
           "fonts",
           "hypersetup",
@@ -311,6 +315,27 @@ function createPdfFormat(
           flags[kNumberSections] !== false
         ) {
           extras.pandoc[kNumberSections] = true;
+        }
+
+        // Handle pdf-standard option for PDF/A, PDF/UA, PDF/X conformance
+        const pdfStandard = asArray(
+          format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard],
+        );
+        if (pdfStandard.length > 0) {
+          const { version, standards } = normalizePdfStandardForLatex(
+            pdfStandard,
+          );
+          extras.pandoc.variables = extras.pandoc.variables || {};
+          extras.pandoc.variables["pdf-standard"] = true; // Enable the partial
+          if (version) {
+            extras.pandoc.variables["pdf-version"] = version;
+          }
+          if (standards.length > 0) {
+            // Pass as array - Pandoc template will iterate with $for()$
+            extras.pandoc.variables["pdf-standards"] = standards;
+          }
+          // Always enable tagging for pdf-standard (stable in LaTeX 2025+)
+          extras.pandoc.variables["pdf-tagging"] = true;
         }
 
         return extras;
@@ -1236,3 +1261,54 @@ const kbeginLongTablesideCap = `{
 \\makeatother`;
 
 const kEndLongTableSideCap = "}";
+
+// LaTeX-supported PDF standards
+const kLatexSupportedStandards = new Set([
+  "a-1b",
+  "a-2a",
+  "a-2b",
+  "a-2u",
+  "a-3a",
+  "a-3b",
+  "a-3u",
+  "a-4",
+  "a-4f",
+  "x-4",
+  "x-4p",
+  "x-5g",
+  "x-5n",
+  "x-5pg",
+  "x-6",
+  "x-6n",
+  "x-6p",
+  "ua-1",
+  "ua-2",
+]);
+
+const kVersionPattern = /^(1\.[4-7]|2\.0)$/;
+
+function normalizePdfStandardForLatex(
+  standards: unknown[],
+): { version?: string; standards: string[] } {
+  let version: string | undefined;
+  const result: string[] = [];
+
+  for (const s of standards) {
+    if (typeof s !== "string") continue;
+    // Normalize: lowercase, remove any "pdf" prefix
+    const normalized = s.toLowerCase().replace(/^pdf[/-]?/, "");
+
+    if (kVersionPattern.test(normalized)) {
+      version = normalized;
+    } else if (kLatexSupportedStandards.has(normalized)) {
+      // LaTeX is case-insensitive, pass through lowercase
+      result.push(normalized);
+    } else {
+      warning(
+        `PDF standard '${s}' is not supported by LaTeX and will be ignored`,
+      );
+    }
+  }
+
+  return { version, standards: result };
+}
