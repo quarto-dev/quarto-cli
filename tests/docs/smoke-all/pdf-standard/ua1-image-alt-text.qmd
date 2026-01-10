@@ -1,0 +1,25 @@
+---
+title: "UA-1 image with alt text"
+lang: en
+pdf-standard: ua-1
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        # Alt text MUST be passed to \includegraphics[alt={...}] for PDF/UA
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{ua-1\}', 'tagging=on', 'includegraphics\[.*alt=']
+        - []
+      printsMessage:
+        # Should NOT warn about missing alt text since we provided it
+        level: WARN
+        regex: "PDF accessibility:.*Missing alt text"
+        negate: true
+---
+
+# Test Document
+
+This image has alt text which should be passed through to LaTeX's `\includegraphics[alt={...}]` for PDF/UA compliance.
+
+![Test image description](test-image.png)
