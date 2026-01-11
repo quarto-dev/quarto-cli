@@ -5,6 +5,9 @@ pdf-standard: ua-1
 keep-tex: true
 _quarto:
   tests:
+    run:
+      # verapdf validation not available on Windows CI
+      not_os: windows
     pdf:
       noErrors: default
       ensureLatexFileRegexMatches:
