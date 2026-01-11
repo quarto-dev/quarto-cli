@@ -281,10 +281,16 @@ function createPdfFormat(
             ],
           };
         };
+        // Beamer doesn't use document-metadata partial (its template doesn't include it)
+        const beamerPartialNamesPandoc = partialNamesPandoc.filter(
+          (name) => name !== "document-metadata",
+        );
         extras.templateContext = createTemplateContext(
           displayName === "Beamer" ? "beamer" : "pdf",
           partialNamesQuarto,
-          partialNamesPandoc,
+          displayName === "Beamer"
+            ? beamerPartialNamesPandoc
+            : partialNamesPandoc,
         );
 
         // Don't shift the headings if we see any H1s (we can't shift up any longer)
