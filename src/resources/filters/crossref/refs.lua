@@ -188,7 +188,28 @@ function extractRefLabel(type, text)
 end
 
 function refLabelPattern(type)
-  return "{#(" .. type .. "%-[^ }]+)}"
+  -- Captures the identifier (type-name) while allowing optional attributes
+  return "{#(" .. type .. "%-[^ }]+)[^}]*}"
+end
+
+-- Parse a Pandoc attribute block string into identifier and attributes.
+-- Uses pandoc.read with a dummy header to leverage Pandoc's native parser.
+--
+-- Input:  "{#eq-label alt=\"description\"}"
+-- Output: "eq-label", {alt = "description"}
+--
+-- This is used to extract alt-text.
+function parseRefAttr(text)
+  if not text then return nil, nil end
+
+  -- Wrap in a markdown header since Pandoc requires text before attributes
+  -- to parse them correctly without regular expressions.
+  local parsed = pandoc.read("## x " .. text, "markdown")
+  if parsed and parsed.blocks[1] and parsed.blocks[1].attr then
+    local attr = parsed.blocks[1].attr
+    return attr.identifier, attr.attributes
+  end
+  return nil, nil
 end
 
 function is_valid_ref_type(type) 
@@ -210,4 +231,3 @@ function valid_ref_types()
   table.insert(types, "sec")
   return types
 end
-
