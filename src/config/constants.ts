@@ -90,6 +90,7 @@ export const kKeepIpynb = "keep-ipynb";
 export const kKeepSource = "keep-source";
 export const kVariant = "variant";
 export const kOutputExt = "output-ext";
+export const kOutputSuffix = "output-suffix";
 export const kOutputDivs = "output-divs";
 export const kPageWidth = "page-width";
 export const kFigAlign = "fig-align";
@@ -191,6 +192,7 @@ export const kRenderDefaultsKeys = [
   kClearHiddenClasses,
   kVariant,
   kOutputExt,
+  kOutputSuffix,
   kOutputDivs,
   kPreferHtml,
   kPageWidth,
