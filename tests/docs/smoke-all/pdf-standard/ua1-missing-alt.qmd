@@ -29,4 +29,4 @@ Text.Pandoc.Writers.LaTeX.hs), but Quarto's graphics handling doesn't propagate 
 Fix needed in Quarto's Lua filters or graphics template.
 -->
 
-![](test-image.png)
+![](penrose.svg)

@@ -1,0 +1,57 @@
+---
+title: "Typst image alt text support"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        - # Patterns that MUST be found - alt text in image() calls
+          - 'image\("tc1-figure\.svg",\s*alt:\s*"TC1 figure caption as alt'
+          - 'image\("tc2-inline\.svg",\s*alt:\s*"TC2 inline image'
+          - 'image\("tc3-explicit\.svg",\s*alt:\s*"TC3 explicit alt attribute'
+          - 'image\("tc4-dimensions\.svg",\s*alt:\s*"TC4 with dimensions",\s*height:\s*1in,\s*width:\s*1in'
+          - 'image\("tc5-quotes\.svg",\s*alt:\s*"TC5 with \\"escaped\\" quotes'
+          - 'image\("tc6-backslash\.svg",\s*alt:\s*"TC6 backslash C:\\\\path'
+          # TC7 should have the image but without alt parameter
+          - 'image\("tc7-no-alt\.svg"\)'
+        - # Patterns that must NOT be found
+          # TC7 with no caption/alt should NOT have alt parameter
+          - 'tc7-no-alt\.svg.*alt:'
+---
+
+# Test Document: Typst Image Alt Text
+
+This tests that Quarto passes alt text to Typst's `image()` function for PDF/UA accessibility.
+
+## TC1: Figure with alt text from caption
+
+![TC1 figure caption as alt text](tc1-figure.svg)
+
+## TC2: Inline image with alt text
+
+Here is an icon ![TC2 inline image](tc2-inline.svg) in the text.
+
+## TC3: Explicit alt attribute (different from caption)
+
+![Visible caption](tc3-explicit.svg){alt="TC3 explicit alt attribute"}
+
+## TC4: Image with dimensions should preserve alt
+
+Here is ![TC4 with dimensions](tc4-dimensions.svg){width=1in height=1in} inline.
+
+## TC5: Alt text with special characters (quotes)
+
+![Caption](tc5-quotes.svg){alt="TC5 with \"escaped\" quotes"}
+
+## TC6: Alt text with backslashes
+
+![Caption](tc6-backslash.svg){alt="TC6 backslash C:\\path\\file"}
+
+## TC7: Image with no alt text (should omit alt parameter)
+
+This image has no caption and no alt attribute.
+
+![](tc7-no-alt.svg)
