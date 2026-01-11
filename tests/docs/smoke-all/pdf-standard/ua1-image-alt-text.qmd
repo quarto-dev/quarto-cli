@@ -22,4 +22,4 @@ _quarto:
 
 This image has alt text which should be passed through to LaTeX's `\includegraphics[alt={...}]` for PDF/UA compliance.
 
-![Test image description](test-image.png)
+![Test image description](penrose.svg)
