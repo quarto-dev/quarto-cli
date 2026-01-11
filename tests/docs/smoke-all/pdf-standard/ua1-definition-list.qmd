@@ -1,0 +1,26 @@
+---
+title: "UA-1 definition list accessibility"
+lang: en
+pdf-standard: ua-1
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      # Definition lists should pass PDF/UA-1 validation
+      # Fix: https://github.com/quarto-dev/quarto-cli/pull/13249#discussion_r2678934509
+      noErrors: default
+---
+
+# Definition List Test
+
+This tests that definition lists are accessible in PDF/UA-1.
+
+Term 1
+:   Definition for term 1
+
+Term 2
+:   Definition for term 2
+
+Term 3
+:   Definition for term 3 with more detailed explanation
+    that spans multiple lines.
