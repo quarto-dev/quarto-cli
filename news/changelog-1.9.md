@@ -111,6 +111,10 @@ All changes included in 1.9:
 
 - (): New `quarto call build-ts-extension` command builds a TypeScript extension, such as an engine extension, and places the artifacts in the `_extensions` directory. See the [engine extension pre-release documentation](https://prerelease.quarto.org/docs/extensions/engine.html) for details.
 
+### `install verapdf`
+
+- ([#4426](https://github.com/quarto-dev/quarto-cli/issues/4426)): New `quarto install verapdf` command installs [veraPDF](https://verapdf.org/) for PDF/A and PDF/UA validation. When verapdf is available, PDFs created with the `pdf-standard` option are automatically validated for compliance. Also supports `quarto uninstall verapdf`, `quarto update verapdf`, and `quarto tools`.
+
 ## Extensions
 
 - Metadata and brand extensions now work without a `_quarto.yml` project. (Engine extensions do too.) A temporary default project is created in memory.
