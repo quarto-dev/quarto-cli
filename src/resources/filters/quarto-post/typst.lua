@@ -103,11 +103,19 @@ function render_typst_fixups()
       end
 
       if alt_text and #alt_text > 0 then
+        -- When returning RawInline instead of Image, Pandoc won't write mediabag
+        -- entries to disk, so we must do it explicitly
+        local src = image.src
+        local mediabagPath = _quarto.modules.mediabag.write_mediabag_entry(src)
+        if mediabagPath then
+          src = mediabagPath
+        end
+
         -- Build image() parameters
         local params = {}
 
         -- Source path (escape backslashes for Windows paths)
-        local src = image.src:gsub('\\', '\\\\')
+        src = src:gsub('\\', '\\\\')
         table.insert(params, '"' .. src .. '"')
 
         -- Alt text second (escape backslashes and quotes)
