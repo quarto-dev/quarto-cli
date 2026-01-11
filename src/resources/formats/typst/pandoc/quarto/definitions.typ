@@ -17,13 +17,15 @@
   #stack(dir: ltr, spacing: 3pt, super[#num], contents)
 ]
 
+// Use nested show rule to preserve list structure for PDF/UA-1 accessibility
+// See: https://github.com/quarto-dev/quarto-cli/pull/13249#discussion_r2678934509
 #show terms: it => {
-  it.children
-    .map(child => [
-      #strong[#child.term]
-      #block(inset: (left: 1.5em, top: -0.4em))[#child.description]
-      ])
-    .join()
+  show terms.item: item => {
+    set text(weight: "bold")
+    item.term
+    block(inset: (left: 1.5em, top: -0.4em))[#item.description]
+  }
+  it
 }
 
 // Some quarto-specific definitions.
