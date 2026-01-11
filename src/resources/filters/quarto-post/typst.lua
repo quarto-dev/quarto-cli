@@ -232,6 +232,48 @@ function render_typst_fixups()
       if image.attributes["width"] ~= nil and type(width_as_number) == "number" then
         image.attributes["width"] = tostring(image.attributes["width"] / PANDOC_WRITER_OPTIONS.dpi) .. "in"
       end
+
+      -- Workaround for Pandoc not passing alt text to Typst image() calls
+      -- See: https://github.com/jgm/pandoc/pull/11394
+      local alt_text = image.attributes["alt"]
+      if (alt_text == nil or alt_text == "") and #image.caption > 0 then
+        alt_text = pandoc.utils.stringify(image.caption)
+      end
+
+      if alt_text and #alt_text > 0 then
+        -- When returning RawInline instead of Image, Pandoc won't write mediabag
+        -- entries to disk, so we must do it explicitly
+        local src = image.src
+        local mediabagPath = _quarto.modules.mediabag.write_mediabag_entry(src)
+        if mediabagPath then
+          src = mediabagPath
+        end
+
+        -- Build image() parameters
+        local params = {}
+
+        -- Source path (escape backslashes for Windows paths)
+        src = src:gsub('\\', '\\\\')
+        table.insert(params, '"' .. src .. '"')
+
+        -- Alt text second (escape backslashes and quotes)
+        local escaped_alt = alt_text:gsub('\\', '\\\\'):gsub('"', '\\"')
+        table.insert(params, 'alt: "' .. escaped_alt .. '"')
+
+        -- Height if present
+        if image.attributes["height"] then
+          table.insert(params, 'height: ' .. image.attributes["height"])
+        end
+
+        -- Width if present
+        if image.attributes["width"] then
+          table.insert(params, 'width: ' .. image.attributes["width"])
+        end
+
+        -- Use #box() wrapper for inline compatibility
+        return pandoc.RawInline("typst", "#box(image(" .. table.concat(params, ", ") .. "))")
+      end
+
       return image
     end,
     Div = function(div)

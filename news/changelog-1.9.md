@@ -42,6 +42,7 @@ All changes included in 1.9:
 - ([#13589](https://github.com/quarto-dev/quarto-cli/issues/13589)): Fix callouts with invalid ID prefixes crashing with "attempt to index a nil value". Callouts with unknown reference types now render as non-crossreferenceable callouts with a warning, ignoring the invalid ID.
 - ([#13602](https://github.com/quarto-dev/quarto-cli/issues/13602)): Fix support for multiple files set in `bibliography` field in `biblio.typ` template partial.
 - ([#13775](https://github.com/quarto-dev/quarto-cli/issues/13775)): Fix brand fonts not being applied when using `citeproc: true` with Typst format. Format detection now properly handles Pandoc format variants like `typst-citations`.
+- ([#13868](https://github.com/quarto-dev/quarto-cli/issues/13868)): Add image alt text support for PDF/UA accessibility. Alt text from markdown captions and explicit `alt` attributes is now passed to Typst's `image()` function. (Temporary workaround until [jgm/pandoc#11394](https://github.com/jgm/pandoc/pull/11394) is merged.)
 - ([#13249](https://github.com/quarto-dev/quarto-cli/pull/13249)): Update to Pandoc's Typst template following Pandoc 3.8.3 and Typst 0.14.2 support:
   - Code syntax highlighting now uses Skylighting by default.
   - New template variables `mathfont`, `codefont`, and `linestretch` for font and line spacing customization.
