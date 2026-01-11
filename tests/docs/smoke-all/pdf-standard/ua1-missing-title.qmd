@@ -1,0 +1,31 @@
+---
+pdf-standard: ua-1
+lang: en
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{ua-1\}', 'tagging=on']
+        - []
+      printsMessage:
+        # verapdf correctly catches missing document title
+        level: WARN
+        regex: "PDF validation failed for ua-1"
+    typst:
+      # Typst correctly errors at compile time for missing title
+      shouldError: default
+      printsMessage:
+        level: ERROR
+        regex: "missing document title"
+---
+
+# Content without document title
+
+PDF/UA-1 requires a document title in the metadata. This document has no `title:`
+in the YAML front matter.
+
+- **LaTeX**: Renders but verapdf fails with "dc:title entry" error
+- **Typst**: Correctly errors at compile time with "missing document title"

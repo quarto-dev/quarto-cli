@@ -1,5 +1,6 @@
 ---
-title: "UA-1 inline image missing alt text"
+title: "UA-1 figure missing alt text"
+lang: en
 pdf-standard: ua-1
 keep-tex: true
 keep-typ: true
@@ -8,13 +9,11 @@ _quarto:
     pdf:
       noErrors: default
       ensureLatexFileRegexMatches:
-        - ['\\DocumentMetadata\{', 'pdfstandard=\{ua-1\}', 'tagging=on']
+        # LaTeX generates a proper \begin{figure} environment
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{ua-1\}', 'tagging=on', '\\begin\{figure\}']
         - []
-      printsMessage:
-        level: WARN
-        regex: "PDF accessibility:"
       # NOTE: verapdf passes because LaTeX's tagging=on doesn't create proper
-      # structure elements for inline images. This is a LaTeX limitation.
+      # Figure structure elements in the PDF. This is a LaTeX limitation.
     typst:
       # Typst correctly errors at compile time for missing alt text
       shouldError: default
@@ -25,10 +24,10 @@ _quarto:
 
 # Test Document
 
-This inline image has no alt text.
+This is a proper figure with a cross-reference label but no alt text.
+See @fig-penrose for the image.
 
 - **Typst**: Correctly errors at compile time ("PDF/UA-1 error: missing alt text")
-- **LaTeX**: Warns about missing alt text but verapdf passes because `tagging=on`
-  doesn't create proper Figure structure elements for inline images
+- **LaTeX**: Passes verapdf because `tagging=on` doesn't create proper Figure structure elements
 
-![](penrose.svg)
+![](penrose.svg){#fig-penrose}

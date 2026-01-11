@@ -1,0 +1,27 @@
+---
+title: "PDF/A-2b standard"
+pdf-standard: a-2b
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        # a-2b is "basic" level - does NOT require tagging
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{a-2b\}']
+        - ['tagging=on']
+      printsMessage:
+        # LaTeX PDF/A-2b currently fails verapdf validation
+        level: WARN
+        regex: "PDF validation failed for a-2b"
+    typst:
+      noErrors: default
+---
+
+# Test Document
+
+This tests PDF/A-2b output with both LaTeX and Typst.
+
+- LaTeX: generates correct `\DocumentMetadata` but fails verapdf validation (header format issue)
+- Typst: passes verapdf validation

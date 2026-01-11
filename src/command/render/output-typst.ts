@@ -15,7 +15,7 @@ import {
   kPdfStandard,
   kVariant,
 } from "../../config/constants.ts";
-import { warning } from "../../deno_ral/log.ts";
+import { error, warning } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
@@ -29,6 +29,7 @@ import {
 } from "../../core/typst.ts";
 import { asArray } from "../../core/array.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { validatePdfStandards } from "../../core/verapdf.ts";
 
 export function useTypstPdfOutputRecipe(
   format: Format,
@@ -83,7 +84,21 @@ export function typstPdfOutputRecipe(
       typstOptions,
     );
     if (!result.success) {
-      throw new Error();
+      // Log the error so test framework can detect it via shouldError
+      if (result.stderr) {
+        error(result.stderr);
+      }
+      throw new Error("Typst compilation failed");
+    }
+
+    // Validate PDF against specified standards using verapdf (if available)
+    const pdfStandards = asArray(
+      format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard],
+    ) as string[];
+    if (pdfStandards.length > 0) {
+      await validatePdfStandards(pdfOutput, pdfStandards, {
+        quiet: options.flags?.quiet,
+      });
     }
 
     // keep typ if requested

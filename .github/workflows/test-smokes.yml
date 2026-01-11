@@ -201,6 +201,13 @@ jobs:
         run: |
           quarto install tinytex
 
+      - name: Install veraPDF for PDF standard validation
+        if: runner.os == 'Linux' && contains(inputs.buckets, 'pdf-standard')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          quarto install verapdf
+
       - name: Cache Typst packages
         id: cache-typst
         uses: ./.github/actions/cache-typst
