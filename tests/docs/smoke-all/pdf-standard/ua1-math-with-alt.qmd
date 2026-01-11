@@ -1,0 +1,45 @@
+---
+title: "UA-1 math with alt text"
+lang: en
+pdf-standard: ua-1
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+    typst:
+      # TODO: Remove shouldError once PR #13872 is merged
+      # PR #13872 adds alt attribute support for equations
+      # Once merged, this test should pass with noErrors: default
+      shouldError: default
+      printsMessage:
+        level: ERROR
+        regex: "missing alt text"
+---
+
+# Math With Alt Text in PDF/UA-1
+
+This tests equation alt text for PDF/UA-1 accessibility.
+
+See @eq-einstein for Einstein's famous equation.
+
+$$
+E = mc^2
+$$ {#eq-einstein alt="E equals m c squared"}
+
+See @eq-quadratic for the quadratic formula.
+
+$$
+x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+$$ {#eq-quadratic alt="x equals negative b plus or minus the square root of b squared minus 4 a c, all over 2 a"}
+
+See @eq-integral for an integral using div syntax.
+
+::: {#eq-integral alt="The integral from 0 to infinity of e to the negative x squared equals square root of pi over 2"}
+
+$$
+\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+$$
+
+:::

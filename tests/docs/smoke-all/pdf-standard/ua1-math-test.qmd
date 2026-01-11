@@ -1,0 +1,39 @@
+---
+title: "UA-1 math without alt text"
+lang: en
+pdf-standard: ua-1
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      # LaTeX with tagging=on + unicode-math auto-generates MathML for accessibility
+      noErrors: default
+    typst:
+      # Typst requires explicit alt text for math in PDF/UA-1
+      shouldError: default
+      printsMessage:
+        level: ERROR
+        regex: "missing alt text"
+---
+
+# Math Without Alt Text in PDF/UA-1
+
+PDF/UA-1 requires alternative text for Formula elements.
+
+- **LaTeX**: Auto-generates MathML via `tagging=on` + `unicode-math` (LuaLaTeX)
+- **Typst**: Requires explicit alt text - errors at compile time
+
+Note: PR #13872 adds `alt` attribute support for equations in Quarto.
+
+## Inline Math
+
+The quadratic formula is $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$.
+
+## Display Math
+
+$$E = mc^2$$
+
+## Integral
+
+$$\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}$$
