@@ -187,9 +187,18 @@ const kTypstSupportedStandards = new Set([
 function normalizePdfStandardForTypst(standards: unknown[]): string[] {
   const result: string[] = [];
   for (const s of standards) {
-    if (typeof s !== "string") continue;
+    // Convert to string - YAML may parse versions like 2.0 as integer 2
+    let str: string;
+    if (typeof s === "number") {
+      // Handle YAML numeric parsing: integer 2 -> "2.0", float 1.4 -> "1.4"
+      str = Number.isInteger(s) ? `${s}.0` : String(s);
+    } else if (typeof s === "string") {
+      str = s;
+    } else {
+      continue;
+    }
     // Normalize: lowercase, remove any "pdf" prefix
-    const normalized = s.toLowerCase().replace(/^pdf[/-]?/, "");
+    const normalized = str.toLowerCase().replace(/^pdf[/-]?/, "");
     if (kTypstSupportedStandards.has(normalized)) {
       result.push(normalized);
     } else {

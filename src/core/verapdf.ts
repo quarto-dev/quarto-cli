@@ -206,7 +206,9 @@ export async function validatePdfStandards(
   const nonValidatableStandards: string[] = [];
 
   for (const standard of standards) {
-    const normalized = standard.toLowerCase().replace(/^pdf[/-]?/, "");
+    // Convert to string in case YAML parsed a version number (e.g., 2.0) as a number
+    const standardStr = String(standard);
+    const normalized = standardStr.toLowerCase().replace(/^pdf[/-]?/, "");
     // Skip version numbers (1.4, 1.5, etc.)
     if (/^\d+\.\d+$/.test(normalized)) {
       continue;
@@ -215,7 +217,7 @@ export async function validatePdfStandards(
     if (flavour) {
       validatableStandards.push({ standard: normalized, flavour });
     } else {
-      nonValidatableStandards.push(standard);
+      nonValidatableStandards.push(standardStr);
     }
   }
 

@@ -1310,6 +1310,23 @@ const kTaggingRequiredStandards = new Set([
 
 const kVersionPattern = /^(1\.[4-7]|2\.0)$/;
 
+// PDF version required by each standard (maximum version limits)
+// LaTeX defaults to PDF 2.0 with \DocumentMetadata, but some standards
+// have maximum version requirements that are incompatible with 2.0
+const kStandardRequiredVersion: Record<string, string> = {
+  // PDF/A-1 requires exactly PDF 1.4
+  "a-1a": "1.4",
+  "a-1b": "1.4",
+  // PDF/A-2 and PDF/A-3 have maximum version of 1.7
+  "a-2a": "1.7",
+  "a-2b": "1.7",
+  "a-2u": "1.7",
+  "a-3a": "1.7",
+  "a-3b": "1.7",
+  "a-3u": "1.7",
+  // PDF/A-4, PDF/UA-1, PDF/UA-2 all work with PDF 2.0 (the default)
+};
+
 function normalizePdfStandardForLatex(
   standards: unknown[],
 ): { version?: string; standards: string[]; needsTagging: boolean } {
@@ -1318,9 +1335,18 @@ function normalizePdfStandardForLatex(
   let needsTagging = false;
 
   for (const s of standards) {
-    if (typeof s !== "string") continue;
+    // Convert to string - YAML may parse versions like 2.0 as integer 2
+    let str: string;
+    if (typeof s === "number") {
+      // Handle YAML numeric parsing: integer 2 -> "2.0", float 1.4 -> "1.4"
+      str = Number.isInteger(s) ? `${s}.0` : String(s);
+    } else if (typeof s === "string") {
+      str = s;
+    } else {
+      continue;
+    }
     // Normalize: lowercase, remove any "pdf" prefix
-    const normalized = s.toLowerCase().replace(/^pdf[/-]?/, "");
+    const normalized = str.toLowerCase().replace(/^pdf[/-]?/, "");
 
     if (kVersionPattern.test(normalized)) {
       version = normalized;
@@ -1330,6 +1356,10 @@ function normalizePdfStandardForLatex(
       // Check if this standard requires tagging
       if (kTaggingRequiredStandards.has(normalized)) {
         needsTagging = true;
+      }
+      // Infer required PDF version from standard (if not explicitly set)
+      if (!version && kStandardRequiredVersion[normalized]) {
+        version = kStandardRequiredVersion[normalized];
       }
     } else {
       warning(
