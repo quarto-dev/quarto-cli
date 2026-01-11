@@ -49,6 +49,7 @@ import {
   kMetadataFormat,
   kOutputExt,
   kOutputFile,
+  kOutputSuffix,
   kServer,
   kTargetFormat,
   kWarning,
@@ -330,7 +331,8 @@ export async function renderFormats(
     // resolve output-file
     if (!format.pandoc[kOutputFile]) {
       const [_dir, stem] = dirAndStem(file);
-      format.pandoc[kOutputFile] = `${stem}.${format.render[kOutputExt]}`;
+      const suffix = format.render[kOutputSuffix] || "";
+      format.pandoc[kOutputFile] = `${stem}${suffix}.${format.render[kOutputExt]}`;
     }
     // provide engine
     format.execute[kEngine] = context.engine.name;

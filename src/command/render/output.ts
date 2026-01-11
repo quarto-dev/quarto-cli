@@ -25,6 +25,7 @@ import {
 import {
   kOutputExt,
   kOutputFile,
+  kOutputSuffix,
   kPreserveYaml,
   kVariant,
 } from "../../config/constants.ts";
@@ -184,18 +185,21 @@ export function outputRecipe(
     const deriveAutoOutput = () => {
       // no output specified: derive an output path from the extension
 
+      // Get the suffix if specified
+      const suffix = format.render[kOutputSuffix] || "";
+
       // derive new output file
-      let output = inputStem + "." + ext;
+      let output = `${inputStem}${suffix}.${ext}`;
       // special case for .md to .md, need to append the writer to create a
       // non-conflicting filename
       if (extname(input) === ".md" && ext === "md") {
-        output = `${inputStem}-${format.identifier["base-format"]}.md`;
+        output = `${inputStem}${suffix}-${format.identifier["base-format"]}.md`;
       }
 
       // special case if the source will overwrite the destination (note: this
       // behavior can be customized with a custom output-ext)
       if (output === basename(context.target.source)) {
-        output = inputStem + `.${kOutExt}.` + ext;
+        output = `${inputStem}${suffix}.${kOutExt}.${ext}`;
       }
 
       // assign output

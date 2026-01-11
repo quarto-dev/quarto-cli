@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { kOutputExt, kOutputFile, kServer } from "../config/constants.ts";
+import { kOutputExt, kOutputFile, kOutputSuffix, kServer } from "../config/constants.ts";
 import { Format, Metadata } from "../config/types.ts";
 import { kJupyterEngine, kKnitrEngine } from "../execute/types.ts";
 import { dirAndStem } from "./path.ts";
@@ -47,6 +47,19 @@ export function isServerShinyKnitr(
 export function formatOutputFile(format: Format) {
   let outputFile = format.pandoc[kOutputFile];
   if (outputFile) {
+    // Apply output-suffix if specified (insert before extension)
+    const suffix = format.render[kOutputSuffix];
+    if (suffix) {
+      const ext = extname(outputFile);
+      if (ext) {
+        const stem = outputFile.slice(0, -ext.length);
+        outputFile = `${stem}${suffix}${ext}`;
+      } else {
+        // No extension, just append suffix
+        outputFile = `${outputFile}${suffix}`;
+      }
+    }
+
     if (format.render[kOutputExt]) {
       // Don't append the output extension if the same output
       // extension is already present. If you update this logic,
