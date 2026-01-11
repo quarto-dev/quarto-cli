@@ -1,0 +1,8 @@
+---
+title: "Alt text test"
+pdf-standard: ua-1
+keep-tex: true
+---
+
+![This is the alt text](penrose.svg)
+

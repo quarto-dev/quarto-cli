@@ -38,6 +38,17 @@ end
           return float
         end
       elseif _quarto.format.isLatexOutput() then
+        -- propagate fig-alt to Image elements for LaTeX (enables \includegraphics[alt={...}])
+        local altText = attribute(float, kFigAlt, nil)
+        if altText ~= nil then
+          float.content = _quarto.ast.walk(float.content, {
+            Image = function(image)
+              image.attributes["alt"] = altText
+              return image
+            end
+          })
+          float.attributes[kFigAlt] = nil
+        end
         return forward_pos_and_env(float)
       end
     end,

@@ -1,0 +1,14 @@
+---
+title: "Typst PDF version + standard"
+format: typst
+pdf-standard: ["1.7", a-2b]
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+---
+
+# Test Document
+
+This tests combined PDF 1.7 + PDF/A-2b output with Typst.

@@ -86,10 +86,11 @@ export async function findPackages(
         `finding package for ${searchTerm}`,
       );
     }
-    // Special case for a known package
+    // Special cases for known packages where tlmgr file search doesn't work
     // https://github.com/rstudio/tinytex/blob/33cbe601ff671fae47c594250de1d22bbf293b27/R/latex.R#L470
-    if (searchTerm === "fandol") {
-      results.push("fandol");
+    const knownPackages = ["fandol", "latex-lab", "colorprofiles"];
+    if (knownPackages.includes(searchTerm)) {
+      results.push(searchTerm);
     } else {
       const result = await tlmgrCommand(
         "search",

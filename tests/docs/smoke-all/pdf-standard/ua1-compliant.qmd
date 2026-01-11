@@ -1,0 +1,24 @@
+---
+title: "UA-1 with language set"
+lang: en
+pdf-standard: ua-1
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{ua-1\}', 'tagging=on']
+        - []
+      printsMessage:
+        level: WARN
+        regex: "Document language not set"
+        negate: true
+    typst:
+      noErrors: default
+---
+
+# Test Document
+
+This document has UA-1 with language properly set, so no language warning should appear.

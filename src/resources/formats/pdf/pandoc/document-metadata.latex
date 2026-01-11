@@ -1,0 +1,13 @@
+$if(pdf-standard)$
+\DocumentMetadata{
+$if(pdf-version)$
+  pdfversion=$pdf-version$,
+$endif$
+$if(pdf-standards)$
+  pdfstandard={$for(pdf-standards)$$it$$sep$,$endfor$},
+$endif$
+$if(pdf-tagging)$
+  tagging=on,
+$endif$
+}
+$endif$
