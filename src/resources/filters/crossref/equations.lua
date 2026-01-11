@@ -1,5 +1,5 @@
 -- equations.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- Copyright (C) 2020-2026 Posit Software, PBC
 
 -- process all equations
 function equations()
@@ -54,39 +54,9 @@ function process_equations(blockEl)
           indexAddEntry(label, nil, order)
 
           local eq = mathInlines[1]
-
-          if _quarto.format.isLatexOutput() then
-            targetInlines:insert(pandoc.RawInline("latex", "\\begin{equation}"))
-            targetInlines:insert(pandoc.Span(pandoc.RawInline("latex", eq.text), pandoc.Attr(label)))
-
-            -- Pandoc 3.1.7 started outputting a shadow section with a label as a link target
-            -- which would result in two identical labels being emitted.
-            -- https://github.com/jgm/pandoc/issues/9045
-            -- https://github.com/lierdakil/pandoc-crossref/issues/402
-            targetInlines:insert(pandoc.RawInline("latex", "\\end{equation}"))
-
-          elseif _quarto.format.isTypstOutput() then
-            local is_block = eq.mathtype == "DisplayMath" and "true" or "false"
-            -- Alt attribute for Typst accessibility (ignored for other formats)
-            local alt_param = (attributes and attributes["alt"])
-              and (", alt: \"" .. attributes["alt"] .. "\"") or ""
-            targetInlines:insert(pandoc.RawInline("typst",
-              "#math.equation(block: " .. is_block .. ", numbering: \"(1)\"" .. alt_param .. ", [ "))
-            targetInlines:insert(eq)
-            targetInlines:insert(pandoc.RawInline("typst", " ])<" .. label .. ">"))
-          else
-            local eqNumber = eqQquad
-            local mathMethod = param("html-math-method", nil)
-            if type(mathMethod) == "table" and mathMethod["method"] then
-              mathMethod = mathMethod["method"]
-            end
-            if _quarto.format.isHtmlOutput() and (mathMethod == "mathjax" or mathMethod == "katex") then
-              eqNumber = eqTag
-            end
-            eq.text = eq.text .. " " .. eqNumber(inlinesToString(numberOption("eq", order)))
-            local span = pandoc.Span(eq, pandoc.Attr(label))
-            targetInlines:insert(span)
-          end
+          local alt = attributes and attributes["alt"] or nil
+          local eqInlines = renderEquation(eq, label, alt, order)
+          targetInlines:extend(eqInlines)
 
           -- Skip consumed elements and reset state
           skipUntil = i + consumed - 1
@@ -123,7 +93,46 @@ function process_equations(blockEl)
   -- return the processed list
   blockEl.content = targetInlines
   return blockEl
- 
+
+end
+
+-- Render equation output for all formats.
+-- The alt parameter is only used for Typst output (accessibility).
+function renderEquation(eq, label, alt, order)
+  local result = pandoc.Inlines{}
+
+  if _quarto.format.isLatexOutput() then
+    result:insert(pandoc.RawInline("latex", "\\begin{equation}"))
+    result:insert(pandoc.Span(pandoc.RawInline("latex", eq.text), pandoc.Attr(label)))
+
+    -- Pandoc 3.1.7 started outputting a shadow section with a label as a link target
+    -- which would result in two identical labels being emitted.
+    -- https://github.com/jgm/pandoc/issues/9045
+    -- https://github.com/lierdakil/pandoc-crossref/issues/402
+    result:insert(pandoc.RawInline("latex", "\\end{equation}"))
+
+  elseif _quarto.format.isTypstOutput() then
+    local is_block = eq.mathtype == "DisplayMath" and "true" or "false"
+    local alt_param = alt and (", alt: \"" .. alt .. "\"") or ""
+    result:insert(pandoc.RawInline("typst",
+      "#math.equation(block: " .. is_block .. ", numbering: \"(1)\"" .. alt_param .. ", [ "))
+    result:insert(eq)
+    result:insert(pandoc.RawInline("typst", " ])<" .. label .. ">"))
+
+  else
+    local eqNumber = eqQquad
+    local mathMethod = param("html-math-method", nil)
+    if type(mathMethod) == "table" and mathMethod["method"] then
+      mathMethod = mathMethod["method"]
+    end
+    if _quarto.format.isHtmlOutput() and (mathMethod == "mathjax" or mathMethod == "katex") then
+      eqNumber = eqTag
+    end
+    eq.text = eq.text .. " " .. eqNumber(inlinesToString(numberOption("eq", order)))
+    result:insert(pandoc.Span(eq, pandoc.Attr(label)))
+  end
+
+  return result
 end
 
 function eqTag(eq)
@@ -222,33 +231,8 @@ function process_equation_div(divEl)
   local order = indexNextOrder("eq")
   indexAddEntry(label, nil, order)
 
-  -- Alt attribute for Typst accessibility (ignored for other formats)
   local alt = divEl.attr.attributes["alt"]
+  local eqInlines = renderEquation(eq, label, alt, order)
 
-  if _quarto.format.isLatexOutput() then
-    return pandoc.Para({
-      pandoc.RawInline("latex", "\\begin{equation}"),
-      pandoc.Span(pandoc.RawInline("latex", eq.text), pandoc.Attr(label)),
-      pandoc.RawInline("latex", "\\end{equation}")
-    })
-  elseif _quarto.format.isTypstOutput() then
-    local alt_param = alt and (", alt: \"" .. alt .. "\"") or ""
-    return pandoc.Para({
-      pandoc.RawInline("typst",
-        "#math.equation(block: true, numbering: \"(1)\"" .. alt_param .. ", [ "),
-      eq,
-      pandoc.RawInline("typst", " ])<" .. label .. ">")
-    })
-  else
-    local eqNumber = eqQquad
-    local mathMethod = param("html-math-method", nil)
-    if type(mathMethod) == "table" and mathMethod["method"] then
-      mathMethod = mathMethod["method"]
-    end
-    if _quarto.format.isHtmlOutput() and (mathMethod == "mathjax" or mathMethod == "katex") then
-      eqNumber = eqTag
-    end
-    eq.text = eq.text .. " " .. eqNumber(inlinesToString(numberOption("eq", order)))
-    return pandoc.Para({pandoc.Span(eq, pandoc.Attr(label))})
-  end
+  return pandoc.Para(eqInlines)
 end
