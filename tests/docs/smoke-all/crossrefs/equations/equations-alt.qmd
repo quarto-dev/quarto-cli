@@ -1,0 +1,72 @@
+---
+title: Equation Alt-Text and Div Syntax Test
+format:
+  html: default
+  typst:
+    keep-typ: true
+  pdf:
+    keep-tex: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - "span#eq-display-math > span.math"
+          - "span#eq-display-alt > span.math"
+          - "span#eq-div-alt > span.math"
+          - "a.quarto-xref[href='#eq-display-math']"
+          - "a.quarto-xref[href='#eq-display-alt']"
+          - "a.quarto-xref[href='#eq-div-alt']"
+        - []
+    pdf:
+      ensureLatexFileRegexMatches:
+        -
+          - "\\\\begin\\{equation\\}\\\\phantomsection\\\\label\\{eq-display-math\\}"
+          - "\\\\begin\\{equation\\}\\\\phantomsection\\\\label\\{eq-display-alt\\}"
+          - "\\\\begin\\{equation\\}\\\\phantomsection\\\\label\\{eq-div-alt\\}"
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", \\[ \\$ E = m c\\^2 \\$ \\]\\)<eq-display-math>"
+          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"Einsteins mass-energy equivalence equation using classic syntax\", \\[ \\$ E = m c\\^2 \\$ \\]\\)<eq-display-alt>"
+          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"Einsteins mass-energy equivalence equation using div syntax\", \\[ \\$ E = m c\\^2 \\$ \\]\\)<eq-div-alt>"
+        - []
+---
+
+## Inline Math (no label)
+
+This is an inline equation: $E = mc^2$.
+
+## Display Math (no label)
+
+$$
+a^2 + b^2 = c^2
+$$
+
+## Display Math (with label, no alt)
+
+$$
+E = mc^2
+$$ {#eq-display-math}
+
+See @eq-display-math.
+
+## Display Math (with label and alt)
+
+$$
+E = mc^2
+$$ {#eq-display-alt alt="Einsteins mass-energy equivalence equation using classic syntax"}
+
+See @eq-display-alt.
+
+## Div Syntax (with label and alt)
+
+::: {#eq-div-alt alt="Einsteins mass-energy equivalence equation using div syntax"}
+
+$$
+E = mc^2
+$$
+
+:::
+
+See @eq-div-alt.
