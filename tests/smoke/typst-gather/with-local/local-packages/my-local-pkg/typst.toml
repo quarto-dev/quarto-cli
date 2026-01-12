@@ -1,0 +1,7 @@
+[package]
+name = "my-local-pkg"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Test"]
+license = "MIT"
+description = "Test local package"

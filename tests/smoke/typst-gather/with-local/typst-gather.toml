@@ -1,0 +1,7 @@
+# Test config with local package
+rootdir = "_extensions/local-format"
+destination = "typst/packages"
+discover = ["typst-template.typ"]
+
+[local]
+my-local-pkg = "local-packages/my-local-pkg"

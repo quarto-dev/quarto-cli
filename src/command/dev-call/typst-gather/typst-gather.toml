@@ -1,0 +1,2 @@
+destination = "src/resources/formats/typst/packages"
+discover = ["src/resources/formats/typst/pandoc/quarto"]

@@ -5,7 +5,8 @@
  */
 
 import { error, info } from "../deno_ral/log.ts";
-import { basename } from "../deno_ral/path.ts";
+import { basename, join } from "../deno_ral/path.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import * as colors from "fmt/colors";
 
 import { satisfies } from "semver/mod.ts";
@@ -39,6 +40,7 @@ export type TypstCompileOptions = {
   quiet?: boolean;
   fontPaths?: string[];
   rootDir?: string;
+  packagePath?: string;
 };
 
 export async function typstCompile(
@@ -57,6 +59,18 @@ export async function typstCompile(
   ];
   if (options.rootDir) {
     cmd.push("--root", options.rootDir);
+  }
+  if (options.packagePath) {
+    // Only set --package-path if local/ subdirectory exists (for @local packages)
+    const localDir = join(options.packagePath, "local");
+    if (existsSync(localDir)) {
+      cmd.push("--package-path", options.packagePath);
+    }
+    // Only set --package-cache-path if preview/ subdirectory exists (for @preview packages)
+    const previewDir = join(options.packagePath, "preview");
+    if (existsSync(previewDir)) {
+      cmd.push("--package-cache-path", options.packagePath);
+    }
   }
   cmd.push(
     input,
