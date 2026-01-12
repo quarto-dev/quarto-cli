@@ -8726,6 +8726,25 @@ try {
             }
           },
           {
+            id: "external-engine",
+            schema: {
+              object: {
+                closed: true,
+                properties: {
+                  path: {
+                    path: {
+                      description: "Path to the TypeScript module for the execution engine"
+                    }
+                  }
+                },
+                required: [
+                  "path"
+                ]
+              },
+              description: "An execution engine not pre-loaded in Quarto"
+            }
+          },
+          {
             id: "document-comments-configuration",
             anyOf: [
               {
@@ -11676,8 +11695,67 @@ try {
                     object: {
                       properties: {
                         "trace-filters": "string",
-                        tests: "object",
-                        "tests-on-ci": "boolean"
+                        tests: {
+                          object: {
+                            properties: {
+                              run: {
+                                object: {
+                                  description: "Control when tests should run",
+                                  properties: {
+                                    ci: {
+                                      boolean: {
+                                        description: "Run tests on CI (true = run, false = skip)",
+                                        default: true
+                                      }
+                                    },
+                                    os: {
+                                      description: "Run tests ONLY on these platforms (whitelist)",
+                                      anyOf: [
+                                        {
+                                          enum: [
+                                            "linux",
+                                            "darwin",
+                                            "windows"
+                                          ]
+                                        },
+                                        {
+                                          arrayOf: {
+                                            enum: [
+                                              "linux",
+                                              "darwin",
+                                              "windows"
+                                            ]
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    not_os: {
+                                      description: "Don't run tests on these platforms (blacklist)",
+                                      anyOf: [
+                                        {
+                                          enum: [
+                                            "linux",
+                                            "darwin",
+                                            "windows"
+                                          ]
+                                        },
+                                        {
+                                          arrayOf: {
+                                            enum: [
+                                              "linux",
+                                              "darwin",
+                                              "windows"
+                                            ]
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
                       }
                     }
                   }
@@ -20142,6 +20220,16 @@ try {
                   },
                   formats: {
                     schema: "object"
+                  },
+                  engines: {
+                    arrayOf: {
+                      anyOf: [
+                        "string",
+                        {
+                          ref: "external-engine"
+                        }
+                      ]
+                    }
                   }
                 }
               }
@@ -20580,7 +20668,14 @@ try {
           {
             name: "engines",
             schema: {
-              arrayOf: "string"
+              arrayOf: {
+                anyOf: [
+                  "string",
+                  {
+                    ref: "external-engine"
+                  }
+                ]
+              }
             },
             description: "List execution engines you want to give priority when determining which engine should render a notebook. If two engines have support for a notebook, the one listed earlier will be chosen. Quarto's default order is 'knitr', 'jupyter', 'markdown', 'julia'."
           }
@@ -21344,8 +21439,8 @@ try {
           "Alias for href",
           "Link to file contained with the project or external URL",
           {
-            short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>)",
-            long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+            short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>)",
+            long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
           },
           "Text to display for item (defaults to the document title if not\nprovided)",
           "Alias for href",
@@ -21381,6 +21476,8 @@ try {
           "The light theme name.",
           "The dark theme name.",
           "The language that should be used when displaying the commenting\ninterface.",
+          "An execution engine not pre-loaded in Quarto",
+          "Path to the TypeScript module for the execution engine",
           "The Github repo that will be used to store comments.",
           "The label that will be assigned to issues created by Utterances.",
           {
@@ -22502,6 +22599,10 @@ try {
           "Specify a default profile and profile groups",
           "Default profile to apply if QUARTO_PROFILE is not defined.",
           "Define a profile group for which at least one profile is always\nactive.",
+          "Control when tests should run",
+          "Run tests on CI (true = run, false = skip)",
+          "Run tests ONLY on these platforms (whitelist)",
+          "Don\u2019t run tests on these platforms (blacklist)",
           "The path to the locally referenced notebook.",
           "The title of the notebook when viewed.",
           "The url to use when viewing this notebook.",
@@ -24979,12 +25080,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 197493,
+          _internalId: 197583,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 197485,
+              _internalId: 197575,
               type: "enum",
               enum: [
                 "png",
@@ -25000,7 +25101,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 197492,
+              _internalId: 197582,
               type: "anyOf",
               anyOf: [
                 {

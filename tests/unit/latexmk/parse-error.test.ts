@@ -10,7 +10,8 @@ import { unitTest } from "../../test.ts";
 import { assert } from "testing/asserts";
 
 function fontSearchTerm(font: string): string {
-  return `${font}(-(Bold|Italic|Regular).*)?[.](tfm|afm|mf|otf|ttf)`;
+  const fontPattern = font.replace(/\s+/g, '\\s*');
+  return `${fontPattern}(-(Bold|Italic|Regular).*)?[.](tfm|afm|mf|otf|ttf)`;
 }
 
 function assertFound(logText: string, expected: string, file?: string) {
@@ -32,6 +33,8 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
   assertFound('!pdfTeX error: /usr/local/bin/pdflatex (file tcrm0700): Font tcrm0700 at 600 not found', fontSearchTerm("tcrm0700"))
   assertFound('(fontspec)                The font "LibertinusSerif-Regular" cannot be', fontSearchTerm("LibertinusSerif-Regular"));
   assertFound('! Font \\JY3/mc/m/n/10=file:HaranoAjiMincho-Regular.otf:-kern;jfm=ujis at 9.24713pt not loadable: metric data not found or bad.', "HaranoAjiMincho-Regular.otf");
+  assertFound('! The font "Noto Emoji" cannot be found.', fontSearchTerm("Noto Emoji"));
+  assertFound('! Package fontspec Error: The font "DejaVu Sans" cannot be found.', fontSearchTerm("DejaVu Sans"));
   assertFound("! LaTeX Error: File `framed.sty' not found.", "framed.sty");
   assertFound("! LaTeX Error: File 'framed.sty' not found.", "framed.sty");
   assertFound("/usr/local/bin/mktexpk: line 123: mf: command not found", "mf");

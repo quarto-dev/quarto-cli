@@ -9,6 +9,8 @@ All changes included in 1.9:
 - ([#13616](https://github.com/quarto-dev/quarto-cli/issues/13616)): Fix fatal error when rendering manuscript projects with custom blocks like ConditionalBlock.
 - ([#13625](https://github.com/quarto-dev/quarto-cli/issues/13625)): Fix Windows file locking error (os error 32) when rendering with `--output-dir` flag. Context cleanup now happens before removing the temporary `.quarto` directory, ensuring file handles are properly closed.
 - ([#13633](https://github.com/quarto-dev/quarto-cli/issues/13633)): Fix detection and auto-installation of babel language packages from newer error format that doesn't explicitly mention `.ldf` filename.
+- ([#13694](https://github.com/quarto-dev/quarto-cli/issues/13694)): Fix `notebook-view.url` being ignored - external notebook links now properly use specified URLs instead of local preview files.
+- ([#13732](https://github.com/quarto-dev/quarto-cli/issues/13732)): Fix automatic font package installation for fonts with spaces in their names (e.g., "Noto Emoji", "DejaVu Sans"). Font file search patterns now match both with and without spaces.
 
 ## Dependencies
 
@@ -37,12 +39,19 @@ All changes included in 1.9:
 - ([#13555](https://github.com/quarto-dev/quarto-cli/issues/13555)): Add support for `icon=false` in callouts when used in `format: typst`.
 - ([#13589](https://github.com/quarto-dev/quarto-cli/issues/13589)): Fix callouts with invalid ID prefixes crashing with "attempt to index a nil value". Callouts with unknown reference types now render as non-crossreferenceable callouts with a warning, ignoring the invalid ID.
 - ([#13602](https://github.com/quarto-dev/quarto-cli/issues/13602)): Fix support for multiple files set in `bibliography` field in `biblio.typ` template partial.
+- ([#13775](https://github.com/quarto-dev/quarto-cli/issues/13775)): Fix brand fonts not being applied when using `citeproc: true` with Typst format. Format detection now properly handles Pandoc format variants like `typst-citations`.
 
 ### `pdf`
 
 - ([#10291](https://github.com/quarto-dev/quarto-cli/issues/10291)): Fix detection of babel hyphenation warnings with straight-quote format instead of backtick-quote format.
+- ([#13661](https://github.com/quarto-dev/quarto-cli/issues/13661)): Fix LaTeX compilation errors when using `mermaid-format: svg` with PDF/LaTeX output. SVG diagrams are now written directly without HTML script tags. Note: `mermaid-format: png` is recommended for best compatibility. SVG format requires `rsvg-convert` (or Inkscape with `use-rsvg-convert: false`) in PATH for conversion to PDF, and may experience text clipping in diagrams with multi-line labels.
 - ([rstudio/tinytex-releases#49](https://github.com/rstudio/tinytex-releases/issues/49)): Fix detection of LuaTeX-ja missing file errors by matching both "File" and "file" in error messages.
 - ([#13667](https://github.com/quarto-dev/quarto-cli/issues/13667)): Fix LaTeX compilation error with Python error output containing caret characters.
+- ([#13730](https://github.com/quarto-dev/quarto-cli/issues/13730)): Fix TinyTeX detection when `~/.TinyTeX/` directory exists without binaries. Quarto now verifies that the bin directory and tlmgr binary exist before reporting TinyTeX as available, allowing proper fallback to system PATH installations.
+
+### `revealjs`
+
+- ([#13722](https://github.com/quarto-dev/quarto-cli/issues/13722)): Fix `light-content` / `dark-content` SCSS rules not included in Reveal.js format. (author: @mcanouil)
 
 ## Projects
 
@@ -52,12 +61,42 @@ All changes included in 1.9:
 - ([#13525](https://github.com/quarto-dev/quarto-cli/issues/13525)): Algolia Insights now uses privacy-friendly defaults: `useCookie: false` with random session tokens when cookie consent is not configured. When `cookie-consent: true` is enabled, Algolia scripts are deferred and only use cookies after user grants "tracking" consent, ensuring GDPR compliance.
 - ([#13547](https://github.com/quarto-dev/quarto-cli/issues/13547))`cookie-content: { type: express }` is now the default. Previously it was `type: implied`. It now means this will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn't agree).
 - ([#13570](https://github.com/quarto-dev/quarto-cli/pull/13570)): Replace Twitter with Bluesky in default blog template and documentation examples. New blog projects now include Bluesky social links instead of Twitter.
+- ([#13716](https://github.com/quarto-dev/quarto-cli/issues/13716)): Fix draft pages showing blank during preview when pre-render scripts are configured.
+- ([#13847](https://github.com/quarto-dev/quarto-cli/pull/13847)): Open graph title with markdown is now processed correctly. (author: @mcanouil)
 
-## `publish`
+### `book`
+
+- ([#13769](https://github.com/quarto-dev/quarto-cli/issues/13769)): Apply `repo-link-target` and `repo-link-rel` options to tools in book sidebar for consistent link attribute handling with website projects. (author: @mcanouil)
+
+### `manuscript`
+
+- ([#10031](https://github.com/quarto-dev/quarto-cli/issues/10031)): Fix manuscript rendering prompting for GitHub credentials when origin points to private repository. Auto-detection of manuscript URL now fails gracefully with a warning instead of blocking renders.
+
+## Publishing
 
 ### Confluence
 
 - ([#13414](https://github.com/quarto-dev/quarto-cli/issues/13414)): Be more forgiving when Confluence server returns malformed JSON response. (author: @m1no)
+
+## Lua API
+
+- ([#13762](https://github.com/quarto-dev/quarto-cli/issues/13762)): Add `quarto.paths.typst()` to Quarto's Lua API to resolve Typst binary path in Lua filters and extensions consistently with Quarto itself. (author: @mcanouil)
+
+## Commands
+
+### `use brand`
+
+- ([#13828](https://github.com/quarto-dev/quarto-cli/pull/13828)): New `quarto use brand` command copies and synchronizes the `_brand/` directory from a repo, directory, or ZIP file. See [the prerelease documentation](https://prerelease.quarto.org/docs/authoring/brand.html#quarto-use-brand) for details.
+
+### `call build-ts-extension`
+
+- (): New `quarto call build-ts-extension` command builds a TypeScript extension, such as an engine extension, and places the artifacts in the `_extensions` directory. See the [engine extension pre-release documentation](https://prerelease.quarto.org/docs/extensions/engine.html) for details.
+
+## Extensions
+
+- Metadata and brand extensions now work without a `_quarto.yml` project. (Engine extensions do too.) A temporary default project is created in memory.
+
+- New **Engine Extensions**, to allow other execution engines than knitr, jupyter, julia. Julia is now a bundled extension. See [the prerelease notes](https://prerelease.quarto.org/docs/prerelease/1.9/) and [engine extension documentation](https://prerelease.quarto.org/docs/extensions/engine.html).
 
 ## Other fixes and improvements
 
@@ -65,3 +104,4 @@ All changes included in 1.9:
 - ([#13528](https://github.com/quarto-dev/quarto-cli/pull/13528)): Adds support for table specification using nested lists and the `list-table` class.
 - ([#13575](https://github.com/quarto-dev/quarto-cli/pull/13575)): Improve CPU architecture detection/reporting in macOS to allow quarto to run in virtualized environments such as OpenAI's `codex`.
 - ([#13656](https://github.com/quarto-dev/quarto-cli/issues/13656)): Fix R code cells with empty `lang: ""` option producing invalid markdown class attributes.
+- ([#13832](https://github.com/quarto-dev/quarto-cli/pull/13832)): Fix `license.text` metadata not being accessible when using an inline license (`license: "text"`), and populate it with the license name for CC licenses instead of empty string. (author: @mcanouil)

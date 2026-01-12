@@ -776,54 +776,12 @@ jobs:
           name: quarto
           daily: ${{ inputs.pre-release }}
 
-  cloudsmith-push:
+  call-cloudsmith-publish:
     if: ${{ inputs.publish-release && ! (inputs.pre-release == true) }}
-    runs-on: ubuntu-latest
     needs: [configure, publish-release]
-    strategy:
-      matrix:
-        arch: [x86_64, aarch64]
-        format: [deb, rpm]
-        repo: [open]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            .github
-
-      - name: Prevent Re-run
-        if: ${{ inputs.publish-release }}
-        uses: ./.github/workflows/actions/prevent-rerun
-
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-
-      - name: Set package file name
-        id: pkg_file
-        run: |
-          if [ "${{ matrix.format }}" == "deb" ]; then
-            if [ "${{ matrix.arch }}" == "x86_64" ]; then
-              echo "arch_name=amd64" >> $GITHUB_OUTPUT
-            else
-              echo "arch_name=arm64" >> $GITHUB_OUTPUT
-            fi
-          else
-            if [ "${{ matrix.arch }}" == "x86_64" ]; then
-              echo "arch_name=x86_64" >> $GITHUB_OUTPUT
-            else
-              echo "arch_name=aarch64" >> $GITHUB_OUTPUT
-            fi
-          fi
-
-      - name: Push ${{ matrix.format }} ${{ matrix.arch }} to Cloudsmith ${{ matrix.repo }}
-        uses: cloudsmith-io/action@master
-        with:
-          api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
-          command: "push"
-          format: "${{ matrix.format }}"
-          owner: "posit"
-          repo: "${{ matrix.repo }}"
-          distro: "any-distro"
-          release: "any-version"
-          republish: "true"
-          file: "./Linux-${{ matrix.format }}-${{ matrix.arch }}-Installer/quarto-${{needs.configure.outputs.version}}-linux-${{ steps.pkg_file.outputs.arch_name }}.${{ matrix.format }}"
+    uses: ./.github/workflows/publish-cloudsmith.yml
+    with:
+      version: ${{ needs.configure.outputs.tag_name }}
+      dry-run: false
+    secrets:
+      CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}

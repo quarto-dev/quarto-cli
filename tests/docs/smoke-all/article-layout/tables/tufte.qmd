@@ -15,7 +15,9 @@ reference-location: margin
 citation-location: margin
 bibliography: skeleton.bib
 _quarto:
-  tests-on-ci: false   
+  tests:
+    run:
+      ci: false   
 ---
 
 # Introduction

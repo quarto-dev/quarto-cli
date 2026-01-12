@@ -297,7 +297,8 @@ const packageMatchers = [
 ];
 
 function fontSearchTerm(font: string): string {
-  return `${font}(-(Bold|Italic|Regular).*)?[.](tfm|afm|mf|otf|ttf)`;
+  const fontPattern = font.replace(/\s+/g, '\\s*');
+  return `${fontPattern}(-(Bold|Italic|Regular).*)?[.](tfm|afm|mf|otf|ttf)`;
 }
 
 function findMissingPackages(logFileText: string): string[] {

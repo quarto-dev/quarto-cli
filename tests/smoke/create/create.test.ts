@@ -22,6 +22,7 @@ const kCreateTypes: Record<string, string[]> = {
     "format:pdf",
     "format:docx",
     "format:revealjs",
+    "engine",
   ],
 };
 
@@ -68,6 +69,19 @@ for (const type of Object.keys(kCreateTypes)) {
           openfiles.length > 0,
           `Artifact ${type} ${template} failed to produce any files to open.`,
         );
+
+        // Build engine extensions before rendering
+        if (template === "engine") {
+          const buildCmd = [quartoDevCmd(), "call", "build-ts-extension"];
+          const buildProcess = await execProcess({
+            cmd: buildCmd[0],
+            args: buildCmd.slice(1),
+            cwd: path,
+            stdout: "piped",
+            stderr: "piped",
+          });
+          assert(buildProcess.success, buildProcess.stderr);
+        }
 
         for (const file of openfiles) {
           if (file.endsWith(".qmd")) {

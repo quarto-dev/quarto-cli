@@ -52,7 +52,13 @@ export interface TestDescriptor {
 export interface TestContext {
   name?: string;
 
-  // Checks that prereqs for the test are met
+  // Checks that prereqs for the test are met (async conditional skip)
+  // - Returns false: Test is SKIPPED with warning message (not failed)
+  // - Throws/rejects: Test is SKIPPED (initialization failed gracefully)
+  // Use cases:
+  //   - Tool availability checks (e.g., which("rsvg-convert"))
+  //   - Initialization that might fail (e.g., schema loading)
+  // Difference from ignore: Can be async, runs inside test, handles exceptions
   prereq?: () => Promise<boolean>;
 
   // Cleans up the test
@@ -67,7 +73,14 @@ export interface TestContext {
   // Control of underlying sanitizer
   sanitize?: { resources?: boolean; ops?: boolean; exit?: boolean };
 
-  // control if test is ran or skipped
+  // Control if test is ran or skipped (static boolean only)
+  // - true: Test is completely IGNORED by Deno (not run, not counted)
+  // - false: Test runs normally
+  // Use cases:
+  //   - Static platform checks (e.g., isWindows)
+  //   - Static configuration flags
+  // Limitation: Must be a simple boolean value computed at registration time
+  // For dynamic/async conditional skip (e.g., tool availability), use prereq instead
   ignore?: boolean;
 
   // environment to pass to downstream processes
@@ -231,6 +244,7 @@ export function test(test: TestDescriptor) {
           }
         };
         let lastVerify;
+
         try {
 
           try {
@@ -258,6 +272,7 @@ export function test(test: TestDescriptor) {
           }
         } catch (ex) {
           if (!(ex instanceof Error)) throw ex;
+
           const border = "-".repeat(80);
           const coloredName = userSession
             ? colors.brightGreen(colors.italic(testName))
@@ -294,9 +309,18 @@ export function test(test: TestDescriptor) {
             : verifyFailed;
 
           const logMessages = logOutput(log);
+
+          // Create distinctive failure marker for easy log navigation
+          // This helps users find the failure when clicking GitHub Actions annotations
+          const failureMarker = `━━━ TEST FAILURE: ${testName}`;
+          const coloredFailureMarker = userSession
+            ? colors.red(colors.bold(failureMarker))
+            : failureMarker;
+
           const output: string[] = [
             "",
             "",
+            coloredFailureMarker,
             border,
             coloredName,
             coloredTestCommand,
@@ -317,6 +341,7 @@ export function test(test: TestDescriptor) {
               });
             });
           }
+
           fail(output.join("\n"));
         } finally {
           safeRemoveSync(log);

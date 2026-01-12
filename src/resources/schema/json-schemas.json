@@ -324,6 +324,15 @@
         }
       }
     },
+    "ExternalEngine": {
+      "object": {
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "DocumentCommentsConfiguration": {
       "anyOf": [
         {
@@ -2918,10 +2927,61 @@
                   "type": "string"
                 },
                 "tests": {
-                  "type": "object"
-                },
-                "tests-on-ci": {
-                  "type": "boolean"
+                  "object": {
+                    "properties": {
+                      "run": {
+                        "object": {
+                          "properties": {
+                            "ci": {
+                              "type": "boolean"
+                            },
+                            "os": {
+                              "anyOf": [
+                                {
+                                  "enum": [
+                                    "linux",
+                                    "darwin",
+                                    "windows"
+                                  ]
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "enum": [
+                                      "linux",
+                                      "darwin",
+                                      "windows"
+                                    ]
+                                  }
+                                }
+                              ]
+                            },
+                            "not_os": {
+                              "anyOf": [
+                                {
+                                  "enum": [
+                                    "linux",
+                                    "darwin",
+                                    "windows"
+                                  ]
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "enum": [
+                                      "linux",
+                                      "darwin",
+                                      "windows"
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
