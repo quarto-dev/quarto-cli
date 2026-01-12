@@ -5,8 +5,7 @@
 function equations()
   return {
     Para = process_equations,
-    Plain = process_equations,
-    Div = process_equation_div
+    Plain = process_equations
   }
 end
 
@@ -39,7 +38,8 @@ function process_equations(blockEl)
       if el.t == "Space" then
         mathInlines:insert(el)
         processInline = false
-      elseif el.t == "Str" and startsWithEqLabel(el.text) then
+      -- Check "starts with" not complete match: Pandoc splits {#eq-label alt="..."} across elements
+      elseif el.t == "Str" and el.text:match("^{#eq%-") then
         -- Collect attribute block: {#eq-label alt="..."} may span multiple elements
         local attrText, consumed = collectAttrBlock(inlines, i)
 
@@ -113,7 +113,12 @@ function renderEquation(eq, label, alt, order)
 
   elseif _quarto.format.isTypstOutput() then
     local is_block = eq.mathtype == "DisplayMath" and "true" or "false"
-    local alt_param = alt and (", alt: \"" .. alt .. "\"") or ""
+    -- Escape quotes in alt text for Typst string literal
+    local alt_param = ""
+    if alt then
+      local escaped_alt = alt:gsub('"', '\\"')
+      alt_param = ", alt: \"" .. escaped_alt .. "\""
+    end
     result:insert(pandoc.RawInline("typst",
       "#math.equation(block: " .. is_block .. ", numbering: \"(1)\"" .. alt_param .. ", [ "))
     result:insert(eq)
@@ -147,10 +152,6 @@ function isDisplayMath(el)
   return el.t == "Math" and el.mathtype == "DisplayMath"
 end
 
--- Check if text starts with an equation label pattern {#eq-
-function startsWithEqLabel(text)
-  return text and text:match("^{#eq%-")
-end
 
 -- Collect a complete attribute block from inline elements.
 --
@@ -185,9 +186,16 @@ function collectAttrBlock(inlines, startIndex)
       collected = collected .. " "
       consumed = consumed + 1
     elseif el.t == "Quoted" then
-      -- Pandoc parses quoted strings into Quoted elements
+      -- Pandoc parses quoted strings into Quoted elements.
+      -- Re-escape inner quotes that match the outer delimiter so parseRefAttr works.
       local quote = el.quotetype == "DoubleQuote" and '"' or "'"
-      collected = collected .. quote .. pandoc.utils.stringify(el.content) .. quote
+      local content = pandoc.utils.stringify(el.content)
+      if el.quotetype == "DoubleQuote" then
+        content = content:gsub('"', '\\"')
+      else
+        content = content:gsub("'", "\\'")
+      end
+      collected = collected .. quote .. content .. quote
       consumed = consumed + 1
     else
       break
@@ -205,34 +213,27 @@ function collectAttrBlock(inlines, startIndex)
   return nil, 0
 end
 
--- Process equation divs with optional alt-text attribute.
--- Supports syntax: ::: {#eq-label alt="description"} $$ ... $$ :::
--- The alt attribute is only used for Typst output (accessibility).
-function process_equation_div(divEl)
-  local label = divEl.attr.identifier
-  if not label or not label:match("^eq%-") then
-    return nil
+
+-- Parse a Pandoc attribute block string into identifier and attributes.
+-- Uses pandoc.read with a dummy header to leverage Pandoc's native parser.
+-- Similar technique is used in parseTableCaption() in common/tables.lua.
+--
+-- Input:  "{#eq-label alt=\"description\"}"
+-- Output: "eq-label", {alt = "description"}
+--
+-- This is used to extract alt-text for equations (Typst accessibility).
+function parseRefAttr(text)
+  if not text then return nil, nil end
+
+  -- Normalise curly/smart quotes to straight quotes (same as parseTableCaption).
+  -- This handles copy-pasted text from word processors.
+  text = text:gsub("“", "'"):gsub("”", "'")
+
+  -- Wrap in a markdown header to parse them correctly without regular expressions.
+  local parsed = pandoc.read("## " .. text, "markdown")
+  if parsed and parsed.blocks[1] and parsed.blocks[1].attr then
+    local attr = parsed.blocks[1].attr
+    return attr.identifier, attr.attributes
   end
-
-  -- Find display math inside the div
-  local eq = nil
-  _quarto.ast.walk(divEl, {
-    Math = function(el)
-      if el.mathtype == "DisplayMath" then
-        eq = el
-      end
-    end
-  })
-
-  if not eq then
-    return nil
-  end
-
-  local order = indexNextOrder("eq")
-  indexAddEntry(label, nil, order)
-
-  local alt = divEl.attr.attributes["alt"]
-  local eqInlines = renderEquation(eq, label, alt, order)
-
-  return pandoc.Para(eqInlines)
+  return nil, nil
 end
