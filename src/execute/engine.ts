@@ -27,7 +27,7 @@ import {
   ExecutionTarget,
   kQmdExtensions,
 } from "./types.ts";
-import { languagesInMarkdown } from "./engine-shared.ts";
+import { languagesInMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { languages as handlerLanguages } from "../core/handlers/base.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { mergeConfigs } from "../core/config.ts";

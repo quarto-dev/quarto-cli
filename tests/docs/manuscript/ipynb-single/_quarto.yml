@@ -8,12 +8,8 @@ manuscript:
 
 format:
   html:
-    comments: 
+    comments:
       hypothesis: true
   agu-pdf: default
   docx: default
   jats: default
-
-
-
-  

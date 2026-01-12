@@ -243,19 +243,18 @@ async function checkVersions(conf: CheckConfiguration) {
   // loading the configuration file directly, but that
   // file is in an awkward format and it is not packaged
   // with our installers
-  const checkData: [string | undefined, string, string][] = strict
-    ? [
-      [pandocVersion, "3.6.3", "Pandoc"],
-      [sassVersion, "1.87.0", "Dart Sass"],
-      [denoVersion, "2.4.5", "Deno"],
-      [typstVersion, "0.13.0", "Typst"],
-    ]
-    : [
-      [pandocVersion, ">=3.6.3", "Pandoc"],
-      [sassVersion, ">=1.87.0", "Dart Sass"],
-      [denoVersion, ">=2.3.1", "Deno"],
-      [typstVersion, ">=0.13.0", "Typst"],
-    ];
+  const versionConstraints: [string | undefined, string, string][] = [
+    [pandocVersion, "3.8.3", "Pandoc"],
+    [sassVersion, "1.87.0", "Dart Sass"],
+    [denoVersion, "2.4.5", "Deno"],
+    [typstVersion, "0.14.2", "Typst"],
+  ];
+  const checkData: [string | undefined, string, string][] = versionConstraints
+    .map(([version, ver, name]) => [
+      version,
+      strict ? ver : `>=${ver}`,
+      name,
+    ]);
   const fun = strict ? strictCheckVersion : checkVersion;
   for (const [version, constraint, name] of checkData) {
     if (version === undefined) {

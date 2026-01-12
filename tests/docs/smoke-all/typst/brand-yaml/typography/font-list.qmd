@@ -20,8 +20,8 @@ _quarto:
       ensureTypstFileRegexMatches:
         -
           - 'font: \("InvalidFont", "Roboto"\),'
-          - '#show raw.where\(block: false\): set text\(font: \("InvalidFont", "Inconsolata"\), \)'
-          - '#show raw.where\(block: true\): set text\(font: \("InvalidFont", "Inconsolata"\), \)'
+          # monospace font now goes through codefont parameter instead of header injection
+          - 'codefont: \("InvalidFont", "Inconsolata"\),'
         - []
       ensurePdfRegexMatches:
         -
