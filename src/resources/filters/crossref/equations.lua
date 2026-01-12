@@ -114,9 +114,12 @@ function renderEquation(eq, label, alt, order)
   elseif _quarto.format.isTypstOutput() then
     local is_block = eq.mathtype == "DisplayMath" and "true" or "false"
     -- Escape quotes in alt text for Typst string literal
+    -- First normalize curly quotes to straight quotes (Pandoc may apply smart quotes)
     local alt_param = ""
     if alt then
-      local escaped_alt = alt:gsub('"', '\\"')
+      local escaped_alt = alt:gsub("“", '"'):gsub("”", '"')
+      escaped_alt = escaped_alt:gsub("‘", "'"):gsub("’", "'")
+      escaped_alt = escaped_alt:gsub('"', '\\"')
       alt_param = ", alt: \"" .. escaped_alt .. "\""
     end
     result:insert(pandoc.RawInline("typst",
@@ -158,8 +161,9 @@ end
 -- Pandoc tokenises `{#eq-label alt="description"}` into multiple elements:
 --   Str "{#eq-label", Space, Str "alt=", Quoted [...], Str "}"
 --
--- This function collects and joins these elements into a single string
--- that can be parsed by parseRefAttr().
+-- This function reassembles these elements into a single string for parseRefAttr().
+-- Quoted elements are reconstructed with escaped inner quotes to preserve the
+-- original attribute syntax.
 --
 -- Returns: collected text (string), number of elements consumed (number)
 function collectAttrBlock(inlines, startIndex)
@@ -171,12 +175,10 @@ function collectAttrBlock(inlines, startIndex)
   local collected = first.text
   local consumed = 1
 
-  -- Simple case: complete in one element (e.g., {#eq-label})
   if collected:match("}$") then
     return collected, consumed
   end
 
-  -- Collect subsequent elements until closing brace
   for j = startIndex + 1, #inlines do
     local el = inlines[j]
     if el.t == "Str" then
@@ -186,8 +188,6 @@ function collectAttrBlock(inlines, startIndex)
       collected = collected .. " "
       consumed = consumed + 1
     elseif el.t == "Quoted" then
-      -- Pandoc parses quoted strings into Quoted elements.
-      -- Re-escape inner quotes that match the outer delimiter so parseRefAttr works.
       local quote = el.quotetype == "DoubleQuote" and '"' or "'"
       local content = pandoc.utils.stringify(el.content)
       if el.quotetype == "DoubleQuote" then
@@ -205,7 +205,6 @@ function collectAttrBlock(inlines, startIndex)
     end
   end
 
-  -- Validate: must be a complete attribute block
   if collected:match("^{#eq%-[^}]+}$") then
     return collected, consumed
   end
@@ -215,21 +214,30 @@ end
 
 
 -- Parse a Pandoc attribute block string into identifier and attributes.
--- Uses pandoc.read with a dummy header to leverage Pandoc's native parser.
--- Similar technique is used in parseTableCaption() in common/tables.lua.
 --
--- Input:  "{#eq-label alt=\"description\"}"
--- Output: "eq-label", {alt = "description"}
+-- Uses pandoc.read() with a dummy header to leverage Pandoc's native attribute
+-- parser, avoiding fragile regex-based parsing.
 --
--- This is used to extract alt-text for equations (Typst accessibility).
+-- Single-quoted attributes (e.g., alt='text') must be converted to double quotes
+-- because Pandoc's attribute syntax only supports double-quoted values.
+-- The conversion uses a three-step process:
+--   1. Protect escaped single quotes (\') with a placeholder.
+--   2. Convert key='value' to key="value", escaping any internal double quotes.
+--   3. Restore any remaining placeholders to literal single quotes.
+--
+-- Returns: identifier (string), attributes (table)
 function parseRefAttr(text)
   if not text then return nil, nil end
 
-  -- Normalise curly/smart quotes to straight quotes (same as parseTableCaption).
-  -- This handles copy-pasted text from word processors.
-  text = text:gsub("“", "'"):gsub("”", "'")
+  local placeholder = "\x00ESC_SQUOTE\x00"
+  text = text:gsub("\\'", placeholder)
+  text = text:gsub("(%w+)='([^']*)'", function(key, value)
+    value = value:gsub(placeholder, "'")
+    value = value:gsub('"', '\\"')
+    return key .. '="' .. value .. '"'
+  end)
+  text = text:gsub(placeholder, "'")
 
-  -- Wrap in a markdown header to parse them correctly without regular expressions.
   local parsed = pandoc.read("## " .. text, "markdown")
   if parsed and parsed.blocks[1] and parsed.blocks[1].attr then
     local attr = parsed.blocks[1].attr
