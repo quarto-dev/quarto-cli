@@ -327,18 +327,22 @@ testQuartoCmd(
   "quarto use brand - nested directory structure"
 );
 
-// Scenario 8: Error - no project directory
+// Scenario 8: Single-file mode (no _quarto.yml) - should work, using current directory
 const noProjectDir = join(tempDir, "no-project");
 ensureDirSync(noProjectDir);
 testQuartoCmd(
   "use",
   ["brand", join(fixtureDir, "basic-brand"), "--force"],
   [
-    printsMessage({ level: "ERROR", regex: /Could not find project dir/ }),
+    noErrorsOrWarnings,
+    // Should create _brand/ in the current directory even without _quarto.yml
+    folderExists(join(noProjectDir, "_brand")),
+    fileExists(join(noProjectDir, "_brand", "_brand.yml")),
+    fileExists(join(noProjectDir, "_brand", "logo.png")),
   ],
   {
     setup: () => {
-      // No _quarto.yml created - this should cause an error
+      // No _quarto.yml created - single-file mode should work
       return Promise.resolve();
     },
     cwd: () => noProjectDir,
@@ -347,7 +351,7 @@ testQuartoCmd(
       return Promise.resolve();
     }
   },
-  "quarto use brand - error on no project"
+  "quarto use brand - single-file mode (no _quarto.yml)"
 );
 
 // Scenario 9: Nested directory - overwrite files in subdirectories, remove extra
@@ -649,4 +653,89 @@ testQuartoCmd(
     }
   },
   "quarto use brand - deeply nested directories recursively cleaned up"
+);
+
+// Scenario 15: Brand extension - basic installation
+// Tests that brand extensions are detected and the brand file is renamed to _brand.yml
+const brandExtDir = join(tempDir, "brand-ext");
+ensureDirSync(brandExtDir);
+testQuartoCmd(
+  "use",
+  ["brand", join(fixtureDir, "brand-extension"), "--force"],
+  [
+    noErrorsOrWarnings,
+    folderExists(join(brandExtDir, "_brand")),
+    // brand.yml should be renamed to _brand.yml
+    fileExists(join(brandExtDir, "_brand", "_brand.yml")),
+    // logo.png should be copied
+    fileExists(join(brandExtDir, "_brand", "logo.png")),
+    // _extension.yml should NOT be copied
+    {
+      name: "_extension.yml should not be copied",
+      verify: () => {
+        if (existsSync(join(brandExtDir, "_brand", "_extension.yml"))) {
+          throw new Error("_extension.yml should not be copied from brand extension");
+        }
+        return Promise.resolve();
+      }
+    },
+    // Verify the content is correct (from brand.yml, not some other file)
+    {
+      name: "_brand.yml should contain brand extension content",
+      verify: () => {
+        const content = Deno.readTextFileSync(join(brandExtDir, "_brand", "_brand.yml"));
+        if (!content.includes("Test Brand Extension")) {
+          throw new Error("_brand.yml should contain content from brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
+  ],
+  {
+    setup: () => {
+      Deno.writeTextFileSync(join(brandExtDir, "_quarto.yml"), "project:\n  type: default\n");
+      return Promise.resolve();
+    },
+    cwd: () => brandExtDir,
+    teardown: () => {
+      try { Deno.removeSync(brandExtDir, { recursive: true }); } catch { /* ignore */ }
+      return Promise.resolve();
+    }
+  },
+  "quarto use brand - brand extension installation"
+);
+
+// Scenario 16: Brand extension - dry-run shows correct file names
+const brandExtDryRunDir = join(tempDir, "brand-ext-dry-run");
+ensureDirSync(brandExtDryRunDir);
+testQuartoCmd(
+  "use",
+  ["brand", join(fixtureDir, "brand-extension"), "--dry-run"],
+  [
+    noErrorsOrWarnings,
+    // Should show _brand.yml (renamed from brand.yml), not brand.yml
+    filesInSections({ create: ["_brand.yml", "logo.png"] }, true),
+    // _brand directory should not exist in dry-run mode
+    {
+      name: "_brand directory should not exist in dry-run mode",
+      verify: () => {
+        if (existsSync(join(brandExtDryRunDir, "_brand"))) {
+          throw new Error("_brand directory should not exist in dry-run mode");
+        }
+        return Promise.resolve();
+      }
+    }
+  ],
+  {
+    setup: () => {
+      Deno.writeTextFileSync(join(brandExtDryRunDir, "_quarto.yml"), "project:\n  type: default\n");
+      return Promise.resolve();
+    },
+    cwd: () => brandExtDryRunDir,
+    teardown: () => {
+      try { Deno.removeSync(brandExtDryRunDir, { recursive: true }); } catch { /* ignore */ }
+      return Promise.resolve();
+    }
+  },
+  "quarto use brand - brand extension dry-run shows renamed file"
 );

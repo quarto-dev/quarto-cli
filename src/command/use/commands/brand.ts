@@ -24,8 +24,91 @@ import { InternalError } from "../../../core/lib/error.ts";
 import { notebookContext } from "../../../render/notebook/notebook-context.ts";
 import { projectContext } from "../../../project/project-context.ts";
 import { afterConfirm } from "../../../tools/tools-console.ts";
+import { readYaml } from "../../../core/yaml.ts";
+import { Metadata } from "../../../config/types.ts";
 
 const kRootTemplateName = "template.qmd";
+
+// Brand extension detection result
+interface BrandExtensionInfo {
+  isBrandExtension: boolean;
+  extensionDir?: string; // Directory containing the brand extension
+  brandFileName?: string; // The original brand file name (e.g., "brand.yml")
+}
+
+// Check if a directory contains a brand extension
+function checkForBrandExtension(dir: string): BrandExtensionInfo {
+  const extensionFiles = ["_extension.yml", "_extension.yaml"];
+
+  for (const file of extensionFiles) {
+    const path = join(dir, file);
+    if (existsSync(path)) {
+      try {
+        const yaml = readYaml(path) as Metadata;
+        // Check for contributes.metadata.project.brand
+        const contributes = yaml?.contributes as Metadata | undefined;
+        const metadata = contributes?.metadata as Metadata | undefined;
+        const project = metadata?.project as Metadata | undefined;
+        const brandFile = project?.brand as string | undefined;
+
+        if (brandFile && typeof brandFile === "string") {
+          return {
+            isBrandExtension: true,
+            extensionDir: dir,
+            brandFileName: brandFile,
+          };
+        }
+      } catch {
+        // If we can't read/parse the extension file, continue searching
+      }
+    }
+  }
+
+  return { isBrandExtension: false };
+}
+
+// Search for a brand extension in the staged directory
+// Searches: root, _extensions/*, _extensions/*/*
+function findBrandExtension(stagedDir: string): BrandExtensionInfo {
+  // First check the root directory
+  const rootCheck = checkForBrandExtension(stagedDir);
+  if (rootCheck.isBrandExtension) {
+    return rootCheck;
+  }
+
+  // Check _extensions directory
+  const extensionsDir = join(stagedDir, "_extensions");
+  if (!existsSync(extensionsDir)) {
+    return { isBrandExtension: false };
+  }
+
+  try {
+    // Check direct children: _extensions/extension-name/
+    for (const entry of Deno.readDirSync(extensionsDir)) {
+      if (!entry.isDirectory) continue;
+
+      const extPath = join(extensionsDir, entry.name);
+      const check = checkForBrandExtension(extPath);
+      if (check.isBrandExtension) {
+        return check;
+      }
+
+      // Check nested: _extensions/org/extension-name/
+      for (const nested of Deno.readDirSync(extPath)) {
+        if (!nested.isDirectory) continue;
+        const nestedPath = join(extPath, nested.name);
+        const nestedCheck = checkForBrandExtension(nestedPath);
+        if (nestedCheck.isBrandExtension) {
+          return nestedCheck;
+        }
+      }
+    }
+  } catch {
+    // Directory read error, return not found
+  }
+
+  return { isBrandExtension: false };
+}
 
 export const useBrandCommand = new Command()
   .name("brand")
@@ -100,8 +183,24 @@ async function useBrand(
   // Extract and move the template into place
   const stagedDir = await stageBrand(source, tempContext);
 
+  // Check if this is a brand extension
+  const brandExtInfo = findBrandExtension(stagedDir);
+
+  // Determine the actual source directory and file mapping
+  const sourceDir = brandExtInfo.isBrandExtension
+    ? brandExtInfo.extensionDir!
+    : stagedDir;
+
   // Filter the list to template files
-  const filesToCopy = templateFiles(stagedDir);
+  let filesToCopy = templateFiles(sourceDir);
+
+  // For brand extensions, exclude _extension.yml/_extension.yaml
+  if (brandExtInfo.isBrandExtension) {
+    filesToCopy = filesToCopy.filter((f) => {
+      const name = basename(f);
+      return name !== "_extension.yml" && name !== "_extension.yaml";
+    });
+  }
 
   // Confirm changes to brand directory (skip for dry-run or force)
   if (!options.dryRun && !options.force) {
@@ -125,10 +224,20 @@ async function useBrand(
   }
 
   // Build set of source file paths for comparison
+  // For brand extensions, we need to account for the brand file rename
   const sourceFiles = new Set(
     filesToCopy
       .filter((f) => !Deno.statSync(f).isDirectory)
-      .map((f) => relative(stagedDir, f)),
+      .map((f) => {
+        const rel = relative(sourceDir, f);
+        // If this is a brand extension and this is the brand file, it will become _brand.yml
+        if (
+          brandExtInfo.isBrandExtension && rel === brandExtInfo.brandFileName
+        ) {
+          return "_brand.yml";
+        }
+        return rel;
+      }),
   );
 
   // Find extra files in target that aren't in source
@@ -147,13 +256,20 @@ async function useBrand(
 
   for (const fileToCopy of filesToCopy) {
     const isDir = Deno.statSync(fileToCopy).isDirectory;
-    const rel = relative(stagedDir, fileToCopy);
+    const rel = relative(sourceDir, fileToCopy);
     if (isDir) {
       continue;
     }
+
+    // For brand extensions, rename the brand file to _brand.yml
+    let targetRel = rel;
+    if (brandExtInfo.isBrandExtension && rel === brandExtInfo.brandFileName) {
+      targetRel = "_brand.yml";
+    }
+
     // Compute the paths
-    const targetPath = join(brandDir, rel);
-    const displayName = rel;
+    const targetPath = join(brandDir, targetRel);
+    const displayName = targetRel;
     const targetDir = dirname(targetPath);
     const copyAction = {
       file: displayName,
