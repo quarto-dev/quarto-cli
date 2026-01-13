@@ -387,10 +387,10 @@ async function ensureBrandDirectory(force: boolean, dryRun: boolean) {
   const currentDir = Deno.cwd();
   const nbContext = notebookContext();
   const project = await projectContext(currentDir, nbContext);
-  if (!project) {
-    throw new Error(`Could not find project dir for ${currentDir}`);
-  }
-  const brandDir = join(project.dir, "_brand");
+  // Use project directory if available, otherwise fall back to current directory
+  // (single-file mode without _quarto.yml)
+  const baseDir = project?.dir ?? currentDir;
+  const brandDir = join(baseDir, "_brand");
   if (!existsSync(brandDir)) {
     if (dryRun) {
       info(`  Would create directory: _brand/`);
