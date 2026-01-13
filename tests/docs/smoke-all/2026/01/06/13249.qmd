@@ -11,11 +11,6 @@ _quarto:
         - []
 ---
 
----
-
-format: pdf
----
-
 $$
     f = \left(\cancel{\frac{\partial v}{\partial x}}\right) \\
     g = \left(\cancel{\frac{\partial v}{\partial z}}\right)
