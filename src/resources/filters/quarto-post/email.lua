@@ -197,8 +197,8 @@ local image_tbl = {}
 local suppress_scheduled_email = false
 local found_email_div = false
 
--- Track whether we detected v2-style nesting or multiple emails
-local has_nested_metadata = false
+-- Track whether we detected v1-style top-level metadata
+local has_top_level_metadata = false
 local email_count = 0
 
 function process_meta(meta)
@@ -252,7 +252,7 @@ function process_div(div)
 
     -- Extract nested metadata from immediate children
     local remaining_content = {}
-    quarto.log.debug("Processing email div with nested metadata. Total children: " .. tostring(#div.content))
+    quarto.log.debug("Processing email div. Total children: " .. tostring(#div.content))
 
     for i, child in ipairs(div.content) do
       quarto.log.debug("Child " .. tostring(i) .. ": type=" .. tostring(child.t))
@@ -262,10 +262,8 @@ function process_div(div)
           quarto.log.debug("FOUND nested subject!")
           quarto.log.debug("  Subject content: " .. pandoc.utils.stringify(child))
           current_email.subject = pandoc.utils.stringify(child)
-          has_nested_metadata = true
         elseif child.classes:includes("email-text") then
           current_email.email_text = pandoc.write(pandoc.Pandoc({ child }), "plain")
-          has_nested_metadata = true
         elseif child.classes:includes("email-scheduled") then
           local email_scheduled_str = str_trunc_trim(string.lower(pandoc.utils.stringify(child)), 10)
           local scheduled_email = str_truthy_falsy(email_scheduled_str)
@@ -346,35 +344,35 @@ function process_document(doc)
   end
 
   -- V1 fallback: Process document-level metadata divs (not nested in email)
-  -- Only consume top-level subject/email-text divs if we didn't find nested metadata
-  if not has_nested_metadata then
-    doc = quarto._quarto.ast.walk(doc, {
-      Div = function(div)
-        if div.classes:includes("subject") then
-          quarto.log.debug("FOUND top-level subject!")
-          subject = pandoc.utils.stringify(div)
-          return {}
-        elseif div.classes:includes("email-text") then
-          email_text = pandoc.write(pandoc.Pandoc({ div }), "plain")
-          return {}
-        elseif div.classes:includes("email-scheduled") then
-          local email_scheduled_str = str_trunc_trim(string.lower(pandoc.utils.stringify(div)), 10)
-          local scheduled_email = str_truthy_falsy(email_scheduled_str)
-          suppress_scheduled_email = not scheduled_email
-          return {}
-        end
-        return div
+  doc = quarto._quarto.ast.walk(doc, {
+    Div = function(div)
+      if div.classes:includes("subject") then
+        quarto.log.debug("found top-level subject")
+        subject = pandoc.utils.stringify(div)
+        has_top_level_metadata = true
+        return {}
+      elseif div.classes:includes("email-text") then
+        email_text = pandoc.write(pandoc.Pandoc({ div }), "plain")
+        has_top_level_metadata = true
+        return {}
+      elseif div.classes:includes("email-scheduled") then
+        local email_scheduled_str = str_trunc_trim(string.lower(pandoc.utils.stringify(div)), 10)
+        local scheduled_email = str_truthy_falsy(email_scheduled_str)
+        suppress_scheduled_email = not scheduled_email
+        has_top_level_metadata = true
+        return {}
       end
-    })
-  end
+      return div
+    end
+  })
 
   -- Warn if old v1 input format detected
-  if email_count == 1 and not has_nested_metadata then
+  if has_top_level_metadata then
     quarto.log.warning("Old v1 email format detected (top-level subject/email-text). Outputting as v2 with single email for forward compatibility.")
   end
 
   -- In v1 mode (document-level metadata), only keep the first email
-  if not has_nested_metadata and #emails > 1 then
+  if has_top_level_metadata and #emails > 1 then
     quarto.log.warning("V1 format with document-level metadata should have only one email. Keeping first email only.")
     emails = { emails[1] }
     email_count = 1
@@ -457,7 +455,7 @@ function process_document(doc)
     -- the attachment of the rendered report to each connect email.
     -- This is always true for all emails unless overridden by blastula (as is the case in v1)
     local email_json_obj = {
-      index = idx,
+      email_id = idx,
       subject = email_obj.subject,
       body_html = html_email_body,
       body_text = email_obj.email_text,
@@ -475,7 +473,7 @@ function process_document(doc)
 
     -- Write individual preview file
     if meta_email_preview ~= false then
-      local preview_filename = "email-preview/index-" .. tostring(idx) .. ".html"
+      local preview_filename = "email-preview/email_id-" .. tostring(idx) .. ".html"
       quarto._quarto.file.write(pandoc.path.join({dir, preview_filename}), html_preview_body)
     end
   end
