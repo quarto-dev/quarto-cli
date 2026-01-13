@@ -1252,6 +1252,7 @@ export const ZodQuartoDevSchema = z.object({
     tests: z.object({
       run: z.object({
         ci: z.boolean(),
+        skip: z.union([z.boolean(), z.string()]),
         os: z.union([
           z.enum(["linux", "darwin", "windows"] as const),
           z.array(z.enum(["linux", "darwin", "windows"] as const)),

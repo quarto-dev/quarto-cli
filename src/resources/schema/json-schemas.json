@@ -2935,6 +2935,16 @@
                             "ci": {
                               "type": "boolean"
                             },
+                            "skip": {
+                              "anyOf": [
+                                {
+                                  "type": "boolean"
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            },
                             "os": {
                               "anyOf": [
                                 {

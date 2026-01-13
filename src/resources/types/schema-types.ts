@@ -1230,7 +1230,10 @@ export type QuartoDevSchema = {
             | "linux"
             | "darwin"
             | "windows"
-          ))[]; /* Run tests ONLY on these platforms (whitelist) */
+          ))[] /* Run tests ONLY on these platforms (whitelist) */;
+        skip?:
+          | boolean
+          | string; /* Skip test unconditionally (true = skip with default message, string = skip with custom message) */
       }; /* Control when tests should run */
     };
   };
