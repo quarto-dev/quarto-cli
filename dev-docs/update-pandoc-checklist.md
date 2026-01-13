@@ -2,8 +2,8 @@
 
 Carlos needs to run this:
 
-- [x] Ensure archives are upgraded
-- [x] Run `AWS_PROFILE=... ./package/src/quarto-bld update-pandoc PANDOC_VERSION`
+- [ ] Ensure archives are upgraded
+- [ ] Run `AWS_PROFILE=... ./package/src/quarto-bld update-pandoc PANDOC_VERSION`
 - [ ] look at `git diff`, specifically for changes in Pandoc templates, and adjust as needed.
 
 As a reminder, our templates are kept in the same directories as Pandoc's templates, but with different names. `git diff` will show the diff in Pandoc's template; we have to manually patch
@@ -24,7 +24,6 @@ Partials:
   - src/resources/formats/beamer/pandoc/latex.common
 - Ours:
   - src/resources/formats/beamer/pandoc/common.latex
-
 
 ## Manual steps
 
