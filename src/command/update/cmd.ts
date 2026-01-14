@@ -7,6 +7,8 @@ import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { installExtension } from "../../extension/install.ts";
+import { findExtensionSource } from "../../extension/extension.ts";
+import { join } from "../../deno_ral/path.ts";
 
 import { info } from "../../deno_ral/log.ts";
 import {
@@ -29,6 +31,10 @@ export const updateCommand = new Command()
   )
   .description(
     "Updates an extension or global dependency.",
+  )
+  .example(
+    "Update extension (by installed directory)",
+    "quarto update extension <gh-org>/<extension-name>",
   )
   .example(
     "Update extension (Github)",
@@ -65,10 +71,42 @@ export const updateCommand = new Command()
         const resolved = resolveCompatibleArgs(target, "extension");
 
         if (resolved.action === "extension") {
-          // Install an extension
+          // Update an extension
           if (resolved.name) {
+            let sourceToUpdate = resolved.name;
+
+            // Try to find the extension in the current directory's _extensions
+            // by treating the name as a directory path (e.g., "org/extension-name")
+            const extensionPath = join(Deno.cwd(), "_extensions", resolved.name);
+            const source = await findExtensionSource(extensionPath);
+            if (source) {
+              // Found an installed extension, use its source for update
+              info(
+                `Found installed extension at _extensions/${resolved.name}`,
+              );
+              // Normalize the source by trimming @TAG for GitHub-style sources
+              // (GitHub refs are like "org/repo" or "org/repo/subdir" with optional @tag)
+              const githubExtensionRegex = /^[a-zA-Z0-9-_.]+\/[a-zA-Z0-9-_.]+(?:\/[^@]*)?(?:@.+)?$/;
+              if (source.match(githubExtensionRegex)) {
+                // GitHub-style source, trim @TAG if present
+                sourceToUpdate = source.replace(/@.+$/, "");
+              } else {
+                // URL or local path, use as-is
+                sourceToUpdate = source;
+              }
+              info(
+                `Using installation source: ${sourceToUpdate}`,
+              );
+            } else {
+              // Extension not found locally, use the provided target
+              // This works for GitHub repos (org/repo), URLs, and file paths
+              info(
+                `Using provided target: ${resolved.name}`,
+              );
+            }
+
             await installExtension(
-              resolved.name,
+              sourceToUpdate,
               temp,
               options.prompt !== false,
               options.embed,

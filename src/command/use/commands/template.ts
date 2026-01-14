@@ -159,8 +159,8 @@ async function useTemplate(
         const subStagedDir = tempContext.createDir();
         await copyExtensions(source, stagedDir, subStagedDir);
 
-        // Now complete installation from this sub-staged directory
-        await completeInstallation(subStagedDir, outputDirectory);
+        // Now complete installation from this sub-staged directory with source information
+        await completeInstallation(subStagedDir, outputDirectory, target);
       });
     }
 

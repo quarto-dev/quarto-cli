@@ -17,16 +17,18 @@ import { Extension } from "./types.ts";
 import { kExtensionDir } from "./constants.ts";
 import { withSpinner } from "../core/console.ts";
 import { downloadWithProgress } from "../core/download.ts";
-import { createExtensionContext, readExtensions } from "./extension.ts";
+import { createExtensionContext, readExtensions, extensionFile } from "./extension.ts";
 import { info } from "../deno_ral/log.ts";
 import { ExtensionSource, extensionSource } from "./extension-host.ts";
 import { safeExistsSync } from "../core/path.ts";
 import { InternalError } from "../core/lib/error.ts";
 import { notebookContext } from "../render/notebook/notebook-context.ts";
 import { openUrl } from "../core/shell.ts";
+import { readYaml, stringify } from "../core/yaml.ts";
 
 const kUnversionedFrom = "  (?)";
 const kUnversionedTo = "(?)  ";
+
 
 // Core Installation
 export async function installExtension(
@@ -81,8 +83,8 @@ export async function installExtension(
     return false;
   }
 
-  // Complete the installation
-  await completeInstallation(extensionDir, installDir);
+  // Complete the installation with source information
+  await completeInstallation(extensionDir, installDir, target);
 
   await withSpinner(
     { message: "Extension installation complete" },
@@ -556,6 +558,7 @@ export async function confirmInstallation(
 export async function completeInstallation(
   downloadDir: string,
   installDir: string,
+  sourceString?: string,
 ) {
   info("");
 
@@ -596,6 +599,39 @@ export async function completeInstallation(
         // Ensure the parent directory exists
         ensureDirSync(dirname(installPath));
         Deno.renameSync(stagingPath, installPath);
+
+        // Write source information to the manifest if provided
+        if (sourceString) {
+          const manifestFile = extensionFile(installPath);
+          if (manifestFile && existsSync(manifestFile)) {
+            try {
+              let yamlContent = Deno.readTextFileSync(manifestFile);
+              // Append source field at the end if it doesn't already exist
+              if (!yamlContent.includes("source:")) {
+                if (!yamlContent.endsWith("\n")) {
+                  yamlContent += "\n";
+                }
+                yamlContent += `source: ${sourceString}\n`;
+              } else {
+                // If source already exists, update it
+                const manifestData = readYaml(manifestFile) as Record<
+                  string,
+                  unknown
+                >;
+                manifestData.source = sourceString;
+                yamlContent = stringify(manifestData);
+              }
+              Deno.writeTextFileSync(manifestFile, yamlContent);
+            } catch (e) {
+              // Log warning but don't fail the installation if we can't write source
+              console.warn(
+                `Warning: Could not update source field in extension manifest at ${manifestFile}: ${
+                  e instanceof Error ? e.message : String(e)
+                }`,
+              );
+            }
+          }
+        }
       });
     } finally {
       // Clean up the staging directory

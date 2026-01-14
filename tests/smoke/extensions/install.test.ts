@@ -1,10 +1,11 @@
 import { noErrorsOrWarnings } from "../../verify.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { ExecuteOutput, testQuartoCmd, Verify } from "../../test.ts";
-import { assert } from "testing/asserts";
+import { assert, assertEquals } from "testing/asserts";
 import { ensureDirSync, existsSync } from "../../../src/deno_ral/fs.ts";
 import { docs } from "../../utils.ts";
 import { isLinux } from "../../../src/deno_ral/platform.ts";
+import { readYaml } from "../../../src/core/yaml.ts";
 
 const verifySubDirCount = (dir: string, count: number): Verify => {
   return {
@@ -38,6 +39,46 @@ const verifySubDirName = (dir: string, name: string): Verify => {
   };
 };
 
+const verifyExtensionSourceField = (
+  extDir: string,
+  expectedSourcePattern?: string,
+): Verify => {
+  return {
+    name: "Verify source field is written to extension manifest",
+    verify: (_outputs: ExecuteOutput[]) => {
+      // Find the _extension.yml file in the extension directory
+      let manifestFile: string | undefined;
+      for (const item of Deno.readDirSync(extDir)) {
+        if (item.isFile && (item.name === "_extension.yml" || item.name === "_extension.yaml")) {
+          manifestFile = join(extDir, item.name);
+          break;
+        }
+      }
+
+      assert(
+        manifestFile !== undefined,
+        "Extension manifest file not found",
+      );
+
+      const manifest = readYaml(manifestFile!) as Record<string, unknown>;
+      assert(
+        manifest.source !== undefined,
+        "Source field not found in extension manifest",
+      );
+
+      if (expectedSourcePattern) {
+        const sourceStr = String(manifest.source);
+        assert(
+          sourceStr.includes(expectedSourcePattern),
+          `Source field does not contain expected pattern. Got: ${sourceStr}, expected to contain: ${expectedSourcePattern}`,
+        );
+      }
+
+      return Promise.resolve();
+    },
+  };
+};
+
 const workingDir = Deno.makeTempDirSync();
 
 // Verify installation using a remote github repo
@@ -48,6 +89,82 @@ testQuartoCmd(
     noErrorsOrWarnings,
     verifySubDirCount("_extensions", 1),
     verifySubDirName("_extensions", "quarto-ext"),
+    verifyExtensionSourceField(
+      join("_extensions", "quarto-ext", "lightbox"),
+      "quarto-ext/lightbox",
+    ),
+  ],
+  {
+    cwd: () => {
+      return workingDir;
+    },
+    teardown: () => {
+      Deno.removeSync("_extensions", { recursive: true });
+      return Promise.resolve();
+    },
+  },
+);
+
+// Verify that @TAG is trimmed from source field for GitHub extensions
+testQuartoCmd(
+  "install",
+  ["extension", "quarto-ext/lightbox@v0.1.4", "--no-prompt"],
+  [
+    noErrorsOrWarnings,
+    verifySubDirCount("_extensions", 1),
+    verifySubDirName("_extensions", "quarto-ext"),
+    verifyExtensionSourceField(
+      join("_extensions", "quarto-ext", "lightbox"),
+      "quarto-ext/lightbox",
+    ),
+  ],
+  {
+    cwd: () => {
+      return workingDir;
+    },
+    teardown: () => {
+      Deno.removeSync("_extensions", { recursive: true });
+      return Promise.resolve();
+    },
+  },
+);
+
+// Verify that @TAG with slash (branch name) is trimmed from source field
+testQuartoCmd(
+  "install",
+  ["extension", "quarto-ext/lightbox@test/use-in-quarto-cli", "--no-prompt"],
+  [
+    noErrorsOrWarnings,
+    verifySubDirCount("_extensions", 1),
+    verifySubDirName("_extensions", "quarto-ext"),
+    verifyExtensionSourceField(
+      join("_extensions", "quarto-ext", "lightbox"),
+      "quarto-ext/lightbox",
+    ),
+  ],
+  {
+    cwd: () => {
+      return workingDir;
+    },
+    teardown: () => {
+      Deno.removeSync("_extensions", { recursive: true });
+      return Promise.resolve();
+    },
+  },
+);
+
+// Verify that 'quarto update extension' uses the normalized source from manifest
+testQuartoCmd(
+  "update",
+  ["extension", "quarto-ext/lightbox", "--no-prompt"],
+  [
+    noErrorsOrWarnings,
+    verifySubDirCount("_extensions", 1),
+    verifySubDirName("_extensions", "quarto-ext"),
+    verifyExtensionSourceField(
+      join("_extensions", "quarto-ext", "lightbox"),
+      "quarto-ext/lightbox",
+    ),
   ],
   {
     cwd: () => {
@@ -116,6 +233,10 @@ testQuartoCmd(
     noErrorsOrWarnings,
     verifySubDirCount("_extensions", 1),
     verifySubDirName("_extensions", "quarto-journals"),
+    verifyExtensionSourceField(
+      join("_extensions", "quarto-journals", "jss"),
+      "quarto-journals/jss",
+    ),
   ],
   {
     cwd: () => {

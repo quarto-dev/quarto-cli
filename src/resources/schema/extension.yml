@@ -15,6 +15,10 @@
   description: Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.
   schema: string
 
+- name: source
+  description: Extension installation source (automatically managed).
+  schema: string
+
 - name: contributes
   schema:
     object:

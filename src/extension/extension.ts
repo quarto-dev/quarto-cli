@@ -496,6 +496,33 @@ export async function readExtensions(
   return extensions;
 }
 
+// Find the source of an installed extension by its directory name
+// For example, given "org/extension-name", search for the extension in _extensions
+// and return its source field if found
+export async function findExtensionSource(
+  extensionPath: string,
+): Promise<string | undefined> {
+  // Check if the extension directory exists
+  if (!safeExistsSync(extensionPath)) {
+    return undefined;
+  }
+
+  // Find the manifest file
+  const manifestFile = extensionFile(extensionPath);
+  if (!manifestFile) {
+    return undefined;
+  }
+
+  // Read the manifest and extract the source field
+  try {
+    const yaml = await import("../core/yaml.ts");
+    const manifest = yaml.readYaml(manifestFile) as Record<string, unknown>;
+    return manifest.source as string | undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function projectExtensionDirs(project: ProjectContext) {
   const extensionDirs: string[] = [];
   for (
@@ -731,6 +758,7 @@ async function readExtension(
   const author = yaml[kAuthor] as string;
   const versionRaw = yaml[kVersion] as string | undefined;
   const quartoVersionRaw = yaml[kQuartoRequired] as string | undefined;
+  const source = yaml.source as string | undefined;
   const versionParsed = versionRaw ? coerce(versionRaw) : undefined;
   const quartoVersion = quartoVersionRaw
     ? readVersionRange(quartoVersionRaw)
@@ -904,6 +932,7 @@ async function readExtension(
     author,
     version,
     quartoVersion,
+    source,
     id: extensionId,
     path: extensionDir,
     contributes: {
