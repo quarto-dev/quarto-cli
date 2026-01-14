@@ -106,6 +106,33 @@
         * `|5|5-10,12` first shows no numbering, then 5, then lines 5-10
           and 12
 
+- name: code-line-fragment-indices
+  tags:
+    contexts: [document-code]
+    formats: [revealjs]
+  schema: string
+  description:
+    short: "Custom fragment indices for code line highlighting steps (revealjs only)"
+    long: |
+      Custom fragment indices for code line highlighting steps (revealjs only).
+
+      When using `code-line-numbers` with animation steps (separated by `|`),
+      you can control the fragment index of each step using this attribute.
+      Provide a comma-separated list of integers, one for each highlighting step.
+
+      For example, with `code-line-numbers="|2|3"` (3 steps), you could use
+      `code-line-fragment-indices="1,2,4"` to make:
+
+      * The first step appear at fragment-index 1.
+      * The second step appear at fragment-index 2.
+      * The third step appear at fragment-index 4.
+
+      This allows interleaving code highlighting with other fragments on the slide.
+
+      The number of fragment indices must match the number of highlighting steps.
+      If they do not match, the attribute is ignored and default sequential
+      indexing is used.
+
 - name: lst-label
   schema: string
   description: "Unique label for code listing (used in cross references)"
