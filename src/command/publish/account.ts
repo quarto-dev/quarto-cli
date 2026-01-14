@@ -49,16 +49,13 @@ export async function resolveAccount(
   let token: AccountToken | undefined;
 
   // build list of account options
-  let accounts = await provider.accountTokens();
-  if (provider.filterAccountsByServer !== false) {
-    accounts = accounts.filter((account) => {
-      if (account.server && target?.url) {
-        return target.url.startsWith(account.server);
-      } else {
-        return true;
-      }
-    });
-  }
+  const accounts = (await provider.accountTokens()).filter((account) => {
+    if (account.server && target?.url) {
+      return target.url.startsWith(account.server);
+    } else {
+      return true;
+    }
+  });
 
   // if we aren't prompting then we need to have one at the ready
   if (prompt === "never") {

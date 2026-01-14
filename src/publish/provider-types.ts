@@ -51,7 +51,6 @@ export interface PublishProvider {
   listOriginOnly?: boolean;
   requiresRender?: boolean;
   accountDescriptor?: string;
-  filterAccountsByServer?: boolean;
   publishRecord?: (
     input: string | ProjectContext,
   ) => Promise<PublishRecord | undefined>;
