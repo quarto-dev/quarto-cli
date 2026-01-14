@@ -79,8 +79,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       atob(categoryEl.getAttribute("data-category"))
     );
     categoryEl.onclick = (e) => {
-      // Allow holding Ctrl/Cmd key for multiple selection
-      // Clear other selections if not using Ctrl/Cmd
+      // Allow holding Ctrl (Windows/Linux) or Cmd (macOS) for multiple selection
+      // Clear other selections if not using modifier key
       if (!e.ctrlKey && !e.metaKey) {
         selectedCategories.clear();
       }
@@ -88,7 +88,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       // If this would deselect the last category, ensure default category remains selected
       if (selectedCategories.has(category)) {
         selectedCategories.delete(category);
-        if (selectedCategories.size === 1) {
+        if (selectedCategories.size === 0) {
           selectedCategories.add(kDefaultCategory);
         }
       } else {
@@ -111,20 +111,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       updateCategory();
       setCategoryHash();
     };
-  }
-
-  // Process any existing hash for multiple categories
-  const hash = getHash();
-  if (hash && hash.category) {
-    const cats = hash.category.split(",");
-    for (const cat of cats) {
-      if (cat) selectedCategories.add(decodeURIComponent(cat));
-    }
-    updateCategory();
-  } else {
-    // No hash at all, use default category
-    selectedCategories.add(kDefaultCategory);
-    updateCategory();
   }
 });
 
