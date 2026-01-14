@@ -58,6 +58,10 @@ async function publish(
     projectName = await promptForProjectName(projectName);
   }
 
+  if (!options.prompt) {
+    await ensureProjectExists(projectName);
+  }
+
   await deployWithWrangler(
     publishFiles.baseDir,
     projectName,
@@ -66,7 +70,7 @@ async function publish(
   const deploymentUrl = await deploymentUrlFromWrangler(projectName);
   const recordUrl = target?.url ??
     (deploymentUrl
-      ? canonicalUrlFromDeployment(deploymentUrl) || deploymentUrl
+      ? canonicalUrlFromDeployment(deploymentUrl, projectName) || deploymentUrl
       : defaultProjectUrl(projectName));
   const openUrl = target?.url ?? deploymentUrl ?? recordUrl;
 
@@ -97,27 +101,18 @@ function defaultProjectUrl(projectName: string) {
 }
 
 let wranglerChecked = false;
+type WranglerCommand = {
+  cmd: string;
+  args: string[];
+};
+let wranglerCommand: WranglerCommand | undefined;
 
 async function ensureWrangler() {
   if (wranglerChecked) {
     return;
   }
-  try {
-    const result = await execProcess({
-      cmd: "wrangler",
-      args: ["--version"],
-      stdout: "null",
-      stderr: "null",
-    });
-    if (!result.success) {
-      throw new Error();
-    }
-    wranglerChecked = true;
-  } catch {
-    throw new Error(
-      "Cloudflare Pages publishing requires the Wrangler CLI (https://developers.cloudflare.com/workers/wrangler/install/).",
-    );
-  }
+  await resolveWranglerCommand();
+  wranglerChecked = true;
 }
 
 async function deployWithWrangler(
@@ -126,15 +121,13 @@ async function deployWithWrangler(
 ) {
   await ensureWrangler();
 
-  const result = await execProcess({
-    cmd: "wrangler",
-    args: [
-      "pages",
-      "deploy",
-      dir,
-      "--project-name",
-      projectName,
-    ],
+  const result = await execWrangler([
+    "pages",
+    "deploy",
+    dir,
+    "--project-name",
+    projectName,
+  ], {
     stdout: "inherit",
     stderr: "inherit",
   });
@@ -153,20 +146,37 @@ type WranglerDeployment = {
   branch?: string;
 };
 
+async function ensureProjectExists(projectName: string) {
+  const result = await execWrangler([
+    "pages",
+    "deployment",
+    "list",
+    "--project-name",
+    projectName,
+    "--json",
+  ], {
+    stdout: "piped",
+    stderr: "piped",
+  });
+  if (!result.success) {
+    throw new Error(
+      `Unable to access Cloudflare Pages project '${projectName}'. Create it first with 'wrangler pages project create ${projectName}' or run without --no-prompt.`,
+    );
+  }
+}
+
 async function deploymentUrlFromWrangler(
   projectName: string,
 ): Promise<string | undefined> {
   try {
-    const result = await execProcess({
-      cmd: "wrangler",
-      args: [
-        "pages",
-        "deployment",
-        "list",
-        "--project-name",
-        projectName,
-        "--json",
-      ],
+    const result = await execWrangler([
+      "pages",
+      "deployment",
+      "list",
+      "--project-name",
+      projectName,
+      "--json",
+    ], {
       stdout: "piped",
       stderr: "piped",
     });
@@ -191,6 +201,7 @@ async function deploymentUrlFromWrangler(
 
 function canonicalUrlFromDeployment(
   deploymentUrl: string,
+  projectName: string,
 ): string | undefined {
   try {
     const url = new URL(deploymentUrl);
@@ -198,10 +209,61 @@ function canonicalUrlFromDeployment(
     if (host.endsWith(".pages.dev")) {
       const parts = host.split(".");
       if (parts.length >= 4) {
+        const project = parts[1];
+        const prefix = parts[0];
+        if (project !== projectName.toLowerCase()) {
+          return undefined;
+        }
+        if (!/^[0-9a-f]{6,}$/i.test(prefix)) {
+          return undefined;
+        }
         return `${url.protocol}//${parts.slice(1).join(".")}`;
       }
     }
   } catch {
     return undefined;
   }
+}
+
+async function resolveWranglerCommand(): Promise<WranglerCommand> {
+  if (wranglerCommand) {
+    return wranglerCommand;
+  }
+  const wranglerResult = await execProcess({
+    cmd: "wrangler",
+    args: ["--version"],
+    stdout: "null",
+    stderr: "null",
+  });
+  if (wranglerResult.success) {
+    wranglerCommand = { cmd: "wrangler", args: [] };
+    return wranglerCommand;
+  }
+
+  const npxResult = await execProcess({
+    cmd: "npx",
+    args: ["wrangler", "--version"],
+    stdout: "null",
+    stderr: "null",
+  });
+  if (npxResult.success) {
+    wranglerCommand = { cmd: "npx", args: ["wrangler"] };
+    return wranglerCommand;
+  }
+
+  throw new Error(
+    "Cloudflare Pages publishing requires the Wrangler CLI (https://developers.cloudflare.com/workers/wrangler/install/). You can also run via npx if Wrangler is installed locally.",
+  );
+}
+
+async function execWrangler(
+  args: string[],
+  options: Deno.CommandOptions = {},
+) {
+  const command = await resolveWranglerCommand();
+  return await execProcess({
+    cmd: command.cmd,
+    ...options,
+    args: [...command.args, ...args],
+  });
 }
