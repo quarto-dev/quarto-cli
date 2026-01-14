@@ -14,6 +14,8 @@ All changes included in 1.9:
 
 ## Dependencies
 
+- Update `pandoc` to 3.8.3
+- Update `typst` to 0.14.2
 - Update `esbuild` to 0.25.10
 - Update `deno` to 2.4.5
 - ([#13601](https://github.com/quarto-dev/quarto-cli/pull/13601)): Update `mermaid` to 11.12.0 (author: @multimeric)
@@ -40,6 +42,15 @@ All changes included in 1.9:
 - ([#13589](https://github.com/quarto-dev/quarto-cli/issues/13589)): Fix callouts with invalid ID prefixes crashing with "attempt to index a nil value". Callouts with unknown reference types now render as non-crossreferenceable callouts with a warning, ignoring the invalid ID.
 - ([#13602](https://github.com/quarto-dev/quarto-cli/issues/13602)): Fix support for multiple files set in `bibliography` field in `biblio.typ` template partial.
 - ([#13775](https://github.com/quarto-dev/quarto-cli/issues/13775)): Fix brand fonts not being applied when using `citeproc: true` with Typst format. Format detection now properly handles Pandoc format variants like `typst-citations`.
+- ([#13249](https://github.com/quarto-dev/quarto-cli/pull/13249)): Update to Pandoc's Typst template following Pandoc 3.8.3 and Typst 0.14.2 support:
+  - Code syntax highlighting now uses Skylighting by default.
+  - New template variables `mathfont`, `codefont`, and `linestretch` for font and line spacing customization.
+  - New template variables `linkcolor`, `citecolor`, and `filecolor` for link color customization.
+  - New template variable `thanks` for title footnote acknowledgment.
+  - New template variable `abstract-title` for abstract header customization.
+  - PDF accessibility metadata: document title, author, and keywords are now set for PDF readers.
+  - Two-column layout now uses `set page(columns:)` instead of `columns()` function, fixing compatibility with landscape sections.
+  - Title block now properly spans both columns in multi-column layouts.
 
 ### `pdf`
 
@@ -48,6 +59,11 @@ All changes included in 1.9:
 - ([rstudio/tinytex-releases#49](https://github.com/rstudio/tinytex-releases/issues/49)): Fix detection of LuaTeX-ja missing file errors by matching both "File" and "file" in error messages.
 - ([#13667](https://github.com/quarto-dev/quarto-cli/issues/13667)): Fix LaTeX compilation error with Python error output containing caret characters.
 - ([#13730](https://github.com/quarto-dev/quarto-cli/issues/13730)): Fix TinyTeX detection when `~/.TinyTeX/` directory exists without binaries. Quarto now verifies that the bin directory and tlmgr binary exist before reporting TinyTeX as available, allowing proper fallback to system PATH installations.
+- ([#13249](https://github.com/quarto-dev/quarto-cli/pull/13249)): Update to Pandoc's LaTeX template following Pandoc 3.8.3 support:
+  - New RTL support for LuaTeX with `\RL`, `\LR` commands and `RTL`, `LTR` environments.
+  - New `shorthands` variable for Babel language shortcuts control.
+  - New `pdf-trailer-id` support for reproducible PDF builds.
+  - New `cancel` package support for `\cancel` command in math.
 
 ### `revealjs`
 
