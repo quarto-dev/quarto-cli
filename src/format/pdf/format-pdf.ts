@@ -330,18 +330,20 @@ function createPdfFormat(
         if (pdfStandard.length > 0) {
           const { version, standards, needsTagging } =
             normalizePdfStandardForLatex(pdfStandard);
-          extras.pandoc.variables = extras.pandoc.variables || {};
-          extras.pandoc.variables["pdf-standard"] = true; // Enable the partial
-          if (version) {
-            extras.pandoc.variables["pdf-version"] = version;
-          }
-          if (standards.length > 0) {
-            // Pass as array - Pandoc template will iterate with $for()$
-            extras.pandoc.variables["pdf-standards"] = standards;
-          }
-          // Enable tagging only for standards that require it (ua-*, a-*a)
-          if (needsTagging) {
-            extras.pandoc.variables["pdf-tagging"] = true;
+          // Set pdfstandard as a map if there are standards or a version
+          if (standards.length > 0 || version) {
+            extras.pandoc.variables = extras.pandoc.variables || {};
+            const pdfstandardMap: Record<string, unknown> = {};
+            if (standards.length > 0) {
+              pdfstandardMap.standards = standards;
+            }
+            if (version) {
+              pdfstandardMap.version = version;
+            }
+            if (needsTagging) {
+              pdfstandardMap.tagging = true;
+            }
+            extras.pandoc.variables["pdfstandard"] = pdfstandardMap;
           }
         }
 
