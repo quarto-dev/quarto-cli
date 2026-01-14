@@ -8,12 +8,17 @@ import { dirname, join } from "../../../src/deno_ral/path.ts";
 import { testQuartoCmd, Verify } from "../../test.ts";
 
 import { docs } from "../../utils.ts";
-import { ensureHtmlElements, fileExists } from "../../verify.ts";
+import { ensureFileRegexMatches, ensureHtmlElements, fileExists } from "../../verify.ts";
 
 const input = docs("listings/index.qmd");
 const outputDir = join(docs("listings"), "_site");
 const htmlOutput = join(
   outputDir,
+  "index.html",
+);
+const paginationHtmlOutput = join(
+  outputDir,
+  "pagination",
   "index.html",
 );
 
@@ -34,6 +39,27 @@ verify.push(ensureHtmlElements(htmlOutput, [
   "div#listing-reports span.listing-image div.listing-item-img-placeholder",
   // 4. Testing that `.preview-image` is correctly taken
   'div#listing-other-reports .quarto-post div.thumbnail img[src$="2\.png"]',
+]));
+
+// Pagination tests
+verify.push(fileExists(paginationHtmlOutput));
+verify.push(ensureHtmlElements(paginationHtmlOutput, [
+  // 1. Testing listing type for each pagination listing
+  "div#listing-default-pagination table.quarto-listing-table",
+  "div#listing-custom-pagination .quarto-grid-item",
+  "div#listing-zero-inner-window .quarto-listing-default",
+  // 2. Testing pagination nav elements exist
+  "nav#default-pagination-pagination.listing-pagination",
+  "nav#custom-pagination-pagination.listing-pagination",
+  "nav#zero-inner-window-pagination.listing-pagination",
+]));
+verify.push(ensureFileRegexMatches(paginationHtmlOutput, [
+  // Default pagination uses innerWindow: 2 (default value)
+  /pagination:\s*\{[^}]*innerWindow:\s*2/,
+  // Custom pagination uses innerWindow: 1 and outerWindow: 1
+  /pagination:\s*\{[^}]*innerWindow:\s*1[^}]*outerWindow:\s*1/,
+  // Zero inner-window regression test: innerWindow: 0 must be output
+  /pagination:\s*\{[^}]*innerWindow:\s*0/,
 ]));
 
 testQuartoCmd(
