@@ -91,6 +91,7 @@ import {
   ListingSharedOptions,
   ListingSort,
   ListingType,
+  PaginationOptions,
   PreviewImage,
   renderedContentReader,
 } from "./website-listing-shared.ts";
@@ -156,7 +157,7 @@ const kDefaultFields = [
   kFieldDescription,
 ];
 
-const kDefaultPaginationOptions = {
+const kDefaultPaginationOptions: PaginationOptions = {
   [kInnerWindow]: 2,
   [kOuterWindow]: 0,
   [kLeftOuterWindow]: 0,
