@@ -72,6 +72,14 @@ export const kLeftOuterWindow = "outer-window-left";
 // Same as outerWindow but only from right. list.js default: 0
 export const kRightOuterWindow = "outer-window-right";
 
+// Pagination options interface
+export interface PaginationOptions {
+  [kInnerWindow]?: number;
+  [kOuterWindow]?: number;
+  [kLeftOuterWindow]?: number;
+  [kRightOuterWindow]?: number;
+}
+
 // The maximum number of items to include
 export const kMaxItems = "max-items";
 
@@ -184,7 +192,7 @@ export interface Listing extends ListingDehydrated {
   [kFieldFilter]: string[];
   [kFieldRequired]: string[];
   [kPageSize]: number;
-  [kPaginationOptions]: Record<string, number>;
+  [kPaginationOptions]: PaginationOptions;
   [kMaxItems]?: number;
   [kFilterUi]: boolean;
   [kSortUi]: boolean;

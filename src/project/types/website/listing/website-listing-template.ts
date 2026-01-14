@@ -42,6 +42,7 @@ import {
   ListingItem,
   ListingSort,
   ListingType,
+  PaginationOptions,
 } from "./website-listing-shared.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { localizedString } from "../../../../config/localization.ts";
@@ -527,7 +528,7 @@ export function templateJsScript(
   itemCount: number,
 ) {
   const pageSize = listing[kPageSize] as number || 50;
-  const listingPaginationOptions = listing[kPaginationOptions] as Record<string, number> || {};
+  const listingPaginationOptions = listing[kPaginationOptions] as PaginationOptions || {};
 
   // If columns are present, factor that in
   const columns = listing[kFields] as string[] || [];
