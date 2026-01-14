@@ -1,0 +1,49 @@
+---
+title: brand-mode and logos
+format:
+  revealjs: default
+  typst:
+    keep-typ: true
+brand:
+  logo:
+    images:
+      sun:
+        path: sun-face.png
+        alt: "Sun face image"
+      moon:
+        path: moon-face.png
+        alt: "Moon face image"
+    medium:
+      light: sun
+      dark: moon
+  color:
+    foreground: 
+      light: '#222'
+      dark: '#eee'
+    background:
+      light: '#eee'
+      dark: '#222'
+  typography:
+    headings:
+      color:
+        light: '#429'
+        dark: '#54e'
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="sun-face.png"][alt="Sun face image"]'
+        -
+          - 'img[src="moon-face.png"][alt="Moon face image"]'
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("sun-face\.png", width: 1\.5in, alt: "Sun face image"\)\)'
+        -
+          - 'background.*moon-face\.png'
+---
+
+## Here we go
+
+- Testing image definition with path and alt text

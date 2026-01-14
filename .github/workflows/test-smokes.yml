@@ -1,5 +1,5 @@
 # Tests a broad set of Quarto functionality that users are likely to encounter.
-# A failure indicates some signficant portion of functionality is likely to be broken.
+# A failure indicates some significant portion of functionality is likely to be broken.
 name: Smoke Tests
 on:
   workflow_call:
@@ -38,6 +38,11 @@ on:
   schedule:
     - cron: "0 6 * * *"
 
+# this is required to cleanup julia cache
+permissions:
+  actions: write
+  contents: read
+
 jobs:
   run-smokes:
     name: Run smoke (${{ matrix.os }})${{ matrix.time-test && ' with timed file' || ''}}${{ inputs.extra-r-packages && ' - with some extra R packages'|| ''}}
@@ -68,7 +73,7 @@ jobs:
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
-          r-version: "4.5.0"
+          r-version: "4.5.1"
           use-public-rspm: true
           # required to avoid rtools bin in path
           windows-path-include-rtools: false
@@ -77,6 +82,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Cache multiplex server node_modules
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        uses: actions/cache@v4
+        with:
+          path: tests/integration/playwright/multiplex-server/node_modules
+          key: ${{ runner.os }}-multiplex-server-${{ hashFiles('tests/integration/playwright/multiplex-server/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-multiplex-server-
 
       - name: Install node dependencies
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
@@ -112,9 +126,9 @@ jobs:
           path: |
             ${{ env.RENV_PATHS_ROOT }}
             renv/library
-          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-3-${{ hashFiles('tests/renv.lock') }}
+          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-${{ hashFiles('tests/renv.lock') }}
           restore-keys: |
-            ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-3-
+            ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-
 
       - name: Install missing system deps
         if: runner.os == 'Linux'
@@ -125,18 +139,33 @@ jobs:
           sudo apt-get install -y libharfbuzz-dev libfribidi-dev
           sudo apt-get install -y poppler-utils
 
+      - name: Install rsvg-convert for SVG conversion tests
+        # Only do it on linux runner, and only if we are running the relevant tests
+        if: runner.os == 'Linux' && contains(inputs.buckets, 'render-pdf-svg-conversion')
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y librsvg2-bin
+
       - name: Restore R packages
         working-directory: tests
         run: |
+          cat("::group::Installing renv if needed\n")
           if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
+          cat("::endgroup::\n")
+          cat("::group::Restoring R packages from renv.lock\n")
           renv::restore()
+          cat("::endgroup::\n")
+          cat("::group::Installing dev versions of knitr and rmarkdown\n")
           # Install dev versions for our testing
           # Use r-universe to avoid github api calls
           try(install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev', getOption('repos'))))
           try(install.packages('knitr', repos = c('https://yihui.r-universe.dev', getOption('repos'))))
+          cat("::endgroup::\n")
           if ('${{ inputs.extra-r-packages }}' != '') {
-            cat(sprintf("::notice::Running with the following extra R packages for pak: %s\n", "${{ inputs.extra-r-packages }}"))
+            cat(sprintf("::notice::Running with the following extra R packages for renv: %s\n", "${{ inputs.extra-r-packages }}"))
+            cat("::group::Installing extra R packages\n")
             renv::install(strsplit("${{ inputs.extra-r-packages }}", split = ",")[[1]])
+            cat("::endgroup::\n")
           }
         shell: Rscript {0}
         env:
@@ -155,7 +184,7 @@ jobs:
       - name: Install uv for Python
         uses: astral-sh/setup-uv@v3
         with:
-          version: "0.7.4"
+          version: "0.9.5"
           enable-cache: true
           cache-dependency-glob: "tests/uv.lock"
 
@@ -181,11 +210,17 @@ jobs:
 
       - name: Setup Julia
         uses: julia-actions/setup-julia@v2
+        id: setup-julia
         with:
-          version: "1.11.3"
+          version: "1.11.7"
 
-      - name: Cache Julia Packages
+      - name: Load Julia packages from cache
         uses: julia-actions/cache@v2
+        with:
+          cache-name: julia-cache;workflow=${{ github.workflow }};job=${{ github.job }};julia=${{ steps.setup-julia.outputs.julia-version }}
+
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
 
       - name: Restore Julia Packages
         working-directory: tests
@@ -229,17 +264,36 @@ jobs:
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          QUARTO_LOG_LEVEL: DEBUG
         run: |
           haserror=0
+          failed_tests=()
           readarray -t my_array < <(echo '${{ inputs.buckets }}' | jq -rc '.[]')
-          for file in "${my_array[@]}"; do 
+          for file in "${my_array[@]}"; do
+            echo "::group::Testing ${file}"
             echo ">>> ./run-tests.sh ${file}"
-            shopt -s globstar && ./run-tests.sh $file
+            # Run tests without -e so we don't exit on first failure
+            set +e
+            shopt -s globstar && ./run-tests.sh "$file"
             status=$?
-            [ $status -eq 0 ] && echo ">>> No error in this test file" || haserror=1
+            set -e
+            echo "::endgroup::"
+            if [ $status -ne 0 ]; then
+              echo "::error title=Test Bucket Failed::Test bucket ${file} failed with exit code ${status}"
+              echo ">>> Error found in test file: ${file}"
+              haserror=1
+              failed_tests+=("$file")
+            fi
           done
-          [ $haserror -eq 0 ] && echo ">>> All tests passed" || exit 1
+          if [ $haserror -eq 1 ]; then
+            echo "---- FAILING TESTS SUMMARY ----"
+            echo "    The following test buckets failed:"
+            for failed in "${failed_tests[@]}"; do
+              echo "    - $failed"
+            done
+            exit 1
+          else
+            echo ">>> All tests passed"
+          fi
         working-directory: tests
         shell: bash
 
@@ -250,18 +304,26 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $haserror=$false
+          $failed_tests=@()
           foreach ($file in ('${{ inputs.buckets }}' | ConvertFrom-Json)) {
+            Write-Host "::group::Testing ${file}"
             Write-Host ">>> ./run-tests.ps1 ${file}"
             ./run-tests.ps1 $file
             $status=$LASTEXITCODE
-            if ($status -eq 1) {
-              Write-Host ">>> Error found in test file"
+            Write-Host "::endgroup::"
+            if ($status -ne 0) {
+              Write-Host "::error title=Test Bucket Failed::Test bucket ${file} failed with exit code ${status}"
+              Write-Host ">>> Error found in test file: ${file}"
               $haserror=$true
-            } else {
-              Write-Host ">>> No error in this test file"
+              $failed_tests+=$file
             }
           }
           if ($haserror) {
+            Write-Host "---- FAILING TESTS SUMMARY ----"
+            Write-Host "    The following test buckets failed:"
+            foreach ($failed in $failed_tests) {
+              Write-Host "    - $failed"
+            }
             Exit 1
           } else {
             Write-Host ">>> All tests have passed"
@@ -269,35 +331,9 @@ jobs:
         working-directory: tests
         shell: pwsh
 
-      - name: Create Pull Request for new tests timing
-        if: matrix.time-test
-        id: cpr
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          add-paths: tests/timing-for-ci.txt
-          commit-message: |
-            timing for new tests [auto PR]
-          branch: updates/timing-for-ci
-          delete-branch: true
-          assignees: cderv
-          reviewers: cderv
-          title: |
-            [CI] Update timing file
-          body: |
-            This PR was created automatically with new timing test file for our parallel smoke tests. 
-            Please review and merge to trigger a new build of the website.
-
-      - name: Check auto PR outputs
-        if: steps.cpr.outcome == 'success'
-        run: |
-          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
-          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
-          echo "Pull Request Action Performed - ${{ steps.cpr.outputs.pull-request-operation }}"
-
       - name: Upload test timing file
         uses: actions/upload-artifact@v4
-        if: matrix.time-test && ( failure() || cancelled())
+        if: matrix.time-test
         with:
           name: timed test file
           path: tests/timing-for-ci.txt

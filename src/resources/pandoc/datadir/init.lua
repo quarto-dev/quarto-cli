@@ -990,6 +990,9 @@ quarto = {
     tinytex_bin_dir = function()
       return param('quarto-environment', nil).paths.TinyTexBinDir
     end,
+    typst = function()
+      return param('quarto-environment', nil).paths.Typst
+    end,
   },
   json = json,
   base64 = base64,
@@ -1031,6 +1034,20 @@ quarto = {
           end
       end,
   },
+  metadata = {
+    get = function(key)
+      return option(key, nil)
+    end
+  },
+  variables = {
+    get = function(name)
+      local value = var(name, nil)
+      if value then
+         value = pandoc.utils.stringify(value)
+      end
+      return value
+    end
+  }
 }
 
 -- alias old names for backwards compatibility

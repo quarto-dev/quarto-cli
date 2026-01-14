@@ -623,6 +623,7 @@ async function internalPreviewServer(
                     services,
                     useFreezer: true,
                     devServerReload: true,
+                    previewServer: true,
                     flags: renderFlags,
                     pandocArgs: renderPandocArgs,
                   },

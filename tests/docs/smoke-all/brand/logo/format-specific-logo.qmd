@@ -5,6 +5,18 @@ format:
     logo:
       light: dashboard-light.png
       dark: dashboard-dark.png
+  revealjs:
+    logo:
+      light: 
+        path: revealjs-light.png
+        alt: revealjs light logo
+      dark: revealjs-dark.png
+  typst:
+    output-ext: typ
+    logo:
+      light:
+        path: typst-light.png
+        alt: typst light logo
 brand:
   logo:
     images:
@@ -29,6 +41,17 @@ _quarto:
           # Format-specific logo should take precedence over generic logo
           - 'img[src="dashboard-light.png"][alt=""][class="navbar-logo light-content d-inline-block"]'
           - 'img[src="dashboard-dark.png"][alt=""][class="navbar-logo dark-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          # Format-specific logo should take precedence over generic logo
+          - 'img[src="revealjs-light.png"][alt="revealjs light logo"]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("typst-light.png", width: 1\.5in, alt: "typst light logo"\)\)'
         - []
 ---
 

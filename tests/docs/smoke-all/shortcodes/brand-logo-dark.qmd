@@ -11,9 +11,9 @@ brand:
 _quarto:
   tests:
     html:
-      ensureHtmlElements:
+      ensureFileRegexMatches:
         -
-          - 'img[src="moon.png"][class*="dark-content"]'
+          - '<img src="\.(/|\\)moon\.png" class="img-fluid.*>'
         - []
 ---
 

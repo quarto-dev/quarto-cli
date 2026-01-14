@@ -170,11 +170,12 @@ function render_typst_brand_yaml()
           end
         end
 
+        -- monospace font family is handled by codefont in typst-template.typ via typst-show.typ
+        -- here we only handle properties that Pandoc doesn't support: weight, size, color
         local monospaceInline = _quarto.modules.brand.get_typography(brandMode, 'monospace-inline')
         if monospaceInline and next(monospaceInline) then
             quarto.doc.include_text('in-header', table.concat({
               '#show raw.where(block: false): set text(',
-              conditional_entry('font', monospaceInline.family and _quarto.modules.typst.css.translate_font_family_list(monospaceInline.family), false),
               conditional_entry('weight', _quarto.modules.typst.css.translate_font_weight(monospaceInline.weight)),
               conditional_entry('size', monospaceInline.size, false),
               conditional_entry('fill', monospaceInline.color, false),
@@ -189,11 +190,12 @@ function render_typst_brand_yaml()
           }))
         end
     
+        -- monospace font family is handled by codefont in typst-template.typ via typst-show.typ
+        -- here we only handle properties that Pandoc doesn't support: weight, size, color
         local monospaceBlock = _quarto.modules.brand.get_typography(brandMode, 'monospace-block')
         if monospaceBlock and next(monospaceBlock) then
           quarto.doc.include_text('in-header', table.concat({
             '#show raw.where(block: true): set text(',
-            conditional_entry('font', monospaceBlock.family and _quarto.modules.typst.css.translate_font_family_list(monospaceBlock.family), false),
             conditional_entry('weight', _quarto.modules.typst.css.translate_font_weight(monospaceBlock.weight)),
             conditional_entry('size', monospaceBlock.size, false),
             conditional_entry('fill', monospaceBlock.color, false),
@@ -251,29 +253,15 @@ function render_typst_brand_yaml()
       end
       -- logo
       local logo = param('logo')
+      if logo and not next(logo) then
+        meta.logo = nil
+      end
       local logoOptions = {}
-      local foundLogo = null
-      if logo then
-        if type(logo) == 'string' then
-          foundLogo = _quarto.modules.brand.get_logo(brandMode, logo) or {path=logo}
-        elseif type(logo) == 'table' then
-          for k, v in pairs(logo) do
-            logoOptions[k] = v
-          end
-          if logo.path then
-            foundLogo = _quarto.modules.brand.get_logo(brandMode, logo.path) or {path=logo}
-          end
-        end
-      end
-      if not foundLogo and brand and brand.processedData and brand.processedData.logo then
-        foundLogo = _quarto.modules.brand.get_logo(brandMode, 'medium')
-          or _quarto.modules.brand.get_logo(brandMode, 'small')
-          or _quarto.modules.brand.get_logo(brandMode, 'large')
-      end
+      local foundLogo = logo and logo[brandMode]
       if foundLogo then
-        logoOptions.path = foundLogo.path
-        logoOptions.alt = foundLogo.alt
-
+        for k, v in pairs(foundLogo) do
+          logoOptions[k] = v
+        end
         local pads = {}
         for k, v in _quarto.utils.table.sortedPairs(logoOptions) do
           if k == 'padding' then
@@ -321,7 +309,7 @@ function render_typst_brand_yaml()
           inset = '0.75in'
         end
         logoOptions.width = _quarto.modules.typst.css.translate_length(logoOptions.width or '1.5in')
-        logoOptions.inset = inset
+        logoOptions.inset = pandoc.RawInline('typst', inset)
         logoOptions.location = logoOptions.location and
           location_to_typst_align(logoOptions.location) or 'left+top'
         quarto.log.debug('logo options', logoOptions)
@@ -332,6 +320,10 @@ function render_typst_brand_yaml()
           imageFilename = imageFilename and imageFilename:gsub('\\_', '_')
         else
           -- backslashes need to be doubled for Windows
+          if imageFilename[1] ~= "/" and _quarto.projectOffset() ~= "." then
+            local offset = _quarto.projectOffset()
+            imageFilename = pandoc.path.join({offset, imageFilename})
+          end
           imageFilename = string.gsub(imageFilename, '\\', '\\\\')
         end
         logoOptions.path = pandoc.RawInline('typst', imageFilename)
@@ -364,6 +356,13 @@ function render_typst_brand_yaml()
           color = color,
           ['background-color'] = headings['background-color'] or base['background-color'],
           ['line-height'] = line_height_to_leading(headings['line-height'] or base['line-height']),
+        }
+      end
+
+      local monospace = _quarto.modules.brand.get_typography(brandMode, 'monospace')
+      if monospace and monospace.family then
+        meta.brand.typography.monospace = {
+          family = pandoc.RawInline('typst', _quarto.modules.typst.css.translate_font_family_list(monospace.family)),
         }
       end
       return meta

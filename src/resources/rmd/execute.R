@@ -19,8 +19,11 @@ execute <- function(
   markdown
 ) {
   # calculate knit_root_dir (before we setwd below)
-  knit_root_dir <- if (!is.null(cwd)) tools::file_path_as_absolute(cwd) else
+  knit_root_dir <- if (!is.null(cwd)) {
+    tools::file_path_as_absolute(cwd)
+  } else {
     NULL
+  }
 
   # change to input dir and make input relative (matches
   # behavior/expectations of rmarkdown::render code)
@@ -210,8 +213,11 @@ execute <- function(
   # include supporting files
   supporting <- if (
     !is.null(intermediates_dir) && file_test("-d", intermediates_dir)
-  )
-    rmarkdown:::abs_path(intermediates_dir) else character()
+  ) {
+    rmarkdown:::abs_path(intermediates_dir)
+  } else {
+    character()
+  }
 
   # ammend knit_meta with paged table if df_print == "paged"
   if (df_print == "paged") {
@@ -287,7 +293,9 @@ knitr_options <- function(format, resourceDir, handledLanguages) {
 
   # opt_knit for compatibility w/ rmarkdown::render
   to <- format$pandoc$to
-  if (identical(to, "pdf")) to <- "latex"
+  if (identical(to, "pdf")) {
+    to <- "latex"
+  }
   opts_knit <- list(
     quarto.version = 1,
     rmarkdown.pandoc.from = format$pandoc$from,
@@ -397,7 +405,9 @@ knitr_options_with_cache <- function(input, format, opts) {
 knitr_cache_dir <- function(input, format) {
   pandoc_to <- format$pandoc$to
   base_pandoc_to <- gsub('[-+].*', '', pandoc_to)
-  if (base_pandoc_to == 'html4') base_pandoc_to <- 'html'
+  if (base_pandoc_to == 'html4') {
+    base_pandoc_to <- 'html'
+  }
   cache_dir <- rmarkdown:::knitr_cache_dir(input, base_pandoc_to)
   cache_dir <- gsub("/$", "", cache_dir)
   cache_dir
@@ -669,8 +679,9 @@ is_dashboard_output <- function(format) {
 
 # apply patches to output as required
 apply_patches <- function(format, includes) {
-  if (format$pandoc$to %in% c("slidy", "revealjs"))
+  if (format$pandoc$to %in% c("slidy", "revealjs")) {
     includes <- apply_slides_patch(includes)
+  }
   includes
 }
 
@@ -771,12 +782,15 @@ has_crop_tools <- function(warn = TRUE) {
     ghostscript = unname(tools::find_gs_cmd())
   )
   missing <- tools[tools == ""]
-  if (length(missing) == 0) return(TRUE)
+  if (length(missing) == 0) {
+    return(TRUE)
+  }
   x <- paste0(names(missing), collapse = ", ")
-  if (warn)
+  if (warn) {
     warning(
       sprintf("\nTool(s) not installed or not in PATH: %s", x),
       "\n-> As a result, figure cropping will be disabled."
     )
+  }
   FALSE
 }

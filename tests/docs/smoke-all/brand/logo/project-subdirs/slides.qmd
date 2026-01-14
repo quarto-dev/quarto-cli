@@ -1,0 +1,22 @@
+---
+title: "Untitled"
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        -
+          - '<img src="brand(/|\\)images(/|\\)favicon.png"'
+          - '<img data-src="\.(/|\\)brand(/|\\)images(/|\\)logo.png"'
+          - '<img data-src="\.(/|\\)brand(/|\\)images(/|\\)header.png"'
+        - []
+---
+
+## Here's a slide
+
+
+{{< brand logo full >}}
+
+Here's some text and [a link](https://example.com).
+
+{{< brand logo header >}}

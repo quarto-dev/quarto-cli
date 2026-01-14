@@ -12,12 +12,15 @@ import { existsSync } from "../../deno_ral/fs.ts";
 import { os as platformOs } from "../../deno_ral/platform.ts";
 
 export function hasTinyTex(): boolean {
-  const installDir = tinyTexInstallDir();
-  if (installDir && existsSync(installDir)) {
-    return true;
-  } else {
-    return false;
+  const binDir = tinyTexBinDir();
+  if (!binDir) {
+    return false;  // No bin directory found
   }
+
+  // Check for tlmgr binary (critical package manager)
+  const tlmgrBinary = platformOs === "windows" ? "tlmgr.bat" : "tlmgr";
+  const tlmgrPath = join(binDir, tlmgrBinary);
+  return safeExistsSync(tlmgrPath);
 }
 
 export function tinyTexInstallDir(): string | undefined {
@@ -49,10 +52,16 @@ export function tinyTexBinDir(): string | undefined {
         if (safeExistsSync(winPath)) return winPath;
         return join(basePath, "bin\\windows\\");
       }
-      case "linux":
-        return join(basePath, `bin/${Deno.build.arch}-linux`);
-      case "darwin":
-        return join(basePath, "bin/universal-darwin");
+      case "linux": {
+        const linuxPath = join(basePath, `bin/${Deno.build.arch}-linux`);
+        if (safeExistsSync(linuxPath)) return linuxPath;
+        return undefined;
+      }
+      case "darwin": {
+        const darwinPath = join(basePath, "bin/universal-darwin");
+        if (safeExistsSync(darwinPath)) return darwinPath;
+        return undefined;
+      }
       default:
         return undefined;
     }

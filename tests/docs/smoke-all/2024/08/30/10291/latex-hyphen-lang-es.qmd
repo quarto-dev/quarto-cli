@@ -1,18 +1,27 @@
 ---
-format: pdf
+format: 
+  pdf: 
+    documentclass: article
 lang: es
 _quarto:
   tests:
     pdf: null
 ---
 
+**Only remove package on CI**
 ```{r}
+#| eval: !expr isFALSE(as.logical(Sys.getenv("CI", "false")))
 #| include: false
+#| messages: "NA"
 
 # Remove the hyphen package for spanish
 if (tinytex::check_installed("hyphen-spanish")) {
   message("Removing 'hyphen-spanish' package for the render")
   tinytex::tlmgr_remove("hyphen-spanish")
+}
+if (tinytex::check_installed("babel-spanish")) {
+  message("Removing 'babel-spanish' package for the render")
+  tinytex::tlmgr_remove("babel-spanish")
 }
 ```
 

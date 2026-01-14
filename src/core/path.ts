@@ -85,11 +85,17 @@ export function isModifiedAfter(file: string, otherFile: string) {
   }
 }
 
-export function dirAndStem(file: string) {
+export function dirAndStem(file: string): [string, string] {
   return [
     dirname(file),
     basename(file, extname(file)),
   ];
+}
+
+export function isQmdFile(file: string) {
+  const ext = extname(file).toLowerCase();
+  const kQmdExtensions = [".qmd"];
+  return kQmdExtensions.includes(ext);
 }
 
 export function expandPath(path: string) {
@@ -195,6 +201,14 @@ export function ensureTrailingSlash(path: string) {
 export function removeTrailingSlash(path: string) {
   if (path && path.endsWith("/")) {
     return path.slice(0, path.length - 1);
+  } else {
+    return path;
+  }
+}
+
+export function ensureLeadingSlash(path: string) {
+  if (path && !path.startsWith("/")) {
+    return "/" + path;
   } else {
     return path;
   }

@@ -30,9 +30,6 @@ export async function prepareDist(
   // copy from resources dir to the 'share' dir (which is resources)
   //   config.directoryInfo.share
 
-  // FIXME holding off on prepareDist building assets until we fix
-  // this issue: https://github.com/quarto-dev/quarto-cli/runs/4229822735?check_suite_focus=true
-
   // Moving appropriate binaries into place
 
   // Get each dependency extracted into the 'bin' folder
@@ -121,6 +118,11 @@ export async function prepareDist(
   supportingFiles(config);
   info("");
 
+  // Update extension-build import map for distribution
+  info("Updating extension-build import map");
+  updateImportMap(config);
+  info("");
+
   // Create the deno bundle
   // const input = join(config.directoryInfo.src, "quarto.ts");
   const output = join(config.directoryInfo.pkgWorking.bin, "quarto.js");
@@ -166,6 +168,20 @@ export async function prepareDist(
     );
   }
 
+  // Copy quarto-types to extension-build directory
+  // Note: deno.json and import-map.json are copied by supportingFiles() and
+  // import-map.json is then updated by updateImportMap() for distribution
+  info("Copying quarto-types.d.ts to extension-build directory");
+  const extensionBuildDir = join(
+    config.directoryInfo.pkgWorking.share,
+    "extension-build",
+  );
+  copySync(
+    join(config.directoryInfo.root, "packages/quarto-types/dist/index.d.ts"),
+    join(extensionBuildDir, "quarto-types.d.ts"),
+    { overwrite: true },
+  );
+
   // Remove the config directory, if present
   info(`Cleaning config`);
   const configDir = join(config.directoryInfo.dist, "config");
@@ -210,6 +226,49 @@ function supportingFiles(config: Configuration) {
     join(config.directoryInfo.pkgWorking.share, "filters"),
   ];
   pathsToClean.forEach((path) => Deno.removeSync(path, { recursive: true }));
+}
+
+function updateImportMap(config: Configuration) {
+  // Read the import map that was copied from src/resources/extension-build/
+  const importMapPath = join(
+    config.directoryInfo.pkgWorking.share,
+    "extension-build",
+    "import-map.json",
+  );
+  const importMapContent = JSON.parse(Deno.readTextFileSync(importMapPath));
+
+  // Read the source import map to get current Deno std versions
+  const sourceImportMapPath = join(config.directoryInfo.src, "import_map.json");
+  const sourceImportMap = JSON.parse(Deno.readTextFileSync(sourceImportMapPath));
+  const sourceImports = sourceImportMap.imports as Record<string, string>;
+
+  // Update the import map for distribution:
+  // 1. Change @quarto/types path from dev (../../../packages/...) to dist (./quarto-types.d.ts)
+  // 2. Update all other imports (Deno std versions) from source import map
+  const updatedImports: Record<string, string> = {
+    "@quarto/types": "./quarto-types.d.ts",
+  };
+
+  // Copy all other imports from source, updating versions
+  for (const key in importMapContent.imports) {
+    if (key !== "@quarto/types") {
+      const sourceValue = sourceImports[key];
+      if (!sourceValue) {
+        throw new Error(
+          `Import map key "${key}" not found in source import_map.json`,
+        );
+      }
+      updatedImports[key] = sourceValue;
+    }
+  }
+
+  importMapContent.imports = updatedImports;
+
+  // Write back the updated import map
+  Deno.writeTextFileSync(
+    importMapPath,
+    JSON.stringify(importMapContent, null, 2) + "\n",
+  );
 }
 
 interface Filter {

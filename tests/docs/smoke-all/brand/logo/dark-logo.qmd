@@ -2,6 +2,9 @@
 title: brand with dark and light logos
 format:
   dashboard: default
+  revealjs: default
+  typst:
+    keep-typ: true
 brand:
   logo:
     images:
@@ -30,6 +33,16 @@ _quarto:
         -
           - 'img[src="quarto.png"][alt="quarto logo"][class="navbar-logo light-content d-inline-block"]'
           - 'img[src="quarto-dark.png"][alt="quarto dark logo"][class="navbar-logo dark-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="quarto.png"][alt="quarto logo"]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("quarto.png", width: 1\.5in, alt: "quarto logo"\)\)'
         - []
 ---
 

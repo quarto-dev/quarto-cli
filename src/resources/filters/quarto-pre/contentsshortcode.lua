@@ -6,6 +6,27 @@ function contents_shortcode_filter()
   local divs = {}
   local spans = {}
 
+  local function handle_inline_with_attr(el)
+    if ids_used[el.attr.identifier] then
+      spans[el.attr.identifier] = el
+      return {}
+    end
+
+    -- remove 'cell-' from identifier, try again
+    local truncated_id = el.attr.identifier:match("^cell%-(.+)$")
+    if ids_used[truncated_id] then
+      spans[truncated_id] = el
+      -- FIXME: this is a workaround for the fact that we don't have a way to
+      --        distinguish between divs that appear as the output of code cells
+      --        (which have a different id creation mechanism)
+      --        and "regular" divs.
+      --        We need to fix https://github.com/quarto-dev/quarto-cli/issues/7062 first.
+      return {}
+    else
+      return nil
+    end
+  end
+
   return {
     Pandoc = function(doc)
       _quarto.ast.walk(doc.blocks, {
@@ -43,13 +64,10 @@ function contents_shortcode_filter()
             return nil
           end
         end,
-        Span = function(el)
-          if not ids_used[el.attr.identifier] then
-            return nil
-          end
-          spans[el.attr.identifier] = el
-          return {}
-        end
+        Code = handle_inline_with_attr,
+        Image = handle_inline_with_attr,
+        Span = handle_inline_with_attr,
+        Link = handle_inline_with_attr
       })
 
       local handle_block = function(el)
@@ -75,14 +93,22 @@ function contents_shortcode_filter()
           return {}
         end
         local div = divs[data]
-        if div == nil then
-          warn(
-            "[Malformed document] Found `contents` shortcode without a corresponding div with id: " .. tostring(data) .. ".\n" ..
-            "This might happen because the shortcode is used in div context, while the id corresponds to a span.\n" ..
-            "Removing from document.")
-          return {}
+        if div ~= nil then
+          -- if we have a div, return it
+          return div
         end
-        return div
+        -- if we don't have a div, try to find a span
+        -- and wrap it in a div
+        local span = spans[data]
+        if span ~= nil then
+          -- if we have a span, return it wrapped in a div
+          return pandoc.Div(pandoc.Plain({span}))
+        end
+        quarto.log.warning(
+          "[Malformed document] Found `contents` shortcode without a corresponding div with id: " .. tostring(data) .. ".\n" ..
+          "This might happen because the shortcode is used in div context, while the id corresponds to a span.\n" ..
+          "Removing from document.")
+        return {}
       end
       -- replace div-context entries
       doc.blocks = _quarto.ast.walk(doc.blocks, {

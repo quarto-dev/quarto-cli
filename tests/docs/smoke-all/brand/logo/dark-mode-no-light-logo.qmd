@@ -4,7 +4,11 @@ format:
   dashboard:
     theme:
       light: default
-      dark: darkly  # Explicitly enable dark mode
+      dark: darkly
+  revealjs: default
+  typst:
+    keep-typ: true
+brand-mode: dark
 brand:
   color:
     foreground: 
@@ -20,16 +24,23 @@ brand:
         alt: dark logo
     medium:
       dark: dark-logo
-      # No light variant defined - what happens?
 _quarto:
   tests:
     dashboard:
       ensureHtmlElements:
         -
-          # Dark mode should use the dark logo
           - 'img[src="posit-logo-2024.svg"][alt="dark logo"][class="navbar-logo dark-content d-inline-block"]'
-          # For light mode, should it use the dark logo since no light logo exists?
           - 'img[src="posit-logo-2024.svg"][alt="dark logo"][class="navbar-logo light-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="posit-logo-2024.svg"][alt="dark logo"]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("posit-logo-2024.svg", width: 1\.5in, alt: "dark logo"\)\)'
         - []
 ---
 
