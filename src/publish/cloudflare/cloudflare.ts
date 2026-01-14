@@ -16,6 +16,7 @@ import { renderForPublish } from "../common/publish.ts";
 import { RenderFlags } from "../../command/render/types.ts";
 import { execProcess } from "../../core/process.ts";
 import { anonymousAccount } from "../common/git.ts";
+import { sleep } from "../../core/wait.ts";
 
 export const kCloudflarePages = "cloudflare-pages";
 const kCloudflarePagesDescription = "Cloudflare Pages";
@@ -146,6 +147,9 @@ type WranglerDeployment = {
   branch?: string;
 };
 
+const kDeploymentLookupRetries = 3;
+const kDeploymentLookupDelay = 500;
+
 async function ensureProjectExists(projectName: string) {
   const result = await execWrangler([
     "pages",
@@ -160,12 +164,27 @@ async function ensureProjectExists(projectName: string) {
   });
   if (!result.success) {
     throw new Error(
-      `Unable to access Cloudflare Pages project '${projectName}'. Create it first with 'wrangler pages project create ${projectName}' or run without --no-prompt.`,
+      `Unable to access Cloudflare Pages project '${projectName}'. Ensure Wrangler is authenticated (wrangler login or CLOUDFLARE_ACCOUNT_ID/CLOUDFLARE_API_TOKEN) and the project exists. Create it first with 'wrangler pages project create ${projectName} --production-branch <branch>' or run without --no-prompt.`,
     );
   }
 }
 
 async function deploymentUrlFromWrangler(
+  projectName: string,
+): Promise<string | undefined> {
+  for (let attempt = 0; attempt < kDeploymentLookupRetries; attempt++) {
+    const url = await tryDeploymentUrlFromWrangler(projectName);
+    if (url) {
+      return url;
+    }
+    if (attempt < kDeploymentLookupRetries - 1) {
+      await sleep(kDeploymentLookupDelay);
+    }
+  }
+  return undefined;
+}
+
+async function tryDeploymentUrlFromWrangler(
   projectName: string,
 ): Promise<string | undefined> {
   try {
