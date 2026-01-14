@@ -17,6 +17,13 @@ function line_numbers()
             el.attr.attributes[constants.kCodeLineNumbers] = lineNumbers
           end
         end
+        -- preserve code-line-fragment-indices for revealjs only
+        local fragmentIndices = el.attr.attributes[constants.kCodeLineFragmentIndices]
+        if fragmentIndices and _quarto.format.isRevealJsOutput() then
+          el.attr.attributes[constants.kCodeLineFragmentIndices] = fragmentIndices
+        else
+          el.attr.attributes[constants.kCodeLineFragmentIndices] = nil
+        end
         return el
       end
     end
