@@ -10,6 +10,7 @@ import { quartoPubProvider } from "./quarto-pub/quarto-pub.ts";
 import { rsconnectProvider } from "./rsconnect/rsconnect.ts";
 import { confluenceProvider } from "./confluence/confluence.ts";
 import { huggingfaceProvider } from "./huggingface/huggingface.ts";
+import { cloudflarePagesProvider } from "./cloudflare/cloudflare.ts";
 import { AccountToken } from "./provider-types.ts";
 import { warning } from "../deno_ral/log.ts";
 
@@ -22,6 +23,7 @@ const kPublishProviders = [
   ghpagesProvider,
   rsconnectProvider,
   netlifyProvider,
+  cloudflarePagesProvider,
   confluenceProvider,
   huggingfaceProvider,
 ];
@@ -35,6 +37,9 @@ export function findProvider(name?: string) {
     warning(
       `The Posit Cloud publishing destination is no longer supported. See https://docs.posit.co/cloud/whats_new/#october-2024 for details.`,
     );
+  }
+  if (name === "cloudflare") {
+    return cloudflarePagesProvider;
   }
   return kPublishProviders.find((provider) => provider.name === name);
 }

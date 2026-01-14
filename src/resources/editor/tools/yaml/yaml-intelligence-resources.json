@@ -2182,9 +2182,14 @@
               "arrayOf": {
                 "ref": "publish-record"
               }
+            },
+            "cloudflare-pages": {
+              "arrayOf": {
+                "ref": "publish-record"
+              }
             }
           },
-          "description": "Sites published to Netlify"
+          "description": "Sites published from project"
         }
       }
     },

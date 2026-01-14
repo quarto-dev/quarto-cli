@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `quarto publish` command enables you to easily publish websites and documents to a variety of services, including [Netlify](https://www.netlify.com/), [GitHub Pages](https://pages.github.com/) and [Posit Connect](https://posit.co/products/enterprise/connect/) (more services will be added over time).
+The `quarto publish` command enables you to easily publish websites and documents to a variety of services, including [Netlify](https://www.netlify.com/), [GitHub Pages](https://pages.github.com/), [Cloudflare Pages](https://pages.cloudflare.com/) and [Posit Connect](https://posit.co/products/enterprise/connect/) (more services will be added over time).
 
 To publish a website or book, just execute `quarto publish` from within the project directory:
 
@@ -46,6 +46,7 @@ As an alternative to providing account credentials interactively, you case use t
 | Service        | Variables                              |
 | -------------- | -------------------------------------- |
 | Netlify        | `NETLIFY_AUTH_TOKEN`                   |
+| Cloudflare Pages | `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` |
 | Postit Connect | `CONNECT_SERVER` and `CONNECT_API_KEY` |
 
 Using an environment variable combined with a `_publish.yml` file that points to the requisite publishing destination is enough to enable the following command to perform a headless publish on CI:
@@ -56,18 +57,22 @@ quarto publish
 
 GitHub Pages publishing requires no special environment variables (as it use the version of git available on your system or on the CI server).
 
+Cloudflare Pages publishing uses the Wrangler CLI. Install Wrangler and provide a Cloudflare account ID and API token via environment variables or command line options.
+
 ### Command Line
 
 As an alternative to using a `_publish.yml` file, you can also specify your publish destination explicilty on the command line using a provider name (e.g. `netlify` or `connect`) along with the `--id` option. For example:
 
 ```bash
 quarto publish netlify --id DDA36416-F950-4647-815C-01A24233E294
+quarto publish cloudflare-pages --id my-quarto-site
 ```
 
 If your credentials are not stored in an environment variable as described above, you can optionally provide them the command line. For example:
 
 ```bash
 quarto publish netlify --id DDA36416-F950-4647-815C-01A24233E294 --token 7C0947A852D8
+quarto publish cloudflare-pages --id my-quarto-site --server 0123456789abcdef --token CF_API_TOKEN
 ```
 
 When publishing to Posit Connect you should make sure that the server, token, and id are all available either via environment variables or the command line. For example:

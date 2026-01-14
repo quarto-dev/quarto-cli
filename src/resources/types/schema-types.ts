@@ -301,7 +301,8 @@ Interpolate the `--port` into the command using `{port}`. */;
 
 export type Publish = {
   netlify?: (PublishRecord)[];
-}; /* Sites published to Netlify */
+  "cloudflare-pages"?: (PublishRecord)[];
+}; /* Sites published from project */
 
 export type PublishRecord = {
   id?: string /* Unique identifier for site */;
