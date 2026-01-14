@@ -1588,11 +1588,11 @@
                 default: 0
             outer-window-left:
               number:
-                description: "The number of pages to display on the left side of the current page."
+                description: "The number of pages to display at the start of the pagination control."
                 default: 0
             outer-window-right:
               number:
-                description: "The number of pages to display on the right side of the current page."
+                description: "The number of pages to display at the end of the pagination control."
                 default: 0
       feed:
         anyOf:
