@@ -7,11 +7,11 @@ brand:
 _quarto:
   tests:
     html:
-      ensureHtmlElements:
+      ensureFileRegexMatches:
         -
-          - 'img[src="sun.png"][class*="light-content"]'
+          - '<img src="\.(/|\\)sun\.png" class="light-content.*>'
         -
-          - 'img[class*="dark-content"]'
+          - '<img .*class="dark-content.*>'
 ---
 
 

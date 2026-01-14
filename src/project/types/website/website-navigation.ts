@@ -559,7 +559,8 @@ function navigationHtmlPostprocessor(
       const navLinkHref = navLink.getAttribute("href");
 
       const sidebarLink = doc.querySelector(
-        '.sidebar-navigation a[href="' + navLinkHref + '"]',
+        '.sidebar-navigation a[href="' + navLinkHref +
+          '"]:not(.sidebar-logo-link)',
       );
       // if the link is either for the current window href or appears on the
       // sidebar then set it to active
@@ -1015,16 +1016,6 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // ensure title and search are present
   sidebar.title = await sidebarTitle(sidebar, project) as string | undefined;
-  if (sidebar.logo) {
-    // sidebar logo has been normalized
-    const sidebarLogo = sidebar.logo as NormalizedLogoLightDarkSpecifier;
-    if (sidebarLogo.light) {
-      sidebarLogo.light.path = resolveLogo(sidebarLogo.light.path)!;
-    }
-    if (sidebarLogo.dark) {
-      sidebarLogo.dark.path = resolveLogo(sidebarLogo.dark.path)!;
-    }
-  }
   const searchOpts = await searchOptions(project);
   sidebar.search = sidebar.search !== undefined
     ? sidebar.search
@@ -1213,7 +1204,7 @@ function nextAndPrevious(
       (sidebarItem: SidebarItem) => {
         return sidebarItem.href || Math.random().toString();
       },
-    );
+    ) as SidebarItem[];
 
     const index = sidebarItemsUniq.findIndex((item) => item.href === href);
     const nextPage = index > -1 && index < sidebarItemsUniq.length - 1 &&
@@ -1258,16 +1249,6 @@ async function navbarEjsData(
       : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
     pinned: navbar.pinned !== undefined ? !!navbar.pinned : false,
   };
-  if (data.logo) {
-    // navbar logo has been normalized
-    const navbarLogo = data.logo as NormalizedLogoLightDarkSpecifier;
-    if (navbarLogo.light) {
-      navbarLogo.light.path = resolveLogo(navbarLogo.light.path)!;
-    }
-    if (navbarLogo.dark) {
-      navbarLogo.dark.path = resolveLogo(navbarLogo.dark.path)!;
-    }
-  }
   // if there is no navbar title and it hasn't been set to 'false'
   // then use the site title
   if (!data.title && data.title !== false) {
@@ -1512,14 +1493,6 @@ async function sidebarTitle(sidebar: Sidebar, project: ProjectContext) {
   } else {
     // There is a logo, just let the logo appear
     return undefined;
-  }
-}
-
-function resolveLogo(logo?: string) {
-  if (logo && !isExternalPath(logo) && !logo.startsWith("/")) {
-    return "/" + logo;
-  } else {
-    return logo;
   }
 }
 

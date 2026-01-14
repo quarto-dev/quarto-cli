@@ -2,6 +2,9 @@
 title: Document vs Brand Logo Precedence
 format:
   dashboard: default
+  revealjs: default
+  typst:
+    keep-typ: true
 brand:
   logo:
     images:
@@ -25,6 +28,16 @@ _quarto:
           # Document-level logo should override brand-level logo
           - 'img[src="posit-logo-2024.svg"][alt=""][class="navbar-logo light-content d-inline-block"]'
           - 'img[src="quarto.png"][alt=""][class="navbar-logo dark-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="posit-logo-2024.svg"]:not([alt])'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("posit-logo-2024.svg", width: 1\.5in\)\)'
         - []
 ---
 

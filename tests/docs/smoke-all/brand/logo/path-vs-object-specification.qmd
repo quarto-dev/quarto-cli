@@ -2,6 +2,9 @@
 title: Mixed Logo Specification Formats
 format:
   dashboard: default
+  revealjs: default
+  typst:
+    output-ext: typ
 brand:
   logo:
     images:
@@ -26,6 +29,16 @@ _quarto:
           # Direct path has no alt, object has explicit alt
           - 'img[src="direct-path.png"][alt=""][class="navbar-logo light-content d-inline-block"]'
           - 'img[src="dark-custom.svg"][alt="dark custom logo"][class="navbar-logo dark-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="direct-path.png"]:not([alt])'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("direct-path.png", width: 1\.5in\)\)'
         - []
 ---
 

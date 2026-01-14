@@ -1,6 +1,6 @@
 - name: logo
   schema:
-    ref: logo-specifier-path-optional
+    ref: logo-light-dark-specifier-path-optional
   tags:
     formats: [typst]
   description: "The logo image."

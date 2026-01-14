@@ -26,7 +26,9 @@ end
 function lineNumbersAttribute(el)
   local default = param(constants.kCodeLineNumbers, false)
   local lineNumbers = attribute(el, constants.kCodeLineNumbers, default)
-  if lineNumbers == true or lineNumbers == "true" or lineNumbers == "1" then
+  -- format that do accept string for this attributes. "1" and "0" should not be parsed as TRUE / FALSE
+  local acceptStrings = _quarto.format.isRevealJsOutput() or _quarto.format.isDocusaurusOutput()
+  if lineNumbers == true or lineNumbers == "true" or (lineNumbers == "1" and not acceptStrings) then
     return true
   elseif lineNumbers == false or lineNumbers == "false" or lineNumbers == "0" then
     return false

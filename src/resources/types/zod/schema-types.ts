@@ -135,6 +135,9 @@ export const ZodGiscusConfiguration = z.object({
   language: z.string(),
 }).strict().partial().required({ repo: true });
 
+export const ZodExternalEngine = z.object({ path: z.string() }).strict()
+  .partial().required({ path: true });
+
 export const ZodDocumentCommentsConfiguration = z.union([
   z.literal(false),
   z.object({
@@ -299,6 +302,10 @@ export const ZodBaseWebsite = z.object({
       version: z.union([z.literal(3), z.literal(4)]),
     }).passthrough().partial(),
   ]),
+  "plausible-analytics": z.union([
+    z.string(),
+    z.object({ path: z.string() }).strict().partial().required({ path: true }),
+  ]),
   announcement: z.union([
     z.string(),
     z.object({
@@ -324,7 +331,7 @@ export const ZodBaseWebsite = z.object({
     z.enum(["express", "implied"] as const),
     z.boolean(),
     z.object({
-      type: z.enum(["implied", "express"] as const),
+      type: z.enum(["express", "implied"] as const),
       style: z.enum(
         ["simple", "headline", "interstitial", "standalone"] as const,
       ),
@@ -473,6 +480,10 @@ export const ZodBookSchema = z.object({
       version: z.union([z.literal(3), z.literal(4)]),
     }).passthrough().partial(),
   ]),
+  "plausible-analytics": z.union([
+    z.string(),
+    z.object({ path: z.string() }).strict().partial().required({ path: true }),
+  ]),
   announcement: z.union([
     z.string(),
     z.object({
@@ -498,7 +509,7 @@ export const ZodBookSchema = z.object({
     z.enum(["express", "implied"] as const),
     z.boolean(),
     z.object({
-      type: z.enum(["implied", "express"] as const),
+      type: z.enum(["express", "implied"] as const),
       style: z.enum(
         ["simple", "headline", "interstitial", "standalone"] as const,
       ),
@@ -1244,7 +1255,20 @@ export const ZodBadParseSchema = z.object({}).passthrough().partial();
 export const ZodQuartoDevSchema = z.object({
   _quarto: z.object({
     "trace-filters": z.string(),
-    tests: z.object({}).passthrough(),
+    tests: z.object({
+      run: z.object({
+        ci: z.boolean(),
+        skip: z.union([z.boolean(), z.string()]),
+        os: z.union([
+          z.enum(["linux", "darwin", "windows"] as const),
+          z.array(z.enum(["linux", "darwin", "windows"] as const)),
+        ]),
+        not_os: z.union([
+          z.enum(["linux", "darwin", "windows"] as const),
+          z.array(z.enum(["linux", "darwin", "windows"] as const)),
+        ]),
+      }).passthrough().partial(),
+    }).passthrough().partial(),
   }).passthrough().partial(),
 }).passthrough().partial();
 
@@ -1372,6 +1396,14 @@ export const ZodLogoLightDarkSpecifier = z.union([
   z.object({
     light: z.lazy(() => ZodLogoSpecifier),
     dark: z.lazy(() => ZodLogoSpecifier),
+  }).strict().partial(),
+]);
+
+export const ZodLogoLightDarkSpecifierPathOptional = z.union([
+  z.lazy(() => ZodLogoSpecifierPathOptional),
+  z.object({
+    light: z.lazy(() => ZodLogoSpecifierPathOptional),
+    dark: z.lazy(() => ZodLogoSpecifierPathOptional),
   }).strict().partial(),
 ]);
 
@@ -1622,7 +1654,6 @@ export const ZodBrandFont = z.union([
   z.lazy(() => ZodBrandFontBunny),
   z.lazy(() => ZodBrandFontFile),
   z.lazy(() => ZodBrandFontSystem),
-  z.lazy(() => ZodBrandFontCommon),
 ]);
 
 export const ZodBrandFontWeight = z.union([
@@ -1683,7 +1714,7 @@ export const ZodBrandFontSystem = z.object({
   ]),
   display: z.enum(["auto", "block", "swap", "fallback", "optional"] as const),
   source: z.enum(["system"] as const),
-}).strict().partial();
+}).strict().partial().required({ source: true });
 
 export const ZodBrandFontGoogle = z.object({
   family: z.string(),
@@ -1697,7 +1728,7 @@ export const ZodBrandFontGoogle = z.object({
   ]),
   display: z.enum(["auto", "block", "swap", "fallback", "optional"] as const),
   source: z.enum(["google"] as const),
-}).strict().partial();
+}).strict().partial().required({ source: true });
 
 export const ZodBrandFontBunny = z.object({
   family: z.string(),
@@ -1711,7 +1742,7 @@ export const ZodBrandFontBunny = z.object({
   ]),
   display: z.enum(["auto", "block", "swap", "fallback", "optional"] as const),
   source: z.enum(["bunny"] as const),
-}).strict().partial();
+}).strict().partial().required({ source: true });
 
 export const ZodBrandFontFile = z.object({
   source: z.enum(["file"] as const),
@@ -1746,6 +1777,11 @@ export const ZodBrandUnified = z.object({
   defaults: z.lazy(() => ZodBrandDefaults),
 }).strict().partial();
 
+export const ZodBrandPathOnlyLightDark = z.union([
+  z.string(),
+  z.object({ light: z.string(), dark: z.string() }).strict().partial(),
+]);
+
 export const ZodBrandPathBoolLightDark = z.union([
   z.string(),
   z.boolean(),
@@ -1775,6 +1811,7 @@ export const ZodProjectConfig = z.object({
   "output-dir": z.string(),
   "lib-dir": z.string(),
   resources: z.union([z.string(), z.array(z.string())]),
+  brand: z.lazy(() => ZodBrandPathOnlyLightDark),
   preview: z.lazy(() => ZodProjectPreview),
   "pre-render": z.union([z.string(), z.array(z.string())]),
   "post-render": z.union([z.string(), z.array(z.string())]),
@@ -1810,6 +1847,8 @@ export type ContentsAuto = z.infer<typeof ZodContentsAuto>;
 export type GiscusThemes = z.infer<typeof ZodGiscusThemes>;
 
 export type GiscusConfiguration = z.infer<typeof ZodGiscusConfiguration>;
+
+export type ExternalEngine = z.infer<typeof ZodExternalEngine>;
 
 export type DocumentCommentsConfiguration = z.infer<
   typeof ZodDocumentCommentsConfiguration
@@ -1919,6 +1958,10 @@ export type LogoSpecifierPathOptional = z.infer<
 
 export type LogoLightDarkSpecifier = z.infer<typeof ZodLogoLightDarkSpecifier>;
 
+export type LogoLightDarkSpecifierPathOptional = z.infer<
+  typeof ZodLogoLightDarkSpecifierPathOptional
+>;
+
 export type NormalizedLogoLightDarkSpecifier = z.infer<
   typeof ZodNormalizedLogoLightDarkSpecifier
 >;
@@ -2015,6 +2058,8 @@ export type BrandSingle = z.infer<typeof ZodBrandSingle>;
 
 export type BrandUnified = z.infer<typeof ZodBrandUnified>;
 
+export type BrandPathOnlyLightDark = z.infer<typeof ZodBrandPathOnlyLightDark>;
+
 export type BrandPathBoolLightDark = z.infer<typeof ZodBrandPathBoolLightDark>;
 
 export type BrandDefaults = z.infer<typeof ZodBrandDefaults>;
@@ -2039,6 +2084,7 @@ export const Zod = {
   NavigationItemObject: ZodNavigationItemObject,
   GiscusThemes: ZodGiscusThemes,
   GiscusConfiguration: ZodGiscusConfiguration,
+  ExternalEngine: ZodExternalEngine,
   DocumentCommentsConfiguration: ZodDocumentCommentsConfiguration,
   SocialMetadata: ZodSocialMetadata,
   PageFooterRegion: ZodPageFooterRegion,
@@ -2088,6 +2134,7 @@ export const Zod = {
   LogoOptionsPathOptional: ZodLogoOptionsPathOptional,
   LogoSpecifierPathOptional: ZodLogoSpecifierPathOptional,
   LogoLightDarkSpecifier: ZodLogoLightDarkSpecifier,
+  LogoLightDarkSpecifierPathOptional: ZodLogoLightDarkSpecifierPathOptional,
   NormalizedLogoLightDarkSpecifier: ZodNormalizedLogoLightDarkSpecifier,
   BrandColorValue: ZodBrandColorValue,
   BrandColorSingle: ZodBrandColorSingle,
@@ -2129,6 +2176,7 @@ export const Zod = {
   BrandFontFamily: ZodBrandFontFamily,
   BrandSingle: ZodBrandSingle,
   BrandUnified: ZodBrandUnified,
+  BrandPathOnlyLightDark: ZodBrandPathOnlyLightDark,
   BrandPathBoolLightDark: ZodBrandPathBoolLightDark,
   BrandDefaults: ZodBrandDefaults,
   BrandDefaultsBootstrap: ZodBrandDefaultsBootstrap,

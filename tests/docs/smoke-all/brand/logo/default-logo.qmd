@@ -3,6 +3,8 @@ title: brand and base logo
 format:
   dashboard: default
   revealjs: default
+  typst:
+    output-ext: typ
 brand:
   logo:
     images:
@@ -25,6 +27,11 @@ _quarto:
       ensureHtmlElements:
         -
           - 'img[src="quarto.png"][class="slide-logo"]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("quarto.png", width: 1\.5in, alt: "quarto logo"\)\)'
         - []
 ---
 

@@ -11,12 +11,13 @@
 // single-file path look closer to a project.
 
 import { dirname } from "../../../deno_ral/path.ts";
+import { warning } from "../../../deno_ral/log.ts";
 import { normalizePath } from "../../../core/path.ts";
 import { NotebookContext } from "../../../render/notebook/notebook-types.ts";
 import { makeProjectEnvironmentMemoizer } from "../../project-environment.ts";
 import { ProjectContext } from "../../types.ts";
 import { renderFormats } from "../../../command/render/render-contexts.ts";
-import { RenderFlags } from "../../../command/render/types.ts";
+import { RenderFlags, RenderOptions } from "../../../command/render/types.ts";
 import { MappedString } from "../../../core/mapped-text.ts";
 import { fileExecutionEngineAndTarget } from "../../../execute/engine.ts";
 import {
@@ -26,15 +27,19 @@ import {
   projectResolveBrand,
   projectResolveFullMarkdownForFile,
 } from "../../project-shared.ts";
-import { ExecutionEngine } from "../../../execute/types.ts";
+import { ExecutionEngineInstance } from "../../../execute/types.ts";
 import { createProjectCache } from "../../../core/cache/cache.ts";
 import { globalTempContext } from "../../../core/temp.ts";
 import { once } from "../../../core/once.ts";
+import {
+  mergeExtensionMetadata,
+  resolveEngineExtensions,
+} from "../../project-context.ts";
 
 export async function singleFileProjectContext(
   source: string,
   notebookContext: NotebookContext,
-  flags?: RenderFlags,
+  renderOptions?: RenderOptions,
 ): Promise<ProjectContext> {
   const environmentMemoizer = makeProjectEnvironmentMemoizer(notebookContext);
   const temp = globalTempContext();
@@ -57,12 +62,12 @@ export async function singleFileProjectContext(
     ) => {
       return fileExecutionEngineAndTarget(
         file,
-        flags,
+        renderOptions?.flags,
         result,
       );
     },
     resolveFullMarkdownForFile: (
-      engine: ExecutionEngine | undefined,
+      engine: ExecutionEngineInstance | undefined,
       file: string,
       markdown?: MappedString,
       force?: boolean,
@@ -86,6 +91,37 @@ export async function singleFileProjectContext(
       result.diskCache.close();
     }),
   };
+  if (renderOptions) {
+    result.config = {
+      project: {},
+    };
+    // First resolve engine extensions
+    result.config = await resolveEngineExtensions(
+      renderOptions.services.extension,
+      result.config,
+      result.dir,
+    );
+    // Then merge extension metadata
+    await mergeExtensionMetadata(result, renderOptions);
+
+    // Check if extensions contributed output-dir metadata
+    // If so, set forceClean as if --output-dir specified on command line,
+    // to ensure proper cleanup
+    const outputDir = result.config?.project?.["output-dir"];
+    if (outputDir) {
+      const willForceClean = renderOptions.flags?.clean !== false;
+      warning(
+        `An extension contributed 'output-dir: ${outputDir}' metadata for single-file render.\n` +
+          `Output will go to that directory. The temporary .quarto directory will ${
+            willForceClean
+              ? "be cleaned up"
+              : "NOT be cleaned up (--no-clean specified)"
+          } after rendering.\n` +
+          "To suppress this warning, use --output-dir flag instead of extension metadata.",
+      );
+      renderOptions.forceClean = willForceClean;
+    }
+  }
   // because the single-file project is cleaned up with
   // the global text context, we don't need to register it
   // in the same way that we need to register the multi-file

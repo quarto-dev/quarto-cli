@@ -1,0 +1,86 @@
+---
+title: Table Crossref Test
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - - "div#tbl-list table"
+          - "div#tbl-list-2 table"
+          - "div#tbl-letters table"
+          - "div#tbl-panel table"
+          - "div#tbl-first table"
+          - "div#tbl-second table"
+        - []
+---
+
+## Simple Crossref Table
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| A    | B    | C    |
+| E    | F    | G    |
+| A    | G    | G    |
+
+: My Caption {#tbl-letters}
+
+See @tbl-letters.
+
+## Sub tables
+
+::: {#tbl-panel layout-ncol=2}
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| A    | B    | C    |
+| E    | F    | G    |
+| A    | G    | G    |
+
+: First Table {#tbl-first}
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| A    | B    | C    |
+| E    | F    | G    |
+| A    | G    | G    |
+
+: Second Table {#tbl-second}
+
+Main Caption
+:::
+
+See @tbl-panel for details, especially @tbl-second.
+
+## List tables
+
+::: {#tbl-list .list-table}
+
+This is a table caption. {tbl-colwidths=[20,40,40]}
+
+* - Row 1, Col 1
+  - Row 1, Col 2
+  - Row 1, Col 3
+
+* - Row 2, Col 1
+  - Row 2, Col 2
+  - Row 2, Col 3
+
+:::
+
+see @tbl-list.
+
+Quarto syntax extension for `list-tables`: table ordering compatible with fenced-div crossrefs.
+
+::: {#tbl-list-2 .list-table}
+
+* - Row 1, Col 1
+  - Row 1, Col 2
+  - Row 1, Col 3
+
+* - Row 2, Col 1
+  - Row 2, Col 2
+  - Row 2, Col 3
+
+This is a table caption. {tbl-colwidths=[20,40,40]}
+
+:::
+
+See @tbl-list-2.

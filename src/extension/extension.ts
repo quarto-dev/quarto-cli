@@ -17,6 +17,7 @@ import {
 } from "../project/types.ts";
 
 import {
+  basename,
   dirname,
   isAbsolute,
   join,
@@ -55,6 +56,7 @@ import {
   ExtensionOptions,
   RevealPluginInline,
 } from "./types.ts";
+import { ExternalEngine } from "../resources/types/schema-types.ts";
 
 import { cloneDeep } from "../core/lodash.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
@@ -158,10 +160,13 @@ export function projectExtensionPathResolver(
   return (href: string, projectOffset: string) => {
     const projectRelativeHref = relative(projectOffset, href);
 
-    if (projectRelativeHref.startsWith("_extensions/")) {
+    if (
+      projectRelativeHref.startsWith("_extensions/") ||
+      projectRelativeHref.startsWith("_extensions\\")
+    ) {
       const projectTargetHref = projectRelativeHref.replace(
-        /^_extensions\//,
-        `${libDir}/quarto-contrib/quarto-project/`,
+        /^_extensions/,
+        `${libDir}/quarto-contrib/quarto-project`,
       );
 
       copyResourceFile(
@@ -272,6 +277,34 @@ export function filterExtensions(
   }
 }
 
+// Read git subtree extensions (pattern 3 only)
+// Looks for top-level directories containing _extensions/ subdirectories
+const readSubtreeExtensions = async (
+  subtreeDir: string,
+): Promise<Extension[]> => {
+  const extensions: Extension[] = [];
+
+  const topLevelDirs = safeExistsSync(subtreeDir) &&
+      Deno.statSync(subtreeDir).isDirectory
+    ? Deno.readDirSync(subtreeDir)
+    : [];
+
+  for (const topLevelDir of topLevelDirs) {
+    if (!topLevelDir.isDirectory) continue;
+
+    const dirPath = join(subtreeDir, topLevelDir.name);
+    const subtreeExtensionsPath = join(dirPath, kExtensionDir);
+
+    if (safeExistsSync(subtreeExtensionsPath)) {
+      // This is a git subtree wrapper - read extensions preserving their natural organization
+      const exts = await readExtensions(subtreeExtensionsPath);
+      extensions.push(...exts);
+    }
+  }
+
+  return extensions;
+};
+
 // Loads all extensions for a given input
 // (note this needs to be sure to return copies from
 // the cache in the event that the objects are mutated)
@@ -282,6 +315,7 @@ const loadExtensions = async (
 ) => {
   const extensionPath = inputExtensionDirs(input, projectDir);
   const allExtensions: Record<string, Extension> = {};
+  const subtreePath = builtinSubtreeExtensions();
 
   for (const extensionDir of extensionPath) {
     if (cache[extensionDir]) {
@@ -289,7 +323,10 @@ const loadExtensions = async (
         allExtensions[extensionIdString(ext.id)] = cloneDeep(ext);
       });
     } else {
-      const extensions = await readExtensions(extensionDir);
+      // Check if this is the subtree extensions directory
+      const extensions = extensionDir === subtreePath
+        ? await readSubtreeExtensions(extensionDir)
+        : await readExtensions(extensionDir);
       extensions.forEach((extension) => {
         allExtensions[extensionIdString(extension.id)] = cloneDeep(extension);
       });
@@ -352,6 +389,8 @@ function findExtensions(
     } else if (
       contributes === kRevealJSPlugins && ext.contributes[kRevealJSPlugins]
     ) {
+      return true;
+    } else if (contributes === "engines" && ext.contributes.engines) {
       return true;
     } else {
       return contributes === undefined;
@@ -513,7 +552,10 @@ export function inputExtensionDirs(input?: string, projectDir?: string) {
   };
 
   // read extensions (start with built-in)
-  const extensionDirectories: string[] = [builtinExtensions()];
+  const extensionDirectories: string[] = [
+    builtinExtensions(),
+    builtinSubtreeExtensions(),
+  ];
   if (projectDir && input) {
     let currentDir = normalizePath(inputDirName(input));
     do {
@@ -618,6 +660,11 @@ function builtinExtensions() {
   return resourcePath("extensions");
 }
 
+// Path for built-in subtree extensions
+function builtinSubtreeExtensions() {
+  return resourcePath("extension-subtrees");
+}
+
 // Validate the extension
 function validateExtension(extension: Extension) {
   let contribCount = 0;
@@ -628,6 +675,7 @@ function validateExtension(extension: Extension) {
     extension.contributes.project,
     extension.contributes[kRevealJSPlugins],
     extension.contributes.metadata,
+    extension.contributes.engines,
   ];
   contribs.forEach((contrib) => {
     if (contrib) {
@@ -791,7 +839,7 @@ async function readExtension(
   const metadata = contributes?.metadata as Record<string, unknown> | undefined;
 
   // resolve metadata/project pre- and post-render scripts to their full path
-  for (const key of ["pre-render", "post-render"]) {
+  for (const key of ["pre-render", "post-render", "brand"]) {
     for (const object of [metadata, project]) {
       if (!object?.project || typeof object.project !== "object") {
         continue;
@@ -808,8 +856,21 @@ async function readExtension(
           [],
         );
         if (resolved.include.length > 0) {
-          (object.project as Record<string, unknown>)[key] = resolved
-            .include;
+          if (key === "brand") {
+            let projectDir = extensionDir, last;
+            do {
+              last = basename(projectDir);
+              projectDir = dirname(projectDir);
+            } while (projectDir && last !== "_extensions");
+            if (projectDir) {
+              (object.project as Record<string, unknown>)[key] = relative(
+                projectDir,
+                resolved.include[0],
+              );
+            }
+          } else {
+            (object.project as Record<string, unknown>)[key] = resolved.include;
+          }
         }
       }
     }
@@ -819,6 +880,23 @@ async function readExtension(
   >).map((plugin) => {
     return resolveRevealPlugin(extensionDir, plugin);
   });
+
+  // Process engine contributions
+  const engines =
+    ((contributes?.engines || []) as Array<string | ExternalEngine>).map(
+      (engine) => {
+        if (typeof engine === "string") {
+          return engine;
+        } else if (typeof engine === "object" && engine.path) {
+          // Convert relative path to absolute path
+          return {
+            ...engine,
+            path: join(extensionDir, engine.path),
+          };
+        }
+        return engine;
+      },
+    );
 
   // Create the extension data structure
   const result = {
@@ -835,6 +913,7 @@ async function readExtension(
       formats,
       project: project ?? {},
       [kRevealJSPlugins]: revealJSPlugins,
+      engines: engines.length > 0 ? engines : undefined,
     },
   };
   validateExtension(result);

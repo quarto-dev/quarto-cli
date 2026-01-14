@@ -2,6 +2,9 @@
 title: brand and base logo
 format:
   dashboard: default
+  revealjs: default
+  typst:
+    output-ext: typ
 brand:
   logo:
     images:
@@ -22,6 +25,16 @@ _quarto:
       ensureHtmlElements:
         -
           - 'img[src="posit-logo-2024.svg"][alt="logo of posit"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="posit-logo-2024.svg"][alt="logo of posit"]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("posit-logo-2024.svg", width: 1\.5in, alt: "logo of posit"\)\)'
         - []
 ---
 

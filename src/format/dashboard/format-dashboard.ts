@@ -66,7 +66,7 @@ import { processToolbars } from "./format-dashboard-toolbar.ts";
 import { processDatatables } from "./format-dashboard-tables.ts";
 import { assert } from "testing/asserts";
 import { brandBootstrapSassBundles } from "../../core/sass/brand.ts";
-import { resolveLogo } from "../../core/brand/brand.ts";
+import { logoAddLeadingSlashes, resolveLogo } from "../../core/brand/brand.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -130,12 +130,14 @@ export function dashboardFormat() {
             alt: format.metadata[kLogoAlt] as string,
           };
         }
-        format.metadata[kLogo] = resolveLogo(brand, logoSpec, [
+        let logo = resolveLogo(brand, logoSpec, [
           "small",
           "medium",
           "large",
         ]);
+        logo = logoAddLeadingSlashes(logo, brand, input);
 
+        format.metadata[kLogo] = logo;
         const extras: FormatExtras = await baseHtmlFormat.formatExtras(
           input,
           markdown,

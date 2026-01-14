@@ -2,6 +2,9 @@
 title: Legacy Logo Syntax with Dark/Light Mode
 format:
   dashboard: default
+  revealjs: default
+  typst:
+    output-ext: typ
 brand:
   logo:
     images:
@@ -24,6 +27,16 @@ _quarto:
           # Legacy syntax should apply to both light and dark modes
           - 'img[src="legacy-logo.svg"][alt=""][class="navbar-logo light-content d-inline-block"]'
           - 'img[src="legacy-logo.svg"][alt=""][class="navbar-logo dark-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="legacy-logo.svg"]:not([alt])'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("legacy-logo.svg", width: 1\.5in\)\)'
         - []
 ---
 

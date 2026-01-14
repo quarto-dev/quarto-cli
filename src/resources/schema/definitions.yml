@@ -123,9 +123,9 @@
       icon:
         string:
           description:
-            short: Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
+            short: Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)
             long: |
-              Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
+              Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)
               See <https://icons.getbootstrap.com/> for a list of available icons
       id:
         # "core identification"
@@ -286,6 +286,17 @@
         string:
           description: The language that should be used when displaying the commenting interface.
     required: [repo]
+
+- id: external-engine
+  schema:
+    object:
+      closed: true
+      properties:
+        path:
+          path:
+            description: Path to the TypeScript module for the execution engine
+      required: [path]
+    description: An execution engine not pre-loaded in Quarto
 
 - id: document-comments-configuration
   anyOf:
@@ -751,6 +762,48 @@
 
                       This is automatically detected based upon the `tracking-id`, but you may specify it.
         description: "Enable Google Analytics for this website"
+      plausible-analytics:
+        anyOf:
+          - string
+          - object:
+              closed: true
+              properties:
+                path:
+                  path:
+                    description: "Path to a file containing the Plausible Analytics script snippet"
+              required: [path]
+        description:
+          short: "Enable Plausible Analytics for this website by providing a script snippet or path to snippet file"
+          long: |
+            Enable Plausible Analytics for this website by pasting the script snippet from your Plausible dashboard,
+            or by providing a path to a file containing the snippet.
+
+            Plausible is a privacy-friendly, GDPR-compliant web analytics service that does not use cookies and does not require cookie consent.
+
+            **Option 1: Inline snippet**
+
+            ```yaml
+            website:
+              plausible-analytics: |
+                <script async src="https://plausible.io/js/script.js"></script>
+            ```
+
+            **Option 2: File path**
+
+            ```yaml
+            website:
+              plausible-analytics:
+                path: _plausible_snippet.html
+            ```
+
+            To get your script snippet:
+
+            1. Log into your Plausible account at <https://plausible.io>
+            2. Go to your site settings
+            3. Copy the JavaScript snippet provided
+            4. Either paste it directly in your configuration or save it to a file
+
+            For more information, see <https://plausible.io/docs/plausible-script>
       announcement:
         anyOf:
           - string
@@ -803,15 +856,16 @@
           - object:
               properties:
                 type:
-                  enum: [implied, express]
+                  enum: [express, implied]
                   description:
                     short: "The type of consent that should be requested"
                     long: |
                       The type of consent that should be requested, using one of these two values:
 
-                      - `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.
+                      - `express` (default): This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).
 
-                      - `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).
+                      - `implied`: This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.
+
                 style:
                   enum: [simple, headline, interstitial, standalone]
                   description:
@@ -1604,7 +1658,7 @@
             short: "The date format to use when displaying dates (e.g. d-M-yyy)."
             long: |
               The date format to use when displaying dates (e.g. d-M-yyy). 
-              Learn more about supported date formatting values [here](https://deno.land/std@0.125.0/datetime).
+              Learn more about supported date formatting values [here](https://quarto.org/docs/reference/dates.html).
       max-description-length:
         number:
           description:
@@ -2397,7 +2451,34 @@
           object:
             properties:
               trace-filters: string
-              tests: object
+              tests:
+                object:
+                  properties:
+                    run:
+                      object:
+                        description: "Control when tests should run"
+                        properties:
+                          ci:
+                            boolean:
+                              description: "Run tests on CI (true = run, false = skip)"
+                              default: true
+                          skip:
+                            description: "Skip test unconditionally (true = skip with default message, string = skip with custom message)"
+                            anyOf:
+                              - boolean
+                              - string
+                          os:
+                            description: "Run tests ONLY on these platforms (whitelist)"
+                            anyOf:
+                              - enum: [linux, darwin, windows]
+                              - arrayOf:
+                                  enum: [linux, darwin, windows]
+                          not_os:
+                            description: "Don't run tests on these platforms (blacklist)"
+                            anyOf:
+                              - enum: [linux, darwin, windows]
+                              - arrayOf:
+                                  enum: [linux, darwin, windows]
 
 - id: notebook-view-schema
   schema:
@@ -2674,6 +2755,26 @@
           dark:
             schema:
               ref: logo-specifier
+            description: >
+              Specification of a dark logo
+
+- id: logo-light-dark-specifier-path-optional
+  description: >
+    Any of the ways a logo can be specified: string, object, or light/dark object of
+    string or object
+  anyOf:
+    - ref: logo-specifier-path-optional
+    - object:
+        closed: true
+        properties:
+          light:
+            schema:
+              ref: logo-specifier-path-optional
+            description: >
+              Specification of a light logo
+          dark:
+            schema:
+              ref: logo-specifier-path-optional
             description: >
               Specification of a dark logo
 
@@ -3167,7 +3268,7 @@
     #
     # in Quarto, the default source for typst is `google`
     # and the default source for html formats is `bunny`
-    - ref: brand-font-common
+
 - id: brand-font-weight
   description: A font weight.
   enum:
@@ -3236,6 +3337,7 @@
     properties:
       source:
         enum: [system]
+    required: [source]
 
 - id: brand-font-google
   description: A font definition from Google Fonts.
@@ -3246,6 +3348,7 @@
     properties:
       source:
         enum: [google]
+    required: [source]
 
 - id: brand-font-bunny
   description: A font definition from fonts.bunny.net.
@@ -3256,6 +3359,7 @@
     properties:
       source:
         enum: [bunny]
+    required: [source]
 
 - id: brand-font-file
   description: A method for providing font files directly, either locally or from an online location.
@@ -3341,6 +3445,17 @@
         ref: brand-typography-unified
       defaults:
         ref: brand-defaults
+
+- id: brand-path-only-light-dark
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          light: string
+          dark: string
+  description: |
+    A path to a brand.yml file, or an object with light and dark paths to brand.yml
 
 - id: brand-path-bool-light-dark
   anyOf:

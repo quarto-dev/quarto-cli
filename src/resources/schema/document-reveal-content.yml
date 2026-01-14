@@ -2,7 +2,7 @@
   tags:
     formats: [revealjs]
   schema:
-    ref: logo-specifier
+    ref: logo-light-dark-specifier
   description: "Logo image (placed in bottom right corner of slides)"
 
 - name: footer

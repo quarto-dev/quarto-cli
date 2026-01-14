@@ -1,0 +1,12 @@
+---
+format: html
+license: "CC BY"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - 'License: CC BY 4\.0'
+---
+
+License: {{< meta license.text >}}

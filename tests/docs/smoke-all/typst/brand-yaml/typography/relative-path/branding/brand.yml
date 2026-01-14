@@ -16,7 +16,7 @@ typography:
           style: normal
   base:
     family: Open Sans
-    line-height: 1.25em
+    line-height: 1.25
     size: 1rem
   headings:
     family: Roboto Slab

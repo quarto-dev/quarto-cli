@@ -5,6 +5,9 @@ format:
     theme:
       light: default
       dark: darkly  # Explicitly enable dark mode
+  revealjs: default
+  typst:
+    keep-typ: true
 brand:
   color:
     foreground: 
@@ -30,6 +33,16 @@ _quarto:
           - 'img[src="quarto.png"][alt="light logo"][class="navbar-logo light-content d-inline-block"]'
           # For dark mode, should it use the light logo since no dark logo exists?
           - 'img[src="quarto.png"][alt="light logo"][class="navbar-logo dark-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="quarto.png"][alt="light logo"]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("quarto.png", width: 1\.5in, alt: "light logo"\)\)'
         - []
 ---
 

@@ -15,15 +15,17 @@ import {
 } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
-  BrandFont,
   // BrandFontBunny,
   BrandFontCommon,
+  BrandFontFile,
   BrandFontGoogle,
   BrandFontWeight,
   Zod,
 } from "../../resources/types/zod/schema-types.ts";
 import { Brand } from "../brand/brand.ts";
 import { darkModeDefault } from "../../format/html/format-html-info.ts";
+import { kBrandMode } from "../../config/constants.ts";
+import { join, relative } from "../../deno_ral/path.ts";
 
 const defaultColorNameMap: Record<string, string> = {
   "link-color": "link",
@@ -146,6 +148,28 @@ const googleFontImportString = (description: BrandFontGoogle) => {
       "+",
     )
   }:${styleString}wght@${weights}&display=${display}');`;
+};
+
+const fileFontImportString = (brand: Brand, description: BrandFontFile) => {
+  const pathPrefix = relative(brand.projectDir, brand.brandDir);
+  const parts = [];
+  for (const file of description.files) {
+    let path, weight, style;
+    if (typeof file === "string") {
+      path = file;
+    } else {
+      path = file.path;
+      weight = file.weight;
+      style = file.style;
+    }
+    parts.push(`@font-face {
+    font-family: '${description.family}';
+    src: url('${join(pathPrefix, path).replace(/\\/g, "/")}');
+    font-weight: ${weight || "normal"};
+    font-style: ${style || "normal"};
+}\n`);
+  }
+  return parts.join("\n");
 };
 
 const brandColorLayer = (
@@ -313,74 +337,6 @@ const brandTypographyLayer = (
   const typographyImports: Set<string> = new Set();
   const fonts = brand.data?.typography?.fonts ?? [];
 
-  const getFontFamilies = (family: string | undefined) => {
-    return fonts.filter((font) =>
-      typeof font !== "string" && font.family === family
-    );
-  };
-
-  const resolveGoogleFontFamily = (
-    font: BrandFont[],
-  ): string | undefined => {
-    let googleFamily = "";
-    for (const _resolvedFont of font) {
-      const safeResolvedFont = Zod.BrandFontGoogle.safeParse(_resolvedFont);
-      if (!safeResolvedFont.success) {
-        return undefined;
-      }
-      const resolvedFont = safeResolvedFont.data;
-      const thisFamily = resolvedFont.family;
-      if (!thisFamily) {
-        continue;
-      }
-      if (googleFamily === "") {
-        googleFamily = thisFamily;
-      } else if (googleFamily !== thisFamily) {
-        throw new Error(
-          `Inconsistent Google font families found: ${googleFamily} and ${thisFamily}`,
-        );
-      }
-      typographyImports.add(googleFontImportString(resolvedFont));
-    }
-    if (googleFamily === "") {
-      return undefined;
-    }
-    return googleFamily;
-  };
-
-  const resolveBunnyFontFamily = (
-    font: BrandFont[],
-  ): string | undefined => {
-    let googleFamily = "";
-    for (const _resolvedFont of font) {
-      const safeResolvedFont = Zod.BrandFontBunny.safeParse(_resolvedFont);
-      if (!safeResolvedFont.success) {
-        return undefined;
-      }
-      const resolvedFont = safeResolvedFont.data;
-      // Typescript's type checker doesn't understand that it's ok to attempt
-      // to access a property that might not exist on a type when you're
-      // only testing for its existence.
-
-      const thisFamily = resolvedFont.family;
-      if (!thisFamily) {
-        continue;
-      }
-      if (googleFamily === "") {
-        googleFamily = thisFamily;
-      } else if (googleFamily !== thisFamily) {
-        throw new Error(
-          `Inconsistent Google font families found: ${googleFamily} and ${thisFamily}`,
-        );
-      }
-      typographyImports.add(bunnyFontImportString(resolvedFont));
-    }
-    if (googleFamily === "") {
-      return undefined;
-    }
-    return googleFamily;
-  };
-
   type HTMLFontInformation = { [key: string]: unknown };
 
   type FontKind =
@@ -400,17 +356,9 @@ const brandTypographyLayer = (
       resolvedFontOptions = { family: resolvedFontOptions };
     }
     const result: HTMLFontInformation = {};
-    // This is an ugly hack:
-    //   resolvedFontOptions doesn't always have 'family', but at this
-    //   point in the code we know resolvedFontOptions is an object
-    //   that we can attempt to extract the family from.
-    const family =
-      (resolvedFontOptions as Record<string, string | undefined>).family;
-    const font = getFontFamilies(family);
-    result.family = resolveGoogleFontFamily(font) ??
-      resolveBunnyFontFamily(font) ??
-      // resolveFilesFontFamily(font) ??
-      family;
+    if ("family" in resolvedFontOptions) {
+      result.family = resolvedFontOptions.family;
+    }
     for (
       const entry of [
         "line-height",
@@ -520,6 +468,50 @@ const brandTypographyLayer = (
       // ["size", "code-block-font-size"],
     ],
   };
+
+  for (const font of fonts) {
+    switch (font.source) {
+      case "google": {
+        const safeResolvedFont = Zod.BrandFontGoogle.safeParse(font);
+        if (!safeResolvedFont.success) {
+          continue;
+        }
+        const resolvedFont = safeResolvedFont.data;
+        const thisFamily = resolvedFont.family;
+        if (!thisFamily) {
+          continue;
+        }
+        typographyImports.add(googleFontImportString(resolvedFont));
+        break;
+      }
+      case "bunny": {
+        const safeResolvedFont = Zod.BrandFontBunny.safeParse(font);
+        if (!safeResolvedFont.success) {
+          continue;
+        }
+        const resolvedFont = safeResolvedFont.data;
+        const thisFamily = resolvedFont.family;
+        if (!thisFamily) {
+          continue;
+        }
+        typographyImports.add(bunnyFontImportString(resolvedFont));
+        break;
+      }
+      case "file": {
+        const safeResolvedFont = Zod.BrandFontFile.safeParse(font);
+        if (!safeResolvedFont.success) {
+          continue;
+        }
+        const resolvedFont = safeResolvedFont.data;
+        const thisFamily = resolvedFont.family;
+        if (!thisFamily) {
+          continue;
+        }
+        typographyImports.add(fileFontImportString(brand, resolvedFont));
+        break;
+      }
+    }
+  }
 
   for (
     const kind of [
@@ -634,14 +626,18 @@ export async function brandBootstrapSassLayers(
 
 export async function brandRevealSassLayers(
   input: string | undefined,
-  _format: Format,
+  format: Format,
   project: ProjectContext,
 ): Promise<SassLayer[]> {
+  let brandMode: "light" | "dark" = "light";
+  if (format.metadata[kBrandMode] === "dark") {
+    brandMode = "dark";
+  }
   return (await brandSassLayers(
     input,
     project,
     defaultColorNameMap,
-  )).light;
+  ))[brandMode];
 }
 
 export async function brandSassFormatExtras(
