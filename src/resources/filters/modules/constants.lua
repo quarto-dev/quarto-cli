@@ -45,6 +45,7 @@ local kCodeLine = "code-line"
 local kCodeLines = "code-lines"
 local kCellAnnotationClass = "cell-annotation"
 local kCodeLineNumbers = "code-line-numbers"
+local kCodeLineFragmentIndices = "code-line-fragment-indices"
 
 local kContentVisible = "content-visible"
 local kContentHidden = "content-hidden"
@@ -205,6 +206,7 @@ return {
   kCodeLines = kCodeLines,
   kCellAnnotationClass = kCellAnnotationClass,
   kCodeLineNumbers = kCodeLineNumbers,
+  kCodeLineFragmentIndices = kCodeLineFragmentIndices,
   kContentVisible = kContentVisible,
   kContentHidden = kContentHidden,
   kWhenFormat = kWhenFormat,
