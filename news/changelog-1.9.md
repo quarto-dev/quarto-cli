@@ -114,6 +114,12 @@ All changes included in 1.9:
 
 - New **Engine Extensions**, to allow other execution engines than knitr, jupyter, julia. Julia is now a bundled extension. See [the prerelease notes](https://prerelease.quarto.org/docs/prerelease/1.9/) and [engine extension documentation](https://prerelease.quarto.org/docs/extensions/engine.html).
 
+## Engines
+
+### `jupyter`
+
+- ([#13748](https://github.com/quarto-dev/quarto-cli/pull/13748)): Fix stdin encoding to UTF-8 on Windows to correctly handle JSON in documents containing non-ASCII characters.
+
 ## Other fixes and improvements
 
 - ([#8730](https://github.com/quarto-dev/quarto-cli/issues/8730)): Detect x64 R crashes on Windows ARM and provide helpful error message directing users to install native ARM64 R instead of showing generic "check your R installation" error.

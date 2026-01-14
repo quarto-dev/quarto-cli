@@ -255,6 +255,7 @@ if __name__ == "__main__":
             del os.environ["QUARTO_JUPYTER_OPTIONS"]
         # otherwise read from stdin
         else:
+            sys.stdin.reconfigure(encoding='utf-8')
             input = json.load(sys.stdin)
             command = input["command"]
             options = input["options"]
