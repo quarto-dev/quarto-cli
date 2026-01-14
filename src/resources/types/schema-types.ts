@@ -893,9 +893,9 @@ If no `id` is provided for a listing, Quarto will synthesize one when rendering 
     "outer-window"?:
       number /* The number of pages to display at the start and end of the pagination control. */;
     "outer-window-left"?:
-      number /* The number of pages to display on the left side of the current page. */;
+      number /* The number of pages to display at the start of the pagination control. */;
     "outer-window-right"?:
-      number; /* The number of pages to display on the right side of the current page. */
+      number; /* The number of pages to display at the end of the pagination control. */
   };
   sort?:
     | boolean
