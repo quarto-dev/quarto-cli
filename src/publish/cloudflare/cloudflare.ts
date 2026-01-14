@@ -20,8 +20,6 @@ import { anonymousAccount } from "../common/git.ts";
 export const kCloudflarePages = "cloudflare-pages";
 const kCloudflarePagesDescription = "Cloudflare Pages";
 
-const kDefaultProductionBranch = "main";
-
 export const cloudflarePagesProvider: PublishProvider = {
   name: kCloudflarePages,
   description: kCloudflarePagesDescription,
@@ -63,17 +61,23 @@ async function publish(
   await deployWithWrangler(
     publishFiles.baseDir,
     projectName,
-    kDefaultProductionBranch,
   );
 
-  const url = defaultProjectUrl(projectName);
+  const deploymentUrl = await deploymentUrlFromWrangler(projectName);
+  const recordUrl = deploymentUrl
+    ? canonicalUrlFromDeployment(deploymentUrl) || deploymentUrl
+    : defaultProjectUrl(projectName);
 
   return [
     {
       id: projectName,
-      url,
+      url: recordUrl,
     },
-    url ? new URL(url) : undefined,
+    deploymentUrl
+      ? new URL(deploymentUrl)
+      : recordUrl
+      ? new URL(recordUrl)
+      : undefined,
   ];
 }
 
@@ -121,7 +125,6 @@ async function ensureWrangler() {
 async function deployWithWrangler(
   dir: string,
   projectName: string,
-  productionBranch: string,
 ) {
   await ensureWrangler();
 
@@ -133,8 +136,6 @@ async function deployWithWrangler(
       dir,
       "--project-name",
       projectName,
-      "--branch",
-      productionBranch,
     ],
     stdout: "inherit",
     stderr: "inherit",
@@ -144,5 +145,62 @@ async function deployWithWrangler(
     throw new Error(
       "Cloudflare Pages deployment failed. See the Wrangler output above for details.",
     );
+  }
+}
+
+type WranglerDeployment = {
+  Deployment?: string;
+  deployment?: string;
+  Branch?: string;
+  branch?: string;
+};
+
+async function deploymentUrlFromWrangler(
+  projectName: string,
+): Promise<string | undefined> {
+  try {
+    const result = await execProcess({
+      cmd: "wrangler",
+      args: [
+        "pages",
+        "deployment",
+        "list",
+        "--project-name",
+        projectName,
+        "--environment",
+        "production",
+        "--json",
+      ],
+      stdout: "piped",
+      stderr: "piped",
+    });
+    if (!result.success || !result.stdout.trim()) {
+      return undefined;
+    }
+    const deployments = JSON.parse(result.stdout) as WranglerDeployment[];
+    if (!Array.isArray(deployments) || deployments.length === 0) {
+      return undefined;
+    }
+    const deployment = deployments[0];
+    return deployment.Deployment || deployment.deployment;
+  } catch {
+    return undefined;
+  }
+}
+
+function canonicalUrlFromDeployment(
+  deploymentUrl: string,
+): string | undefined {
+  try {
+    const url = new URL(deploymentUrl);
+    const host = url.hostname;
+    if (host.endsWith(".pages.dev")) {
+      const parts = host.split(".");
+      if (parts.length >= 3) {
+        return `${url.protocol}//${parts.slice(1).join(".")}`;
+      }
+    }
+  } catch {
+    return undefined;
   }
 }
