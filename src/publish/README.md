@@ -46,6 +46,7 @@ As an alternative to providing account credentials interactively, you case use t
 | Service        | Variables                              |
 | -------------- | -------------------------------------- |
 | Netlify        | `NETLIFY_AUTH_TOKEN`                   |
+| Cloudflare Pages | `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` |
 | Postit Connect | `CONNECT_SERVER` and `CONNECT_API_KEY` |
 
 Using an environment variable combined with a `_publish.yml` file that points to the requisite publishing destination is enough to enable the following command to perform a headless publish on CI:
@@ -56,7 +57,7 @@ quarto publish
 
 GitHub Pages publishing requires no special environment variables (as it use the version of git available on your system or on the CI server).
 
-Cloudflare Pages publishing uses the Wrangler CLI. Install Wrangler and authenticate it (for example, run `wrangler login` or set `CLOUDFLARE_API_TOKEN` for CI).
+Cloudflare Pages publishing uses the Wrangler CLI. Install Wrangler and authenticate it (for example, run `wrangler login` or set `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` for CI).
 
 ### Command Line
 

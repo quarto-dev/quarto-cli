@@ -64,20 +64,18 @@ async function publish(
   );
 
   const deploymentUrl = await deploymentUrlFromWrangler(projectName);
-  const recordUrl = deploymentUrl
-    ? canonicalUrlFromDeployment(deploymentUrl) || deploymentUrl
-    : defaultProjectUrl(projectName);
+  const recordUrl = target?.url ??
+    (deploymentUrl
+      ? canonicalUrlFromDeployment(deploymentUrl) || deploymentUrl
+      : defaultProjectUrl(projectName));
+  const openUrl = target?.url ?? deploymentUrl ?? recordUrl;
 
   return [
     {
       id: projectName,
       url: recordUrl,
     },
-    deploymentUrl
-      ? new URL(deploymentUrl)
-      : recordUrl
-      ? new URL(recordUrl)
-      : undefined,
+    openUrl ? new URL(openUrl) : undefined,
   ];
 }
 
@@ -167,8 +165,6 @@ async function deploymentUrlFromWrangler(
         "list",
         "--project-name",
         projectName,
-        "--environment",
-        "production",
         "--json",
       ],
       stdout: "piped",
@@ -181,8 +177,13 @@ async function deploymentUrlFromWrangler(
     if (!Array.isArray(deployments) || deployments.length === 0) {
       return undefined;
     }
-    const deployment = deployments[0];
-    return deployment.Deployment || deployment.deployment;
+    for (const deployment of deployments) {
+      const url = deployment.Deployment || deployment.deployment;
+      if (url) {
+        return url;
+      }
+    }
+    return undefined;
   } catch {
     return undefined;
   }
@@ -193,10 +194,10 @@ function canonicalUrlFromDeployment(
 ): string | undefined {
   try {
     const url = new URL(deploymentUrl);
-    const host = url.hostname;
+    const host = url.hostname.toLowerCase();
     if (host.endsWith(".pages.dev")) {
       const parts = host.split(".");
-      if (parts.length >= 3) {
+      if (parts.length >= 4) {
         return `${url.protocol}//${parts.slice(1).join(".")}`;
       }
     }
