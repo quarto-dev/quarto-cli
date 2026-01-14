@@ -16,7 +16,7 @@ Extension for generating email components needed for Posit Connect
 6. Produces a local `index.html` file that contains the HTML email for previewing purposes
    (this can be disabled by setting `email-preview: false` in the YAML header)
 --]]
-
+local constants = require("modules/constants")
 -- Get the file extension of any file residing on disk
 function get_file_extension(file_path)
   local pattern = "%.([^%.]+)$"
@@ -61,6 +61,71 @@ function str_truthy_falsy(str)
     end
   end
   return false
+end
+
+-- Parse Connect version from SPARK_CONNECT_USER_AGENT
+-- Format:     posit-connect/2024.09.0
+---         posit-connect/2024.09.0-dev+26-g51b853f70e
+---         posit-connect/2024.09.0-dev+26-dirty-g51b853f70e
+-- Returns: "2024.09.0" or nil
+function get_connect_version()
+  local user_agent = os.getenv("SPARK_CONNECT_USER_AGENT")
+  if not user_agent then
+    return nil
+  end
+  
+  -- Extract the version after "posit-connect/"
+  local version_with_suffix = string.match(user_agent, "posit%-connect/([%d%.%-+a-z]+)")
+  if not version_with_suffix then
+    return nil
+  end
+  
+  -- Strip everything after the first "-" (e.g., "-dev+88-gda902918eb")
+  local idx = string.find(version_with_suffix, "-")
+  if idx then
+    return string.sub(version_with_suffix, 1, idx - 1)
+  end
+  
+  return version_with_suffix
+end
+
+-- Parse a version string into components
+-- Versions are in format "X.Y.Z", with all integral components (e.g., "2025.11.0")
+-- Returns: {major=2025, minor=11, patch=0} or nil
+function parse_version_components(version_string)
+  if not version_string then
+    return nil
+  end
+  
+  -- Parse version (e.g., "2025.11.0" or "2025.11")
+  local major, minor, patch = string.match(version_string, "^(%d+)%.(%d+)%.?(%d*)$")
+  if not major then
+    return nil
+  end
+  
+  return {
+    major = tonumber(major),
+    minor = tonumber(minor),
+    patch = patch ~= "" and tonumber(patch) or 0
+  }
+end
+
+-- Check if Connect version is >= target version
+-- Versions are in format "YYYY.MM.patch" (e.g., "2025.11.0")
+function is_connect_version_at_least(target_version)
+  local current_version = get_connect_version()
+  local current = parse_version_components(current_version)
+  local target = parse_version_components(target_version)
+  
+  if not current or not target then
+    return false
+  end
+  
+  -- Convert to numeric YYYYMMPP format and compare
+  local current_num = current.major * 10000 + current.minor * 100 + current.patch
+  local target_num = target.major * 10000 + target.minor * 100 + target.patch
+  
+  return current_num >= target_num
 end
 
 local html_email_template_1 = [[
@@ -201,6 +266,9 @@ local found_email_div = false
 local has_top_level_metadata = false
 local email_count = 0
 
+-- Track whether to use v2 JSON format (multi-email array) or v1 format (single email)
+local use_v2_email_format = false
+
 function process_meta(meta)
   if not found_email_div then
     return
@@ -210,6 +278,15 @@ function process_meta(meta)
 
   local meta_email_attachments = meta["email-attachments"]
   meta_email_preview = meta["email-preview"]
+  
+  -- Auto-detect Connect version and use appropriate email format
+  -- Connect 2025.11+ supports new v2 multi-email format
+  if is_connect_version_at_least(constants.kConnectEmailMetadataChangeVersion) then
+    use_v2_email_format = true
+    quarto.log.debug("Detected Connect version >= 2025.11, using v2 multi-email format")
+  else
+    quarto.log.debug("Connect version < 2025.11 or not detected, using v1 single-email format")
+  end
   
   if meta_email_attachments ~= nil then
     for _, v in pairs(meta_email_attachments) do
@@ -378,6 +455,13 @@ function process_document(doc)
     email_count = 1
   end
 
+  -- If Connect doesn't support v2 format, only keep first email and warn
+  if not use_v2_email_format then
+    quarto.log.warning("Detected Connect version < 2025.11 which doesn't support multiple emails. Only the first email will be sent. Upgrade Connect to 2025.11+ for multi-email support.")
+    emails = { emails[1] }
+    email_count = 1
+  end
+
   -- Get the current date and time
   local connect_date_time = os.date("%Y-%m-%d %H:%M:%S")
 
@@ -397,7 +481,12 @@ function process_document(doc)
     dir = pandoc.path.directory(file)
   end
 
-  quarto.log.warning("Generating V2 multi-email output format with " .. tostring(email_count) .. " email(s).")
+  -- Log which format we're generating
+  if use_v2_email_format then
+    quarto.log.warning("Generating V2 multi-email output format with " .. tostring(email_count) .. " email(s).")
+  else
+    quarto.log.warning("Generating V1 single-email output format (Connect < 2025.11).")
+  end
   
   -- Process all emails and generate their previews
   local emails_for_json = {}
@@ -478,13 +567,41 @@ function process_document(doc)
     end
   end
 
-  -- Generate V2 JSON with version field
-  local metadata_str = quarto.json.encode({
-    rsc_email_version = 2,
-    emails = emails_for_json
-  })
+  -- Generate JSON in appropriate format
+  local metadata_str
+  if use_v2_email_format then
+    -- V2 format: array of emails with version field
+    metadata_str = quarto.json.encode({
+      rsc_email_version = 2,
+      emails = emails_for_json
+    })
+  else
+    -- V1 format: single email object with rsc_ prefix fields (backward compatible)
+    -- Take the first (and should be only) email
+    local first_email = emails_for_json[1]
+    if first_email then
+      local v1_metadata = {
+        rsc_email_subject = first_email.subject,
+        rsc_email_body_html = first_email.body_html,
+        rsc_email_body_text = first_email.body_text,
+        rsc_email_attachments = first_email.attachments,
+        rsc_email_suppress_scheduled = first_email.suppress_scheduled,
+        rsc_email_suppress_report_attachment = true
+      }
+      
+      -- Only add images if present
+      if first_email.images and not is_empty_table(first_email.images) then
+        v1_metadata.rsc_email_images = first_email.images
+      end
+      
+      metadata_str = quarto.json.encode(v1_metadata)
+    else
+      quarto.log.error("No emails found to generate metadata")
+      metadata_str = quarto.json.encode({})
+    end
+  end
 
-  -- Write V2 metadata file
+  -- Write metadata file
   local metadata_path_file = pandoc.path.join({dir, ".output_metadata.json"})
   io.open(metadata_path_file, "w"):write(metadata_str):close()
 
