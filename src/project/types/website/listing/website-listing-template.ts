@@ -533,10 +533,10 @@ export function templateJsScript(
   const columns = listing[kFields] as string[] || [];
 
   const paginationOptions = [
-    listingPaginationOptions[kInnerWindow] ? `innerWindow: ${listingPaginationOptions[kInnerWindow]}` : "",
-    listingPaginationOptions[kOuterWindow] ? `outerWindow: ${listingPaginationOptions[kOuterWindow]}` : "",
-    listingPaginationOptions[kLeftOuterWindow] ? `leftOuterWindow: ${listingPaginationOptions[kLeftOuterWindow]}` : "",
-    listingPaginationOptions[kRightOuterWindow] ? `rightOuterWindow: ${listingPaginationOptions[kRightOuterWindow]}` : "",
+    listingPaginationOptions[kInnerWindow] !== undefined ? `innerWindow: ${listingPaginationOptions[kInnerWindow]}` : "",
+    listingPaginationOptions[kOuterWindow] !== undefined ? `outerWindow: ${listingPaginationOptions[kOuterWindow]}` : "",
+    listingPaginationOptions[kLeftOuterWindow] !== undefined ? `leftOuterWindow: ${listingPaginationOptions[kLeftOuterWindow]}` : "",
+    listingPaginationOptions[kRightOuterWindow] !== undefined ? `rightOuterWindow: ${listingPaginationOptions[kRightOuterWindow]}` : "",
     'item: "<li class=\'page-item\'><a class=\'page page-link\' href=\'#\'></a></li>"',
   ]
     .filter((v) => v !== "")
