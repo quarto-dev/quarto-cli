@@ -599,7 +599,7 @@ export async function renderProject(
     // as an example case)
     const uniqOps = ld.uniqBy(fileOperations, (op: FileOperation) => {
       return op.key;
-    });
+    }) as FileOperation[];
 
     const sortedOperations = uniqOps.sort((a, b) => {
       if (a.src === b.src) {
@@ -792,7 +792,7 @@ export async function renderProject(
         context,
       );
       if (engine?.postRender) {
-        await engine.postRender(file, projResults.context);
+        await engine.postRender(file);
       }
     }
 

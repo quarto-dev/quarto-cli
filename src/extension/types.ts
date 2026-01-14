@@ -9,6 +9,7 @@ import { type Range } from "semver/mod.ts";
 
 import { kSelfContained } from "../config/constants.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
+import { ExternalEngine } from "../resources/types/schema-types.ts";
 import {
   RevealPlugin,
   RevealPluginBundle,
@@ -24,7 +25,8 @@ export type Contributes =
   | "formats"
   | "project"
   | "revealjs-plugins"
-  | "metadata";
+  | "metadata"
+  | "engines";
 
 export interface Extension extends Record<string, unknown> {
   id: ExtensionId;
@@ -41,6 +43,7 @@ export interface Extension extends Record<string, unknown> {
     filters?: QuartoFilter[];
     formats?: Record<string, unknown>;
     [kRevealJSPlugins]?: Array<string | RevealPluginBundle | RevealPlugin>;
+    engines?: Array<string | ExternalEngine>;
   };
 }
 
@@ -79,7 +82,8 @@ export interface ExtensionContext {
       | "formats"
       | "project"
       | "revealjs-plugins"
-      | "metadata",
+      | "metadata"
+      | "engines",
     config?: ProjectConfig,
     projectDir?: string,
     options?: ExtensionOptions,

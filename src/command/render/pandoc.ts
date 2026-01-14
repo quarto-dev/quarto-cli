@@ -429,6 +429,24 @@ export async function runPandoc(
     // Don't print _quarto.tests
     // This can cause issue on regex test for printed output
     cleanQuartoTestsMetadata(metadata);
+
+    // Filter out bundled engines from the engines array
+    if (Array.isArray(metadata.engines)) {
+      const filteredEngines = metadata.engines.filter((engine) => {
+        const enginePath = typeof engine === "string" ? engine : engine.path;
+        // Keep user engines, filter out bundled ones
+        return !enginePath?.replace(/\\/g, "/").includes(
+          "resources/extension-subtrees/",
+        );
+      });
+
+      // Remove the engines key entirely if empty, otherwise assign filtered array
+      if (filteredEngines.length === 0) {
+        delete metadata.engines;
+      } else {
+        metadata.engines = filteredEngines;
+      }
+    }
   };
 
   cleanMetadataForPrinting(printMetadata);
@@ -1293,6 +1311,23 @@ export async function runPandoc(
   // and it breaks ensureFileRegexMatches
   cleanQuartoTestsMetadata(pandocPassedMetadata);
 
+  // Filter out bundled engines from metadata passed to Pandoc
+  if (Array.isArray(pandocPassedMetadata.engines)) {
+    const filteredEngines = pandocPassedMetadata.engines.filter((engine) => {
+      const enginePath = typeof engine === "string" ? engine : engine.path;
+      if (!enginePath) return true;
+      return !enginePath.replace(/\\/g, "/").includes(
+        "resources/extension-subtrees/",
+      );
+    });
+
+    if (filteredEngines.length === 0) {
+      delete pandocPassedMetadata.engines;
+    } else {
+      pandocPassedMetadata.engines = filteredEngines;
+    }
+  }
+
   Deno.writeTextFileSync(
     metadataTemp,
     stringify(pandocPassedMetadata, {
@@ -1720,9 +1755,9 @@ function resolveTextHighlightStyle(
   const textHighlightingMode = extras.html?.[kTextHighlightingMode];
 
   if (highlightTheme === "none") {
-    // Clear the highlighting
+    // Disable highlighting - pass "none" string (not null, which Pandoc 3.8+ rejects)
     extras.pandoc = extras.pandoc || {};
-    extras.pandoc[kHighlightStyle] = null;
+    extras.pandoc[kHighlightStyle] = "none";
     return extras;
   }
 

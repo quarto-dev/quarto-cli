@@ -9,6 +9,7 @@ import { basename } from "../../deno_ral/path.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 import { executionEngine, executionEngines } from "../../execute/engine.ts";
+import { initializeProjectContextAndEngines } from "../command-utils.ts";
 
 import { projectCreate } from "../../project/project-create.ts";
 import {
@@ -26,7 +27,6 @@ const kProjectTypes = projectTypes();
 const kProjectTypeAliases = projectTypeAliases();
 const kProjectTypesAndAliases = [...kProjectTypes, ...kProjectTypeAliases];
 
-const kExecutionEngines = executionEngines().reverse();
 const kEditorTypes = ["source", "visual"];
 
 export const createProjectCommand = new Command()
@@ -48,15 +48,11 @@ export const createProjectCommand = new Command()
   )
   .option(
     "--engine <engine:string>",
-    `Use execution engine (${kExecutionEngines.join(", ")})`,
+    "Use execution engine (jupyter, knitr, markdown, ...)",
     {
       value: (value: string): string[] => {
         value = value || kMarkdownEngine;
-        const engine = executionEngine(value.split(":")[0]);
-        if (!engine) {
-          throw new Error(`Unknown --engine: ${value}`);
-        }
-        // check for kernel
+        // Parse engine:kernel syntax
         const match = value.match(/(\w+)(:(.+))?$/);
         if (match) {
           return [match[1], match[3]];
@@ -132,11 +128,27 @@ export const createProjectCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, dir?: string) => {
+    // Initialize project context and register engines (including external ones)
+    await initializeProjectContextAndEngines();
+
     if (dir === undefined || dir === ".") {
       dir = Deno.cwd();
     }
 
     const engine = options.engine || [];
+
+    // Validate the engine (after engines are initialized)
+    if (engine[0]) {
+      const engineInstance = executionEngine(engine[0]);
+      if (!engineInstance) {
+        throw new Error(
+          `Unknown execution engine: ${engine[0]}. ` +
+            `Available engines: ${
+              executionEngines().map((e) => e.name).join(", ")
+            }`,
+        );
+      }
+    }
 
     const envPackages = typeof (options.withVenv) === "string"
       ? options.withVenv.split(",").map((pkg: string) => pkg.trim())

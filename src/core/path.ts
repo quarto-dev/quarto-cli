@@ -85,11 +85,17 @@ export function isModifiedAfter(file: string, otherFile: string) {
   }
 }
 
-export function dirAndStem(file: string) {
+export function dirAndStem(file: string): [string, string] {
   return [
     dirname(file),
     basename(file, extname(file)),
   ];
+}
+
+export function isQmdFile(file: string) {
+  const ext = extname(file).toLowerCase();
+  const kQmdExtensions = [".qmd"];
+  return kQmdExtensions.includes(ext);
 }
 
 export function expandPath(path: string) {

@@ -1,0 +1,13 @@
+---
+title: Basic doc
+format: html
+_quarto:
+  tests:
+    html:
+      printsMessage:
+        level: INFO
+        regex: 'resources[/\\]extension-subtrees[/\\]'
+        negate: true
+---
+
+It should be markdown engine.

@@ -29,3 +29,8 @@
           arrayOf: path
         formats:
           schema: object
+        engines:
+          arrayOf:
+            anyOf:
+              - string
+              - ref: external-engine

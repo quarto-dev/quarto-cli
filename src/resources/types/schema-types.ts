@@ -154,6 +154,10 @@ website:
 ``` */
 };
 
+export type ExternalEngine = {
+  path: string; /* Path to the TypeScript module for the execution engine */
+}; /* An execution engine not pre-loaded in Quarto */
+
 export type DocumentCommentsConfiguration = false | {
   giscus?: GiscusConfiguration;
   hypothesis?: boolean | {
@@ -1226,7 +1230,10 @@ export type QuartoDevSchema = {
             | "linux"
             | "darwin"
             | "windows"
-          ))[]; /* Run tests ONLY on these platforms (whitelist) */
+          ))[] /* Run tests ONLY on these platforms (whitelist) */;
+        skip?:
+          | boolean
+          | string; /* Skip test unconditionally (true = skip with default message, string = skip with custom message) */
       }; /* Control when tests should run */
     };
   };

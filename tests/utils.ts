@@ -7,7 +7,7 @@
 
 import { basename, dirname, extname, join, relative } from "../src/deno_ral/path.ts";
 import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
-import { kMetadataFormat, kOutputExt } from "../src/config/constants.ts";
+import { kMetadataFormat, kOutputExt, kOutputFile } from "../src/config/constants.ts";
 import { pathWithForwardSlashes, safeExistsSync } from "../src/core/path.ts";
 import { readYaml } from "../src/core/yaml.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
@@ -80,7 +80,7 @@ export function outputForInput(
   projectRoot = projectRoot ?? findProjectDir(input);
   projectOutDir = projectOutDir ?? findProjectOutputDir(projectRoot);
   const dir = projectRoot ? relative(projectRoot, dirname(input)) : dirname(input);
-  let stem = basename(input, extname(input));
+  let stem = metadata?.[kMetadataFormat]?.[to]?.[kOutputFile] || basename(input, extname(input));
   let ext = metadata?.[kMetadataFormat]?.[to]?.[kOutputExt];
 
   // TODO: there's a bug where output-ext keys from a custom format are 

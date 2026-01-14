@@ -223,6 +223,19 @@ ok | 1 passed | 0 failed (2s)
 
 Smoke-all tests support metadata in the `_quarto.tests.run` key to control when tests are run:
 
+- Skip test unconditionally:
+
+  ```yaml
+  _quarto:
+    tests:
+      run:
+        skip: true                                    # Skip with default message
+        skip: "Reason for skipping this test"         # Skip with custom message
+  ```
+
+  Use this when a test needs to be temporarily disabled while an issue is being investigated,
+  or when a test is pending an upstream fix. Include a descriptive message explaining why.
+
 - Skip tests on CI:
 
   ```yaml
@@ -256,6 +269,27 @@ Smoke-all tests support metadata in the `_quarto.tests.run` key to control when 
 Valid OS values are: `linux`, `darwin` (macOS), `windows`
 
 This is useful when tests require platform-specific dependencies or have known platform-specific issues that need separate investigation.
+
+##### Snapshot testing
+
+Use `ensureSnapshotMatches` to compare rendered output against a saved snapshot file:
+
+```yaml
+_quarto:
+  tests:
+    html:
+      ensureSnapshotMatches: []
+```
+
+The snapshot file should be saved alongside the output with a `.snapshot` extension (e.g., `output.html.snapshot`).
+
+When a snapshot test fails:
+- A **unified diff** is displayed with colored output (red for removed, green for added)
+- A **word-level diff** shows changes with surrounding context
+- For **whitespace-only changes**, special markers visualize invisible characters:
+  - `⏎` for newlines, `→` for tabs, `·` for spaces
+- A `.diff` file is saved next to the output for later inspection
+- The `.diff` file is automatically cleaned up when the snapshot passes
 
 ### Limitations
 
