@@ -1,0 +1,104 @@
+---
+title: Equation Alt-Text Test
+format:
+  html: default
+  typst:
+    keep-typ: true
+  pdf:
+    keep-tex: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - "span#eq-display-math > span.math"
+          - "span#eq-display-alt > span.math"
+          - "span#eq-single-quote > span.math"
+          - "span#eq-double-quote > span.math"
+          - "span#eq-mixed-quotes > span.math"
+          - "span#eq-single-quote-alt > span.math"
+          - "a.quarto-xref[href='#eq-display-math']"
+          - "a.quarto-xref[href='#eq-display-alt']"
+          - "a.quarto-xref[href='#eq-single-quote']"
+          - "a.quarto-xref[href='#eq-double-quote']"
+          - "a.quarto-xref[href='#eq-mixed-quotes']"
+          - "a.quarto-xref[href='#eq-single-quote-alt']"
+        - []
+    pdf:
+      ensureLatexFileRegexMatches:
+        -
+          - "\\\\begin\\{equation\\}\\\\protect\\\\phantomsection\\\\label\\{eq-display-math\\}"
+          - "\\\\begin\\{equation\\}\\\\protect\\\\phantomsection\\\\label\\{eq-display-alt\\}"
+          - "\\\\begin\\{equation\\}\\\\protect\\\\phantomsection\\\\label\\{eq-single-quote\\}"
+          - "\\\\begin\\{equation\\}\\\\protect\\\\phantomsection\\\\label\\{eq-double-quote\\}"
+          - "\\\\begin\\{equation\\}\\\\protect\\\\phantomsection\\\\label\\{eq-mixed-quotes\\}"
+          - "\\\\begin\\{equation\\}\\\\protect\\\\phantomsection\\\\label\\{eq-single-quote-alt\\}"
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", \\[ \\$ E = m c\\^2 \\$ \\]\\)<eq-display-math>"
+          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"Einsteins mass-energy equivalence equation\", \\[ \\$ E = m c\\^2 \\$ \\]\\)<eq-display-alt>"
+          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"Newton's second law of motion\", \\[ \\$ F = m a \\$ \\]\\)<eq-single-quote>"
+          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"The \\\\\"Pythagorean\\\\\" theorem\", \\[ \\$ a\\^2 \\+ b\\^2 = c\\^2 \\$ \\]\\)<eq-double-quote>"
+          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"This is using \\\\\"quotes\\\\\" but I'm sure it works\", \\[ \\$ x \\+ y = z \\$ \\]\\)<eq-mixed-quotes>"
+          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"This is using 'single quotes' around the \\\\\"quotes\\\\\" but I'm sure it works\", \\[ \\$ x \\+ y = z \\$ \\]\\)<eq-single-quote-alt>"
+        - []
+---
+
+## Inline Math (no label)
+
+This is an inline equation: $E = mc^2$.
+
+## Display Math (no label)
+
+$$
+a^2 + b^2 = c^2
+$$
+
+## Display Math (with label, no alt)
+
+$$
+E = mc^2
+$$ {#eq-display-math}
+
+See @eq-display-math.
+
+## Display Math (with label and alt)
+
+$$
+E = mc^2
+$$ {#eq-display-alt alt="Einsteins mass-energy equivalence equation"}
+
+See @eq-display-alt.
+
+## Display Math (with single quote in alt)
+
+$$
+F = ma
+$$ {#eq-single-quote alt="Newton's second law of motion"}
+
+See @eq-single-quote.
+
+## Display Math (with double quotes in alt)
+
+$$
+a^2 + b^2 = c^2
+$$ {#eq-double-quote alt='The "Pythagorean" theorem'}
+
+See @eq-double-quote.
+
+## Display Math (with mixed quotes in alt)
+
+$$
+x + y = z
+$$ {#eq-mixed-quotes alt="This is using \"quotes\" but I'm sure it works"}
+
+See @eq-mixed-quotes.
+
+## Display Math (with single quotes in and around alt)
+
+$$
+x + y = z
+$$ {#eq-single-quote-alt alt='This is using \'single quotes\' around the "quotes" but I\'m sure it works'}
+
+See @eq-single-quote-alt.
