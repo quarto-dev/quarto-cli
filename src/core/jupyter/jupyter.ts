@@ -106,6 +106,7 @@ import {
   kCellTblColumn,
   kCellWidth,
   kCodeFold,
+  kCodeLineFragmentIndices,
   kCodeLineNumbers,
   kCodeOverflow,
   kCodeSummary,
@@ -228,6 +229,7 @@ export const kJupyterCellInternalOptionKeys = [
   kCellMdIndent,
   kCodeFold,
   kCodeLineNumbers,
+  kCodeLineFragmentIndices,
   kCodeSummary,
   kCodeOverflow,
   kHtmlTableProcessing,
@@ -1505,6 +1507,11 @@ async function mdFromCodeCell(
       }
       if (typeof cell.options[kCodeLineNumbers] !== "undefined") {
         md.push(` code-line-numbers=\"${cell.options[kCodeLineNumbers]}\"`);
+      }
+      if (typeof cell.options[kCodeLineFragmentIndices] !== "undefined") {
+        md.push(
+          ` code-line-fragment-indices=\"${cell.options[kCodeLineFragmentIndices]}\"`,
+        );
       }
     }
     md.push("}\n");
