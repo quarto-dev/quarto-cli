@@ -49,7 +49,7 @@ export async function resolveAccount(
   let token: AccountToken | undefined;
 
   // build list of account options
-  const accounts = (await provider.accountTokens()).filter((account) => {
+  let accounts = (await provider.accountTokens()).filter((account) => {
     if (account.server && target?.url) {
       return target.url.startsWith(account.server);
     } else {

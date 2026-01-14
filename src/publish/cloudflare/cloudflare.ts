@@ -199,10 +199,11 @@ async function tryDeploymentUrlFromWrangler(
       stdout: "piped",
       stderr: "piped",
     });
-    if (!result.success || !result.stdout.trim()) {
+    const stdout = result.stdout ?? "";
+    if (!result.success || !stdout.trim()) {
       return undefined;
     }
-    const deployments = JSON.parse(result.stdout) as WranglerDeployment[];
+    const deployments = JSON.parse(stdout) as WranglerDeployment[];
     if (!Array.isArray(deployments) || deployments.length === 0) {
       return undefined;
     }
