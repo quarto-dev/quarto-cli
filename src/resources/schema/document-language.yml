@@ -19,6 +19,22 @@
       - object
   description: YAML file containing custom language translations
 
+- name: shorthands
+  tags:
+    formats: [pdf, beamer]
+  schema: boolean
+  default: false
+  description:
+    short: Enable babel language-specific shorthands in LaTeX output.
+    long: |
+      Enable babel language-specific shorthands in LaTeX output. When `true`,
+      babel's language shortcuts are enabled (e.g., French `<<`/`>>` for guillemets,
+      German `"` shortcuts, proper spacing around French punctuation).
+
+      Default is `false` because language shorthands can interfere with code blocks
+      and other content. Only enable if you need specific typographic features
+      for your language.
+
 - name: dir
   schema:
     enum: [rtl, ltr]

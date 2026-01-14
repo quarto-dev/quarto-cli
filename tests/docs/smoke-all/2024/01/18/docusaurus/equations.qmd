@@ -3,6 +3,8 @@ title: Equations
 format: docusaurus-md
 _quarto:
   tests:
+    run:
+      skip: "Pandoc 3.7+ removes newlines in display math blocks (fixed in pandoc@8123be6, awaiting release)"
     docusaurus-md:
       ensureFileRegexMatches:
         - ["\\$\\$", "price = \\\\hat", "\\$e = mc\\^2\\$"]

@@ -1755,9 +1755,9 @@ function resolveTextHighlightStyle(
   const textHighlightingMode = extras.html?.[kTextHighlightingMode];
 
   if (highlightTheme === "none") {
-    // Clear the highlighting
+    // Disable highlighting - pass "none" string (not null, which Pandoc 3.8+ rejects)
     extras.pandoc = extras.pandoc || {};
-    extras.pandoc[kHighlightStyle] = null;
+    extras.pandoc[kHighlightStyle] = "none";
     return extras;
   }
 

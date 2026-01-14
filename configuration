@@ -7,17 +7,16 @@
 # but it also used when packaging (e.g. run configure.sh, then prepare-dist.sh, then package.sh)
 # deno_dom should match release at https://github.com/b-fuze/deno-dom/releases
 
-# NB: When these are updated, you must also update the versions
+# IMPORTANT: When these are updated, you must also update the versions
 # in src/command/check/check.ts
-
 # Binary dependencies
 export DENO=v2.4.5
 # TODO figure out where 0.1.41 apple silicon libs are available
 export DENO_DOM=v0.1.41-alpha-artifacts
-export PANDOC=3.6.3
+export PANDOC=3.8.3
 export DARTSASS=1.87.0
 export ESBUILD=0.25.10
-export TYPST=0.13.0
+export TYPST=0.14.2
 
 
 # NB: we can't put comments in the same line as export statements because it

@@ -65,7 +65,7 @@ import { logError } from "../../core/log.ts";
 import { breakQuartoMd, QuartoMdCell } from "../../core/lib/break-quarto-md.ts";
 
 import { MappedString } from "../../core/mapped-text.ts";
-import { languagesInMarkdown } from "../engine-shared.ts";
+import { languagesInMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
 import {
   pandocBlock,
