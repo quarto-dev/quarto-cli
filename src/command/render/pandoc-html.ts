@@ -5,7 +5,7 @@
  */
 
 import { join } from "../../deno_ral/path.ts";
-import { cloneDeep, uniqBy } from "../../core/lodash.ts";
+import { uniqBy } from "../../core/lodash.ts";
 
 import {
   Format,
@@ -39,6 +39,7 @@ import { md5HashBytes } from "../../core/hash.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { assert } from "testing/asserts";
 import { safeModeFromFile } from "../../deno_ral/fs.ts";
+import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -54,7 +55,7 @@ export async function resolveSassBundles(
   format: Format,
   project: ProjectContext,
 ) {
-  extras = cloneDeep(extras);
+  extras = safeCloneDeep(extras);
 
   const mergedBundles: Record<string, SassBundleWithBrand[]> = {};
 
@@ -102,7 +103,7 @@ export async function resolveSassBundles(
       const userBrand = bundle.user?.findIndex((layer) => layer === "brand");
       let cloned = false;
       if (userBrand && userBrand !== -1) {
-        bundle = cloneDeep(bundle);
+        bundle = safeCloneDeep(bundle);
         cloned = true;
         bundle.user!.splice(userBrand, 1, ...(maybeBrandBundle?.user || []));
         foundBrand.light = true;
@@ -112,7 +113,7 @@ export async function resolveSassBundles(
       );
       if (darkBrand && darkBrand !== -1) {
         if (!cloned) {
-          bundle = cloneDeep(bundle);
+          bundle = safeCloneDeep(bundle);
         }
         bundle.dark!.user!.splice(
           darkBrand,
@@ -158,7 +159,7 @@ export async function resolveSassBundles(
 
       // Provide a dark bundle for this
       const darkBundles = bundles.map((bundle) => {
-        bundle = cloneDeep(bundle);
+        bundle = safeCloneDeep(bundle);
         bundle.user = bundle.dark?.user || bundle.user;
         bundle.quarto = bundle.dark?.quarto || bundle.quarto;
         bundle.framework = bundle.dark?.framework || bundle.framework;
@@ -324,11 +325,11 @@ export async function resolveSassBundles(
       "dark",
       defaultStyle,
     );
-    if (defaultStyle === "light") {
+    if (defaultStyle === "light" && lightEntry) {
       const dep2 = extras.html?.[kDependencies]?.find((extraDep) =>
         extraDep.name === kQuartoHtmlDependency
       );
-      assert(dep2?.stylesheets && lightEntry);
+      assert(dep2?.stylesheets);
       dep2.stylesheets.push({
         ...lightEntry,
         attribs: {
@@ -362,7 +363,7 @@ async function resolveQuartoSyntaxHighlighting(
     return extras;
   }
 
-  extras = cloneDeep(extras);
+  extras = safeCloneDeep(extras);
 
   // If we're using default highlighting, use theme darkness to select highlight style
   const mediaAttr = attribForThemeStyle(style);

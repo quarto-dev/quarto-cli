@@ -1,0 +1,11 @@
+name: Prevent Workflow Re-run
+description: Fails if the workflow is re-run (github.run_attempt > 1)
+runs:
+  using: "composite"
+  steps:
+    - name: Prevent any re-run
+      if: ${{ github.run_attempt > 1 }}
+      run: |
+        echo "::error::Re-running jobs is not permitted. Please trigger a new build manually at https://github.com/quarto-dev/quarto-cli/actions/workflows/create-release.yml (click 'Run workflow'), or use the GitHub CLI: 'gh workflow run create-release.yml'"
+        exit 1
+      shell: bash

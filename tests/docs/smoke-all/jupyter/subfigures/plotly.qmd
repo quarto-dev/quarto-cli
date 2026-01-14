@@ -1,0 +1,56 @@
+---
+title: "Bugged plotly figure: phantom subfigure"
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        - 
+          - 'figure.quarto-float-fig div#fig-gapminder-1 figure.quarto-subfloat-fig div.plotly-graph-div'
+          - 'figure.quarto-float-fig div#fig-gapminder-2 figure.quarto-subfloat-fig div.plotly-graph-div'
+      ensureHtmlElementContents:
+        selectors: 
+          - 'div#fig-gapminder-1 figcaption.quarto-subfloat-caption'
+          - 'div#fig-gapminder-2 figcaption.quarto-subfloat-caption'
+        matches: ['\((a|b)\) Gapminder: (1957|2007)']
+      ensureHtmlElementCount:
+        selectors: ['figure.quarto-float-fig figure.quarto-subfloat-fig']
+        counts: [2]
+    dashboard:
+      ensureHtmlElements:
+        - 
+          - 'figure.quarto-float-fig div#fig-gapminder-1 figure.quarto-subfloat-fig div.plotly-graph-div'
+          - 'figure.quarto-float-fig div#fig-gapminder-2 figure.quarto-subfloat-fig div.plotly-graph-div'
+      ensureHtmlElementContents:
+        selectors: 
+          - 'div#fig-gapminder-1 figcaption.quarto-subfloat-caption'
+          - 'div#fig-gapminder-2 figcaption.quarto-subfloat-caption'
+        matches: ['\((a|b)\) Gapminder: (1957|2007)']
+      ensureHtmlElementCount:
+        selectors: ['figure.quarto-float-fig figure.quarto-subfloat-fig']
+        counts: [2]
+---
+
+```{python}
+#| label: fig-gapminder
+#| fig-cap: "Life Expectancy and GDP"
+#| fig-subcap:
+#|   - "Gapminder: 1957"
+#|   - "Gapminder: 2007"
+#| layout-ncol: 2
+#| column: page
+
+import plotly.express as px
+import plotly.io as pio
+gapminder = px.data.gapminder()
+def gapminder_plot(year):
+    gapminderYear = gapminder.query("year == " + 
+                                    str(year))
+    fig = px.scatter(gapminderYear, 
+                     x="gdpPercap", y="lifeExp",
+                     size="pop", size_max=60,
+                     hover_name="country")
+    fig.show()
+    
+gapminder_plot(1957)
+gapminder_plot(2007)
+```

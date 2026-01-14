@@ -36,33 +36,47 @@ export function getFileInfoType(fileInfo: Deno.FileInfo): PathType | undefined {
 }
 
 // from https://jsr.io/@std/fs/1.0.3/_is_subdir.ts
-// 2024-15-11: isSubDir("foo", "foo/bar") returns true, which gets src and dest exactly backwards?!
 /**
- * Checks whether `src` is a sub-directory of `dest`.
+ * Checks whether `path2` is a sub-directory of `path1`.
  *
- * @param src Source file path as a string or URL.
- * @param dest Destination file path as a string or URL.
+ * The original function uses bad parameter names which are misleading.
+ *
+ * This function is such that, for all paths p:
+ *
+ * isSubdir(p, join(p, "foo")) === true
+ * isSubdir(p, p)              === false
+ * isSubdir(join(p, "foo"), p) === false
+ *
+ * @param path1 First path, as a string or URL.
+ * @param path2 Second path, as a string or URL.
  * @param sep Path separator. Defaults to `\\` for Windows and `/` for other
  * platforms.
  *
- * @returns `true` if `src` is a sub-directory of `dest`, `false` otherwise.
+ * @returns `true` if `path2` is a proper sub-directory of `path1`, `false` otherwise.
  */
 export function isSubdir(
-  src: string | URL,
-  dest: string | URL,
+  path1: string | URL,
+  path2: string | URL,
   sep = SEPARATOR,
 ): boolean {
-  src = toPathString(src);
-  dest = toPathString(dest);
+  path1 = toPathString(path1);
+  path2 = toPathString(path2);
 
-  if (resolve(src) === resolve(dest)) {
+  path1 = resolve(path1);
+  path2 = resolve(path2);
+
+  if (path1 === path2) {
     return false;
   }
 
-  const srcArray = src.split(sep);
-  const destArray = dest.split(sep);
+  const path1Array = path1.split(sep);
+  const path2Array = path2.split(sep);
 
-  return srcArray.every((current, i) => destArray[i] === current);
+  // if path1Array is longer than path2Array, then at least one of the
+  // comparisons will return false, because it will compare a string to
+  // undefined
+
+  return path1Array.every((current, i) => path2Array[i] === current);
 }
 
 /**
@@ -118,8 +132,7 @@ export function safeRemoveDirSync(
   path: string,
   boundary: string,
 ) {
-  // note the comment above about isSubdir getting src and dest backwards
-  if (path === boundary || isSubdir(path, boundary)) {
+  if (path === boundary || !isSubdir(boundary, path)) {
     throw new UnsafeRemovalError(
       `Refusing to remove directory ${path} that isn't a subdirectory of ${boundary}`,
     );

@@ -29,7 +29,7 @@ _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - ['a.quarto-notebook-link']
+        - ['a.quarto-notebook-link[href*="kaggle.com"]']
         - ['div.quarto-alternate-notebooks a']
       ensureFileRegexMatches:
         - ['Source: TEST NB']

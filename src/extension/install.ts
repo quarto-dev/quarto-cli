@@ -78,6 +78,7 @@ export async function installExtension(
   if (!confirmed) {
     // Not confirmed, cancel the installation
     cancelInstallation();
+    return false;
   }
 
   // Complete the installation

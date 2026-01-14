@@ -1,0 +1,20 @@
+---
+format: html
+title: light and dark brand files
+brand:
+  light: light-brand.yml
+  dark: dark-brand.yml
+---
+
+```{r}
+#| lst-label: lst-fibonacci
+#| lst-cap: A naive algorithm for computing Fibonacci numbers.
+fib <- function(x) {
+  if (x < 2) 1 else fib(x - 1) + fib(x - 2)
+}
+```
+
+Here is [a link](https://example.com).
+
+{{< lipsum 2 >}}
+

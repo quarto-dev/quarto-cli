@@ -11,7 +11,7 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        - ['#set text\(size: 1.25em , fill: rgb\("#333333"\)\); Large Landmasses of the World']
+        - ['#set text\(size: 1\.25em , weight: "regular" , fill: rgb\("#333333"\)\); Large Landmasses of the World']
         - []
 ---
 

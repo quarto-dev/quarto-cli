@@ -1,0 +1,17 @@
+---
+format:
+  html:
+    html-math-method: mathjax
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['\\tag\{1\}'] 
+        - []
+---
+
+$$
+\alpha = \beta
+$$ {#eq-ab}
+
+This is @eq-ab.

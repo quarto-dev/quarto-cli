@@ -3,6 +3,8 @@ title: brand and base logo
 format:
   dashboard: default
   revealjs: default
+  typst:
+    output-ext: typ
 brand:
   logo:
     images:
@@ -17,14 +19,19 @@ brand:
 _quarto:
   tests:
     dashboard:
-      ensureFileRegexMatches:
+      ensureHtmlElements:
         -
-          - '<img src="quarto\.png" alt="quarto logo"'
+          - 'img[src="quarto.png"][alt="quarto logo"]'
         - []
     revealjs:
-      ensureFileRegexMatches:
+      ensureHtmlElements:
         -
-          - '<img src="quarto\.png" class="slide-logo">'
+          - 'img[src="quarto.png"][class="slide-logo"]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("quarto.png", width: 1\.5in, alt: "quarto logo"\)\)'
         - []
 ---
 

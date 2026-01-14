@@ -157,7 +157,7 @@ export async function buildAssets() {
 }
 
 export const buildJsCommand = new Command()
-  .name("build-js")
+  .name("build-artifacts")
   .hidden()
   .description(
     "Builds all the javascript assets necessary for IDE support.\n\n",

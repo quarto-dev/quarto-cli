@@ -1,0 +1,23 @@
+---
+title: Navbar Logo Size Preference
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          # Navbar should prefer small for light mode
+          # and should use small for dark mode as well
+          # (not large.dark, because navbar preference order is small → medium → large)
+          - 'img[class*="light-content"][src="./medium-logo.png"][alt="medium logo"]'
+          - 'img[class*="dark-content"][src="./large-logo.png"][alt="large logo"]'
+        - []
+---
+
+This test verifies that navbar logos follow the size preference order:
+small → medium → large.
+
+Since we define small.light, medium.light, and large.dark:
+- For light mode: small is preferred (even though medium.light exists)
+- For dark mode: small.dark is used (even though large.dark exists)
+
+This demonstrates the navbar's size preference differs from both sidebar and dashboard.

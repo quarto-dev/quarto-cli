@@ -185,7 +185,7 @@
       option is not specified, Quarto uses the following defaults
       depending on the output format in use:
 
-      - `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,
+      - `latex`: `lualatex` (other options: `pdflatex`, `xelatex`,
         `tectonic`, `latexmk`)
       - `context`: `context`
       - `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`, `pagedjs-cli`;

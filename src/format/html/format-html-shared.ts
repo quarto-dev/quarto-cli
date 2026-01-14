@@ -56,6 +56,7 @@ export const kComments = "comments";
 export const kHypothesis = "hypothesis";
 export const kUtterances = "utterances";
 export const kGiscus = "giscus";
+export const kAxe = "axe";
 
 export const kGiscusRepoId = "repo-id";
 export const kGiscusCategoryId = "category-id";
@@ -316,7 +317,8 @@ export const quartoDefaults = (format: Format) => {
         "code-copy-selector",
         format.metadata[kCodeCopy] === undefined ||
           format.metadata[kCodeCopy] === "hover"
-          ? '"pre.sourceCode:hover > "'
+          // ? '"div.sourceCode:hover > "'
+          ? '"div.code-copy-outer-scaffold:hover > "'
           : '""',
       ),
     ),

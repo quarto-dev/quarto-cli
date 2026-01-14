@@ -76,18 +76,15 @@ import {
   safeExistsSync,
 } from "../../core/path.ts";
 import {
+  isPositWorkbench,
   isRStudio,
-  isRStudioWorkbench,
   isServerSession,
   isVSCodeServer,
   vsCodeServerProxyUri,
 } from "../../core/platform.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
-import {
-  previewEnsureResources,
-  previewMonitorResources,
-} from "../../core/quarto.ts";
+import { previewMonitorResources } from "../../core/quarto.ts";
 import { exitWithCleanup } from "../../core/cleanup.ts";
 import {
   extensionFilesFromDirs,
@@ -199,9 +196,6 @@ export async function preview(
   // create listener and callback to stop the server
   // const listener = Deno.listen({ port: options.port!, hostname: options.host });
   const stopServer = () => ac.abort();
-
-  // ensure resources
-  previewEnsureResources(stopServer);
 
   // create client reloader
   const reloader = httpDevServer(
@@ -424,6 +418,7 @@ export async function renderForPreview(
   pandocArgs: string[],
   project?: ProjectContext,
 ): Promise<RenderForPreviewResult> {
+
   // render
   const renderResult = await render(file, {
     services,
@@ -878,7 +873,7 @@ function pdfFileRequestHandler(
     const onRequest = pdfOptions.onRequest;
     pdfOptions.onRequest = async (req: Request) => {
       if (new URL(req.url).pathname === "/") {
-        const url = isRStudioWorkbench()
+        const url = isPositWorkbench()
           ? await rswURL(port, kPdfJsInitialPath)
           : isVSCodeServer()
           ? vsCodeServerProxyUri()!.replace("{{port}}", `${port}`) +

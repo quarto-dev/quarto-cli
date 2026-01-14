@@ -1,0 +1,37 @@
+---
+title: "Light/Dark Logo Variants Dark Mode"
+format:
+  typst:
+    keep-typ: true
+brand-mode: dark
+logo:
+  light: 
+    location: left-top
+    padding: 24px
+    width: 250px
+  dark:
+    location: right-bottom
+    padding: 40px
+    width: 200px
+brand:
+  logo:
+    large: quarto/quarto.png
+  # note: we will not get proper resolution of the above dark logo
+  # unless brand.yml dark mode is enabled. this is ok
+  color:
+    foreground:
+      light: "#112288"
+      dark: "#ccd2b2"
+    background:
+      light: "#ccff88"
+      dark: "#0d0519"
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+      - 
+        - '#set page\(background: align\(right\+bottom, box\(inset: 30pt, image\("quarto(/|\\\\)quarto.png", width: 150pt\)\)\)\)'
+      - []
+---
+
+{{< lipsum 4 >}}

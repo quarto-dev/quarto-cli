@@ -1,0 +1,17 @@
+typography:
+  fonts:
+    - family: "Source Sans Pro"
+      source: file
+      files:
+        - fonts/source-sans-pro/source-sans-pro-regular.woff
+        - path: fonts/source-sans-pro/source-sans-pro-italic.woff
+          style: italic
+        - path: fonts/source-sans-pro/source-sans-pro-semibold.woff
+          weight: 600
+        - path: fonts/source-sans-pro/source-sans-pro-semibolditalic.woff
+          style: italic
+          weight: 600
+  base:
+    family: Source Sans Pro
+    line-height: 1.25
+    size: 1rem

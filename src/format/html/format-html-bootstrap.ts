@@ -1072,7 +1072,7 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
 
     // start body with light or dark class for proper display when JS is disabled
     let initialLightDarkClass = "quarto-light";
-    if (darkModeDefault(format.metadata)) {
+    if (darkModeDefault(format)) {
       initialLightDarkClass = "quarto-dark";
     }
     doc.body.classList.add(initialLightDarkClass);

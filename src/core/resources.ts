@@ -117,7 +117,7 @@ export async function rBinaryPath(
   const rHome = Deno.env.get("R_HOME");
   debug(`Looking for '${binary}' in R_HOME: ${rHome}`);
   if (rHome) {
-    let rHomeBin = join(rHome, "bin", binary);
+    let rHomeBin = join(rHome, "bin", isWindows ? binary + ".exe" : binary);
     if (safeExistsSync(rHomeBin)) {
       debug(`Found in ${rHomeBin}`);
       return setPath(rHomeBin);

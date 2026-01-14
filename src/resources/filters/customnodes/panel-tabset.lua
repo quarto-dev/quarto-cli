@@ -146,6 +146,10 @@ _quarto.ast.add_handler({
 
   constructor = function(params)
     local node = _quarto.ast.create_custom_node_scaffold("Tabset", "Block")
+    if params.tabs == nil then
+      warn("No tabs found in tabset. Please check that your markdown includes tab headings as appropriate.")
+      params.tabs = pandoc.List()
+    end
 
     local custom_data = {
       __quarto_custom_node = node,
@@ -282,7 +286,7 @@ function bootstrapTabs()
         active = " active"
         selected = "true"
       end
-      return 'class="nav-link' .. active .. '" id="' .. tablinkid .. '" data-bs-toggle="tab" data-bs-target="#' .. tabid .. '" role="tab" aria-controls="' .. tabid .. '" aria-selected="' .. selected .. '"'
+      return 'class="nav-link' .. active .. '" id="' .. tablinkid .. '" data-bs-toggle="tab" data-bs-target="#' .. tabid .. '" role="tab" aria-controls="' .. tabid .. '" aria-selected="' .. selected .. '" href=""'
     end,
     paneAttribs = function(tabid, isActive, headingAttribs)
       local tablinkid = tabid .. "-tab"

@@ -20,7 +20,10 @@ import {
   kCodeToolsViewSource,
   kKeepSource,
 } from "../../config/constants.ts";
-import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
+import {
+  ExecutionEngineInstance,
+  ExecutionTarget,
+} from "../../execute/types.ts";
 
 import { isHtmlOutput } from "../../config/format.ts";
 import { executionEngineCanKeepSource } from "../../execute/engine-info.ts";
@@ -47,7 +50,7 @@ export function formatHasCodeTools(format: Format) {
 
 export function resolveKeepSource(
   format: Format,
-  engine: ExecutionEngine,
+  engine: ExecutionEngineInstance,
   target: ExecutionTarget,
 ) {
   // keep source if requested (via keep-source or code-tools), we are targeting html,

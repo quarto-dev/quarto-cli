@@ -32,6 +32,11 @@
           maybeArrayOf:
             schema: path
             description: "Additional file resources to be copied to output directory"
+        brand:
+          schema:
+            ref: brand-path-only-light-dark
+          description: |
+            Path to brand.yml or object with light and dark paths to brand.yml
         preview:
           description: Options for `quarto preview`
           schema:
@@ -87,5 +92,8 @@
 
 - name: engines
   schema:
-    arrayOf: string
+    arrayOf:
+      anyOf:
+        - string
+        - ref: external-engine
   description: "List execution engines you want to give priority when determining which engine should render a notebook. If two engines have support for a notebook, the one listed earlier will be chosen. Quarto's default order is 'knitr', 'jupyter', 'markdown', 'julia'."

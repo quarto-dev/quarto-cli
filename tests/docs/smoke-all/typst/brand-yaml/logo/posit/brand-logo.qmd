@@ -9,6 +9,8 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
       -
+        - '#let brand-logo-images = \(\s*brand-typst-with-good-padding: \(\s*path: "good-padding\.png"\s*\),\s*posit-logo-light-medium: \(\s*alt: "Posit Logo",\s*path: "posit-logo-2024.svg"\s*\)'
+        - '#let brand-logo = \(\s*medium: \(\s*alt: "Posit Logo",\s*path: "posit-logo-2024\.svg"\s*\)\s*\)'
         - '#set page\(background: align\(left\+top, box\(inset: 0.75in, image\("posit-logo-2024.svg", width: 1.5in, alt: "Posit Logo"\)\)\)\)'
       - []
 ---

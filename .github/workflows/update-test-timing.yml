@@ -6,7 +6,6 @@ on:
     - cron: "13 3 * * 1"
 
 name: Update timing test file
-
 jobs:
   run-timed-tests:
     name: Running Tests to produce timed file
@@ -14,3 +13,45 @@ jobs:
     with:
       buckets: ""
       time-test: true
+
+  create-pr:
+    name: Create PR with updated timing file
+    needs: run-timed-tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Download timing file artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: timed test file
+          path: tests/
+
+      - name: Create Pull Request for new tests timing
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          add-paths: tests/timing-for-ci.txt
+          commit-message: |
+            timing for new tests [auto PR]
+          branch: updates/timing-for-ci
+          delete-branch: true
+          assignees: cderv
+          reviewers: cderv
+          title: |
+            [CI] Update timing file
+          body: |
+            This PR was created automatically with new timing test file for our parallel smoke tests.
+            Please review and merge to trigger a new build of the website.
+
+      - name: Check auto PR outputs
+        if: steps.cpr.outcome == 'success'
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+          echo "Pull Request Action Performed - ${{ steps.cpr.outputs.pull-request-operation }}"

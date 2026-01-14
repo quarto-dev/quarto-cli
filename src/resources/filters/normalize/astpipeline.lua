@@ -64,7 +64,7 @@ function quarto_ast_pipeline()
         local jin = assert(io.open(juice_in, 'w'))
         jin:write(htmltext)
         jin:flush()
-        local quarto_path = pandoc.path.join({os.getenv('QUARTO_BIN_PATH'), 'quarto'})
+        local quarto_path = quarto.config.cli_path()
         local jout, jerr = io.popen(quarto_path .. ' run ' ..
             pandoc.path.join({os.getenv('QUARTO_SHARE_PATH'), 'scripts', 'juice.ts'}) .. ' ' ..
             juice_in, 'r')
@@ -323,6 +323,11 @@ function quarto_ast_pipeline()
   end
 
   return {
+    { name = "astpipeline-process-list-tables",
+      filter = _quarto.modules.listtable.list_table_filter(),
+      traverser = 'jog',
+    },
+    
     { name = "astpipeline-process-tables",
       filter = astpipeline_process_tables(),
       traverser = 'jog',

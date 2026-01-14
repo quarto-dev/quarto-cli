@@ -1,0 +1,25 @@
+color:
+  background:
+    light: "#fff"
+    dark: "#111"
+  foreground:
+    light: "#111"
+    dark: "#fff"
+logo:
+  images:
+    small-logo:
+      path: small-logo.png
+      alt: small logo
+    medium-logo:
+      path: medium-logo.png
+      alt: medium logo
+    large-logo:
+      path: large-logo.png
+      alt: large logo
+  # Make this interesting, since navbar will prefer small
+  medium:
+    # Only define light in medium to test fallback behavior
+    light: medium-logo
+  large:
+    light: large-logo # will not be picked
+    dark: large-logo

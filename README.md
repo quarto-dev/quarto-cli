@@ -1,4 +1,9 @@
 <!-- -*- mode: gfm -*- -->
+[![GitHub Release](https://img.shields.io/github/v/release/quarto-dev/quarto-cli)](https://github.com/quarto-dev/quarto-cli/releases/latest)
+[![GitHub PreRelease](https://img.shields.io/github/v/release/quarto-dev/quarto-cli?include_prereleases&label=prerelease)](https://github.com/quarto-dev/quarto-cli/releases/)
+[![Build Installers](https://github.com/quarto-dev/quarto-cli/actions/workflows/create-release.yml/badge.svg)](https://github.com/quarto-dev/quarto-cli/actions/workflows/create-release.yml)
+[![Parallel Smokes Tests](https://github.com/quarto-dev/quarto-cli/actions/workflows/test-smokes-parallel.yml/badge.svg)](https://github.com/quarto-dev/quarto-cli/actions/workflows/test-smokes-parallel.yml)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/quarto-dev/quarto-cli)
 
 # Quarto
 
@@ -54,6 +59,6 @@ cd tests
 ./run-tests.sh smoke/extensions/
 ```
 
-## License
+## License <a name="license-1-ov-file"/>
 
 Quarto is open source software available under the MIT license (<https://opensource.org/license/mit/>).

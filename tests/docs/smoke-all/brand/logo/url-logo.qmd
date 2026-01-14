@@ -1,0 +1,40 @@
+---
+title: "Reproducible Quarto Document"
+format:
+  dashboard: default
+  revealjs: default
+  typst:
+    keep-typ: true
+brand:
+  logo:
+    images:
+      quarto-logo:
+        path: https://quarto.org/quarto.png
+        alt: "Quarto icon"
+    small: quarto-logo
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          - 'img[src="https://quarto.org/quarto.png"][alt="Quarto icon"][class="navbar-logo light-content d-inline-block"]'
+          - 'img[class*="dark-content"]' # oops
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="https://quarto.org/quarto.png"][alt="Quarto icon"]'
+        -
+          - 'img[class*="dark-content"]'
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("url-logo_files(/|\\)mediabag(/|\\)quarto.png", width: 1\.5in, alt: "Quarto icon"\)\)'
+        - []
+---
+
+This is a reproducible Quarto document using `format: html`. It is written in Markdown and contains embedded Python code. When you run the code, it will produce a message.
+
+{{< lipsum 1 >}}
+
+The end.

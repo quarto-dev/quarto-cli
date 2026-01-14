@@ -170,6 +170,14 @@ function render_typst_css_property_processing()
           opacity = _quarto.format.typst.css.parse_opacity(v, _warnings)
         elseif k == 'font-size' then
           cell.attributes['typst:text:size'] = _quarto.format.typst.css.translate_length(v, _warnings)
+        elseif k == 'font-weight' then
+          local translated_fw = _quarto.format.typst.css.translate_font_weight(v, _warnings)
+          -- unsupported font-weight values will be returned as nil
+          if translated_fw then
+            cell.attributes['typst:text:weight'] = _quarto.format.typst.css.quote(translated_fw)
+          end
+        elseif k == 'font-style' then
+          cell.attributes['typst:text:style'] = _quarto.format.typst.css.quote(v)
         elseif k == 'vertical-align' then
           local a = translate_vertical_align(v)
           if a then table.insert(aligns, a) end
@@ -306,6 +314,10 @@ function render_typst_css_property_processing()
             div.attributes['typst:text:font'] = _quarto.format.typst.css.translate_font_family_list(v)
           elseif k == 'font-size' then
             div.attributes['typst:text:size'] = _quarto.format.typst.css.translate_length(v, _warnings)
+          elseif k == 'font-weight' then
+            div.attributes['typst:text:weight'] = _quarto.format.typst.css.quote(_quarto.format.typst.css.translate_font_weight(v, _warnings))
+          elseif k == 'font-style' then
+            div.attributes['typst:text:style'] = _quarto.format.typst.css.quote(v)
           elseif k == 'background-color' then
             div.attributes['typst:fill'] = _quarto.format.typst.css.output_color(_quarto.format.typst.css.parse_color(v, _warnings), nil, _warnings)
           elseif k == 'color' then

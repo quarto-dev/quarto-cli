@@ -88,7 +88,7 @@ export const renderSubarticlePostProcessor = (
         // Replace the placeholder with the rendered subarticle
         outputContents = outputContents.replaceAll(
           placeholder,
-          subArtLines.join("\n"),
+          () => subArtLines.join("\n"),
         );
 
         // Move supporting and resource files into place

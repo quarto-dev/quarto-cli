@@ -1,9 +1,8 @@
 /*
-* embed.ts
-*
-* Copyright (C) 2022 by Posit, PBC
-*
-*/
+ * embed.ts
+ *
+ * Copyright (C) 2022-2025 by Posit, PBC
+ */
 
 import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";

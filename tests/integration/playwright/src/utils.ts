@@ -128,10 +128,37 @@ export type RGBColor = {
   alpha?: number;
 };
 
-export async function checkColor(element, cssProperty, rgbColors: RGBColor) {
-  const colorString = rgbColors.alpha !== undefined 
-    ? `rgba(${rgbColors.red}, ${rgbColors.green}, ${rgbColors.blue}, ${rgbColors.alpha})`
-    : `rgb(${rgbColors.red}, ${rgbColors.green}, ${rgbColors.blue})`;
+export type HexColor = string;
+
+export function isRGBColor(color: any): color is RGBColor {
+  return (
+    typeof color === 'object' && 
+    'red' in color && 
+    'green' in color && 
+    'blue' in color
+  );
+}
+
+export function isHexColor(color: any): color is HexColor {
+  return (
+    typeof color === 'string' &&
+    /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(color)
+  );
+}
+
+export async function checkColor(element, cssProperty, color: RGBColor | HexColor) {
+  let colorString: string;
+  // Check if the color is an RGBColor object or a string
+  if (isRGBColor(color)) {
+    colorString = color.alpha !== undefined
+      ? `rgba(${color.red}, ${color.green}, ${color.blue}, ${color.alpha})`
+      : `rgb(${color.red}, ${color.green}, ${color.blue})`;
+  } else if (isHexColor(color)) {
+    colorString = color as string;
+  } else {
+    throw new Error('Invalid color format. Use either RGBColor or HexColor.');
+  }
+  // Check the CSS property
   await expect(element).toHaveCSS(cssProperty, colorString);
 }
 
@@ -204,6 +231,10 @@ export async function checkColorIdentical(loc1: Locator, loc2: Locator, property
 export async function checkBorderProperties(element: Locator, side: string, color: RGBColor, width: string) {
   await checkColor(element, `border-${side}-color`, color);
   await expect(element).toHaveCSS(`border-${side}-width`, width);
+}
+
+export async function checkBackgroundColorProperty(element: Locator, color: RGBColor) {
+  await checkColor(element, `background-color`, color);
 }
 
 export function useDarkLightMode(mode: 'dark' | 'light'): Partial<PlaywrightTestOptions> {

@@ -22,13 +22,15 @@ import { onCleanup } from "./cleanup.ts";
 import { execProcess } from "./process.ts";
 import { pandocBinaryPath } from "./resources.ts";
 import { Block, pandoc } from "./pandoc/json.ts";
+import { isGitHubActions, isVerboseMode } from "../tools/github.ts";
 
-export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
+export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "CRITICAL";
+export type LogFormat = "plain" | "json-stream";
 
 export interface LogOptions {
   log?: string;
   level?: string;
-  format?: "plain" | "json-stream";
+  format?: LogFormat;
   quiet?: boolean;
   newline?: true;
 }
@@ -55,7 +57,7 @@ export function appendLogOptions(cmd: Command<any>): Command<any> {
       },
     ).option(
       "--log-level <level>",
-      "Log level (info, warning, error, critical)",
+      "Log level (debug, info, warning, error, critical)",
       {
         global: true,
       },
@@ -98,8 +100,17 @@ export function logOptions(args: Args) {
   if (logOptions.log) {
     ensureDirSync(dirname(logOptions.log));
   }
-  logOptions.level = args.ll || args["log-level"] ||
-    Deno.env.get("QUARTO_LOG_LEVEL");
+
+  // Determine log level with priority: explicit args > QUARTO_LOG_LEVEL > GitHub Actions debug mode
+  let level = args.ll || args["log-level"] || Deno.env.get("QUARTO_LOG_LEVEL");
+
+  // Enable DEBUG logging when GitHub Actions debug mode is on (RUNNER_DEBUG=1)
+  // Can be overridden by explicit --log-level or QUARTO_LOG_LEVEL
+  if (!level && isGitHubActions() && isVerboseMode()) {
+    level = "DEBUG";
+  }
+
+  logOptions.level = level;
   logOptions.quiet = args.q || args.quiet;
   logOptions.format = parseFormat(
     args.lf || args["log-format"] || Deno.env.get("QUARTO_LOG_FORMAT"),
@@ -265,7 +276,7 @@ export class LogFileHandler extends FileHandler {
 interface LogFileHandlerOptions {
   filename: string;
   mode?: "a" | "w" | "x";
-  format?: "plain" | "json-stream";
+  format?: LogFormat;
 }
 
 export function flushLoggers(handlers: Record<string, BaseHandler>) {
@@ -460,7 +471,9 @@ const levelMap: Record<
   debug: "DEBUG",
   info: "INFO",
   warning: "WARN",
+  warn: "WARN",
   error: "ERROR",
+  critical: "CRITICAL",
 };
 
 export async function logPandocJson(

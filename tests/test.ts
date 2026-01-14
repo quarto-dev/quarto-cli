@@ -9,7 +9,7 @@ import { AssertionError, fail } from "testing/asserts";
 import { warning } from "../src/deno_ral/log.ts";
 import { initDenoDom } from "../src/core/deno-dom.ts";
 
-import { cleanupLogger, initializeLogger, flushLoggers, logError } from "../src/core/log.ts";
+import { cleanupLogger, initializeLogger, flushLoggers, logError, LogLevel, LogFormat } from "../src/core/log.ts";
 import { quarto } from "../src/quarto.ts";
 import { join } from "../src/deno_ral/path.ts";
 import * as colors from "fmt/colors";
@@ -18,6 +18,17 @@ import { relative, fromFileUrl } from "../src/deno_ral/path.ts";
 import { quartoConfig } from "../src/core/quarto.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
 
+
+export interface TestLogConfig {
+  // Path to log file
+  log?: string;
+
+  // Log level
+  level?: LogLevel;
+
+  // Log format
+  format?: LogFormat;
+}
 export interface TestDescriptor {
   // The name of the test
   name: string;
@@ -33,12 +44,21 @@ export interface TestDescriptor {
 
   // type of test
   type: "smoke" | "unit";
+  
+  // Optional logging configuration
+  logConfig?: TestLogConfig;
 }
 
 export interface TestContext {
   name?: string;
 
-  // Checks that prereqs for the test are met
+  // Checks that prereqs for the test are met (async conditional skip)
+  // - Returns false: Test is SKIPPED with warning message (not failed)
+  // - Throws/rejects: Test is SKIPPED (initialization failed gracefully)
+  // Use cases:
+  //   - Tool availability checks (e.g., which("rsvg-convert"))
+  //   - Initialization that might fail (e.g., schema loading)
+  // Difference from ignore: Can be async, runs inside test, handles exceptions
   prereq?: () => Promise<boolean>;
 
   // Cleans up the test
@@ -53,7 +73,14 @@ export interface TestContext {
   // Control of underlying sanitizer
   sanitize?: { resources?: boolean; ops?: boolean; exit?: boolean };
 
-  // control if test is ran or skipped
+  // Control if test is ran or skipped (static boolean only)
+  // - true: Test is completely IGNORED by Deno (not run, not counted)
+  // - false: Test runs normally
+  // Use cases:
+  //   - Static platform checks (e.g., isWindows)
+  //   - Static configuration flags
+  // Limitation: Must be a simple boolean value computed at registration time
+  // For dynamic/async conditional skip (e.g., tool availability), use prereq instead
   ignore?: boolean;
 
   // environment to pass to downstream processes
@@ -105,7 +132,8 @@ export function testQuartoCmd(
   args: string[],
   verify: Verify[],
   context?: TestContext,
-  name?: string
+  name?: string,
+  logConfig?: TestLogConfig,
 ) {
   if (name === undefined) {
     name = `quarto ${cmd} ${args.join(" ")}`;
@@ -124,6 +152,7 @@ export function testQuartoCmd(
     verify,
     context: context || {},
     type: "smoke",
+    logConfig, // Pass log config to test
   });
 }
 
@@ -201,9 +230,9 @@ export function test(test: TestDescriptor) {
         // Capture the output
         const log = Deno.makeTempFileSync({ suffix: ".json" });
         const handlers = await initializeLogger({
-          log: log,
-          level: "INFO",
-          format: "json-stream",
+          log: test.logConfig?.log || log,
+          level: test.logConfig?.level || "INFO",
+          format: test.logConfig?.format || "json-stream",
           quiet: true,
         });
 
@@ -215,6 +244,7 @@ export function test(test: TestDescriptor) {
           }
         };
         let lastVerify;
+
         try {
 
           try {
@@ -242,6 +272,7 @@ export function test(test: TestDescriptor) {
           }
         } catch (ex) {
           if (!(ex instanceof Error)) throw ex;
+
           const border = "-".repeat(80);
           const coloredName = userSession
             ? colors.brightGreen(colors.italic(testName))
@@ -278,9 +309,18 @@ export function test(test: TestDescriptor) {
             : verifyFailed;
 
           const logMessages = logOutput(log);
+
+          // Create distinctive failure marker for easy log navigation
+          // This helps users find the failure when clicking GitHub Actions annotations
+          const failureMarker = `━━━ TEST FAILURE: ${testName}`;
+          const coloredFailureMarker = userSession
+            ? colors.red(colors.bold(failureMarker))
+            : failureMarker;
+
           const output: string[] = [
             "",
             "",
+            coloredFailureMarker,
             border,
             coloredName,
             coloredTestCommand,
@@ -301,6 +341,7 @@ export function test(test: TestDescriptor) {
               });
             });
           }
+
           fail(output.join("\n"));
         } finally {
           safeRemoveSync(log);
@@ -330,7 +371,7 @@ export function test(test: TestDescriptor) {
   Deno.test(args);
 }
 
-function readExecuteOutput(log: string) {
+export function readExecuteOutput(log: string) {
   const jsonStream = Deno.readTextFileSync(log);
   const lines = jsonStream.split("\n").filter((line) => !!line);
   return lines.map((line) => {

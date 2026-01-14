@@ -240,3 +240,12 @@ Returns an object with the format name and variants as would be interpreted by P
 ---@param raw_format string The format's string
 ---@return quarto.format.ParseFormatResult
 function quarto.format.parse_format(raw_format) end
+
+--[[
+Returns a table with the format identifier information, including:
+- `target-format`: The full target format name, e.g. `html+variant`
+- `base-format`: The base format name, e.g. `html`
+- `display-name`: A human-readable display name for the format, e.g. `HTML`
+- `extension`: The name of the extension that exposes the format, if present
+]]
+function quarto.format.format_identifier() end

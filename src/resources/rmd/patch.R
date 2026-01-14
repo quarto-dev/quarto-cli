@@ -111,7 +111,9 @@ wrap_asis_output <- function(options, x) {
   }
   classes <- paste0("cell-output-display")
   attrs <- NULL
-  if (isTRUE(options[["output.hidden"]])) classes <- paste0(classes, " .hidden")
+  if (isTRUE(options[["output.hidden"]])) {
+    classes <- paste0(classes, " .hidden")
+  }
 
   if (identical(options[["html-table-processing"]], "none")) {
     attrs <- paste(attrs, "html-table-processing=none")
@@ -130,7 +132,9 @@ wrap_asis_output <- function(options, x) {
   }
 
   # If asis output, don't include the output div
-  if (identical(options[["results"]], "asis")) return(x)
+  if (identical(options[["results"]], "asis")) {
+    return(x)
+  }
 
   output_div(x, output_label_placeholder(options), classes, attrs)
 }

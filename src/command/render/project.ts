@@ -14,7 +14,6 @@ import {
 } from "../../deno_ral/fs.ts";
 import { dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
 import { info, warning } from "../../deno_ral/log.ts";
-import { mergeProjectMetadata } from "../../config/metadata.ts";
 
 import * as colors from "fmt/colors";
 
@@ -80,7 +79,6 @@ import { Format } from "../../config/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { projectContextForDirectory } from "../../project/project-context.ts";
 import { ProjectType } from "../../project/types/types.ts";
-import { ProjectConfig as ProjectConfig_Project } from "../../resources/types/schema-types.ts";
 
 const noMutationValidations = (
   projType: ProjectType,
@@ -242,35 +240,11 @@ const getProjectRenderScripts = async (
   return { preRenderScripts, postRenderScripts };
 };
 
-const mergeExtensionMetadata = async (
-  context: ProjectContext,
-  pOptions: RenderOptions,
-) => {
-  // this will mutate context.config.project to merge
-  // in any project metadata from extensions
-  if (context.config) {
-    const extensions = await pOptions.services.extension.extensions(
-      undefined,
-      context.config,
-      context.isSingleFile ? undefined : context.dir,
-      { builtIn: false },
-    );
-    const projectMetadata = extensions.map((extension) =>
-      extension.contributes.metadata?.project
-    ).filter((project) => project) as ProjectConfig_Project[];
-    context.config.project = mergeProjectMetadata(
-      context.config.project,
-      ...projectMetadata,
-    );
-  }
-};
-
 export async function renderProject(
   context: ProjectContext,
   pOptions: RenderOptions,
   pFiles?: string[],
 ): Promise<RenderResult> {
-  await mergeExtensionMetadata(context, pOptions);
   const { preRenderScripts, postRenderScripts } = await getProjectRenderScripts(
     context,
   );
@@ -511,7 +485,7 @@ export async function renderProject(
           // because src and target are in different file systems.
           // In that case, try to recursively copy from src
           copyTo(srcDir, targetDir);
-          safeRemoveDirSync(targetDir, context.dir);
+          safeRemoveDirSync(srcDir, context.dir);
         }
       }
     };
@@ -625,18 +599,16 @@ export async function renderProject(
     // as an example case)
     const uniqOps = ld.uniqBy(fileOperations, (op: FileOperation) => {
       return op.key;
-    });
+    }) as FileOperation[];
 
     const sortedOperations = uniqOps.sort((a, b) => {
       if (a.src === b.src) {
         return 0;
-      } else {
-        if (isSubdir(a.src, b.src)) {
-          return -1;
-        } else {
-          return a.src.localeCompare(b.src);
-        }
       }
+      if (isSubdir(a.src, b.src)) {
+        return -1;
+      }
+      return a.src.localeCompare(b.src);
     });
 
     // Before file move
@@ -820,7 +792,7 @@ export async function renderProject(
         context,
       );
       if (engine?.postRender) {
-        await engine.postRender(file, projResults.context);
+        await engine.postRender(file);
       }
     }
 
@@ -914,13 +886,20 @@ export async function renderProject(
     );
   }
 
-  // in addition to the cleanup above, if forceClean is set, we need to clean up the project scratch dir
-  // entirely. See options.forceClean in render-shared.ts
-  // .quarto is really a fiction created because of `--output-dir` being set on non-project
-  // renders
+  // Clean up synthetic project created for --output-dir
+  // When --output-dir is used without a project file, we create a temporary
+  // project context with a .quarto directory (see render-shared.ts).
+  // After rendering completes, we must remove this directory to avoid leaving
+  // debris in non-project directories (#9745).
   //
-  // cf https://github.com/quarto-dev/quarto-cli/issues/9745#issuecomment-2125951545
+  // Critical ordering for Windows: Close file handles BEFORE removing directory
+  // to avoid "The process cannot access the file because it is being used by
+  // another process" (os error 32) (#13625).
   if (projectRenderConfig.options.forceClean) {
+    // 1. Close all file handles (KV database, temp context, etc.)
+    context.cleanup();
+
+    // 2. Remove the temporary .quarto directory
     const scratchDir = join(projDir, kQuartoScratch);
     if (existsSync(scratchDir)) {
       safeRemoveSync(scratchDir, { recursive: true });

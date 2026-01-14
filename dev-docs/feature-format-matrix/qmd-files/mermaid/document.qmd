@@ -2,9 +2,13 @@
 title: Mermaid
 format: 
   docusaurus-md: {}
+_quarto:
+  tests:
+    run:
+      not_os: [linux] 
 ---
 
-::: content-visible when-format="docusaurus-md"
+::: {.content-visible when-format="docusaurus-md"}
 This works, but emits a fairly-wonky markdown and doesn't use Javascript rendering.
 :::
 

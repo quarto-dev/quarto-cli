@@ -8372,6 +8372,10 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "date-format",
+          schema: "string"
+        },
+        {
           id: "math-methods",
           enum: {
             values: [
@@ -8536,8 +8540,8 @@ var require_yaml_intelligence_resources = __commonJS({
               icon: {
                 string: {
                   description: {
-                    short: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
-                    long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                    short: "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)",
+                    long: "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
                   }
                 }
               },
@@ -8637,16 +8641,17 @@ var require_yaml_intelligence_resources = __commonJS({
                 }
               },
               mapping: {
-                anyOf: [
-                  {
-                    enum: [
-                      "pathname",
-                      "url",
-                      "title",
-                      "og:title"
-                    ]
-                  },
-                  "string"
+                schema: {
+                  anyOf: [
+                    "string",
+                    "number"
+                  ]
+                },
+                completions: [
+                  "pathname",
+                  "url",
+                  "title",
+                  "og:title"
                 ],
                 description: {
                   short: "The mapping between the page and the embedded discussion.",
@@ -8717,6 +8722,25 @@ var require_yaml_intelligence_resources = __commonJS({
             required: [
               "repo"
             ]
+          }
+        },
+        {
+          id: "external-engine",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                path: {
+                  path: {
+                    description: "Path to the TypeScript module for the execution engine"
+                  }
+                }
+              },
+              required: [
+                "path"
+              ]
+            },
+            description: "An execution engine not pre-loaded in Quarto"
           }
         },
         {
@@ -9422,6 +9446,30 @@ var require_yaml_intelligence_resources = __commonJS({
                 ],
                 description: "Enable Google Analytics for this website"
               },
+              "plausible-analytics": {
+                anyOf: [
+                  "string",
+                  {
+                    object: {
+                      closed: true,
+                      properties: {
+                        path: {
+                          path: {
+                            description: "Path to a file containing the Plausible Analytics script snippet"
+                          }
+                        }
+                      },
+                      required: [
+                        "path"
+                      ]
+                    }
+                  }
+                ],
+                description: {
+                  short: "Enable Plausible Analytics for this website by providing a script snippet or path to snippet file",
+                  long: 'Enable Plausible Analytics for this website by pasting the script snippet from your Plausible dashboard,\nor by providing a path to a file containing the snippet.\n\nPlausible is a privacy-friendly, GDPR-compliant web analytics service that does not use cookies and does not require cookie consent.\n\n**Option 1: Inline snippet**\n\n```yaml\nwebsite:\n  plausible-analytics: |\n    <script async src="https://plausible.io/js/script.js"><\/script>\n```\n\n**Option 2: File path**\n\n```yaml\nwebsite:\n  plausible-analytics:\n    path: _plausible_snippet.html\n```\n\nTo get your script snippet:\n\n1. Log into your Plausible account at <https://plausible.io>\n2. Go to your site settings\n3. Copy the JavaScript snippet provided\n4. Either paste it directly in your configuration or save it to a file\n\nFor more information, see <https://plausible.io/docs/plausible-script>\n'
+                }
+              },
               announcement: {
                 anyOf: [
                   "string",
@@ -9493,12 +9541,12 @@ var require_yaml_intelligence_resources = __commonJS({
                       properties: {
                         type: {
                           enum: [
-                            "implied",
-                            "express"
+                            "express",
+                            "implied"
                           ],
                           description: {
                             short: "The type of consent that should be requested",
-                            long: "The type of consent that should be requested, using one of these two values:\n\n- `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n\n- `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn\u2019t agree).\n"
+                            long: "The type of consent that should be requested, using one of these two values:\n\n- `express` (default): This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn\u2019t agree).\n\n- `implied`: This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n"
                           }
                         },
                         style: {
@@ -9684,9 +9732,8 @@ var require_yaml_intelligence_resources = __commonJS({
                           description: "The navbar title. Uses the project title if none is specified."
                         },
                         logo: {
-                          path: {
-                            description: "Path to a logo image that will be displayed to the left of the title."
-                          }
+                          ref: "logo-light-dark-specifier",
+                          description: "Specification of image that will be displayed to the left of the title."
                         },
                         "logo-alt": {
                           string: {
@@ -9699,40 +9746,34 @@ var require_yaml_intelligence_resources = __commonJS({
                           }
                         },
                         background: {
-                          anyOf: [
-                            {
-                              enum: [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            "string"
-                          ],
-                          description: "The navbar's background color (named or hex color)."
+                          string: {
+                            description: "The navbar's background color (named or hex color).",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
+                            ]
+                          }
                         },
                         foreground: {
-                          anyOf: [
-                            {
-                              enum: [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            "string"
-                          ],
-                          description: "The navbar's foreground color (named or hex color)."
+                          string: {
+                            description: "The navbar's foreground color (named or hex color).",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
+                            ]
+                          }
                         },
                         search: {
                           boolean: {
@@ -9816,9 +9857,8 @@ var require_yaml_intelligence_resources = __commonJS({
                             description: "The sidebar title. Uses the project title if none is specified."
                           },
                           logo: {
-                            path: {
-                              description: "Path to a logo image that will be displayed in the sidebar."
-                            }
+                            ref: "logo-light-dark-specifier",
+                            description: "Specification of image that will be displayed in the sidebar."
                           },
                           "logo-alt": {
                             string: {
@@ -9854,38 +9894,30 @@ var require_yaml_intelligence_resources = __commonJS({
                             default: "floating"
                           },
                           background: {
-                            anyOf: [
-                              {
-                                enum: [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              "string"
+                            schema: "string",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
                             ],
                             description: "The sidebar's background color (named or hex color)."
                           },
                           foreground: {
-                            anyOf: [
-                              {
-                                enum: [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              "string"
+                            schema: "string",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
                             ],
                             description: "The sidebar's foreground color (named or hex color)."
                           },
@@ -10615,7 +10647,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 string: {
                   description: {
                     short: "The date format to use when displaying dates (e.g. d-M-yyy).",
-                    long: "The date format to use when displaying dates (e.g. d-M-yyy). \nLearn more about supported date formatting values [here](https://deno.land/std@0.125.0/datetime).\n"
+                    long: "The date format to use when displaying dates (e.g. d-M-yyy). \nLearn more about supported date formatting values [here](https://quarto.org/docs/reference/dates.html).\n"
                   }
                 }
               },
@@ -11662,7 +11694,74 @@ var require_yaml_intelligence_resources = __commonJS({
                   object: {
                     properties: {
                       "trace-filters": "string",
-                      tests: "object"
+                      tests: {
+                        object: {
+                          properties: {
+                            run: {
+                              object: {
+                                description: "Control when tests should run",
+                                properties: {
+                                  ci: {
+                                    boolean: {
+                                      description: "Run tests on CI (true = run, false = skip)",
+                                      default: true
+                                    }
+                                  },
+                                  skip: {
+                                    description: "Skip test unconditionally (true = skip with default message, string = skip with custom message)",
+                                    anyOf: [
+                                      "boolean",
+                                      "string"
+                                    ]
+                                  },
+                                  os: {
+                                    description: "Run tests ONLY on these platforms (whitelist)",
+                                    anyOf: [
+                                      {
+                                        enum: [
+                                          "linux",
+                                          "darwin",
+                                          "windows"
+                                        ]
+                                      },
+                                      {
+                                        arrayOf: {
+                                          enum: [
+                                            "linux",
+                                            "darwin",
+                                            "windows"
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  not_os: {
+                                    description: "Don't run tests on these platforms (blacklist)",
+                                    anyOf: [
+                                      {
+                                        enum: [
+                                          "linux",
+                                          "darwin",
+                                          "windows"
+                                        ]
+                                      },
+                                      {
+                                        arrayOf: {
+                                          enum: [
+                                            "linux",
+                                            "darwin",
+                                            "windows"
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -11936,7 +12035,40 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-logo",
+          id: "brand-logo-single",
+          description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
+          object: {
+            closed: true,
+            properties: {
+              images: {
+                description: "A dictionary of named logo resources.",
+                schema: {
+                  object: {
+                    additionalProperties: {
+                      schema: {
+                        ref: "brand-logo-resource"
+                      }
+                    }
+                  }
+                }
+              },
+              small: {
+                description: "A link or path to the brand's small-sized logo or icon.\n",
+                schema: "string"
+              },
+              medium: {
+                description: "A link or path to the brand's medium-sized logo.\n",
+                schema: "string"
+              },
+              large: {
+                description: "A link or path to the brand's large- or full-sized logo.\n",
+                schema: "string"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-logo-unified",
           description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
           object: {
             closed: true,
@@ -11984,11 +12116,145 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "logo-options",
+          object: {
+            closed: false,
+            properties: {
+              path: {
+                schema: "path",
+                description: "Path or brand.yml logo resource name.\n"
+              },
+              alt: {
+                schema: "string",
+                description: "Alternative text for the logo, used for accessibility.\n"
+              }
+            },
+            required: [
+              "path"
+            ]
+          }
+        },
+        {
+          id: "logo-specifier",
+          anyOf: [
+            "string",
+            {
+              schema: {
+                ref: "logo-options"
+              }
+            }
+          ]
+        },
+        {
+          id: "logo-options-path-optional",
+          object: {
+            closed: false,
+            properties: {
+              path: {
+                schema: "path",
+                description: "Path or brand.yml logo resource name.\n"
+              },
+              alt: {
+                schema: "string",
+                description: "Alternative text for the logo, used for accessibility.\n"
+              }
+            }
+          }
+        },
+        {
+          id: "logo-specifier-path-optional",
+          anyOf: [
+            "string",
+            {
+              schema: {
+                ref: "logo-options-path-optional"
+              }
+            }
+          ]
+        },
+        {
+          id: "logo-light-dark-specifier",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          anyOf: [
+            {
+              ref: "logo-specifier"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "logo-specifier"
+                    },
+                    description: "Specification of a light logo\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "logo-specifier"
+                    },
+                    description: "Specification of a dark logo\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "logo-light-dark-specifier-path-optional",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          anyOf: [
+            {
+              ref: "logo-specifier-path-optional"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "logo-specifier-path-optional"
+                    },
+                    description: "Specification of a light logo\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "logo-specifier-path-optional"
+                    },
+                    description: "Specification of a dark logo\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "normalized-logo-light-dark-specifier",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          object: {
+            closed: true,
+            properties: {
+              light: {
+                schema: {
+                  ref: "logo-options"
+                },
+                description: "Options for a light logo\n"
+              },
+              dark: {
+                schema: {
+                  ref: "logo-options"
+                },
+                description: "Options for a dark logo\n"
+              }
+            }
+          }
+        },
+        {
           id: "brand-color-value",
           schema: "string"
         },
         {
-          id: "brand-color",
+          id: "brand-color-single",
           description: "The brand's custom color palette and theme.\n",
           object: {
             closed: true,
@@ -12081,6 +12347,126 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "brand-color-light-dark",
+          anyOf: [
+            {
+              ref: "brand-color-value"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "brand-color-value"
+                    },
+                    description: "A link or path to the brand's light-colored logo or icon.\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "brand-color-value"
+                    },
+                    description: "A link or path to the brand's dark-colored logo or icon.\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-color-unified",
+          description: "The brand's custom color palette and theme.\n",
+          object: {
+            closed: true,
+            properties: {
+              palette: {
+                description: "The brand's custom color palette. Any number of colors can be defined, each color having a custom name.\n",
+                object: {
+                  additionalProperties: {
+                    schema: {
+                      ref: "brand-color-value"
+                    }
+                  }
+                }
+              },
+              foreground: {
+                description: "The foreground color, used for text.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                },
+                default: "black"
+              },
+              background: {
+                description: "The background color, used for the page background.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                },
+                default: "white"
+              },
+              primary: {
+                description: "The primary accent color, i.e. the main theme color. Typically used for hyperlinks, active states, primary action buttons, etc.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              secondary: {
+                description: "The secondary accent color. Typically used for lighter text or disabled states.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              tertiary: {
+                description: "The tertiary accent color. Typically an even lighter color, used for hover states, accents, and wells.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              success: {
+                description: "The color used for positive or successful actions and information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              info: {
+                description: "The color used for neutral or informational actions and information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              warning: {
+                description: "The color used for warning or cautionary actions and information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              danger: {
+                description: "The color used for errors, dangerous actions, or negative information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              light: {
+                description: "A bright color, used as a high-contrast foreground color on dark elements or low-contrast background color on light elements.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              dark: {
+                description: "A dark color, used as a high-contrast foreground color on light elements or high-contrast background color on light elements.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              link: {
+                description: "The color used for hyperlinks. If not defined, the `primary` color is used.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              }
+            }
+          }
+        },
+        {
           id: "brand-maybe-named-color",
           description: "A color, which may be a named brand color.\n",
           anyOf: [
@@ -12089,6 +12475,33 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             {
               schema: "string"
+            }
+          ]
+        },
+        {
+          id: "brand-maybe-named-color-light-dark",
+          anyOf: [
+            {
+              ref: "brand-maybe-named-color"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "brand-maybe-named-color"
+                    },
+                    description: "A link or path to the brand's light-colored logo or icon.\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "brand-maybe-named-color"
+                    },
+                    description: "A link or path to the brand's dark-colored logo or icon.\n"
+                  }
+                }
+              }
             }
           ]
         },
@@ -12111,7 +12524,7 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography",
+          id: "brand-typography-single",
           description: "Typography definitions for the brand.",
           object: {
             closed: true,
@@ -12128,23 +12541,62 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               headings: {
                 description: "Settings for headings, or a string specifying the font family only.",
-                ref: "brand-typography-options-headings"
+                ref: "brand-typography-options-headings-single"
               },
               monospace: {
                 description: "Settings for monospace text, or a string specifying the font family only.",
-                ref: "brand-typography-options-monospace"
+                ref: "brand-typography-options-monospace-single"
               },
               "monospace-inline": {
                 description: "Settings for inline code, or a string specifying the font family only.",
-                ref: "brand-typography-options-monospace-inline"
+                ref: "brand-typography-options-monospace-inline-single"
               },
               "monospace-block": {
                 description: "Settings for code blocks, or a string specifying the font family only.",
-                ref: "brand-typography-options-monospace-block"
+                ref: "brand-typography-options-monospace-block-single"
               },
               link: {
                 description: "Settings for links.",
-                ref: "brand-typography-options-link"
+                ref: "brand-typography-options-link-single"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-typography-unified",
+          description: "Typography definitions for the brand.",
+          object: {
+            closed: true,
+            properties: {
+              fonts: {
+                description: "Font files and definitions for the brand.",
+                arrayOf: {
+                  ref: "brand-font"
+                }
+              },
+              base: {
+                description: "The base font settings for the brand. These are used as the default for all text.\n",
+                ref: "brand-typography-options-base"
+              },
+              headings: {
+                description: "Settings for headings, or a string specifying the font family only.",
+                ref: "brand-typography-options-headings-unified"
+              },
+              monospace: {
+                description: "Settings for monospace text, or a string specifying the font family only.",
+                ref: "brand-typography-options-monospace-unified"
+              },
+              "monospace-inline": {
+                description: "Settings for inline code, or a string specifying the font family only.",
+                ref: "brand-typography-options-monospace-inline-unified"
+              },
+              "monospace-block": {
+                description: "Settings for code blocks, or a string specifying the font family only.",
+                ref: "brand-typography-options-monospace-block-unified"
+              },
+              link: {
+                description: "Settings for links.",
+                ref: "brand-typography-options-link-unified"
               }
             }
           }
@@ -12172,7 +12624,7 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-headings",
+          id: "brand-typography-options-headings-single",
           description: "Typographic options for headings.",
           anyOf: [
             "string",
@@ -12199,7 +12651,34 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-monospace",
+          id: "brand-typography-options-headings-unified",
+          description: "Typographic options for headings.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  style: {
+                    ref: "brand-font-style"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "line-height": {
+                    ref: "line-height-number-string"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-typography-options-monospace-single",
           description: "Typographic options for monospace elements.",
           anyOf: [
             "string",
@@ -12224,7 +12703,32 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-monospace-inline",
+          id: "brand-typography-options-monospace-unified",
+          description: "Typographic options for monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-typography-options-monospace-inline-single",
           description: "Typographic options for inline monospace elements.",
           anyOf: [
             "string",
@@ -12249,6 +12753,31 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "brand-typography-options-monospace-inline-unified",
+          description: "Typographic options for inline monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
           id: "line-height-number-string",
           description: "Line height",
           anyOf: [
@@ -12257,7 +12786,7 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-monospace-block",
+          id: "brand-typography-options-monospace-block-single",
           description: "Typographic options for block monospace elements.",
           anyOf: [
             "string",
@@ -12285,7 +12814,35 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-link",
+          id: "brand-typography-options-monospace-block-unified",
+          description: "Typographic options for block monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "line-height": {
+                    ref: "line-height-number-string"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-typography-options-link-single",
           description: "Typographic options for inline monospace elements.",
           anyOf: [
             "string",
@@ -12309,12 +12866,39 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-named-font",
-          description: "Names of customizeable fonts",
+          id: "brand-typography-options-link-unified",
+          description: "Typographic options for inline monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  decoration: "string"
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-named-typography-elements",
+          description: "Names of customizeable typography elements",
           enum: [
             "base",
             "headings",
-            "monospace"
+            "monospace",
+            "monospace-inline",
+            "monospace-block",
+            "link"
           ]
         },
         {
@@ -12332,9 +12916,6 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             {
               ref: "brand-font-system"
-            },
-            {
-              ref: "brand-font-common"
             }
           ]
         },
@@ -12436,7 +13017,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   "system"
                 ]
               }
-            }
+            },
+            required: [
+              "source"
+            ]
           }
         },
         {
@@ -12453,7 +13037,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   "google"
                 ]
               }
-            }
+            },
+            required: [
+              "source"
+            ]
           }
         },
         {
@@ -12470,7 +13057,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   "bunny"
                 ]
               }
-            }
+            },
+            required: [
+              "source"
+            ]
           }
         },
         {
@@ -12531,7 +13121,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string"
         },
         {
-          id: "brand",
+          id: "brand-single",
           object: {
             closed: true,
             properties: {
@@ -12539,19 +13129,58 @@ var require_yaml_intelligence_resources = __commonJS({
                 ref: "brand-meta"
               },
               logo: {
-                ref: "brand-logo"
+                ref: "brand-logo-single"
               },
               color: {
-                ref: "brand-color"
+                ref: "brand-color-single"
               },
               typography: {
-                ref: "brand-typography"
+                ref: "brand-typography-single"
               },
               defaults: {
                 ref: "brand-defaults"
               }
             }
           }
+        },
+        {
+          id: "brand-unified",
+          object: {
+            closed: true,
+            properties: {
+              meta: {
+                ref: "brand-meta"
+              },
+              logo: {
+                ref: "brand-logo-unified"
+              },
+              color: {
+                ref: "brand-color-unified"
+              },
+              typography: {
+                ref: "brand-typography-unified"
+              },
+              defaults: {
+                ref: "brand-defaults"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-path-only-light-dark",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: "string",
+                  dark: "string"
+                }
+              }
+            }
+          ],
+          description: "A path to a brand.yml file, or an object with light and dark paths to brand.yml\n"
         },
         {
           id: "brand-path-bool-light-dark",
@@ -12566,7 +13195,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     anyOf: [
                       "string",
                       {
-                        ref: "brand"
+                        ref: "brand-single"
                       }
                     ],
                     description: "The path to a light brand file or an inline light brand definition.\n"
@@ -12575,7 +13204,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     anyOf: [
                       "string",
                       {
-                        ref: "brand"
+                        ref: "brand-single"
                       }
                     ],
                     description: "The path to a dark brand file or an inline dark brand definition.\n"
@@ -12584,10 +13213,10 @@ var require_yaml_intelligence_resources = __commonJS({
               }
             },
             {
-              ref: "brand"
+              ref: "brand-unified"
             }
           ],
-          description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
+          description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline (unified) brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
         },
         {
           id: "brand-defaults",
@@ -12682,6 +13311,13 @@ var require_yaml_intelligence_resources = __commonJS({
             ref: "date"
           },
           description: "Document date"
+        },
+        {
+          name: "date-format",
+          schema: {
+            ref: "date-format"
+          },
+          description: "Date format for the document"
         },
         {
           name: "date-modified",
@@ -13608,8 +14244,10 @@ var require_yaml_intelligence_resources = __commonJS({
               "dashboard"
             ]
           },
-          schema: "path",
-          description: "Logo image (placed on the left side of the navigation bar)"
+          schema: {
+            ref: "logo-light-dark-specifier"
+          },
+          description: "Logo image(s) (placed on the left side of the navigation bar)"
         },
         {
           name: "orientation",
@@ -14096,7 +14734,8 @@ var require_yaml_intelligence_resources = __commonJS({
             string: {
               completions: [
                 "jupyter",
-                "knitr"
+                "knitr",
+                "julia"
               ]
             }
           },
@@ -15405,6 +16044,21 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "YAML file containing custom language translations"
         },
         {
+          name: "shorthands",
+          tags: {
+            formats: [
+              "pdf",
+              "beamer"
+            ]
+          },
+          schema: "boolean",
+          default: false,
+          description: {
+            short: "Enable babel language-specific shorthands in LaTeX output.",
+            long: "Enable babel language-specific shorthands in LaTeX output. When `true`,\nbabel's language shortcuts are enabled (e.g., French `<<`/`>>` for guillemets,\nGerman `\"` shortcuts, proper spacing around French punctuation).\n\nDefault is `false` because language shorthands can interfere with code blocks\nand other content. Only enable if you need specific typographic features\nfor your language.\n"
+          }
+        },
+        {
           name: "dir",
           schema: {
             enum: [
@@ -15638,10 +16292,11 @@ var require_yaml_intelligence_resources = __commonJS({
           default: "light",
           tags: {
             formats: [
-              "typst"
+              "typst",
+              "revealjs"
             ]
           },
-          description: "The brand mode to use for rendering the Typst document, `light` or `dark`.\n"
+          description: "The brand mode to use for rendering the document, `light` or `dark`.\n"
         },
         {
           name: "layout",
@@ -16692,6 +17347,24 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          name: "page-numbering",
+          schema: {
+            anyOf: [
+              "boolean",
+              "string"
+            ]
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n",
+            long: "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n\nSee [Typst Numbering](https://typst.app/docs/reference/model/numbering/) \nfor additional information.\n"
+          }
+        },
+        {
           name: "pagenumbering",
           schema: {
             maybeArrayOf: "string"
@@ -17013,7 +17686,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Use the specified engine when producing PDF output.",
-            long: "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`, `pagedjs-cli`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n- `typst`: `typst`\n"
+            long: "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `lualatex` (other options: `pdflatex`, `xelatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`, `pagedjs-cli`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n- `typst`: `typst`\n"
           }
         },
         {
@@ -17146,7 +17819,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer color theme for this presentation."
+          description: "The Beamer color theme for this presentation, passed to `\\usecolortheme`."
+        },
+        {
+          name: "colorthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer color theme options for this presentation, passed to `\\usecolortheme`."
         },
         {
           name: "fonttheme",
@@ -17156,7 +17841,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer font theme for this presentation."
+          description: "The Beamer font theme for this presentation, passed to `\\usefonttheme`."
+        },
+        {
+          name: "fontthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer font theme options for this presentation, passed to `\\usefonttheme`."
         },
         {
           name: "innertheme",
@@ -17166,7 +17863,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer inner theme for this presentation."
+          description: "The Beamer inner theme for this presentation, passed to `\\useinnertheme`."
+        },
+        {
+          name: "innerthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer inner theme options for this presentation, passed to `\\useinnertheme`."
         },
         {
           name: "outertheme",
@@ -17176,7 +17885,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer outer theme for this presentation."
+          description: "The Beamer outer theme for this presentation, passed to `\\useoutertheme`."
+        },
+        {
+          name: "outerthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer outer theme options for this presentation, passed to `\\useoutertheme`."
         },
         {
           name: "themeoptions",
@@ -17188,7 +17909,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "Options passed to LaTeX Beamer themes."
+          description: "Options passed to LaTeX Beamer themes inside `\\usetheme`."
         },
         {
           name: "section",
@@ -17789,15 +18510,11 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "logo",
           tags: {
             formats: [
-              "revealjs",
-              "typst"
+              "revealjs"
             ]
           },
           schema: {
-            anyOf: [
-              "string",
-              "object"
-            ]
+            ref: "logo-light-dark-specifier"
           },
           description: "Logo image (placed in bottom right corner of slides)"
         },
@@ -18702,7 +19419,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     url: {
                       string: {
-                        default: "https://reveal-multiplex.glitch.me/",
+                        default: "https://multiplex.up.railway.app/",
                         description: "Multiplex token server (defaults to Reveal-hosted server)\n"
                       }
                     },
@@ -19542,6 +20259,16 @@ var require_yaml_intelligence_resources = __commonJS({
                 },
                 formats: {
                   schema: "object"
+                },
+                engines: {
+                  arrayOf: {
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "external-engine"
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -19899,6 +20626,12 @@ var require_yaml_intelligence_resources = __commonJS({
                     description: "Additional file resources to be copied to output directory"
                   }
                 },
+                brand: {
+                  schema: {
+                    ref: "brand-path-only-light-dark"
+                  },
+                  description: "Path to brand.yml or object with light and dark paths to brand.yml\n"
+                },
                 preview: {
                   description: "Options for `quarto preview`",
                   schema: {
@@ -19974,7 +20707,14 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "engines",
           schema: {
-            arrayOf: "string"
+            arrayOf: {
+              anyOf: [
+                "string",
+                {
+                  ref: "external-engine"
+                }
+              ]
+            }
           },
           description: "List execution engines you want to give priority when determining which engine should render a notebook. If two engines have support for a notebook, the one listed earlier will be chosen. Quarto's default order is 'knitr', 'jupyter', 'markdown', 'julia'."
         }
@@ -20665,6 +21405,12 @@ var require_yaml_intelligence_resources = __commonJS({
         "asciidoc",
         "asciidoc_legacy",
         "asciidoctor",
+        "bbcode",
+        "bbcode_fluxbb",
+        "bbcode_hubzilla",
+        "bbcode_phpbb",
+        "bbcode_steam",
+        "bbcode_xenforo",
         "beamer",
         "biblatex",
         "bibtex",
@@ -20726,6 +21472,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "texinfo",
         "textile",
         "typst",
+        "vimdoc",
+        "xml",
         "xwiki",
         "zimwiki"
       ],
@@ -20738,23 +21486,13 @@ var require_yaml_intelligence_resources = __commonJS({
         "Alias for href",
         "Link to file contained with the project or external URL",
         {
-          short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>)",
-          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+          short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>)",
+          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
         },
         "Text to display for item (defaults to the document title if not\nprovided)",
         "Alias for href",
         'Value for rel attribute. Multiple space-separated values are\npermitted. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor a details.',
         'Value for target attribute. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target</a>\nfor details.',
-        "The Github repo that will be used to store comments.",
-        "The label that will be assigned to issues created by Utterances.",
-        {
-          short: "The Github theme that should be used for Utterances.",
-          long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
-        },
-        {
-          short: "How posts should be mapped to Github issues",
-          long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
-        },
         {
           short: "The Github repo that will be used to store comments.",
           long: "The Github repo that will be used to store comments.\nIn order to work correctly, the repo must be public, with the giscus\napp installed, and the discussions feature must be enabled."
@@ -20785,6 +21523,18 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name.",
         "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
+        "An execution engine not pre-loaded in Quarto",
+        "Path to the TypeScript module for the execution engine",
+        "The Github repo that will be used to store comments.",
+        "The label that will be assigned to issues created by Utterances.",
+        {
+          short: "The Github theme that should be used for Utterances.",
+          long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
+        },
+        {
+          short: "How posts should be mapped to Github issues",
+          long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
+        },
         "Override the default hypothesis client url with a custom client\nurl.",
         "Controls whether the sidebar opens automatically on startup.",
         "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -20933,6 +21683,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -20993,7 +21748,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Additional parameters to pass when executing a search",
         "Top navigation options",
         "The navbar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "The navbar\u2019s background color (named or hex color).",
@@ -21009,7 +21764,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -21026,7 +21781,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -21094,6 +21849,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -21154,7 +21914,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Additional parameters to pass when executing a search",
         "Top navigation options",
         "The navbar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "The navbar\u2019s background color (named or hex color).",
@@ -21170,7 +21930,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -21187,7 +21947,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -21334,7 +22094,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The path to an XML stylesheet (XSL file) used to style the RSS\nfeed.",
         {
           short: "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
-          long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://deno.land/std@0.125.0/datetime">here</a>.'
+          long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://quarto.org/docs/reference/dates.html">here</a>.'
         },
         {
           short: "The maximum length (in characters) of the description displayed in\nthe listing.",
@@ -21886,6 +22646,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify a default profile and profile groups",
         "Default profile to apply if QUARTO_PROFILE is not defined.",
         "Define a profile group for which at least one profile is always\nactive.",
+        "Control when tests should run",
+        "Run tests on CI (true = run, false = skip)",
+        "Skip test unconditionally (true = skip with default message, string =\nskip with custom message)",
+        "Run tests ONLY on these platforms (whitelist)",
+        "Don\u2019t run tests on these platforms (blacklist)",
         "The path to the locally referenced notebook.",
         "The title of the notebook when viewed.",
         "The url to use when viewing this notebook.",
@@ -21925,10 +22690,44 @@ var require_yaml_intelligence_resources = __commonJS({
         "Alternative text for the logo, used for accessibility.",
         "Provide definitions and defaults for brand\u2019s logo in various formats\nand sizes.",
         "A dictionary of named logo resources.",
+        "A link or path to the brand\u2019s small-sized logo or icon.",
+        "A link or path to the brand\u2019s medium-sized logo.",
+        "A link or path to the brand\u2019s large- or full-sized logo.",
+        "Provide definitions and defaults for brand\u2019s logo in various formats\nand sizes.",
+        "A dictionary of named logo resources.",
         "A link or path to the brand\u2019s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
         "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
         "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
         "Names of customizeable logos",
+        "Path or brand.yml logo resource name.",
+        "Alternative text for the logo, used for accessibility.",
+        "Path or brand.yml logo resource name.",
+        "Alternative text for the logo, used for accessibility.",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+        "Specification of a light logo",
+        "Specification of a dark logo",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+        "Specification of a light logo",
+        "Specification of a dark logo",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+        "Options for a light logo",
+        "Options for a dark logo",
+        "The brand\u2019s custom color palette and theme.",
+        "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
+        "The foreground color, used for text.",
+        "The background color, used for the page background.",
+        "The primary accent color, i.e.&nbsp;the main theme color. Typically used\nfor hyperlinks, active states, primary action buttons, etc.",
+        "The secondary accent color. Typically used for lighter text or\ndisabled states.",
+        "The tertiary accent color. Typically an even lighter color, used for\nhover states, accents, and wells.",
+        "The color used for positive or successful actions and\ninformation.",
+        "The color used for neutral or informational actions and\ninformation.",
+        "The color used for warning or cautionary actions and information.",
+        "The color used for errors, dangerous actions, or negative\ninformation.",
+        "A bright color, used as a high-contrast foreground color on dark\nelements or low-contrast background color on light elements.",
+        "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
+        "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
+        "A link or path to the brand\u2019s light-colored logo or icon.",
+        "A link or path to the brand\u2019s dark-colored logo or icon.",
         "The brand\u2019s custom color palette and theme.",
         "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
         "The foreground color, used for text.",
@@ -21944,7 +22743,17 @@ var require_yaml_intelligence_resources = __commonJS({
         "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
         "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
         "A color, which may be a named brand color.",
+        "A link or path to the brand\u2019s light-colored logo or icon.",
+        "A link or path to the brand\u2019s dark-colored logo or icon.",
         "A named brand color, taken either from <code>color.theme</code> or\n<code>color.palette</code> (in that order).",
+        "Typography definitions for the brand.",
+        "Font files and definitions for the brand.",
+        "The base font settings for the brand. These are used as the default\nfor all text.",
+        "Settings for headings, or a string specifying the font family\nonly.",
+        "Settings for monospace text, or a string specifying the font family\nonly.",
+        "Settings for inline code, or a string specifying the font family\nonly.",
+        "Settings for code blocks, or a string specifying the font family\nonly.",
+        "Settings for links.",
         "Typography definitions for the brand.",
         "Font files and definitions for the brand.",
         "The base font settings for the brand. These are used as the default\nfor all text.",
@@ -21955,12 +22764,17 @@ var require_yaml_intelligence_resources = __commonJS({
         "Settings for links.",
         "Base typographic options.",
         "Typographic options for headings.",
+        "Typographic options for headings.",
         "Typographic options for monospace elements.",
+        "Typographic options for monospace elements.",
+        "Typographic options for inline monospace elements.",
         "Typographic options for inline monospace elements.",
         "Line height",
         "Typographic options for block monospace elements.",
+        "Typographic options for block monospace elements.",
         "Typographic options for inline monospace elements.",
-        "Names of customizeable fonts",
+        "Typographic options for inline monospace elements.",
+        "Names of customizeable typography elements",
         "Font files and definitions for the brand.",
         "A font weight.",
         "A font style.",
@@ -21988,7 +22802,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
         "The path to the font file. This can be a local path or a URL.",
         "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
-        "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
+        "A path to a brand.yml file, or an object with light and dark paths to\nbrand.yml",
+        "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline (unified) brand definition, or an object with light\nand dark brand paths or definitions.",
         "The path to a light brand file or an inline light brand\ndefinition.",
         "The path to a dark brand file or an inline dark brand definition.",
         {
@@ -22209,6 +23024,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Document title",
         "Identifies the subtitle of the document.",
         "Document date",
+        "Date format for the document",
         "Document date modified",
         "Author or authors of the document",
         {
@@ -22366,7 +23182,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The title used for appendix.",
         "The delimiter beween appendix number and title.",
         "Enables a hover popup for cross references that shows the item being\nreferenced.",
-        "Logo image (placed on the left side of the navigation bar)",
+        "Logo image(s) (placed on the left side of the navigation bar)",
         "Default orientation for dashboard content (default\n<code>rows</code>)",
         "Use scrolling rather than fill layout (default:\n<code>false</code>)",
         "Make card content expandable (default: <code>true</code>)",
@@ -22752,6 +23568,10 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "YAML file containing custom language translations",
         {
+          short: "Enable babel language-specific shorthands in LaTeX output.",
+          long: 'Enable babel language-specific shorthands in LaTeX output. When\n<code>true</code>, babel\u2019s language shortcuts are enabled (e.g., French\n<code>&lt;&lt;</code>/<code>&gt;&gt;</code> for guillemets, German\n<code>"</code> shortcuts, proper spacing around French punctuation).\nDefault is <code>false</code> because language shorthands can\ninterfere with code blocks and other content. Only enable if you need\nspecific typographic features for your language.'
+        },
+        {
           short: "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).",
           long: "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).\nFor bidirectional documents, native pandoc <code>span</code>s and\n<code>div</code>s with the <code>dir</code> attribute can be used to\noverride the base direction in some output formats. This may not always\nbe necessary if the final renderer (e.g.&nbsp;the browser, when generating\nHTML) supports the [Unicode Bidirectional Algorithm].\nWhen using LaTeX for bidirectional documents, only the\n<code>xelatex</code> engine is fully supported (use\n<code>--pdf-engine=xelatex</code>)."
         },
@@ -22776,7 +23596,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Control the <code>\\pagestyle{}</code> for the document.",
         "The paper size for the document.",
-        "The brand mode to use for rendering the Typst document,\n<code>light</code> or <code>dark</code>.",
+        "The brand mode to use for rendering the document, <code>light</code>\nor <code>dark</code>.",
         {
           short: "The options for margins and text layout for this document.",
           long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.'
@@ -23012,11 +23832,15 @@ var require_yaml_intelligence_resources = __commonJS({
         "The image for the title slide.",
         "Controls navigation symbols for the presentation (<code>empty</code>,\n<code>frame</code>, <code>vertical</code>, or\n<code>horizontal</code>)",
         "Whether to enable title pages for new sections.",
-        "The Beamer color theme for this presentation.",
-        "The Beamer font theme for this presentation.",
-        "The Beamer inner theme for this presentation.",
-        "The Beamer outer theme for this presentation.",
-        "Options passed to LaTeX Beamer themes.",
+        "The Beamer color theme for this presentation, passed to\n<code>\\usecolortheme</code>.",
+        "The Beamer color theme options for this presentation, passed to\n<code>\\usecolortheme</code>.",
+        "The Beamer font theme for this presentation, passed to\n<code>\\usefonttheme</code>.",
+        "The Beamer font theme options for this presentation, passed to\n<code>\\usefonttheme</code>.",
+        "The Beamer inner theme for this presentation, passed to\n<code>\\useinnertheme</code>.",
+        "The Beamer inner theme options for this presentation, passed to\n<code>\\useinnertheme</code>.",
+        "The Beamer outer theme for this presentation, passed to\n<code>\\useoutertheme</code>.",
+        "The Beamer outer theme options for this presentation, passed to\n<code>\\useoutertheme</code>.",
+        "Options passed to LaTeX Beamer themes inside\n<code>\\usetheme</code>.",
         "The section number in man pages.",
         "Enable and disable extensions for markdown output (e.g.&nbsp;\u201C+emoji\u201D)",
         "Specify whether to use <code>atx</code> (<code>#</code>-prefixed) or\n<code>setext</code> (underlined) headings for level 1 and 2 headings\n(<code>atx</code> or <code>setext</code>).",
@@ -23384,6 +24208,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "HTML library (JS/CSS/etc.) directory",
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
+        "Path to brand.yml or object with light and dark paths to\nbrand.yml",
         "Options for <code>quarto preview</code>",
         "Scripts to run as a pre-render step",
         "Scripts to run as a post-render step",
@@ -23424,6 +24249,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -23484,7 +24314,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Additional parameters to pass when executing a search",
         "Top navigation options",
         "The navbar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "The navbar\u2019s background color (named or hex color).",
@@ -23500,7 +24330,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -23517,7 +24347,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -23719,6 +24549,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "Manuscript configuration",
         "internal-schema-hack",
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+        "When defined, run axe-core accessibility tests on the document.",
+        "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
+        "The logo image.",
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -23730,6 +24563,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "HTML library (JS/CSS/etc.) directory",
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
+        "Path to brand.yml or object with light and dark paths to\nbrand.yml",
         "Options for <code>quarto preview</code>",
         "Scripts to run as a pre-render step",
         "Scripts to run as a post-render step",
@@ -23770,6 +24604,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -23830,7 +24669,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Additional parameters to pass when executing a search",
         "Top navigation options",
         "The navbar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "The navbar\u2019s background color (named or hex color).",
@@ -23846,7 +24685,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -23863,7 +24702,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -24066,74 +24905,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "internal-schema-hack",
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
         {
-          short: "The Github repo that will be used to store comments.",
-          long: "The Github repo that will be used to store comments.\nIn order to work correctly, the repo must be public, with the giscus\napp installed, and the discussions feature must be enabled."
-        },
-        {
-          short: "The Github repository identifier.",
-          long: 'The Github repository identifier.\nYou can quickly find this by using the configuration tool at <a href="https://giscus.app">https://giscus.app</a>. If this is not\nprovided, Quarto will attempt to discover it at render time.'
-        },
-        {
-          short: "The discussion category where new discussions will be created.",
-          long: "The discussion category where new discussions will be created. It is\nrecommended to use a category with the <strong>Announcements</strong>\ntype so that new discussions can only be created by maintainers and\ngiscus."
-        },
-        {
-          short: "The Github category identifier.",
-          long: 'The Github category identifier.\nYou can quickly find this by using the configuration tool at <a href="https://giscus.app">https://giscus.app</a>. If this is not\nprovided, Quarto will attempt to discover it at render time.'
-        },
-        {
-          short: "The mapping between the page and the embedded discussion.",
-          long: "The mapping between the page and the embedded discussion."
-        },
-        "Display reactions for the discussion\u2019s main post before the\ncomments.",
-        "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
-        "Place the comment input box above or below the comments.",
-        {
-          short: "The giscus theme to use when displaying comments.",
-          long: "The giscus theme to use when displaying comments. Light and dark\nthemes are supported. If a single theme is provided by name, it will be\nused as light and dark theme. To use different themes, use\n<code>light</code> and <code>dark</code> key:"
-        },
-        "The light theme name.",
-        "The dark theme name.",
-        "The language that should be used when displaying the commenting\ninterface.",
-        "The Github repo that will be used to store comments.",
-        "The label that will be assigned to issues created by Utterances.",
-        {
-          short: "The Github theme that should be used for Utterances.",
-          long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
-        },
-        {
-          short: "How posts should be mapped to Github issues",
-          long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
-        },
-        "Override the default hypothesis client url with a custom client\nurl.",
-        "Controls whether the sidebar opens automatically on startup.",
-        "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
-        "Controls the overall look of the sidebar (<code>classic</code> or\n<code>clean</code>)",
-        "Controls whether the experimental New Note button should be shown in\nthe notes tab in the sidebar.",
-        "Specify a URL to direct a user to, in a new tab. when they click on\nthe annotation author link in the header of an annotation.",
-        "Alternative annotation services which the client should connect to\ninstead of connecting to the public Hypothesis service at\nhypothes.is.",
-        "The base URL of the service API.",
-        "The domain name which the annotation service is associated with.",
-        "An OAuth 2 grant token which the client can send to the service in\norder to get an access token for making authenticated requests to the\nservice.",
-        "A flag indicating whether users should be able to leave groups of\nwhich they are a member.",
-        "A flag indicating whether annotation cards should show links that\ntake the user to see an annotation in context.",
-        "An array of Group IDs or the literal string\n<code>$rpc:requestGroups</code>",
-        "The URL to an image for the annotation service. This image will\nappear to the left of the name of the currently selected group.",
-        "Settings to adjust the commenting sidebar\u2019s look and feel.",
-        "Secondary color for elements of the commenting UI.",
-        "The main background color of the commenting UI.",
-        "The background color for call to action buttons.",
-        "The font family for selection text in the annotation card.",
-        "The font family for the actual annotation value that the user writes\nabout the page or selection.",
-        "A CSS selector specifying the containing element into which the\nsidebar iframe will be placed.",
-        "Defines a focused filter set for the available annotations on a\npage.",
-        "The username of the user to focus on.",
-        "The userid of the user to focus on.",
-        "The display name of the user to focus on.",
-        "Host url and port number of receiving iframe",
-        "Number of nested iframes deep the client is relative from the\nreceiving iframe.",
-        "The root URL from which assets are loaded.",
-        "The URL for the sidebar application which displays annotations."
+          short: "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
+          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -24362,12 +25136,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 193837,
+        _internalId: 218561,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 193829,
+            _internalId: 218553,
             type: "enum",
             enum: [
               "png",
@@ -24383,7 +25157,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 193836,
+            _internalId: 218560,
             type: "anyOf",
             anyOf: [
               {
@@ -24423,7 +25197,51 @@ var require_yaml_intelligence_resources = __commonJS({
           "case-detection": true
         },
         $id: "handlers/mermaid"
-      }
+      },
+      "schema/document-a11y.yml": [
+        {
+          name: "axe",
+          tags: {
+            formats: [
+              "$html-files"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                object: {
+                  properties: {
+                    output: {
+                      enum: [
+                        "json",
+                        "console",
+                        "document"
+                      ],
+                      description: "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          description: "When defined, run axe-core accessibility tests on the document."
+        }
+      ],
+      "schema/document-typst.yml": [
+        {
+          name: "logo",
+          schema: {
+            ref: "logo-light-dark-specifier-path-optional"
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: "The logo image."
+        }
+      ]
     };
   }
 });
@@ -27464,7 +28282,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
   return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE;
 }
 function writeScalar(state, string, level, iskey, inblock) {
-  state.dump = function() {
+  state.dump = (function() {
     if (string.length === 0) {
       return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''";
     }
@@ -27502,7 +28320,7 @@ function writeScalar(state, string, level, iskey, inblock) {
       default:
         throw new exception("impossible error: invalid scalar style");
     }
-  }();
+  })();
 }
 function blockHeader(string, indentPerLevel) {
   var indentIndicator = needIndentIndicator(string) ? String(indentPerLevel) : "";
@@ -27516,12 +28334,12 @@ function dropEndingNewline(string) {
 }
 function foldString(string, width) {
   var lineRe = /(\n+)([^\n]*)/g;
-  var result = function() {
+  var result = (function() {
     var nextLF = string.indexOf("\n");
     nextLF = nextLF !== -1 ? nextLF : string.length;
     lineRe.lastIndex = nextLF;
     return foldLine(string.slice(0, nextLF), width);
-  }();
+  })();
   var prevMoreIndented = string[0] === "\n" || string[0] === " ";
   var moreIndented;
   var match;
@@ -31608,8 +32426,8 @@ function validateGeneric(value, s, context) {
     "boolean": (schema2) => validateBoolean(value, schema2, context),
     "number": (schema2) => validateNumber(value, schema2, context),
     "string": (schema2) => validateString(value, schema2, context),
-    "null": (schema2) => validateNull(value, schema2, context),
-    "enum": (schema2) => validateEnum(value, schema2, context),
+    "null": ((schema2) => validateNull(value, schema2, context)),
+    "enum": ((schema2) => validateEnum(value, schema2, context)),
     "anyOf": (schema2) => validateAnyOf(value, schema2, context),
     "allOf": (schema2) => validateAllOf(value, schema2, context),
     "array": (schema2) => validateArray(value, schema2, context),
@@ -32273,7 +33091,7 @@ function objectSchema(params = {}) {
       );
       console.error("This is a bug in quarto's schemas.");
       console.error(
-        "Note that we don't throw in order to allow build-js to finish, but the generated schemas will be invalid."
+        "Note that we don't throw in order to allow build-artifacts to finish, but the generated schemas will be invalid."
       );
     }
     result.properties = Object.assign(
@@ -33644,7 +34462,7 @@ function parseShortcode(shortCodeCapture) {
 }
 
 // ../break-quarto-md.ts
-async function breakQuartoMd(src, validate2 = false, lenient = false) {
+async function breakQuartoMd(src, validate2 = false, lenient = false, startCodeCellRegex) {
   if (typeof src === "string") {
     src = asMappedString(src);
   }
@@ -33653,7 +34471,7 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
     cells: []
   };
   const yamlRegEx = /^---\s*$/;
-  const startCodeCellRegEx = new RegExp(
+  const startCodeCellRegEx = startCodeCellRegex || new RegExp(
     "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
   );
   const startCodeRegEx = /^```/;

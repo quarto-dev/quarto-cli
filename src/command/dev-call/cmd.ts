@@ -2,6 +2,10 @@ import { Command } from "cliffy/command/mod.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { commands } from "../command.ts";
 import { buildJsCommand } from "./build-artifacts/cmd.ts";
+import { validateYamlCommand } from "./validate-yaml/cmd.ts";
+import { showAstTraceCommand } from "./show-ast-trace/cmd.ts";
+import { makeAstDiagramCommand } from "./make-ast-diagram/cmd.ts";
+import { pullGitSubtreeCommand } from "./pull-git-subtree/cmd.ts";
 
 type CommandOptionInfo = {
   name: string;
@@ -13,6 +17,7 @@ type CommandOptionInfo = {
 };
 
 type CommandInfo = {
+  hidden: boolean;
   name: string;
   description: string;
   options: CommandOptionInfo[];
@@ -33,10 +38,19 @@ const generateCliInfoCommand = new Command()
     output["version"] = quartoConfig.version();
     const commandsInfo: CommandInfo[] = [];
     output["commands"] = commandsInfo;
+
+    // Cliffy doesn't export the "hidden" property, so we maintain our own list
+    // here
+    const hiddenCommands = [
+      "dev-call",
+      "editor-support",
+      "create-project",
+    ];
     // deno-lint-ignore no-explicit-any
     const cmdAsJson = (cmd: any): CommandInfo => {
       return {
         name: cmd.getName(),
+        hidden: hiddenCommands.includes(cmd.getName()),
         description: cmd.getDescription(),
         options: cmd.getOptions(),
         usage: cmd.getUsage(),
@@ -50,6 +64,7 @@ const generateCliInfoCommand = new Command()
 
 export const devCallCommand = new Command()
   .name("dev-call")
+  .hidden()
   .description(
     "Access internals of Quarto - this command is not intended for general use.",
   )
@@ -58,4 +73,8 @@ export const devCallCommand = new Command()
     Deno.exit(1);
   })
   .command("cli-info", generateCliInfoCommand)
-  .command("build-artifacts", buildJsCommand);
+  .command("validate-yaml", validateYamlCommand)
+  .command("build-artifacts", buildJsCommand)
+  .command("show-ast-trace", showAstTraceCommand)
+  .command("make-ast-diagram", makeAstDiagramCommand)
+  .command("pull-git-subtree", pullGitSubtreeCommand);

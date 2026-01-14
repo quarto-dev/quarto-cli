@@ -1,0 +1,67 @@
+---
+title: "Two Column with Table of Contents"
+abstract: "This document tests that the table of contents works correctly with a two-column layout."
+toc: true
+toc-title: "Contents"
+toc-depth: 2
+format:
+  typst:
+    columns: 2
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - # Patterns that MUST be found
+          # Page columns set via set page()
+          - 'columns: 2,'
+          # Title block wrapped with place(scope: "parent") for column spanning
+          - 'place\(top, float: true, scope: "parent", clearance: 4mm\)'
+          # TOC enabled in article() call
+          - 'toc: true'
+          # TOC title passed
+          - 'toc_title: \[Contents\]'
+          # TOC depth passed
+          - 'toc_depth: 2'
+          # Outline function call in article()
+          - '#outline\('
+        - # Patterns that must NOT be found
+          # Should NOT have columns() function call wrapping doc at end of article()
+          - 'columns\(cols, doc\)\n\}'
+---
+
+## Introduction
+
+This document tests that the table of contents is rendered correctly in a two-column layout.
+
+## First Chapter
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+### First Subsection
+
+Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+### Second Subsection
+
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+
+## Second Chapter
+
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.
+
+### Third Subsection
+
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia.
+
+### Fourth Subsection
+
+Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium.
+
+## Third Chapter
+
+At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis.
+
+## Conclusion
+
+The TOC should appear after the title block and before the main content.

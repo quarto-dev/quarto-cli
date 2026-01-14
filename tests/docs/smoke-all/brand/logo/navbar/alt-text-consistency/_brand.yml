@@ -1,0 +1,19 @@
+color:
+  background:
+    light: "#fff"
+    dark: "#111"
+  foreground:
+    light: "#111"
+    dark: "#fff"
+logo:
+  images:
+    logo-with-alt:
+      path: logo.png
+      alt: Logo with alt text
+    logo-without-alt:
+      path: logo-dark.png
+      # No alt text defined
+    # Another resource referenced by website.navbar.logo
+    mixed-alt:
+      path: mixed.png
+      alt: Mixed alt from brand

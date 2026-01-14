@@ -14,7 +14,7 @@ import {
 } from "../../config/types.ts";
 import {
   ExecuteResult,
-  ExecutionEngine,
+  ExecutionEngineInstance,
   ExecutionTarget,
 } from "../../execute/types.ts";
 import { Metadata } from "../../config/types.ts";
@@ -56,7 +56,7 @@ export interface RenderServiceWithLifetime extends RenderServices {
 export interface RenderContext {
   target: ExecutionTarget;
   options: RenderOptions;
-  engine: ExecutionEngine;
+  engine: ExecutionEngineInstance;
   format: Format;
   libDir: string;
   project: ProjectContext;

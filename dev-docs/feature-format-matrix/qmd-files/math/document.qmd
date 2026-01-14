@@ -5,6 +5,8 @@ format:
   html: default
 _quarto:
   tests:
+    run:
+      skip: "Pandoc 3.7+ removes newlines in display math blocks (fixed in pandoc@8123be6, awaiting release)"
     html:
       ensureHtmlElements:
         - []

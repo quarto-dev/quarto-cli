@@ -264,7 +264,7 @@ export const createMecaBundle = async (
     const manuscriptResources: MecaItem[] = [];
     const manuscriptZipFiles: string[] = [];
     if (jatsArticle.supporting) {
-      ld.uniq(jatsArticle.supporting).forEach((file) => {
+      ld.uniq(jatsArticle.supporting).forEach((file: string) => {
         const relPath = isAbsolute(file) ? relative(outputDir, file) : file;
         const absPath = isAbsolute(file) ? file : join(outputDir, file);
         const workingPath = toWorkingDir(absPath, relPath, false);

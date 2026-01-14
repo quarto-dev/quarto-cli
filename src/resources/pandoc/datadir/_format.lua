@@ -288,6 +288,9 @@ local function _main()
   end
 
   return {
+    format_identifier = function()
+      return param("format-identifier", {})
+    end,
     isAsciiDocOutput = isAsciiDocOutput,
     is_asciidoc_output = isAsciiDocOutput,
     isRawHtml = isRawHtml,
@@ -323,13 +326,13 @@ local function _main()
     isMarkdownOutput = isMarkdownOutput,
     is_markdown_output = isMarkdownOutput,
     isMarkdownWithHtmlOutput = isMarkdownWithHtmlOutput,
-    is_markdown_with_html_output = isMarkdownOutput,
+    is_markdown_with_html_output = isMarkdownWithHtmlOutput,
     isIpynbOutput = isIpynbOutput, 
     is_ipynb_output = isIpynbOutput,
     isHtmlOutput = isHtmlOutput, 
     is_html_output = isHtmlOutput,
     isHtmlSlideOutput = isHtmlSlideOutput,
-    is_html_slide_output = isHtmlOutput,
+    is_html_slide_output = isHtmlSlideOutput,
     isBibliographyOutput = isBibliographyOutput,
     is_bibliography_output = isBibliographyOutput,
     isNativeOutput = isNativeOutput,

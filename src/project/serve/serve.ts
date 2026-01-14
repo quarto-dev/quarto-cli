@@ -104,15 +104,12 @@ import { removePandocToArg } from "../../command/render/flags.ts";
 import { isRStudioServer, isServerSession } from "../../core/platform.ts";
 import { ServeRenderManager } from "./render.ts";
 import { projectScratchPath } from "../project-scratch.ts";
-import {
-  previewEnsureResources,
-  previewMonitorResources,
-} from "../../core/quarto.ts";
+import { previewMonitorResources } from "../../core/quarto.ts";
 import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
 import { projectExtensionDirs } from "../../extension/extension.ts";
 import { findOpenPort } from "../../core/port.ts";
 import { kLocalhost } from "../../core/port-consts.ts";
-import { ProjectServe } from "../../resources/types/schema-types.ts";
+import { ProjectServe } from "../../resources/types/zod/schema-types.ts";
 import { handleHttpRequests } from "../../core/http-server.ts";
 import { touch } from "../../core/file.ts";
 import { staticResource } from "../../preview/preview-static.ts";
@@ -211,7 +208,6 @@ export async function serveProject(
   acquirePreviewLock(project);
 
   // monitor the src dir
-  previewEnsureResources();
   previewMonitorResources();
 
   // clear the project index
@@ -627,6 +623,7 @@ async function internalPreviewServer(
                     services,
                     useFreezer: true,
                     devServerReload: true,
+                    previewServer: true,
                     flags: renderFlags,
                     pandocArgs: renderPandocArgs,
                   },
