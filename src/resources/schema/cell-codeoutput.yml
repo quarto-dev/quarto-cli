@@ -112,9 +112,9 @@
     formats: [revealjs]
   schema: string
   description:
-    short: "Custom fragment indices for code line highlighting steps (revealjs only)"
+    short: "Custom fragment indices for code line highlighting steps (Reveal.js only)"
     long: |
-      Custom fragment indices for code line highlighting steps (revealjs only).
+      Custom fragment indices for code line highlighting steps (Reveal.js only).
 
       When using `code-line-numbers` with animation steps (separated by `|`),
       you can control the fragment index of each step using this attribute.
