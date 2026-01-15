@@ -11,6 +11,7 @@ listing:
 _quarto:
   tests:
     html:
+      noErrors: true
       ensureHtmlElements:
         -
           - "a[href$='post-with-target.html'][target='_blank'][rel='noopener']"
