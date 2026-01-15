@@ -405,7 +405,8 @@ export function reshapeListing(
     const path = item.path;
     if (path && value !== undefined && fieldLinks.includes(field)) {
       const targetAttr = item.target ? ` target="${item.target}"` : "";
-      return `<a href="${path}"${targetAttr} class="${field}${
+      const relAttr = item.target === "_blank" ? ` rel="noopener"` : "";
+      return `<a href="${path}"${targetAttr}${relAttr} class="${field}${
         clz ? ` ${clz}` : ""
       }">${value}</a>`;
     } else {
