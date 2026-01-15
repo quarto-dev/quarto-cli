@@ -13,12 +13,14 @@ _quarto:
         -
           - "span#eq-display-math > span.math"
           - "span#eq-display-alt > span.math"
+          - "span#eq-display-alt-spaces > span.math"
           - "span#eq-single-quote > span.math"
           - "span#eq-double-quote > span.math"
           - "span#eq-mixed-quotes > span.math"
           - "span#eq-single-quote-alt > span.math"
           - "a.quarto-xref[href='#eq-display-math']"
           - "a.quarto-xref[href='#eq-display-alt']"
+          - "a.quarto-xref[href='#eq-display-alt-spaces']"
           - "a.quarto-xref[href='#eq-single-quote']"
           - "a.quarto-xref[href='#eq-double-quote']"
           - "a.quarto-xref[href='#eq-mixed-quotes']"
@@ -29,6 +31,7 @@ _quarto:
         -
           - "\\\\begin\\{equation\\}\\\\protect\\\\phantomsection\\\\label\\{eq-display-math\\}"
           - "\\\\begin\\{equation\\}\\\\protect\\\\phantomsection\\\\label\\{eq-display-alt\\}"
+          - "\\\\begin\\{equation\\}\\\\protect\\\\phantomsection\\\\label\\{eq-display-alt-spaces\\}"
           - "\\\\begin\\{equation\\}\\\\protect\\\\phantomsection\\\\label\\{eq-single-quote\\}"
           - "\\\\begin\\{equation\\}\\\\protect\\\\phantomsection\\\\label\\{eq-double-quote\\}"
           - "\\\\begin\\{equation\\}\\\\protect\\\\phantomsection\\\\label\\{eq-mixed-quotes\\}"
@@ -38,6 +41,7 @@ _quarto:
         -
           - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", \\[ \\$ E = m c\\^2 \\$ \\]\\)<eq-display-math>"
           - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"Einsteins mass-energy equivalence equation\", \\[ \\$ E = m c\\^2 \\$ \\]\\)<eq-display-alt>"
+          - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"Einsteins mass-energy equivalence equation\", \\[ \\$ E = m c\\^2 \\$ \\]\\)<eq-display-alt-spaces>"
           - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"Newton's second law of motion\", \\[ \\$ F = m a \\$ \\]\\)<eq-single-quote>"
           - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"The \\\\\"Pythagorean\\\\\" theorem\", \\[ \\$ a\\^2 \\+ b\\^2 = c\\^2 \\$ \\]\\)<eq-double-quote>"
           - "#math\\.equation\\(block: true, numbering: \"\\(1\\)\", alt: \"This is using \\\\\"quotes\\\\\" but I'm sure it works\", \\[ \\$ x \\+ y = z \\$ \\]\\)<eq-mixed-quotes>"
@@ -70,6 +74,12 @@ E = mc^2
 $$ {#eq-display-alt alt="Einsteins mass-energy equivalence equation"}
 
 See @eq-display-alt.
+
+$$
+E = mc^2
+$$ {#eq-display-alt-spaces alt="Einsteins mass-energy equivalence equation"}
+
+See @eq-display-alt-spaces.
 
 ## Display Math (with single quote in alt)
 
