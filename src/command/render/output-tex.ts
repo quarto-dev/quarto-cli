@@ -11,7 +11,12 @@ import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { texSafeFilename } from "../../core/tex.ts";
 
-import { kKeepTex, kOutputExt, kOutputFile } from "../../config/constants.ts";
+import {
+  kKeepTex,
+  kOutputExt,
+  kOutputFile,
+  kTargetFormat,
+} from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
 
 import { PandocOptions, RenderFlags, RenderOptions } from "./types.ts";
@@ -49,8 +54,8 @@ export function texToPdfOutputRecipe(
   // include variants in the tex stem if they are present to avoid
   // overwriting files
   let fixupInputName = "";
-  if (format.identifier["target-format"]) {
-    const formatDesc = parseFormatString(format.identifier["target-format"]);
+  if (format.identifier[kTargetFormat]) {
+    const formatDesc = parseFormatString(format.identifier[kTargetFormat]);
     fixupInputName = `${formatDesc.variants.join("")}${
       formatDesc.modifiers.join("")
     }`;

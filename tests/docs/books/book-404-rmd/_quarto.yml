@@ -1,0 +1,13 @@
+project:
+  type: book
+
+book:
+  title: "Test Book with 404 RMD"
+  author: "Test Author"
+  chapters:
+    - index.qmd
+    - chapter1.qmd
+
+format:
+  html:
+    theme: default

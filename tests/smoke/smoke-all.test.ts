@@ -103,6 +103,11 @@ function skipTest(metadata: Record<string, any>): string | undefined {
     return undefined;
   }
 
+  // Check explicit skip with message
+  if (runConfig.skip) {
+    return typeof runConfig.skip === "string" ? runConfig.skip : "tests.run.skip is true";
+  }
+
   // Check CI
   if (runningInCI() && runConfig.ci === false) {
     return "tests.run.ci is false";

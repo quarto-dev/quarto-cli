@@ -8725,6 +8725,25 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "external-engine",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                path: {
+                  path: {
+                    description: "Path to the TypeScript module for the execution engine"
+                  }
+                }
+              },
+              required: [
+                "path"
+              ]
+            },
+            description: "An execution engine not pre-loaded in Quarto"
+          }
+        },
+        {
           id: "document-comments-configuration",
           anyOf: [
             {
@@ -11687,6 +11706,13 @@ var require_yaml_intelligence_resources = __commonJS({
                                       description: "Run tests on CI (true = run, false = skip)",
                                       default: true
                                     }
+                                  },
+                                  skip: {
+                                    description: "Skip test unconditionally (true = skip with default message, string = skip with custom message)",
+                                    anyOf: [
+                                      "boolean",
+                                      "string"
+                                    ]
                                   },
                                   os: {
                                     description: "Run tests ONLY on these platforms (whitelist)",
@@ -16018,6 +16044,21 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "YAML file containing custom language translations"
         },
         {
+          name: "shorthands",
+          tags: {
+            formats: [
+              "pdf",
+              "beamer"
+            ]
+          },
+          schema: "boolean",
+          default: false,
+          description: {
+            short: "Enable babel language-specific shorthands in LaTeX output.",
+            long: "Enable babel language-specific shorthands in LaTeX output. When `true`,\nbabel's language shortcuts are enabled (e.g., French `<<`/`>>` for guillemets,\nGerman `\"` shortcuts, proper spacing around French punctuation).\n\nDefault is `false` because language shorthands can interfere with code blocks\nand other content. Only enable if you need specific typographic features\nfor your language.\n"
+          }
+        },
+        {
           name: "dir",
           schema: {
             enum: [
@@ -17303,6 +17344,24 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "Shift heading levels by a positive or negative integer. For example, with \n`shift-heading-level-by: -1`, level 2 headings become level 1 headings.\n",
             long: "Shift heading levels by a positive or negative integer.\nFor example, with `shift-heading-level-by: -1`, level 2\nheadings become level 1 headings, and level 3 headings\nbecome level 2 headings.  Headings cannot have a level\nless than 1, so a heading that would be shifted below level 1\nbecomes a regular paragraph.  Exception: with a shift of -N,\na level-N heading at the beginning of the document\nreplaces the metadata title.\n"
+          }
+        },
+        {
+          name: "page-numbering",
+          schema: {
+            anyOf: [
+              "boolean",
+              "string"
+            ]
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n",
+            long: "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n\nSee [Typst Numbering](https://typst.app/docs/reference/model/numbering/) \nfor additional information.\n"
           }
         },
         {
@@ -20200,6 +20259,16 @@ var require_yaml_intelligence_resources = __commonJS({
                 },
                 formats: {
                   schema: "object"
+                },
+                engines: {
+                  arrayOf: {
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "external-engine"
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -20638,7 +20707,14 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "engines",
           schema: {
-            arrayOf: "string"
+            arrayOf: {
+              anyOf: [
+                "string",
+                {
+                  ref: "external-engine"
+                }
+              ]
+            }
           },
           description: "List execution engines you want to give priority when determining which engine should render a notebook. If two engines have support for a notebook, the one listed earlier will be chosen. Quarto's default order is 'knitr', 'jupyter', 'markdown', 'julia'."
         }
@@ -21329,6 +21405,12 @@ var require_yaml_intelligence_resources = __commonJS({
         "asciidoc",
         "asciidoc_legacy",
         "asciidoctor",
+        "bbcode",
+        "bbcode_fluxbb",
+        "bbcode_hubzilla",
+        "bbcode_phpbb",
+        "bbcode_steam",
+        "bbcode_xenforo",
         "beamer",
         "biblatex",
         "bibtex",
@@ -21390,6 +21472,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "texinfo",
         "textile",
         "typst",
+        "vimdoc",
+        "xml",
         "xwiki",
         "zimwiki"
       ],
@@ -21439,6 +21523,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name.",
         "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
+        "An execution engine not pre-loaded in Quarto",
+        "Path to the TypeScript module for the execution engine",
         "The Github repo that will be used to store comments.",
         "The label that will be assigned to issues created by Utterances.",
         {
@@ -22560,6 +22646,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify a default profile and profile groups",
         "Default profile to apply if QUARTO_PROFILE is not defined.",
         "Define a profile group for which at least one profile is always\nactive.",
+        "Control when tests should run",
+        "Run tests on CI (true = run, false = skip)",
+        "Skip test unconditionally (true = skip with default message, string =\nskip with custom message)",
+        "Run tests ONLY on these platforms (whitelist)",
+        "Don\u2019t run tests on these platforms (blacklist)",
         "The path to the locally referenced notebook.",
         "The title of the notebook when viewed.",
         "The url to use when viewing this notebook.",
@@ -23476,6 +23567,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: 'Identifies the main language of the document using IETF language tags\n(following the <a href="https://www.rfc-editor.org/info/bcp47">BCP\n47</a> standard), such as <code>en</code> or <code>en-GB</code>. The <a href="https://r12a.github.io/app-subtags/">Language subtag lookup</a>\ntool can look up or verify these tags.\nThis affects most formats, and controls hyphenation in PDF output\nwhen using LaTeX (through <a href="https://ctan.org/pkg/babel"><code>babel</code></a> and <a href="https://ctan.org/pkg/polyglossia"><code>polyglossia</code></a>) or\nConTeXt.'
         },
         "YAML file containing custom language translations",
+        {
+          short: "Enable babel language-specific shorthands in LaTeX output.",
+          long: 'Enable babel language-specific shorthands in LaTeX output. When\n<code>true</code>, babel\u2019s language shortcuts are enabled (e.g., French\n<code>&lt;&lt;</code>/<code>&gt;&gt;</code> for guillemets, German\n<code>"</code> shortcuts, proper spacing around French punctuation).\nDefault is <code>false</code> because language shorthands can\ninterfere with code blocks and other content. Only enable if you need\nspecific typographic features for your language.'
+        },
         {
           short: "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).",
           long: "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).\nFor bidirectional documents, native pandoc <code>span</code>s and\n<code>div</code>s with the <code>dir</code> attribute can be used to\noverride the base direction in some output formats. This may not always\nbe necessary if the final renderer (e.g.&nbsp;the browser, when generating\nHTML) supports the [Unicode Bidirectional Algorithm].\nWhen using LaTeX for bidirectional documents, only the\n<code>xelatex</code> engine is fully supported (use\n<code>--pdf-engine=xelatex</code>)."
@@ -24808,7 +24903,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+        {
+          short: "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
+          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -25037,12 +25136,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197523,
+        _internalId: 218561,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197515,
+            _internalId: 218553,
             type: "enum",
             enum: [
               "png",
@@ -25058,7 +25157,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197522,
+            _internalId: 218560,
             type: "anyOf",
             anyOf: [
               {
@@ -34363,7 +34462,7 @@ function parseShortcode(shortCodeCapture) {
 }
 
 // ../break-quarto-md.ts
-async function breakQuartoMd(src, validate2 = false, lenient = false) {
+async function breakQuartoMd(src, validate2 = false, lenient = false, startCodeCellRegex) {
   if (typeof src === "string") {
     src = asMappedString(src);
   }
@@ -34372,7 +34471,7 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
     cells: []
   };
   const yamlRegEx = /^---\s*$/;
-  const startCodeCellRegEx = new RegExp(
+  const startCodeCellRegEx = startCodeCellRegex || new RegExp(
     "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
   );
   const startCodeRegEx = /^```/;

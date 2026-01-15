@@ -324,6 +324,15 @@
         }
       }
     },
+    "ExternalEngine": {
+      "object": {
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "DocumentCommentsConfiguration": {
       "anyOf": [
         {
@@ -2925,6 +2934,16 @@
                           "properties": {
                             "ci": {
                               "type": "boolean"
+                            },
+                            "skip": {
+                              "anyOf": [
+                                {
+                                  "type": "boolean"
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
                             },
                             "os": {
                               "anyOf": [

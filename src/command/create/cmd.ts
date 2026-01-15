@@ -13,6 +13,7 @@ import {
   isPositWorkbench,
 } from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
+import { initializeProjectContextAndEngines } from "../command-utils.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { prompt, Select, SelectValueOptions } from "cliffy/prompt/mod.ts";
@@ -52,6 +53,9 @@ export const createCommand = new Command()
       type?: string,
       ...commands: string[]
     ) => {
+      // Initialize engines before any artifact creation
+      await initializeProjectContextAndEngines();
+
       if (options.json) {
         await createFromStdin();
       } else {

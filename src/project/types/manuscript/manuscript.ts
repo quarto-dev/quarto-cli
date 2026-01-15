@@ -85,6 +85,8 @@ import {
   shouldMakeMecaBundle,
 } from "./manuscript-meca.ts";
 import { readLines } from "../../../deno_ral/io.ts";
+import { debug } from "../../../deno_ral/log.ts";
+import { logLevel, warnOnce } from "../../../core/log.ts";
 import {
   computeProjectArticleFile,
   isArticle,
@@ -102,10 +104,9 @@ import { manuscriptRenderer } from "./manuscript-render.ts";
 import { outputFile } from "../../../render/notebook/notebook-contributor-html.ts";
 import { Document } from "../../../core/deno-dom.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
-import { isQmdFile } from "../../../execute/qmd.ts";
 
 import * as ld from "../../../core/lodash.ts";
-import { safeExistsSync } from "../../../core/path.ts";
+import { isQmdFile, safeExistsSync } from "../../../core/path.ts";
 
 import {
   copySync,
@@ -366,8 +367,22 @@ export const manuscriptProjectType: ProjectType = {
       if (manuscriptConfig) {
         let baseUrl = manuscriptConfig[kManuscriptUrl];
         if (baseUrl === undefined) {
-          const ghContext = await gitHubContext(options.project.dir);
-          baseUrl = ghContext.siteUrl;
+          try {
+            const ghContext = await gitHubContext(options.project.dir);
+            baseUrl = ghContext.siteUrl;
+          } catch (e) {
+            // git ls-remote failed (credentials, network, host key, etc.) - don't block rendering
+            const errorMessage = e instanceof Error ? e.message : String(e);
+            if (logLevel() === "DEBUG") {
+              debug(`Failed to auto-detect manuscript URL from GitHub: ${errorMessage}`);
+            }
+            const debugHint = logLevel() === "DEBUG" ? '' : ' Run with --log-level debug for details.';
+            warnOnce(
+              'Unable to auto-detect manuscript URL from GitHub Pages. ' +
+              'Set manuscript-url explicitly in your configuration if needed.' +
+              debugHint
+            );
+          }
         }
         if (baseUrl) {
           filterParams[kManuscriptUrl] = baseUrl;

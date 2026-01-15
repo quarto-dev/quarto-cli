@@ -101,6 +101,7 @@ export default defineConfig({
       url: 'http://127.0.0.1:8080',
       reuseExistingServer: !isCI,
       cwd: '../../docs/playwright',
+      stderr: 'ignore',  // Suppress verbose HTTP request logs
     },
     {
       // Socket.IO multiplex server for RevealJS
@@ -109,6 +110,7 @@ export default defineConfig({
       reuseExistingServer: !isCI,
       cwd: './multiplex-server',
       timeout: 10000,
+      stderr: 'ignore',  // Suppress verbose logs
     }
   ],
 });

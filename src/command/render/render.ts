@@ -24,6 +24,7 @@ import {
   executionEngine,
   executionEngineKeepMd,
 } from "../../execute/engine.ts";
+import { engineProjectContext } from "../../project/engine-project-context.ts";
 
 import {
   HtmlPostProcessor,
@@ -90,7 +91,8 @@ export async function renderPandoc(
   if (executeResult.engineDependencies) {
     for (const engineName of Object.keys(executeResult.engineDependencies)) {
       const engine = executionEngine(engineName)!;
-      const dependenciesResult = await engine.dependencies({
+      const engineInstance = engine.launch(engineProjectContext(context.project));
+      const dependenciesResult = await engineInstance.dependencies({
         target: context.target,
         format,
         output: recipe.output,

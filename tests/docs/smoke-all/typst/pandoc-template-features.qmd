@@ -1,0 +1,96 @@
+---
+title: "Test Document"
+subtitle: "Pandoc Template Features"
+author:
+  - name: Alice Smith
+    email: alice@example.com
+    affiliation: University A
+  - name: Bob Jones
+    email: bob@example.com
+    affiliation: University B
+date: "2024-01-15"
+keywords:
+  - quarto
+  - typst
+  - testing
+thanks: "We thank our reviewers for their feedback."
+abstract: "This document tests the Pandoc typst template features merged into Quarto."
+mainfont: "Libertinus Serif"
+mathfont: "STIX Two Math"
+linestretch: 1.2
+linkcolor: "#0000ff"
+citecolor: "#00ff00"
+filecolor: "#ff0000"
+brand:
+  typography:
+    fonts:
+      - family: Fira Code
+        source: google
+    monospace:
+      family: Fira Code
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - # Patterns that MUST be found
+          # content-to-string function defined (from Pandoc)
+          - '#let content-to-string\(content\)'
+          # Document metadata in article() function
+          - 'set document\(title: title, keywords: keywords\)'
+          - 'set document\(\s*author: authors\.map'
+          # Keywords passed to article() call (quoted strings)
+          - 'keywords: \("quarto","typst","testing",\)'
+          # Thanks parameter passed to article()
+          - 'thanks: \[We thank our reviewers'
+          # Thanks footnote in title block
+          - 'footnote\(thanks, numbering: "\*"\)'
+          # Font settings passed to article()
+          # codefont comes from brand.typography.monospace.family fallback
+          - 'codefont: \("Fira Code",\)'
+          - 'mathfont: \("STIX Two Math",\)'
+          # mainfont (Libertinus Serif is bundled with Typst)
+          - 'font: \("Libertinus Serif",\)'
+          # Linestretch
+          - 'linestretch: 1\.2'
+          # Link colors passed to article() (# escaped as \#)
+          - 'linkcolor: \[\\#0000ff\]'
+          - 'citecolor: \[\\#00ff00\]'
+          - 'filecolor: \[\\#ff0000\]'
+          # Link color show rules in article() function
+          - 'show link: set text\(fill: rgb\(content-to-string\(linkcolor\)\)\)'
+          - 'show ref: set text\(fill: rgb\(content-to-string\(citecolor\)\)\)'
+        - # Patterns that must NOT be found
+          []
+---
+
+## Introduction
+
+This document tests all the Pandoc typst template features that have been merged into Quarto's modular template structure.
+
+## Code Example
+
+Here is some code with custom font:
+
+```python
+def hello():
+    print("Hello, world!")
+```
+
+## Math Example
+
+Here is some math with custom font:
+
+$$
+E = mc^2
+$$
+
+## Links
+
+Here is a [link to Quarto](https://quarto.org) which should be colored.
+
+## Conclusion
+
+All features work correctly.

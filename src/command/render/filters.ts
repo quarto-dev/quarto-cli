@@ -95,6 +95,7 @@ import { pythonExec } from "../../core/jupyter/exec.ts";
 import { kTocIndent } from "../../config/constants.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { tinyTexBinDir } from "../../tools/impl/tinytex-info.ts";
+import { typstBinaryPath } from "../../core/typst.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -204,6 +205,7 @@ async function quartoEnvironmentParams(_options: PandocOptions) {
     "paths": {
       "Rscript": await rBinaryPath("Rscript"),
       "TinyTexBinDir": tinyTexBinDir(), // will be undefined if no tinytex found and quarto will look in PATH
+      "Typst": typstBinaryPath(),
     },
   };
 }
