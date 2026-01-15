@@ -47,7 +47,8 @@ function process_equations(blockEl)
           -- Parse to extract label and optional attributes (e.g., alt for Typst)
           local label, attributes = parseRefAttr(attrText)
           if not label then
-            label = extractRefLabel("eq", attrText)
+            local _, extracted = extractRefLabel("eq", attrText)
+            label = extracted
           end
 
           local order = indexNextOrder("eq")
