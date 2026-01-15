@@ -145,12 +145,15 @@ export async function ejsData(
     author: author.trim(),
     version,
     quartoversion,
+    cellLanguage: (createDirective.options?.cellLanguage as string) ||
+      filesafename,
   };
 }
 
 async function gitAuthor() {
   const result = await execProcess({
-    cmd: ["git", "config", "--global", "user.name"],
+    cmd: "git",
+    args: ["config", "--global", "user.name"],
     stdout: "piped",
     stderr: "piped",
   });

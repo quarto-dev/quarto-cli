@@ -1,0 +1,53 @@
+---
+title: Callouts with icon=false
+format: typst
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # we do one big regex to be sure to match in order
+          - '<no-icon-notes>[\s\S]+\#callout\([\s\S]+icon:\s*none[\s\S]+<no-icon-warnings>[\s\S]+\#callout\([\s\S]+icon:\s*none[\s\S]+<no-icon-tip>[\s\S]+\#callout\([\s\S]+icon:\s*none[\s\S]+<with-icon-important>[\s\S]+\#callout\([\s\S]+icon:\s*fa-'
+---
+
+## Note Callouts with icon=false {#no-icon-notes}
+
+::: {.callout-note icon="false"}
+
+## Note without icon
+
+This is a note callout without an icon.
+
+:::
+
+## Warnings Callouts with icon=false {#no-icon-warnings}
+
+::: {.callout-warning icon=false}
+
+## Warning without icon
+
+This is a warning callout without an icon.
+
+:::
+
+## Tip Callouts with icon=false {#no-icon-tip}
+
+
+::: {#tip-example .callout-tip icon="false"}
+
+A tip without a title and without an icon.
+
+:::
+
+See @tip-example
+
+## Regular callout with icon {#with-icon-important}
+
+::: {.callout-important}
+
+## Important with icon
+
+This callout should have an icon (default behavior).
+
+:::

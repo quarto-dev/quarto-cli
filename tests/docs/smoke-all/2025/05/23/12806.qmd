@@ -1,0 +1,12 @@
+---
+title: Checking init.lua defines codepage stuff on windows
+format: native
+_quarto:
+  tests:
+    native: default
+filters: 
+  - at: pre-ast
+    path: check-init.lua
+---
+
+This document only serve to run the Lua filter to check init.lua correctly applies on Windows

@@ -10,6 +10,7 @@ All changes included in 1.7:
 - ([#11659](https://github.com/quarto-dev/quarto-cli/pull/11659)): `julia` engine - Fix escaping bug where paths containing spaces or backslashes break server startup on Windows.
 - ([#11752](https://github.com/quarto-dev/quarto-cli/issues/11752)): Fix regression with non-alphanumeric characters in `categories` preventing correct filtering of listing.
 - ([#11943](https://github.com/quarto-dev/quarto-cli/issues/11943)): Fix callout title color on dark theme in revealjs following Revealjs update in quarto 1.6.
+- ([#11990](https://github.com/quarto-dev/quarto-cli/issues/11990)): Do not print parameter cell in parameterized Jupyter notebooks.
 - ([#12147](https://github.com/quarto-dev/quarto-cli/issues/12147)): for RevealJS format, `serif` and `simple` themes defaults back to have their heading color (`$presentation-heading-color`) to be the same as the body color (`$body-color`) as in Quarto 1.5.
 
 ## Dependencies
@@ -64,19 +65,26 @@ All changes included in 1.7:
 
 ## Formats
 
-## `html`
+### `dashboard`
+
+- ([#11338](https://github.com/quarto-dev/quarto-cli/issues/11338)): Remove unused datatables imports when appropriate.
+
+### `html`
 
 - ([#1325](https://github.com/quarto-dev/quarto-cli/issues/1325)): Dark Mode pages should not flash light on reload. (Nor should Light Mode pages flash dark.)
-- ([#1470](https://github.com/quarto-dev/quarto-cli/issues/1470)): `respect-user-color-scheme` enables checking the media query `prefers-color-scheme` for user dark mode preference. This is only on page load, not dynamic. Author preference still influences stylesheet order and NoJS experience. Defaults to `false`, leaving to author preference.
-- ([#10780])(https://github.com/quarto-dev/quarto-cli/issues/10780)): improve `link-external-filter` documentation.
+- ([#1470](https://github.com/quarto-dev/quarto-cli/issues/1470)): `respect-user-color-scheme` enables checking the media query `prefers-color-scheme` for user dark mode preference. Author preference still influences stylesheet order and NoJS experience. Defaults to `false`, leaving to author preference.
+- ([#10780](https://github.com/quarto-dev/quarto-cli/issues/10780)): improve `link-external-filter` documentation.
 - ([#11860](https://github.com/quarto-dev/quarto-cli/issues/11860)): ES6 modules that import other local JS modules in documents with `embed-resources: true` are now correctly embedded.
+- ([#11911](https://github.com/quarto-dev/quarto-cli/issues/11911)): Code highlighting colors for tokens are now the same between code blocks and inline code when using Pandoc's syntax highlighting.
+- ([#12118](https://github.com/quarto-dev/quarto-cli/issues/12118)): Don't hide `:focus` on code-copy button.
 - ([#12277](https://github.com/quarto-dev/quarto-cli/pull/12277)): Provide light and dark plot and table renderings with `renderings: [light,dark]`
 - ([#12307](https://github.com/quarto-dev/quarto-cli/issues/12307)): Tabsets using `tabby.js` in non-boostrap html (`theme: pandoc`, `theme: none` or `minimal: true`) now correctly render reactive content when `server: shiny` is used.
 - ([#12319](https://github.com/quarto-dev/quarto-cli/pull/12319)): Provide switchable light and dark brands for a page with `brand.light` and `brand.dark`.
 - ([#12356](https://github.com/quarto-dev/quarto-cli/issues/12356)): Remove duplicate id in HTML document when using `#lst-` prefix label for using Quarto crossref.
 
-## `pdf`
+### `pdf`
 
+- ([#11695](https://github.com/quarto-dev/quarto-cli/issues/11695)): Translate ANSI color codes more carefully inside `highlighting` environments.
 - ([#11835](https://github.com/quarto-dev/quarto-cli/issues/11835)): Take markdown structure into account when detecting minimum heading level.
 - ([#11878](https://github.com/quarto-dev/quarto-cli/issues/11878), [#12085](https://github.com/quarto-dev/quarto-cli/issues/12085)): Correctly fixup raw LaTeX table having an unexpected table env with options (e.g `\begin{table}[!ht]`) to be handled as crossref table.
 - ([#11903](https://github.com/quarto-dev/quarto-cli/issues/11903)): `crossref` configuration like `fig-title` or `tbl-title` now correctly supports multi word values, e.g. `fig-title: 'Supplementary Figure'`.
@@ -91,16 +99,16 @@ All changes included in 1.7:
     - New Quarto partials: `babel-lang.tex`, `biblio-config.tex`. Quarto's partials uses `.tex` extension.
   - BREAKING CHANGE for templates authors: `common.latex` does now uses `pandoc.tex` partial from Quarto, which include now part of the content that was in main `template.tex`. If you modify `pandoc.tex` as part of a custom format, it should be updated to new content.
 
-## `jats`
+### `jats`
 
 - Update to Pandoc's template following Pandoc 3.6.3 support:
   - `article.jats_publishing` partials now support `author.roles`
 
-## `revealjs`
+### `revealjs`
 
 - ([#12307](https://github.com/quarto-dev/quarto-cli/issues/12307)): Tabsets using `tabby.js` in Revealjs now correctly render reactive content when `server: shiny` is used.
 
-## `typst` format
+### `typst` format
 
 - ([#11578](https://github.com/quarto-dev/quarto-cli/issues/11578)): Typst column layout widths use fractional `fr` units instead of percent `%` units for unitless and default widths in order to fill the enclosing block and not spill outside it.
 - ([#11676](https://github.com/quarto-dev/quarto-cli/pull/11676)): Convert unitless image widths from pixels to inches for column layouts.
@@ -115,12 +123,13 @@ All changes included in 1.7:
 ### `julia`
 
 - ([#11803](https://github.com/quarto-dev/quarto-cli/pull/11803)): Added subcommands `status`, `kill`, `close [--force]` and `log` under the new CLI command `quarto call engine julia`.
-- ([#12121](https://github.com/quarto-dev/quarto-cli/pull/12121)): Update QuartoNotebookRunner to 0.14.0. Support for evaluating Python cells via [PythonCall.jl](https://github.com/JuliaPy/PythonCall.jl) added. Support for notebook caching via `execute.cache` added.
+- ([#12121](https://github.com/quarto-dev/quarto-cli/pull/12121)): Update QuartoNotebookRunner to 0.17.0. Support for evaluating Python cells via [PythonCall.jl](https://github.com/JuliaPy/PythonCall.jl) added. Support for notebook caching via `execute.cache` added.
 - ([#12151](https://github.com/quarto-dev/quarto-cli/pull/12151)): Basic YAML validation is now active for documents using Julia engine.
 
 ### `jupyter`
 
 - ([#9089](https://github.com/quarto-dev/quarto-cli/issues/9089)): Serialize compound `jupyter` metadata into a special key-value attribute to not break Pandoc's fenced div parsing.
+- ([#10113](https://github.com/quarto-dev/quarto-cli/issues/10113)): KaTeX will now load correctly in `engine: jupyter` documents using `emebed-resources: true`.
 - ([#12114](https://github.com/quarto-dev/quarto-cli/issues/12114)): `JUPYTERCACHE` environment variable from [Jupyter cache CLI](https://jupyter-cache.readthedocs.io/en/latest/using/cli.html) is now respected by Quarto when `cache: true` is used. This environment variable allows to change the path of the cache directory.
 - ([#12228](https://github.com/quarto-dev/quarto-cli/issues/12228)): `quarto render` will now fails if errors are detected at IPython display level. Setting `error: true` globally or at cell level will keep the error to show in output and not stop the rendering.
 - ([#12374](https://github.com/quarto-dev/quarto-cli/issues/12374)): Detect language properly in Jupyter notebooks that lack the `language` field in their `kernelspec`s.
@@ -144,20 +153,32 @@ All changes included in 1.7:
 - ([#11896](https://github.com/quarto-dev/quarto-cli/pull/11896)): fix `\f` (`{{< pagebreak >}}`) form feed character not valid in PowerPoint (`pptx`).
 - ([#12326](https://github.com/quarto-dev/quarto-cli/issues/12326)): Add `quarto.shortcode.*` API entry points for shortcode developers.
 - ([#12365](https://github.com/quarto-dev/quarto-cli/pull/12365)): `brand color` shortcode takes an optional `brandMode` second parameter, default `light`.
+- ([#12453](https://github.com/quarto-dev/quarto-cli/issues/12453)): Expose `_quarto.modules.brand` as `quarto.brand` and add `has_mode()` function.
+- ([#12564](https://github.com/quarto-dev/quarto-cli/issues/12564)): `brand logo` shortcode also takes an optional `brandMode` second parameter, default `light`.
 
-## Lua API
+### Conditional Content
 
+- ([#4411](https://github.com/quarto-dev/quarto-cli/issues/12462)): Added support for new format and aliases in `when-format` and `unless-format`: `confluence`, `docusaurus` (and `docusaurus-md`), `email`, `dashboard`, `gfm`, `hugo` (and `hugo-md`).
+
+### Quarto Lua API
+
+- ([#4411](https://github.com/quarto-dev/quarto-cli/issues/12462)): `quarto.format.is_format` is now working as expected with support of more aliases: `confluence`, `docusaurus` (and `docusaurus-md`), `email`, `dashboard`, `gfm`, `hugo` (and `hugo-md`)
 - ([#12299](https://github.com/quarto-dev/quarto-cli/issues/12299)): `quarto.doc.pdf_engine()` now correctly returns the PDF engine used for the document. `quarto.doc.cite_method()` now returns `nil` if no citation method will be used (i.e. no references is the document set).
 
 ## Languages
 
 - ([#12366](https://github.com/quarto-dev/quarto-cli/pull/12366)): Added Bulgarian translation for Quarto UI text (credit: @sakelariev)
 
+## `quarto publish`
+
+- ([#9929](https://github.com/quarto-dev/quarto-cli/issues/9929)): `quarto publish gh-pages` will now clean previous worktree directory leftover from previous deploys.
+
 ## Other Fixes and Improvements
 
 - A new folder `quarto-session-temp` can be created in `.quarto` to store temporary files created by Quarto during a rendering. Reminder: `.quarto` is for internal use of Quarto and should not be versioned (thus added to `.gitignore`).
 - ([fb38eb5](https://github.com/quarto-dev/quarto-cli/commit/fb38eb56c11e09f44cef58fd3b697ff24bb5a3f3)) Use the `latest` parser for Acorn when analyzing JS code imported from OJS blocks.
 - ([#7260](https://github.com/quarto-dev/quarto-cli/issues/7260)): Add support for `active` class in tabsets so the `.active` tab shows up by default.
+- ([#7757](https://github.com/quarto-dev/quarto-cli/issues/7757)): Session temporary files are now cleaned up when the session ends abnormally (e.g. `Ctrl+C`) also on Windows.
 - ([#8613](https://github.com/quarto-dev/quarto-cli/issues/8613)): Fix `giscus` color on load to support dark mode (by @kv9898).
 - ([#9867](https://github.com/quarto-dev/quarto-cli/issues/9867)): Blank lines are now trimmed in Raw HTML Table blocks.
 - ([#10532](https://github.com/quarto-dev/quarto-cli/issues/10532)): Changed default of `--headless=old` to `--headless` as [Chrome 132 has removed old headless mode](https://developer.chrome.com/blog/removing-headless-old-from-chrome) and only support new mode. To use old mode, set `QUARTO_CHROMIUM` to a [new `chrome-headless-shell` binary](https://developer.chrome.com/blog/chrome-headless-shell) or to an older chrome version (between 128 and 132). Set `QUARTO_CHROMIUM_HEADLESS_MODE` to `old` to use old headless mode with that compatible version.
@@ -165,6 +186,7 @@ All changes included in 1.7:
 - ([#11441](https://github.com/quarto-dev/quarto-cli/issues/11441)): Don't add newlines around shortcodes during processing.
 - ([#11606](https://github.com/quarto-dev/quarto-cli/discussions/11606)): Added a new `QUARTO_DOCUMENT_FILE` env var available to computation engine to the name of the file currently being rendered.
 - ([#11643](https://github.com/quarto-dev/quarto-cli/issues/11643)): Improve highlighting of nested code block inside markdown code block, i.e. using ` ```{{python}} ` or ` ```python ` inside ` ````markdown` fenced code block.
+- ([#11788](https://github.com/quarto-dev/quarto-cli/issues/11788)): `quarto add` and `quarto remove` will return non-zero code when they fail.
 - ([#11803](https://github.com/quarto-dev/quarto-cli/pull/11803)): Added a new CLI command `quarto call`. First users of this interface are the new `quarto call engine julia ...` subcommands.
 - ([#11951](https://github.com/quarto-dev/quarto-cli/issues/11951)): Raw LaTeX table without `tbl-` prefix label for using Quarto crossref are now correctly passed through unmodified.
 - ([#11967](https://github.com/quarto-dev/quarto-cli/issues/11967)): Produce a better error message when YAML metadata with `!expr` tags are used outside of `knitr` code cells.
@@ -174,3 +196,5 @@ All changes included in 1.7:
 - ([#12338](https://github.com/quarto-dev/quarto-cli/issues/12338)): Add an additional workaround for the SCSS parser used in color variable extraction.
 - ([#12369](https://github.com/quarto-dev/quarto-cli/pull/12369)): `quarto preview` correctly throws a YAML validation error when a `format` key does not conform.
 - ([#12459](https://github.com/quarto-dev/quarto-cli/pull/12459)): Add `.page-inset-*` classes to completions.
+- ([#12492](https://github.com/quarto-dev/quarto-cli/pull/12492)): Improve shortcode extension template with new parameters and a link to docs.
+- ([#12513](https://github.com/quarto-dev/quarto-cli/issues/12513)): Fix an issue with `quarto preview` when using **DiagrammeR** R package for Graphiz diagram.

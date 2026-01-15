@@ -1,0 +1,50 @@
+# Some File
+
+```{python}
+#| label: import-libraries
+
+import numpy as np
+import matplotlib.pyplot as plt
+from IPython.display import SVG
+```
+
+Some text...
+
+```{python}
+#| label: plot-phase-space-density
+
+from IPython.display import HTML
+from matplotlib.animation import FuncAnimation
+
+N_x = 101
+N_px = 101
+
+x_list = np.linspace(-2, 2, N_x)
+px_list = np.linspace(-2, 2, N_px)
+t_list = np.linspace(0, 2, 50000)
+
+rho_t = np.random.rand(N_x, N_px)
+
+fig, ax = plt.subplots()
+
+img = ax.pcolormesh(x_list, px_list, rho_t**2, shading='gouraud', rasterized=True)
+ax.set_xlabel('Position $x$')
+ax.set_ylabel('Momentum $p_x$')
+
+plt.show()
+```
+
+Other text...
+
+```{python}
+#| label: plot-final-density
+
+fig, ax = plt.subplots()
+
+img = ax.pcolormesh(x_list, px_list, rho_t**2, shading='gouraud', rasterized=True)
+ax.set_xlabel('Position $x$')
+ax.set_ylabel('Momentum $p_x$')
+
+plt.show()
+```
+

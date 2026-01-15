@@ -159,7 +159,9 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     opts_hooks[[option]] <<- function(options) {
       if (identical(options[[option]], FALSE)) {
         options[[option]] <- TRUE
-        for (hide in hidden) options[[paste0(hide, ".hidden")]] <- TRUE
+        for (hide in hidden) {
+          options[[paste0(hide, ".hidden")]] <- TRUE
+        }
       }
       options
     }
@@ -191,8 +193,9 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
         # prefix for classes
         classes <- c("cell-output", paste0("cell-output-", classes))
         # add .hidden class if keep-hidden hook injected an option
-        if (isTRUE(options[[paste0(type, ".hidden")]]))
+        if (isTRUE(options[[paste0(type, ".hidden")]])) {
           classes <- c(classes, "hidden")
+        }
         output_div(x, NULL, classes)
       }
     })
@@ -390,26 +393,32 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       forwardAttr,
       sprintf("%s='%s'", unknown_opts, unknown_values)
     )
-    if (length(forwardAttr) > 0)
-      forwardAttr <- paste0(" ", paste(forwardAttr, collapse = " ")) else
+    if (length(forwardAttr) > 0) {
+      forwardAttr <- paste0(" ", paste(forwardAttr, collapse = " "))
+    } else {
       forwardAttr <- ""
+    }
 
     # handle classes
     classes <- c("cell", options[["classes"]])
-    if (is.character(options[["panel"]]))
+    if (is.character(options[["panel"]])) {
       classes <- c(classes, paste0("panel-", options[["panel"]]))
-    if (is.character(options[["column"]]))
+    }
+    if (is.character(options[["column"]])) {
       classes <- c(classes, paste0("column-", options[["column"]]))
+    }
     if (is.character(options[["fig-column"]])) {
       classes <- c(classes, paste0("fig-column-", options[["fig-column"]]))
     } else if (is.character(options[["fig.column"]])) {
       # knitr < 1.44 compatibility where fig- -> fig.
       classes <- c(classes, paste0("fig-column-", options[["fig.column"]]))
     }
-    if (is.character(options[["tbl-column"]]))
+    if (is.character(options[["tbl-column"]])) {
       classes <- c(classes, paste0("tbl-column-", options[["tbl-column"]]))
-    if (is.character(options[["cap-location"]]))
+    }
+    if (is.character(options[["cap-location"]])) {
       classes <- c(classes, paste0("caption-", options[["cap-location"]]))
+    }
     if (is.character(options[["fig-cap-location"]])) {
       classes <- c(
         classes,
@@ -422,11 +431,12 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
         paste0("fig-cap-location-", options[["fig.cap-location"]])
       )
     }
-    if (is.character(options[["tbl-cap-location"]]))
+    if (is.character(options[["tbl-cap-location"]])) {
       classes <- c(
         classes,
         paste0("tbl-cap-location-", options[["tbl-cap-location"]])
       )
+    }
 
     if (isTRUE(options[["include.hidden"]])) {
       classes <- c(classes, "hidden")
@@ -498,11 +508,11 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
           attr <- paste(attr, paste0('lst-cap="', options[["lst-cap"]], '"'))
         }
       }
-      if (identical(options[["code-overflow"]], "wrap"))
-        class <- paste(class, "code-overflow-wrap") else if (
-        identical(options[["code-overflow"]], "scroll")
-      )
+      if (identical(options[["code-overflow"]], "wrap")) {
+        class <- paste(class, "code-overflow-wrap")
+      } else if (identical(options[["code-overflow"]], "scroll")) {
         class <- paste(class, "code-overflow-scroll")
+      }
       fold <- options[["code-fold"]]
       if (!is.null(fold)) {
         attr <- paste(
@@ -615,7 +625,9 @@ knitr_plot_hook <- function(format) {
 
     # classes
     classes <- paste0("cell-output-display")
-    if (isTRUE(options[["plot.hidden"]])) classes <- c(classes, "hidden")
+    if (isTRUE(options[["plot.hidden"]])) {
+      classes <- c(classes, "hidden")
+    }
 
     # label
     placeholder <- output_label_placeholder(options)
@@ -746,7 +758,9 @@ knitr_plot_hook <- function(format) {
       }
 
       # result = "asis" specific
-      if (identical(options[["results"]], "asis")) return(md)
+      if (identical(options[["results"]], "asis")) {
+        return(md)
+      }
 
       # enclose in output div
       output_div(md, NULL, classes)
@@ -1063,8 +1077,13 @@ figure_cap <- function(options) {
   if (is.null(output_label) || is_figure_label(output_label)) {
     fig.cap <- options[["fig.cap"]]
     fig.subcap <- options[["fig.subcap"]]
-    if (length(fig.subcap) != 0) fig.subcap else if (length(fig.cap) != 0)
-      fig.cap else ""
+    if (length(fig.subcap) != 0) {
+      fig.subcap
+    } else if (length(fig.cap) != 0) {
+      fig.cap
+    } else {
+      ""
+    }
   } else {
     ""
   }
@@ -1101,8 +1120,10 @@ is_label_type <- function(type, label) {
 
 block_attr <- function(id = NULL, lang = NULL, class = NULL, attr = NULL) {
   id <- labelId(id)
-  if (!is.null(lang)) {
+  if (!is.null(lang) && nzchar(lang)) {
     lang <- paste0(".", lang)
+  } else {
+    lang <- NULL
   }
   if (!is.null(class)) {
     class <- paste(block_class(class))
@@ -1151,8 +1172,12 @@ latex_animation <- function(x, options) {
 
   ow = options$out.width
   # maxwidth does not work with animations
-  if (identical(ow, '\\maxwidth')) ow = NULL
-  if (is.numeric(ow)) ow = paste0(ow, 'px')
+  if (identical(ow, '\\maxwidth')) {
+    ow = NULL
+  }
+  if (is.numeric(ow)) {
+    ow = paste0(ow, 'px')
+  }
   size = paste(
     c(
       sprintf('width=%s', ow),
@@ -1165,7 +1190,9 @@ latex_animation <- function(x, options) {
   aniopts = options$aniopts
   aniopts = if (is.na(aniopts)) NULL else gsub(';', ',', aniopts)
   size = paste(c(size, sprintf('%s', aniopts)), collapse = ',')
-  if (nzchar(size)) size = sprintf('[%s]', size)
+  if (nzchar(size)) {
+    size = sprintf('[%s]', size)
+  }
   sprintf(
     '\\animategraphics%s{%s}{%s}{%s}{%s}',
     size,

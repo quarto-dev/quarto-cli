@@ -6,6 +6,8 @@
  * Copyright (C) 2025 Posit Software, PBC
  */
 
+// This is used to create new interfaces that extend the Cloneable interface
+// to make the object having a clone method for specific cloning behavior in safeCloneDeep.
 export interface Cloneable<T> {
   clone(): T;
 }

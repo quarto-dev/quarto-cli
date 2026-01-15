@@ -52,7 +52,7 @@ $endif$
 $if(mainfont)$
   font: ("$mainfont$",),
 $elseif(brand.typography.base.family)$
-  font: ("$brand.typography.base.family$",),
+  font: $brand.typography.base.family$,
 $endif$
 $if(fontsize)$
   fontsize: $fontsize$,
@@ -61,16 +61,13 @@ $elseif(brand.typography.base.size)$
 $endif$
 $if(title)$
 $if(brand.typography.headings.family)$
-  heading-family: ("$brand.typography.headings.family$",),
+  heading-family: $brand.typography.headings.family$,
 $endif$
 $if(brand.typography.headings.weight)$
   heading-weight: $brand.typography.headings.weight$,
 $endif$
 $if(brand.typography.headings.style)$
   heading-style: "$brand.typography.headings.style$",
-$endif$
-$if(brand.typography.headings.decoration)$
-  heading-decoration: "$brand.typography.headings.decoration$",
 $endif$
 $if(brand.typography.headings.color)$
   heading-color: $brand.typography.headings.color$,

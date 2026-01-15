@@ -9,12 +9,12 @@ website:
       - posts/draft-post/index.qmd
       - icon: github
         href: https://github.com/
-      - icon: twitter
-        href: https://twitter.com
+      - icon: bluesky
+        href: https://bsky.app
   sidebar:
     contents: posts
   page-footer:
-    left: 
+    left:
       - posts/draft-post/index.qmd
   draft-mode: visible
   drafts:
@@ -25,6 +25,3 @@ format:
   html:
     theme: cosmo
     css: styles.css
-
-
-

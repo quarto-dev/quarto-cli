@@ -21,7 +21,7 @@
       }
     }
 
-    window.setColorSchemeToggle = (alternate) => {
+    const setColorSchemeToggle = (alternate) => {
       const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
       for (let i=0; i < toggles.length; i++) {
         const toggle = toggles[i];
@@ -41,7 +41,7 @@
       const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
       manageTransitions('#quarto-margin-sidebar .nav-link', false);
       if (alternate) {
-        disableStylesheet(primaryStylesheets)
+        // note: dark is layered on light, we don't disable primary!
         enableStylesheet(alternateStylesheets);
         for (const sheetNode of alternateStylesheets) {
           if (sheetNode.id === "quarto-bootstrap") {
@@ -56,7 +56,7 @@
       manageTransitions('#quarto-margin-sidebar .nav-link', true);
 
       // Switch the toggles
-      window.setColorSchemeToggle(alternate)
+      setColorSchemeToggle(alternate)
 
       // Hack to workaround the fact that safari doesn't
       // properly recolor the scrollbar when toggling (#1455)
@@ -103,7 +103,7 @@
       return window.location.protocol === 'file:';
     }
 
-    window.hasAlternateSentinel = () => {
+    const hasAlternateSentinel = () => {
       let styleSentinel = getColorSchemeSentinel();
       if (styleSentinel !== null) {
         return styleSentinel === "alternate";
@@ -136,7 +136,7 @@
   
       let newTheme = '';
   
-      if(darkModeDefault) {
+      if(authorPrefersDark) {
         newTheme = isAlternate ? baseTheme : alternateTheme;
       } else {
         newTheme = isAlternate ? alternateTheme : baseTheme;
@@ -164,11 +164,17 @@
       }
     };
 
+    const authorPrefersDark = <%= darkModeDefault %>;
     <% if (respectUserColorScheme) { %>
     const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
     const darkModeDefault = queryPrefersDark.matches;
     <% } else { %>
-    const darkModeDefault = <%= darkModeDefault %>;
+    const darkModeDefault = authorPrefersDark;
+    <% } %>
+
+    <% if (!darkModeDefault) { %>
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
     <% } %>
       
     let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
@@ -176,10 +182,11 @@
     // Dark / light mode switch
     window.quartoToggleColorScheme = () => {
       // Read the current dark / light value
-      let toAlternate = !window.hasAlternateSentinel();
+      let toAlternate = !hasAlternateSentinel();
       toggleColorMode(toAlternate);
       setStyleSentinel(toAlternate);
       toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
     };
 
     <% if (respectUserColorScheme) { %>
@@ -194,7 +201,7 @@
     <% } %>
 
     // Switch to dark mode if need be
-    if (window.hasAlternateSentinel()) {
+    if (hasAlternateSentinel()) {
       toggleColorMode(true);
     } else {
       toggleColorMode(false);

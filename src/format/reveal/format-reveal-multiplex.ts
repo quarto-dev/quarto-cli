@@ -104,7 +104,7 @@ interface RevealMultiplexToken {
   url: string;
 }
 
-const kDefaultMultiplexUrl = "https://reveal-multiplex.glitch.me/";
+const kDefaultMultiplexUrl = "https://multiplex.up.railway.app/";
 
 async function revealMultiplexToken(
   format: Format,
@@ -159,6 +159,9 @@ async function revealMultiplexToken(
     };
     return multiplex;
   } catch (e) {
+    if (!(e instanceof Error)) {
+      throw e;
+    }
     throw Error(
       "Error attempting to provision multiplex token from '" + url + "': " +
         e.message,

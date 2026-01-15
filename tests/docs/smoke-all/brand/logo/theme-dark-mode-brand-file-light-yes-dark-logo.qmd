@@ -1,0 +1,24 @@
+---
+title: Yes dark logo if theme enables dark mode
+format:
+  dashboard:
+    theme:
+      light: default
+      dark: darkly  # Explicitly enable dark mode
+brand: logo-light-only.yml
+logo:
+  light: quarto.png
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          - 'img[src="quarto.png"][alt=""][class="navbar-logo light-content d-inline-block"]'
+          - 'img[src="quarto.png"][alt=""][class="navbar-logo dark-content d-inline-block"]'
+        - []
+---
+
+
+Chooses the document-specified light logo because there is no dark logo in the brand
+
+{{< lipsum 4 >}}

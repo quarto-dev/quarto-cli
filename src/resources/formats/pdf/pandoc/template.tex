@@ -11,6 +11,9 @@ $if(geometry)$
 \usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
 $endif$
 \usepackage{amsmath,amssymb}
+$if(cancel)$
+\usepackage{cancel}
+$endif$
 $--
 $-- section numbering
 $--
@@ -24,6 +27,19 @@ $font-settings.latex()$
 $common.latex()$
 $after-header-includes.latex()$
 $hypersetup.latex()$
+$if(pdf-trailer-id)$
+
+\ifXeTeX
+\special{pdf:trailerid [ $pdf-trailer-id$ ]}
+\fi
+\ifPDFTeX
+\pdftrailerid{}
+\pdftrailer{/ID [ $pdf-trailer-id$ ]}
+\fi
+\ifLuaTeX
+\pdfvariable trailerid {[ $pdf-trailer-id$ ]}
+\fi
+$endif$
 
 $before-title.tex()$
 

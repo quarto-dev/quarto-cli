@@ -1,0 +1,71 @@
+/*-- scss:defaults --*/
+
+// Base document colors
+$body-bg: #181818;
+$body-color: #ccc;
+$link-color: #75aadb;
+
+$light: #525252;
+
+// Navigation element colors
+$footer-bg: #181818;
+$navbar-bg: #303030;
+
+// Code blocks
+$code-block-bg-alpha: -0.9;
+
+// Bootstrap popovers
+$popover-bg: #242424;
+
+// Bootstrap inputs
+$input-bg: #242424;
+$dropdown-bg: $body-bg;
+$dropdown-color: $body-color;
+$dropdown-link-color: $body-color;
+// $dropdown-link-hover-bg: $gray-600;
+$dropdown-link-hover-color: #eee;
+
+// $border-color: rgba($gray-800, 0.5);
+
+$mono-background-color: rgba(0, 0, 0, 0);
+$code-color: rgb(192, 128, 216);
+$nav-tabs-link-active-color: $body-color;
+// $toc-inactive-border: rgba($gray-800, 0.5);
+// $input-text-background-color: $gray-800;
+// $input-group-addon-bg: $gray-800;
+/*-- scss:rules --*/
+
+// .layout-example {
+//   background: $gray-700;
+// }
+
+.hello-quarto-banner h1 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+// h2, .h2 {
+//   border-bottom-color: #666;
+// }
+
+.code-with-filename .code-with-filename-file pre {
+  color: #ddd;
+}
+
+pre code {
+  color: $body-color;
+}
+
+dl code,
+h1 code,
+h2 code,
+h3 code,
+h4 code,
+h5 code,
+h6 code {
+  background-color: $mono-background-color;
+}
+
+details > summary {
+  color: lighten($text-muted, 20%);
+}

@@ -61,7 +61,10 @@ import {
   isCaptionableData,
   isDisplayData,
 } from "./display-data.ts";
-import { extractJupyterWidgetDependencies } from "./widgets.ts";
+import {
+  extractJupyterWidgetDependencies,
+  includesForJupyterWidgetDependencies,
+} from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
 import { pandocAsciify, pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/types.ts";
@@ -112,6 +115,8 @@ import {
   kFigCapLoc,
   kHtmlTableProcessing,
   kInclude,
+  kIncludeAfterBody,
+  kIncludeInHeader,
   kLayout,
   kLayoutAlign,
   kLayoutNcol,
@@ -142,19 +147,21 @@ import {
   JupyterOutputStream,
   JupyterToMarkdownOptions,
   JupyterToMarkdownResult,
+  JupyterWidgetDependencies,
 } from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines, trimEmptyLines } from "../lib/text.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
-import { languagesInMarkdown } from "../../execute/engine-shared.ts";
+import { languagesInMarkdown } from "../pandoc/pandoc-partition.ts";
 import {
   normalizePath,
   pathWithForwardSlashes,
   removeIfEmptyDir,
 } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
-import { kProjectType, ProjectContext } from "../../project/types.ts";
+import { EngineProjectContext, kProjectType } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
+import type { PandocIncludes } from "../../execute/types.ts";
 import { encodeBase64 } from "encoding/base64";
 import {
   isHtmlOutput,
@@ -290,7 +297,7 @@ const ticksForCode = (code: string[]) => {
 export async function quartoMdToJupyter(
   markdown: string,
   includeIds: boolean,
-  project?: ProjectContext,
+  project?: EngineProjectContext,
 ): Promise<JupyterNotebook> {
   const [kernelspec, metadata] = await jupyterKernelspecFromMarkdown(
     markdown,
@@ -500,7 +507,7 @@ export async function quartoMdToJupyter(
 
 export async function jupyterKernelspecFromMarkdown(
   markdown: string,
-  project?: ProjectContext,
+  project?: EngineProjectContext,
 ): Promise<[JupyterKernelspec, Metadata]> {
   const config = project?.config;
   const yaml = config
@@ -1030,7 +1037,7 @@ export function mdFromContentCell(
             : data as string;
           // base 64 decode if its not svg
           if (!imageText.trimStart().startsWith("<svg")) {
-            const imageData = base64decode(imageText);
+            const imageData = base64decode(imageText.replaceAll("\n", ""));
             Deno.writeFileSync(outputFile, imageData);
           } else {
             Deno.writeTextFileSync(outputFile, imageText);
@@ -1039,7 +1046,7 @@ export function mdFromContentCell(
           for (let i = 0; i < source.length; i++) {
             source[i] = source[i].replaceAll(
               `attachment:${file}`,
-              imageFile,
+              () => imageFile,
             );
           }
           // only process one supported mime type
@@ -1837,7 +1844,7 @@ async function mdOutputStream(
     );
   } else {
     // normal default behavior
-    return mdCodeOutput(text.map(colors.stripColor));
+    return mdCodeOutput(text.map(colors.stripAnsiCode));
   }
 }
 
@@ -1946,7 +1953,7 @@ which does not appear to be plain text: ${JSON.stringify(data)}`,
             return mdCodeOutput(lines);
           }
         } else {
-          return mdCodeOutput(lines.map(colors.stripColor));
+          return mdCodeOutput(lines.map(colors.stripAnsiCode));
         }
       }
     }
@@ -1991,7 +1998,7 @@ function mdImageOutput(
   // get the data
   const imageText = Array.isArray(data)
     ? (data as string[]).join("")
-    : data as string;
+    : (data as string).trim();
 
   const outputFile = join(options.assets.base_dir, imageFile);
   if (
@@ -2002,7 +2009,9 @@ function mdImageOutput(
     // https://github.com/quarto-dev/quarto-cli/issues/9793
     !/<svg/.test(imageText)
   ) {
-    const imageData = base64decode(imageText);
+    // we need to remove the newlines from the base64 encoded data
+    // because base64decode doesn't like the multiline-encoded style
+    const imageData = base64decode(imageText.replaceAll("\n", ""));
 
     // if we are in retina mode, then derive width and height from the image
     if (
@@ -2137,4 +2146,38 @@ function outputTypeCssClass(output_type: string) {
     output_type = "display";
   }
   return `cell-output-${output_type}`;
+}
+
+// Engine helper functions for processing execute results
+// These are used by multiple engines (Jupyter, etc.) to handle widget dependencies
+export function executeResultIncludes(
+  tempDir: string,
+  widgetDependencies?: JupyterWidgetDependencies,
+): PandocIncludes | undefined {
+  if (widgetDependencies) {
+    const includes: PandocIncludes = {};
+    const includeFiles = includesForJupyterWidgetDependencies(
+      [widgetDependencies],
+      tempDir,
+    );
+    if (includeFiles.inHeader) {
+      includes[kIncludeInHeader] = [includeFiles.inHeader];
+    }
+    if (includeFiles.afterBody) {
+      includes[kIncludeAfterBody] = [includeFiles.afterBody];
+    }
+    return includes;
+  } else {
+    return undefined;
+  }
+}
+
+export function executeResultEngineDependencies(
+  widgetDependencies?: JupyterWidgetDependencies,
+): Array<unknown> | undefined {
+  if (widgetDependencies) {
+    return [widgetDependencies];
+  } else {
+    return undefined;
+  }
 }

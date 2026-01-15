@@ -3,7 +3,7 @@ keep-tex: true
 format: pdf
 ---
 
-::: {.column-margin #fig-example-image}
+::: {#fig-example-image .column-margin}
 ![](https://placehold.co/600x400.png)
 
 Example of an Image 1

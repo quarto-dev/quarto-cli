@@ -1,0 +1,12 @@
+- name: axe
+  tags:
+    formats: [$html-files]
+  schema:
+    anyOf:
+      - boolean
+      - object:
+          properties:
+            output:
+              enum: [json, console, document]
+              description: "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
+  description: "When defined, run axe-core accessibility tests on the document."

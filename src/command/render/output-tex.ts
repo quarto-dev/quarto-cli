@@ -11,7 +11,12 @@ import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { texSafeFilename } from "../../core/tex.ts";
 
-import { kKeepTex, kOutputExt, kOutputFile } from "../../config/constants.ts";
+import {
+  kKeepTex,
+  kOutputExt,
+  kOutputFile,
+  kTargetFormat,
+} from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
 
 import { PandocOptions, RenderFlags, RenderOptions } from "./types.ts";
@@ -49,8 +54,8 @@ export function texToPdfOutputRecipe(
   // include variants in the tex stem if they are present to avoid
   // overwriting files
   let fixupInputName = "";
-  if (format.identifier["target-format"]) {
-    const formatDesc = parseFormatString(format.identifier["target-format"]);
+  if (format.identifier[kTargetFormat]) {
+    const formatDesc = parseFormatString(format.identifier[kTargetFormat]);
     fixupInputName = `${formatDesc.variants.join("")}${
       formatDesc.modifiers.join("")
     }`;
@@ -179,11 +184,12 @@ export function contextPdfOutputRecipe(
     const engine = pdfEngine(format.pandoc, format.render, pandocOptions.flags);
 
     // build context command
-    const cmd = ["context", input];
+    const cmd = "context";
+    const args = [input];
     if (engine.pdfEngineOpts) {
-      cmd.push(...engine.pdfEngineOpts);
+      args.push(...engine.pdfEngineOpts);
     }
-    cmd.push(
+    args.push(
       // ConTeXt produces some auxiliary files:
       // direct PDF generation by Pandoc never produces these auxiliary
       // files because Pandoc runs ConTeXt in a temporary directory.
@@ -194,7 +200,10 @@ export function contextPdfOutputRecipe(
     );
 
     // run context
-    const result = await execProcess({ cmd });
+    const result = await execProcess({
+      cmd,
+      args,
+    });
     if (result.success) {
       const [dir, stem] = dirAndStem(input);
       return computePath(stem, dir, format);

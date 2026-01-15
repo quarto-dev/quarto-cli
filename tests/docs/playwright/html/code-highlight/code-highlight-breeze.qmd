@@ -1,0 +1,6 @@
+---
+title: Testing breeze code highlight
+highlight-style: breeze
+---
+
+{{< include _body.md >}}

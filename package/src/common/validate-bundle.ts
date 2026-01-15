@@ -32,7 +32,8 @@ export async function validateBundle(
     // NPM Install
     info("Installing Dependencies");
     const npm = await execProcess({
-      cmd: ["npm", "install"],
+      cmd: "npm",
+      args: ["install"],
       stderr: "piped"
     }); 
     if (!npm.success) {
@@ -53,7 +54,8 @@ export async function validateBundle(
     // Test the bundled output
     info("Testing Bundled output");
     const npx = await execProcess({
-      cmd: ["npx", "eslint", "bundle.js"],
+      cmd: "npx",
+      args: ["eslint", "bundle.js"],
       stderr: "piped"
 
     });

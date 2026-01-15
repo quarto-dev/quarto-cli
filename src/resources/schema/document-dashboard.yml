@@ -1,8 +1,9 @@
 - name: logo
   tags:
     formats: [dashboard]
-  schema: path
-  description: "Logo image (placed on the left side of the navigation bar)"
+  schema:
+    ref: logo-light-dark-specifier
+  description: "Logo image(s) (placed on the left side of the navigation bar)"
 
 - name: orientation
   tags:

@@ -1,3 +1,5 @@
+import { dirname } from "node:path";
+
 // ensure this is treated as a module
 export {};
 
@@ -12,29 +14,53 @@ try {
   jsBuildTime = 0;
 }
 
-// check if any of our repo files have a later time
-let build = args.length > 0 && args.includes("--force");
-try {
-  const command = new Deno.Command("git", { args: ["ls-files"] });
-  const cmdOutput = await command.output();
-  if (cmdOutput.success) {
-    const output = new TextDecoder().decode(cmdOutput.stdout);
-    const files = output.split("\n").filter((line) => line.length > 0);
-    build = files.some((file) =>
-      Deno.statSync(file).mtime!.valueOf() > jsBuildTime
-    );
-  } else {
-    // not in a git repo, rebuild
-    build = true;
+const buildFromArgs = () => {
+  return args.includes("--force");
+};
+
+const run = async (args: string[], quiet = true) => {
+  console.log(`Running: npm ${args.join(" ")}`);
+  const command = new Deno.Command("npm", {
+    args,
+  });
+  const output = await command.output();
+  if (output.success || quiet) {
+    return output;
   }
-} catch {
-  // git not installed, rebuild
-  build = true;
+  console.error("Command failed");
+  console.log(new TextDecoder().decode(output.stderr));
+  Deno.exit(output.code);
+};
+
+const buildFromGit = async () => {
+  let output: Deno.CommandOutput;
+  try {
+    const command = new Deno.Command("git", { args: ["ls-files"] });
+    output = await command.output();
+  } catch {
+    // git not installed, rebuild
+    return true;
+  }
+  if (!output.success) {
+    return true;
+  }
+  const stdout = new TextDecoder().decode(output.stdout);
+  const files = stdout.split("\n").filter((line) => line.length > 0);
+  return files.some((file) =>
+    Deno.statSync(file).mtime!.valueOf() > jsBuildTime
+  );
+};
+
+// check if any of our repo files have a later time
+const build = buildFromArgs() || await buildFromGit();
+
+if (!build) {
+  console.log("No changes to quarto-preview.js, skipping build");
+  Deno.exit(0);
 }
 
-if (build) {
-  const buildCommand = new Deno.Command(Deno.execPath(), {
-    args: ["task", "build"],
-  });
-  await buildCommand.spawn().status;
-}
+console.log("Building quarto-preview.js");
+console.log("Installing...");
+await run(["install"], false);
+console.log("Building...");
+await run(["run", "build"], false);

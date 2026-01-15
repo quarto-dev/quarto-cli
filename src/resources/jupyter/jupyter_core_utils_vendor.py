@@ -36,7 +36,9 @@ class _TaskRunner:
             name = f"{threading.current_thread().name} - runner"
             if self.__io_loop is None:
                 self.__io_loop = asyncio.new_event_loop()
-                self.__runner_thread = threading.Thread(target=self._runner, daemon=True, name=name)
+                self.__runner_thread = threading.Thread(
+                    target=self._runner, daemon=True, name=name
+                )
                 self.__runner_thread.start()
         fut = asyncio.run_coroutine_threadsafe(coro, self.__io_loop)
         return fut.result(None)
@@ -46,6 +48,7 @@ _runner_map = {}
 _loop_map = {}
 
 T = TypeVar("T")
+
 
 def run_sync(coro: Callable[..., Awaitable[T]]) -> Callable[..., T]:
     """Wraps coroutine in a function that blocks until it has executed.

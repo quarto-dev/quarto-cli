@@ -152,36 +152,71 @@ if (import.meta.main) {
 between files in quarto.
 
 Usage:
-  $ quarto run explain-import-chain.ts <source-file.ts> <target-file.ts>
+  $ quarto run --dev explain-import-chain.ts <source-file.ts> <target-file.ts> [--simplify] [--graph|--toon [filename]]
+
+Options:
+  --simplify       Simplify paths by removing common prefix
+  --graph [file]   Output .dot specification (default: import-chain.dot)
+  --toon [file]    Output edges in TOON format (default: import-chain.toon)
 
 Examples:
 
-  From ./src:
+  From project root:
 
-  $ quarto run ../package/scripts/common/explain-import-chain.ts command/render/render.ts core/esbuild.ts
-  $ quarto run ../package/scripts/common/explain-import-chain.ts command/check/cmd.ts core/lib/external/regexpp.mjs
+  $ quarto run --dev package/src/common/import-report/explain-import-chain.ts src/command/render/render.ts src/core/esbuild.ts
+  $ quarto run --dev package/src/common/import-report/explain-import-chain.ts src/command/check/cmd.ts src/core/lib/external/regexpp.mjs
+  $ quarto run --dev package/src/common/import-report/explain-import-chain.ts src/command/render/render.ts src/core/esbuild.ts --simplify --toon
 
 If no dependencies exist, this script will report that:
 
-  $ quarto run ../package/scripts/common/explain-import-chain.ts ../package/src/bld.ts core/lib/external/tree-sitter-deno.js
+  $ quarto run --dev package/src/common/import-report/explain-import-chain.ts package/src/bld.ts src/core/lib/external/tree-sitter-deno.js
 
     package/src/bld.ts does not depend on src/core/lib/external/tree-sitter-deno.js
 
-If the third parameter is "--graph", then this program outputs the .dot specification to the file given by the fourth parameter, rather opening a full report.
+If no output option is given, opens an interactive preview.
 `,
     );
     Deno.exit(1);
   }
-  const json = await getDenoInfo(Deno.args[0]);
+  // Parse arguments
+  let simplify = false;
+  let args = Deno.args;
+
+  if (args[2] === "--simplify") {
+    simplify = true;
+    args = [args[0], args[1], ...args.slice(3)];
+  }
+
+  const json = await getDenoInfo(args[0]);
   const { graph } = moduleGraph(json);
 
-  const targetName = Deno.args[1];
+  const targetName = args[1];
   const target = toFileUrl(resolve(targetName)).href;
-  const result = explain(graph, json.roots[0], target);
-  if (Deno.args[2] === "--graph") {
+  let result = explain(graph, json.roots[0], target);
+
+  // Apply simplification if requested
+  if (simplify && result.length > 0) {
+    const allPaths = result.map(e => [e.from, e.to]).flat();
+    const prefix = longestCommonDirPrefix(allPaths);
+    result = result.map(({ from, to }) => ({
+      from: from.slice(prefix.length),
+      to: to.slice(prefix.length),
+    }));
+  }
+
+  if (args[2] === "--graph") {
     Deno.writeTextFileSync(
-      Deno.args[3],
+      args[3] || "import-chain.dot",
       generateGraph(result, json.roots[0], target),
+    );
+  } else if (args[2] === "--toon") {
+    const lines = [`edges[${result.length}]{from,to}:`];
+    for (const { from, to } of result) {
+      lines.push(`  ${from},${to}`);
+    }
+    Deno.writeTextFileSync(
+      args[3] || "import-chain.toon",
+      lines.join("\n") + "\n",
     );
   } else {
     await buildOutput(result, json.roots[0], target);

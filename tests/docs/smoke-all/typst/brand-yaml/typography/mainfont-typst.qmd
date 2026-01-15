@@ -1,0 +1,19 @@
+---
+title: "Header logic"
+format:
+  typst:
+    keep-typ: true
+mainfont: Comic Sans MS
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+      -
+        - 'heading-family: \("Comic Sans MS",\)'
+---
+
+Some text.
+
+# Header logic so we have the same letters
+
+More text.

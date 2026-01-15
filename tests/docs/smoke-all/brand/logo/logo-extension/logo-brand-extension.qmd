@@ -1,0 +1,47 @@
+---
+title: test brand extension
+format:
+  html: default
+  dashboard: default
+  revealjs: default
+  typst:
+    output-ext: typ
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<img src="site_libs(/|\\)quarto-contrib(/|\\)quarto-project(/|\\)my-brand(/|\\)sun-face\.png" alt="sun face" class=".*light-content.*">'
+          - '<img src="site_libs(/|\\)quarto-contrib(/|\\)quarto-project(/|\\)my-brand(/|\\)moon-face\.png" alt="moon face" class=".*dark-content.*">'
+        - []
+    dashboard:
+      ensureFileRegexMatches:
+        -
+          - '<img src="site_libs(/|\\)quarto-contrib(/|\\)quarto-project(/|\\)my-brand(/|\\)sun-face\.png" alt="sun face" class=".*light-content.*">'
+          - '<img src="site_libs(/|\\)quarto-contrib(/|\\)quarto-project(/|\\)my-brand(/|\\)moon-face\.png" alt="moon face" class=".*dark-content.*">'
+        - []
+    revealjs:
+      ensureFileRegexMatches:
+        -
+          - '<img src="site_libs(/|\\)quarto-contrib(/|\\)quarto-project(/|\\)my-brand(/|\\)sun-face\.png" alt="sun face".*>'
+        -
+          - 'moon-face'
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("_extensions(/|\\\\)my-brand(/|\\\\)sun-face.png", width: 1\.5in, alt: "sun face"\)\)'
+        -
+          - 'image.*moon-face'
+---
+
+# brand.yml extension
+
+Here is some inline code `def foo(x): return x`{.python} and `y`{.python} and `z`{.python}.
+
+
+{{< lipsum 1 >}}
+
+```{.python}
+# | echo: true
+print(1+2)
+```

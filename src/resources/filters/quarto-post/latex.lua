@@ -587,6 +587,23 @@ function render_latex_fixups()
       end
     end,
     CodeBlock = function(code)
+      local function escape_latex(line)
+        -- unfortunately, we can't use stringEscape here (or pandoc.write(..., "latex")
+        -- more generally) because it doesn't preserve multiple spaces, which the 
+        -- "highlighting" environment does
+
+        -- In addition, we have the following tricky situation:
+        --   \ -> \textbackslash{}
+        --   { -> \{
+        --
+        -- these two replacement rules both generate \ and {, and
+        -- so there's no order that works. We need to use a
+        -- unique replacement for \ first.
+
+        -- obtained by a local call to uuid and removing dashes
+        local uuid = "edbdf4a3bc424f5b8ac0e95c92ef5015"
+        return line:gsub("[\\]", uuid):gsub("([{}$%&%_])", "\\%1"):gsub("[%^]", "\\textasciicircum{}"):gsub("[~]", "\\textasciitilde{}"):gsub(uuid, "\\textbackslash{}")
+      end
       if code.text:match("\027%[[0-9;]+m") and #code.classes == 0 then
         local lines = split(code.text, "\n")
         local new_lines = pandoc.List({
@@ -595,6 +612,7 @@ function render_latex_fixups()
         local cur_color = "\\textcolor{black}"
         for _, line in ipairs(lines) do
           local start_color = cur_color
+          line = escape_latex(line)
           line = line:gsub("\027%[([0-9;]+)m", function(n)
             local this_color = "\\textcolor" .. emit_quarto_ansi_color(n)
             cur_color = this_color

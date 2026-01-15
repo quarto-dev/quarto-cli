@@ -48,6 +48,6 @@ The following decommissioned stations were previously part of the seismic networ
 : Decommissioned seismic monitoring stations on La Palma {#tbl-inactive}
 
 
-::: {note}
+::: {.note}
 For more information on the monitoring network in the Canary Islands visit <https://www.ign.es/web/ign/portal/vlc-area-volcanologia>
 :::

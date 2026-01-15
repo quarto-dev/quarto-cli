@@ -124,7 +124,7 @@ export async function revealTheme(
     .map(
       (theme) => {
         const themePath = join(relative(Deno.cwd(), dirname(input)), theme);
-        if (themePath === "brand") {
+        if (theme === "brand") {
           usedBrandLayers = true;
           return brandLayers;
         } else if (existsSync(themePath)) {

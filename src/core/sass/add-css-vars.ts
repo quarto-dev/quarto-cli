@@ -28,6 +28,7 @@ export const cssVarsBlock = (scssSource: string) => {
   try {
     astOriginal = getSassAst(scssSource);
   } catch (e) {
+    if (!(e instanceof Error)) throw e;
     throw new SCSSParsingError(e.message);
   }
   const ast = propagateDeclarationTypes(cleanSassAst(astOriginal));

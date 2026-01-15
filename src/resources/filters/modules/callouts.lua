@@ -191,9 +191,15 @@ local calloutidx = 1
 local function calloutDiv(node)
   node = decorate_callout_title_with_crossref(node)
 
+  local needs_screen_reader_callout_type = true
+  if is_valid_ref_type(refType(node.attr.identifier)) then
+    needs_screen_reader_callout_type = false
+  end
+
   -- the first heading is the title
   local div = pandoc.Div({})
   local c = quarto.utils.as_blocks(node.content)
+  local has_content = #c > 0
   if pandoc.utils.type(c) == "Blocks" then
     div.content:extend(c)
   else
@@ -217,6 +223,7 @@ local function calloutDiv(node)
 
   if calloutAppearance == _quarto.modules.constants.kCalloutAppearanceDefault and pandoc.utils.stringify(title) == "" and not found then
     title = quarto.utils.as_inlines(pandoc.Plain(displayName(node.type)))
+    needs_screen_reader_callout_type = false
   end
 
   -- Make an outer card div and transfer classes and id
@@ -254,9 +261,19 @@ local function calloutDiv(node)
   local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='callout-icon" .. noicon .. "'></i>")});       
   local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
 
+  if not has_content then
+    calloutDiv.attr.classes:insert("callout-empty-content")
+  end
+
   -- show a titled callout
   if title ~= nil and (pandoc.utils.type(title) == "string" or next(title) ~= nil) then
 
+    if needs_screen_reader_callout_type then
+      -- add a screen reader callout type
+      local srCalloutType = pandoc.Span(pandoc.Str(displayName(callout_type)))
+      srCalloutType.attr.classes:insert("screen-reader-only")
+      title:insert(1, srCalloutType)
+    end
     -- mark the callout as being titleed
     calloutDiv.attr.classes:insert("callout-titled")
 
@@ -277,6 +294,7 @@ local function calloutDiv(node)
       local expandedAttrVal = "true"
       if collapse == "true" or collapse == true then
         expandedAttrVal = "false"
+        headerDiv.attr.classes:insert("collapsed")
       end
 
       -- create the collapse button

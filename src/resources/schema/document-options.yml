@@ -34,11 +34,6 @@
                   description: The dark theme name, theme scss file, or a mix of both.
   description: Theme name, theme scss file, or a mix of both.
 
-- name: renderings
-  schema:
-    arrayOf: string
-  description: "Array of rendering names, e.g. `[light, dark]`"
-
 - name: body-classes
   tags:
     formats: [$html-doc]
@@ -190,7 +185,7 @@
       option is not specified, Quarto uses the following defaults
       depending on the output format in use:
 
-      - `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,
+      - `latex`: `lualatex` (other options: `pdflatex`, `xelatex`,
         `tectonic`, `latexmk`)
       - `context`: `context`
       - `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`, `pagedjs-cli`;
@@ -279,32 +274,60 @@
   schema: string
   tags:
     formats: [beamer]
-  description: The Beamer color theme for this presentation.
+  description: The Beamer color theme for this presentation, passed to `\usecolortheme`.
+
+- name: colorthemeoptions
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [beamer]
+  description: The Beamer color theme options for this presentation, passed to `\usecolortheme`.
 
 - name: fonttheme
   schema: string
   tags:
     formats: [beamer]
-  description: The Beamer font theme for this presentation.
+  description: The Beamer font theme for this presentation, passed to `\usefonttheme`.
+
+- name: fontthemeoptions
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [beamer]
+  description: The Beamer font theme options for this presentation, passed to `\usefonttheme`.
 
 - name: innertheme
   schema: string
   tags:
     formats: [beamer]
-  description: The Beamer inner theme for this presentation.
+  description: The Beamer inner theme for this presentation, passed to `\useinnertheme`.
+
+- name: innerthemeoptions
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [beamer]
+  description: The Beamer inner theme options for this presentation, passed to `\useinnertheme`.
 
 - name: outertheme
   schema: string
   tags:
     formats: [beamer]
-  description: The Beamer outer theme for this presentation.
+  description: The Beamer outer theme for this presentation, passed to `\useoutertheme`.
+
+- name: outerthemeoptions
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [beamer]
+  description: The Beamer outer theme options for this presentation, passed to `\useoutertheme`.
 
 - name: themeoptions
   schema:
     maybeArrayOf: string
   tags:
     formats: [beamer]
-  description: Options passed to LaTeX Beamer themes.
+  description: Options passed to LaTeX Beamer themes inside `\usetheme`.
 
 - name: section
   schema: number

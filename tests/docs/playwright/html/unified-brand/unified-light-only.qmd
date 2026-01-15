@@ -1,0 +1,26 @@
+---
+format: html
+title: light brand with only light customizations
+brand:
+  color:
+    foreground: '#222'
+    background:
+      light: '#eee'
+  typography:
+    link:
+      background-color: 
+        light: '#efe'
+---
+
+```{r}
+#| lst-label: lst-fibonacci
+#| lst-cap: A naive algorithm for computing Fibonacci numbers.
+fib <- function(x) {
+  if (x < 2) 1 else fib(x - 1) + fib(x - 2)
+}
+```
+
+Here is [a link](https://example.com).
+
+{{< lipsum 2 >}}
+

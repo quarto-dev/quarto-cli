@@ -37,8 +37,8 @@ import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
 import { createTempContext } from "../core/temp.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { LanguageCellHandlerOptions } from "../core/handlers/types.ts";
-import { ExecutionEngine } from "../execute/types.ts";
-import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
+import { ExecutionEngineInstance } from "../execute/types.ts";
+import { InspectedMdCell } from "../inspect/inspect-types.ts";
 import { breakQuartoMd, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
 import { partitionCellOptionsText } from "../core/lib/partition-cell-options.ts";
 import { parse } from "../core/yaml.ts";
@@ -47,12 +47,15 @@ import { normalizeNewlines } from "../core/lib/text.ts";
 import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
 import { QuartoJSONSchema, readYamlFromMarkdown } from "../core/yaml.ts";
 import { refSchema } from "../core/lib/yaml-schema/common.ts";
+import { Zod } from "../resources/types/zod/schema-types.ts";
 import {
-  Brand as BrandJson,
-  BrandPathBoolLightDark,
-} from "../resources/types/schema-types.ts";
-import { Brand } from "../core/brand/brand.ts";
+  Brand,
+  LightDarkBrand,
+  LightDarkBrandDarkFlag,
+  splitUnifiedBrand,
+} from "../core/brand/brand.ts";
 import { assert } from "testing/asserts";
+import { Cloneable, safeCloneDeep } from "../core/safe-clone-deep.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -353,7 +356,7 @@ export async function directoryMetadataForInputFile(
 
 const mdForFile = async (
   _project: ProjectContext,
-  engine: ExecutionEngine | undefined,
+  engine: ExecutionEngineInstance | undefined,
   file: string,
 ): Promise<MappedString> => {
   if (engine) {
@@ -366,7 +369,7 @@ const mdForFile = async (
 
 export async function projectResolveCodeCellsForFile(
   project: ProjectContext,
-  engine: ExecutionEngine | undefined,
+  engine: ExecutionEngineInstance | undefined,
   file: string,
   markdown?: MappedString,
   force?: boolean,
@@ -458,7 +461,7 @@ export async function projectFileMetadata(
 
 export async function projectResolveFullMarkdownForFile(
   project: ProjectContext,
-  engine: ExecutionEngine | undefined,
+  engine: ExecutionEngineInstance | undefined,
   file: string,
   markdown?: MappedString,
   force?: boolean,
@@ -518,39 +521,56 @@ export const ensureFileInformationCache = (
 export async function projectResolveBrand(
   project: ProjectContext,
   fileName?: string,
-): Promise<{ light?: Brand; dark?: Brand } | undefined> {
-  async function loadBrand(brandPath: string): Promise<Brand> {
+): Promise<LightDarkBrandDarkFlag | undefined> {
+  async function loadSingleBrand(brandPath: string): Promise<Brand> {
     const brand = await readAndValidateYamlFromFile(
       brandPath,
-      refSchema("brand", "Format-independent brand configuration."),
+      refSchema("brand-single", "Format-independent brand configuration."),
       "Brand validation failed for " + brandPath + ".",
-    ) as BrandJson;
+    );
     return new Brand(brand, dirname(brandPath), project.dir);
   }
-  async function loadRelativeBrand(
+  async function loadUnifiedBrand(
+    brandPath: string,
+  ): Promise<LightDarkBrandDarkFlag> {
+    const brand = await readAndValidateYamlFromFile(
+      brandPath,
+      refSchema("brand-unified", "Format-independent brand configuration."),
+      "Brand validation failed for " + brandPath + ".",
+    );
+    return splitUnifiedBrand(brand, dirname(brandPath), project.dir);
+  }
+  function resolveBrandPath(
     brandPath: string,
     dir: string = dirname(fileName!),
-  ): Promise<Brand> {
+  ): string {
     let resolved: string = "";
     if (brandPath.startsWith("/")) {
       resolved = join(project.dir, brandPath);
     } else {
       resolved = join(dir, brandPath);
     }
-    return await loadBrand(resolved);
+    return resolved;
   }
   if (fileName === undefined) {
     if (project.brandCache) {
       return project.brandCache.brand;
     }
     project.brandCache = {};
-    let fileNames = ["_brand.yml", "_brand.yaml"].map((file) =>
-      join(project.dir, file)
-    );
-    let brand = project?.config?.brand as Boolean | string | {
-      light?: string;
-      dark?: string;
-    };
+    let fileNames = [
+      "_brand.yml",
+      "_brand.yaml",
+      "_brand/_brand.yml",
+      "_brand/_brand.yaml",
+    ].map((file) => join(project.dir, file));
+    const brand = (project?.config?.brand ??
+      project?.config?.project.brand) as
+        | boolean
+        | string
+        | {
+          light?: string;
+          dark?: string;
+        };
     if (brand === false) {
       project.brandCache.brand = undefined;
       return project.brandCache.brand;
@@ -561,11 +581,12 @@ export async function projectResolveBrand(
     ) {
       project.brandCache.brand = {
         light: brand.light
-          ? await loadRelativeBrand(brand.light, project.dir)
+          ? await loadSingleBrand(resolveBrandPath(brand.light, project.dir))
           : undefined,
         dark: brand.dark
-          ? await loadRelativeBrand(brand.dark, project.dir)
+          ? await loadSingleBrand(resolveBrandPath(brand.dark, project.dir))
           : undefined,
+        enablesDarkMode: !!brand.dark,
       };
       return project.brandCache.brand;
     }
@@ -577,16 +598,19 @@ export async function projectResolveBrand(
       if (!existsSync(brandPath)) {
         continue;
       }
-      project.brandCache.brand = { light: await loadBrand(brandPath) };
+      project.brandCache.brand = await loadUnifiedBrand(brandPath);
     }
     return project.brandCache.brand;
   } else {
     const metadata = await project.fileMetadata(fileName);
-    const brand = metadata.brand as BrandPathBoolLightDark;
+    if (metadata.brand === undefined) {
+      return project.resolveBrand();
+    }
+    const brand = Zod.BrandPathBoolLightDark.parse(metadata.brand);
     if (brand === false) {
       return undefined;
     }
-    if (brand === true || brand === undefined) {
+    if (brand === true) {
       return project.resolveBrand();
     }
     const fileInformation = ensureFileInformationCache(project, fileName);
@@ -594,14 +618,14 @@ export async function projectResolveBrand(
       return fileInformation.brand;
     }
     if (typeof brand === "string") {
-      fileInformation.brand = { light: await loadRelativeBrand(brand) };
+      fileInformation.brand = await loadUnifiedBrand(resolveBrandPath(brand));
       return fileInformation.brand;
     } else {
       assert(typeof brand === "object");
       if ("light" in brand || "dark" in brand) {
         let light, dark;
         if (typeof brand.light === "string") {
-          light = await loadRelativeBrand(brand.light);
+          light = await loadSingleBrand(resolveBrandPath(brand.light));
         } else if (brand.light) {
           light = new Brand(
             brand.light,
@@ -610,26 +634,33 @@ export async function projectResolveBrand(
           );
         }
         if (typeof brand.dark === "string") {
-          dark = await loadRelativeBrand(brand.dark);
-        } else if(brand.dark) {
+          dark = await loadSingleBrand(resolveBrandPath(brand.dark));
+        } else if (brand.dark) {
           dark = new Brand(
             brand.dark,
             dirname(fileName),
             project.dir,
           );
         }
-        fileInformation.brand = { light, dark };
+        fileInformation.brand = { light, dark, enablesDarkMode: !!dark };
       } else {
-        fileInformation.brand = {
-          light: new Brand(
-            brand as BrandJson,
-            dirname(fileName),
-            project.dir,
-          ),
-        };
+        fileInformation.brand = splitUnifiedBrand(
+          brand,
+          dirname(fileName),
+          project.dir,
+        );
       }
       return fileInformation.brand;
     }
+  }
+}
+
+// Create a class that extends Map and implements Cloneable
+export class FileInformationCacheMap extends Map<string, FileInformation>
+  implements Cloneable<Map<string, FileInformation>> {
+  clone(): Map<string, FileInformation> {
+    // Return the same instance (reference) instead of creating a clone
+    return this;
   }
 }
 

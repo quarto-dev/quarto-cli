@@ -2,8 +2,8 @@ import yaml
 import json
 import pathlib
 
-class Trie:
 
+class Trie:
     def __init__(self):
         self.children = {}
         self.values = []
@@ -37,13 +37,12 @@ class Trie:
             children = v.tabulator()
             feature = k
             if v.entry != "":
-                link = "<a href='%s' target='_blank'><i class='fa-solid fa-link' aria-label='link'></i></a>" % v.entry
+                link = (
+                    "<a href='%s' target='_blank'><i class='fa-solid fa-link' aria-label='link'></i></a>"
+                    % v.entry
+                )
                 feature = "%s %s" % (link, k)
-            d = {
-                "sort_key": k,
-                "feature": feature,
-                **v.tabulator_leaf()
-            }
+            d = {"sort_key": k, "feature": feature, **v.tabulator_leaf()}
             if children:
                 d["_children"] = children
             result.append(d)
@@ -60,12 +59,13 @@ class Trie:
             return 1
         return sum([v.size() for v in self.children.values()])
 
-    def walk(self, visitor, path = None):
+    def walk(self, visitor, path=None):
         if path is None:
             path = []
         visitor(self, path)
         for k, v in self.children.items():
             v.walk(visitor, path + [k])
+
 
 def extract_metadata_from_file(file):
     with open(file, "r") as f:
@@ -78,9 +78,12 @@ def extract_metadata_from_file(file):
                 start = i
             else:
                 end = i
-                metadata = yaml.load("".join(lines[start+1:end]), Loader=yaml.SafeLoader)
+                metadata = yaml.load(
+                    "".join(lines[start + 1 : end]), Loader=yaml.SafeLoader
+                )
                 return metadata
     raise ValueError("No metadata found in file %s" % file)
+
 
 def table_cell(entry, _feature, _format_name, format_config):
     if type(format_config) == str:
@@ -90,8 +93,22 @@ def table_cell(entry, _feature, _format_name, format_config):
     if quality is not None:
         if type(quality) == str:
             quality = quality.lower()
-        qualities = {-1: "&#x1F6AB;", 0: "&#x26A0;", 1: "&#x2713;", 2: "&#x2713;&#x2713;", "unknown": "&#x2753;", "na": "NA"}
-        colors = {-1: "bad", 0: "ok", 1: "good", 2: "good", "unknown": "unknown", "na": "na"}
+        qualities = {
+            -1: "&#x1F6AB;",
+            0: "&#x26A0;",
+            1: "&#x2713;",
+            2: "&#x2713;&#x2713;",
+            "unknown": "&#x2753;",
+            "na": "NA",
+        }
+        colors = {
+            -1: "bad",
+            0: "ok",
+            1: "good",
+            2: "good",
+            "unknown": "unknown",
+            "na": "na",
+        }
         color = colors[quality]
         quality_icon = qualities.get(quality, "&#x2753;")
         result.append(f"<span class='{color}'>{quality_icon}</span>")
@@ -101,7 +118,8 @@ def table_cell(entry, _feature, _format_name, format_config):
         result.append(f"<span title='{comment}'>&#x1F4AC;</span>")
     return "".join(result)
 
-def compute_trie(detailed = False):
+
+def compute_trie(detailed=False):
     trie = Trie()
     pattern = "qmd-files/**/*.qmd" if detailed else "qmd-files/**/document.qmd"
     for entry in pathlib.Path(".").glob(pattern):
@@ -115,26 +133,37 @@ def compute_trie(detailed = False):
         except KeyError:
             raise Exception("No format found in %s" % entry)
         for format_name, format_config in format.items():
-            trie.insert(feature, {
-                "feature": "/".join(feature),
-                "format": format_name,
-                "entry": entry,
-                "format_config": format_config,
-                "table_cell": table_cell(entry, feature, format_name, format_config)
-            })
+            trie.insert(
+                feature,
+                {
+                    "feature": "/".join(feature),
+                    "format": format_name,
+                    "entry": entry,
+                    "format_config": format_config,
+                    "table_cell": table_cell(
+                        entry, feature, format_name, format_config
+                    ),
+                },
+            )
     return trie
 
-def render_features_formats_data(trie = None):
+
+def render_features_formats_data(trie=None):
     if trie is None:
         trie = compute_trie()
     entries = trie.tabulator()
-    return "```{=html}\n<script type='text/javascript'>\nvar tableData = %s;\n</script>\n```\n" % json.dumps(entries, indent=2)
+    return (
+        "```{=html}\n<script type='text/javascript'>\nvar tableData = %s;\n</script>\n```\n"
+        % json.dumps(entries, indent=2)
+    )
 
-def compute_quality_summary(trie = None):
+
+def compute_quality_summary(trie=None):
     if trie is None:
         trie = compute_trie()
     quality_summary = {"unknown": 0, -1: 0, 0: 0, 1: 0, 2: 0, "na": 0}
     n_rows = 0
+
     def visit(node, _path):
         nonlocal n_rows
         if not node.children or len(node.values):
@@ -149,5 +178,6 @@ def compute_quality_summary(trie = None):
             if quality_summary.get(quality) is None:
                 raise ValueError("Invalid quality value %s" % quality)
             quality_summary[quality] += 1
+
     trie.walk(visit)
     return {"n_rows": n_rows, "quality": quality_summary}

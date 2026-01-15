@@ -631,7 +631,11 @@ h1.title {
   margin-top: 0;
 }
 
-main.content > section:first-of-type > h2:first-child {
+main.content > p:has(+ section) {
+  margin-bottom: 2rem;
+}
+
+main.content > section:first-of-type > h2:nth-child(1) {
   margin-top: 0;
 }
 
@@ -873,7 +877,8 @@ pre.sourceCode {
     border: none;
   }
   font-size: $code-block-font-size;
-  overflow: visible !important;
+  overflow-y: visible !important;
+  // overflow-y: auto !important;
   @if $code-block-bg {
     padding: $code-block-bg-padding;
   }
@@ -887,6 +892,7 @@ pre.sourceCode > code.sourceCode {
 
 div.sourceCode {
   overflow-y: hidden;
+  // position: relative;
 }
 
 .callout div.sourceCode {
@@ -917,6 +923,26 @@ pre {
   border: initial;
 }
 
+p code.sourceCode,
+li code.sourceCode,
+td code.sourceCode {
+  $calculated-bg: if(
+    variable-exists(code-bg),
+    if(
+      $code-bg == $gray-100 and variable-exists(code-block-bg-color),
+      $code-block-bg-color,
+      $code-bg
+    ),
+    null
+  );
+
+  @if variable-exists(mono-background-color) {
+    background-color: $mono-background-color;
+  } @else if variable-exists(calculated-bg) {
+    background-color: $calculated-bg;
+  }
+}
+
 // Maps the pandoc 'monobackgroundcolor' to bootstrap
 // Note this only targets code outside of sourceCode blocks
 @if variable-exists(mono-background-color) {
@@ -936,14 +962,23 @@ pre code:not(.sourceCode) {
   background-color: initial;
 }
 
-// Default padding if background is set
 p code:not(.sourceCode),
 li code:not(.sourceCode),
 td code:not(.sourceCode) {
+  $calculated-bg: if(
+    variable-exists(code-bg),
+    if(
+      $code-bg == $gray-100 and variable-exists(code-block-bg-color),
+      $code-block-bg-color,
+      $code-bg
+    ),
+    null
+  );
+
   @if variable-exists(mono-background-color) {
     background-color: $mono-background-color;
-  } @else if variable-exists(code-bg) {
-    background-color: $code-bg;
+  } @else if variable-exists(calculated-bg) {
+    background-color: $calculated-bg;
   }
 
   @if variable-exists(code-padding) {
@@ -1382,6 +1417,8 @@ kbd,
 .callout.callout-style-simple .callout-body {
   font-size: 0.9rem;
   font-weight: 400;
+  margin-bottom: -0.4em;
+  margin-top: 0.5em;
 }
 
 .callout.callout-style-default .callout-body {
@@ -1398,6 +1435,15 @@ kbd,
   margin-bottom: -0.2em;
 }
 
+.callout.callout-empty-content > .callout-header {
+  margin-bottom: 0em;
+  border-bottom-right-radius: add($border-radius, -1px);
+}
+
+.callout > .callout-header.collapsed {
+  border-bottom-right-radius: add($border-radius, -1px);
+}
+
 .callout.callout-style-simple > div.callout-header {
   border-bottom: none;
   font-size: 0.9rem;
@@ -1412,6 +1458,7 @@ kbd,
   font-size: 0.9rem;
   padding-left: 0.5em;
   padding-right: 0.5em;
+  border-top-right-radius: add($border-radius, -1px);
 }
 
 .callout.callout-style-default .callout-body {
@@ -2175,4 +2222,16 @@ a {
   background-color: $link-color-bg;
   font-weight: $link-weight;
   text-decoration: $link-decoration;
+}
+
+// screen-reader-only, cf https://github.com/quarto-dev/quarto-cli/issues/726#issuecomment-1112486100
+.screen-reader-only {
+  position: absolute;
+  clip: rect(0 0 0 0);
+  border: 0;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  width: 1px;
 }

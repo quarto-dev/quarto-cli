@@ -466,10 +466,19 @@ function configurePlugins(quartoSearchOptions) {
         window.aa &&
         window["@algolia/autocomplete-plugin-algolia-insights"]
       ) {
+        // Check if cookie consent is enabled from search options
+        const cookieConsentEnabled = algoliaOptions["cookie-consent-enabled"] || false;
+
+        // Generate random session token only when cookies are disabled
+        const userToken = cookieConsentEnabled ? undefined : Array.from(Array(20), () =>
+          Math.floor(Math.random() * 36).toString(36)
+        ).join("");
+
         window.aa("init", {
           appId,
           apiKey,
-          useCookie: true,
+          useCookie: cookieConsentEnabled,
+          userToken: userToken,
         });
 
         const { createAlgoliaInsightsPlugin } =

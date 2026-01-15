@@ -1,0 +1,53 @@
+---
+format:
+  typst:
+    keep-typ: true
+brand:
+  typography:
+    fonts:
+      - family: Barrio
+        source: google
+      - family: Roboto
+        source: google
+      - family: Inconsolata
+        source: google
+    base: InvalidFont, Roboto, 
+    headings: Barrio, Times New Roman
+    monospace: InvalidFont, Inconsolata
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'font: \("InvalidFont", "Roboto"\),'
+          # monospace font now goes through codefont parameter instead of header injection
+          - 'codefont: \("InvalidFont", "Inconsolata"\),'
+        - []
+      ensurePdfRegexMatches:
+        -
+          - 'Base is \("invalidfont", "roboto"\)'
+          - 'Heading is \("barrio", "times new roman"\)'
+        - []
+---
+
+```{=typst}
+#set text(fallback: false)
+```
+
+## Base font
+
+Base is `#context text.font`{=typst}
+
+{{< lipsum 1 >}}
+
+## Heading is `#context text.font`{=typst}
+
+
+::: {style="font-family: Barrio"}
+{{< lipsum 1 >}}
+:::
+
+```js
+const fib = num => num < 2 ? num : fib(num-1) + fib(num - 2);
+console.log(fib(12))
+```

@@ -11,11 +11,14 @@ import {
   initState,
   setInitializer,
 } from "../../src/core/lib/yaml-validation/state.ts";
+import { os } from "../../src/deno_ral/platform.ts";
+import { asArray } from "../../src/core/array.ts";
 
 import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
 import { parse } from "../../src/core/yaml.ts";
 import { cleanoutput } from "./render/render.ts";
 import {
+  ensureEpubFileRegexMatches,
   ensureDocxRegexMatches,
   ensureDocxXpath,
   ensureFileRegexMatches,
@@ -35,7 +38,8 @@ import {
   ensureLatexFileRegexMatches,
   printsMessage,
   shouldError,
-  ensureHtmlElementContents
+  ensureHtmlElementContents,
+  ensureHtmlElementCount,
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
@@ -44,6 +48,7 @@ import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
 import { WalkEntry } from "../../src/deno_ral/fs.ts";
 import { quarto } from "../../src/quarto.ts";
 import { safeExistsSync, safeRemoveSync } from "../../src/core/path.ts";
+import { runningInCI } from "../../src/core/ci-info.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -61,6 +66,7 @@ async function guessFormat(fileName: string): Promise<string[]> {
       try {
         yaml = parse(src);
       } catch (e) {
+        if (!(e instanceof Error)) throw e;
         if (e.message.includes("unknown tag")) {
           // assume it's not necessary to guess the format
           continue;
@@ -87,13 +93,53 @@ async function guessFormat(fileName: string): Promise<string[]> {
   return Array.from(formats);
 }
 
+function skipTest(metadata: Record<string, any>): string | undefined {
+  // deno-lint-ignore no-explicit-any
+  const quartoMeta = metadata["_quarto"] as any;
+  const runConfig = quartoMeta?.tests?.run;
+
+  // No run config means run everywhere
+  if (!runConfig) {
+    return undefined;
+  }
+
+  // Check explicit skip with message
+  if (runConfig.skip) {
+    return typeof runConfig.skip === "string" ? runConfig.skip : "tests.run.skip is true";
+  }
+
+  // Check CI
+  if (runningInCI() && runConfig.ci === false) {
+    return "tests.run.ci is false";
+  }
+
+  // Check OS blacklist (not_os)
+  const notOs = runConfig.not_os;
+  if (notOs !== undefined && asArray(notOs).includes(os)) {
+    return `tests.run.not_os includes ${os}`;
+  }
+
+  // Check OS whitelist (os) - if specified, must match
+  const onlyOs = runConfig.os;
+  if (onlyOs !== undefined && !asArray(onlyOs).includes(os)) {
+    return `tests.run.os does not include ${os}`;
+  }
+
+  return undefined;
+}
+
 //deno-lint-ignore no-explicit-any
 function hasTestSpecs(metadata: any, input: string): boolean {
-  const hasTestSpecs = metadata?.["_quarto"]?.["tests"] != undefined
-  if (!hasTestSpecs && metadata?.["_quarto"]?.["test"] != undefined) {
+  const tests = metadata?.["_quarto"]?.["tests"];
+  if (!tests && metadata?.["_quarto"]?.["test"] != undefined) {
     throw new Error(`Test is ${input} is using 'test' in metadata instead of 'tests'. This is probably a typo.`);
   }
-  return hasTestSpecs
+  // Check if tests has any format specs (keys other than 'run')
+  if (tests && typeof tests === "object") {
+    const formatKeys = Object.keys(tests).filter(key => key !== "run");
+    return formatKeys.length > 0;
+  }
+  return false;
 }
 
 interface QuartoInlineTestSpec {
@@ -125,8 +171,10 @@ function resolveTestSpecs(
   const result = [];
   // deno-lint-ignore no-explicit-any
   const verifyMap: Record<string, any> = {
+    ensureEpubFileRegexMatches,
     ensureHtmlElements,
     ensureHtmlElementContents,
+    ensureHtmlElementCount,
     ensureFileRegexMatches,
     ensureLatexFileRegexMatches,
     ensureTypstFileRegexMatches,
@@ -144,6 +192,10 @@ function resolveTestSpecs(
   };
 
   for (const [format, testObj] of Object.entries(specs)) {
+    // Skip the 'run' key - it's not a format
+    if (format === "run") {
+      continue;
+    }
     let checkWarnings = true;
     const verifyFns: Verify[] = [];
     if (testObj && typeof testObj === "object") {
@@ -170,6 +222,9 @@ function resolveTestSpecs(
         } else if (key === "noErrors") {
           checkWarnings = false;
           verifyFns.push(noErrors);
+        } else if (key === "noErrorsOrWarnings") {
+          checkWarnings = false;
+          verifyFns.push(noErrorsOrWarnings);
         } else {
           // See if there is a project and grab it's type
           const projectPath = findRootTestsProjectDir(input)
@@ -202,10 +257,14 @@ function resolveTestSpecs(
             }
           } else if (key === "printsMessage") {
             verifyFns.push(verifyMap[key](value));
+          } else if (key === "ensureEpubFileRegexMatches") {
+            // this ensure function is special because it takes an array of path + regex specifiers,
+            // so we should never use the spread operator
+            verifyFns.push(verifyMap[key](outputFile.outputPath, value));
           } else if (verifyMap[key]) {
             // FIXME: We should find another way that having this requirement of keep-* in the metadata
             if (key === "ensureTypstFileRegexMatches") {
-              if (!metadata.format?.typst?.['keep-typ'] && !metadata['keep-typ']) {
+              if (!metadata.format?.typst?.['keep-typ'] && !metadata['keep-typ'] && metadata.format?.typst?.['output-ext'] !== 'typ' && metadata['output-ext'] !== 'typ') {
                 throw new Error(`Using ensureTypstFileRegexMatches requires setting 'keep-typ: true' in file ${input}`);
               }
             } else if (key === "ensureLatexFileRegexMatches") {
@@ -275,6 +334,12 @@ for (const { path: fileName } of files) {
   const metadata = input.endsWith("md") // qmd or md
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
+
+  const skipReason = skipTest(metadata);
+  if (skipReason !== undefined) {
+    console.log(`Skipping tests for ${input}: ${skipReason}`);
+    continue;
+  }
 
   const testSpecs: QuartoInlineTestSpec[] = [];
 

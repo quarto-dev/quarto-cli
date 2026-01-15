@@ -1,0 +1,51 @@
+---
+title: "knitr dark mode - gt"
+brand:
+  light: united-brand.yml
+  dark: slate-brand.yml
+execute:
+  echo: false
+  warning: false
+---
+
+```{r}
+#| echo: false
+#| warning: false
+library(gt)
+
+gt_brand <- function(brand_yml) {
+  brand <- yaml::yaml.load_file(brand_yml)
+  return(function(table) {
+    table |>
+      tab_options(
+        table.background.color = brand$color$background,
+        table.font.color = brand$color$foreground,
+      )
+  })
+}
+united_theme <- gt_brand("united-brand.yml")
+slate_theme <- gt_brand("slate-brand.yml")
+```
+
+This example will lose the caption, because combining `tbl-cap` with `renderings` is not supported.
+
+But it should not crash.
+
+
+::: {#tbl-cap-cross}
+
+```{r}
+#| renderings: [light, dark]
+#| tbl-cap: a caption
+caws <- head(mtcars) %>% gt()
+
+caws |> united_theme()
+
+caws |> slate_theme()
+```
+
+:::
+
+Here's a [link](https://example.com).
+
+{{< lipsum 3 >}}

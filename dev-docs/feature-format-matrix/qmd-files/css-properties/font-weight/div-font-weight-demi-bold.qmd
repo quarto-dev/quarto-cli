@@ -1,0 +1,32 @@
+---
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: na
+  typst:
+    quality: 2
+    comment: "td, span only"
+  dashboard:
+    quality: 1
+  docx:
+    quality: na
+  pptx:
+    quality: na
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '#block\[\s*#set text\(weight: "semibold"\); Demi-bold div\s*\]'
+        - []
+---
+
+::: {style="font-weight: demi-bold"}
+
+Demi-bold div
+
+:::
+
+

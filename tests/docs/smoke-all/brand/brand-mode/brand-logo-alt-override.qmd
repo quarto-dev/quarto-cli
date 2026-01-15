@@ -1,0 +1,56 @@
+---
+title: brand-mode and logos
+format:
+  revealjs: default
+  typst:
+    keep-typ: true
+brand:
+  logo:
+    images:
+      sun:
+        path: sun-face.png
+        alt: sun face
+      moon:
+        path: moon-face.png
+        alt: moon face
+    medium:
+      light: sun
+      dark: moon
+  color:
+    foreground: 
+      light: '#222'
+      dark: '#eee'
+    background:
+      light: '#eee'
+      dark: '#222'
+  typography:
+    headings:
+      color:
+        light: '#429'
+        dark: '#54e'
+logo:
+  light:
+    path: sun
+    alt: SUN
+  dark:
+    path: moon
+    alt: MOON
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="sun-face.png"][alt="SUN"]'
+        -
+          - 'img[src="moon-face.png"][alt="MOON"]'
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("sun-face\.png", width: 1\.5in, alt: "SUN"\)\)'
+        -
+          - 'background.*moon-face\.png'
+---
+
+## Here we go
+
+- in default `brand-mode`!

@@ -105,29 +105,31 @@
             dark: path
       - string:
           completions:
-            - pygments
-            - tango
-            - espresso
-            - zenburn
-            - kate
-            - monochrome
-            - breezedark
-            - haddock
+            - a11y
             - arrow
             - atom-one
             - ayu
             - ayu-mirage
             - breeze
+            - breezedark
             - dracula
+            - espresso
             - github
             - gruvbox
-            - mokokai
+            - haddock
+            - kate
+            - monochrome
+            - monokai
+            - none
             - nord
             - oblivion
             - printing
+            - pygments
             - radical
             - solarized
+            - tango
             - vim-dark
+            - zenburn
   description:
     short: Specifies the coloring style to be used in highlighted source code.
     long: |

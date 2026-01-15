@@ -1159,7 +1159,7 @@ async function listItemFromFile(
       )
       : [];
 
-    const readingContext = target?.markdown
+    const readingContext = target?.markdown?.markdown
       ? estimateReadingTimeMinutes(target.markdown.markdown)
       : undefined;
     let readingtime = undefined;

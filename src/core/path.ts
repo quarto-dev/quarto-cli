@@ -40,6 +40,9 @@ export function safeRemoveIfExists(file: string) {
   try {
     removeIfExists(file);
   } catch (error) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
     warning(`Error removing file ${file}: ${error.message}`);
   }
 }
@@ -82,11 +85,17 @@ export function isModifiedAfter(file: string, otherFile: string) {
   }
 }
 
-export function dirAndStem(file: string) {
+export function dirAndStem(file: string): [string, string] {
   return [
     dirname(file),
     basename(file, extname(file)),
   ];
+}
+
+export function isQmdFile(file: string) {
+  const ext = extname(file).toLowerCase();
+  const kQmdExtensions = [".qmd"];
+  return kQmdExtensions.includes(ext);
 }
 
 export function expandPath(path: string) {
@@ -108,7 +117,7 @@ export function safeExistsSync(path: string) {
 export async function which(cmd: string) {
   const args = isWindows ? ["CMD", "/C", "where", cmd] : ["which", cmd];
   const result = await execProcess(
-    { cmd: args, stderr: "piped", stdout: "piped" },
+    { cmd: args[0], args: args.slice(1), stderr: "piped", stdout: "piped" },
   );
   if (result.code === 0) {
     return isWindows
@@ -192,6 +201,14 @@ export function ensureTrailingSlash(path: string) {
 export function removeTrailingSlash(path: string) {
   if (path && path.endsWith("/")) {
     return path.slice(0, path.length - 1);
+  } else {
+    return path;
+  }
+}
+
+export function ensureLeadingSlash(path: string) {
+  if (path && !path.startsWith("/")) {
+    return "/" + path;
   } else {
     return path;
   }

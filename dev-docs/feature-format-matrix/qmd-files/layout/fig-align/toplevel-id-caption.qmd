@@ -13,12 +13,13 @@ format:
   pptx:
     quality: -1
 keep-typ: true
+keep-tex: true
 _quarto:
   tests:
-    latex:
-      ensureFileRegexMatches:
+    pdf:
+      ensureLatexFileRegexMatches:
         -
-          - '\\hfill\\includegraphics\{100.png\}'
+          - '\\hfill\\pandocbounded\{\\includegraphics\[keepaspectratio\]\{100.png\}'
         - []
     typst:
       ensureTypstFileRegexMatches:

@@ -92,6 +92,10 @@ function compute_flags()
         flags.has_hidden = true
       end
 
+      if node.attr.classes:find("list-table") then
+        flags.has_list_tables = true
+      end
+
       if node.attr.classes:find("cell") then
         -- cellcleanup.lua
         flags.has_output_cells = true
@@ -194,9 +198,6 @@ function compute_flags()
         flags.has_lightbox = true
       elseif lightbox_auto == false then
         flags.has_lightbox = false
-      end
-      if el.renderings then
-        flags.has_renderings = true
       end
     end,
   }}

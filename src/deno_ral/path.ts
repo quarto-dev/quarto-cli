@@ -5,6 +5,7 @@
  */
 
 import * as path from "path";
+import { normalize as posixNormalize } from "path/posix";
 
 export const SEP = path.SEPARATOR;
 export const SEP_PATTERN = path.SEPARATOR_PATTERN;
@@ -21,4 +22,4 @@ export const normalize = path.normalize;
 export const toFileUrl = path.toFileUrl;
 export const isGlob = path.isGlob;
 
-export const posix = { normalize: path.posix.normalize };
+export const posix = { normalize: posixNormalize };

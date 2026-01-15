@@ -14,8 +14,8 @@ ensureDirSync(workingDir);
 const ensureStreams = (name: string, script: string, stdout: string, stderr: string) => {
   unitTest(name, async () => {
     const result = await execProcess({
-        cmd: [
-          quartoDevCmd(),
+        cmd: quartoDevCmd(), 
+        args: [
           "run",
           basename(script),
         ],
@@ -51,8 +51,8 @@ const ensureStreams = (name: string, script: string, stdout: string, stderr: str
 const testRunCmd = (name: string, script: string) => {
   unitTest(name, async () => {
     const result = await execProcess({
-      cmd: [
-        quartoDevCmd(),
+      cmd: quartoDevCmd(),
+      args: [
         "run",
         basename(script),
       ]

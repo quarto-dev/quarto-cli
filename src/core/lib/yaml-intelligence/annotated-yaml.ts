@@ -109,7 +109,8 @@ export function readAnnotatedYamlFromMappedString(
   }
   try {
     return buildJsYamlAnnotation(mappedSource);
-  } catch (e) {
+    // deno-lint-ignore no-explicit-any
+  } catch (e: any) {
     if (e.name === "YAMLError") {
       e.name = "YAML Parsing";
     }
@@ -617,6 +618,7 @@ export function locateCursor(
       annotation: innermostAnnotation!,
     };
   } catch (e) {
+    if (!(e instanceof Error)) throw e;
     if (e.message === kInternalLocateError) {
       return {
         withError: true,

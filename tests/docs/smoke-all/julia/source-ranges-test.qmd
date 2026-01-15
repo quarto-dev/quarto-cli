@@ -1,0 +1,16 @@
+---
+title: "Test Julia source ranges with includes"
+format: markdown
+engine: julia
+_quarto:
+  tests:
+    markdown:
+      ensureFileRegexMatches:
+        - ['source-ranges-test\.qmd:15', '_included\.qmd:2']
+---
+
+{{< include _included.qmd >}}
+
+```{julia}
+"$(@__FILE__):$(@__LINE__)"
+```

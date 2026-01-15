@@ -5,17 +5,15 @@
  */
 
 import { MuxAsyncIterator, pooledMap } from "async";
-import { iterateReader } from "io/iterate-reader";
-import { type Closer, type Reader } from "io/types";
 import { debug, info } from "../deno_ral/log.ts";
 import { onCleanup } from "./cleanup.ts";
 import { ProcessResult } from "./process-types.ts";
 
-const processList = new Map<number, Deno.Process>();
+const processList = new Map<number, Deno.ChildProcess>();
 let processCount = 0;
 let cleanupRegistered = false;
 
-export function registerForExitCleanup(process: Deno.Process) {
+export function registerForExitCleanup(process: Deno.ChildProcess) {
   const thisProcessId = ++processCount; // don't risk repeated PIDs
   processList.set(thisProcessId, process);
   return thisProcessId;
@@ -32,7 +30,7 @@ function ensureCleanup() {
       for (const process of processList.values()) {
         try {
           process.kill();
-          process.close();
+          // process.close();
         } catch (error) {
           info("Error occurred during cleanup: " + error);
         }
@@ -41,8 +39,12 @@ function ensureCleanup() {
   }
 }
 
+export type ExecProcessOptions = Deno.CommandOptions & {
+  cmd: string;
+};
+
 export async function execProcess(
-  options: Deno.RunOptions,
+  options: ExecProcessOptions,
   stdin?: string,
   mergeOutput?: "stderr>stdout" | "stdout>stderr",
   stderrFilter?: (output: string) => string,
@@ -65,16 +67,18 @@ export async function execProcess(
     // If the caller asked for stdout/stderr to be directed to the rid of an open
     // file, just allow that to happen. Otherwise, specify piped and we will implement
     // the proper behavior for inherit, etc....
-    debug(`[execProcess] ${options.cmd.join(" ")}`);
-    const process = Deno.run({
+    debug(`[execProcess] ${[options.cmd, ...(options.args || [])].join(" ")}`);
+    const denoCmd = new Deno.Command(options.cmd, {
       ...options,
       stdin: stdin !== undefined ? "piped" : options.stdin,
       stdout: typeof (options.stdout) === "number" ? options.stdout : "piped",
       stderr: typeof (options.stderr) === "number" ? options.stderr : "piped",
     });
+    const process = denoCmd.spawn();
     const thisProcessId = registerForExitCleanup(process);
 
     if (stdin !== undefined) {
+      const stdinWriter = process.stdin.getWriter();
       if (!process.stdin) {
         unregisterForExitCleanup(thisProcessId);
         throw new Error("Process stdin not available");
@@ -86,9 +90,10 @@ export async function execProcess(
       while (offset < buffer.length) {
         const end = Math.min(offset + kWindowSize, buffer.length);
         const window = buffer.subarray(offset, end);
-        const written = await process.stdin.write(window);
-        offset += written;
+        await stdinWriter.write(window);
+        offset += window.byteLength;
       }
+      stdinWriter.releaseLock();
       process.stdin.close();
     }
 
@@ -105,18 +110,17 @@ export async function execProcess(
 
       // Add streams to the multiplexer
       const addStream = (
-        stream: (Reader & Closer) | null,
+        iterator: AsyncIterableIterator<Uint8Array<ArrayBuffer>>,
         filter?: (output: string) => string,
       ) => {
-        if (stream !== null) {
-          const streamIter = filter
-            ? filteredAsyncIterator(iterateReader(stream), filter)
-            : iterateReader(stream);
-          multiplexIterator.add(streamIter);
-        }
+        const streamIter = filter
+          ? filteredAsyncIterator(iterator, filter)
+          : iterator;
+        multiplexIterator.add(streamIter);
       };
-      addStream(process.stdout);
-      addStream(process.stderr, stderrFilter);
+
+      addStream(process.stdout.values());
+      addStream(process.stderr.values(), stderrFilter);
 
       // Process the output
       const allOutput = await processOutput(
@@ -132,13 +136,15 @@ export async function execProcess(
       }
 
       // Close the streams
-      const closeStream = (stream: (Reader & Closer) | null) => {
-        if (stream) {
-          stream.close();
-        }
-      };
-      closeStream(process.stdout);
-      closeStream(process.stderr);
+      // FIXME: In Deno 2 we get ReadableStreams which do not have a close method?
+      //
+      // const closeStream = (stream: ReadableStream<Uint8Array<ArrayBuffer>> | null) => {
+      //   if (stream) {
+      //     stream.close();
+      //   }
+      // };
+      // closeStream(process.stdout);
+      // closeStream(process.stderr);
     } else {
       // Process the streams independently
       const promises: Promise<void>[] = [];
@@ -146,20 +152,20 @@ export async function execProcess(
       if (process.stdout !== null) {
         promises.push(
           processOutput(
-            iterateReader(process.stdout),
+            process.stdout.values(),
             options.stdout,
             respectStreams ? "stdout" : undefined,
           ).then((text) => {
             stdoutText = text;
-            process.stdout!.close();
+            // process.stdout!.close();
           }),
         );
       }
 
       if (process.stderr != null) {
         const iterator = stderrFilter
-          ? filteredAsyncIterator(iterateReader(process.stderr), stderrFilter)
-          : iterateReader(process.stderr);
+          ? filteredAsyncIterator(process.stderr.values(), stderrFilter)
+          : process.stderr.values();
         promises.push(
           processOutput(
             iterator,
@@ -167,7 +173,7 @@ export async function execProcess(
             respectStreams ? "stderr" : undefined,
           ).then((text) => {
             stderrText = text;
-            process.stderr!.close();
+            // process.stderr!.close();
           }),
         );
       }
@@ -175,10 +181,10 @@ export async function execProcess(
     }
 
     // await result
-    const status = await withTimeout(process.status());
+    const status = await withTimeout(process.output());
 
     // close the process
-    process.close();
+    // process.close();
 
     unregisterForExitCleanup(thisProcessId);
 
@@ -191,7 +197,10 @@ export async function execProcess(
       stderr: stderrText,
     };
   } catch (e) {
-    throw new Error(`Error executing '${options.cmd[0]}': ${e.message}`);
+    if (!(e instanceof Error)) {
+      throw e;
+    }
+    throw new Error(`Error executing '${options.cmd}': ${e.message}`);
   }
 }
 

@@ -1,0 +1,16 @@
+---
+format: html
+---
+
+```{python}
+import os
+import json
+
+info = json.load(open(os.environ["QUARTO_EXECUTE_INFO"]))
+
+# try to access these fields so that the test fails
+# if they're not available
+
+info['document-path']
+info['format']
+```

@@ -20,10 +20,12 @@ export const pythonRunHandler: RunHandler = {
     stdin?: string,
     options?: RunHandlerOptions,
   ) => {
+    const pythonCmd = await pythonExec();
     return await execProcess(
       {
-        cmd: [
-          ...(await pythonExec()),
+        cmd: pythonCmd[0],
+        args: [
+          ...pythonCmd.slice(1),
           script,
           ...args,
         ],

@@ -1,0 +1,6 @@
+---
+title: Testing kate code highlight
+highlight-style: kate
+---
+
+{{< include _body.md >}}

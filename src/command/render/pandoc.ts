@@ -196,17 +196,16 @@ import {
   createMarkdownPipeline,
   MarkdownPipelineHandler,
 } from "../../core/markdown-pipeline.ts";
-import { getEnv } from "../../../package/src/util/utils.ts";
-import {
-  BrandFontBunny,
-  BrandFontFile,
-  BrandFontGoogle,
-} from "../../resources/types/schema-types.ts";
+import { getenv } from "../../core/env.ts";
+import { Zod } from "../../resources/types/zod/schema-types.ts";
 import { kFieldCategories } from "../../project/types/website/listing/website-listing-shared.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { appendToCombinedLuaProfile } from "../../core/performance/perfetto-utils.ts";
 import { makeTimedFunctionAsync } from "../../core/performance/function-times.ts";
 import { walkJson } from "../../core/json.ts";
+import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
+import { assert } from "testing/asserts";
+import { call } from "../../deno_ral/process.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -241,42 +240,38 @@ const handleCombinedLuaProfiles = (
 };
 
 function captureRenderCommand(
-  args: Deno.RunOptions,
+  args: Deno.CommandOptions,
   temp: TempContext,
   outputDir: string,
 ) {
   Deno.mkdirSync(outputDir, { recursive: true });
-  const newArgs = [
-    args.cmd[0],
-    ...args.cmd.slice(1).map((_arg) => {
-      const arg = _arg as string; // we know it's a string, TypeScript doesn't somehow
-      if (!arg.startsWith(temp.baseDir)) {
-        return arg;
-      }
-      const newArg = join(outputDir, basename(arg));
-      if (arg.match(/^.*quarto\-defaults.*.yml$/)) {
-        // we need to correct the defaults YML because it contains a reference to a template in a temp directory
-        const ymlDefaults = Deno.readTextFileSync(arg);
-        const defaults = parseYml(ymlDefaults);
-
-        const templateDirectory = dirname(defaults.template);
-        const newTemplateDirectory = join(
-          outputDir,
-          basename(templateDirectory),
-        );
-        copyTo(templateDirectory, newTemplateDirectory);
-        defaults.template = join(
-          newTemplateDirectory,
-          basename(defaults.template),
-        );
-        const defaultsOutputFile = join(outputDir, basename(arg));
-        Deno.writeTextFileSync(defaultsOutputFile, stringify(defaults));
-        return defaultsOutputFile;
-      }
-      Deno.copyFileSync(arg, newArg);
-      return newArg;
-    }),
-  ] as typeof args.cmd;
+  const newArgs: typeof args.args = (args.args ?? []).map((_arg) => {
+    const arg = _arg as string; // we know it's a string, TypeScript doesn't somehow
+    if (!arg.startsWith(temp.baseDir)) {
+      return arg;
+    }
+    const newArg = join(outputDir, basename(arg));
+    if (arg.match(/^.*quarto\-defaults.*.yml$/)) {
+      // we need to correct the defaults YML because it contains a reference to a template in a temp directory
+      const ymlDefaults = Deno.readTextFileSync(arg);
+      const defaults = parseYml(ymlDefaults);
+      const templateDirectory = dirname(defaults.template);
+      const newTemplateDirectory = join(
+        outputDir,
+        basename(templateDirectory),
+      );
+      copyTo(templateDirectory, newTemplateDirectory);
+      defaults.template = join(
+        newTemplateDirectory,
+        basename(defaults.template),
+      );
+      const defaultsOutputFile = join(outputDir, basename(arg));
+      Deno.writeTextFileSync(defaultsOutputFile, stringify(defaults));
+      return defaultsOutputFile;
+    }
+    Deno.copyFileSync(arg, newArg);
+    return newArg;
+  });
 
   // now we need to correct entries in filterParams
   const filterParams = JSON.parse(
@@ -330,7 +325,9 @@ export async function runPandoc(
       JSON.stringify(paramsJson),
     );
 
-    const traceFilters = pandocMetadata?.["_quarto"]?.["trace-filters"] ||
+    const traceFilters =
+      // deno-lint-ignore no-explicit-any
+      (pandocMetadata as any)?.["_quarto"]?.["trace-filters"] ||
       Deno.env.get("QUARTO_TRACE_FILTERS");
 
     if (traceFilters) {
@@ -354,7 +351,7 @@ export async function runPandoc(
     // load the system lua libraries, which may not be compatible with
     // the lua version we are using
     if (Deno.env.get("QUARTO_LUA_CPATH") !== undefined) {
-      pandocEnv["LUA_CPATH"] = getEnv("QUARTO_LUA_CPATH");
+      pandocEnv["LUA_CPATH"] = getenv("QUARTO_LUA_CPATH");
     } else {
       pandocEnv["LUA_CPATH"] = "";
     }
@@ -432,6 +429,24 @@ export async function runPandoc(
     // Don't print _quarto.tests
     // This can cause issue on regex test for printed output
     cleanQuartoTestsMetadata(metadata);
+
+    // Filter out bundled engines from the engines array
+    if (Array.isArray(metadata.engines)) {
+      const filteredEngines = metadata.engines.filter((engine) => {
+        const enginePath = typeof engine === "string" ? engine : engine.path;
+        // Keep user engines, filter out bundled ones
+        return !enginePath?.replace(/\\/g, "/").includes(
+          "resources/extension-subtrees/",
+        );
+      });
+
+      // Remove the engines key entirely if empty, otherwise assign filtered array
+      if (filteredEngines.length === 0) {
+        delete metadata.engines;
+      } else {
+        metadata.engines = filteredEngines;
+      }
+    }
   };
 
   cleanMetadataForPrinting(printMetadata);
@@ -445,7 +460,7 @@ export async function runPandoc(
 
   // generate defaults and capture defaults to be printed
   let allDefaults = (await generateDefaults(options)) || {};
-  let printAllDefaults = ld.cloneDeep(allDefaults) as FormatPandoc;
+  let printAllDefaults = safeCloneDeep(allDefaults);
 
   // capture any filterParams in the FormatExtras
   const formatFilterParams = {} as Record<string, unknown>;
@@ -1127,7 +1142,7 @@ export async function runPandoc(
 
   // selectively overwrite some resolved metadata (e.g. ensure that metadata
   // computed from inline r expressions gets included @ the bottom).
-  const pandocMetadata = ld.cloneDeep(options.format.metadata || {});
+  const pandocMetadata = safeCloneDeep(options.format.metadata || {});
   for (const key of Object.keys(engineMetadata)) {
     const isChapterTitle = key === kTitle && projectIsBook(options.project);
 
@@ -1161,6 +1176,7 @@ export async function runPandoc(
   dateFields.forEach((dateField) => {
     const date = pandocMetadata[dateField];
     const format = pandocMetadata[kDateFormat];
+    assert(format === undefined || typeof format === "string");
     pandocMetadata[dateField] = resolveAndFormatDate(
       options.source,
       date,
@@ -1180,15 +1196,19 @@ export async function runPandoc(
   // Expand citation dates into CSL dates
   const citationMetadata = pandocMetadata[kCitation];
   if (citationMetadata) {
+    assert(typeof citationMetadata === "object");
+    // ideally we should be asserting non-arrayness here but that's not very fast.
+    // assert(!Array.isArray(citationMetadata));
+    const citationMetadataObj = citationMetadata as Record<string, unknown>;
     const docCSLDate = dateRaw
       ? cslDate(resolveDate(options.source, dateRaw))
       : undefined;
     const fields = ["issued", "available-date"];
     fields.forEach((field) => {
-      if (citationMetadata[field]) {
-        citationMetadata[field] = cslDate(citationMetadata[field]);
+      if (citationMetadataObj[field]) {
+        citationMetadataObj[field] = cslDate(citationMetadataObj[field]);
       } else if (docCSLDate) {
-        citationMetadata[field] = docCSLDate;
+        citationMetadataObj[field] = docCSLDate;
       }
     });
   }
@@ -1228,8 +1248,9 @@ export async function runPandoc(
     !isBeamerOutput(options.format.pandoc)
   ) {
     const docClass = pandocMetadata[kDocumentClass];
+    assert(!docClass || typeof docClass === "string");
     const isPrintDocumentClass = docClass &&
-      ["book", "scrbook"].includes(docClass);
+      ["book", "scrbook"].includes(docClass as string);
 
     if (!isPrintDocumentClass) {
       if (pandocMetadata[kColorLinks] === undefined) {
@@ -1281,7 +1302,7 @@ export async function runPandoc(
     prefix: "quarto-metadata",
     suffix: ".yml",
   });
-  const pandocPassedMetadata = ld.cloneDeep(pandocMetadata);
+  const pandocPassedMetadata = safeCloneDeep(pandocMetadata);
   delete pandocPassedMetadata.format;
   delete pandocPassedMetadata.project;
   delete pandocPassedMetadata.website;
@@ -1289,6 +1310,23 @@ export async function runPandoc(
   // these shouldn't be visible because they are emitted on markdown output
   // and it breaks ensureFileRegexMatches
   cleanQuartoTestsMetadata(pandocPassedMetadata);
+
+  // Filter out bundled engines from metadata passed to Pandoc
+  if (Array.isArray(pandocPassedMetadata.engines)) {
+    const filteredEngines = pandocPassedMetadata.engines.filter((engine) => {
+      const enginePath = typeof engine === "string" ? engine : engine.path;
+      if (!enginePath) return true;
+      return !enginePath.replace(/\\/g, "/").includes(
+        "resources/extension-subtrees/",
+      );
+    });
+
+    if (filteredEngines.length === 0) {
+      delete pandocPassedMetadata.engines;
+    } else {
+      pandocPassedMetadata.engines = filteredEngines;
+    }
+  }
 
   Deno.writeTextFileSync(
     metadataTemp,
@@ -1322,7 +1360,8 @@ export async function runPandoc(
   setupPandocEnv();
 
   const params = {
-    cmd,
+    cmd: cmd[0],
+    args: cmd.slice(1),
     cwd,
     env: pandocEnv,
     ourEnv: Deno.env.toObject(),
@@ -1482,19 +1521,19 @@ async function resolveExtras(
         // deno-lint-ignore no-explicit-any
         const source: string = (_font as any).source ?? "google";
         if (source === "file") {
-          const font = _font as BrandFontFile;
+          const font = Zod.BrandFontFile.parse(_font);
           for (const file of font.files || []) {
             const path = typeof file === "object" ? file.path : file;
             fontdirs.add(dirname(join(brand.brandDir, path)));
           }
         } else if (source === "bunny") {
-          const font = _font as BrandFontBunny;
+          const font = Zod.BrandFontBunny.parse(_font);
           console.log(
             "Font bunny is not yet supported for Typst, skipping",
             font.family,
           );
         } else if (source === "google" /* || font.source === "bunny" */) {
-          const font = _font as BrandFontGoogle;
+          const font = Zod.BrandFontGoogle.parse(_font);
           let { family, style, weight } = font;
           const parts = [family!];
           if (style) {
@@ -1575,9 +1614,9 @@ async function resolveExtras(
       };
       const woff2ttf = async (url: string) => {
         const path = url_to_path(url);
-        await Deno.run({ cmd: ["ttx", join(font_cache, path)] });
-        await Deno.run({
-          cmd: ["ttx", join(font_cache, path.replace(/woff2?$/, "ttx"))],
+        await call("ttx", { args: [join(font_cache, path)] });
+        await call("ttx", {
+          args: [join(font_cache, path.replace(/woff2?$/, "ttx"))],
         });
       };
       const ttf_urls2: Array<string> = [], woff_urls2: Array<string> = [];
@@ -1605,6 +1644,9 @@ async function resolveExtras(
     if (typeof fontPaths === "string") {
       fontPaths = [fontPaths];
     }
+    fontPaths = fontPaths.map((path) =>
+      path[0] === "/" ? join(project.dir, path) : path
+    );
     fontPaths.push(...fontdirs);
     format.metadata[kFontPaths] = fontPaths;
   }
@@ -1679,7 +1721,7 @@ function runPandocMessage(
 
   const keys = Object.keys(metadata);
   if (keys.length > 0) {
-    const printMetadata = ld.cloneDeep(metadata) as Metadata;
+    const printMetadata = safeCloneDeep(metadata);
     delete printMetadata.format;
 
     // print message
@@ -1713,9 +1755,9 @@ function resolveTextHighlightStyle(
   const textHighlightingMode = extras.html?.[kTextHighlightingMode];
 
   if (highlightTheme === "none") {
-    // Clear the highlighting
+    // Disable highlighting - pass "none" string (not null, which Pandoc 3.8+ rejects)
     extras.pandoc = extras.pandoc || {};
-    extras.pandoc[kHighlightStyle] = null;
+    extras.pandoc[kHighlightStyle] = "none";
     return extras;
   }
 

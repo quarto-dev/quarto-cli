@@ -1,0 +1,12 @@
+---
+title: Callout with no title
+format:
+  html: 
+    quality: 1
+---
+
+::: {.callout-note}
+
+{{< lipsum 1 >}}
+
+:::

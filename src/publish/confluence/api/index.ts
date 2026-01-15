@@ -152,6 +152,9 @@ export class ConfluenceClient {
         `content/${testContentId}/restriction/byOperation/update/user?accountId=${user.accountId}`,
       );
     } catch (error) {
+      if (!(error instanceof ApiError)) {
+        throw error;
+      }
       trace("lockDownResult Error", error);
       // Note, sometimes a successful call throws a
       // "SyntaxError: Unexpected end of JSON input"
@@ -170,6 +173,9 @@ export class ConfluenceClient {
     try {
       await this.deleteContent(contentDelete);
     } catch (error) {
+      if (!(error instanceof ApiError)) {
+        throw error;
+      }
       trace("delete canSetPermissions Test Error", error);
       if (error?.status === 403) {
         //Delete is disabled for this user, attempt an archive
@@ -375,10 +381,19 @@ export class ConfluenceClient {
     };
   }
 
-  private handleResponse<T>(response: Response) {
+  private async handleResponse<T>(response: Response) {
     if (response.ok) {
       if (response.body) {
-        return response.json() as unknown as T;
+        // Some Confluence API endpoints return successfull calls with no body while using content-type "application/json"
+        // example: https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content-restrictions/#api-wiki-rest-api-content-id-restriction-byoperation-operationkey-bygroupid-groupid-get
+        // To prevent JSON parsing errors we have to return null for empty bodies and only parse when there is content
+        let data = await response.text();
+
+        if (data === "") {
+          return null as unknown as T;
+        } else {
+          return JSON.parse(data) as unknown as T;
+        }
       } else {
         return response as unknown as T;
       }

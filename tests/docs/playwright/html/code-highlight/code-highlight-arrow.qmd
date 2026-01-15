@@ -1,0 +1,6 @@
+---
+title: Testing arrow code highlight
+highlight-style: arrow
+---
+
+{{< include _body.md >}}

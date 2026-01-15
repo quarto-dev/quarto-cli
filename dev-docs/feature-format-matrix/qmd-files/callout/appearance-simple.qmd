@@ -1,0 +1,14 @@
+---
+title: Callout with simple appearance
+format:
+  html: 
+    quality: 1
+---
+
+::: {.callout-note appearance="simple"}
+
+## Title
+
+{{< lipsum 1 >}}
+
+:::

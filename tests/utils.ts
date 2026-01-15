@@ -7,7 +7,7 @@
 
 import { basename, dirname, extname, join, relative } from "../src/deno_ral/path.ts";
 import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
-import { kMetadataFormat, kOutputExt } from "../src/config/constants.ts";
+import { kMetadataFormat, kOutputExt, kOutputFile } from "../src/config/constants.ts";
 import { pathWithForwardSlashes, safeExistsSync } from "../src/core/path.ts";
 import { readYaml } from "../src/core/yaml.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
@@ -52,7 +52,7 @@ export function findProjectOutputDir(projectdir: string | undefined) {
     // deno-lint-ignore no-explicit-any
     type = ((yaml as any).project as any).type;
   } catch (error) {
-    throw new Error("Failed to read quarto project YAML", error);
+    throw new Error("Failed to read quarto project YAML" + String(error));
   }
   if (type === "book") {
     return "_book";
@@ -80,7 +80,7 @@ export function outputForInput(
   projectRoot = projectRoot ?? findProjectDir(input);
   projectOutDir = projectOutDir ?? findProjectOutputDir(projectRoot);
   const dir = projectRoot ? relative(projectRoot, dirname(input)) : dirname(input);
-  let stem = basename(input, extname(input));
+  let stem = metadata?.[kMetadataFormat]?.[to]?.[kOutputFile] || basename(input, extname(input));
   let ext = metadata?.[kMetadataFormat]?.[to]?.[kOutputExt];
 
   // TODO: there's a bug where output-ext keys from a custom format are 
@@ -109,8 +109,11 @@ export function outputForInput(
     outputExt = ext 
   } else {
     outputExt = baseFormat || "html";
-    if (baseFormat === "latex" || baseFormat == "context" || baseFormat == "beamer") {
+    if (baseFormat === "latex" || baseFormat == "context") {
       outputExt = "tex";
+    }
+    if (baseFormat === "beamer") {
+      outputExt = "pdf";
     }
     if (baseFormat === "revealjs") {
       outputExt = "html";
@@ -143,9 +146,13 @@ export function outputForInput(
 
   const outputPath: string = projectRoot && projectOutDir !== undefined
       ? join(projectRoot, projectOutDir, dir, `${stem}.${outputExt}`)
+      : projectOutDir !== undefined
+      ? join(projectOutDir, dir, `${stem}.${outputExt}`)
       : join(dir, `${stem}.${outputExt}`);
   const supportPath: string = projectRoot && projectOutDir !== undefined
     ? join(projectRoot, projectOutDir, dir, `${stem}_files`)
+    : projectOutDir !== undefined
+    ? join(projectOutDir, dir, `${stem}_files`)
     : join(dir, `${stem}_files`);
 
   return {

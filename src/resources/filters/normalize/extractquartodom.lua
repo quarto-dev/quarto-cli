@@ -28,7 +28,10 @@ function parse_md_in_html_rawblocks()
     end,
     RawBlock = function(raw)
       local result
-      if raw.format == "pandoc-native" then
+      if raw.format:sub(1, 14) == "pandoc-reader-" then
+        -- this is a pandoc reader format, so we can read it directly
+        result = pandoc.read(raw.text, raw.format:sub(15)).blocks
+      elseif raw.format == "pandoc-native" then
         result = pandoc.read(raw.text, "native").blocks
       elseif raw.format == "pandoc-json" then
         result = pandoc.read(raw.text, "json").blocks
@@ -39,7 +42,10 @@ function parse_md_in_html_rawblocks()
     end,
     RawInline = function(raw)
       local result
-      if raw.format == "pandoc-native" then
+      if raw.format:sub(1, 14) == "pandoc-reader-" then
+        -- this is a pandoc reader format, so we can read it directly
+        result = quarto.utils.as_inlines(pandoc.read(raw.text, raw.format:sub(15)).blocks)
+      elseif raw.format == "pandoc-native" then
         result = quarto.utils.as_inlines(pandoc.read(raw.text, "native").blocks)
       elseif raw.format == "pandoc-json" then
         -- let's try to be minimally smart here, and handle lists differently from a single top-level element

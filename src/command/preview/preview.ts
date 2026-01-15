@@ -76,18 +76,15 @@ import {
   safeExistsSync,
 } from "../../core/path.ts";
 import {
+  isPositWorkbench,
   isRStudio,
-  isRStudioWorkbench,
   isServerSession,
   isVSCodeServer,
   vsCodeServerProxyUri,
 } from "../../core/platform.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
-import {
-  previewEnsureResources,
-  previewMonitorResources,
-} from "../../core/quarto.ts";
+import { previewMonitorResources } from "../../core/quarto.ts";
 import { exitWithCleanup } from "../../core/cleanup.ts";
 import {
   extensionFilesFromDirs,
@@ -195,12 +192,10 @@ export async function preview(
     ...(await resolvePreviewOptions(options)),
   };
 
+  const ac = new AbortController();
   // create listener and callback to stop the server
-  const listener = Deno.listen({ port: options.port!, hostname: options.host });
-  const stopServer = () => listener.close();
-
-  // ensure resources
-  previewEnsureResources(stopServer);
+  // const listener = Deno.listen({ port: options.port!, hostname: options.host });
+  const stopServer = () => ac.abort();
 
   // create client reloader
   const reloader = httpDevServer(
@@ -271,23 +266,22 @@ export async function preview(
   previewMonitorResources(stopServer);
 
   // serve project
-  for await (const conn of listener) {
-    (async () => {
+  const server = Deno.serve(
+    { signal: ac.signal, port: options.port!, hostname: options.host },
+    async (req: Request) => {
       try {
-        for await (const { request, respondWith } of Deno.serveHttp(conn)) {
-          await respondWith(handler(request));
-        }
+        return await handler(req);
       } catch (err) {
-        warning(err.message);
-        try {
-          conn.close();
-        } catch {
-          //
+        if (err instanceof Error) {
+          warning(err.message);
         }
+        throw err;
       }
-    })();
-  }
+    },
+  );
+  await server.finished;
 }
+
 export interface PreviewRenderRequest {
   version: 1 | 2;
   path: string;
@@ -424,6 +418,7 @@ export async function renderForPreview(
   pandocArgs: string[],
   project?: ProjectContext,
 ): Promise<RenderForPreviewResult> {
+
   // render
   const renderResult = await render(file, {
     services,
@@ -530,7 +525,7 @@ export function createChangeHandler(
 
       return result;
     } catch (e) {
-      if (e.message) {
+      if (e instanceof Error && e.message) {
         // jupyter notebooks being edited in juptyerlab sometimes get an
         // "Unexpected end of JSON input" error that remedies itself (so we ignore).
         // this may be a result of an intermediate save result?
@@ -878,7 +873,7 @@ function pdfFileRequestHandler(
     const onRequest = pdfOptions.onRequest;
     pdfOptions.onRequest = async (req: Request) => {
       if (new URL(req.url).pathname === "/") {
-        const url = isRStudioWorkbench()
+        const url = isPositWorkbench()
           ? await rswURL(port, kPdfJsInitialPath)
           : isVSCodeServer()
           ? vsCodeServerProxyUri()!.replace("{{port}}", `${port}`) +
