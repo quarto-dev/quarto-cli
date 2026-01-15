@@ -497,9 +497,15 @@ function process_document(doc)
 
     table.insert(emails_for_json, email_json_obj)
 
-    -- Write individual preview file
+    -- Write preview file(s). For v2 produce per-email previews; for v1
+    -- produce a single index.html preview.
     if meta_email_preview ~= false then
-      local preview_filename = "email-preview/email_id-" .. tostring(idx) .. ".html"
+      local preview_filename
+      if use_v2_email_format then
+        preview_filename = "email-preview/email_id-" .. tostring(idx) .. ".html"
+      else
+        preview_filename = "email-preview/index.html"
+      end
       quarto._quarto.file.write(pandoc.path.join({dir, preview_filename}), html_preview_body)
     end
   end
