@@ -77,6 +77,9 @@ import {
   SidebarTool,
 } from "../../types.ts";
 import {
+  NormalizedLogoLightDarkSpecifier,
+} from "../../../resources/types/schema-types.ts";
+import {
   normalizeSidebarItem,
   resolveHrefAttribute,
   sidebarContext,
@@ -556,7 +559,8 @@ function navigationHtmlPostprocessor(
       const navLinkHref = navLink.getAttribute("href");
 
       const sidebarLink = doc.querySelector(
-        '.sidebar-navigation a[href="' + navLinkHref + '"]',
+        '.sidebar-navigation a[href="' + navLinkHref +
+          '"]:not(.sidebar-logo-link)',
       );
       // if the link is either for the current window href or appears on the
       // sidebar then set it to active
@@ -1012,8 +1016,6 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // ensure title and search are present
   sidebar.title = await sidebarTitle(sidebar, project) as string | undefined;
-  sidebar.logo = resolveLogo(sidebar.logo);
-
   const searchOpts = await searchOptions(project);
   sidebar.search = sidebar.search !== undefined
     ? sidebar.search
@@ -1202,7 +1204,7 @@ function nextAndPrevious(
       (sidebarItem: SidebarItem) => {
         return sidebarItem.href || Math.random().toString();
       },
-    );
+    ) as SidebarItem[];
 
     const index = sidebarItemsUniq.findIndex((item) => item.href === href);
     const nextPage = index > -1 && index < sidebarItemsUniq.length - 1 &&
@@ -1238,7 +1240,7 @@ async function navbarEjsData(
       ? searchOpts.type
       : false,
     background: navbar.background || "primary",
-    logo: resolveLogo(navbar.logo),
+    logo: ld.cloneDeep(navbar.logo),
     [kLogoAlt]: navbar[kLogoAlt],
     [kLogoHref]: navbar[kLogoHref],
     collapse,
@@ -1247,7 +1249,6 @@ async function navbarEjsData(
       : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
     pinned: navbar.pinned !== undefined ? !!navbar.pinned : false,
   };
-
   // if there is no navbar title and it hasn't been set to 'false'
   // then use the site title
   if (!data.title && data.title !== false) {
@@ -1492,14 +1493,6 @@ async function sidebarTitle(sidebar: Sidebar, project: ProjectContext) {
   } else {
     // There is a logo, just let the logo appear
     return undefined;
-  }
-}
-
-function resolveLogo(logo?: string) {
-  if (logo && !isExternalPath(logo) && !logo.startsWith("/")) {
-    return "/" + logo;
-  } else {
-    return logo;
   }
 }
 

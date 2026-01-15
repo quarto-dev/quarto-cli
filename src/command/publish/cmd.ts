@@ -20,10 +20,7 @@ import {
   initState,
   setInitializer,
 } from "../../core/lib/yaml-validation/state.ts";
-import {
-  projectContext,
-  projectInputFiles,
-} from "../../project/project-context.ts";
+import { projectContext } from "../../project/project-context.ts";
 
 import {
   projectIsManuscript,
@@ -53,7 +50,6 @@ export const publishCommand =
         " - Quarto Pub (quarto-pub)\n" +
         " - GitHub Pages (gh-pages)\n" +
         " - Posit Connect (connect)\n" +
-        " - Posit Cloud (posit-cloud)\n" +
         " - Netlify (netlify)\n" +
         " - Confluence (confluence)\n" +
         " - Hugging Face Spaces (huggingface)\n\n" +
@@ -116,10 +112,6 @@ export const publishCommand =
     .example(
       "Publish with explicit credentials",
       "quarto publish connect --server example.com --token 01A24233E294",
-    )
-    .example(
-      "Publish project to Posit Cloud",
-      "quarto publish posit-cloud",
     )
     .example(
       "Publish without confirmation prompt",
@@ -292,20 +284,23 @@ async function publish(
       await openUrl(siteUrl.toString());
     }
   } catch (err) {
-    // attempt to recover from unauthorized
-    if (provider.isUnauthorized(err) && options.prompt) {
-      if (await handleUnauthorized(provider, account)) {
-        const authorizedAccount = await provider.authorizeToken(
-          options,
-          target,
-        );
-        if (authorizedAccount) {
-          // recursve after re-authorization
-          return await publish(provider, authorizedAccount, options, target);
-        }
-      }
-    } else {
+    if (!(err instanceof Error)) {
+      // shouldn't ever happen
       throw err;
+    }
+    // attempt to recover from unauthorized
+    if (!(provider.isUnauthorized(err) && options.prompt)) {
+      throw err;
+    }
+    if (await handleUnauthorized(provider, account)) {
+      const authorizedAccount = await provider.authorizeToken(
+        options,
+        target,
+      );
+      if (authorizedAccount) {
+        // recursve after re-authorization
+        return await publish(provider, authorizedAccount, options, target);
+      }
     }
   }
 }

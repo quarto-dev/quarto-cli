@@ -6,6 +6,8 @@ $for(header-includes)$
 $header-includes$
 $endfor$
 
+$page.typ()$
+
 $typst-show.typ()$
 
 $for(include-before)$

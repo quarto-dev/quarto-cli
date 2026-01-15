@@ -38,7 +38,8 @@ export async function readRegistryKey(
     safeArgs.args,
     (cmd: string[]) => {
       return execProcess({
-        cmd,
+        cmd: cmd[0],
+        args: cmd.slice(1),
         stdout: "piped",
         stderr: "piped",
       });

@@ -9,24 +9,7 @@ import { info } from "../../deno_ral/log.ts";
 import { render } from "../render/render-shared.ts";
 import { renderServices } from "../render/render-services.ts";
 
-import { JupyterCapabilities } from "../../core/jupyter/types.ts";
-import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
-import {
-  jupyterCapabilitiesJson,
-  jupyterCapabilitiesMessage,
-  jupyterInstallationMessage,
-  jupyterUnactivatedEnvMessage,
-  pythonInstallationMessage,
-} from "../../core/jupyter/jupyter-shared.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
-import {
-  checkRBinary,
-  KnitrCapabilities,
-  knitrCapabilities,
-  knitrCapabilitiesMessage,
-  knitrInstallationMessage,
-  rInstallationMessage,
-} from "../../core/knitr.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import {
   cacheCodePage,
@@ -34,7 +17,6 @@ import {
   readCodePage,
 } from "../../core/windows.ts";
 import { RenderServiceWithLifetime } from "../render/types.ts";
-import { jupyterKernelspecForLanguage } from "../../core/jupyter/kernels.ts";
 import { execProcess } from "../../core/process.ts";
 import { pandocBinaryPath } from "../../core/resources.ts";
 import { lines } from "../../core/text.ts";
@@ -50,23 +32,27 @@ import { quartoCacheDir } from "../../core/appdirs.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { makeStringEnumTypeEnforcer } from "../../typing/dynamic.ts";
 import { findChrome } from "../../core/puppeteer.ts";
+import { executionEngines } from "../../execute/engine.ts";
 
-export const kTargets = [
-  "install",
-  "info",
-  "jupyter",
-  "knitr",
-  "versions",
-  "all",
-] as const;
-export type Target = typeof kTargets[number];
-export const enforceTargetType = makeStringEnumTypeEnforcer(...kTargets);
+export function getTargets(): readonly string[] {
+  const checkableEngineNames = executionEngines()
+    .filter((engine) => engine.checkInstallation)
+    .map((engine) => engine.name);
+
+  return ["install", "info", ...checkableEngineNames, "versions", "all"];
+}
+
+export type Target = string;
+export function enforceTargetType(value: unknown): Target {
+  const targets = getTargets();
+  return makeStringEnumTypeEnforcer(...targets)(value);
+}
 
 const kIndent = "      ";
 
 type CheckJsonResult = Record<string, unknown>;
 
-type CheckConfiguration = {
+export type CheckConfiguration = {
   strict: boolean;
   target: Target;
   output: string | undefined;
@@ -110,20 +96,26 @@ export async function check(
     }
     checkInfoMsg(conf, `Quarto ${quartoConfig.version()}`);
 
-    if (target === "info" || target === "all") {
-      await checkInfo(conf);
+    // Fixed checks (non-engine)
+    for (
+      const [name, checker] of [
+        ["info", checkInfo],
+        ["versions", checkVersions],
+        ["install", checkInstall],
+      ] as const
+    ) {
+      if (target === name || target === "all") {
+        await checker(conf);
+      }
     }
-    if (target === "versions" || target === "all") {
-      await checkVersions(conf);
-    }
-    if (target === "install" || target === "all") {
-      await checkInstall(conf);
-    }
-    if (target === "jupyter" || target === "all") {
-      await checkJupyterInstallation(conf);
-    }
-    if (target === "knitr" || target === "all") {
-      await checkKnitrInstallation(conf);
+
+    // Dynamic engine checks
+    for (const engine of executionEngines()) {
+      if (
+        engine.checkInstallation && (target === engine.name || target === "all")
+      ) {
+        await engine.checkInstallation(conf);
+      }
     }
 
     if (conf.jsonResult && conf.output) {
@@ -217,7 +209,8 @@ async function checkVersions(conf: CheckConfiguration) {
 
   let pandocVersion = lines(
     (await execProcess({
-      cmd: [pandocBinaryPath(), "--version"],
+      cmd: pandocBinaryPath(),
+      args: ["--version"],
       stdout: "piped",
     })).stdout!,
   )[0]?.split(" ")[1];
@@ -225,7 +218,8 @@ async function checkVersions(conf: CheckConfiguration) {
   const denoVersion = Deno.version.deno;
   const typstVersion = lines(
     (await execProcess({
-      cmd: [typstBinaryPath(), "--version"],
+      cmd: typstBinaryPath(),
+      args: ["--version"],
       stdout: "piped",
     })).stdout!,
   )[0].split(" ")[1];
@@ -249,19 +243,18 @@ async function checkVersions(conf: CheckConfiguration) {
   // loading the configuration file directly, but that
   // file is in an awkward format and it is not packaged
   // with our installers
-  const checkData: [string | undefined, string, string][] = strict
-    ? [
-      [pandocVersion, "3.6.3", "Pandoc"],
-      [sassVersion, "1.85.1", "Dart Sass"],
-      [denoVersion, "1.46.3", "Deno"],
-      [typstVersion, "0.13.0", "Typst"],
-    ]
-    : [
-      [pandocVersion, ">=2.19.2", "Pandoc"],
-      [sassVersion, ">=1.32.8", "Dart Sass"],
-      [denoVersion, ">=1.33.1", "Deno"],
-      [typstVersion, ">=0.10.0", "Typst"],
-    ];
+  const versionConstraints: [string | undefined, string, string][] = [
+    [pandocVersion, "3.8.3", "Pandoc"],
+    [sassVersion, "1.87.0", "Dart Sass"],
+    [denoVersion, "2.4.5", "Deno"],
+    [typstVersion, "0.14.2", "Typst"],
+  ];
+  const checkData: [string | undefined, string, string][] = versionConstraints
+    .map(([version, ver, name]) => [
+      version,
+      strict ? ver : `>=${ver}`,
+      name,
+    ]);
   const fun = strict ? strictCheckVersion : checkVersion;
   for (const [version, constraint, name] of checkData) {
     if (version === undefined) {
@@ -300,7 +293,8 @@ async function checkInstall(conf: CheckConfiguration) {
     const quartoRoot = Deno.env.get("QUARTO_ROOT");
     if (quartoRoot) {
       const gitHead = await execProcess({
-        cmd: ["git", "-C", quartoRoot, "rev-parse", "HEAD"],
+        cmd: "git",
+        args: ["-C", quartoRoot, "rev-parse", "HEAD"],
         stdout: "piped",
         stderr: "piped", // to not show error if not in a git repo
       });
@@ -528,234 +522,5 @@ title: "Title"
       message: kMessage,
       doneMessage: kMessage + "OK\n",
     }, markdownRenderCb);
-  }
-}
-
-async function checkJupyterInstallation(conf: CheckConfiguration) {
-  const kMessage = "Checking Python 3 installation....";
-  const jupyterJson: Record<string, unknown> = {};
-  if (conf.jsonResult) {
-    (conf.jsonResult.tools as Record<string, unknown>).jupyter = jupyterJson;
-  }
-  let caps: JupyterCapabilities | undefined;
-  if (conf.jsonResult) {
-    caps = await jupyterCapabilities();
-  } else {
-    await withSpinner({
-      message: kMessage,
-      doneMessage: false,
-    }, async () => {
-      caps = await jupyterCapabilities();
-    });
-  }
-  if (caps) {
-    checkCompleteMessage(conf, kMessage + "OK");
-    if (conf.jsonResult) {
-      jupyterJson["capabilities"] = await jupyterCapabilitiesJson(caps);
-    } else {
-      checkInfoMsg(conf, await jupyterCapabilitiesMessage(caps, kIndent));
-    }
-    checkInfoMsg(conf, "");
-    if (caps.jupyter_core) {
-      if (await jupyterKernelspecForLanguage("python")) {
-        const kJupyterMessage = "Checking Jupyter engine render....";
-        if (conf.jsonResult) {
-          await checkJupyterRender(conf);
-        } else {
-          await withSpinner({
-            message: kJupyterMessage,
-            doneMessage: kJupyterMessage + "OK\n",
-          }, async () => {
-            await checkJupyterRender(conf);
-          });
-        }
-      } else {
-        jupyterJson["kernels"] = [];
-        checkInfoMsg(
-          conf,
-          kIndent + "NOTE: No Jupyter kernel for Python found",
-        );
-        checkInfoMsg(conf, "");
-      }
-    } else {
-      const installMessage = jupyterInstallationMessage(caps, kIndent);
-      checkInfoMsg(conf, installMessage);
-      checkInfoMsg(conf, "");
-      jupyterJson["installed"] = false;
-      jupyterJson["how-to-install"] = installMessage;
-      const envMessage = jupyterUnactivatedEnvMessage(caps, kIndent);
-      if (envMessage) {
-        checkInfoMsg(conf, envMessage);
-        checkInfoMsg(conf, "");
-        jupyterJson["env"] = {
-          "warning": envMessage,
-        };
-      }
-    }
-  } else {
-    checkCompleteMessage(conf, kMessage + "(None)\n");
-    const msg = pythonInstallationMessage(kIndent);
-    jupyterJson["installed"] = false;
-    jupyterJson["how-to-install-python"] = msg;
-    checkInfoMsg(conf, msg);
-    checkInfoMsg(conf, "");
-  }
-}
-
-async function checkJupyterRender(conf: CheckConfiguration) {
-  const {
-    services,
-  } = conf;
-  const json: Record<string, unknown> = {};
-  if (conf.jsonResult) {
-    (conf.jsonResult.render as Record<string, unknown>).jupyter = json;
-  }
-  const qmdPath = services.temp.createFile({ suffix: "check.qmd" });
-  Deno.writeTextFileSync(
-    qmdPath,
-    `
----
-title: "Title"
----
-
-## Header
-
-\`\`\`{python}
-1 + 1
-\`\`\`
-`,
-  );
-  const result = await render(qmdPath, {
-    services,
-    flags: { quiet: true, executeDaemon: 0 },
-  });
-  if (result.error) {
-    if (!conf.jsonResult) {
-      throw result.error;
-    } else {
-      json["error"] = result.error;
-    }
-  } else {
-    json["ok"] = true;
-  }
-}
-
-async function checkKnitrInstallation(conf: CheckConfiguration) {
-  const kMessage = "Checking R installation...........";
-  let caps: KnitrCapabilities | undefined;
-  let rBin: string | undefined;
-  const json: Record<string, unknown> = {};
-  if (conf.jsonResult) {
-    (conf.jsonResult.tools as Record<string, unknown>).knitr = json;
-  }
-  const knitrCb = async () => {
-    rBin = await checkRBinary();
-    caps = await knitrCapabilities(rBin);
-  };
-  if (conf.jsonResult) {
-    await knitrCb();
-  } else {
-    await withSpinner({
-      message: kMessage,
-      doneMessage: false,
-    }, knitrCb);
-  }
-  if (rBin && caps) {
-    checkCompleteMessage(conf, kMessage + "OK");
-    checkInfoMsg(conf, knitrCapabilitiesMessage(caps, kIndent));
-    checkInfoMsg(conf, "");
-    if (caps.packages.rmarkdownVersOk && caps.packages.knitrVersOk) {
-      const kKnitrMessage = "Checking Knitr engine render......";
-      if (conf.jsonResult) {
-        await checkKnitrRender(conf);
-      } else {
-        await withSpinner({
-          message: kKnitrMessage,
-          doneMessage: kKnitrMessage + "OK\n",
-        }, async () => {
-          await checkKnitrRender(conf);
-        });
-      }
-    } else {
-      // show install message if not available
-      // or update message if not up to date
-      json["installed"] = false;
-      if (!caps.packages.knitr || !caps.packages.knitrVersOk) {
-        const msg = knitrInstallationMessage(
-          kIndent,
-          "knitr",
-          !!caps.packages.knitr && !caps.packages.knitrVersOk,
-        );
-        checkInfoMsg(conf, msg);
-        json["how-to-install-knitr"] = msg;
-      }
-      if (!caps.packages.rmarkdown || !caps.packages.rmarkdownVersOk) {
-        const msg = knitrInstallationMessage(
-          kIndent,
-          "rmarkdown",
-          !!caps.packages.rmarkdown && !caps.packages.rmarkdownVersOk,
-        );
-        checkInfoMsg(conf, msg);
-        json["how-to-install-rmarkdown"] = msg;
-      }
-      checkInfoMsg(conf, "");
-    }
-  } else if (rBin === undefined) {
-    checkCompleteMessage(conf, kMessage + "(None)\n");
-    const msg = rInstallationMessage(kIndent);
-    checkInfoMsg(conf, msg);
-    json["installed"] = false;
-    checkInfoMsg(conf, "");
-  } else if (caps === undefined) {
-    json["installed"] = false;
-    checkCompleteMessage(conf, kMessage + "(None)\n");
-    const msgs = [
-      `R succesfully found at ${rBin}.`,
-      "However, a problem was encountered when checking configurations of packages.",
-      "Please check your installation of R.",
-    ];
-    msgs.forEach((msg) => {
-      checkInfoMsg(conf, msg);
-    });
-    json["error"] = msgs.join("\n");
-    checkInfoMsg(conf, "");
-  }
-}
-
-async function checkKnitrRender(conf: CheckConfiguration) {
-  const {
-    services,
-  } = conf;
-  const json: Record<string, unknown> = {};
-  if (conf.jsonResult) {
-    (conf.jsonResult.render as Record<string, unknown>).knitr = json;
-  }
-  const rmdPath = services.temp.createFile({ suffix: "check.rmd" });
-  Deno.writeTextFileSync(
-    rmdPath,
-    `
----
-title: "Title"
----
-
-## Header
-
-\`\`\`{r}
-1 + 1
-\`\`\`
-`,
-  );
-  const result = await render(rmdPath, {
-    services,
-    flags: { quiet: true },
-  });
-  if (result.error) {
-    if (!conf.jsonResult) {
-      throw result.error;
-    } else {
-      json["error"] = result.error;
-    }
-  } else {
-    json["ok"] = true;
   }
 }

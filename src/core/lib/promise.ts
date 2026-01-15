@@ -1,9 +1,8 @@
 /*
-* promise.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * promise.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 interface PendingPromise<T> {
   promise: () => Promise<T>;
@@ -56,6 +55,7 @@ export class PromiseQueue<T = unknown> {
           this.dequeue();
         });
     } catch (err) {
+      if (!(err instanceof Error)) throw err;
       this.running = false;
       item.reject(err);
       this.dequeue();

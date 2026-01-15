@@ -10,12 +10,11 @@ website:
       - about.qmd
       - icon: github
         href: https://www.github.com/
-      - icon: twitter
-        href: https://www.twitter.com
+      - icon: bluesky
+        href: https://bsky.app/
 format:
   html:
     theme: cosmo
     css: styles.css
 
 editor: visual
-

@@ -1,0 +1,24 @@
+---
+title: "Section A"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'nav.navbar a.nav-link[href$="index.html"].active'
+          - 'nav.navbar a.nav-link[href$="page2.html"]:not(.active)'
+        -
+          - 'a.sidebar-logo-link'
+---
+
+## Section A
+
+This is Section A. When NO logo is configured in the sidebar, the navbar active
+state should work correctly. The "Section A" navbar item should be active on this page.
+
+The bug (issue #13506): After PR #12996, `sidebar.logo` was normalized to
+`{light: undefined, dark: undefined}`, making `if(sidebar.logo)` always true.
+This created empty `<a class="sidebar-logo-link">` elements that interfered with
+the navbar active state detection logic.
+
+See also: [Section B](page2.qmd)

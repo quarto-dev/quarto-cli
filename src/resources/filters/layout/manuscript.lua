@@ -57,10 +57,10 @@ function manuscript()
         -- If this is a notebook embed cell, 'lift' the contents of any child divs
         -- up (unroll their contents), this will help us avoid
         -- labeling divs marked as `cells` more than once
-        local blocks = pandoc.List()
+        local blocks = pandoc.Blocks({})
         for _, childBlock in ipairs(divEl.content) do
           if is_regular_node(childBlock, "Div") then
-              tappend(blocks, childBlock.content)
+              blocks:extend(childBlock.content)
           else
             blocks:insert(childBlock)
           end
@@ -82,7 +82,8 @@ function manuscript()
                       
           -- Use the notebook cotnext to try to determine the name
           -- of the output file
-          local notebooks = param("notebook-context", {})
+          local notebooks_filename = param("notebook-context", {})
+          local notebooks = quarto.json.decode(io.open(notebooks_filename, "r"):read("*a"))
           local nbFileName = pandoc.path.filename(nbRelPath)
           local previewFile = nbFileName .. ".html"
           for _i, notebook in ipairs(notebooks) do      

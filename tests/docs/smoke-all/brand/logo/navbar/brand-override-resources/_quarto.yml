@@ -1,0 +1,16 @@
+project:
+  type: website
+theme:
+  light: brand
+  dark: [brand, dark-fixups.scss]
+website:
+  navbar:
+    id: navbar-id
+    style: "docked"
+    logo:
+      light: { path: moon }
+      dark: { path: sun, alt: "SUN FACE" }
+    search: true
+    contents:
+      - index.qmd
+      - conclusion.qmd

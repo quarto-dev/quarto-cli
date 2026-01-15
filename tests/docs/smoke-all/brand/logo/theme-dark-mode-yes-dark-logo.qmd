@@ -1,0 +1,31 @@
+---
+title: Yes dark logo if theme enables dark mode
+format:
+  dashboard:
+    theme:
+      light: default
+      dark: darkly
+brand:
+  logo:
+    images:
+      light-logo:
+        path: light-logo.png
+        alt: light logo
+    small:
+      light: light-logo
+logo:
+  light: quarto.png
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          - 'img[src="quarto.png"][alt=""][class="navbar-logo light-content d-inline-block"]'
+          - 'img[src="quarto.png"][alt=""][class="navbar-logo dark-content d-inline-block"]'
+        - []
+---
+
+Chooses the documents's light logo because there is no dark logo in the brand or document.
+
+
+{{< lipsum 4 >}}

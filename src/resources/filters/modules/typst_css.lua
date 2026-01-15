@@ -598,7 +598,6 @@ end
 local same_weights = {
   'thin',
   'light',
-  'normal',
   'regular',
   'medium',
   'bold',
@@ -606,6 +605,7 @@ local same_weights = {
 }
 
 local weight_synonyms = {
+  ['normal'] = 'regular',
   ['ultra-light'] = 'extra-light',
   ['demi-bold'] = 'semi-bold',
   ['ultra-bold'] = 'extra-bold',
@@ -613,11 +613,8 @@ local weight_synonyms = {
 
 local dashed_weights = {
   'extra-light',
-  'ultra-light',
   'semi-bold',
-  'demi-bold',
   'extra-bold',
-  'ultra-bold',
 }
 
 local function translate_font_weight(w, warnings)
@@ -625,16 +622,40 @@ local function translate_font_weight(w, warnings)
   local num = tonumber(w)
   if num and 1 <= num and num <= 1000 then
     return num
-  elseif tcontains(same_weights, w) then
+  end
+  w = weight_synonyms[w] or w
+  if tcontains(same_weights, w) then
     return w
-  elseif tcontains(dashed_weights, w) then
-    w = weight_synonyms[w] or w
+  end
+  if tcontains(dashed_weights, w) then  
     return w:gsub('-', '')
   else
-    output_warning(warnings, 'invalid font weight ' .. tostring(w))
+    output_warning(null, 'invalid font weight ' .. tostring(w))
     return nil
   end
 end
+
+local function dequote(s)
+  return s:gsub('^["\']', ''):gsub('["\']$', '')
+end
+
+local function quote(s)
+  return '"' .. s .. '"'
+end
+
+local function translate_font_family_list(sl)
+  if sl == nil then
+    return '()'
+  end
+  local strings = {}
+  for s in sl:gmatch('([^,]+)') do
+    s = s:gsub('^%s+', '')
+    table.insert(strings, quote(dequote(s)))
+  end
+  local trailcomma = #strings == 1 and ',' or ''
+  return '(' .. table.concat(strings, ', ') .. trailcomma .. ')'
+end
+
 
 local function translate_border_style(v, _warnings)
   local dash
@@ -748,6 +769,8 @@ local function expand_side_shorthand(items, context, warnings)
 end
 
 return {
+  quote = quote,
+  dequote = dequote,
   set_brand_mode = set_brand_mode,
   parse_color = parse_color,
   parse_opacity = parse_opacity,
@@ -763,6 +786,7 @@ return {
   translate_border_style = translate_border_style,
   translate_border_color = translate_border_color,
   translate_font_weight = translate_font_weight,
+  translate_font_family_list = translate_font_family_list,
   consume_width = consume_width,
   consume_style = consume_style,
   consume_color = consume_color

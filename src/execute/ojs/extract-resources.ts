@@ -335,9 +335,8 @@ async function resolveImport(
   projectRoot = projectRoot ?? dirname(referent);
 
   const deno = Deno.execPath();
-  const p = Deno.run({
-    cmd: [
-      deno,
+  const p = new Deno.Command(deno, {
+    args: [
       "check",
       file,
       "-c",
@@ -346,8 +345,9 @@ async function resolveImport(
     ],
     stderr: "piped",
   });
-  const [status, stderr] = await Promise.all([p.status(), p.stderrOutput()]);
-  if (!status.success) {
+  const output = await p.output();
+  const stderr = output.stderr;
+  if (!output.success) {
     error("Compilation of typescript dependencies in ojs cell failed.");
 
     let errStr = new TextDecoder().decode(stderr);
@@ -547,7 +547,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
     const [thisResolvedImportPath, importResource]: [
       string,
       ResourceDescription,
-    ] = imports.entries().next().value;
+    ] = imports.entries().next().value!;
     imports.delete(thisResolvedImportPath);
     if (handled.has(thisResolvedImportPath)) {
       continue;
@@ -580,6 +580,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
             try {
               safeRemoveSync(res.filename);
             } catch (e) {
+              if (!(e instanceof Error)) throw e;
               if (e.name !== "NotFound") {
                 throw e;
               }

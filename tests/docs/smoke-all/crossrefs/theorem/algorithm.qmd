@@ -1,0 +1,47 @@
+---
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "a.quarto-xref"
+        - []
+    latex:
+      ensureFileRegexMatches:
+        -
+          - "hypertarget{alg-gcd}"
+          - "label{alg-gcd}"
+          - "Alg.~\\\\ref\\{alg-gcd\\}"
+          - "alg.~\\\\ref\\{alg-gcd\\}"
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - "#ref\\(<alg-gcd>, supplement: \\[alg.\\]\\)"
+          - "#ref\\(<alg-gcd>, supplement: \\[Alg.\\]\\)"
+          - "#algorithm\\(\"Euclid\"\\)"
+        - []
+    markdown:
+      ensureFileRegexMatches:
+        -
+          - "\\[alg. 1\\]\\(#alg-gcd\\)\\{.quarto-xref\\}" # note the non-breaking space in "alg. 1"
+          - '\[\*\*Algorithm 1 \(Euclid\)\*\*\]\{.theorem-title\}'
+---
+
+::: {#alg-gcd}
+
+## Euclid
+
+```
+gcd(a, b) =
+  if b == 0 then return a
+  return gcd(b, a mod b)
+```
+
+:::
+
+
+See @alg-gcd. @Alg-gcd has been known since the antiquity.

@@ -19,13 +19,18 @@ import { lines } from "./text.ts";
 import { debug, error, getLogger, setup, warning } from "../deno_ral/log.ts";
 import { asErrorEx, InternalError } from "./lib/error.ts";
 import { onCleanup } from "./cleanup.ts";
+import { execProcess } from "./process.ts";
+import { pandocBinaryPath } from "./resources.ts";
+import { Block, pandoc } from "./pandoc/json.ts";
+import { isGitHubActions, isVerboseMode } from "../tools/github.ts";
 
-export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
+export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "CRITICAL";
+export type LogFormat = "plain" | "json-stream";
 
 export interface LogOptions {
   log?: string;
   level?: string;
-  format?: "plain" | "json-stream";
+  format?: LogFormat;
   quiet?: boolean;
   newline?: true;
 }
@@ -52,7 +57,7 @@ export function appendLogOptions(cmd: Command<any>): Command<any> {
       },
     ).option(
       "--log-level <level>",
-      "Log level (info, warning, error, critical)",
+      "Log level (debug, info, warning, error, critical)",
       {
         global: true,
       },
@@ -95,8 +100,17 @@ export function logOptions(args: Args) {
   if (logOptions.log) {
     ensureDirSync(dirname(logOptions.log));
   }
-  logOptions.level = args.ll || args["log-level"] ||
-    Deno.env.get("QUARTO_LOG_LEVEL");
+
+  // Determine log level with priority: explicit args > QUARTO_LOG_LEVEL > GitHub Actions debug mode
+  let level = args.ll || args["log-level"] || Deno.env.get("QUARTO_LOG_LEVEL");
+
+  // Enable DEBUG logging when GitHub Actions debug mode is on (RUNNER_DEBUG=1)
+  // Can be overridden by explicit --log-level or QUARTO_LOG_LEVEL
+  if (!level && isGitHubActions() && isVerboseMode()) {
+    level = "DEBUG";
+  }
+
+  logOptions.level = level;
   logOptions.quiet = args.q || args.quiet;
   logOptions.format = parseFormat(
     args.lf || args["log-format"] || Deno.env.get("QUARTO_LOG_FORMAT"),
@@ -110,7 +124,7 @@ export function logLevel() {
 }
 
 export class StdErrOutputHandler extends BaseHandler {
-  format(logRecord: LogRecord, prefix = true): string {
+  override format(logRecord: LogRecord, prefix = true): string {
     // Set default options
     const options = {
       newline: true,
@@ -156,7 +170,7 @@ export class StdErrOutputHandler extends BaseHandler {
 
     return msg;
   }
-  log(msg: string): void {
+  override log(msg: string): void {
     const encoder = new TextEncoder();
     const data = encoder.encode(msg);
 
@@ -183,7 +197,7 @@ export class LogEventsHandler extends StdErrOutputHandler {
       formatter: (({ msg }) => `${msg}`),
     });
   }
-  handle(logRecord: LogRecord) {
+  override handle(logRecord: LogRecord) {
     if (this.level > logRecord.level) return;
 
     LogEventsHandler.handlers_.forEach((handler) =>
@@ -211,11 +225,11 @@ export class LogFileHandler extends FileHandler {
   }
   msgFormat;
 
-  flush(): void {
+  override flush(): void {
     this.logger.flush();
   }
 
-  format(logRecord: LogRecord): string {
+  override format(logRecord: LogRecord): string {
     // Messages that start with a carriage return are progress messages
     // that rewrite a line, so just ignore these
     if (logRecord.msg.startsWith("\r")) {
@@ -250,7 +264,7 @@ export class LogFileHandler extends FileHandler {
     }
   }
 
-  async log(msg: string) {
+  override async log(msg: string) {
     // Ignore any messages that are blank
     if (msg !== "") {
       this.logger.log(msg);
@@ -262,7 +276,7 @@ export class LogFileHandler extends FileHandler {
 interface LogFileHandlerOptions {
   filename: string;
   mode?: "a" | "w" | "x";
-  format?: "plain" | "json-stream";
+  format?: LogFormat;
 }
 
 export function flushLoggers(handlers: Record<string, BaseHandler>) {
@@ -457,5 +471,46 @@ const levelMap: Record<
   debug: "DEBUG",
   info: "INFO",
   warning: "WARN",
+  warn: "WARN",
   error: "ERROR",
+  critical: "CRITICAL",
 };
+
+export async function logPandocJson(
+  blocks: Block[],
+) {
+  const src = JSON.stringify(pandoc({}, blocks), null, 2);
+  return logPandoc(src, "json");
+}
+
+const getColumns = () => {
+  try {
+    // Catch error in none tty mode: Inappropriate ioctl for device (os error 25)
+    return Deno.consoleSize().columns ?? 130;
+  } catch (_error) {
+    return 130;
+  }
+};
+
+export async function logPandoc(
+  src: string,
+  format: string = "markdown",
+) {
+  const cols = getColumns();
+  const result = await execProcess({
+    cmd: pandocBinaryPath(),
+    args: [
+      "-f",
+      format,
+      "-t",
+      "ansi",
+      `--columns=${cols}`,
+    ],
+    stdout: "piped",
+  }, src);
+  if (result.code !== 0) {
+    error(result.stderr);
+  } else {
+    log.info(result.stdout);
+  }
+}

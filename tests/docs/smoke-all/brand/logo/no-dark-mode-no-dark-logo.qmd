@@ -1,0 +1,28 @@
+---
+title: No dark logo if no dark mode
+format:
+  dashboard: default
+brand:
+  logo:
+    images:
+      light-logo:
+        path: light-logo.png
+        alt: light logo
+      dark-logo:
+        path: dark-logo.png
+        alt: dark logo
+    small:
+      light: light-logo
+logo:
+  light: legacy-logo.svg
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          - 'img[src="legacy-logo.svg"][alt=""][class="navbar-logo light-content d-inline-block"]'
+        -
+          - 'img[class*="dark-content"]'
+---
+
+{{< lipsum 4 >}}

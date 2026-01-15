@@ -36,7 +36,8 @@ local function convert_svg(image)
     local stem = pandoc.path.split_extension(image.src)
     local output = stem .. '.pdf'
     if not _quarto.file.exists(output) then
-      warn("Skipping SVG conversion for " .. path .. " because use-rsvg-convert is false, but required PDF file does not exist: " .. output)
+      warn("Skipping SVG conversion for " .. image.src .. " because use-rsvg-convert is false, but required PDF file does not exist: " .. output)
+      return nil
     else
       image.src = output
       return image

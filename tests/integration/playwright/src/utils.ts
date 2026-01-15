@@ -1,4 +1,4 @@
-import { expect, Locator } from "@playwright/test";
+import { expect, Locator, PlaywrightTestOptions } from "@playwright/test";
 
 export const getUrl = (path: string) => {
   return `http://127.0.0.1:8080/${path}`;
@@ -128,15 +128,70 @@ export type RGBColor = {
   alpha?: number;
 };
 
-export async function checkColor(element, cssProperty, rgbColors: RGBColor) {
-  const colorString = rgbColors.alpha !== undefined 
-    ? `rgba(${rgbColors.red}, ${rgbColors.green}, ${rgbColors.blue}, ${rgbColors.alpha})`
-    : `rgb(${rgbColors.red}, ${rgbColors.green}, ${rgbColors.blue})`;
+export type HexColor = string;
+
+export function isRGBColor(color: any): color is RGBColor {
+  return (
+    typeof color === 'object' && 
+    'red' in color && 
+    'green' in color && 
+    'blue' in color
+  );
+}
+
+export function isHexColor(color: any): color is HexColor {
+  return (
+    typeof color === 'string' &&
+    /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(color)
+  );
+}
+
+export async function checkColor(element, cssProperty, color: RGBColor | HexColor) {
+  let colorString: string;
+  // Check if the color is an RGBColor object or a string
+  if (isRGBColor(color)) {
+    colorString = color.alpha !== undefined
+      ? `rgba(${color.red}, ${color.green}, ${color.blue}, ${color.alpha})`
+      : `rgb(${color.red}, ${color.green}, ${color.blue})`;
+  } else if (isHexColor(color)) {
+    colorString = color as string;
+  } else {
+    throw new Error('Invalid color format. Use either RGBColor or HexColor.');
+  }
+  // Check the CSS property
   await expect(element).toHaveCSS(cssProperty, colorString);
 }
 
 export function asRGB(red: number, green: number, blue: number, alpha?: number): RGBColor {
   return { red, green, blue, alpha };
+}
+
+export function hexToRgb(hex: string): RGBColor {
+  // Remove the # if present
+  hex = hex.replace(/^#/, '');
+  
+  let r: number, g: number, b: number, a: number | undefined = undefined; 
+  
+  if (hex.length === 3) {
+    // Handle shorthand #RGB format
+    r = parseInt(hex[0] + hex[0], 16);
+    g = parseInt(hex[1] + hex[1], 16);
+    b = parseInt(hex[2] + hex[2], 16);
+  } else if (hex.length === 6) {
+    // Handle #RRGGBB format
+    r = parseInt(hex.slice(0, 2), 16);
+    g = parseInt(hex.slice(2, 4), 16);
+    b = parseInt(hex.slice(4, 6), 16);
+  } else if (hex.length === 8) {
+    // Handle #RRGGBBAA format
+    r = parseInt(hex.slice(0, 2), 16);
+    g = parseInt(hex.slice(2, 4), 16);
+    b = parseInt(hex.slice(4, 6), 16);
+    a = parseInt(hex.slice(6, 8), 16);
+  } else {
+    throw new Error('Invalid hex color format');
+  }
+  return (asRGB(r, g, b, a));
 }
 
 export async function getCSSProperty(loc: Locator, variable: string, asNumber = false): Promise<string | number> {
@@ -176,4 +231,14 @@ export async function checkColorIdentical(loc1: Locator, loc2: Locator, property
 export async function checkBorderProperties(element: Locator, side: string, color: RGBColor, width: string) {
   await checkColor(element, `border-${side}-color`, color);
   await expect(element).toHaveCSS(`border-${side}-width`, width);
+}
+
+export async function checkBackgroundColorProperty(element: Locator, color: RGBColor) {
+  await checkColor(element, `background-color`, color);
+}
+
+export function useDarkLightMode(mode: 'dark' | 'light'): Partial<PlaywrightTestOptions> {
+  return {
+    colorScheme: mode
+  };
 }

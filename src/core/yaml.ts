@@ -61,6 +61,7 @@ export function readYaml(file: string) {
       JSON.stringify(result);
       return result;
     } catch (e) {
+      if (!(e instanceof Error)) throw e;
       throw new Error(
         `Circular structures not allowed.\nFile ${file}\n${
           e.message.split("\n").slice(1).join("\n")
@@ -296,6 +297,9 @@ function parseWithNiceErrors(
   try {
     return parse(content, options || { json: true, schema: QuartoJSONSchema });
   } catch (e) {
+    if (!(e instanceof Error)) {
+      throw e;
+    }
     throw improveYamlParseErrorMessage(e);
   }
 }

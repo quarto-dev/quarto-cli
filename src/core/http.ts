@@ -150,6 +150,7 @@ export function httpFileRequestHandler(
         }
       }
     } catch (e) {
+      if (!(e instanceof Error)) throw e;
       // it's possible for an exception to occur before we've normalized the path
       // so we need to renormalize it here
       if (fsPath) {

@@ -7,6 +7,7 @@ import { join } from "../../deno_ral/path.ts";
 
 import { Document, Element, NodeType } from "../../core/deno-dom.ts";
 import {
+  kBrandMode,
   kCodeLineNumbers,
   kFrom,
   kHtmlMathMethod,
@@ -25,6 +26,8 @@ import {
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
+import { BrandNamedLogo, Zod } from "../../resources/types/zod/schema-types.ts";
+
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { renderEjs } from "../../core/ejs.ts";
@@ -76,6 +79,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { titleSlidePartial } from "./format-reveal-title.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { pandocNativeStr } from "../../core/pandoc/codegen.ts";
+import { logoAddLeadingSlashes, resolveLogo } from "../../core/brand/brand.ts";
 
 export function revealResolveFormat(format: Format) {
   format.metadata = revealMetadataFilter(format.metadata);
@@ -124,7 +128,7 @@ export function revealjsFormat() {
         [kHtmlMathMethod]: {
           method: "mathjax",
           url:
-            "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-AMS_HTML-full",
+            "https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS_HTML-full",
         },
         [kSlideLevel]: 2,
       },
@@ -295,7 +299,7 @@ export function revealjsFormat() {
                   theme["text-highlighting-mode"],
                 ),
               ],
-              [kMarkdownAfterBody]: [revealMarkdownAfterBody(format)],
+              [kMarkdownAfterBody]: [revealMarkdownAfterBody(format, input)],
             },
           },
         );
@@ -374,51 +378,26 @@ export function revealjsFormat() {
   );
 }
 
-const determineRevealLogo = (format: Format): string | undefined => {
-  const brandData = format.render.brand?.light?.processedData;
-  if (brandData?.logo) {
-    const keys: ("medium" | "small" | "large")[] = ["medium", "small", "large"];
-    // add slide logo if we have one
-    for (const size of keys) {
-      const logoInfo = brandData.logo[size];
-      if (!logoInfo) {
-        continue;
-      }
-      if (typeof logoInfo === "string") {
-        return logoInfo;
-      } else {
-        // what to do about light vs dark?
-        return logoInfo?.light.path ?? logoInfo?.dark.path;
-      }
-    }
+function revealMarkdownAfterBody(format: Format, input: string) {
+  let brandMode: "light" | "dark" = "light";
+  if (format.metadata[kBrandMode] === "dark") {
+    brandMode = "dark";
   }
-};
-
-function revealMarkdownAfterBody(format: Format) {
   const lines: string[] = [];
   lines.push("::: {.quarto-auto-generated-content style='display: none;'}\n");
-  let revealLogo = format
+  const revealLogo = format
     .metadata[kSlideLogo] as (string | { path: string } | undefined);
-  if (revealLogo) {
-    if (typeof revealLogo === "object") {
-      revealLogo = revealLogo.path;
-    }
-    if (["small", "medium", "large"].includes(revealLogo)) {
-      const brandData = format.render.brand?.light?.processedData;
-      const logoInfo = brandData?.logo
-        ?.[revealLogo as ("medium" | "small" | "large")];
-      if (typeof logoInfo === "string") {
-        revealLogo = logoInfo;
-      } else {
-        revealLogo = logoInfo?.light.path ?? logoInfo?.dark.path;
-      }
-    }
-  } else {
-    revealLogo = determineRevealLogo(format);
-  }
-  if (revealLogo) {
+  let logo = resolveLogo(format.render.brand, revealLogo, [
+    "small",
+    "medium",
+    "large",
+  ]);
+  if (logo && logo[brandMode]) {
+    logo = logoAddLeadingSlashes(logo, format.render.brand, input);
+    const modeLogo = logo![brandMode]!;
+    const altText = modeLogo.alt ? `alt="${modeLogo.alt}" ` : "";
     lines.push(
-      `<img src="${revealLogo}" class="slide-logo" />`,
+      `<img src="${modeLogo.path}" ${altText}class="slide-logo" />`,
     );
     lines.push("\n");
   }

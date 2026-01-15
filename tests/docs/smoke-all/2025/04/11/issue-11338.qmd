@@ -1,0 +1,9 @@
+---
+format: dashboard
+_quarto:
+  tests:
+    dashboard:
+      ensureFileRegexMatches:
+        - []
+        - ["kdttablesentinel"]
+---

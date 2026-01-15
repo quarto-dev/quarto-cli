@@ -1,11 +1,10 @@
 /*
  * discover-meta.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2025 Posit Software, PBC
  */
 
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
-
 import { getDecodedAttribute } from "../../../../core/html.ts";
 
 // Image discovery happens by either:
@@ -15,16 +14,8 @@ import { getDecodedAttribute } from "../../../../core/html.ts";
 
 const kPreviewImgClass = "preview-image";
 const kNamedFilePattern =
-  "(.*?(?:preview|feature|cover|thumbnail).*?(?:\\.png|\\.gif|\\.jpg|\\.jpeg|\\.webp))";
-const kPreviewClassPattern =
-  `!\\[[^\\]]*\\]\\((.*?)(?:\\".*\\")?\\)\\{[^\\|]*\\.${kPreviewImgClass}[\\s\\}]+`;
-const kMdNamedImagePattern =
-  `!\\[[^\\]]*\\]\\(${kNamedFilePattern}(?:\\".*\\")?\\)(?:\\{[^\\|]*\.*[\\s\\}]+)?`;
-
+  "(.*?(?:preview|feature|cover|thumbnail).*?(?:\\.png|\\.gif|\\.jpg|\\.jpeg|\\.webp|\\.svg))";
 const kNamedFileRegex = RegExp(kNamedFilePattern, "l");
-const kMdPreviewClassRegex = RegExp(kPreviewClassPattern, "l");
-const kMdNamedImageRegex = RegExp(kMdNamedImagePattern, "l");
-const kMarkdownImg = /!\[[^\]]*\]\((.*?)(?:\".*\")?\)(?:\{(?:[^\|]*)\})?/;
 
 export function findDescription(doc: Document): string | undefined {
   const paras = doc.querySelectorAll(
@@ -43,20 +34,16 @@ export function findPreviewImg(
   doc: Document,
 ): { src: string; alt?: string } | undefined {
   const imgEl = findPreviewImgEl(doc);
-  if (imgEl) {
-    const src = getDecodedAttribute(imgEl, "src");
-    const alt = getDecodedAttribute(imgEl, "alt");
-    if (src !== null) {
-      return {
-        src,
-        alt: alt ?? undefined,
-      };
-    } else {
-      return undefined;
-    }
-  } else {
-    return undefined;
-  }
+  if (!imgEl) return undefined;
+
+  const src = getDecodedAttribute(imgEl, "src");
+  if (src === null) return undefined;
+
+  const alt = getDecodedAttribute(imgEl, "alt");
+  return {
+    src,
+    alt: alt ?? undefined,
+  };
 }
 
 export function findPreviewImgEl(
@@ -107,34 +94,8 @@ export function findPreviewImgEl(
 // So 200 is a good middle ground estimate.
 const kWpm = 200;
 export function estimateReadingTimeMinutes(
-  markdown?: string,
-): { wordCount: number; readingTime: number } | undefined {
-  if (markdown) {
-    const wordCount = markdown.split(" ").length;
-    return { wordCount, readingTime: Math.ceil(wordCount / kWpm) };
-  }
-  return undefined;
-}
-
-export function findPreviewImgMd(markdown?: string): string | undefined {
-  if (markdown) {
-    // Look for an explictly tagged image
-    const explicitMatch = markdown.match(kMdPreviewClassRegex);
-    if (explicitMatch) {
-      return explicitMatch[1];
-    }
-
-    // Look for an image with a 'magic' name
-    const fileNameMatch = markdown.match(kMdNamedImageRegex);
-    if (fileNameMatch) {
-      return fileNameMatch[1];
-    }
-
-    // Otherwise select the first image
-    const match = markdown.match(kMarkdownImg);
-    if (match) {
-      return match[1];
-    }
-  }
-  return undefined;
+  markdown: string,
+): { wordCount: number; readingTime: number } {
+  const wordCount = markdown.split(" ").length;
+  return { wordCount, readingTime: Math.ceil(wordCount / kWpm) };
 }

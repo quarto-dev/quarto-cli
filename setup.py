@@ -16,6 +16,7 @@ quarto_data = []
 shutil.rmtree("build", ignore_errors=True)
 shutil.rmtree("quarto_cli.egg-info", ignore_errors=True)
 
+
 def get_platform_suffix():
     if sys.platform == "darwin":
         return "macos.tar.gz"
@@ -31,6 +32,7 @@ def get_platform_suffix():
     else:
         raise Exception("Platform not supported")
 
+
 def download_quarto(vers):
     global output_location
     global quarto_data
@@ -43,8 +45,28 @@ def download_quarto(vers):
         name, resp = urlretrieve(quarto_url)
     except Exception as e:
         print("Error downloading Quarto:", e)
-        commit=subprocess.run(["git","log","-1","--skip=1","--pretty=format:'%h'","--","version.txt"], check=True, text=True, capture_output=True, shell=True).stdout
-        version = subprocess.run(["git","show", commit.replace("'", "")+":version.txt"], check=True, capture_output=True, text=True, shell=True).stdout.replace("\n", "")
+        commit = subprocess.run(
+            [
+                "git",
+                "log",
+                "-1",
+                "--skip=1",
+                "--pretty=format:'%h'",
+                "--",
+                "version.txt",
+            ],
+            check=True,
+            text=True,
+            capture_output=True,
+            shell=True,
+        ).stdout
+        version = subprocess.run(
+            ["git", "show", commit.replace("'", "") + ":version.txt"],
+            check=True,
+            capture_output=True,
+            text=True,
+            shell=True,
+        ).stdout.replace("\n", "")
         quarto_url = f"https://github.com/quarto-dev/quarto-cli/releases/download/v{version}/quarto-{version}-{suffix}"
         name, resp = urlretrieve(quarto_url)
 
@@ -53,22 +75,27 @@ def download_quarto(vers):
 
     if suffix.endswith(".zip"):
         import zipfile
-        with zipfile.ZipFile(name, 'r') as zip_ref:
+
+        with zipfile.ZipFile(name, "r") as zip_ref:
             zip_ref.extractall(output_location)
     elif suffix.startswith("linux"):
         import tarfile
+
         with tarfile.open(name) as tf:
             tf.extractall(Path(output_location).parent.resolve())
     else:
         import tarfile
+
         with tarfile.open(name) as tf:
             tf.extractall(output_location)
 
     for path in glob.glob(str(Path(output_location, "**")), recursive=True):
         quarto_data.append(path.replace("quarto_cli" + os.path.sep, ""))
 
+
 def cleanup_quarto():
     shutil.rmtree(output_location)
+
 
 global version
 
@@ -76,20 +103,20 @@ version = open("version.txt").read().strip()
 download_quarto(version)
 setup(
     version=version,
-    name='quarto_cli',
+    name="quarto_cli",
     install_requires=[
-        'jupyter',
-        'nbclient',
-        'wheel',
+        "jupyter",
+        "nbclient",
+        "wheel",
     ],
-    packages=find_packages(include=['quarto_cli', 'quarto_cli.*']),
+    packages=find_packages(include=["quarto_cli", "quarto_cli.*"]),
     entry_points={
-        'console_scripts': [
-            'quarto = quarto_cli:run_quarto',
+        "console_scripts": [
+            "quarto = quarto_cli:run_quarto",
         ]
     },
     package_data={
-        'quarto_cli': quarto_data,
+        "quarto_cli": quarto_data,
     },
     include_package_data=True,
 )

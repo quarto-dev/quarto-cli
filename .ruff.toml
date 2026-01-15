@@ -1,0 +1,14 @@
+extend-exclude = [
+  "**/renv",
+  "**/.venv",
+  ".github",
+  ".vscode",
+  "**/node_modules",
+  "**/__pycache__",
+  "**/build",
+  # file with cell magic not parsed by ruff
+  "src/resources/jupyter/lang/python/cleanup.py",
+  "src/resources/jupyter/lang/python/setup.py",
+]
+# don't format .ipynb files as quarto cell comment 
+include = ["**/*.py"]

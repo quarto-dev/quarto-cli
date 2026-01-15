@@ -10,13 +10,22 @@ for %%i in ("%~dp0\%DEV_PATH%") do SET "QUARTO_ROOT=%%~fi"
 SET "QUARTO_TS_PATH=!QUARTO_ROOT!\src\quarto.ts"
 
 IF EXIST "!QUARTO_TS_PATH!" (
+	set QUARTO_DEV_MODE=true
 
 	IF "%1"=="--version" (
+		IF DEFINED QUARTO_FORCE_VERSION (
+			ECHO !QUARTO_FORCE_VERSION!
+			GOTO end
+		)
 		ECHO 99.9.9
 		GOTO end
 	)
 
 	IF "%1"=="-v" (
+		IF DEFINED QUARTO_FORCE_VERSION (
+			ECHO !QUARTO_FORCE_VERSION!
+			GOTO end
+		)
 		ECHO 99.9.9
 		GOTO end
 	)
@@ -24,6 +33,7 @@ IF EXIST "!QUARTO_TS_PATH!" (
   call !QUARTO_ROOT!\win_configuration.bat
   REM overrride share path to point to our dev folder instead of dist
   set QUARTO_SHARE_PATH=!QUARTO_ROOT!\src\resources
+  set "DENO_DIR=!QUARTO_BIN_PATH!\deno_cache"
 
 	IF NOT DEFINED QUARTO_ACTION (
 		SET QUARTO_ACTION=run
@@ -50,17 +60,20 @@ IF EXIST "!QUARTO_TS_PATH!" (
 			cd !QUARTO_ROOT!
 			call configure.cmd
       echo
+			echo.
 			echo Quarto required reconfiguration to install Deno !DENO!. Please try command again.
-			GOTO end
+			exit /b 1
 		)
 	) else (
 		echo !DENO!>"!DENO_VERSION_FILE!"
 	)
 
-	SET QUARTO_CACHE_OPTIONS=
+	SET QUARTO_CACHE_OPTIONS=--cached-only
 
 	REM Turn on type checking for dev version
-  SET QUARTO_DENO_OPTIONS=--check
+	IF NOT DEFINED QUARTO_NO_TYPECHECK (
+		SET QUARTO_DENO_OPTIONS=--check
+	)
 
 ) ELSE (
 
@@ -69,11 +82,19 @@ IF EXIST "!QUARTO_TS_PATH!" (
 	)
 
 	IF "%1"=="-v" (
+		IF DEFINED QUARTO_FORCE_VERSION (
+			ECHO !QUARTO_FORCE_VERSION!
+			GOTO end
+		)
 		TYPE "!QUARTO_SHARE_PATH!\version"
 		GOTO end
 	)
 
 	IF "%1"=="--version" (
+		IF DEFINED QUARTO_FORCE_VERSION (
+			ECHO !QUARTO_FORCE_VERSION!
+			GOTO end
+		)
 		TYPE "!QUARTO_SHARE_PATH!\version"
 		GOTO end
 	)
@@ -83,7 +104,7 @@ IF EXIST "!QUARTO_TS_PATH!" (
 	SET "QUARTO_TARGET=%SCRIPT_PATH%\quarto.js"
 	SET "QUARTO_BIN_PATH=%SCRIPT_PATH%"
 	SET "QUARTO_IMPORT_MAP_ARG=--importmap=""%SCRIPT_PATH%\vendor\import_map.json"""
-	SET QUARTO_CACHE_OPTIONS="--cached-only"
+	SET QUARTO_CACHE_OPTIONS=--cached-only
 )
 
 IF "%1"=="--paths" (
@@ -136,7 +157,16 @@ IF NOT DEFINED QUARTO_DENO_EXTRA_OPTIONS (
 	)
 )
 
-!QUARTO_DENO! !QUARTO_ACTION! !QUARTO_CACHE_OPTIONS! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! !QUARTO_IMPORT_MAP_ARG! !QUARTO_TARGET! %*
+IF DEFINED QUARTO_TS_PROFILE (
+	SET "QUARTO_DENO_EXTRA_OPTIONS=--inspect-brk !QUARTO_DENO_EXTRA_OPTIONS!"
+	SET "QUARTO_TS_PROFILE=true"
+)
+
+IF DEFINED QUARTO_DEV_MODE (
+	!QUARTO_DENO! !QUARTO_ACTION! !QUARTO_CACHE_OPTIONS! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! !QUARTO_IMPORT_MAP_ARG! !QUARTO_TARGET! %*
+) ELSE (
+	!QUARTO_DENO! !QUARTO_ACTION! !QUARTO_CACHE_OPTIONS! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! !QUARTO_TARGET! %*
+)
 
 
 :end

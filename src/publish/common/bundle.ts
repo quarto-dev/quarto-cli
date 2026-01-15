@@ -10,10 +10,8 @@ import { ensureDirSync } from "../../deno_ral/fs.ts";
 import { PublishFiles } from "../provider-types.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { md5HashBytes } from "../../core/hash.ts";
-import { pathWithForwardSlashes } from "../../core/path.ts";
 
-import { copy } from "io/copy";
-import { Tar } from "archive/tar";
+import { createTarFromFiles } from "../../deno_ral/tar.ts";
 
 interface ManifestMetadata {
   appmode: string;
@@ -94,20 +92,22 @@ export async function createBundle(
   );
 
   // create tar
-  const tar = new Tar();
+  // const tar = new Tar();
   const tarFiles = [...files.files, "manifest.json"];
 
-  for (const tarFile of tarFiles) {
-    await tar.append(pathWithForwardSlashes(tarFile), {
-      filePath: join(stageDir, tarFile),
-    });
-  }
+  // for (const tarFile of tarFiles) {
+  //   await tar.append(pathWithForwardSlashes(tarFile), {
+  //     filePath: join(stageDir, tarFile),
+  //   });
+  // }
 
-  // write to temp file
+  // // write to temp file
   const tarFile = tempContext.createFile({ suffix: ".tar" });
-  const writer = Deno.openSync(tarFile, { write: true, create: true });
-  await copy(tar.getReader(), writer);
-  writer.close();
+  // const writer = Deno.openSync(tarFile, { write: true, create: true });
+  // await copy(tar.getReader(), writer);
+  // writer.close();
+
+  await createTarFromFiles(tarFile, tarFiles, { baseDir: stageDir });
 
   // compress to tar.gz
   const targzFile = `${tarFile}.gz`;

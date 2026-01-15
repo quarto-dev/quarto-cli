@@ -1,0 +1,44 @@
+logo:
+  images:
+    favicon:
+      path: images/favicon.png
+    full:
+      path: images/logo.png
+    header:
+      path: images/header.png
+  small: favicon
+  medium: favicon
+  large: full
+
+color:
+  palette:
+    blue: "#0b3954"
+    teal: "#087e8b"
+    lightblue: "#bfd7ea"
+    pink: "#ff8484"
+    purple: "#8d6b94"
+    lightblue2: "#ecf3f9"
+  foreground: blue
+  background: lightblue
+  primary: blue
+  secondary: teal
+
+typography:
+  fonts:
+    - family: Ubuntu
+      source: google
+    - family: Telex
+      source: google
+    - family: Source Code Pro
+      source: google
+  base: Telex
+  headings: Ubuntu
+  monospace: Source Code Pro
+  monospace-inline:
+    family: Source Code Pro
+    background-color: lightblue2
+  monospace-block:
+    family: Source Code Pro
+    background-color: lightblue2
+  link:
+    decoration: underline

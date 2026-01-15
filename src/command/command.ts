@@ -18,7 +18,6 @@ import { typstCommand } from "./typst/cmd.ts";
 import { capabilitiesCommand } from "./capabilities/cmd.ts";
 import { checkCommand } from "./check/cmd.ts";
 import { inspectCommand } from "./inspect/cmd.ts";
-import { buildJsCommand } from "./build-js/cmd.ts";
 import { installCommand } from "./install/cmd.ts";
 import { updateCommand } from "./update/cmd.ts";
 import { publishCommand } from "./publish/cmd.ts";
@@ -30,6 +29,7 @@ import { uninstallCommand } from "./uninstall/cmd.ts";
 import { createCommand } from "./create/cmd.ts";
 import { editorSupportCommand } from "./editor-support/cmd.ts";
 import { callCommand } from "./call/cmd.ts";
+import { devCallCommand } from "./dev-call/cmd.ts";
 
 // deno-lint-ignore no-explicit-any
 export function commands(): Command<any>[] {
@@ -56,8 +56,8 @@ export function commands(): Command<any>[] {
     capabilitiesCommand,
     inspectCommand,
     checkCommand,
-    buildJsCommand,
     editorSupportCommand,
     callCommand,
+    devCallCommand,
   ];
 }

@@ -29,9 +29,8 @@ _quarto:
         - []
     typst:
       ensureTypstFileRegexMatches:
-        -
-          - '#figure\(\s*align\(center\)\[#table\('
-        - []
+        - ['#table\(']
+        - ['#figure\(\s*align\(center\)\[#table\(']
     latex:
       ensureFileRegexMatches:
         -

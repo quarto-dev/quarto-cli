@@ -10,7 +10,7 @@ Contact Carlos so he uploads the binaries to the S3 bucket.
 
 - In `src/import_map.json`, change the version number of the imports like `https://deno.land/std@0.204.0/archive` to the new version number (e.g. `0.205.0`).
 
-- run `./package/scripts/vendoring/vendor.sh`
+- run `./configure.sh`.
 
 ### Upgrade Deno download link for RHEL build from conda-forge
 

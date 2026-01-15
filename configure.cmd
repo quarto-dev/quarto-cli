@@ -62,6 +62,12 @@ if "%QUARTO_VENDOR_BINARIES%" == "true" (
   POPD
 )
 
+IF NOT DEFINED QUARTO_DENO_DIR (
+  SET "DENO_DIR=!QUARTO_BIN_PATH!\deno_cache"
+) ELSE (
+  SET "DENO_DIR=!QUARTO_DENO_DIR!"
+)
+
 PUSHD !QUARTO_PACKAGE_PATH!\src
 ECHO Configuring Quarto from !cd!
 CALL quarto-bld.cmd configure --log-level info
@@ -69,30 +75,14 @@ echo Configuration done
 
 POPD
 
-if "%CI%" NEQ "true" (
-	echo Revendoring quarto dependencies
-
-  @REM for /F "tokens=2" %%i in ('date /t') do set today=%%i
-	@REM RENAME src\vendor src\vendor-%today%
-	@REM pushd src
-  @REM echo Vendor phase 1
-	@REM %QUARTO_DENO% vendor quarto.ts %QUARTO_ROOT%\tests\test-deps.ts --importmap=import_map.json
-	@REM if ERRORLEVEL NEQ 0 (
-	@REM   popd
-	@REM   echo deno vendor failed (likely because of a download error). Please run the configure script again.
-	@REM 	RMDIR vendor
-	@REM 	RENAME vendor-${today} vendor
-	@REM 	exit 1
-  @REM )
-	@REM popd
-	@REM %QUARTO_DENO% run --unstable --allow-all --importmap=src\import_map.json package\src\common\create-dev-import-map.ts
-)
+REM download typescript dependencies
+CALL package\scripts\vendoring\vendor.cmd
 
 ECHO Downloading Deno Stdlib
 CALL !QUARTO_PACKAGE_PATH!\scripts\deno_std\download.bat
 
-SET QUARTO_DENO_EXTRA_OPTIONS="--reload"
 IF EXIST !QUARTO_BIN_PATH!\quarto.cmd (
+  SET QUARTO_DENO_EXTRA_OPTIONS=--reload
   CALL "!QUARTO_BIN_PATH!\quarto" --version
 )
 

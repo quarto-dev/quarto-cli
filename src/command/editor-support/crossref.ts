@@ -92,8 +92,9 @@ const makeCrossrefCommand = () => {
       Deno.env.set("QUARTO_CROSSREF_INPUT_TYPE", "qmd");
 
       // build command
-      const cmd = [pandocBinaryPath(), "+RTS", "-K512m", "-RTS"];
-      cmd.push(...[
+      const cmd = pandocBinaryPath();
+      const cmdArgs = ["+RTS", "-K512m", "-RTS"];
+      cmdArgs.push(...[
         "--from",
         resourcePath("filters/qmd-reader.lua"),
         "--to",
@@ -118,6 +119,7 @@ const makeCrossrefCommand = () => {
       const result = await execProcess(
         {
           cmd,
+          args: cmdArgs,
           cwd: indexingDir,
           env: {
             "QUARTO_FILTER_PARAMS": filterParams,

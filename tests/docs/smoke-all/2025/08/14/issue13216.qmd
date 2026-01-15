@@ -1,0 +1,24 @@
+---
+title: "Issue 13216"
+format: html
+code-annotations: below
+code-link: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - "dl.code-annotation-container-grid"
+---
+
+`downlit` (`code-link`) should be disable and `code-annotations` should be enabled.
+
+```
+hello
+```
+
+```{r}
+2 + 2 # <1>
+```
+
+1. This is an annotation that should be properly displayed based on `code-annotations` setting.

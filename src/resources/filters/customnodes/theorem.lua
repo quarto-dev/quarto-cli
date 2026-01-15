@@ -40,11 +40,16 @@ theorem_types = {
     style = "definition",
     title = "Example",
   },
-  exr  = {
+  exr = {
     env = "exercise",
     style = "definition",
     title = "Exercise"
-  }
+  },
+  alg = {
+    env = "algorithm",
+    style = "plain",
+    title = "Algorithm"
+  },
 }
 
 function has_theorem_ref(el)

@@ -37,6 +37,7 @@ import { isHtmlOutput } from "../../../config/format.ts";
 import { renderPandoc } from "../../../command/render/render.ts";
 import {
   PandocRenderCompletion,
+  PandocRenderer,
   RenderFile,
 } from "../../../command/render/types.ts";
 
@@ -97,7 +98,7 @@ import { safeCloneDeep } from "../../../core/safe-clone-deep.ts";
 export function bookPandocRenderer(
   options: RenderOptions,
   project: ProjectContext,
-) {
+): PandocRenderer {
   // rendered files to return. some formats need to end up returning all of the individual
   // renderedFiles (e.g. html or asciidoc) and some formats will consolidate all of their
   // files into a single one (e.g. pdf or epub)
@@ -310,6 +311,9 @@ export function bookPandocRenderer(
           files: renderedFiles,
         };
       } catch (error) {
+        if (!(error instanceof Error)) {
+          throw error;
+        }
         cleanupExecutedFiles();
         return {
           files: renderedFiles,

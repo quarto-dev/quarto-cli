@@ -370,6 +370,9 @@ export function completeStagedFeeds(
               feedContents,
             );
           } catch (error) {
+            if (!(error instanceof Error)) {
+              throw error;
+            }
             const errorMessage = error.message;
             warnOnce(
               `Unable to generate feed '${feedStem}.xml'\n${errorMessage}`,

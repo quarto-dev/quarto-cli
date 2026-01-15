@@ -7,14 +7,22 @@
 import { RenderServices } from "../command/render/types.ts";
 import { Metadata, PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
-import { Brand, LightDarkBrand } from "../core/brand/brand.ts";
+import {
+  Brand,
+  LightDarkBrand,
+  LightDarkBrandDarkFlag,
+} from "../core/brand/brand.ts";
 import { MappedString } from "../core/mapped-text.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
-import { ExecutionEngine, ExecutionTarget } from "../execute/types.ts";
-import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
+import {
+  ExecutionEngineDiscovery,
+  ExecutionEngineInstance,
+  ExecutionTarget,
+} from "../execute/types.ts";
+import { InspectedMdCell } from "../inspect/inspect-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import {
-  Brand as BrandJson,
+  LogoLightDarkSpecifier,
   NavigationItem as NavItem,
   NavigationItemObject,
   NavigationItemObject as SidebarTool,
@@ -23,6 +31,7 @@ import {
 import { ProjectEnvironment } from "./project-environment-types.ts";
 import { ProjectCache } from "../core/cache/cache-types.ts";
 import { TempContext } from "../core/temp-types.ts";
+import { Cloneable } from "../core/safe-clone-deep.ts";
 
 export {
   type NavigationItem as NavItem,
@@ -53,13 +62,13 @@ export type FileInformation = {
   fullMarkdown?: MappedString;
   includeMap?: FileInclusion[];
   codeCells?: InspectedMdCell[];
-  engine?: ExecutionEngine;
+  engine?: ExecutionEngineInstance;
   target?: ExecutionTarget;
   metadata?: Metadata;
-  brand?: LightDarkBrand;
+  brand?: LightDarkBrandDarkFlag;
 };
 
-export interface ProjectContext {
+export interface ProjectContext extends Cloneable<ProjectContext> {
   dir: string;
   engines: string[];
   files: ProjectFiles;
@@ -70,15 +79,19 @@ export interface ProjectContext {
   fileInformationCache: Map<string, FileInformation>;
 
   // This is a cache of _brand.yml for a project
-  brandCache?: { brand?: LightDarkBrand};
-  resolveBrand: (fileName?: string) => Promise<undefined | {light?: Brand | undefined, dark?: Brand | undefined}>;
+  brandCache?: { brand?: LightDarkBrandDarkFlag };
+  resolveBrand: (
+    fileName?: string,
+  ) => Promise<
+    undefined | LightDarkBrandDarkFlag
+  >;
 
   // expands markdown for a file
   // input file doesn't have to be markdown; it can be, for example, a knitr spin file
   // output file is always markdown, though, and it is cached in the project
 
   resolveFullMarkdownForFile: (
-    engine: ExecutionEngine | undefined,
+    engine: ExecutionEngineInstance | undefined,
     file: string,
     markdown?: MappedString,
     force?: boolean,
@@ -87,7 +100,7 @@ export interface ProjectContext {
   fileExecutionEngineAndTarget: (
     file: string,
     force?: boolean,
-  ) => Promise<{ engine: ExecutionEngine; target: ExecutionTarget }>;
+  ) => Promise<{ engine: ExecutionEngineInstance; target: ExecutionTarget }>;
 
   fileMetadata: (
     file: string,
@@ -113,6 +126,7 @@ export interface ProjectContext {
   environment: () => Promise<ProjectEnvironment>;
 
   isSingleFile: boolean;
+  previewServer?: boolean;
 
   diskCache: ProjectCache;
   temp: TempContext;
@@ -136,6 +150,64 @@ export const kProject404File = "404.html";
 
 export type LayoutBreak = "" | "sm" | "md" | "lg" | "xl" | "xxl";
 
+/**
+ * A restricted version of ProjectContext that only exposes
+ * functionality needed by execution engines.
+ */
+export interface EngineProjectContext {
+  /**
+   * Base directory of the project
+   */
+  dir: string;
+
+  /**
+   * Flag indicating if project consists of a single file
+   */
+  isSingleFile: boolean;
+
+  /**
+   * Config object containing project configuration
+   * Used primarily for config?.engines access
+   * Can contain arbitrary configuration properties
+   */
+  config?: {
+    engines?: string[];
+    project?: {
+      [kProjectOutputDir]?: string;
+    };
+    [key: string]: unknown;
+  };
+
+  /**
+   * For file information cache management
+   * Used for the transient notebook tracking in Jupyter
+   */
+  fileInformationCache: Map<string, FileInformation>;
+
+  /**
+   * Get the output directory for the project
+   *
+   * @returns Path to output directory
+   */
+  getOutputDirectory: () => string;
+
+  /**
+   * Resolves full markdown content for a file, including expanding includes
+   *
+   * @param engine - The execution engine
+   * @param file - Path to the file
+   * @param markdown - Optional existing markdown content
+   * @param force - Whether to force re-resolution even if cached
+   * @returns Promise resolving to mapped markdown string
+   */
+  resolveFullMarkdownForFile: (
+    engine: ExecutionEngineInstance | undefined,
+    file: string,
+    markdown?: MappedString,
+    force?: boolean,
+  ) => Promise<MappedString>;
+}
+
 export const kAriaLabel = "aria-label";
 export const kCollapseLevel = "collapse-level";
 export const kCollapseBelow = "collapse-below";
@@ -147,7 +219,7 @@ export const kSidebarMenus = "sidebar-menus";
 
 export interface Navbar {
   title?: string | false;
-  logo?: string;
+  logo?: LogoLightDarkSpecifier;
   [kLogoAlt]?: string;
   [kLogoHref]?: string;
   background:
@@ -193,7 +265,7 @@ export interface Sidebar {
   id?: string;
   title?: string;
   subtitle?: string;
-  logo?: string;
+  logo?: LogoLightDarkSpecifier;
   [kLogoAlt]?: string;
   [kLogoHref]?: string;
   alignment?: "left" | "right" | "center";

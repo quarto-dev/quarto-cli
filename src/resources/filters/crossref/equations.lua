@@ -63,6 +63,9 @@ function process_equations(blockEl)
         else
           local eqNumber = eqQquad
           local mathMethod = param("html-math-method", nil)
+          if type(mathMethod) == "table" and mathMethod["method"] then
+            mathMethod = mathMethod["method"]
+          end
           if _quarto.format.isHtmlOutput() and (mathMethod == "mathjax" or mathMethod == "katex") then
             eqNumber = eqTag
           end

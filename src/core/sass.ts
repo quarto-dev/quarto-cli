@@ -383,6 +383,7 @@ export async function compileWithCache(
       const result = await memoizedGetVarsBlock(project, input);
       return input + "\n" + result;
     } catch (e) {
+      if (!(e instanceof Error)) throw e;
       if (e.name !== "SCSSParsingError") {
         throw e;
       }

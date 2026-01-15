@@ -448,6 +448,9 @@
       doc: Flags if the audio should be muted. Defaults to `false`.
     - value: 'background-iframe="$0"'
       doc: URL of the iframe to load
+    - value: 'background-transition="$0"'
+      doc: |
+        Transition style for full page slide backgrounds (`none`, `fade`, `slide`, `convex`, `concave`, or `zoom`).
     - value: background-interactive
       doc:
         Include this attribute to make it possible to interact with the iframe contents.

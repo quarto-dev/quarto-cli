@@ -11,9 +11,9 @@ body:
 
         This is the repository for the command-line program `quarto`:
 
-        - If you're reporting an issue with the VS Code extension, please visit https://github.com/quarto-dev/quarto
-        - If you're reporting an issue inside RStudio, please visit https://github.com/rstudio/rstudio
-        - If you're reporting an issue inside **Positron**, please visit https://github.com/posit-dev/positron
+        - If you're reporting an issue with the **Visual Editor** or with the **Visual Studio Code / Positron extension**, please visit https://github.com/quarto-dev/quarto
+        - If you're reporting an issue inside **RStudio**, please visit https://github.com/rstudio/rstudio
+        - If you're reporting an issue inside **Positron**, please visit https://github.com/posit-dev/positron/discussions
         - If you want to ask for a feature, please use the [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests).
         - If you want to ask for help, please use the [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a).
 
@@ -52,6 +52,14 @@ body:
             
             The end.
             ````
+
+  - type: checkboxes
+    attributes:
+      label: "I have:"
+      options:
+        - label: searched the issue tracker for similar issues
+        - label: installed the latest version of [Quarto CLI](https://github.com/quarto-dev/quarto-cli/releases/latest)
+        - label: formatted my issue following the [Bug Reports guide](https://quarto.org/bug-reports.html)
 
   - type: textarea
     attributes:

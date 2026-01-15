@@ -32,14 +32,6 @@ function render_typst_css_property_processing()
     end
   end
 
-  local function dequote(s)
-    return s:gsub('^["\']', ''):gsub('["\']$', '')
-  end
-
-  local function quote(s)
-    return '"' .. s .. '"'
-  end
-
   local function translate_vertical_align(va)
     if va == 'top' then
       return 'top'
@@ -178,6 +170,14 @@ function render_typst_css_property_processing()
           opacity = _quarto.format.typst.css.parse_opacity(v, _warnings)
         elseif k == 'font-size' then
           cell.attributes['typst:text:size'] = _quarto.format.typst.css.translate_length(v, _warnings)
+        elseif k == 'font-weight' then
+          local translated_fw = _quarto.format.typst.css.translate_font_weight(v, _warnings)
+          -- unsupported font-weight values will be returned as nil
+          if translated_fw then
+            cell.attributes['typst:text:weight'] = _quarto.format.typst.css.quote(translated_fw)
+          end
+        elseif k == 'font-style' then
+          cell.attributes['typst:text:style'] = _quarto.format.typst.css.quote(v)
         elseif k == 'vertical-align' then
           local a = translate_vertical_align(v)
           if a then table.insert(aligns, a) end
@@ -270,31 +270,19 @@ function render_typst_css_property_processing()
     end
     return span
   end
-
-  local function translate_string_list(sl)
-    local strings = {}
-    for s in sl:gmatch('([^,]+)') do
-      s = s:gsub('^%s+', '')
-      table.insert(strings, quote(dequote(s)))
-    end
-    return '(' .. table.concat(strings, ', ') ..')'
-  end
   
   return {
     Table = function(tab)
       _warnings = new_table()
       local tabstyle = tab.attributes['style']
-      local has_typst_text = false
       if tabstyle ~= nil then
         for clause in tabstyle:gmatch('([^;]+)') do
           local k, v = to_kv(clause)
           if k == 'font-family' then
-            tab.attributes['typst:text:font'] = translate_string_list(v)
-            has_typst_text = true
+            tab.attributes['typst:text:font'] = _quarto.format.typst.css.translate_font_family_list(v)
           end
           if k == 'font-size' then
             tab.attributes['typst:text:size'] = _quarto.format.typst.css.translate_length(v, _warnings)
-            has_typst_text = true
           end
         end
       end
@@ -314,13 +302,7 @@ function render_typst_css_property_processing()
       end
       aggregate_warnings()
       _warnings = nil
-      if not has_typst_text then return tab end
-      -- wrap in typst content block and return false to prevent processing its contents
-      return pandoc.Blocks({
-        pandoc.RawBlock("typst", "#["),
-        tab,
-        pandoc.RawBlock("typst", "]")
-      }), false
+      return tab
     end,
     Div = function(div)
       _warnings = new_table()
@@ -329,9 +311,13 @@ function render_typst_css_property_processing()
         for clause in divstyle:gmatch('([^;]+)') do
           local k, v = to_kv(clause)
           if k == 'font-family' then
-            div.attributes['typst:text:font'] = translate_string_list(v)
+            div.attributes['typst:text:font'] = _quarto.format.typst.css.translate_font_family_list(v)
           elseif k == 'font-size' then
             div.attributes['typst:text:size'] = _quarto.format.typst.css.translate_length(v, _warnings)
+          elseif k == 'font-weight' then
+            div.attributes['typst:text:weight'] = _quarto.format.typst.css.quote(_quarto.format.typst.css.translate_font_weight(v, _warnings))
+          elseif k == 'font-style' then
+            div.attributes['typst:text:style'] = _quarto.format.typst.css.quote(v)
           elseif k == 'background-color' then
             div.attributes['typst:fill'] = _quarto.format.typst.css.output_color(_quarto.format.typst.css.parse_color(v, _warnings), nil, _warnings)
           elseif k == 'color' then

@@ -5,7 +5,7 @@
  */
 
 import { join } from "../../deno_ral/path.ts";
-import { cloneDeep, uniqBy } from "../../core/lodash.ts";
+import { uniqBy } from "../../core/lodash.ts";
 
 import {
   Format,
@@ -39,6 +39,7 @@ import { md5HashBytes } from "../../core/hash.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { assert } from "testing/asserts";
 import { safeModeFromFile } from "../../deno_ral/fs.ts";
+import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -54,7 +55,7 @@ export async function resolveSassBundles(
   format: Format,
   project: ProjectContext,
 ) {
-  extras = cloneDeep(extras);
+  extras = safeCloneDeep(extras);
 
   const mergedBundles: Record<string, SassBundleWithBrand[]> = {};
 
@@ -102,7 +103,7 @@ export async function resolveSassBundles(
       const userBrand = bundle.user?.findIndex((layer) => layer === "brand");
       let cloned = false;
       if (userBrand && userBrand !== -1) {
-        bundle = cloneDeep(bundle);
+        bundle = safeCloneDeep(bundle);
         cloned = true;
         bundle.user!.splice(userBrand, 1, ...(maybeBrandBundle?.user || []));
         foundBrand.light = true;
@@ -112,7 +113,7 @@ export async function resolveSassBundles(
       );
       if (darkBrand && darkBrand !== -1) {
         if (!cloned) {
-          bundle = cloneDeep(bundle);
+          bundle = safeCloneDeep(bundle);
         }
         bundle.dark!.user!.splice(
           darkBrand,
@@ -142,7 +143,7 @@ export async function resolveSassBundles(
       )
       ? "dark"
       : "light";
-    const targets: SassTarget[] = [{
+    let targets: SassTarget[] = [{
       name: `${dependency}.min.css`,
       bundles: (bundles as any),
       attribs: {
@@ -158,7 +159,7 @@ export async function resolveSassBundles(
 
       // Provide a dark bundle for this
       const darkBundles = bundles.map((bundle) => {
-        bundle = cloneDeep(bundle);
+        bundle = safeCloneDeep(bundle);
         bundle.user = bundle.dark?.user || bundle.user;
         bundle.quarto = bundle.dark?.quarto || bundle.quarto;
         bundle.framework = bundle.dark?.framework || bundle.framework;
@@ -175,10 +176,22 @@ export async function resolveSassBundles(
           ...attribForThemeStyle("dark"),
         },
       };
-      if (defaultStyle === "dark") {
+      if (defaultStyle === "dark") { // light, dark
         targets.push(darkTarget);
-      } else {
-        targets.unshift(darkTarget);
+      } else { // light, dark, light
+        const lightTargetExtra = {
+          ...targets[0],
+          attribs: {
+            ...targets[0].attribs,
+            class: "quarto-color-scheme-extra",
+          },
+        };
+
+        targets = [
+          targets[0],
+          darkTarget,
+          lightTargetExtra,
+        ];
       }
 
       hasDarkStyles = true;
@@ -283,19 +296,9 @@ export async function resolveSassBundles(
     }
   }
 
-  // Resolve generated quarto css variables
-  if (hasDarkStyles && defaultStyle !== "dark") {
-    // Put dark stylesheet first if light is default (for NoJS)
-    extras = await resolveQuartoSyntaxHighlighting(
-      inputDir,
-      extras,
-      format,
-      project,
-      "dark",
-      defaultStyle,
-    );
-  }
-
+  // light only: light
+  // author prefers dark: light, dark
+  // author prefers light: light, dark, light
   extras = await resolveQuartoSyntaxHighlighting(
     inputDir,
     extras,
@@ -305,8 +308,15 @@ export async function resolveSassBundles(
     defaultStyle,
   );
 
-  if (hasDarkStyles && defaultStyle === "dark") {
-    // Put dark stylesheet second if dark is default (for NoJS)
+  if (hasDarkStyles) {
+    // find the last entry, for the light highlight stylesheet
+    // so we can duplicate it below.
+    // (note we must do this before adding the dark highlight stylesheet)
+    const lightDep = extras.html?.[kDependencies]?.find((extraDep) =>
+      extraDep.name === kQuartoHtmlDependency
+    );
+    const lightEntry = lightDep?.stylesheets &&
+      lightDep.stylesheets[lightDep.stylesheets.length - 1];
     extras = await resolveQuartoSyntaxHighlighting(
       inputDir,
       extras,
@@ -315,6 +325,19 @@ export async function resolveSassBundles(
       "dark",
       defaultStyle,
     );
+    if (defaultStyle === "light" && lightEntry) {
+      const dep2 = extras.html?.[kDependencies]?.find((extraDep) =>
+        extraDep.name === kQuartoHtmlDependency
+      );
+      assert(dep2?.stylesheets);
+      dep2.stylesheets.push({
+        ...lightEntry,
+        attribs: {
+          ...lightEntry.attribs,
+          class: "quarto-color-scheme-extra",
+        },
+      });
+    }
   }
 
   if (isHtmlOutput(format.pandoc, true)) {
@@ -340,7 +363,7 @@ async function resolveQuartoSyntaxHighlighting(
     return extras;
   }
 
-  extras = cloneDeep(extras);
+  extras = safeCloneDeep(extras);
 
   // If we're using default highlighting, use theme darkness to select highlight style
   const mediaAttr = attribForThemeStyle(style);
@@ -498,7 +521,26 @@ function generateThemeCssClasses(
     Record<string, unknown>
   >;
   if (textStyles) {
-    const lines: string[] = [];
+    const otherLines: string[] = [];
+    otherLines.push("/* syntax highlight based on Pandoc's rules */");
+    const tokenCssByAbbr: Record<string, string[]> = {};
+
+    const toCSS = function (
+      abbr: string,
+      styleName: string,
+      cssValues: string[],
+    ) {
+      const lines: string[] = [];
+      lines.push(`/* ${styleName} */`);
+      lines.push(`\ncode span${abbr !== "" ? `.${abbr}` : ""} {`);
+      cssValues.forEach((value) => {
+        lines.push(`  ${value}`);
+      });
+      lines.push("}\n");
+
+      // Store by abbreviation for sorting later
+      tokenCssByAbbr[abbr] = lines;
+    };
 
     Object.keys(textStyles).forEach((styleName) => {
       const abbr = kAbbrevs[styleName];
@@ -506,26 +548,40 @@ function generateThemeCssClasses(
         const textValues = textStyles[styleName];
         const cssValues = generateCssKeyValues(textValues);
 
-        if (abbr !== "") {
-          lines.push(`\ncode span.${abbr} {`);
-          lines.push(...cssValues);
-          lines.push("}\n");
-        } else {
+        toCSS(abbr, styleName, cssValues);
+
+        if (abbr == "") {
           [
             "pre > code.sourceCode > span",
-            "code span",
             "code.sourceCode > span",
             "div.sourceCode,\ndiv.sourceCode pre.sourceCode",
           ]
             .forEach((selector) => {
-              lines.push(`\n${selector} {`);
-              lines.push(...cssValues);
-              lines.push("}\n");
+              otherLines.push(`\n${selector} {`);
+              otherLines.push(...cssValues);
+              otherLines.push("}\n");
             });
         }
       }
     });
-    return lines;
+
+    // Sort tokenCssLines by abbr and flatten them
+    // Ensure empty abbr ("") comes first by using a custom sort function
+    const sortedTokenCssLines: string[] = [];
+    Object.keys(tokenCssByAbbr)
+      .sort((a, b) => {
+        // Empty string ("") should come first
+        if (a === "") return -1;
+        if (b === "") return 1;
+        // Otherwise normal alphabetical sort
+        return a.localeCompare(b);
+      })
+      .forEach((abbr) => {
+        sortedTokenCssLines.push(...tokenCssByAbbr[abbr]);
+      });
+
+    // return otherLines followed by tokenCssLines (now sorted by abbr)
+    return otherLines.concat(sortedTokenCssLines);
   }
   return undefined;
 }

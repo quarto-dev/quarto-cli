@@ -32,7 +32,7 @@ export function defineCached(
   let schema: ConcreteSchema;
 
   return async () => {
-    // when running on the CLI outside of quarto build-js, these
+    // when running on the CLI outside of quarto dev-call build-artifacts, these
     // definitions will already exist.
     if (hasSchemaDefinition(schemaId)) {
       schema = getSchemaDefinition(schemaId);

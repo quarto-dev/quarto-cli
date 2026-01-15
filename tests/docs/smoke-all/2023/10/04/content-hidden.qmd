@@ -8,11 +8,11 @@ _quarto:
         - [".do-not-be-here"]
 ---
 
-```{.content-visible when-format="html" .be-here}
+```{.content-visible .be-here when-format="html"}
 2+2
 ```
 
-```{.content-hidden when-format="html" .do-not-be-here}
+```{.content-hidden .do-not-be-here when-format="html"}
 2+2
 ```
 

@@ -472,7 +472,12 @@ async function uninstall(context: InstallContext) {
 }
 
 function exec(path: string, cmd: string[]) {
-  return execProcess({ cmd: [path, ...cmd], stdout: "piped", stderr: "piped" });
+  return execProcess({
+    cmd: path,
+    args: cmd,
+    stdout: "piped",
+    stderr: "piped",
+  });
 }
 
 const kTlMgrKey = "tlmgr";

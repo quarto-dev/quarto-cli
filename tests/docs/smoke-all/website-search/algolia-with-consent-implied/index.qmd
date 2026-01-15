@@ -1,0 +1,27 @@
+---
+title: "Algolia Search With Cookie Consent"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          # Ensure search options script exists
+          - 'script#quarto-search-options'
+          # Cookie consent element are loaded 
+          - script[src$='cookie-consent.js']
+      ensureFileRegexMatches:
+        - 
+          # Cookie consent should be enabled
+          - '"cookie-consent-enabled":\s*true'
+          # Scripts should be deferred with cookie-consent attribute
+          - 'type="text/plain"[^>]*cookie-consent="tracking"[^>]*>[\s\S]*search-insights'
+          # type should be implied per config
+          - 'cookieconsent.run\(\{[^}]*"consent_type":"implied"'
+---
+
+This test verifies that when `cookie-consent` is configured in the website settings:
+
+1. The Algolia search options JSON contains `"cookie-consent-enabled": true`
+2. Algolia Insights scripts are deferred with `type="text/plain" cookie-consent="tracking"`
+3. Scripts only execute after user grants "tracking" consent
+4. Cookie consent UI elements are present on the page

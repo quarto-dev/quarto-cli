@@ -115,6 +115,7 @@ import {
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
 import { setExecuteEnvironment } from "../../execute/environment.ts";
 import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
+import { warn } from "log";
 
 export async function renderExecute(
   context: RenderContext,
@@ -199,7 +200,10 @@ export async function renderExecute(
 
         // notify engine that we skipped execute
         if (context.engine.executeTargetSkipped) {
-          context.engine.executeTargetSkipped(context.target, context.format);
+          context.engine.executeTargetSkipped(
+            context.target,
+            context.format,
+          );
         }
 
         // return results
@@ -346,9 +350,14 @@ export async function renderFiles(
 
     return await pandocRenderer.onComplete(false, options.flags?.quiet);
   } catch (error) {
+    if (!(error instanceof Error)) {
+      warn(`Error encountered when rendering files`);
+    }
     return {
       files: (await pandocRenderer.onComplete(true)).files,
-      error: error || new Error(),
+      error: error instanceof Error
+        ? error
+        : new Error(error ? String(error) : undefined),
     };
   } finally {
     tempContext.cleanup();
@@ -399,9 +408,14 @@ export async function renderFile(
     }
     return await pandocRenderer.onComplete(false, options.flags?.quiet);
   } catch (error) {
+    if (!(error instanceof Error)) {
+      warn(`Error encountered when rendering ${file.path}`);
+    }
     return {
       files: (await pandocRenderer.onComplete(true)).files,
-      error: error || new Error(),
+      error: error instanceof Error
+        ? error
+        : new Error(error ? String(error) : undefined),
     };
   } finally {
     if (Deno.env.get("QUARTO_PROFILER_OUTPUT")) {

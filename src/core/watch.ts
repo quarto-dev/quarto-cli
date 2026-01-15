@@ -99,6 +99,7 @@ export function watchForFileChanges(
           }
         }
       } catch (err) {
+        if (!(err instanceof Error)) throw err;
         error(
           "Unexpected error while scanning for file changes: " + err.message,
         );

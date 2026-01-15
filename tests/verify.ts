@@ -17,10 +17,11 @@ import { readYamlFromString } from "../src/core/yaml.ts";
 import { ExecuteOutput, Verify } from "./test.ts";
 import { outputForInput } from "./utils.ts";
 import { unzip } from "../src/core/zip.ts";
-import { dirAndStem, which } from "../src/core/path.ts";
+import { dirAndStem, safeRemoveSync, which } from "../src/core/path.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
-import { execProcess } from "../src/core/process.ts";
-import { canonicalizeSnapshot, checkSnapshot } from "./verify-snapshot.ts";
+import { execProcess, ExecProcessOptions } from "../src/core/process.ts";
+import { checkSnapshot, generateSnapshotDiff, generateInlineDiff, WordDiffPart } from "./verify-snapshot.ts";
+import * as colors from "fmt/colors";
 
 export const withDocxContent = async <T>(
   file: string,
@@ -38,6 +39,26 @@ export const withDocxContent = async <T>(
     const docXml = join(temp, "word", "document.xml");
     const xml = await Deno.readTextFile(docXml);
     const result = await k(xml);
+    return result;
+  } finally {
+    await Deno.remove(temp, { recursive: true });
+  }
+};
+
+export const withEpubDirectory = async <T>(
+  file: string,
+  k: (path: string) => Promise<T>
+) => {
+  const [_dir, stem] = dirAndStem(file);
+  const temp = await Deno.makeTempDir();
+  try {
+    // Move the docx to a temp dir and unzip it
+    const zipFile = join(temp, stem + ".zip");
+    await Deno.copyFile(file, zipFile);
+    await unzip(zipFile);
+
+    // Open the core xml document and match the matches
+    const result = await k(temp);
     return result;
   } finally {
     await Deno.remove(temp, { recursive: true });
@@ -133,6 +154,11 @@ export const noErrorsOrWarnings: Verify = {
     const isErrorOrWarning = (output: ExecuteOutput) => {
       return output.levelName.toLowerCase() === "warn" ||
         output.levelName.toLowerCase() === "error";
+        // I'd like to do this but many many of our tests
+        // would fail right now because we're assuming noErrorsOrWarnings
+        // doesn't include warnings from the lua subsystem
+        //  ||
+        // output.msg.startsWith("(W)"); // this is a warning from quarto.log.warning()
     };
 
     const errorsOrWarnings = outputs.some(isErrorOrWarning);
@@ -211,7 +237,7 @@ export const fileExists = (file: string): Verify => {
 
 export const pathDoNotExists = (path: string): Verify => {
   return {
-    name: `path ${path} exists`,
+    name: `path ${path} do not exists`,
     verify: (_output: ExecuteOutput[]) => {
       verifyNoPath(path);
       return Promise.resolve();
@@ -382,6 +408,96 @@ export const ensureHtmlElementContents = (
 
 }
 
+export const ensureHtmlElementCount = (
+  file: string,
+  options: {
+    selectors: string[] | string,
+    counts: number[] | number
+  }
+): Verify => {
+  return {
+    name: "Verify number of elements for selectors",
+    verify: async (_output: ExecuteOutput[]) => {
+      const htmlInput = await Deno.readTextFile(file);
+      const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
+      
+      // Convert single values to arrays for unified processing
+      const selectorsArray = Array.isArray(options.selectors) ? options.selectors : [options.selectors];
+      const countsArray = Array.isArray(options.counts) ? options.counts : [options.counts];
+      
+      if (selectorsArray.length !== countsArray.length) {
+        throw new Error("Selectors and counts arrays must have the same length");
+      }
+      
+      selectorsArray.forEach((selector, index) => {
+        const expectedCount = countsArray[index];
+        const elements = doc.querySelectorAll(selector);
+        assert(
+          elements.length === expectedCount,
+          `Selector '${selector}' matched ${elements.length} elements, expected ${expectedCount}.`
+        );
+      });
+    }
+  };
+};
+
+const printColoredDiff = (diff: string) => {
+  for (const line of diff.split("\n")) {
+    if (line.startsWith("+") && !line.startsWith("+++")) {
+      console.log(colors.green(line));
+    } else if (line.startsWith("-") && !line.startsWith("---")) {
+      console.log(colors.red(line));
+    } else if (line.startsWith("@@")) {
+      console.log(colors.dim(line));
+    } else {
+      console.log(line);
+    }
+  }
+};
+
+const escapeWhitespace = (s: string): string => {
+  return s.replace(/\n/g, "⏎\\n").replace(/\t/g, "→\\t").replace(/ /g, "·");
+};
+
+const printCompactInlineDiff = (parts: WordDiffPart[]) => {
+  const chunks: string[] = [];
+  let currentChunk = "";
+  let hasChanges = false;
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    if (part.added || part.removed) {
+      hasChanges = true;
+      const displayValue = /^\s+$/.test(part.value) ? escapeWhitespace(part.value) : part.value;
+      if (part.added) {
+        currentChunk += colors.bgGreen(colors.black(displayValue));
+      } else {
+        currentChunk += colors.bgRed(colors.white(displayValue));
+      }
+    } else {
+      if (hasChanges) {
+        const contextBefore = part.value.slice(0, 40);
+        chunks.push(currentChunk + colors.dim(contextBefore + (part.value.length > 40 ? "..." : "")));
+        currentChunk = "";
+        hasChanges = false;
+      }
+      const nextHasChange = parts.slice(i + 1).some(p => p.added || p.removed);
+      if (nextHasChange) {
+        const contextAfter = part.value.slice(-40);
+        currentChunk = colors.dim((part.value.length > 40 ? "..." : "") + contextAfter);
+      }
+    }
+  }
+  if (currentChunk) {
+    chunks.push(currentChunk);
+  }
+
+  for (const chunk of chunks) {
+    console.log(chunk);
+    console.log("");
+  }
+};
+
 export const ensureSnapshotMatches = (
   file: string,
 ): Verify => {
@@ -389,11 +505,23 @@ export const ensureSnapshotMatches = (
     name: "Inspecting Snapshot",
     verify: async (_output: ExecuteOutput[]) => {
       const good = await checkSnapshot(file);
+      const diffFile = file + ".diff";
       if (!good) {
-        console.log("output:");
-        console.log(await canonicalizeSnapshot(file));
-        console.log("snapshot:");
-        console.log(await canonicalizeSnapshot(file + ".snapshot"));
+        const diff = await generateSnapshotDiff(file);
+        const inlineParts = await generateInlineDiff(file);
+
+        await Deno.writeTextFile(diffFile, diff);
+        console.log(`\nDiff saved to: ${diffFile}`);
+
+        console.log("\n--- Unified Diff ---");
+        printColoredDiff(diff);
+        console.log("--- End Unified Diff ---\n");
+
+        console.log("--- Word-level Changes (with context) ---");
+        printCompactInlineDiff(inlineParts);
+        console.log("--- End Word-level Changes ---\n");
+      } else {
+        safeRemoveSync(diffFile);
       }
       assert(
         good,
@@ -468,7 +596,7 @@ export const verifyKeepFileRegexMatches = (
       try {
         await regexChecker(file, matches, noMatches);
       } finally {
-        await Deno.remove(file);
+        await safeRemoveSync(file);
       }
     }
     return verifyFileRegexMatches(keptFileChecker, `Inspecting intermediate ${keptFile} for Regex matches`)(keptFile, matchesUntyped, noMatchesUntyped);
@@ -568,6 +696,18 @@ export const verifyDocXDocument = (
     },
   });
 };
+
+export const verifyEpubDocument = (
+  callback: (path: string) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting Epub",
+    verify: async (_output: ExecuteOutput[]) => {
+      return await withEpubDirectory(file, callback);
+    },
+  });
+}
 
 export const verifyPptxDocument = (
   callback: (doc: string, docFile: string) => Promise<void>,
@@ -729,6 +869,52 @@ export const ensureDocxRegexMatches = (
     return Promise.resolve();
   }, "Inspecting Docx for Regex matches")(file);
 };
+
+export const ensureEpubFileRegexMatches = (
+  epubFile: string,
+  pathsAndRegexes: {
+    path: string;
+    regexes: (string | RegExp)[][];
+  }[]
+): Verify => {
+  return verifyEpubDocument(async (epubDir) => {
+    for (const { path, regexes } of pathsAndRegexes) {
+      const file = join(epubDir, path);
+      assert(
+        existsSync(file),
+        `File ${file} doesn't exist in Epub`,
+      );
+      const content = await Deno.readTextFile(file);
+      const mustMatch: (RegExp | string)[] = [];
+      const mustNotMatch: (RegExp | string)[] = [];
+      if (regexes.length) {
+        mustMatch.push(...regexes[0]);
+      }
+      if (regexes.length > 1) {
+        mustNotMatch.push(...regexes[1]);
+      }
+
+      mustMatch.forEach((regex) => {
+        if (typeof regex === "string") {
+          regex = new RegExp(regex);
+        }
+        assert(
+          regex.test(content),
+          `Required match ${String(regex)} is missing from file ${file}.`,
+        );
+      });
+      mustNotMatch.forEach((regex) => {
+        if (typeof regex === "string") {
+          regex = new RegExp(regex);
+        }
+        assert(
+          !regex.test(content),
+          `Illegal match ${String(regex)} was found in file ${file}.`,
+        );
+      });
+    }
+  }, "Inspecting Epub for Regex matches")(epubFile);
+}
 
 // export const ensureDocxRegexMatches = (
 //   file: string,
@@ -900,9 +1086,10 @@ export const ensureXmlValidatesWithXsd = (
     name: "Validating XML",
     verify: async (_output: ExecuteOutput[]) => {
       if (!isWindows) {
-        const cmd = ["xmllint", "--noout", "--valid", file, "--path", xsdPath];
-        const runOptions: Deno.RunOptions = {
-          cmd,
+        const args = ["--noout", "--valid", file, "--path", xsdPath];
+        const runOptions: ExecProcessOptions = {
+          cmd: "xmllint", 
+          args,
           stderr: "piped",
           stdout: "piped",
         };
@@ -928,7 +1115,8 @@ export const ensureMECAValidates = (
           const hasMeca = await which("meca");
           if (hasMeca) {
             const result = await execProcess({
-              cmd: ["meca", "validate", mecaFile],
+              cmd: "meca", 
+              args: ["validate", mecaFile],
               stderr: "piped",
               stdout: "piped",
             });

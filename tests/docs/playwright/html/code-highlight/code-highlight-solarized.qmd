@@ -1,0 +1,6 @@
+---
+title: Testing solarized code highlight
+highlight-style: solarized
+---
+
+{{< include _body.md >}}

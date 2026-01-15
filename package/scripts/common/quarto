@@ -33,7 +33,10 @@ else
 fi
 QUARTO_SRC_PATH="$QUARTO_ROOT/src"
 DEV_PATH=$QUARTO_SRC_PATH/quarto.ts
+
 if [ -f "$DEV_PATH" ]; then
+  QUARTO_DEV_MODE=true
+  QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_PATH/import_map.json
   if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then
     if [ "$QUARTO_FORCE_VERSION" != "" ]; then
       echo $QUARTO_FORCE_VERSION
@@ -48,9 +51,6 @@ if [ -f "$DEV_PATH" ]; then
     QUARTO_ACTION=run
   fi
 
-  # Local import map
-  QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_PATH/import_map.json
-
   # Turn on type checking for dev version
   if [ -z ${QUARTO_NO_TYPECHECK+x} ]; then
     QUARTO_DENO_OPTIONS=--check
@@ -63,10 +63,12 @@ if [ -f "$DEV_PATH" ]; then
   
   export QUARTO_BIN_PATH=$SCRIPT_PATH
   export QUARTO_SHARE_PATH="${QUARTO_SHARE_PATH=$QUARTO_SRC_PATH/resources/}"
+  export DENO_DIR=$QUARTO_BIN_PATH/deno_cache
+
   if [ -z ${QUARTO_DEBUG+x} ]; then
     export QUARTO_DEBUG=true
   fi
-  # QUARTO_CACHE_OPTIONS="--cached-only"
+  QUARTO_CACHE_OPTIONS="--cached-only"
 
   # Check for deno update
   QUARTO_DIST_CONFIG=$QUARTO_BIN_PATH/../config
@@ -87,11 +89,10 @@ if [ -f "$DEV_PATH" ]; then
   fi
 
 else
-
   QUARTO_ACTION=run
   QUARTO_TARGET=${SCRIPT_PATH}/quarto.js
   export QUARTO_BIN_PATH=$SCRIPT_PATH
-  QUARTO_CACHE_OPTIONS=""
+  QUARTO_CACHE_OPTIONS="--cached-only"
 
   # Turn off type checking for bundled version
   QUARTO_DENO_OPTIONS=--no-check
@@ -107,9 +108,6 @@ else
       export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../share";pwd`"
     fi
   fi
-
-  # release vendored import map
-  QUARTO_IMPORT_MAP_ARG=--importmap=$SCRIPT_PATH/vendor/import_map.json
 
   if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then
     if [ "$QUARTO_FORCE_VERSION" != "" ]; then
@@ -131,15 +129,26 @@ fi
 if [[ $OSTYPE == 'darwin'* ]]; then
   # We cannot use uname to determine the _machine_ architecture:
   # https://github.com/quarto-dev/quarto-cli/issues/2420#issuecomment-1245768732
-  FULLARCH="$(/usr/sbin/sysctl machdep.cpu.brand_string)"
-  
-  if [[ $FULLARCH == *"Intel"* ]]; then
+  # However, sysctl can return unexpected values in sandboxed/virtualized environments.
+  # Use sysctl -n to get just the value, and check multiple possible patterns.
+  FULLARCH="$(/usr/sbin/sysctl -n machdep.cpu.brand_string 2>/dev/null)"
+
+  if [[ $FULLARCH == *"Intel"* ]] || [[ $FULLARCH == *"Xeon"* ]] || [[ $FULLARCH == *"Core"* ]]; then
     ARCH_DIR=x86_64
-  elif [[ $FULLARCH == *"Apple"* ]]; then
+  elif [[ $FULLARCH == *"Apple"* ]] || [[ $FULLARCH == *"ARM"* ]]; then
     ARCH_DIR=aarch64
   else
-    echo "quarto script failed: unrecognized architecture " ${FULLARCH}
-    exit 1
+    # Fallback to uname -m if sysctl doesn't give us recognizable output
+    # This helps with sandboxed/virtualized environments
+    UNAME_ARCH=$(uname -m)
+    if [[ $UNAME_ARCH == "x86_64" ]]; then
+      ARCH_DIR=x86_64
+    elif [[ $UNAME_ARCH == "arm64" ]]; then
+      ARCH_DIR=aarch64
+    else
+      echo "quarto script failed: unrecognized architecture. sysctl returned: '${FULLARCH}', uname -m returned: '${UNAME_ARCH}'"
+      exit 1
+    fi
   fi
 
 else
@@ -193,5 +202,9 @@ if [ "$QUARTO_TS_PROFILE" != "" ]; then
   QUARTO_DENO_EXTRA_OPTIONS="--inspect-brk ${QUARTO_DENO_EXTRA_OPTIONS}"
   QUARTO_TS_PROFILE=true "${QUARTO_DENO}" ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${QUARTO_TARGET}" "$@"
 else
-  "${QUARTO_DENO}" ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${QUARTO_TARGET}" "$@" 
+  if [ "$QUARTO_DEV_MODE" == true ]; then
+    "${QUARTO_DENO}" ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${QUARTO_TARGET}" "$@" 
+  else
+    "${QUARTO_DENO}" ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_TARGET}" "$@" 
+  fi
 fi

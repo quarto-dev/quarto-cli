@@ -127,7 +127,7 @@ website:
       asMappedString(obj),
       refSchema("project-config", ""),
     );
-  } catch (e) {
+  } catch (e: any) {
     return expectValidationError(e)
       .forSchemaPathToEndWith("type")
       .toHaveLength(1);

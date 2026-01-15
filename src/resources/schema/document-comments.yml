@@ -2,5 +2,5 @@
   tags:
     formats: [$html-files]
   schema:
-    ref: comments
+    ref: document-comments-configuration
   description: Configuration for document commenting.

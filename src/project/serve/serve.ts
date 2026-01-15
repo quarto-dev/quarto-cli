@@ -104,15 +104,12 @@ import { removePandocToArg } from "../../command/render/flags.ts";
 import { isRStudioServer, isServerSession } from "../../core/platform.ts";
 import { ServeRenderManager } from "./render.ts";
 import { projectScratchPath } from "../project-scratch.ts";
-import {
-  previewEnsureResources,
-  previewMonitorResources,
-} from "../../core/quarto.ts";
+import { previewMonitorResources } from "../../core/quarto.ts";
 import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
 import { projectExtensionDirs } from "../../extension/extension.ts";
 import { findOpenPort } from "../../core/port.ts";
 import { kLocalhost } from "../../core/port-consts.ts";
-import { ProjectServe } from "../../resources/types/schema-types.ts";
+import { ProjectServe } from "../../resources/types/zod/schema-types.ts";
 import { handleHttpRequests } from "../../core/http-server.ts";
 import { touch } from "../../core/file.ts";
 import { staticResource } from "../../preview/preview-static.ts";
@@ -211,7 +208,6 @@ export async function serveProject(
   acquirePreviewLock(project);
 
   // monitor the src dir
-  previewEnsureResources();
   previewMonitorResources();
 
   // clear the project index
@@ -403,7 +399,7 @@ function externalPreviewServer(
 ): Promise<PreviewServer> {
   // run a control channel server for handling render requests
   // if there was a renderToken() passed
-  let controlListener: Deno.Listener | undefined;
+  let stop: () => void | undefined;
   if (renderToken()) {
     const outputDir = projectOutputDir(project);
     const handlerOptions: HttpFileRequestOptions = {
@@ -425,12 +421,12 @@ function externalPreviewServer(
 
     const handler = httpFileRequestHandler(handlerOptions);
     const port = findOpenPort();
-    controlListener = Deno.listen({ port, hostname: kLocalhost });
-    handleHttpRequests(controlListener, handler).then(() => {
-      // terminanted
-    }).catch((_error) => {
-      // ignore errors
-    });
+    ({ stop } = handleHttpRequests({
+      port,
+      hostname: kLocalhost,
+      handler,
+    }));
+    // .abortController;
     info(`Preview service running (${port})`);
   }
 
@@ -467,9 +463,7 @@ function externalPreviewServer(
       return server.serve();
     },
     stop: () => {
-      if (controlListener) {
-        controlListener.close();
-      }
+      stop?.();
       return server.stop();
     },
   });
@@ -629,6 +623,7 @@ async function internalPreviewServer(
                     services,
                     useFreezer: true,
                     devServerReload: true,
+                    previewServer: true,
                     flags: renderFlags,
                     pandocArgs: renderPandocArgs,
                   },
@@ -647,6 +642,7 @@ async function internalPreviewServer(
                 );
               }
             } catch (e) {
+              if (!(e instanceof Error)) throw e;
               logError(e);
               renderError = e;
             } finally {
@@ -771,15 +767,21 @@ async function internalPreviewServer(
   const path = (targetPath && targetPath !== "index.html") ? targetPath : "";
 
   // start listening
-  const listener = Deno.listen({ port: options.port!, hostname: options.host });
+  let stop: () => void | undefined;
 
   return {
     start: () => Promise.resolve(path),
     serve: async () => {
-      await handleHttpRequests(listener, handler);
+      const { server, stop: stopServer } = handleHttpRequests({
+        port: options.port!,
+        hostname: options.host,
+        handler,
+      });
+      stop = stopServer;
+      await server.finished;
     },
     stop: () => {
-      listener.close();
+      stop?.();
       return Promise.resolve();
     },
   };

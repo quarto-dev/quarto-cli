@@ -1,0 +1,25 @@
+---
+title: Test brand logo dark fallback behavior
+format: html
+brand:
+  light:
+    logo:
+      small: light-logo.png
+      medium: light-medium-logo.png
+      large: light-large-logo.png
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - '<img src="\.(/|\\)light-logo\.png" class="img-fluid.*>'
+          - '<img src="\.(/|\\)light-medium-logo\.png" class="img-fluid.*>'
+          - '<img src="\.(/|\\)light-large-logo\.png" class="img-fluid.*>'
+        - []
+---
+
+{{< brand logo small light >}}
+
+{{< brand logo medium dark >}}
+
+{{< brand logo large dark >}}

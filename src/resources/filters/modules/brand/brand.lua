@@ -1,6 +1,12 @@
 -- brand.lua
 -- Copyright (C) 2020-2024 Posit Software, PBC
 
+local function has_mode(brandMode)
+  assert(brandMode == 'light' or brandMode == 'dark')
+  local brand = param("brand")
+  return (brand and brand[brandMode]) ~= nil
+end
+
 local function get_color_css(brandMode, name)
   assert(brandMode == 'light' or brandMode == 'dark')
   local brand = param("brand")
@@ -57,6 +63,7 @@ local function get_logo(brandMode, name)
 end
 
 return {
+  has_mode = has_mode,
   get_color_css = get_color_css,
   get_color = get_color,
   get_typography = get_typography,

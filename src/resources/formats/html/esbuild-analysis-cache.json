@@ -2,7 +2,7 @@
   "quarto.js": {
     "inputs": {
       "quarto.js": {
-        "bytes": 26830,
+        "bytes": 26885,
         "imports": [],
         "format": "esm"
       }
@@ -14,16 +14,21 @@
             "path": "./tabsets/tabsets.js",
             "kind": "import-statement",
             "external": true
+          },
+          {
+            "path": "./axe/axe-check.js",
+            "kind": "import-statement",
+            "external": true
           }
         ],
         "exports": [],
         "entryPoint": "quarto.js",
         "inputs": {
           "quarto.js": {
-            "bytesInOutput": 22313
+            "bytesInOutput": 22368
           }
         },
-        "bytes": 22313
+        "bytes": 22368
       }
     }
   }

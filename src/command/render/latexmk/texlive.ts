@@ -238,7 +238,7 @@ async function installPackage(
       quiet,
     );
     if (updateResult.code !== 0) {
-      return Promise.reject("Problem running `tlgmr update`.");
+      return Promise.reject("Problem running `tlmgr update`.");
     }
 
     // Rebuild format tree
@@ -277,7 +277,7 @@ async function installPackage(
       quiet,
     );
     if (updateResult.code !== 0) {
-      return Promise.reject("Problem running `tlgmr update`.");
+      return Promise.reject("Problem running `tlmgr update`.");
     }
 
     // Rebuild format tree
@@ -427,7 +427,8 @@ function tlmgrCommand(
   const execTlmgr = (tlmgrCmd: string[]) => {
     return execProcess(
       {
-        cmd: tlmgrCmd,
+        cmd: tlmgrCmd[0],
+        args: tlmgrCmd.slice(1),
         stdout: "piped",
         stderr: "piped",
       },
@@ -457,7 +458,8 @@ function fmtutilCommand(context: TexLiveContext) {
   const fmtutil = texLiveCmd("fmtutil-sys", context);
   return execProcess(
     {
-      cmd: [fmtutil.fullPath, "--all"],
+      cmd: fmtutil.fullPath,
+      args: ["--all"],
       stdout: "piped",
       stderr: "piped",
     },

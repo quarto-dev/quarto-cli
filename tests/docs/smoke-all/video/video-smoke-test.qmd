@@ -35,6 +35,9 @@ _quarto:
 
           - '#brightcove-test iframe[src$="https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001"]'
 
+          - "#youtube-short-test .quarto-video.ratio.ratio-16x9"
+          - '#youtube-short-test iframe[src$="https://www.youtube.com/embed/Kra3uHSIuBY"]'
+
 ---
 
 ::: {#video-js-test}
@@ -85,7 +88,7 @@ _quarto:
 {{< video https://www.youtube.com/embed/wo9vZccmqwc
   title="What is the CERN?"
   start="116"
-  aspect-ratio="21x9">}}
+  aspect-ratio="21x9" >}}
 
 :::
 
@@ -104,5 +107,11 @@ _quarto:
 ::: {#brightcove-test}
 
 {{< video https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001 >}}
+
+:::
+
+::: {#youtube-short-test}
+
+{{< video https://www.youtube.com/shorts/Kra3uHSIuBY >}}
 
 :::

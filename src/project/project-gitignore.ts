@@ -15,7 +15,7 @@ import { lines } from "../core/text.ts";
 import { isEnvDir } from "../core/jupyter/capabilities.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 
-export const kQuartoIgnore = [`/${kQuartoScratch}/`];
+export const kQuartoIgnore = [`/${kQuartoScratch}/`, `**/*.quarto_ipynb`];
 
 export async function ensureGitignore(
   dir: string,
@@ -55,7 +55,8 @@ export async function ensureGitignore(
   } else if (await which("git")) {
     // if it doesn't exist then auto-create if we are in a git project or we had the force flag
     const result = await execProcess({
-      cmd: ["git", "rev-parse"],
+      cmd: "git",
+      args: ["rev-parse"],
       cwd: dir,
       stdout: "piped",
       stderr: "piped",

@@ -1,0 +1,24 @@
+---
+title: logo background
+format:
+  typst:
+    keep-typ: true
+logo:
+  # currently we fail silently without path here
+  location: center-top
+  padding: 2rem
+  width: 300px
+brand:
+  logo:
+    large: quarto/quarto.png
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+      - 
+        - '#set page\(background: align\(center\+top, box\(inset: 2em, image\("quarto(/|\\\\)quarto.png", width: 225pt\)\)\)\)'
+      - []
+---
+
+{{< lipsum 4 >}}
+

@@ -1,0 +1,6 @@
+---
+title: Testing github code highlight
+highlight-style: github
+---
+
+{{< include _body.md >}}

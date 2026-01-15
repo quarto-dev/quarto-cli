@@ -22,6 +22,7 @@ import {
   selectTool,
 } from "../../tools/tools-console.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { signalCommandFailure } from "../utils.ts";
 
 export const removeCommand = new Command()
   .name("remove")
@@ -69,6 +70,7 @@ export const removeCommand = new Command()
             const allTools = await loadTools();
             if (allTools.filter((tool) => tool.installed).length === 0) {
               info("No tools are installed.");
+              signalCommandFailure();
             } else {
               // Select which tool should be installed
               const toolTarget = await selectTool(allTools, "remove");
@@ -118,6 +120,7 @@ export const removeCommand = new Command()
               await removeExtensions(extensions.slice(), options.prompt);
             } else {
               info("No matching extension found.");
+              signalCommandFailure();
             }
           } else {
             const nbContext = notebookContext();
@@ -138,6 +141,7 @@ export const removeCommand = new Command()
               }
             } else {
               info("No extensions installed.");
+              signalCommandFailure();
             }
           }
         }

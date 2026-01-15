@@ -1,0 +1,29 @@
+---
+format:
+  dashboard: default
+  revealjs: default
+  typst:
+    keep-typ: true
+brand: brand/_brand.yml
+_quarto:
+  tests:
+    dashboard:
+      ensureFileRegexMatches:
+        -
+          - '<img src="logos(/|\\)logo.png"'
+        - []
+    revealjs:
+      ensureFileRegexMatches:
+        -
+          - '<img src="logos(/|\\)logo.png"'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0\.75in, image\("logos(/|\\\\)logo\.png", width: 1\.5in\)\)'
+        - []
+---
+
+# Test
+
+Some text
