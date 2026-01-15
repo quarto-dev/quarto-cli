@@ -77,7 +77,7 @@ See @eq-display-alt.
 
 $$
 E = mc^2
-$$ {#eq-display-alt-spaces alt="Einsteins mass-energy equivalence equation"}
+$$ {#eq-display-alt-spaces alt = "Einsteins mass-energy equivalence equation"}
 
 See @eq-display-alt-spaces.
 
