@@ -1,0 +1,16 @@
+---
+listing:
+  type: default
+  contents: posts/*.qmd
+  fields:
+    - title
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - "a[href$='post-with-target.html'][target='_blank']"
+          - "a[href$='post-without-target.html']:not([target])"
+---
+
+## Default listing with target attribute test

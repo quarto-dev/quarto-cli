@@ -1,0 +1,6 @@
+---
+title: Post with target blank
+target: "_blank"
+---
+
+This post should open in a new tab.

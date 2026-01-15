@@ -1,0 +1,5 @@
+---
+title: Post without target
+---
+
+This post should open in the same tab.
