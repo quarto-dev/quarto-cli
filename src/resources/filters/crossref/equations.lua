@@ -239,6 +239,9 @@ function parseRefAttr(text)
   end)
   text = text:gsub(placeholder, "'")
 
+  -- Normalise spaces around = in attributes (alt = "value" -> alt="value")
+  text = text:gsub("(%w+)%s*=%s*(['\"])", "%1=%2")
+
   local parsed = pandoc.read("## " .. text, "markdown")
   if parsed and parsed.blocks[1] and parsed.blocks[1].attr then
     local attr = parsed.blocks[1].attr
