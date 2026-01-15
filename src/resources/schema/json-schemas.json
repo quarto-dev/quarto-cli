@@ -324,6 +324,15 @@
         }
       }
     },
+    "ExternalEngine": {
+      "object": {
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "DocumentCommentsConfiguration": {
       "anyOf": [
         {
@@ -819,6 +828,22 @@
               }
             ]
           },
+          "plausible-analytics": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "object": {
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            ]
+          },
           "announcement": {
             "anyOf": [
               {
@@ -875,8 +900,8 @@
                   "properties": {
                     "type": {
                       "enum": [
-                        "implied",
-                        "express"
+                        "express",
+                        "implied"
                       ]
                     },
                     "style": {
@@ -2902,7 +2927,71 @@
                   "type": "string"
                 },
                 "tests": {
-                  "type": "object"
+                  "object": {
+                    "properties": {
+                      "run": {
+                        "object": {
+                          "properties": {
+                            "ci": {
+                              "type": "boolean"
+                            },
+                            "skip": {
+                              "anyOf": [
+                                {
+                                  "type": "boolean"
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            "os": {
+                              "anyOf": [
+                                {
+                                  "enum": [
+                                    "linux",
+                                    "darwin",
+                                    "windows"
+                                  ]
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "enum": [
+                                      "linux",
+                                      "darwin",
+                                      "windows"
+                                    ]
+                                  }
+                                }
+                              ]
+                            },
+                            "not_os": {
+                              "anyOf": [
+                                {
+                                  "enum": [
+                                    "linux",
+                                    "darwin",
+                                    "windows"
+                                  ]
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "enum": [
+                                      "linux",
+                                      "darwin",
+                                      "windows"
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -3877,9 +3966,6 @@
         },
         {
           "$ref": "#/$defs/BrandFontSystem"
-        },
-        {
-          "$ref": "#/$defs/BrandFontCommon"
         }
       ]
     },

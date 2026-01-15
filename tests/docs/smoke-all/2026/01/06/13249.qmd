@@ -1,0 +1,17 @@
+---
+title: Math with cancellation terms
+format: pdf
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\usepackage\{cancel\}']
+        - []
+---
+
+$$
+    f = \left(\cancel{\frac{\partial v}{\partial x}}\right) \\
+    g = \left(\cancel{\frac{\partial v}{\partial z}}\right)
+$$

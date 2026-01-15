@@ -135,6 +135,9 @@ export const ZodGiscusConfiguration = z.object({
   language: z.string(),
 }).strict().partial().required({ repo: true });
 
+export const ZodExternalEngine = z.object({ path: z.string() }).strict()
+  .partial().required({ path: true });
+
 export const ZodDocumentCommentsConfiguration = z.union([
   z.literal(false),
   z.object({
@@ -299,6 +302,10 @@ export const ZodBaseWebsite = z.object({
       version: z.union([z.literal(3), z.literal(4)]),
     }).passthrough().partial(),
   ]),
+  "plausible-analytics": z.union([
+    z.string(),
+    z.object({ path: z.string() }).strict().partial().required({ path: true }),
+  ]),
   announcement: z.union([
     z.string(),
     z.object({
@@ -324,7 +331,7 @@ export const ZodBaseWebsite = z.object({
     z.enum(["express", "implied"] as const),
     z.boolean(),
     z.object({
-      type: z.enum(["implied", "express"] as const),
+      type: z.enum(["express", "implied"] as const),
       style: z.enum(
         ["simple", "headline", "interstitial", "standalone"] as const,
       ),
@@ -473,6 +480,10 @@ export const ZodBookSchema = z.object({
       version: z.union([z.literal(3), z.literal(4)]),
     }).passthrough().partial(),
   ]),
+  "plausible-analytics": z.union([
+    z.string(),
+    z.object({ path: z.string() }).strict().partial().required({ path: true }),
+  ]),
   announcement: z.union([
     z.string(),
     z.object({
@@ -498,7 +509,7 @@ export const ZodBookSchema = z.object({
     z.enum(["express", "implied"] as const),
     z.boolean(),
     z.object({
-      type: z.enum(["implied", "express"] as const),
+      type: z.enum(["express", "implied"] as const),
       style: z.enum(
         ["simple", "headline", "interstitial", "standalone"] as const,
       ),
@@ -1238,7 +1249,20 @@ export const ZodBadParseSchema = z.object({}).passthrough().partial();
 export const ZodQuartoDevSchema = z.object({
   _quarto: z.object({
     "trace-filters": z.string(),
-    tests: z.object({}).passthrough(),
+    tests: z.object({
+      run: z.object({
+        ci: z.boolean(),
+        skip: z.union([z.boolean(), z.string()]),
+        os: z.union([
+          z.enum(["linux", "darwin", "windows"] as const),
+          z.array(z.enum(["linux", "darwin", "windows"] as const)),
+        ]),
+        not_os: z.union([
+          z.enum(["linux", "darwin", "windows"] as const),
+          z.array(z.enum(["linux", "darwin", "windows"] as const)),
+        ]),
+      }).passthrough().partial(),
+    }).passthrough().partial(),
   }).passthrough().partial(),
 }).passthrough().partial();
 
@@ -1624,7 +1648,6 @@ export const ZodBrandFont = z.union([
   z.lazy(() => ZodBrandFontBunny),
   z.lazy(() => ZodBrandFontFile),
   z.lazy(() => ZodBrandFontSystem),
-  z.lazy(() => ZodBrandFontCommon),
 ]);
 
 export const ZodBrandFontWeight = z.union([
@@ -1685,7 +1708,7 @@ export const ZodBrandFontSystem = z.object({
   ]),
   display: z.enum(["auto", "block", "swap", "fallback", "optional"] as const),
   source: z.enum(["system"] as const),
-}).strict().partial();
+}).strict().partial().required({ source: true });
 
 export const ZodBrandFontGoogle = z.object({
   family: z.string(),
@@ -1699,7 +1722,7 @@ export const ZodBrandFontGoogle = z.object({
   ]),
   display: z.enum(["auto", "block", "swap", "fallback", "optional"] as const),
   source: z.enum(["google"] as const),
-}).strict().partial();
+}).strict().partial().required({ source: true });
 
 export const ZodBrandFontBunny = z.object({
   family: z.string(),
@@ -1713,7 +1736,7 @@ export const ZodBrandFontBunny = z.object({
   ]),
   display: z.enum(["auto", "block", "swap", "fallback", "optional"] as const),
   source: z.enum(["bunny"] as const),
-}).strict().partial();
+}).strict().partial().required({ source: true });
 
 export const ZodBrandFontFile = z.object({
   source: z.enum(["file"] as const),
@@ -1818,6 +1841,8 @@ export type ContentsAuto = z.infer<typeof ZodContentsAuto>;
 export type GiscusThemes = z.infer<typeof ZodGiscusThemes>;
 
 export type GiscusConfiguration = z.infer<typeof ZodGiscusConfiguration>;
+
+export type ExternalEngine = z.infer<typeof ZodExternalEngine>;
 
 export type DocumentCommentsConfiguration = z.infer<
   typeof ZodDocumentCommentsConfiguration
@@ -2053,6 +2078,7 @@ export const Zod = {
   NavigationItemObject: ZodNavigationItemObject,
   GiscusThemes: ZodGiscusThemes,
   GiscusConfiguration: ZodGiscusConfiguration,
+  ExternalEngine: ZodExternalEngine,
   DocumentCommentsConfiguration: ZodDocumentCommentsConfiguration,
   SocialMetadata: ZodSocialMetadata,
   PageFooterRegion: ZodPageFooterRegion,

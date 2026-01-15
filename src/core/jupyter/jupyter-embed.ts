@@ -66,7 +66,7 @@ import {
 } from "../../render/notebook/notebook-types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { logProgress } from "../log.ts";
-import * as ld from "../../../src/core/lodash.ts";
+import * as ld from "../lodash.ts";
 import { texSafeFilename } from "../tex.ts";
 
 export interface JupyterNotebookAddress {

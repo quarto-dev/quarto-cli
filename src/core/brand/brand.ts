@@ -344,9 +344,14 @@ export function resolveLogo(
     return logo;
   };
   if (!spec) {
+    const lightLogo = findLogo("light", order);
+    const darkLogo = findLogo("dark", order);
+    if (!lightLogo && !darkLogo) {
+      return undefined;
+    }
     return {
-      light: findLogo("light", order) || findLogo("dark", order),
-      dark: findLogo("dark", order) || findLogo("light", order),
+      light: lightLogo || darkLogo,
+      dark: darkLogo || lightLogo,
     };
   }
   if (typeof spec === "string") {
@@ -675,42 +680,44 @@ export function splitUnifiedBrand(
         ? typography.headings
         : {
           ...typography.headings,
-          color: headingsColor && headingsColor[mode],
+          ...(headingsColor?.[mode] && { color: headingsColor[mode] }),
         },
       monospace:
         !typography.monospace || typeof typography.monospace === "string"
           ? typography.monospace
           : {
             ...typography.monospace,
-            color: monospaceColor && monospaceColor[mode],
-            "background-color": monospaceBackgroundColor &&
-              monospaceBackgroundColor[mode],
+            ...(monospaceColor?.[mode] && { color: monospaceColor[mode] }),
+            ...(monospaceBackgroundColor?.[mode] &&
+              { "background-color": monospaceBackgroundColor[mode] }),
           },
       "monospace-inline": !typography["monospace-inline"] ||
           typeof typography["monospace-inline"] === "string"
         ? typography["monospace-inline"]
         : {
           ...typography["monospace-inline"],
-          color: monospaceInlineColor && monospaceInlineColor[mode],
-          "background-color": monospaceInlineBackgroundColor &&
-            monospaceInlineBackgroundColor[mode],
+          ...(monospaceInlineColor?.[mode] &&
+            { color: monospaceInlineColor[mode] }),
+          ...(monospaceInlineBackgroundColor?.[mode] &&
+            { "background-color": monospaceInlineBackgroundColor[mode] }),
         },
       "monospace-block": !typography["monospace-block"] ||
           typeof typography["monospace-block"] === "string"
         ? typography["monospace-block"]
         : {
           ...typography["monospace-block"],
-          color: monospaceBlockColor && monospaceBlockColor[mode],
-          "background-color": monospaceBlockBackgroundColor &&
-            monospaceBlockBackgroundColor[mode],
+          ...(monospaceBlockColor?.[mode] &&
+            { color: monospaceBlockColor[mode] }),
+          ...(monospaceBlockBackgroundColor?.[mode] &&
+            { "background-color": monospaceBlockBackgroundColor[mode] }),
         },
       link: !typography.link || typeof typography.link === "string"
         ? typography.link
         : {
           ...typography.link,
-          color: linkColor && linkColor[mode],
-          "background-color": linkBackgroundColor &&
-            linkBackgroundColor[mode],
+          ...(linkColor?.[mode] && { color: linkColor[mode] }),
+          ...(linkBackgroundColor?.[mode] &&
+            { "background-color": linkBackgroundColor[mode] }),
         },
     };
   const logos = unifiedBrand.logo && splitLogo(unifiedBrand.logo);
@@ -733,10 +740,12 @@ export function splitUnifiedBrand(
       if (!unifiedBrand.color[colorName]) {
         continue;
       }
-      ({
-        light: lightBrand.color![colorName],
-        dark: darkBrand.color![colorName],
-      } = splitColorLightDark(unifiedBrand.color![colorName]));
+      const { light, dark } = splitColorLightDark(
+        unifiedBrand.color[colorName],
+      );
+
+      if (light !== undefined) lightBrand.color![colorName] = light;
+      if (dark !== undefined) darkBrand.color![colorName] = dark;
     }
   }
   return {

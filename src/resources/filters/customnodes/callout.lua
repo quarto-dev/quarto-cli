@@ -207,11 +207,12 @@ function _callout_main()
     if tt ~= "nil" then 
       result:insert(pandoc.Header(3, quarto.utils.as_inlines(callout.title)))
     end
-    local ct = pandoc.utils.type(callout.content)
+    local content = callout.content or pandoc.Blocks({})
+    local ct = pandoc.utils.type(content)
     if ct == "Block" then
-      result:insert(callout.content)
+      result:insert(content)
     elseif ct == "Blocks" then
-      result:extend(callout.content)
+      result:extend(content)
     else
       internal_error()
     end
@@ -275,8 +276,17 @@ function _callout_main()
         end
       end
     end
-    if callout.attr.identifier == "" then
-      return _quarto.format.typst.function_call("callout", { 
+    -- Check if identifier has a valid crossref category
+    local ref_type = refType(callout.attr.identifier)
+    local category = ref_type ~= nil and crossref.categories.by_ref_type[ref_type] or nil
+
+    -- Warn if identifier was provided but category is invalid
+    if callout.attr.identifier ~= "" and category == nil then
+      warn("Callout ID '" .. callout.attr.identifier .. "' has unknown reference type '" .. (ref_type or "none") .. "'. Rendering as regular callout without cross-reference support.")
+    end
+
+    if category == nil then
+      return _quarto.format.typst.function_call("callout", {
         { "body", _quarto.format.typst.as_typst_content(callout.content) },
         { "title", _quarto.format.typst.as_typst_content(
           (not quarto.utils.is_empty_node(callout.title) and callout.title) or
@@ -284,22 +294,20 @@ function _callout_main()
         )},
         { "background_color", pandoc.RawInline("typst", background_color) },
         { "icon_color", pandoc.RawInline("typst", icon_color) },
-        { "icon", pandoc.RawInline("typst", "" .. icon .. "()")},
+        { "icon", pandoc.RawInline("typst", callout.icon == false and "none" or ("" .. icon .. "()"))},
         { "body_background_color", pandoc.RawInline("typst", body_background_color)}
       })
     end
 
-    local typst_callout = _quarto.format.typst.function_call("callout", { 
+    local typst_callout = _quarto.format.typst.function_call("callout", {
       { "body", _quarto.format.typst.as_typst_content(callout.content) },
       { "title", _quarto.format.typst.as_typst_content(callout.title, "inlines")
        },
       { "background_color", pandoc.RawInline("typst", background_color) },
       { "icon_color", pandoc.RawInline("typst", icon_color) },
-      { "icon", pandoc.RawInline("typst", "" .. icon .. "()")},
+      { "icon", pandoc.RawInline("typst", callout.icon == false and "none" or ("" .. icon .. "()"))},
       { "body_background_color", pandoc.RawInline("typst", body_background_color)}
     })
-
-    local category = crossref.categories.by_ref_type[refType(callout.attr.identifier)]
     return make_typst_figure {
       content = typst_callout,
       caption_location = "top",

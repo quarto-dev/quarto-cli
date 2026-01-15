@@ -1,0 +1,20 @@
+---
+title: "Section B"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'nav.navbar a.nav-link[href$="page2.html"].active'
+          - 'nav.navbar a.nav-link[href$="index.html"]:not(.active)'
+        -
+          - 'a.sidebar-logo-link'
+---
+
+## Section B
+
+This is Section B. The "Section B" navbar item should be active on this page,
+demonstrating that the navbar active state detection works correctly without
+empty logo links interfering.
+
+See also: [Section A](index.qmd)

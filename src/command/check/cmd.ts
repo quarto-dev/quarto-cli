@@ -6,6 +6,7 @@
 
 import { Command } from "cliffy/command/mod.ts";
 import { check, enforceTargetType } from "./check.ts";
+import { initializeProjectContextAndEngines } from "../command-utils.ts";
 
 export const checkCommand = new Command()
   .name("check")
@@ -26,8 +27,15 @@ export const checkCommand = new Command()
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, targetStr?: string) => {
     targetStr = targetStr || "all";
+
+    // Initialize project context and register external engines
+    await initializeProjectContextAndEngines();
+
+    // Validate target (now that all engines including external ones are loaded)
+    const target = enforceTargetType(targetStr);
+
     await check(
-      enforceTargetType(targetStr),
+      target,
       options.strict,
       options.output,
     );

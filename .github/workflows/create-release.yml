@@ -15,6 +15,9 @@ on:
         type: boolean
         default: true
 
+env:
+  NFPM_VERSION: "2.43.1"
+
 concurrency:
   # make publishing release concurrent (but others trigger not)
   group: building-releases-${{ inputs.publish-release && 'prerelease' || github.run_id }}
@@ -242,9 +245,13 @@ jobs:
           name: RHEL Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
 
-  make-installer-arm64-deb:
+  make-installer-linux:
     runs-on: ubuntu-latest
     needs: [configure]
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+        format: [deb, rpm]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -258,57 +265,47 @@ jobs:
         run: |
           ./configure.sh
 
+      - name: Install nfpm
+        run: |
+          wget -q https://github.com/goreleaser/nfpm/releases/download/v${NFPM_VERSION}/nfpm_${NFPM_VERSION}_Linux_x86_64.tar.gz
+          tar -xzf nfpm_${NFPM_VERSION}_Linux_x86_64.tar.gz
+          sudo mv nfpm /usr/local/bin/
+          nfpm --version
+
       - name: Prepare Distribution
         run: |
           pushd package/src/
-          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --arch aarch64 --log-level info
+          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} ${{ matrix.arch == 'aarch64' && '--arch aarch64' || '' }} --log-level info
           popd
 
       - name: Make Installer
         run: |
           pushd package/src/
-          ./quarto-bld make-installer-deb --set-version ${{needs.configure.outputs.version}} --arch aarch64 --log-level info
+          ./quarto-bld make-installer-${{ matrix.format }} --set-version ${{needs.configure.outputs.version}} ${{ matrix.arch == 'aarch64' && '--arch aarch64' || '' }} --log-level info
           popd
+
+      - name: Set package architecture name
+        id: pkg_arch
+        run: |
+          if [ "${{ matrix.format }}" == "deb" ]; then
+            if [ "${{ matrix.arch }}" == "x86_64" ]; then
+              echo "arch_name=amd64" >> $GITHUB_OUTPUT
+            else
+              echo "arch_name=arm64" >> $GITHUB_OUTPUT
+            fi
+          else
+            if [ "${{ matrix.arch }}" == "x86_64" ]; then
+              echo "arch_name=x86_64" >> $GITHUB_OUTPUT
+            else
+              echo "arch_name=aarch64" >> $GITHUB_OUTPUT
+            fi
+          fi
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Deb Arm64 Installer
-          path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
-
-  make-installer-deb:
-    runs-on: ubuntu-latest
-    needs: [configure]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.configure.outputs.version_commit }}
-
-      - name: Prevent Re-run
-        if: ${{ inputs.publish-release }}
-        uses: ./.github/workflows/actions/prevent-rerun
-
-      - name: Configure
-        run: |
-          ./configure.sh
-
-      - name: Prepare Distribution
-        run: |
-          pushd package/src/
-          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
-          popd
-
-      - name: Make Installer
-        run: |
-          pushd package/src/
-          ./quarto-bld make-installer-deb --set-version ${{needs.configure.outputs.version}} --log-level info
-          popd
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Deb Installer
-          path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
+          name: Linux-${{ matrix.format }}-${{ matrix.arch }}-Installer
+          path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-${{ steps.pkg_arch.outputs.arch_name }}.${{ matrix.format }}
 
   test-tarball-linux:
     runs-on: ubuntu-latest
@@ -595,8 +592,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [
         configure,
-        make-installer-deb,
-        make-installer-arm64-deb,
+        make-installer-linux,
         make-installer-win,
         make-installer-mac,
         # optional in release to not be blocked by RHEL build depending on conda-forge deno dependency
@@ -662,13 +658,21 @@ jobs:
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
 
-          pushd Deb\ Installer
+          pushd Linux-deb-x86_64-Installer
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
 
-          pushd Deb\ Arm64\ Installer
+          pushd Linux-deb-aarch64-Installer
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-arm64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-          popd          
+          popd
+
+          pushd Linux-rpm-x86_64-Installer
+          sha256sum quarto-${{needs.configure.outputs.version}}-linux-x86_64.rpm >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
+
+          pushd Linux-rpm-aarch64-Installer
+          sha256sum quarto-${{needs.configure.outputs.version}}-linux-aarch64.rpm >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
 
           pushd Source
           sha256sum quarto-${{needs.configure.outputs.version}}.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
@@ -692,8 +696,10 @@ jobs:
             ./Deb Zip/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
             ./Deb Arm64 Zip/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
             ./RHEL Zip/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
-            ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
-            ./Deb Arm64 Installer/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
+            ./Linux-deb-x86_64-Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
+            ./Linux-deb-aarch64-Installer/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
+            ./Linux-rpm-x86_64-Installer/quarto-${{needs.configure.outputs.version}}-linux-x86_64.rpm
+            ./Linux-rpm-aarch64-Installer/quarto-${{needs.configure.outputs.version}}-linux-aarch64.rpm
             ./Windows Installer/quarto-${{needs.configure.outputs.version}}-win.msi
             ./Windows Zip/quarto-${{needs.configure.outputs.version}}-win.zip
             ./Mac Installer/quarto-${{needs.configure.outputs.version}}-macos.pkg
@@ -705,8 +711,7 @@ jobs:
     if: ${{ (failure() || cancelled()) && inputs.publish-release }}
     needs: [
         configure,
-        make-installer-deb,
-        make-installer-arm64-deb,
+        make-installer-linux,
         make-installer-win,
         make-installer-mac,
         # optional in release to not be blocked by RHEL build depending on conda-forge deno dependency
@@ -763,10 +768,20 @@ jobs:
 
       - uses: ./.github/actions/docker
         with:
-          source: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
+          source: ./Linux-deb-x86_64-Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
           version: ${{needs.configure.outputs.version}}
           token: ${{ secrets.GITHUB_TOKEN }}
           username: ${{ github.actor }}
           org: ${{ github.repository_owner }}
           name: quarto
           daily: ${{ inputs.pre-release }}
+
+  call-cloudsmith-publish:
+    if: ${{ inputs.publish-release && ! (inputs.pre-release == true) }}
+    needs: [configure, publish-release]
+    uses: ./.github/workflows/publish-cloudsmith.yml
+    with:
+      version: ${{ needs.configure.outputs.tag_name }}
+      dry-run: false
+    secrets:
+      CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}

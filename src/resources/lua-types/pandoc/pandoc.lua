@@ -34,6 +34,13 @@ Make a clone
 ---@return pandoc.Pandoc
 function pandoc.Pandoc:clone() end
 
+--[[
+Perform a normalization of Pandoc documents. E.g., multiple
+successive spaces are collapsed, and tables are normalized, so
+that all rows and columns contain the same number of cells.
+]]
+---@return pandoc.Pandoc # Cloned and normalized document
+function pandoc.Pandoc:normalize() end
 
 --[[
 Applies a Lua filter to the Pandoc element. Just as for

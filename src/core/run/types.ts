@@ -12,6 +12,7 @@ export interface RunHandlerOptions {
     [key: string]: string;
   };
   stdout?: "inherit" | "piped" | "null";
+  dev?: boolean;
 }
 
 export interface RunHandler {

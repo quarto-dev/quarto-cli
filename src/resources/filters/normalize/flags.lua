@@ -92,6 +92,10 @@ function compute_flags()
         flags.has_hidden = true
       end
 
+      if node.attr.classes:find("list-table") then
+        flags.has_list_tables = true
+      end
+
       if node.attr.classes:find("cell") then
         -- cellcleanup.lua
         flags.has_output_cells = true

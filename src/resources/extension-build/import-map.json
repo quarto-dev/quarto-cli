@@ -1,0 +1,11 @@
+{
+  "imports": {
+    "@quarto/types": "../../../packages/quarto-types/dist/index.d.ts",
+    "path": "jsr:@std/path@1.0.8",
+    "path/posix": "jsr:@std/path@1.0.8/posix",
+    "log": "jsr:/@std/log@0.224.0",
+    "log/": "jsr:/@std/log@0.224.0/",
+    "fs/": "jsr:/@std/fs@1.0.16/",
+    "encoding/": "jsr:/@std/encoding@1.0.9/"
+  }
+}

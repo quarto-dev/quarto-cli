@@ -13,7 +13,6 @@ import {
   normalizePath,
   removeIfEmptyDir,
   removeIfExists,
-  safeRemoveSync,
 } from "../../core/path.ts";
 import { figuresDir, inputFilesDir } from "../../core/render.ts";
 
@@ -90,7 +89,7 @@ export function renderCleanup(
     }
 
     // clean supporting
-    ld.uniq(supporting).forEach((path) => {
+    ld.uniq(supporting).forEach((path: string) => {
       if (existsSync(path)) {
         safeRemoveDirSync(path, project.dir);
       }
