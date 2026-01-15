@@ -2,15 +2,13 @@
 listing:
   type: default
   contents: posts/*.qmd
-  fields:
-    - title
 _quarto:
   tests:
     html:
       ensureHtmlElements:
         -
-          - "a[href$='post-with-target.html'][target='_blank']"
-          - "a[href$='post-without-target.html']:not([target])"
+          - "a[href$='post-with-target.html'][target='_blank'][rel='noopener']"
+          - "a[href$='post-without-target.html']:not([target]):not([rel])"
 ---
 
 ## Default listing with target attribute test

@@ -1,0 +1,24 @@
+---
+listing:
+  type: table
+  contents:
+    - title: "Post with target"
+      path: posts/post-with-target.qmd
+      target: "_blank"
+    - title: "Post without target"
+      path: posts/post-without-target.qmd
+  table-hover: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - "a[href$='post-with-target.html'][target='_blank'][rel='noopener']"
+          - "a[href$='post-without-target.html']:not([target]):not([rel])"
+          - "tr[onclick*='window.open']"
+      ensureHtmlElementCount:
+        selectors: ['.listing-target']
+        counts: [0]
+---
+
+## Table listing with metadata specification test
