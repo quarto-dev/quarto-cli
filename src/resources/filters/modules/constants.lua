@@ -163,7 +163,7 @@ local kNonIncremental = "nonincremental"
 
 -- Connect version requirements
 -- TODO update version when email metadata changes are made in connect
-local kConnectEmailMetadataChangeVersion = "2025.11"
+local kConnectEmailMetadataChangeVersion = "2026.03"
 
 return {
   kCitation = kCitation,

@@ -17,6 +17,8 @@ Extension for generating email components needed for Posit Connect
    (this can be disabled by setting `email-preview: false` in the YAML header)
 --]]
 local constants = require("modules/constants")
+require("modules/connectversion")
+
 -- Get the file extension of any file residing on disk
 function get_file_extension(file_path)
   local pattern = "%.([^%.]+)$"
@@ -61,71 +63,6 @@ function str_truthy_falsy(str)
     end
   end
   return false
-end
-
--- Parse Connect version from SPARK_CONNECT_USER_AGENT
--- Format:     posit-connect/2024.09.0
----         posit-connect/2024.09.0-dev+26-g51b853f70e
----         posit-connect/2024.09.0-dev+26-dirty-g51b853f70e
--- Returns: "2024.09.0" or nil
-function get_connect_version()
-  local user_agent = os.getenv("SPARK_CONNECT_USER_AGENT")
-  if not user_agent then
-    return nil
-  end
-  
-  -- Extract the version after "posit-connect/"
-  local version_with_suffix = string.match(user_agent, "posit%-connect/([%d%.%-+a-z]+)")
-  if not version_with_suffix then
-    return nil
-  end
-  
-  -- Strip everything after the first "-" (e.g., "-dev+88-gda902918eb")
-  local idx = string.find(version_with_suffix, "-")
-  if idx then
-    return string.sub(version_with_suffix, 1, idx - 1)
-  end
-  
-  return version_with_suffix
-end
-
--- Parse a version string into components
--- Versions are in format "X.Y.Z", with all integral components (e.g., "2025.11.0")
--- Returns: {major=2025, minor=11, patch=0} or nil
-function parse_version_components(version_string)
-  if not version_string then
-    return nil
-  end
-  
-  -- Parse version (e.g., "2025.11.0" or "2025.11")
-  local major, minor, patch = string.match(version_string, "^(%d+)%.(%d+)%.?(%d*)$")
-  if not major then
-    return nil
-  end
-  
-  return {
-    major = tonumber(major),
-    minor = tonumber(minor),
-    patch = patch ~= "" and tonumber(patch) or 0
-  }
-end
-
--- Check if Connect version is >= target version
--- Versions are in format "YYYY.MM.patch" (e.g., "2025.11.0")
-function is_connect_version_at_least(target_version)
-  local current_version = get_connect_version()
-  local current = parse_version_components(current_version)
-  local target = parse_version_components(target_version)
-  
-  if not current or not target then
-    return false
-  end
-  
-  -- Convert to numeric YYYYMMPP format and compare
-  local current_num = current.major * 10000 + current.minor * 100 + current.patch
-  local target_num = target.major * 10000 + target.minor * 100 + target.patch
-  
-  return current_num >= target_num
 end
 
 local html_email_template_1 = [[
@@ -257,8 +194,6 @@ local current_email = nil
 -- v1 fallback: Document-level metadata
 local subject = ""
 local email_text = ""
-local email_images = {}
-local image_tbl = {}
 local suppress_scheduled_email = false
 local found_email_div = false
 
@@ -280,12 +215,12 @@ function process_meta(meta)
   meta_email_preview = meta["email-preview"]
   
   -- Auto-detect Connect version and use appropriate email format
-  -- Connect 2025.11+ supports new v2 multi-email format
+  -- Connect 2026.03+ supports new v2 multi-email format
   if is_connect_version_at_least(constants.kConnectEmailMetadataChangeVersion) then
     use_v2_email_format = true
-    quarto.log.debug("Detected Connect version >= 2025.11, using v2 multi-email format")
+    quarto.log.debug("Detected Connect version >= " .. constants.kConnectEmailMetadataChangeVersion .. ", using v2 multi-email format")
   else
-    quarto.log.debug("Connect version < 2025.11 or not detected, using v1 single-email format")
+    quarto.log.debug("Connect version < " .. constants.kConnectEmailMetadataChangeVersion .. " or not detected, using v1 single-email format")
   end
   
   if meta_email_attachments ~= nil then
@@ -336,7 +271,7 @@ function process_div(div)
       if child.t == "Div" then
         quarto.log.debug("  - Is Div, classes: " .. table.concat(child.classes, ","))
         if child.classes:includes("subject") then
-          quarto.log.debug("FOUND nested subject!")
+          quarto.log.debug("Found nested subject!")
           quarto.log.debug("  Subject content: " .. pandoc.utils.stringify(child))
           current_email.subject = pandoc.utils.stringify(child)
         elseif child.classes:includes("email-text") then
@@ -392,9 +327,11 @@ function process_div(div)
     -- Encode base64 images for JSON
     for cid, img in pairs(current_email.image_tbl) do
       local image_file = io.open(img, "rb")
+
       if type(image_file) == "userdata" then
         local image_data = image_file:read("*all")
         image_file:close()
+
         local encoded_data = quarto.base64.encode(image_data)
         current_email.email_images[cid] = encoded_data
       end
@@ -457,7 +394,7 @@ function process_document(doc)
 
   -- If Connect doesn't support v2 format, only keep first email and warn
   if not use_v2_email_format then
-    quarto.log.warning("Detected Connect version < 2025.11 which doesn't support multiple emails. Only the first email will be sent. Upgrade Connect to 2025.11+ for multi-email support.")
+    quarto.log.warning("Detected Connect version < " .. constants.kConnectEmailMetadataChangeVersion .. " which doesn't support multiple emails. Only the first email will be sent. Upgrade Connect to " .. constants.kConnectEmailMetadataChangeVersion .. "+ for multi-email support.")
     emails = { emails[1] }
     email_count = 1
   end
@@ -485,7 +422,7 @@ function process_document(doc)
   if use_v2_email_format then
     quarto.log.warning("Generating V2 multi-email output format with " .. tostring(email_count) .. " email(s).")
   else
-    quarto.log.warning("Generating V1 single-email output format (Connect < 2025.11).")
+    quarto.log.warning("Generating V1 single-email output format (Connect < " .. constants.kConnectEmailMetadataChangeVersion .. ").")
   end
   
   -- Process all emails and generate their previews
