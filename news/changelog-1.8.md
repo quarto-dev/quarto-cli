@@ -2,11 +2,10 @@
 
 ## In this release
 
-- ([#13694](https://github.com/quarto-dev/quarto-cli/issues/13694)): Fix `notebook-view.url` being ignored - external notebook links now properly use specified URLs instead of local preview files.
-- ([#13732](https://github.com/quarto-dev/quarto-cli/issues/13732)): Fix automatic font package installation for fonts with spaces in their names (e.g., "Noto Emoji", "DejaVu Sans"). Font file search patterns now match both with and without spaces.
-
 ## In previous releases
 
+- ([#13694](https://github.com/quarto-dev/quarto-cli/issues/13694)): Fix `notebook-view.url` being ignored - external notebook links now properly use specified URLs instead of local preview files.
+- ([#13732](https://github.com/quarto-dev/quarto-cli/issues/13732)): Fix automatic font package installation for fonts with spaces in their names (e.g., "Noto Emoji", "DejaVu Sans"). Font file search patterns now match both with and without spaces.
 - ([#13369](https://github.com/quarto-dev/quarto-cli/issues/13369)): Fix failure in theme compilation when `brand.color.primary` is specified for light or dark but not both.
 - ([#13383](https://github.com/quarto-dev/quarto-cli/issues/13383)): Fix failure when combining `minimal: true` with brand.yml.
 - ([#13396](https://github.com/quarto-dev/quarto-cli/issues/13396)): Fix `quarto publish connect` regression.
