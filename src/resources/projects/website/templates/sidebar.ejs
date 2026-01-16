@@ -21,9 +21,9 @@
 
     let toolsLocation;
     // Under the title if that will be displayed
-    if (sidebar.title && !navbar) {
+    if (sidebar.title) {
       toolsLocation = "title";
-    } else if (sidebar.logo) {
+    } else if (sidebar.logo && (sidebar.logo.light || sidebar.logo.dark)) {
       toolsLocation = "logo";
     } else if (sidebar.search && sidebar.search !== "overlay") {
       toolsLocation = "search";
@@ -32,9 +32,9 @@
     }
   %>
     
-  <% if (sidebar.logo || (sidebar.title && !navbar)) { %>
-    <div class="pt-lg-2 mt-2 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
-    <% if (sidebar.logo) { %>
+  <% if ((sidebar.logo && (sidebar.logo.light || sidebar.logo.dark)) || sidebar.title) { %>
+    <div class="pt-lg-2 mt-2 <%= alignCss %> sidebar-header<%= (sidebar.logo && (sidebar.logo.light || sidebar.logo.dark)) && sidebar.title ? ' sidebar-header-stacked' : '' %>">
+    <% if (sidebar.logo && (sidebar.logo.light || sidebar.logo.dark)) { %>
       <a href="<%- sidebar['logo-href'] || '/index.html' %>" class="sidebar-logo-link">
       <% if (sidebar.logo.light) { %>
       <img src="<%- sidebar.logo.light.path %>" alt="<%- sidebar.logo.light.alt || '' %>" class="sidebar-logo light-content py-0 d-lg-inline d-none"/>
@@ -48,19 +48,15 @@
       <% partial('navtools.ejs', { align: 'start', tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle, language: language })%>
     <% } %> 
     
-    <% if (!navbar) { %>
     <% if (sidebar.title) { %>
     <div class="sidebar-title mb-0 py-0">
-      <% if (!navbar) { %>
       <a href="/">
       <%- sidebar.title %>
       </a> 
-      <% } %>  
       <% if (needsTools && toolsLocation === "title") { %>
         <% partial('navtools.ejs', { align: 'start', tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle, language: language })%>
       <% } %>  
     </div>
-    <% } %>
     <% } %>
       </div>
     <% } %>

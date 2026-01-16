@@ -989,7 +989,7 @@
                   anyOf:
                     - string
                     - boolean
-                  description: "The navbar title. Uses the project title if none is specified."
+                  description: "The navbar title. Use a string for custom text, `true` (the default) to use the project title, or `false` to hide the title."
                 logo:
                   ref: logo-light-dark-specifier
                   description: "Specification of image that will be displayed to the left of the title."
@@ -1071,7 +1071,7 @@
                     anyOf:
                       - string
                       - boolean
-                    description: "The sidebar title. Uses the project title if none is specified."
+                    description: "The sidebar title. Use a string for custom text, `true` to use the project title, or `false` to hide the title. If unspecified, the title is shown if there is no navbar title and no sidebar logo (except for books, where a sidebar logo does not hide the title)."
                   logo:
                     ref: logo-light-dark-specifier
                     description: "Specification of image that will be displayed in the sidebar."

@@ -191,7 +191,6 @@ export async function bookProjectConfig(
   // if we have a top-level 'contents' or 'appendix' fields fold into sidebar
   site[kSiteSidebar] = site[kSiteSidebar] || {};
   const siteSidebar = site[kSiteSidebar] as Metadata;
-  siteSidebar[kSiteTitle] = siteSidebar[kSiteTitle] || book?.[kSiteTitle];
   siteSidebar[kSidebarLogo] = siteSidebar[kSidebarLogo] || book?.[kSidebarLogo];
   siteSidebar[kSidebarLogoHref] = siteSidebar[kSidebarLogoHref] ||
     book?.[kSidebarLogoHref];
