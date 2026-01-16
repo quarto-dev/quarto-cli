@@ -16,12 +16,18 @@ import { assert } from "testing/asserts";
 
 const jsonFile = docs("email/.output_metadata.json");
 const previewFile = docs("email/email-preview/index.html")
-const previewFileV2 = docs("email/email-preview/email_id-1.html")
+const previewFileV2_1 = docs("email/email-preview/email_id-1.html")
+const previewFileV2_2 = docs("email/email-preview/email_id-2.html")
 
-// Custom verification for v2 email format that checks specific fields in emails array
-const validJsonWithEmailStructure = (file: string, expectedFields: Record<string, unknown>): Verify => {
+
+// Custom verification for multi-email v2 format that checks multiple emails in the array
+const validJsonWithMultipleEmails = (
+  file: string,
+  expectedEmailCount: number,
+  expectedFieldsPerEmail: Record<string, Record<string, unknown>>
+): Verify => {
   return {
-    name: `Valid Json ${file} with email structure`,
+    name: `Valid Json ${file} with ${expectedEmailCount} emails`,
     verify: (_output) => {
       const jsonStr = Deno.readTextFileSync(file);
       const json = JSON.parse(jsonStr);
@@ -29,16 +35,24 @@ const validJsonWithEmailStructure = (file: string, expectedFields: Record<string
       // Check rsc_email_version
       assert(json.rsc_email_version === 2, "rsc_email_version should be 2");
       assert(Array.isArray(json.emails), "emails should be an array");
-      assert(json.emails.length > 0, "emails array should not be empty");
+      assert(
+        json.emails.length === expectedEmailCount,
+        `Expected ${expectedEmailCount} emails, got ${json.emails.length}`
+      );
       
-      // Check specific fields in first email, ignoring body_html and body_text
-      const email = json.emails[0];
-      for (const [key, expectedValue] of Object.entries(expectedFields)) {
-        const actualValue = email[key];
-        assert(
-          JSON.stringify(actualValue) === JSON.stringify(expectedValue),
-          `Email field ${key} mismatch. Expected: ${JSON.stringify(expectedValue)}, Got: ${JSON.stringify(actualValue)}`
-        );
+      // Check specific fields in each email
+      for (const [emailIndex, expectedFields] of Object.entries(expectedFieldsPerEmail)) {
+        const idx = parseInt(emailIndex, 10);
+        const email = json.emails[idx];
+        assert(email, `Email at index ${idx} not found`);
+        
+        for (const [key, expectedValue] of Object.entries(expectedFields)) {
+          const actualValue = email[key];
+          assert(
+            JSON.stringify(actualValue) === JSON.stringify(expectedValue),
+            `Email #${idx + 1} field ${key} mismatch. Expected: ${JSON.stringify(expectedValue)}, Got: ${JSON.stringify(actualValue)}`
+          );
+        }
       }
       
       return Promise.resolve();
@@ -85,12 +99,14 @@ testRender(docs("email/email-subject-document-level.qmd"), "email", false, [file
 
 // V2 format tests - Connect 2026.03+ with multi-email support
 // Verify the v2 format includes rsc_email_version and emails array with expected structure
-testRender(docs("email/email.qmd"), "email", false, [fileExists(previewFileV2), validJsonWithEmailStructure(jsonFile, {
-  "email_id": 1,
-  "subject": "The subject line.",
-  "attachments": [],
-  "suppress_scheduled": false,
-  "send_report_as_attachment": false
+testRender(docs("email/email.qmd"), "email", false, [fileExists(previewFileV2_1), validJsonWithMultipleEmails(jsonFile, 1, {
+  "0": {
+    "email_id": 1,
+    "subject": "The subject line.",
+    "attachments": [],
+    "suppress_scheduled": false,
+    "send_report_as_attachment": false
+  }
 })], {
   ...cleanupCtx,
   env: {
@@ -99,12 +115,14 @@ testRender(docs("email/email.qmd"), "email", false, [fileExists(previewFileV2), 
 });
 
 // Test attachment with v2 format
-testRender(docs("email/email-attach.qmd"), "email", false, [fileExists(previewFileV2), validJsonWithEmailStructure(jsonFile, {
-  "email_id": 1,
-  "subject": "The subject line.",
-  "attachments": ["raw_data.csv"],
-  "suppress_scheduled": false,
-  "send_report_as_attachment": false
+testRender(docs("email/email-attach.qmd"), "email", false, [fileExists(previewFileV2_1), validJsonWithMultipleEmails(jsonFile, 1, {
+  "0": {
+    "email_id": 1,
+    "subject": "The subject line.",
+    "attachments": ["raw_data.csv"],
+    "suppress_scheduled": false,
+    "send_report_as_attachment": false
+  }
 })], {
   ...cleanupCtx,
   env: {
@@ -113,12 +131,14 @@ testRender(docs("email/email-attach.qmd"), "email", false, [fileExists(previewFi
 });
 
 // Test no subject with v2 format
-testRender(docs("email/email-no-subject.qmd"), "email", false, [fileExists(previewFileV2), validJsonWithEmailStructure(jsonFile, {
-  "email_id": 1,
-  "subject": "",
-  "attachments": [],
-  "suppress_scheduled": false,
-  "send_report_as_attachment": false
+testRender(docs("email/email-no-subject.qmd"), "email", false, [fileExists(previewFileV2_1), validJsonWithMultipleEmails(jsonFile, 1, {
+  "0": {
+    "email_id": 1,
+    "subject": "",
+    "attachments": [],
+    "suppress_scheduled": false,
+    "send_report_as_attachment": false
+  }
 })], {
   ...cleanupCtx,
   env: {
@@ -135,6 +155,60 @@ testRender(docs("email/email-subject-document-level.qmd"), "email", false, [file
   }
 });
 
+
+// Test multiple emails in v2 format - the core new v2 feature
+testRender(docs("email/email-multi-v2.qmd"), "email", false, [
+  fileExists(previewFileV2_1),
+  fileExists(previewFileV2_2),
+  validJsonWithMultipleEmails(jsonFile, 2, {
+    "0": {
+      "email_id": 1,
+      "subject": "First Email Subject",
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    },
+    "1": {
+      "email_id": 2,
+      "subject": "Second Email Subject",
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    }
+  })
+], {
+  ...cleanupCtx,
+  env: {
+    "SPARK_CONNECT_USER_AGENT": "posit-connect/2026.03.0"
+  }
+});
+
+// Test mixed metadata - some emails have metadata, others don't
+testRender(docs("email/email-mixed-metadata-v2.qmd"), "email", false, [
+  fileExists(previewFileV2_1),
+  fileExists(previewFileV2_2),
+  validJsonWithMultipleEmails(jsonFile, 2, {
+    "0": {
+      "email_id": 1,
+      "subject": "First Email Custom Subject",
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    },
+    "1": {
+      "email_id": 2,
+      "subject": "",
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    }
+  })
+], {
+  ...cleanupCtx,
+  env: {
+    "SPARK_CONNECT_USER_AGENT": "posit-connect/2026.03.0"
+  }
+});
 
 // Render in a project with an output directory set in _quarto.yml and confirm that everything ends up in the output directory
 testProjectRender(docs("email/project/email-attach.qmd"), "email", (outputDir: string) => {
