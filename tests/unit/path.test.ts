@@ -176,6 +176,16 @@ unitTest("path - output-dir equivalence with resolve()", async () => {
     );
   }
 
+  // Parent traversal back to project dir should also be equivalent
+  // e.g., project in "quarto-proj", output-dir: "../quarto-proj"
+  const dirName = testDir.split(/[/\\]/).pop()!;
+  const parentRef = `../${dirName}`;
+  const resolvedParentRef = resolve(testDir, parentRef);
+  assert(
+    resolvedParentRef === resolve(testDir),
+    `output-dir "${parentRef}" should resolve to project dir, got ${resolvedParentRef} vs ${resolve(testDir)}`,
+  );
+
   // Actual subdirectories should NOT be equivalent
   const subdir = "output";
   const resolvedSubdir = resolve(testDir, subdir);
