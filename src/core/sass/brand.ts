@@ -150,6 +150,8 @@ const googleFontImportString = (description: BrandFontGoogle) => {
   }:${styleString}wght@${weights}&display=${display}');`;
 };
 
+const isExternalPath = (path: string) => /^\w+:/.test(path);
+
 const fileFontImportString = (brand: Brand, description: BrandFontFile) => {
   const pathPrefix = relative(brand.projectDir, brand.brandDir);
   const parts = [];
@@ -162,9 +164,12 @@ const fileFontImportString = (brand: Brand, description: BrandFontFile) => {
       weight = file.weight;
       style = file.style;
     }
+    const fontUrl = isExternalPath(path)
+      ? path
+      : join(pathPrefix, path).replace(/\\/g, "/");
     parts.push(`@font-face {
     font-family: '${description.family}';
-    src: url('${join(pathPrefix, path).replace(/\\/g, "/")}');
+    src: url('${fontUrl}');
     font-weight: ${weight || "normal"};
     font-style: ${style || "normal"};
 }\n`);
