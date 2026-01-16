@@ -47,6 +47,7 @@ All changes included in 1.9:
 - ([#13413](https://github.com/quarto-dev/quarto-cli/issues/13413)): Fix uncentered play button in `video` shortcodes from cross-reference divs. (author: @bruvellu)
 - ([#13508](https://github.com/quarto-dev/quarto-cli/issues/13508)): Add `aria-label` support to `video` shortcode for improved accessibility.
 - ([#13685](https://github.com/quarto-dev/quarto-cli/issues/13685)): Fix remote font URLs in brand extensions being incorrectly joined with the extension path, resulting in broken font imports.
+- ([#13825](https://github.com/quarto-dev/quarto-cli/issues/13825)): Fix `column: margin` not working with `renderings: [light, dark]` option. Column classes are now preserved when applying theme classes to cell outputs.
 - ([#13883](https://github.com/quarto-dev/quarto-cli/issues/13883)): Fix unequal top/bottom spacing in simple untitled callouts.
 - ([#13900](https://github.com/quarto-dev/quarto-cli/issues/13900)): Warn when `renderings` cell option contains duplicate names. Previously, duplicate names like `[dark, light, dark, light]` would silently use only the last output for each name.
 
