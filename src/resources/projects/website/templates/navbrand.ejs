@@ -1,6 +1,6 @@
-<% if (navbar.title || navbar.logo) { %>
+<% if (navbar.title || (navbar.logo && (navbar.logo.light || navbar.logo.dark))) { %>
   <div class="navbar-brand-container mx-auto">
-  <% if (navbar.logo) { %>
+  <% if (navbar.logo && (navbar.logo.light || navbar.logo.dark)) { %>
     <a href="<%- navbar['logo-href'] || '/index.html' %>" class="navbar-brand navbar-brand-logo">
     <% if (navbar.logo.light) { %>
     <img src="<%- navbar.logo.light.path %>" alt="<%- navbar.logo.light.alt || '' %>" class="navbar-logo light-content" />

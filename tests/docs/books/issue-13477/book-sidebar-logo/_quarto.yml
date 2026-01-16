@@ -1,0 +1,9 @@
+project:
+  type: book
+  title: "My Book"
+
+book:
+  chapters:
+    - index.qmd
+  sidebar:
+    logo: logo.png
