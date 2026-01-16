@@ -57,8 +57,11 @@ function choose_cell_renderings()
           blocks:insert(darkDiv)
         end
       elseif quarto.format.isHtmlOutput() and lightDiv and darkDiv then
-        blocks:insert(pandoc.Div(lightDiv.content, pandoc.Attr("", {'light-content'}, {})))
-        blocks:insert(pandoc.Div(darkDiv.content, pandoc.Attr("", {'dark-content'}, {})))
+        -- Preserve existing classes (e.g., column-margin, cell-output-display) and add theme class
+        lightDiv.classes:insert('light-content')
+        darkDiv.classes:insert('dark-content')
+        blocks:insert(lightDiv)
+        blocks:insert(darkDiv)
       else
         blocks:insert(lightDiv or darkDiv)
       end
