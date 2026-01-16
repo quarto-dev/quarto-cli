@@ -69,11 +69,22 @@ export function typstPdfOutputRecipe(
     // run typst
     await validateRequiredTypstVersion();
     const pdfOutput = join(inputDir, inputStem + ".pdf");
-    // Resolve font paths to absolute paths since typst compile may run from
-    // a different working directory than the input file's directory
+    // Resolve extension font paths to absolute paths since typst compile runs
+    // from the project root, not the input file's directory. Extension paths
+    // (containing _extensions or starting with ..) need resolution relative to
+    // inputDir, while other paths (like .quarto/font-cache) should remain
+    // relative to the working directory.
     const fontPaths = asArray(format.metadata?.[kFontPaths]).map((p) => {
       const fontPath = p as string;
-      return isAbsolute(fontPath) ? fontPath : join(inputDir, fontPath);
+      if (isAbsolute(fontPath)) {
+        return fontPath;
+      }
+      // Extension-resolved paths need to be resolved relative to input file
+      if (fontPath.includes("_extensions") || fontPath.startsWith("..")) {
+        return join(inputDir, fontPath);
+      }
+      // Other relative paths (like .quarto/...) stay relative to working dir
+      return fontPath;
     });
     const typstOptions: TypstCompileOptions = {
       quiet: options.flags?.quiet,
