@@ -1,0 +1,5 @@
+---
+title: "Home"
+---
+
+This is the home page that should be rendered.
