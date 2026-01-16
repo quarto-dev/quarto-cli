@@ -81,7 +81,7 @@ testRender(docs("email/email-attach.qmd"), "email", false, [fileExists(previewFi
 testRender(docs("email/email-no-subject.qmd"), "email", false, [fileExists(previewFile), validJsonWithFields(jsonFile, {"rsc_email_subject": ""})], cleanupCtx);
 
 // Test an email render that has a subject line after the email div, this verifies that `rsc_email_subject` key is present
-testRender(docs("email/email-subject-outside.qmd"), "email", false, [fileExists(previewFile), validJsonWithFields(jsonFile, {"rsc_email_subject": "The subject line, after the email div.", "rsc_email_body_text": "An optional text-only version of the email message.\n"})], cleanupCtx);
+testRender(docs("email/email-subject-document-level.qmd"), "email", false, [fileExists(previewFile), validJsonWithFields(jsonFile, {"rsc_email_subject": "The subject line, after the email div.", "rsc_email_body_text": "An optional text-only version of the email message.\n"})], cleanupCtx);
 
 // V2 format tests - Connect 2026.03+ with multi-email support
 // Verify the v2 format includes rsc_email_version and emails array with expected structure
@@ -127,7 +127,7 @@ testRender(docs("email/email-no-subject.qmd"), "email", false, [fileExists(previ
 });
 
 // Test an email render that has a subject line after the email div in the v2 format
-testRender(docs("email/email-subject-outside.qmd"), "email", false, [fileExists(previewFileV2), validJsonWithEmailStructure(jsonFile, {
+testRender(docs("email/email-subject-document-level.qmd"), "email", false, [fileExists(previewFileV2), validJsonWithEmailStructure(jsonFile, {
   "email_id": 1,
   "subject": "The subject line, after the email div.",
   "body_text": "An optional text-only version of the email message.\n",
