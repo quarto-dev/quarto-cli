@@ -4,7 +4,13 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, join, normalize, relative } from "../../deno_ral/path.ts";
+import {
+  dirname,
+  isAbsolute,
+  join,
+  normalize,
+  relative,
+} from "../../deno_ral/path.ts";
 import { ensureDirSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 
 import {
@@ -63,9 +69,15 @@ export function typstPdfOutputRecipe(
     // run typst
     await validateRequiredTypstVersion();
     const pdfOutput = join(inputDir, inputStem + ".pdf");
+    // Resolve font paths to absolute paths since typst compile may run from
+    // a different working directory than the input file's directory
+    const fontPaths = asArray(format.metadata?.[kFontPaths]).map((p) => {
+      const fontPath = p as string;
+      return isAbsolute(fontPath) ? fontPath : join(inputDir, fontPath);
+    });
     const typstOptions: TypstCompileOptions = {
       quiet: options.flags?.quiet,
-      fontPaths: asArray(format.metadata?.[kFontPaths]) as string[],
+      fontPaths,
     };
     if (project?.dir) {
       typstOptions.rootDir = project.dir;
