@@ -1,0 +1,5 @@
+project:
+  type: default
+format:
+  html:
+    theme: brand
