@@ -38,7 +38,12 @@ function choose_cell_renderings()
       end
     
       local outputs = {}
+      local seen = {}
       for i, r in ipairs(renderings) do
+        if seen[r] then
+          quarto.log.warning("duplicate rendering name '" .. r .. "' in renderings; only the last cell output with each name will be used")
+        end
+        seen[r] = true
         outputs[r] = cods[i]
       end
       local lightDiv = outputs['light']

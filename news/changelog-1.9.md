@@ -48,6 +48,7 @@ All changes included in 1.9:
 - ([#13508](https://github.com/quarto-dev/quarto-cli/issues/13508)): Add `aria-label` support to `video` shortcode for improved accessibility.
 - ([#13685](https://github.com/quarto-dev/quarto-cli/issues/13685)): Fix remote font URLs in brand extensions being incorrectly joined with the extension path, resulting in broken font imports.
 - ([#13883](https://github.com/quarto-dev/quarto-cli/issues/13883)): Fix unequal top/bottom spacing in simple untitled callouts.
+- ([#13900](https://github.com/quarto-dev/quarto-cli/issues/13900)): Warn when `renderings` cell option contains duplicate names. Previously, duplicate names like `[dark, light, dark, light]` would silently use only the last output for each name.
 
 ### `typst`
 

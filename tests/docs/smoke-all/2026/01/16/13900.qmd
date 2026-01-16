@@ -1,0 +1,21 @@
+---
+title: "Test duplicate rendering names warning"
+format: html
+execute:
+  echo: false
+_quarto:
+  tests:
+    html:
+      printsMessage:
+        level: INFO
+        regex: "duplicate rendering name 'dark' in renderings"
+---
+
+```{r}
+#| renderings: [dark, light, dark, light]
+
+plot(1, main = "Plot 1 (dark)")
+plot(2, main = "Plot 2 (light)")
+plot(3, main = "Plot 3 (dark)")
+plot(4, main = "Plot 4 (light)")
+```
