@@ -60,7 +60,7 @@ const cleanupCtx: TestContext = {
     const previewDir = dirname(previewFile);
     if (existsSync(previewDir)) {
       for (const entry of Deno.readDirSync(previewDir)) {
-        if (entry.isFile && entry.name.match(/^email_id-\d+\.html$/)) {
+        if (entry.isFile && /^email_id-\d+\.html$/.test(entry.name)) {
           Deno.removeSync(join(previewDir, entry.name));
         }
       }
@@ -126,15 +126,9 @@ testRender(docs("email/email-no-subject.qmd"), "email", false, [fileExists(previ
   }
 });
 
-// Test an email render that has a subject line after the email div in the v2 format
-testRender(docs("email/email-subject-document-level.qmd"), "email", false, [fileExists(previewFileV2), validJsonWithEmailStructure(jsonFile, {
-  "email_id": 1,
-  "subject": "The subject line, after the email div.",
-  "body_text": "An optional text-only version of the email message.\n",
-  "attachments": [],
-  "suppress_scheduled": false,
-  "send_report_as_attachment": false
-})], {
+// Test an email render that has a subject line after the email div - this should output v1 format
+// since the metadata divs are at the document level (outside email), indicating v1 style
+testRender(docs("email/email-subject-document-level.qmd"), "email", false, [fileExists(previewFile), validJsonWithFields(jsonFile, {"rsc_email_subject": "The subject line, after the email div.", "rsc_email_body_text": "An optional text-only version of the email message.\n"})], {
   ...cleanupCtx,
   env: {
     "SPARK_CONNECT_USER_AGENT": "posit-connect/2026.03.0"

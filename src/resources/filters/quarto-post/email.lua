@@ -204,6 +204,10 @@ local email_count = 0
 -- Track whether to use v2 JSON format (multi-email array) or v1 format (single email)
 local use_v2_email_format = false
 
+-- Track Connect version capability for v2 format
+local connect_supports_v2 = false
+
+
 function process_meta(meta)
   if not found_email_div then
     return
@@ -213,15 +217,6 @@ function process_meta(meta)
 
   local meta_email_attachments = meta["email-attachments"]
   meta_email_preview = meta["email-preview"]
-  
-  -- Auto-detect Connect version and use appropriate email format
-  -- Connect 2026.03+ supports new v2 multi-email format
-  if is_connect_version_at_least(constants.kConnectEmailMetadataChangeVersion) then
-    use_v2_email_format = true
-    quarto.log.debug("Detected Connect version >= " .. constants.kConnectEmailMetadataChangeVersion .. ", using v2 multi-email format")
-  else
-    quarto.log.debug("Connect version < " .. constants.kConnectEmailMetadataChangeVersion .. " or not detected, using v1 single-email format")
-  end
   
   if meta_email_attachments ~= nil then
     for _, v in pairs(meta_email_attachments) do
@@ -357,23 +352,54 @@ function process_document(doc)
     return doc
   end
 
+  -- Detect format upfront: Check Connect version and look for document-level metadata
+  -- This must be determined before processing to avoid confusion about which format to use
+  if is_connect_version_at_least(constants.kConnectEmailMetadataChangeVersion) then
+    connect_supports_v2 = true
+    quarto.log.debug("Detected Connect version >= " .. constants.kConnectEmailMetadataChangeVersion .. ", v2 format is supported")
+  else
+    quarto.log.debug("Connect version < " .. constants.kConnectEmailMetadataChangeVersion .. " or not detected, v2 format is not supported")
+  end
+
+  -- Scan for document-level metadata at the TOP LEVEL of the document
+  for _, block in ipairs(doc.blocks) do
+    if block.t == "Div" then
+      if block.classes:includes("subject") or block.classes:includes("email-text") or block.classes:includes("email-scheduled") then
+        quarto.log.debug("Found top-level metadata div with class: " .. table.concat(block.classes, ","))
+        has_top_level_metadata = true
+        break
+      end
+    end
+  end
+  
+  -- Determine format: v2 only if Connect supports it AND no document-level metadata
+  if connect_supports_v2 and not has_top_level_metadata then
+    use_v2_email_format = true
+    quarto.log.debug("Using v2 multi-email format (Connect supports it and no document-level metadata)")
+  else
+    if not connect_supports_v2 then
+      quarto.log.debug("Using v1 format (Connect version doesn't support v2)")
+    end
+    if has_top_level_metadata then
+      quarto.log.debug("Using v1 format (document-level metadata detected)")
+    end
+  end
+
   -- V1 fallback: Process document-level metadata divs (not nested in email)
+  -- We already know from the format detection above if these exist
   doc = quarto._quarto.ast.walk(doc, {
     Div = function(div)
       if div.classes:includes("subject") then
-        quarto.log.debug("found top-level subject")
+        quarto.log.debug("Processing top-level subject")
         subject = pandoc.utils.stringify(div)
-        has_top_level_metadata = true
         return {}
       elseif div.classes:includes("email-text") then
         email_text = pandoc.write(pandoc.Pandoc({ div }), "plain")
-        has_top_level_metadata = true
         return {}
       elseif div.classes:includes("email-scheduled") then
         local email_scheduled_str = str_trunc_trim(string.lower(pandoc.utils.stringify(div)), 10)
         local scheduled_email = str_truthy_falsy(email_scheduled_str)
         suppress_scheduled_email = not scheduled_email
-        has_top_level_metadata = true
         return {}
       end
       return div
@@ -382,7 +408,7 @@ function process_document(doc)
 
   -- Warn if old v1 input format detected
   if has_top_level_metadata then
-    quarto.log.warning("Old v1 email format detected (top-level subject/email-text). Outputting as v2 with single email for forward compatibility.")
+    quarto.log.warning("V1 email format detected (top-level subject/email-text). Outputting as v1 for backward compatibility.")
   end
 
   -- In v1 mode (document-level metadata), only keep the first email
@@ -393,7 +419,7 @@ function process_document(doc)
   end
 
   -- If Connect doesn't support v2 format, only keep first email and warn
-  if not use_v2_email_format then
+  if not use_v2_email_format and not has_top_level_metadata then
     quarto.log.warning("Detected Connect version < " .. constants.kConnectEmailMetadataChangeVersion .. " which doesn't support multiple emails. Only the first email will be sent. Upgrade Connect to " .. constants.kConnectEmailMetadataChangeVersion .. "+ for multi-email support.")
     emails = { emails[1] }
     email_count = 1
@@ -513,7 +539,6 @@ function process_document(doc)
   -- Generate JSON in appropriate format
   local metadata_str
   if use_v2_email_format then
-    -- V2 format: array of emails with version field
     metadata_str = quarto.json.encode({
       rsc_email_version = 2,
       emails = emails_for_json
@@ -573,9 +598,11 @@ function render_email()
       Div = find_email_div,
     },
     {
-      Pandoc = process_document,
       Meta = process_meta,
       Div = process_div,
+    },
+    {
+      Pandoc = process_document,
     }
   }
 end
