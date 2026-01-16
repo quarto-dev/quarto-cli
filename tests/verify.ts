@@ -584,6 +584,53 @@ export const ensureFileRegexMatches = (
   return(verifyFileRegexMatches(regexChecker)(file, matchesUntyped, noMatchesUntyped));
 };
 
+// Use this function to Regex match text in CSS files in the supporting files directory
+export const ensureCssRegexMatches = (
+  file: string,
+  matchesUntyped: (string | RegExp)[],
+  noMatchesUntyped?: (string | RegExp)[],
+): Verify => {
+  const asRegexp = (m: string | RegExp) => {
+    if (typeof m === "string") {
+      return new RegExp(m, "m");
+    }
+    return m;
+  };
+  const matches = matchesUntyped.map(asRegexp);
+  const noMatches = noMatchesUntyped?.map(asRegexp);
+
+  return {
+    name: `Inspecting CSS files for Regex matches`,
+    verify: async (_output: ExecuteOutput[]) => {
+      // Find support directory from file path
+      const [dir, stem] = dirAndStem(file);
+      const supportDir = join(dir, stem + "_files");
+
+      // Find all CSS files recursively and combine their content
+      let combinedContent = "";
+      for (const entry of walkSync(supportDir, { exts: [".css"] })) {
+        combinedContent += await Deno.readTextFile(entry.path) + "\n";
+      }
+
+      matches.forEach((regex) => {
+        assert(
+          regex.test(combinedContent),
+          `Required CSS match ${String(regex)} is missing.`,
+        );
+      });
+
+      if (noMatches) {
+        noMatches.forEach((regex) => {
+          assert(
+            !regex.test(combinedContent),
+            `Illegal CSS match ${String(regex)} was found.`,
+          );
+        });
+      }
+    },
+  };
+};
+
 // Use this function to Regex match text in the intermediate kept file
 // FIXME: do this properly without resorting on file having keep-*
 export const verifyKeepFileRegexMatches = (
