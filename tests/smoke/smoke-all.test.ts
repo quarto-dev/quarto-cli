@@ -18,6 +18,7 @@ import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
 import { parse } from "../../src/core/yaml.ts";
 import { cleanoutput } from "./render/render.ts";
 import {
+  ensureCssRegexMatches,
   ensureEpubFileRegexMatches,
   ensureDocxRegexMatches,
   ensureDocxXpath,
@@ -183,6 +184,7 @@ function resolveTestSpecs(
   const result = [];
   // deno-lint-ignore no-explicit-any
   const verifyMap: Record<string, any> = {
+    ensureCssRegexMatches,
     ensureEpubFileRegexMatches,
     ensureHtmlElements,
     ensureHtmlElementContents,
