@@ -1,0 +1,13 @@
+project:
+  type: website
+theme:
+  light: brand
+  dark: brand
+website:
+  sidebar:
+    style: "docked"
+    search: true
+    logo: false
+    contents:
+      - index.qmd
+      - conclusion.qmd

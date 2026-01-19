@@ -343,6 +343,9 @@ export function resolveLogo(
     }
     return logo;
   };
+  if (spec === false) {
+    return undefined;
+  }
   if (!spec) {
     const lightLogo = findLogo("light", order);
     const darkLogo = findLogo("dark", order);

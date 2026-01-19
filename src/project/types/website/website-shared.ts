@@ -133,7 +133,7 @@ export async function websiteNavigationConfig(project: ProjectContext) {
 
   // note no document-level customization of brand logo #11309
   const projectBrand = await project.resolveBrand();
-  if (navbar) {
+  if (navbar && navbar.logo !== false) {
     let navLogo = navbar.logo;
     if (navbar[kLogoAlt]) {
       if (typeof navLogo === "string") {
