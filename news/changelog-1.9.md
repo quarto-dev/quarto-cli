@@ -130,3 +130,4 @@ All changes included in 1.9:
 - ([#13656](https://github.com/quarto-dev/quarto-cli/issues/13656)): Fix R code cells with empty `lang: ""` option producing invalid markdown class attributes.
 - ([#13832](https://github.com/quarto-dev/quarto-cli/pull/13832)): Fix `license.text` metadata not being accessible when using an inline license (`license: "text"`), and populate it with the license name for CC licenses instead of empty string. (author: @mcanouil)
 - ([#13856](https://github.com/quarto-dev/quarto-cli/issues/13856)): Add code annotation support for Typst and Observable.js code blocks. (author: @mcanouil)
+- ([#13907](https://github.com/quarto-dev/quarto-cli/issues/13907)): Ignore AI assistant configuration files (`CLAUDE.md`, `AGENTS.md`) when scanning for project input files and in extension templates, similar to how `README.md` is handled.

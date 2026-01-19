@@ -873,7 +873,9 @@ function projectHiddenIgnoreGlob(dir: string) {
   return projectIgnoreGlobs(dir) // standard ignores for all projects
     .concat(["**/_*", "**/_*/**"]) // underscore prefx
     .concat(["**/.*", "**/.*/**"]) // hidden (dot prefix)
-    .concat(["**/README.?([Rrq])md"]); // README
+    .concat(["**/README.?([Rrq])md"]) // README
+    .concat(["**/CLAUDE.md"]) // Anthropic claude code file
+    .concat(["**/AGENTS.md"]); // https://agents.md/
 }
 
 export const projectInputFiles = makeTimedFunctionAsync(
