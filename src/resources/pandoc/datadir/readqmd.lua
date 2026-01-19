@@ -121,7 +121,7 @@ local function hex_to_string(hex)
 end
 
 local function readqmd(txt, opts)
-  local uuid_pattern = "b58fc729%-690b%-4000%-b19f%-365a4093b2ff%-([A-Fa-f0-9]+)%-"
+  local uuid_pattern = "b58fc729%-690b%-4000%-b19f%-365a4093b2ff;([A-Fa-f0-9]+);"
   local tags
   txt = md_fenced_div.attempt_to_fix_fenced_div(txt)
   txt, tags = escape_invalid_tags(txt)
