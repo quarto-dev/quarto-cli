@@ -1009,13 +1009,15 @@ async function sidebarsEjsData(project: ProjectContext, sidebars: Sidebar[]) {
 async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   sidebar = ld.cloneDeep(sidebar);
 
+  // ensure title is present
+  sidebar.title = await sidebarTitle(sidebar, project) as string | undefined;
+
   // if the sidebar has a title and no id generate the id
   if (sidebar.title && !sidebar.id) {
     sidebar.id = asHtmlId(sidebar.title);
   }
 
-  // ensure title and search are present
-  sidebar.title = await sidebarTitle(sidebar, project) as string | undefined;
+  // ensure search is present
   const searchOpts = await searchOptions(project);
   sidebar.search = sidebar.search !== undefined
     ? sidebar.search
@@ -1251,7 +1253,8 @@ async function navbarEjsData(
   };
   // if there is no navbar title and it hasn't been set to 'false'
   // then use the site title
-  if (!data.title && data.title !== false) {
+  const navbarTitle = data.title as unknown as string | boolean | undefined;
+  if (navbarTitle === true || (!navbarTitle && navbarTitle !== false)) {
     data.title = websiteTitle(project.config);
   }
   data.title = data.title || "";
@@ -1479,21 +1482,57 @@ function looksLikeShortCode(href: string) {
 
 async function sidebarTitle(sidebar: Sidebar, project: ProjectContext) {
   const { navbar } = await websiteNavigationConfig(project);
-  if (sidebar.title) {
-    // Title was explicitly set
-    return sidebar.title;
-  } else if (!sidebar.logo) {
-    if (!navbar) {
-      // If there isn't a logo and there isn't a sidebar, use the project title
-      return websiteTitle(project.config);
-    } else {
-      // The navbar will display the title
-      return undefined;
-    }
-  } else {
-    // There is a logo, just let the logo appear
+
+  const sidebarTitleValue = sidebar.title as unknown as string | boolean | undefined;
+  const projectTitle = websiteTitle(project.config);
+
+  // 1. "text": include the custom text
+  if (typeof sidebarTitleValue === "string") {
+    return sidebarTitleValue;
+  }
+
+  // 2. false: no title
+  if (sidebarTitleValue === false) {
     return undefined;
   }
+
+  // 3. true: includes the website/book title
+  if (sidebarTitleValue === true) {
+    return projectTitle;
+  }
+
+  // 4. undefined (title line not included)
+  // include website/book title if and only if (no title is included in navbar AND no logo is included in the sidebar)
+  // Exception: for books, a sidebar logo does not hide the title.
+
+  const hasLogo = (logo?: any) => {
+    if (!logo) return false;
+    if (typeof logo === "string") return true;
+    return !!(logo.light || logo.dark || logo.path);
+  };
+
+  const hasSidebarLogo = hasLogo(sidebar.logo);
+
+  let navbarHasAnyTitle = false;
+  if (navbar) {
+    const navbarTitleValue = navbar.title as unknown as string | boolean | undefined;
+    if (navbarTitleValue !== false) {
+      navbarHasAnyTitle = true;
+    }
+  }
+
+  const isBook = project.config?.project?.[kProjectType] === "book";
+
+  if (!navbarHasAnyTitle) {
+    // Navbar has no title.
+    // Rule: show sidebar title if no logo in sidebar.
+    // Exception: books ignore the sidebar logo constraint.
+    if (!hasSidebarLogo || isBook) {
+      return projectTitle;
+    }
+  }
+
+  return undefined;
 }
 
 async function websiteHeadroom(project: ProjectContext) {

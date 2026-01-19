@@ -1,0 +1,11 @@
+project:
+  type: website
+  title: "My Website"
+
+website:
+  navbar:
+    title: false
+  sidebar:
+    title: false
+    contents:
+      - index.qmd
