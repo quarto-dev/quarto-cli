@@ -596,7 +596,10 @@
         netlify:
           arrayOf:
             ref: publish-record
-      description: "Sites published to Netlify"
+        cloudflare-pages:
+          arrayOf:
+            ref: publish-record
+      description: "Sites published from project"
 
 - id: publish-record
   object:

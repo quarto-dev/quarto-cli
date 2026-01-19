@@ -51,6 +51,7 @@ export const publishCommand =
         " - GitHub Pages (gh-pages)\n" +
         " - Posit Connect (connect)\n" +
         " - Netlify (netlify)\n" +
+        " - Cloudflare Pages (cloudflare-pages)\n" +
         " - Confluence (confluence)\n" +
         " - Hugging Face Spaces (huggingface)\n\n" +
         "Accounts are configured interactively during publishing.\n" +
@@ -96,6 +97,10 @@ export const publishCommand =
     .example(
       "Publish project to Netlify",
       "quarto publish netlify",
+    )
+    .example(
+      "Publish project to Cloudflare Pages",
+      "quarto publish cloudflare-pages",
     )
     .example(
       "Publish with explicit target",

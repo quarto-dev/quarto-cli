@@ -658,6 +658,12 @@
             "items": {
               "$ref": "#/$defs/PublishRecord"
             }
+          },
+          "cloudflare-pages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/PublishRecord"
+            }
           }
         }
       }

@@ -239,6 +239,7 @@ export const ZodProjectServe = z.object({
 
 export const ZodPublish = z.object({
   netlify: z.array(z.lazy(() => ZodPublishRecord)),
+  "cloudflare-pages": z.array(z.lazy(() => ZodPublishRecord)),
 }).strict().partial();
 
 export const ZodPublishRecord = z.object({ id: z.string(), url: z.string() })
