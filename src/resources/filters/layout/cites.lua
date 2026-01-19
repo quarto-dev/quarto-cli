@@ -151,10 +151,9 @@ function resolveCaptionCitations(captionContentInlines, inMargin)
 
   if #citeEls > 0 then
     tappend(captionContentInlines, citeEls)
-    return true
-  else
-    return false
+    return captionContentInlines
   end
+  -- return nil implicitly if no changes
 end
 
 function marginCitePlaceholderInline(citation)
