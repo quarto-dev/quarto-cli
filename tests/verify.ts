@@ -600,7 +600,9 @@ export const verifyKeepFileRegexMatches = (
       try {
         await regexChecker(file, matches, noMatches);
       } finally {
-        await safeRemoveSync(file);
+        if (!Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
+          await safeRemoveSync(file);
+        }
       }
     }
     return verifyFileRegexMatches(keptFileChecker, `Inspecting intermediate ${keptFile} for Regex matches`)(keptFile, matchesUntyped, noMatchesUntyped);
