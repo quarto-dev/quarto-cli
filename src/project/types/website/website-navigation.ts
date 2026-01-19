@@ -12,6 +12,7 @@ import { Document, Element } from "../../../core/deno-dom.ts";
 
 import { pathWithForwardSlashes, safeExistsSync } from "../../../core/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
+import { isExternalPath } from "../../../core/url.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
 import { asHtmlId } from "../../../core/html.ts";
@@ -1538,10 +1539,6 @@ function navigationDependency(resource: string) {
     name: basename(resource),
     path: resourcePath(`projects/website/navigation/${resource}`),
   };
-}
-
-function isExternalPath(path: string) {
-  return /^\w+:/.test(path);
 }
 
 function resolveNavReferences(

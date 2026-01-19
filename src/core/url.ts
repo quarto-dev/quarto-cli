@@ -1,14 +1,17 @@
 /*
-* url.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * url.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { ensureTrailingSlash, pathWithForwardSlashes } from "./path.ts";
 
 export function isHttpUrl(url: string) {
   return /^https?:/i.test(url);
+}
+
+export function isExternalPath(path: string) {
+  return /^\w+:/.test(path);
 }
 
 export function joinUrl(baseUrl: string, path: string) {
