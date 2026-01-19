@@ -3360,6 +3360,11 @@
     "LogoLightDarkSpecifier": {
       "anyOf": [
         {
+          "enum": [
+            false
+          ]
+        },
+        {
           "$ref": "#/$defs/LogoSpecifier"
         },
         {

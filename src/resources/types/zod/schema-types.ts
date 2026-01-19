@@ -1386,6 +1386,7 @@ export const ZodLogoSpecifierPathOptional = z.union([
 ]);
 
 export const ZodLogoLightDarkSpecifier = z.union([
+  z.literal(false),
   z.lazy(() => ZodLogoSpecifier),
   z.object({
     light: z.lazy(() => ZodLogoSpecifier),

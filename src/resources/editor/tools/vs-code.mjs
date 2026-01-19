@@ -12174,8 +12174,13 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           id: "logo-light-dark-specifier",
-          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object. Use `false` to explicitly disable the logo.\n",
           anyOf: [
+            {
+              enum: [
+                false
+              ]
+            },
             {
               ref: "logo-specifier"
             },
@@ -22703,7 +22708,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Alternative text for the logo, used for accessibility.",
         "Path or brand.yml logo resource name.",
         "Alternative text for the logo, used for accessibility.",
-        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object. Use <code>false</code> to\nexplicitly disable the logo.",
         "Specification of a light logo",
         "Specification of a dark logo",
         "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
@@ -23771,6 +23776,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings.",
           long: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings, and level 3 headings become level 2 headings. Headings\ncannot have a level less than 1, so a heading that would be shifted\nbelow level 1 becomes a regular paragraph. Exception: with a shift of\n-N, a level-N heading at the beginning of the document replaces the\nmetadata title."
+        },
+        {
+          short: "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
+          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
         },
         {
           short: "Sets the page numbering style and location for the document.",
@@ -24903,11 +24912,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        {
-          short: "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
-          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
-        }
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
       ],
       "schema/external-schemas.yml": [
         {
@@ -25136,12 +25141,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 218561,
+        _internalId: 219129,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 218553,
+            _internalId: 219121,
             type: "enum",
             enum: [
               "png",
@@ -25157,7 +25162,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 218560,
+            _internalId: 219128,
             type: "anyOf",
             anyOf: [
               {
