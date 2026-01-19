@@ -60,6 +60,7 @@ All changes included in 1.9:
 - ([rstudio/tinytex-releases#49](https://github.com/rstudio/tinytex-releases/issues/49)): Fix detection of LuaTeX-ja missing file errors by matching both "File" and "file" in error messages.
 - ([#13667](https://github.com/quarto-dev/quarto-cli/issues/13667)): Fix LaTeX compilation error with Python error output containing caret characters.
 - ([#13730](https://github.com/quarto-dev/quarto-cli/issues/13730)): Fix TinyTeX detection when `~/.TinyTeX/` directory exists without binaries. Quarto now verifies that the bin directory and tlmgr binary exist before reporting TinyTeX as available, allowing proper fallback to system PATH installations.
+- ([#13919](https://github.com/quarto-dev/quarto-cli/issues/13919)): Fix margin citations with citeproc showing unresolved `?quarto-cite:` placeholders in PDF output. Caused by Pandoc 3.6+ adding `\protect` before `\phantomsection` in bibliography anchors.
 - ([#13249](https://github.com/quarto-dev/quarto-cli/pull/13249)): Update to Pandoc's LaTeX template following Pandoc 3.8.3 support:
   - New RTL support for LuaTeX with `\RL`, `\LR` commands and `RTL`, `LTR` environments.
   - New `shorthands` variable for Babel language shortcuts control.

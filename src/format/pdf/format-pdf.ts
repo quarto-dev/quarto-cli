@@ -1063,7 +1063,10 @@ const indexAndSuppressPandocBibliography = (
   let currentCiteKey: string | undefined = undefined;
 
   return (line: string): string | undefined => {
-    if (!readingBibliography && line.match(/^\\phantomsection\\label{refs}$/)) {
+    if (
+      !readingBibliography &&
+      line.match(/^(\\protect)?\\phantomsection\\label{refs}$/)
+    ) {
       readingBibliography = true;
       return undefined;
     } else if (readingBibliography && line.match(/^\\end{CSLReferences}$/)) {
