@@ -371,17 +371,14 @@ function parse_floatreftargets()
           -- Remove layout classes from div
           div.classes = div.classes:filter(
             function(c) return not layout_classes:includes(c) end)
-          -- For margin classes, keep on attr so FloatRefTarget can use notefigure
-          -- For fullwidth classes, strip from attr - columns.lua handles wideblock wrapping
-          local margin_classes = layout_classes:filter(
-            function(c) return c == "column-margin" or c == "aside" end)
-          local fullwidth_classes = layout_classes:filter(
-            function(c) return c ~= "column-margin" and c ~= "aside" end)
-          if #fullwidth_classes > 0 then
-            attr.classes = attr.classes:filter(
-              function(c) return not fullwidth_classes:includes(c) end)
-          end
-          -- margin_classes stay on attr for FloatRefTarget margin placement
+          -- Strip fullwidth layout classes from attr (columns.lua handles wideblock wrapping)
+          -- but keep margin classes so FloatRefTarget can use notefigure
+          attr.classes = attr.classes:filter(function(c)
+            if c == "column-margin" or c == "aside" then
+              return true  -- keep margin classes
+            end
+            return not layout_classes:includes(c)  -- strip other layout classes
+          end)
         end
         -- If no cell-output-display (e.g., listings with echo:true eval:false),
         -- keep layout_classes on attr so the FloatRefTarget inherits them
