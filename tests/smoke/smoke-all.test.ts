@@ -155,6 +155,9 @@ function registerPostRenderCleanupFile(file: string): void {
   postRenderCleanupFiles.push(file);
 }
 const postRenderCleanup = () => {
+  if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
+    return;
+  }
   for (const file of postRenderCleanupFiles) {
     console.log(`Cleaning up ${file} in ${Deno.cwd()}`);
     if (safeExistsSync(file)) {
