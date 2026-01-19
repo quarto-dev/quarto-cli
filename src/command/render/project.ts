@@ -59,7 +59,6 @@ import { resourceFilesFromRenderedFile } from "./resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
 import {
   removeIfEmptyDir,
-  removeIfExists,
   safeRemoveIfExists,
 } from "../../core/path.ts";
 import { handlerForScript } from "../../core/run/run.ts";
@@ -280,15 +279,17 @@ export async function renderProject(
       (projectRenderConfig.options.flags?.clean == true) &&
         (projType.cleanOutputDir === true))
   ) {
-    // output dir
+    // output dir - use safeRemoveDirSync for boundary protection (#13892)
     const realProjectDir = normalizePath(context.dir);
     if (existsSync(projOutputDir)) {
       const realOutputDir = normalizePath(projOutputDir);
-      if (
-        (realOutputDir !== realProjectDir) &&
-        realOutputDir.startsWith(realProjectDir)
-      ) {
-        removeIfExists(realOutputDir);
+      try {
+        safeRemoveDirSync(realOutputDir, realProjectDir);
+      } catch (e) {
+        if (!(e instanceof UnsafeRemovalError)) {
+          throw e;
+        }
+        // Silently skip if output dir equals or is outside project dir
       }
     }
     // remove index
