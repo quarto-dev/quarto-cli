@@ -1,0 +1,14 @@
+---
+title: Shortcode with trailing dash
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['<p>Normal shortcode: [0-9]+\.[0-9]+\.[0-9]+</p>', '<p>Shortcode with trailing dash: [0-9]+\.[0-9]+\.[0-9]+-</p>']
+        - []
+---
+
+Normal shortcode: {{< version >}}
+
+Shortcode with trailing dash: {{< version >}}-
