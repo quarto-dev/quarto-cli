@@ -26,6 +26,7 @@ import { Brand } from "../brand/brand.ts";
 import { darkModeDefault } from "../../format/html/format-html-info.ts";
 import { kBrandMode } from "../../config/constants.ts";
 import { join, relative } from "../../deno_ral/path.ts";
+import { isExternalPath } from "../url.ts";
 
 const defaultColorNameMap: Record<string, string> = {
   "link-color": "link",
@@ -149,8 +150,6 @@ const googleFontImportString = (description: BrandFontGoogle) => {
     )
   }:${styleString}wght@${weights}&display=${display}');`;
 };
-
-const isExternalPath = (path: string) => /^\w+:/.test(path);
 
 const fileFontImportString = (brand: Brand, description: BrandFontFile) => {
   const pathPrefix = relative(brand.projectDir, brand.brandDir);
