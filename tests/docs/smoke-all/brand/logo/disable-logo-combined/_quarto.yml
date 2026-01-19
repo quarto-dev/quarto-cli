@@ -2,6 +2,8 @@ project:
   type: website
 
 website:
+  navbar:
+    logo: false
   sidebar:
     style: "docked"
     search: true

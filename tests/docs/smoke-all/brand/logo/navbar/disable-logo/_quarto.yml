@@ -1,8 +1,6 @@
 project:
   type: website
-theme:
-  light: brand
-  dark: brand
+
 website:
   navbar:
     logo: false
@@ -12,3 +10,9 @@ website:
     contents:
       - index.qmd
       - conclusion.qmd
+
+format:
+  html:
+    theme:
+      light: [cosmo, brand]
+      dark: [darkly, brand]
