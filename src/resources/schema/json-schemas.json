@@ -2003,6 +2003,24 @@
               }
             ]
           },
+          "pagination": {
+            "object": {
+              "properties": {
+                "inner-window": {
+                  "type": "number"
+                },
+                "outer-window": {
+                  "type": "number"
+                },
+                "outer-window-left": {
+                  "type": "number"
+                },
+                "outer-window-right": {
+                  "type": "number"
+                }
+              }
+            }
+          },
           "feed": {
             "anyOf": [
               {

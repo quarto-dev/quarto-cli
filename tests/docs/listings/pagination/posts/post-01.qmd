@@ -1,0 +1,6 @@
+---
+title: Test Post 1
+date: 2026-01-01
+---
+
+Content for test post 1.

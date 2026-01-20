@@ -68,6 +68,11 @@ import {
   kListing,
   kMaxDescLength,
   kPageSize,
+  kPaginationOptions,
+  kInnerWindow,
+  kOuterWindow,
+  kLeftOuterWindow,
+  kRightOuterWindow,
   kSortAsc,
   kSortDesc,
   kSortUi,
@@ -82,6 +87,7 @@ import {
   ListingSharedOptions,
   ListingSort,
   ListingType,
+  PaginationOptions,
   PreviewImage,
   renderedContentReader,
 } from "./website-listing-shared.ts";
@@ -146,6 +152,13 @@ const kDefaultFields = [
   kFieldImage,
   kFieldDescription,
 ];
+
+const kDefaultPaginationOptions: PaginationOptions = {
+  [kInnerWindow]: 2,
+  [kOuterWindow]: 0,
+  [kLeftOuterWindow]: 0,
+  [kRightOuterWindow]: 0,
+};
 
 const defaultFieldDisplayNames = (format: Format) => {
   return {
@@ -619,6 +632,7 @@ function hydrateListing(
     [kFieldFilter]: hydratedFields,
     [kFieldRequired]: kDefaultFieldRequired,
     [kPageSize]: defaultPageSize(),
+    [kPaginationOptions]: kDefaultPaginationOptions,
     [kFilterUi]: listing[kFilterUi] !== undefined
       ? listing[kFilterUi]
       : listing.type === ListingType.Table,

@@ -1,0 +1,6 @@
+---
+title: Test Post 8
+date: 2026-01-08
+---
+
+Content for test post 8.

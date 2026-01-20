@@ -82,6 +82,7 @@ All changes included in 1.9:
 - ([#13570](https://github.com/quarto-dev/quarto-cli/pull/13570)): Replace Twitter with Bluesky in default blog template and documentation examples. New blog projects now include Bluesky social links instead of Twitter.
 - ([#13716](https://github.com/quarto-dev/quarto-cli/issues/13716)): Fix draft pages showing blank during preview when pre-render scripts are configured.
 - ([#13847](https://github.com/quarto-dev/quarto-cli/pull/13847)): Open graph title with markdown is now processed correctly. (author: @mcanouil)
+- ([#12031](https://github.com/quarto-dev/quarto-cli/issues/12031)): Add customisable pagination options for listings via `pagination` configuration. Users can control how page numbers appear using `inner-window`, `outer-window`, `outer-window-left`, and `outer-window-right` settings. (author: @mcanouil)
 
 ### `book`
 

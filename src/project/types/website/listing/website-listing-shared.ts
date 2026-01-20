@@ -57,6 +57,29 @@ export const kFieldFilter = "field-filter";
 // The number of rows to display per page
 export const kPageSize = "page-size";
 
+// Pagination options
+export const kPaginationOptions = "pagination";
+
+// How many pages should be visible on each side of the current page. list.js default: 2
+export const kInnerWindow = "inner-window";
+
+// How many pages should be visible on from the beginning and from the end of the pagination. list.js default: 0
+export const kOuterWindow = "outer-window";
+
+// Same as outerWindow but only from left. list.js default: 0
+export const kLeftOuterWindow = "outer-window-left";
+
+// Same as outerWindow but only from right. list.js default: 0
+export const kRightOuterWindow = "outer-window-right";
+
+// Pagination options interface
+export interface PaginationOptions {
+  [kInnerWindow]?: number;
+  [kOuterWindow]?: number;
+  [kLeftOuterWindow]?: number;
+  [kRightOuterWindow]?: number;
+}
+
 // The maximum number of items to include
 export const kMaxItems = "max-items";
 
@@ -169,6 +192,7 @@ export interface Listing extends ListingDehydrated {
   [kFieldFilter]: string[];
   [kFieldRequired]: string[];
   [kPageSize]: number;
+  [kPaginationOptions]: PaginationOptions;
   [kMaxItems]?: number;
   [kFilterUi]: boolean;
   [kSortUi]: boolean;

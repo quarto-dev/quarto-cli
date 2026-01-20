@@ -1,0 +1,36 @@
+---
+title: Pagination Test
+listing:
+  - id: default-pagination
+    contents: posts
+    type: table
+    page-size: 2
+  - id: custom-pagination
+    contents: posts
+    type: grid
+    page-size: 2
+    pagination:
+      inner-window: 1
+      outer-window: 1
+  - id: zero-inner-window
+    contents: posts
+    type: default
+    page-size: 2
+    pagination:
+      inner-window: 0
+---
+
+## Default Pagination
+
+::: {#default-pagination}
+:::
+
+## Custom Pagination
+
+::: {#custom-pagination}
+:::
+
+## Zero Inner Window
+
+::: {#zero-inner-window}
+:::

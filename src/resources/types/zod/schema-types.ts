@@ -787,6 +787,12 @@ export const ZodWebsiteListing = z.object({
     z.boolean(),
     z.enum(["numbered", "unnumbered", "cloud"] as const),
   ]),
+  pagination: z.object({
+    "inner-window": z.number(),
+    "outer-window": z.number(),
+    "outer-window-left": z.number(),
+    "outer-window-right": z.number(),
+  }).strict().partial(),
   feed: z.union([
     z.boolean(),
     z.object({

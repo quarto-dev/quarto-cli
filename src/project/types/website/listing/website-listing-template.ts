@@ -31,12 +31,18 @@ import {
   kMaxDescLength,
   kMaxItems,
   kPageSize,
+  kPaginationOptions,
+  kInnerWindow,
+  kOuterWindow,
+  kLeftOuterWindow,
+  kRightOuterWindow,
   kSortAsc,
   kSortDesc,
   Listing,
   ListingItem,
   ListingSort,
   ListingType,
+  PaginationOptions,
 } from "./website-listing-shared.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { localizedString } from "../../../../config/localization.ts";
@@ -522,13 +528,24 @@ export function templateJsScript(
   itemCount: number,
 ) {
   const pageSize = listing[kPageSize] as number || 50;
+  const listingPaginationOptions = listing[kPaginationOptions] as PaginationOptions || {};
 
   // If columns are present, factor that in
   const columns = listing[kFields] as string[] || [];
 
+  const paginationOptions = [
+    listingPaginationOptions[kInnerWindow] !== undefined ? `innerWindow: ${listingPaginationOptions[kInnerWindow]}` : "",
+    listingPaginationOptions[kOuterWindow] !== undefined ? `outerWindow: ${listingPaginationOptions[kOuterWindow]}` : "",
+    listingPaginationOptions[kLeftOuterWindow] !== undefined ? `leftOuterWindow: ${listingPaginationOptions[kLeftOuterWindow]}` : "",
+    listingPaginationOptions[kRightOuterWindow] !== undefined ? `rightOuterWindow: ${listingPaginationOptions[kRightOuterWindow]}` : "",
+    'item: "<li class=\'page-item\'><a class=\'page page-link\' href=\'#\'></a></li>"',
+  ]
+    .filter((v) => v !== "")
+    .join(", ");
+
   const pageOptions = itemCount > pageSize
     ? `${pageSize ? `page: ${pageSize}` : ""},
-    pagination: { item: "<li class='page-item'><a class='page page-link' href='#'></a></li>" },`
+    pagination: { ${paginationOptions} },`
     : "";
 
   const filterOptions = `searchColumns: [${

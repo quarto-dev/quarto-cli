@@ -10570,6 +10570,37 @@ var require_yaml_intelligence_resources = __commonJS({
                   long: "Display item categories from this listing in the margin of the page.\n\n  - `numbered`: Category list with number of items\n  - `unnumbered`: Category list\n  - `cloud`: Word cloud style categories\n"
                 }
               },
+              pagination: {
+                object: {
+                  closed: true,
+                  properties: {
+                    "inner-window": {
+                      number: {
+                        description: "The number of pages to display on each side of the current page.",
+                        default: 2
+                      }
+                    },
+                    "outer-window": {
+                      number: {
+                        description: "The number of pages to display at the start and end of the pagination control.",
+                        default: 0
+                      }
+                    },
+                    "outer-window-left": {
+                      number: {
+                        description: "The number of pages to display at the start of the pagination control.",
+                        default: 0
+                      }
+                    },
+                    "outer-window-right": {
+                      number: {
+                        description: "The number of pages to display at the end of the pagination control.",
+                        default: 0
+                      }
+                    }
+                  }
+                }
+              },
               feed: {
                 anyOf: [
                   "boolean",
@@ -22067,6 +22098,10 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Display item categories from this listing in the margin of the\npage.",
           long: "Display item categories from this listing in the margin of the\npage."
         },
+        "The number of pages to display on each side of the current page.",
+        "The number of pages to display at the start and end of the pagination\ncontrol.",
+        "The number of pages to display at the start of the pagination\ncontrol.",
+        "The number of pages to display at the end of the pagination\ncontrol.",
         "Enables an RSS feed for the listing.",
         "The number of items to include in your feed. Defaults to 20.",
         {
@@ -23773,6 +23808,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings, and level 3 headings become level 2 headings. Headings\ncannot have a level less than 1, so a heading that would be shifted\nbelow level 1 becomes a regular paragraph. Exception: with a shift of\n-N, a level-N heading at the beginning of the document replaces the\nmetadata title."
         },
         {
+          short: "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
+          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
+        },
+        {
           short: "Sets the page numbering style and location for the document.",
           long: 'Sets the page numbering style and location for the document using the\n<code>\\setuppagenumbering</code> command.\nSee <a href="https://wiki.contextgarden.net/Command/setuppagenumbering">ConTeXt\nPage Numbering</a> for additional information.'
         },
@@ -24903,11 +24942,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        {
-          short: "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
-          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
-        }
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
       ],
       "schema/external-schemas.yml": [
         {
@@ -25136,12 +25171,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 218561,
+        _internalId: 219145,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 218553,
+            _internalId: 219137,
             type: "enum",
             enum: [
               "png",
@@ -25157,7 +25192,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 218560,
+            _internalId: 219144,
             type: "anyOf",
             anyOf: [
               {
