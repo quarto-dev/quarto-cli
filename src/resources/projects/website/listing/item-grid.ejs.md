@@ -40,7 +40,7 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 ::: {.g-col-1 <%= listing.utilities.metadataAttrs(item) %> }
 
 ```{=html}
-<a href="<%- item.path %>" class="quarto-grid-link">
+<a href="<%- item.path %>" <%= item.target ? `target="${item.target}"` : "" %><%= item.target === "_blank" ? ` rel="noopener"` : "" %> class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 <%= `card-${align}` %><%= hideBorders ? ' borderless' : '' %>">
 ```
 

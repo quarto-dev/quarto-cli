@@ -404,7 +404,9 @@ export function reshapeListing(
     const value = val || item[field] || "&nbsp;";
     const path = item.path;
     if (path && value !== undefined && fieldLinks.includes(field)) {
-      return `<a href="${path}" class="${field}${
+      const targetAttr = item.target ? ` target="${item.target}"` : "";
+      const relAttr = item.target === "_blank" ? ` rel="noopener"` : "";
+      return `<a href="${path}"${targetAttr}${relAttr} class="${field}${
         clz ? ` ${clz}` : ""
       }">${value}</a>`;
     } else {

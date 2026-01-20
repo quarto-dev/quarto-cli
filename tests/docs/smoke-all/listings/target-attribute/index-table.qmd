@@ -1,0 +1,17 @@
+---
+listing:
+  type: table
+  contents: posts/*.qmd
+  table-hover: true
+_quarto:
+  tests:
+    html:
+      noErrors: true
+      ensureHtmlElements:
+        -
+          - "a[href$='post-with-target.html'][target='_blank'][rel='noopener']"
+          - "a[href$='post-without-target.html']:not([target]):not([rel])"
+          - "tr[onclick*='window.open']"
+---
+
+## Table listing with target attribute test

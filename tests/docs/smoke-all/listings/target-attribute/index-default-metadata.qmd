@@ -1,0 +1,23 @@
+---
+listing:
+  type: default
+  contents:
+    - title: "Post with target"
+      path: posts/post-with-target.qmd
+      target: "_blank"
+    - title: "Post without target"
+      path: posts/post-without-target.qmd
+_quarto:
+  tests:
+    html:
+      noErrors: true
+      ensureHtmlElements:
+        -
+          - "a[href$='post-with-target.html'][target='_blank'][rel='noopener']"
+          - "a[href$='post-without-target.html']:not([target]):not([rel])"
+      ensureHtmlElementCount:
+        selectors: ['.listing-target']
+        counts: [0]
+---
+
+## Default listing with metadata specification test
