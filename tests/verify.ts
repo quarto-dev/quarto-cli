@@ -5,7 +5,7 @@
  */
 
 import { existsSync, walkSync } from "../src/deno_ral/fs.ts";
-import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
+import { DOMParser, Element, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts";
 import { basename, dirname, join, relative, resolve } from "../src/deno_ral/path.ts";
 import { parseXmlDocument } from "slimdom";
@@ -643,7 +643,7 @@ export const ensureFileRegexMatches = (
   return(verifyFileRegexMatches(regexChecker)(file, matchesUntyped, noMatchesUntyped));
 };
 
-// Use this function to Regex match text in CSS files in the supporting files directory
+// Use this function to Regex match text in CSS files linked from the HTML document
 export const ensureCssRegexMatches = (
   file: string,
   matchesUntyped: (string | RegExp)[],
@@ -661,14 +661,24 @@ export const ensureCssRegexMatches = (
   return {
     name: `Inspecting CSS files for Regex matches`,
     verify: async (_output: ExecuteOutput[]) => {
-      // Find support directory from file path
-      const [dir, stem] = dirAndStem(file);
-      const supportDir = join(dir, stem + "_files");
+      // Parse the HTML file to find linked CSS files
+      const htmlContent = await Deno.readTextFile(file);
+      const doc = new DOMParser().parseFromString(htmlContent, "text/html")!;
+      const [dir] = dirAndStem(file);
 
-      // Find all CSS files recursively and combine their content
+      // Find all stylesheet links and read their content
       let combinedContent = "";
-      for (const entry of walkSync(supportDir, { exts: [".css"] })) {
-        combinedContent += await Deno.readTextFile(entry.path) + "\n";
+      const links = doc.querySelectorAll('link[rel="stylesheet"]');
+      for (const link of links) {
+        const href = (link as Element).getAttribute("href");
+        if (href && !href.startsWith("http://") && !href.startsWith("https://")) {
+          const cssPath = join(dir, href);
+          try {
+            combinedContent += await Deno.readTextFile(cssPath) + "\n";
+          } catch {
+            // Skip files that don't exist (e.g., external URLs we couldn't parse)
+          }
+        }
       }
 
       matches.forEach((regex) => {
