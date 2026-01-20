@@ -4249,6 +4249,21 @@
         }
       }
     },
+    "MarginaliaSideGeometry": {
+      "object": {
+        "properties": {
+          "far": {
+            "type": "string"
+          },
+          "width": {
+            "type": "string"
+          },
+          "separation": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "ProjectConfig": {
       "object": {
         "properties": {

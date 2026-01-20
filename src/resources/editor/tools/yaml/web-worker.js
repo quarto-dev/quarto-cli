@@ -8003,7 +8003,8 @@ try {
               ],
               formats: [
                 "$html-files",
-                "$pdf-all"
+                "$pdf-all",
+                "typst"
               ]
             },
             schema: {
@@ -8025,7 +8026,8 @@ try {
               ],
               formats: [
                 "$html-files",
-                "$pdf-all"
+                "$pdf-all",
+                "typst"
               ]
             },
             schema: {
@@ -8047,7 +8049,8 @@ try {
               ],
               formats: [
                 "$html-files",
-                "$pdf-all"
+                "$pdf-all",
+                "typst"
               ]
             },
             schema: {
@@ -13258,6 +13261,29 @@ try {
                 }
               }
             }
+          },
+          {
+            id: "marginalia-side-geometry",
+            object: {
+              closed: true,
+              properties: {
+                far: {
+                  string: {
+                    description: "Distance from page edge to wideblock boundary."
+                  }
+                },
+                width: {
+                  string: {
+                    description: "Width of the margin note column."
+                  }
+                },
+                separation: {
+                  string: {
+                    description: "Gap between margin column and body text."
+                  }
+                }
+              }
+            }
           }
         ],
         "schema/document-about.yml": [
@@ -15369,7 +15395,8 @@ try {
                 "$markdown-all",
                 "muse",
                 "$html-files",
-                "pdf"
+                "pdf",
+                "typst"
               ]
             },
             schema: {
@@ -16352,6 +16379,12 @@ try {
           },
           {
             name: "grid",
+            tags: {
+              formats: [
+                "$html-doc",
+                "typst"
+              ]
+            },
             schema: {
               object: {
                 closed: true,
@@ -16372,24 +16405,24 @@ try {
                   },
                   "margin-width": {
                     string: {
-                      description: "The base width of the margin (right) column in an HTML page."
+                      description: "The base width of the margin (right) column. For Typst, this controls the width of the margin note column."
                     }
                   },
                   "body-width": {
                     string: {
-                      description: "The base width of the body (center) column in an HTML page."
+                      description: "The base width of the body (center) column. For Typst, this is computed as the remainder after other columns."
                     }
                   },
                   "gutter-width": {
                     string: {
-                      description: "The width of the gutter that appears between columns in an HTML page."
+                      description: "The width of the gutter that appears between columns. For Typst, this is the gap between the text column and margin notes."
                     }
                   }
                 }
               }
             },
             description: {
-              short: "Properties of the grid system used to layout Quarto HTML pages."
+              short: "Properties of the grid system used to layout Quarto HTML and Typst pages."
             }
           },
           {
@@ -18079,7 +18112,8 @@ try {
             },
             tags: {
               formats: [
-                "$html-doc"
+                "$html-doc",
+                "typst"
               ]
             },
             default: "document",
@@ -24913,7 +24947,17 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+          "Distance from page edge to wideblock boundary.",
+          "Width of the margin note column.",
+          "Gap between margin column and body text.",
+          {
+            short: "Advanced geometry settings for Typst margin layout.",
+            long: "Fine-grained control over marginalia package geometry. Most users\nshould use <code>margin</code> and <code>grid</code> options instead;\nthese values are computed automatically.\nUser-specified values override the computed defaults."
+          },
+          "Inner (left) margin geometry.",
+          "Outer (right) margin geometry.",
+          "Minimum vertical spacing between margin notes (default: 8pt)."
         ],
         "schema/external-schemas.yml": [
           {
@@ -25142,12 +25186,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 219129,
+          _internalId: 219149,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 219121,
+              _internalId: 219141,
               type: "enum",
               enum: [
                 "png",
@@ -25163,7 +25207,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 219128,
+              _internalId: 219148,
               type: "anyOf",
               anyOf: [
                 {
@@ -25246,6 +25290,38 @@ try {
               ]
             },
             description: "The logo image."
+          },
+          {
+            name: "margin-geometry",
+            schema: {
+              object: {
+                closed: true,
+                properties: {
+                  inner: {
+                    ref: "marginalia-side-geometry",
+                    description: "Inner (left) margin geometry."
+                  },
+                  outer: {
+                    ref: "marginalia-side-geometry",
+                    description: "Outer (right) margin geometry."
+                  },
+                  clearance: {
+                    string: {
+                      description: "Minimum vertical spacing between margin notes (default: 8pt)."
+                    }
+                  }
+                }
+              }
+            },
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: {
+              short: "Advanced geometry settings for Typst margin layout.",
+              long: "Fine-grained control over marginalia package geometry. Most users should\nuse `margin` and `grid` options instead; these values are computed automatically.\n\nUser-specified values override the computed defaults.\n"
+            }
           }
         ]
       };
