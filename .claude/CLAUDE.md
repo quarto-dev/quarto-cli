@@ -288,6 +288,24 @@ LaTeX error pattern maintenance is documented in [dev-docs/tinytex-pattern-maint
 
 See CONTRIBUTING.md for pull request guidelines. Significant changes require a signed contributor agreement (individual or corporate).
 
+## Maintaining Memory Files
+
+This project uses Claude Code memory files for AI-assisted development. When updating memory files:
+
+- **Add new feature area?** Create `.claude/rules/<feature>/feature-name.md` with `paths:` frontmatter
+- **Update existing feature?** Edit the relevant rule file or subfolder CLAUDE.md
+- **Deep dive doc needed?** Place it in `llm-docs/` and reference from rules
+
+**Memory file types:**
+
+| Location | When Loaded | Use For |
+|----------|-------------|---------|
+| `.claude/CLAUDE.md` | Always | Project overview, essential commands |
+| `.claude/rules/<feature>/` | When paths match | Feature-specific conventions |
+| `<subfolder>/CLAUDE.md` | When reading files in folder | Deep documentation for that area |
+
+**Personal overrides:** Create `CLAUDE.local.md` (gitignored) for personal preferences like preferred shell syntax or workflow customizations. This file is loaded alongside the project CLAUDE.md but won't be committed.
+
 ## Additional Resources
 
 - **LLM Documentation**: `llm-docs/` contains AI-specific guidance for working with the codebase
