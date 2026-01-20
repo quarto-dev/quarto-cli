@@ -69,6 +69,7 @@ All changes included in 1.9:
 ### `revealjs`
 
 - ([#13722](https://github.com/quarto-dev/quarto-cli/issues/13722)): Fix `light-content` / `dark-content` SCSS rules not included in Reveal.js format. (author: @mcanouil)
+- ([#7378](https://github.com/quarto-dev/quarto-cli/issues/7378)): Add `code-line-fragment-indices` attribute to control fragment order when using stepped code line highlighting. (author: @mcanouil)
 
 ## Projects
 

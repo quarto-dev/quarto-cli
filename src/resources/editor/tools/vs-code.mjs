@@ -7454,6 +7454,22 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          name: "code-line-fragment-indices",
+          tags: {
+            contexts: [
+              "document-code"
+            ],
+            formats: [
+              "revealjs"
+            ]
+          },
+          schema: "string",
+          description: {
+            short: "Custom fragment indices for code line highlighting steps (Reveal.js only)",
+            long: 'Custom fragment indices for code line highlighting steps (Reveal.js only).\n\nWhen using `code-line-numbers` with animation steps (separated by `|`),\nyou can control the fragment index of each step using this attribute.\nProvide a comma-separated list of integers, one for each highlighting step.\n\nFor example, with `code-line-numbers="|2|3"` (3 steps), you could use\n`code-line-fragment-indices="1,2,4"` to make:\n\n* The first step appear at fragment-index 1.\n* The second step appear at fragment-index 2.\n* The third step appear at fragment-index 4.\n\nThis allows interleaving code highlighting with other fragments on the slide.\n\nThe number of fragment indices must match the number of highlighting steps.\nIf they do not match, the attribute is ignored and default sequential\nindexing is used.\n'
+          }
+        },
+        {
           name: "lst-label",
           schema: "string",
           description: "Unique label for code listing (used in cross references)"
@@ -22892,6 +22908,10 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Include line numbers in code block output (<code>true</code> or\n<code>false</code>)",
           long: "Include line numbers in code block output (<code>true</code> or\n<code>false</code>).\nFor revealjs output only, you can also specify a string to highlight\nspecific lines (and/or animate between sets of highlighted lines)."
         },
+        {
+          short: "Custom fragment indices for code line highlighting steps (Reveal.js\nonly)",
+          long: 'Custom fragment indices for code line highlighting steps (Reveal.js\nonly).\nWhen using <code>code-line-numbers</code> with animation steps\n(separated by <code>|</code>), you can control the fragment index of\neach step using this attribute. Provide a comma-separated list of\nintegers, one for each highlighting step.\nFor example, with <code>code-line-numbers="|2|3"</code> (3 steps),\nyou could use <code>code-line-fragment-indices="1,2,4"</code> to\nmake:'
+        },
         "Unique label for code listing (used in cross references)",
         "Caption for code listing",
         "Whether to reformat R code.",
@@ -23771,6 +23791,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings.",
           long: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings, and level 3 headings become level 2 headings. Headings\ncannot have a level less than 1, so a heading that would be shifted\nbelow level 1 becomes a regular paragraph. Exception: with a shift of\n-N, a level-N heading at the beginning of the document replaces the\nmetadata title."
+        },
+        {
+          short: "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
+          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
         },
         {
           short: "Sets the page numbering style and location for the document.",
@@ -24903,11 +24927,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        {
-          short: "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
-          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
-        }
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
       ],
       "schema/external-schemas.yml": [
         {
@@ -25136,12 +25156,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 218561,
+        _internalId: 219291,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 218553,
+            _internalId: 219283,
             type: "enum",
             enum: [
               "png",
@@ -25157,7 +25177,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 218560,
+            _internalId: 219290,
             type: "anyOf",
             anyOf: [
               {

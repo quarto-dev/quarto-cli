@@ -315,6 +315,8 @@
       doc: Show line numbers for code block
     - value: 'code-line-numbers="false"'
       doc: Do not show line numbers for code block
+    - value: 'code-line-fragment-indices="$0"'
+      doc: Custom fragment indices for code line highlighting steps (revealjs only)
     - value: 'shortcodes="false"'
       doc: Do not process shortcodes in this code block
 
