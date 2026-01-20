@@ -1641,6 +1641,12 @@ export type BrandDefaultsBootstrap = {
   defaults?: { [key: string]: string | boolean | number };
 };
 
+export type MarginaliaSideGeometry = {
+  far?: string /* Distance from page edge to wideblock boundary. */;
+  separation?: string /* Gap between margin column and body text. */;
+  width?: string; /* Width of the margin note column. */
+};
+
 export type ProjectConfig = {
   "execute-dir"?:
     | "file"
