@@ -1,0 +1,16 @@
+---
+title: Extension Font Paths Test
+format: test-fonts-typst
+_quarto:
+  tests:
+    typst:
+      printsMessage:
+        level: INFO
+        regex: 'warning: unknown font family'
+        negate: true
+---
+
+```{=typst}
+#set text(font: "Amaranth")
+Testing font from extension with relative font-paths.
+```

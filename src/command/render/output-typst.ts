@@ -4,7 +4,13 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, join, normalize, relative } from "../../deno_ral/path.ts";
+import {
+  dirname,
+  isAbsolute,
+  join,
+  normalize,
+  relative,
+} from "../../deno_ral/path.ts";
 import { ensureDirSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 
 import {
@@ -63,9 +69,26 @@ export function typstPdfOutputRecipe(
     // run typst
     await validateRequiredTypstVersion();
     const pdfOutput = join(inputDir, inputStem + ".pdf");
+    // Resolve extension font paths to absolute paths since typst compile runs
+    // from the project root, not the input file's directory. Extension paths
+    // (containing _extensions or starting with ..) need resolution relative to
+    // inputDir, while other paths (like .quarto/font-cache) should remain
+    // relative to the working directory.
+    const fontPaths = asArray(format.metadata?.[kFontPaths]).map((p) => {
+      const fontPath = p as string;
+      if (isAbsolute(fontPath)) {
+        return fontPath;
+      }
+      // Extension-resolved paths need to be resolved relative to input file
+      if (fontPath.includes("_extensions") || fontPath.startsWith("..")) {
+        return join(inputDir, fontPath);
+      }
+      // Other relative paths (like .quarto/...) stay relative to working dir
+      return fontPath;
+    });
     const typstOptions: TypstCompileOptions = {
       quiet: options.flags?.quiet,
-      fontPaths: asArray(format.metadata?.[kFontPaths]) as string[],
+      fontPaths,
     };
     if (project?.dir) {
       typstOptions.rootDir = project.dir;
