@@ -1,0 +1,16 @@
+---
+title: "External Links Test - Default"
+listing:
+  id: external-listing
+  contents:
+    - path: https://example.com/external-article
+      title: "External Article"
+      description: "An external article that should open in new window."
+    - path: local-post.qmd
+      title: "Local Post"
+      description: "A local post that should NOT open in new window."
+  type: default
+---
+
+::: {#external-listing}
+:::
