@@ -82,6 +82,7 @@ All changes included in 1.9:
 - ([#13570](https://github.com/quarto-dev/quarto-cli/pull/13570)): Replace Twitter with Bluesky in default blog template and documentation examples. New blog projects now include Bluesky social links instead of Twitter.
 - ([#13716](https://github.com/quarto-dev/quarto-cli/issues/13716)): Fix draft pages showing blank during preview when pre-render scripts are configured.
 - ([#13847](https://github.com/quarto-dev/quarto-cli/pull/13847)): Open graph title with markdown is now processed correctly. (author: @mcanouil)
+- ([#13910](https://github.com/quarto-dev/quarto-cli/issues/13910)): Add support for `logo: false` to disable sidebar and navbar logos when using `_brand.yml`. Works in website projects (`sidebar.logo: false`, `navbar.logo: false`) and book projects (`book.sidebar.logo: false`, `book.navbar.logo: false`).
 
 ### `book`
 

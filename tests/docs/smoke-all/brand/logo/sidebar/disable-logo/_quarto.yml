@@ -1,0 +1,17 @@
+project:
+  type: website
+
+website:
+  sidebar:
+    style: "docked"
+    search: true
+    logo: false
+    contents:
+      - index.qmd
+      - conclusion.qmd
+
+format:
+  html:
+    theme:
+      light: [cosmo, brand]
+      dark: [darkly, brand]

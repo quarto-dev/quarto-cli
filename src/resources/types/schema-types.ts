@@ -1327,10 +1327,10 @@ export type LogoOptionsPathOptional = { alt?: string; path?: string };
 
 export type LogoSpecifierPathOptional = string | LogoOptionsPathOptional;
 
-export type LogoLightDarkSpecifier = LogoSpecifier | {
+export type LogoLightDarkSpecifier = false | LogoSpecifier | {
   dark?: LogoSpecifier;
   light?: LogoSpecifier;
-}; /* Any of the ways a logo can be specified: string, object, or light/dark object of string or object */
+}; /* Any of the ways a logo can be specified: string, object, or light/dark object of string or object. Use `false` to explicitly disable the logo. */
 
 export type LogoLightDarkSpecifierPathOptional = LogoSpecifierPathOptional | {
   dark?: LogoSpecifierPathOptional;
