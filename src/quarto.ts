@@ -4,6 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+// Must be FIRST to save original Deno.realPathSync before monkey-patching
+import "./deno_ral/original-real-path.ts";
 import "./core/deno/monkey-patch.ts";
 
 import {
