@@ -6,6 +6,7 @@
 
 import { basename, join, relative } from "../../../deno_ral/path.ts";
 import { existsSync } from "../../../deno_ral/fs.ts";
+import { pathWithForwardSlashes } from "../../../core/path.ts";
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 import { execProcess } from "../../../core/process.ts";
@@ -244,7 +245,7 @@ export async function updateLlmsTxt(
       const title = (file.format.metadata?.title as string) ||
         basename(file.file, ".html");
       llmsFiles.push({
-        path: relative(outputDir, llmsPath),
+        path: pathWithForwardSlashes(relative(outputDir, llmsPath)),
         title,
       });
     }
