@@ -363,6 +363,8 @@ export type BaseWebsite = {
   > /* Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`) */;
   "reader-mode"?:
     boolean /* Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page. */;
+  "llms-txt"?:
+    boolean /* Generate llms.txt and .llms.md files for LLM-friendly content consumption. */;
   "google-analytics"?: string | {
     "tracking-id"?: string;
     "anonymize-ip"?: boolean;

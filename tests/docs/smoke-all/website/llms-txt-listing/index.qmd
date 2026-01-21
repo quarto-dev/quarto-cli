@@ -1,0 +1,24 @@
+---
+title: "Listing Test Site"
+listing:
+  contents: posts
+  type: default
+_quarto:
+  tests:
+    html:
+      ensureLlmsMdExists: true
+      ensureLlmsTxtExists: true
+      ensureLlmsMdRegexMatches:
+        # Listing page should have post title as link
+        - ['\\[Welcome Post\\]']
+      ensureLlmsMdRegexNoMatches:
+        # No empty links from listing UI elements
+        - ['\\[\\]\\(']
+      ensureLlmsTxtRegexMatches:
+        # Both index and post should be in llms.txt
+        - ['\\[Listing Test Site\\]']
+        - ['\\[Welcome Post\\]']
+        - ['posts/welcome/index\\.llms\\.md']
+---
+
+Welcome to the listing test site.

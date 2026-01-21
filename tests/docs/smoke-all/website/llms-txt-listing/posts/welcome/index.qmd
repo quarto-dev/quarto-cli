@@ -1,0 +1,13 @@
+---
+title: "Welcome Post"
+date: "2026-01-01"
+_quarto:
+  tests:
+    html:
+      ensureLlmsMdExists: true
+      ensureLlmsMdRegexMatches:
+        - ["^# Welcome Post"]
+        - ["This is a test blog post"]
+---
+
+This is a test blog post for the listing feature.

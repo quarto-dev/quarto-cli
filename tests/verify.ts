@@ -584,6 +584,75 @@ export const ensureFileRegexMatches = (
   return(verifyFileRegexMatches(regexChecker)(file, matchesUntyped, noMatchesUntyped));
 };
 
+// Verify the .llms.md companion file for an HTML output.
+// Used when testing websites with llms-txt: true enabled.
+export const ensureLlmsMdRegexMatches = (
+  htmlFile: string,
+  matchesUntyped: (string | RegExp)[],
+  noMatchesUntyped?: (string | RegExp)[],
+): Verify => {
+  const llmsFile = htmlFile.replace(/\.html$/, ".llms.md");
+  return verifyFileRegexMatches(regexChecker, `Inspecting ${llmsFile} for Regex matches`)(llmsFile, matchesUntyped, noMatchesUntyped);
+};
+
+// Verify the .llms.md companion file exists for an HTML output.
+export const ensureLlmsMdExists = (htmlFile: string): Verify => {
+  const llmsFile = htmlFile.replace(/\.html$/, ".llms.md");
+  return {
+    name: `File ${llmsFile} exists`,
+    verify: (_output: ExecuteOutput[]) => {
+      verifyPath(llmsFile);
+      return Promise.resolve();
+    },
+  };
+};
+
+// Verify the .llms.md companion file does NOT exist for an HTML output.
+export const ensureLlmsMdDoesNotExist = (htmlFile: string): Verify => {
+  const llmsFile = htmlFile.replace(/\.html$/, ".llms.md");
+  return {
+    name: `File ${llmsFile} does not exist`,
+    verify: (_output: ExecuteOutput[]) => {
+      verifyNoPath(llmsFile);
+      return Promise.resolve();
+    },
+  };
+};
+
+// Verify the llms.txt index file in a website output directory.
+export const ensureLlmsTxtRegexMatches = (
+  outputDir: string,
+  matchesUntyped: (string | RegExp)[],
+  noMatchesUntyped?: (string | RegExp)[],
+): Verify => {
+  const llmsTxtPath = join(outputDir, "llms.txt");
+  return verifyFileRegexMatches(regexChecker, `Inspecting ${llmsTxtPath} for Regex matches`)(llmsTxtPath, matchesUntyped, noMatchesUntyped);
+};
+
+// Verify the llms.txt file exists in a website output directory.
+export const ensureLlmsTxtExists = (outputDir: string): Verify => {
+  const llmsTxtPath = join(outputDir, "llms.txt");
+  return {
+    name: `File ${llmsTxtPath} exists`,
+    verify: (_output: ExecuteOutput[]) => {
+      verifyPath(llmsTxtPath);
+      return Promise.resolve();
+    },
+  };
+};
+
+// Verify the llms.txt file does NOT exist in a website output directory.
+export const ensureLlmsTxtDoesNotExist = (outputDir: string): Verify => {
+  const llmsTxtPath = join(outputDir, "llms.txt");
+  return {
+    name: `File ${llmsTxtPath} does not exist`,
+    verify: (_output: ExecuteOutput[]) => {
+      verifyNoPath(llmsTxtPath);
+      return Promise.resolve();
+    },
+  };
+};
+
 // Use this function to Regex match text in the intermediate kept file
 // FIXME: do this properly without resorting on file having keep-*
 // Note: keep-typ/keep-tex places files alongside source, not in output dir

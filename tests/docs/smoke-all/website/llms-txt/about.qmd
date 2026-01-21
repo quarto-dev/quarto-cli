@@ -1,0 +1,57 @@
+---
+title: "About"
+_quarto:
+  tests:
+    html:
+      ensureLlmsMdExists: true
+      ensureLlmsMdRegexMatches:
+        # Title preserved
+        - ["^# About"]
+        # Callouts converted to blockquotes with bold markers
+        - ["> \\*\\*NOTE:\\*\\*"]
+        - ["> \\*\\*WARNING:\\*\\*"]
+        - ["This is a note"]
+        # Code blocks preserved with language
+        - ["```python"]
+        - ["def hello"]
+        # Tables in GFM pipe format
+        - ["\\| Feature"]
+        - ["\\|[-]+\\|"]
+        # Links converted to .llms.md
+        - ['\\[home page\\]\\(.*\\.llms\\.md\\)']
+      ensureLlmsMdRegexNoMatches:
+        # No .html links in llms.md
+        - ['\\.html\\)']
+---
+
+About this test site.
+
+## Callout Examples
+
+::: {.callout-note}
+This is a note about the llms-txt feature.
+:::
+
+::: {.callout-warning}
+Be careful with this setting!
+:::
+
+## Code Example
+
+```{python}
+#| eval: false
+def hello():
+    print("Hello, world!")
+```
+
+## Table Example
+
+| Feature | Status |
+|---------|--------|
+| Callouts | Working |
+| Code | Working |
+| Tables | Working |
+
+## Link Example
+
+Go back to the [home page](index.qmd).

@@ -1,0 +1,16 @@
+---
+title: "llms-txt Test Site"
+_quarto:
+  tests:
+    html:
+      ensureLlmsMdExists: true
+      ensureLlmsTxtExists: true
+      ensureLlmsTxtRegexMatches:
+        - ["^# llms-txt Test Site"]
+        - ["^## Pages"]
+        - ['\\[.*\\]\\(.*\\.llms\\.md\\)']
+---
+
+This is a test website for the llms-txt feature.
+
+See the [about page](about.qmd) for more information.

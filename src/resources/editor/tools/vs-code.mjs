@@ -9406,6 +9406,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page.\n"
                 }
               },
+              "llms-txt": {
+                boolean: {
+                  description: "Generate llms.txt and .llms.md files for LLM-friendly content consumption.\n"
+                }
+              },
               "google-analytics": {
                 anyOf: [
                   "string",
@@ -22845,6 +22850,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline (unified) brand definition, or an object with light\nand dark brand paths or definitions.",
         "The path to a light brand file or an inline light brand\ndefinition.",
         "The path to a dark brand file or an inline dark brand definition.",
+        "Distance from page edge to wideblock boundary.",
+        "Width of the margin note column.",
+        "Gap between margin column and body text.",
         {
           short: "Unique label for code cell",
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -23646,14 +23654,14 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Target body page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt (8.5 inches with 1 inch for\neach margins)."
         },
         {
-          short: "Properties of the grid system used to layout Quarto HTML pages.",
+          short: "Properties of the grid system used to layout Quarto HTML and Typst\npages.",
           long: ""
         },
         "Defines whether to use the standard, slim, or full content grid or to\nautomatically select the most appropriate content grid.",
         "The base width of the sidebar (left) column in an HTML page.",
-        "The base width of the margin (right) column in an HTML page.",
-        "The base width of the body (center) column in an HTML page.",
-        "The width of the gutter that appears between columns in an HTML\npage.",
+        "The base width of the margin (right) column. For Typst, this controls\nthe width of the margin note column.",
+        "The base width of the body (center) column. For Typst, this is\ncomputed as the remainder after other columns.",
+        "The width of the gutter that appears between columns. For Typst, this\nis the gap between the text column and margin notes.",
         {
           short: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>)",
           long: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the appendix, choose the\nappendix style <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
@@ -24595,6 +24603,13 @@ var require_yaml_intelligence_resources = __commonJS({
         "When defined, run axe-core accessibility tests on the document.",
         "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
         "The logo image.",
+        {
+          short: "Advanced geometry settings for Typst margin layout.",
+          long: "Fine-grained control over marginalia package geometry. Most users\nshould use <code>margin</code> and <code>grid</code> options instead;\nthese values are computed automatically.\nUser-specified values override the computed defaults."
+        },
+        "Inner (left) margin geometry.",
+        "Outer (right) margin geometry.",
+        "Minimum vertical spacing between margin notes (default: 8pt).",
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -24946,17 +24961,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        "Distance from page edge to wideblock boundary.",
-        "Width of the margin note column.",
-        "Gap between margin column and body text.",
-        {
-          short: "Advanced geometry settings for Typst margin layout.",
-          long: "Fine-grained control over marginalia package geometry. Most users\nshould use <code>margin</code> and <code>grid</code> options instead;\nthese values are computed automatically.\nUser-specified values override the computed defaults."
-        },
-        "Inner (left) margin geometry.",
-        "Outer (right) margin geometry.",
-        "Minimum vertical spacing between margin notes (default: 8pt)."
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
       ],
       "schema/external-schemas.yml": [
         {
@@ -25185,12 +25190,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 219149,
+        _internalId: 219972,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 219141,
+            _internalId: 219964,
             type: "enum",
             enum: [
               "png",
@@ -25206,7 +25211,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 219148,
+            _internalId: 219971,
             type: "anyOf",
             anyOf: [
               {

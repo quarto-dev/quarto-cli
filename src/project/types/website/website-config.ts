@@ -77,6 +77,7 @@ type WebsiteConfigKey =
   | "other-links"
   | "code-links"
   | "reader-mode"
+  | "llms-txt"
   | "announcement"
   | "draft-mode"
   | "drafts";

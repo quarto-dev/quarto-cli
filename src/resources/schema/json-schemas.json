@@ -797,6 +797,9 @@
           "reader-mode": {
             "type": "boolean"
           },
+          "llms-txt": {
+            "type": "boolean"
+          },
           "google-analytics": {
             "anyOf": [
               {
