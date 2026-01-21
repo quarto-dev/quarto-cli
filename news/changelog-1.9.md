@@ -52,6 +52,7 @@ All changes included in 1.9:
   - Two-column layout now uses `set page(columns:)` instead of `columns()` function, fixing compatibility with landscape sections.
   - Title block now properly spans both columns in multi-column layouts.
 - ([#13870](https://github.com/quarto-dev/quarto-cli/issues/13870)): Add support for `alt` attribute on cross-referenced equations for improved accessibility. (author: @mcanouil)
+- ([#13917](https://github.com/quarto-dev/quarto-cli/issues/13917)): Fix resource path resolution for Typst format extensions when document is in a project subdirectory. Extension-resolved paths are now correctly detected and not double-prefixed with the project offset.
 
 ### `pdf`
 

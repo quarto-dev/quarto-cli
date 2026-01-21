@@ -1,0 +1,14 @@
+---
+title: "Extension Logo Test"
+format: issue-typst
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'image\("\.\./(_extensions|_extensions)(/|\\\\)issue(/|\\\\)quarto-icon\.svg"'
+        -
+          - 'image\("\.\./\.\./(_extensions|_extensions)'
+---
+
+This is a test document that uses a Typst format extension with a logo.
