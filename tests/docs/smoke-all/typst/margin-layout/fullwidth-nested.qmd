@@ -1,0 +1,53 @@
+---
+title: "Nested Full Width Content Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#wideblock\(']
+        - []
+      ensurePdfRegexMatches:
+        - ['OUTER-CONTENT', 'INNER-CONTENT', 'Figure 1']
+        - []
+      noErrors: default
+---
+
+## Nested Full Width Elements
+
+This tests nesting scenarios with full-width content.
+
+### Figure Inside Full-Width Div
+
+::: {.column-page}
+OUTER-CONTENT: This is the outer full-width div.
+
+![INNER-CONTENT: A figure nested inside the full-width div](test-image.png){#fig-nested width=80%}
+
+Text after the nested figure, still inside the full-width div.
+:::
+
+Reference to @fig-nested.
+
+### List Inside Full-Width Div
+
+::: {.column-page-right}
+A full-width div containing a list:
+
+- First item in wide div
+- Second item in wide div
+- Third item in wide div
+
+And a code block:
+
+```python
+def nested_code():
+    return "inside fullwidth"
+```
+:::
+
+Regular text after.

@@ -1,0 +1,52 @@
+---
+title: "Margin Table with flextable"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Cell option produces #notefigure (entire figure in margin)
+        # Note: flextable renders as PNG image, not native Typst table
+        - ['#notefigure\(', 'kind: "quarto-float-tbl"']
+        - []
+      ensurePdfRegexMatches:
+        # Caption text should appear (flextable content is image)
+        - ['Table 1', 'Motor Trend Cars']
+        - []
+      ensurePdfTextPositions:
+        - # Table caption in margin, right of body text
+          # Note: flextable content is image, so only caption text is testable
+          - subject: "Motor Trend Cars"
+            relation: rightOf
+            object: "This tests"
+        - []
+      noErrors: default
+---
+
+This tests a flextable placed in the margin using `#| column: margin`.
+
+```{r}
+#| column: margin
+#| classes: plain
+#| echo: false
+#| label: tbl-cars-flex
+#| tbl-cap: "Motor Trend Cars"
+
+library(flextable)
+
+mtcars_mini <- head(mtcars[, 1:4], 8)
+mtcars_mini$car <- rownames(mtcars_mini)
+mtcars_mini <- mtcars_mini[, c("car", "mpg", "cyl", "disp")]
+
+flextable(mtcars_mini) |>
+  set_header_labels(car = "Car", mpg = "MPG", cyl = "Cyl", disp = "Disp") |>
+  autofit()
+```
+
+See @tbl-cars-flex for the table in the margin.
+
+More text in the main column to show the layout.

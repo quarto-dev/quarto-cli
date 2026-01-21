@@ -1,0 +1,37 @@
+---
+title: "Shift Avoid Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['shift: "avoid"']
+        - []
+      ensurePdfTextPositions:
+        - # All notes in margin, right of body text
+          - subject: "FIXED"
+            relation: rightOf
+            object: "Line with fixed"
+          - subject: "AVOID1"
+            relation: rightOf
+            object: "Line with avoid"
+          # Vertical ordering: FIXED above AVOID1 above AVOID2
+          - subject: "FIXED"
+            relation: above
+            object: "AVOID1"
+          - subject: "AVOID1"
+            relation: above
+            object: "AVOID2"
+        - []
+      noErrors: default
+---
+
+This tests `shift: "avoid"` - notes only shift when hitting fixed elements.
+
+Line with fixed note [FIXED: anchor point]{.column-margin shift="false"}.
+Line with avoid note [AVOID1: I only shift if I hit something fixed]{.column-margin shift="avoid"}.
+Line with another avoid [AVOID2: same behavior]{.column-margin shift="avoid"}.

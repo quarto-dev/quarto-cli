@@ -51,6 +51,7 @@ All changes included in 1.9:
   - PDF accessibility metadata: document title, author, and keywords are now set for PDF readers.
   - Two-column layout now uses `set page(columns:)` instead of `columns()` function, fixing compatibility with landscape sections.
   - Title block now properly spans both columns in multi-column layouts.
+- ([#13870](https://github.com/quarto-dev/quarto-cli/issues/13870)): Add support for `alt` attribute on cross-referenced equations for improved accessibility. (author: @mcanouil)
 
 ### `pdf`
 
@@ -59,6 +60,7 @@ All changes included in 1.9:
 - ([rstudio/tinytex-releases#49](https://github.com/rstudio/tinytex-releases/issues/49)): Fix detection of LuaTeX-ja missing file errors by matching both "File" and "file" in error messages.
 - ([#13667](https://github.com/quarto-dev/quarto-cli/issues/13667)): Fix LaTeX compilation error with Python error output containing caret characters.
 - ([#13730](https://github.com/quarto-dev/quarto-cli/issues/13730)): Fix TinyTeX detection when `~/.TinyTeX/` directory exists without binaries. Quarto now verifies that the bin directory and tlmgr binary exist before reporting TinyTeX as available, allowing proper fallback to system PATH installations.
+- ([#13919](https://github.com/quarto-dev/quarto-cli/issues/13919)): Fix margin citations with citeproc showing unresolved `?quarto-cite:` placeholders in PDF output. Caused by Pandoc 3.6+ adding `\protect` before `\phantomsection` in bibliography anchors.
 - ([#13249](https://github.com/quarto-dev/quarto-cli/pull/13249)): Update to Pandoc's LaTeX template following Pandoc 3.8.3 support:
   - New RTL support for LuaTeX with `\RL`, `\LR` commands and `RTL`, `LTR` environments.
   - New `shorthands` variable for Babel language shortcuts control.
@@ -71,6 +73,8 @@ All changes included in 1.9:
 
 ## Projects
 
+- ([#13892](https://github.com/quarto-dev/quarto-cli/issues/13892)): Fix `output-dir: ./` deleting entire project directory. `output-dir` must be a subdirectory of the project directory and check is now better to avoid deleting the project itself when it revolves to the same path.
+
 ### `website`
 
 - ([#13524](https://github.com/quarto-dev/quarto-cli/issues/13524)): Add support for Plausible Analytics via `plausible-analytics` configuration option. Users can either paste their Plausible script snippet directly in YAML or provide a path to a file containing the snippet using `plausible-analytics: { path: _plausible_snippet.html }`.
@@ -79,6 +83,7 @@ All changes included in 1.9:
 - ([#13570](https://github.com/quarto-dev/quarto-cli/pull/13570)): Replace Twitter with Bluesky in default blog template and documentation examples. New blog projects now include Bluesky social links instead of Twitter.
 - ([#13716](https://github.com/quarto-dev/quarto-cli/issues/13716)): Fix draft pages showing blank during preview when pre-render scripts are configured.
 - ([#13847](https://github.com/quarto-dev/quarto-cli/pull/13847)): Open graph title with markdown is now processed correctly. (author: @mcanouil)
+- ([#13910](https://github.com/quarto-dev/quarto-cli/issues/13910)): Add support for `logo: false` to disable sidebar and navbar logos when using `_brand.yml`. Works in website projects (`sidebar.logo: false`, `navbar.logo: false`) and book projects (`book.sidebar.logo: false`, `book.navbar.logo: false`).
 
 ### `book`
 
@@ -128,4 +133,6 @@ All changes included in 1.9:
 - ([#13575](https://github.com/quarto-dev/quarto-cli/pull/13575)): Improve CPU architecture detection/reporting in macOS to allow quarto to run in virtualized environments such as OpenAI's `codex`.
 - ([#13656](https://github.com/quarto-dev/quarto-cli/issues/13656)): Fix R code cells with empty `lang: ""` option producing invalid markdown class attributes.
 - ([#13832](https://github.com/quarto-dev/quarto-cli/pull/13832)): Fix `license.text` metadata not being accessible when using an inline license (`license: "text"`), and populate it with the license name for CC licenses instead of empty string. (author: @mcanouil)
+- ([#13856](https://github.com/quarto-dev/quarto-cli/issues/13856)): Add code annotation support for Typst and Observable.js code blocks. (author: @mcanouil)
 - ([#13890](https://github.com/quarto-dev/quarto-cli/issues/13890)): Fix render failure when using `embed-resources: true` with input path through a symlinked directory. The cleanup now resolves symlinks before comparing paths.
+- ([#13907](https://github.com/quarto-dev/quarto-cli/issues/13907)): Ignore AI assistant configuration files (`CLAUDE.md`, `AGENTS.md`) when scanning for project input files and in extension templates, similar to how `README.md` is handled.

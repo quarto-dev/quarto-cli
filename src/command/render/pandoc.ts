@@ -66,6 +66,7 @@ import {
   projectIsWebsite,
 } from "../../project/project-shared.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
+import { migrateProjectScratchPath } from "../../project/project-scratch.ts";
 
 import {
   getPandocArg,
@@ -1586,7 +1587,11 @@ async function resolveExtras(
       }
     }
     if (ttf_urls.length || woff_urls.length) {
-      const font_cache = join(brand!.projectDir, ".quarto", "typst-font-cache");
+      const font_cache = migrateProjectScratchPath(
+        brand!.projectDir,
+        "typst-font-cache",
+        "typst/fonts",
+      );
       const url_to_path = (url: string) => url.replace(/^https?:\/\//, "");
       const cached = async (url: string) => {
         const path = url_to_path(url);

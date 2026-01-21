@@ -3360,6 +3360,11 @@
     "LogoLightDarkSpecifier": {
       "anyOf": [
         {
+          "enum": [
+            false
+          ]
+        },
+        {
           "$ref": "#/$defs/LogoSpecifier"
         },
         {
@@ -4240,6 +4245,21 @@
             "object": {
               "properties": {}
             }
+          }
+        }
+      }
+    },
+    "MarginaliaSideGeometry": {
+      "object": {
+        "properties": {
+          "far": {
+            "type": "string"
+          },
+          "width": {
+            "type": "string"
+          },
+          "separation": {
+            "type": "string"
           }
         }
       }

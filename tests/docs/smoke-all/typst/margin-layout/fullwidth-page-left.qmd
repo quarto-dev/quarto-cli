@@ -1,0 +1,33 @@
+---
+title: "Column Page Left Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # column-page-left should map to wideblock with inner side
+        - ['#wideblock\(side: "inner"\)']
+        - []
+      ensurePdfRegexMatches:
+        - ['PAGE-LEFT-CONTENT', 'extends into']
+        - []
+      noErrors: default
+---
+
+## Column Page Left
+
+This tests the `.column-page-left` class which extends content into the left (inner) margin.
+
+::: {.column-page-left}
+PAGE-LEFT-CONTENT: This content extends into the left margin while keeping the right edge aligned with the text column. This is useful for content that benefits from extra space on the left side.
+:::
+
+Regular text continues here in the normal column width.
+
+[This aside stays in the right margin]{.aside}
+
+More regular text to show the contrast between page-left and normal content.

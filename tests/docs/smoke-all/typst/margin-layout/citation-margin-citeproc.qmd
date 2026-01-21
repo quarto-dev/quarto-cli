@@ -1,0 +1,36 @@
+---
+title: "Margin Citation with Citeproc Enabled"
+papersize: us-letter
+citation-location: margin
+bibliography: borges-refs.bib
+citeproc: true
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # With citeproc, margin notes contain pre-rendered bibliography text (not #cite calls)
+        - ['#note\(', 'Borges.*1941', 'Bifurcan']
+        - ['#cite\(<[^>]+>, form: "full"\)']  # Should NOT have native Typst cite calls
+      ensurePdfRegexMatches:
+        - ['CITEPROC-MARKER', 'Borges', 'Babel']
+        - []
+      ensurePdfTextPositions:
+        - # Citation in margin - "Bifurcan" is unique to borges1941library booktitle (citeproc uses title case)
+          - subject: "Bifurcan"
+            relation: rightOf
+            object: "CITEPROC-MARKER"
+        - []
+      noErrors: default
+---
+
+# Testing Citeproc Mode with Margin Citations
+
+CITEPROC-MARKER: With `citeproc: true`, Pandoc handles citation processing instead of Typst's native system [@borges1941library].
+
+This affects how citations are rendered [@borges1944ficciones].
+
+Multiple works can be cited together [@eco1980name; @calvino1979winter].

@@ -1,0 +1,38 @@
+---
+title: "A4 Paper Size Test"
+papersize: a4
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Should have marginalia setup with A4 geometry
+        - ['marginalia.setup', 'paper: "a4"']
+        - []
+      ensurePdfRegexMatches:
+        - ['A4-PAPER-TEST', 'MARGIN-A4']
+        - []
+      ensurePdfTextPositions:
+        - - subject: "MARGIN-A4"
+            relation: rightOf
+            object: "A4-PAPER-TEST"
+        - []
+      noErrors: default
+---
+
+## Testing A4 Paper Size
+
+A4-PAPER-TEST: This tests margin layout on A4 paper (210mm × 297mm), which is narrower but taller than US Letter.
+
+[MARGIN-A4: This note should appear in the margin with geometry computed for A4 dimensions.]{.column-margin}
+
+A4 is the international standard paper size used in most countries outside North America. The margin calculations should adapt to the different page width.
+
+More text to demonstrate the layout on A4 paper. The text column and margin widths should be proportionally adjusted for the narrower page.
+
+[Another margin note to test stacking on A4.]{.column-margin}
+
+Additional content in the main column.

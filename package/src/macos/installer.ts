@@ -107,6 +107,16 @@ export async function makeInstallerMac(config: Configuration) {
       signWithEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "pandoc"));
       signWithEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "typst"));
 
+      const typstGatherPath = join(
+        config.directoryInfo.pkgWorking.bin,
+        "tools",
+        arch,
+        "typst-gather",
+      );
+      if (existsSync(typstGatherPath)) {
+        signWithEntitlements.push(typstGatherPath);
+      }
+
       const denoDomPath = join(
         config.directoryInfo.pkgWorking.bin,
         "tools",

@@ -1,0 +1,28 @@
+---
+title: "Typst Margin Geometry Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['inner:', 'outer:', 'sep:.*in', 'width:.*in']
+        - []
+      ensurePdfTextPositions:
+        - # Margin content is in margin (rightOf body text)
+          - subject: "Margin content"
+            relation: rightOf
+            object: "Text in main column"
+        - []
+      noErrors: default
+---
+
+::: {.column-margin}
+Margin content with letter paper size.
+:::
+
+Text in main column. The page geometry should be automatically calculated
+based on the paper size (letter = 8.5in width).

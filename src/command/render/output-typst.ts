@@ -5,7 +5,18 @@
  */
 
 import { dirname, join, normalize, relative } from "../../deno_ral/path.ts";
-import { ensureDirSync, safeRemoveSync } from "../../deno_ral/fs.ts";
+import {
+  copySync,
+  ensureDirSync,
+  existsSync,
+  safeRemoveSync,
+} from "../../deno_ral/fs.ts";
+import {
+  inputExtensionDirs,
+  readExtensions,
+} from "../../extension/extension.ts";
+import { projectScratchPath } from "../../project/project-scratch.ts";
+import { resourcePath } from "../../core/resources.ts";
 
 import {
   kFontPaths,
@@ -27,6 +38,66 @@ import {
 } from "../../core/typst.ts";
 import { asArray } from "../../core/array.ts";
 import { ProjectContext } from "../../project/types.ts";
+
+// Stage typst packages to .quarto/typst-packages/
+// First stages built-in packages, then extension packages (which can override)
+async function stageTypstPackages(
+  input: string,
+  projectDir?: string,
+): Promise<string | undefined> {
+  if (!projectDir) {
+    return undefined;
+  }
+
+  const packageSources: string[] = [];
+
+  // 1. Add built-in packages from quarto resources
+  const builtinPackages = resourcePath("formats/typst/packages");
+  if (existsSync(builtinPackages)) {
+    packageSources.push(builtinPackages);
+  }
+
+  // 2. Add packages from extensions (can override built-in)
+  const extensionDirs = inputExtensionDirs(input, projectDir);
+  for (const extDir of extensionDirs) {
+    const extensions = await readExtensions(extDir);
+    for (const ext of extensions) {
+      const packagesDir = join(ext.path, "typst/packages");
+      if (existsSync(packagesDir)) {
+        packageSources.push(packagesDir);
+      }
+    }
+  }
+
+  if (packageSources.length === 0) {
+    return undefined;
+  }
+
+  // Stage to .quarto/typst/packages/
+  const cacheDir = projectScratchPath(projectDir, "typst/packages");
+
+  // Copy contents of each source directory (merging namespaces like "preview", "local")
+  for (const source of packageSources) {
+    for (const entry of Deno.readDirSync(source)) {
+      const srcPath = join(source, entry.name);
+      const destPath = join(cacheDir, entry.name);
+      if (!existsSync(destPath)) {
+        copySync(srcPath, destPath);
+      } else if (entry.isDirectory) {
+        // Merge directory contents (e.g., merge packages within "preview" namespace)
+        for (const subEntry of Deno.readDirSync(srcPath)) {
+          const subSrcPath = join(srcPath, subEntry.name);
+          const subDestPath = join(destPath, subEntry.name);
+          if (!existsSync(subDestPath)) {
+            copySync(subSrcPath, subDestPath);
+          }
+        }
+      }
+    }
+  }
+
+  return cacheDir;
+}
 
 export function useTypstPdfOutputRecipe(
   format: Format,
@@ -58,7 +129,7 @@ export function typstPdfOutputRecipe(
   // output to the user's requested destination
   const complete = async () => {
     // input file is pandoc's output
-    const input = join(inputDir, output);
+    const typstInput = join(inputDir, output);
 
     // run typst
     await validateRequiredTypstVersion();
@@ -69,9 +140,15 @@ export function typstPdfOutputRecipe(
     };
     if (project?.dir) {
       typstOptions.rootDir = project.dir;
+
+      // Stage extension typst packages
+      const packagePath = await stageTypstPackages(input, project.dir);
+      if (packagePath) {
+        typstOptions.packagePath = packagePath;
+      }
     }
     const result = await typstCompile(
-      input,
+      typstInput,
       pdfOutput,
       typstOptions,
     );
@@ -81,7 +158,7 @@ export function typstPdfOutputRecipe(
 
     // keep typ if requested
     if (!format.render[kKeepTyp]) {
-      safeRemoveSync(input);
+      safeRemoveSync(typstInput);
     }
 
     // copy (or write for stdout) compiled pdf to final output location
@@ -101,9 +178,9 @@ export function typstPdfOutputRecipe(
 
       // final output needs to either absolute or input dir relative
       // (however it may be working dir relative when it is passed in)
-      return normalizeOutputPath(input, finalOutput);
+      return normalizeOutputPath(typstInput, finalOutput);
     } else {
-      return normalizeOutputPath(input, pdfOutput);
+      return normalizeOutputPath(typstInput, pdfOutput);
     }
   };
 

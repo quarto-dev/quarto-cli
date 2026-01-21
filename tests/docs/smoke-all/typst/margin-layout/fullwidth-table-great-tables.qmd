@@ -1,0 +1,136 @@
+---
+title: "Full Width Table Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+    include-in-header:
+      text: |
+        #show figure: set block(breakable: true)
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#wideblock\(side: "outer"\)', '#wideblock\(side: "both"\)']
+        - []
+      ensurePdfRegexMatches:
+        - - 'Table 1'
+          - 'Table 2'
+          - 'Oceania'
+        - []
+      ensurePdfTextPositions:
+        - # Aside in margin (rightOf body text)
+          - subject: "Palau to Tuvalu"
+            relation: rightOf
+            object: "extends into the right margin"
+        - # Negative: table content NOT rightOf aside (Tonga only in first table)
+          - subject: "Tonga"
+            relation: rightOf
+            object: "Palau to Tuvalu"
+      noErrors: default
+---
+
+## Full Width Table (Page Right)
+[From Palau to Tuvalu, these island nations span thousands of miles of Pacific Ocean.]{.aside}
+
+This table extends into the right margin using great_tables with Oceania population data.
+
+```{python}
+#| classes: plain
+#| echo: false
+#| label: tbl-wide-right
+#| tbl-cap: "Oceania Population Growth (Page Right)"
+#| column: page-right
+
+from great_tables import GT
+from great_tables.data import countrypops
+import polars as pl
+import polars.selectors as cs
+
+oceania = {
+    "Australasia": ["AU", "NZ"],
+    "Melanesia": ["NC", "PG", "SB", "VU"],
+    "Micronesia": ["FM", "GU", "KI", "MH", "MP", "NR", "PW"],
+    "Polynesia": ["PF", "WS", "TO", "TV"],
+}
+
+country_to_region = {
+    country: region for region, countries in oceania.items() for country in countries
+}
+
+wide_pops = (
+    pl.from_pandas(countrypops)
+    .filter(
+        pl.col("country_code_2").is_in(list(country_to_region))
+        & pl.col("year").is_in([1960, 1980, 2000, 2020])
+    )
+    .with_columns(pl.col("country_code_2").replace(country_to_region).alias("region"))
+    .pivot(index=["country_name", "region"], on="year", values="population")
+    .sort("2020", descending=True)
+)
+
+(
+    GT(wide_pops, rowname_col="country_name", groupname_col="region")
+    .tab_header(
+        title="Populations of Oceania's Countries",
+        subtitle="Extended into right margin"
+    )
+    .tab_spanner(label="Population by Decade", columns=cs.all())
+    .fmt_integer()
+    .tab_stubhead(label="Country")
+)
+```
+
+## Full Width Table (Full Page)
+
+This table spans the full page with detailed population data and growth calculations.
+
+```{python}
+#| classes: plain
+#| echo: false
+#| label: tbl-full-page
+#| tbl-cap: "Oceania Population with Growth Rates (Full Page)"
+#| column: page
+
+from great_tables import GT
+from great_tables.data import countrypops
+import polars as pl
+import polars.selectors as cs
+
+oceania = {
+    "Australasia": ["AU", "NZ"],
+    "Melanesia": ["NC", "PG", "SB", "VU"],
+}
+
+country_to_region = {
+    country: region for region, countries in oceania.items() for country in countries
+}
+
+wide_pops = (
+    pl.from_pandas(countrypops)
+    .filter(
+        pl.col("country_code_2").is_in(list(country_to_region))
+        & pl.col("year").is_in([1960, 1970, 1980, 1990, 2000, 2010, 2020])
+    )
+    .with_columns(pl.col("country_code_2").replace(country_to_region).alias("region"))
+    .pivot(index=["country_name", "region"], on="year", values="population")
+    .sort("2020", descending=True)
+)
+
+(
+    GT(wide_pops, rowname_col="country_name", groupname_col="region")
+    .tab_header(
+        title="Populations of Oceania's Countries",
+        subtitle="Australasia and Melanesia only (seven decades)"
+    )
+    .tab_spanner(label="Population by Decade", columns=cs.all())
+    .fmt_integer()
+    .tab_stubhead(label="Country")
+    .tab_source_note(source_note="Source: World Bank Open Data")
+)
+```
+
+## Summary
+
+These examples demonstrate how Quarto's column classes translate to Typst's wide layout system for great_tables tables.

@@ -42,7 +42,7 @@
     "moment-guess": "https://cdn.skypack.dev/moment-guess@1.2.4",
     "ansi_up": "https://cdn.skypack.dev/ansi_up@v6.0.2",
     "lodash/": "npm:/lodash@4.17.21/",
-    "acorn-class-fields": "https://cdn.skypack.dev/acorn-class-fields@1.0.0",
+    "acorn-class-fields": "npm:/acorn-class-fields@1.0.0",
     "acorn/acorn": "https://cdn.skypack.dev/acorn@8.4.0",
     "acorn/walk": "https://cdn.skypack.dev/acorn-walk@8.2.0",
     "binary-search-bounds": "https://cdn.skypack.dev/binary-search-bounds@2.0.5",
@@ -56,6 +56,8 @@
     "scss-parser": "https://cdn.skypack.dev/scss-parser@1.0.6",
 
     "puppeteer": "https://deno.land/x/puppeteer@9.0.2/mod.ts",
+
+    "pdfjs-dist": "npm:pdfjs-dist@4.9.155",
 
     "https://deno.land/std@0.196.0/console/unicode_width.ts": "https://deno.land/std@0.224.0/console/unicode_width.ts",
     "https://deno.land/std@0.161.0/": "https://deno.land/std@0.217.0/",

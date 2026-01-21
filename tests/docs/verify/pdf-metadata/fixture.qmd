@@ -1,0 +1,17 @@
+---
+title: "PDF Metadata Test Fixture"
+author: "Test Author Name"
+subject: "Testing PDF Metadata Extraction"
+keywords:
+  - quarto
+  - typst
+  - metadata
+  - testing
+format: typst
+---
+
+# Test Content
+
+This document tests PDF metadata extraction.
+
+The title, author, subject, and keywords should all appear in the PDF metadata.

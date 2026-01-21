@@ -10,6 +10,7 @@ import {
   isAbsolute,
   join,
   relative,
+  resolve,
   SEP,
 } from "../deno_ral/path.ts";
 
@@ -300,11 +301,17 @@ export async function projectContext(
           projectConfig.project[kProjectOutputDir] = type.outputDir;
         }
 
-        // if the output-dir is "." that's equivalent to no output dir so make that
-        // conversion now (this allows code downstream to just check for no output dir
-        // rather than that as well as ".")
-        if (projectConfig.project[kProjectOutputDir] === ".") {
-          delete projectConfig.project[kProjectOutputDir];
+        // if the output-dir resolves to the project directory, that's equivalent to
+        // no output dir so make that conversion now (this allows code downstream to
+        // just check for no output dir rather than checking for ".", "./", etc.)
+        // Fixes issue #13892: output-dir: ./ would delete the entire project
+        const outputDir = projectConfig.project[kProjectOutputDir];
+        if (outputDir) {
+          const resolvedOutputDir = resolve(dir, outputDir);
+          const resolvedDir = resolve(dir);
+          if (resolvedOutputDir === resolvedDir) {
+            delete projectConfig.project[kProjectOutputDir];
+          }
         }
 
         // if the output-dir is absolute then make it project dir relative
@@ -873,7 +880,9 @@ function projectHiddenIgnoreGlob(dir: string) {
   return projectIgnoreGlobs(dir) // standard ignores for all projects
     .concat(["**/_*", "**/_*/**"]) // underscore prefx
     .concat(["**/.*", "**/.*/**"]) // hidden (dot prefix)
-    .concat(["**/README.?([Rrq])md"]); // README
+    .concat(["**/README.?([Rrq])md"]) // README
+    .concat(["**/CLAUDE.md"]) // Anthropic claude code file
+    .concat(["**/AGENTS.md"]); // https://agents.md/
 }
 
 export const projectInputFiles = makeTimedFunctionAsync(

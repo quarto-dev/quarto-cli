@@ -1,0 +1,48 @@
+---
+title: "Margin Citation with Locators"
+papersize: us-letter
+citation-location: margin
+bibliography: borges-refs.bib
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Margin citations use direct note() calls with cite(form: "full")
+        - ['#note\(', 'form: "full"']
+        - []
+      ensurePdfRegexMatches:
+        - - 'LOCATOR-MARKER'
+          - 'Borges'
+          - 'Quain'
+          # Locators appear INLINE after citation number [N, locator]
+          - '\[1,\s*p\.\s*42\]'           # borges1941library, p. 42
+          - '\[2,\s*pp\.\s*100'           # borges1944ficciones, pp. 100-115
+          - '\[3,\s*ch\.\s*3\]'           # quain1936labyrinth, ch. 3
+          - '\[4,\s*p\.\s*200'            # eco1980name, p. 200, fig. 5
+        - []
+      ensurePdfTextPositions:
+        - # Full citation in margin - "bifurcan" is unique to borges1941library booktitle
+          - subject: "bifurcan"
+            relation: rightOf
+            object: "LOCATOR-MARKER"
+          # Locator appears inline (left of margin content)
+          - subject: "p. 42"
+            relation: leftOf
+            object: "bifurcan"
+        - []
+      noErrors: default
+---
+
+# Testing Citation Locators in Margins
+
+LOCATOR-MARKER: The Library was first described with specific page references [@borges1941library, p. 42].
+
+The expanded edition contains more details [@borges1944ficciones, pp. 100-115].
+
+Chapter-specific references also work [@quain1936labyrinth, ch. 3].
+
+Multiple locator types: see [@eco1980name, p. 200, fig. 5] for the library map.

@@ -1,0 +1,46 @@
+---
+title: "Sidenote with Complex Content"
+papersize: us-letter
+reference-location: margin
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Show rule transforms footnotes to sidenotes; Pandoc outputs #footnote natively
+        - ['#show footnote:', 'column-sidenote', '#footnote']
+        - []
+      ensurePdfRegexMatches:
+        - ['LIST-NOTE', 'Item one', 'Item two', 'BLOCKQUOTE-NOTE', 'quoted text']
+        - []
+      ensurePdfTextPositions:
+        - - subject: "LIST-NOTE"
+            relation: rightOf
+            object: "Main text"
+        - []
+      noErrors: default
+---
+
+Main text with a footnote containing a list[^list].
+
+[^list]: LIST-NOTE: This footnote has a list:
+
+    - Item one
+    - Item two
+    - Item three
+
+    And text after the list.
+
+Another paragraph with a blockquote footnote[^quote].
+
+[^quote]: BLOCKQUOTE-NOTE: This has a blockquote:
+
+    > This is quoted text
+    > spanning multiple lines.
+
+    Text after the quote.
+
+More main text here.

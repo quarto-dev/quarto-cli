@@ -102,3 +102,12 @@ else
   export QUARTO_DENO_EXTRA_OPTIONS="--reload"
 	quarto --version
 fi
+
+# Build typst-gather if cargo is available
+if command -v cargo &> /dev/null; then
+  echo "Building typst-gather..."
+  cargo build --release --manifest-path package/typst-gather/Cargo.toml
+else
+  echo "Note: Rust/cargo not found, skipping typst-gather build"
+  echo "Install Rust to use 'quarto call typst-gather'"
+fi

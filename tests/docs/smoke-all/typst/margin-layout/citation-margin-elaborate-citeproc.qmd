@@ -1,0 +1,89 @@
+---
+title: "The Universe (Which Others Call the Library)"
+subtitle: "A Meditation on Infinite Texts and Their Margin Notes"
+author: "A Hexagon Dweller"
+papersize: us-letter
+citation-location: margin
+bibliography: borges-refs.bib
+citeproc: true
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # With citeproc, margin notes contain pre-rendered bibliography text
+        - ['#note\(', 'Borges.*1941', 'Bifurcan']
+        - ['#cite\(<[^>]+>, form: "full"\)']  # Should NOT have native Typst cite calls
+      ensurePdfRegexMatches:
+        - - 'Universe'
+          - 'Library'
+          - 'hexagon'
+          - 'Vindication'
+          - 'Borges'
+          # Locators appear inline (citeproc drops "p." prefix)
+          - '1941, 51'
+          - 'ch\. 1'
+          # Author-suppressed shows year + locator
+          - '1936, 12'
+          # Suffix appears inline (may be line-wrapped)
+          - 'throughout'
+        - []
+      ensurePdfTextPositions:
+        - # Citations appear in margin (rightOf body text)
+          - subject: "Bifurcan"
+            relation: rightOf
+            object: "ventilation shaft"
+          - subject: "Ficciones"
+            relation: rightOf
+            object: "architecture"
+          # Sequential citations are stacked vertically in margin
+          - subject: "Ficciones"
+            relation: below
+            object: "Bifurcan"
+          - subject: "Universalbibliothek"
+            relation: below
+            object: "Ficciones"
+          # "Siamese Press" is unique to Quain citation in margin
+          - subject: "Siamese Press"
+            relation: below
+            object: "Universalbibliothek"
+        - []
+      noErrors: default
+---
+
+# Prolegomena
+
+The universe (which others call the Library) is composed of an indefinite, perhaps infinite, number of hexagonal galleries [@borges1941library, p. 51]. In the center of each gallery is a ventilation shaft, bounded by a low railing. From any hexagon one can see the floors above and below---one after another, endlessly.
+
+This essay concerns itself not with the Library's architecture, which has been adequately described elsewhere [see @borges1944ficciones, ch. 1], but with a peculiar feature of its books: the margin notes.
+
+# On Marginalia in the Total Library
+
+If the Library contains all possible books of 410 pages, it must contain books with margins. And if it contains books with margins, it must contain margin notes. The German philosopher @kurd1933hexagonal did not consider this recursive complication in his calculations.
+
+Consider: for each book in the Library, there exists another book containing the first book's text plus commentary in the margins. And for each of these annotated volumes, there exists a meta-commentary. The recursion is, like the Library itself, infinite.
+
+## Herbert Quain's Marginal Method
+
+The Anglo-Irish writer Herbert Quain [-@quain1936labyrinth, pp. 12-15] reportedly composed his novels in reverse, writing the margin notes first. His masterwork, *April March*, can be read in nine different ways, each determined by which margin notes the reader chooses to follow.
+
+## The Margins of the Vindication
+
+The seekers of the Vindication [cf. @vindication1738, p. 7 and throughout] have long debated: if the Vindication exists, do its margins contain additional vindications? The First Librarian [@librarians1638first] argued that the true Vindication would have no margins at all---that the text itself would fill every available space, justifying even the whiteness of the paper.
+
+# Literary Descendants
+
+Borges's influence on subsequent literature is well documented [@casares1940morel; @eco1980name; @calvino1979winter]. Bioy Casares, Borges's collaborator and friend, created machines that record and replay reality. Eco built a library that murders. Calvino wrote about a reader unable to finish any book because each book keeps becoming another book.
+
+What these authors share is an understanding that texts are not stable objects but rather provisional arrangements of signs that point to other signs. This is the lesson of the Library: meaning is always deferred, always in the margins.
+
+# Conclusion
+
+In the Library, I search for the book that will explain my life. Somewhere among the twenty-five symbols lies my vindication. Until then, I write these margin notes, adding to the infinite commentary.
+
+As @tzinacana1521jaguar discovered in his prison, sometimes the most important text is not written in books at all but inscribed on the skin of a jaguar, fourteen words that make their speaker omnipotent. But Tzinacana chose not to speak them.
+
+Perhaps the Library's true meaning is in the margins we choose not to read, the books we pass by in our endless search for the one book that will make sense of all the others. Perhaps meaning itself is marginal.

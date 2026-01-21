@@ -34,6 +34,14 @@ format:
 _quarto:
   tests:
     typst:
+      ensurePdfMetadata:
+        title: "Test Document"
+        author: "Alice Smith"
+        keywords:
+          - quarto
+          - typst
+          - testing
+        creator: "Typst"
       ensureTypstFileRegexMatches:
         - # Patterns that MUST be found
           # content-to-string function defined (from Pandoc)

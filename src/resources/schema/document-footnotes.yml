@@ -14,7 +14,7 @@
 
 - name: reference-location
   tags:
-    formats: [$markdown-all, muse, $html-files, pdf]
+    formats: [$markdown-all, muse, $html-files, pdf, typst]
   schema:
     enum: [block, section, margin, document]
   default: document

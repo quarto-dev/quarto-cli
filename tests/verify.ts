@@ -586,17 +586,23 @@ export const ensureFileRegexMatches = (
 
 // Use this function to Regex match text in the intermediate kept file
 // FIXME: do this properly without resorting on file having keep-*
+// Note: keep-typ/keep-tex places files alongside source, not in output dir
 export const verifyKeepFileRegexMatches = (
   toExt: string,
   keepExt: string,
-): (file: string, matchesUntyped: (string | RegExp)[], noMatchesUntyped?: (string | RegExp)[]) => Verify => {
-  return (file: string, matchesUntyped: (string | RegExp)[], noMatchesUntyped?: (string | RegExp)[]) => {
-    const keptFile = file.replace(`.${toExt}`, `.${keepExt}`);
+): (file: string, matchesUntyped: (string | RegExp)[], noMatchesUntyped?: (string | RegExp)[], inputFile?: string) => Verify => {
+  return (file: string, matchesUntyped: (string | RegExp)[], noMatchesUntyped?: (string | RegExp)[], inputFile?: string) => {
+    // Kept files are alongside source, so derive from inputFile if provided
+    const keptFile = inputFile
+      ? join(dirname(inputFile), basename(file).replace(`.${toExt}`, `.${keepExt}`))
+      : file.replace(`.${toExt}`, `.${keepExt}`);
     const keptFileChecker = async (file: string, matches: RegExp[], noMatches: RegExp[] | undefined) => {
       try {
         await regexChecker(file, matches, noMatches);
       } finally {
-        await safeRemoveSync(file);
+        if (!Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
+          await safeRemoveSync(file);
+        }
       }
     }
     return verifyFileRegexMatches(keptFileChecker, `Inspecting intermediate ${keptFile} for Regex matches`)(keptFile, matchesUntyped, noMatchesUntyped);
@@ -608,8 +614,9 @@ export const ensureTypstFileRegexMatches = (
   file: string,
   matchesUntyped: (string | RegExp)[],
   noMatchesUntyped?: (string | RegExp)[],
+  inputFile?: string,
 ): Verify => {
-  return(verifyKeepFileRegexMatches("pdf", "typ")(file, matchesUntyped, noMatchesUntyped));
+  return(verifyKeepFileRegexMatches("pdf", "typ")(file, matchesUntyped, noMatchesUntyped, inputFile));
 };
 
 // FIXME: do this properly without resorting on file having keep-tex
@@ -617,8 +624,9 @@ export const ensureLatexFileRegexMatches = (
   file: string,
   matchesUntyped: (string | RegExp)[],
   noMatchesUntyped?: (string | RegExp)[],
+  inputFile?: string,
 ): Verify => {
-  return(verifyKeepFileRegexMatches("pdf", "tex")(file, matchesUntyped, noMatchesUntyped));
+  return(verifyKeepFileRegexMatches("pdf", "tex")(file, matchesUntyped, noMatchesUntyped, inputFile));
 };
 
 // Use this function to Regex match text in a rendered PDF file
@@ -1143,3 +1151,9 @@ const asRegexp = (m: string | RegExp) => {
     return m;
   }
 };
+
+// Re-export ensurePdfTextPositions from dedicated module
+export { ensurePdfTextPositions } from "./verify-pdf-text-position.ts";
+
+// Re-export ensurePdfMetadata from dedicated module
+export { ensurePdfMetadata } from "./verify-pdf-metadata.ts";
