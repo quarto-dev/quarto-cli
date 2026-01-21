@@ -878,11 +878,12 @@ export function projectYamlFiles(dir: string): string[] {
 
 function projectHiddenIgnoreGlob(dir: string) {
   return projectIgnoreGlobs(dir) // standard ignores for all projects
-    .concat(["**/_*", "**/_*/**"]) // underscore prefx
+    .concat(["**/_*", "**/_*/**"]) // underscore prefix
     .concat(["**/.*", "**/.*/**"]) // hidden (dot prefix)
     .concat(["**/README.?([Rrq])md"]) // README
     .concat(["**/CLAUDE.md"]) // Anthropic claude code file
-    .concat(["**/AGENTS.md"]); // https://agents.md/
+    .concat(["**/AGENTS.md"]) // https://agents.md/
+    .concat(["**/*.llms.md"]); // llms.txt companion markdown files
 }
 
 export const projectInputFiles = makeTimedFunctionAsync(

@@ -620,18 +620,20 @@ export const ensureLlmsMdDoesNotExist = (htmlFile: string): Verify => {
 };
 
 // Verify the llms.txt index file in a website output directory.
+// Takes the HTML file path and looks for llms.txt in the same directory.
 export const ensureLlmsTxtRegexMatches = (
-  outputDir: string,
+  htmlFile: string,
   matchesUntyped: (string | RegExp)[],
   noMatchesUntyped?: (string | RegExp)[],
 ): Verify => {
-  const llmsTxtPath = join(outputDir, "llms.txt");
+  const llmsTxtPath = join(dirname(htmlFile), "llms.txt");
   return verifyFileRegexMatches(regexChecker, `Inspecting ${llmsTxtPath} for Regex matches`)(llmsTxtPath, matchesUntyped, noMatchesUntyped);
 };
 
 // Verify the llms.txt file exists in a website output directory.
-export const ensureLlmsTxtExists = (outputDir: string): Verify => {
-  const llmsTxtPath = join(outputDir, "llms.txt");
+// Takes the HTML file path and looks for llms.txt in the same directory.
+export const ensureLlmsTxtExists = (htmlFile: string): Verify => {
+  const llmsTxtPath = join(dirname(htmlFile), "llms.txt");
   return {
     name: `File ${llmsTxtPath} exists`,
     verify: (_output: ExecuteOutput[]) => {
@@ -642,8 +644,9 @@ export const ensureLlmsTxtExists = (outputDir: string): Verify => {
 };
 
 // Verify the llms.txt file does NOT exist in a website output directory.
-export const ensureLlmsTxtDoesNotExist = (outputDir: string): Verify => {
-  const llmsTxtPath = join(outputDir, "llms.txt");
+// Takes the HTML file path and looks for llms.txt in the same directory.
+export const ensureLlmsTxtDoesNotExist = (htmlFile: string): Verify => {
+  const llmsTxtPath = join(dirname(htmlFile), "llms.txt");
   return {
     name: `File ${llmsTxtPath} does not exist`,
     verify: (_output: ExecuteOutput[]) => {

@@ -4,10 +4,13 @@ date: "2026-01-01"
 _quarto:
   tests:
     html:
+      noErrors: true
       ensureLlmsMdExists: true
       ensureLlmsMdRegexMatches:
-        - ["^# Welcome Post"]
-        - ["This is a test blog post"]
+        # First array: patterns that MUST match
+        - ["^# Welcome Post", "This is a test blog post"]
+        # Second array: patterns that must NOT match (empty)
+        - []
 ---
 
 This is a test blog post for the listing feature.

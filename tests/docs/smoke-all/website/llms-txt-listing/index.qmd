@@ -4,21 +4,22 @@ listing:
   contents: posts
   type: default
 _quarto:
+  render-project: true
   tests:
     html:
+      noErrors: true
       ensureLlmsMdExists: true
       ensureLlmsTxtExists: true
       ensureLlmsMdRegexMatches:
-        # Listing page should have post title as link
-        - ['\\[Welcome Post\\]']
-      ensureLlmsMdRegexNoMatches:
-        # No empty links from listing UI elements
-        - ['\\[\\]\\(']
+        # First array: patterns that MUST match
+        - ["\\[Welcome Post\\]"]
+        # Second array: patterns that must NOT match (no empty links)
+        - ["\\[\\]\\("]
       ensureLlmsTxtRegexMatches:
-        # Both index and post should be in llms.txt
-        - ['\\[Listing Test Site\\]']
-        - ['\\[Welcome Post\\]']
-        - ['posts/welcome/index\\.llms\\.md']
+        # First array: patterns that MUST match
+        - ["\\[Listing Test Site\\]", "\\[Welcome Post\\]", "posts/welcome/index\\.llms\\.md"]
+        # Second array: patterns that must NOT match
+        - []
 ---
 
 Welcome to the listing test site.

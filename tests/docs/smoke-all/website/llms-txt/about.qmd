@@ -5,23 +5,10 @@ _quarto:
     html:
       ensureLlmsMdExists: true
       ensureLlmsMdRegexMatches:
-        # Title preserved
-        - ["^# About"]
-        # Callouts converted to blockquotes with bold markers
-        - ["> \\*\\*NOTE:\\*\\*"]
-        - ["> \\*\\*WARNING:\\*\\*"]
-        - ["This is a note"]
-        # Code blocks preserved with language
-        - ["```python"]
-        - ["def hello"]
-        # Tables in GFM pipe format
-        - ["\\| Feature"]
-        - ["\\|[-]+\\|"]
-        # Links converted to .llms.md
-        - ['\\[home page\\]\\(.*\\.llms\\.md\\)']
-      ensureLlmsMdRegexNoMatches:
-        # No .html links in llms.md
-        - ['\\.html\\)']
+        # First array: patterns that MUST match
+        - ["^# About", "> \\*\\*NOTE:\\*\\*", "> \\*\\*WARNING:\\*\\*", "This is a note", "``` python", "def hello", "\\| Feature", "\\|[-]+\\|", "\\[home page\\]\\(.*\\.llms\\.md\\)"]
+        # Second array: patterns that must NOT match (no .html links in llms.md)
+        - ["\\.html\\)"]
 ---
 
 About this test site.

@@ -1,17 +1,16 @@
 ---
 title: "Draft Test Site"
 _quarto:
+  render-project: true
   tests:
     html:
       ensureLlmsMdExists: true
       ensureLlmsTxtExists: true
       ensureLlmsTxtRegexMatches:
-        # Index page should be in llms.txt
-        - ['\\[Draft Test Site\\]']
-      ensureLlmsTxtRegexNoMatches:
-        # Draft page should NOT be in llms.txt
-        - ['\\[Draft Page\\]']
-        - ['draft-page\\.llms\\.md']
+        # First array: patterns that MUST match (index page should be in llms.txt)
+        - ["\\[Draft Test Site\\]"]
+        # Second array: patterns that must NOT match (draft page should NOT be in llms.txt)
+        - ["\\[Draft Page\\]", "draft-page\\.llms\\.md"]
 ---
 
 This is the index page.

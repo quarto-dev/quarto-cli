@@ -1,14 +1,16 @@
 ---
 title: "llms-txt Test Site"
 _quarto:
+  render-project: true
   tests:
     html:
       ensureLlmsMdExists: true
       ensureLlmsTxtExists: true
       ensureLlmsTxtRegexMatches:
-        - ["^# llms-txt Test Site"]
-        - ["^## Pages"]
-        - ['\\[.*\\]\\(.*\\.llms\\.md\\)']
+        # First array: patterns that MUST match
+        - ["^# llms-txt Test Site", "^## Pages", "\\[.*\\]\\(.*\\.llms\\.md\\)"]
+        # Second array: patterns that must NOT match (empty)
+        - []
 ---
 
 This is a test website for the llms-txt feature.
