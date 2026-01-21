@@ -169,11 +169,11 @@ export async function breakQuartoMd(
       return false;
     }
 
-    // if a yaml delimiter is surrounded by whitespace-only lines,
+    // if a yaml delimiter is followed by a whitespace-only line,
     // then it is actually an HR element; treat it as such.
+    // (YAML opening delimiters are followed by content like "key: value")
     if (
       skipHRs &&
-      index > 0 && srcLines[index - 1].substring.trim() === "" &&
       index < srcLines.length - 1 && srcLines[index + 1].substring.trim() === ""
     ) {
       return false;
