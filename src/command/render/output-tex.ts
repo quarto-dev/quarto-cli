@@ -15,6 +15,7 @@ import {
   kKeepTex,
   kOutputExt,
   kOutputFile,
+  kOutputSuffix,
   kTargetFormat,
 } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
@@ -61,7 +62,8 @@ export function texToPdfOutputRecipe(
     }`;
   }
 
-  const texStem = texSafeFilename(`${inputStem}${fixupInputName}`);
+  const suffix = format.render[kOutputSuffix] || "";
+  const texStem = texSafeFilename(`${inputStem}${suffix}${fixupInputName}`);
 
   // calculate output and args for pandoc (this is an intermediate file
   // which we will then compile to a pdf and rename to .tex)

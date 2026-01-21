@@ -18,6 +18,13 @@
   description: |
     Extension to use for generated output file
 
+- name: output-suffix
+  schema: string
+  description: |
+    Suffix to append to the output filename stem (before the extension).
+    For example, with `output-suffix: "-slides"`, `presentation.qmd` 
+    becomes `presentation-slides.html`.
+
 - name: template
   disabled: [$office-all, ipynb]
   schema: path

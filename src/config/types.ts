@@ -172,6 +172,7 @@ import {
   kOutputDivs,
   kOutputExt,
   kOutputFile,
+  kOutputSuffix,
   kPageWidth,
   kPdfEngine,
   kPdfEngineOpt,
@@ -469,6 +470,7 @@ export interface FormatRender {
   [kOutputDivs]?: boolean;
   [kVariant]?: string;
   [kOutputExt]?: string;
+  [kOutputSuffix]?: string;
   [kPageWidth]?: number;
   [kFigAlign]?: "left" | "right" | "center" | "default";
   [kFigPos]?: string | null;

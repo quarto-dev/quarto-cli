@@ -23,6 +23,7 @@ import {
   kKeepTyp,
   kOutputExt,
   kOutputFile,
+  kOutputSuffix,
   kVariant,
 } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
@@ -116,7 +117,8 @@ export function typstPdfOutputRecipe(
   // calculate output and args for pandoc (this is an intermediate file
   // which we will then compile to a pdf and rename to .typ)
   const [inputDir, inputStem] = dirAndStem(input);
-  const output = inputStem + ".typ";
+  const suffix = format.render[kOutputSuffix] || "";
+  const output = inputStem + suffix + ".typ";
   let args = options.pandocArgs || [];
   const pandoc = { ...format.pandoc };
   if (options.flags?.output) {
@@ -133,7 +135,7 @@ export function typstPdfOutputRecipe(
 
     // run typst
     await validateRequiredTypstVersion();
-    const pdfOutput = join(inputDir, inputStem + ".pdf");
+    const pdfOutput = join(inputDir, inputStem + suffix + ".pdf");
     const typstOptions: TypstCompileOptions = {
       quiet: options.flags?.quiet,
       fontPaths: asArray(format.metadata?.[kFontPaths]) as string[],
@@ -188,7 +190,7 @@ export function typstPdfOutputRecipe(
     ? finalOutput === kStdOut
       ? undefined
       : normalizeOutputPath(input, finalOutput)
-    : normalizeOutputPath(input, join(inputDir, inputStem + ".pdf"));
+    : normalizeOutputPath(input, join(inputDir, inputStem + suffix + ".pdf"));
 
   // return recipe
   const recipe: OutputRecipe = {

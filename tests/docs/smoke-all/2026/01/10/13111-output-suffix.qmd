@@ -1,0 +1,21 @@
+---
+title: "Output Suffix Test"
+format:
+  html:
+    output-suffix: "-readable"
+  revealjs:
+    output-suffix: "-slides"
+---
+
+# Test Document
+
+This document tests the `output-suffix` feature.
+
+## Purpose
+
+When rendered with `output-suffix: "-readable"`, this file should produce:
+- `13111-output-suffix-readable.html` (from HTML format)
+- `13111-output-suffix-slides.html` (from RevealJS format)
+
+This addresses GitHub issue #13111 where using compound extensions like
+`.onepage.html` in `output-ext` caused double-extension bugs.
