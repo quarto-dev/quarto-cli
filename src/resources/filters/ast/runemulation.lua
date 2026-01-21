@@ -49,6 +49,7 @@ end
 
 local function run_emulated_filter_chain(doc, filters, afterFilterPass, profiling)
   init_trace(doc)
+  local compare_jog_and_walk = os.getenv 'QUARTO_JOG_CHECK'
   for i, v in ipairs(filters) do
     local function callback()
       if v.flags then
@@ -79,7 +80,17 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass, profilin
         print(pandoc.write(doc, "native"))
       else
         _quarto.ast._current_doc = doc
-        doc = run_emulated_filter(doc, v.filter, v.traverser)
+
+        if compare_jog_and_walk and not v.force_pandoc_walk then
+          v.traverser = 'checked-jog'
+        end
+        doc = run_emulated_filter(doc, v.filter, v.traverser, v.name)
+
+        if compare_jog_and_walk and not v.force_pandoc_walk then
+          -- Types of meta values are only checked on assignment.
+          doc.meta = doc.meta
+        end
+
         ensure_vault(doc)
 
         add_trace(doc, v.name)
