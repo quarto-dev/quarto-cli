@@ -253,7 +253,7 @@ function process_div(div)
       email_html_preview = "",
       image_tbl = {},
       email_images = {},
-      suppress_scheduled_email = false,
+      suppress_scheduled_email = nil,  -- nil means not set
       attachments = {}
     }
 
@@ -442,13 +442,18 @@ function process_document(doc)
       email_obj.email_text = email_text
     end
 
-    if not email_obj.suppress_scheduled_email and suppress_scheduled_email then
-      quarto.log.warning("Email #" .. tostring(idx) .. " has no suppress-scheduled setting. Using document-level setting.")
+    if email_obj.suppress_scheduled_email == nil and suppress_scheduled_email then
+      quarto.log.warning("Email #" .. tostring(idx) .. " has no email-scheduled setting. Using document-level setting.")
       email_obj.suppress_scheduled_email = suppress_scheduled_email
     end
 
     if is_empty_table(email_obj.attachments) and not is_empty_table(attachments) then
       email_obj.attachments = attachments
+    end
+
+    -- Default suppress_scheduled_email to false if still nil
+    if email_obj.suppress_scheduled_email == nil then
+      email_obj.suppress_scheduled_email = false
     end
 
     -- Clean up HTML
