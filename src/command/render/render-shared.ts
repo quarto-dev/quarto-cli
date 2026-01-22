@@ -47,9 +47,7 @@ export async function render(
   const nbContext = pContext?.notebookContext || notebookContext();
 
   // determine target context/files
-  // let context = await projectContext(path, nbContext, options);
-  let context = pContext || (await projectContext(path, nbContext, options)) ||
-    (await singleFileProjectContext(path, nbContext, options));
+  let context = pContext || (await projectContext(path, nbContext, options));
 
   // Create a synthetic project when --output-dir is used without a project file
   // This creates a temporary .quarto directory to manage the render, which must
@@ -60,6 +58,11 @@ export async function render(
     // forceClean signals this is a synthetic project that needs full cleanup
     // including removing the .quarto scratch directory after rendering (#13625)
     options.forceClean = options.flags.clean !== false;
+  }
+
+  // Fall back to single file context if we still don't have a context
+  if (!context) {
+    context = await singleFileProjectContext(path, nbContext, options);
   }
 
   // set env var if requested
