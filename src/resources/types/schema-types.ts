@@ -682,6 +682,8 @@ export type FormatLanguage = {
   "code-tools-menu-caption"?: string;
   "code-tools-show-all-code"?: string;
   "code-tools-hide-all-code"?: string;
+  "code-tools-show-all-sections"?: string;
+  "code-tools-hide-all-sections"?: string;
   "code-tools-view-source"?: string;
   "code-tools-source-code"?: string;
   "search-no-results-text"?: string;

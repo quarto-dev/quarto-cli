@@ -1699,6 +1699,12 @@
           "code-tools-menu-caption": {
             "type": "string"
           },
+          "code-tools-show-all-sections": {
+            "type": "string"
+          },
+          "code-tools-hide-all-sections": {
+            "type": "string"
+          },
           "code-tools-show-all-code": {
             "type": "string"
           },
