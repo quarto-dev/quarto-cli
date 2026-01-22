@@ -127,6 +127,7 @@ All changes included in 1.9:
 
 ## Other fixes and improvements
 
+- Fix `quarto install`, `quarto update`, and `quarto uninstall` interactive tool selection (same issue as [#9765](https://github.com/quarto-dev/quarto-cli/pull/9765)).
 - ([#8730](https://github.com/quarto-dev/quarto-cli/issues/8730)): Detect x64 R crashes on Windows ARM and provide helpful error message directing users to install native ARM64 R instead of showing generic "check your R installation" error.
 - ([#13402](https://github.com/quarto-dev/quarto-cli/issues/13402)): `nfpm` (<https://nfpm.goreleaser.com/>) is now used to create the `.deb` package, and new `.rpm` package. Both Linux packages are also now built for `x86_64` (`amd64`) and `aarch64` (`arm64`) architectures.
 - ([#13528](https://github.com/quarto-dev/quarto-cli/pull/13528)): Adds support for table specification using nested lists and the `list-table` class.
