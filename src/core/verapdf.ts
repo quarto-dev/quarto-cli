@@ -12,7 +12,10 @@ import { execProcess } from "./process.ts";
 import { which } from "./path.ts";
 import { quartoDataDir } from "./appdirs.ts";
 import { existsSync } from "../deno_ral/fs.ts";
-import { isWindows } from "../deno_ral/platform.ts";
+import { warnOnce } from "./log.ts";
+
+const kVerapdfEnvVar = "QUARTO_VERAPDF";
+const kVerapdfMainClass = "org.verapdf.apps.GreenfieldCliWrapper";
 
 // verapdf flavours (profiles) supported for validation
 // Maps quarto pdf-standard values to verapdf --flavour values
@@ -53,24 +56,101 @@ export function getVerapdfFlavour(standard: string): string | undefined {
   return kVerapdfFlavours[normalized];
 }
 
+export interface VerapdfInvocation {
+  cmd: string;
+  args: string[];
+}
+
 /**
- * Find verapdf binary path - checks PATH and quarto install location
+ * Build the verapdf command to execute.
+ * Priority:
+ *   1. QUARTO_VERAPDF env var (user override)
+ *   2. Direct Java invocation with quarto-installed JAR
+ *   3. System verapdf on PATH (fallback)
+ */
+export async function buildVerapdfCommand(
+  flavour: string,
+  pdfPath: string,
+): Promise<VerapdfInvocation | undefined> {
+  // Priority 1: QUARTO_VERAPDF env var
+  const envOverride = Deno.env.get(kVerapdfEnvVar);
+  if (envOverride) {
+    // Check if it looks like a file path and doesn't exist
+    const looksLikePath = envOverride.startsWith("/") ||
+      envOverride.startsWith("./") ||
+      envOverride.startsWith("~") ||
+      /^[A-Za-z]:[\\/]/.test(envOverride);
+
+    if (looksLikePath && !existsSync(envOverride)) {
+      warnOnce(
+        `Specified ${kVerapdfEnvVar} does not exist, using built-in verapdf`,
+      );
+    } else {
+      info(`Using ${kVerapdfEnvVar}: ${envOverride}`);
+      return {
+        cmd: envOverride,
+        args: ["-f", flavour, pdfPath],
+      };
+    }
+  }
+
+  // Priority 2: Direct Java invocation with quarto-installed JAR
+  const quartoVerapdfDir = quartoDataDir("verapdf");
+  const binDir = join(quartoVerapdfDir, "bin");
+
+  if (existsSync(binDir)) {
+    // Use direct Java invocation to avoid .bat issues on Windows
+    const javaPath = await which("java");
+    if (javaPath) {
+      return {
+        cmd: javaPath,
+        args: [
+          "-classpath",
+          join(binDir, "*"),
+          "-Dfile.encoding=UTF8",
+          "-XX:+IgnoreUnrecognizedVMOptions",
+          `-Dbasedir=${quartoVerapdfDir}`,
+          "--add-exports=java.base/sun.security.pkcs=ALL-UNNAMED",
+          kVerapdfMainClass,
+          "-f",
+          flavour,
+          pdfPath,
+        ],
+      };
+    }
+  }
+
+  // Priority 3: System verapdf on PATH
+  const systemVerapdf = await which("verapdf");
+  if (systemVerapdf) {
+    return {
+      cmd: systemVerapdf,
+      args: ["-f", flavour, pdfPath],
+    };
+  }
+
+  return undefined;
+}
+
+/**
+ * Find verapdf binary path - checks quarto install location and PATH
+ * @deprecated Use buildVerapdfCommand instead
  */
 export async function findVerapdfPath(): Promise<string | undefined> {
-  // First check PATH
+  // Check quarto install location (bin directory for direct Java invocation)
+  const quartoVerapdfDir = quartoDataDir("verapdf");
+  const binDir = join(quartoVerapdfDir, "bin");
+
+  if (existsSync(binDir)) {
+    // Return the directory to indicate verapdf is installed
+    // (actual invocation will use buildVerapdfCommand)
+    return binDir;
+  }
+
+  // Fall back to system PATH
   const pathResult = await which("verapdf");
   if (pathResult) {
     return pathResult;
-  }
-
-  // Check quarto install location
-  const quartoVerapdfDir = quartoDataDir("verapdf");
-  const quartoVerapdfBin = isWindows
-    ? join(quartoVerapdfDir, "verapdf.bat")
-    : join(quartoVerapdfDir, "verapdf");
-
-  if (existsSync(quartoVerapdfBin)) {
-    return quartoVerapdfBin;
   }
 
   return undefined;
@@ -91,8 +171,8 @@ export async function validatePdf(
   flavour: string,
   quiet = false,
 ): Promise<VerapdfValidationResult> {
-  const verapdfPath = await findVerapdfPath();
-  if (!verapdfPath) {
+  const invocation = await buildVerapdfCommand(flavour, pdfPath);
+  if (!invocation) {
     throw new Error("verapdf not found");
   }
 
@@ -106,8 +186,8 @@ export async function validatePdf(
   }
 
   const result = await execProcess({
-    cmd: verapdfPath,
-    args: ["-f", flavour, pdfPath],
+    cmd: invocation.cmd,
+    args: invocation.args,
     stdout: "piped",
     stderr: "piped",
   });
