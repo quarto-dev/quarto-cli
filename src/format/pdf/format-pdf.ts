@@ -32,6 +32,7 @@ import {
   kPaperSize,
   kPdfEngine,
   kPdfStandard,
+  kPdfStandardApplied,
   kReferenceLocation,
   kShiftHeadingLevelBy,
   kTblCapLoc,
@@ -344,6 +345,12 @@ function createPdfFormat(
               pdfstandardMap.tagging = true;
             }
             extras.pandoc.variables["pdfstandard"] = pdfstandardMap;
+          }
+          // Store applied standards in metadata for verapdf validation
+          // (only standards that LaTeX actually supports, not the original list)
+          if (standards.length > 0) {
+            extras.metadata = extras.metadata || {};
+            extras.metadata[kPdfStandardApplied] = standards;
           }
         }
 

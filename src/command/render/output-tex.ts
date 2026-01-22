@@ -16,6 +16,7 @@ import {
   kOutputExt,
   kOutputFile,
   kPdfStandard,
+  kPdfStandardApplied,
   kTargetFormat,
 } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
@@ -83,9 +84,13 @@ export function texToPdfOutputRecipe(
     const input = join(inputDir, output);
     const pdfOutput = await pdfGenerator.generate(input, format, pandocOptions);
 
-    // Validate PDF against specified standards using verapdf (if available)
+    // Validate PDF against applied standards using verapdf (if available)
+    // Use kPdfStandardApplied from pandocOptions.format.metadata (filtered by LaTeX support)
+    // if available, otherwise fall back to original kPdfStandard list
     const pdfStandards = asArray(
-      format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard],
+      pandocOptions.format.metadata?.[kPdfStandardApplied] ??
+        format.render?.[kPdfStandard] ??
+        format.metadata?.[kPdfStandard],
     ) as string[];
     if (pdfStandards.length > 0) {
       await validatePdfStandards(pdfOutput, pdfStandards, {
