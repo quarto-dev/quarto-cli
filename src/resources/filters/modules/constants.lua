@@ -116,6 +116,7 @@ local kLangCommentChars = {
   powershell = {"#"},
   psql = {"--"},
   python = {"#"},
+  q = {"/"},
   r = {"#"},
   ruby = {"#"},
   rust = {"//"},
