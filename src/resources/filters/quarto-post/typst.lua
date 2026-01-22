@@ -73,7 +73,6 @@ function render_typst()
         m["toc-indent"] = option("toc-indent")
         if m["number-depth"] then
           number_depth = tonumber(pandoc.utils.stringify(m["number-depth"]))
-          print(number_depth)
         end
         return m
       end

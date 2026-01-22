@@ -86,10 +86,10 @@ export async function singleFileProjectContext(
     isSingleFile: true,
     diskCache: await createProjectCache(projectCacheBaseDir),
     temp,
-    cleanup: once(() => {
+    cleanup: () => {
       cleanupFileInformationCache(result);
       result.diskCache.close();
-    }),
+    },
   };
   if (renderOptions) {
     result.config = {
