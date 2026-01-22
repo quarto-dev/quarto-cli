@@ -37,6 +37,8 @@ git merge-base HEAD main | cut -c1-9
 
 Then update `main_commit`, `analyzed_date`, and verify `key_files` list is complete.
 
+**Date verification:** Before writing dates, check today's date from the system environment (shown at conversation start). This avoids year typos like writing 2025 when it's 2026.
+
 ## Document Purpose
 
 These docs capture architectural understanding that would otherwise require extensive codebase exploration. They are NOT:

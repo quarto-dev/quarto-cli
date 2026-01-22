@@ -1,6 +1,6 @@
 ---
 main_commit: 50db5a5b0
-analyzed_date: 2025-01-22
+analyzed_date: 2026-01-22
 key_files:
   - src/resources/formats/html/bootstrap/_bootstrap-rules.scss
   - src/resources/formats/revealjs/quarto.scss
