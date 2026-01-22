@@ -136,3 +136,4 @@ All changes included in 1.9:
 - ([#13856](https://github.com/quarto-dev/quarto-cli/issues/13856)): Add code annotation support for Typst and Observable.js code blocks. (author: @mcanouil)
 - ([#13890](https://github.com/quarto-dev/quarto-cli/issues/13890)): Fix render failure when using `embed-resources: true` with input path through a symlinked directory. The cleanup now resolves symlinks before comparing paths.
 - ([#13907](https://github.com/quarto-dev/quarto-cli/issues/13907)): Ignore AI assistant configuration files (`CLAUDE.md`, `AGENTS.md`) when scanning for project input files and in extension templates, similar to how `README.md` is handled.
+- ([#13935](https://github.com/quarto-dev/quarto-cli/issues/13935)): Fix `quarto install`, `quarto update`, and `quarto uninstall` interactive tool selection.
