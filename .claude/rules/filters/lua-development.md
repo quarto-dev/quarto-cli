@@ -223,6 +223,15 @@ When adding filters to `main.lua`:
 -- Filters in same stage run in order defined
 ```
 
+## API Reference
+
+Consult `src/resources/lua-types/` for available methods, properties, and function signatures:
+
+- `lua-types/pandoc/` - Pandoc Lua API (blocks, inlines, List, utils, etc.)
+- `lua-types/quarto/` - Quarto Lua API (format detection, custom nodes, etc.)
+
+These type definition files document the complete API surface.
+
 ## Key Conventions Summary
 
 1. **Use `import()` for filters** - `require()` for modules only
