@@ -87,6 +87,7 @@ export const kKeepMd = "keep-md";
 export const kKeepTex = "keep-tex";
 export const kKeepTyp = "keep-typ";
 export const kPdfStandard = "pdf-standard";
+export const kPdfStandardApplied = "pdf-standard-applied";
 export const kKeepIpynb = "keep-ipynb";
 export const kKeepSource = "keep-source";
 export const kVariant = "variant";
