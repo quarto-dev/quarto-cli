@@ -6,11 +6,7 @@ $if(author-meta)$
   pdfauthor={$author-meta$},
 $endif$
 $if(lang)$
-$if(pdfstandard)$
-$-- lang is set in DocumentMetadata instead
-$else$
   pdflang={$lang$},
-$endif$
 $endif$
 $if(subject)$
   pdfsubject={$subject$},
