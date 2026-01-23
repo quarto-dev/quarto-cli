@@ -26,6 +26,7 @@ import { Brand } from "../brand/brand.ts";
 import { darkModeDefault } from "../../format/html/format-html-info.ts";
 import { kBrandMode } from "../../config/constants.ts";
 import { join, relative } from "../../deno_ral/path.ts";
+import { isExternalPath } from "../url.ts";
 
 const defaultColorNameMap: Record<string, string> = {
   "link-color": "link",
@@ -162,9 +163,12 @@ const fileFontImportString = (brand: Brand, description: BrandFontFile) => {
       weight = file.weight;
       style = file.style;
     }
+    const fontUrl = isExternalPath(path)
+      ? path
+      : join(pathPrefix, path).replace(/\\/g, "/");
     parts.push(`@font-face {
     font-family: '${description.family}';
-    src: url('${join(pathPrefix, path).replace(/\\/g, "/")}');
+    src: url('${fontUrl}');
     font-weight: ${weight || "normal"};
     font-style: ${style || "normal"};
 }\n`);

@@ -5,7 +5,7 @@
  */
 
 import { existsSync, walkSync } from "../src/deno_ral/fs.ts";
-import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
+import { DOMParser, Element, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts";
 import { basename, dirname, join, relative, resolve } from "../src/deno_ral/path.ts";
 import { parseXmlDocument } from "slimdom";
@@ -582,6 +582,63 @@ export const ensureFileRegexMatches = (
   noMatchesUntyped?: (string | RegExp)[],
 ): Verify => {
   return(verifyFileRegexMatches(regexChecker)(file, matchesUntyped, noMatchesUntyped));
+};
+
+// Use this function to Regex match text in CSS files linked from the HTML document
+export const ensureCssRegexMatches = (
+  file: string,
+  matchesUntyped: (string | RegExp)[],
+  noMatchesUntyped?: (string | RegExp)[],
+): Verify => {
+  const asRegexp = (m: string | RegExp) => {
+    if (typeof m === "string") {
+      return new RegExp(m, "m");
+    }
+    return m;
+  };
+  const matches = matchesUntyped.map(asRegexp);
+  const noMatches = noMatchesUntyped?.map(asRegexp);
+
+  return {
+    name: `Inspecting CSS files for Regex matches`,
+    verify: async (_output: ExecuteOutput[]) => {
+      // Parse the HTML file to find linked CSS files
+      const htmlContent = await Deno.readTextFile(file);
+      const doc = new DOMParser().parseFromString(htmlContent, "text/html")!;
+      const [dir] = dirAndStem(file);
+
+      // Find all stylesheet links and read their content
+      let combinedContent = "";
+      const links = doc.querySelectorAll('link[rel="stylesheet"]');
+      for (const link of links) {
+        const href = (link as Element).getAttribute("href");
+        if (href && !href.startsWith("http://") && !href.startsWith("https://")) {
+          const cssPath = join(dir, href);
+          try {
+            combinedContent += await Deno.readTextFile(cssPath) + "\n";
+          } catch {
+            // Skip files that don't exist (e.g., external URLs we couldn't parse)
+          }
+        }
+      }
+
+      matches.forEach((regex) => {
+        assert(
+          regex.test(combinedContent),
+          `Required CSS match ${String(regex)} is missing.`,
+        );
+      });
+
+      if (noMatches) {
+        noMatches.forEach((regex) => {
+          assert(
+            !regex.test(combinedContent),
+            `Illegal CSS match ${String(regex)} was found.`,
+          );
+        });
+      }
+    },
+  };
 };
 
 // Use this function to Regex match text in the intermediate kept file

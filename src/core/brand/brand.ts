@@ -32,6 +32,7 @@ import { InternalError } from "../lib/error.ts";
 import { dirname, join, relative, resolve } from "../../deno_ral/path.ts";
 import { warnOnce } from "../log.ts";
 import { isCssColorName } from "../css/color-names.ts";
+import { isExternalPath } from "../url.ts";
 import {
   LogoLightDarkSpecifierPathOptional,
   LogoOptionsPathOptional,
@@ -270,10 +271,6 @@ export class Brand {
     }
     return this.getLogoResource(entry);
   }
-}
-
-function isExternalPath(path: string) {
-  return /^\w+:/.test(path);
 }
 
 export type LightDarkBrand = {

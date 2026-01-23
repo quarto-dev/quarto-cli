@@ -1,0 +1,15 @@
+---
+title: Remote Font Extension Test
+_quarto:
+  tests:
+    html:
+      ensureCssRegexMatches:
+        - ['src:url\("https://notofonts\.github\.io/']
+        - ['_extensions/my-brand/https:']
+---
+
+# Remote Font Test
+
+This document tests that remote font URLs in brand extensions are handled correctly (issue #13685).
+
+{{< lipsum 1 >}}
