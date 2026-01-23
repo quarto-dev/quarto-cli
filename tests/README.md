@@ -35,6 +35,44 @@ Running tests require to have a local environment setup with Quarto development,
 To help with this configuration, the `tests/` folder contains `configure-test-env.sh` and `configure-test-env.ps1`. It will check for the tools and update the dependencies to what is used by Quarto tests.
 Running the script at least one will insure you are correctly setup. Then, it is run as part of running the tests so that dependencies are always updated. Set `QUARTO_TESTS_NO_CONFIG` to skip this step when running tests.
 
+#### Optional test dependencies
+
+The configure scripts also check for optional tools that some tests require. Tests will gracefully skip when these tools are not available, but having them installed enables full test coverage:
+
+**Java** (version 8, 11, 17, or 21)
+
+- Required for: PDF standard validation tests using veraPDF
+- The script will install veraPDF automatically if Java is found using `quarto install verapdf`
+
+**Node.js** (version 18 or later) and **npm**
+
+- Required for: Playwright integration tests and JATS/MECA validation
+- Installation: Download from https://nodejs.org/ or use a version manager like nvm
+- The script will:
+  - Check Node.js version and warn if < 18
+  - Install the `meca` package globally for MECA validation
+  - Install Playwright and its dependencies
+  - Set up the multiplex server for Playwright tests
+  - Install Playwright browsers (Chrome, Firefox, etc.)
+
+**pdftotext** (from poppler)
+
+- Required for: Some PDF text extraction tests
+- Installation:
+  - Ubuntu/Debian: `sudo apt-get install poppler-utils`
+  - macOS: `brew install poppler`
+  - Windows: `scoop install poppler` (auto-installed if Scoop is available)
+
+**rsvg-convert** (from librsvg)
+
+- Required for: PDF tests with SVG image conversion
+- Installation:
+  - Ubuntu/Debian: `sudo apt-get install librsvg2-bin`
+  - macOS: `brew install librsvg`
+  - Windows: `scoop install librsvg` (auto-installed if Scoop is available)
+
+On Windows, the scripts will attempt to auto-install poppler and librsvg via Scoop if it's available on your system.
+
 Dependencies are managed using the following tools:
 
 #### R
@@ -284,6 +322,7 @@ _quarto:
 The snapshot file should be saved alongside the output with a `.snapshot` extension (e.g., `output.html.snapshot`).
 
 When a snapshot test fails:
+
 - A **unified diff** is displayed with colored output (red for removed, green for added)
 - A **word-level diff** shows changes with surrounding context
 - For **whitespace-only changes**, special markers visualize invisible characters:
