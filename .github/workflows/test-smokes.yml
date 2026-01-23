@@ -94,7 +94,7 @@ jobs:
 
       - name: Install node dependencies
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
-        run: yarn
+        run: npm install
         working-directory: ./tests/integration/playwright
         shell: bash
 

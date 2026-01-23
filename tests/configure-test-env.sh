@@ -84,21 +84,64 @@ else
   echo "Skipping veraPDF installation (quarto not found)"
 fi
 
-# Get npm in place
+# Check Node.js and npm ---
 echo ">>>> Configuring npm for MECA testing environment"
+node_exists=$(command -v node)
 npm_exists=$(command -v npm)
-if [ -z $npm_exists ]
+if [ -z $node_exists ]
 then
-  echo "No npm found - will skip any tests that require npm (e.g. JATS / MECA validation)"
+  echo "No node found - will skip any tests that require npm (e.g. JATS / MECA validation)"
+elif [ -z $npm_exists ]
+then
+  echo "No npm found - npm is required but node is present"
 else
+  # Check Node.js version
+  node_version=$(node -v | sed 's/v//' | cut -d. -f1)
+  echo "Node.js version: $(node -v)"
+  if [ "$node_version" -lt 18 ]; then
+    echo "Warning: Node.js version $node_version is older than recommended (18+)"
+    echo "Some tests may fail. Consider upgrading Node.js."
+  fi
   echo "Setting up npm testing environment"
   npm install -g meca
 fi
 
-# Get npm in place
+# Setup Playwright for browser testing ---
+echo ">>>> Configuring Playwright for integration tests"
+if [ -n "$npm_exists" ]
+then
+  echo "Installing Playwright dependencies..."
+  pushd integration/playwright > /dev/null
+  npm install
+  # Install multiplex server dependencies
+  echo "Installing multiplex server dependencies..."
+  pushd multiplex-server > /dev/null
+  npm install
+  popd > /dev/null
+  # Try to install browsers with --with-deps (may require sudo on Linux/macOS)
+  echo "Installing Playwright browsers..."
+  npx playwright install --with-deps || echo "Note: Browser installation may require sudo. Run manually: npx playwright install --with-deps"
+  popd > /dev/null
+else
+  echo "Skipping Playwright setup (npm not found)"
+fi
+
+# Check pdftotext ---
 echo ">>>> Do you have pdftotext installed (from poppler) ?"
 pdftotext_exists=$(command -v pdftotext)
 if [ -z $pdftotext_exists ]
 then
   echo "No pdftotext found - Some tests will require it, so you may want to install it."
+fi
+
+# Check rsvg-convert for SVG conversion ---
+echo ">>>> Do you have rsvg-convert installed (from librsvg) ?"
+rsvg_exists=$(command -v rsvg-convert)
+if [ -z $rsvg_exists ]
+then
+  echo "No rsvg-convert found - Some PDF tests with SVG images will be skipped."
+  echo "Install librsvg to enable SVG to PDF conversion tests:"
+  echo "  - Ubuntu/Debian: sudo apt-get install librsvg2-bin"
+  echo "  - macOS: brew install librsvg"
+  echo "  - Windows: scoop install librsvg"
 fi
