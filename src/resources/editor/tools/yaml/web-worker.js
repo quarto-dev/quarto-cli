@@ -18076,6 +18076,51 @@ try {
               short: "When used in conjunction with `pdfa`, specifies the output intent for the colors.",
               long: "When used in conjunction with `pdfa`, specifies the output intent for\nthe colors, for example `ISO coated v2 300\\letterpercent\\space (ECI)`\n\nIf left unspecified, `sRGB IEC61966-2.1` is used as default.\n"
             }
+          },
+          {
+            name: "pdf-standard",
+            schema: {
+              maybeArrayOf: {
+                enum: [
+                  "1.4",
+                  "1.5",
+                  "1.6",
+                  "1.7",
+                  "2.0",
+                  "a-1b",
+                  "a-2a",
+                  "a-2b",
+                  "a-2u",
+                  "a-3a",
+                  "a-3b",
+                  "a-3u",
+                  "a-4",
+                  "a-4f",
+                  "a-1a",
+                  "a-4e",
+                  "ua-1",
+                  "ua-2",
+                  "x-4",
+                  "x-4p",
+                  "x-5g",
+                  "x-5n",
+                  "x-5pg",
+                  "x-6",
+                  "x-6n",
+                  "x-6p"
+                ]
+              }
+            },
+            tags: {
+              formats: [
+                "$pdf-all",
+                "typst"
+              ]
+            },
+            description: {
+              short: "PDF conformance standard (e.g., ua-2, a-2b,  1.7)",
+              long: "Specifies PDF conformance standards and/or version for the output.\n\nAccepts a single value or array of values:\n\n**PDF versions** (both Typst and LaTeX):\n`1.4`, `1.5`, `1.6`, `1.7`, `2.0`\n\n**PDF/A standards** (both engines):\n`a-1b`, `a-2a`, `a-2b`, `a-2u`, `a-3a`, `a-3b`, `a-3u`, `a-4`, `a-4f`\n\n**PDF/A standards** (Typst only):\n`a-1a`, `a-4e`\n\n**PDF/UA standards**:\n`ua-1` (Typst), `ua-2` (LaTeX)\n\n**PDF/X standards** (LaTeX only):\n`x-4`, `x-4p`, `x-5g`, `x-5n`, `x-5pg`, `x-6`, `x-6n`, `x-6p`\n\nExample: `pdf-standard: [a-2b, ua-2]` for accessible archival PDF.\n"
+            }
           }
         ],
         "schema/document-references.yml": [
@@ -22846,6 +22891,9 @@ try {
           "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline (unified) brand definition, or an object with light\nand dark brand paths or definitions.",
           "The path to a light brand file or an inline light brand\ndefinition.",
           "The path to a dark brand file or an inline dark brand definition.",
+          "Distance from page edge to wideblock boundary.",
+          "Width of the margin note column.",
+          "Gap between margin column and body text.",
           {
             short: "Unique label for code cell",
             long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -23647,14 +23695,14 @@ try {
             long: "Target body page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt (8.5 inches with 1 inch for\neach margins)."
           },
           {
-            short: "Properties of the grid system used to layout Quarto HTML pages.",
+            short: "Properties of the grid system used to layout Quarto HTML and Typst\npages.",
             long: ""
           },
           "Defines whether to use the standard, slim, or full content grid or to\nautomatically select the most appropriate content grid.",
           "The base width of the sidebar (left) column in an HTML page.",
-          "The base width of the margin (right) column in an HTML page.",
-          "The base width of the body (center) column in an HTML page.",
-          "The width of the gutter that appears between columns in an HTML\npage.",
+          "The base width of the margin (right) column. For Typst, this controls\nthe width of the margin note column.",
+          "The base width of the body (center) column. For Typst, this is\ncomputed as the remainder after other columns.",
+          "The width of the gutter that appears between columns. For Typst, this\nis the gap between the text column and margin notes.",
           {
             short: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>)",
             long: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the appendix, choose the\nappendix style <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
@@ -24596,6 +24644,13 @@ try {
           "When defined, run axe-core accessibility tests on the document.",
           "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
           "The logo image.",
+          {
+            short: "Advanced geometry settings for Typst margin layout.",
+            long: "Fine-grained control over marginalia package geometry. Most users\nshould use <code>margin</code> and <code>grid</code> options instead;\nthese values are computed automatically.\nUser-specified values override the computed defaults."
+          },
+          "Inner (left) margin geometry.",
+          "Outer (right) margin geometry.",
+          "Minimum vertical spacing between margin notes (default: 8pt).",
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -24948,16 +25003,10 @@ try {
           "Manuscript configuration",
           "internal-schema-hack",
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-          "Distance from page edge to wideblock boundary.",
-          "Width of the margin note column.",
-          "Gap between margin column and body text.",
           {
-            short: "Advanced geometry settings for Typst margin layout.",
-            long: "Fine-grained control over marginalia package geometry. Most users\nshould use <code>margin</code> and <code>grid</code> options instead;\nthese values are computed automatically.\nUser-specified values override the computed defaults."
-          },
-          "Inner (left) margin geometry.",
-          "Outer (right) margin geometry.",
-          "Minimum vertical spacing between margin notes (default: 8pt)."
+            short: "PDF conformance standard (e.g., ua-2, a-2b, 1.7)",
+            long: "Specifies PDF conformance standards and/or version for the\noutput.\nAccepts a single value or array of values:\n<strong>PDF versions</strong> (both Typst and LaTeX):\n<code>1.4</code>, <code>1.5</code>, <code>1.6</code>, <code>1.7</code>,\n<code>2.0</code>\n<strong>PDF/A standards</strong> (both engines): <code>a-1b</code>,\n<code>a-2a</code>, <code>a-2b</code>, <code>a-2u</code>,\n<code>a-3a</code>, <code>a-3b</code>, <code>a-3u</code>,\n<code>a-4</code>, <code>a-4f</code>\n<strong>PDF/A standards</strong> (Typst only): <code>a-1a</code>,\n<code>a-4e</code>\n<strong>PDF/UA standards</strong>: <code>ua-1</code> (Typst),\n<code>ua-2</code> (LaTeX)\n<strong>PDF/X standards</strong> (LaTeX only): <code>x-4</code>,\n<code>x-4p</code>, <code>x-5g</code>, <code>x-5n</code>,\n<code>x-5pg</code>, <code>x-6</code>, <code>x-6n</code>,\n<code>x-6p</code>\nExample: <code>pdf-standard: [a-2b, ua-2]</code> for accessible\narchival PDF."
+          }
         ],
         "schema/external-schemas.yml": [
           {
@@ -25186,12 +25235,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 219149,
+          _internalId: 219977,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 219141,
+              _internalId: 219969,
               type: "enum",
               enum: [
                 "png",
@@ -25207,7 +25256,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 219148,
+              _internalId: 219976,
               type: "anyOf",
               anyOf: [
                 {
