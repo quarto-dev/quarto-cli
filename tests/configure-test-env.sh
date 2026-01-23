@@ -103,7 +103,7 @@ else
     echo "Some tests may fail. Consider upgrading Node.js."
   fi
   echo "Setting up npm testing environment"
-  npm install -g meca
+  npm install -g meca --loglevel=error --no-audit
 fi
 
 # Setup Playwright for browser testing ---
@@ -112,11 +112,11 @@ if [ -n "$npm_exists" ]
 then
   echo "Installing Playwright dependencies..."
   pushd integration/playwright > /dev/null
-  npm install
+  npm install --loglevel=error --no-audit
   # Install multiplex server dependencies
   echo "Installing multiplex server dependencies..."
   pushd multiplex-server > /dev/null
-  npm install
+  npm install --loglevel=error --no-audit
   popd > /dev/null
   # Try to install browsers with --with-deps (may require sudo on Linux/macOS)
   echo "Installing Playwright browsers..."

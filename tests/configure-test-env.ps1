@@ -87,7 +87,7 @@ If ($node_exists) {
       Write-Host -ForegroundColor yellow "Some tests may fail. Consider upgrading Node.js."
     }
     Write-Host "Setting up npm testing environment"
-    npm install -g meca
+    npm install -g meca --loglevel=error --no-audit
   }
 }
 
@@ -96,11 +96,11 @@ Write-Host -ForegroundColor green ">>>> Configuring Playwright for integration t
 If ($npm_exists) {
   Write-Host "Installing Playwright dependencies..."
   Push-Location integration/playwright
-  npm install
+  npm install --loglevel=error --no-audit
   # Install multiplex server dependencies
   Write-Host "Installing multiplex server dependencies..."
   Push-Location multiplex-server
-  npm install
+  npm install --loglevel=error --no-audit
   Pop-Location
   # On Windows, npx playwright install --with-deps works without admin rights
   Write-Host "Installing Playwright browsers..."
