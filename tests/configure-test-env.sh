@@ -53,9 +53,35 @@ then
   export GH_TOKEN=$(gh auth token)
 fi
 
-if [ -n $(command -v quarto) ] 
+if [ -n $(command -v quarto) ]
 then
   quarto install tinytex
+fi
+
+# Check for veraPDF (and Java) as the tool is required for PDF standard validation tests
+echo ">>>> Checking Java for veraPDF"
+java_exists=$(command -v java)
+if [ -z $java_exists ]
+then
+  echo "No java found in PATH - veraPDF requires Java to be installed."
+  echo "Install Java and add to PATH if you need PDF standard validation tests."
+  echo "See: https://www.java.com/en/download/"
+else
+  echo "Java found: $(java -version 2>&1 | head -n 1)"
+fi
+
+# Install veraPDF for PDF standard validation ---
+echo ">>>> Installing veraPDF for PDF standard validation"
+if [ -n $(command -v quarto) ]
+then
+  if [ -n "$java_exists" ]
+  then
+    quarto install verapdf
+  else
+    echo "Skipping veraPDF installation (Java not found)"
+  fi
+else
+  echo "Skipping veraPDF installation (quarto not found)"
 fi
 
 # Get npm in place

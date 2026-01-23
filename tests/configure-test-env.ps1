@@ -47,6 +47,26 @@ If ([string]::IsNullOrEmpty($env:GH_TOKEN)) {
 }
 quarto install tinytex
 
+# Check for veraPDF (and Java) as the tool is required for PDF standard validation tests
+Write-Host -ForegroundColor green ">>>> Checking Java for veraPDF"
+try { $null = gcm java -ea stop; $java=$true } catch {
+  Write-Host -ForegroundColor red "No java found in PATH - veraPDF requires Java to be installed."
+  Write-Host -ForegroundColor red "Install Java and add to PATH if you need PDF standard validation tests."
+  Write-Host -ForegroundColor red "See: https://www.java.com/en/download/"
+}
+
+If ($java) {
+  $javaVersion = java -version 2>&1 | Select-Object -First 1
+  Write-Host "Java found: $javaVersion"
+}
+
+Write-Host -ForegroundColor green ">>>> Installing veraPDF for PDF standard validation"
+If ($java) {
+  quarto install verapdf
+} Else {
+  Write-Host -ForegroundColor yellow "Skipping veraPDF installation (Java not found)"
+}
+
 # Get npm in place
 Write-Host -ForegroundColor green ">>>> Configuring npm for MECA testing environment"
 try {$null = gcm npm -ea stop; $npm_exists=$true } catch {
