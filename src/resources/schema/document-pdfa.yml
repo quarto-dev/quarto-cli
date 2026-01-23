@@ -87,7 +87,7 @@
   tags:
     formats: [$pdf-all, typst]
   description:
-    short: PDF conformance standard (e.g., a-2b, ua-1, 1.7)
+    short: PDF conformance standard (e.g., ua-2, a-2b,  1.7)
     long: |
       Specifies PDF conformance standards and/or version for the output.
 
@@ -103,9 +103,9 @@
       `a-1a`, `a-4e`
 
       **PDF/UA standards**:
-      `ua-1` (both), `ua-2` (LaTeX only)
+      `ua-1` (Typst), `ua-2` (LaTeX)
 
       **PDF/X standards** (LaTeX only):
       `x-4`, `x-4p`, `x-5g`, `x-5n`, `x-5pg`, `x-6`, `x-6n`, `x-6p`
 
-      Example: `pdf-standard: [a-2b, ua-1]` for accessible archival PDF.
+      Example: `pdf-standard: [a-2b, ua-2]` for accessible archival PDF.
