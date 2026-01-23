@@ -1,0 +1,18 @@
+project:
+  type: website
+  output-dir: .
+
+website:
+  title: "Draft Test Site"
+  llms-txt: true
+  drafts:
+    - draft-page.qmd
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+
+format:
+  html:
+    theme: cosmo
+    toc: true
