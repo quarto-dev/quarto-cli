@@ -133,11 +133,6 @@ jobs:
         if: ${{ inputs.publish-release }}
         uses: ./.github/workflows/actions/prevent-rerun
 
-      - name: Install Rust for typst-gather
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-
       - name: Configure
         run: |
           ./configure.sh
@@ -266,11 +261,6 @@ jobs:
         if: ${{ inputs.publish-release }}
         uses: ./.github/workflows/actions/prevent-rerun
 
-      - name: Install Rust for typst-gather
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-
       - name: Configure
         run: |
           ./configure.sh
@@ -369,11 +359,6 @@ jobs:
       - name: Prevent Re-run
         if: ${{ inputs.publish-release }}
         uses: ./.github/workflows/actions/prevent-rerun
-
-      - name: Install Rust for typst-gather and launcher
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
 
       - name: Configure
         run: |
@@ -502,11 +487,6 @@ jobs:
       - name: Prevent Re-run
         if: ${{ inputs.publish-release }}
         uses: ./.github/workflows/actions/prevent-rerun
-
-      - name: Install Rust for typst-gather
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
 
       - name: Configure
         run: |
