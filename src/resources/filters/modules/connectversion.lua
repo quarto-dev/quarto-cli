@@ -67,3 +67,8 @@ function is_connect_version_at_least(target_version)
   
   return current_num >= target_num
 end
+
+-- Export functions for module usage
+return {
+  is_connect_version_at_least = is_connect_version_at_least
+}

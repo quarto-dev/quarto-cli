@@ -17,7 +17,7 @@ Extension for generating email components needed for Posit Connect
    (this can be disabled by setting `email-preview: false` in the YAML header)
 --]]
 local constants = require("modules/constants")
-require("modules/connectversion")
+local connectversion = require("modules/connectversion")
 
 -- Get the file extension of any file residing on disk
 function get_file_extension(file_path)
@@ -349,7 +349,7 @@ function process_document(doc)
 
   -- Detect format upfront: Check Connect version and look for document-level metadata
   -- This must be determined before processing to avoid confusion about which format to use
-  if is_connect_version_at_least(constants.kConnectEmailMetadataChangeVersion) then
+  if connectversion.is_connect_version_at_least(constants.kConnectEmailMetadataChangeVersion) then
     connect_supports_v2 = true
   end
 
