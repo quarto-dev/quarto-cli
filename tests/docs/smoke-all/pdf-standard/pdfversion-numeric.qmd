@@ -1,7 +1,7 @@
 ---
 title: "PDF version (numeric YAML)"
 lang: en
-pdf-standard: 2.0
+pdf-standard: "2.0"
 keep-tex: true
 keep-typ: true
 _quarto:
