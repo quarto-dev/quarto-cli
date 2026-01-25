@@ -6,9 +6,10 @@ _quarto:
     typst:
       ensurePdfTextPositions:
         - # Code listing should be left-aligned with body text
-          # IMPORTANT: The subject must be the FIRST token in the code block.
-          # pdftotext extracts words separately, so subsequent words appear
-          # offset by their position within the line, not aligned with margin.
+          # NOTE: Subject must be text at the START of a line because
+          # ensurePdfTextPositions uses word positions, not semantic containers.
+          # A proper fix would walk the PDF structure tree to find the
+          # parent container and aggregate its bounds.
           - subject: "CODESTART_func():"
             relation: leftAligned
             object: "BODYTEXT_ALIGN_MARKER"

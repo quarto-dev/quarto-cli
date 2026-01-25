@@ -251,11 +251,13 @@ _quarto:
           - "Codd \\(1970\\) informs our approach"
           - "Lamport \\(1978\\) for temporal considerations"
       ensurePdfTextPositions:
-        - # Code listings should be left-aligned with body text, not centered
+        - # Code listings should be left-aligned with body text, not centered.
+          # NOTE: Subject must be text at the START of a line because
+          # ensurePdfTextPositions uses word positions, not semantic containers.
           - subject: "ALIGNTEST_MARKER"
             relation: leftAligned
             object: "LISTING_BODY_ALIGN_TEST"
-            tolerance: 15
+            tolerance: 5
 ---
 
 # Preface {.unnumbered}
