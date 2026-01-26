@@ -29,6 +29,7 @@ import {
   kVariant,
 } from "../../config/constants.ts";
 import { error, warning } from "../../deno_ral/log.ts";
+import { ErrorEx } from "../../core/lib/error.ts";
 import { Format } from "../../config/types.ts";
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
@@ -167,11 +168,10 @@ export function typstPdfOutputRecipe(
       typstOptions,
     );
     if (!result.success) {
-      // Log the error so test framework can detect it via shouldError
       if (result.stderr) {
         error(result.stderr);
       }
-      throw new Error("Typst compilation failed");
+      throw new ErrorEx("Error", "Typst compilation failed", false, false);
     }
 
     // Validate PDF against specified standards using verapdf (if available)
