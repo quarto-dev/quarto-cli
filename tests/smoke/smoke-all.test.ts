@@ -277,7 +277,11 @@ function resolveTestSpecs(
               verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
             }
           } else if (key === "printsMessage") {
-            verifyFns.push(verifyMap[key](value));
+            // Support both single object and array of printsMessage checks
+            const messages = Array.isArray(value) ? value : [value];
+            for (const msg of messages) {
+              verifyFns.push(verifyMap[key](msg));
+            }
           } else if (key === "ensureEpubFileRegexMatches") {
             // this ensure function is special because it takes an array of path + regex specifiers,
             // so we should never use the spread operator
