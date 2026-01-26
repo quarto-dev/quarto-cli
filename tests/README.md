@@ -35,6 +35,44 @@ Running tests require to have a local environment setup with Quarto development,
 To help with this configuration, the `tests/` folder contains `configure-test-env.sh` and `configure-test-env.ps1`. It will check for the tools and update the dependencies to what is used by Quarto tests.
 Running the script at least one will insure you are correctly setup. Then, it is run as part of running the tests so that dependencies are always updated. Set `QUARTO_TESTS_NO_CONFIG` to skip this step when running tests.
 
+#### Optional test dependencies
+
+The configure scripts also check for optional tools that some tests require. Tests will gracefully skip when these tools are not available, but having them installed enables full test coverage:
+
+**Java** (version 8, 11, 17, or 21)
+
+- Required for: PDF standard validation tests using veraPDF
+- The script will install veraPDF automatically if Java is found using `quarto install verapdf`
+
+**Node.js** (version 18 or later) and **npm**
+
+- Required for: Playwright integration tests and JATS/MECA validation
+- Installation: Download from https://nodejs.org/ or use a version manager like nvm
+- The script will:
+  - Check Node.js version and warn if < 18
+  - Install the `meca` package globally for MECA validation
+  - Install Playwright and its dependencies
+  - Set up the multiplex server for Playwright tests
+  - Install Playwright browsers (Chrome, Firefox, etc.)
+
+**pdftotext** (from poppler)
+
+- Required for: Some PDF text extraction tests
+- Installation:
+  - Ubuntu/Debian: `sudo apt-get install poppler-utils`
+  - macOS: `brew install poppler`
+  - Windows: `scoop install poppler` (auto-installed if Scoop is available)
+
+**rsvg-convert** (from librsvg)
+
+- Required for: PDF tests with SVG image conversion
+- Installation:
+  - Ubuntu/Debian: `sudo apt-get install librsvg2-bin`
+  - macOS: `brew install librsvg`
+  - Windows: `scoop install librsvg` (auto-installed if Scoop is available)
+
+On Windows, the scripts will attempt to auto-install poppler and librsvg via Scoop if it's available on your system.
+
 Dependencies are managed using the following tools:
 
 #### R
@@ -102,19 +140,79 @@ Tests are run using `run-tests.sh` on UNIX, and `run-tests.ps1` on Windows.
 ./run-tests.ps1 smoke/extensions/extension-render-doc.test.ts
 ```
 
-#### Prevent configuration for dependencies (R, Julia, Python, ...)
+#### Test environment variables
 
-Those files will run `configure-test-env` scripts to check for requirements and set up dependencies (except on Github Action as this is done in the workflow file directly).
-You can prevent test configuration locally by setting `QUARTO_TESTS_NO_CONFIG` environment variable to a non-empty value.
+The test scripts support several environment variables to control their behavior:
+
+**QUARTO_TESTS_NO_CONFIG**
+- Skip running `configure-test-env` scripts
+- Useful for faster test runs when environment is already configured
+- Tests will still activate `.venv` if present
 
 ```bash
 QUARTO_TESTS_NO_CONFIG="true" ./run-tests.sh
 ```
 
 ```powershell
-$env:QUARTO_TESTS_NO_CONFIG=$true
+$env:QUARTO_TESTS_NO_CONFIG="true"
 ./run-tests.ps1
 ```
+
+**QUARTO_TESTS_FORCE_NO_VENV** (replaces deprecated `QUARTO_TESTS_FORCE_NO_PIPENV`)
+- Skip activating the `.venv` virtual environment
+- Tests will use system Python packages instead of UV-managed dependencies
+- Use with caution: Python tests may fail if dependencies aren't in system Python
+
+```bash
+QUARTO_TESTS_FORCE_NO_VENV="true" ./run-tests.sh
+```
+
+```powershell
+$env:QUARTO_TESTS_FORCE_NO_VENV="true"
+./run-tests.ps1
+```
+
+**Quick test runs with run-fast-tests scripts**
+
+For convenience, `run-fast-tests.sh` and `run-fast-tests.ps1` are provided to skip environment configuration:
+
+```bash
+# Linux/macOS
+./run-fast-tests.sh
+
+# Windows
+./run-fast-tests.ps1
+```
+
+These scripts set `QUARTO_TESTS_NO_CONFIG` automatically. Use after running `configure-test-env` at least once.
+
+**QUARTO_TEST_KEEP_OUTPUTS** (or use `--keep-outputs`/`-k` flag)
+- Keep test output artifacts instead of cleaning them up
+- Useful for debugging test failures or inspecting generated files
+- Can be set via environment variable or command-line flag
+
+```bash
+# Using flag
+./run-tests.sh --keep-outputs
+./run-tests.sh -k
+
+# Using environment variable
+QUARTO_TEST_KEEP_OUTPUTS="true" ./run-tests.sh
+```
+
+```powershell
+# Using flag
+./run-tests.ps1 --keep-outputs
+./run-tests.ps1 -k
+
+# Using environment variable
+$env:QUARTO_TEST_KEEP_OUTPUTS="true"
+./run-tests.ps1
+```
+
+**Other environment variables**
+- `QUARTO_TEST_VERBOSE` - Enable verbose test output
+- `QUARTO_TESTS_NO_CHECK` - Not currently used (legacy variable)
 
 #### About smoke-all tests
 
@@ -284,6 +382,7 @@ _quarto:
 The snapshot file should be saved alongside the output with a `.snapshot` extension (e.g., `output.html.snapshot`).
 
 When a snapshot test fails:
+
 - A **unified diff** is displayed with colored output (red for removed, green for added)
 - A **word-level diff** shows changes with surrounding context
 - For **whitespace-only changes**, special markers visualize invisible characters:
