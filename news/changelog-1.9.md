@@ -68,6 +68,7 @@ All changes included in 1.9:
   - Two-column layout now uses `set page(columns:)` instead of `columns()` function, fixing compatibility with landscape sections.
   - Title block now properly spans both columns in multi-column layouts.
 - ([#13870](https://github.com/quarto-dev/quarto-cli/issues/13870)): Add support for `alt` attribute on cross-referenced equations for improved accessibility. (author: @mcanouil)
+- ([#13942](https://github.com/quarto-dev/quarto-cli/issues/13942)): Fix Typst compilation errors showing confusing internal stack traces. Users now see only the relevant Typst error message.
 - ([#13950](https://github.com/quarto-dev/quarto-cli/pull/13950)): Replace ctheorems with theorion package for theorem environments. Add `theorem-appearance` option to control styling: `simple` (default, classic LaTeX style), `fancy` (colored boxes with brand colors), `clouds` (rounded backgrounds), or `rainbow` (colored start border and colored title).
 - ([#13954](https://github.com/quarto-dev/quarto-cli/issues/13954)): Add support for Typst book projects via format extensions. Quarto now bundles the `orange-book` extension which provides a textbook-style format with chapter numbering, cross-references, and professional styling. Book projects with `format: typst` automatically use this extension.
 - ([#13978](https://github.com/quarto-dev/quarto-cli/pull/13978)): Keep term and description together in definition lists to avoid breaking across pages. (author: @mcanouil)
