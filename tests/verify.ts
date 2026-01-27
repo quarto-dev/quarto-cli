@@ -420,15 +420,15 @@ export const ensureHtmlElementCount = (
     verify: async (_output: ExecuteOutput[]) => {
       const htmlInput = await Deno.readTextFile(file);
       const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
-      
+
       // Convert single values to arrays for unified processing
       const selectorsArray = Array.isArray(options.selectors) ? options.selectors : [options.selectors];
       const countsArray = Array.isArray(options.counts) ? options.counts : [options.counts];
-      
+
       if (selectorsArray.length !== countsArray.length) {
         throw new Error("Selectors and counts arrays must have the same length");
       }
-      
+
       selectorsArray.forEach((selector, index) => {
         const expectedCount = countsArray[index];
         const elements = doc.querySelectorAll(selector);
@@ -439,6 +439,31 @@ export const ensureHtmlElementCount = (
       });
     }
   };
+};
+
+export const verifyOjsDefine = (
+  callback: (contents: Array<{name: string, value: any}>) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting OJS Define",
+    verify: async (_output: ExecuteOutput[]) => {
+      const htmlContent = await Deno.readTextFile(file);
+      const doc = new DOMParser().parseFromString(htmlContent, "text/html")!;
+      const scriptElement = doc.querySelector('script[type="ojs-define"]');
+      assert(
+        scriptElement,
+        "Should find ojs-define script element in rendered HTML"
+      );
+      const jsonContent = scriptElement.textContent.trim();
+      const ojsData = JSON.parse(jsonContent);
+      assert(
+        ojsData.contents && Array.isArray(ojsData.contents),
+        "ojs-define should have contents array"
+      );
+      await callback(ojsData.contents);
+    },
+  });
 };
 
 const printColoredDiff = (diff: string) => {
