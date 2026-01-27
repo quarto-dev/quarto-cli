@@ -279,6 +279,56 @@ See `tests/smoke/project/project-website.test.ts` for website project rendering 
 ### Template Usage Test
 See `tests/smoke/use/template.test.ts` for extension template patterns.
 
+## Engine-Specific Test Considerations
+
+### Shared Test Environments (Critical for quarto-cli Testing)
+
+**Quarto-cli test infrastructure uses a SINGLE managed environment for all tests:**
+
+- **Julia**: `tests/Project.toml` + `tests/Manifest.toml`
+- **Python**: `tests/.venv/` (managed by uv/pyproject.toml)
+- **R**: `tests/renv/` + `tests/renv.lock`
+
+The `configure-test-env` scripts ONLY manage these main environments. CI builds depend on this structure.
+
+**Do NOT create language environment files in test subdirectories:**
+
+```
+tests/docs/my-test/
+├── Project.toml        # ❌ WRONG - breaks test infrastructure
+├── .venv/              # ❌ WRONG - breaks test infrastructure
+├── renv.lock           # ❌ WRONG - breaks test infrastructure
+└── test.qmd
+```
+
+**Why this fails:**
+- Julia searches UP for `Project.toml` and uses the first one found
+- Python/R will use local environments if present
+- CI scripts won't configure these local environments
+- Tests will fail in CI even if they work locally
+
+**Adding new package dependencies:**
+
+For ANY engine (Julia, Python, R), add dependencies to the main `tests/` environment:
+
+```bash
+# Julia: Use Pkg from tests/ directory
+cd tests
+julia --project=. -e 'using Pkg; Pkg.add("PackageName")'
+# Then run configure to update environment
+./configure-test-env.sh   # or .ps1 on Windows
+
+# Python: Use uv from tests/ directory
+cd tests
+uv add packagename
+
+# R: Edit tests/DESCRIPTION, then
+cd tests
+Rscript -e "renv::install(); renv::snapshot()"
+```
+
+**Note:** While Quarto supports local Project.toml files in document directories for production use, the quarto-cli test infrastructure specifically does NOT support this pattern. All test dependencies must be in the main `tests/` environment.
+
 ## Best Practices
 
 1. **Always clean up**: Use teardown to remove generated files
