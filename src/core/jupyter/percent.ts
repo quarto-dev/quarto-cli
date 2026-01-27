@@ -35,9 +35,10 @@ export function isJupyterPercentScript(file: string, extensions?: string[]) {
   if (availableExtensions.includes(ext)) {
     const text = Deno.readTextFileSync(file);
     const cms = kLangCommentChars[kLanguageExtensions[ext]];
-    const pat = new RegExp(`^\\s*${cms}\\s*%%+\\s+\\[markdown|raw\\]`);
+    // Use multiline mode (m) so ^ matches start of any line, not just start of file.
+    // Group the alternation properly: (markdown|raw) not markdown|raw
+    const pat = new RegExp(`^\\s*${cms}\\s*%%+\\s+\\[(markdown|raw)\\]`, "m");
     return !!text.match(pat);
-
   } else {
     return false;
   }
