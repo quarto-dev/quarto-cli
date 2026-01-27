@@ -118,6 +118,20 @@ Julia uses built-in package manager [**Pkg.jl**](https://pkgdocs.julialang.org/v
 
 `Project.toml` contains our direct dependency and `Manifest.toml` is the lock file that will be created (`Pkg.resolve()`).
 
+**Important:** All test dependencies must be in the main `tests/` environment. Julia searches UP the directory tree for `Project.toml` starting from the document being rendered.
+
+**Adding a new package dependency:**
+
+```bash
+cd tests
+julia --project=. -e 'using Pkg; Pkg.add("PackageName")'
+./configure-test-env.sh   # or .ps1 on Windows
+```
+
+**Do NOT create** local `Project.toml` files in test subdirectories (e.g., `tests/docs/*/Project.toml`). Julia will use that environment instead of the main `tests/` environment. The `configure-test-env` scripts only manage the main environment, so tests with local environments will fail in CI even if they work locally.
+
+**Note:** This applies to ALL engines (Julia, Python, R). Python and R will also use local `.venv/` or `renv.lock` if present. The quarto-cli test infrastructure uses a single managed environment per language at `tests/`, and CI only configures these main environments.
+
 See [documentation](https://pkgdocs.julialang.org/v1/managing-packages/) on how to add, remove, update if you need to tweak the Julia environment.
 
 ### How to run tests locally ?

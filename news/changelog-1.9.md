@@ -132,6 +132,10 @@ All changes included in 1.9:
 
 - ([#13748](https://github.com/quarto-dev/quarto-cli/pull/13748)): Fix stdin encoding to UTF-8 on Windows to correctly handle JSON in documents containing non-ASCII characters.
 
+### `knitr`
+
+- ([#13958](https://github.com/quarto-dev/quarto-cli/issues/13958)): Use max precision for `ojs_define` number like this is the case for `jupyter` or `julia` engine.
+
 ## Other fixes and improvements
 
 - ([#8730](https://github.com/quarto-dev/quarto-cli/issues/8730)): Detect x64 R crashes on Windows ARM and provide helpful error message directing users to install native ARM64 R instead of showing generic "check your R installation" error.

@@ -11,6 +11,45 @@ Quarto uses Deno for testing with custom verification helpers located in:
 
 ## Common Test Patterns
 
+### Simple Render Tests
+
+For testing single document rendering with automatic cleanup:
+
+```typescript
+import { docs } from "../../utils.ts";
+import { testRender } from "./render.ts";
+
+// Simplest form - just render and verify output created
+testRender(docs("test-plain.md"), "html", false);
+```
+
+**With additional verifiers:**
+
+```typescript
+import { docs, outputForInput } from "../../utils.ts";
+import { testRender } from "./render.ts";
+import { ensureHtmlElements } from "../../verify.ts";
+
+const input = docs("minimal.qmd");
+const output = outputForInput(input, "html");
+
+testRender(input, "html", true, [
+  ensureHtmlElements(output.outputPath, [], [
+    "script#quarto-html-after-body",
+  ]),
+]);
+```
+
+**Key points:**
+- `testRender()` automatically handles output verification and cleanup
+- Respects `QUARTO_TEST_KEEP_OUTPUTS` env var for debugging
+- Set `noSupporting` parameter based on expected output:
+  - `true` - For truly self-contained HTML (no `_files/` directory, inline everything)
+  - `false` - For HTML with supporting files directory (OJS runtime, widget dependencies, plots, etc.)
+  - Most HTML outputs should use `false` (only use `true` for formats like `html` with `self-contained: true`)
+- Pass additional verifiers in the array parameter (optional)
+- Cleanup happens automatically via `cleanoutput()` in teardown
+
 ### Project Rendering Tests
 
 For testing project rendering (especially website projects):
@@ -226,6 +265,11 @@ testQuartoCmd(...);
 
 ## Examples from Codebase
 
+### Simple Render Test
+See `tests/smoke/render/render-plain.test.ts` for the simplest render tests (no additional verifiers).
+
+See `tests/smoke/render/render-minimal.test.ts` for render test with custom HTML element verification.
+
 ### Project Ignore Test
 See `tests/smoke/project/project-ignore-dirs.test.ts` for testing directory exclusion patterns.
 
@@ -234,6 +278,56 @@ See `tests/smoke/project/project-website.test.ts` for website project rendering 
 
 ### Template Usage Test
 See `tests/smoke/use/template.test.ts` for extension template patterns.
+
+## Engine-Specific Test Considerations
+
+### Shared Test Environments (Critical for quarto-cli Testing)
+
+**Quarto-cli test infrastructure uses a SINGLE managed environment for all tests:**
+
+- **Julia**: `tests/Project.toml` + `tests/Manifest.toml`
+- **Python**: `tests/.venv/` (managed by uv/pyproject.toml)
+- **R**: `tests/renv/` + `tests/renv.lock`
+
+The `configure-test-env` scripts ONLY manage these main environments. CI builds depend on this structure.
+
+**Do NOT create language environment files in test subdirectories:**
+
+```
+tests/docs/my-test/
+├── Project.toml        # ❌ WRONG - breaks test infrastructure
+├── .venv/              # ❌ WRONG - breaks test infrastructure
+├── renv.lock           # ❌ WRONG - breaks test infrastructure
+└── test.qmd
+```
+
+**Why this fails:**
+- Julia searches UP for `Project.toml` and uses the first one found
+- Python/R will use local environments if present
+- CI scripts won't configure these local environments
+- Tests will fail in CI even if they work locally
+
+**Adding new package dependencies:**
+
+For ANY engine (Julia, Python, R), add dependencies to the main `tests/` environment:
+
+```bash
+# Julia: Use Pkg from tests/ directory
+cd tests
+julia --project=. -e 'using Pkg; Pkg.add("PackageName")'
+# Then run configure to update environment
+./configure-test-env.sh   # or .ps1 on Windows
+
+# Python: Use uv from tests/ directory
+cd tests
+uv add packagename
+
+# R: Edit tests/DESCRIPTION, then
+cd tests
+Rscript -e "renv::install(); renv::snapshot()"
+```
+
+**Note:** While Quarto supports local Project.toml files in document directories for production use, the quarto-cli test infrastructure specifically does NOT support this pattern. All test dependencies must be in the main `tests/` environment.
 
 ## Best Practices
 
