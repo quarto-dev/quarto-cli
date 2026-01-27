@@ -124,6 +124,8 @@ All changes included in 1.9:
 ### `jupyter`
 
 - ([#13748](https://github.com/quarto-dev/quarto-cli/pull/13748)): Fix stdin encoding to UTF-8 on Windows to correctly handle JSON in documents containing non-ASCII characters.
+- ([#13936](https://github.com/quarto-dev/quarto-cli/pull/13936)): Add support for q/kdb+ programming language in percent format notebooks and code cell options. (author: @benlubas)
+- ([#13936](https://github.com/quarto-dev/quarto-cli/pull/13936)): Fix `isJupyterPercentScript` regex to correctly detect percent scripts with `[raw]` cells and cells not at the start of the file. The regex now properly groups the alternation `(markdown|raw)` and uses multiline mode.
 
 ## Other fixes and improvements
 
