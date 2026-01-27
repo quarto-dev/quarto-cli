@@ -2443,6 +2443,11 @@
                             boolean:
                               description: "Run tests on CI (true = run, false = skip)"
                               default: true
+                          skip:
+                            description: "Skip test unconditionally (true = skip with default message, string = skip with custom message)"
+                            anyOf:
+                              - boolean
+                              - string
                           os:
                             description: "Run tests ONLY on these platforms (whitelist)"
                             anyOf:
@@ -2717,8 +2722,9 @@
 - id: logo-light-dark-specifier
   description: >
     Any of the ways a logo can be specified: string, object, or light/dark object of
-    string or object
+    string or object. Use `false` to explicitly disable the logo.
   anyOf:
+    - enum: [false]
     - ref: logo-specifier
     - object:
         closed: true
@@ -3478,4 +3484,18 @@
                   - string
                   - boolean
                   - number
+- id: marginalia-side-geometry
+  object:
+    closed: true
+    properties:
+      far:
+        string:
+          description: "Distance from page edge to wideblock boundary."
+      width:
+        string:
+          description: "Width of the margin note column."
+      separation:
+        string:
+          description: "Gap between margin column and body text."
+
 # - id: quarto-extension

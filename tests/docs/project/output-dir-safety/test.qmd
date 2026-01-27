@@ -1,0 +1,8 @@
+---
+title: "Output Dir Safety Test"
+format: html
+---
+
+# Test Document
+
+This document tests that `output-dir: ./` does not delete the project directory.

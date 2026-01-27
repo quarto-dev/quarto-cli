@@ -1,0 +1,22 @@
+---
+title: "Margin Span Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#note\(alignment: "baseline"']
+        - []
+      ensurePdfTextPositions:
+        - - subject: "margin note"
+            relation: rightOf
+            object: "Main text"
+        - []
+      noErrors: default
+---
+
+Main text with [margin note]{.column-margin} inline.

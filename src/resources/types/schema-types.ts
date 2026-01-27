@@ -1230,7 +1230,10 @@ export type QuartoDevSchema = {
             | "linux"
             | "darwin"
             | "windows"
-          ))[]; /* Run tests ONLY on these platforms (whitelist) */
+          ))[] /* Run tests ONLY on these platforms (whitelist) */;
+        skip?:
+          | boolean
+          | string; /* Skip test unconditionally (true = skip with default message, string = skip with custom message) */
       }; /* Control when tests should run */
     };
   };
@@ -1324,10 +1327,10 @@ export type LogoOptionsPathOptional = { alt?: string; path?: string };
 
 export type LogoSpecifierPathOptional = string | LogoOptionsPathOptional;
 
-export type LogoLightDarkSpecifier = LogoSpecifier | {
+export type LogoLightDarkSpecifier = false | LogoSpecifier | {
   dark?: LogoSpecifier;
   light?: LogoSpecifier;
-}; /* Any of the ways a logo can be specified: string, object, or light/dark object of string or object */
+}; /* Any of the ways a logo can be specified: string, object, or light/dark object of string or object. Use `false` to explicitly disable the logo. */
 
 export type LogoLightDarkSpecifierPathOptional = LogoSpecifierPathOptional | {
   dark?: LogoSpecifierPathOptional;
@@ -1636,6 +1639,12 @@ export type BrandDefaults = {
 
 export type BrandDefaultsBootstrap = {
   defaults?: { [key: string]: string | boolean | number };
+};
+
+export type MarginaliaSideGeometry = {
+  far?: string /* Distance from page edge to wideblock boundary. */;
+  separation?: string /* Gap between margin column and body text. */;
+  width?: string; /* Width of the margin note column. */
 };
 
 export type ProjectConfig = {

@@ -1,0 +1,69 @@
+---
+title: "Subfigures in Margin (ggplot2)"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Should have note() wrapping quarto_super for margin subfigure placement
+        - ['#note\(', 'quarto_super']
+        - []
+      ensurePdfRegexMatches:
+        # Subfigure labels, main figure label, and subfigure numbering
+        - ['Figure 1', 'SUBFIG-WAVES', '\(a\) Sine', '\(b\) Cosine']
+        - []
+      ensurePdfTextPositions:
+        - # Subfigure panel in margin
+          - subject: "Sine Wave"
+            relation: rightOf
+            object: "This tests"
+          - subject: "Cosine Wave"
+            relation: rightOf
+            object: "This tests"
+          # Sine is above Cosine (vertical ordering of subfigures)
+          - subject: "Sine Wave"
+            relation: above
+            object: "Cosine Wave"
+          # Main figure caption is below Cosine (caption at bottom for figures)
+          - subject: "Cosine Wave"
+            relation: above
+            object: "SUBFIG-WAVES"
+        - []
+      noErrors: default
+---
+
+This tests subfigures (panel figures) placed in the margin from a single R code block.
+
+```{r}
+#| column: margin
+#| label: fig-margin-waves
+#| fig-cap: "SUBFIG-WAVES: Two wave subfigures in margin"
+#| fig-subcap:
+#|   - "Sine Wave"
+#|   - "Cosine Wave"
+#| echo: false
+#| fig-width: 2
+#| fig-height: 1.5
+
+library(ggplot2)
+
+x <- seq(0, 4 * pi, length.out = 100)
+
+ggplot(data.frame(x = x, y = sin(x)), aes(x, y)) +
+  geom_line() +
+  theme_minimal() +
+  labs(x = NULL, y = NULL)
+
+ggplot(data.frame(x = x, y = cos(x)), aes(x, y)) +
+  geom_line() +
+  theme_minimal() +
+  labs(x = NULL, y = NULL)
+```
+
+Reference to @fig-margin-waves shows the panel.
+
+More text in the main column to show the layout alongside the margin subfigures.

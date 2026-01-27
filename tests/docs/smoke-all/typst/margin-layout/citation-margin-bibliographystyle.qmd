@@ -1,0 +1,36 @@
+---
+title: "Margin Citation with Bibliography Style"
+papersize: us-letter
+citation-location: margin
+bibliography: borges-refs.bib
+bibliographystyle: apa
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Margin citations emit note() with cite(form: "full") and bibliography style
+        - ['#note\(', 'form: "full"', 'style:\s*"apa"']
+        - []
+      ensurePdfRegexMatches:
+        - ['BIBSTYLE-TEST', 'Borges']
+        - []
+      ensurePdfTextPositions:
+        - # "La biblioteca" is unique to borges1941library title
+          - subject: "La biblioteca"
+            relation: rightOf
+            object: "BIBSTYLE-TEST"
+        - []
+      noErrors: default
+---
+
+# Testing Bibliography Style with Margin Citations
+
+BIBSTYLE-TEST: With `bibliographystyle: apa`, citations should follow APA format [@borges1941library].
+
+The full citation in the margin should also use APA styling [@eco1980name].
+
+Multiple citations should maintain consistent style [@calvino1979winter; @casares1940morel].

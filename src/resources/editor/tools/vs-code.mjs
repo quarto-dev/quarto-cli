@@ -8002,7 +8002,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             formats: [
               "$html-files",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -8024,7 +8025,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             formats: [
               "$html-files",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -8046,7 +8048,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             formats: [
               "$html-files",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -11707,6 +11710,13 @@ var require_yaml_intelligence_resources = __commonJS({
                                       default: true
                                     }
                                   },
+                                  skip: {
+                                    description: "Skip test unconditionally (true = skip with default message, string = skip with custom message)",
+                                    anyOf: [
+                                      "boolean",
+                                      "string"
+                                    ]
+                                  },
                                   os: {
                                     description: "Run tests ONLY on these platforms (whitelist)",
                                     anyOf: [
@@ -12167,8 +12177,13 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           id: "logo-light-dark-specifier",
-          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object. Use `false` to explicitly disable the logo.\n",
           anyOf: [
+            {
+              enum: [
+                false
+              ]
+            },
             {
               ref: "logo-specifier"
             },
@@ -13241,6 +13256,29 @@ var require_yaml_intelligence_resources = __commonJS({
                       }
                     }
                   }
+                }
+              }
+            }
+          }
+        },
+        {
+          id: "marginalia-side-geometry",
+          object: {
+            closed: true,
+            properties: {
+              far: {
+                string: {
+                  description: "Distance from page edge to wideblock boundary."
+                }
+              },
+              width: {
+                string: {
+                  description: "Width of the margin note column."
+                }
+              },
+              separation: {
+                string: {
+                  description: "Gap between margin column and body text."
                 }
               }
             }
@@ -15356,7 +15394,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$markdown-all",
               "muse",
               "$html-files",
-              "pdf"
+              "pdf",
+              "typst"
             ]
           },
           schema: {
@@ -16037,6 +16076,21 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "YAML file containing custom language translations"
         },
         {
+          name: "shorthands",
+          tags: {
+            formats: [
+              "pdf",
+              "beamer"
+            ]
+          },
+          schema: "boolean",
+          default: false,
+          description: {
+            short: "Enable babel language-specific shorthands in LaTeX output.",
+            long: "Enable babel language-specific shorthands in LaTeX output. When `true`,\nbabel's language shortcuts are enabled (e.g., French `<<`/`>>` for guillemets,\nGerman `\"` shortcuts, proper spacing around French punctuation).\n\nDefault is `false` because language shorthands can interfere with code blocks\nand other content. Only enable if you need specific typographic features\nfor your language.\n"
+          }
+        },
+        {
           name: "dir",
           schema: {
             enum: [
@@ -16324,6 +16378,12 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "grid",
+          tags: {
+            formats: [
+              "$html-doc",
+              "typst"
+            ]
+          },
           schema: {
             object: {
               closed: true,
@@ -16344,24 +16404,24 @@ var require_yaml_intelligence_resources = __commonJS({
                 },
                 "margin-width": {
                   string: {
-                    description: "The base width of the margin (right) column in an HTML page."
+                    description: "The base width of the margin (right) column. For Typst, this controls the width of the margin note column."
                   }
                 },
                 "body-width": {
                   string: {
-                    description: "The base width of the body (center) column in an HTML page."
+                    description: "The base width of the body (center) column. For Typst, this is computed as the remainder after other columns."
                   }
                 },
                 "gutter-width": {
                   string: {
-                    description: "The width of the gutter that appears between columns in an HTML page."
+                    description: "The width of the gutter that appears between columns. For Typst, this is the gap between the text column and margin notes."
                   }
                 }
               }
             }
           },
           description: {
-            short: "Properties of the grid system used to layout Quarto HTML pages."
+            short: "Properties of the grid system used to layout Quarto HTML and Typst pages."
           }
         },
         {
@@ -17325,6 +17385,24 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          name: "page-numbering",
+          schema: {
+            anyOf: [
+              "boolean",
+              "string"
+            ]
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n",
+            long: "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n\nSee [Typst Numbering](https://typst.app/docs/reference/model/numbering/) \nfor additional information.\n"
+          }
+        },
+        {
           name: "pagenumbering",
           schema: {
             maybeArrayOf: "string"
@@ -17997,6 +18075,51 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "When used in conjunction with `pdfa`, specifies the output intent for the colors.",
             long: "When used in conjunction with `pdfa`, specifies the output intent for\nthe colors, for example `ISO coated v2 300\\letterpercent\\space (ECI)`\n\nIf left unspecified, `sRGB IEC61966-2.1` is used as default.\n"
           }
+        },
+        {
+          name: "pdf-standard",
+          schema: {
+            maybeArrayOf: {
+              enum: [
+                "1.4",
+                "1.5",
+                "1.6",
+                "1.7",
+                "2.0",
+                "a-1b",
+                "a-2a",
+                "a-2b",
+                "a-2u",
+                "a-3a",
+                "a-3b",
+                "a-3u",
+                "a-4",
+                "a-4f",
+                "a-1a",
+                "a-4e",
+                "ua-1",
+                "ua-2",
+                "x-4",
+                "x-4p",
+                "x-5g",
+                "x-5n",
+                "x-5pg",
+                "x-6",
+                "x-6n",
+                "x-6p"
+              ]
+            }
+          },
+          tags: {
+            formats: [
+              "$pdf-all",
+              "typst"
+            ]
+          },
+          description: {
+            short: "PDF conformance standard (e.g., ua-2, a-2b,  1.7)",
+            long: "Specifies PDF conformance standards and/or version for the output.\n\nAccepts a single value or array of values:\n\n**PDF versions** (both Typst and LaTeX):\n`1.4`, `1.5`, `1.6`, `1.7`, `2.0`\n\n**PDF/A standards** (both engines):\n`a-1b`, `a-2a`, `a-2b`, `a-2u`, `a-3a`, `a-3b`, `a-3u`, `a-4`, `a-4f`\n\n**PDF/A standards** (Typst only):\n`a-1a`, `a-4e`\n\n**PDF/UA standards**:\n`ua-1` (Typst), `ua-2` (LaTeX)\n\n**PDF/X standards** (LaTeX only):\n`x-4`, `x-4p`, `x-5g`, `x-5n`, `x-5pg`, `x-6`, `x-6n`, `x-6p`\n\nExample: `pdf-standard: [a-2b, ua-2]` for accessible archival PDF.\n"
+          }
         }
       ],
       "schema/document-references.yml": [
@@ -18033,7 +18156,8 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           tags: {
             formats: [
-              "$html-doc"
+              "$html-doc",
+              "typst"
             ]
           },
           default: "document",
@@ -21365,6 +21489,12 @@ var require_yaml_intelligence_resources = __commonJS({
         "asciidoc",
         "asciidoc_legacy",
         "asciidoctor",
+        "bbcode",
+        "bbcode_fluxbb",
+        "bbcode_hubzilla",
+        "bbcode_phpbb",
+        "bbcode_steam",
+        "bbcode_xenforo",
         "beamer",
         "biblatex",
         "bibtex",
@@ -21426,6 +21556,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "texinfo",
         "textile",
         "typst",
+        "vimdoc",
+        "xml",
         "xwiki",
         "zimwiki"
       ],
@@ -22600,6 +22732,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Define a profile group for which at least one profile is always\nactive.",
         "Control when tests should run",
         "Run tests on CI (true = run, false = skip)",
+        "Skip test unconditionally (true = skip with default message, string =\nskip with custom message)",
         "Run tests ONLY on these platforms (whitelist)",
         "Don\u2019t run tests on these platforms (blacklist)",
         "The path to the locally referenced notebook.",
@@ -22654,7 +22787,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Alternative text for the logo, used for accessibility.",
         "Path or brand.yml logo resource name.",
         "Alternative text for the logo, used for accessibility.",
-        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object. Use <code>false</code> to\nexplicitly disable the logo.",
         "Specification of a light logo",
         "Specification of a dark logo",
         "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
@@ -22757,6 +22890,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline (unified) brand definition, or an object with light\nand dark brand paths or definitions.",
         "The path to a light brand file or an inline light brand\ndefinition.",
         "The path to a dark brand file or an inline dark brand definition.",
+        "Distance from page edge to wideblock boundary.",
+        "Width of the margin note column.",
+        "Gap between margin column and body text.",
         {
           short: "Unique label for code cell",
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -23519,6 +23655,10 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "YAML file containing custom language translations",
         {
+          short: "Enable babel language-specific shorthands in LaTeX output.",
+          long: 'Enable babel language-specific shorthands in LaTeX output. When\n<code>true</code>, babel\u2019s language shortcuts are enabled (e.g., French\n<code>&lt;&lt;</code>/<code>&gt;&gt;</code> for guillemets, German\n<code>"</code> shortcuts, proper spacing around French punctuation).\nDefault is <code>false</code> because language shorthands can\ninterfere with code blocks and other content. Only enable if you need\nspecific typographic features for your language.'
+        },
+        {
           short: "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).",
           long: "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).\nFor bidirectional documents, native pandoc <code>span</code>s and\n<code>div</code>s with the <code>dir</code> attribute can be used to\noverride the base direction in some output formats. This may not always\nbe necessary if the final renderer (e.g.&nbsp;the browser, when generating\nHTML) supports the [Unicode Bidirectional Algorithm].\nWhen using LaTeX for bidirectional documents, only the\n<code>xelatex</code> engine is fully supported (use\n<code>--pdf-engine=xelatex</code>)."
         },
@@ -23554,14 +23694,14 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Target body page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt (8.5 inches with 1 inch for\neach margins)."
         },
         {
-          short: "Properties of the grid system used to layout Quarto HTML pages.",
+          short: "Properties of the grid system used to layout Quarto HTML and Typst\npages.",
           long: ""
         },
         "Defines whether to use the standard, slim, or full content grid or to\nautomatically select the most appropriate content grid.",
         "The base width of the sidebar (left) column in an HTML page.",
-        "The base width of the margin (right) column in an HTML page.",
-        "The base width of the body (center) column in an HTML page.",
-        "The width of the gutter that appears between columns in an HTML\npage.",
+        "The base width of the margin (right) column. For Typst, this controls\nthe width of the margin note column.",
+        "The base width of the body (center) column. For Typst, this is\ncomputed as the remainder after other columns.",
+        "The width of the gutter that appears between columns. For Typst, this\nis the gap between the text column and margin notes.",
         {
           short: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>)",
           long: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the appendix, choose the\nappendix style <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
@@ -23718,6 +23858,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings.",
           long: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings, and level 3 headings become level 2 headings. Headings\ncannot have a level less than 1, so a heading that would be shifted\nbelow level 1 becomes a regular paragraph. Exception: with a shift of\n-N, a level-N heading at the beginning of the document replaces the\nmetadata title."
+        },
+        {
+          short: "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
+          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
         },
         {
           short: "Sets the page numbering style and location for the document.",
@@ -24499,6 +24643,13 @@ var require_yaml_intelligence_resources = __commonJS({
         "When defined, run axe-core accessibility tests on the document.",
         "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
         "The logo image.",
+        {
+          short: "Advanced geometry settings for Typst margin layout.",
+          long: "Fine-grained control over marginalia package geometry. Most users\nshould use <code>margin</code> and <code>grid</code> options instead;\nthese values are computed automatically.\nUser-specified values override the computed defaults."
+        },
+        "Inner (left) margin geometry.",
+        "Outer (right) margin geometry.",
+        "Minimum vertical spacing between margin notes (default: 8pt).",
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -24850,7 +25001,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+        {
+          short: "PDF conformance standard (e.g., ua-2, a-2b, 1.7)",
+          long: "Specifies PDF conformance standards and/or version for the\noutput.\nAccepts a single value or array of values:\n<strong>PDF versions</strong> (both Typst and LaTeX):\n<code>1.4</code>, <code>1.5</code>, <code>1.6</code>, <code>1.7</code>,\n<code>2.0</code>\n<strong>PDF/A standards</strong> (both engines): <code>a-1b</code>,\n<code>a-2a</code>, <code>a-2b</code>, <code>a-2u</code>,\n<code>a-3a</code>, <code>a-3b</code>, <code>a-3u</code>,\n<code>a-4</code>, <code>a-4f</code>\n<strong>PDF/A standards</strong> (Typst only): <code>a-1a</code>,\n<code>a-4e</code>\n<strong>PDF/UA standards</strong>: <code>ua-1</code> (Typst),\n<code>ua-2</code> (LaTeX)\n<strong>PDF/X standards</strong> (LaTeX only): <code>x-4</code>,\n<code>x-4p</code>, <code>x-5g</code>, <code>x-5n</code>,\n<code>x-5pg</code>, <code>x-6</code>, <code>x-6n</code>,\n<code>x-6p</code>\nExample: <code>pdf-standard: [a-2b, ua-2]</code> for accessible\narchival PDF."
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -25079,12 +25234,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197583,
+        _internalId: 219977,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197575,
+            _internalId: 219969,
             type: "enum",
             enum: [
               "png",
@@ -25100,7 +25255,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197582,
+            _internalId: 219976,
             type: "anyOf",
             anyOf: [
               {
@@ -25183,6 +25338,38 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "The logo image."
+        },
+        {
+          name: "margin-geometry",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                inner: {
+                  ref: "marginalia-side-geometry",
+                  description: "Inner (left) margin geometry."
+                },
+                outer: {
+                  ref: "marginalia-side-geometry",
+                  description: "Outer (right) margin geometry."
+                },
+                clearance: {
+                  string: {
+                    description: "Minimum vertical spacing between margin notes (default: 8pt)."
+                  }
+                }
+              }
+            }
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Advanced geometry settings for Typst margin layout.",
+            long: "Fine-grained control over marginalia package geometry. Most users should\nuse `margin` and `grid` options instead; these values are computed automatically.\n\nUser-specified values override the computed defaults.\n"
+          }
         }
       ]
     };
@@ -34405,7 +34592,7 @@ function parseShortcode(shortCodeCapture) {
 }
 
 // ../break-quarto-md.ts
-async function breakQuartoMd(src, validate2 = false, lenient = false) {
+async function breakQuartoMd(src, validate2 = false, lenient = false, startCodeCellRegex) {
   if (typeof src === "string") {
     src = asMappedString(src);
   }
@@ -34414,7 +34601,7 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
     cells: []
   };
   const yamlRegEx = /^---\s*$/;
-  const startCodeCellRegEx = new RegExp(
+  const startCodeCellRegEx = startCodeCellRegex || new RegExp(
     "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
   );
   const startCodeRegEx = /^```/;

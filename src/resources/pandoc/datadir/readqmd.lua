@@ -121,7 +121,7 @@ local function hex_to_string(hex)
 end
 
 local function readqmd(txt, opts)
-  local uuid_pattern = "b58fc729%-690b%-4000%-b19f%-365a4093b2ff%-([A-Fa-f0-9]+)%-"
+  local uuid_pattern = "b58fc729%-690b%-4000%-b19f%-365a4093b2ff;([A-Fa-f0-9]+);"
   local tags
   txt = md_fenced_div.attempt_to_fix_fenced_div(txt)
   txt, tags = escape_invalid_tags(txt)
@@ -136,6 +136,15 @@ local function readqmd(txt, opts)
     for k, v in pairs(opts.extensions) do
       flavor.extensions[v] = true
     end
+  end
+
+  -- ### Opt-out some extensions that we know we won't support for now ###
+  -- https://pandoc.org/MANUAL.html#extension-table_attributes
+  -- https://github.com/quarto-dev/quarto-cli/pull/13249#issuecomment-3715267414
+  -- Only disable if the extension is actually supported by the format
+  local all_exts = pandoc.format.all_extensions(flavor.format)
+  if all_exts:includes('table_attributes') then
+    flavor.extensions["table_attributes"] = false
   end
 
   -- Format flavor, i.e., which extensions should be enabled/disabled.

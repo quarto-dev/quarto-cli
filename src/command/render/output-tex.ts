@@ -15,9 +15,13 @@ import {
   kKeepTex,
   kOutputExt,
   kOutputFile,
+  kPdfStandard,
+  kPdfStandardApplied,
   kTargetFormat,
 } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
+import { asArray } from "../../core/array.ts";
+import { validatePdfStandards } from "../../core/verapdf.ts";
 
 import { PandocOptions, RenderFlags, RenderOptions } from "./types.ts";
 import { kStdOut, replacePandocOutputArg } from "./flags.ts";
@@ -79,6 +83,20 @@ export function texToPdfOutputRecipe(
   const complete = async (pandocOptions: PandocOptions) => {
     const input = join(inputDir, output);
     const pdfOutput = await pdfGenerator.generate(input, format, pandocOptions);
+
+    // Validate PDF against applied standards using verapdf (if available)
+    // Use kPdfStandardApplied from pandocOptions.format.metadata (filtered by LaTeX support)
+    // if available, otherwise fall back to original kPdfStandard list
+    const pdfStandards = asArray(
+      pandocOptions.format.metadata?.[kPdfStandardApplied] ??
+        format.render?.[kPdfStandard] ??
+        format.metadata?.[kPdfStandard],
+    ) as string[];
+    if (pdfStandards.length > 0) {
+      await validatePdfStandards(pdfOutput, pdfStandards, {
+        quiet: pandocOptions.flags?.quiet,
+      });
+    }
 
     // keep tex if requested
     const compileTex = join(inputDir, output);

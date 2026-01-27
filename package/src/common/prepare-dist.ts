@@ -100,6 +100,32 @@ export async function prepareDist(
     }
   }
 
+  // Stage typst-gather binary (built by configure.sh)
+  // Only stage if the build machine architecture matches the target architecture
+  // (cross-compilation is not currently supported)
+  const buildArch = Deno.build.arch === "aarch64" ? "aarch64" : "x86_64";
+  if (buildArch === config.arch) {
+    const typstGatherBinaryName = config.os === "windows" ? "typst-gather.exe" : "typst-gather";
+    const typstGatherSrc = join(
+      config.directoryInfo.root,
+      "package/typst-gather/target/release",
+      typstGatherBinaryName,
+    );
+    if (!existsSync(typstGatherSrc)) {
+      throw new Error(
+        `typst-gather binary not found at ${typstGatherSrc}\n` +
+          "Run ./configure.sh to build it.",
+      );
+    }
+    info("\nStaging typst-gather binary");
+    const typstGatherDest = join(targetDir, config.arch, typstGatherBinaryName);
+    ensureDirSync(join(targetDir, config.arch));
+    copySync(typstGatherSrc, typstGatherDest, { overwrite: true });
+    info(`Copied ${typstGatherSrc} to ${typstGatherDest}`);
+  } else {
+    info(`\nNote: Skipping typst-gather staging (build arch ${buildArch} != target arch ${config.arch})`);
+  }
+
   // build quarto-preview.js
   info("Building Quarto Web UI");
   const result = buildQuartoPreviewJs(config.directoryInfo.src, undefined, true);

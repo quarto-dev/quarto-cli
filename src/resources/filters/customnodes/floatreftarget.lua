@@ -455,6 +455,9 @@ end, function(float)
               "triggered this error.")
               return {}
             end
+            -- Strip Pandoc 3.8+ LTcaptype definition since we're adding our own caption
+            -- Keep the { } wrapper (harmless) to avoid orphan braces
+            longtable_preamble = longtable_preamble:gsub("\\def\\LTcaptype{none}[^\n]*\n?", "")
             -- split the content into params and actual content
             -- params are everything in the first line of longtable_content
             -- actual content is everything else
@@ -961,6 +964,7 @@ end)
 _quarto.ast.add_renderer("FloatRefTarget", function(_)
   return _quarto.format.isTypstOutput()
 end, function(float)
+  -- Get crossref info first (needed for both margin and regular figures)
   local ref = ref_type_from_float(float)
   local info = crossref.categories.by_ref_type[ref]
   if info == nil then
@@ -971,6 +975,107 @@ end, function(float)
   end
   local kind = "quarto-float-" .. ref
   local supplement = titleString(ref, info.name)
+
+  -- Check if this is a margin figure (has .column-margin or .aside class)
+  -- Skip margin handling for subfloats - the parent handles margin placement
+  if hasMarginColumn(float) and not float.parent_id then
+    local content = quarto.utils.as_blocks(float.content or {})
+
+    -- Get optional attributes
+    local shift = float.attributes and float.attributes["shift"] or "auto"
+    local alignment = float.attributes and float.attributes["alignment"] or "baseline"
+    local dy = float.attributes and float.attributes["dy"] or "0pt"
+
+    -- Get caption location (tables default to top, figures to bottom)
+    local caption_location = cap_location(float)
+    if caption_location ~= "top" and caption_location ~= "bottom" then
+      caption_location = "bottom"
+    end
+
+    -- Check for subfloats - need to use quarto_super wrapped in note()
+    if float.has_subfloats then
+      -- Wrap quarto_super in note() for margin placement with proper subfloat numbering
+      local result = pandoc.Blocks({})
+      result:insert(pandoc.RawBlock("typst",
+        '#note(counter: none, alignment: "' .. alignment .. '", dy: ' .. dy ..
+        ', shift: ' .. _quarto.format.typst.format_shift_param(shift) .. ')['))
+      result:insert(_quarto.format.typst.function_call("quarto_super", {
+        {"kind", kind},
+        {"caption", _quarto.modules.typst.as_typst_content(float.caption_long)},
+        {"label", pandoc.RawInline("typst", "<" .. float.identifier .. ">")},
+        {"position", pandoc.RawInline("typst", caption_location)},
+        {"supplement", supplement},
+        {"subrefnumbering", "1a"},
+        {"subcapnumbering", "(a)"},
+        _quarto.modules.typst.as_typst_content(content)
+      }, false))
+      result:insert(pandoc.RawBlock("typst", ']\n\n'))
+      return result
+    end
+
+    -- No subfloats - use notefigure for margin placement
+    return make_typst_margin_figure {
+      content = content,
+      caption = float.caption_long,
+      caption_location = caption_location,
+      identifier = float.identifier,
+      shift = shift,
+      alignment = alignment,
+      dy = dy,
+      kind = kind,
+      supplement = supplement
+    }
+  end
+
+  -- Check for margin caption (figure in main column, caption in margin)
+  if hasMarginCaption(float) then
+    local content = quarto.utils.as_blocks(float.content or {})
+    -- Margin captions align with top of content (consistent with HTML visual behavior)
+    local alignment = "top"
+
+    return make_typst_margin_caption_figure {
+      content = content,
+      caption = float.caption_long,
+      identifier = float.identifier,
+      kind = kind,
+      supplement = supplement,
+      alignment = alignment,
+    }
+  end
+
+  -- Check for full-width classes (column-page-right, column-page, column-screen, etc.)
+  -- Note: For cell outputs, columns.lua wraps the cell-output-display div in wideblock.
+  -- For fenced divs, the FloatRefTarget has the class and needs to wrap itself.
+  local wideblock_side = getWideblockSide(float.classes)
+  if wideblock_side then
+    local content = quarto.utils.as_blocks(float.content or {})
+    -- Listings should not be centered inside the figure
+    if ref == "lst" then
+      content:insert(1, pandoc.RawBlock("typst", "#set align(left)"))
+    end
+    local caption_location = cap_location(float)
+    if caption_location ~= "top" and caption_location ~= "bottom" then
+      caption_location = "bottom"
+    end
+
+    -- Render standard figure first
+    local figure_blocks = make_typst_figure {
+      content = content,
+      caption_location = caption_location,
+      caption = float.caption_long,
+      kind = kind,
+      supplement = supplement,
+      numbering = info.numbering,
+      identifier = float.identifier
+    }
+
+    -- Wrap in wideblock
+    return make_typst_wideblock {
+      content = figure_blocks,
+      side = wideblock_side,
+    }
+  end
+
   -- FIXME: custom numbering doesn't work yet
   -- local numbering = ""
   -- if float.parent_id then
@@ -981,8 +1086,12 @@ end, function(float)
   local content = quarto.utils.as_blocks(float.content or {})
   local caption_location = cap_location(float)
 
-  if (caption_location ~= "top" and caption_location ~= "bottom") then
-    -- warn this is not supported and default to bottom
+  if caption_location == "margin" then
+    -- Margin captions should have been caught by hasMarginCaption check above.
+    -- If we reach here, margin-layout may not be active. Fall back to bottom.
+    caption_location = "bottom"
+  elseif caption_location ~= "top" and caption_location ~= "bottom" then
+    -- Unknown caption location, warn and default to bottom
     warn("Typst does not support this caption location: " .. caption_location .. ". Defaulting to bottom for '" .. float.identifier .. "'.")
     caption_location = "bottom"
   end

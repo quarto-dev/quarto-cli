@@ -1,0 +1,59 @@
+---
+title: "Margin Table with R gt"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Cell option produces #notefigure (entire figure in margin)
+        - ['#notefigure\(', 'kind: "quarto-float-tbl"']
+        - []
+      ensurePdfRegexMatches:
+        - ['Table 1', 'Large Landmasses', 'Asia', 'Africa']
+        - []
+      ensurePdfTextPositions:
+        - # Table in margin, right of body text
+          - subject: "Large Landmasses"
+            relation: rightOf
+            object: "This tests"
+          - subject: "Asia"
+            relation: rightOf
+            object: "This tests"
+          # Caption above table content (default for tables)
+          - subject: "Large Landmasses"
+            relation: above
+            object: "Asia"
+        - []
+      noErrors: default
+---
+
+This tests an R gt table placed in the margin using `#| column: margin`.
+
+```{r}
+#| column: margin
+#| classes: plain
+#| echo: false
+#| label: tbl-islands-r
+#| tbl-cap: "Large Landmasses"
+
+library(gt)
+library(dplyr)
+
+islands_tbl <- tibble(
+  name = names(islands),
+  size = islands
+) |>
+  arrange(desc(size)) |>
+  slice(1:10)
+
+gt(islands_tbl) |>
+  fmt_integer(columns = size)
+```
+
+See @tbl-islands-r for the table in the margin.
+
+More text in the main column to show the layout.

@@ -15,6 +15,26 @@ if [[ "$RUNNER_DEBUG" == "1" ]] || [[ "$QUARTO_TEST_VERBOSE" == "true" ]]; then
   VERBOSE_MODE=true
 fi
 
+# Check if keep-outputs mode is enabled
+KEEP_OUTPUTS=false
+FILTERED_ARGS=()
+for arg in "$@"; do
+  case $arg in
+    --keep-outputs|-k)
+      KEEP_OUTPUTS=true
+      ;;
+    *)
+      FILTERED_ARGS+=("$arg")
+      ;;
+  esac
+done
+set -- "${FILTERED_ARGS[@]}"
+
+if [[ "$KEEP_OUTPUTS" == "true" ]]; then
+  export QUARTO_TEST_KEEP_OUTPUTS=true
+  echo "> Keep outputs mode enabled - test artifacts will not be deleted"
+fi
+
 source $SCRIPT_PATH/../package/scripts/common/utils.sh
 
 export QUARTO_ROOT="$(cd "$SCRIPT_PATH/.." > /dev/null 2>&1 && pwd)"

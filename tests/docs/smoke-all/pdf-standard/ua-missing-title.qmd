@@ -1,0 +1,34 @@
+---
+lang: en
+format:
+  pdf:
+    pdf-standard: ua-2
+    keep-tex: true
+  typst:
+    pdf-standard: ua-1
+    keep-typ: true
+_quarto:
+  tests:
+    run:
+      # verapdf validation not available on Windows CI
+      not_os: windows
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{ua-2\}', 'tagging=on']
+        - []
+      printsMessage:
+        # verapdf correctly catches missing document title
+        level: WARN
+        regex: "PDF validation failed for ua-2"
+    typst:
+      # Typst correctly errors at compile time for missing title
+      shouldError: default
+      printsMessage:
+        level: ERROR
+        regex: "missing document title"
+---
+
+# Content without document title
+
+PDF/UA requires a document title in the metadata. This document has no `title:`

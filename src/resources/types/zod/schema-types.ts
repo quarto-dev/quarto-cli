@@ -1252,6 +1252,7 @@ export const ZodQuartoDevSchema = z.object({
     tests: z.object({
       run: z.object({
         ci: z.boolean(),
+        skip: z.union([z.boolean(), z.string()]),
         os: z.union([
           z.enum(["linux", "darwin", "windows"] as const),
           z.array(z.enum(["linux", "darwin", "windows"] as const)),
@@ -1385,6 +1386,7 @@ export const ZodLogoSpecifierPathOptional = z.union([
 ]);
 
 export const ZodLogoLightDarkSpecifier = z.union([
+  z.literal(false),
   z.lazy(() => ZodLogoSpecifier),
   z.object({
     light: z.lazy(() => ZodLogoSpecifier),
@@ -1796,6 +1798,12 @@ export const ZodBrandDefaultsBootstrap = z.object({
   ),
 }).passthrough().partial();
 
+export const ZodMarginaliaSideGeometry = z.object({
+  far: z.string(),
+  width: z.string(),
+  separation: z.string(),
+}).strict().partial();
+
 export const ZodProjectConfig = z.object({
   title: z.string(),
   type: z.string(),
@@ -2059,6 +2067,8 @@ export type BrandDefaults = z.infer<typeof ZodBrandDefaults>;
 
 export type BrandDefaultsBootstrap = z.infer<typeof ZodBrandDefaultsBootstrap>;
 
+export type MarginaliaSideGeometry = z.infer<typeof ZodMarginaliaSideGeometry>;
+
 export type ProjectConfig = z.infer<typeof ZodProjectConfig>;
 
 export type BookProject = z.infer<typeof ZodBookProject>;
@@ -2173,6 +2183,7 @@ export const Zod = {
   BrandPathBoolLightDark: ZodBrandPathBoolLightDark,
   BrandDefaults: ZodBrandDefaults,
   BrandDefaultsBootstrap: ZodBrandDefaultsBootstrap,
+  MarginaliaSideGeometry: ZodMarginaliaSideGeometry,
   ProjectConfig: ZodProjectConfig,
   BookProject: ZodBookProject,
 };

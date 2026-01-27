@@ -14,6 +14,8 @@ All changes included in 1.9:
 
 ## Dependencies
 
+- Update `pandoc` to 3.8.3
+- Update `typst` to 0.14.2
 - Update `esbuild` to 0.25.10
 - Update `deno` to 2.4.5
 - ([#13601](https://github.com/quarto-dev/quarto-cli/pull/13601)): Update `mermaid` to 11.12.0 (author: @multimeric)
@@ -40,20 +42,41 @@ All changes included in 1.9:
 - ([#13589](https://github.com/quarto-dev/quarto-cli/issues/13589)): Fix callouts with invalid ID prefixes crashing with "attempt to index a nil value". Callouts with unknown reference types now render as non-crossreferenceable callouts with a warning, ignoring the invalid ID.
 - ([#13602](https://github.com/quarto-dev/quarto-cli/issues/13602)): Fix support for multiple files set in `bibliography` field in `biblio.typ` template partial.
 - ([#13775](https://github.com/quarto-dev/quarto-cli/issues/13775)): Fix brand fonts not being applied when using `citeproc: true` with Typst format. Format detection now properly handles Pandoc format variants like `typst-citations`.
+- ([#13868](https://github.com/quarto-dev/quarto-cli/issues/13868)): Add image alt text support for PDF/UA accessibility. Alt text from markdown captions and explicit `alt` attributes is now passed to Typst's `image()` function. (Temporary workaround until [jgm/pandoc#11394](https://github.com/jgm/pandoc/pull/11394) is merged.)
+- ([#13249](https://github.com/quarto-dev/quarto-cli/pull/13249)): Update to Pandoc's Typst template following Pandoc 3.8.3 and Typst 0.14.2 support:
+  - Code syntax highlighting now uses Skylighting by default.
+  - New template variables `mathfont`, `codefont`, and `linestretch` for font and line spacing customization.
+  - New template variables `linkcolor`, `citecolor`, and `filecolor` for link color customization.
+  - New template variable `thanks` for title footnote acknowledgment.
+  - New template variable `abstract-title` for abstract header customization.
+  - PDF accessibility metadata: document title, author, and keywords are now set for PDF readers.
+  - Two-column layout now uses `set page(columns:)` instead of `columns()` function, fixing compatibility with landscape sections.
+  - Title block now properly spans both columns in multi-column layouts.
+- ([#13870](https://github.com/quarto-dev/quarto-cli/issues/13870)): Add support for `alt` attribute on cross-referenced equations for improved accessibility. (author: @mcanouil)
 
 ### `pdf`
 
+- ([#4426](https://github.com/quarto-dev/quarto-cli/issues/4426)): Add `pdf-standard` option for PDF/A, PDF/UA, and PDF version control. Supports standards like `a-2b`, `ua-1`, and versions `1.7`, `2.0`. Works with both LaTeX and Typst formats.
 - ([#10291](https://github.com/quarto-dev/quarto-cli/issues/10291)): Fix detection of babel hyphenation warnings with straight-quote format instead of backtick-quote format.
+- ([#13248](https://github.com/quarto-dev/quarto-cli/issues/13248)): Fix image alt text not being passed to LaTeX `\includegraphics[alt={...}]` for PDF accessibility. Markdown image captions and `fig-alt` attributes are now preserved for PDF/UA compliance.
 - ([#13661](https://github.com/quarto-dev/quarto-cli/issues/13661)): Fix LaTeX compilation errors when using `mermaid-format: svg` with PDF/LaTeX output. SVG diagrams are now written directly without HTML script tags. Note: `mermaid-format: png` is recommended for best compatibility. SVG format requires `rsvg-convert` (or Inkscape with `use-rsvg-convert: false`) in PATH for conversion to PDF, and may experience text clipping in diagrams with multi-line labels.
 - ([rstudio/tinytex-releases#49](https://github.com/rstudio/tinytex-releases/issues/49)): Fix detection of LuaTeX-ja missing file errors by matching both "File" and "file" in error messages.
 - ([#13667](https://github.com/quarto-dev/quarto-cli/issues/13667)): Fix LaTeX compilation error with Python error output containing caret characters.
 - ([#13730](https://github.com/quarto-dev/quarto-cli/issues/13730)): Fix TinyTeX detection when `~/.TinyTeX/` directory exists without binaries. Quarto now verifies that the bin directory and tlmgr binary exist before reporting TinyTeX as available, allowing proper fallback to system PATH installations.
+- ([#13919](https://github.com/quarto-dev/quarto-cli/issues/13919)): Fix margin citations with citeproc showing unresolved `?quarto-cite:` placeholders in PDF output. Caused by Pandoc 3.6+ adding `\protect` before `\phantomsection` in bibliography anchors.
+- ([#13249](https://github.com/quarto-dev/quarto-cli/pull/13249)): Update to Pandoc's LaTeX template following Pandoc 3.8.3 support:
+  - New RTL support for LuaTeX with `\RL`, `\LR` commands and `RTL`, `LTR` environments.
+  - New `shorthands` variable for Babel language shortcuts control.
+  - New `pdf-trailer-id` support for reproducible PDF builds.
+  - New `cancel` package support for `\cancel` command in math.
 
 ### `revealjs`
 
 - ([#13722](https://github.com/quarto-dev/quarto-cli/issues/13722)): Fix `light-content` / `dark-content` SCSS rules not included in Reveal.js format. (author: @mcanouil)
 
 ## Projects
+
+- ([#13892](https://github.com/quarto-dev/quarto-cli/issues/13892)): Fix `output-dir: ./` deleting entire project directory. `output-dir` must be a subdirectory of the project directory and check is now better to avoid deleting the project itself when it revolves to the same path.
 
 ### `website`
 
@@ -63,6 +86,7 @@ All changes included in 1.9:
 - ([#13570](https://github.com/quarto-dev/quarto-cli/pull/13570)): Replace Twitter with Bluesky in default blog template and documentation examples. New blog projects now include Bluesky social links instead of Twitter.
 - ([#13716](https://github.com/quarto-dev/quarto-cli/issues/13716)): Fix draft pages showing blank during preview when pre-render scripts are configured.
 - ([#13847](https://github.com/quarto-dev/quarto-cli/pull/13847)): Open graph title with markdown is now processed correctly. (author: @mcanouil)
+- ([#13910](https://github.com/quarto-dev/quarto-cli/issues/13910)): Add support for `logo: false` to disable sidebar and navbar logos when using `_brand.yml`. Works in website projects (`sidebar.logo: false`, `navbar.logo: false`) and book projects (`book.sidebar.logo: false`, `book.navbar.logo: false`).
 
 ### `book`
 
@@ -92,11 +116,25 @@ All changes included in 1.9:
 
 - (): New `quarto call build-ts-extension` command builds a TypeScript extension, such as an engine extension, and places the artifacts in the `_extensions` directory. See the [engine extension pre-release documentation](https://prerelease.quarto.org/docs/extensions/engine.html) for details.
 
+### `install verapdf`
+
+- ([#4426](https://github.com/quarto-dev/quarto-cli/issues/4426)): New `quarto install verapdf` command installs [veraPDF](https://verapdf.org/) for PDF/A and PDF/UA validation. When verapdf is available, PDFs created with the `pdf-standard` option are automatically validated for compliance. Also supports `quarto uninstall verapdf`, `quarto update verapdf`, and `quarto tools`.
+
 ## Extensions
 
 - Metadata and brand extensions now work without a `_quarto.yml` project. (Engine extensions do too.) A temporary default project is created in memory.
 
 - New **Engine Extensions**, to allow other execution engines than knitr, jupyter, julia. Julia is now a bundled extension. See [the prerelease notes](https://prerelease.quarto.org/docs/prerelease/1.9/) and [engine extension documentation](https://prerelease.quarto.org/docs/extensions/engine.html).
+
+## Engines
+
+### `jupyter`
+
+- ([#13748](https://github.com/quarto-dev/quarto-cli/pull/13748)): Fix stdin encoding to UTF-8 on Windows to correctly handle JSON in documents containing non-ASCII characters.
+
+### `knitr`
+
+- ([#13958](https://github.com/quarto-dev/quarto-cli/issues/13958)): Use max precision for `ojs_define` number like this is the case for `jupyter` or `julia` engine.
 
 ## Other fixes and improvements
 
@@ -106,3 +144,7 @@ All changes included in 1.9:
 - ([#13575](https://github.com/quarto-dev/quarto-cli/pull/13575)): Improve CPU architecture detection/reporting in macOS to allow quarto to run in virtualized environments such as OpenAI's `codex`.
 - ([#13656](https://github.com/quarto-dev/quarto-cli/issues/13656)): Fix R code cells with empty `lang: ""` option producing invalid markdown class attributes.
 - ([#13832](https://github.com/quarto-dev/quarto-cli/pull/13832)): Fix `license.text` metadata not being accessible when using an inline license (`license: "text"`), and populate it with the license name for CC licenses instead of empty string. (author: @mcanouil)
+- ([#13856](https://github.com/quarto-dev/quarto-cli/issues/13856)): Add code annotation support for Typst and Observable.js code blocks. (author: @mcanouil)
+- ([#13890](https://github.com/quarto-dev/quarto-cli/issues/13890)): Fix render failure when using `embed-resources: true` with input path through a symlinked directory. The cleanup now resolves symlinks before comparing paths.
+- ([#13907](https://github.com/quarto-dev/quarto-cli/issues/13907)): Ignore AI assistant configuration files (`CLAUDE.md`, `AGENTS.md`) when scanning for project input files and in extension templates, similar to how `README.md` is handled.
+- ([#13935](https://github.com/quarto-dev/quarto-cli/issues/13935)): Fix `quarto install`, `quarto update`, and `quarto uninstall` interactive tool selection.

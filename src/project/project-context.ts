@@ -10,6 +10,7 @@ import {
   isAbsolute,
   join,
   relative,
+  resolve,
   SEP,
 } from "../deno_ral/path.ts";
 
@@ -106,7 +107,6 @@ import { createProjectCache } from "../core/cache/cache.ts";
 import { createTempContext } from "../core/temp.ts";
 
 import { onCleanup } from "../core/cleanup.ts";
-import { once } from "../core/once.ts";
 import { Zod } from "../resources/types/zod/schema-types.ts";
 import { ExternalEngine } from "../resources/types/schema-types.ts";
 
@@ -300,11 +300,17 @@ export async function projectContext(
           projectConfig.project[kProjectOutputDir] = type.outputDir;
         }
 
-        // if the output-dir is "." that's equivalent to no output dir so make that
-        // conversion now (this allows code downstream to just check for no output dir
-        // rather than that as well as ".")
-        if (projectConfig.project[kProjectOutputDir] === ".") {
-          delete projectConfig.project[kProjectOutputDir];
+        // if the output-dir resolves to the project directory, that's equivalent to
+        // no output dir so make that conversion now (this allows code downstream to
+        // just check for no output dir rather than checking for ".", "./", etc.)
+        // Fixes issue #13892: output-dir: ./ would delete the entire project
+        const outputDir = projectConfig.project[kProjectOutputDir];
+        if (outputDir) {
+          const resolvedOutputDir = resolve(dir, outputDir);
+          const resolvedDir = resolve(dir);
+          if (resolvedOutputDir === resolvedDir) {
+            delete projectConfig.project[kProjectOutputDir];
+          }
         }
 
         // if the output-dir is absolute then make it project dir relative
@@ -367,11 +373,11 @@ export async function projectContext(
           previewServer: renderOptions?.previewServer,
           diskCache: await createProjectCache(join(dir, ".quarto")),
           temp,
-          cleanup: once(() => {
+          cleanup: () => {
             cleanupFileInformationCache(result);
             result.diskCache.close();
             temp.cleanup();
-          }),
+          },
         };
 
         // see if the project [kProjectType] wants to filter the project config
@@ -459,11 +465,11 @@ export async function projectContext(
           previewServer: renderOptions?.previewServer,
           diskCache: await createProjectCache(join(dir, ".quarto")),
           temp,
-          cleanup: once(() => {
+          cleanup: () => {
             cleanupFileInformationCache(result);
             result.diskCache.close();
             temp.cleanup();
-          }),
+          },
         };
         const { files, engines } = await projectInputFiles(
           result,
@@ -539,11 +545,11 @@ export async function projectContext(
             previewServer: renderOptions?.previewServer,
             diskCache: await createProjectCache(join(temp.baseDir, ".quarto")),
             temp,
-            cleanup: once(() => {
+            cleanup: () => {
               cleanupFileInformationCache(context);
               context.diskCache.close();
               temp.cleanup();
-            }),
+            },
           };
           if (Deno.statSync(path).isDirectory) {
             const { files, engines } = await projectInputFiles(context);
@@ -873,7 +879,9 @@ function projectHiddenIgnoreGlob(dir: string) {
   return projectIgnoreGlobs(dir) // standard ignores for all projects
     .concat(["**/_*", "**/_*/**"]) // underscore prefx
     .concat(["**/.*", "**/.*/**"]) // hidden (dot prefix)
-    .concat(["**/README.?([Rrq])md"]); // README
+    .concat(["**/README.?([Rrq])md"]) // README
+    .concat(["**/CLAUDE.md"]) // Anthropic claude code file
+    .concat(["**/AGENTS.md"]); // https://agents.md/
 }
 
 export const projectInputFiles = makeTimedFunctionAsync(

@@ -24,6 +24,8 @@ import {
   ensureFileRegexMatches,
   ensureHtmlElements,
   ensurePdfRegexMatches,
+  ensurePdfTextPositions,
+  ensurePdfMetadata,
   ensureJatsXpath,
   ensureOdtXpath,
   ensurePptxRegexMatches,
@@ -103,6 +105,11 @@ function skipTest(metadata: Record<string, any>): string | undefined {
     return undefined;
   }
 
+  // Check explicit skip with message
+  if (runConfig.skip) {
+    return typeof runConfig.skip === "string" ? runConfig.skip : "tests.run.skip is true";
+  }
+
   // Check CI
   if (runningInCI() && runConfig.ci === false) {
     return "tests.run.ci is false";
@@ -148,6 +155,9 @@ function registerPostRenderCleanupFile(file: string): void {
   postRenderCleanupFiles.push(file);
 }
 const postRenderCleanup = () => {
+  if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
+    return;
+  }
   for (const file of postRenderCleanupFiles) {
     console.log(`Cleaning up ${file} in ${Deno.cwd()}`);
     if (safeExistsSync(file)) {
@@ -178,6 +188,8 @@ function resolveTestSpecs(
     ensureOdtXpath,
     ensureJatsXpath,
     ensurePdfRegexMatches,
+    ensurePdfTextPositions,
+    ensurePdfMetadata,
     ensurePptxRegexMatches,
     ensurePptxXpath,
     ensurePptxLayout,
@@ -267,12 +279,23 @@ function resolveTestSpecs(
                 throw new Error(`Using ensureLatexFileRegexMatches requires setting 'keep-tex: true' in file ${input}`);
               }
             }
-            
+
+            // keep-typ/keep-tex files are alongside source, so pass input path
+            // But output-ext: typ puts files in output directory, so don't pass input path
+            const usesKeepTyp = key === "ensureTypstFileRegexMatches" &&
+              (metadata.format?.typst?.['keep-typ'] || metadata['keep-typ']) &&
+              !(metadata.format?.typst?.['output-ext'] === 'typ' || metadata['output-ext'] === 'typ');
+            const usesKeepTex = key === "ensureLatexFileRegexMatches" &&
+              (metadata.format?.pdf?.['keep-tex'] || metadata['keep-tex']);
+            const needsInputPath = usesKeepTyp || usesKeepTex;
             if (typeof value === "object" && Array.isArray(value)) {
-              // Only use spread operator for arrays
-              verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
+              // value is [matches, noMatches?] - ensure inputFile goes in the right position
+              const matches = value[0];
+              const noMatches = value[1];
+              const inputFile = needsInputPath ? input : undefined;
+              verifyFns.push(verifyMap[key](outputFile.outputPath, matches, noMatches, inputFile));
             } else {
-              verifyFns.push(verifyMap[key](outputFile.outputPath, value));
+              verifyFns.push(verifyMap[key](outputFile.outputPath, value, undefined, needsInputPath ? input : undefined));
             }
           } else {
             throw new Error(`Unknown verify function used: ${key} in file ${input} for format ${format}`) ;

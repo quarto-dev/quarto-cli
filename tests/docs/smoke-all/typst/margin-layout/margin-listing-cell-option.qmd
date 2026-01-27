@@ -1,0 +1,55 @@
+---
+title: "Margin Listing Cell Option Test"
+papersize: us-letter
+grid:
+  margin-width: 3.5in
+  gutter-width: 0.25in
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Cell option should produce same output as fenced div: #notefigure
+        - ['#notefigure\(', 'kind: "quarto-float-lst"']
+        - []
+      ensurePdfRegexMatches:
+        - ['Listing 1', 'MARGIN-CELL-OPTION-CODE']
+        - []
+      ensurePdfTextPositions:
+        - # Listing in margin, right of body text - "World" unique string in code
+          - subject: "MARGIN-CELL-OPTION-CODE"
+            relation: rightOf
+            object: "This tests"
+          - subject: "World"
+            relation: rightOf
+            object: "This tests"
+          # Caption above code (default for listings)
+          - subject: "MARGIN-CELL-OPTION-CODE"
+            relation: above
+            object: "World"
+        - []
+      noErrors: default
+---
+
+This tests a code listing placed in the margin using the `column: margin` cell option.
+
+```{python}
+#| column: margin
+#| label: lst-margin-cell
+#| lst-cap: "MARGIN-CELL-OPTION-CODE"
+#| echo: true
+#| eval: false
+
+def greet(name):
+    """Simple greeting function"""
+    return f"Hello, {name}!"
+
+print(greet("World"))
+```
+
+As shown in @lst-margin-cell, the listing should appear entirely in the margin (both code and caption).
+
+More text in the main column to demonstrate the layout.

@@ -1,0 +1,32 @@
+---
+title: "Margin Geometry Override Test"
+papersize: us-letter
+format:
+  typst:
+    keep-typ: true
+    margin-geometry:
+      outer:
+        width: "3in"
+      clearance: "16pt"
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Verify user overrides are applied
+        - ['width: 3in', 'clearance: 16pt']
+        # Verify computed defaults are preserved for non-overridden values
+        - ['width: 1\\.62']  # This should NOT match since we override to 3in
+      noErrors: default
+---
+
+## Margin Geometry Override Test
+
+This test verifies that users can override specific margin-geometry values while computed defaults are preserved for non-overridden values.
+
+::: {.column-margin}
+This margin note triggers margin layout.
+:::
+
+The outer.width is overridden to 3in (computed default would be ~1.62in).
+The clearance is overridden to 16pt (default is 12pt).
+Other values like outer.far, outer.separation, inner.* should use computed defaults.

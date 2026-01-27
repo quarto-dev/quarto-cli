@@ -1,0 +1,19 @@
+---
+title: Shortcode with trailing punctuation
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - '<p>Normal shortcode: [0-9]+\.[0-9]+\.[0-9]+</p>'
+          - '<p>Shortcode with trailing dash: [0-9]+\.[0-9]+\.[0-9]+-</p>'
+          - '<p>Shortcode with trailing semicolon: [0-9]+\.[0-9]+\.[0-9]+;suffix</p>'
+        - []
+---
+
+Normal shortcode: {{< version >}}
+
+Shortcode with trailing dash: {{< version >}}-
+
+Shortcode with trailing semicolon: {{< version >}};suffix

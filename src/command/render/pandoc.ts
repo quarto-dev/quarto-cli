@@ -66,6 +66,7 @@ import {
   projectIsWebsite,
 } from "../../project/project-shared.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
+import { migrateProjectScratchPath } from "../../project/project-scratch.ts";
 
 import {
   getPandocArg,
@@ -1586,7 +1587,11 @@ async function resolveExtras(
       }
     }
     if (ttf_urls.length || woff_urls.length) {
-      const font_cache = join(brand!.projectDir, ".quarto", "typst-font-cache");
+      const font_cache = migrateProjectScratchPath(
+        brand!.projectDir,
+        "typst-font-cache",
+        "typst/fonts",
+      );
       const url_to_path = (url: string) => url.replace(/^https?:\/\//, "");
       const cached = async (url: string) => {
         const path = url_to_path(url);
@@ -1755,9 +1760,9 @@ function resolveTextHighlightStyle(
   const textHighlightingMode = extras.html?.[kTextHighlightingMode];
 
   if (highlightTheme === "none") {
-    // Clear the highlighting
+    // Disable highlighting - pass "none" string (not null, which Pandoc 3.8+ rejects)
     extras.pandoc = extras.pandoc || {};
-    extras.pandoc[kHighlightStyle] = null;
+    extras.pandoc[kHighlightStyle] = "none";
     return extras;
   }
 

@@ -75,7 +75,7 @@ export const serveCommand = new Command()
       (services: RenderServices) =>
         renderFormats(input, services, undefined, context),
     );
-    const format = await previewFormat(input, undefined, formats, context);
+    const format = await previewFormat(input, context, undefined, formats);
 
     const result = await serve({
       input,

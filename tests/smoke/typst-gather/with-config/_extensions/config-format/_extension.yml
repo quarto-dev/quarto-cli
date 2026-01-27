@@ -1,0 +1,9 @@
+title: Test Format with Config
+author: Quarto Dev Team
+version: 1.0.0
+quarto-required: ">=1.6.0"
+contributes:
+  formats:
+    typst:
+      template-partials:
+        - typst-template.typ

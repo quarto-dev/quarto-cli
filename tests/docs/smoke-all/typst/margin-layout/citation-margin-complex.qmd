@@ -1,0 +1,30 @@
+---
+title: "Margin Citation Complex Syntax"
+papersize: us-letter
+citation-location: margin
+bibliography: borges-refs.bib
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Margin citations emit note() with cite(form: "full") directly
+        - ['#note\(', 'form: "full"']
+        - []
+      ensurePdfRegexMatches:
+        # Check complex citation elements appear
+        - ['COMPLEX-TEST', 'Borges', 'Eco', 'Calvino']
+        - []
+      noErrors: default
+---
+
+# Testing Complex Citation Syntax in Margins
+
+COMPLEX-TEST: The literary tradition spans multiple works [see @borges1941library, pp. 33-35; also @eco1980name, ch. 1; and @calvino1979winter for related themes].
+
+Multiple locator types: The key passage [@borges1944ficciones, sec. 2, para. 3] explains the concept.
+
+Combining prefix, multiple citations, and locators [for an overview, see @kurd1933hexagonal, p. 100; @quain1936labyrinth, ch. 5-7].

@@ -1,17 +1,31 @@
 // Some definitions presupposed by pandoc's typst output.
+#let content-to-string(content) = {
+  if content.has("text") {
+    content.text
+  } else if content.has("children") {
+    content.children.map(content-to-string).join("")
+  } else if content.has("body") {
+    content-to-string(content.body)
+  } else if content == [ ] {
+    " "
+  }
+}
+
 #let horizontalrule = line(start: (25%,0%), end: (75%,0%))
 
 #let endnote(num, contents) = [
   #stack(dir: ltr, spacing: 3pt, super[#num], contents)
 ]
 
+// Use nested show rule to preserve list structure for PDF/UA-1 accessibility
+// See: https://github.com/quarto-dev/quarto-cli/pull/13249#discussion_r2678934509
 #show terms: it => {
-  it.children
-    .map(child => [
-      #strong[#child.term]
-      #block(inset: (left: 1.5em, top: -0.4em))[#child.description]
-      ])
-    .join()
+  show terms.item: item => {
+    set text(weight: "bold")
+    item.term
+    block(inset: (left: 1.5em, top: -0.4em))[#item.description]
+  }
+  it
 }
 
 // Some quarto-specific definitions.
@@ -171,3 +185,74 @@
     )
 }
 
+$if(margin-geometry)$
+// Margin layout support using marginalia package
+#import "@preview/marginalia:0.3.1" as marginalia: note, notefigure, wideblock
+
+// Render footnote as margin note using standard footnote counter
+// Used via show rule: #show footnote: it => column-sidenote(it.body)
+// The footnote element already steps the counter, so we just display it
+#let column-sidenote(body) = {
+  context {
+    let num = counter(footnote).display("1")
+    // Superscript mark in text
+    super(num)
+    // Content in margin with matching number
+    note(
+      alignment: "baseline",
+      shift: auto,
+      counter: none,  // We display our own number from footnote counter
+    )[
+      #super(num) #body
+    ]
+  }
+}
+
+// Note: Margin citations are now emitted directly from Lua as #note() calls
+// with #cite(form: "full") + locator text, preserving citation locators.
+
+// Utility: compute padding for each side based on side parameter
+#let side-pad(side, left-amount, right-amount) = {
+  let l = if side == "both" or side == "left" or side == "inner" { left-amount } else { 0pt }
+  let r = if side == "both" or side == "right" or side == "outer" { right-amount } else { 0pt }
+  (left: l, right: r)
+}
+
+// body-outset: extends ~15% into margin area
+#let column-body-outset(side: "both", body) = context {
+  let r = marginalia.get-right()
+  let out = 0.15 * (r.sep + r.width)
+  pad(..side-pad(side, -out, -out), body)
+}
+
+// page-inset: wideblock minus small inset from page boundary
+#let column-page-inset(side: "both", body) = context {
+  let l = marginalia.get-left()
+  let r = marginalia.get-right()
+  // Inset is a small fraction of the extension area (wideblock stops at far)
+  let left-inset = 0.15 * l.sep
+  let right-inset = 0.15 * (r.sep + r.width)
+  wideblock(side: side)[#pad(..side-pad(side, left-inset, right-inset), body)]
+}
+
+// screen-inset: full width minus `far` distance from edges
+#let column-screen-inset(side: "both", body) = context {
+  let l = marginalia.get-left()
+  let r = marginalia.get-right()
+  wideblock(side: side)[#pad(..side-pad(side, l.far, r.far), body)]
+}
+
+// screen-inset-shaded: screen-inset with gray background
+#let column-screen-inset-shaded(body) = context {
+  let l = marginalia.get-left()
+  wideblock(side: "both")[
+    #block(fill: luma(245), width: 100%, inset: (x: l.far, y: 1em), body)
+  ]
+}
+$endif$
+
+$if(highlighting-definitions)$
+// syntax highlighting functions from skylighting:
+$highlighting-definitions$
+
+$endif$

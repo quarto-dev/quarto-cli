@@ -1,0 +1,191 @@
+---
+title: "Typst Sidenote Orphan Detection Test"
+subtitle: "Tests that margin captions stay with their figures"
+format:
+  typst:
+    keep-typ: true
+    papersize: us-letter
+# This test verifies that margin captions don't get orphaned from their figures
+# across page breaks. The test uses Typst introspection to embed page numbers
+# directly in captions, making orphans visible: (CAPTION-PG:2 FIGURE-PG:3) would
+# mean the caption is on page 2 but the figure moved to page 3.
+#
+# The fix wraps margin caption + figure in block(breakable: false) in the
+# generated Typst output (see make_typst_margin_caption_figure in layout/typst.lua).
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+        - []  # nothing required to match
+        # FAIL if caption and figure are on different pages (orphan detected)
+        # Regex matches CAPTION-PG:X followed by FIGURE-PG:Y where Y != X
+        - ['CAPTION-PG:(\d+) FIGURE-PG:(?!\1)\d+']
+      noErrors: default
+---
+
+# Sidenote Orphan Test
+
+This test verifies that margin captions stay on the same page as their figures.
+Each caption displays its page number alongside the figure's page number using
+Typst introspection. If these numbers differ, the caption has been orphaned.
+
+**Expected behavior**: All captions should show matching page numbers like
+`(CAPTION-PG:N FIGURE-PG:N)` where both N values are the same.
+
+**Bug behavior**: Orphaned captions show mismatched pages like
+`(CAPTION-PG:X FIGURE-PG:Y)` where X and Y differ - the caption is stranded.
+
+## Test Case 1: Simple Margin Caption
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt
+in culpa qui officia deserunt mollit anim id est laborum.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt
+in culpa qui officia deserunt mollit anim id est laborum.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt
+in culpa qui officia deserunt mollit anim id est laborum.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt
+in culpa qui officia deserunt mollit anim id est laborum.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+::: {#fig-test1 fig-cap-location="margin"}
+
+```{=typst}
+#rect(width: 100%, height: 2.5in, fill: luma(200), stroke: 1pt)[
+  #align(center + horizon)[Figure 1 Content Area]
+]
+```
+
+A figure with margin caption. This tests basic orphan prevention.
+`#context { let f = query(<fig-test1>).first().location().page(); let c = here().page(); [(CAPTION-PG:#c FIGURE-PG:#f)] }`{=typst}
+
+:::
+
+More content after the first figure to continue the document flow.
+
+## Test Case 2: Larger Figure Near Page Break
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt
+in culpa qui officia deserunt mollit anim id est laborum.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt
+in culpa qui officia deserunt mollit anim id est laborum.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt
+in culpa qui officia deserunt mollit anim id est laborum.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt
+in culpa qui officia deserunt mollit anim id est laborum.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt
+in culpa qui officia deserunt mollit anim id est laborum.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+::: {#fig-test2 fig-cap-location="margin"}
+
+```{=typst}
+#rect(width: 100%, height: 3in, fill: luma(180), stroke: 1pt)[
+  #align(center + horizon)[Figure 2 Content Area - Taller]
+]
+```
+
+A taller figure that is more likely to cause orphaning when positioned near a
+page boundary. The caption should stay with the figure.
+`#context { let f = query(<fig-test2>).first().location().page(); let c = here().page(); [(CAPTION-PG:#c FIGURE-PG:#f)] }`{=typst}
+
+:::
+
+Content continues after figure 2.
+
+## Test Case 3: Multiple Figures in Sequence
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+eu fugiat nulla pariatur.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt
+in culpa qui officia deserunt mollit anim id est laborum.
+
+::: {#fig-test3a fig-cap-location="margin"}
+
+```{=typst}
+#rect(width: 100%, height: 2in, fill: luma(220), stroke: 1pt)[
+  #align(center + horizon)[Figure 3a Content]
+]
+```
+
+First of two sequential figures with margin captions.
+`#context { let f = query(<fig-test3a>).first().location().page(); let c = here().page(); [(CAPTION-PG:#c FIGURE-PG:#f)] }`{=typst}
+
+:::
+
+Brief text between figures.
+
+::: {#fig-test3b fig-cap-location="margin"}
+
+```{=typst}
+#rect(width: 100%, height: 2in, fill: luma(160), stroke: 1pt)[
+  #align(center + horizon)[Figure 3b Content]
+]
+```
+
+Second sequential figure. Both captions should stay with their figures.
+`#context { let f = query(<fig-test3b>).first().location().page(); let c = here().page(); [(CAPTION-PG:#c FIGURE-PG:#f)] }`{=typst}
+
+:::
+
+## Conclusion
+
+If all `CAPTION-PG` and `FIGURE-PG` values match within each figure, the
+orphan prevention is working correctly. If any pair shows different page
+numbers, the margin caption has been orphaned from its figure.

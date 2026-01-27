@@ -1,0 +1,12 @@
+---
+title: intro
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ['a.navbar-brand-logo']
+---
+
+This test verifies that setting `navbar.logo: false` disables the navbar logo
+even when `_brand.yml` defines a logo.
