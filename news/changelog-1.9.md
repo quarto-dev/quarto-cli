@@ -74,6 +74,10 @@ All changes included in 1.9:
 
 - ([#13722](https://github.com/quarto-dev/quarto-cli/issues/13722)): Fix `light-content` / `dark-content` SCSS rules not included in Reveal.js format. (author: @mcanouil)
 
+### `revealjs`
+
+- ([#13712](https://github.com/quarto-dev/quarto-cli/issues/13712)): Add support for tabset fragments in Reveal.js presentations, allowing content within tabs to be revealed incrementally during presentations. (author: @mcanouil)
+
 ## Projects
 
 - ([#13892](https://github.com/quarto-dev/quarto-cli/issues/13892)): Fix `output-dir: ./` deleting entire project directory. `output-dir` must be a subdirectory of the project directory and check is now better to avoid deleting the project itself when it revolves to the same path.
