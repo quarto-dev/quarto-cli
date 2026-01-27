@@ -11,6 +11,45 @@ Quarto uses Deno for testing with custom verification helpers located in:
 
 ## Common Test Patterns
 
+### Simple Render Tests
+
+For testing single document rendering with automatic cleanup:
+
+```typescript
+import { docs } from "../../utils.ts";
+import { testRender } from "./render.ts";
+
+// Simplest form - just render and verify output created
+testRender(docs("test-plain.md"), "html", false);
+```
+
+**With additional verifiers:**
+
+```typescript
+import { docs, outputForInput } from "../../utils.ts";
+import { testRender } from "./render.ts";
+import { ensureHtmlElements } from "../../verify.ts";
+
+const input = docs("minimal.qmd");
+const output = outputForInput(input, "html");
+
+testRender(input, "html", true, [
+  ensureHtmlElements(output.outputPath, [], [
+    "script#quarto-html-after-body",
+  ]),
+]);
+```
+
+**Key points:**
+- `testRender()` automatically handles output verification and cleanup
+- Respects `QUARTO_TEST_KEEP_OUTPUTS` env var for debugging
+- Set `noSupporting` parameter based on expected output:
+  - `true` - For truly self-contained HTML (no `_files/` directory, inline everything)
+  - `false` - For HTML with supporting files directory (OJS runtime, widget dependencies, plots, etc.)
+  - Most HTML outputs should use `false` (only use `true` for formats like `html` with `self-contained: true`)
+- Pass additional verifiers in the array parameter (optional)
+- Cleanup happens automatically via `cleanoutput()` in teardown
+
 ### Project Rendering Tests
 
 For testing project rendering (especially website projects):
@@ -225,6 +264,11 @@ testQuartoCmd(...);
 - **Relative to cwd**: Use plain strings or template literals in template tests
 
 ## Examples from Codebase
+
+### Simple Render Test
+See `tests/smoke/render/render-plain.test.ts` for the simplest render tests (no additional verifiers).
+
+See `tests/smoke/render/render-minimal.test.ts` for render test with custom HTML element verification.
 
 ### Project Ignore Test
 See `tests/smoke/project/project-ignore-dirs.test.ts` for testing directory exclusion patterns.
