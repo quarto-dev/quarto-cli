@@ -21,8 +21,9 @@ import {
 import { createToolSymlink, removeToolSymlink } from "../tools.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 
-// veraPDF version API
-const kVersionApiUrl = "https://software.verapdf.org/get-latest-version.php";
+// S3 bucket for veraPDF downloads
+const kBucketBaseUrl = "https://s3.amazonaws.com/rstudio-buildtools/quarto";
+const kDefaultVersion = "1.28.2";
 
 // Supported Java versions for veraPDF
 const kSupportedJavaVersions = [8, 11, 17, 21];
@@ -119,27 +120,15 @@ function noteInstalledVersion(version: string): void {
 }
 
 async function latestRelease(): Promise<RemotePackageInfo> {
-  const response = await fetch(kVersionApiUrl);
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch veraPDF version info: ${response.statusText}`,
-    );
-  }
-
-  const data = await response.json();
-  if (!data.success) {
-    throw new Error("Failed to fetch veraPDF version info from API");
-  }
-
-  const greenfield = data.releases.greenfield;
-  const versionMatch = greenfield.filename.match(/(\d+\.\d+\.\d+)/);
-  const version = versionMatch ? versionMatch[1] : "unknown";
-  const downloadUrl = `https://software.verapdf.org${greenfield.path}`;
+  // Use pinned version from configuration or default
+  const version = Deno.env.get("VERAPDF") || kDefaultVersion;
+  const filename = `verapdf-greenfield-${version}-installer.zip`;
+  const downloadUrl = `${kBucketBaseUrl}/verapdf/${version}/${filename}`;
 
   return {
     url: downloadUrl,
     version,
-    assets: [{ name: greenfield.filename, url: downloadUrl }],
+    assets: [{ name: filename, url: downloadUrl }],
   };
 }
 
