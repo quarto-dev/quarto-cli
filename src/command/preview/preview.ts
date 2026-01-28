@@ -485,8 +485,6 @@ export async function renderForPreview(
     [],
   ));
 
-  renderResult.context.cleanup();
-
   return {
     file,
     format: renderResult.files[0].format,
