@@ -145,9 +145,12 @@ class SassCache implements Cloneable<SassCache> {
   // add a cleanup method to register a cleanup handler
   cleanup(temp: TempContext | undefined) {
     const registerCleanup = temp ? temp.onCleanup : onCleanup;
+    const cachePath = this.path;
     registerCleanup(() => {
+      log.debug(`SassCache cleanup EXECUTING for ${cachePath}`);
       try {
         this.kv.close();
+        log.debug(`SassCache KV closed for ${cachePath}`);
         if (temp) safeRemoveIfExists(this.path);
       } catch (error) {
         log.info(
@@ -155,6 +158,7 @@ class SassCache implements Cloneable<SassCache> {
         );
       }
     });
+    log.debug(`SassCache cleanup REGISTERED for ${cachePath}`);
   }
 }
 
@@ -199,7 +203,7 @@ export async function sassCache(
   temp: TempContext | undefined,
 ): Promise<SassCache> {
   if (!_sassCache[path]) {
-    log.debug(`Creating SassCache at ${path}`);
+    log.debug(`Creating NEW SassCache at ${path}`);
     ensureDirSync(path);
     const kvFile = join(path, "sass.kv");
     const kv = await Deno.openKv(kvFile);
@@ -207,6 +211,8 @@ export async function sassCache(
     _sassCache[path] = new SassCache(kv, path);
     // register cleanup for this cache
     _sassCache[path].cleanup(temp);
+  } else {
+    log.debug(`Found EXISTING SassCache entry for ${path} (may be stale if KV was closed)`);
   }
   log.debug(`Returning SassCache at ${path}`);
   const result = _sassCache[path];
