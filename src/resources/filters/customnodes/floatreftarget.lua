@@ -933,10 +933,9 @@ end, function(float)
       float.identifier)
   end
 
-  return pandoc.Div({
-    float.content,
-    pandoc.Para(quarto.utils.as_inlines(float.caption_long) or {}),
-  });
+  local blocks = pandoc.Blocks(float.content)
+  blocks:insert(pandoc.Para(quarto.utils.as_inlines(float.caption_long) or {}))
+  return pandoc.Div(blocks)
 end)
 
 -- this should really be "_quarto.format.isEmbedIpynb()" or something like that..

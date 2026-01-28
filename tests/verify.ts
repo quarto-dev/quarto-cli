@@ -302,6 +302,40 @@ export const validJsonWithFields = (file: string, fields: Record<string, unknown
   }
 }
 
+export const ensureIpynbCellMatches = (
+  file: string,
+  options: {
+    cellType: "code" | "markdown";
+    matches?: (string | RegExp)[];
+    noMatches?: (string | RegExp)[];
+  }
+): Verify => {
+  const { cellType, matches = [], noMatches = [] } = options;
+  return {
+    name: `IPYNB ${file} has ${cellType} cells matching patterns`,
+    verify: async (_output: ExecuteOutput[]) => {
+      const jsonStr = Deno.readTextFileSync(file);
+      const notebook = JSON.parse(jsonStr);
+      // deno-lint-ignore no-explicit-any
+      const cells = notebook.cells.filter((c: any) => c.cell_type === cellType);
+      // deno-lint-ignore no-explicit-any
+      const content = cells.map((c: any) =>
+        Array.isArray(c.source) ? c.source.join("") : c.source
+      ).join("\n");
+
+      for (const m of matches) {
+        const regex = typeof m === "string" ? new RegExp(m) : m;
+        assert(regex.test(content), `Pattern ${m} not found in ${cellType} cells of ${file}`);
+      }
+      for (const m of noMatches) {
+        const regex = typeof m === "string" ? new RegExp(m) : m;
+        assert(!regex.test(content), `Pattern ${m} should not be in ${cellType} cells of ${file}`);
+      }
+      return Promise.resolve();
+    }
+  };
+};
+
 export const outputCreated = (
   input: string,
   to: string,
