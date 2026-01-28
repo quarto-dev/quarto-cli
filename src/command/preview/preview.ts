@@ -424,6 +424,17 @@ export async function renderForPreview(
   pandocArgs: string[],
   project?: ProjectContext,
 ): Promise<RenderForPreviewResult> {
+  // Invalidate file cache for the file being rendered so changes are picked up.
+  // The project context persists across re-renders in preview mode, but the
+  // fileInformationCache contains file content that needs to be refreshed.
+  // TODO(#13955): Consider adding a dedicated invalidateForFile() method on ProjectContext
+  if (project?.fileInformationCache) {
+    const normalizedFile = normalizePath(file);
+    if (project.fileInformationCache.has(normalizedFile)) {
+      project.fileInformationCache.delete(normalizedFile);
+    }
+  }
+
   // render
   const renderResult = await render(file, {
     services,
