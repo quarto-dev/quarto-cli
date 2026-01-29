@@ -17653,6 +17653,10 @@
     "Inner (left) margin geometry.",
     "Outer (right) margin geometry.",
     "Minimum vertical spacing between margin notes (default: 8pt).",
+    {
+      "short": "Visual style for theorem environments in Typst output.",
+      "long": "Controls how theorems, lemmas, definitions, etc. are rendered: -\n<code>simple</code>: Plain text with bold title and italic body\n(default) - <code>fancy</code>: Colored boxes using brand colors -\n<code>clouds</code>: Rounded colored background boxes -\n<code>rainbow</code>: Colored left border with colored title"
+    },
     "Project configuration.",
     "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
     "Files to render (defaults to all files)",
@@ -18004,11 +18008,7 @@
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "Manuscript configuration",
     "internal-schema-hack",
-    "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’.",
-    {
-      "short": "Visual style for theorem environments in Typst output.",
-      "long": "Controls how theorems, lemmas, definitions, etc. are rendered: -\n<code>simple</code>: Plain text with bold title and italic body\n(default) - <code>fancy</code>: Colored boxes using brand colors -\n<code>clouds</code>: Rounded colored background boxes -\n<code>rainbow</code>: Colored left border with colored title"
-    }
+    "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’."
   ],
   "schema/external-schemas.yml": [
     {
@@ -18233,16 +18233,17 @@
       "(*",
       "*)"
     ],
+    "q": "/",
     "rust": "//",
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 220548,
+    "_internalId": 220795,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 220540,
+        "_internalId": 220787,
         "type": "enum",
         "enum": [
           "png",
@@ -18258,7 +18259,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 220547,
+        "_internalId": 220794,
         "type": "anyOf",
         "anyOf": [
           {

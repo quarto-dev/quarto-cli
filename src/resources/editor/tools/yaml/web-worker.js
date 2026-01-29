@@ -24682,6 +24682,10 @@ try {
           "Inner (left) margin geometry.",
           "Outer (right) margin geometry.",
           "Minimum vertical spacing between margin notes (default: 8pt).",
+          {
+            short: "Visual style for theorem environments in Typst output.",
+            long: "Controls how theorems, lemmas, definitions, etc. are rendered: -\n<code>simple</code>: Plain text with bold title and italic body\n(default) - <code>fancy</code>: Colored boxes using brand colors -\n<code>clouds</code>: Rounded colored background boxes -\n<code>rainbow</code>: Colored left border with colored title"
+          },
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -25033,11 +25037,7 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-          {
-            short: "Visual style for theorem environments in Typst output.",
-            long: "Controls how theorems, lemmas, definitions, etc. are rendered: -\n<code>simple</code>: Plain text with bold title and italic body\n(default) - <code>fancy</code>: Colored boxes using brand colors -\n<code>clouds</code>: Rounded colored background boxes -\n<code>rainbow</code>: Colored left border with colored title"
-          }
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
         ],
         "schema/external-schemas.yml": [
           {
@@ -25262,16 +25262,17 @@ try {
             "(*",
             "*)"
           ],
+          q: "/",
           rust: "//",
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 220548,
+          _internalId: 220795,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 220540,
+              _internalId: 220787,
               type: "enum",
               enum: [
                 "png",
@@ -25287,7 +25288,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 220547,
+              _internalId: 220794,
               type: "anyOf",
               anyOf: [
                 {
@@ -34573,6 +34574,7 @@ ${tidyverseInfo(
     ojs: "//",
     apl: "\u235D",
     ocaml: ["(*", "*)"],
+    q: "/",
     rust: "//"
   };
   function escapeRegExp(str2) {
