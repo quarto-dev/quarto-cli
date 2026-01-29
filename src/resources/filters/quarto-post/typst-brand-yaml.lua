@@ -320,9 +320,17 @@ function render_typst_brand_yaml()
           imageFilename = imageFilename and imageFilename:gsub('\\_', '_')
         else
           -- backslashes need to be doubled for Windows
+          -- Only apply project offset for brand logo paths (project-relative).
+          -- Extension-resolved paths (containing _extensions or starting with ..)
+          -- are already input-relative and should not have the offset applied.
+          -- See #13745 for the same pattern applied to font-paths.
           if imageFilename[1] ~= "/" and _quarto.projectOffset() ~= "." then
-            local offset = _quarto.projectOffset()
-            imageFilename = pandoc.path.join({offset, imageFilename})
+            local is_extension_path = string.find(imageFilename, "_extensions") or
+              string.sub(imageFilename, 1, 2) == ".."
+            if not is_extension_path then
+              local offset = _quarto.projectOffset()
+              imageFilename = pandoc.path.join({offset, imageFilename})
+            end
           end
           imageFilename = string.gsub(imageFilename, '\\', '\\\\')
         end
