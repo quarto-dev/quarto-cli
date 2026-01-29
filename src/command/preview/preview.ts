@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { info, warning } from "../../deno_ral/log.ts";
+import { debug, info, warning } from "../../deno_ral/log.ts";
 import {
   basename,
   dirname,
@@ -429,10 +429,8 @@ export async function renderForPreview(
   // fileInformationCache contains file content that needs to be refreshed.
   // TODO(#13955): Consider adding a dedicated invalidateForFile() method on ProjectContext
   if (project?.fileInformationCache) {
-    const normalizedFile = normalizePath(file);
-    if (project.fileInformationCache.has(normalizedFile)) {
-      project.fileInformationCache.delete(normalizedFile);
-    }
+    debug(`[renderForPreview] Invalidating file information cache for ${file}`);
+    project.fileInformationCache.delete(file);
   }
 
   // render
