@@ -1,0 +1,142 @@
+#!/bin/env bash
+set -eu
+set -o pipefail
+
+DIR="$(dirname "${BASH_SOURCE[0]}")"
+
+MODE="${1:-test}";
+if (( $# > 1)); then shift; fi
+
+FLAG_INSTALL=0
+
+while :; do
+  case "${1:-}" in
+    '--install') FLAG_INSTALL=1 ;;
+    *) break
+  esac
+  shift
+done
+
+
+TYPST_VERSION="v0.7.0"
+TYPST_BASE_URL="https://github.com/typst/typst/releases/download"
+TYPST_ARCHIVE="typst-x86_64-unknown-linux-musl.tar.xz"
+
+TYPST_ROOT="$(realpath "$DIR/..")"
+TEST_ROOT="$(realpath "$DIR/../tests")"
+
+if hash magick 2>/dev/null; then
+  MAGICK_COMPARE="magick compare"
+elif hash compare 2>/dev/null; then
+  MAGICK_COMPARE="compare"
+else
+  >&2 echo "Could not find 'magick' nor 'compare' binary. Make sure you have image magick installed and in your PATH."
+  exit 1
+fi
+
+
+function install_typst()
+{
+  if [[ "$OSTYPE" != "linux"* ]]; then
+    >&2 echo "Automatic installation of typst on a non linux system is currently unsupported."
+    exit 1
+  fi
+
+  #TMP="$(mktemp -d)"
+  TMP="${TMP:-/tmp}/typst-${TYPST_VERSION}"
+  if mkdir -p "$TMP" 2> /dev/null ; then
+    local PKG="${TMP}/typst.tar.xz"
+
+    echo "Installing typst from $TYPST_BASE_URL/$TYPST_ARCHIVE"
+    wget "${TYPST_BASE_URL}/${TYPST_VERSION}/${TYPST_ARCHIVE}" \
+         --quiet \
+         -O "$PKG"
+    mkdir -p "${TMP}/typst"
+    tar -xf "$PKG" -C "${TMP}/typst" --strip-components=1
+    rm "$PKG"
+  fi
+
+  PATH="${TMP}/typst/:$PATH"
+  export PATH
+}
+
+if [[ "$FLAG_INSTALL" == "1" ]]; then
+  install_typst
+fi
+
+if ! hash typst; then
+  >&2 echo "Could not find 'typst' binary. Run this script with the --install argument to temporarily install typst."
+  exit 1
+fi
+
+function img_compare()
+{
+  $MAGICK_COMPARE -metric AE -fuzz 1\% "$1" "$2" null: 2>&1 | cut -d\  -f1
+}
+
+function update_test_ref()
+{
+  (
+    cd "$1"
+    local NAME
+    NAME="$(basename "$1")"
+
+    echo "[UPDATING] ${NAME}"
+
+    typst compile test.typ "ref{n}.png" --root "$TYPST_ROOT" --font-path "$TYPST_ROOT/fonts" 
+  )
+}
+
+function run_test()
+{
+  (
+    cd "$1"
+    local NAME
+    NAME="$(basename "$1")"
+
+    echo "[TEST] ${NAME} ..."
+
+    if [[ ! -f test.typ ]]; then echo "Missing file 'test.typ'!"; exit 1; fi
+
+    typst compile test.typ "res{n}.png" --root "$TYPST_ROOT" --font-path "$TYPST_ROOT/fonts" 
+
+
+    for res_file in res*.png; do
+      if [[ $res_file =~ res([0-9]+)\.png ]]; then
+          number="${BASH_REMATCH[1]}"
+          ref_file="ref${number}.png"
+          diff_file="diff${number}.png"
+
+          if [ -f "$ref_file" ]; then
+              echo "Comparing $res_file with $ref_file..."
+              if [[ $(img_compare $res_file $ref_file) != 0 ]] ; then
+                $MAGICK_COMPARE -compose src $res_file $ref_file $diff_file || true
+                echo "[FAIL] see $(pwd)/$diff_file for differences"
+                exit 1
+              fi
+          else
+              echo "File $ref_file not found for $res_file."
+              exit 1
+          fi
+      fi
+    done
+
+    echo "[  OK]"
+  )
+}
+
+echo "Typst: $(typst --version)"
+
+find "$TEST_ROOT" -type d | \
+  while read -r test
+  do
+    if [[ "$test" == "$TEST_ROOT" ]]; then continue; fi
+
+    if [[ "$MODE" == "test" ]]; then
+      run_test "$test"
+    elif [[ "$MODE" == "update" ]]; then
+      update_test_ref "$test"
+    else
+      echo "Unknown mode '$MODE'"; exit 1
+    fi
+  done

@@ -28,3 +28,18 @@
       use `margin` and `grid` options instead; these values are computed automatically.
 
       User-specified values override the computed defaults.
+
+- name: theorem-appearance
+  schema:
+    enum: [simple, fancy, clouds, rainbow]
+  default: simple
+  tags:
+    formats: [typst]
+  description:
+    short: "Visual style for theorem environments in Typst output."
+    long: |
+      Controls how theorems, lemmas, definitions, etc. are rendered:
+      - `simple`: Plain text with bold title and italic body (default)
+      - `fancy`: Colored boxes using brand colors
+      - `clouds`: Rounded colored background boxes
+      - `rainbow`: Colored left border with colored title

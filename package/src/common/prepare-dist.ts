@@ -164,11 +164,6 @@ export async function prepareDist(
   inlineFilters(config);
   info("");
 
-  // Appease the bundler testing by patching the bad version from `configuration`
-  if (config.version.split(".").length === 2) {
-    config.version = `${config.version}.1`;
-  }
-
   // Write a version file to share
   info(`Writing version: ${config.version}`);
   Deno.writeTextFileSync(

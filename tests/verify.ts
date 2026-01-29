@@ -708,21 +708,27 @@ export const ensurePdfRegexMatches = (
       assert(output.success, `Failed to extract text from ${file}.`)
       const text = new TextDecoder().decode(output.stdout);
 
+      // Collect all failures instead of failing on first mismatch
+      const failures: string[] = [];
+
       matches.forEach((regex) => {
-        assert(
-          regex.test(text),
-          `Required match ${String(regex)} is missing from file ${file}.`,
-        );
+        if (!regex.test(text)) {
+          failures.push(`Required match ${String(regex)} is missing`);
+        }
       });
 
       if (noMatches) {
         noMatches.forEach((regex) => {
-          assert(
-            !regex.test(text),
-            `Illegal match ${String(regex)} was found in file ${file}.`,
-          );
+          if (regex.test(text)) {
+            failures.push(`Illegal match ${String(regex)} was found`);
+          }
         });
       }
+
+      assert(
+        failures.length === 0,
+        `${failures.length} regex mismatch(es) in ${file}:\n  - ${failures.join('\n  - ')}`,
+      );
     },
   };
 }

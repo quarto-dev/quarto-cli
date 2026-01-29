@@ -1,0 +1,37 @@
+project:
+  type: book
+
+brand: _brand.yml
+
+book:
+  title: "Test Typst Book"
+  author: "Test Author"
+  date: "2024-01-01"
+  chapters:
+    - index.qmd
+    - part: "Part I: Getting Started"
+      chapters:
+        - chapter1.qmd
+    - part: "Part II: Advanced Topics"
+      chapters:
+        - chapter2.qmd
+        - chapter3.qmd
+  appendices:
+    - appendix.qmd
+    - appendix-b.qmd
+  references: references.qmd
+
+bibliography: references.bib
+citeproc: true
+
+crossref:
+  custom:
+    - kind: float
+      key: dino
+      reference-prefix: Dinosaur
+
+format:
+  typst:
+    keep-typ: true
+    toc-depth: 17
+    theorem-appearance: fancy

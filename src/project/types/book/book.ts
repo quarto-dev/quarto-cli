@@ -20,6 +20,7 @@ import {
   isEpubOutput,
   isHtmlOutput,
   isLatexOutput,
+  isTypstOutput,
 } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/types.ts";
 import {
@@ -253,6 +254,17 @@ export const bookProjectType: ProjectType = {
           },
           pandoc: {
             [kTopLevelDivision]: "chapter",
+          },
+        },
+      );
+    } else if (isTypstOutput(format.pandoc)) {
+      // Typst book: use chapter divisions, disable Quarto TOC (orange-book generates its own)
+      extras = mergeConfigs(
+        extras,
+        {
+          pandoc: {
+            [kTopLevelDivision]: "chapter",
+            [kToc]: false,
           },
         },
       );

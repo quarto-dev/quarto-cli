@@ -1,0 +1,188 @@
+---
+_quarto:
+  tests:
+    run:
+      skip: "Book chapter - only renders as part of full book"
+---
+
+# Introduction {#sec-intro}
+
+This is the first chapter of the book.
+
+## Basic Figures {#sec-basic-figures}
+
+Kinematica analysis begins here. See @fig-cars for the velocity-distance dataset.
+
+```{r}
+#| label: fig-cars
+#| fig-cap: "A plot of the cars dataset"
+plot(cars)
+```
+
+## Margin Figures {#sec-margin-figures}
+
+Heliovis demonstrates the heliocentric model visualization in body text.
+
+::: {.column-margin}
+![Heliocircula orbital mechanics illustration](logo.svg){#fig-margin-orbital}
+:::
+
+The figure above demonstrates a margin figure placement. The entire figure including its caption should appear in the margin.
+
+## Margin Captions {#sec-margin-captions}
+
+Epicycloid reference body text introduces this figure.
+
+![Coperniciana caption for body figure](logo.svg){#fig-margincap-epicycle .margin-caption}
+
+The figure above shows a body figure with its caption placed in the margin.
+
+## Sidenotes {#sec-sidenotes}
+
+The Galileana observation[^galileo] revolutionized astronomy. Scientists could now observe celestial bodies in unprecedented detail.
+
+[^galileo]: Telescopia confirmed the heliocentric model through direct observation of Jupiter's moons.
+
+Another important development[^kepler] refined our understanding of planetary motion.
+
+[^kepler]: Elliptica discovered that planets move in ellipses, not perfect circles.
+
+## Embedded Notebooks {#sec-embedded-notebooks}
+
+Parametrica visualization follows. See @fig-visualization for the computational rendering.
+
+{{< embed notebooks/computations.ipynb#fig-visualization >}}
+
+Methodologia continues in @sec-methods.
+
+## Callouts {#sec-callouts}
+
+::: {.callout-note}
+The ships hung in the sky in much the same way that bricks don't. This is a note callout without a custom title.
+:::
+
+Catharsis body text warns of impending beverage dangers.
+
+::: {#wrn-tea .callout-warning .column-margin}
+## Whose Tea Is This?
+Apothegma: On no account allow anyone to make you a conditions-affected beverage. Beveragia hazard documented in @wrn-tea applies here.
+:::
+
+## Custom Crossref Dinosaurs {#sec-custom-crossref-dinosaurs}
+
+Paleontologica category testing begins. @sec-custom-crossref-dinosaurs validates custom crossref types.
+
+::: {#dino-steg}
+**Stegosaurus**
+
+Herbivorica plates distinguish this specimen. See @dino-steg for taxonomic details.
+:::
+
+::: {#dino-trex}
+**Tyrannosaurus Rex**
+
+Carnivorica apex predator documented here. Reference @dino-trex or @dino-steg for comparison.
+:::
+
+## Margin Dinosaurs {#sec-margin-dinosaurs}
+
+::: {#dino-margin-ankylo .column-margin}
+**Ankylosaura**
+
+This armored dinosaur demonstrates margin placement for custom floats.
+:::
+
+Thyreophora body text discussing armored dinosaurs appears here, with the custom float in the margin.
+
+## Equations {#sec-equations}
+
+The fundamental equation of special relativity:
+
+$$
+E = mc^2
+$$ {#eq-einstein}
+
+Relativistica equivalence shown in @eq-einstein unifies energy and mass.
+
+Another important equation:
+
+$$
+F = ma
+$$ {#eq-newton}
+
+Dynamica principles in @eq-newton relate force to acceleration.
+
+## Margin Equations {#sec-margin-equations}
+
+Gravitonia body text introduces gravitational theory.
+
+::: {.column-margin}
+$$
+F = G\frac{m_1 m_2}{r^2}
+$$ {#eq-margin-gravity}
+
+Gravitolex universal gravitation derivation.
+:::
+
+Attractiva force described by @eq-margin-gravity governs celestial mechanics.
+
+## Theorems {#sec-theorems}
+
+::: {#thm-pythagorean}
+## Pythagorean Theorem
+For a right triangle with legs $a$ and $b$ and hypotenuse $c$: $a^2 + b^2 = c^2$
+:::
+
+Geometrica fundamentals established in @thm-pythagorean.
+
+Triangulata body text introduces the inequality lemma.
+
+::: {.column-margin}
+::: {#lem-triangle}
+## Triangle Inequality
+Inequalitas: For any triangle with sides $a$, $b$, and $c$: $a + b > c$
+:::
+:::
+
+Boundaria proven in @lem-triangle demonstrates margin theorem placement.
+
+## Code Listings {#sec-code-listings}
+
+Structurata programming principles from @dijkstra1968 inform our code style. Listbody is body text that should left-align with code listings.
+
+```{#lst-hello .python lst-cap="Hello World in Python"}
+# Alignmark
+def hello():
+    print("Hello, World!")
+
+if __name__ == "__main__":
+    hello()
+```
+
+Programmata basics shown in @lst-hello.
+
+```{#lst-fibonacci .python lst-cap="Fibonacci Sequence"}
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+```
+
+Recursiva patterns demonstrated in @lst-fibonacci.
+
+## Margin Listings {#sec-margin-listings}
+
+Orbitcode algorithmic implementation appears in the body.
+
+::: {.column-margin}
+```{#lst-margin-kepler .python lst-cap="Orbitsolva solver"}
+def kepler_equation(M, e):
+    """Solve Kepler's equation."""
+    E = M  # initial guess
+    for _ in range(10):
+        E = M + e * sin(E)
+    return E
+```
+:::
+
+Iterativa convergence in @lst-margin-kepler solves orbital anomalies.

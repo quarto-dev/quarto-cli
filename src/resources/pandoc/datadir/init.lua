@@ -959,7 +959,8 @@ quarto = {
 
     output_file = outputFile(),
     input_file = inputFile(),
-    crossref = {}
+    crossref = {},
+    language = param("language", nil)
   },
   project = {
     directory = projectDirectory(),
