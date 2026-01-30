@@ -1,0 +1,7 @@
+meta:
+  name: Test Brand Extension Subdir
+color:
+  primary: "#ff5733"
+logo:
+  small: logo.png
+  medium: images/nested-logo.png

@@ -16,7 +16,6 @@ import { TempContext } from "../../../core/temp-types.ts";
 import { downloadWithProgress } from "../../../core/download.ts";
 import { withSpinner } from "../../../core/console.ts";
 import { unzip } from "../../../core/zip.ts";
-import { templateFiles } from "../../../extension/template.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
 import { createTempContext } from "../../../core/temp.ts";
@@ -24,8 +23,193 @@ import { InternalError } from "../../../core/lib/error.ts";
 import { notebookContext } from "../../../render/notebook/notebook-context.ts";
 import { projectContext } from "../../../project/project-context.ts";
 import { afterConfirm } from "../../../tools/tools-console.ts";
+import { readYaml } from "../../../core/yaml.ts";
+import { Metadata } from "../../../config/types.ts";
 
 const kRootTemplateName = "template.qmd";
+
+// Brand extension detection result
+interface BrandExtensionInfo {
+  isBrandExtension: boolean;
+  extensionDir?: string; // Directory containing the brand extension
+  brandFileName?: string; // The original brand file name (e.g., "brand.yml")
+}
+
+// Check if a directory contains a brand extension
+function checkForBrandExtension(dir: string): BrandExtensionInfo {
+  const extensionFiles = ["_extension.yml", "_extension.yaml"];
+
+  for (const file of extensionFiles) {
+    const path = join(dir, file);
+    if (existsSync(path)) {
+      try {
+        const yaml = readYaml(path) as Metadata;
+        // Check for contributes.metadata.project.brand
+        const contributes = yaml?.contributes as Metadata | undefined;
+        const metadata = contributes?.metadata as Metadata | undefined;
+        const project = metadata?.project as Metadata | undefined;
+        const brandFile = project?.brand as string | undefined;
+
+        if (brandFile && typeof brandFile === "string") {
+          return {
+            isBrandExtension: true,
+            extensionDir: dir,
+            brandFileName: brandFile,
+          };
+        }
+      } catch {
+        // If we can't read/parse the extension file, continue searching
+      }
+    }
+  }
+
+  return { isBrandExtension: false };
+}
+
+// Search for a brand extension in the staged directory
+// Searches: root, _extensions/*, _extensions/*/*
+function findBrandExtension(stagedDir: string): BrandExtensionInfo {
+  // First check the root directory
+  const rootCheck = checkForBrandExtension(stagedDir);
+  if (rootCheck.isBrandExtension) {
+    return rootCheck;
+  }
+
+  // Check _extensions directory
+  const extensionsDir = join(stagedDir, "_extensions");
+  if (!existsSync(extensionsDir)) {
+    return { isBrandExtension: false };
+  }
+
+  try {
+    // Check direct children: _extensions/extension-name/
+    for (const entry of Deno.readDirSync(extensionsDir)) {
+      if (!entry.isDirectory) continue;
+
+      const extPath = join(extensionsDir, entry.name);
+      const check = checkForBrandExtension(extPath);
+      if (check.isBrandExtension) {
+        return check;
+      }
+
+      // Check nested: _extensions/org/extension-name/
+      for (const nested of Deno.readDirSync(extPath)) {
+        if (!nested.isDirectory) continue;
+        const nestedPath = join(extPath, nested.name);
+        const nestedCheck = checkForBrandExtension(nestedPath);
+        if (nestedCheck.isBrandExtension) {
+          return nestedCheck;
+        }
+      }
+    }
+  } catch {
+    // Directory read error, return not found
+  }
+
+  return { isBrandExtension: false };
+}
+
+// Extract a path string from various formats:
+// - string: "path/to/file"
+// - object with path: { path: "path/to/file", alt: "..." }
+function extractPath(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (value && typeof value === "object" && "path" in value) {
+    const pathValue = (value as Record<string, unknown>).path;
+    if (typeof pathValue === "string") {
+      return pathValue;
+    }
+  }
+  return undefined;
+}
+
+// Check if a path is a local file (not a URL)
+function isLocalPath(path: string): boolean {
+  return !path.startsWith("http://") && !path.startsWith("https://");
+}
+
+// Extract all referenced file paths from a brand YAML file
+function extractBrandFilePaths(brandYamlPath: string): string[] {
+  const paths: string[] = [];
+
+  try {
+    const yaml = readYaml(brandYamlPath) as Metadata;
+    if (!yaml) return paths;
+
+    // Extract logo paths
+    const logo = yaml.logo as Metadata | undefined;
+    if (logo) {
+      // Handle logo.images (named resources)
+      // Format: logo.images.<name> can be string or { path, alt }
+      const images = logo.images as Metadata | undefined;
+      if (images && typeof images === "object") {
+        for (const value of Object.values(images)) {
+          const path = extractPath(value);
+          if (path && isLocalPath(path)) {
+            paths.push(path);
+          }
+        }
+      }
+
+      // Handle logo.small, logo.medium, logo.large
+      // Format: string or { light: string, dark: string }
+      for (const size of ["small", "medium", "large"]) {
+        const sizeValue = logo[size];
+        if (!sizeValue) continue;
+
+        if (typeof sizeValue === "string") {
+          if (isLocalPath(sizeValue)) {
+            paths.push(sizeValue);
+          }
+        } else if (typeof sizeValue === "object") {
+          // Handle { light: "...", dark: "..." }
+          const lightDark = sizeValue as Record<string, unknown>;
+          if (
+            typeof lightDark.light === "string" && isLocalPath(lightDark.light)
+          ) {
+            paths.push(lightDark.light);
+          }
+          if (
+            typeof lightDark.dark === "string" && isLocalPath(lightDark.dark)
+          ) {
+            paths.push(lightDark.dark);
+          }
+        }
+      }
+    }
+
+    // Extract typography font file paths
+    const typography = yaml.typography as Metadata | undefined;
+    if (typography) {
+      const fonts = typography.fonts as unknown[] | undefined;
+      if (Array.isArray(fonts)) {
+        for (const font of fonts) {
+          if (!font || typeof font !== "object") continue;
+          const fontObj = font as Record<string, unknown>;
+
+          // Only process fonts with source: "file"
+          if (fontObj.source !== "file") continue;
+
+          const files = fontObj.files as unknown[] | undefined;
+          if (Array.isArray(files)) {
+            for (const file of files) {
+              const path = extractPath(file);
+              if (path && isLocalPath(path)) {
+                paths.push(path);
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch {
+    // If we can't read/parse the brand file, return empty list
+  }
+
+  return paths;
+}
 
 export const useBrandCommand = new Command()
   .name("brand")
@@ -100,8 +284,44 @@ async function useBrand(
   // Extract and move the template into place
   const stagedDir = await stageBrand(source, tempContext);
 
-  // Filter the list to template files
-  const filesToCopy = templateFiles(stagedDir);
+  // Check if this is a brand extension
+  const brandExtInfo = findBrandExtension(stagedDir);
+
+  // Determine the actual source directory and file mapping
+  const sourceDir = brandExtInfo.isBrandExtension
+    ? brandExtInfo.extensionDir!
+    : stagedDir;
+
+  // Find the brand file
+  const brandFileName = brandExtInfo.isBrandExtension
+    ? brandExtInfo.brandFileName!
+    : existsSync(join(sourceDir, "_brand.yml"))
+    ? "_brand.yml"
+    : existsSync(join(sourceDir, "_brand.yaml"))
+    ? "_brand.yaml"
+    : undefined;
+
+  if (!brandFileName) {
+    info("No brand file (_brand.yml or _brand.yaml) found in source");
+    return;
+  }
+
+  const brandFilePath = join(sourceDir, brandFileName);
+  // Get the directory containing the brand file (for resolving relative paths)
+  const brandFileDir = dirname(brandFilePath);
+
+  // Extract referenced file paths from the brand YAML
+  const referencedPaths = extractBrandFilePaths(brandFilePath);
+
+  // Build list of files to copy: brand file + referenced files
+  // Referenced paths are relative to the brand file's directory
+  const filesToCopy: string[] = [brandFilePath];
+  for (const refPath of referencedPaths) {
+    const fullPath = join(brandFileDir, refPath);
+    if (existsSync(fullPath)) {
+      filesToCopy.push(fullPath);
+    }
+  }
 
   // Confirm changes to brand directory (skip for dry-run or force)
   if (!options.dryRun && !options.force) {
@@ -125,10 +345,18 @@ async function useBrand(
   }
 
   // Build set of source file paths for comparison
+  // Paths are relative to the brand file's directory
+  // For brand extensions, the brand file is renamed to _brand.yml
   const sourceFiles = new Set(
     filesToCopy
       .filter((f) => !Deno.statSync(f).isDirectory)
-      .map((f) => relative(stagedDir, f)),
+      .map((f) => {
+        // If this is the brand file, it will become _brand.yml
+        if (f === brandFilePath) {
+          return "_brand.yml";
+        }
+        return relative(brandFileDir, f);
+      }),
   );
 
   // Find extra files in target that aren't in source
@@ -147,13 +375,22 @@ async function useBrand(
 
   for (const fileToCopy of filesToCopy) {
     const isDir = Deno.statSync(fileToCopy).isDirectory;
-    const rel = relative(stagedDir, fileToCopy);
     if (isDir) {
       continue;
     }
+
+    // Compute target path relative to brand file's directory
+    // The brand file itself is renamed to _brand.yml
+    let targetRel: string;
+    if (fileToCopy === brandFilePath) {
+      targetRel = "_brand.yml";
+    } else {
+      targetRel = relative(brandFileDir, fileToCopy);
+    }
+
     // Compute the paths
-    const targetPath = join(brandDir, rel);
-    const displayName = rel;
+    const targetPath = join(brandDir, targetRel);
+    const displayName = targetRel;
     const targetDir = dirname(targetPath);
     const copyAction = {
       file: displayName,
@@ -387,10 +624,10 @@ async function ensureBrandDirectory(force: boolean, dryRun: boolean) {
   const currentDir = Deno.cwd();
   const nbContext = notebookContext();
   const project = await projectContext(currentDir, nbContext);
-  if (!project) {
-    throw new Error(`Could not find project dir for ${currentDir}`);
-  }
-  const brandDir = join(project.dir, "_brand");
+  // Use project directory if available, otherwise fall back to current directory
+  // (single-file mode without _quarto.yml)
+  const baseDir = project?.dir ?? currentDir;
+  const brandDir = join(baseDir, "_brand");
   if (!existsSync(brandDir)) {
     if (dryRun) {
       info(`  Would create directory: _brand/`);
