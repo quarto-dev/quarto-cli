@@ -3,7 +3,7 @@
  *
  * Test utilities for project-related unit tests
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2026 Posit Software, PBC
  */
 
 import { ProjectContext } from "../../../src/project/types.ts";

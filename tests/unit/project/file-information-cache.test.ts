@@ -4,7 +4,7 @@
  * Tests for fileInformationCache path normalization
  * Related to issue #13955
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2026 Posit Software, PBC
  */
 
 import { unitTest } from "../../test.ts";
