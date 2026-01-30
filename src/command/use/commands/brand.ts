@@ -16,7 +16,6 @@ import { TempContext } from "../../../core/temp-types.ts";
 import { downloadWithProgress } from "../../../core/download.ts";
 import { withSpinner } from "../../../core/console.ts";
 import { unzip } from "../../../core/zip.ts";
-import { templateFiles } from "../../../extension/template.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
 import { createTempContext } from "../../../core/temp.ts";
@@ -110,6 +109,108 @@ function findBrandExtension(stagedDir: string): BrandExtensionInfo {
   return { isBrandExtension: false };
 }
 
+// Extract a path string from various formats:
+// - string: "path/to/file"
+// - object with path: { path: "path/to/file", alt: "..." }
+function extractPath(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (value && typeof value === "object" && "path" in value) {
+    const pathValue = (value as Record<string, unknown>).path;
+    if (typeof pathValue === "string") {
+      return pathValue;
+    }
+  }
+  return undefined;
+}
+
+// Check if a path is a local file (not a URL)
+function isLocalPath(path: string): boolean {
+  return !path.startsWith("http://") && !path.startsWith("https://");
+}
+
+// Extract all referenced file paths from a brand YAML file
+function extractBrandFilePaths(brandYamlPath: string): string[] {
+  const paths: string[] = [];
+
+  try {
+    const yaml = readYaml(brandYamlPath) as Metadata;
+    if (!yaml) return paths;
+
+    // Extract logo paths
+    const logo = yaml.logo as Metadata | undefined;
+    if (logo) {
+      // Handle logo.images (named resources)
+      // Format: logo.images.<name> can be string or { path, alt }
+      const images = logo.images as Metadata | undefined;
+      if (images && typeof images === "object") {
+        for (const value of Object.values(images)) {
+          const path = extractPath(value);
+          if (path && isLocalPath(path)) {
+            paths.push(path);
+          }
+        }
+      }
+
+      // Handle logo.small, logo.medium, logo.large
+      // Format: string or { light: string, dark: string }
+      for (const size of ["small", "medium", "large"]) {
+        const sizeValue = logo[size];
+        if (!sizeValue) continue;
+
+        if (typeof sizeValue === "string") {
+          if (isLocalPath(sizeValue)) {
+            paths.push(sizeValue);
+          }
+        } else if (typeof sizeValue === "object") {
+          // Handle { light: "...", dark: "..." }
+          const lightDark = sizeValue as Record<string, unknown>;
+          if (
+            typeof lightDark.light === "string" && isLocalPath(lightDark.light)
+          ) {
+            paths.push(lightDark.light);
+          }
+          if (
+            typeof lightDark.dark === "string" && isLocalPath(lightDark.dark)
+          ) {
+            paths.push(lightDark.dark);
+          }
+        }
+      }
+    }
+
+    // Extract typography font file paths
+    const typography = yaml.typography as Metadata | undefined;
+    if (typography) {
+      const fonts = typography.fonts as unknown[] | undefined;
+      if (Array.isArray(fonts)) {
+        for (const font of fonts) {
+          if (!font || typeof font !== "object") continue;
+          const fontObj = font as Record<string, unknown>;
+
+          // Only process fonts with source: "file"
+          if (fontObj.source !== "file") continue;
+
+          const files = fontObj.files as unknown[] | undefined;
+          if (Array.isArray(files)) {
+            for (const file of files) {
+              const path = extractPath(file);
+              if (path && isLocalPath(path)) {
+                paths.push(path);
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch {
+    // If we can't read/parse the brand file, return empty list
+  }
+
+  return paths;
+}
+
 export const useBrandCommand = new Command()
   .name("brand")
   .arguments("<target:string>")
@@ -191,15 +292,32 @@ async function useBrand(
     ? brandExtInfo.extensionDir!
     : stagedDir;
 
-  // Filter the list to template files
-  let filesToCopy = templateFiles(sourceDir);
+  // Find the brand file
+  const brandFileName = brandExtInfo.isBrandExtension
+    ? brandExtInfo.brandFileName!
+    : existsSync(join(sourceDir, "_brand.yml"))
+    ? "_brand.yml"
+    : existsSync(join(sourceDir, "_brand.yaml"))
+    ? "_brand.yaml"
+    : undefined;
 
-  // For brand extensions, exclude _extension.yml/_extension.yaml
-  if (brandExtInfo.isBrandExtension) {
-    filesToCopy = filesToCopy.filter((f) => {
-      const name = basename(f);
-      return name !== "_extension.yml" && name !== "_extension.yaml";
-    });
+  if (!brandFileName) {
+    info("No brand file (_brand.yml or _brand.yaml) found in source");
+    return;
+  }
+
+  const brandFilePath = join(sourceDir, brandFileName);
+
+  // Extract referenced file paths from the brand YAML
+  const referencedPaths = extractBrandFilePaths(brandFilePath);
+
+  // Build list of files to copy: brand file + referenced files
+  const filesToCopy: string[] = [brandFilePath];
+  for (const refPath of referencedPaths) {
+    const fullPath = join(sourceDir, refPath);
+    if (existsSync(fullPath)) {
+      filesToCopy.push(fullPath);
+    }
   }
 
   // Confirm changes to brand directory (skip for dry-run or force)

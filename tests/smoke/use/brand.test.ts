@@ -74,6 +74,19 @@ testQuartoCmd(
     folderExists(join(basicDir, "_brand")),
     fileExists(join(basicDir, "_brand", "_brand.yml")),
     fileExists(join(basicDir, "_brand", "logo.png")),
+    // Font file referenced in typography.fonts should be copied
+    folderExists(join(basicDir, "_brand", "fonts")),
+    fileExists(join(basicDir, "_brand", "fonts", "custom-font.woff2")),
+    // README.md is NOT referenced in _brand.yml - should NOT be copied
+    {
+      name: "README.md should not be copied (unreferenced)",
+      verify: () => {
+        if (existsSync(join(basicDir, "_brand", "README.md"))) {
+          throw new Error("README.md should not be copied - it is not referenced in _brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
   ],
   {
     setup: () => {
@@ -98,7 +111,7 @@ testQuartoCmd(
   [
     noErrorsOrWarnings,
     printsMessage({ level: "INFO", regex: /Would create directory/ }),
-    filesInSections({ create: ["_brand.yml", "logo.png"] }, true),
+    filesInSections({ create: ["_brand.yml", "logo.png", "fonts/custom-font.woff2"] }, true),
     {
       name: "_brand directory should not exist in dry-run mode",
       verify: () => {
@@ -108,7 +121,19 @@ testQuartoCmd(
         }
         return Promise.resolve();
       }
-    }
+    },
+    // README.md should NOT appear in dry-run output (unreferenced)
+    {
+      name: "README.md should not be listed in dry-run output (unreferenced)",
+      verify: (outputs: ExecuteOutput[]) => {
+        for (const output of outputs) {
+          if (output.msg.includes("README.md")) {
+            throw new Error("README.md should not appear in dry-run output - it is not referenced in _brand.yml");
+          }
+        }
+        return Promise.resolve();
+      }
+    },
   ],
   {
     setup: () => {
@@ -284,6 +309,30 @@ testQuartoCmd(
     fileExists(join(multiFileDir, "_brand", "_brand.yml")),
     fileExists(join(multiFileDir, "_brand", "logo.png")),
     fileExists(join(multiFileDir, "_brand", "favicon.png")),
+    // Font files referenced in typography.fonts should be copied
+    folderExists(join(multiFileDir, "_brand", "fonts")),
+    fileExists(join(multiFileDir, "_brand", "fonts", "brand-regular.woff2")),
+    fileExists(join(multiFileDir, "_brand", "fonts", "brand-bold.woff2")),
+    // unused-styles.css is NOT referenced in _brand.yml - should NOT be copied
+    {
+      name: "unused-styles.css should not be copied (unreferenced)",
+      verify: () => {
+        if (existsSync(join(multiFileDir, "_brand", "unused-styles.css"))) {
+          throw new Error("unused-styles.css should not be copied - it is not referenced in _brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
+    // fonts/unused-italic.woff2 is NOT referenced in _brand.yml - should NOT be copied
+    {
+      name: "fonts/unused-italic.woff2 should not be copied (unreferenced)",
+      verify: () => {
+        if (existsSync(join(multiFileDir, "_brand", "fonts", "unused-italic.woff2"))) {
+          throw new Error("fonts/unused-italic.woff2 should not be copied - it is not referenced in _brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
   ],
   {
     setup: () => {
@@ -312,6 +361,26 @@ testQuartoCmd(
     folderExists(join(nestedDir, "_brand", "images")),
     fileExists(join(nestedDir, "_brand", "images", "logo.png")),
     fileExists(join(nestedDir, "_brand", "images", "header.png")),
+    // notes.txt is NOT referenced in _brand.yml - should NOT be copied
+    {
+      name: "notes.txt should not be copied (unreferenced)",
+      verify: () => {
+        if (existsSync(join(nestedDir, "_brand", "notes.txt"))) {
+          throw new Error("notes.txt should not be copied - it is not referenced in _brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
+    // images/extra-icon.png is NOT referenced in _brand.yml - should NOT be copied
+    {
+      name: "images/extra-icon.png should not be copied (unreferenced)",
+      verify: () => {
+        if (existsSync(join(nestedDir, "_brand", "images", "extra-icon.png"))) {
+          throw new Error("images/extra-icon.png should not be copied - it is not referenced in _brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
   ],
   {
     setup: () => {
@@ -686,6 +755,16 @@ testQuartoCmd(
         const content = Deno.readTextFileSync(join(brandExtDir, "_brand", "_brand.yml"));
         if (!content.includes("Test Brand Extension")) {
           throw new Error("_brand.yml should contain content from brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
+    // template.html is NOT referenced in brand.yml - should NOT be copied
+    {
+      name: "template.html should not be copied (unreferenced)",
+      verify: () => {
+        if (existsSync(join(brandExtDir, "_brand", "template.html"))) {
+          throw new Error("template.html should not be copied - it is not referenced in brand.yml");
         }
         return Promise.resolve();
       }

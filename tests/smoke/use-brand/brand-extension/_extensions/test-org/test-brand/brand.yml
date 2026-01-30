@@ -3,3 +3,8 @@ meta:
 color:
   primary: "#007bff"
   secondary: "#6c757d"
+logo:
+  images:
+    brand:
+      path: logo.png
+      alt: "Brand extension logo"
