@@ -15,6 +15,7 @@ All changes included in 1.9:
 ## Dependencies
 
 - Update `pandoc` to 3.8.3
+  - ([#13925](https://github.com/quarto-dev/quarto-cli/issues/13925)): Pandoc 3.8.3 introduces `^[text]^` as inline footnote syntax. This conflicts with superscript containing a Span at the start (e.g., `^[text]{.class}^`) since the `^[` sequence now triggers footnote parsing. A workaround is to insert a zero-width space or other invisible character between `^` and `[`.
 - Update `typst` to 0.14.2
 - Update `esbuild` to 0.25.10
 - Update `deno` to 2.4.5
