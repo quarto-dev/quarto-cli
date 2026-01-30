@@ -655,8 +655,10 @@ export async function projectResolveBrand(
   }
 }
 
-// Create a class that extends Map and implements Cloneable
-// All operations normalize keys for cross-platform consistency
+// A Map that normalizes path keys for cross-platform consistency.
+// All path operations normalize keys (forward slashes, lowercase on Windows).
+// Implements Cloneable but shares state intentionally - in preview mode,
+// the project context is reused across renders and cache state must persist.
 export class FileInformationCacheMap extends Map<string, FileInformation>
   implements Cloneable<Map<string, FileInformation>> {
   override get(key: string): FileInformation | undefined {
@@ -675,8 +677,14 @@ export class FileInformationCacheMap extends Map<string, FileInformation>
     return super.delete(normalizePath(key));
   }
 
+  // Note: Iterator methods (keys(), entries(), forEach(), [Symbol.iterator])
+  // return normalized keys as stored. Code iterating over the cache sees
+  // normalized paths, which is consistent with how keys are stored.
+
+  // Returns this instance (shared reference) rather than a copy.
+  // This is intentional: in preview mode, project context is cloned for
+  // each render but the cache must be shared so invalidations persist.
   clone(): Map<string, FileInformation> {
-    // Return the same instance (reference) instead of creating a clone
     return this;
   }
 }
