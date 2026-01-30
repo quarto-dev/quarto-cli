@@ -429,8 +429,8 @@ export async function renderForPreview(
   // fileInformationCache contains file content that needs to be refreshed.
   // TODO(#13955): Consider adding a dedicated invalidateForFile() method on ProjectContext
   if (project?.fileInformationCache) {
-    debug(`[renderForPreview] Invalidating file information cache for ${file}`);
-    project.fileInformationCache.delete(file);
+    const normalizedFile = normalizePath(file);
+    project.fileInformationCache.delete(normalizedFile);
   }
 
   // render

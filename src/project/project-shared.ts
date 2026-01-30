@@ -505,6 +505,7 @@ export const ensureFileInformationCache = (
   project: ProjectContext,
   file: string,
 ) => {
+  const normalizedFile = normalizePath(file);
   if (!project.fileInformationCache) {
     project.fileInformationCache = new Map();
   }
@@ -512,10 +513,10 @@ export const ensureFileInformationCache = (
     project.fileInformationCache instanceof Map,
     JSON.stringify(project.fileInformationCache),
   );
-  if (!project.fileInformationCache.has(file)) {
-    project.fileInformationCache.set(file, {} as FileInformation);
+  if (!project.fileInformationCache.has(normalizedFile)) {
+    project.fileInformationCache.set(normalizedFile, {} as FileInformation);
   }
-  return project.fileInformationCache.get(file)!;
+  return project.fileInformationCache.get(normalizedFile)!;
 };
 
 export async function projectResolveBrand(

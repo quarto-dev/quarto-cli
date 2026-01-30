@@ -125,6 +125,7 @@ const populateFileInformation = async (
   fileInformation: Record<string, InspectedFile>,
   file: string,
 ) => {
+  const normalizedFile = normalizePath(file);
   const engine = await fileExecutionEngine(file, undefined, context);
   const src = await context.resolveFullMarkdownForFile(engine, file);
   if (engine) {
@@ -139,11 +140,13 @@ const populateFileInformation = async (
   }
   await projectResolveCodeCellsForFile(context, engine, file);
   await projectFileMetadata(context, file);
-  fileInformation[file] = {
-    includeMap: context.fileInformationCache.get(file)?.includeMap ??
-      [],
-    codeCells: context.fileInformationCache.get(file)?.codeCells ?? [],
-    metadata: context.fileInformationCache.get(file)?.metadata ?? {},
+  const cacheEntry = context.fileInformationCache.get(normalizedFile);
+  // Output key: project-relative for portability
+  const outputKey = relative(context.dir, normalizedFile);
+  fileInformation[outputKey] = {
+    includeMap: cacheEntry?.includeMap ?? [],
+    codeCells: cacheEntry?.codeCells ?? [],
+    metadata: cacheEntry?.metadata ?? {},
   };
 };
 
@@ -216,7 +219,8 @@ const inspectDocumentConfig = async (path: string) => {
     await context.resolveFullMarkdownForFile(engine, path);
     await projectResolveCodeCellsForFile(context, engine, path);
     await projectFileMetadata(context, path);
-    const fileInformation = context.fileInformationCache.get(path);
+    const normalizedPath = normalizePath(path);
+    const fileInformation = context.fileInformationCache.get(normalizedPath);
 
     // data to write
     const config: InspectedDocumentConfig = {
