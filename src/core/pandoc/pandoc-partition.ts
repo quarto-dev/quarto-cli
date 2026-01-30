@@ -119,7 +119,8 @@ export function languagesWithClasses(
 ): Map<string, string | undefined> {
   const result = new Map<string, string | undefined>();
   // Capture language and everything after it (including dot-joined classes like {python.marimo})
-  const kChunkRegex = /^[\t >]*```+\s*\{([a-zA-Z0-9_]+)([^}]*)?\}\s*$/gm;
+  const kChunkRegex =
+    /^[\t >]*```+\s*\{([a-zA-Z][a-zA-Z0-9_.]*)([^}]*)?\}\s*$/gm;
   kChunkRegex.lastIndex = 0;
   let match = kChunkRegex.exec(markdown);
   while (match) {
