@@ -38,6 +38,9 @@ export interface MarkdownRegexNamespace {
   extractYaml: (markdown: string) => Metadata;
   partition: (markdown: string) => PartitionedMarkdown;
   getLanguages: (markdown: string) => Set<string>;
+  getLanguagesWithClasses: (
+    markdown: string,
+  ) => Map<string, string | undefined>;
   breakQuartoMd: (
     src: string | MappedString,
     validate?: boolean,

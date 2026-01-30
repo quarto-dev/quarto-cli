@@ -832,6 +832,13 @@ export interface QuartoAPI {
 		 */
 		getLanguages: (markdown: string) => Set<string>;
 		/**
+		 * Extract programming languages and their first class from code blocks
+		 *
+		 * @param markdown - Markdown content to analyze
+		 * @returns Map of language identifiers to their first class (or undefined)
+		 */
+		getLanguagesWithClasses: (markdown: string) => Map<string, string | undefined>;
+		/**
 		 * Break Quarto markdown into cells
 		 *
 		 * @param src - Markdown string or MappedString
@@ -1566,8 +1573,12 @@ export interface ExecutionEngineDiscovery {
 	claimsFile: (file: string, ext: string) => boolean;
 	/**
 	 * Whether this engine can handle the given language
+	 *
+	 * @param language - The language identifier (e.g., "python", "r", "julia")
+	 * @param firstClass - Optional first class from code block attributes (e.g., "marimo" from {python .marimo})
+	 * @returns boolean for simple claim, or number for priority (higher wins, 0 = no claim, 1 = standard claim)
 	 */
-	claimsLanguage: (language: string) => boolean;
+	claimsLanguage: (language: string, firstClass?: string) => boolean | number;
 	/**
 	 * Whether this engine supports freezing
 	 */
