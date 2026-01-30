@@ -505,18 +505,17 @@ export const ensureFileInformationCache = (
   project: ProjectContext,
   file: string,
 ) => {
-  const normalizedFile = normalizePath(file);
   if (!project.fileInformationCache) {
-    project.fileInformationCache = new Map();
+    project.fileInformationCache = new FileInformationCacheMap();
   }
   assert(
     project.fileInformationCache instanceof Map,
     JSON.stringify(project.fileInformationCache),
   );
-  if (!project.fileInformationCache.has(normalizedFile)) {
-    project.fileInformationCache.set(normalizedFile, {} as FileInformation);
+  if (!project.fileInformationCache.has(file)) {
+    project.fileInformationCache.set(file, {} as FileInformation);
   }
-  return project.fileInformationCache.get(normalizedFile)!;
+  return project.fileInformationCache.get(file)!;
 };
 
 export async function projectResolveBrand(
@@ -657,8 +656,25 @@ export async function projectResolveBrand(
 }
 
 // Create a class that extends Map and implements Cloneable
+// All operations normalize keys for cross-platform consistency
 export class FileInformationCacheMap extends Map<string, FileInformation>
   implements Cloneable<Map<string, FileInformation>> {
+  override get(key: string): FileInformation | undefined {
+    return super.get(normalizePath(key));
+  }
+
+  override has(key: string): boolean {
+    return super.has(normalizePath(key));
+  }
+
+  override set(key: string, value: FileInformation): this {
+    return super.set(normalizePath(key), value);
+  }
+
+  override delete(key: string): boolean {
+    return super.delete(normalizePath(key));
+  }
+
   clone(): Map<string, FileInformation> {
     // Return the same instance (reference) instead of creating a clone
     return this;

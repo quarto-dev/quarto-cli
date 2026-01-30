@@ -7,6 +7,7 @@
  */
 
 import { ProjectContext } from "../../../src/project/types.ts";
+import { FileInformationCacheMap } from "../../../src/project/project-shared.ts";
 
 /**
  * Create a minimal mock ProjectContext for testing.
@@ -19,13 +20,14 @@ export function createMockProjectContext(
   dir?: string,
 ): ProjectContext {
   const projectDir = dir ?? Deno.makeTempDirSync({ prefix: "quarto-test" });
+  const ownsDir = dir === undefined;
 
   return {
     dir: projectDir,
     engines: [],
     files: { input: [] },
     notebookContext: {} as ProjectContext["notebookContext"],
-    fileInformationCache: new Map(),
+    fileInformationCache: new FileInformationCacheMap(),
     resolveBrand: () => Promise.resolve(undefined),
     resolveFullMarkdownForFile: () => Promise.resolve({} as never),
     fileExecutionEngineAndTarget: () => Promise.resolve({} as never),
@@ -38,6 +40,14 @@ export function createMockProjectContext(
     isSingleFile: false,
     diskCache: {} as ProjectContext["diskCache"],
     temp: {} as ProjectContext["temp"],
-    cleanup: () => {},
+    cleanup: () => {
+      if (ownsDir) {
+        try {
+          Deno.removeSync(projectDir, { recursive: true });
+        } catch {
+          // Ignore cleanup errors in tests
+        }
+      }
+    },
   } as ProjectContext;
 }

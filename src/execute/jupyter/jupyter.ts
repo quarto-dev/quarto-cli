@@ -8,7 +8,6 @@ import { basename, dirname, join, relative } from "../../deno_ral/path.ts";
 import { satisfies } from "semver/mod.ts";
 
 import { existsSync } from "../../deno_ral/fs.ts";
-import { normalizePath } from "../../core/path.ts";
 
 import { error, info } from "../../deno_ral/log.ts";
 
@@ -866,8 +865,7 @@ function cleanupNotebook(
 ) {
   // Make notebook non-transient when keep-ipynb is set
   const data = target.data as JupyterTargetData;
-  const normalizedSource = normalizePath(target.source);
-  const cached = project.fileInformationCache.get(normalizedSource);
+  const cached = project.fileInformationCache.get(target.source);
   if (cached && data.transient && format.execute[kKeepIpynb]) {
     if (cached.target && cached.target.data) {
       (cached.target.data as JupyterTargetData).transient = false;

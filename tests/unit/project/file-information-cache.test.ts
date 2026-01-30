@@ -10,7 +10,10 @@
 import { unitTest } from "../../test.ts";
 import { assert } from "testing/asserts";
 import { join } from "../../../src/deno_ral/path.ts";
-import { ensureFileInformationCache } from "../../../src/project/project-shared.ts";
+import {
+  ensureFileInformationCache,
+  FileInformationCacheMap,
+} from "../../../src/project/project-shared.ts";
 import { createMockProjectContext } from "./utils.ts";
 
 // deno-lint-ignore require-await
@@ -83,6 +86,24 @@ unitTest(
     assert(
       entry1 === entry2,
       "Should return same cache entry object",
+    );
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "ensureFileInformationCache - creates FileInformationCacheMap when cache is missing",
+  async () => {
+    const project = createMockProjectContext();
+    // Simulate minimal ProjectContext without cache (as in command-utils.ts)
+    // deno-lint-ignore no-explicit-any
+    (project as any).fileInformationCache = undefined;
+
+    ensureFileInformationCache(project, join(project.dir, "doc.qmd"));
+
+    assert(
+      project.fileInformationCache instanceof FileInformationCacheMap,
+      "Should create FileInformationCacheMap, not plain Map",
     );
   },
 );
