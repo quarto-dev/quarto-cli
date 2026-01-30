@@ -45,10 +45,12 @@ export async function singleFileProjectContext(
   const temp = globalTempContext();
   const projectCacheBaseDir = temp.createDir();
 
+  const normalizedDir = normalizePath(dirname(source));
+
   const result: ProjectContext = {
     clone: () => result,
     resolveBrand: (fileName?: string) => projectResolveBrand(result, fileName),
-    dir: normalizePath(dirname(source)),
+    dir: normalizedDir,
     engines: [],
     files: {
       input: [],

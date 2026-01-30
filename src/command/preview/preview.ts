@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { info, warning } from "../../deno_ral/log.ts";
+import { debug, info, warning } from "../../deno_ral/log.ts";
 import {
   basename,
   dirname,
@@ -424,6 +424,14 @@ export async function renderForPreview(
   pandocArgs: string[],
   project?: ProjectContext,
 ): Promise<RenderForPreviewResult> {
+  // Invalidate file cache for the file being rendered so changes are picked up.
+  // The project context persists across re-renders in preview mode, but the
+  // fileInformationCache contains file content that needs to be refreshed.
+  // TODO(#13955): Consider adding a dedicated invalidateForFile() method on ProjectContext
+  if (project?.fileInformationCache) {
+    project.fileInformationCache.delete(file);
+  }
+
   // render
   const renderResult = await render(file, {
     services,
@@ -484,8 +492,6 @@ export async function renderForPreview(
     },
     [],
   ));
-
-  renderResult.context.cleanup();
 
   return {
     file,

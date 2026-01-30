@@ -127,6 +127,10 @@ All changes included in 1.9:
 
 - ([#4426](https://github.com/quarto-dev/quarto-cli/issues/4426)): New `quarto install verapdf` command installs [veraPDF](https://verapdf.org/) for PDF/A and PDF/UA validation. When verapdf is available, PDFs created with the `pdf-standard` option are automatically validated for compliance. Also supports `quarto uninstall verapdf`, `quarto update verapdf`, and `quarto tools`.
 
+### `preview`
+
+- ([#13804](https://github.com/quarto-dev/quarto-cli/pull/13804)): Fix intermittent preview crashes during re-renders by properly managing project context lifecycle. Resolves issues with missing temporary directories and `quarto_ipynb` files when editing notebooks and qmd files together.
+
 ## Extensions
 
 - Metadata and brand extensions now work without a `_quarto.yml` project. (Engine extensions do too.) A temporary default project is created in memory.
