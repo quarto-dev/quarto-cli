@@ -58,8 +58,8 @@ const exampleEngineDiscovery: ExecutionEngineDiscovery = {
   ): boolean | number => {
     // This engine claims cells with its own language name.
     // The optional firstClass parameter allows claiming based on code block class
-    // (e.g., {python.myengine} would have firstClass="myengine").
-    // Return a number > 1 to override other engines that also claim this language.
+    // (e.g., {python .myengine} would have firstClass="myengine").
+    // Return false to skip, true to claim with priority 1, or any number for custom priority.
     return language.toLowerCase() === kCellLanguage.toLowerCase();
   },
 

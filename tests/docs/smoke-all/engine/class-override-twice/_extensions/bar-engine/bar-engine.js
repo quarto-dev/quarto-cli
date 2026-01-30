@@ -1,25 +1,25 @@
-// Minimal engine to test class-based engine override
-// Claims {python.foo} blocks with priority 2 (higher than Jupyter's 1)
+// Engine to test priority-based engine override
+// Claims {python.foo} blocks with priority 3 (higher than foo-engine's 2)
 
 let quarto;
 
-const fooEngineDiscovery = {
+const barEngineDiscovery = {
   init: (quartoAPI) => {
     quarto = quartoAPI;
   },
 
-  name: "foo",
+  name: "bar",
   defaultExt: ".qmd",
-  defaultYaml: () => ["engine: foo"],
-  defaultContent: () => ["# Foo Engine Document"],
+  defaultYaml: () => ["engine: bar"],
+  defaultContent: () => ["# Bar Engine Document"],
   validExtensions: () => [".qmd"],
 
   claimsFile: (_file, _ext) => false,
 
   claimsLanguage: (language, firstClass) => {
-    // Claim python.foo with priority 2 (overrides Jupyter's 1)
+    // Claim python.foo with priority 3 (overrides foo-engine's 2)
     if (language === "python" && firstClass === "foo") {
-      return 2;
+      return 3;
     }
     return false; // Don't claim
   },
@@ -29,7 +29,7 @@ const fooEngineDiscovery = {
 
   launch: (context) => {
     return {
-      name: "foo",
+      name: "bar",
       canFreeze: false,
 
       markdownForFile: async (file) => {
@@ -68,8 +68,8 @@ const fooEngineDiscovery = {
             const header = cell.sourceVerbatim.value.split(/\r?\n/)[0];
             const hasClassFoo = /\.foo\b/.test(header);
             if (hasClassFoo) {
-              processedCells.push(`::: {#foo-engine-marker .foo-engine-output}
-**FOO ENGINE PROCESSED THIS BLOCK**
+              processedCells.push(`::: {#bar-engine-marker .bar-engine-output}
+**BAR ENGINE PROCESSED THIS BLOCK**
 
 Original code:
 \`\`\`python
@@ -99,4 +99,4 @@ ${cell.source.value.trim()}
   },
 };
 
-export default fooEngineDiscovery;
+export default barEngineDiscovery;

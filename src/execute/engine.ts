@@ -176,12 +176,16 @@ export function markdownExecutionEngine(
   // see if there is an engine that claims this language (highest score wins)
   for (const [language, firstClass] of languagesWithClassesMap) {
     let bestEngine: ExecutionEngineDiscovery | undefined;
-    let bestScore = 0;
+    let bestScore = -Infinity;
 
     for (const [_, engine] of reorderedEngines) {
       const claim = engine.claimsLanguage(language, firstClass);
-      // Convert boolean to number for backwards compatibility
-      const score = typeof claim === "boolean" ? (claim ? 1 : 0) : claim;
+      // false means "don't claim", skip this engine entirely
+      if (claim === false) {
+        continue;
+      }
+      // true -> score 1, number -> use as score
+      const score = claim === true ? 1 : claim;
       if (score > bestScore) {
         bestScore = score;
         bestEngine = engine;
