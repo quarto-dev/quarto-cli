@@ -818,3 +818,49 @@ testQuartoCmd(
   },
   "quarto use brand - brand extension dry-run shows renamed file"
 );
+
+// Scenario 17: Brand extension with brand file in subdirectory
+// Tests that brand path in _extension.yml can be a relative path (e.g., subdir/brand.yml)
+// and that referenced files are resolved relative to the brand file's directory
+const brandExtSubdirDir = join(tempDir, "brand-ext-subdir");
+ensureDirSync(brandExtSubdirDir);
+testQuartoCmd(
+  "use",
+  ["brand", join(fixtureDir, "brand-extension-subdir"), "--force"],
+  [
+    noErrorsOrWarnings,
+    folderExists(join(brandExtSubdirDir, "_brand")),
+    // subdir/brand.yml should be renamed to _brand.yml
+    fileExists(join(brandExtSubdirDir, "_brand", "_brand.yml")),
+    // logo.png (referenced as logo.png in subdir/brand.yml) should be copied
+    // The logo is at subdir/logo.png relative to extension dir
+    fileExists(join(brandExtSubdirDir, "_brand", "logo.png")),
+    // images/nested-logo.png (referenced as images/nested-logo.png in subdir/brand.yml)
+    // should be copied to _brand/images/nested-logo.png
+    folderExists(join(brandExtSubdirDir, "_brand", "images")),
+    fileExists(join(brandExtSubdirDir, "_brand", "images", "nested-logo.png")),
+    // Verify the content is correct
+    {
+      name: "_brand.yml should contain subdir brand content",
+      verify: () => {
+        const content = Deno.readTextFileSync(join(brandExtSubdirDir, "_brand", "_brand.yml"));
+        if (!content.includes("Test Brand Extension Subdir")) {
+          throw new Error("_brand.yml should contain content from subdir/brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
+  ],
+  {
+    setup: () => {
+      Deno.writeTextFileSync(join(brandExtSubdirDir, "_quarto.yml"), "project:\n  type: default\n");
+      return Promise.resolve();
+    },
+    cwd: () => brandExtSubdirDir,
+    teardown: () => {
+      try { Deno.removeSync(brandExtSubdirDir, { recursive: true }); } catch { /* ignore */ }
+      return Promise.resolve();
+    }
+  },
+  "quarto use brand - brand extension with subdir brand file"
+);

@@ -307,14 +307,17 @@ async function useBrand(
   }
 
   const brandFilePath = join(sourceDir, brandFileName);
+  // Get the directory containing the brand file (for resolving relative paths)
+  const brandFileDir = dirname(brandFilePath);
 
   // Extract referenced file paths from the brand YAML
   const referencedPaths = extractBrandFilePaths(brandFilePath);
 
   // Build list of files to copy: brand file + referenced files
+  // Referenced paths are relative to the brand file's directory
   const filesToCopy: string[] = [brandFilePath];
   for (const refPath of referencedPaths) {
-    const fullPath = join(sourceDir, refPath);
+    const fullPath = join(brandFileDir, refPath);
     if (existsSync(fullPath)) {
       filesToCopy.push(fullPath);
     }
@@ -342,19 +345,17 @@ async function useBrand(
   }
 
   // Build set of source file paths for comparison
-  // For brand extensions, we need to account for the brand file rename
+  // Paths are relative to the brand file's directory
+  // For brand extensions, the brand file is renamed to _brand.yml
   const sourceFiles = new Set(
     filesToCopy
       .filter((f) => !Deno.statSync(f).isDirectory)
       .map((f) => {
-        const rel = relative(sourceDir, f);
-        // If this is a brand extension and this is the brand file, it will become _brand.yml
-        if (
-          brandExtInfo.isBrandExtension && rel === brandExtInfo.brandFileName
-        ) {
+        // If this is the brand file, it will become _brand.yml
+        if (f === brandFilePath) {
           return "_brand.yml";
         }
-        return rel;
+        return relative(brandFileDir, f);
       }),
   );
 
@@ -374,15 +375,17 @@ async function useBrand(
 
   for (const fileToCopy of filesToCopy) {
     const isDir = Deno.statSync(fileToCopy).isDirectory;
-    const rel = relative(sourceDir, fileToCopy);
     if (isDir) {
       continue;
     }
 
-    // For brand extensions, rename the brand file to _brand.yml
-    let targetRel = rel;
-    if (brandExtInfo.isBrandExtension && rel === brandExtInfo.brandFileName) {
+    // Compute target path relative to brand file's directory
+    // The brand file itself is renamed to _brand.yml
+    let targetRel: string;
+    if (fileToCopy === brandFilePath) {
       targetRel = "_brand.yml";
+    } else {
+      targetRel = relative(brandFileDir, fileToCopy);
     }
 
     // Compute the paths
