@@ -1,0 +1,8 @@
+---
+title: Post 6
+image-lazy-loading: true
+---
+
+This is 6.
+
+![](https://placeholder.co/600/600.png)
