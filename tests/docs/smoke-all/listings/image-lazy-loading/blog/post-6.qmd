@@ -5,4 +5,4 @@ image-lazy-loading: true
 
 This is 6.
 
-![](https://placeholder.co/600/600.png)
+![](https://placeholder.co/600/600.png){.preview-image}

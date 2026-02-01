@@ -4,4 +4,4 @@ title: Post 4
 
 This is 4.
 
-![](https://placeholder.co/400/400.png)
+![](https://placeholder.co/400/400.png){.preview-image}

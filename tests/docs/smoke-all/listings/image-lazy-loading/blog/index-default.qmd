@@ -6,6 +6,7 @@ listing:
     - title
     - image
 _quarto:
+  render-project: true
   tests:
     html:
       ensureHtmlElements:
